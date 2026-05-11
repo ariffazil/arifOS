@@ -117,7 +117,9 @@ def handle_stage_failure(
 
     Ensures F4 (Clarity): All failures have deterministic, documented semantics.
     """
-    handler = STAGE_FAILURE_HANDLERS.get(stage_id, STAGE_FAILURE_HANDLERS[Stage.INIT_000.value])
+    handler = STAGE_FAILURE_HANDLERS.get(
+        stage_id, STAGE_FAILURE_HANDLERS[Stage.INIT_000.value]
+    )
 
     error_details = {
         "stage": stage_id,
@@ -159,7 +161,9 @@ def handle_stage_failure(
 # ---------------------------------------------------------------------------
 
 
-async def handle_pns_vision(content_type: str, data: bytes, session_id: str) -> RuntimeEnvelope:
+async def handle_pns_vision(
+    content_type: str, data: bytes, session_id: str
+) -> RuntimeEnvelope:
     """PNS·VISION: Multimodal perception organ.
     Processes binary data (Image/PDF) into semantic sensory artifacts.
     """
@@ -224,7 +228,9 @@ async def handle_pns_orchestrate(task: str, session_id: str) -> RuntimeEnvelope:
     """PNS·ORCHESTRATE: Tool routing mediation."""
     from arifosmcp.tools.agentzero_tools import agentzero_engineer
 
-    return await agentzero_engineer(task=task, action_type="execute_code", session_id=session_id)
+    return await agentzero_engineer(
+        task=task, action_type="execute_code", session_id=session_id
+    )
 
 
 async def handle_pns_floor(input_data: Any, session_id: str) -> RuntimeEnvelope:
@@ -358,13 +364,19 @@ async def run_stage(
                 try:
                     # Add timeout to prevent hanging on search
                     search_env = await asyncio.wait_for(
-                        handle_pns_search(query=query, session_id=session_id), timeout=10.0
+                        handle_pns_search(query=query, session_id=session_id),
+                        timeout=10.0,
                     )
-                    search_res = PNSSignal(source="PNS_SEARCH", payload=search_env.payload)
+                    search_res = PNSSignal(
+                        source="PNS_SEARCH", payload=search_env.payload
+                    )
                     pns_trace["PNS_SEARCH"] = search_res.model_dump(mode="json")
                 except asyncio.TimeoutError:
                     # Continue without search results if timeout
-                    pns_trace["PNS_SEARCH"] = {"error": "timeout", "source": "PNS_SEARCH"}
+                    pns_trace["PNS_SEARCH"] = {
+                        "error": "timeout",
+                        "source": "PNS_SEARCH",
+                    }
 
             # F12: Retrieve constitutional grounding context from session
             if session_id:
@@ -386,7 +398,9 @@ async def run_stage(
             vision_res = active_pns.vision if active_pns else None
 
             # Multimodal Auto-Trigger: If binary data is detected in query, trigger vision
-            if not vision_res and (query.startswith("data:") or "IMAGE_ATTACHED" in query):
+            if not vision_res and (
+                query.startswith("data:") or "IMAGE_ATTACHED" in query
+            ):
                 vision_env = await handle_pns_vision(
                     content_type="image", data=b"", session_id=session_id
                 )
@@ -533,7 +547,11 @@ async def metabolic_loop(
             "stage": "444_ROUTER",
             "verdict": "SEAL",
             "status": "DRY_RUN",
-            "authority": {"actor_id": _actual_actor, "level": "declared", "auth_state": "verified"},
+            "authority": {
+                "actor_id": _actual_actor,
+                "level": "declared",
+                "auth_state": "verified",
+            },
             "auth_context": ctx,
             "dry_run": True,
             "meta": {"dry_run": True},
@@ -567,10 +585,15 @@ async def metabolic_loop(
     try:
         # === OUTER RING GATE: PNS·SHIELD ===
         if not pns_context or not pns_context.shield:
-            shield_env = await handle_pns_shield(content=query, session_id=current_session_id)
+            shield_env = await handle_pns_shield(
+                content=query, session_id=current_session_id
+            )
             pns_context = pns_context or PNSContext()
             pns_context.shield = PNSSignal(
-                source="PNS_SHIELD", status=shield_env.status, score=0.0, payload=shield_env.payload
+                source="PNS_SHIELD",
+                status=shield_env.status,
+                score=0.0,
+                payload=shield_env.payload,
             )
 
         if pns_context.shield.status == "VOID":
@@ -627,11 +650,15 @@ async def metabolic_loop(
         if init_res.verdict != Verdict.SEAL and not dry_run:
             import sys
 
-            print(f"DEBUG: Early exit. Init verdict: {init_res.verdict}", file=sys.stderr)
+            print(
+                f"DEBUG: Early exit. Init verdict: {init_res.verdict}", file=sys.stderr
+            )
             # We return the initialization failure directly
             out = init_res.model_dump(mode="json")
             out["trace"] = trace
-            out["tool"] = tool_name  # P0: Preserve identity — arifos_kernel is the router
+            out["tool"] = (
+                tool_name  # P0: Preserve identity — arifos_kernel is the router
+            )
             return out
 
         # Early timeout check after init
@@ -663,7 +690,9 @@ async def metabolic_loop(
             try:
                 from arifosmcp.agentzero.escalation.hold_state import HoldStateManager
                 from arifosmcp.runtime.dag_executor import ConstitutionalDAGExecutor
-                from arifosmcp.runtime.irreversibility import AmanahIrreversibilityScorer
+                from arifosmcp.runtime.irreversibility import (
+                    AmanahIrreversibilityScorer,
+                )
 
                 scorer = AmanahIrreversibilityScorer()
                 hold_mgr = HoldStateManager()
@@ -807,9 +836,13 @@ async def metabolic_loop(
             10, len(actual_content) // 4
         )  # rough token estimate (1 word/token ≈ 4 chars)
         actual_options = 1
-        if "steps" in cumulative_payload and isinstance(cumulative_payload["steps"], list):
+        if "steps" in cumulative_payload and isinstance(
+            cumulative_payload["steps"], list
+        ):
             actual_options = len(cumulative_payload["steps"])
-        elif "options" in cumulative_payload and isinstance(cumulative_payload["options"], list):
+        elif "options" in cumulative_payload and isinstance(
+            cumulative_payload["options"], list
+        ):
             actual_options = len(cumulative_payload["options"])
         else:
             actual_options = 3 if "AGI_REASON" in trace else 1
@@ -834,7 +867,9 @@ async def metabolic_loop(
                 "stage": policy_res.stage,
                 "sacred_stage": _get_sacred_name(policy_res.stage),
                 "verdict": final_metrics.telemetry.verdict,
-                "status": "SUCCESS" if final_metrics.telemetry.verdict == "ALIVE" else "ERROR",
+                "status": (
+                    "SUCCESS" if final_metrics.telemetry.verdict == "ALIVE" else "ERROR"
+                ),
                 "trace": trace,
                 "payload": cumulative_payload,  # Replaces overwritten payload with cumulative one
                 "final_verdict": final_metrics.telemetry.verdict,

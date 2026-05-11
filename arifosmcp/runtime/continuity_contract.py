@@ -94,17 +94,25 @@ def seal_runtime_envelope(
     if prev_state_data and prev_hash:
         recomputed = _hash_dict(prev_state_data)
         if recomputed != prev_hash:
-            logger.error(f"Ψ-BREACH: State hash mismatch for session {resolved_session_id}!")
+            logger.error(
+                f"Ψ-BREACH: State hash mismatch for session {resolved_session_id}!"
+            )
             state_integrity = "FAILED"
         else:
-            logger.info(f"Ψ-VERIFIED: State hash check PASS for session {resolved_session_id}")
+            logger.info(
+                f"Ψ-VERIFIED: State hash check PASS for session {resolved_session_id}"
+            )
 
-    declared_identity = _build_declared_identity(envelope, payload, input_payload, previous_state)
+    declared_identity = _build_declared_identity(
+        envelope, payload, input_payload, previous_state
+    )
     verified_identity = _build_verified_identity(envelope, payload, previous_state)
     session_binding = _build_session_binding(
         envelope, payload, input_payload, previous_state, resolved_session_id, tool_id
     )
-    authorization = _build_authorization(envelope, payload, input_payload, previous_state, mode)
+    authorization = _build_authorization(
+        envelope, payload, input_payload, previous_state, mode
+    )
     policy_checks = _build_policy_checks(envelope, payload)
     governance_closure = _build_governance_closure(envelope, payload)
     reasoning = _build_reasoning_state(envelope, payload)
@@ -387,13 +395,19 @@ def _build_authorization(
     return authorization
 
 
-def _build_policy_checks(envelope: RuntimeEnvelope, payload: dict[str, Any]) -> dict[str, Any]:
+def _build_policy_checks(
+    envelope: RuntimeEnvelope, payload: dict[str, Any]
+) -> dict[str, Any]:
     policy = _as_dict(envelope.policy)
     floors_checked = (
-        policy.get("floors_checked") or _deep_get(payload, "audit", "floors_checked") or []
+        policy.get("floors_checked")
+        or _deep_get(payload, "audit", "floors_checked")
+        or []
     )
     floors_failed = (
-        policy.get("floors_failed") or _deep_get(payload, "audit", "floors_failed") or []
+        policy.get("floors_failed")
+        or _deep_get(payload, "audit", "floors_failed")
+        or []
     )
     floors_failed = [floor for floor in floors_failed if floor]
     return {
@@ -404,7 +418,9 @@ def _build_policy_checks(envelope: RuntimeEnvelope, payload: dict[str, Any]) -> 
     }
 
 
-def _build_governance_closure(envelope: RuntimeEnvelope, payload: dict[str, Any]) -> dict[str, Any]:
+def _build_governance_closure(
+    envelope: RuntimeEnvelope, payload: dict[str, Any]
+) -> dict[str, Any]:
     quad_witness_valid = _deep_get(payload, "data", "quad_witness_valid")
     if quad_witness_valid is None:
         quad_witness_valid = _deep_get(payload, "quad_witness_valid")
@@ -421,7 +437,9 @@ def _build_governance_closure(envelope: RuntimeEnvelope, payload: dict[str, Any]
     }
 
 
-def _build_reasoning_state(envelope: RuntimeEnvelope, payload: dict[str, Any]) -> dict[str, Any]:
+def _build_reasoning_state(
+    envelope: RuntimeEnvelope, payload: dict[str, Any]
+) -> dict[str, Any]:
     telemetry = _as_dict(envelope.metrics.telemetry)
     data = _as_dict(payload.get("data"))
     return {
@@ -431,7 +449,8 @@ def _build_reasoning_state(envelope: RuntimeEnvelope, payload: dict[str, Any]) -
         "confidence": telemetry.get("confidence", 0.0),
         "entropy_delta": telemetry.get("ds", 0.0),
         "coherence": data.get("coherence") or payload.get("coherence"),
-        "session_continuity": data.get("session_continuity") or payload.get("session_continuity"),
+        "session_continuity": data.get("session_continuity")
+        or payload.get("session_continuity"),
     }
 
 
@@ -534,11 +553,11 @@ def _build_operator_summary(
 ) -> dict[str, Any]:
     verified_actor = verified_identity.get("verified_actor_id")
     if verified_actor:
-        identity_text = (
-            f"Declared as {declared_identity['declared_actor_id']}; verified as {verified_actor}"
-        )
+        identity_text = f"Declared as {declared_identity['declared_actor_id']}; verified as {verified_actor}"
     else:
-        identity_text = f"Declared as {declared_identity['declared_actor_id']}; not verified"
+        identity_text = (
+            f"Declared as {declared_identity['declared_actor_id']}; not verified"
+        )
 
     authority = authorization.get("allowed_modes") or []
     authority_text = f"{', '.join(authority) if authority else 'no'} modes, max risk {authorization.get('max_risk_tier', 'unknown')}"
@@ -548,7 +567,9 @@ def _build_operator_summary(
         "session": f"{session_binding.get('session_binding_state', 'unknown')} and {session_binding.get('continuity_status', 'unknown')}",
         "authority": authority_text,
         "privilege_drift": (
-            "Detected" if diagnostics["hard_guardrails"]["privilege_drift_detected"] else "None"
+            "Detected"
+            if diagnostics["hard_guardrails"]["privilege_drift_detected"]
+            else "None"
         ),
         "next_action": (handoff.get("consumable_by") or [None])[0],
         "governance": f"{governance_closure['operational_status']} / proof {governance_closure['proof_status']}",
@@ -607,4 +628,6 @@ def _as_dict(value: Any) -> dict[str, Any]:
 
 
 def _hash_dict(value: dict[str, Any]) -> str:
-    return hashlib.sha256(json.dumps(value, sort_keys=True, default=str).encode()).hexdigest()
+    return hashlib.sha256(
+        json.dumps(value, sort_keys=True, default=str).encode()
+    ).hexdigest()

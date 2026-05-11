@@ -2,9 +2,18 @@
 
 from __future__ import annotations
 
-from arifosmcp.resources import CANONICAL_RESOURCES, EVIDENCE_RESOURCES, register_resources
+from arifosmcp.resources import (
+    CANONICAL_RESOURCES,
+    EVIDENCE_RESOURCES,
+    register_resources,
+)
 
-__all__ = ["CANONICAL_RESOURCES", "EVIDENCE_RESOURCES", "register_resources", "manifest_resources"]
+__all__ = [
+    "CANONICAL_RESOURCES",
+    "EVIDENCE_RESOURCES",
+    "register_resources",
+    "manifest_resources",
+]
 
 
 def manifest_resources() -> list[str]:

@@ -40,7 +40,13 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────────────────────────────────────
 
 BIND_SCHEMA_VERSION = "2.0.0"
-MIN_REQUIRED_FLOORS = {"F0_SOVEREIGN", "F1_AMANAH", "F2_TRUTH", "F8_GOVERNANCE", "F9_ANTIHANTU"}
+MIN_REQUIRED_FLOORS = {
+    "F0_SOVEREIGN",
+    "F1_AMANAH",
+    "F2_TRUTH",
+    "F8_GOVERNANCE",
+    "F9_ANTIHANTU",
+}
 
 # Gödel lock items 333 must never attempt to override
 GODEL_LOCK_INVARIANTS = {
@@ -67,7 +73,9 @@ def _validate_bind_artifact(bind_artifact: dict | None) -> dict:
     Fail-closed: missing or malformed bind_artifact → raises BindArtifactError.
     """
     if bind_artifact is None:
-        raise BindArtifactError("bind_artifact", "Missing required bind_artifact from 000_INIT")
+        raise BindArtifactError(
+            "bind_artifact", "Missing required bind_artifact from 000_INIT"
+        )
 
     if bind_artifact.get("schema_version") not in {BIND_SCHEMA_VERSION, "1.0.0", "2.0"}:
         raise BindArtifactError(
@@ -88,7 +96,9 @@ def _validate_bind_artifact(bind_artifact: dict | None) -> dict:
     }
     missing = required - set(bind_artifact.keys())
     if missing:
-        raise BindArtifactError("required_fields", f"Missing required fields: {missing}")
+        raise BindArtifactError(
+            "required_fields", f"Missing required fields: {missing}"
+        )
 
     # Verify minimum floors present
     floor_ids = set(bind_artifact.get("floors", {}).keys())
@@ -107,7 +117,8 @@ def _validate_bind_artifact(bind_artifact: dict | None) -> dict:
     if not GODEL_LOCK_INVARIANTS.issubset(lock_items):
         missing_locks = GODEL_LOCK_INVARIANTS - lock_items
         raise BindArtifactError(
-            "godel_lock.lock_items", f"Missing required Gödel lock items: {missing_locks}"
+            "godel_lock.lock_items",
+            f"Missing required Gödel lock items: {missing_locks}",
         )
 
     # Verify lifecycle stage
@@ -192,7 +203,9 @@ async def _web_search(query: str, max_results: int = 5) -> dict[str, Any]:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-async def _understand_image(image_url: str, question: str | None = None) -> dict[str, Any]:
+async def _understand_image(
+    image_url: str, question: str | None = None
+) -> dict[str, Any]:
     """
     Understand image via MiniMax MCP.
     question: optional prompt/question about the image
@@ -200,7 +213,9 @@ async def _understand_image(image_url: str, question: str | None = None) -> dict
     """
     try:
         bridge = await _get_mcp_bridge()
-        raw = await bridge.understand_image(image_url=image_url, question=question or "")
+        raw = await bridge.understand_image(
+            image_url=image_url, question=question or ""
+        )
         return {
             "capability": "image_understanding",
             "image_url": image_url,
@@ -228,7 +243,9 @@ async def _understand_image(image_url: str, question: str | None = None) -> dict
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-async def _text_to_image(prompt: str, model: str = "MiniMax-Image-01") -> dict[str, Any]:
+async def _text_to_image(
+    prompt: str, model: str = "MiniMax-Image-01"
+) -> dict[str, Any]:
     """Generate image from text prompt via MiniMax MCP."""
     try:
         bridge = await _get_mcp_bridge()
@@ -586,7 +603,12 @@ async def execute(
                 "Confidence reflects reasoning scaffold completeness.",
                 "bind_artifact was validated at session start.",
             ],
-            floors_evaluated=["F2_TRUTH", "F7_GROUNDING", "F8_GOVERNANCE", "F9_ANTIHANTU"],
+            floors_evaluated=[
+                "F2_TRUTH",
+                "F7_GROUNDING",
+                "F8_GOVERNANCE",
+                "F9_ANTIHANTU",
+            ],
             confidence=global_confidence,
             extra_meta={
                 "reasoning_depth": depth,
@@ -607,7 +629,9 @@ async def execute(
         stakeholder_safety=None,
     )
 
-    result = governed_return("arifos_333_mind", report, metrics, operator_id, session_id)
+    result = governed_return(
+        "arifos_333_mind", report, metrics, operator_id, session_id
+    )
     if not isinstance(result, dict):
         result = {
             "status": "ACTIVE",
@@ -636,7 +660,12 @@ async def execute(
     result["metabolic_metadata"] = {
         "source_integrity": source_integrity,
         "confidence_score": global_confidence,
-        "floor_alignment": ["F2_TRUTH", "F7_GROUNDING", "F8_GOVERNANCE", "F9_ANTIHANTU"],
+        "floor_alignment": [
+            "F2_TRUTH",
+            "F7_GROUNDING",
+            "F8_GOVERNANCE",
+            "F9_ANTIHANTU",
+        ],
         "readiness_probe": readiness_probe,
         "readiness_detail": readiness_detail,
         "verdict": result.get("verdict", Verdict.CLAIM_ONLY),
@@ -652,7 +681,9 @@ async def execute(
     # Attach multimodal results if any were acquired
     if multimodal_results:
         result["multimodal_results"] = multimodal_results
-        result["metabolic_metadata"]["multimodal_capabilities"] = list(multimodal_results.keys())
+        result["metabolic_metadata"]["multimodal_capabilities"] = list(
+            multimodal_results.keys()
+        )
 
     # ── 9. Vault-999 event ─────────────────────────────────────────────────
     try:

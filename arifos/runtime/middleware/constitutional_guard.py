@@ -18,7 +18,6 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-
 logger = logging.getLogger(__name__)
 
 # ── Domain Contracts: required output fields per canonical tool ──────────────
@@ -247,7 +246,10 @@ def _extract_metrics(output: dict[str, Any]) -> dict[str, Any]:
         metrics["witness"] = witness
 
     # Policy-level signals (top-level or nested in metrics)
-    for policy_source in (output.get("policy"), output.get("metrics", {}).get("policy")):
+    for policy_source in (
+        output.get("policy"),
+        output.get("metrics", {}).get("policy"),
+    ):
         if isinstance(policy_source, dict):
             metrics.setdefault("injection_score", policy_source.get("injection_score"))
             metrics.setdefault("zkpc_receipt", policy_source.get("zkpc_receipt"))

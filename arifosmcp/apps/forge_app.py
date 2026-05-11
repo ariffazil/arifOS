@@ -18,7 +18,11 @@ async def forge_judge_check(
     sid = session_id or STATE.get("session_id") or "forge-session"
     verdict = "HOLD" if risk_tier in {"high", "critical"} else "SEAL"
     STATE.update(
-        {"session_id": sid, "gate1_verdict": verdict, "candidate_action": candidate_action}
+        {
+            "session_id": sid,
+            "gate1_verdict": verdict,
+            "candidate_action": candidate_action,
+        }
     )
     return {
         "session_id": sid,

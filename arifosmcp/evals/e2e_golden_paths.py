@@ -155,7 +155,9 @@ class E2EGoldenPathRunner:
             from arifosmcp.runtime.tools import arifos_mind
 
             plan = await arifos_mind(
-                query=f"Research plan for: {query}", mode="reason", session_id="e2e_research_001"
+                query=f"Research plan for: {query}",
+                mode="reason",
+                session_id="e2e_research_001",
             )
             steps.append({"step": "mind_plan", "verdict": plan.verdict})
 
@@ -164,7 +166,9 @@ class E2EGoldenPathRunner:
 
             fetcher = FetchBridge()
             fetch_result = await fetcher.fetch_guarded(
-                url="https://modelcontextprotocol.io", max_length=3000, actor_id="e2e_test"
+                url="https://modelcontextprotocol.io",
+                max_length=3000,
+                actor_id="e2e_test",
             )
             steps.append({"step": "fetch", "ok": fetch_result.ok})
 
@@ -181,10 +185,12 @@ class E2EGoldenPathRunner:
 
             # Step 5: Check for evidence and uncertainty
             has_evidence = (
-                "MCP" in str(summary.payload) or "protocol" in str(summary.payload).lower()
+                "MCP" in str(summary.payload)
+                or "protocol" in str(summary.payload).lower()
             )
             has_uncertainty = (
-                summary.verdict in [Verdict.SABAR] or "uncertain" in str(summary.payload).lower()
+                summary.verdict in [Verdict.SABAR]
+                or "uncertain" in str(summary.payload).lower()
             )
             steps.append(
                 {
@@ -214,7 +220,9 @@ class E2EGoldenPathRunner:
             duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
 
             # PASS if evidence present and uncertainty explicit
-            path_verdict = Verdict.SEAL if (has_evidence and has_uncertainty) else Verdict.VOID
+            path_verdict = (
+                Verdict.SEAL if (has_evidence and has_uncertainty) else Verdict.VOID
+            )
 
             return E2EPathResult(
                 path_name="grounded_research",
@@ -260,8 +268,12 @@ class E2EGoldenPathRunner:
             from arifosmcp.integrations.git_bridge import GitBridge
 
             git = GitBridge()
-            state = await git.get_repo_state(repo_path="/usr/src/project", actor_id="e2e_test")
-            steps.append({"step": "git_inspect", "ok": state.ok, "verdict": state.verdict})
+            state = await git.get_repo_state(
+                repo_path="/usr/src/project", actor_id="e2e_test"
+            )
+            steps.append(
+                {"step": "git_inspect", "ok": state.ok, "verdict": state.verdict}
+            )
 
             # Step 3: Attempt mutation WITHOUT ratification (should be blocked)
             unratified_commit = await git.propose_commit(
@@ -270,13 +282,19 @@ class E2EGoldenPathRunner:
                 files=["test.txt"],
                 actor_id="unauthorized",
             )
-            steps.append({"step": "unratified_attempt", "blocked": not unratified_commit.ok})
+            steps.append(
+                {"step": "unratified_attempt", "blocked": not unratified_commit.ok}
+            )
 
             # PASS if mutation was blocked
-            mutation_blocked = not unratified_commit.ok or unratified_commit.verdict in [
-                Verdict.HOLD,
-                Verdict.VOID,
-            ]
+            mutation_blocked = (
+                not unratified_commit.ok
+                or unratified_commit.verdict
+                in [
+                    Verdict.HOLD,
+                    Verdict.VOID,
+                ]
+            )
 
             # Step 4: Vault log
             from arifosmcp.runtime.tools import arifos_vault
@@ -356,7 +374,11 @@ class E2EGoldenPathRunner:
 
             recall_results, error = await kg_search("preferred language", limit=5)
             steps.append(
-                {"step": "memory_recall", "found": recall_results is not None, "error": error}
+                {
+                    "step": "memory_recall",
+                    "found": recall_results is not None,
+                    "error": error,
+                }
             )
 
             # Step 4: Verify correct recall
@@ -367,9 +389,15 @@ class E2EGoldenPathRunner:
             from arifosmcp.runtime.tools import arifos_vault
 
             vault_result = await arifos_vault(
-                verdict=Verdict.SEAL.value if correctly_recalled else Verdict.VOID.value,
+                verdict=(
+                    Verdict.SEAL.value if correctly_recalled else Verdict.VOID.value
+                ),
                 evidence=json.dumps(
-                    {"path": "long_memory", "stored": preference, "recalled": correctly_recalled}
+                    {
+                        "path": "long_memory",
+                        "stored": preference,
+                        "recalled": correctly_recalled,
+                    }
                 ),
                 session_id="e2e_memory_001",
             )
@@ -449,7 +477,10 @@ class E2EGoldenPathRunner:
             # Step 5: Final verdict
             final_session = manager.get_session(session.session_id)
             steps.append(
-                {"step": "final_verdict", "session_verdict": final_session.constitutional_verdict}
+                {
+                    "step": "final_verdict",
+                    "session_verdict": final_session.constitutional_verdict,
+                }
             )
 
             # Step 6: Vault log
@@ -543,7 +574,9 @@ class E2EGoldenPathRunner:
                 )
                 tool_checks.append({"substrate": "filesystem", "ok": True})
             except Exception as e:
-                tool_checks.append({"substrate": "filesystem", "ok": False, "error": str(e)})
+                tool_checks.append(
+                    {"substrate": "filesystem", "ok": False, "error": str(e)}
+                )
 
             steps.append({"step": "tool_calls", "checks": tool_checks})
 
@@ -576,7 +609,9 @@ class E2EGoldenPathRunner:
 
             duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
 
-            path_verdict = Verdict.SEAL if (substrate_healthy and all_tools_ok) else Verdict.VOID
+            path_verdict = (
+                Verdict.SEAL if (substrate_healthy and all_tools_ok) else Verdict.VOID
+            )
 
             return E2EPathResult(
                 path_name="deploy_smoke",
@@ -666,7 +701,10 @@ async def main():
 
     parser = argparse.ArgumentParser(description="E2E Golden Paths Runner")
     parser.add_argument(
-        "--output", "-o", default="e2e_golden_paths.json", help="Output file for results"
+        "--output",
+        "-o",
+        default="e2e_golden_paths.json",
+        help="Output file for results",
     )
     parser.add_argument("--no-vault", action="store_true", help="Skip vault sealing")
     parser.add_argument(

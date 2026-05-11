@@ -18,18 +18,18 @@ class Hypothesis(BaseModel):
 
 class Provenance(BaseModel):
     intelligence_type: Literal["statistical", "embodied", "hybrid"] = "statistical"
-    grounding_status: Literal["data-based", "sensor-based", "human-mediated", "ungrounded"] = (
-        "human-mediated"
-    )
+    grounding_status: Literal[
+        "data-based", "sensor-based", "human-mediated", "ungrounded"
+    ] = "human-mediated"
     stakes_model: Literal["none", "simulated", "externalized-to-human", "shared"] = (
         "externalized-to-human"
     )
     confidence_domain: Literal[
         "narrow-task", "broad-context", "ambiguous", "human-judgment-required"
     ] = "ambiguous"
-    meaning_source: Literal["human-attributed", "statistical-inference", "ungrounded"] = (
-        "statistical-inference"
-    )
+    meaning_source: Literal[
+        "human-attributed", "statistical-inference", "ungrounded"
+    ] = "statistical-inference"
     human_equivalence_claimed: bool = False
 
 
@@ -136,9 +136,13 @@ def chaos_score(state: MindState) -> float:
 
 def compress_for_operator(state: MindState) -> OutputEnvelope:
     """Wide mind -> Narrow voice."""
-    top_hypotheses = sorted(state.hypotheses, key=lambda h: h.confidence, reverse=True)[:2]
+    top_hypotheses = sorted(state.hypotheses, key=lambda h: h.confidence, reverse=True)[
+        :2
+    ]
     options = [h.claim for h in top_hypotheses]
-    summary = top_hypotheses[0].claim if top_hypotheses else "No stable hypothesis available."
+    summary = (
+        top_hypotheses[0].claim if top_hypotheses else "No stable hypothesis available."
+    )
 
     status: Literal["OK", "PARTIAL", "HOLD", "ERROR"] = "OK"
     if state.decision_required:

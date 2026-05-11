@@ -103,7 +103,9 @@ class ToolContract:
             # Compute hash from contract content
             floors_json = json.dumps(self.floors_enforced, sort_keys=True)
             content = f"{self.name}:{self.contract_version}:{floors_json}"
-            object.__setattr__(self, "hash", hashlib.sha256(content.encode()).hexdigest()[:16])
+            object.__setattr__(
+                self, "hash", hashlib.sha256(content.encode()).hexdigest()[:16]
+            )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -188,7 +190,10 @@ class ContractRegistry:
                 output_schema={
                     "type": "object",
                     "properties": {
-                        "verdict": {"type": "string", "enum": ["SEAL", "HOLD", "SABAR"]},
+                        "verdict": {
+                            "type": "string",
+                            "enum": ["SEAL", "HOLD", "SABAR"],
+                        },
                         "grounding": {"type": "object"},
                         "uncertainty": {"type": "object"},
                         "evidence_count": {"type": "integer"},
@@ -217,7 +222,10 @@ class ContractRegistry:
                     "properties": {
                         "query": {"type": "string"},
                         "context": {"type": "object"},
-                        "mode": {"type": "string", "enum": ["reason", "reflect", "synthesize"]},
+                        "mode": {
+                            "type": "string",
+                            "enum": ["reason", "reflect", "synthesize"],
+                        },
                         "uncertainty_hint": {"type": "number"},
                     },
                     "required": ["query"],
@@ -255,7 +263,10 @@ class ContractRegistry:
                         "query": {"type": "string"},
                         "current_state": {"type": "string"},
                         "requested_tool": {"type": "string"},
-                        "mode": {"type": "string", "enum": ["dispatch", "pipeline", "validate"]},
+                        "mode": {
+                            "type": "string",
+                            "enum": ["dispatch", "pipeline", "validate"],
+                        },
                         "context": {"type": "object"},
                     },
                     "required": ["query"],
@@ -329,7 +340,10 @@ class ContractRegistry:
                     "properties": {
                         "query": {"type": "string"},
                         "context": {"type": "object"},
-                        "mode": {"type": "string", "enum": ["critique", "empathize", "align"]},
+                        "mode": {
+                            "type": "string",
+                            "enum": ["critique", "empathize", "align"],
+                        },
                     },
                     "required": ["query"],
                 },
@@ -370,7 +384,10 @@ class ContractRegistry:
                 output_schema={
                     "type": "object",
                     "properties": {
-                        "verdict": {"type": "string", "enum": ["SEAL", "HOLD", "SABAR", "VOID"]},
+                        "verdict": {
+                            "type": "string",
+                            "enum": ["SEAL", "HOLD", "SABAR", "VOID"],
+                        },
                         "confidence": {"type": "number"},
                         "reason": {"type": "string"},
                         "floors_checked": {"type": "array"},
@@ -397,7 +414,10 @@ class ContractRegistry:
                     "type": "object",
                     "properties": {
                         "query": {"type": "string"},
-                        "operation": {"type": "string", "enum": ["seal", "query", "verify"]},
+                        "operation": {
+                            "type": "string",
+                            "enum": ["seal", "query", "verify"],
+                        },
                         "data": {"type": "object"},
                         "signature": {"type": "string"},
                     },
@@ -436,7 +456,10 @@ class ContractRegistry:
                     "type": "object",
                     "properties": {
                         "query": {"type": "string"},
-                        "operation": {"type": "string", "enum": ["store", "retrieve", "forget"]},
+                        "operation": {
+                            "type": "string",
+                            "enum": ["store", "retrieve", "forget"],
+                        },
                         "key": {"type": "string"},
                         "value": {"type": "any"},
                         "ttl": {"type": "integer"},
@@ -514,7 +537,10 @@ class ContractRegistry:
                     "type": "object",
                     "properties": {
                         "session_id": {"type": "string"},
-                        "mode": {"type": "string", "enum": ["guard", "audit", "correlate"]},
+                        "mode": {
+                            "type": "string",
+                            "enum": ["guard", "audit", "correlate"],
+                        },
                         "tool_trace": {"type": "array", "items": {"type": "object"}},
                         "correlation_threshold": {"type": "number"},
                     },
@@ -662,7 +688,10 @@ class MetabolicRouter:
 
     @classmethod
     def validate_transition(
-        cls, current_tool: str, requested_tool: str, context: dict[str, Any] | None = None
+        cls,
+        current_tool: str,
+        requested_tool: str,
+        context: dict[str, Any] | None = None,
     ) -> TransitionResult:
         """
         Validate if transition current_tool → requested_tool is lawful.
@@ -714,7 +743,8 @@ class MetabolicRouter:
                 )
 
         return TransitionResult(
-            allowed=True, reason=f"Transition {current_tool} → {requested_tool} validated"
+            allowed=True,
+            reason=f"Transition {current_tool} → {requested_tool} validated",
         )
 
     @classmethod
@@ -755,7 +785,10 @@ class ContractDriftDetector:
 
     @classmethod
     def check_schema_compliance(
-        cls, tool_name: str, actual_output: dict[str, Any], contract: ToolContract | None = None
+        cls,
+        tool_name: str,
+        actual_output: dict[str, Any],
+        contract: ToolContract | None = None,
     ) -> dict[str, Any]:
         """Check if output matches declared output schema using jsonschema."""
         contract = contract or ContractRegistry.get_contract(tool_name)
@@ -819,7 +852,10 @@ class ContractDriftDetector:
 
     @classmethod
     def check_side_effect_compliance(
-        cls, tool_name: str, observed_effects: list[str], contract: ToolContract | None = None
+        cls,
+        tool_name: str,
+        observed_effects: list[str],
+        contract: ToolContract | None = None,
     ) -> dict[str, Any]:
         """Check if observed side effects match declared class."""
         contract = contract or ContractRegistry.get_contract(tool_name)
@@ -878,7 +914,9 @@ class ContractDriftDetector:
             )
 
         # Side effect compliance
-        effect_check = cls.check_side_effect_compliance(tool_name, observed_effects, contract)
+        effect_check = cls.check_side_effect_compliance(
+            tool_name, observed_effects, contract
+        )
         if not effect_check.get("valid"):
             violations.append({"type": "SIDE_EFFECT_DRIFT", "details": effect_check})
 
@@ -933,10 +971,10 @@ class ExecutionStep:
 
     def __post_init__(self):
         if not self._hash:
-            content = (
-                f"{self.prev_hash}:{self.tool}:{self.output_hash}:{self.verdict}:{self.timestamp}"
+            content = f"{self.prev_hash}:{self.tool}:{self.output_hash}:{self.verdict}:{self.timestamp}"
+            object.__setattr__(
+                self, "_hash", hashlib.sha256(content.encode()).hexdigest()
             )
-            object.__setattr__(self, "_hash", hashlib.sha256(content.encode()).hexdigest())
 
     @property
     def hash(self) -> str:
@@ -994,12 +1032,12 @@ class ExecutionTrace:
     ) -> str:
         """Append a step to the trace. Returns the new trace hash."""
 
-        input_hash = hashlib.sha256(json.dumps(input_data, sort_keys=True).encode()).hexdigest()[
-            :32
-        ]
-        output_hash = hashlib.sha256(json.dumps(output_data, sort_keys=True).encode()).hexdigest()[
-            :32
-        ]
+        input_hash = hashlib.sha256(
+            json.dumps(input_data, sort_keys=True).encode()
+        ).hexdigest()[:32]
+        output_hash = hashlib.sha256(
+            json.dumps(output_data, sort_keys=True).encode()
+        ).hexdigest()[:32]
 
         step = ExecutionStep(
             step_n=len(self.steps),
@@ -1041,7 +1079,9 @@ class ExecutionTrace:
             "step_count": len(self.steps),
             "trace_aggregate": trace_aggregate,
             "final_entropy": self.steps[-1].entropy_after,
-            "total_entropy_delta": sum(s.entropy_after - s.entropy_before for s in self.steps),
+            "total_entropy_delta": sum(
+                s.entropy_after - s.entropy_before for s in self.steps
+            ),
             "verification_endpoint": f"/verify/{self.session_id}",
         }
 
@@ -1056,7 +1096,11 @@ class ExecutionTrace:
         for step in self.steps:
             if step.prev_hash != current:
                 tampered.append(
-                    {"step": step.step_n, "expected_prev": current, "actual_prev": step.prev_hash}
+                    {
+                        "step": step.step_n,
+                        "expected_prev": current,
+                        "actual_prev": step.prev_hash,
+                    }
                 )
             current = step.hash
 
@@ -1128,19 +1172,25 @@ class KernelRuntime:
             "contract_count": len(contracts),
             "tools": [name for name in contracts.keys()],
             "contracts": {
-                name: ContractRegistry.describe_contract(name) for name in contracts.keys()
+                name: ContractRegistry.describe_contract(name)
+                for name in contracts.keys()
             },
         }
 
     def syscall_validate_transition(
-        self, current_tool: str, requested_tool: str, context: dict[str, Any] | None = None
+        self,
+        current_tool: str,
+        requested_tool: str,
+        context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         SYSCALL: Validate metabolic transition.
 
         Returns allowed=True/False with reason and remediation.
         """
-        result = MetabolicRouter.validate_transition(current_tool, requested_tool, context)
+        result = MetabolicRouter.validate_transition(
+            current_tool, requested_tool, context
+        )
 
         return {
             "allowed": result.allowed,

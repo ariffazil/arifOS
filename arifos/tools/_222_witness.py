@@ -35,7 +35,9 @@ def _normalize_bridge_hits(bridge_result: dict | None) -> list[dict]:
 
     results = bridge_result.get("results")
     if isinstance(results, dict):
-        nested_hits = results.get("organic") or results.get("hits") or results.get("results")
+        nested_hits = (
+            results.get("organic") or results.get("hits") or results.get("results")
+        )
         if isinstance(nested_hits, list):
             return [h for h in nested_hits if isinstance(h, dict)]
 
@@ -187,7 +189,9 @@ def _build_consensus_rationale(
     return rationale
 
 
-def _build_divergence_points(organs: dict[str, dict], tri_witness_score: float) -> list[str]:
+def _build_divergence_points(
+    organs: dict[str, dict], tri_witness_score: float
+) -> list[str]:
     if tri_witness_score >= 0.95:
         return []
 
@@ -314,7 +318,9 @@ def _generate_assumptions(
             "Earth witness via web_search depends on DuckDuckGo + Playwright — latency and coverage vary."
         )
     if search_query:
-        assumptions.append(f"Custom search query '{search_query}' may bias result distribution.")
+        assumptions.append(
+            f"Custom search query '{search_query}' may bias result distribution."
+        )
     if depth == "deep":
         assumptions.append(
             "Deep search mode extracts top-5 hits with snippets — higher coverage but longer latency."
@@ -420,11 +426,15 @@ async def execute(
 
         if mode in ("search", "web_search") or witness_required >= 4:
             try:
-                bridge_result = await minimax_bridge.web_search(query=search_query or focus_claim)
+                bridge_result = await minimax_bridge.web_search(
+                    query=search_query or focus_claim
+                )
                 earth_claim = _extract_bridge_answer(bridge_result)
                 hits = _normalize_bridge_hits(bridge_result)
                 bridge_error = (
-                    bridge_result.get("error") if isinstance(bridge_result, dict) else None
+                    bridge_result.get("error")
+                    if isinstance(bridge_result, dict)
+                    else None
                 )
                 # Build WEB organ evidence block
                 web_confidence = 0.7 if (earth_claim or hits) else 0.5
@@ -501,7 +511,9 @@ async def execute(
         reasoning_payload = {
             "tri_witness_tag": tri_witness_tag,
             "tri_witness_score": tri_witness_score,
-            "organ_confidences": {name: o.get("confidence") for name, o in organs.items()},
+            "organ_confidences": {
+                name: o.get("confidence") for name, o in organs.items()
+            },
             "well_readiness": well_readiness,
             "well_substrate": well_parsed,
             "witness_required": witness_required,
@@ -543,15 +555,17 @@ async def execute(
                 "score": earth_witness,
                 "source": "minimax_web_search" if web_evidence else "none",
                 "note": (
-                    "Web search validation score." if web_evidence else "No web search performed."
+                    "Web search validation score."
+                    if web_evidence
+                    else "No web search performed."
                 ),
             },
         }
 
         # W³ geometric mean of the three witness dimensions
-        w3_score = ((1.0 if human_witness else 0.3) * ai_witness * max(earth_witness, 0.3)) ** (
-            1 / 3
-        )
+        w3_score = (
+            (1.0 if human_witness else 0.3) * ai_witness * max(earth_witness, 0.3)
+        ) ** (1 / 3)
         f2_truth_confidence = round(w3_score, 3)
 
         # Grounding status: ANCHORED if consensus meets threshold and all required organs present
@@ -605,7 +619,9 @@ async def execute(
             tri_witness_score=tri_witness_score,
             stakeholder_safety=1.0,
         )
-        return governed_return("arifos_222_witness", report, metrics, operator_id, session_id)
+        return governed_return(
+            "arifos_222_witness", report, metrics, operator_id, session_id
+        )
 
     except Exception as exc:
         logger.warning("arifos_222_witness constitutional error: %s", exc)
@@ -625,7 +641,9 @@ async def execute(
             "uncertainty_acknowledged": True,
             "verdict": "CLAIM_ONLY",
             "input_hash": hashlib.sha256(
-                json.dumps({"query": query, "claim": claim, "mode": mode}, sort_keys=True).encode()
+                json.dumps(
+                    {"query": query, "claim": claim, "mode": mode}, sort_keys=True
+                ).encode()
             ).hexdigest(),
             "reasoning_hash": hashlib.sha256(str(exc).encode()).hexdigest(),
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -642,8 +660,14 @@ async def execute(
                     "aligned": False,
                     "note": "Error path — no human alignment data.",
                 },
-                "ai_witness": {"score": 0.5, "note": "Error path — no AI consistency data."},
-                "earth_witness": {"score": 0.5, "note": "Error path — no earth witness data."},
+                "ai_witness": {
+                    "score": 0.5,
+                    "note": "Error path — no AI consistency data.",
+                },
+                "earth_witness": {
+                    "score": 0.5,
+                    "note": "Error path — no earth witness data.",
+                },
             },
             "f2_truth_confidence": 0.5,
             "grounding_status": "DRIFTING",
@@ -658,4 +682,6 @@ async def execute(
             stakeholder_safety=1.0,
             floor_9_signal="fail",
         )
-        return governed_return("arifos_222_witness", error_report, metrics, operator_id, session_id)
+        return governed_return(
+            "arifos_222_witness", error_report, metrics, operator_id, session_id
+        )

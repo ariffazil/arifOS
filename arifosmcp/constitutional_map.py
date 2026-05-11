@@ -202,8 +202,12 @@ class RiskDecision:
     reason: str  # Human-readable gate message
     floors_activated: list[str]  # Which floors are on watch
     requires_human_confirmation: bool  # F13 gate — human must sign off
-    human_approval_reference: str | None  # If confirmed, the approval token / session_ref
-    uncertainty_band: tuple[float, float]  # (lower, upper) — F07 Ω band if evidence is thin
+    human_approval_reference: (
+        str | None
+    )  # If confirmed, the approval token / session_ref
+    uncertainty_band: tuple[
+        float, float
+    ]  # (lower, upper) — F07 Ω band if evidence is thin
     preflight_passed: bool  # Did the action pass all preflight checks?
 
 
@@ -414,7 +418,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.FETCH,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F02_TRUTH, Floor.F03_WITNESS, Floor.F05_PEACE, Floor.F12_INJECTION],
+        "floors": [
+            Floor.F02_TRUTH,
+            Floor.F03_WITNESS,
+            Floor.F05_PEACE,
+            Floor.F12_INJECTION,
+        ],
         "risk_tier": "low",
         "irreversible": False,
         "modes": ["fetch", "search", "eureka"],
@@ -430,7 +439,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.MIND,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F02_TRUTH, Floor.F07_HUMILITY, Floor.F08_GENIUS, Floor.F10_ONTOLOGY],
+        "floors": [
+            Floor.F02_TRUTH,
+            Floor.F07_HUMILITY,
+            Floor.F08_GENIUS,
+            Floor.F10_ONTOLOGY,
+        ],
         "risk_tier": "medium",
         "irreversible": False,
         "modes": [
@@ -474,7 +488,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.KERNEL,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F01_AMANAH, Floor.F04_CLARITY, Floor.F03_WITNESS, Floor.F10_ONTOLOGY],
+        "floors": [
+            Floor.F01_AMANAH,
+            Floor.F04_CLARITY,
+            Floor.F03_WITNESS,
+            Floor.F10_ONTOLOGY,
+        ],
         "risk_tier": "medium",
         "irreversible": False,
         "modes": ["route", "kernel", "triage", "delegate", "status"],
@@ -568,7 +587,15 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "floors": [Floor.F01_AMANAH, Floor.F11_AUTH, Floor.F13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": True,
-        "modes": ["engineer", "query", "write", "generate", "commit", "recall", "dry_run"],
+        "modes": [
+            "engineer",
+            "query",
+            "write",
+            "generate",
+            "commit",
+            "recall",
+            "dry_run",
+        ],
         "eureka_insight": (
             "F1: irreversible — ack_irreversible=True mandatory. "
             "F11: actor verified. F13: judge SEAL required before execution."
@@ -618,7 +645,9 @@ def list_probe_tools() -> list[str]:
 
 
 def _list_tools_by_access(access: str) -> list[str]:
-    return [name for name, spec in CANONICAL_TOOLS.items() if spec.get("access") == access]
+    return [
+        name for name, spec in CANONICAL_TOOLS.items() if spec.get("access") == access
+    ]
 
 
 def list_public_tools() -> list[str]:
@@ -971,7 +1000,9 @@ NINE_SIGNAL_FIELDS = [
 ]
 
 
-def validate_tool_response_schema(tool_name: str, response: dict) -> tuple[bool, list[str]]:
+def validate_tool_response_schema(
+    tool_name: str, response: dict
+) -> tuple[bool, list[str]]:
     """
     Validate a tool response against its canonical output schema.
 
@@ -991,7 +1022,9 @@ def validate_tool_response_schema(tool_name: str, response: dict) -> tuple[bool,
     # Nine-Signal block check
     nine = response.get("nine_signal")
     if nine is None:
-        violations.append(f"nine_signal block absent in {tool_name} response [KERNEL_EVALS]")
+        violations.append(
+            f"nine_signal block absent in {tool_name} response [KERNEL_EVALS]"
+        )
 
     # F10 ONTOLOGY: omega_ont must be present
     if nine is not None and "omega_ont" not in nine:
@@ -1008,7 +1041,9 @@ def validate_tool_response_schema(tool_name: str, response: dict) -> tuple[bool,
 
     # output_policy check
     if response.get("domain_payload_present") and not response.get("output_policy"):
-        violations.append(f"{tool_name}: domain payload without output_policy [F2 addendum]")
+        violations.append(
+            f"{tool_name}: domain payload without output_policy [F2 addendum]"
+        )
 
     return len(violations) == 0, violations
 
@@ -1056,7 +1091,9 @@ def generate_pydantic_models() -> dict[str, Any]:
         # F11: authenticated tools must include actor_id
         if spec["access"] == "authenticated":
             if "actor_id" not in annotations:
-                violations.append(f"{tool_name}: authenticated tool missing actor_id field [F11]")
+                violations.append(
+                    f"{tool_name}: authenticated tool missing actor_id field [F11]"
+                )
 
         model_name = _to_model_name(tool_name) + "Input"
         model_dict = {"model_config": ConfigDict(arbitrary_types_allowed=True)}
@@ -1121,7 +1158,9 @@ def check_schema_coverage() -> dict[str, Any]:
         ),
         "floor_coverage": {f: len(t) for f, t in floor_cov.items()},
         "thin_floors": thin_floors,  # floors with < 2 tools
-        "PASS": len(missing_input) == 0 and len(missing_output) == 0 and len(thin_floors) == 0,
+        "PASS": len(missing_input) == 0
+        and len(missing_output) == 0
+        and len(thin_floors) == 0,
     }
 
 

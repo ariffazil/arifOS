@@ -68,7 +68,11 @@ class FetchBridge:
         gov = evaluate_tool_call(
             action="fetch",
             tool_name="arifos_fetch",
-            parameters={"url": url, "max_length": max_length, "start_index": start_index},
+            parameters={
+                "url": url,
+                "max_length": max_length,
+                "start_index": start_index,
+            },
             actor_id=actor_id,
             session_id=session_id,
         )
@@ -79,7 +83,9 @@ class FetchBridge:
         # 2. Pre-call Guard (F9: SSRF / Internal network protection)
         for pattern in FORBIDDEN_PATTERNS:
             if re.search(pattern, url, re.IGNORECASE):
-                logger.warning(f"F9 BLOCK: Potential internal/sensitive URL rejected: {url}")
+                logger.warning(
+                    f"F9 BLOCK: Potential internal/sensitive URL rejected: {url}"
+                )
                 return _RE(
                     ok=False,
                     verdict=Verdict.VOID,
@@ -95,7 +101,12 @@ class FetchBridge:
             logger.info(f"F2 LOG: Fetching Earth Witness evidence: {url}")
             result = await bridge.fetch.call_tool(
                 "fetch",
-                {"url": url, "max_length": max_length, "start_index": start_index, "raw": False},
+                {
+                    "url": url,
+                    "max_length": max_length,
+                    "start_index": start_index,
+                    "raw": False,
+                },
             )
 
             # 5. Post-call Processing (F9: Hantu Scan)
@@ -113,7 +124,9 @@ class FetchBridge:
                     "is_prioritized": domain_match,
                     "source_rank": 2 if domain_match else 4,
                     "next_start_index": (
-                        start_index + len(content) if len(content) >= max_length else None
+                        start_index + len(content)
+                        if len(content) >= max_length
+                        else None
                     ),
                 },
             )

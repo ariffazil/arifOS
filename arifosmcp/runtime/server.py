@@ -9,7 +9,9 @@ import os
 import sys
 
 # Get the project root (three levels up from this file: runtime -> arifosmcp -> project_root)
-_project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_project_root = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
 
 # Add project root at the beginning of sys.path if not already present
 if _project_root not in sys.path:

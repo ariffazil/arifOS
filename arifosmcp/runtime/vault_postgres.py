@@ -193,9 +193,7 @@ class PostgresVaultStore:
         risk_tier: str = None,
     ) -> str:
         """Initialize session in Postgres."""
-        session_id = (
-            f"SESSION_{agent_id.upper()}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}"
-        )
+        session_id = f"SESSION_{agent_id.upper()}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}"
         # For now, we return the generated ID; actual session table persistence can be added here
         return session_id
 
@@ -267,7 +265,9 @@ class VaultManager:
 
             asyncio.create_task(self._supabase_async_seal(event))
         except Exception as sb_err:
-            logger.warning(f"Supabase async seal task creation failed (non-fatal): {sb_err}")
+            logger.warning(
+                f"Supabase async seal task creation failed (non-fatal): {sb_err}"
+            )
 
         # 5. Filesystem witness (non-blocking)
         try:
@@ -320,7 +320,9 @@ class VaultManager:
                     f"[VaultManager] Supabase mirror FAILED (non-fatal): {event.event_id}"
                 )
         except Exception as e:
-            logger.warning(f"[VaultManager] Supabase async seal exception (non-fatal): {e}")
+            logger.warning(
+                f"[VaultManager] Supabase async seal exception (non-fatal): {e}"
+            )
 
 
 # Module-level Singleton
@@ -421,7 +423,12 @@ def read_well_state(agent_id: str, state_key: str) -> dict:
 
 
 async def seal_vault(
-    seal_id: str, agent_id: str, action: str, confidence: float, payload: dict, verdict: str
+    seal_id: str,
+    agent_id: str,
+    action: str,
+    confidence: float,
+    payload: dict,
+    verdict: str,
 ) -> dict:
     """Wrapper for seal_to_vault that matches the new signature."""
     await seal_to_vault(
@@ -455,9 +462,7 @@ async def open_session(
     sb = get_supabase()
     if not sb:
         return f"LOCAL_{uuid.uuid4()}"
-    session_id = (
-        f"SESSION_{agent_id.upper()}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}"
-    )
+    session_id = f"SESSION_{agent_id.upper()}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}"
     insert_row = {
         "session_id": session_id,
         "agent_id": agent_id,
@@ -569,7 +574,8 @@ async def write_telemetry(
         ("confidence", confidence),
     ]
     rows = [
-        {"agent_id": agent_id, "metric_name": m, "value": v, "tags": tags or {}} for m, v in metrics
+        {"agent_id": agent_id, "metric_name": m, "value": v, "tags": tags or {}}
+        for m, v in metrics
     ]
     sb.table("arifosmcp_agent_telemetry").insert(rows).execute()
 

@@ -153,7 +153,9 @@ def check_floors(
             # but this is F13 WORKING, not F13 BREACHING.
             # We log it and return VOID so execution stops, but do NOT add to failed.
             if params.get("sovereign_veto"):
-                logger.critical("F13 SOVEREIGN VETO exercised by Arif — operation halted")
+                logger.critical(
+                    "F13 SOVEREIGN VETO exercised by Arif — operation halted"
+                )
                 # Return VOID but do NOT append F13 to failed — veto usage is not a breach
                 return {
                     "verdict": "VOID",
@@ -164,14 +166,22 @@ def check_floors(
 
     if failed:
         if "F13" in failed:
-            return {"verdict": "VOID", "failed_floors": failed, "reason": "Sovereign veto"}
+            return {
+                "verdict": "VOID",
+                "failed_floors": failed,
+                "reason": "Sovereign veto",
+            }
         return {
             "verdict": "HOLD",
             "failed_floors": failed,
             "reason": f"Floor breach: {', '.join(failed)}",
         }
 
-    return {"verdict": "SEAL", "failed_floors": [], "reason": "All constitutional floors clear"}
+    return {
+        "verdict": "SEAL",
+        "failed_floors": [],
+        "reason": "All constitutional floors clear",
+    }
 
 
 def get_floor_status() -> dict[str, Any]:

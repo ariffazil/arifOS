@@ -20,6 +20,7 @@ Single source of truth for the 10-tool mega-surface.
 This supersedes the legacy `capability_map.py`.
 Ditempa Bukan Diberi.
 """
+
 from enum import Enum
 
 

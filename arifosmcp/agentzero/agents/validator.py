@@ -97,7 +97,9 @@ class ValidatorAgent(ConstitutionalAgent):
         else:
             raise ValueError(f"Unknown validator task type: {task_type}")
 
-    async def _validate_action(self, task: dict[str, Any], execution_id: str) -> dict[str, Any]:
+    async def _validate_action(
+        self, task: dict[str, Any], execution_id: str
+    ) -> dict[str, Any]:
         """
                 Validate another agent's proposed action.
 
@@ -109,7 +111,9 @@ class ValidatorAgent(ConstitutionalAgent):
         action_type = task.get("action_type", "unknown")
         risk_level = task.get("risk_level", "medium")
 
-        logger.info(f"[{execution_id}] Validating action from {agent_id}: {action_type}")
+        logger.info(
+            f"[{execution_id}] Validating action from {agent_id}: {action_type}"
+        )
 
         # === F11: Command Authorization Check ===
         f11_passed = await self._check_f11_authorization(action, agent_id)
@@ -129,10 +133,18 @@ class ValidatorAgent(ConstitutionalAgent):
         # Build floor scores
         floor_scores = [
             FloorScore(
-                "F11", 1.0 if f11_passed else 0.0, 1.0, f11_passed, {"auth_verified": f11_passed}
+                "F11",
+                1.0 if f11_passed else 0.0,
+                1.0,
+                f11_passed,
+                {"auth_verified": f11_passed},
             ),
             FloorScore(
-                "F10", 1.0 if f10_passed else 0.0, 1.0, f10_passed, {"ontology_clean": f10_passed}
+                "F10",
+                1.0 if f10_passed else 0.0,
+                1.0,
+                f10_passed,
+                {"ontology_clean": f10_passed},
             ),
             FloorScore(
                 "F1",
@@ -141,9 +153,19 @@ class ValidatorAgent(ConstitutionalAgent):
                 f1_passed,
                 {"reversibility": reversibility_proof},
             ),
-            FloorScore("F3", 1.0 if f3_passed else 0.0, 0.95, f3_passed, {"witnesses": f3_passed}),
             FloorScore(
-                "F13", 1.0, 1.0, True, {"human_veto_required": f13_required}  # Always available
+                "F3",
+                1.0 if f3_passed else 0.0,
+                0.95,
+                f3_passed,
+                {"witnesses": f3_passed},
+            ),
+            FloorScore(
+                "F13",
+                1.0,
+                1.0,
+                True,
+                {"human_veto_required": f13_required},  # Always available
             ),
         ]
 
@@ -310,7 +332,9 @@ class ValidatorAgent(ConstitutionalAgent):
 
         return False
 
-    async def _issue_direct_verdict(self, task: dict, execution_id: str) -> dict[str, Any]:
+    async def _issue_direct_verdict(
+        self, task: dict, execution_id: str
+    ) -> dict[str, Any]:
         """Issue a direct verdict (for system-level decisions)."""
         verdict_type = task.get("verdict", "SEAL")
         reason = task.get("reason", "")
@@ -336,7 +360,9 @@ class ValidatorAgent(ConstitutionalAgent):
             "f13_status": "ARMED",
         }
 
-    async def _trigger_hold_escalation(self, task: dict, execution_id: str) -> dict[str, Any]:
+    async def _trigger_hold_escalation(
+        self, task: dict, execution_id: str
+    ) -> dict[str, Any]:
         """Manually trigger 888_HOLD escalation."""
         reason = task.get("reason", "Manual escalation")
 

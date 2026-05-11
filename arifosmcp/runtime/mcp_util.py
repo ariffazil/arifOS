@@ -29,7 +29,9 @@ async def call_mcp_tool(
     if params is None:
         params = {}
 
-    call = getattr(mcp_server, "_call_tool", None) or getattr(mcp_server, "call_tool", None)
+    call = getattr(mcp_server, "_call_tool", None) or getattr(
+        mcp_server, "call_tool", None
+    )
     if not callable(call):
         raise RuntimeError("MCP server does not expose a callable tool interface")
 

@@ -81,7 +81,9 @@ def get_or_create_session(session_id: str, actor_id: str = "arif") -> SessionSta
                 actor_id=kernel_sess.get("actor_id", actor_id),
                 stage=kernel_sess.get("stage", "000"),
                 lane=kernel_sess.get("lane", "AGI"),
-                created_at=kernel_sess.get("created_at", datetime.now(timezone.utc).isoformat()),
+                created_at=kernel_sess.get(
+                    "created_at", datetime.now(timezone.utc).isoformat()
+                ),
             )
             return _session_store[session_id]
     except Exception:

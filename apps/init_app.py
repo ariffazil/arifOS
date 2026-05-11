@@ -87,14 +87,17 @@ _PHILOSOPHY: dict[str, str] = {
 # ── App definition ────────────────────────────────────────────────────────────
 
 init_app = FastMCP("InitApp")
-if not hasattr(init_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+if not hasattr(
+    init_app, "ui"
+):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
     init_app.ui = lambda *args, **kwargs: lambda fn: fn
 
 
 @init_app.tool(name="arifos_anchor_session", tags={"public", "init"})
 async def anchor_session(
     declared_intent: Annotated[
-        str, Field(description="The goal or purpose of the session. F1 Amanah commitment.")
+        str,
+        Field(description="The goal or purpose of the session. F1 Amanah commitment."),
     ] = "",
     mode: Annotated[
         str, Field(description="Session mode: standard, diagnostic, or sovereign")
@@ -110,7 +113,9 @@ async def anchor_session(
         envelope = await arifos_init(
             intent=declared_intent or "General session",
         )
-        env_dict = envelope.model_dump() if hasattr(envelope, "model_dump") else dict(envelope)
+        env_dict = (
+            envelope.model_dump() if hasattr(envelope, "model_dump") else dict(envelope)
+        )
 
         session_id = env_dict.get("session_id", "—")
         epoch = env_dict.get("epoch", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
@@ -120,9 +125,13 @@ async def anchor_session(
         # Next actions (CHANGE-04)
         next_actions = []
         if aligned:
-            next_actions.append("Session healthy. Proceed with normal operations. Monitor ΔS.")
+            next_actions.append(
+                "Session healthy. Proceed with normal operations. Monitor ΔS."
+            )
         else:
-            next_actions.append("Identity incomplete or intent unclear. Refine declaration.")
+            next_actions.append(
+                "Identity incomplete or intent unclear. Refine declaration."
+            )
 
         # ── Wisdom quote for anchor surface (Logic from forge-ssct-sync) ──────
         try:
@@ -135,7 +144,9 @@ async def anchor_session(
                 else _PHILOSOPHY["SEAL"]
             )
         except Exception:
-            _philosophy_text = _PHILOSOPHY["SEAL"] if aligned else _PHILOSOPHY["pending"]
+            _philosophy_text = (
+                _PHILOSOPHY["SEAL"] if aligned else _PHILOSOPHY["pending"]
+            )
 
         return ToolResult(
             content=f"Session anchored successfully: {session_id} (Epoch: {epoch})",

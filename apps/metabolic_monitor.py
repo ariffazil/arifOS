@@ -68,13 +68,33 @@ VAULT_WIDGET_URI = f"{ARIFOS_WIDGET_DOMAIN}/widget/vault-seal"
 
 # ── Floor definitions: F1-F13 Constitutional Chain ──────────────────────────────
 FLOORS: list[dict[str, str]] = [
-    {"id": "F1", "name": "Amanah", "desc": "Reversibility — prefer reversible; mark irreversible"},
+    {
+        "id": "F1",
+        "name": "Amanah",
+        "desc": "Reversibility — prefer reversible; mark irreversible",
+    },
     {"id": "F2", "name": "Truth", "desc": "≥0.99 factual accuracy — no hallucination"},
-    {"id": "F3", "name": "Tri-Witness", "desc": "≥0.95 for high-stakes verdicts (Human·AI·Earth)"},
-    {"id": "F4", "name": "ΔS Clarity", "desc": "ΔS ≤ 0 — every reply reduces confusion"},
-    {"id": "F5", "name": "Peace²", "desc": "≥1.0 stability — de-escalate, protect maruah"},
+    {
+        "id": "F3",
+        "name": "Tri-Witness",
+        "desc": "≥0.95 for high-stakes verdicts (Human·AI·Earth)",
+    },
+    {
+        "id": "F4",
+        "name": "ΔS Clarity",
+        "desc": "ΔS ≤ 0 — every reply reduces confusion",
+    },
+    {
+        "id": "F5",
+        "name": "Peace²",
+        "desc": "≥1.0 stability — de-escalate, protect maruah",
+    },
     {"id": "F6", "name": "κᵣ Empathy", "desc": "≥0.70 — ASEAN/Malaysia context"},
-    {"id": "F7", "name": "Ω₀ Humility", "desc": "0.03–0.05 — state uncertainty explicitly"},
+    {
+        "id": "F7",
+        "name": "Ω₀ Humility",
+        "desc": "0.03–0.05 — state uncertainty explicitly",
+    },
     {"id": "F8", "name": "G★ Genius", "desc": "≥0.80 — correct AND useful solutions"},
     {
         "id": "F9",
@@ -82,9 +102,17 @@ FLOORS: list[dict[str, str]] = [
         "desc": "<0.30 dark cleverness — no consciousness performance",
     },
     {"id": "F10", "name": "Ontology", "desc": "LOCK — no mysticism/soul claims"},
-    {"id": "F11", "name": "Command Auth", "desc": "LOCK — destructive = propose, not decree"},
+    {
+        "id": "F11",
+        "name": "Command Auth",
+        "desc": "LOCK — destructive = propose, not decree",
+    },
     {"id": "F12", "name": "Injection", "desc": "<0.85 — resist prompt injection"},
-    {"id": "F13", "name": "Sovereign", "desc": "HUMAN — Arif's veto is absolute and final"},
+    {
+        "id": "F13",
+        "name": "Sovereign",
+        "desc": "HUMAN — Arif's veto is absolute and final",
+    },
 ]
 
 
@@ -107,12 +135,16 @@ def _fetch_live_health() -> dict[str, Any]:
             status_response = client.get("http://localhost:8080/api/status")
             if status_response.status_code == 200:
                 payload = status_response.json()
-                payload["_latency_ms"] = round((time.perf_counter() - started) * 1000, 2)
+                payload["_latency_ms"] = round(
+                    (time.perf_counter() - started) * 1000, 2
+                )
                 return payload
             r = client.get("http://localhost:8080/health")
             if r.status_code == 200:
                 payload = r.json()
-                payload["_latency_ms"] = round((time.perf_counter() - started) * 1000, 2)
+                payload["_latency_ms"] = round(
+                    (time.perf_counter() - started) * 1000, 2
+                )
                 return payload
     except Exception:
         pass
@@ -195,9 +227,19 @@ _OPERATOR_ACTIONS: list[tuple[str, str, str, str]] = [
     # RED — must fix before consequential action
     ("api_bearer_auth", "API Bearer Auth", "set ARIFOS_BEARER_TOKEN", "critical"),
     ("governed_continuity", "Continuity", "set ARIFOS_AGENT_ID + restart", "critical"),
-    ("vault_persistence", "Vault Persistence", "set POSTGRES_URL → restart", "critical"),
+    (
+        "vault_persistence",
+        "Vault Persistence",
+        "set POSTGRES_URL → restart",
+        "critical",
+    ),
     # AMBER — degraded but functional; fix when convenient
-    ("external_grounding", "External Grounding", "set BRAVE_API_KEY + JINA_API_KEY", "advisory"),
+    (
+        "external_grounding",
+        "External Grounding",
+        "set BRAVE_API_KEY + JINA_API_KEY",
+        "advisory",
+    ),
     (
         "provider_access",
         "Provider Access",
@@ -214,7 +256,8 @@ _OPERATOR_ACTIONS: list[tuple[str, str, str, str]] = [
 
 def _unknown_floors() -> list[dict[str, Any]]:
     return [
-        {"id": f["id"], "name": f["name"], "stability": 0.5, "status": "UNKNOWN"} for f in FLOORS
+        {"id": f["id"], "name": f["name"], "stability": 0.5, "status": "UNKNOWN"}
+        for f in FLOORS
     ]
 
 
@@ -248,9 +291,13 @@ def _live_floor_status(session_id: str) -> list[dict[str, Any]]:
             floor_state = live.get(fid) or {}
             stability = float(floor_state.get("stability", 0.95 if state else 0.5))
             status = floor_state.get("status") or (
-                "PASS" if stability >= 0.90 else ("STRAIN" if stability >= 0.70 else "FAIL")
+                "PASS"
+                if stability >= 0.90
+                else ("STRAIN" if stability >= 0.70 else "FAIL")
             )
-            result.append({"id": fid, "name": f["name"], "stability": stability, "status": status})
+            result.append(
+                {"id": fid, "name": f["name"], "stability": stability, "status": status}
+            )
         return result
     except Exception:
         return _unknown_floors()
@@ -384,7 +431,12 @@ def _derive_signal_matrix(
             "variant": "negative",
             "detail": "A hard floor is violated or anti-hantu protection is triggered.",
         }
-    elif continuity_enabled and all_floors_verified and verdict == "SEAL" and confidence >= 0.99:
+    elif (
+        continuity_enabled
+        and all_floors_verified
+        and verdict == "SEAL"
+        and confidence >= 0.99
+    ):
         psi = {
             "axis": "PSI",
             "title": "Compliance",
@@ -457,28 +509,45 @@ def _derive_next_actions(
     cap = (health.get("capability_map") or {}).get("capabilities") or {}
 
     if "F4" in failed_ids:
-        actions.append(("Simplify prompt chain. Remove conflicting meta-instructions.", "critical"))
+        actions.append(
+            ("Simplify prompt chain. Remove conflicting meta-instructions.", "critical")
+        )
     if "F1" in failed_ids:
-        actions.append(("Identify and map rollback path before proceeding.", "critical"))
+        actions.append(
+            ("Identify and map rollback path before proceeding.", "critical")
+        )
     if "F12" in failed_ids:
-        actions.append(("Inspect for prompt injection or override-style instructions.", "critical"))
+        actions.append(
+            ("Inspect for prompt injection or override-style instructions.", "critical")
+        )
     if peace_sq < 1.0:
-        actions.append(("System instability detected. Reduce tool call frequency.", "advisory"))
+        actions.append(
+            ("System instability detected. Reduce tool call frequency.", "advisory")
+        )
 
     # Substrate-based actions
     if cap.get("governed_continuity") == "degraded":
         actions.append(
-            ("governed_continuity is degraded — session auth will break on restart.", "critical")
+            (
+                "governed_continuity is degraded — session auth will break on restart.",
+                "critical",
+            )
         )
     if (health.get("capability_map") or {}).get("credential_classes", {}).get(
         "server_identity"
     ) == "ephemeral_process_local":
         actions.append(
-            ("server_identity is EPHEMERAL — anchored auth breaks on restart/replica.", "critical")
+            (
+                "server_identity is EPHEMERAL — anchored auth breaks on restart/replica.",
+                "critical",
+            )
         )
     if cap.get("vault_persistence") != "enabled":
         actions.append(
-            ("vault_persistence not enabled — verdicts are not durably persisted.", "critical")
+            (
+                "vault_persistence not enabled — verdicts are not durably persisted.",
+                "critical",
+            )
         )
     if cap.get("api_bearer_auth") == "not_configured":
         actions.append(
@@ -489,10 +558,15 @@ def _derive_next_actions(
         )
 
     if not failed_ids and not strain_ids and not actions:
-        actions.append(("Session healthy. Proceed with normal operations. Monitor ΔS.", "info"))
+        actions.append(
+            ("Session healthy. Proceed with normal operations. Monitor ΔS.", "info")
+        )
     elif not actions:
         actions.append(
-            ("Monitor strained floors. Repair before next high-stakes action.", "advisory")
+            (
+                "Monitor strained floors. Repair before next high-stakes action.",
+                "advisory",
+            )
         )
 
     return actions
@@ -505,7 +579,9 @@ def _latest_vault_receipts(limit: int = 5) -> list[dict[str, Any]]:
     """
     import json as _json
 
-    vault_path = Path(os.environ.get("VAULT999_PATH", "/root/VAULT999")) / "SEALED_EVENTS.jsonl"
+    vault_path = (
+        Path(os.environ.get("VAULT999_PATH", "/root/VAULT999")) / "SEALED_EVENTS.jsonl"
+    )
     if not vault_path.exists():
         # Fallback to cwd-relative path (Docker runtime layout)
         vault_path = Path("VAULT999") / "SEALED_EVENTS.jsonl"
@@ -530,7 +606,9 @@ def _latest_vault_receipts(limit: int = 5) -> list[dict[str, Any]]:
         return []
 
 
-def _constitutional_radar(receipts: list[dict[str, Any]], health: dict[str, Any]) -> dict[str, Any]:
+def _constitutional_radar(
+    receipts: list[dict[str, Any]], health: dict[str, Any]
+) -> dict[str, Any]:
     """Build a dense Constitutional Radar from receipts + live health."""
     thermo = health.get("thermodynamic") or {}
     health.get("governance") or {}
@@ -592,7 +670,9 @@ def _register(mcp: FastMCP) -> None:
         tags={"public", "meta"},
     )
     def monitor_metabolism(
-        session_id: Annotated[str, Field(description="Active arifOS session ID")] = "global",
+        session_id: Annotated[
+            str, Field(description="Active arifOS session ID")
+        ] = "global",
     ) -> ToolResult:
         """
         Open the arifOS Metabolic Monitor — a real-time constitutional dashboard
@@ -657,7 +737,11 @@ def _register(mcp: FastMCP) -> None:
                         "variant": (
                             "positive"
                             if entry.get("color") == "teal"
-                            else "neutral" if entry.get("color") == "amber" else "negative"
+                            else (
+                                "neutral"
+                                if entry.get("color") == "amber"
+                                else "negative"
+                            )
                         ),
                         "detail": " · ".join(
                             [
@@ -673,7 +757,8 @@ def _register(mcp: FastMCP) -> None:
         else:
             signal_matrix = _derive_signal_matrix(health, floors)
         worst_signal = next(
-            (signal for signal in signal_matrix if signal["variant"] == "negative"), None
+            (signal for signal in signal_matrix if signal["variant"] == "negative"),
+            None,
         )
         if worst_signal is None:
             worst_signal = next(
@@ -720,8 +805,16 @@ def _register(mcp: FastMCP) -> None:
             with Card(css_class="border border-muted bg-muted/10"):
                 with CardContent(css_class="py-3 px-4"):
                     with Row(gap=3, align="center"):
-                        Badge(release_tag, variant="secondary", css_class="font-mono text-xs")
-                        Badge(source_commit[:8], variant="outline", css_class="font-mono text-xs")
+                        Badge(
+                            release_tag,
+                            variant="secondary",
+                            css_class="font-mono text-xs",
+                        )
+                        Badge(
+                            source_commit[:8],
+                            variant="outline",
+                            css_class="font-mono text-xs",
+                        )
                         with Column(gap=0):
                             Heading("arifOS Metabolic Monitor", size="sm")
                             Muted(runtime_url, css_class="text-xs font-mono")
@@ -753,13 +846,16 @@ def _register(mcp: FastMCP) -> None:
                                 )
                                 with Column(gap=0, css_class="flex-1"):
                                     Text(
-                                        signal["title"], css_class="text-xs font-semibold uppercase"
+                                        signal["title"],
+                                        css_class="text-xs font-semibold uppercase",
                                     )
                                     Muted(signal["detail"], css_class="text-xs")
 
             # ══ 3. RESTART FRAGILITY WARNING ═══════════════════════════════════
             if is_ephemeral:
-                with Alert(variant="destructive", css_class="border-2 border-destructive/50"):
+                with Alert(
+                    variant="destructive", css_class="border-2 border-destructive/50"
+                ):
                     with AlertTitle(css_class="text-sm font-bold"):
                         Text(
                             "⚠ restart fragility — anchored auth will break on restart or replica change"
@@ -793,18 +889,26 @@ def _register(mcp: FastMCP) -> None:
                                 )
 
             # ══ 5. THERMODYNAMIC BAND ════════════════════════════════════════════
-            Muted("Thermodynamic Vitals", css_class="text-xs uppercase tracking-wider font-bold")
+            Muted(
+                "Thermodynamic Vitals",
+                css_class="text-xs uppercase tracking-wider font-bold",
+            )
             with Grid(columns=3, gap=3):
                 with Card():
                     with CardContent(css_class="py-3 text-center"):
-                        Text(f"{entropy_delta:+.2f}", css_class="text-xl font-bold font-mono")
+                        Text(
+                            f"{entropy_delta:+.2f}",
+                            css_class="text-xl font-bold font-mono",
+                        )
                         Muted("Entropy trend (ΔS)", css_class="text-[10px]")
                         Badge(
                             "stable" if entropy_delta <= 0 else "confusion ↑",
                             variant=(
                                 "success"
                                 if entropy_delta <= 0
-                                else ("warning" if entropy_delta < 0.1 else "destructive")
+                                else (
+                                    "warning" if entropy_delta < 0.1 else "destructive"
+                                )
                             ),
                             css_class="text-[8px] h-3 px-1 mt-1",
                         )
@@ -845,19 +949,27 @@ def _register(mcp: FastMCP) -> None:
 
                 with Card():
                     with CardContent(css_class="py-2 text-center"):
-                        Text(f"{confidence:.2f}", css_class="text-lg font-bold font-mono")
+                        Text(
+                            f"{confidence:.2f}", css_class="text-lg font-bold font-mono"
+                        )
                         Muted("Confidence (Ω₀)", css_class="text-[10px]")
 
                 with Card():
                     with CardContent(css_class="py-2 text-center"):
-                        Text(f"S{metabolic_stage}", css_class="text-lg font-bold font-mono")
+                        Text(
+                            f"S{metabolic_stage}",
+                            css_class="text-lg font-bold font-mono",
+                        )
                         Muted("Metabolic stage", css_class="text-[10px]")
 
             # ══ 5b. WITNESS TRIANGLE ════════════════════════════════════════════
             with Card(css_class="border border-muted/30"):
                 with CardContent(css_class="py-3 px-4"):
                     with Row(gap=4, align="center"):
-                        Muted("Tri-Witness", css_class="text-xs uppercase tracking-wider font-bold")
+                        Muted(
+                            "Tri-Witness",
+                            css_class="text-xs uppercase tracking-wider font-bold",
+                        )
                         with Column(gap=1, css_class="flex-1"):
                             # Three witness bars side by side
                             for label, value in [
@@ -886,7 +998,8 @@ def _register(mcp: FastMCP) -> None:
 
             # ══ 6. SUBSTRATE BAND ════════════════════════════════════════════════
             Muted(
-                "Substrate & Capability Map", css_class="text-xs uppercase tracking-wider font-bold"
+                "Substrate & Capability Map",
+                css_class="text-xs uppercase tracking-wider font-bold",
             )
             with Column(gap=1):
 
@@ -904,14 +1017,23 @@ def _register(mcp: FastMCP) -> None:
                     variant, label = _capability_variant(cap_val)
                     with Card(css_class="py-1 px-3"):
                         with Row(gap=3, align="center"):
-                            Badge(label, variant=variant, css_class="w-20 text-center text-[10px]")
+                            Badge(
+                                label,
+                                variant=variant,
+                                css_class="w-20 text-center text-[10px]",
+                            )
                             Text(cap_label, css_class="text-xs flex-1")
-                            Text(cap_val, css_class="text-xs font-mono text-muted-foreground")
+                            Text(
+                                cap_val,
+                                css_class="text-xs font-mono text-muted-foreground",
+                            )
 
                 Separator()
 
                 # Credential classes
-                Muted("Credential Classes", css_class="text-xs uppercase tracking-wider")
+                Muted(
+                    "Credential Classes", css_class="text-xs uppercase tracking-wider"
+                )
                 for cred_key in [
                     "server_identity",
                     "storage_access",
@@ -922,9 +1044,19 @@ def _register(mcp: FastMCP) -> None:
                     variant, label = _capability_variant(cred_val)
                     with Card(css_class="py-1 px-3"):
                         with Row(gap=3, align="center"):
-                            Badge(label, variant=variant, css_class="w-20 text-center text-[10px]")
-                            Text(cred_key.replace("_", " ").title(), css_class="text-xs flex-1")
-                            Text(cred_val, css_class="text-xs font-mono text-muted-foreground")
+                            Badge(
+                                label,
+                                variant=variant,
+                                css_class="w-20 text-center text-[10px]",
+                            )
+                            Text(
+                                cred_key.replace("_", " ").title(),
+                                css_class="text-xs flex-1",
+                            )
+                            Text(
+                                cred_val,
+                                css_class="text-xs font-mono text-muted-foreground",
+                            )
 
                 Separator()
 
@@ -940,9 +1072,19 @@ def _register(mcp: FastMCP) -> None:
                     variant, label = _capability_variant(ops_val)
                     with Card(css_class="py-1 px-3"):
                         with Row(gap=3, align="center"):
-                            Badge(label, variant=variant, css_class="w-20 text-center text-[10px]")
-                            Text(ops_key.replace("_", " ").title(), css_class="text-xs flex-1")
-                            Text(ops_val, css_class="text-xs font-mono text-muted-foreground")
+                            Badge(
+                                label,
+                                variant=variant,
+                                css_class="w-20 text-center text-[10px]",
+                            )
+                            Text(
+                                ops_key.replace("_", " ").title(),
+                                css_class="text-xs flex-1",
+                            )
+                            Text(
+                                ops_val,
+                                css_class="text-xs font-mono text-muted-foreground",
+                            )
 
             Separator()
 
@@ -990,7 +1132,10 @@ def _register(mcp: FastMCP) -> None:
             Separator()
 
             # ══ 8. F1-F13 FLOOR GRID ══════════════════════════════════════════════
-            Muted("Constitutional Floors F1-F13", css_class="text-xs uppercase tracking-wider")
+            Muted(
+                "Constitutional Floors F1-F13",
+                css_class="text-xs uppercase tracking-wider",
+            )
             with Column(gap=2):
                 for floor in floors:
                     f_id = floor["id"]
@@ -1007,9 +1152,15 @@ def _register(mcp: FastMCP) -> None:
                                     )
                                 with Column(gap=0, css_class="w-32"):
                                     Text(floor["name"], css_class="text-sm font-medium")
-                                    Progress(value=floor["stability"] * 100, css_class="h-1.5 mt-1")
+                                    Progress(
+                                        value=floor["stability"] * 100,
+                                        css_class="h-1.5 mt-1",
+                                    )
                                 with Column(gap=0, css_class="flex-1"):
-                                    Muted(meaning, css_class="text-xs italic leading-tight")
+                                    Muted(
+                                        meaning,
+                                        css_class="text-xs italic leading-tight",
+                                    )
                                 Badge(
                                     status,
                                     variant=_stability_variant(floor["stability"]),
@@ -1019,7 +1170,10 @@ def _register(mcp: FastMCP) -> None:
             Separator()
 
             # ══ 9. PHILOSOPHY FOOTER ══════════════════════════════════════════════
-            Muted(philosophy, css_class="text-xs italic text-center text-muted-foreground/60")
+            Muted(
+                philosophy,
+                css_class="text-xs italic text-center text-muted-foreground/60",
+            )
             with Column(gap=1, align="center", css_class="mt-3"):
                 Muted(
                     "Human architect retains sovereign veto. F13 is always alive.",
@@ -1044,7 +1198,9 @@ def _register(mcp: FastMCP) -> None:
         tags={"public", "meta", "ui"},
     )
     def get_metabolic_status(
-        session_id: Annotated[str, Field(description="Active arifOS session ID")] = "global",
+        session_id: Annotated[
+            str, Field(description="Active arifOS session ID")
+        ] = "global",
         receipt_limit: Annotated[
             int, Field(description="Max VAULT999 receipts to scan", ge=1, le=20)
         ] = 5,

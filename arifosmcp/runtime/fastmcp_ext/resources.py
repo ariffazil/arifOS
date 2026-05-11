@@ -29,7 +29,11 @@ def register_arifos_resources(mcp: Any) -> list[str]:
             from core.governance_kernel import get_governance_kernel
 
             kernel = get_governance_kernel()
-            state = kernel.get_current_state() if hasattr(kernel, "get_current_state") else {}
+            state = (
+                kernel.get_current_state()
+                if hasattr(kernel, "get_current_state")
+                else {}
+            )
             verdict = state.get("verdict", "SEAL") if state else "SEAL"
         except Exception:
             verdict = "SEAL"

@@ -92,9 +92,9 @@ def _summarize(content: Any) -> str:
 
 
 def _content_hash(content: Any) -> str:
-    return hashlib.sha256(json.dumps(content, sort_keys=True, default=str).encode()).hexdigest()[
-        :16
-    ]
+    return hashlib.sha256(
+        json.dumps(content, sort_keys=True, default=str).encode()
+    ).hexdigest()[:16]
 
 
 # =============================================================================
@@ -155,7 +155,12 @@ def store(
     }
     _index_write(idx)
 
-    return {"stored": True, "memory_id": memory_id, "indexed": True, "point_id": point_id}
+    return {
+        "stored": True,
+        "memory_id": memory_id,
+        "indexed": True,
+        "point_id": point_id,
+    }
 
 
 def recall(memory_id: str) -> dict[str, Any] | None:

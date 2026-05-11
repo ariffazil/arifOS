@@ -20,7 +20,9 @@ class ToolSpec:
     stage: str  # Execution stage (documentation only)
     purpose: str  # One-line purpose
     role: str = ""  # Role-based purpose (alias for purpose)
-    layer: Literal["GOVERNANCE", "INTELLIGENCE", "MACHINE", "EXECUTION", "SURFACE"] = "MACHINE"
+    layer: Literal["GOVERNANCE", "INTELLIGENCE", "MACHINE", "EXECUTION", "SURFACE"] = (
+        "MACHINE"
+    )
     description: str = ""
     trinity: Literal["Δ", "Ω", "Ψ", "Δ/Ω", "Δ/Ψ", "Ω/Ψ", "ALL"] = "ALL"
     floors: tuple[str, ...] = field(default_factory=tuple)  # F1-F13 that apply
@@ -110,7 +112,14 @@ TOOLS: tuple[ToolSpec, ...] = (
                 },
                 "platform": {
                     "type": "string",
-                    "enum": ["mcp", "chatgpt_apps", "cursor", "api", "stdio", "unknown"],
+                    "enum": [
+                        "mcp",
+                        "chatgpt_apps",
+                        "cursor",
+                        "api",
+                        "stdio",
+                        "unknown",
+                    ],
                     "default": "unknown",
                     "description": "Platform context from which this session originates.",
                 },
@@ -157,7 +166,14 @@ TOOLS: tuple[ToolSpec, ...] = (
                 },
                 "mode": {
                     "type": "string",
-                    "enum": ["governed", "search", "ingest", "compass", "atlas", "time"],
+                    "enum": [
+                        "governed",
+                        "search",
+                        "ingest",
+                        "compass",
+                        "atlas",
+                        "time",
+                    ],
                     "default": "governed",
                     "description": "Sensing mode: governed=full constitutional pipeline, search=live web retrieval, ingest=store observation, compass=directional heading, atlas=geospatial grounding, time=temporal context.",
                 },
@@ -347,7 +363,14 @@ TOOLS: tuple[ToolSpec, ...] = (
                 },
                 "mode": {
                     "type": "string",
-                    "enum": ["cost", "health", "vitals", "entropy", "economic_audit", "metabolism"],
+                    "enum": [
+                        "cost",
+                        "health",
+                        "vitals",
+                        "entropy",
+                        "economic_audit",
+                        "metabolism",
+                    ],
                     "default": "cost",
                     "description": "cost=Landauer gate cost estimate, health=system health gauge, vitals=metabolic telemetry, entropy=information-theoretic entropy analysis, economic_audit=WELL economic thermodynamic audit, metabolism=F1-F13 metabolic dashboard.",
                 },

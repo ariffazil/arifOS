@@ -177,7 +177,8 @@ def forge_enforcement_matrix(
 
     if plan_state != "approved":
         blocked_reason = (
-            f"Plan state is '{plan_state}', not 'approved'. " f"Route through 888_JUDGE first."
+            f"Plan state is '{plan_state}', not 'approved'. "
+            f"Route through 888_JUDGE first."
         )
         required_gates.append("plan_approval")
 

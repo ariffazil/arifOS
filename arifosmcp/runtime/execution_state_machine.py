@@ -65,7 +65,11 @@ _TOOL_STATE_MAP: dict[str, set[ExecutionState]] = {
     # ── 111_SENSE / OBSERVE ───────────────────────────────────────────────────────────
     "arif_sense_observe": {ExecutionState.OBSERVE, ExecutionState.VERIFY},
     "arif_evidence_fetch": {ExecutionState.OBSERVE, ExecutionState.VERIFY},
-    "arif_ops_measure": {ExecutionState.OBSERVE, ExecutionState.VERIFY, ExecutionState.EXECUTE},
+    "arif_ops_measure": {
+        ExecutionState.OBSERVE,
+        ExecutionState.VERIFY,
+        ExecutionState.EXECUTE,
+    },
     # ── 333_MIND / ANALYZE ────────────────────────────────────────────────────────────
     "arif_mind_reason": {ExecutionState.ANALYZE},
     "arif_kernel_route": {ExecutionState.ANALYZE},

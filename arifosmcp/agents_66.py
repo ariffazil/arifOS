@@ -1301,8 +1301,17 @@ def create_agents_mcp(mcp: FastMCP | None = None, name: str = "arifOS-66") -> Fa
         mcp = FastMCP(name=name)
 
     for tool_family in ALL_TOOL_FAMILIES:
-        for tool_name, description, tags, handler, input_model, output_model in tool_family:
-            _register_tool(mcp, tool_name, description, tags, handler, input_model, output_model)
+        for (
+            tool_name,
+            description,
+            tags,
+            handler,
+            input_model,
+            output_model,
+        ) in tool_family:
+            _register_tool(
+                mcp, tool_name, description, tags, handler, input_model, output_model
+            )
 
     return mcp
 

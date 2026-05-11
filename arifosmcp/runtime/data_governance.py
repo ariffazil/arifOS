@@ -90,7 +90,9 @@ class SourceVerificationRecord:
 
     source_name: str
     source_url: str | None = None
-    verification_method: str = "unverified"  # "manual", "automated", "cryptographic", "unverified"
+    verification_method: str = (
+        "unverified"  # "manual", "automated", "cryptographic", "unverified"
+    )
     verified_at: datetime | None = None
     verified_by: str | None = None
     trust_score: float = 0.0  # 0.0-1.0
@@ -119,7 +121,9 @@ class IngestionContract:
     schema: dict[str, Any]  # Expected field definitions
     required_fields: list[str] = field(default_factory=list)
     nullable_fields: list[str] = field(default_factory=list)
-    data_type_constraints: dict[str, str] = field(default_factory=dict)  # field -> type name
+    data_type_constraints: dict[str, str] = field(
+        default_factory=dict
+    )  # field -> type name
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     version: str = "1.0"
 
@@ -162,7 +166,9 @@ class AuditMutationLog:
     previous_hash: str | None = None  # Merkle anchor
     new_hash: str | None = None
     reason: str = ""
-    verdict: GovernanceVerdict = GovernanceVerdict.SEAL  # must be last (no default before it)
+    verdict: GovernanceVerdict = (
+        GovernanceVerdict.SEAL
+    )  # must be last (no default before it)
 
 
 @dataclass
@@ -330,8 +336,12 @@ SENSITIVE_FIELD_PATTERNS = {
     re.compile(
         r"(email|phone|mobile|ic_no|nric|ssn|passport)", re.I
     ): DataClassification.CONFIDENTIAL,
-    re.compile(r"(address|dob|date_of_birth|birthday)", re.I): DataClassification.CONFIDENTIAL,
-    re.compile(r"(credit_card|card_no|card_number|cvv)", re.I): DataClassification.RESTRICTED,
+    re.compile(
+        r"(address|dob|date_of_birth|birthday)", re.I
+    ): DataClassification.CONFIDENTIAL,
+    re.compile(
+        r"(credit_card|card_no|card_number|cvv)", re.I
+    ): DataClassification.RESTRICTED,
 }
 
 
@@ -521,7 +531,9 @@ class DataGovernanceEnforcer:
         if source_verification:
             if source_verification.verification_method == "unverified":
                 failed_floors.append("F02")
-                reasons["F02"] = "F02 TRUTH: Source is unverified — hold for manual confirmation"
+                reasons["F02"] = (
+                    "F02 TRUTH: Source is unverified — hold for manual confirmation"
+                )
             else:
                 pass
         else:
@@ -543,7 +555,9 @@ class DataGovernanceEnforcer:
                     f"F03 WITNESS: Consensus {witness_bundle.consensus_score:.2f} < 0.75 threshold"
                 )
             else:
-                reasons["F03"] = f"F03 WITNESS: Passed with {witness_bundle.witness_count} sources"
+                reasons["F03"] = (
+                    f"F03 WITNESS: Passed with {witness_bundle.witness_count} sources"
+                )
 
         # ── F4 CLARITY: Contract/schema must be present for reusable assets ──
         if contract is not None:
@@ -569,15 +583,21 @@ class DataGovernanceEnforcer:
                             else "full"
                         ),
                         partial_show_prefix=(
-                            2 if classification == DataClassification.CONFIDENTIAL else 0
+                            2
+                            if classification == DataClassification.CONFIDENTIAL
+                            else 0
                         ),
                         partial_show_suffix=(
-                            2 if classification == DataClassification.CONFIDENTIAL else 0
+                            2
+                            if classification == DataClassification.CONFIDENTIAL
+                            else 0
                         ),
                     )
                     sanitized[field_name] = mask_value(value, policy)
                     masked_fields.append(field_name)
-                    logger.info(f"F05 PEACE: Masked field '{field_name}' as {classification.value}")
+                    logger.info(
+                        f"F05 PEACE: Masked field '{field_name}' as {classification.value}"
+                    )
 
         # ── F6 EMPATHY: Downstream consumer declaration ─────────────────────
         # For now: if no downstream declared, flag but don't fail.
@@ -637,7 +657,9 @@ class DataGovernanceEnforcer:
                 decision_id=decision_id,
                 asset_id=asset_id,
                 proposed_verdict=(
-                    GovernanceVerdict.HOLD if not failed_floors else GovernanceVerdict.VOID
+                    GovernanceVerdict.HOLD
+                    if not failed_floors
+                    else GovernanceVerdict.VOID
                 ),
                 status="pending",
             )

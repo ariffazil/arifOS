@@ -12,8 +12,9 @@ from arifos.core.governance import (
 )
 from arifos.tools._tool_support import invariant_fields
 
-
-SABAR_LOCK_PATH = os.path.join(os.getenv("ARIFOS_RUNTIME_DIR", "/run/arifos"), "sabar.lock")
+SABAR_LOCK_PATH = os.path.join(
+    os.getenv("ARIFOS_RUNTIME_DIR", "/run/arifos"), "sabar.lock"
+)
 
 
 def _check_sabar_cooling() -> tuple[bool, float | None]:
@@ -62,7 +63,9 @@ async def execute(
         readiness_probe = "FAIL"
         readiness_detail_parts.append(f"internal:FAIL({e})")
 
-    readiness_detail = ", ".join(readiness_detail_parts) if readiness_detail_parts else "no_checks"
+    readiness_detail = (
+        ", ".join(readiness_detail_parts) if readiness_detail_parts else "no_checks"
+    )
 
     # ─── Phase 1: Real SABAR cooling timer check ───────────────────────────────
     is_cooling, time_remaining = _check_sabar_cooling()
@@ -74,7 +77,9 @@ async def execute(
             "action": action,
             "approval": approval or {},
             "cooling_compliance": None,
-            "time_remaining_minutes": round(time_remaining / 60, 2) if time_remaining else None,
+            "time_remaining_minutes": (
+                round(time_remaining / 60, 2) if time_remaining else None
+            ),
         }
         report.update(
             invariant_fields(
@@ -105,7 +110,9 @@ async def execute(
             tri_witness_score=None,
             stakeholder_safety=None,
         )
-        result = governed_return("arifos_sabar", report, metrics, operator_id, session_id)
+        result = governed_return(
+            "arifos_sabar", report, metrics, operator_id, session_id
+        )
 
         # Force SABAR verdict explicitly
         result["verdict"] = Verdict.SABAR
@@ -131,7 +138,10 @@ async def execute(
         try:
             vault_receipt = append_vault999_event(
                 event_type="arifos_sabar",
-                payload={"report": report, "metabolic_metadata": result["metabolic_metadata"]},
+                payload={
+                    "report": report,
+                    "metabolic_metadata": result["metabolic_metadata"],
+                },
                 operator_id=operator_id,
                 session_id=session_id,
             )
@@ -205,7 +215,10 @@ async def execute(
     try:
         vault_receipt = append_vault999_event(
             event_type="arifos_sabar",
-            payload={"report": report, "metabolic_metadata": result["metabolic_metadata"]},
+            payload={
+                "report": report,
+                "metabolic_metadata": result["metabolic_metadata"],
+            },
             operator_id=operator_id,
             session_id=session_id,
         )

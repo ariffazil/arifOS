@@ -77,7 +77,9 @@ logger = logging.getLogger(__name__)
 
 JWT_ENFORCE_MODE = os.getenv("JWT_ENFORCE_MODE", "observe").lower()
 JWT_SUPABASE_URL = os.getenv("JWT_SUPABASE_URL", "")
-JWT_SUPABASE_JWKS_URL = f"{JWT_SUPABASE_URL}/auth/v1/jwt".rstrip("/") if JWT_SUPABASE_URL else ""
+JWT_SUPABASE_JWKS_URL = (
+    f"{JWT_SUPABASE_URL}/auth/v1/jwt".rstrip("/") if JWT_SUPABASE_URL else ""
+)
 JWT_INTERNAL_ISSUER = os.getenv("JWT_INTERNAL_ISSUER", "arifOS-internal")
 
 _jwt_cache: dict | None = None
@@ -135,7 +137,9 @@ def _log_jwt_violation(violation_type: str, detail: str, context: dict) -> None:
         with open(violation_log, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(payload, ensure_ascii=False) + "\n")
     except Exception as write_err:
-        logger.warning(f"JWT_VIOLATION: could not write to telemetry volume: {write_err}")
+        logger.warning(
+            f"JWT_VIOLATION: could not write to telemetry volume: {write_err}"
+        )
 
 
 async def vault_jwt_guard(
@@ -162,7 +166,9 @@ async def vault_jwt_guard(
     if auth_context:
         token = auth_context.get("token") or auth_context.get("bearer")
     if not token:
-        violations.append({"type": "MISSING_TOKEN", "detail": "No bearer token in auth_context"})
+        violations.append(
+            {"type": "MISSING_TOKEN", "detail": "No bearer token in auth_context"}
+        )
         _log_jwt_violation(
             "MISSING_TOKEN",
             f"vault_write without JWT | tool={tool_name} actor={actor_id}",
@@ -188,11 +194,17 @@ async def vault_jwt_guard(
                     {"actor_id": actor_id, "jwt_sub": jwt_sub},
                 )
             else:
-                violations.append({"type": "NO_SUB_CLAIM", "detail": "JWT has no sub claim"})
-                _log_jwt_violation("NO_SUB_CLAIM", "JWT missing sub claim", {"actor_id": actor_id})
+                violations.append(
+                    {"type": "NO_SUB_CLAIM", "detail": "JWT has no sub claim"}
+                )
+                _log_jwt_violation(
+                    "NO_SUB_CLAIM", "JWT missing sub claim", {"actor_id": actor_id}
+                )
         except jwt.InvalidTokenError as e:
             violations.append({"type": "INVALID_TOKEN", "detail": str(e)})
-            _log_jwt_violation("INVALID_TOKEN", f"token decode error: {e}", {"actor_id": actor_id})
+            _log_jwt_violation(
+                "INVALID_TOKEN", f"token decode error: {e}", {"actor_id": actor_id}
+            )
 
     if JWT_ENFORCE_MODE == "enforce":
         if violations:
@@ -288,7 +300,9 @@ def _sanitize_payload(payload: dict[str, Any]) -> dict[str, Any]:
                 sanitized[key] = {
                     k: v
                     for k, v in value.__dict__.items()
-                    if isinstance(v, str | int | float | bool | list | dict | type(None))
+                    if isinstance(
+                        v, str | int | float | bool | list | dict | type(None)
+                    )
                 }
             except Exception:
                 sanitized[key] = str(value)
@@ -407,7 +421,9 @@ def _resolve_caller_state(
     }
 
     state_config = visibility.get(caller_state, visibility["anonymous"])
-    blocked_list = [{"tool": k, "reason": v} for k, v in state_config.get("blocked", {}).items()]
+    blocked_list = [
+        {"tool": k, "reason": v} for k, v in state_config.get("blocked", {}).items()
+    ]
 
     return caller_state, state_config["allowed"], blocked_list
 
@@ -434,7 +450,9 @@ def _resolve_next_action(
         if auth_context:
             ac_actor = auth_context.get("actor_id", "anonymous")
             ac_scope = auth_context.get("approval_scope", [])
-            has_kernel = any(s.startswith("arifos_kernel:") or s == "*" for s in ac_scope)
+            has_kernel = any(
+                s.startswith("arifos_kernel:") or s == "*" for s in ac_scope
+            )
             if ac_actor != "anonymous" and has_kernel:
                 return {
                     "tool": "arifos_kernel",
@@ -582,20 +600,31 @@ async def _wrap_call(
 
         # PHASE 0 FIX: Safe next_action resolution
         try:
-            if envelope.verdict in (Verdict.HOLD, Verdict.VOID) and not envelope.next_action:
+            if (
+                envelope.verdict in (Verdict.HOLD, Verdict.VOID)
+                and not envelope.next_action
+            ):
                 ac_dict = (
                     envelope.auth_context.model_dump(mode="json")
-                    if envelope.auth_context and hasattr(envelope.auth_context, "model_dump")
+                    if envelope.auth_context
+                    and hasattr(envelope.auth_context, "model_dump")
                     else (
-                        envelope.auth_context if isinstance(envelope.auth_context, dict) else None
+                        envelope.auth_context
+                        if isinstance(envelope.auth_context, dict)
+                        else None
                     )
                 )
                 envelope.next_action = _resolve_next_action(
                     envelope.caller_state, envelope.blocked_tools, ac_dict
                 )
             # Also surface the init hint on ALLOW/SEAL if anonymous
-            elif envelope.caller_state in ("anonymous", "claimed") and not envelope.next_action:
-                envelope.next_action = _resolve_next_action(envelope.caller_state, [], None)
+            elif (
+                envelope.caller_state in ("anonymous", "claimed")
+                and not envelope.next_action
+            ):
+                envelope.next_action = _resolve_next_action(
+                    envelope.caller_state, [], None
+                )
         except Exception as next_action_err:
             logger.debug(f"Next action resolution failed: {next_action_err}")
 
@@ -658,7 +687,12 @@ async def _wrap_call(
 
 
 async def init_anchor_dispatch_impl(
-    mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
+    mode: str,
+    payload: dict,
+    auth_context: dict | None,
+    risk_tier: str,
+    dry_run: bool,
+    ctx: Context,
 ) -> RuntimeEnvelope:
     """
     Internal dispatch implementation for init_anchor (session bootstrap).
@@ -676,7 +710,9 @@ async def init_anchor_dispatch_impl(
     elif mode == "revoke":
         return await _wrap_call("init_revoke", Stage.INIT_000, session_id, payload, ctx)
     elif mode == "refresh":
-        return await _wrap_call("init_refresh", Stage.INIT_000, session_id, payload, ctx)
+        return await _wrap_call(
+            "init_refresh", Stage.INIT_000, session_id, payload, ctx
+        )
     elif mode in ("state", "status"):
         return await _wrap_call("init_state", Stage.INIT_000, session_id, payload, ctx)
 
@@ -713,7 +749,12 @@ async def arifos_kernel_impl(
 
 
 async def apex_judge_dispatch_impl(
-    mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
+    mode: str,
+    payload: dict,
+    auth_context: dict | None,
+    risk_tier: str,
+    dry_run: bool,
+    ctx: Context,
 ) -> RuntimeEnvelope:
     session_id = _normalize_session_id(payload.get("session_id"))
 
@@ -734,9 +775,13 @@ async def apex_judge_dispatch_impl(
             input_to_validate=payload.get("candidate", ""), session_id=session_id
         )
     elif mode == "hold":
-        return await _az_hold_check(hold_id=payload.get("hold_id"), session_id=session_id)
+        return await _az_hold_check(
+            hold_id=payload.get("hold_id"), session_id=session_id
+        )
     elif mode == "armor":
-        return await _az_armor_scan(content=payload.get("candidate", ""), session_id=session_id)
+        return await _az_armor_scan(
+            content=payload.get("candidate", ""), session_id=session_id
+        )
     elif mode == "notify":
         message = payload.get("message", "High-stakes escalation triggered.")
         if ctx and hasattr(ctx, "info"):
@@ -841,7 +886,12 @@ async def apex_judge_dispatch_impl(
 
 
 async def vault_ledger_dispatch_impl(
-    mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
+    mode: str,
+    payload: dict,
+    auth_context: dict | None,
+    risk_tier: str,
+    dry_run: bool,
+    ctx: Context,
 ) -> RuntimeEnvelope:
     session_id = payload.get("session_id")
     if mode == "seal":
@@ -871,7 +921,9 @@ async def vault_ledger_dispatch_impl(
         # ── End JWT Guard ────────────────────────────────────────────────
 
         # Route SEAL writes through vault999_writer (writer_service)
-        writer_url = os.environ.get("VAULT999_WRITER_URL", "http://vault999-writer:5001")
+        writer_url = os.environ.get(
+            "VAULT999_WRITER_URL", "http://vault999-writer:5001"
+        )
         writer_token = os.environ.get("VAULT_WRITER_TOKEN", "")
         verdict = payload.get("verdict", "SEAL")
         evidence = payload.get("evidence", "")
@@ -902,7 +954,9 @@ async def vault_ledger_dispatch_impl(
                             "session_id": session_id,
                             "evidence": evidence,
                             "source_agent": payload.get("source_agent", "arifOS_bot"),
-                            "pipeline_stage": payload.get("pipeline_stage", "999_VAULT"),
+                            "pipeline_stage": payload.get(
+                                "pipeline_stage", "999_VAULT"
+                            ),
                             "test": payload.get("test", False),
                         },
                         "human_signature": human_signature,
@@ -1020,7 +1074,12 @@ async def vault_ledger_dispatch_impl(
 
 
 async def agi_mind_dispatch_impl(
-    mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
+    mode: str,
+    payload: dict,
+    auth_context: dict | None,
+    risk_tier: str,
+    dry_run: bool,
+    ctx: Context,
 ) -> RuntimeEnvelope:
     """
     PHASE 0 FIX: Hardened agi_mind dispatch with kernel validation.
@@ -1084,13 +1143,20 @@ async def agi_mind_dispatch_impl(
 
             # Convert decision_packet to structured AnswerBasis
             basis = AnswerBasis(
-                summary=decision_packet.get("summary", "Constitutional synthesis complete."),
-                detailed_answer=decision_packet.get("note", "Detailed reasoning processed."),
+                summary=decision_packet.get(
+                    "summary", "Constitutional synthesis complete."
+                ),
+                detailed_answer=decision_packet.get(
+                    "note", "Detailed reasoning processed."
+                ),
                 claims=[
-                    Claim(statement=c, confidence=0.9) for c in decision_packet.get("facts", [])
+                    Claim(statement=c, confidence=0.9)
+                    for c in decision_packet.get("facts", [])
                 ],
                 assumptions=decision_packet.get("assumptions", []),
-                uncertainties=decision_packet.get("uncertainties", ["Epistemic boundary reached."]),
+                uncertainties=decision_packet.get(
+                    "uncertainties", ["Epistemic boundary reached."]
+                ),
                 key_findings=decision_packet.get("findings", []),
                 recommended_actions=decision_packet.get("next_steps", []),
             )
@@ -1109,7 +1175,9 @@ async def agi_mind_dispatch_impl(
             )
 
         # Fallback: no decision_packet — compute via kernel (direct agi_mind call)
-        return await _wrap_call("agi_reason", Stage.MIND_333, session_id, {"query": query}, ctx)
+        return await _wrap_call(
+            "agi_reason", Stage.MIND_333, session_id, {"query": query}, ctx
+        )
     elif mode == "reflect":
         return await _wrap_call(
             "agi_reflect",
@@ -1122,7 +1190,9 @@ async def agi_mind_dispatch_impl(
         from arifosmcp.runtime.orchestrator import metabolic_loop
 
         try:
-            res = await metabolic_loop(query=query, session_id=session_id, dry_run=dry_run)
+            res = await metabolic_loop(
+                query=query, session_id=session_id, dry_run=dry_run
+            )
             return RuntimeEnvelope(**res)
         except Exception as e:
             logger.error(f"Metabolic loop failed: {e}")
@@ -1147,7 +1217,12 @@ async def agi_mind_dispatch_impl(
 
 
 async def asi_heart_dispatch_impl(
-    mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
+    mode: str,
+    payload: dict,
+    auth_context: dict | None,
+    risk_tier: str,
+    dry_run: bool,
+    ctx: Context,
 ) -> RuntimeEnvelope:
     session_id = payload.get("session_id")
     content = payload.get("content", "")
@@ -1164,7 +1239,11 @@ async def asi_heart_dispatch_impl(
 
     if mode == "critique":
         return await _wrap_call(
-            "asi_critique", Stage.CRITIQUE_666, session_id, {"draft_output": content}, ctx
+            "asi_critique",
+            Stage.CRITIQUE_666,
+            session_id,
+            {"draft_output": content},
+            ctx,
         )
     elif mode == "simulate":
         return await _wrap_call(
@@ -1189,7 +1268,9 @@ def _get_constitutional_memory_store():
     global _constitutional_memory_store
     if _constitutional_memory_store is None:
         try:
-            from arifosmcp.agentzero.memory.constitutional_memory import ConstitutionalMemoryStore
+            from arifosmcp.agentzero.memory.constitutional_memory import (
+                ConstitutionalMemoryStore,
+            )
 
             _constitutional_memory_store = ConstitutionalMemoryStore()
             logger.info("ConstitutionalMemoryStore initialised (Qdrant: qdrant:6333)")
@@ -1204,7 +1285,12 @@ def _get_constitutional_memory_store():
 
 
 async def engineering_memory_dispatch_impl(
-    mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
+    mode: str,
+    payload: dict,
+    auth_context: dict | None,
+    risk_tier: str,
+    dry_run: bool,
+    ctx: Context,
 ) -> RuntimeEnvelope:
     """
     PHASE 0 FIX: Hardened engineering_memory with graceful filesystem degradation.
@@ -1214,7 +1300,14 @@ async def engineering_memory_dispatch_impl(
     session_id = payload.get("session_id")
 
     # PHASE 0 FIX: Validate mode parameter
-    valid_modes = ["engineer", "write", "vector_query", "query", "vector_store", "vector_forget"]
+    valid_modes = [
+        "engineer",
+        "write",
+        "vector_query",
+        "query",
+        "vector_store",
+        "vector_forget",
+    ]
     if mode not in valid_modes:
         return _create_error_envelope(
             tool_name="engineering_memory",
@@ -1249,7 +1342,9 @@ async def engineering_memory_dispatch_impl(
     if mode == "engineer":
         try:
             return await _az_engineer(
-                task_description=payload.get("task") or payload.get("query") or "No task",
+                task_description=payload.get("task")
+                or payload.get("query")
+                or "No task",
                 session_id=session_id,
             )
         except Exception as e:
@@ -1264,7 +1359,9 @@ async def engineering_memory_dispatch_impl(
             )
 
     elif mode == "write":
-        content = payload.get("content") or payload.get("text") or "No content provided."
+        content = (
+            payload.get("content") or payload.get("text") or "No content provided."
+        )
         project_id = payload.get("project_id", "default")
         area_str = payload.get("area", "main")
         store = _get_constitutional_memory_store()
@@ -1347,7 +1444,12 @@ async def engineering_memory_dispatch_impl(
         )
 
     elif mode == "vector_query":
-        query = payload.get("query") or payload.get("task") or payload.get("content") or "No query"
+        query = (
+            payload.get("query")
+            or payload.get("task")
+            or payload.get("content")
+            or "No query"
+        )
         project_id = payload.get("project_id", "default")
         k = int(payload.get("k", 5))
         use_cache = payload.get("use_cache", True)
@@ -1389,7 +1491,8 @@ async def engineering_memory_dispatch_impl(
                 else:
                     truncated = r.copy()
                     truncated["content"] = (
-                        r["content"][:budget_remaining] + "\n[...TRUNCATED — F4 context budget]"
+                        r["content"][:budget_remaining]
+                        + "\n[...TRUNCATED — F4 context budget]"
                     )
                     truncated["truncated"] = True
                     budgeted_results.append(truncated)
@@ -1419,7 +1522,9 @@ async def engineering_memory_dispatch_impl(
                     "context_budget": {
                         "requested": context_budget,
                         "used": context_budget - budget_remaining,
-                        "results_truncated": sum(1 for r in budgeted_results if r.get("truncated")),
+                        "results_truncated": sum(
+                            1 for r in budgeted_results if r.get("truncated")
+                        ),
                     },
                     "layer_info": {
                         "layer": 1,
@@ -1453,7 +1558,9 @@ async def engineering_memory_dispatch_impl(
                 },
             )
         except Exception as e:
-            logger.warning(f"Hybrid memory search failed: {e}. Falling back to Qdrant-only.")
+            logger.warning(
+                f"Hybrid memory search failed: {e}. Falling back to Qdrant-only."
+            )
 
         # Fallback: Qdrant-only
         store = _get_constitutional_memory_store()
@@ -1462,7 +1569,9 @@ async def engineering_memory_dispatch_impl(
                 from arifosmcp.agentzero.memory.constitutional_memory import MemoryArea
 
                 await store.initialize_project(project_id)
-                entries = await store.vector_query(query=query, project_id=project_id, k=k)
+                entries = await store.vector_query(
+                    query=query, project_id=project_id, k=k
+                )
                 results = [e.to_dict() for e in entries]
             except Exception as emb_err:
                 return _create_error_envelope(
@@ -1485,7 +1594,8 @@ async def engineering_memory_dispatch_impl(
                 else:
                     truncated = r.copy()
                     truncated["content"] = (
-                        r["content"][:budget_remaining] + "\n[...TRUNCATED — F4 context budget]"
+                        r["content"][:budget_remaining]
+                        + "\n[...TRUNCATED — F4 context budget]"
                     )
                     truncated["truncated"] = True
                     budgeted_results.append(truncated)
@@ -1508,7 +1618,9 @@ async def engineering_memory_dispatch_impl(
                     "context_budget": {
                         "requested": context_budget,
                         "used": context_budget - budget_remaining,
-                        "results_truncated": sum(1 for r in budgeted_results if r.get("truncated")),
+                        "results_truncated": sum(
+                            1 for r in budgeted_results if r.get("truncated")
+                        ),
                     },
                 },
             )
@@ -1528,14 +1640,21 @@ async def engineering_memory_dispatch_impl(
 
     elif mode == "query":
         # Legacy alias — redirects to vector_query
-        query = payload.get("query") or payload.get("task") or payload.get("content") or "No query"
+        query = (
+            payload.get("query")
+            or payload.get("task")
+            or payload.get("content")
+            or "No query"
+        )
         project_id = payload.get("project_id", "default")
         k = int(payload.get("k", 5))
         store = _get_constitutional_memory_store()
         if store:
             try:
                 await store.initialize_project(project_id)
-                entries = await store.vector_query(query=query, project_id=project_id, k=k)
+                entries = await store.vector_query(
+                    query=query, project_id=project_id, k=k
+                )
                 results = [e.to_dict() for e in entries]
                 return RuntimeEnvelope(
                     ok=True,
@@ -1602,7 +1721,9 @@ async def engineering_memory_dispatch_impl(
                     source_agent=session_id,
                 )
                 if ok:
-                    logger.info(f"[H1_MEMORY_STORE] {memory_id} → {area_str}/{project_id}")
+                    logger.info(
+                        f"[H1_MEMORY_STORE] {memory_id} → {area_str}/{project_id}"
+                    )
                     return RuntimeEnvelope(
                         ok=True,
                         tool="engineering_memory",
@@ -1645,7 +1766,11 @@ async def engineering_memory_dispatch_impl(
             stage="555_MEMORY",
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
-            payload={"stored": True, "backend": "none", "warning": "Qdrant unavailable"},
+            payload={
+                "stored": True,
+                "backend": "none",
+                "warning": "Qdrant unavailable",
+            },
         )
 
     elif mode == "vector_forget":
@@ -1713,7 +1838,12 @@ async def engineering_memory_dispatch_impl(
 
 
 async def math_estimator_dispatch_impl(
-    mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
+    mode: str,
+    payload: dict,
+    auth_context: dict | None,
+    risk_tier: str,
+    dry_run: bool,
+    ctx: Context,
 ) -> RuntimeEnvelope:
     """
     PHASE 0 FIX: Hardened math_estimator with type validation and async guards.
@@ -1773,7 +1903,9 @@ async def math_estimator_dispatch_impl(
                         "entropy_delta": entropy_delta,
                         "peace2": peace2,
                         "G_star": round(g_star, 3),
-                        "confidence": round(1.0 - (memory.percent / 200.0), 3),  # F7 Humility
+                        "confidence": round(
+                            1.0 - (memory.percent / 200.0), 3
+                        ),  # F7 Humility
                     },
                     "action_analyzed": action,
                 },
@@ -1910,7 +2042,12 @@ async def math_estimator_dispatch_impl(
 
 
 async def physics_reality_dispatch_impl(
-    mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
+    mode: str,
+    payload: dict,
+    auth_context: dict | None,
+    risk_tier: str,
+    dry_run: bool,
+    ctx: Context,
 ) -> RuntimeEnvelope:
     """
     PHASE 0 FIX: Hardened physics_reality with safe reality handler access.
@@ -1955,7 +2092,8 @@ async def physics_reality_dispatch_impl(
                 "mode": mode,
                 "query": query,
                 "results": [
-                    r.to_dict() if hasattr(r, "to_dict") else str(r) for r in bundle.results
+                    r.to_dict() if hasattr(r, "to_dict") else str(r)
+                    for r in bundle.results
                 ],
                 "result_count": len(bundle.results),
             },
@@ -1973,7 +2111,12 @@ async def physics_reality_dispatch_impl(
 
 
 async def code_engine_dispatch_impl(
-    mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
+    mode: str,
+    payload: dict,
+    auth_context: dict | None,
+    risk_tier: str,
+    dry_run: bool,
+    ctx: Context,
 ) -> RuntimeEnvelope:
     """Hardened code engine dispatch."""
     session_id = payload.get("session_id")
@@ -2004,7 +2147,12 @@ async def code_engine_dispatch_impl(
 
 
 async def architect_registry_dispatch_impl(
-    mode: str, payload: dict, auth_context: dict | None, risk_tier: str, dry_run: bool, ctx: Context
+    mode: str,
+    payload: dict,
+    auth_context: dict | None,
+    risk_tier: str,
+    dry_run: bool,
+    ctx: Context,
 ) -> RuntimeEnvelope:
     """Hardened architect registry dispatch."""
     session_id = payload.get("session_id")
@@ -2037,7 +2185,9 @@ async def architect_registry_dispatch_impl(
         )
 
     try:
-        return await _wrap_call("architect_registry", Stage.INIT_000, session_id, payload, ctx)
+        return await _wrap_call(
+            "architect_registry", Stage.INIT_000, session_id, payload, ctx
+        )
     except Exception as e:
         return _create_error_envelope(
             tool_name="architect_registry",

@@ -77,7 +77,8 @@ class ActionContext(BaseModel):
         description="WealthScore: multi-axis constitutional score from wealth_score_kernel",
     )
     verification_surface: dict[str, Any] | None = Field(
-        default=None, description="VerificationSurface: canonical claim + evidence + verifier info"
+        default=None,
+        description="VerificationSurface: canonical claim + evidence + verifier info",
     )
 
     @field_validator("url")
@@ -102,7 +103,9 @@ class ConstitutionalVerdict(BaseModel):
     floors: FloorResult
     authority: AuthorityProof
     irreversibility: IrreversibilityLevel
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     state_hash: str = Field(default="")
 
     def model_post_init(self, __context: Any) -> None:
@@ -318,7 +321,11 @@ class ConstitutionKernel:
 
                 # Fail-closed: null well_score or DEGRADED backend blocks SEAL
                 if readiness is None or backend_status == "DEGRADED":
-                    is_dev = os.environ.get("ARIFOS_DEV_MODE", "").lower() in ("1", "true", "yes")
+                    is_dev = os.environ.get("ARIFOS_DEV_MODE", "").lower() in (
+                        "1",
+                        "true",
+                        "yes",
+                    )
                     f13_reason = (
                         f"WELL telemetry unavailable (well_score={readiness}, "
                         f"backend_status={backend_status})"
@@ -394,7 +401,10 @@ class ConstitutionKernel:
         if wg_status in ("VOID", "HOLD"):
             from arifosmcp.core.authority_gate import AuthorityProof
             from arifosmcp.core.floor_evaluator import FloorResult
-            from arifosmcp.core.threat_engine import IrreversibilityLevel, ThreatAssessment
+            from arifosmcp.core.threat_engine import (
+                IrreversibilityLevel,
+                ThreatAssessment,
+            )
 
             threat = ThreatAssessment(
                 threats=[],
@@ -509,7 +519,10 @@ class SchemaContractValidator:
         errors: list[str] = []
         for name, field_info in model.model_fields.items():
             annotation = field_info.annotation
-            if hasattr(annotation, "__origin__") and annotation.__origin__ is type[None] | str:
+            if (
+                hasattr(annotation, "__origin__")
+                and annotation.__origin__ is type[None] | str
+            ):
                 errors.append(f"Field '{name}' has Union type with None")
         return errors
 
@@ -523,7 +536,9 @@ class SchemaContractValidator:
         missing = documented_modes - implemented_modes
         extra = implemented_modes - documented_modes
         if missing:
-            errors.append(f"{tool_name}: documented modes missing in implementation: {missing}")
+            errors.append(
+                f"{tool_name}: documented modes missing in implementation: {missing}"
+            )
         if extra:
             errors.append(f"{tool_name}: implemented modes not documented: {extra}")
         return errors

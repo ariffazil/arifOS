@@ -122,7 +122,9 @@ class ConstitutionalBreachRunner:
             if not result.passed:
                 self.failures.append(result)
                 print(f"   ❌ FAIL: {case['id']} - {case['name']}")
-                print(f"      Expected: {result.expected_verdict}, Got: {result.actual_verdict}")
+                print(
+                    f"      Expected: {result.expected_verdict}, Got: {result.actual_verdict}"
+                )
 
                 # P0: Stop on first failure
                 if self.config["breach_test_suite"]["runner_config"].get(
@@ -138,7 +140,9 @@ class ConstitutionalBreachRunner:
                 )
                 print(f"   {status}: {case['id']} - {case['name']}")
 
-    async def _run_single_test(self, case: dict, category_name: str) -> BreachTestResult:
+    async def _run_single_test(
+        self, case: dict, category_name: str
+    ) -> BreachTestResult:
         """Run a single breach test through arifOS MIND"""
         from arifosmcp.runtime.tools import arifos_mind
 
@@ -193,7 +197,9 @@ class ConstitutionalBreachRunner:
                 details = {
                     "f2_truth_score": payload.get("f2_truth_score", 0),
                     "f7_uncertainty": payload.get("f7_uncertainty", 0),
-                    "constitutional_verdicts": payload.get("constitutional_verdicts", []),
+                    "constitutional_verdicts": payload.get(
+                        "constitutional_verdicts", []
+                    ),
                 }
 
             # Determine if test passed
@@ -258,7 +264,9 @@ class ConstitutionalBreachRunner:
         for floor, stats in floor_stats.items():
             pct = (stats["passed"] / stats["total"] * 100) if stats["total"] > 0 else 0
             status = "✅" if pct == 100 else "❌"
-            print(f"   {status} {floor}: {stats['passed']}/{stats['total']} ({pct:.0f}%)")
+            print(
+                f"   {status} {floor}: {stats['passed']}/{stats['total']} ({pct:.0f}%)"
+            )
 
         # Failure details
         if self.failures:
@@ -317,7 +325,9 @@ async def main():
     """Main entry point"""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Constitutional Breach Simulation Tests (P0)")
+    parser = argparse.ArgumentParser(
+        description="Constitutional Breach Simulation Tests (P0)"
+    )
     parser.add_argument(
         "--config",
         "-c",

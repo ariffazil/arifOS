@@ -102,7 +102,12 @@ class _RawMinimaxBridge:
             self._proc = self._spawn_sync()
 
         self._request_id += 1
-        req = {"jsonrpc": "2.0", "id": self._request_id, "method": method, "params": params}
+        req = {
+            "jsonrpc": "2.0",
+            "id": self._request_id,
+            "method": method,
+            "params": params,
+        }
         self._proc.stdin.write(json.dumps(req) + "\n")
         self._proc.stdin.flush()
 
@@ -135,14 +140,22 @@ class _RawMinimaxBridge:
                             "error": text,
                             "base_resp": {"status_code": 400, "status_msg": text},
                         }
-                    return {"result": text, "base_resp": {"status_code": 200, "status_msg": "ok"}}
-        return {"organic": [], "base_resp": {"status_code": -1, "status_msg": "no text content"}}
+                    return {
+                        "result": text,
+                        "base_resp": {"status_code": 200, "status_msg": "ok"},
+                    }
+        return {
+            "organic": [],
+            "base_resp": {"status_code": -1, "status_msg": "no text content"},
+        }
 
     def understand_image_sync(self, image_url: str, prompt: str = "") -> dict[str, Any]:
         arguments: dict[str, Any] = {"image_source": image_url}
         if prompt:
             arguments["prompt"] = prompt
-        result = self._call_sync("tools/call", {"name": "understand_image", "arguments": arguments})
+        result = self._call_sync(
+            "tools/call", {"name": "understand_image", "arguments": arguments}
+        )
         if result is None:
             return {
                 "result": "",
@@ -159,8 +172,14 @@ class _RawMinimaxBridge:
                             "error": text,
                             "base_resp": {"status_code": 400, "status_msg": text},
                         }
-                    return {"result": text, "base_resp": {"status_code": 200, "status_msg": "ok"}}
-        return {"result": "", "base_resp": {"status_code": -1, "status_msg": "no text content"}}
+                    return {
+                        "result": text,
+                        "base_resp": {"status_code": 200, "status_msg": "ok"},
+                    }
+        return {
+            "result": "",
+            "base_resp": {"status_code": -1, "status_msg": "no text content"},
+        }
 
 
 _bridge = _RawMinimaxBridge()
@@ -274,10 +293,15 @@ class MinimaxMCPBridge:
                 "earth": True,
                 "bridge": "minimax_web_search",
             },
-            "metrics": {"f2_truth_score": round(f2, 4), "f3_earth_witness": round(f3, 4)},
+            "metrics": {
+                "f2_truth_score": round(f2, 4),
+                "f3_earth_witness": round(f3, 4),
+            },
         }
 
-    async def understand_image(self, image_url: str, question: str | None = None) -> dict[str, Any]:
+    async def understand_image(
+        self, image_url: str, question: str | None = None
+    ) -> dict[str, Any]:
         if not _MINIMAX_API_KEY:
             return {
                 "status": "error",
@@ -376,7 +400,12 @@ class MinimaxMCPBridge:
                 "f9_hantu_score": round(hantu_score, 4),
                 "description_length": len(description),
             },
-            "witness_debug": {"human": True, "ai": True, "earth": True, "bridge": "minimax_vision"},
+            "witness_debug": {
+                "human": True,
+                "ai": True,
+                "earth": True,
+                "bridge": "minimax_vision",
+            },
         }
 
 

@@ -60,7 +60,12 @@ _ANCHORED_NEXT_TOOLS = [
 
 
 def _bootstrap_result(
-    session_id: str, actor_id: str, verified: bool, risk_tier: str, platform: str, stage: str
+    session_id: str,
+    actor_id: str,
+    verified: bool,
+    risk_tier: str,
+    platform: str,
+    stage: str,
 ) -> dict[str, Any]:
     return {
         "session_id": session_id,
@@ -104,7 +109,9 @@ def _authority_for_actor(actor_id: str, verified: bool) -> CanonicalAuthority:
     )
 
 
-def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> RuntimeEnvelope:
+def _status_envelope(
+    session_id: str, identity: dict[str, Any] | None
+) -> RuntimeEnvelope:
     if identity is None:
         return RuntimeEnvelope(
             ok=True,
@@ -162,7 +169,9 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
         risk_class=RiskClass(risk_tier),
         authority=_authority_for_actor(actor_id, verified),
         payload={
-            "result": _bootstrap_result(session_id, actor_id, verified, risk_tier, platform, stage),
+            "result": _bootstrap_result(
+                session_id, actor_id, verified, risk_tier, platform, stage
+            ),
             "session": {
                 "actor_id": actor_id,
                 "verified": verified,
@@ -206,9 +215,7 @@ class SignedChallenge:
     policy_version: str = "v2026.04.14-hardened"
 
     def compute_hash(self) -> str:
-        data = (
-            f"{self.challenge_id}:{self.declared_name}:{self.intent}:{self.timestamp}:{self.nonce}"
-        )
+        data = f"{self.challenge_id}:{self.declared_name}:{self.intent}:{self.timestamp}:{self.nonce}"
         return hashlib.sha256(data.encode()).hexdigest()[:32]
 
 
@@ -253,7 +260,11 @@ async def init_anchor(
         resolved_payload.setdefault("platform", platform)
     _dn = declared_name or actor_id or resolved_payload.get("actor_id") or "anonymous"
     _intent = intent or query or resolved_payload.get("query") or f"Init {_dn}"
-    _session_id = session_id or resolved_payload.get("session_id") or f"sess-{secrets.token_hex(8)}"
+    _session_id = (
+        session_id
+        or resolved_payload.get("session_id")
+        or f"sess-{secrets.token_hex(8)}"
+    )
 
     from arifosmcp.runtime.sessions import bind_session_identity, get_session_identity
 
@@ -305,7 +316,8 @@ async def init_anchor(
         "actor_id": _dn,
         "session_id": _session_id,
         "verified": verified,
-        "signature": (auth_context or {}).get("signature") or f"init:{uuid.uuid4().hex[:12]}",
+        "signature": (auth_context or {}).get("signature")
+        or f"init:{uuid.uuid4().hex[:12]}",
         "risk_tier": risk_tier,
         "platform": "mcp",
     }
@@ -324,7 +336,9 @@ async def init_anchor(
             ).get("provider")
 
             if claimed_identity:
-                verification = await client.verify_identity(claimed_identity, claimed_provider)
+                verification = await client.verify_identity(
+                    claimed_identity, claimed_provider
+                )
                 model_registry_info = {
                     "verified": verification.verified,
                     "matched_key": verification.matched_key,
@@ -382,7 +396,9 @@ async def init_anchor(
             "bound_role": session_class,
             "anchor_state": "created",
         },
-        "result": _bootstrap_result(_session_id, _dn, verified, risk_tier, "mcp", "444_ROUTER"),
+        "result": _bootstrap_result(
+            _session_id, _dn, verified, risk_tier, "mcp", "444_ROUTER"
+        ),
         "telos_manifold": telos_manifold,
         "godel_lock": godel_lock,
         "philosophy": phi_result,
@@ -447,7 +463,9 @@ async def init_anchor(
         session_id=_session_id,
         caller_state="verified" if verified else "anonymous",
         authority=authority_obj,
-        allowed_next_tools=list(_ANCHORED_NEXT_TOOLS if verified else _ANONYMOUS_NEXT_TOOLS),
+        allowed_next_tools=list(
+            _ANCHORED_NEXT_TOOLS if verified else _ANONYMOUS_NEXT_TOOLS
+        ),
         next_allowed_modes=(
             ["status", "probe", "state", "kernel", "health", "vitals", "reason"]
             if verified

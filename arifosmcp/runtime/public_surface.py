@@ -24,7 +24,11 @@ BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
     "geoxarifos_",
 )
 
-VALID_PUBLIC_SURFACE_MODES: tuple[str, ...] = ("canonical13", "canonical15", "expanded45")
+VALID_PUBLIC_SURFACE_MODES: tuple[str, ...] = (
+    "canonical13",
+    "canonical15",
+    "expanded45",
+)
 
 
 def _alias_public_name(alias_name: str) -> str:
@@ -43,7 +47,11 @@ def _alias_public_name(alias_name: str) -> str:
 
 
 EXPANDED_45: tuple[str, ...] = tuple(
-    list(dict.fromkeys([*CANONICAL_15, *(_alias_public_name(name) for name in TOOL_ALIAS_MAP)]))
+    list(
+        dict.fromkeys(
+            [*CANONICAL_15, *(_alias_public_name(name) for name in TOOL_ALIAS_MAP)]
+        )
+    )
 )
 
 
@@ -89,7 +97,9 @@ def public_boundary_allows(name: str, mode: str | None = None) -> bool:
 def public_surface_state(mode: str | None = None) -> dict[str, Any]:
     resolved = normalize_public_surface_mode(mode)
     tool_names = list(public_tool_names_for_mode(resolved))
-    diagnostic_tools = [name for name in tool_names if name in {"arif_ping", "arif_selftest"}]
+    diagnostic_tools = [
+        name for name in tool_names if name in {"arif_ping", "arif_selftest"}
+    ]
     return {
         "mode": resolved,
         "tools_registered": len(tool_names),
@@ -171,7 +181,14 @@ PEER_SOVEREIGNS: dict[str, dict[str, Any]] = {
     },
 }
 
-PUBLIC_STATUS_VALUES: set[str] = {"ok", "degraded", "down", "missing", "unknown", "bridge_only"}
+PUBLIC_STATUS_VALUES: set[str] = {
+    "ok",
+    "degraded",
+    "down",
+    "missing",
+    "unknown",
+    "bridge_only",
+}
 
 
 # Build-time truth — derived at import from build_info

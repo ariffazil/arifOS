@@ -13,7 +13,11 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.organs._5_wealth import wealth_dscr_leverage, wealth_irr_yield, wealth_npv_reward
+from core.organs._5_wealth import (
+    wealth_dscr_leverage,
+    wealth_irr_yield,
+    wealth_npv_reward,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +45,9 @@ async def wealth_irr_yield_handler(
     initial_investment: float, cash_flows: list[float], session_id: str | None = None
 ) -> dict[str, Any]:
     """Handler for wealth_irr_yield tool."""
-    result = wealth_irr_yield(initial_investment=initial_investment, cash_flows=cash_flows)
+    result = wealth_irr_yield(
+        initial_investment=initial_investment, cash_flows=cash_flows
+    )
     return result.model_dump()
 
 

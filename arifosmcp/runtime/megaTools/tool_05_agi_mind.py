@@ -14,7 +14,9 @@ from typing import Any
 
 # FastMCP 2.x/3.x compatibility
 try:
-    from fastmcp import Context  # Context injected by framework; None if called outside MCP
+    from fastmcp import (
+        Context,
+    )  # Context injected by framework; None if called outside MCP
 except ImportError:
     pass
 CurrentContext = None  # Always defined — ctx injected by FastMCP framework at runtime
@@ -91,7 +93,9 @@ async def agi_mind(
 
         # Extract metrics from hardened result
         metrics = CanonicalMetrics()
-        metrics.telemetry.ds = res_dict.get("metrics", {}).get("telemetry", {}).get("ds", 0.0)
+        metrics.telemetry.ds = (
+            res_dict.get("metrics", {}).get("telemetry", {}).get("ds", 0.0)
+        )
         metrics.telemetry.confidence = res_dict.get("confidence", 0.5)
 
         return forge_verdict(

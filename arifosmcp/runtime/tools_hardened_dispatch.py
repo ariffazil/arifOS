@@ -62,7 +62,9 @@ def get_dispatch_map() -> MutableMapping[str, Any]:
     return HARDENED_DISPATCH_MAP
 
 
-async def dispatch_with_fail_closed(tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+async def dispatch_with_fail_closed(
+    tool_name: str, arguments: dict[str, Any]
+) -> dict[str, Any]:
     from arifosmcp.runtime.kernel import kernel
 
     return await kernel.dispatch_with_fail_closed(tool_name, arguments)
@@ -82,7 +84,9 @@ def get_tool_handler(name: str) -> Any:
     return None
 
 
-def hardened_init_anchor_dispatch(mode: str = "status", **kwargs: Any) -> dict[str, Any]:
+def hardened_init_anchor_dispatch(
+    mode: str = "status", **kwargs: Any
+) -> dict[str, Any]:
     """Compatibility wrapper that keeps the legacy init-anchor mode vocabulary visible."""
     from arifosmcp.runtime.tools import _arif_session_init
 
@@ -90,7 +94,9 @@ def hardened_init_anchor_dispatch(mode: str = "status", **kwargs: Any) -> dict[s
         return {
             "status": "HOLD",
             "tool": "init_anchor",
-            "meta": {"reason": "Legacy revoke mode retired; use epoch_seal + sovereign review."},
+            "meta": {
+                "reason": "Legacy revoke mode retired; use epoch_seal + sovereign review."
+            },
         }
 
     if mode in ("state", "status", "refresh"):

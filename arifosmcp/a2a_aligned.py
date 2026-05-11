@@ -170,7 +170,9 @@ class A2AClient:
         for chunk in self._chunk_response(response):
             yield chunk
 
-    async def _simulate_response(self, agent: str, message: A2AMessage) -> dict[str, Any]:
+    async def _simulate_response(
+        self, agent: str, message: A2AMessage
+    ) -> dict[str, Any]:
         """Simulate agent response for POC."""
         return {
             "agent": agent,
@@ -320,7 +322,9 @@ class GovernanceAgent(A2AServer):
             return await self._judge(action_data, message.session_id)
 
         if content.startswith("init:"):
-            return await self._init_session(content.split(":", 1)[1], message.session_id)
+            return await self._init_session(
+                content.split(":", 1)[1], message.session_id
+            )
 
         return {"error": "Unknown governance command"}
 
@@ -351,7 +355,9 @@ class GovernanceAgent(A2AServer):
             "session_id": session_id,
         }
 
-    async def _init_session(self, intent: str, session_id: str | None) -> dict[str, Any]:
+    async def _init_session(
+        self, intent: str, session_id: str | None
+    ) -> dict[str, Any]:
         """Initialize a session."""
         return {
             "agent": "G",
@@ -382,7 +388,10 @@ def get_agent(agent_id: str) -> A2AServer | None:
 
 def get_all_cards() -> dict[str, AgentCard]:
     """Get all agent cards for discovery."""
-    return {k: v.get_agent_card() if v else AGENT_CARDS[k] for k, v in AGENT_REGISTRY.items()}
+    return {
+        k: v.get_agent_card() if v else AGENT_CARDS[k]
+        for k, v in AGENT_REGISTRY.items()
+    }
 
 
 # =============================================================================
@@ -402,7 +411,11 @@ class A2ARouter:
         self.client = A2AClient()
 
     async def route(
-        self, caller: str, target: str, payload: dict[str, Any], session_id: str | None = None
+        self,
+        caller: str,
+        target: str,
+        payload: dict[str, Any],
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Route a message from caller to target.
@@ -433,7 +446,9 @@ class A2ARouter:
     async def route_stream(self, caller: str, target: str, payload: dict[str, Any]):
         """Stream route a message."""
         if not can_route(caller, target):
-            yield {"error": f"Orthogonality violation: {caller} cannot route to {target}"}
+            yield {
+                "error": f"Orthogonality violation: {caller} cannot route to {target}"
+            }
             return
 
         message = A2AMessage(

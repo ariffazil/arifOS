@@ -77,7 +77,8 @@ class DeployGateReport:
         return sum(
             1
             for g in self.gates
-            if g.gate_name in critical_gates and g.status in [GateStatus.FAIL, GateStatus.HOLD]
+            if g.gate_name in critical_gates
+            and g.status in [GateStatus.FAIL, GateStatus.HOLD]
         )
 
     @property
@@ -153,7 +154,10 @@ class DeployGateRunner:
     def _get_git_branch(self) -> str | None:
         try:
             result = subprocess.run(
-                ["git", "branch", "--show-current"], capture_output=True, text=True, timeout=5
+                ["git", "branch", "--show-current"],
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             return result.stdout.strip() if result.returncode == 0 else None
         except Exception:
@@ -241,7 +245,9 @@ class DeployGateRunner:
                 )
             )
 
-            print(f"  {'✅' if status == GateStatus.PASS else '❌'} Boot: {status.value}")
+            print(
+                f"  {'✅' if status == GateStatus.PASS else '❌'} Boot: {status.value}"
+            )
 
         except Exception as e:
             self.gates.append(
@@ -282,7 +288,9 @@ class DeployGateRunner:
                 )
             )
 
-            print(f"  {'✅' if status == GateStatus.PASS else '❌'} Capability: {status.value}")
+            print(
+                f"  {'✅' if status == GateStatus.PASS else '❌'} Capability: {status.value}"
+            )
 
         except Exception as e:
             self.gates.append(
@@ -307,7 +315,9 @@ class DeployGateRunner:
             # Run breach tests
             from arifosmcp.evals.breach_test_runner import BreachTestRunner
 
-            runner = BreachTestRunner("arifosmcp/evals/constitutional_breach_tests.yaml")
+            runner = BreachTestRunner(
+                "arifosmcp/evals/constitutional_breach_tests.yaml"
+            )
             await runner.run_all_tests()
             report = runner.generate_report()
 
@@ -357,10 +367,14 @@ class DeployGateRunner:
             health = await bridge.get_global_health()
             substrates = health.get("substrate", {})
 
-            healthy_count = sum(1 for s in substrates.values() if s.get("status") == "OK")
+            healthy_count = sum(
+                1 for s in substrates.values() if s.get("status") == "OK"
+            )
             total_count = len(substrates)
 
-            status = GateStatus.PASS if healthy_count == total_count else GateStatus.FAIL
+            status = (
+                GateStatus.PASS if healthy_count == total_count else GateStatus.FAIL
+            )
 
             self.gates.append(
                 GateResult(
@@ -450,7 +464,10 @@ class DeployGateRunner:
 
             # Check for git tag/branch for rollback
             git_result = subprocess.run(
-                ["git", "tag", "-l", "rollback-*"], capture_output=True, text=True, timeout=5
+                ["git", "tag", "-l", "rollback-*"],
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             has_rollback_tag = len(git_result.stdout.strip()) > 0
 
@@ -480,7 +497,9 @@ class DeployGateRunner:
                 )
             )
 
-            print(f"  {'✅' if status == GateStatus.PASS else '⏸️'} Rollback: {status.value}")
+            print(
+                f"  {'✅' if status == GateStatus.PASS else '⏸️'} Rollback: {status.value}"
+            )
 
         except Exception as e:
             self.gates.append(
@@ -531,12 +550,17 @@ class DeployGateRunner:
                 )
             )
 
-            print(f"  {'✅' if status == GateStatus.PASS else '⏸️'} Observability: {status.value}")
+            print(
+                f"  {'✅' if status == GateStatus.PASS else '⏸️'} Observability: {status.value}"
+            )
 
         except Exception as e:
             self.gates.append(
                 GateResult(
-                    gate_name="G", status=GateStatus.HOLD, description="Observability", error=str(e)
+                    gate_name="G",
+                    status=GateStatus.HOLD,
+                    description="Observability",
+                    error=str(e),
                 )
             )
             print(f"  ⏸️ Observability: HOLD - {e}")
@@ -650,7 +674,10 @@ async def main():
         "--transport", default="http", choices=["http", "stdio"], help="Transport mode"
     )
     parser.add_argument(
-        "--ratify", "-r", action="store_true", help="Human ratification for production deployment"
+        "--ratify",
+        "-r",
+        action="store_true",
+        help="Human ratification for production deployment",
     )
     parser.add_argument(
         "--output", "-o", default="deploy_gate.json", help="Output file for results"
@@ -698,9 +725,12 @@ async def main():
         await runner.seal_to_vault(report)
 
     # Exit code
-    exit_code = {Verdict.SEAL: 0, Verdict.SABAR: 1, Verdict.HOLD: 2, Verdict.VOID: 3}.get(
-        report.final_verdict, 1
-    )
+    exit_code = {
+        Verdict.SEAL: 0,
+        Verdict.SABAR: 1,
+        Verdict.HOLD: 2,
+        Verdict.VOID: 3,
+    }.get(report.final_verdict, 1)
 
     sys.exit(exit_code)
 

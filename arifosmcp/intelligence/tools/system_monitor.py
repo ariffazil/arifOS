@@ -28,7 +28,10 @@ def list_processes(
             ["pid", "name", "username", "cpu_percent", "memory_info", "num_threads"]
         ):
             info = proc.info
-            if filter_name and filter_name.lower() not in str(info.get("name", "")).lower():
+            if (
+                filter_name
+                and filter_name.lower() not in str(info.get("name", "")).lower()
+            ):
                 continue
             if filter_user and filter_user != info.get("username"):
                 continue
@@ -70,7 +73,9 @@ def get_resource_usage(
             payload["swap"] = dict(psutil.swap_memory()._asdict())
         if include_io:
             payload["io"] = (
-                dict(psutil.disk_io_counters()._asdict()) if psutil.disk_io_counters() else {}
+                dict(psutil.disk_io_counters()._asdict())
+                if psutil.disk_io_counters()
+                else {}
             )
         if include_temp:
             try:

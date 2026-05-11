@@ -100,7 +100,9 @@ def get_tool_permissions_resource() -> dict[str, Any]:
                 {
                     "tool_id": e.manifest.tool_id,
                     "reason": (
-                        "permission_gap" if e.has_permission_gap else "failure_count_exceeded"
+                        "permission_gap"
+                        if e.has_permission_gap
+                        else "failure_count_exceeded"
                     ),
                     "gap": e.permission_gap if e.has_permission_gap else [],
                 }
@@ -126,7 +128,9 @@ def get_tool_composition_resource() -> dict[str, Any]:
         for other_id in model.list_all():
             if other_id.manifest.tool_id == tool_id:
                 continue
-            is_safe, reason = model.check_composition(tool_id, other_id.manifest.tool_id)
+            is_safe, reason = model.check_composition(
+                tool_id, other_id.manifest.tool_id
+            )
             compositions.append(
                 {
                     "before": tool_id,

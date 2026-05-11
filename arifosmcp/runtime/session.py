@@ -56,7 +56,9 @@ def _default_session_store_path() -> Path:
     if explicit:
         return Path(explicit)
 
-    repo_state = Path(__file__).resolve().parents[2] / ".arifos" / "runtime_sessions.json"
+    repo_state = (
+        Path(__file__).resolve().parents[2] / ".arifos" / "runtime_sessions.json"
+    )
     xdg_state = (
         Path(
             os.getenv(
@@ -91,7 +93,9 @@ def _get_signing_secret() -> bytes:
             except Exception:  # pragma: allowlist secret  # nosec B105
                 secret = "fallback-ephemeral-secret"  # pragma: allowlist secret  # nosec B105
         else:
-            secret = "fallback-ephemeral-secret"  # pragma: allowlist secret  # nosec B105
+            secret = (
+                "fallback-ephemeral-secret"  # pragma: allowlist secret  # nosec B105
+            )
     return secret.encode()
 
 
@@ -99,7 +103,9 @@ def _sign_session_payload(payload: dict[str, Any]) -> str:
     """Generate a signed base64 token for distributed continuity."""
     dump = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     b64_payload = base64.urlsafe_b64encode(dump.encode()).decode().rstrip("=")
-    sig = hmac.new(_get_signing_secret(), b64_payload.encode(), hashlib.sha256).hexdigest()[:16]
+    sig = hmac.new(
+        _get_signing_secret(), b64_payload.encode(), hashlib.sha256
+    ).hexdigest()[:16]
     return f"{b64_payload}.{sig}"
 
 
@@ -168,12 +174,15 @@ def _persist_store() -> None:
         _SESSION_STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
         tmp_path = _SESSION_STORE_PATH.with_suffix(".tmp")
         tmp_path.write_text(
-            json.dumps(_session_store_payload(), indent=2, sort_keys=True), encoding="utf-8"
+            json.dumps(_session_store_payload(), indent=2, sort_keys=True),
+            encoding="utf-8",
         )
         tmp_path.replace(_SESSION_STORE_PATH)
     except OSError as exc:
         fallback_path = Path("/tmp") / "arifos" / "runtime_sessions.json"  # nosec B108
-        if _SESSION_STORE_PATH != fallback_path and _is_store_parent_writable(fallback_path.parent):
+        if _SESSION_STORE_PATH != fallback_path and _is_store_parent_writable(
+            fallback_path.parent
+        ):
             logger.warning(
                 "Session store path %s unavailable (%s); falling back to %s",
                 _SESSION_STORE_PATH,
@@ -183,7 +192,9 @@ def _persist_store() -> None:
             _SESSION_STORE_PATH = fallback_path
             _persist_store()
             return
-        logger.warning("Session store persistence failed at %s: %s", _SESSION_STORE_PATH, exc)
+        logger.warning(
+            "Session store persistence failed at %s: %s", _SESSION_STORE_PATH, exc
+        )
 
 
 def _load_store() -> None:
@@ -454,7 +465,9 @@ def clear_session_identity(session_id: str) -> None:
 def list_active_sessions_count() -> int:
     """Return the total number of currently anchored sessions."""
     _load_store()
-    expired = [sid for sid, record in _SESSION_IDENTITY.items() if _is_session_expired(record)]
+    expired = [
+        sid for sid, record in _SESSION_IDENTITY.items() if _is_session_expired(record)
+    ]
     for session_id in expired:
         clear_session_identity(session_id)
     return len(_SESSION_IDENTITY)
@@ -477,7 +490,9 @@ def set_session_continuity_state(session_id: str, state: dict[str, Any]) -> None
     _load_store()
     _SESSION_CONTINUITY_STATE[session_id] = state
     if session_id in _SESSION_IDENTITY:
-        _touch_record(session_id, {"stage": _deep_get(state, "state", "session", "current_tool")})
+        _touch_record(
+            session_id, {"stage": _deep_get(state, "state", "session", "current_tool")}
+        )
     else:
         with _STORE_LOCK:
             _persist_store()
@@ -604,7 +619,9 @@ def record_session_tool_event(
         {
             "stage": stage or record.get("stage") or "000_INIT",
             "governance": {
-                "verdict": verdict or _deep_get(record, "governance", "verdict") or "SEAL"
+                "verdict": verdict
+                or _deep_get(record, "governance", "verdict")
+                or "SEAL"
             },
             "activity": activity_update,
         },
@@ -736,7 +753,9 @@ def resolve_runtime_context(
         resolved_session_id = auth_context["session_id"]
         authority_source = "token"
     # 2. Anchored session state for this actor
-    elif transport_session_id != "global" and get_session_identity(transport_session_id):
+    elif transport_session_id != "global" and get_session_identity(
+        transport_session_id
+    ):
         resolved_session_id = transport_session_id
         authority_source = "session"
     # 3. Check if actor has any anchored session

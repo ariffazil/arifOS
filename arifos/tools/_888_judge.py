@@ -9,7 +9,6 @@ from arifos.core.governance import (
     append_vault999_event,
 )
 
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Constitutional Floors (arifOS F1–F13)
 # ──────────────────────────────────────────────────────────────────────────────
@@ -393,7 +392,9 @@ async def execute(
     """
 
     # ── 1. Mandatory evidence_bundle check (F7 Humility) ─────────────────────
-    if evidence_bundle is None or (isinstance(evidence_bundle, dict) and len(evidence_bundle) == 0):
+    if evidence_bundle is None or (
+        isinstance(evidence_bundle, dict) and len(evidence_bundle) == 0
+    ):
         vault_hash = append_vault999_event(
             event_type="888_JUDGE_EXECUTION",
             payload={"verdict": VERDICT_HOLD_888, "reason": "EMPTY_BUNDLE"},
@@ -477,7 +478,9 @@ async def execute(
             return {
                 "verdict": VERDICT_HOLD_888,
                 "rationale": f"F7 Humility: metrics cannot be parsed — {type(raw_metrics).__name__}. HOLD_888.",
-                "conditions": {"F7_OMEGA0": {"status": "unknown", "reason": "malformed metrics"}},
+                "conditions": {
+                    "F7_OMEGA0": {"status": "unknown", "reason": "malformed metrics"}
+                },
                 "metabolic_metadata": {
                     "floor_alignment": {},
                     "confidence_score": 0.0,
@@ -505,7 +508,9 @@ async def execute(
         return {
             "verdict": VERDICT_HOLD_888,
             "rationale": f"F7 Humility: metrics type {type(raw_metrics).__name__} not recognized. HOLD_888.",
-            "conditions": {"F7_OMEGA0": {"status": "unknown", "reason": "invalid type"}},
+            "conditions": {
+                "F7_OMEGA0": {"status": "unknown", "reason": "invalid type"}
+            },
             "metabolic_metadata": {
                 "floor_alignment": {},
                 "confidence_score": 0.0,
@@ -548,7 +553,9 @@ async def execute(
     }
 
     # ── 6. Build rationale, conditions, appeal_process ───────────────────────
-    rationale = _build_rationale(floor_results, blocking_tag, final_verdict, evidence_bundle)
+    rationale = _build_rationale(
+        floor_results, blocking_tag, final_verdict, evidence_bundle
+    )
     conditions = _build_conditions(floor_results)
     appeal_process = _build_appeal_process(final_verdict, blocking_tag)
 

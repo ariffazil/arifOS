@@ -102,14 +102,18 @@ class ActionContext(BaseModel):
 
     # The raw payload that carries intent
     candidate: str | None = Field(default=None, description="Action under evaluation")
-    manifest: str | None = Field(default=None, description="Forge manifest or code payload")
+    manifest: str | None = Field(
+        default=None, description="Forge manifest or code payload"
+    )
     query: str | None = Field(default=None, description="Search or reasoning query")
     url: str | None = Field(default=None, description="URL for fetch/ingest")
     target_agent: str | None = Field(default=None, description="Federation target")
 
     # Authority signals
     ack_irreversible: bool = Field(default=False, description="F01 Amanah explicit ack")
-    witness_type: WitnessType = Field(default=WitnessType.AI, description="F13 witness type")
+    witness_type: WitnessType = Field(
+        default=WitnessType.AI, description="F13 witness type"
+    )
     plan_id: str | None = Field(default=None, description="H2 ratified plan ID")
 
     # Cryptographic proofs
@@ -128,7 +132,9 @@ class ActionContext(BaseModel):
             return v
         # Scheme restriction
         if not v.startswith(("http://", "https://")):
-            raise ValueError(f"Invalid URL scheme: {v}. Only http:// and https:// allowed.")
+            raise ValueError(
+                f"Invalid URL scheme: {v}. Only http:// and https:// allowed."
+            )
         # SSRF / internal network block
         parsed = urllib.parse.urlparse(v)
         hostname = parsed.hostname or ""
@@ -149,14 +155,18 @@ class ActionContext(BaseModel):
             "caddy",
         }
         if hostname.lower() in blocked_hostnames:
-            raise ValueError(f"SSRF blocked: internal hostname '{hostname}' is not reachable.")
+            raise ValueError(
+                f"SSRF blocked: internal hostname '{hostname}' is not reachable."
+            )
         try:
             ip = ipaddress.ip_address(hostname)
         except ValueError:
             pass  # hostname is not an IP, that's fine
         else:
             if ip.is_private or ip.is_loopback or ip.is_reserved or ip.is_multicast:
-                raise ValueError(f"SSRF blocked: internal IP '{hostname}' is not reachable.")
+                raise ValueError(
+                    f"SSRF blocked: internal IP '{hostname}' is not reachable."
+                )
         return v
 
     def payload_text(self) -> str:
@@ -232,10 +242,26 @@ class ThreatEngine:
     SQL_INJECTION = ["; --", "';", '";', "union select", "or 1=1", "exec(", "execute("]
 
     # ── Shell injection ──
-    SHELL_INJECTION = ["; rm", "&& rm", "| sh", "| bash", "`rm", "$(rm", "eval(", "exec("]
+    SHELL_INJECTION = [
+        "; rm",
+        "&& rm",
+        "| sh",
+        "| bash",
+        "`rm",
+        "$(rm",
+        "eval(",
+        "exec(",
+    ]
 
     # ── XSS ──
-    XSS_PATTERNS = ["<script>", "javascript:", "onerror=", "onload=", "alert(", "document.cookie"]
+    XSS_PATTERNS = [
+        "<script>",
+        "javascript:",
+        "onerror=",
+        "onload=",
+        "alert(",
+        "document.cookie",
+    ]
 
     # ── Admin / shutdown ──
     ADMIN_ACTIONS = [
@@ -255,7 +281,9 @@ class ThreatEngine:
         reasoning: list[str] = []
 
         # 1. Python AST analysis
-        py_threats, py_reason = cls._analyze_python(context.manifest or context.candidate or "")
+        py_threats, py_reason = cls._analyze_python(
+            context.manifest or context.candidate or ""
+        )
         threats |= py_threats
         reasoning.extend(py_reason)
 
@@ -476,9 +504,14 @@ class FloorEvaluator:
             failed.append("F11")
             reasons["F11"] = "Session ID not found or expired"
 
-        if context.target_agent and context.target_agent not in context.federation_registry:
+        if (
+            context.target_agent
+            and context.target_agent not in context.federation_registry
+        ):
             failed.append("F11")
-            reasons["F11"] = f"Agent '{context.target_agent}' not in federation registry"
+            reasons["F11"] = (
+                f"Agent '{context.target_agent}' not in federation registry"
+            )
 
         # F12 INJECTION — Sanitize inputs
         injection_categories = {
@@ -496,7 +529,10 @@ class FloorEvaluator:
         if cls._requires_human_witness(context, threat):
             if context.witness_type != WitnessType.HUMAN:
                 # Distinguish sovereignty violation (AI self-approval) from missing witness
-                if context.tool_name == "arif_mind_reason" and context.mode == "plan_approve":
+                if (
+                    context.tool_name == "arif_mind_reason"
+                    and context.mode == "plan_approve"
+                ):
                     failed.append("F13_VIOLATION")
                     reasons["F13_VIOLATION"] = (
                         "F13 SOVEREIGN: AI self-approval is constitutionally forbidden"
@@ -540,7 +576,9 @@ class FloorEvaluator:
         )
 
     @staticmethod
-    def _requires_human_witness(context: ActionContext, threat: ThreatAssessment) -> bool:
+    def _requires_human_witness(
+        context: ActionContext, threat: ThreatAssessment
+    ) -> bool:
         """Determine if F13 requires a human witness for this action."""
         # Hard-coded canonical policy — mode-aware
         human_required_tools_modes = {
@@ -633,7 +671,9 @@ class ConstitutionalVerdict(BaseModel):
     floors: FloorResult
     authority: AuthorityProof
     irreversibility: IrreversibilityLevel
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     state_hash: str = Field(default="")
 
     def model_post_init(self, __context: Any) -> None:
@@ -734,7 +774,9 @@ class ConstitutionKernel:
         if floors.verdict == "VOID" or not authority.authorized:
             status = "HOLD"
             verdict = (
-                "VOID" if (is_sovereignty_violation or is_destructive or has_injection) else "HOLD"
+                "VOID"
+                if (is_sovereignty_violation or is_destructive or has_injection)
+                else "HOLD"
             )
         elif floors.verdict == "HOLD":
             status = "HOLD"
@@ -773,7 +815,10 @@ class SchemaContractValidator:
         for name, field_info in model.model_fields.items():
             annotation = field_info.annotation
             # FastMCP elicitation rejects Union with None
-            if hasattr(annotation, "__origin__") and annotation.__origin__ is type[None] | str:
+            if (
+                hasattr(annotation, "__origin__")
+                and annotation.__origin__ is type[None] | str
+            ):
                 errors.append(
                     f"Field '{name}' has Union type with None — "
                     "FastMCP elicitation will reject this. Use default='' instead."
@@ -791,7 +836,9 @@ class SchemaContractValidator:
         missing = documented_modes - implemented_modes
         extra = implemented_modes - documented_modes
         if missing:
-            errors.append(f"{tool_name}: documented modes missing in implementation: {missing}")
+            errors.append(
+                f"{tool_name}: documented modes missing in implementation: {missing}"
+            )
         if extra:
             errors.append(f"{tool_name}: implemented modes not documented: {extra}")
         return errors

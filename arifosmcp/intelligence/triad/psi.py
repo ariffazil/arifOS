@@ -27,30 +27,50 @@ class PsiShadow:
 
         if "permanent" in text and "restore" in text:
             logical_contradictions.append(
-                {"type": "REVERSIBILITY_CONTRADICTION", "detail": "irreversible + restore"}
+                {
+                    "type": "REVERSIBILITY_CONTRADICTION",
+                    "detail": "irreversible + restore",
+                }
             )
 
         if "bypass" in text and "safety" in text:
-            logical_contradictions.append({"type": "SAFETY_BYPASS", "detail": "bypass safety"})
+            logical_contradictions.append(
+                {"type": "SAFETY_BYPASS", "detail": "bypass safety"}
+            )
 
         if "rm -rf" in text or "$(" in text or "curl http" in text:
-            injection_vectors.append({"type": "COMMAND_INJECTION", "detail": "shell injection"})
+            injection_vectors.append(
+                {"type": "COMMAND_INJECTION", "detail": "shell injection"}
+            )
 
-        if "ignore previous instructions" in text or "ignore previous instruction" in text:
-            injection_vectors.append({"type": "PROMPT_INJECTION", "detail": "prompt override"})
+        if (
+            "ignore previous instructions" in text
+            or "ignore previous instruction" in text
+        ):
+            injection_vectors.append(
+                {"type": "PROMPT_INJECTION", "detail": "prompt override"}
+            )
 
         if "delete" in text or "drop" in text:
             if "production" in text or "users table" in text or "database" in text:
-                harm_scenarios.append({"type": "DATA_LOSS", "detail": "production destruction"})
+                harm_scenarios.append(
+                    {"type": "DATA_LOSS", "detail": "production destruction"}
+                )
             else:
                 harm_scenarios.append(
                     {"type": "UNSAFE_DESTRUCTION", "detail": "destructive action"}
                 )
 
         if "system logs" in text or "logs" in text:
-            entropy_assessment = {"entropy_increases": True, "destructive_component": True}
+            entropy_assessment = {
+                "entropy_increases": True,
+                "destructive_component": True,
+            }
         else:
-            entropy_assessment = {"entropy_increases": False, "destructive_component": False}
+            entropy_assessment = {
+                "entropy_increases": False,
+                "destructive_component": False,
+            }
 
         is_safe = (
             "sandbox" in text

@@ -41,7 +41,9 @@ from pydantic import Field
 # ── App definition ────────────────────────────────────────────────────────────
 
 geox_app = FastMCP("GeoxApp")
-if not hasattr(geox_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+if not hasattr(
+    geox_app, "ui"
+):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
     geox_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
 
@@ -139,7 +141,9 @@ def geox_map_surface() -> PrefabApp:
                         Text("Verify Coordinate", css_class="font-semibold")
                         Muted("Ensure interpreted prospects are physically grounded")
 
-                    Button("Verify (Kuala Lumpur)", on_click=on_verify, variant="default")
+                    Button(
+                        "Verify (Kuala Lumpur)", on_click=on_verify, variant="default"
+                    )
 
         # ── Results ─────────────────────────────────────────────────────────
         with If(STATE["verified"]):
@@ -159,14 +163,21 @@ def geox_map_surface() -> PrefabApp:
                             variant=STATE["valid"].then("success", "destructive"),
                         )
                         Text(STATE["jurisdiction"])
-                    Muted(f"Coordinate Reference System: {STATE['crs']}", css_class="text-xs mt-2")
+                    Muted(
+                        f"Coordinate Reference System: {STATE['crs']}",
+                        css_class="text-xs mt-2",
+                    )
 
         Separator()
 
         # ── External Links ──────────────────────────────────────────────────
         Muted("Reality Substrates", css_class="text-xs uppercase tracking-wider")
         with Row(gap=3):
-            Link("3D Earth (Cesium)", href="https://cesium.com", css_class="text-sm text-blue-500")
+            Link(
+                "3D Earth (Cesium)",
+                href="https://cesium.com",
+                css_class="text-sm text-blue-500",
+            )
             Link(
                 "Macrostrat Geology",
                 href="https://macrostrat.org",
@@ -174,7 +185,9 @@ def geox_map_surface() -> PrefabApp:
             )
 
         Separator()
-        Muted("arifOS · @GEOX · Earth Witness Protocol", css_class="text-xs text-center")
+        Muted(
+            "arifOS · @GEOX · Earth Witness Protocol", css_class="text-xs text-center"
+        )
 
     return PrefabApp(view=view, state=initial_state)
 

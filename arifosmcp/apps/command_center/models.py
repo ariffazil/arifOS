@@ -26,7 +26,9 @@ class SessionStatus(BaseModel):
     authority: str = "human_judge_required_for_consequential_actions"
     # Phase 2 governance fields
     plan_id: str | None = None
-    plan_state: str = "draft"  # draft|planned|risk_judged|approved|executed|sealed|blocked
+    plan_state: str = (
+        "draft"  # draft|planned|risk_judged|approved|executed|sealed|blocked
+    )
     latest_verdict: str | None = None
     judge_state_hash: str | None = None
     required_next_tool: str | None = None

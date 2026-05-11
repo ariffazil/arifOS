@@ -44,7 +44,10 @@ WAWA_PROMPT_SPECS: list[dict[str, Any]] = [
                 "class_data": {
                     "type": "object",
                     "properties": {
-                        "subject_code": {"type": "string", "description": "e.g. SOS3002"},
+                        "subject_code": {
+                            "type": "string",
+                            "description": "e.g. SOS3002",
+                        },
                         "subject_name": {"type": "string"},
                         "day": {
                             "type": "string",
@@ -91,7 +94,10 @@ WAWA_PROMPT_SPECS: list[dict[str, Any]] = [
                             "type": "string",
                             "description": "YYYY-MM-DD or YYYY-MM-DDTHH:MM",
                         },
-                        "priority": {"type": "string", "enum": ["LOW", "MED", "HIGH", "URGENT"]},
+                        "priority": {
+                            "type": "string",
+                            "enum": ["LOW", "MED", "HIGH", "URGENT"],
+                        },
                         "description": {"type": "string"},
                         "submission_link": {"type": "string"},
                     },
@@ -234,7 +240,12 @@ WAWA_PROMPT_SPECS: list[dict[str, Any]] = [
             "properties": {
                 "action": {
                     "type": "string",
-                    "enum": ["LOG_ATTENDANCE", "WELLNESS_SCAN", "SEND_NUDGE", "WELLNESS_REPORT"],
+                    "enum": [
+                        "LOG_ATTENDANCE",
+                        "WELLNESS_SCAN",
+                        "SEND_NUDGE",
+                        "WELLNESS_REPORT",
+                    ],
                 },
                 "student_id": {"type": "string"},
                 "subject_code": {"type": "string"},
@@ -266,11 +277,18 @@ WAWA_STUDENT_SCHEMA: dict[str, Any] = {
         "university": {"type": "string"},
         "programme": {"type": "string"},
         "intake_year": {"type": "integer"},
-        "language_pref": {"type": "string", "enum": ["BM", "EN", "MIXED"], "default": "MIXED"},
+        "language_pref": {
+            "type": "string",
+            "enum": ["BM", "EN", "MIXED"],
+            "default": "MIXED",
+        },
         "mcp_session_id": {"type": "string", "format": "uuid"},
         "subjects": {"type": "array", "items": {"$ref": "#/definitions/Subject"}},
         "deadlines": {"type": "array", "items": {"$ref": "#/definitions/Deadline"}},
-        "group_projects": {"type": "array", "items": {"$ref": "#/definitions/GroupProject"}},
+        "group_projects": {
+            "type": "array",
+            "items": {"$ref": "#/definitions/GroupProject"},
+        },
     },
     "required": ["student_id", "name", "university", "programme"],
     "definitions": {
@@ -285,8 +303,20 @@ WAWA_STUDENT_SCHEMA: dict[str, Any] = {
                     "type": "array",
                     "items": {
                         "properties": {
-                            "day": {"enum": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]},
-                            "start_time": {"pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"},
+                            "day": {
+                                "enum": [
+                                    "MON",
+                                    "TUE",
+                                    "WED",
+                                    "THU",
+                                    "FRI",
+                                    "SAT",
+                                    "SUN",
+                                ]
+                            },
+                            "start_time": {
+                                "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+                            },
                             "end_time": {"pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"},
                             "room": {"type": "string"},
                         },
@@ -310,7 +340,14 @@ WAWA_STUDENT_SCHEMA: dict[str, Any] = {
                     "items": {"type": "string", "format": "date-time"},
                 },
             },
-            "required": ["deadline_id", "subject_id", "title", "due_date", "priority", "status"],
+            "required": [
+                "deadline_id",
+                "subject_id",
+                "title",
+                "due_date",
+                "priority",
+                "status",
+            ],
         },
         "GroupProject": {
             "type": "object",
@@ -342,7 +379,13 @@ WAWA_STUDENT_SCHEMA: dict[str, Any] = {
                     },
                 },
             },
-            "required": ["project_id", "project_name", "subject_id", "members", "tasks"],
+            "required": [
+                "project_id",
+                "project_name",
+                "subject_id",
+                "members",
+                "tasks",
+            ],
         },
     },
 }
@@ -487,7 +530,9 @@ def register_wawa_prompts(mcp: FastMCP) -> list[str]:
                 "Log: action=timetable_conflict_scan."
             ),
         }
-        return templates.get(action, templates["VIEW"]).format(class_data=class_data or {})
+        return templates.get(action, templates["VIEW"]).format(
+            class_data=class_data or {}
+        )
 
     # ── wawa.deadline_engine ─────────────────────────────────────────────────
     @mcp.prompt("wawa.deadline_engine")
@@ -571,12 +616,18 @@ def register_wawa_prompts(mcp: FastMCP) -> list[str]:
                 "Log to VAULT999: action=group_member_report (private — student_id only)."
             ),
         }
-        return templates.get(action, templates["VIEW_BOARD"]).format(project=project or {})
+        return templates.get(action, templates["VIEW_BOARD"]).format(
+            project=project or {}
+        )
 
     # ── wawa.lecture_companion ───────────────────────────────────────────────
     @mcp.prompt("wawa.lecture_companion")
     def wawa_lecture_companion(
-        action: str, subject_code: str, title: str = "", content: str = "", topics: list = None
+        action: str,
+        subject_code: str,
+        title: str = "",
+        content: str = "",
+        topics: list = None,
     ) -> str:
         """
         WAWA Lecture Companion — store, summarise, and retrieve lecture notes.
@@ -618,7 +669,10 @@ def register_wawa_prompts(mcp: FastMCP) -> list[str]:
     # ── wawa.exam_prep ──────────────────────────────────────────────────────
     @mcp.prompt("wawa.exam_prep")
     def wawa_exam_prep(
-        action: str, subject_code: str, quiz_results: list = None, question_count: int = 10
+        action: str,
+        subject_code: str,
+        quiz_results: list = None,
+        question_count: int = 10,
     ) -> str:
         """
         WAWA Exam Prep — AI quiz generation and weak area identification.
@@ -655,7 +709,11 @@ def register_wawa_prompts(mcp: FastMCP) -> list[str]:
     # ── wawa.wellness_check ───────────────────────────────────────────────────
     @mcp.prompt("wawa.wellness_check")
     def wawa_wellness_check(
-        action: str, student_id: str, subject_code: str = "", status: str = "", notes: str = ""
+        action: str,
+        student_id: str,
+        subject_code: str = "",
+        status: str = "",
+        notes: str = "",
     ) -> str:
         """
         WAWA Wellness Check — attendance monitoring and wellbeing nudges.
@@ -728,7 +786,9 @@ def register_wawa_resources(mcp: FastMCP) -> list[str]:
     def wawa_floor_overlay() -> str:
         """WAWA-specific constitutional floor emphasis — student data governance."""
         lines = ["# WAWA Constitutional Floor Overlay\n"]
-        lines.append("WAWA operates under full F1-F13, with these student-domain emphases:\n")
+        lines.append(
+            "WAWA operates under full F1-F13, with these student-domain emphases:\n"
+        )
         for _key, floor in WAWA_FLOOR_OVERLAY.items():
             lines.append(f"## {floor['name']} ({floor['floor']})\n")
             lines.append(f"**Principle:** {floor['principle']}\n")

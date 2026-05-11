@@ -116,7 +116,16 @@ def validate_interpretation_safety(
     # ── Rule 5: Irreversible Action Check (runs first — refuse is stronger than hold) ──
     if risk_level == "irreversible":
         action = str(interpretation.get("recommended_action", "")).lower()
-        forbidden = ("execute", "commit", "deploy", "seal", "push", "destroy", "delete", "drop")
+        forbidden = (
+            "execute",
+            "commit",
+            "deploy",
+            "seal",
+            "push",
+            "destroy",
+            "delete",
+            "drop",
+        )
         if any(word in action for word in forbidden):
             return {
                 "status": "refuse",
@@ -143,9 +152,13 @@ def validate_interpretation_safety(
         "meaning": str(interpretation["meaning"]),
         "interpretation": str(interpretation["interpretation"]),
         "arifos_alignment": {
-            "physics": str(interpretation.get("arifos_alignment", {}).get("physics", "")),
+            "physics": str(
+                interpretation.get("arifos_alignment", {}).get("physics", "")
+            ),
             "math": str(interpretation.get("arifos_alignment", {}).get("math", "")),
-            "linguistic": str(interpretation.get("arifos_alignment", {}).get("linguistic", "")),
+            "linguistic": str(
+                interpretation.get("arifos_alignment", {}).get("linguistic", "")
+            ),
         },
         "decision_boundary": str(interpretation["decision_boundary"]),
         "human_decision_required": human_required,

@@ -198,7 +198,9 @@ def verify_sovereign_ack(
     return SovereignAckVerificationResult(
         signed_ack_valid=True,
         reason=(
-            "ACK_OK" if not dev_override else "DEV_ONLY_MSAP_PROMOTED_TO_LEVEL2_NOT_TRUE_PERSONHOOD"
+            "ACK_OK"
+            if not dev_override
+            else "DEV_ONLY_MSAP_PROMOTED_TO_LEVEL2_NOT_TRUE_PERSONHOOD"
         ),
         zkpc_level=zkpc_level,
         ack_id=f"ACK-{packet.nonce[:12]}",

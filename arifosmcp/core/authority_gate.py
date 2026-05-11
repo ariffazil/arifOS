@@ -38,7 +38,9 @@ class AuthorityGate:
     """
 
     @classmethod
-    def verify(cls, context: Any, threat: ThreatAssessment, floors: Any = None) -> AuthorityProof:
+    def verify(
+        cls, context: Any, threat: ThreatAssessment, floors: Any = None
+    ) -> AuthorityProof:
         requires_human = FloorEvaluator._requires_human_witness(context, threat)
 
         plan_approved = False
@@ -58,7 +60,10 @@ class AuthorityGate:
                     reason="Forge requires approved plan_id (H2 ratification)",
                 )
 
-        if requires_human and getattr(context, "witness_type", WitnessType.AI) != WitnessType.HUMAN:
+        if (
+            requires_human
+            and getattr(context, "witness_type", WitnessType.AI) != WitnessType.HUMAN
+        ):
             return AuthorityProof(
                 authorized=False,
                 requires_human=True,

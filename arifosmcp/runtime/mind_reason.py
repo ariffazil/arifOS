@@ -119,7 +119,10 @@ RESPONSE_SCHEMA = {
                 "observed_inputs": {"type": "array", "items": {"type": "string"}},
                 "inferences": {"type": "array", "items": {"type": "string"}},
                 "counterarguments": {"type": "array", "items": {"type": "string"}},
-                "alternative_explanations": {"type": "array", "items": {"type": "string"}},
+                "alternative_explanations": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                },
                 "missing_evidence": {"type": "array", "items": {"type": "string"}},
             },
         },
@@ -135,7 +138,10 @@ RESPONSE_SCHEMA = {
             "type": "array",
             "items": {
                 "type": "object",
-                "properties": {"type": {"type": "string"}, "detail": {"type": "string"}},
+                "properties": {
+                    "type": {"type": "string"},
+                    "detail": {"type": "string"},
+                },
             },
         },
         "axioms_used": {"type": "array", "items": {"type": "string"}},
@@ -275,7 +281,10 @@ Distinguish CLAIM from FACT."""
                 "overall_confidence": 0.3,
             },
             "uncertainty": [
-                {"type": "LLM_FAILURE", "detail": "Primary reasoning engine unavailable"}
+                {
+                    "type": "LLM_FAILURE",
+                    "detail": "Primary reasoning engine unavailable",
+                }
             ],
             "axioms_used": ["F07"],
             "next_safe_action": ["222_FETCH", "888_JUDGE"],
@@ -301,10 +310,15 @@ Distinguish CLAIM from FACT."""
         reasoning = parsed_output.get("reasoning", {})
         if not reasoning.get("observed_inputs") or not reasoning.get("inferences"):
             uncertainty.append(
-                {"type": "REASONING_GAP", "detail": "Structured reasoning fields incomplete"}
+                {
+                    "type": "REASONING_GAP",
+                    "detail": "Structured reasoning fields incomplete",
+                }
             )
         if not session_id:
-            uncertainty.append({"type": "SESSION_GAP", "detail": "No governed session_id bound"})
+            uncertainty.append(
+                {"type": "SESSION_GAP", "detail": "No governed session_id bound"}
+            )
         parsed_output["uncertainty"] = uncertainty
 
         provenance = _FIELD_PROVENANCE_LLM
@@ -318,7 +332,9 @@ Distinguish CLAIM from FACT."""
         "session": {
             "session_id": session_id,
             "bound": bool(session_id),
-            "governance_level": "governed_reasoning" if session_id else "ungoverned_reflection",
+            "governance_level": (
+                "governed_reasoning" if session_id else "ungoverned_reflection"
+            ),
         },
         "actor": {
             "requested_actor_id": actor_id,

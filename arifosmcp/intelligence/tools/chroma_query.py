@@ -41,7 +41,12 @@ def query_memory(
             results.append(item)
         return {"results": results, "collection": collection, "query": query}
     except Exception as exc:
-        return {"error": str(exc), "results": [], "collection": collection, "query": query}
+        return {
+            "error": str(exc),
+            "results": [],
+            "collection": collection,
+            "query": query,
+        }
 
 
 def list_collections(_chroma_path: str | None = None) -> dict[str, Any]:

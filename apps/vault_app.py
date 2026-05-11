@@ -86,9 +86,9 @@ def _ts_human(ts: Any) -> str:
         import datetime
 
         if isinstance(ts, (int, float)):
-            return datetime.datetime.fromtimestamp(float(ts), tz=datetime.timezone.utc).strftime(
-                "%Y-%m-%d %H:%M"
-            )
+            return datetime.datetime.fromtimestamp(
+                float(ts), tz=datetime.timezone.utc
+            ).strftime("%Y-%m-%d %H:%M")
         return str(ts)[:16]
     except Exception:
         return str(ts)[:16]
@@ -122,7 +122,9 @@ _PHILOSOPHY: dict[str, str] = {
 # ── App definition ────────────────────────────────────────────────────────────
 
 vault_app = FastMCP("VaultApp")
-if not hasattr(vault_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+if not hasattr(
+    vault_app, "ui"
+):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
     vault_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
 
@@ -163,7 +165,9 @@ def get_vault_data() -> ToolResult:
                 "harm": _bool_icon(r.get("harm_detected", False)),
                 "override": _bool_icon(r.get("operator_override", False)),
                 "timestamp": _ts_human(
-                    r.get("timestamp_decision") or r.get("timestamp") or r.get("sealed_at")
+                    r.get("timestamp_decision")
+                    or r.get("timestamp")
+                    or r.get("sealed_at")
                 ),
             }
         )

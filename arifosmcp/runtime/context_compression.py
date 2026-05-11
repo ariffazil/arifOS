@@ -179,7 +179,11 @@ def compress(
     # ── Apply compression ────────────────────────────────────────────────────
     if effective_mode == CompressionMode.MINIMAL:
         compressed = _compress_minimal(payload)
-        tiers_pruned = [MemoryTier.EPHEMERAL, MemoryTier.DOMAIN, MemoryTier.CONSTITUTIONAL]
+        tiers_pruned = [
+            MemoryTier.EPHEMERAL,
+            MemoryTier.DOMAIN,
+            MemoryTier.CONSTITUTIONAL,
+        ]
     elif effective_mode == CompressionMode.CONSTITUTIONAL:
         compressed = _compress_constitutional(payload)
         tiers_pruned = [MemoryTier.EPHEMERAL, MemoryTier.DOMAIN]
@@ -191,7 +195,11 @@ def compress(
         tiers_pruned = []
 
     compressed_tokens = estimate_tokens(data=compressed)
-    ratio = (original_tokens - compressed_tokens) / original_tokens if original_tokens > 0 else 0.0
+    ratio = (
+        (original_tokens - compressed_tokens) / original_tokens
+        if original_tokens > 0
+        else 0.0
+    )
 
     # ── Add compression metadata ────────────────────────────────────────────
     compressed["_compression"] = {
@@ -327,7 +335,9 @@ def _compress_constitutional(payload: dict[str, Any]) -> dict[str, Any]:
     if "ontology" in payload:
         result["ontology"] = payload["ontology"]
     if "constitutional_ontolog_payload" in payload:
-        result["constitutional_ontolog_payload"] = payload["constitutional_ontolog_payload"]
+        result["constitutional_ontolog_payload"] = payload[
+            "constitutional_ontolog_payload"
+        ]
     return result
 
 
@@ -390,7 +400,8 @@ def compression_stats() -> dict[str, Any]:
         "total_tokens_saved": _COMPRESSION_STATS.total_tokens_saved,
         "by_mode": dict(_COMPRESSION_STATS.by_mode),
         "avg_ratio": (
-            _COMPRESSION_STATS.total_tokens_saved / _COMPRESSION_STATS.total_sessions_compressed
+            _COMPRESSION_STATS.total_tokens_saved
+            / _COMPRESSION_STATS.total_sessions_compressed
             if _COMPRESSION_STATS.total_sessions_compressed > 0
             else 0
         ),

@@ -50,7 +50,11 @@ class ArifOSAgent(Agent):
         # Pre-execution safety check
         safety_result = await asi_heart(
             mode="critique",
-            payload={"task": task.instructions, "agent": self.name, "context": task.context},
+            payload={
+                "task": task.instructions,
+                "agent": self.name,
+                "context": task.context,
+            },
         )
 
         if safety_result.verdict == Verdict.VOID:
@@ -107,7 +111,10 @@ def arifos_agent(
         raise RuntimeError("Marvin not installed. Run: pip install marvin")
 
     return ArifOSAgent(
-        name=name, instructions=instructions, enable_governance=enable_governance, **kwargs
+        name=name,
+        instructions=instructions,
+        enable_governance=enable_governance,
+        **kwargs,
     )
 
 
@@ -145,7 +152,8 @@ async def governed_ai_task(
     # Pre-critique
     if enable_critique:
         critique = await asi_heart(
-            mode="critique", payload={"instructions": instructions, "context": context or {}}
+            mode="critique",
+            payload={"instructions": instructions, "context": context or {}},
         )
 
         if critique.verdict == Verdict.VOID:
@@ -156,7 +164,9 @@ async def governed_ai_task(
             }
 
     # Execute with Marvin
-    result = marvin.run(instructions, result_type=result_type, context=context or {}, agent=agent)
+    result = marvin.run(
+        instructions, result_type=result_type, context=context or {}, agent=agent
+    )
 
     # Post-validation
     if enable_critique:
@@ -213,7 +223,9 @@ async def governed_extract(
 
 
 # Classification with governance
-async def governed_classify(text: str, labels: list[str], enable_critique: bool = True) -> str:
+async def governed_classify(
+    text: str, labels: list[str], enable_critique: bool = True
+) -> str:
     """
     Classify text with arifOS validation.
 
@@ -232,7 +244,11 @@ async def governed_classify(text: str, labels: list[str], enable_critique: bool 
     if enable_critique:
         critique = await asi_heart(
             mode="critique",
-            payload={"operation": "classify", "text_sample": text[:200], "labels": labels},
+            payload={
+                "operation": "classify",
+                "text_sample": text[:200],
+                "labels": labels,
+            },
         )
 
         if critique.verdict == Verdict.VOID:

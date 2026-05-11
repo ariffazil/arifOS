@@ -30,8 +30,14 @@ SESSION_ANCHOR_SCHEMA: dict[str, Any] = {
     "description": "Constitutional session identity. Established by init_session_anchor.",
     "type": "object",
     "properties": {
-        "session_id": {"type": "string", "description": "Unique session identifier (UUID)"},
-        "actor_id": {"type": "string", "description": "Human sovereign or agent identity"},
+        "session_id": {
+            "type": "string",
+            "description": "Unique session identifier (UUID)",
+        },
+        "actor_id": {
+            "type": "string",
+            "description": "Human sovereign or agent identity",
+        },
         "declared_name": {"type": "string", "description": "Optional display name"},
         "intent": {"type": "string", "description": "Session purpose statement"},
         "token": {"type": "string", "description": "Short-lived session token"},
@@ -130,7 +136,13 @@ EVIDENCE_BUNDLE_SCHEMA: dict[str, Any] = {
                 "properties": {
                     "source_type": {
                         "type": "string",
-                        "enum": ["web", "vector_memory", "tool_output", "human_input", "vault"],
+                        "enum": [
+                            "web",
+                            "vector_memory",
+                            "tool_output",
+                            "human_input",
+                            "vault",
+                        ],
                     },
                     "content": {"type": "string"},
                     "confidence": {"type": "number"},
@@ -139,7 +151,10 @@ EVIDENCE_BUNDLE_SCHEMA: dict[str, Any] = {
                 "required": ["source_type", "content"],
             },
         },
-        "synthesized": {"type": "string", "description": "Synthesized summary across sources"},
+        "synthesized": {
+            "type": "string",
+            "description": "Synthesized summary across sources",
+        },
         "tau_truth": {"type": "number", "description": "Aggregate truth confidence"},
         "tri_witness": {"type": "number", "description": "Cross-source coherence"},
     },
@@ -175,11 +190,18 @@ VERDICT_RECORD_SCHEMA: dict[str, Any] = {
             "items": {"type": "string"},
         },
         "telemetry": {"$ref": "arifos://contracts/telemetry-envelope"},
-        "bls_aggregate_signature": {"type": "string", "description": "BLS12-381 hex signature"},
+        "bls_aggregate_signature": {
+            "type": "string",
+            "description": "BLS12-381 hex signature",
+        },
         "chain_hash": {"type": "string", "description": "SHA-256 Merkle chain hash"},
         "proof_status": {
             "type": "string",
-            "enum": ["Phase A — BLS Ready", "Phase B — pending", "Phase C — federation"],
+            "enum": [
+                "Phase A — BLS Ready",
+                "Phase B — pending",
+                "Phase C — federation",
+            ],
         },
         "sealed_at": {"type": "string", "format": "date-time"},
         "jurors": {
@@ -203,7 +225,10 @@ CONSTITUTIONAL_HEALTH_VIEW_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
         "session_id": {"type": "string"},
-        "status": {"type": "string", "enum": ["HEALTHY", "DEGRADED", "CRITICAL", "VOID"]},
+        "status": {
+            "type": "string",
+            "enum": ["HEALTHY", "DEGRADED", "CRITICAL", "VOID"],
+        },
         "version": {"type": "string"},
         "floors_active": {"type": "integer", "minimum": 0, "maximum": 13},
         "tools_loaded": {"type": "integer"},
@@ -231,7 +256,10 @@ TOOL_AUTH_CONTEXT_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
         "session_id": {"type": "string"},
-        "token": {"type": "string", "description": "Session token from init_session_anchor"},
+        "token": {
+            "type": "string",
+            "description": "Session token from init_session_anchor",
+        },
         "actor_id": {"type": "string"},
         "access_class": {
             "type": "string",

@@ -36,7 +36,12 @@ from typing import Annotated, Any
 
 from fastmcp import FastMCP
 
-from arifos.apps.surface_utils import envelope_error, envelope_pause, normalize_state, safe_get
+from arifos.apps.surface_utils import (
+    envelope_error,
+    envelope_pause,
+    normalize_state,
+    safe_get,
+)
 
 logger = logging.getLogger(__name__)
 from prefab_ui.actions import SetState, ShowToast
@@ -60,11 +65,12 @@ from prefab_ui.components import (
 from prefab_ui.rx import RESULT, STATE
 from pydantic import Field
 
-
 # ── App definition ────────────────────────────────────────────────────────────
 
 forge_app = FastMCP("ForgeApp")
-if not hasattr(forge_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+if not hasattr(
+    forge_app, "ui"
+):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
     forge_app.ui = lambda *args, **kwargs: lambda fn: fn
 
 
@@ -81,7 +87,9 @@ async def forge_judge_check(
     risk_tier: Annotated[
         str, Field(description="Risk tier: low, medium, high, critical.")
     ] = "medium",
-    session_id: Annotated[str | None, Field(description="Active arifOS session ID.")] = None,
+    session_id: Annotated[
+        str | None, Field(description="Active arifOS session ID.")
+    ] = None,
 ) -> dict[str, Any]:
     """
     Pre-forge constitutional check — runs 888_JUDGE dry_run.
@@ -142,7 +150,9 @@ async def forge_execute(
     risk_tier: Annotated[
         str, Field(description="Risk tier: low, medium, high, critical.")
     ] = "medium",
-    session_id: Annotated[str | None, Field(description="Active arifOS session ID.")] = None,
+    session_id: Annotated[
+        str | None, Field(description="Active arifOS session ID.")
+    ] = None,
     judge_verdict: Annotated[
         str, Field(description="JUDGE verdict: SEAL, PARTIAL, VOID, HOLD.")
     ] = "VOID",
@@ -160,7 +170,9 @@ async def forge_execute(
     if the verdict is not SEAL — the human must have clicked APPROVE
     in the UI after seeing the judge result.
     """
-    logger.info(f"forge_execute called: session_id={session_id}, state_type={type(STATE).__name__}")
+    logger.info(
+        f"forge_execute called: session_id={session_id}, state_type={type(STATE).__name__}"
+    )
     try:
         from arifos.runtime.tools import get_tool_handler
 

@@ -43,10 +43,14 @@ async def apex_judge(
     resolved_payload.setdefault("debug", debug)
 
     if "apex_judge" in HARDENED_DISPATCH_MAP:
-        res = await HARDENED_DISPATCH_MAP["apex_judge"](mode=mode, payload=resolved_payload)
+        res = await HARDENED_DISPATCH_MAP["apex_judge"](
+            mode=mode, payload=resolved_payload
+        )
         if isinstance(res, dict):
             ok = res.get("ok", True)
-            _payload = res.get("payload", res) if isinstance(res.get("payload"), dict) else res
+            _payload = (
+                res.get("payload", res) if isinstance(res.get("payload"), dict) else res
+            )
 
             # ─── V2 FLATTENING ───
             if mode == "rules" and ok:
@@ -64,7 +68,9 @@ async def apex_judge(
                     "entropy": res.get("entropy"),
                 }
                 # Include all fields from inner payload (contracts, guidance, hooks)
-                _final_payload.update({k: v for k, v in _payload.items() if v is not None})
+                _final_payload.update(
+                    {k: v for k, v in _payload.items() if v is not None}
+                )
                 _payload = _final_payload
 
             # Ensure verdict is a valid Verdict Enum member
@@ -75,7 +81,9 @@ async def apex_judge(
                 except ValueError:
                     effective_verdict = Verdict.SEAL if ok else Verdict.VOID
             else:
-                effective_verdict = verdict_val or (Verdict.SEAL if ok else Verdict.VOID)
+                effective_verdict = verdict_val or (
+                    Verdict.SEAL if ok else Verdict.VOID
+                )
 
             return RuntimeEnvelope(
                 tool=res.get("tool", "arifos_judge"),

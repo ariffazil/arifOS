@@ -75,7 +75,9 @@ def forge_verdict(
         elif conf < threshold:
             code = VerdictCode.SABAR
             reason = "LOW_CONFIDENCE"
-        elif not payload or (isinstance(payload, dict) and not payload.get("data") and not payload):
+        elif not payload or (
+            isinstance(payload, dict) and not payload.get("data") and not payload
+        ):
             code = VerdictCode.PARTIAL
             reason = "DATA_INCOMPLETE"
         else:
@@ -83,7 +85,9 @@ def forge_verdict(
             reason = "OK_ALL_PASS"
 
     # 4. Determine status fields (Unified V2)
-    exec_status = ExecutionStatus.SUCCESS if code != VerdictCode.VOID else ExecutionStatus.ERROR
+    exec_status = (
+        ExecutionStatus.SUCCESS if code != VerdictCode.VOID else ExecutionStatus.ERROR
+    )
     # Map VerdictCode to GovernanceStatus
     gov_status_map = {
         VerdictCode.SEAL: GovernanceStatus.APPROVED,
@@ -98,9 +102,17 @@ def forge_verdict(
 
     # Artifact state logic
     if stage == "999_VAULT":
-        art_status = ArtifactStatus.SEALED if code == VerdictCode.SEAL else ArtifactStatus.REJECTED
+        art_status = (
+            ArtifactStatus.SEALED
+            if code == VerdictCode.SEAL
+            else ArtifactStatus.REJECTED
+        )
     elif stage == "777_FORGE":
-        art_status = ArtifactStatus.STAGED if code == VerdictCode.SEAL else ArtifactStatus.REJECTED
+        art_status = (
+            ArtifactStatus.STAGED
+            if code == VerdictCode.SEAL
+            else ArtifactStatus.REJECTED
+        )
     else:
         art_status = ArtifactStatus.USABLE
 
@@ -147,7 +159,9 @@ def forge_verdict(
         # V2 Unified Data
         execution_status=exec_status,
         governance_status=gov_status,
-        continuation_status=ContinuationStatus.READY if cont_allowed else ContinuationStatus.HOLD,
+        continuation_status=(
+            ContinuationStatus.READY if cont_allowed else ContinuationStatus.HOLD
+        ),
         artifact_state=art_status,
         payload=res_env.model_dump(),
         status=runtime_status,

@@ -106,7 +106,9 @@ async def compute_finance(
 async def compute_civilization(
     mode: str, session_id: str | None = None, params: dict | None = None
 ) -> dict:
-    return await arifos_compute_civilization(mode=mode, session_id=session_id, params=params)
+    return await arifos_compute_civilization(
+        mode=mode, session_id=session_id, params=params
+    )
 
 
 @mcp.tool(
@@ -116,7 +118,9 @@ async def compute_civilization(
 async def oracle_bio(
     mode: str, session_id: str | None = None, dimensions: dict | None = None
 ) -> dict:
-    return await arifos_oracle_bio(mode=mode, session_id=session_id, dimensions=dimensions)
+    return await arifos_oracle_bio(
+        mode=mode, session_id=session_id, dimensions=dimensions
+    )
 
 
 @mcp.tool(

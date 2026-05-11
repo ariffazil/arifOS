@@ -86,7 +86,9 @@ class ThinkingSession:
     tags: list[str] = field(default_factory=list)
     template: str | None = None  # e.g. "scientific-method", "five-whys"
     steps: list[ThinkingStep] = field(default_factory=list)
-    branches: dict[str, list[int]] = field(default_factory=dict)  # branch_id → [step_nums]
+    branches: dict[str, list[int]] = field(
+        default_factory=dict
+    )  # branch_id → [step_nums]
     status: SessionStatus = SessionStatus.ACTIVE
     quality_score: float = 0.0
     created_at: float = field(default_factory=time.time)
@@ -115,7 +117,10 @@ class ThinkingSession:
 
 THINKING_TEMPLATES: dict[str, list[dict[str, str]]] = {
     "scientific-method": [
-        {"prompt": "Define the research question or problem clearly.", "type": "analysis"},
+        {
+            "prompt": "Define the research question or problem clearly.",
+            "type": "analysis",
+        },
         {"prompt": "Gather background information and evidence.", "type": "analysis"},
         {"prompt": "Formulate hypothesis based on evidence.", "type": "hypothesis"},
         {"prompt": "Design verification approach.", "type": "verification"},
@@ -128,13 +133,22 @@ THINKING_TEMPLATES: dict[str, list[dict[str, str]]] = {
         {"prompt": "Why does that happen? (Why #2)", "type": "hypothesis"},
         {"prompt": "Why does that happen? (Why #3)", "type": "hypothesis"},
         {"prompt": "Why does that happen? (Why #4)", "type": "hypothesis"},
-        {"prompt": "Why does that happen? (Why #5) — identify root cause.", "type": "conclusion"},
+        {
+            "prompt": "Why does that happen? (Why #5) — identify root cause.",
+            "type": "conclusion",
+        },
     ],
     "first-principles": [
         {"prompt": "Identify the current assumption or belief.", "type": "analysis"},
         {"prompt": "Break down to fundamental components.", "type": "analysis"},
-        {"prompt": "Verify each component is a fundamental truth.", "type": "verification"},
-        {"prompt": "Rebuild solution from verified fundamentals.", "type": "hypothesis"},
+        {
+            "prompt": "Verify each component is a fundamental truth.",
+            "type": "verification",
+        },
+        {
+            "prompt": "Rebuild solution from verified fundamentals.",
+            "type": "hypothesis",
+        },
         {"prompt": "Test rebuilt solution against edge cases.", "type": "verification"},
         {"prompt": "Synthesize final conclusion.", "type": "conclusion"},
     ],
@@ -146,7 +160,10 @@ THINKING_TEMPLATES: dict[str, list[dict[str, str]]] = {
         },
         {"prompt": "List options to evaluate.", "type": "hypothesis"},
         {"prompt": "Score each option against criteria.", "type": "verification"},
-        {"prompt": "Calculate weighted scores and rank options.", "type": "verification"},
+        {
+            "prompt": "Calculate weighted scores and rank options.",
+            "type": "verification",
+        },
         {"prompt": "Synthesize decision and recommendation.", "type": "conclusion"},
     ],
     "swot-analysis": [
@@ -154,7 +171,10 @@ THINKING_TEMPLATES: dict[str, list[dict[str, str]]] = {
         {"prompt": "Identify internal weaknesses (W).", "type": "analysis"},
         {"prompt": "Identify external opportunities (O).", "type": "analysis"},
         {"prompt": "Identify external threats (T).", "type": "analysis"},
-        {"prompt": "Synthesize strategic insights from SWOT matrix.", "type": "conclusion"},
+        {
+            "prompt": "Synthesize strategic insights from SWOT matrix.",
+            "type": "conclusion",
+        },
     ],
     "root-cause-analysis": [
         {"prompt": "Define the effect or problem statement.", "type": "analysis"},
@@ -163,15 +183,27 @@ THINKING_TEMPLATES: dict[str, list[dict[str, str]]] = {
             "type": "analysis",
         },
         {"prompt": "Brainstorm causes within each category.", "type": "hypothesis"},
-        {"prompt": "Identify root causes through 5-Why drill-down.", "type": "verification"},
+        {
+            "prompt": "Identify root causes through 5-Why drill-down.",
+            "type": "verification",
+        },
         {"prompt": "Recommend systemic fixes for root causes.", "type": "conclusion"},
     ],
     "pros-cons": [
         {"prompt": "State the decision clearly.", "type": "analysis"},
-        {"prompt": "List all advantages and positive factors (Pros).", "type": "analysis"},
+        {
+            "prompt": "List all advantages and positive factors (Pros).",
+            "type": "analysis",
+        },
         {"prompt": "List all disadvantages and risks (Cons).", "type": "analysis"},
-        {"prompt": "Assign weights to each factor by importance.", "type": "verification"},
-        {"prompt": "Calculate weighted balance — lean direction.", "type": "verification"},
+        {
+            "prompt": "Assign weights to each factor by importance.",
+            "type": "verification",
+        },
+        {
+            "prompt": "Calculate weighted balance — lean direction.",
+            "type": "verification",
+        },
         {"prompt": "Make final recommendation.", "type": "conclusion"},
     ],
 }
@@ -211,7 +243,9 @@ def compute_session_quality(steps: list[ThinkingStep]) -> float:
     # Depth
     depth = min(len(steps) / 10.0, 1.0)
 
-    return round(0.25 * diversity + 0.25 * evidence_score + 0.25 * density + 0.25 * depth, 4)
+    return round(
+        0.25 * diversity + 0.25 * evidence_score + 0.25 * density + 0.25 * depth, 4
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -465,7 +499,9 @@ class ThinkingSessionManager:
             "",
         ]
         for step in session.steps:
-            lines.append(f"## Step {step.step_number}: [{step.step_type.value.upper()}]")
+            lines.append(
+                f"## Step {step.step_number}: [{step.step_type.value.upper()}]"
+            )
             if step.branch_id:
                 lines.append(f"**Branch:** `{step.branch_id}`")
             if step.parent_step:
@@ -489,7 +525,9 @@ class ThinkingSessionManager:
         for step in session.steps:
             indent = "  " * (step.step_number - 1)
             branch = f" [{step.branch_id}]" if step.branch_id else ""
-            lines.append(f"{indent}├── Step {step.step_number}: [{step.step_type.value}]{branch}")
+            lines.append(
+                f"{indent}├── Step {step.step_number}: [{step.step_type.value}]{branch}"
+            )
             lines.append(f"{indent}│   {step.content[:60]}...")
         return "\n".join(lines)
 

@@ -106,7 +106,9 @@ class AF1Validator:
 
     def validate(self, af1: Dict[str, Any]) -> AF1ValidationResult:
         # Field completeness
-        missing = [f for f in self.REQUIRED_FIELDS if not af1.get(f) and af1.get(f) != 0]
+        missing = [
+            f for f in self.REQUIRED_FIELDS if not af1.get(f) and af1.get(f) != 0
+        ]
         if missing:
             return AF1ValidationResult(
                 status="BLOCK", reason=f"Missing fields: {', '.join(missing)}"
@@ -138,7 +140,9 @@ class AF1Validator:
         for field, enum in BOUNDED_ENUMS.items():
             if field in af1["inputs"]:
                 val = af1["inputs"][field]
-                if isinstance(val, str) and val.upper() not in [e.upper() for e in enum]:
+                if isinstance(val, str) and val.upper() not in [
+                    e.upper() for e in enum
+                ]:
                     return AF1ValidationResult(
                         status="BLOCK",
                         reason=f"Bounded field '{field}' = '{val}' — must be one of: {enum}",
@@ -154,7 +158,8 @@ class AF1Validator:
             )
         if registry_risk == RiskLevel.HIGH and declared == RiskLevel.LOW:
             return AF1ValidationResult(
-                status="BLOCK", reason=f"Tool '{af1['tool']}' is HIGH-risk — cannot be declared low"
+                status="BLOCK",
+                reason=f"Tool '{af1['tool']}' is HIGH-risk — cannot be declared low",
             )
         if declared.value < registry_risk.value:
             return AF1ValidationResult(
@@ -179,7 +184,9 @@ class AF1Validator:
 
         # Confirmation check
         requires_conf = af1.get("requires_human_confirmation", False)
-        conf_satisfied = self.confirmed_operators.get(af1.get("evidence_ref", ""), False)
+        conf_satisfied = self.confirmed_operators.get(
+            af1.get("evidence_ref", ""), False
+        )
         if requires_conf and not conf_satisfied:
             return AF1ValidationResult(
                 status="BLOCK",
@@ -230,7 +237,12 @@ AF1_SCHEMA = {
         "inputs": {"type": "object"},
         "expected_effect": {
             "type": "string",
-            "enum": ["read_only", "analysis_only", "state_change", "external_side_effect"],
+            "enum": [
+                "read_only",
+                "analysis_only",
+                "state_change",
+                "external_side_effect",
+            ],
         },
         "risk_level": {"type": "string", "enum": ["low", "medium", "high"]},
         "requires_human_confirmation": {"type": "boolean"},
@@ -278,17 +290,27 @@ if __name__ == "__main__":
         (
             "Valid low-risk",
             build_af1(
-                "Check arifOS runtime health", "arifos_health", {}, "read_only", "health check"
+                "Check arifOS runtime health",
+                "arifos_health",
+                {},
+                "read_only",
+                "health check",
             ),
         ),
         (
             "Fabricated tool",
-            build_af1("Deploy agent", "arifos_fake_tool", {}, "state_change", "test block"),
+            build_af1(
+                "Deploy agent", "arifos_fake_tool", {}, "state_change", "test block"
+            ),
         ),
         (
             "Null vault",
             build_af1(
-                "Write to vault", "arifos_999_vault", {"payload": None}, "state_change", "test null"
+                "Write to vault",
+                "arifos_999_vault",
+                {"payload": None},
+                "state_change",
+                "test null",
             ),
         ),
         (

@@ -190,7 +190,9 @@ class RuntimeState:
         """Generate a signed base64 token for distributed continuity."""
         dump = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         b64_payload = base64.urlsafe_b64encode(dump.encode()).decode().rstrip("=")
-        sig = hmac.new(_get_signing_secret(), b64_payload.encode(), hashlib.sha256).hexdigest()[:16]
+        sig = hmac.new(
+            _get_signing_secret(), b64_payload.encode(), hashlib.sha256
+        ).hexdigest()[:16]
         return f"{b64_payload}.{sig}"
 
 

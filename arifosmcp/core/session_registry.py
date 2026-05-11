@@ -31,16 +31,23 @@ class SessionRegistry:
     """
 
     def __init__(self, secret: str | None = None):
-        self._secret = (secret or os.getenv("ARIFOS_INTERNAL_SECRET", "default_secret")).encode()
+        self._secret = (
+            secret or os.getenv("ARIFOS_INTERNAL_SECRET", "default_secret")
+        ).encode()
         self._sessions: dict[str, SessionState] = {}
 
     def create_session(self, actor_id: str) -> SessionState:
         """Create a new signed session."""
-        session_id = hashlib.sha256(f"{actor_id}{time.time()}".encode()).hexdigest()[:16]
+        session_id = hashlib.sha256(f"{actor_id}{time.time()}".encode()).hexdigest()[
+            :16
+        ]
         token = self._sign_session(session_id, actor_id)
 
         state = SessionState(
-            session_id=session_id, actor_id=actor_id, created_at=time.time(), token=token
+            session_id=session_id,
+            actor_id=actor_id,
+            created_at=time.time(),
+            token=token,
         )
         self._sessions[session_id] = state
         return state

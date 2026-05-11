@@ -37,9 +37,9 @@ JWT_ENFORCE_MODE = os.getenv("JWT_ENFORCE_MODE", "observe").strip().lower()
 
 TRUSTED_ISSUERS = [
     iss.strip()
-    for iss in os.getenv("JWT_TRUSTED_ISSUERS", "https://arifos.supabase.co,arifos-internal").split(
-        ","
-    )
+    for iss in os.getenv(
+        "JWT_TRUSTED_ISSUERS", "https://arifos.supabase.co,arifos-internal"
+    ).split(",")
     if iss.strip()
 ]
 
@@ -148,7 +148,9 @@ def _fetch_jwks() -> dict[str, Any]:
             _jwks_cache = data
             _jwks_fetched_at = now
             logger.info(
-                "JWKS fetched from %s — keys: %s", SUPABASE_JWKS_URL, len(data.get("keys", []))
+                "JWKS fetched from %s — keys: %s",
+                SUPABASE_JWKS_URL,
+                len(data.get("keys", [])),
             )
             return data  # type: ignore[no-any-return]
     except Exception as e:
@@ -214,7 +216,9 @@ class JWTVerificationResult:
         }
 
 
-def verify_jwt(token: str, expected_actor_id: str | None = None) -> JWTVerificationResult:
+def verify_jwt(
+    token: str, expected_actor_id: str | None = None
+) -> JWTVerificationResult:
     """
     Verify a JWT token against constitutional invariants.
 
@@ -241,13 +245,17 @@ def verify_jwt(token: str, expected_actor_id: str | None = None) -> JWTVerificat
 
     # ── Route by algorithm ──────────────────────────────────────────────
     if alg == "RS256":
-        return _verify_supabase_jwt(token, unverified_header, unverified_claims, expected_actor_id)
+        return _verify_supabase_jwt(
+            token, unverified_header, unverified_claims, expected_actor_id
+        )
     elif alg == "ES256":
         return _verify_supabase_jwt_es256(
             token, unverified_header, unverified_claims, expected_actor_id
         )
     elif alg == "HS256":
-        return _verify_internal_jwt(token, unverified_header, unverified_claims, expected_actor_id)
+        return _verify_internal_jwt(
+            token, unverified_header, unverified_claims, expected_actor_id
+        )
     else:
         return JWTVerificationResult(valid=False, error=f"unsupported_algorithm: {alg}")
 
@@ -274,7 +282,9 @@ def _verify_supabase_jwt(
             algorithms=["RS256"],
             audience=JWT_AUDIENCE,
             issuer=(
-                "https://arifos.supabase.co" if "arifos.supabase.co" in TRUSTED_ISSUERS else None
+                "https://arifos.supabase.co"
+                if "arifos.supabase.co" in TRUSTED_ISSUERS
+                else None
             ),
             options={"require": ["exp", "iat", "sub", "iss"]},
             leeway=CLOCK_SKEW_MAX,
@@ -286,7 +296,9 @@ def _verify_supabase_jwt(
     except pyjwt.InvalidIssuerError:
         return JWTVerificationResult(valid=False, error="invalid_issuer")
     except pyjwt.PyJWTError as e:
-        return JWTVerificationResult(valid=False, error=f"signature_verification_failed: {e}")
+        return JWTVerificationResult(
+            valid=False, error=f"signature_verification_failed: {e}"
+        )
 
     # ── Invariant checks ──────────────────────────────────────────────────
     iss = verified.get("iss", "")
@@ -329,7 +341,9 @@ def _verify_supabase_jwt_es256(
             algorithms=["ES256"],
             audience=JWT_AUDIENCE,
             issuer=(
-                "https://arifos.supabase.co" if "arifos.supabase.co" in TRUSTED_ISSUERS else None
+                "https://arifos.supabase.co"
+                if "arifos.supabase.co" in TRUSTED_ISSUERS
+                else None
             ),
             options={"require": ["exp", "iat", "sub", "iss"]},
             leeway=CLOCK_SKEW_MAX,
@@ -341,7 +355,9 @@ def _verify_supabase_jwt_es256(
     except pyjwt.InvalidIssuerError:
         return JWTVerificationResult(valid=False, error="invalid_issuer")
     except pyjwt.PyJWTError as e:
-        return JWTVerificationResult(valid=False, error=f"es256_verification_failed: {e}")
+        return JWTVerificationResult(
+            valid=False, error=f"es256_verification_failed: {e}"
+        )
 
     # ── Invariant checks ──────────────────────────────────────────────────
     iss = verified.get("iss", "")
@@ -371,7 +387,9 @@ def _verify_internal_jwt(
     """Verify a self-issued HS256 internal token."""
     sub = claims.get("sub", "")
     if not sub.startswith("system:"):
-        return JWTVerificationResult(valid=False, error="internal_token_missing_system_prefix")
+        return JWTVerificationResult(
+            valid=False, error="internal_token_missing_system_prefix"
+        )
 
     service_name = sub.split(":", 1)[1]
     secret = _get_internal_secret(service_name)
@@ -393,7 +411,9 @@ def _verify_internal_jwt(
     except pyjwt.ExpiredSignatureError:
         return JWTVerificationResult(valid=False, error="expired")
     except pyjwt.PyJWTError as e:
-        return JWTVerificationResult(valid=False, error=f"signature_verification_failed: {e}")
+        return JWTVerificationResult(
+            valid=False, error=f"signature_verification_failed: {e}"
+        )
 
     # ── Invariant checks ──────────────────────────────────────────────────
     iss = verified.get("iss", "")
@@ -739,8 +759,8 @@ def is_observe_mode() -> bool:
 
 # ── Request-scoped auth lineage (async-safe via contextvars) ───────────────
 
-_current_auth_lineage: contextvars.ContextVar[dict[str, Any] | None] = contextvars.ContextVar(
-    "arifos_auth_lineage", default=None
+_current_auth_lineage: contextvars.ContextVar[dict[str, Any] | None] = (
+    contextvars.ContextVar("arifos_auth_lineage", default=None)
 )
 
 

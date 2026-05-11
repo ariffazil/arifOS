@@ -270,7 +270,9 @@ def create_meta_mcp() -> FastMCP:
 # =============================================================================
 
 
-def create_unified_mcp(agents: list[str] | None = None, visibility: str = "public_only") -> FastMCP:
+def create_unified_mcp(
+    agents: list[str] | None = None, visibility: str = "public_only"
+) -> FastMCP:
     """Create unified MCP server with all or selected agents."""
     mcp = FastMCP("arifOS-Unified")
     agents = agents or ["P", "T", "V", "G", "E", "M"]

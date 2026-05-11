@@ -260,7 +260,10 @@ async def _vault_seal(
         from arifos.security import zkpc_v2
 
         v_res = zkpc_v2.verify_zkpc_v2_epoch(
-            zkpc_proof, zkpc_public_inputs, session_id or "unknown", is_irreversible_action
+            zkpc_proof,
+            zkpc_public_inputs,
+            session_id or "unknown",
+            is_irreversible_action,
         )
         zkpc_level = v_res.get("zkpc_level", 0)
         crypto_evidence = v_res

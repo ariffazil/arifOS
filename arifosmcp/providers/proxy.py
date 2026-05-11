@@ -31,6 +31,8 @@ class ProxyProvider(FastMCPProvider):
             from fastmcp.server.transforms import Namespace
 
             self.add_transform(Namespace(namespace))
-            logger.info(f"[ProxyProvider] Mounted external server with namespace '{namespace}'")
+            logger.info(
+                f"[ProxyProvider] Mounted external server with namespace '{namespace}'"
+            )
         else:
             logger.info("[ProxyProvider] Mounted external server")

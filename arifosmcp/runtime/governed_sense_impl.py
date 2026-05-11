@@ -101,7 +101,9 @@ def _check_nested_depth(obj: Any, current_depth: int = 0, max_depth: int = 10) -
     if current_depth > max_depth:
         return False
     if isinstance(obj, dict):
-        return all(_check_nested_depth(v, current_depth + 1, max_depth) for v in obj.values())
+        return all(
+            _check_nested_depth(v, current_depth + 1, max_depth) for v in obj.values()
+        )
     if isinstance(obj, list):
         return all(_check_nested_depth(v, current_depth + 1, max_depth) for v in obj)
     return True
@@ -135,9 +137,7 @@ def _check_contract():
         af_min_client = data.get("min_compatible_client", "unknown")
 
         if af_min_client != "unknown" and A_FORGE_API_VERSION < af_min_client:
-            _contract_failure_reason = (
-                f"version_incompatible:client={A_FORGE_API_VERSION} requires_af>={af_min_client}"
-            )
+            _contract_failure_reason = f"version_incompatible:client={A_FORGE_API_VERSION} requires_af>={af_min_client}"
             _contract_checked = True
             _contract_valid = False
             print(
@@ -148,9 +148,7 @@ def _check_contract():
             return False
 
         if af_api_version != "unknown" and af_api_version < MIN_COMPATIBLE_A_FORGE:
-            _contract_failure_reason = (
-                f"version_incompatible:af={af_api_version} < required={MIN_COMPATIBLE_A_FORGE}"
-            )
+            _contract_failure_reason = f"version_incompatible:af={af_api_version} < required={MIN_COMPATIBLE_A_FORGE}"
             _contract_checked = True
             _contract_valid = False
             print(
@@ -432,7 +430,9 @@ def parse_input(raw_input: str | dict[str, Any]) -> SenseInput:
     else:
         # Fallback
         return SenseInput(
-            input=InputSpec(value=str(raw_input) if raw_input else "", type=InputType.QUERY),
+            input=InputSpec(
+                value=str(raw_input) if raw_input else "", type=InputType.QUERY
+            ),
         )
 
 
@@ -467,7 +467,9 @@ def _normalize_string_query(query: str) -> SenseInput:
     # Detect time scope
     time_scope = TimeScope.TIMELESS
     if any(
-        re.search(p, q_lower) for patterns in TIME_SENSITIVE_PATTERNS.values() for p in patterns
+        re.search(p, q_lower)
+        for patterns in TIME_SENSITIVE_PATTERNS.values()
+        for p in patterns
     ):
         time_scope = TimeScope.LIVE
     elif any(w in q_lower for w in ["yesterday", "last week", "ago", "previous"]):
@@ -520,7 +522,9 @@ def _normalize_dict_input(input_dict: dict[str, Any]) -> SenseInput:
     intent = IntentSpec(
         task_type=TaskType(input_dict.get("task_type", "unknown")),
         user_goal=input_dict.get("user_goal"),
-        decision_proximity=DecisionProximity(input_dict.get("decision_proximity", "informational")),
+        decision_proximity=DecisionProximity(
+            input_dict.get("decision_proximity", "informational")
+        ),
     )
 
     query_frame = QueryFrame(
@@ -575,7 +579,14 @@ def _extract_entities(query: str) -> list[EntityRef]:
     if not entities:
         capitalized = re.findall(r"\b([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)*)\b", query)
         for cap in capitalized[:3]:  # Limit to first 3
-            if len(cap) > 3 and cap.lower() not in ["what", "when", "where", "which", "who", "how"]:
+            if len(cap) > 3 and cap.lower() not in [
+                "what",
+                "when",
+                "where",
+                "which",
+                "who",
+                "how",
+            ]:
                 entities.append(EntityRef(name=cap, type=EntityType.UNKNOWN))
 
     return entities
@@ -651,7 +662,9 @@ def classify_truth(sense_input: SenseInput) -> TruthClassification:
 
     # Check for time-sensitive facts (Lane D)
     if time_scope == TimeScope.LIVE or any(
-        re.search(p, query) for patterns in TIME_SENSITIVE_PATTERNS.values() for p in patterns
+        re.search(p, query)
+        for patterns in TIME_SENSITIVE_PATTERNS.values()
+        for p in patterns
     ):
         return TruthClassification(
             truth_class=TruthClass.TIME_SENSITIVE_FACT,
@@ -701,7 +714,9 @@ def classify_truth(sense_input: SenseInput) -> TruthClassification:
         )
 
     # Check for definition queries
-    if task_type == TaskType.DEFINE or any(w in query for w in ["what is", "define", "meaning"]):
+    if task_type == TaskType.DEFINE or any(
+        w in query for w in ["what is", "define", "meaning"]
+    ):
         # Most definitions are timeless
         return TruthClassification(
             truth_class=TruthClass.ABSOLUTE_INVARIANT,
@@ -785,13 +800,17 @@ def build_evidence_plan(
 
         # Domain-specific freshness
         if domain in DOMAIN_FRESHNESS_HOURS:
-            plan.freshness_requirement.max_age_days = DOMAIN_FRESHNESS_HOURS[domain] / 24
+            plan.freshness_requirement.max_age_days = (
+                DOMAIN_FRESHNESS_HOURS[domain] / 24
+            )
         else:
             plan.freshness_requirement.max_age_days = 7  # Default 1 week
 
         # User override
         if sense_input.policy.freshness_max_age_days:
-            plan.freshness_requirement.max_age_days = sense_input.policy.freshness_max_age_days
+            plan.freshness_requirement.max_age_days = (
+                sense_input.policy.freshness_max_age_days
+            )
 
     # Set preferred sources by domain
     domain_sources = {
@@ -979,7 +998,8 @@ def assess_ambiguity(
         ambiguity.detected = True
         ambiguity.ambiguity_type.append(AmbiguityType.ENTITY)
         ambiguity.candidate_interpretations = [
-            f"Entity: {e.name} ({e.type.value})" for e in sense_input.query_frame.entity_targets
+            f"Entity: {e.name} ({e.type.value})"
+            for e in sense_input.query_frame.entity_targets
         ]
 
     # Check for timeframe ambiguity
@@ -988,7 +1008,9 @@ def assess_ambiguity(
         ambiguity.ambiguity_type.append(AmbiguityType.TIMEFRAME)
 
     # Check for definition/metric ambiguity
-    if "best" in query.lower() and not any(w in query.lower() for w in ["according to", "by what"]):
+    if "best" in query.lower() and not any(
+        w in query.lower() for w in ["according to", "by what"]
+    ):
         ambiguity.detected = True
         ambiguity.ambiguity_type.append(AmbiguityType.METRIC)
         ambiguity.candidate_interpretations.append("Best by what metric?")
@@ -1016,7 +1038,9 @@ def detect_conflicts(items: list[EvidenceItem]) -> ConflictModel:
     claims_by_source = {}
     for item in items:
         for claim in item.extracted_claims:
-            claims_by_source.setdefault(item.source_name, []).append(claim.claim_text.lower())
+            claims_by_source.setdefault(item.source_name, []).append(
+                claim.claim_text.lower()
+            )
 
     # Simple conflict detection: one source affirms, another negates
     all_claims = [c for claims in claims_by_source.values() for c in claims]
@@ -1032,9 +1056,7 @@ def detect_conflicts(items: list[EvidenceItem]) -> ConflictModel:
                     if base1[:30] == base2[:30]:  # Similar content
                         conflict.detected = True
                         conflict.conflict_type.append(ConflictType.SOURCE_DISAGREEMENT)
-                        conflict.conflict_summary = (
-                            f"Source disagreement: '{claim1[:50]}...' vs '{claim2[:50]}...'"
-                        )
+                        conflict.conflict_summary = f"Source disagreement: '{claim1[:50]}...' vs '{claim2[:50]}...'"
                         break
 
     if conflict.detected:
@@ -1236,7 +1258,9 @@ def calculate_state_update(
 
     # Conflicts delta
     if conflict.detected:
-        update.conflicts_delta.append(conflict.conflict_summary or "Source disagreement detected")
+        update.conflicts_delta.append(
+            conflict.conflict_summary or "Source disagreement detected"
+        )
 
     # Confidence delta (simple calculation)
     if items:
@@ -1408,7 +1432,10 @@ async def governed_sense_v2(
 
         # Check for 888_HOLD
         if sense.get("recommended_next_stage") == "hold":
-            print(f"[A-FORGE] 888_HOLD triggered: {sense.get('escalation_reason')}", flush=True)
+            print(
+                f"[A-FORGE] 888_HOLD triggered: {sense.get('escalation_reason')}",
+                flush=True,
+            )
 
         # Map to Python packet format and return
         return _map_a_forge_to_python_result(af_result, raw_input)
@@ -1430,7 +1457,10 @@ async def governed_sense_v2(
     # STAGE 5: SENSE
     # ═══════════════════════════════════════════════════════════════════════════
     items = []
-    if execute_search and evidence_plan.retrieval_lane not in ("offline_reason", "hold"):
+    if execute_search and evidence_plan.retrieval_lane not in (
+        "offline_reason",
+        "hold",
+    ):
         items = await execute_sensing(sense_input, evidence_plan, session_id)
 
     # ═══════════════════════════════════════════════════════════════════════════
@@ -1443,14 +1473,18 @@ async def governed_sense_v2(
     # ═══════════════════════════════════════════════════════════════════════════
     ambiguity = assess_ambiguity(sense_input, items)
     conflict = detect_conflicts(items)
-    uncertainty = calculate_uncertainty(items, ambiguity, conflict, truth_classification)
+    uncertainty = calculate_uncertainty(
+        items, ambiguity, conflict, truth_classification
+    )
 
     # Temporal grounding
     temporal = TemporalGrounding(
         query_time_class=sense_input.query_frame.time_scope,
         freshness_required=truth_classification.temporal_dependency,
         staleness_risk=(
-            StalenessRisk.HIGH if truth_classification.temporal_dependency else StalenessRisk.NONE
+            StalenessRisk.HIGH
+            if truth_classification.temporal_dependency
+            else StalenessRisk.NONE
         ),
     )
 
@@ -1469,7 +1503,13 @@ async def governed_sense_v2(
 
     # Build intelligence state
     intelligence_state = build_intelligence_state(
-        sense_input, truth_classification, uncertainty, items, findings, ambiguity, conflict
+        sense_input,
+        truth_classification,
+        uncertainty,
+        items,
+        findings,
+        ambiguity,
+        conflict,
     )
 
     # Build canonical SensePacket

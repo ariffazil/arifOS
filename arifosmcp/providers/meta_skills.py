@@ -27,7 +27,11 @@ META_SKILLS: dict[str, dict[str, Any]] = {
     "recursive-self-improvement": {
         "stage": "AGI→ASI",
         "trinity": "ASI_emergence",
-        "required_for": ["ASI transition", "self-optimization", "architecture evolution"],
+        "required_for": [
+            "ASI transition",
+            "self-optimization",
+            "architecture evolution",
+        ],
         "void_conditions": [
             "Self-model divergence > 5%",
             "Circular dependency in upgrade path",
@@ -71,7 +75,11 @@ META_SKILLS: dict[str, dict[str, Any]] = {
     "constitutional-governance": {
         "stage": "ALL",
         "trinity": "CROSS_CUTTING",
-        "required_for": ["all tool invocations", "irreversible approval", "ASI safe operation"],
+        "required_for": [
+            "all tool invocations",
+            "irreversible approval",
+            "ASI safe operation",
+        ],
         "void_conditions": [
             "Self-authorization detected",
             "Floor breach without acknowledgment",
@@ -83,7 +91,11 @@ META_SKILLS: dict[str, dict[str, Any]] = {
     "entropy-optimization": {
         "stage": "ALL",
         "trinity": "RESOURCE_AWARENESS",
-        "required_for": ["compute allocation", "attention budgeting", "wealth decisions"],
+        "required_for": [
+            "compute allocation",
+            "attention budgeting",
+            "wealth decisions",
+        ],
         "void_conditions": [
             "Action without EVOI calculation",
             "Budget exceeded",
@@ -131,7 +143,9 @@ class MetaSkillsProvider:
         """List all loaded meta-skills."""
         return list(self._loaded.keys())
 
-    def check_prerequisites(self, skill_id: str, context: dict[str, Any]) -> dict[str, Any]:
+    def check_prerequisites(
+        self, skill_id: str, context: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Check if prerequisites for a meta-skill are met.
 

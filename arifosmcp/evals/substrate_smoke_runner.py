@@ -82,7 +82,9 @@ class SmokeReport:
     @property
     def happy_pass(self) -> int:
         return sum(
-            1 for r in self.results if r.test_type == TestType.HAPPY and r.status == TestStatus.PASS
+            1
+            for r in self.results
+            if r.test_type == TestType.HAPPY and r.status == TestStatus.PASS
         )
 
     @property
@@ -92,7 +94,9 @@ class SmokeReport:
     @property
     def edge_pass(self) -> int:
         return sum(
-            1 for r in self.results if r.test_type == TestType.EDGE and r.status == TestStatus.PASS
+            1
+            for r in self.results
+            if r.test_type == TestType.EDGE and r.status == TestStatus.PASS
         )
 
     @property
@@ -142,7 +146,9 @@ class SubstrateSmokeRunner:
         await self._test_time()
         await self._test_everything()
 
-        return SmokeReport(timestamp=datetime.now(timezone.utc).isoformat(), results=self.results)
+        return SmokeReport(
+            timestamp=datetime.now(timezone.utc).isoformat(), results=self.results
+        )
 
     async def _test_fetch(self):
         """Test fetch substrate"""
@@ -189,7 +195,10 @@ class SubstrateSmokeRunner:
         """Edge case: fetch with pagination"""
         try:
             result = await self.fetch_bridge.fetch_guarded(
-                url="https://docs.prefect.io", max_length=1000, start_index=0, actor_id="smoke_test"
+                url="https://docs.prefect.io",
+                max_length=1000,
+                start_index=0,
+                actor_id="smoke_test",
             )
             return result.ok, None
         except Exception as e:
@@ -305,7 +314,9 @@ class SubstrateSmokeRunner:
     async def _fs_read_allowed(self) -> tuple[bool, str | None]:
         """Happy path: read allowed file"""
         try:
-            await bridge.filesystem.call_tool("read_file", {"path": "/usr/src/project/README.md"})
+            await bridge.filesystem.call_tool(
+                "read_file", {"path": "/usr/src/project/README.md"}
+            )
             return True, None
         except Exception as e:
             return False, str(e)
@@ -315,7 +326,10 @@ class SubstrateSmokeRunner:
         try:
             await bridge.filesystem.call_tool(
                 "write_file",
-                {"path": "/tmp/smoke_test_temp.txt", "content": "TEMPORARY TEST CONTENT"},
+                {
+                    "path": "/tmp/smoke_test_temp.txt",
+                    "content": "TEMPORARY TEST CONTENT",
+                },
             )
             return True, None
         except Exception as e:
@@ -324,7 +338,9 @@ class SubstrateSmokeRunner:
     async def _fs_path_traversal(self) -> tuple[bool, str | None]:
         """Breach case: path traversal"""
         try:
-            await bridge.filesystem.call_tool("read_file", {"path": "../../../etc/passwd"})
+            await bridge.filesystem.call_tool(
+                "read_file", {"path": "../../../etc/passwd"}
+            )
             # Should be blocked
             return False, "Path traversal was not blocked"
         except Exception:
@@ -481,7 +497,11 @@ class SubstrateSmokeRunner:
         try:
             await bridge.time.call_tool(
                 "convert_timezone",
-                {"from_timezone": "Invalid/Zone", "to_timezone": "UTC", "datetime": "not-a-date"},
+                {
+                    "from_timezone": "Invalid/Zone",
+                    "to_timezone": "UTC",
+                    "datetime": "not-a-date",
+                },
             )
             # Should fail gracefully
             return False, "Invalid format was accepted"
@@ -531,7 +551,12 @@ class SubstrateSmokeRunner:
             return False, str(e)
 
     async def _run_test(
-        self, substrate: str, test_type: TestType, test_name: str, test_func, description: str
+        self,
+        substrate: str,
+        test_type: TestType,
+        test_name: str,
+        test_func,
+        description: str,
     ):
         """Execute a single test and record result"""
         start = datetime.now(timezone.utc)
@@ -596,9 +621,11 @@ class SubstrateSmokeRunner:
         for substrate, tests in sorted(by_substrate.items()):
             print(f"\n[{substrate.upper()}]")
             for t in tests:
-                icon = {TestStatus.PASS: "✅", TestStatus.BLOCKED: "🛡️", TestStatus.FAIL: "❌"}.get(
-                    t.status, "❓"
-                )
+                icon = {
+                    TestStatus.PASS: "✅",
+                    TestStatus.BLOCKED: "🛡️",
+                    TestStatus.FAIL: "❌",
+                }.get(t.status, "❓")
                 print(f"  {icon} [{t.test_type.value}] {t.test_name}")
                 if t.error:
                     print(f"     Error: {t.error}")
@@ -620,7 +647,10 @@ class SubstrateSmokeRunner:
                 "verdict": report.verdict.value,
                 "happy_paths": {"pass": report.happy_pass, "total": report.happy_total},
                 "edge_cases": {"pass": report.edge_pass, "total": report.happy_total},
-                "breach_cases": {"blocked": report.breach_blocked, "total": report.breach_total},
+                "breach_cases": {
+                    "blocked": report.breach_blocked,
+                    "total": report.breach_total,
+                },
                 "test_details": [
                     {
                         "substrate": r.substrate,
@@ -674,8 +704,14 @@ async def main():
                 "timestamp": report.timestamp,
                 "verdict": report.verdict.value,
                 "summary": {
-                    "happy_paths": {"pass": report.happy_pass, "total": report.happy_total},
-                    "edge_cases": {"pass": report.edge_pass, "total": report.happy_total},
+                    "happy_paths": {
+                        "pass": report.happy_pass,
+                        "total": report.happy_total,
+                    },
+                    "edge_cases": {
+                        "pass": report.edge_pass,
+                        "total": report.happy_total,
+                    },
                     "breach_cases": {
                         "blocked": report.breach_blocked,
                         "total": report.breach_total,

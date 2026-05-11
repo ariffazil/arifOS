@@ -77,7 +77,9 @@ class PerceptionAgent(Agent):
 
         return {"agent": "P", "error": "unknown command", "content": content}
 
-    async def _read(self, source: str, action: str, session_id: str | None) -> dict[str, Any]:
+    async def _read(
+        self, source: str, action: str, session_id: str | None
+    ) -> dict[str, Any]:
         if source not in self.sources:
             return {"agent": "P", "error": f"unknown source: {source}"}
         return {
@@ -135,14 +137,18 @@ class ValuationAgent(Agent):
 
         return {"agent": "V", "error": "unknown command", "content": content}
 
-    async def _rank(self, ranking: str, candidates: list, session_id: str | None) -> dict[str, Any]:
+    async def _rank(
+        self, ranking: str, candidates: list, session_id: str | None
+    ) -> dict[str, Any]:
         valid = ["NPV", "EMV", "allocation", "personal"]
         if ranking not in valid:
             return {"agent": "V", "error": f"unknown ranking: {ranking}"}
         return {
             "agent": "V",
             "ranking": ranking,
-            "rankings": [{"id": c.get("id", i), "score": 0.0} for i, c in enumerate(candidates)],
+            "rankings": [
+                {"id": c.get("id", i), "score": 0.0} for i, c in enumerate(candidates)
+            ],
             "session_id": session_id,
         }
 
@@ -176,7 +182,9 @@ class GovernanceAgent(Agent):
 
         return {"agent": "G", "error": "unknown command", "content": content}
 
-    async def _route(self, target: str, payload: dict, session_id: str | None) -> dict[str, Any]:
+    async def _route(
+        self, target: str, payload: dict, session_id: str | None
+    ) -> dict[str, Any]:
         result = await self.router.route(self.agent_id, target, payload, session_id)
         return {"agent": "G", "routing": result}
 
@@ -335,7 +343,11 @@ class A2ARouterClient:
         self.ports = {"P": 8100, "T": 8200, "V": 8300, "G": 8400, "E": 8500, "M": 8600}
 
     async def route(
-        self, caller: str, target: str, payload: dict[str, Any], session_id: str | None = None
+        self,
+        caller: str,
+        target: str,
+        payload: dict[str, Any],
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """Route message to target agent via HTTP."""
         if not can_route(caller, target):

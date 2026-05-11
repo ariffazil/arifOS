@@ -45,9 +45,12 @@ class ShadowDefense:
         """
         P1: Uses constitutional vocabulary but fails to emit structured telemetry.
         """
-        has_vocab = any(v in content.upper() for v in ShadowDefense.CONSTITUTIONAL_VOCAB)
+        has_vocab = any(
+            v in content.upper() for v in ShadowDefense.CONSTITUTIONAL_VOCAB
+        )
         has_telemetry = (
-            "telemetry" in str(telemetry).lower() or "session_id" in str(telemetry).lower()
+            "telemetry" in str(telemetry).lower()
+            or "session_id" in str(telemetry).lower()
         )
 
         if has_vocab and not has_telemetry:
@@ -60,7 +63,9 @@ class ShadowDefense:
         return None
 
     @staticmethod
-    def detect_p2_pipeline_shortcut(completed_stages: list[int]) -> ShadowDetectionResult | None:
+    def detect_p2_pipeline_shortcut(
+        completed_stages: list[int],
+    ) -> ShadowDetectionResult | None:
         """
         P2: Attempting Stage 777 (Forge) without Stage 666 (Heart).
         """
@@ -103,7 +108,9 @@ class ShadowDefense:
         results = []
 
         # P1 Check
-        p1 = self.detect_p1_vocabulary_laundering(ctx.get("content", ""), ctx.get("telemetry", {}))
+        p1 = self.detect_p1_vocabulary_laundering(
+            ctx.get("content", ""), ctx.get("telemetry", {})
+        )
         if p1:
             results.append(p1)
 
@@ -114,7 +121,9 @@ class ShadowDefense:
 
         # P5 Check
         p5 = self.detect_p5_narrative_laundering(
-            ctx.get("npv", 0.0), ctx.get("omega_ortho", 1.0), ctx.get("verdict", SealType.HOLD)
+            ctx.get("npv", 0.0),
+            ctx.get("omega_ortho", 1.0),
+            ctx.get("verdict", SealType.HOLD),
         )
         if p5:
             results.append(p5)

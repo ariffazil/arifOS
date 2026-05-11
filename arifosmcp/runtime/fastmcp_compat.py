@@ -104,7 +104,9 @@ def create_http_app(mcp_instance: FastMCP, stateless_http: bool = True) -> Any:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def custom_route(mcp_instance: FastMCP, path: str, methods: list[str], **kwargs) -> Callable:
+def custom_route(
+    mcp_instance: FastMCP, path: str, methods: list[str], **kwargs
+) -> Callable:
     """Register custom HTTP route compatible with FastMCP 2.x and 3.x.
 
     Both versions support @mcp.custom_route() with same signature:
@@ -161,7 +163,12 @@ except ImportError:
 
 try:
     from starlette.requests import Request
-    from starlette.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
+    from starlette.responses import (
+        HTMLResponse,
+        JSONResponse,
+        PlainTextResponse,
+        Response,
+    )
 
     STARLETTE_AVAILABLE = True
 except ImportError:
@@ -184,7 +191,9 @@ try:
     class GlobalPanicMiddleware(BaseHTTPMiddleware):
         """ASGI middleware for constitutional enforcement (2.x/3.x compatible)."""
 
-        async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        async def dispatch(
+            self, request: Request, call_next: RequestResponseEndpoint
+        ) -> Response:
             """Process request with constitutional safeguards."""
             # Add request ID for tracing
             request_id = request.headers.get("x-request-id", "unknown")

@@ -72,7 +72,9 @@ async def compat_probe(
     elif raw_level.lower() in low_trust_levels:
         recommendation = "Anonymous/declared identity — use init_anchor with verified credentials for full access."
     else:
-        recommendation = "Identity recognized — init_anchor required to escalate privileges."
+        recommendation = (
+            "Identity recognized — init_anchor required to escalate privileges."
+        )
 
     # 3. Build Result
     payload = {

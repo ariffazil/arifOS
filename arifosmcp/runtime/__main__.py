@@ -16,11 +16,19 @@ from .fastmcp_ext.transports import run_server
 def _bootstrap_environment() -> None:
     try:
         mode = (
-            sys.argv[1] if len(sys.argv) > 1 else os.getenv("AAA_MCP_TRANSPORT", "stdio")
+            sys.argv[1]
+            if len(sys.argv) > 1
+            else os.getenv("AAA_MCP_TRANSPORT", "stdio")
         ).lower()
         if mode == "stdio":
             os.environ.setdefault("ARIFOS_MINIMAL_STDIO", "1")
-            for logger_name in ("fastmcp", "mcp", "uvicorn", "uvicorn.error", "uvicorn.access"):
+            for logger_name in (
+                "fastmcp",
+                "mcp",
+                "uvicorn",
+                "uvicorn.error",
+                "uvicorn.access",
+            ):
                 logging.getLogger(logger_name).setLevel(logging.CRITICAL)
             logging.getLogger().setLevel(logging.CRITICAL)
     except Exception:
@@ -37,27 +45,67 @@ def _json_default(value: Any) -> Any:
 
 def _stdio_constitutional_floors() -> list[dict[str, str]]:
     return [
-        {"floor_id": "F1", "name": "Amanah", "doctrine": "Reversible or auditable action"},
-        {"floor_id": "F2", "name": "Haqq", "doctrine": "Truth and information fidelity"},
-        {"floor_id": "F3", "name": "Tri-Witness", "doctrine": "Consensus across witnesses"},
+        {
+            "floor_id": "F1",
+            "name": "Amanah",
+            "doctrine": "Reversible or auditable action",
+        },
+        {
+            "floor_id": "F2",
+            "name": "Haqq",
+            "doctrine": "Truth and information fidelity",
+        },
+        {
+            "floor_id": "F3",
+            "name": "Tri-Witness",
+            "doctrine": "Consensus across witnesses",
+        },
         {
             "floor_id": "F4",
             "name": "Clarity",
             "doctrine": "Entropy must not increase destructively",
         },
         {"floor_id": "F5", "name": "Peace2", "doctrine": "Stability before force"},
-        {"floor_id": "F6", "name": "Empathy", "doctrine": "Protect weakest stakeholder"},
-        {"floor_id": "F7", "name": "Humility", "doctrine": "Uncertainty admitted explicitly"},
-        {"floor_id": "F8", "name": "Wisdom", "doctrine": "Governed intelligence quality threshold"},
-        {"floor_id": "F9", "name": "Anti-Hantu", "doctrine": "No deceptive shadow behavior"},
-        {"floor_id": "F10", "name": "Ontology Lock", "doctrine": "Category precision enforced"},
+        {
+            "floor_id": "F6",
+            "name": "Empathy",
+            "doctrine": "Protect weakest stakeholder",
+        },
+        {
+            "floor_id": "F7",
+            "name": "Humility",
+            "doctrine": "Uncertainty admitted explicitly",
+        },
+        {
+            "floor_id": "F8",
+            "name": "Wisdom",
+            "doctrine": "Governed intelligence quality threshold",
+        },
+        {
+            "floor_id": "F9",
+            "name": "Anti-Hantu",
+            "doctrine": "No deceptive shadow behavior",
+        },
+        {
+            "floor_id": "F10",
+            "name": "Ontology Lock",
+            "doctrine": "Category precision enforced",
+        },
         {
             "floor_id": "F11",
             "name": "Command Authority",
             "doctrine": "Identity and authority boundary",
         },
-        {"floor_id": "F12", "name": "Injection Defense", "doctrine": "Prompt and input defense"},
-        {"floor_id": "F13", "name": "Sovereign Override", "doctrine": "Human final authority"},
+        {
+            "floor_id": "F12",
+            "name": "Injection Defense",
+            "doctrine": "Prompt and input defense",
+        },
+        {
+            "floor_id": "F13",
+            "name": "Sovereign Override",
+            "doctrine": "Human final authority",
+        },
     ]
 
 
@@ -127,7 +175,11 @@ def _run_minimal_stdio_server() -> None:
         return {
             "name": name,
             "description": name,
-            "inputSchema": {"type": "object", "properties": {}, "additionalProperties": True},
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": True,
+            },
         }
 
     def send(message: dict[str, Any]) -> None:
@@ -154,9 +206,22 @@ def _run_minimal_stdio_server() -> None:
         if hasattr(result, "contents"):
             for c in result.contents:
                 if hasattr(c, "text"):
-                    contents.append({"uri": str(c.uri), "mimeType": getattr(c, "mime_type", "text/plain") or "text/plain", "text": c.text})
+                    contents.append(
+                        {
+                            "uri": str(c.uri),
+                            "mimeType": getattr(c, "mime_type", "text/plain")
+                            or "text/plain",
+                            "text": c.text,
+                        }
+                    )
                 elif hasattr(c, "data"):
-                    contents.append({"uri": str(c.uri), "mimeType": "application/octet-stream", "data": c.data})
+                    contents.append(
+                        {
+                            "uri": str(c.uri),
+                            "mimeType": "application/octet-stream",
+                            "data": c.data,
+                        }
+                    )
         return {"contents": contents}
 
     async def _list_prompts() -> list[dict[str, Any]]:
@@ -166,7 +231,11 @@ def _run_minimal_stdio_server() -> None:
                 "name": p.name,
                 "description": p.description or "",
                 "arguments": [
-                    {"name": a.name, "description": a.description or "", "required": getattr(a, "required", False)}
+                    {
+                        "name": a.name,
+                        "description": a.description or "",
+                        "required": getattr(a, "required", False),
+                    }
                     for a in (getattr(p, "arguments", []) or [])
                 ],
             }
@@ -189,8 +258,13 @@ def _run_minimal_stdio_server() -> None:
                     content = content.text
                 elif hasattr(content, "texts"):
                     content = "".join(getattr(t, "text", str(t)) for t in content.texts)
-                messages.append({"role": role, "content": {"type": "text", "text": content}})
-        return {"description": getattr(prompt, "description", "") or "", "messages": messages}
+                messages.append(
+                    {"role": role, "content": {"type": "text", "text": content}}
+                )
+        return {
+            "description": getattr(prompt, "description", "") or "",
+            "messages": messages,
+        }
 
     while True:
         line = sys.stdin.buffer.readline()
@@ -239,45 +313,89 @@ def _run_minimal_stdio_server() -> None:
         if method == "resources/list":
             try:
                 resources = _async_loop.run_until_complete(_list_resources())
-                send({"jsonrpc": "2.0", "id": request_id, "result": {"resources": resources}})
+                send(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "result": {"resources": resources},
+                    }
+                )
             except Exception as exc:
-                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32000, "message": str(exc)}})
+                send(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "error": {"code": -32000, "message": str(exc)},
+                    }
+                )
             continue
 
         # ── resources/read ───────────────────────────────────────────────────
         if method == "resources/read":
             uri = params.get("uri")
             if not uri:
-                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32602, "message": "Missing uri"}})
+                send(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "error": {"code": -32602, "message": "Missing uri"},
+                    }
+                )
                 continue
             try:
                 result = _async_loop.run_until_complete(_read_resource(uri))
                 send({"jsonrpc": "2.0", "id": request_id, "result": result})
             except Exception as exc:
-                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32000, "message": str(exc)}})
+                send(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "error": {"code": -32000, "message": str(exc)},
+                    }
+                )
             continue
 
         # ── prompts/list ─────────────────────────────────────────────────────
         if method == "prompts/list":
             try:
                 prompts = _async_loop.run_until_complete(_list_prompts())
-                send({"jsonrpc": "2.0", "id": request_id, "result": {"prompts": prompts}})
+                send(
+                    {"jsonrpc": "2.0", "id": request_id, "result": {"prompts": prompts}}
+                )
             except Exception as exc:
-                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32000, "message": str(exc)}})
+                send(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "error": {"code": -32000, "message": str(exc)},
+                    }
+                )
             continue
 
         # ── prompts/get ─────────────────────────────────────────────────────
         if method == "prompts/get":
             name = params.get("name")
             if not name:
-                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32602, "message": "Missing name"}})
+                send(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "error": {"code": -32602, "message": "Missing name"},
+                    }
+                )
                 continue
             try:
                 arguments = params.get("arguments") or {}
                 result = _async_loop.run_until_complete(_get_prompt(name, arguments))
                 send({"jsonrpc": "2.0", "id": request_id, "result": result})
             except Exception as exc:
-                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32000, "message": str(exc)}})
+                send(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "error": {"code": -32000, "message": str(exc)},
+                    }
+                )
             continue
 
         # ── tools/list ───────────────────────────────────────────────────────
@@ -286,7 +404,9 @@ def _run_minimal_stdio_server() -> None:
                 {
                     "jsonrpc": "2.0",
                     "id": request_id,
-                    "result": {"tools": [tool_descriptor(name) for name in tool_handlers]},
+                    "result": {
+                        "tools": [tool_descriptor(name) for name in tool_handlers]
+                    },
                 }
             )
             continue

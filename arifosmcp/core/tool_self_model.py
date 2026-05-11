@@ -39,8 +39,12 @@ class ToolCapability(BaseModel):
 
     name: str = Field(description="Capability identifier")
     description: str = Field(description="What this capability does")
-    parameters: list[str] = Field(default_factory=list, description="Required parameter names")
-    output_fields: list[str] = Field(default_factory=list, description="Output fields produced")
+    parameters: list[str] = Field(
+        default_factory=list, description="Required parameter names"
+    )
+    output_fields: list[str] = Field(
+        default_factory=list, description="Output fields produced"
+    )
 
 
 class ToolLimitation(BaseModel):
@@ -114,7 +118,9 @@ class ToolManifest(BaseModel):
     known_failure_modes: list[ToolFailureMode] = Field(default_factory=list)
 
     # Example
-    example_params: dict[str, Any] | None = Field(default=None, description="Example parameters")
+    example_params: dict[str, Any] | None = Field(
+        default=None, description="Example parameters"
+    )
 
     def capability_hash(self) -> str:
         """Stable hash of this tool's capabilities."""
@@ -270,7 +276,9 @@ class ToolSelfModel:
             return
 
         verdict = result.get("verdict") or result.get("status") or "OK"
-        confidence = result.get("confidence") or result.get("result", {}).get("confidence")
+        confidence = result.get("confidence") or result.get("result", {}).get(
+            "confidence"
+        )
         confidence_str = f"{confidence:.2f}" if confidence else "?"
         latency = result.get("latency_ms")
 

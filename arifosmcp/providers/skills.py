@@ -47,7 +47,11 @@ class SkillsDirectoryProvider:
             return
 
         for item in path.iterdir():
-            if item.is_file() and item.suffix == ".py" and not item.name.startswith("_"):
+            if (
+                item.is_file()
+                and item.suffix == ".py"
+                and not item.name.startswith("_")
+            ):
                 name = item.stem
                 try:
                     spec = importlib.util.spec_from_file_location(
@@ -64,9 +68,13 @@ class SkillsDirectoryProvider:
                         if callable(obj):
                             key = f"{domain}/{name}.{attr}"
                             self._skills[domain][key] = obj
-                    logger.debug(f"[SkillsDirectoryProvider] Loaded skill: {domain}/{name}")
+                    logger.debug(
+                        f"[SkillsDirectoryProvider] Loaded skill: {domain}/{name}"
+                    )
                 except Exception as e:
-                    logger.warning(f"[SkillsDirectoryProvider] Failed to load {domain}/{name}: {e}")
+                    logger.warning(
+                        f"[SkillsDirectoryProvider] Failed to load {domain}/{name}: {e}"
+                    )
 
     def _load_all(self) -> None:
         for domain, rel_path in _SKILL_DIRS.items():

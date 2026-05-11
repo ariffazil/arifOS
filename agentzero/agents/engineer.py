@@ -56,7 +56,10 @@ class EngineerAgent(ConstitutionalAgent):
     ENGINEER_FLOORS = ["F5", "F6", "F9", "F11"]
 
     def __init__(
-        self, agent_id: str = "engineer.001", arifos_client=None, sandbox_config: dict | None = None
+        self,
+        agent_id: str = "engineer.001",
+        arifos_client=None,
+        sandbox_config: dict | None = None,
     ):
         super().__init__(
             agent_id=agent_id,

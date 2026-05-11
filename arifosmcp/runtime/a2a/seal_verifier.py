@@ -141,7 +141,9 @@ class A2ASealVerifier:
                         ):
                             vault_anchored = True
                             vault_entry_index = len(lines) - 1 - idx
-                            trace.append(f"VAULT999 entry #{vault_entry_index} found and anchored")
+                            trace.append(
+                                f"VAULT999 entry #{vault_entry_index} found and anchored"
+                            )
                             break
                     except json.JSONDecodeError:
                         continue
@@ -151,7 +153,9 @@ class A2ASealVerifier:
         # Compute current Ω_ortho
         auditor = get_auditor()
         report = auditor.compute_orthogonality()
-        trace.append(f"Ω_ortho={report.omega_ortho:.4f} (threshold={auditor.threshold})")
+        trace.append(
+            f"Ω_ortho={report.omega_ortho:.4f} (threshold={auditor.threshold})"
+        )
 
         # Check session for WELL readiness
         well_readiness = None

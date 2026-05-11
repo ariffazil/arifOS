@@ -96,7 +96,10 @@ class RealityHandler:
 
             # Block localhost and common private ranges
             # This is a basic heuristic for defense-in-depth
-            if re.match(r"^(127\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|169\.254\.)", host):
+            if re.match(
+                r"^(127\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|169\.254\.)",
+                host,
+            ):
                 return False
             if host in ("localhost", "local", "loopback"):
                 return False
@@ -105,7 +108,9 @@ class RealityHandler:
         except Exception:
             return False
 
-    async def fetch_url(self, url: str, render: str = "auto", policy: Any = None) -> FetchResult:
+    async def fetch_url(
+        self, url: str, render: str = "auto", policy: Any = None
+    ) -> FetchResult:
         timings = {"dns": 0.0, "connect": 0.0, "ttfb": 0.0, "total": 0.0}
 
         res = FetchResult(url=url)
@@ -121,7 +126,9 @@ class RealityHandler:
 
         try:
             if render != "always":
-                async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+                async with httpx.AsyncClient(
+                    timeout=15.0, follow_redirects=True
+                ) as client:
                     h_start = time.time()
                     try:
                         # Use stream to enforce MAX_CONTENT_LENGTH before reading everything
@@ -157,11 +164,12 @@ class RealityHandler:
                             res.redirects = len(response.history)
 
                             if response.status_code >= 400:
-                                if response.status_code in [403, 429] and render == "auto":
+                                if (
+                                    response.status_code in [403, 429]
+                                    and render == "auto"
+                                ):
                                     use_render = True
-                                    res.error_message = (
-                                        f"HTTP {response.status_code} -> triggering render fallback"
-                                    )
+                                    res.error_message = f"HTTP {response.status_code} -> triggering render fallback"
                                 else:
                                     # Still want to read some error body
                                     chunks = []
@@ -171,15 +179,15 @@ class RealityHandler:
                                         count += len(chunk)
                                         if count > 200:
                                             break
-                                    res.error_message = (
-                                        f"HTTP {response.status_code}: {''.join(chunks)[:200]}"
-                                    )
+                                    res.error_message = f"HTTP {response.status_code}: {''.join(chunks)[:200]}"
                                     res.status_code = response.status_code
                             else:
                                 # Check content-length header if present
                                 cl = response.headers.get("content-length")
                                 if cl and int(cl) > max_size:
-                                    res.error_message = f"Content length {cl} exceeds limit"
+                                    res.error_message = (
+                                        f"Content length {cl} exceeds limit"
+                                    )
                                     res.status_code = 413
                                     return res
 
@@ -232,9 +240,7 @@ class RealityHandler:
                                 res.error_message = None
                             timings["total"] = (time.time() - r_start) * 1000
                         else:
-                            res.error_message = (
-                                f"Browserless Fail {b_res.status_code}: {b_res.text[:200]}"
-                            )
+                            res.error_message = f"Browserless Fail {b_res.status_code}: {b_res.text[:200]}"
                             res.status_code = b_res.status_code
                     except Exception as b_e:
                         res.error_message = f"Browserless Exception: {str(b_e)}"
@@ -296,13 +302,19 @@ class RealityHandler:
                         logger.info("Brave returned no results, trying DDGS fallback")
                         return await self.search_ddgs(query, top_k)
                 elif DDGS_AVAILABLE:
-                    logger.warning(f"Brave error {response.status_code}, trying DDGS fallback")
+                    logger.warning(
+                        f"Brave error {response.status_code}, trying DDGS fallback"
+                    )
                     return await self.search_ddgs(query, top_k)
                 else:
-                    res.error = f"Brave API Error {response.status_code}: {response.text[:500]}"
+                    res.error = (
+                        f"Brave API Error {response.status_code}: {response.text[:500]}"
+                    )
         except Exception as e:
             if DDGS_AVAILABLE:
-                logger.warning(f"Brave exception ({type(e).__name__}), trying DDGS fallback")
+                logger.warning(
+                    f"Brave exception ({type(e).__name__}), trying DDGS fallback"
+                )
                 return await self.search_ddgs(query, top_k)
             res.error = f"{e.__class__.__name__}: {str(e)}"
             res.status_code = 0
@@ -367,7 +379,9 @@ class RealityHandler:
 
         try:
             if mode == "fetch":
-                f_res = await self.fetch_url(bundle_input.value, render=bundle_input.render)
+                f_res = await self.fetch_url(
+                    bundle_input.value, render=bundle_input.render
+                )
                 bundle.results.append(f_res)
                 if f_res.status_code == 200 and f_res.content_length > 0:
                     bundle.status.state = "SUCCESS"
@@ -389,13 +403,17 @@ class RealityHandler:
                     )
 
             elif mode == "search":
-                s_res = await self.search_brave(bundle_input.value, top_k=bundle_input.top_k)
+                s_res = await self.search_brave(
+                    bundle_input.value, top_k=bundle_input.top_k
+                )
                 bundle.results.append(s_res)
 
                 if s_res.status_code == 200 and s_res.results:
                     bundle.status.state = "SUCCESS"
                     bundle.status.verdict = "SEAL"
-                    bundle.status.message = f"Found {len(s_res.results)} search candidates."
+                    bundle.status.message = (
+                        f"Found {len(s_res.results)} search candidates."
+                    )
 
                     if bundle_input.fetch_top_k > 0:
                         bundle.status.message += (

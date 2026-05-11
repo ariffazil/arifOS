@@ -200,15 +200,23 @@ FLOOR_SUMMARY = {
 
 def _classify_intent(raw_input: str) -> str:
     q = raw_input.lower()
-    if any(w in q for w in ["deploy", "build", "forge", "create", "execute", "write", "add"]):
+    if any(
+        w in q
+        for w in ["deploy", "build", "forge", "create", "execute", "write", "add"]
+    ):
         return "constructive_execution"
     if any(w in q for w in ["audit", "check", "verify", "inspect", "review", "test"]):
         return "verification_audit"
-    if any(w in q for w in ["query", "search", "find", "ground", "sense", "what", "how", "why"]):
+    if any(
+        w in q
+        for w in ["query", "search", "find", "ground", "sense", "what", "how", "why"]
+    ):
         return "information_acquisition"
     if any(w in q for w in ["plan", "design", "architect", "strategy", "organize"]):
         return "strategic_design"
-    if any(w in q for w in ["protect", "guard", "defend", "block", "secure", "prevent"]):
+    if any(
+        w in q for w in ["protect", "guard", "defend", "block", "secure", "prevent"]
+    ):
         return "defensive_operation"
     if any(w in q for w in ["critic", "challenge", "question", "rethink", "redesign"]):
         return "critical_review"
@@ -241,7 +249,9 @@ def _assess_risk_posture(context: dict | None) -> str:
     return "standard"
 
 
-def _derive_confidence(identity_verified: bool, cognitive_load: float, risk_posture: str) -> float:
+def _derive_confidence(
+    identity_verified: bool, cognitive_load: float, risk_posture: str
+) -> float:
     identity_factor = 0.25 if identity_verified else 0.0
     load_factor = 0.15 * (1.0 - cognitive_load)
     posture_factor = 0.05 if risk_posture == "standard" else 0.0
@@ -392,7 +402,12 @@ def _build_end_goals(context: dict | None) -> dict:
         ),
         "abort_conditions": ctx.get(
             "abort_conditions",
-            ["F9_VOID_triggered", "F5_harm_below_1", "HOLD_not_resolved", "identity_unverifiable"],
+            [
+                "F9_VOID_triggered",
+                "F5_harm_below_1",
+                "HOLD_not_resolved",
+                "identity_unverifiable",
+            ],
         ),
     }
 
@@ -437,7 +452,9 @@ def _validate_bind_payload(bind_payload: dict) -> dict:
 
     # ── 3. sovereign_goal ──────────────────────────────────────────────────
     try:
-        sovereign_goal = _validate_sovereign_goal(bind_payload.get("sovereign_goal", {}))
+        sovereign_goal = _validate_sovereign_goal(
+            bind_payload.get("sovereign_goal", {})
+        )
     except BindValidationError as e:
         errors.append(e)
         sovereign_goal = None
@@ -465,7 +482,9 @@ def _validate_bind_payload(bind_payload: dict) -> dict:
 
     # ── 7. continuity_contract ─────────────────────────────────────────────
     try:
-        continuity = _validate_continuity_contract(bind_payload.get("continuity_contract", {}))
+        continuity = _validate_continuity_contract(
+            bind_payload.get("continuity_contract", {})
+        )
     except BindValidationError as e:
         errors.append(e)
         continuity = None
@@ -481,7 +500,12 @@ def _validate_bind_payload(bind_payload: dict) -> dict:
     if errors:
         # Collect all errors as dicts for the exception message
         [
-            {"domain": e.domain, "field": e.field, "reason": e.reason, "verdict": e.verdict}
+            {
+                "domain": e.domain,
+                "field": e.field,
+                "reason": e.reason,
+                "verdict": e.verdict,
+            }
             for e in errors
         ]
         raise BindValidationError(
@@ -512,12 +536,20 @@ def _validate_ontology_lock(ontology: dict) -> dict:
     if ontology.get("type") != "AI_instrument":
         errors.append(("ontology_lock", "type", "Must be 'AI_instrument'"))
     if ontology.get("nature") != "governed_machine_not_person":
-        errors.append(("ontology_lock", "nature", "Must be 'governed_machine_not_person'"))
+        errors.append(
+            ("ontology_lock", "nature", "Must be 'governed_machine_not_person'")
+        )
     not_claiming = ontology.get("not_claiming", [])
     required_disclaimers = {"consciousness", "soul", "feelings", "lived_experience"}
     if not required_disclaimers.issubset(set(not_claiming)):
         missing = required_disclaimers - set(not_claiming)
-        errors.append(("ontology_lock", "not_claiming", f"Missing required disclaimers: {missing}"))
+        errors.append(
+            (
+                "ontology_lock",
+                "not_claiming",
+                f"Missing required disclaimers: {missing}",
+            )
+        )
     if not ontology.get("acknowledged"):
         errors.append(("ontology_lock", "acknowledged", "Must be True"))
 
@@ -533,7 +565,9 @@ def _validate_role_scope(role_scope: dict) -> dict:
     lane = role_scope.get("lane")
     if lane not in VALID_LANES:
         raise BindValidationError(
-            "role_scope", "lane", f"Invalid lane '{lane}'. Must be one of: {sorted(VALID_LANES)}"
+            "role_scope",
+            "lane",
+            f"Invalid lane '{lane}'. Must be one of: {sorted(VALID_LANES)}",
         )
 
     # Check forbidden role drift: execution tools requested by non-execution lanes
@@ -564,13 +598,23 @@ def _validate_sovereign_goal(goal: dict) -> dict:
 
     if not goal.get("sovereign_intent"):
         errors.append(
-            ("sovereign_goal", "sovereign_intent", "Required: sovereign_intent must be declared")
+            (
+                "sovereign_goal",
+                "sovereign_intent",
+                "Required: sovereign_intent must be declared",
+            )
         )
     if not goal.get("epoch_goal"):
-        errors.append(("sovereign_goal", "epoch_goal", "Required: epoch_goal must be declared"))
+        errors.append(
+            ("sovereign_goal", "epoch_goal", "Required: epoch_goal must be declared")
+        )
     if not goal.get("success_criteria"):
         errors.append(
-            ("sovereign_goal", "success_criteria", "Required: success_criteria must be declared")
+            (
+                "sovereign_goal",
+                "success_criteria",
+                "Required: success_criteria must be declared",
+            )
         )
 
     if errors:
@@ -695,7 +739,14 @@ def _validate_continuity_contract(contract: dict) -> dict:
     if "max_duration_hours" not in result:
         result["max_duration_hours"] = 24
     if "HOLD_triggered_by" not in result:
-        result["HOLD_triggered_by"] = ["F1", "F3", "F5", "F9", "F13", "ZKPC_INSUFFICIENT"]
+        result["HOLD_triggered_by"] = [
+            "F1",
+            "F3",
+            "F5",
+            "F9",
+            "F13",
+            "ZKPC_INSUFFICIENT",
+        ]
     if "VOID_triggered_by" not in result:
         result["VOID_triggered_by"] = ["F9", "F5", "F10"]
 
@@ -724,7 +775,13 @@ def _validate_godel_lock(godel: dict) -> dict:
     lock_items = set(godel.get("lock_items", []))
     missing = GODEL_LOCK_ITEMS - lock_items
     if missing:
-        errors.append(("godel_lock", "lock_items", f"Missing required Gödel lock items: {missing}"))
+        errors.append(
+            (
+                "godel_lock",
+                "lock_items",
+                f"Missing required Gödel lock items: {missing}",
+            )
+        )
 
     if not godel.get("acknowledged"):
         errors.append(("godel_lock", "acknowledged", "Must be True"))
@@ -751,7 +808,8 @@ async def _build_status_response(
     Returns minimal anchor: session_id, epoch, lane, confidence, floor_status.
     """
     active_session_id = (
-        session_id or hashlib.sha256(f"{operator_id}-{time.time()}".encode()).hexdigest()[:12]
+        session_id
+        or hashlib.sha256(f"{operator_id}-{time.time()}".encode()).hexdigest()[:12]
     )
 
     context = context or {}
@@ -767,9 +825,13 @@ async def _build_status_response(
         identity_reason = "context_operator_mismatch"
     else:
         identity_verified = operator_id.lower() in {"arif", "admin"}
-        identity_reason = "fallback_whitelist" if identity_verified else "missing_or_mismatch"
+        identity_reason = (
+            "fallback_whitelist" if identity_verified else "missing_or_mismatch"
+        )
 
-    derived_confidence = _derive_confidence(identity_verified, cognitive_load, risk_posture)
+    derived_confidence = _derive_confidence(
+        identity_verified, cognitive_load, risk_posture
+    )
     resolved_epoch = epoch or datetime.now(timezone.utc).strftime("%Y.%m")
     lane = context.get("lane", "general")
 
@@ -787,7 +849,9 @@ async def _build_status_response(
             "primary": lane if lane in VALID_LANES else "general",
             "all_declared": [lane] if lane in VALID_LANES else [],
             "rejected": [] if lane in VALID_LANES else [lane],
-            "constraints": _get_lane_constraints(lane if lane in VALID_LANES else "general"),
+            "constraints": _get_lane_constraints(
+                lane if lane in VALID_LANES else "general"
+            ),
         },
         "floors": FLOOR_SUMMARY,
         "lifecycle": {
@@ -828,7 +892,8 @@ async def _build_bind_response(
     Fails closed on any validation error.
     """
     active_session_id = (
-        session_id or hashlib.sha256(f"{operator_id}-{time.time()}".encode()).hexdigest()[:12]
+        session_id
+        or hashlib.sha256(f"{operator_id}-{time.time()}".encode()).hexdigest()[:12]
     )
 
     context = context or {}
@@ -860,7 +925,9 @@ async def _build_bind_response(
     cognitive_load = _estimate_cognitive_load(context)
     risk_posture = _assess_risk_posture(context)
     identity_verified = operator_id.lower() in {"arif", "admin"}
-    derived_confidence = _derive_confidence(identity_verified, cognitive_load, risk_posture)
+    derived_confidence = _derive_confidence(
+        identity_verified, cognitive_load, risk_posture
+    )
 
     # Build session_id hash for traceability
     input_payload = {
@@ -1082,7 +1149,9 @@ async def execute(
                 ],
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
-        return await _build_bind_response(operator_id, session_id, epoch, context, bind_payload)
+        return await _build_bind_response(
+            operator_id, session_id, epoch, context, bind_payload
+        )
 
     # ── MSAP Challenge mode ────────────────────────────────────────────────
     if mode == "ack_challenge":
@@ -1112,7 +1181,9 @@ async def execute(
             "status": "CHALLENGE_ISSUED",
             "challenge_id": challenge.challenge_id,
             "nonce": challenge.nonce,
-            "expires_at": datetime.fromtimestamp(challenge.expires_at, tz=timezone.utc).isoformat(),
+            "expires_at": datetime.fromtimestamp(
+                challenge.expires_at, tz=timezone.utc
+            ).isoformat(),
             "canonical_digest_template": template,
             "verdict": "CLAIM_ONLY",
             "timestamp": datetime.now(timezone.utc).isoformat(),

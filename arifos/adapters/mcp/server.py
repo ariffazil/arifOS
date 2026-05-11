@@ -57,7 +57,9 @@ app = FastAPI(title="arifosmcp NEXT HORIZON", lifespan=_lifespan)
 # ── Helpers ─────────────────────────────────────────────────
 def _public_base_url(request: Request) -> str:
     proto = request.headers.get("x-forwarded-proto", request.url.scheme)
-    host = request.headers.get("x-forwarded-host", request.headers.get("host", request.url.netloc))
+    host = request.headers.get(
+        "x-forwarded-host", request.headers.get("host", request.url.netloc)
+    )
     return f"{proto}://{host}".rstrip("/")
 
 
@@ -71,7 +73,9 @@ def _last_seal() -> str:
             lines = [ln.strip() for ln in fh if ln.strip()]
             if lines:
                 last = json.loads(lines[-1])
-                return last.get("chain_hash", last.get("merkle_leaf", "No seal recorded"))
+                return last.get(
+                    "chain_hash", last.get("merkle_leaf", "No seal recorded")
+                )
     except Exception:
         pass
     return "No seal recorded"
@@ -284,7 +288,9 @@ async def well_known(request: Request) -> JSONResponse:
 # ── WebMCP Dashboard ────────────────────────────────────────
 _dashboard_dir = Path(__file__).resolve().parents[2] / "sites" / "dashboard"
 if _dashboard_dir.exists():
-    app.mount("/webmcp", StaticFiles(directory=str(_dashboard_dir), html=True), name="webmcp")
+    app.mount(
+        "/webmcp", StaticFiles(directory=str(_dashboard_dir), html=True), name="webmcp"
+    )
 
 
 # ── MCP Mount (must be LAST so /mcp maps to internal /mcp) ─

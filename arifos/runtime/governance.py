@@ -79,11 +79,16 @@ def _default_vault999_ledger_path() -> str:
     return str(repo_root / "VAULT999" / "SEALED_EVENTS.jsonl")
 
 
-VAULT999_LEDGER_PATH = os.getenv("ARIFOS_VAULT999_LEDGER", _default_vault999_ledger_path())
+VAULT999_LEDGER_PATH = os.getenv(
+    "ARIFOS_VAULT999_LEDGER", _default_vault999_ledger_path()
+)
 
 
 def seal_to_vault999(
-    tool_name: str, payload: Dict[str, Any], verdict: str, previous_hash: str = "GENESIS"
+    tool_name: str,
+    payload: Dict[str, Any],
+    verdict: str,
+    previous_hash: str = "GENESIS",
 ) -> str:
     entry = {
         "ts": time.time(),
@@ -112,7 +117,9 @@ def append_vault999_event(
                 lines = [ln.strip() for ln in fh if ln.strip()]
                 if lines:
                     last = json.loads(lines[-1])
-                    previous_hash = last.get("chain_hash", last.get("merkle_leaf", "GENESIS"))
+                    previous_hash = last.get(
+                        "chain_hash", last.get("merkle_leaf", "GENESIS")
+                    )
         except Exception:
             previous_hash = "GENESIS"
 
@@ -126,7 +133,9 @@ def append_vault999_event(
     }
     entry_str = json.dumps(entry, sort_keys=True, ensure_ascii=False)
     merkle_leaf = hashlib.sha256(entry_str.encode("utf-8")).hexdigest()
-    chain_hash = hashlib.sha256(f"{previous_hash}:{merkle_leaf}".encode("utf-8")).hexdigest()
+    chain_hash = hashlib.sha256(
+        f"{previous_hash}:{merkle_leaf}".encode("utf-8")
+    ).hexdigest()
 
     record = {
         **entry,
@@ -187,7 +196,11 @@ def governed_return(
 
     receipt_hash = seal_to_vault999(
         tool_name=tool_name,
-        payload={"output": raw_output, "metrics": asdict(metrics), "identity": identity},
+        payload={
+            "output": raw_output,
+            "metrics": asdict(metrics),
+            "identity": identity,
+        },
         verdict=verdict,
         previous_hash=previous_hash,
     )
@@ -196,7 +209,9 @@ def governed_return(
         "status": "success",
         "verdict": verdict,
         "tool": tool_name,
-        "output": raw_output if verdict in (Verdict.CLAIM_ONLY, Verdict.PARTIAL) else None,
+        "output": (
+            raw_output if verdict in (Verdict.CLAIM_ONLY, Verdict.PARTIAL) else None
+        ),
         "raw_output": raw_output,
         "metrics": asdict(metrics),
         "identity": identity,
@@ -210,7 +225,9 @@ def governed_return(
     if verdict == Verdict.PARTIAL:
         envelope["status"] = "partial"
         actual_failures = (
-            raw_output.get("invariant_failures", []) if isinstance(raw_output, dict) else []
+            raw_output.get("invariant_failures", [])
+            if isinstance(raw_output, dict)
+            else []
         )
         if actual_failures:
             envelope["error"] = "AGI invariants failed: " + ", ".join(

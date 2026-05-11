@@ -81,8 +81,12 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
             if _env_present("DATABASE_URL") or _env_present("POSTGRES_PASSWORD")
             else "not_configured"
         ),
-        "session_cache": "configured" if _env_present("REDIS_URL") else "not_configured",
-        "vector_memory": "configured" if _env_present("QDRANT_URL") else "not_configured",
+        "session_cache": (
+            "configured" if _env_present("REDIS_URL") else "not_configured"
+        ),
+        "vector_memory": (
+            "configured" if _env_present("QDRANT_URL") else "not_configured"
+        ),
     }
 
     providers = {
@@ -109,13 +113,21 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
 
     substrates = {
         "git": (
-            "configured" if _env_truthy("ARIFOS_SUBSTRATE_GIT_ENABLED") else "configured"
+            "configured"
+            if _env_truthy("ARIFOS_SUBSTRATE_GIT_ENABLED")
+            else "configured"
         ),  # Default to configured for arifOS Core
-        "fetch": "configured" if _env_truthy("ARIFOS_SUBSTRATE_FETCH_ENABLED") else "configured",
+        "fetch": (
+            "configured"
+            if _env_truthy("ARIFOS_SUBSTRATE_FETCH_ENABLED")
+            else "configured"
+        ),
         "memory": "configured",
         "time": "configured",
         "filesystem": "configured",
-        "validation": {"everything": {"probe": "configured", "protocol_smoke": "configured"}},
+        "validation": {
+            "everything": {"probe": "configured", "protocol_smoke": "configured"}
+        },
     }
 
     ops = {
@@ -148,27 +160,36 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
     capabilities = {
         "governed_continuity": (
             "enabled"
-            if ml_model_available and continuity_signing in {"configured", "open_dev_mode"}
+            if ml_model_available
+            and continuity_signing in {"configured", "open_dev_mode"}
             else (
                 "heuristic_fallback"
                 if continuity_signing in {"configured", "open_dev_mode"}
                 else "degraded"
             )
         ),
-        "vault_persistence": "enabled" if storage["vault_postgres"] == "configured" else "degraded",
-        "vector_memory": "enabled" if storage["vector_memory"] == "configured" else "degraded",
+        "vault_persistence": (
+            "enabled" if storage["vault_postgres"] == "configured" else "degraded"
+        ),
+        "vector_memory": (
+            "enabled" if storage["vector_memory"] == "configured" else "degraded"
+        ),
         "external_grounding": (
             "enabled"
             if any(state == "configured" for state in grounding_provider_states)
             else "limited"
         ),
         "model_provider_access": (
-            "enabled" if any(state == "configured" for state in llm_provider_states) else "disabled"
+            "enabled"
+            if any(state == "configured" for state in llm_provider_states)
+            else "disabled"
         ),
         "local_model_runtime": (
             "enabled" if providers["ollama_local"] == "configured" else "disabled"
         ),
-        "auto_deploy": "enabled" if ops["webhook_deploy"] == "configured" else "disabled",
+        "auto_deploy": (
+            "enabled" if ops["webhook_deploy"] == "configured" else "disabled"
+        ),
     }
 
     credential_classes = {

@@ -107,7 +107,9 @@ def get_build_info() -> dict[str, Any]:
         build metadata (commit, branch), and status.
     """
     commit = _git_sha_short()
-    app_version = os.environ.get("ARIFOS_APP_VERSION", "").strip() or _pyproject_version()
+    app_version = (
+        os.environ.get("ARIFOS_APP_VERSION", "").strip() or _pyproject_version()
+    )
     return {
         # Server version (semantic, required by A2A/WebMCP)
         "version": app_version,

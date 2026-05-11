@@ -130,7 +130,9 @@ async def interpret_with_sea_lion(
     if not candidate_quotes:
         raise InterpretationError("No candidate quotes provided to interpreter")
 
-    prompt = _build_interpreter_prompt(event, state, judgment, candidate_quotes, language)
+    prompt = _build_interpreter_prompt(
+        event, state, judgment, candidate_quotes, language
+    )
 
     try:
         async with httpx.AsyncClient(timeout=20.0) as client:
@@ -268,7 +270,12 @@ OUTPUT SCHEMA (strict JSON):
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 f"{OLLAMA_BASE_URL}/api/generate",
-                json={"model": OLLAMA_MODEL, "prompt": prompt, "stream": False, "format": "json"},
+                json={
+                    "model": OLLAMA_MODEL,
+                    "prompt": prompt,
+                    "stream": False,
+                    "format": "json",
+                },
             )
     except Exception as exc:
         raise InterpretationError(f"Ollama unavailable: {exc}")
@@ -329,11 +336,17 @@ def fallback_interpret(
     is_irreversible = risk_level == "irreversible"
 
     if is_irreversible:
-        decision_boundary = "Autonomous action is prohibited. Human sovereign must ratify."
-        recommended_action = "HOLD — request human approval before any irreversible step."
+        decision_boundary = (
+            "Autonomous action is prohibited. Human sovereign must ratify."
+        )
+        recommended_action = (
+            "HOLD — request human approval before any irreversible step."
+        )
     elif is_high_risk:
         decision_boundary = "Autonomous action requires explicit human confirmation."
-        recommended_action = "PAUSE — surface the decision to the sovereign for confirmation."
+        recommended_action = (
+            "PAUSE — surface the decision to the sovereign for confirmation."
+        )
     else:
         decision_boundary = "Autonomous action permitted within approved guardrails."
         recommended_action = "PROCEED with continuous monitoring and ready rollback."
@@ -351,7 +364,9 @@ def fallback_interpret(
             "physics": selected.get("arifos_mapping", {}).get(
                 "physics", "Reality constrains possibility."
             ),
-            "math": selected.get("arifos_mapping", {}).get("math", "Logic governs coherence."),
+            "math": selected.get("arifos_mapping", {}).get(
+                "math", "Logic governs coherence."
+            ),
             "linguistic": selected.get("arifos_mapping", {}).get(
                 "linguistic", "Meaning emerges from context."
             ),

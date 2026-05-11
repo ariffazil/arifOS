@@ -51,7 +51,12 @@ class VaultBackend:
         """
         if self.version == "v2":
             # Build vault entry
-            from core.organs.vault.types_v2 import Evidence, Governance, VaultEntry, Verdict
+            from core.organs.vault.types_v2 import (
+                Evidence,
+                Governance,
+                VaultEntry,
+                Verdict,
+            )
 
             entry = VaultEntry(
                 vault_id="",

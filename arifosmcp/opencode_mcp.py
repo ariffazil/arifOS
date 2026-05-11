@@ -13,10 +13,14 @@ def _iter_tools(mcp: FastMCP) -> list[Any]:
 
     provider = getattr(mcp, "_local_provider", None)
     components = getattr(provider, "_components", {}) if provider is not None else {}
-    return [component for key, component in components.items() if key.startswith("tool:")]
+    return [
+        component for key, component in components.items() if key.startswith("tool:")
+    ]
 
 
-def _mount_tools(target: FastMCP, source: FastMCP, seen: set[str] | None = None) -> set[str]:
+def _mount_tools(
+    target: FastMCP, source: FastMCP, seen: set[str] | None = None
+) -> set[str]:
     names = seen or set()
     for tool in _iter_tools(source):
         name = getattr(tool, "name", "")
@@ -65,7 +69,12 @@ def create_well_mcp() -> FastMCP:
         return {
             "surface": "WELL",
             "primary_tool": "arifos_oracle_bio",
-            "recommended_modes": ["snapshot_read", "readiness_check", "floor_scan", "deltascan"],
+            "recommended_modes": [
+                "snapshot_read",
+                "readiness_check",
+                "floor_scan",
+                "deltascan",
+            ],
         }
 
     return mcp
@@ -82,7 +91,14 @@ def create_wealth_mcp() -> FastMCP:
         return {
             "surface": "WEALTH",
             "primary_tool": "arifos_compute_finance",
-            "recommended_modes": ["npv", "irr", "mirr", "emv", "dscr", "allocation_rank"],
+            "recommended_modes": [
+                "npv",
+                "irr",
+                "mirr",
+                "emv",
+                "dscr",
+                "allocation_rank",
+            ],
         }
 
     return mcp
@@ -102,7 +118,11 @@ def create_geox_mcp() -> FastMCP:
     def opencode_geox_surface() -> dict[str, Any]:
         return {
             "surface": "GEOX",
-            "primary_tools": ["arifos_compute_physics", "arifos_oracle_world", "G02_route"],
+            "primary_tools": [
+                "arifos_compute_physics",
+                "arifos_oracle_world",
+                "G02_route",
+            ],
             "guidance": "Use G02_route for T-to-E or E-to-T geoscience workflows.",
         }
 

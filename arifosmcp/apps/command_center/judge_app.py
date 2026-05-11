@@ -97,9 +97,16 @@ def governed_judge_deliberate(
         }
 
     verdict_code = (
-        output.verdict.value if isinstance(output.verdict, VerdictCode) else str(output.verdict)
+        output.verdict.value
+        if isinstance(output.verdict, VerdictCode)
+        else str(output.verdict)
     )
-    risk_tier_map = {"SEAL": "low", "SABAR": "medium", "HOLD": "high", "VOID": "critical"}
+    risk_tier_map = {
+        "SEAL": "low",
+        "SABAR": "medium",
+        "HOLD": "high",
+        "VOID": "critical",
+    }
     risk_tier = risk_tier_map.get(verdict_code, "high")
     human_required = verdict_code != "SEAL"
 

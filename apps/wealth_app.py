@@ -40,20 +40,28 @@ from pydantic import Field
 # ── App definition ────────────────────────────────────────────────────────────
 
 wealth_app = FastMCP("WealthApp")
-if not hasattr(wealth_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+if not hasattr(
+    wealth_app, "ui"
+):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
     wealth_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
 
-@wealth_app.tool(name="arifos_perform_economic_audit", tags={"hold", "internal", "wealth"})
+@wealth_app.tool(
+    name="arifos_perform_economic_audit", tags={"hold", "internal", "wealth"}
+)
 async def perform_economic_audit(
     initial_cost: Annotated[float, Field(description="Initial investment amount")],
     annual_benefit: Annotated[float, Field(description="Expected annual cash flow")],
     years: Annotated[int, Field(description="Project duration in years")],
     ebitda: Annotated[
         float,
-        Field(description="Earnings Before Interest, Taxes, Depreciation, and Amortization"),
+        Field(
+            description="Earnings Before Interest, Taxes, Depreciation, and Amortization"
+        ),
     ] = 120000.0,
-    debt_service: Annotated[float, Field(description="Total debt service obligations")] = 100000.0,
+    debt_service: Annotated[
+        float, Field(description="Total debt service obligations")
+    ] = 100000.0,
 ) -> ToolResult:
     """
     Perform a constitutional economic audit.
@@ -63,9 +71,15 @@ async def perform_economic_audit(
 
         flows = [annual_benefit] * years
 
-        npv_res = wealth(operation="npv_reward", initial_investment=initial_cost, cash_flows=flows)
-        irr_res = wealth(operation="irr_yield", initial_investment=initial_cost, cash_flows=flows)
-        dscr_res = wealth(operation="dscr_leverage", ebitda=ebitda, debt_service=debt_service)
+        npv_res = wealth(
+            operation="npv_reward", initial_investment=initial_cost, cash_flows=flows
+        )
+        irr_res = wealth(
+            operation="irr_yield", initial_investment=initial_cost, cash_flows=flows
+        )
+        dscr_res = wealth(
+            operation="dscr_leverage", ebitda=ebitda, debt_service=debt_service
+        )
 
         return ToolResult(
             content=[
@@ -176,7 +190,9 @@ def wealth_dashboard_surface() -> PrefabApp:
         with Card():
             with CardContent(css_class="py-4"):
                 Text("Simulate Project (Demo)", css_class="font-semibold mb-2")
-                Muted("Asset: Production Line | Value: $10,000", css_class="text-xs mb-4")
+                Muted(
+                    "Asset: Production Line | Value: $10,000", css_class="text-xs mb-4"
+                )
                 Button(
                     "Calculate Dimension Scores",
                     on_click=on_audit,
@@ -197,14 +213,29 @@ def wealth_dashboard_surface() -> PrefabApp:
                         Badge("Ω STABLE", variant="outline", css_class="text-[10px]")
                     with Row(gap=4):
                         with Column(align="center"):
-                            Text("G-Score", css_class="text-[10px] text-muted-foreground uppercase")
+                            Text(
+                                "G-Score",
+                                css_class="text-[10px] text-muted-foreground uppercase",
+                            )
                             Text("0.85", css_class="text-xs font-bold font-mono")
                         with Column(align="center"):
-                            Text("ΔS", css_class="text-[10px] text-muted-foreground uppercase")
-                            Text("-0.12", css_class="text-xs font-bold font-mono text-success")
+                            Text(
+                                "ΔS",
+                                css_class="text-[10px] text-muted-foreground uppercase",
+                            )
+                            Text(
+                                "-0.12",
+                                css_class="text-xs font-bold font-mono text-success",
+                            )
                         with Column(align="center"):
-                            Text("Ψ", css_class="text-[10px] text-muted-foreground uppercase")
-                            Text("1.10", css_class="text-xs font-bold font-mono text-primary")
+                            Text(
+                                "Ψ",
+                                css_class="text-[10px] text-muted-foreground uppercase",
+                            )
+                            Text(
+                                "1.10",
+                                css_class="text-xs font-bold font-mono text-primary",
+                            )
 
         Separator()
         Muted("Source: ariffazil/WEALTH v1.4.0", css_class="text-xs text-center")

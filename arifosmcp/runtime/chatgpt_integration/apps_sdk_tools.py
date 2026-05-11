@@ -30,7 +30,9 @@ VAULT_WIDGET_URI = f"{ARIFOS_WIDGET_DOMAIN}/widget/vault-seal"
 RESOURCE_MIME_TYPE = "text/html;profile=mcp-app"
 
 # Standalone widget HTML file (served via /ui/ static route)
-_WIDGET_FILE = pathlib.Path(__file__).parent.parent / "widgets" / "vault_seal_widget.html"
+_WIDGET_FILE = (
+    pathlib.Path(__file__).parent.parent / "widgets" / "vault_seal_widget.html"
+)
 
 
 def _clamp_score(value: Any, default: float = 0.0) -> float:
@@ -66,7 +68,11 @@ def _build_vault_seal_structured_content(
     timestamp = datetime.now(timezone.utc).isoformat()
 
     # Phase A: Real BLS12-381 signature aggregation (3-of-5 supermajority)
-    bls_data: dict[str, Any] = {"quorum_fraction": 0.0, "juror_count": 0, "aggregate_signature": ""}
+    bls_data: dict[str, Any] = {
+        "quorum_fraction": 0.0,
+        "juror_count": 0,
+        "aggregate_signature": "",
+    }
     chain_hash = ""
     seal_id = f"seal_{uuid.uuid4().hex[:16]}"  # fallback
     try:
@@ -211,19 +217,23 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
     )
     async def vault_seal_card(
         verdict: Annotated[
-            str, Field(description="Constitutional verdict: SEAL, PARTIAL, VOID, or HOLD.")
+            str,
+            Field(description="Constitutional verdict: SEAL, PARTIAL, VOID, or HOLD."),
         ] = "SEAL",
         floors: Annotated[
-            dict[str, Any] | None, Field(description="Floor scores F1-F13 as dict of float values.")
+            dict[str, Any] | None,
+            Field(description="Floor scores F1-F13 as dict of float values."),
         ] = None,
         witness: Annotated[
-            dict[str, Any] | None, Field(description="Tri-witness scores: human, ai, earth.")
+            dict[str, Any] | None,
+            Field(description="Tri-witness scores: human, ai, earth."),
         ] = None,
         trace_root: Annotated[
             str | None, Field(description="Trace root hash for audit trail.")
         ] = None,
         policy_digest: Annotated[
-            str | None, Field(description="Policy digest for constitutional verification.")
+            str | None,
+            Field(description="Policy digest for constitutional verification."),
         ] = None,
     ) -> dict[str, Any]:
         data = _build_vault_seal_structured_content(
@@ -310,7 +320,9 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
                 "telemetry": status.get("telemetry", {}),
                 "widget_uri": VAULT_WIDGET_URI,
             },
-            "content": [{"type": "text", "text": "Constitutional health snapshot retrieved."}],
+            "content": [
+                {"type": "text", "text": "Constitutional health snapshot retrieved."}
+            ],
         }
 
     @mcp.tool(

@@ -49,7 +49,9 @@ async def asi_heart(
         payload.setdefault("auth_context", auth_context)
     if query:
         payload.setdefault("query", query)
-        payload.setdefault("content", query)  # asi_heart_dispatch_impl reads payload["content"]
+        payload.setdefault(
+            "content", query
+        )  # asi_heart_dispatch_impl reads payload["content"]
     if session_id:
         payload.setdefault("session_id", session_id)
     if actor_id:
@@ -66,7 +68,9 @@ async def asi_heart(
         if isinstance(res, dict):
             ok = res.get("ok", res.get("status") not in ("HOLD", "ERROR", "VOID", None))
             _next_tools = res.get("next_allowed_tools", [])
-            _payload = res.get("payload", res) if isinstance(res.get("payload"), dict) else res
+            _payload = (
+                res.get("payload", res) if isinstance(res.get("payload"), dict) else res
+            )
             _hold_reason = res.get("warnings", [""])[0] if res.get("warnings") else ""
             _next_action = None
             if not ok and _hold_reason:

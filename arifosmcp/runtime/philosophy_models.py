@@ -23,11 +23,18 @@ class PhilosophyQuote(BaseModel):
     author: str = Field(..., description="Attributed author")
 
     civilization: str = Field(
-        ..., description="Civilization block (e.g., 'Ancient_East', 'Islamic_Golden_Age')"
+        ...,
+        description="Civilization block (e.g., 'Ancient_East', 'Islamic_Golden_Age')",
     )
 
     era: Literal[
-        "Ancient", "Classical", "Medieval", "Enlightenment", "Industrial", "Modern", "Contemporary"
+        "Ancient",
+        "Classical",
+        "Medieval",
+        "Enlightenment",
+        "Industrial",
+        "Modern",
+        "Contemporary",
     ] = Field(..., description="Historical era")
 
     category: Literal[
@@ -55,7 +62,11 @@ class PhilosophySelection(BaseModel):
     selection_reason: str = Field(..., description="Human-readable selection rationale")
 
     selection_mode: Literal[
-        "verdict_binding", "stage_binding", "g_star_band", "category_match", "deterministic_hash"
+        "verdict_binding",
+        "stage_binding",
+        "g_star_band",
+        "category_match",
+        "deterministic_hash",
     ] = Field(..., description="Selection algorithm used")
 
     g_star: float | None = Field(
@@ -98,9 +109,13 @@ class PhilosophyRegistryStats(BaseModel):
 
     unique_civilizations: int = Field(..., description="Number of unique civilizations")
 
-    civilization_distribution: dict[str, int] = Field(..., description="Quotes per civilization")
+    civilization_distribution: dict[str, int] = Field(
+        ..., description="Quotes per civilization"
+    )
 
-    category_distribution: dict[str, int] = Field(..., description="Quotes per category")
+    category_distribution: dict[str, int] = Field(
+        ..., description="Quotes per category"
+    )
 
     era_distribution: dict[str, int] = Field(..., description="Quotes per era")
 
@@ -172,7 +187,9 @@ class PhilosophyRegistry(BaseModel):
         ]
         for cat in required_categories:
             if cat_counts.get(cat, 0) < 8:
-                errors.append(f"Category '{cat}' underrepresented: {cat_counts.get(cat, 0)} < 8")
+                errors.append(
+                    f"Category '{cat}' underrepresented: {cat_counts.get(cat, 0)} < 8"
+                )
 
         # Check era minimum (10 per era)
         for era, count in era_counts.items():

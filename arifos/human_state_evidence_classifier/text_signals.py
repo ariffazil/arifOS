@@ -77,7 +77,10 @@ def analyze_text_signals(text: str) -> Dict[str, List[str]]:
         signals["akal"].append("category_discipline_language")
 
     # Reversibility awareness
-    if any(w in lowered for w in ["reversible", "irreversible", "rollback", "undo", "revert"]):
+    if any(
+        w in lowered
+        for w in ["reversible", "irreversible", "rollback", "undo", "revert"]
+    ):
         signals["akal"].append("reversibility_awareness")
 
     # Explicit uncertainty marking
@@ -112,7 +115,9 @@ def analyze_text_signals(text: str) -> Dict[str, List[str]]:
         signals["amanah"].append("truth_preservation_behavior")
 
     # Explicit trust boundary language
-    if any(w in lowered for w in ["sovereign", "operator", "human veto", "arif confirms"]):
+    if any(
+        w in lowered for w in ["sovereign", "operator", "human veto", "arif confirms"]
+    ):
         signals["amanah"].append("sovereignty_language")
 
     # ── Presence / context-tracking signals ───────────────────────────────
@@ -131,7 +136,10 @@ def analyze_text_signals(text: str) -> Dict[str, List[str]]:
         signals["presence"].append("context_tracking_language")
 
     # Responding to specific prior points (threading)
-    if any(w in lowered for w in ["as you said", "as mentioned", "you asked", "your earlier"]):
+    if any(
+        w in lowered
+        for w in ["as you said", "as mentioned", "you asked", "your earlier"]
+    ):
         signals["presence"].append("threaded_response")
 
     # Slowing / regulation language
@@ -140,11 +148,16 @@ def analyze_text_signals(text: str) -> Dict[str, List[str]]:
 
     # ── Peace / non-reactive signals ────────────────────────────────────
     # Non-escalating, review-oriented language
-    if any(phrase in lowered for phrase in ["good audit", "coherent", "clear", "structured"]):
+    if any(
+        phrase in lowered
+        for phrase in ["good audit", "coherent", "clear", "structured"]
+    ):
         signals["peace"].append("non_reactive_review_language")
 
     # Accepting correction without defensive reaction
-    if any(phrase in lowered for phrase in ["accepted", "correct", "fair point", "noted"]):
+    if any(
+        phrase in lowered for phrase in ["accepted", "correct", "fair point", "noted"]
+    ):
         signals["peace"].append("accepts_correction")
 
     # ── Body: deliberately conservative ─────────────────────────────────

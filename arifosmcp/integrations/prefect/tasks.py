@@ -105,7 +105,9 @@ async def research_task(query: str, top_k: int = 5) -> dict:
     logger = get_run_logger()
     logger.info(f"Researching: {query}")
 
-    result = await physics_reality(mode="search", payload={"query": query, "top_k": top_k})
+    result = await physics_reality(
+        mode="search", payload={"query": query, "top_k": top_k}
+    )
 
     if result.verdict == Verdict.VOID:
         raise ValueError(f"Research blocked: {result.payload.get('error', 'Unknown')}")
@@ -128,7 +130,9 @@ async def vault_seal_task(data: dict, session_id: str) -> dict:
     logger = get_run_logger()
     logger.info(f"Sealing to vault: {session_id}")
 
-    result = await vault_ledger(mode="seal", payload={"data": data, "session_id": session_id})
+    result = await vault_ledger(
+        mode="seal", payload={"data": data, "session_id": session_id}
+    )
 
     return result.payload
 

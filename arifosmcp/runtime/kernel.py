@@ -6,13 +6,18 @@ from arifosmcp.runtime.DNA import OMEGA_BAND, VERSION
 
 # --- Thermodynamics & Physics Stubs ---
 try:
-    from core.physics.thermodynamics_hardened import check_landauer_bound as landauer_limit
+    from core.physics.thermodynamics_hardened import (
+        check_landauer_bound as landauer_limit,
+    )
     from core.shared.physics import build_qt_quad_proof, genius_score
 except ImportError:
 
     def landauer_limit(bits_erased: float) -> dict:
         kb, t = 1.380649e-23, 300
-        return {"energy_joules": bits_erased * kb * t * 0.693, "bits_erased": bits_erased}
+        return {
+            "energy_joules": bits_erased * kb * t * 0.693,
+            "bits_erased": bits_erased,
+        }
 
     def genius_score(a, p, x, e):
         return a * p * x * e**2
@@ -31,15 +36,20 @@ except ImportError:
 # --- Paradox Engine Primitives ---
 QUOTES = {
     "triumph": (
-        "In the midst of winter, I found there was, within me, " "an invincible summer. (Camus)"
+        "In the midst of winter, I found there was, within me, "
+        "an invincible summer. (Camus)"
     ),
     "wisdom": "He who knows others is wise; he who knows himself is enlightened. (Lao Tzu)",
     "warning": (
         "The first principle is that you must not fool yourself, "
         "and you are the easiest person to fool. (Feynman)"
     ),
-    "tension": ("Out of the strain of the doing, into the peace of the done. (St. Augustine)"),
-    "void": ("The void is not empty; it is full of potential that has not yet cooled. (888_JUDGE)"),
+    "tension": (
+        "Out of the strain of the doing, into the peace of the done. (St. Augustine)"
+    ),
+    "void": (
+        "The void is not empty; it is full of potential that has not yet cooled. (888_JUDGE)"
+    ),
 }
 
 
@@ -82,7 +92,10 @@ class ConstitutionalKernel:
             set_session_execution_state,
         )
         from arifosmcp.runtime.telemetry import trace_tool_call
-        from arifosmcp.runtime.tools import FINAL_TOOL_IMPLEMENTATIONS, LEGACY_TOOL_ALIASES
+        from arifosmcp.runtime.tools import (
+            FINAL_TOOL_IMPLEMENTATIONS,
+            LEGACY_TOOL_ALIASES,
+        )
 
         print(f"KERNEL: Dispatching {tool_name} through Fail-Closed Gates...")
 
@@ -93,12 +106,15 @@ class ConstitutionalKernel:
         # ── Formal Execution State Machine Gate ───────────────────────────────────────
         current_state_str = get_session_execution_state(session_id)
         try:
-            current_state = ExecutionState(current_state_str) if current_state_str else None
+            current_state = (
+                ExecutionState(current_state_str) if current_state_str else None
+            )
         except ValueError:
             current_state = None
 
-        if ExecutionStateMachine.is_enforced() and not ExecutionStateMachine.can_execute(
-            canonical_name, current_state
+        if (
+            ExecutionStateMachine.is_enforced()
+            and not ExecutionStateMachine.can_execute(canonical_name, current_state)
         ):
             hold_result = ExecutionStateMachine.get_hold_response(
                 canonical_name, current_state, session_id=session_id

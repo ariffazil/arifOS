@@ -211,7 +211,9 @@ def check_non_self_sealing(output: dict[str, Any], tool_name: str) -> list[str]:
     return failures
 
 
-def check_floor_awareness_declaration(output: dict[str, Any], tool_name: str) -> list[str]:
+def check_floor_awareness_declaration(
+    output: dict[str, Any], tool_name: str
+) -> list[str]:
     """
     Invariant 4: Floor Awareness Declaration
     - floors_evaluated and floors_deferred must be present

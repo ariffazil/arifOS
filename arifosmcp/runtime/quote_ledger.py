@@ -61,7 +61,9 @@ VALID_SOURCE_STATUSES: set[str] = {
 
 _ARIFOS_MAPPING_FIELDS: set[str] = {"physics", "math", "linguistic"}
 
-_LEDGER_PATH = Path(__file__).resolve().parent.parent / "data" / "wisdom_quotes_lite.json"
+_LEDGER_PATH = (
+    Path(__file__).resolve().parent.parent / "data" / "wisdom_quotes_lite.json"
+)
 _loaded_ledger: list[dict[str, Any]] | None = None
 
 
@@ -115,7 +117,9 @@ def load_quote_ledger(
         try:
             validate_quote_schema(entry)
         except QuoteSchemaError as exc:
-            raise QuoteSchemaError(f"Entry {idx} (id={entry.get('id', '?')}) invalid: {exc}")
+            raise QuoteSchemaError(
+                f"Entry {idx} (id={entry.get('id', '?')}) invalid: {exc}"
+            )
         validated.append(entry)
 
     _loaded_ledger = validated
@@ -167,7 +171,9 @@ def validate_quote_schema(quote: dict[str, Any]) -> None:
 
     # Enum checks
     if quote["action_bias"] not in VALID_ACTION_BIASES:
-        raise QuoteSchemaError(f"action_bias={quote['action_bias']!r} not in {VALID_ACTION_BIASES}")
+        raise QuoteSchemaError(
+            f"action_bias={quote['action_bias']!r} not in {VALID_ACTION_BIASES}"
+        )
     invalid_risks = set(quote["risk_use"]) - VALID_RISK_LEVELS
     if invalid_risks:
         raise QuoteSchemaError(f"Invalid risk_use values: {invalid_risks}")

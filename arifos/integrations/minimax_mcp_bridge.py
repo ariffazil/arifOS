@@ -84,7 +84,12 @@ class _RawMinimaxBridge:
                 self._proc = await self._spawn()
 
             self._request_id += 1
-            req = {"jsonrpc": "2.0", "id": self._request_id, "method": method, "params": params}
+            req = {
+                "jsonrpc": "2.0",
+                "id": self._request_id,
+                "method": method,
+                "params": params,
+            }
             self._proc.stdin.write(json.dumps(req) + "\n")
             self._proc.stdin.flush()
 
@@ -117,10 +122,18 @@ class _RawMinimaxBridge:
                             "error": text,
                             "base_resp": {"status_code": 400, "status_msg": text},
                         }
-                    return {"result": text, "base_resp": {"status_code": 200, "status_msg": "ok"}}
-        return {"organic": [], "base_resp": {"status_code": -1, "status_msg": "no text content"}}
+                    return {
+                        "result": text,
+                        "base_resp": {"status_code": 200, "status_msg": "ok"},
+                    }
+        return {
+            "organic": [],
+            "base_resp": {"status_code": -1, "status_msg": "no text content"},
+        }
 
-    async def understand_image(self, image_url: str, prompt: str = "") -> dict[str, Any]:
+    async def understand_image(
+        self, image_url: str, prompt: str = ""
+    ) -> dict[str, Any]:
         arguments: dict[str, Any] = {"image_source": image_url}
         if prompt:
             arguments["prompt"] = prompt
@@ -143,8 +156,14 @@ class _RawMinimaxBridge:
                             "error": text,
                             "base_resp": {"status_code": 400, "status_msg": text},
                         }
-                    return {"result": text, "base_resp": {"status_code": 200, "status_msg": "ok"}}
-        return {"result": "", "base_resp": {"status_code": -1, "status_msg": "no text content"}}
+                    return {
+                        "result": text,
+                        "base_resp": {"status_code": 200, "status_msg": "ok"},
+                    }
+        return {
+            "result": "",
+            "base_resp": {"status_code": -1, "status_msg": "no text content"},
+        }
 
 
 # ── Full MiniMax MCP Bridge (Token Plan Plus — media generation) ──
@@ -160,8 +179,12 @@ class _RawFullMinimaxBridge:
         env = os.environ.copy()
         env.setdefault("MINIMAX_API_KEY", _MINIMAX_API_KEY)
         env.setdefault("MINIMAX_API_HOST", _MINIMAX_API_HOST)
-        env.setdefault("MINIMAX_MCP_BASE_PATH", os.getenv("MINIMAX_MCP_BASE_PATH", "/tmp/minimax"))
-        env.setdefault("MINIMAX_API_RESOURCE_MODE", os.getenv("MINIMAX_API_RESOURCE_MODE", "url"))
+        env.setdefault(
+            "MINIMAX_MCP_BASE_PATH", os.getenv("MINIMAX_MCP_BASE_PATH", "/tmp/minimax")
+        )
+        env.setdefault(
+            "MINIMAX_API_RESOURCE_MODE", os.getenv("MINIMAX_API_RESOURCE_MODE", "url")
+        )
         return env
 
     async def _spawn(self) -> subprocess.Popen:
@@ -209,7 +232,12 @@ class _RawFullMinimaxBridge:
                 self._proc = await self._spawn()
 
             self._request_id += 1
-            req = {"jsonrpc": "2.0", "id": self._request_id, "method": method, "params": params}
+            req = {
+                "jsonrpc": "2.0",
+                "id": self._request_id,
+                "method": method,
+                "params": params,
+            }
             self._proc.stdin.write(json.dumps(req) + "\n")
             self._proc.stdin.flush()
 
@@ -250,8 +278,16 @@ class _RawFullMinimaxBridge:
             return json.loads(text_content)
         except json.JSONDecodeError:
             if text_content.startswith("Failed") or text_content.startswith("Error"):
-                return {"error": text_content, "status": "error", "base_resp": {"status_code": 400}}
-            return {"result": text_content, "status": "success", "base_resp": {"status_code": 200}}
+                return {
+                    "error": text_content,
+                    "status": "error",
+                    "base_resp": {"status_code": 400},
+                }
+            return {
+                "result": text_content,
+                "status": "success",
+                "base_resp": {"status_code": 200},
+            }
 
 
 # Singletons
@@ -357,7 +393,9 @@ class MinimaxMCPBridge:
                 },
             }
 
-    async def understand_image(self, image_url: str, question: str | None = None) -> dict[str, Any]:
+    async def understand_image(
+        self, image_url: str, question: str | None = None
+    ) -> dict[str, Any]:
         """Image understanding with old-code compatibility wrapper."""
         try:
             raw = await _raw_bridge.understand_image(image_url, question or "")
@@ -408,7 +446,9 @@ class MinimaxMCPBridge:
                 "sentient",
                 "mind",
             ]
-            hantu_score = sum(1 for w in hantu_words if w in description.lower()) / len(hantu_words)
+            hantu_score = sum(1 for w in hantu_words if w in description.lower()) / len(
+                hantu_words
+            )
             verdict = "VOID" if hantu_score > 0.5 else "SEAL"
 
             return {
@@ -446,13 +486,22 @@ class MinimaxMCPBridge:
 
     # ── Token Plan Plus: Media Generation ──────────────────────
     async def text_to_image(
-        self, prompt: str, aspect_ratio: str = "1:1", n: int = 1, model: str = "image-01"
+        self,
+        prompt: str,
+        aspect_ratio: str = "1:1",
+        n: int = 1,
+        model: str = "image-01",
     ) -> dict[str, Any]:
         """Generate images from text via MiniMax MCP."""
         try:
             raw = await _raw_full_bridge.call_tool(
                 "text_to_image",
-                {"prompt": prompt, "aspect_ratio": aspect_ratio, "n": n, "model": model},
+                {
+                    "prompt": prompt,
+                    "aspect_ratio": aspect_ratio,
+                    "n": n,
+                    "model": model,
+                },
             )
             if "error" in raw:
                 return {
@@ -469,7 +518,12 @@ class MinimaxMCPBridge:
             }
         except Exception as exc:
             logger.error("text_to_image failed: %s", exc)
-            return {"status": "error", "verdict": "SABAR", "error": str(exc), "images": None}
+            return {
+                "status": "error",
+                "verdict": "SABAR",
+                "error": str(exc),
+                "images": None,
+            }
 
     async def text_to_audio(
         self,
@@ -485,7 +539,12 @@ class MinimaxMCPBridge:
                 {"text": text, "voice_id": voice_id, "model": model, "speed": speed},
             )
             if "error" in raw:
-                return {"status": "error", "verdict": "SABAR", "error": raw["error"], "audio": None}
+                return {
+                    "status": "error",
+                    "verdict": "SABAR",
+                    "error": raw["error"],
+                    "audio": None,
+                }
             return {
                 "status": "success",
                 "verdict": "SEAL",
@@ -494,7 +553,12 @@ class MinimaxMCPBridge:
             }
         except Exception as exc:
             logger.error("text_to_audio failed: %s", exc)
-            return {"status": "error", "verdict": "SABAR", "error": str(exc), "audio": None}
+            return {
+                "status": "error",
+                "verdict": "SABAR",
+                "error": str(exc),
+                "audio": None,
+            }
 
     async def music_generation(self, prompt: str, lyrics: str) -> dict[str, Any]:
         """Generate music via MiniMax MCP."""
@@ -504,7 +568,12 @@ class MinimaxMCPBridge:
                 {"prompt": prompt, "lyrics": lyrics},
             )
             if "error" in raw:
-                return {"status": "error", "verdict": "SABAR", "error": raw["error"], "music": None}
+                return {
+                    "status": "error",
+                    "verdict": "SABAR",
+                    "error": raw["error"],
+                    "music": None,
+                }
             return {
                 "status": "success",
                 "verdict": "SEAL",
@@ -513,7 +582,12 @@ class MinimaxMCPBridge:
             }
         except Exception as exc:
             logger.error("music_generation failed: %s", exc)
-            return {"status": "error", "verdict": "SABAR", "error": str(exc), "music": None}
+            return {
+                "status": "error",
+                "verdict": "SABAR",
+                "error": str(exc),
+                "music": None,
+            }
 
     async def generate_video(
         self, prompt: str, model: str = "MiniMax-Hailuo-02", duration: int = 6
@@ -525,7 +599,12 @@ class MinimaxMCPBridge:
                 {"prompt": prompt, "model": model, "duration": duration},
             )
             if "error" in raw:
-                return {"status": "error", "verdict": "SABAR", "error": raw["error"], "video": None}
+                return {
+                    "status": "error",
+                    "verdict": "SABAR",
+                    "error": raw["error"],
+                    "video": None,
+                }
             return {
                 "status": "success",
                 "verdict": "SEAL",
@@ -534,7 +613,12 @@ class MinimaxMCPBridge:
             }
         except Exception as exc:
             logger.error("generate_video failed: %s", exc)
-            return {"status": "error", "verdict": "SABAR", "error": str(exc), "video": None}
+            return {
+                "status": "error",
+                "verdict": "SABAR",
+                "error": str(exc),
+                "video": None,
+            }
 
     async def health(self) -> dict[str, Any]:
         """Runtime health check."""

@@ -96,7 +96,14 @@ def _groth16_verify(proof: dict, public_inputs: list) -> tuple[bool, str]:
 
     try:
         result = subprocess.run(
-            ["snarkjs", "groth16", "verify", _VERIFICATION_KEY, public_path, proof_path],
+            [
+                "snarkjs",
+                "groth16",
+                "verify",
+                _VERIFICATION_KEY,
+                public_path,
+                proof_path,
+            ],
             capture_output=True,
             text=True,
             timeout=30,

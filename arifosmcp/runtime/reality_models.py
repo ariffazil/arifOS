@@ -53,7 +53,9 @@ class BundleStatus(BaseModel):
     # Legacy attributes for test compatibility
     @classproperty
     def COMPLETE(self):
-        return self(state="SUCCESS", stage="222_REALITY", verdict="SEAL", label="COMPLETE")
+        return self(
+            state="SUCCESS", stage="222_REALITY", verdict="SEAL", label="COMPLETE"
+        )
 
     @classproperty
     def PENDING(self):
@@ -75,9 +77,9 @@ class Policy(BaseModel):
 class BundleInput(BaseModel):
     type: Literal["query", "url"]
     value: str
-    mode: Literal["auto", "search", "fetch", "governed", "ingest", "compass", "atlas", "time"] = (
-        "auto"
-    )
+    mode: Literal[
+        "auto", "search", "fetch", "governed", "ingest", "compass", "atlas", "time"
+    ] = "auto"
     top_k: int = 5
     fetch_top_k: int = 2
     render: Literal["auto", "never", "always"] = "auto"
@@ -118,7 +120,9 @@ class FetchResult(BaseModel):
     content_length: int = 0
     raw_content: str | None = None
     structured_data: dict[str, Any] = Field(default_factory=dict)
-    latency_ms: dict[str, float] = Field(default_factory=dict)  # dns, connect, ttfb, total
+    latency_ms: dict[str, float] = Field(
+        default_factory=dict
+    )  # dns, connect, ttfb, total
     exception_class: str | None = None
     error_message: str | None = None
     redirects: int = 0
@@ -130,7 +134,9 @@ class FetchResult(BaseModel):
 class EvidenceBundle(BaseModel):
     id: str = Field(default_factory=lambda: f"eb-{uuid.uuid4().hex[:8]}")
     status: BundleStatus = Field(default_factory=lambda: BundleStatus.PENDING)
-    input: BundleInput = Field(default_factory=lambda: BundleInput(type="query", value="INIT"))
+    input: BundleInput = Field(
+        default_factory=lambda: BundleInput(type="query", value="INIT")
+    )
     actor: Actor = Field(default_factory=Actor)
     claims: list[Claim] = Field(default_factory=list)
     results: list[SearchResult | FetchResult] = Field(default_factory=list)

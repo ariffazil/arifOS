@@ -54,7 +54,9 @@ class ShadowComparator:
         v1_task = self._timed_exec(v1_backend, query)
         v2_task = self._timed_exec(v2_backend, query)
 
-        (v1_result, v1_duration), (v2_result, v2_duration) = await asyncio.gather(v1_task, v2_task)
+        (v1_result, v1_duration), (v2_result, v2_duration) = await asyncio.gather(
+            v1_task, v2_task
+        )
 
         # Calculate hashes
         v1_hash = self._hash_result(v1_result)
@@ -81,7 +83,9 @@ class ShadowComparator:
             details={
                 "v1_top_result": self._extract_top(v1_result),
                 "v2_top_result": self._extract_top(v2_result),
-                "confidence_classes": [r.get("_confidence_class") for r in v2_records[:5]],
+                "confidence_classes": [
+                    r.get("_confidence_class") for r in v2_records[:5]
+                ],
             },
         )
 
@@ -105,7 +109,9 @@ class ShadowComparator:
         v1_task = self._timed_exec(v1_backend, entry)
         v2_task = self._timed_exec(v2_backend, entry)
 
-        (v1_result, v1_duration), (v2_result, v2_duration) = await asyncio.gather(v1_task, v2_task)
+        (v1_result, v1_duration), (v2_result, v2_duration) = await asyncio.gather(
+            v1_task, v2_task
+        )
 
         v1_hash = self._hash_result(v1_result)
         v2_hash = self._hash_result(v2_result)
@@ -133,7 +139,8 @@ class ShadowComparator:
         # Log if v2 verification fails
         if not grade.get("fully_valid"):
             logger.error(
-                "V2 vault verification failed", extra={"shadow_comparison": comparison.to_dict()}
+                "V2 vault verification failed",
+                extra={"shadow_comparison": comparison.to_dict()},
             )
 
         return comparison

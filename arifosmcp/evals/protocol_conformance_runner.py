@@ -113,7 +113,10 @@ class ProtocolConformanceRunner:
             import subprocess
 
             result = subprocess.run(
-                ["git", "branch", "--show-current"], capture_output=True, text=True, timeout=5
+                ["git", "branch", "--show-current"],
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             return result.stdout.strip() if result.returncode == 0 else None
         except Exception:
@@ -165,7 +168,9 @@ class ProtocolConformanceRunner:
             duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
 
             status = (
-                ConformanceStatus.PASS if health.get("status") == "OK" else ConformanceStatus.FAIL
+                ConformanceStatus.PASS
+                if health.get("status") == "OK"
+                else ConformanceStatus.FAIL
             )
             self.results.append(
                 ProtocolTestResult(
@@ -205,7 +210,9 @@ class ProtocolConformanceRunner:
                 ProtocolTestResult(
                     test_name="tool_discovery",
                     substrate=name,
-                    status=ConformanceStatus.PASS if has_tools else ConformanceStatus.FAIL,
+                    status=(
+                        ConformanceStatus.PASS if has_tools else ConformanceStatus.FAIL
+                    ),
                     expected=">0 tools",
                     actual=f"{len(tool_list)} tools",
                     duration_ms=duration,
@@ -370,10 +377,16 @@ async def main():
 
     parser = argparse.ArgumentParser(description="MCP Protocol Conformance Runner")
     parser.add_argument(
-        "--transport", default="http", choices=["http", "stdio"], help="Transport mode to test"
+        "--transport",
+        default="http",
+        choices=["http", "stdio"],
+        help="Transport mode to test",
     )
     parser.add_argument(
-        "--output", "-o", default="protocol_conformance.json", help="Output file for results"
+        "--output",
+        "-o",
+        default="protocol_conformance.json",
+        help="Output file for results",
     )
     parser.add_argument("--no-vault", action="store_true", help="Skip vault sealing")
 

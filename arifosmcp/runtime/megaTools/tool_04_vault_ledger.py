@@ -58,7 +58,9 @@ async def vault_ledger(
     if "vault_ledger" in HARDENED_DISPATCH_MAP:
         if mode is None:
             mode = "seal"
-        res_dict = await HARDENED_DISPATCH_MAP["vault_ledger"](mode=mode, payload=payload)
+        res_dict = await HARDENED_DISPATCH_MAP["vault_ledger"](
+            mode=mode, payload=payload
+        )
 
         # ─── V1.0 VERDICT FORGING ───
         from arifosmcp.runtime.model import CanonicalMetrics

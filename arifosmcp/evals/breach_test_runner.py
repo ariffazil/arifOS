@@ -79,7 +79,9 @@ class BreachTestRunner:
 
             status = "✅ PASS" if result["passed"] else "❌ FAIL"
             verdict = result["actual_verdict"]
-            print(f"     {status} (Expected: {result['expected_verdict']}, Got: {verdict})")
+            print(
+                f"     {status} (Expected: {result['expected_verdict']}, Got: {verdict})"
+            )
 
         return self.results
 
@@ -103,7 +105,8 @@ class BreachTestRunner:
             # Verdict is in verdict_detail.code (VerdictCode enum), not in payload.get('verdict')
             verdict = (
                 response.verdict_detail.code.value
-                if hasattr(response, "verdict_detail") and hasattr(response.verdict_detail, "code")
+                if hasattr(response, "verdict_detail")
+                and hasattr(response.verdict_detail, "code")
                 else (
                     response.payload.get("verdict", "SEAL")
                     if hasattr(response, "payload")
@@ -136,7 +139,9 @@ class BreachTestRunner:
             else:
                 # General case: match expected
                 # Handle "HOLD or VOID" style expectations
-                expected_list = [e.strip() for e in expected_verdict.replace("or", ",").split(",")]
+                expected_list = [
+                    e.strip() for e in expected_verdict.replace("or", ",").split(",")
+                ]
                 passed = verdict in expected_list or verdict == expected_verdict
 
             return {
@@ -204,7 +209,9 @@ class BreachTestRunner:
 
 async def main():
     """Main entry point"""
-    parser = argparse.ArgumentParser(description="arifOS Constitutional Breach Test Runner")
+    parser = argparse.ArgumentParser(
+        description="arifOS Constitutional Breach Test Runner"
+    )
     parser.add_argument(
         "--config",
         "-c",
@@ -214,7 +221,9 @@ async def main():
     parser.add_argument(
         "--output", "-o", default="breach_results.json", help="Output file for results"
     )
-    parser.add_argument("--fail-fast", action="store_true", help="Stop on first failure")
+    parser.add_argument(
+        "--fail-fast", action="store_true", help="Stop on first failure"
+    )
 
     args = parser.parse_args()
 

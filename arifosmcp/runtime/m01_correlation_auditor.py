@@ -252,9 +252,9 @@ class CorrelationAuditor:
                                 "severity": "HIGH" if abs(corr) > 0.85 else "MEDIUM",
                             }
                             violations.append(violation)
-                            axis_violations[f"{spec_i.axis.value}↔{spec_j.axis.value}"].append(
-                                violation
-                            )
+                            axis_violations[
+                                f"{spec_i.axis.value}↔{spec_j.axis.value}"
+                            ].append(violation)
 
             matrix[ai] = row
 

@@ -25,6 +25,9 @@ def log_tail(
             selected = [line for line in selected if pattern in line]
         if grep_pattern:
             selected = [line for line in selected if grep_pattern in line]
-        return {"log_file": str(path), "lines": [line.rstrip("\n") for line in selected]}
+        return {
+            "log_file": str(path),
+            "lines": [line.rstrip("\n") for line in selected],
+        }
     except Exception as exc:
         return {"error": str(exc), "lines": []}

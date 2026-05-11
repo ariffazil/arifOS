@@ -48,7 +48,11 @@ AAA_SUBSTRATE_POLICY = {
             "Bind session identity",
         ),
         "state": ModePolicy(
-            SubstrateClass.INSPECT, RiskTier.LOW, "000_INIT", ["F11"], "Check session status"
+            SubstrateClass.INSPECT,
+            RiskTier.LOW,
+            "000_INIT",
+            ["F11"],
+            "Check session status",
         ),
         "refresh": ModePolicy(
             SubstrateClass.UPDATE, RiskTier.MEDIUM, "000_INIT", ["F11"], "Rotate tokens"
@@ -63,13 +67,25 @@ AAA_SUBSTRATE_POLICY = {
     },
     "arifos.sense": {
         "search": ModePolicy(
-            SubstrateClass.READ, RiskTier.MEDIUM, "111_SENSE", ["F2", "F3"], "Web grounding"
+            SubstrateClass.READ,
+            RiskTier.MEDIUM,
+            "111_SENSE",
+            ["F2", "F3"],
+            "Web grounding",
         ),
         "ingest": ModePolicy(
-            SubstrateClass.WRITE, RiskTier.MEDIUM, "111_SENSE", ["F2", "F10"], "Evidence creation"
+            SubstrateClass.WRITE,
+            RiskTier.MEDIUM,
+            "111_SENSE",
+            ["F2", "F10"],
+            "Evidence creation",
         ),
         "compass": ModePolicy(
-            SubstrateClass.READ, RiskTier.LOW, "111_SENSE", ["F2"], "Directional grounding"
+            SubstrateClass.READ,
+            RiskTier.LOW,
+            "111_SENSE",
+            ["F2"],
+            "Directional grounding",
         ),
         "atlas": ModePolicy(
             SubstrateClass.UPDATE,
@@ -88,10 +104,18 @@ AAA_SUBSTRATE_POLICY = {
             "First-principles logic",
         ),
         "reflect": ModePolicy(
-            SubstrateClass.INSPECT, RiskTier.MEDIUM, "333_MIND", ["F4", "F7"], "Self-audit loop"
+            SubstrateClass.INSPECT,
+            RiskTier.MEDIUM,
+            "333_MIND",
+            ["F4", "F7"],
+            "Self-audit loop",
         ),
         "forge": ModePolicy(
-            SubstrateClass.WRITE, RiskTier.MEDIUM, "333_MIND", ["F1", "F8"], "Artifact synthesis"
+            SubstrateClass.WRITE,
+            RiskTier.MEDIUM,
+            "333_MIND",
+            ["F1", "F8"],
+            "Artifact synthesis",
         ),
     },
     "arifos.heart": {
@@ -112,10 +136,18 @@ AAA_SUBSTRATE_POLICY = {
     },
     "arifos.memory": {
         "vector_query": ModePolicy(
-            SubstrateClass.RECALL, RiskTier.MEDIUM, "555_MEMORY", ["F10"], "Semantic retrieval"
+            SubstrateClass.RECALL,
+            RiskTier.MEDIUM,
+            "555_MEMORY",
+            ["F10"],
+            "Semantic retrieval",
         ),
         "vector_store": ModePolicy(
-            SubstrateClass.WRITE, RiskTier.MEDIUM, "555_MEMORY", ["F10"], "Memory commit"
+            SubstrateClass.WRITE,
+            RiskTier.MEDIUM,
+            "555_MEMORY",
+            ["F10"],
+            "Memory commit",
         ),
         "engineer": ModePolicy(
             SubstrateClass.EXECUTE,
@@ -150,10 +182,18 @@ AAA_SUBSTRATE_POLICY = {
     },
     "arifos.kernel": {
         "list": ModePolicy(
-            SubstrateClass.INSPECT, RiskTier.LOW, "M-4_ARCH", ["F11"], "Resource discovery"
+            SubstrateClass.INSPECT,
+            RiskTier.LOW,
+            "M-4_ARCH",
+            ["F11"],
+            "Resource discovery",
         ),
         "read": ModePolicy(
-            SubstrateClass.READ, RiskTier.LOW, "M-4_ARCH", ["F11"], "Resource inspection"
+            SubstrateClass.READ,
+            RiskTier.LOW,
+            "M-4_ARCH",
+            ["F11"],
+            "Resource inspection",
         ),
         "register": ModePolicy(
             SubstrateClass.WRITE,
@@ -165,13 +205,21 @@ AAA_SUBSTRATE_POLICY = {
     },
     "arifos.judge": {
         "judge": ModePolicy(
-            SubstrateClass.INSPECT, RiskTier.MEDIUM, "888_JUDGE", ["F13"], "Final verdict"
+            SubstrateClass.INSPECT,
+            RiskTier.MEDIUM,
+            "888_JUDGE",
+            ["F13"],
+            "Final verdict",
         ),
         "rules": ModePolicy(
             SubstrateClass.READ, RiskTier.LOW, "888_JUDGE", ["F13"], "Floor inspection"
         ),
         "validate": ModePolicy(
-            SubstrateClass.READ, RiskTier.MEDIUM, "888_JUDGE", ["F13"], "Action validation"
+            SubstrateClass.READ,
+            RiskTier.MEDIUM,
+            "888_JUDGE",
+            ["F13"],
+            "Action validation",
         ),
         "armor": ModePolicy(
             SubstrateClass.INSPECT, RiskTier.MEDIUM, "888_JUDGE", ["F12"], "Shield scan"
@@ -191,7 +239,11 @@ AAA_SUBSTRATE_POLICY = {
     },
     "arifos.ops": {
         "estimate": ModePolicy(
-            SubstrateClass.READ, RiskTier.LOW, "M-2_OPS", ["F8"], "Operational feasibility"
+            SubstrateClass.READ,
+            RiskTier.LOW,
+            "M-2_OPS",
+            ["F8"],
+            "Operational feasibility",
         )
     },
 }

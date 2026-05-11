@@ -33,10 +33,16 @@ logger = logging.getLogger(__name__)
 # ── Configuration ─────────────────────────────────────────────────────────────
 SEA_LION_API_KEY = os.getenv("SEA_LION_API_KEY")
 SEA_LION_BASE_URL = os.getenv("SEA_LION_BASE_URL", "https://api.sea-lion.ai/v1")
-SEA_LION_MODEL = os.getenv("SEA_LION_MEANING_MODEL", "aisingapore/Qwen-SEA-LION-v4-32B-IT")
+SEA_LION_MODEL = os.getenv(
+    "SEA_LION_MEANING_MODEL", "aisingapore/Qwen-SEA-LION-v4-32B-IT"
+)
 
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_URL", "http://ollama:11434")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")  # Only 7b is installed on ollama-engine-prod
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL") or os.getenv(
+    "OLLAMA_URL", "http://ollama:11434"
+)
+OLLAMA_MODEL = os.getenv(
+    "OLLAMA_MODEL", "qwen2.5:7b"
+)  # Only 7b is installed on ollama-engine-prod
 
 
 class LLMUnavailableError(Exception):
@@ -67,7 +73,9 @@ def _validate_schema(parsed: dict[str, Any], required_fields: set[str]) -> None:
     """Raise LLMUnavailableError if required schema fields are missing."""
     missing = required_fields - set(parsed.keys())
     if missing:
-        raise LLMUnavailableError(f"LLM output missing required fields: {sorted(missing)}")
+        raise LLMUnavailableError(
+            f"LLM output missing required fields: {sorted(missing)}"
+        )
 
 
 # ── Core LLM Call Helpers ─────────────────────────────────────────────────────
@@ -115,7 +123,9 @@ async def _call_sea_lion(
         raise LLMUnavailableError(f"SEA-LION transport error: {exc}") from exc
 
     if response.status_code != 200:
-        logger.warning("SEA-LION HTTP %s: %s", response.status_code, response.text[:200])
+        logger.warning(
+            "SEA-LION HTTP %s: %s", response.status_code, response.text[:200]
+        )
         raise LLMUnavailableError(f"SEA-LION HTTP {response.status_code}")
 
     try:
@@ -254,7 +264,8 @@ async def call_llm(
         )
         if response_schema:
             _validate_schema(
-                envelope.parsed_output, set(response_schema.get("properties", {}).keys())
+                envelope.parsed_output,
+                set(response_schema.get("properties", {}).keys()),
             )
         return envelope
     except LLMUnavailableError:
@@ -281,7 +292,8 @@ async def call_llm(
         )
         if response_schema:
             _validate_schema(
-                envelope.parsed_output, set(response_schema.get("properties", {}).keys())
+                envelope.parsed_output,
+                set(response_schema.get("properties", {}).keys()),
             )
         return envelope
     except LLMUnavailableError:
@@ -311,7 +323,9 @@ async def call_llm_raw(
 
     Kept only for internal callers that have not yet migrated to envelope pattern.
     """
-    logger.warning("call_llm_raw is deprecated — use call_llm() returning LLMOutputEnvelope")
+    logger.warning(
+        "call_llm_raw is deprecated — use call_llm() returning LLMOutputEnvelope"
+    )
     envelope = await call_llm(system, user, response_schema, temperature, max_tokens)
     return envelope.parsed_output
 

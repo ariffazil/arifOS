@@ -37,7 +37,11 @@ class HardenedShellForge:
         return any(p in command.lower() for p in risk_patterns)
 
     def execute(
-        self, command: str, cwd: str = None, dry_run: bool = True, session_id: str = "anonymous"
+        self,
+        command: str,
+        cwd: str = None,
+        dry_run: bool = True,
+        session_id: str = "anonymous",
     ) -> dict[str, any]:
         """Execute a shell command with governance induction."""
         target_cwd = cwd or self.default_cwd
@@ -111,7 +115,12 @@ class HardenedShellForge:
                 "command": command,
             }
         except Exception as e:
-            return {"ok": False, "status": "EXCEPTION", "error": str(e), "command": command}
+            return {
+                "ok": False,
+                "status": "EXCEPTION",
+                "error": str(e),
+                "command": command,
+            }
 
 
 # Canonical instance

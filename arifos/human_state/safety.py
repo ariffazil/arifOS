@@ -1,6 +1,5 @@
 from .labels import StateDomain
 
-
 FORBIDDEN_CLAIMS = {
     StateDomain.BODY: [
         "The user is tired.",

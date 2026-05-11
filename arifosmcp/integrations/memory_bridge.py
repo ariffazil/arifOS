@@ -97,7 +97,11 @@ async def kg_upsert_entity(
 
 
 async def kg_link_entities(
-    from_id: str, to_id: str, relation_type: str, actor_id: str, session_id: str | None = None
+    from_id: str,
+    to_id: str,
+    relation_type: str,
+    actor_id: str,
+    session_id: str | None = None,
 ) -> tuple[bool, str | None]:
     """Create a relation between entities."""
 

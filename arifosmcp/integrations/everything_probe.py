@@ -70,7 +70,11 @@ class EverythingProbe:
         }
 
         status = "SEAL" if all(r.get("ok", True) for r in results.values()) else "VOID"
-        return {"verdict": status, "results": results, "timestamp": "2026-04-11T04:13:00"}
+        return {
+            "verdict": status,
+            "results": results,
+            "timestamp": "2026-04-11T04:13:00",
+        }
 
 
 # Global probe instance

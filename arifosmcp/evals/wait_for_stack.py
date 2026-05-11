@@ -30,7 +30,9 @@ async def main():
     print("⏳ Waiting for substrate stack...")
     max_retries = 30
     for _i in range(max_retries):
-        results = await asyncio.gather(*[check_service(n, u) for n, u in SERVICES.items()])
+        results = await asyncio.gather(
+            *[check_service(n, u) for n, u in SERVICES.items()]
+        )
         if all(results):
             print("✅ All services healthy.")
             sys.exit(0)

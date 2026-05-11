@@ -103,7 +103,12 @@ class VitalityRecord:
 
 
 def compute_verdict(primary_value: float, g: ThermodynamicMetrics) -> str:
-    if primary_value >= 0.9 and g.truth_score >= 0.99 and g.delta_s <= 0.0 and g.amanah_lock:
+    if (
+        primary_value >= 0.9
+        and g.truth_score >= 0.99
+        and g.delta_s <= 0.0
+        and g.amanah_lock
+    ):
         return "SEAL"
     if g.truth_score >= 0.95 and g.delta_s <= 0.05 and g.stakeholder_safety >= 0.8:
         return "SABAR"
@@ -162,10 +167,17 @@ def append_vitality_record(rec: VitalityRecord) -> None:
 
 
 TOOL_CALLS = {
-    "arifos_000_init": (init_000, {"operator_id": "arif", "session_id": "vitality-test"}),
+    "arifos_000_init": (
+        init_000,
+        {"operator_id": "arif", "session_id": "vitality-test"},
+    ),
     "arifos_111_sense": (
         sense_111,
-        {"query": "system status", "operator_id": "arif", "session_id": "vitality-test"},
+        {
+            "query": "system status",
+            "operator_id": "arif",
+            "session_id": "vitality-test",
+        },
     ),
     "arifos_222_witness": (
         witness_222,
@@ -173,7 +185,11 @@ TOOL_CALLS = {
     ),
     "arifos_333_mind": (
         mind_333,
-        {"problem_set": {"id": "demo"}, "operator_id": "arif", "session_id": "vitality-test"},
+        {
+            "problem_set": {"id": "demo"},
+            "operator_id": "arif",
+            "session_id": "vitality-test",
+        },
     ),
     "arifos_444_kernel": (
         kernel_444,
@@ -204,7 +220,11 @@ TOOL_CALLS = {
     ),
     "arifos_777_ops": (
         ops_777,
-        {"operation_plan": {"step": "audit"}, "operator_id": "arif", "session_id": "vitality-test"},
+        {
+            "operation_plan": {"step": "audit"},
+            "operator_id": "arif",
+            "session_id": "vitality-test",
+        },
     ),
     "arifos_888_judge": (
         judge_888,
@@ -236,7 +256,12 @@ TOOL_CALLS = {
     ),
     "arifos_gateway": (
         gateway,
-        {"a": "GEOX", "b": "WEALTH", "operator_id": "arif", "session_id": "vitality-test"},
+        {
+            "a": "GEOX",
+            "b": "WEALTH",
+            "operator_id": "arif",
+            "session_id": "vitality-test",
+        },
     ),
     "arifos_sabar": (
         sabar,
@@ -250,7 +275,9 @@ TOOL_CALLS = {
 }
 
 
-async def run_tool_vitality(tool_name: str, version: str = "workspace") -> VitalityRecord:
+async def run_tool_vitality(
+    tool_name: str, version: str = "workspace"
+) -> VitalityRecord:
     func, kwargs = TOOL_CALLS[tool_name]
     started = time.time()
     result = await func(**kwargs)
@@ -258,7 +285,9 @@ async def run_tool_vitality(tool_name: str, version: str = "workspace") -> Vital
     governance = result["metrics"]
     metrics = ThermodynamicMetrics(**governance)
     primary_value = (
-        1.0 if result["verdict"] == "SEAL" else 0.5 if result["verdict"] == "SABAR" else 0.0
+        1.0
+        if result["verdict"] == "SEAL"
+        else 0.5 if result["verdict"] == "SABAR" else 0.0
     )
     record = VitalityRecord(
         tool_name=tool_name,

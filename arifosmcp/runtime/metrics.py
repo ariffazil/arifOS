@@ -109,7 +109,9 @@ def _gauge(name: str, documentation: str, labelnames: list[str] | tuple[str, ...
     return collector
 
 
-def _counter(name: str, documentation: str, labelnames: list[str] | tuple[str, ...] = ()):
+def _counter(
+    name: str, documentation: str, labelnames: list[str] | tuple[str, ...] = ()
+):
     collector = _registered_metric(name)
     if collector is not None:
         return collector
@@ -173,13 +175,16 @@ class HelixTracer:
         )
         return span
 
-    def record_constitutional_event(self, span: Any, event_name: str, metrics: dict[str, Any]):
+    def record_constitutional_event(
+        self, span: Any, event_name: str, metrics: dict[str, Any]
+    ):
         """Record a thermodynamic state transition event within a span."""
         if not span:
             return
 
         span.add_event(
-            event_name, attributes={f"constitutional.{k}": v for k, v in metrics.items()}
+            event_name,
+            attributes={f"constitutional.{k}": v for k, v in metrics.items()},
         )
 
 
@@ -278,34 +283,48 @@ def record_constitutional_metrics(
         ).set(metrics["dS"])
     elif "entropy_delta" in metrics:
         ENTROPY_DELTA.labels(
-            session_id=session_id, tool=tool, provenance=prov.get("entropy_delta", "measured")
+            session_id=session_id,
+            tool=tool,
+            provenance=prov.get("entropy_delta", "measured"),
         ).set(metrics["entropy_delta"])
 
     if "omega0" in metrics:
         HUMILITY_BAND.labels(
-            session_id=session_id, tool=tool, provenance=prov.get("omega0", "policy_constant")
+            session_id=session_id,
+            tool=tool,
+            provenance=prov.get("omega0", "policy_constant"),
         ).set(metrics["omega0"])
     elif "humility" in metrics:
         HUMILITY_BAND.labels(
-            session_id=session_id, tool=tool, provenance=prov.get("humility", "policy_constant")
+            session_id=session_id,
+            tool=tool,
+            provenance=prov.get("humility", "policy_constant"),
         ).set(metrics["humility"])
 
     if "peace2" in metrics:
         PEACE_SQUARED.labels(
-            session_id=session_id, tool=tool, provenance=prov.get("peace2", "policy_constant")
+            session_id=session_id,
+            tool=tool,
+            provenance=prov.get("peace2", "policy_constant"),
         ).set(metrics["peace2"])
     elif "peace" in metrics:
         PEACE_SQUARED.labels(
-            session_id=session_id, tool=tool, provenance=prov.get("peace", "policy_constant")
+            session_id=session_id,
+            tool=tool,
+            provenance=prov.get("peace", "policy_constant"),
         ).set(metrics["peace"])
 
     if "kappa_r" in metrics:
         EMPATHY_QUOTIENT.labels(
-            session_id=session_id, tool=tool, provenance=prov.get("kappa_r", "placeholder")
+            session_id=session_id,
+            tool=tool,
+            provenance=prov.get("kappa_r", "placeholder"),
         ).set(metrics["kappa_r"])
     elif "empathy" in metrics:
         EMPATHY_QUOTIENT.labels(
-            session_id=session_id, tool=tool, provenance=prov.get("empathy", "placeholder")
+            session_id=session_id,
+            tool=tool,
+            provenance=prov.get("empathy", "placeholder"),
         ).set(metrics["empathy"])
 
 
@@ -459,7 +478,11 @@ def compute_integrity_telemetry(
     Calculates the Public Score Card with strict basis tracking.
     """
     # 1. ΔS (Entropy Delta) - Basis: derived
-    ds = -0.1 * sources_cited - 0.15 * ambiguities_resolved + 0.2 * contradictions_flagged
+    ds = (
+        -0.1 * sources_cited
+        - 0.15 * ambiguities_resolved
+        + 0.2 * contradictions_flagged
+    )
     if claim_ungrounded:
         ds += 0.1
     ds = round(ds, 1)
@@ -481,7 +504,9 @@ def compute_integrity_telemetry(
     if sources_cited == 0:
         kappa_r = None
     else:
-        kappa_r = (my_sources_count / max(sources_cited, 1)) * 0.6 + 0.4 * (1 - dignity_flags * 0.2)
+        kappa_r = (my_sources_count / max(sources_cited, 1)) * 0.6 + 0.4 * (
+            1 - dignity_flags * 0.2
+        )
         kappa_r = round(kappa_r, 2)
 
     # 5. Ψ_LE (AGI Emergence Pressure) - Basis: heuristic

@@ -92,11 +92,19 @@ def _register(mcp: FastMCP) -> None:
         Checks that each entry's prev_hash matches the previous entry's payload_hash.
         """
         if not VAULT_PATH.exists():
-            return {"status": "error", "detail": "VAULT999 not found", "broken_at": None}
+            return {
+                "status": "error",
+                "detail": "VAULT999 not found",
+                "broken_at": None,
+            }
 
         text = VAULT_PATH.read_text().strip()
         if not text:
-            return {"status": "SEAL", "detail": "empty vault — GENESIS", "verified": True}
+            return {
+                "status": "SEAL",
+                "detail": "empty vault — GENESIS",
+                "verified": True,
+            }
 
         lines = [l for l in text.split("\n") if l.strip()]
         entries = []

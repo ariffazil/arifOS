@@ -195,7 +195,11 @@ class ArifOSAgentCard(BaseModel):
                 "routing",
                 {
                     "entry_point": "arifos_kernel",
-                    "layers": ["L1_AXIS_CLASSIFY", "L2_CALL_GRAPH_ENFORCE", "L3_PRECONDITION_GATE"],
+                    "layers": [
+                        "L1_AXIS_CLASSIFY",
+                        "L2_CALL_GRAPH_ENFORCE",
+                        "L3_PRECONDITION_GATE",
+                    ],
                     "execution_requires_seal": True,
                     "seal_verdict": "SEAL",
                     "hold_verdict": "HOLD",

@@ -45,7 +45,9 @@ def build_encrypted_redis_store() -> Any:
         from key_value.aio.stores.redis import RedisStore
         from key_value.aio.wrappers.encryption import FernetEncryptionWrapper
     except ImportError as exc:
-        logger.warning("Redis storage deps not available (%s). Vault will use file backend.", exc)
+        logger.warning(
+            "Redis storage deps not available (%s). Vault will use file backend.", exc
+        )
         return None
 
     redis_host = os.getenv("REDIS_HOST", "redis")

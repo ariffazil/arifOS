@@ -29,7 +29,9 @@ async def execute(
         readiness_probe = "FAIL"
         readiness_detail_parts.append(f"internal:FAIL({e})")
 
-    readiness_detail = ", ".join(readiness_detail_parts) if readiness_detail_parts else "no_checks"
+    readiness_detail = (
+        ", ".join(readiness_detail_parts) if readiness_detail_parts else "no_checks"
+    )
 
     # ─── Main logic ───────────────────────────────────────────────────────────
     report = {
@@ -69,7 +71,9 @@ async def execute(
         stakeholder_safety=None,
     )
 
-    result = governed_return("arifos_666_heart", report, metrics, operator_id, session_id)
+    result = governed_return(
+        "arifos_666_heart", report, metrics, operator_id, session_id
+    )
 
     # ─── Phase 1: Append metabolic_metadata ───────────────────────────────────
     output_str = json.dumps(report, sort_keys=True, ensure_ascii=False)
@@ -93,7 +97,10 @@ async def execute(
     try:
         vault_receipt = append_vault999_event(
             event_type="arifos_666_heart",
-            payload={"report": report, "metabolic_metadata": result["metabolic_metadata"]},
+            payload={
+                "report": report,
+                "metabolic_metadata": result["metabolic_metadata"],
+            },
             operator_id=operator_id,
             session_id=session_id,
         )

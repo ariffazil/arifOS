@@ -215,7 +215,9 @@ def calculate_thermodynamics(
         },
         "constitutional_floors_upheld": {
             "F4_delta_s_clarity": "SATISFIED" if gov_delta_s <= 0 else "VIOLATED",
-            "F5_peace_squared": "SATISFIED" if (1.0 - abs(gov_delta_s)) >= 1.0 else "PARTIAL",
+            "F5_peace_squared": (
+                "SATISFIED" if (1.0 - abs(gov_delta_s)) >= 1.0 else "PARTIAL"
+            ),
         },
     }
 

@@ -33,7 +33,10 @@ SEMANTIC_KEYS: dict[str, str] = {
 # Identity phrase patterns (English + Malay)
 IDENTITY_PHRASES: list[tuple[str, str]] = [
     (r"^(i am|im|i'm|saya|aku|hamba)\s+(arif|ariffazil|arif-fazil)$", "arif"),
-    (r"^(hi|hello|hey|yo)\s+(i am|im|i'm|saya|aku)\s+(arif|ariffazil|arif-fazil)$", "arif"),
+    (
+        r"^(hi|hello|hey|yo)\s+(i am|im|i'm|saya|aku)\s+(arif|ariffazil|arif-fazil)$",
+        "arif",
+    ),
     (r"^it's\s+(arif|ariffazil|arif-fazil)$", "arif"),
 ]
 
@@ -68,11 +71,15 @@ def validate_sovereign_proof(actor_id: str, proof: dict | str | Any | None) -> b
     if isinstance(proof, str):
         semantic_candidate = proof
     elif isinstance(proof, dict):
-        semantic_candidate = proof.get("semantic_key") or proof.get("key") or proof.get("proof")
+        semantic_candidate = (
+            proof.get("semantic_key") or proof.get("key") or proof.get("proof")
+        )
 
     if semantic_candidate and actor_id_clean in SEMANTIC_KEYS:
         if isinstance(semantic_candidate, str):
-            candidate_hash = hashlib.sha256(semantic_candidate.strip().upper().encode()).hexdigest()
+            candidate_hash = hashlib.sha256(
+                semantic_candidate.strip().upper().encode()
+            ).hexdigest()
             if candidate_hash == SEMANTIC_KEYS[actor_id_clean]:
                 return True
 

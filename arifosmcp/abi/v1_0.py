@@ -28,7 +28,9 @@ class BaseRequest(BaseModel):
     risk_tier: Literal["low", "medium", "high", "critical"] = Field(
         default="low", description="Requested risk posture"
     )
-    dry_run: bool = Field(default=True, description="If true, validate only without execution")
+    dry_run: bool = Field(
+        default=True, description="If true, validate only without execution"
+    )
     allow_execution: bool = Field(
         default=False, description="If true, execution permitted if floors pass"
     )
@@ -75,7 +77,10 @@ class InitAnchorRequest(BaseRequest):
         default=None, description="User intent - string or structured object"
     )
     session_id: str | None = Field(
-        default=None, description="Optional session ID for continuity", min_length=8, max_length=128
+        default=None,
+        description="Optional session ID for continuity",
+        min_length=8,
+        max_length=128,
     )
     human_approval: bool = Field(
         default=False, description="Whether human has pre-approved this action (F13)"
@@ -93,9 +98,9 @@ class IdentityResolution(BaseModel):
 
     claimed_actor_id: str = Field(description="What the caller claimed")
     resolved_actor_id: str | None = Field(description="What the system accepted")
-    claim_status: Literal["anonymous", "claimed", "anchored", "verified", "rejected", "demoted"] = (
-        Field(description="Resolution status")
-    )
+    claim_status: Literal[
+        "anonymous", "claimed", "anchored", "verified", "rejected", "demoted"
+    ] = Field(description="Resolution status")
     reason: str | None = Field(default=None, description="Explanation if demoted")
 
 
@@ -123,7 +128,9 @@ class ArifOSKernelRequest(BaseRequest):
     intent: str | dict | None = Field(default=None, description="Structured intent")
     session_id: str | None = Field(default=None, description="Session ID")
     actor_id: str | None = Field(default=None, description="Actor ID")
-    context: dict[str, Any] | None = Field(default=None, description="Additional context")
+    context: dict[str, Any] | None = Field(
+        default=None, description="Additional context"
+    )
 
 
 class ArifOSKernelResponse(BaseResponse):
@@ -167,7 +174,9 @@ class VaultLedgerRequest(BaseRequest):
 
     operation: Literal["write", "read", "query", "verify"] = Field(default="query")
     entry: dict[str, Any] | None = Field(default=None, description="Entry to write")
-    query_filters: dict[str, Any] | None = Field(default=None, description="Query filters")
+    query_filters: dict[str, Any] | None = Field(
+        default=None, description="Query filters"
+    )
 
 
 class VaultLedgerResponse(BaseResponse):
@@ -341,8 +350,14 @@ ABI_SCHEMAS: dict[str, dict[str, type[BaseModel]]] = {
         "request": EngineeringMemoryRequest,
         "response": EngineeringMemoryResponse,
     },
-    "physics_reality": {"request": PhysicsRealityRequest, "response": PhysicsRealityResponse},
-    "math_estimator": {"request": MathEstimatorRequest, "response": MathEstimatorResponse},
+    "physics_reality": {
+        "request": PhysicsRealityRequest,
+        "response": PhysicsRealityResponse,
+    },
+    "math_estimator": {
+        "request": MathEstimatorRequest,
+        "response": MathEstimatorResponse,
+    },
     "code_engine": {"request": CodeEngineRequest, "response": CodeEngineResponse},
     "architect_registry": {
         "request": ArchitectRegistryRequest,

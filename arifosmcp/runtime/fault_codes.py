@@ -223,7 +223,9 @@ def classify_network_errors(errors: list[dict]) -> str:
         MechanicalFaultCode.INFRA_DEGRADED,
         MechanicalFaultCode.TLS_FAIL,
     }
-    infra_count = sum(1 for e in errors if e.get("code") in {c.value for c in infra_codes})
+    infra_count = sum(
+        1 for e in errors if e.get("code") in {c.value for c in infra_codes}
+    )
     return "INFRA_DEGRADED" if infra_count > len(errors) // 2 else "NO_RESULTS"
 
 

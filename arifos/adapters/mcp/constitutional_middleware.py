@@ -125,10 +125,16 @@ class ConstitutionalGuardMiddleware(Middleware):
         # ── End AF1 Shadow Receipt ────────────────────────────────────────
 
         result = await call_next(context)
-        print(f"DEBUG on_call_tool: got result type={type(result)}", file=sys.stderr, flush=True)
+        print(
+            f"DEBUG on_call_tool: got result type={type(result)}",
+            file=sys.stderr,
+            flush=True,
+        )
 
         if constitutional_guard is None:
-            logger.warning("ConstitutionalGuardMiddleware: constitutional_guard not available")
+            logger.warning(
+                "ConstitutionalGuardMiddleware: constitutional_guard not available"
+            )
             return result
 
         try:

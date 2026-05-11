@@ -15,7 +15,9 @@ from arifosmcp.runtime.resources import SYSTEM_CAPABILITIES
 from arifosmcp.runtime.tool_specs import V2_TOOLS
 
 
-def build_charter_v2(public_base_url: str = "https://arifosmcp.arif-fazil.com") -> dict[str, Any]:
+def build_charter_v2(
+    public_base_url: str = "https://arifosmcp.arif-fazil.com",
+) -> dict[str, Any]:
     """Build the canonical MCP v2 charter."""
 
     # Build tool entries

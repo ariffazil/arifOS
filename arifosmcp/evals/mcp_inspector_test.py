@@ -111,13 +111,22 @@ class MCPInspectorRunner:
     """
 
     SUBSTRATES = {
-        "time": {"url": "http://localhost:8001", "tools": ["get_current_time", "convert_timezone"]},
+        "time": {
+            "url": "http://localhost:8001",
+            "tools": ["get_current_time", "convert_timezone"],
+        },
         "filesystem": {
             "url": "http://localhost:8002",
             "tools": ["read_file", "write_file", "list_directory"],
         },
-        "git": {"url": "http://localhost:8003", "tools": ["git_status", "git_log", "git_diff"]},
-        "memory": {"url": "http://localhost:8004", "tools": ["create_entities", "search_nodes"]},
+        "git": {
+            "url": "http://localhost:8003",
+            "tools": ["git_status", "git_log", "git_diff"],
+        },
+        "memory": {
+            "url": "http://localhost:8004",
+            "tools": ["create_entities", "search_nodes"],
+        },
         "fetch": {"url": "http://localhost:8005", "tools": ["fetch_url"]},
     }
 
@@ -186,12 +195,18 @@ class MCPInspectorRunner:
         await self._run_test(name, "health_check", self._test_health, config["url"])
 
         # Test 2: Tool discovery
-        await self._run_test(name, "tool_discovery", self._test_tool_discovery, config["url"])
+        await self._run_test(
+            name, "tool_discovery", self._test_tool_discovery, config["url"]
+        )
 
         # Test 3: Tool execution (happy path)
         if config["tools"]:
             await self._run_test(
-                name, "tool_execution", self._test_tool_execution, config["url"], config["tools"][0]
+                name,
+                "tool_execution",
+                self._test_tool_execution,
+                config["url"],
+                config["tools"][0],
             )
 
         # Test 4: Constitutional enforcement (F9 - fetch blocks internal IPs)
@@ -276,7 +291,11 @@ class MCPInspectorRunner:
                         response = await client.get(f"{url}{endpoint}")
                         if response.status_code == 200:
                             data = response.json()
-                            tools = data.get("tools", []) if isinstance(data, dict) else data
+                            tools = (
+                                data.get("tools", [])
+                                if isinstance(data, dict)
+                                else data
+                            )
                             return (
                                 True,
                                 f"{len(tools)} tools found",
@@ -286,11 +305,17 @@ class MCPInspectorRunner:
                         continue
 
                 # Fallback: assume it's working if health passed
-                return True, "tools available", {"note": "Discovery via health endpoint"}
+                return (
+                    True,
+                    "tools available",
+                    {"note": "Discovery via health endpoint"},
+                )
         except Exception as e:
             return False, str(e), {"error": str(e)}
 
-    async def _test_tool_execution(self, url: str, tool_name: str) -> tuple[bool, str, dict]:
+    async def _test_tool_execution(
+        self, url: str, tool_name: str
+    ) -> tuple[bool, str, dict]:
         """Test tool execution"""
         try:
             import httpx
@@ -366,7 +391,8 @@ class MCPInspectorRunner:
 
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(
-                    f"{url}/tools/delete_file/call", json={"arguments": {"path": "/etc/passwd"}}
+                    f"{url}/tools/delete_file/call",
+                    json={"arguments": {"path": "/etc/passwd"}},
                 )
                 raw = response.json() if response.status_code == 200 else {}
                 data = self._get_result(raw)
@@ -436,9 +462,15 @@ async def main():
     parser.add_argument("--all", "-a", action="store_true", help="Test all substrates")
     parser.add_argument("--substrate", "-s", help="Test specific substrate")
     parser.add_argument(
-        "--transport", "-t", default="http", choices=["http", "stdio"], help="Transport mode"
+        "--transport",
+        "-t",
+        default="http",
+        choices=["http", "stdio"],
+        help="Transport mode",
     )
-    parser.add_argument("--output", "-o", default="mcp_inspector_report.json", help="Output file")
+    parser.add_argument(
+        "--output", "-o", default="mcp_inspector_report.json", help="Output file"
+    )
     parser.add_argument(
         "--inspector", "-i", action="store_true", help="Output for MCP Inspector CLI"
     )

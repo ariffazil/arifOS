@@ -70,7 +70,9 @@ class GitBridge:
 
         try:
             status = await bridge.git.call_tool("git_status", {"repo_path": repo_path})
-            log = await bridge.git.call_tool("git_log", {"repo_path": repo_path, "max_count": 5})
+            log = await bridge.git.call_tool(
+                "git_log", {"repo_path": repo_path, "max_count": 5}
+            )
 
             return RE(
                 ok=True,
@@ -81,7 +83,11 @@ class GitBridge:
             )
         except Exception as e:
             return RE(
-                ok=False, tool="arifos.git_status", stage="", verdict=Verdict.VOID, detail=str(e)
+                ok=False,
+                tool="arifos.git_status",
+                stage="",
+                verdict=Verdict.VOID,
+                detail=str(e),
             )
 
     async def propose_commit(
@@ -122,14 +128,19 @@ class GitBridge:
 
         # 2. Call Substrate
         try:
-            logger.info(f"F11 LOG: [arifOS Governed] Committing change: {message} by {actor_id}")
+            logger.info(
+                f"F11 LOG: [arifOS Governed] Committing change: {message} by {actor_id}"
+            )
 
             # Stage files
-            await bridge.git.call_tool("git_add", {"repo_path": repo_path, "files": files})
+            await bridge.git.call_tool(
+                "git_add", {"repo_path": repo_path, "files": files}
+            )
 
             # Commit
             result = await bridge.git.call_tool(
-                "git_commit", {"repo_path": repo_path, "message": f"[arifOS Governed] {message}"}
+                "git_commit",
+                {"repo_path": repo_path, "message": f"[arifOS Governed] {message}"},
             )
 
             return RE(
@@ -144,7 +155,11 @@ class GitBridge:
             )
         except Exception as e:
             return RE(
-                ok=False, tool="arifos.git_commit", stage="", verdict=Verdict.VOID, detail=str(e)
+                ok=False,
+                tool="arifos.git_commit",
+                stage="",
+                verdict=Verdict.VOID,
+                detail=str(e),
             )
 
 

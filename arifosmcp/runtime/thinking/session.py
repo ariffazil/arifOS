@@ -170,7 +170,9 @@ class ThinkingSessionManager:
         clarity_score = self._calculate_clarity(step)
 
         # Determine constitutional verdict
-        step.constitutional_verdict = self._determine_verdict(step, hantu_score, clarity_score)
+        step.constitutional_verdict = self._determine_verdict(
+            step, hantu_score, clarity_score
+        )
 
         # Calculate quality
         step.quality_score = self._calculate_step_quality(step)
@@ -182,11 +184,15 @@ class ThinkingSessionManager:
 
         # Track floors triggered
         if step.constitutional_verdict in ["VOID", "HOLD"]:
-            session.floors_triggered.append(f"{step.step_number}:{step.constitutional_verdict}")
+            session.floors_triggered.append(
+                f"{step.step_number}:{step.constitutional_verdict}"
+            )
 
         return step
 
-    def branch_session(self, session_id: str, from_step: int, alternative_reasoning: str) -> str:
+    def branch_session(
+        self, session_id: str, from_step: int, alternative_reasoning: str
+    ) -> str:
         """Fork reasoning from an existing step (branching)"""
         session = self.sessions.get(session_id)
         if not session:
@@ -236,7 +242,9 @@ class ThinkingSessionManager:
         synthesis = self._synthesize_branches(branch_contents)
 
         # Add conclusion step
-        conclusion = self.add_step(session_id=session_id, step_type="conclusion", content=synthesis)
+        conclusion = self.add_step(
+            session_id=session_id, step_type="conclusion", content=synthesis
+        )
 
         session.status = SessionStatus.MERGED
         session.final_verdict = "SEAL" if conclusion.quality_score > 0.7 else "SABAR"
@@ -264,7 +272,9 @@ class ThinkingSessionManager:
     # CONSTITUTIONAL SCORING METHODS
     # ═══════════════════════════════════════════════════════════════════════
 
-    def _calculate_truth_score(self, step: ThinkingStep, session: ThinkingSession) -> float:
+    def _calculate_truth_score(
+        self, step: ThinkingStep, session: ThinkingSession
+    ) -> float:
         """F2: Calculate truth score based on evidence markers"""
         content = step.content.lower()
         score = 0.5  # Base score
@@ -287,14 +297,21 @@ class ThinkingSessionManager:
                 score += 0.1
 
         # Unchecked claims decrease score
-        speculation_markers = ["obviously", "clearly", "everyone knows", "without doubt"]
+        speculation_markers = [
+            "obviously",
+            "clearly",
+            "everyone knows",
+            "without doubt",
+        ]
         for marker in speculation_markers:
             if marker in content:
                 score -= 0.1
 
         return min(max(score, 0.0), 1.0)
 
-    def _calculate_uncertainty(self, step: ThinkingStep, session: ThinkingSession) -> float:
+    def _calculate_uncertainty(
+        self, step: ThinkingStep, session: ThinkingSession
+    ) -> float:
         """F7: Calculate epistemic uncertainty (Ω₀ ∈ [0.03,0.05])"""
         # Base uncertainty
         omega = 0.05
@@ -513,9 +530,12 @@ class ThinkingSessionManager:
         """Calculate overall quality score for a step"""
         factors = [
             step.f2_truth_score * 0.30,  # F2 weight
-            (1 - step.f7_uncertainty) * 0.20,  # F7 weight (lower uncertainty = higher score)
+            (1 - step.f7_uncertainty)
+            * 0.20,  # F7 weight (lower uncertainty = higher score)
             0.30 if step.constitutional_verdict == "SEAL" else 0.1,  # Verdict weight
-            0.20 if step.step_type in ["analysis", "verification"] else 0.1,  # Type weight
+            (
+                0.20 if step.step_type in ["analysis", "verification"] else 0.1
+            ),  # Type weight
         ]
         return min(sum(factors), 1.0)
 
@@ -573,7 +593,9 @@ class ThinkingSessionManager:
             revision_marker = " (REVISION)" if step.is_revision else ""
             branch_marker = f" [{step.branch_id}]" if step.branch_id else ""
             verdict_marker = (
-                f" [{step.constitutional_verdict}]" if step.constitutional_verdict else ""
+                f" [{step.constitutional_verdict}]"
+                if step.constitutional_verdict
+                else ""
             )
 
             lines.append(
@@ -660,7 +682,9 @@ class ThinkingSessionManager:
         return [
             {
                 "session_id": s.session_id,
-                "problem": s.problem[:100] + "..." if len(s.problem) > 100 else s.problem,
+                "problem": (
+                    s.problem[:100] + "..." if len(s.problem) > 100 else s.problem
+                ),
                 "template": s.template,
                 "status": s.status.value,
                 "steps_count": len(s.steps),

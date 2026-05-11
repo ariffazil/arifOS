@@ -1,6 +1,5 @@
 from .labels import StateDomain
 
-
 # Claims the system must NEVER make about a human domain.
 # These are not style preferences — these are Amanah hard boundaries.
 #

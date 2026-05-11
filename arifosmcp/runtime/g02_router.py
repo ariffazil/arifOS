@@ -84,9 +84,14 @@ class G02LayeredRouter:
             return Axis.T, OperationClass.COMPUTE
         if any(k in query for k in ["npv", "emv", "irr", "dscr", "value", "worth"]):
             return Axis.V, OperationClass.VALUE
-        if any(k in query for k in ["execute", "forge", "write", "store", "seal", "commit"]):
+        if any(
+            k in query for k in ["execute", "forge", "write", "store", "seal", "commit"]
+        ):
             return Axis.E, OperationClass.MUTATE
-        if any(k in query for k in ["monitor", "audit", "correlation", "orthogonality", "meta"]):
+        if any(
+            k in query
+            for k in ["monitor", "audit", "correlation", "orthogonality", "meta"]
+        ):
             return Axis.M, OperationClass.META
 
         # Default to G (governance)
@@ -110,7 +115,11 @@ class G02LayeredRouter:
             # External caller — kernel is the G-axis delegate
             if target_axis == Axis.E:
                 # E-axis reachable ONLY if G05 has issued a valid SEAL
-                if judge_verdict == "SEAL" and judge_state_hash and len(judge_state_hash) == 64:
+                if (
+                    judge_verdict == "SEAL"
+                    and judge_state_hash
+                    and len(judge_state_hash) == 64
+                ):
                     return (
                         True,
                         "E-axis authorized: G05 SEAL verdict present from prior arifos_judge",
@@ -135,7 +144,10 @@ class G02LayeredRouter:
                 return True, "G-axis authorized to call E-axis via constitutional chain"
             return False, "E-axis only reachable via G05 SEAL. Direct call blocked."
 
-        return False, f"{caller_axis.value} cannot call {target_axis.value}. Call graph violation."
+        return (
+            False,
+            f"{caller_axis.value} cannot call {target_axis.value}. Call graph violation.",
+        )
 
     # ── Layer 3: Precondition & State Gate ───────────────────────────────────
 
@@ -168,7 +180,10 @@ class G02LayeredRouter:
                 )
 
             if not context.judge_state_hash:
-                return False, "E-axis blocked: judge_state_hash missing. Cannot verify integrity."
+                return (
+                    False,
+                    "E-axis blocked: judge_state_hash missing. Cannot verify integrity.",
+                )
 
             # Verify state hash format (SHA256 hex = 64 chars)
             if len(context.judge_state_hash) != 64:
@@ -200,12 +215,17 @@ class G02LayeredRouter:
         # G-axis requires session initialization
         if target_axis == Axis.G:
             if not context.session_id and operation_class == OperationClass.GATE:
-                return False, "G-axis blocked: session_id missing. Initialize via G01 first."
+                return (
+                    False,
+                    "G-axis blocked: session_id missing. Initialize via G01 first.",
+                )
 
         # V-axis requires inputs from T or P (not free-form) — check trace
         if target_axis == Axis.V:
             if len(context.trace) < 2:
-                logger.warning(f"V-axis called without prior P/T execution. trace={context.trace}")
+                logger.warning(
+                    f"V-axis called without prior P/T execution. trace={context.trace}"
+                )
 
         return True, f"{target_axis.value} preconditions satisfied."
 
@@ -238,10 +258,14 @@ class G02LayeredRouter:
             judge_verdict=context.judge_verdict,
             judge_state_hash=context.judge_state_hash,
         )
-        self._trace.append(f"L2:call_graph→{'ALLOWED' if allowed else 'BLOCKED'}: {reason}")
+        self._trace.append(
+            f"L2:call_graph→{'ALLOWED' if allowed else 'BLOCKED'}: {reason}"
+        )
 
         if not allowed:
-            logger.warning(f"[G02] Call graph violation: {reason} | trace={' '.join(self._trace)}")
+            logger.warning(
+                f"[G02] Call graph violation: {reason} | trace={' '.join(self._trace)}"
+            )
             return RouteResult(
                 ok=False,
                 target_axis=target_axis,
@@ -253,8 +277,12 @@ class G02LayeredRouter:
             )
 
         # Layer 3: Precondition gate
-        preconditions_met, gate_reason = self.check_preconditions(target_axis, op_class, context)
-        self._trace.append(f"L3:gate→{'PASS' if preconditions_met else 'BLOCK'}: {gate_reason}")
+        preconditions_met, gate_reason = self.check_preconditions(
+            target_axis, op_class, context
+        )
+        self._trace.append(
+            f"L3:gate→{'PASS' if preconditions_met else 'BLOCK'}: {gate_reason}"
+        )
 
         if not preconditions_met:
             logger.warning(
