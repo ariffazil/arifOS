@@ -105,7 +105,7 @@ async def check_philosophy_injection():
 def check_horizon_mapping():
     """Verify unified server legacy tool mappings."""
     try:
-        from server import LEGACY_TOOL_MAP
+        from arifosmcp.capability_map import LEGACY_TOOL_MAP
 
         print("\nChecking unified server legacy mappings...")
 

@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 
 # Import unified server
 from arifosmcp.runtime.fastmcp_ext.transports import run_server
-from server import mcp
+from arifosmcp.server import mcp
 
 
 def main():
