@@ -245,7 +245,7 @@ ARIFOS_TAXONOMY_CATEGORIES: set[str] = {
     "verdict",
     "session",
     "vault_record",
-    "tool_manifest",
+    "tool_charter",
     "governance_decision",
     "constitutional_floor",
     "threat_assessment",

@@ -115,3 +115,4 @@ Citations:
 - `arifosmcp/runtime/tools.py`
 - `arifosmcp/runtime/server.py`
 - `wiki/raw/mcp_naming_migration_audit_directive_2026-04-11.md`
+| arifos_gateway | 666_GATE | 666 | Federated cross-agent bridge |

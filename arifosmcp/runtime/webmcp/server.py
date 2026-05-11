@@ -86,7 +86,7 @@ class WebMCPGateway:
         self.mcp = mcp_server
         self.config = config or WebMCPConfig.from_env()
         self.build_info = get_build_info()
-        self._cached_tool_manifest: list[dict[str, Any]] | None = None
+        self._cached_tool_charter: list[dict[str, Any]] | None = None
 
         # NEW: Active WebSocket connections for 888_HOLD broadcast
         self._active_websockets: set[WebSocket] = set()
@@ -195,7 +195,7 @@ class WebMCPGateway:
         """Setup WebMCP routes."""
 
         @self.app.get("/.well-known/webmcp")
-        async def webmcp_manifest():
+        async def webmcp_charter():
             """Browser-discoverable WebMCP manifest."""
             return {
                 "schema_version": "1.0",
@@ -214,7 +214,7 @@ class WebMCPGateway:
                     "vitals": "/webmcp/vitals",
                 },
                 "human_in_the_loop": True,
-                "tools": self._tool_manifest(),
+                "tools": self._tool_charter(),
             }
 
         @self.app.get("/webmcp")
@@ -257,12 +257,12 @@ class WebMCPGateway:
             return HTMLResponse(content=self._build_sdk_js(), media_type="application/javascript")
 
         @self.app.get("/webmcp/tools.json")
-        async def tools_manifest():
-            """Machine-readable tool manifest for browser clients."""
+        async def tools_charter():
+            """Machine-readable tool charter for browser clients."""
             return {
                 "service": "arifOS WebMCP",
                 "version": self.build_info["version"],
-                "tools": self._tool_manifest(),
+                "tools": self._tool_charter(),
             }
 
         @self.app.post("/webmcp/init")
@@ -333,7 +333,7 @@ class WebMCPGateway:
         @self.app.get("/webmcp/tools")
         async def list_tools():
             """List the live public tools exposed by the runtime."""
-            tools = self._tool_manifest()
+            tools = self._tool_charter()
             return {
                 "verdict": "SEAL",
                 "tools": tools,
@@ -850,10 +850,10 @@ class WebMCPGateway:
             except Exception as e:
                 return {"verdict": "VOID", "error": str(e)}
 
-    def _tool_manifest(self) -> list[dict[str, Any]]:
+    def _tool_charter(self) -> list[dict[str, Any]]:
         """Expose the live public tool registry in WebMCP-friendly form (cached)."""
-        if self._cached_tool_manifest is None:
-            self._cached_tool_manifest = [
+        if self._cached_tool_charter is None:
+            self._cached_tool_charter = [
                 {
                     "name": spec.name,
                     "stage": spec.stage,
@@ -862,7 +862,7 @@ class WebMCPGateway:
                 }
                 for spec in PUBLIC_TOOL_SPECS
             ]
-        return self._cached_tool_manifest
+        return self._cached_tool_charter
 
     def _build_sdk_js(self) -> str:
         """Minimal browser SDK for imperative WebMCP integration."""

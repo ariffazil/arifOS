@@ -301,4 +301,4 @@ Network: arifos_core_network (same as postgres, vault_service, mcp_*)
 ---
 
 **Ditempa Bukan Diberi — arifOS-governor-mcp SEALED**
-arifOS v2026.4.16 | MCP tool manifest v1.0 | 2026-04-18
+arifOS v2026.4.16 | MCP tool charter v1.0 | 2026-04-18

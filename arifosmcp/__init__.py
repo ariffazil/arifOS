@@ -58,14 +58,14 @@ from arifosmcp.schemas.embodied_tool import (
     build_embodied_envelope,
 )
 from arifosmcp.tools.embodied_tool import (
-    ARIFOS_TOOL_MANIFESTS,
+    ARIFOS_TOOL_CHARTERS,
     EmbodiedTool,
     register_all_arifos_tools,
     register_embodied_tool,
 )
 
 __all__ = [
-    "ARIFOS_TOOL_MANIFESTS",
+    "ARIFOS_TOOL_CHARTERS",
     "BlastRadius",
     "Domain",
     "EmbodiedDecision",

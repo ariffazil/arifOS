@@ -18,6 +18,7 @@ ARIF_DOCTRINE: dict = {
 }
 
 import asyncio
+
 try:
     import fcntl  # type: ignore
 except ImportError:  # Windows
@@ -52,6 +53,7 @@ def _unlock(handle: Any) -> None:
         return
     fcntl.flock(handle, fcntl.LOCK_UN)
 
+
 from fastmcp import Context, FastMCP
 from fastmcp.server.elicitation import (
     AcceptedElicitation,
@@ -70,7 +72,6 @@ from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_bu
 from arifosmcp.core.threat_engine import ThreatTier
 from arifosmcp.evidence.store import EvidenceStore, get_evidence_store
 from arifosmcp.runtime.floors import check_floors
-from arifosmcp.schemas.evidence import EvidenceOutput
 from arifosmcp.schemas.forge import (
     ConstitutionalCompliance,
     DeltaSEvidence,
@@ -82,13 +83,7 @@ from arifosmcp.schemas.forge import (
     IrreversibilityLevel,
     ManifestStatus,
 )
-from arifosmcp.schemas.gateway import GatewayOutput
-from arifosmcp.schemas.heart import HeartOutput
-from arifosmcp.schemas.kernel import KernelOutput
 from arifosmcp.schemas.lineage import JudgeSealContract
-from arifosmcp.schemas.memory import MemoryOutput
-from arifosmcp.schemas.reply import ReplyOutput
-from arifosmcp.schemas.sense import SenseOutput
 from arifosmcp.schemas.synthesis import (
     AxiomSource,
     AxiomsUsed,
@@ -4255,7 +4250,7 @@ def _arif_kernel_route(
             import os
 
             manifest_path = os.path.join(
-                os.path.dirname(__file__), "..", "tools", "manifests", "tool_manifest.json"
+                os.path.dirname(__file__), "..", "tools", "charters", "tool.charter.json"
             )
             with open(manifest_path, encoding="utf-8") as f:
                 manifest = json.load(f)
@@ -4290,7 +4285,7 @@ def _arif_kernel_route(
         except Exception as e:
             return _hold(
                 "arif_kernel_route",
-                f"Failed to load tool manifest: {e}",
+                f"Failed to load tool charter: {e}",
                 ["F11"],
                 session_id=session_id,
             )
@@ -7186,7 +7181,7 @@ async def _arif_forge_execute_tool(
     approved plan_id from arif_mind_reason(mode='plan') per H2 ratification.
 
     Modes:
-      engineer  — Execute a manifest (build, deploy, or system change).
+      engineer  — Execute a charter (build, deploy, or system change).
       query     — Inspect current system state without mutation.
       write     — Write or modify files under constitutional supervision.
       generate  — Generate code or artifacts under constitutional supervision.
@@ -7786,7 +7781,7 @@ def register_tools(
 ) -> list[str]:
     """Register the active canonical public surface with the MCP server."""
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
-    from arifosmcp.tool_manifest import TOOL_MANIFEST
+    from arifosmcp.tool_charter import TOOL_CHARTER
 
     registered: list[str] = []
     del include_legacy_compat
@@ -7795,7 +7790,7 @@ def register_tools(
         if handler is None:
             continue
         try:
-            manifest = TOOL_MANIFEST.get(name, {})
+            manifest = TOOL_CHARTER.get(name, {})
             wrapped = _wrap_handler(handler, name)
             mcp.tool(
                 name=name,

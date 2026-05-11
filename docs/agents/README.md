@@ -252,7 +252,7 @@ ANCHOR → OBSERVE → PLAN → CHECK FLOORS → EXECUTE → VERIFY → LOG → 
 | File | Role |
 |------|------|
 | `root/AGENTS.md` | VPS-wide policy (710 lines+) |
-| `srv/arifosmcp/AGENTS/universal-agent-baseline.yaml` | Vendor-neutral manifest (v2026.03.27-UNIVERSAL) |
+| `srv/arifosmcp/AGENTS/universal-agent-baseline.yaml` | Vendor-neutral charter (v2026.03.27-UNIVERSAL) |
 | `srv/arifosmcp/skills/agent-foundation/SKILL.md` | Shared portable skill (119 lines) |
 | `srv/arifosmcp/AGENTS/README.md` | Control-plane reference (14 files) |
 | `srv/arifosmcp/AGENTS/skills.yaml` | Registry with `universalagentbaseline` entry |

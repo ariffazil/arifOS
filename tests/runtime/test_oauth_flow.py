@@ -46,7 +46,11 @@ def test_oauth_auth_flow_simulation(client):
     # 1. Authorize (GET)
     auth_res = client.get("/api/auth/authorize?client_id=test-agent")
     assert auth_res.status_code == 200
-    assert "arifOS Authorization" in auth_res.text
+    assert "Constitutional Authorization" in auth_res.text
+    assert "SEAL — Grant" in auth_res.text
+    assert "VOID — Deny" in auth_res.text
+    assert "F13 SOVEREIGN" in auth_res.text
+    assert "VAULT999" in auth_res.text
 
     # 2. Token (POST)
     token_res = client.post("/api/auth/token", data={"code": "mock-code"})
@@ -55,6 +59,23 @@ def test_oauth_auth_flow_simulation(client):
     assert "access_token" in data
     assert data["access_token"].startswith("mcp_")
     assert data["token_type"] == "Bearer"
+
+
+def test_oauth_deny_flow(client):
+    """Verify the constitutional denial endpoint returns VOID."""
+    deny_res = client.post("/api/auth/deny")
+    assert deny_res.status_code == 200
+    assert "VOID — Access Denied" in deny_res.text
+    assert "F13 SOVEREIGN" in deny_res.text
+    assert "VAULT999" in deny_res.text
+
+
+def test_oauth_auth_unverified_client_warning(client):
+    """Verify unverified clients show the insufficient-evidence banner."""
+    auth_res = client.get("/api/auth/authorize")
+    assert auth_res.status_code == 200
+    assert "insufficient evidence" in auth_res.text
+    assert "Client identity unverified" in auth_res.text
 
 
 def test_cimd_placeholder_presence(client):

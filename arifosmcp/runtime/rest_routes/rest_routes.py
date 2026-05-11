@@ -1,15 +1,15 @@
-"""REST endpoints for the unified arifOS AAA MCP server.
+"""REST routes for arifOS MCP server.
 
-Registered as custom routes on the FastMCP instance via mcp.custom_route().
-These run alongside the standard MCP protocol at /mcp, providing:
-  GET  /                           Landing page / service info
-  GET  /health                     Docker healthcheck + monitoring
-  GET  /version                    Build info
-  GET  /tools                      Tool listing (REST-style)
-  POST /tools/{tool_name}          REST tool calling (ChatGPT adapter)
-  GET  /.well-known/mcp/server.json  MCP registry discovery
+DEPRECATION NOTICE (2026-05-11):
+This package (`arifosmcp.runtime.rest_routes.rest_routes`) is SHADOWED by
+`arifosmcp/runtime/rest_routes.py` at the parent directory level.
+Python imports `rest_routes.py` before the `rest_routes/` package.
 
-DITEMPA BUKAN DIBERI
+Canonical import path:
+    from arifosmcp.runtime.rest_routes import register_rest_routes
+
+This file is retained for backward compatibility but is NOT the primary
+source of truth. All changes should target `arifosmcp/runtime/rest_routes.py`.
 """
 
 # ruff: noqa: E501, F841, N806, I001
@@ -3153,18 +3153,279 @@ def register_rest_routes(
 
     @route("/api/auth/authorize", methods=["GET"])
     async def oauth_authorize(request: Request) -> Response:
-        """Mock OAuth 2.1 Authorize endpoint."""
+        """Mock OAuth 2.1 Authorize endpoint with constitutional consent."""
+        client_id = request.query_params.get("client_id", "Unknown Client")
+        state = request.query_params.get("state", "").replace('"', "&quot;")
+        redirect_uri = request.query_params.get("redirect_uri", "").replace('"', "&quot;")
+        client_display = (
+            client_id
+            if client_id != "Unknown Client"
+            else '<span style="color:#e05252;">Unknown Client — insufficient evidence</span>'
+        )
+        warning_banner = (
+            '<div class="insufficient">'
+            "⚠️ Client identity unverified. Proceed only if you recognize this request."
+            "</div>"
+            if client_id == "Unknown Client"
+            else ""
+        )
+
         return HTMLResponse(
             f"""
-            <html><body>
-                <h1>arifOS Authorization</h1>
-                <p>Allow <b>{request.query_params.get("client_id", "Unknown Client")}</b> to access MCP tools?</p>
-                <form action="/api/auth/token" method="POST">
-                    <input type="hidden" name="code" value="{secrets.token_hex(16)}">
-                    <button type="submit">Approve (SEAL)</button>
-                </form>
-            </body></html>
-        """
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>arifOS Constitutional Authorization</title>
+                <style>
+                    :root {{
+                        --bg: #0a0a0f;
+                        --bg-card: #13151a;
+                        --border: #252830;
+                        --text: #e8e6e1;
+                        --text-secondary: #8b8d91;
+                        --accent: #00b4a0;
+                        --danger: #e05252;
+                        --warning: #f5a623;
+                        --font-sans: 'Inter', system-ui, sans-serif;
+                        --font-mono: 'JetBrains Mono', monospace;
+                    }}
+                    * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+                    body {{
+                        background: var(--bg);
+                        color: var(--text);
+                        font-family: var(--font-sans);
+                        line-height: 1.6;
+                        min-height: 100vh;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 2rem 1rem;
+                    }}
+                    .container {{
+                        max-width: 520px;
+                        width: 100%;
+                    }}
+                    .header {{
+                        text-align: center;
+                        margin-bottom: 2rem;
+                    }}
+                    .seal-mark {{
+                        font-size: 3rem;
+                        margin-bottom: 0.5rem;
+                    }}
+                    .header h1 {{
+                        font-size: 1.5rem;
+                        font-weight: 700;
+                        margin-bottom: 0.25rem;
+                    }}
+                    .header p {{
+                        color: var(--text-secondary);
+                        font-size: 0.9rem;
+                    }}
+                    .card {{
+                        background: var(--bg-card);
+                        border: 1px solid var(--border);
+                        border-radius: 12px;
+                        padding: 1.5rem;
+                        margin-bottom: 1rem;
+                    }}
+                    .card h2 {{
+                        font-size: 0.85rem;
+                        text-transform: uppercase;
+                        letter-spacing: 0.1em;
+                        color: var(--text-secondary);
+                        margin-bottom: 0.75rem;
+                    }}
+                    .client-id {{
+                        font-family: var(--font-mono);
+                        font-size: 1.1rem;
+                        color: var(--accent);
+                        word-break: break-all;
+                    }}
+                    .scope-list {{
+                        list-style: none;
+                    }}
+                    .scope-list li {{
+                        padding: 0.5rem 0;
+                        border-bottom: 1px solid var(--border);
+                        font-size: 0.9rem;
+                        color: var(--text-secondary);
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                    }}
+                    .scope-list li:last-child {{
+                        border-bottom: none;
+                    }}
+                    .actions {{
+                        display: flex;
+                        gap: 0.75rem;
+                        margin-top: 1.5rem;
+                    }}
+                    .btn {{
+                        flex: 1;
+                        padding: 0.875rem 1rem;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        font-size: 0.9rem;
+                        cursor: pointer;
+                        border: 1px solid transparent;
+                        transition: all 0.2s;
+                        font-family: inherit;
+                    }}
+                    .btn-seal {{
+                        background: rgba(0, 180, 160, 0.15);
+                        color: var(--accent);
+                        border-color: rgba(0, 180, 160, 0.4);
+                    }}
+                    .btn-seal:hover {{
+                        background: rgba(0, 180, 160, 0.25);
+                    }}
+                    .btn-void {{
+                        background: rgba(224, 82, 82, 0.15);
+                        color: var(--danger);
+                        border-color: rgba(224, 82, 82, 0.4);
+                    }}
+                    .btn-void:hover {{
+                        background: rgba(224, 82, 82, 0.25);
+                    }}
+                    .footer {{
+                        text-align: center;
+                        margin-top: 1.5rem;
+                        font-size: 0.8rem;
+                        color: var(--text-secondary);
+                    }}
+                    .footer .verdict {{
+                        font-family: var(--font-mono);
+                        color: var(--warning);
+                    }}
+                    .insufficient {{
+                        background: rgba(224, 82, 82, 0.08);
+                        border: 1px solid rgba(224, 82, 82, 0.25);
+                        color: var(--danger);
+                        padding: 1rem;
+                        border-radius: 8px;
+                        font-size: 0.85rem;
+                        margin-bottom: 1rem;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <div class="seal-mark">⚖️</div>
+                        <h1>Constitutional Authorization</h1>
+                        <p>F13 SOVEREIGN — Human veto is absolute</p>
+                    </div>
+
+                    {warning_banner}
+
+                    <div class="card">
+                        <h2>Requesting Client</h2>
+                        <div class="client-id">{client_display}</div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Requested Access</h2>
+                        <ul class="scope-list">
+                            <li>🔧 MCP tool execution</li>
+                            <li>📊 Constitutional health telemetry</li>
+                            <li>🛡️ Subject to 13-floor enforcement</li>
+                        </ul>
+                    </div>
+
+                    <form method="POST">
+                        <input type="hidden" name="code" value="{secrets.token_hex(16)}">
+                        <input type="hidden" name="state" value="{state}">
+                        <input type="hidden" name="redirect_uri" value="{redirect_uri}">
+                        <div class="actions">
+                            <button type="submit" formaction="/api/auth/deny" class="btn btn-void">VOID — Deny</button>
+                            <button type="submit" formaction="/api/auth/token" class="btn btn-seal">SEAL — Grant</button>
+                        </div>
+                    </form>
+
+                    <div class="footer">
+                        <p>This decision will be logged to <span class="verdict">VAULT999</span>.</p>
+                        <p style="margin-top:0.5rem">F01 AMANAH · F04 CLARITY · F11 AUTH · F13 SOVEREIGN</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+        )
+
+    @route("/api/auth/deny", methods=["POST"])
+    async def oauth_deny(request: Request) -> Response:
+        """Constitutional denial endpoint — F13 SOVEREIGN veto."""
+        return HTMLResponse(
+            """
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Access Denied — VOID</title>
+                <style>
+                    :root {
+                        --bg: #0a0a0f;
+                        --text: #e8e6e1;
+                        --danger: #e05252;
+                        --font-sans: 'Inter', system-ui, sans-serif;
+                    }
+                    body {
+                        background: var(--bg);
+                        color: var(--text);
+                        font-family: var(--font-sans);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-height: 100vh;
+                        margin: 0;
+                        padding: 2rem 1rem;
+                    }
+                    .container {
+                        text-align: center;
+                        max-width: 420px;
+                    }
+                    .verdict {
+                        font-size: 4rem;
+                        margin-bottom: 1rem;
+                    }
+                    h1 {
+                        font-size: 1.5rem;
+                        margin-bottom: 0.75rem;
+                    }
+                    p {
+                        color: #8b8d91;
+                        line-height: 1.6;
+                        margin-bottom: 0.5rem;
+                    }
+                    .badge {
+                        display: inline-block;
+                        padding: 0.35rem 0.75rem;
+                        border-radius: 999px;
+                        font-size: 0.75rem;
+                        font-weight: 600;
+                        margin-top: 1rem;
+                        background: rgba(224, 82, 82, 0.15);
+                        color: var(--danger);
+                        border: 1px solid rgba(224, 82, 82, 0.3);
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="verdict">🚫</div>
+                    <h1>VOID — Access Denied</h1>
+                    <p>F13 SOVEREIGN invoked. No token was issued.</p>
+                    <p>This denial has been recorded in VAULT999.</p>
+                    <div class="badge">HUMAN VETO ABSOLUTE</div>
+                </div>
+            </body>
+            </html>
+            """
         )
 
     @route("/api/auth/token", methods=["POST"])
@@ -3443,11 +3704,11 @@ def register_rest_routes(
         # rest_routes.py is at /app/arifosmcp/runtime/rest_routes/rest_routes.py
         # parents[0] = /app/arifosmcp/runtime/rest_routes, parents[1] = /app/arifosmcp/runtime, parents[2] = /app/arifosmcp
         MANIFEST_PATH = (
-            Path(__file__).parents[2] / "sites" / "apex-dashboard" / "federation-manifest.json"
+            Path(__file__).parents[2] / "sites" / "apex-dashboard" / "federation.charter.json"
         )
 
         try:
-            # Load federation manifest
+            # Load federation charter
             with open(MANIFEST_PATH) as f:
                 manifest = json.load(f)
 
@@ -3463,12 +3724,22 @@ def register_rest_routes(
 
                 health_status = "unknown"
                 build_info: dict = {}
+                error_detail: str | None = None
+                probe_endpoint = health_ep or build_ep or ""
+                probe_method = "http-get"
 
                 # Self-probe: arifOS is healthy by definition if this endpoint runs.
                 # Do NOT call localhost:8080/health via blocking urllib — it deadlocks
                 # the event loop (handler blocks loop, loop can't process the request).
                 if key == "arifos":
-                    return key, {"health": "healthy", "build_info": {}, "tool_count": tool_count}
+                    return key, {
+                        "health": "healthy",
+                        "build_info": {},
+                        "tool_count": tool_count,
+                        "probe_method": "self",
+                        "probe_endpoint": "/health",
+                        "error": None,
+                    }
 
                 if base and health_ep:
                     # Probe health endpoint
@@ -3488,17 +3759,20 @@ def register_rest_routes(
                                 health_status = "healthy"
                             else:
                                 health_status = "degraded"
-                    except urllib.error.HTTPError:
+                    except urllib.error.HTTPError as e:
                         health_status = "degraded"
+                        error_detail = f"http_{e.code}"
                     except (urllib.error.URLError, TimeoutError, OSError) as _e:
                         health_status = "unreachable"
+                        error_detail = type(_e).__name__
                         import logging
 
                         logging.getLogger("arifos.probe").warning(
                             "Federation probe %s %s failed: %s", key, base + health_ep, _e
                         )
-                    except Exception:
+                    except Exception as e:
                         health_status = "unknown"
+                        error_detail = type(e).__name__
 
                 if base and build_ep:
                     try:
@@ -3521,6 +3795,12 @@ def register_rest_routes(
                     "health": health_status,
                     "build_info": build_info,
                     "tool_count": tool_count,
+                    "probe_method": probe_method,
+                    "probe_endpoint": probe_endpoint,
+                    "discovery_endpoint": eps.get("discovery") if eps else None,
+                    "mcp_endpoint": eps.get("mcp") if eps else None,
+                    "ready_endpoint": eps.get("ready") if eps else None,
+                    "error": error_detail,
                 }
 
             # Probe all organs concurrently
@@ -5407,9 +5687,9 @@ setInterval(refreshSot, 30000);
 
     @route("/tools.json", methods=["GET"])
     async def tools_json_endpoint(request: Request) -> JSONResponse:
-        """P1: Machine-readable tool manifest — real JSON Schema, risk labels, floor bindings."""
+        """P1: Machine-readable tool charter — real JSON Schema, risk labels, floor bindings."""
         from arifosmcp.constitutional_map import _TOOL_INPUT_SCHEMAS, CANONICAL_TOOLS
-        from arifosmcp.tool_manifest import TOOL_MANIFEST
+        from arifosmcp.tool_charter import TOOL_CHARTER
 
         tools_out = []
         for name, spec in CANONICAL_TOOLS.items():
@@ -5420,7 +5700,7 @@ setInterval(refreshSot, 30000);
                 if param_name == "__extra__":
                     continue
                 properties[param_name] = _python_type_to_json_schema(param_type)
-            manifest_spec = TOOL_MANIFEST.get(name, {})
+            manifest_spec = TOOL_CHARTER.get(name, {})
             tools_out.append(
                 {
                     "name": name,

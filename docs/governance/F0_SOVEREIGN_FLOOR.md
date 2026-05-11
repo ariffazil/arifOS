@@ -65,7 +65,7 @@ def evaluate_prospect(seismic_data: bytes) -> Verdict:
 
 ### F0.5 Deployment Verification
 
-Every arifOS deployment MUST generate a **Sovereignty Manifest** (see `SovereigntyManifest.json`) that:
+Every arifOS deployment MUST generate a **Sovereignty Charter** (see `sovereignty.charter.json`) that:
 
 1. Declares sovereignty level (0-4)
 2. Lists all infrastructure dependencies
@@ -234,7 +234,7 @@ jobs:
 
 **All arifOS deployments claiming production readiness MUST:**
 
-1. Declare sovereignty level in `SovereigntyManifest.json`
+1. Declare sovereignty level in `sovereignty.charter.json`
 2. Maintain Level 3 (Sovereign) or higher for GEOX production
 3. Maintain Level 4 (Absolute) for VAULT999 operations
 4. Pass `arifos verify-sovereignty` in CI/CD pipeline

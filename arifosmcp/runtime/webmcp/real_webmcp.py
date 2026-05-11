@@ -80,7 +80,7 @@ class RealWebMCPGateway:
 
         # WebMCP Manifest - tells browsers this site supports WebMCP
         @self.app.get("/.well-known/webmcp")
-        async def webmcp_manifest():
+        async def webmcp_charter():
             """
             WebMCP Site Manifest
             Browsers discover WebMCP support via this endpoint
@@ -119,9 +119,9 @@ class RealWebMCPGateway:
 
         # Tool Manifest - for Declarative API
         @self.app.get("/webmcp/tools.json")
-        async def tools_manifest():
+        async def tools_charter():
             """
-            Tool manifest for Declarative API
+            Tool charter for Declarative API
             Returns all available tools with schemas
             """
             return {"tools": list(self.tools.values())}

@@ -30,7 +30,7 @@
   - `/.well-known/webmcp` - WebMCP manifest
   - `/webmcp` - Console UI
   - `/webmcp/sdk.js` - JavaScript SDK
-  - `/webmcp/tools.json` - Tool manifest
+  - `/webmcp/tools.json` - Tool charter
   - `/webmcp/execute/{tool}` - Tool execution
   - `/webmcp/ws` - WebSocket
 - **Features**:

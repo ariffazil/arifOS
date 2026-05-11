@@ -1,7 +1,7 @@
 {
-  "$schema": "https://arifos.org/schemas/sovereignty-manifest/v1",
-  "$id": "arifos-sovereignty-manifest",
-  "title": "arifOS Sovereignty Manifest",
+  "$schema": "https://arifos.org/schemas/sovereignty-charter/v1",
+  "$id": "arifos-sovereignty-charter",
+  "title": "arifOS Sovereignty Charter",
   "description": "Machine-readable sovereignty configuration for arifOS deployments. Enables automated verification of constitutional enforcement across sovereignty levels.",
   "type": "object",
   "required": ["manifest_version", "deployment_id", "sovereignty_level", "identity", "infrastructure", "constitution"],

@@ -20,20 +20,20 @@ If `risk_level` rises to `critical` OR `loop_count` > 20: **pause and summarize 
 ## Current Session State
 
 ```yaml
-session_id:     OC-001
+session_id:     OC-003
 status:         sealed        # idle | active | paused | degraded | sealed
 stage:          999_SEAL
 risk_level:     low           # low | medium | high | critical
-entropy_delta:  0.05          # Confusion delta since last beat (0.0–1.0)
+entropy_delta:  0.09          # Confusion delta since last beat (0.0–1.0)
 tool_health:    healthy       # unknown | healthy | degraded | failing
-loop_count:     47            # Increments each turn
-last_action:    999 SEAL — OC-001 complete, git commit cce9843b
+loop_count:     1             # Increments each turn
+last_action:    999 SEAL — completed charter canon across active repo, kernel internals, and VPS guidance
 next_gate:      none          # Next governance gate
 human_approval_required: false
-current_task:   OC-001 — OPENCLAW governance upgrade — SEALED
+current_task:   OC-003 — Charter canon complete across active surfaces
 blockers:       []
 autonomy_level: L3
-timestamp:      2026-05-01T03:55:00Z
+timestamp:      2026-05-11T14:45:00Z
 ```
 
 ---
@@ -96,4 +96,4 @@ timestamp:      2026-05-01T03:55:00Z
 
 ## Runtime Notes
 
-_OC-001 SEALED. Awaiting Arif instruction._
+_OC-002 sealed. Sovereign bundle is buildable and Observatory favors runtime truth over stale dossier text._

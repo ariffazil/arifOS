@@ -1,10 +1,10 @@
 # arifOS Deployment Guide
 # DITEMPA BUKAN DIBERI — Forged, Not Given
 
-## Deploy Manifest
+## Deploy Charter
 
-All production deploys must reference `deploy/stack.manifest.json`.
-No deploy without a manifest. No manifest without pinned SHAs.
+All production deploys must reference `deploy/stack.charter.json`.
+No deploy without a charter. No charter without pinned SHAs.
 
 ---
 
@@ -22,12 +22,12 @@ STATS=$(git status --short | grep -v "^??" | wc -l)
 # 2. No stray submodule
 git submodule status | grep -q geox && echo "2. FAIL: geox present" || echo "2. PASS: no geox submodule"
 
-# 3. Manifest exists
-[ -f deploy/stack.manifest.json ] && echo "3. PASS: manifest exists" || { echo "3. FAIL: no manifest"; exit 1; }
+# 3. Charter exists
+[ -f deploy/stack.charter.json ] && echo "3. PASS: charter exists" || { echo "3. FAIL: no charter"; exit 1; }
 
-# 4. Refs match manifest
+# 4. Refs match charter
 bash scripts/pre-deploy-check.sh || { echo "4. FAIL: ref mismatch"; exit 1; }
-echo "4. PASS: refs match manifest"
+echo "4. PASS: refs match charter"
 
 # 5. Guard health (required before main merge only)
 # bash scripts/guard-health-check.sh || { echo "5. FAIL: guard needs wiring"; exit 1; }
@@ -39,14 +39,14 @@ echo "=== ALL CHECKS PASS — READY TO DEPLOY ==="
 
 ---
 
-## Deploy Manifest Schema
+## Deploy Charter Schema
 
 ```jsonc
 {
   // REQUIRED — identifies this as a deploy artifact
   "schema": 1,
 
-  // REQUIRED — ISO date of manifest creation
+  // REQUIRED — ISO date of charter creation
   "epoch": "YYYY-MM-DD",
 
   // REQUIRED — arifOS repo commit SHA
@@ -120,7 +120,7 @@ echo "=== ALL CHECKS PASS — READY TO DEPLOY ==="
 
 | Layer | Approach |
 |-------|----------|
-| Law (Floors F1-F13, manifest concept) | **General** — same principles everywhere |
+| Law (Floors F1-F13, charter concept) | **General** — same principles everywhere |
 | Repo roles (arifOS kernel, GEOX domain) | **Specialized** — each has one clear role |
 | Manifest schema | **General** — 7 fields, works with compose or k8s |
 | GEOX container image | **Specialized** — GEOX is GEOX, not generic |

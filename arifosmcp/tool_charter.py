@@ -1,5 +1,5 @@
 """
-arifOS Tool Operational Manifest
+arifOS Tool Operational Charter
 ═══════════════════════════════════
 
 Rich metadata layer for all 13 canonical MCP tools.
@@ -37,7 +37,7 @@ CANONICAL_ORDER: list[str] = [
 # OPERATIONAL METADATA — Per-tool structured guidance
 # ═══════════════════════════════════════════════════════════════════════════════
 
-TOOL_MANIFEST: dict[str, dict[str, Any]] = {
+TOOL_CHARTER: dict[str, dict[str, Any]] = {
     # ── 000_INIT ─────────────────────────────────────────────────────────────
     "arif_session_init": {
         "eureka_insight": "Identity is the root of accountability. An unbound session is mathematically equivalent to chaos.",
@@ -1378,7 +1378,7 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
         ],
         "modes": {
             "engineer": {
-                "purpose": "Execute a manifest (build, deploy, or system change).",
+                "purpose": "Execute a charter (build, deploy, or system change).",
                 "required_parameters": ["manifest"],
                 "optional_parameters": ["ack_irreversible"],
                 "returns": ["status", "execution_trace", "artifact_id"],
@@ -1514,4 +1514,4 @@ TOOL_MANIFEST: dict[str, dict[str, Any]] = {
 }
 
 
-__all__ = ["TOOL_MANIFEST", "CANONICAL_ORDER"]
+__all__ = ["TOOL_CHARTER", "CANONICAL_ORDER"]

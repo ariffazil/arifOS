@@ -323,7 +323,7 @@ class EmbodiedTool:
 
 # ── Pre-built manifests for arifOS canonical tools ────────────────────────────
 
-ARIFOS_TOOL_MANIFESTS = {
+ARIFOS_TOOL_CHARTERS = {
     "arif_session_init": ToolManifest(
         tool_id="arif_session_init",
         tool_name="arif_session_init",
@@ -1000,14 +1000,14 @@ ARIFOS_TOOL_MANIFESTS = {
 def register_all_arifos_tools() -> None:
     """Register all arifOS canonical tools in the self-model."""
     model = get_tool_self_model()
-    for _tool_id, manifest in ARIFOS_TOOL_MANIFESTS.items():
+    for _tool_id, manifest in ARIFOS_TOOL_CHARTERS.items():
         model.register(manifest)
-    logger.info(f"Registered {len(ARIFOS_TOOL_MANIFESTS)} arifOS canonical tools")
+    logger.info(f"Registered {len(ARIFOS_TOOL_CHARTERS)} arifOS canonical tools")
 
 
 __all__ = [
     "register_embodied_tool",
     "EmbodiedTool",
-    "ARIFOS_TOOL_MANIFESTS",
+    "ARIFOS_TOOL_CHARTERS",
     "register_all_arifos_tools",
 ]

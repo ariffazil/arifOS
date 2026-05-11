@@ -498,10 +498,10 @@
   },
   "discovery": {
     "canonical_registry_uri": "https://arifosmcp.arif-fazil.com/.well-known/arifos.schema.json",
-    "tool_manifests_base": "https://arifosmcp.arif-fazil.com/.well-known/tools/",
+    "tool_charters_base": "https://arifosmcp.arif-fazil.com/.well-known/tools/",
     "context_packets_base": "https://arifosmcp.arif-fazil.com/.well-known/context_packets/",
     "open_api_spec": "https://arifosmcp.arif-fazil.com/.well-known/openapi.json",
-    "mcp_manifest": "https://arifosmcp.arif-fazil.com/.well-known/mcp"
+    "mcp_charter": "https://arifosmcp.arif-fazil.com/.well-known/mcp"
   },
   "meta": {
     "author": "ARIF",

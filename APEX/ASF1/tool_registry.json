@@ -1,6 +1,6 @@
 {
   "_schema": "arifos-ssct-v2026.04.26-kanon-phase2",
-  "_note": "Generated from arifosmcp.constitutional_map.CANONICAL_TOOLS + arifosmcp.tool_manifest.TOOL_MANIFEST. Do not hand edit.",
+  "_note": "Generated from arifosmcp.constitutional_map.CANONICAL_TOOLS + arifosmcp.tool_charter.TOOL_CHARTER. Do not hand edit.",
   "canonical_count": 13,
   "probe_count": 0,
   "total_surface": 13,
@@ -2049,7 +2049,7 @@
         ],
         "modes": {
           "engineer": {
-            "purpose": "Execute a manifest (build, deploy, or system change).",
+            "purpose": "Execute a charter (build, deploy, or system change).",
             "required_parameters": [
               "manifest"
             ],

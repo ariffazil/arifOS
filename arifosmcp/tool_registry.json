@@ -2270,7 +2270,7 @@
         ],
         "modes": {
           "engineer": {
-            "purpose": "Execute a manifest (build, deploy, or system change).",
+            "purpose": "Execute a charter (build, deploy, or system change).",
             "required_parameters": [
               "manifest"
             ],

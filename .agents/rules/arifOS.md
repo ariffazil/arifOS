@@ -34,7 +34,7 @@
 
 ## FILENAME / CASE
 
-- **LOWERCASE**: All kernel manifests in `arifosmcp/tools/manifests/governance/` must be lowercase.
+- **LOWERCASE**: All kernel manifests in `arifosmcp/tools/charters/governance/` must be lowercase.
 - **NORMALIZATION**: If case mismatch occurs, use `git mv` to normalize, not delete/add.
 
 ---

@@ -12,22 +12,26 @@ services:
 
   # ── PLANE 1: GOVERNANCE ─────────────────────────────────────────────
   arifosmcp:
-    image: ghcr.io/ariffazil/arifos:57547988
+    image: ghcr.io/ariffazil/arifos:abcbb3e
     container_name: arifosmcp
     init: true
     restart: unless-stopped
     command: ["python", "-m", "arifosmcp.runtime.__main__"]
     env_file: [.env]
     environment:
-      DEPLOY_GIT_COMMIT: 575479882be207504151baf2cd0e99202c57e626  # pragma: allowlist secret
-      ARIFOS_BUILD_SHA: 575479882be207504151baf2cd0e99202c57e626  # pragma: allowlist secret
-      ARIFOS_IMAGE: ghcr.io/ariffazil/arifos:57547988
+      DEPLOY_GIT_COMMIT: abcbb3e  # pragma: allowlist secret
+      ARIFOS_BUILD_SHA: abcbb3e  # pragma: allowlist secret
+      ARIFOS_IMAGE: ghcr.io/ariffazil/arifos:abcbb3e
       ARIFOS_BUILD_TIME: "2026-05-10T12:45:14+00:00"
-      ARIFOS_GOVERNANCE_OPEN_MODE: "true"
+      ARIFOS_GOVERNANCE_OPEN_MODE: "false"
+      ARIFOS_GOVERNANCE_SECRET_FILE: /run/secrets/arifos_governance_secret
+      ARIFOS_SESSION_SECRET_FILE: /run/secrets/arifos_session_secret
       PYTHONPATH: /app
       DOTENV: disabled
       AAA_MCP_TRANSPORT: http
       ARIFOS_SERVER_MODE: http
+      BROWSERLESS_URL: http://headless_browser:3000
+      OPENCLAW_RESTART_TOKEN: openclaw-restart-888
       POSTGRES_URL: postgresql://arifos_admin:***@postgres:5432/vault999
       TELEMETRY_PATH: /app/telemetry
       SUPABASE_JWKS_URL: https://utbmmjmbolmuahwixjqc.supabase.co/auth/v1/.well-known/jwks.json
@@ -54,6 +58,8 @@ services:
       # H1 Core: Formal State Machine + Ontology Bridge (2026-05-10)
       # Mount entire arifosmcp package to ensure all new/modified files are available
       - /root/arifOS/arifosmcp:/app/arifosmcp:ro
+      - /root/compose/secrets/arifos_governance_secret:/run/secrets/arifos_governance_secret:ro
+      - /root/compose/secrets/arifos_session_secret:/run/secrets/arifos_session_secret:ro
       - /root/volumes/vault999:/var/lib/arifos/vault:rw
       - /root/WELL/state.json:/root/WELL/state.json:ro
       - telemetry-data:/app/telemetry
@@ -62,6 +68,8 @@ services:
       - "127.0.0.1:8080:8080"
     depends_on:
       postgres: { condition: service_healthy }
+      headless_browser: { condition: service_healthy }
+      graphiti-mcp: { condition: service_healthy }
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/health')\""]
       interval: 60s
@@ -101,6 +109,12 @@ services:
     ports:
       - "127.0.0.1:8082:8082"
     networks: [arifos_core]
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/health')\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
   # ── AAA: Control Plane Seed ─────────────────────────────────────────────
   # ── AAA-A2A: Agent-to-Agent Gateway ────────────────────────────────────
   aaa-a2a:
@@ -118,6 +132,12 @@ services:
       - /root/AAA/a2a-server/vault.js:/app/vault.js:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3001/health >/dev/null 2>&1 && exit 0 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
   # ── PLANE 3: DATA & MEMORY ──────────────────────────────────────────
   postgres:
     image: pgvector/pgvector:pg16
@@ -142,6 +162,19 @@ services:
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
+  nats:
+    image: nats:latest
+    container_name: nats
+    restart: unless-stopped
+    command: ["--config", "nats-server.conf"]
+    ports: ["127.0.0.1:4222:4222", "127.0.0.1:8222:8222"]
+    networks: [arifos_core]
+    healthcheck:
+      test: ["CMD", "/nats-server", "--signal", "reload=1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
   qdrant:
     image: qdrant/qdrant:latest
     container_name: qdrant
@@ -149,6 +182,49 @@ services:
     ports: ["127.0.0.1:6333:6333", "127.0.0.1:6334:6334"]
     volumes: [/root/volumes/qdrant:/qdrant/storage:rw]
     networks: [arifos_core]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -lc 'exec 3<>/dev/tcp/127.0.0.1/6333 && printf \"GET /readyz HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && grep -q \"200 OK\" <&3'"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+  headless_browser:
+    image: browserless/chrome:latest
+    container_name: headless_browser
+    restart: unless-stopped
+    shm_size: 1gb
+    environment:
+      PREBOOT_CHROME: "true"
+      MAX_CONCURRENT_SESSIONS: 4
+      ENABLE_DEBUGGER: "false"
+    networks: [arifos_core]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000/ >/dev/null 2>&1 && exit 0 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+  graphiti-mcp:
+    image: zepai/knowledge-graph-mcp:latest
+    container_name: graphiti-mcp
+    restart: unless-stopped
+    environment:
+      FALKORDB_URI: redis://localhost:6379
+      FALKORDB_DATABASE: arifos
+      GRAPHITI_GROUP_ID: af-forge
+      SEMAPHORE_LIMIT: 10
+      CONFIG_PATH: /app/mcp/config/config.yaml
+      BROWSER: "0"
+    volumes:
+      - graphiti-falkordb-data:/var/lib/falkordb/data
+      - graphiti-mcp-logs:/var/log/graphiti
+    networks: [arifos_core]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
   # ── PLANE 5: OBSERVABILITY ──────────────────────────────────────────
   loki:
     image: grafana/loki:3.4.2
@@ -195,6 +271,12 @@ services:
     ports: ["127.0.0.1:11434:11434"]
     volumes: [/root/volumes/ollama:/root/.ollama:rw]
     networks: [arifos_core]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -lc 'exec 3<>/dev/tcp/127.0.0.1/11434 && printf \"GET /api/tags HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && grep -q \"200 OK\" <&3'"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
   # ── PLANE 7: UTILITIES ──────────────────────────────────────────────
   vault999:
     build:
@@ -256,17 +338,21 @@ services:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8083/health')\""]
       interval: 60s
       start_period: 10s
-  # ── HERMES AGENT: ASI Deliberative Server ─────────────────────────────────
+# ── HERMES AGENT: ASI Deliberative Server ─────────────────────────────────
   hermes-agent:
     image: hermes-agent:v1.0.3
     container_name: hermes-agent
     init: true
     restart: unless-stopped
     command: ["node", "src/server.js"]
+    env_file:
+      - /root/AAA/.hermes/.env
     environment:
       - PORT=3002
-      - A2A_TOKEN=hermes-agent-token-dev
-      - A2A_API_KEY=hermes-agent-apikey-dev
+      - A2A_TOKEN=***-dev
+      - A2A_API_KEY=***-dev
+      - OLLAMA_BASE_URL=http://ollama-engine-prod:11434/v1
+      - REDIS_URL=redis://redis:6379/1
     networks: [arifos_core]
     ports:
       - "127.0.0.1:3002:3002"
@@ -287,3 +373,7 @@ networks:
 volumes:
   telemetry-data:
     name: af-forge_telemetry-data
+  graphiti-falkordb-data:
+    name: af-forge_graphiti-falkordb-data
+  graphiti-mcp-logs:
+    name: af-forge_graphiti-mcp-logs

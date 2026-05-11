@@ -1,7 +1,7 @@
 """
 arifosmcp/runtime/manifest_v2.py — arifOS MCP v2 Manifest
 
-Well-known manifest for discovery and SDK generation.
+Well-known charter for discovery and SDK generation.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -15,8 +15,8 @@ from arifosmcp.runtime.resources_v2 import SYSTEM_CAPABILITIES
 from arifosmcp.runtime.tool_specs_v2 import V2_TOOLS
 
 
-def build_manifest_v2(public_base_url: str = "https://arifosmcp.arif-fazil.com") -> dict[str, Any]:
-    """Build the canonical MCP v2 manifest."""
+def build_charter_v2(public_base_url: str = "https://arifosmcp.arif-fazil.com") -> dict[str, Any]:
+    """Build the canonical MCP v2 charter."""
 
     # Build tool entries
     tools = []
@@ -134,10 +134,10 @@ def build_manifest_v2(public_base_url: str = "https://arifosmcp.arif-fazil.com")
     }
 
 
-def build_well_known_manifest(
+def build_well_known_charter(
     public_base_url: str = "https://arifosmcp.arif-fazil.com",
 ) -> dict[str, Any]:
-    """Build the .well-known/manifest.json minimal format."""
+    """Build the .well-known/manifest.json minimal charter format."""
     return {
         "schema_version": "2025-11-25",
         "name": "ARIFOS MCP",
@@ -152,6 +152,6 @@ def build_well_known_manifest(
 
 
 __all__ = [
-    "build_manifest_v2",
-    "build_well_known_manifest",
+    "build_charter_v2",
+    "build_well_known_charter",
 ]

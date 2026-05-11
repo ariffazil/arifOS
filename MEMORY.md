@@ -63,6 +63,43 @@ API token lacks "Cache Purge" permission — manual purge required via Cloudflar
 
 *Older entries in memory/*.md*
 
+## OpenCode MCP Wiring — 2026-05-11
+
+OpenCode local config now distinguishes between the canonical constitutional kernel and the unified intelligence surface.
+
+- `.opencode.json`:
+  - `arifOS-Kernel` → `.venv/bin/python -m arifosmcp.runtime stdio`
+  - `arifOS-Intelligence` → `.venv/bin/python -m arifosmcp.opencode_mcp intelligence`
+  - `arifOS-Public` → `https://mcp.arif-fazil.com/mcp` (disabled by default)
+- `docs/reference/spec/opencode.json` updated to match the same split.
+- `docs/reference/spec/opencode-mcp-wiring.md` added as the direct operator note.
+
+Decision: use `stdio` as the trusted local OpenCode transport, and keep `https` as the federation/public transport.
+
+Extension: added `arifOS-Sovereign` as the default OpenCode bundle plus dedicated `arifOS-WELL`, `arifOS-WEALTH`, and `arifOS-GEOX` local surfaces. Intelligence now routes through a dedicated OpenCode launcher with G02 mounted.
+
+Observatory upgrade: federation probe now exposes runtime evidence fields (`probe_method`, `probe_endpoint`, `error`), the Apex dashboard updates organ/site dots from live probe state, and contradicted legacy dossier notes are moved out of `Known Gaps` into `Historical Notes`.
+
+
+## Charter Naming Unification — 2026-05-11
+
+Active authored declaration files now use `charter` as the canonical singular term.
+
+- `federation_manifest.json` -> `federation.charter.json`
+- `arifosmcp/sites/apex-dashboard/federation-manifest.json` -> `federation.charter.json`
+- `deploy/stack.manifest.json` -> `deploy/stack.charter.json`
+- `config/manifest/canonical_manifest.yaml` -> `config/charter/kernel.charter.yaml`
+- `docs/reference/spec/mcp-manifest.json` -> `docs/reference/spec/mcp.charter.json`
+- `docs/reference/spec/arif_manifest.yaml` -> `docs/reference/spec/arif.charter.yaml`
+- `CONFIG/SovereigntyManifest.json` -> `CONFIG/sovereignty.charter.json`
+- `docs/SovereigntyManifest.json` -> `docs/sovereignty.charter.json`
+- `arifosmcp/tool_manifest.py` -> `arifosmcp/tool_charter.py`
+- `arifosmcp/tools/manifests/tool_manifest.json` -> `arifosmcp/tools/charters/tool.charter.json`
+
+Naming canon: use `charter` for authored declarative truth. Keep `server.json`, `registry.json`, `agent.json`, and similar protocol terms unchanged because they are semantically distinct surfaces, not naming drift.
+
+Completion pass: renamed safe internal identifiers such as `tool_manifest` -> `tool_charter`, added `CHARTERS.md`, and added `docs/deployment/VPS_CHARTER_MIGRATION.md`. Remaining active `manifest` references are limited to migration search strings, historical memory, protocol/schema phrases, or intentionally stable external API contracts like forge manifests.
+
 ## 777_WITNESS — LLM Output Envelope (committed 2026-05-06)
 
 **Commits:** d83d0f1b (envelope + 3 tools), e90b0256 (judge/vault wired)

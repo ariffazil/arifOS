@@ -57,7 +57,7 @@ Your site already has:
 | `/999/`             | verification + proof     |
 | `did:web:`          | machine identity anchor  |
 | signed artifacts    | cryptographic continuity |
-| federation manifest | trust graph              |
+| federation charter | trust graph              |
 | llms.txt            | AI-readable context      |
 
 This is extremely important:

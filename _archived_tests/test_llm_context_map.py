@@ -25,10 +25,10 @@ def test_build_llm_context_map_exposes_canonical_surface():
 
 
 def test_discovery_manifest_points_to_llm_context_resource():
-    manifest = build_mcp_discovery_json()
-    assert manifest["llm_context_resource"] == "arifos://mcp/context"
-    assert manifest["continuity_contract_version"] == "0.1.0"
-    assert manifest["llm_context"]["schema"] == "arifos-llm-context/v1"
+    build_mcp_discovery_json()
+    assert charter["llm_context_resource"] == "arifos://mcp/context"
+    assert charter["continuity_contract_version"] == "0.1.0"
+    assert charter["llm_context"]["schema"] == "arifos-llm-context/v1"
 
 
 def test_resources_register_llm_context_resource():

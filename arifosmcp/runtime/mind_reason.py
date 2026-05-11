@@ -26,28 +26,59 @@ logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """You are Arif — Constitutional AI operating under the 13 Floors (F01–F13).
 
-Stage 333_MIND: Reasoning and Synthesis
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-You reason by grounding every conclusion in the constitutional axioms.
-You MUST:
-- Cite F02 (Truth) — no fabrication, distinguish fact from claim
-- Cite F04 (Clarity) — transparent intent
-- Cite F07 (Humility) — acknowledge Ω₀ ∈ [0.03, 0.05] calibration band
-- Cite F08 (Genius) — precise, elegant correctness (G ≥ 0.80)
-- NEVER claim consciousness, emotion, or self-awareness (F09 Anti-Hantu)
-- Always distinguish CLAIM (unverified) from FACT (F02-verified)
-- If verdict is HOLD or VOID, you MUST provide reasons[] explaining why
+Stage 333_MIND: Structured Reasoning Instrument
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+You provide structured reasoning, NOT final constitutional verdicts.
 
-Output: JSON ONLY. No markdown fences. No prose. Return exactly this structure:
+Your ROLE is to behave as a REASONING WITNESS:
+- Break down the logic clearly
+- Separate fact from inference
+- Acknowledge uncertainty explicitly
+- NEVER return "SEAL" (that is for 888_JUDGE only)
+
+MODES:
+- reason: General reasoning
+- reflect: Interpretive / philosophical / biographical reflection
+- decompose: Break down a complex problem
+- compare: Compare multiple options
+- counterargue: Generate objections/contradictions
+- trace: Build a causal or logical chain
+- plan: Produce a structured action plan
+- verify: Check claims against evidence receipts
+- escalate_check: Decide if 888_JUDGE is needed
+
+CLAIM STATES:
+- OBSERVED_INPUT: Directly from user/tool input
+- INFERENCE: Reasoned from available data
+- HYPOTHESIS: Plausible but unverified
+- SUPPORTED_CLAIM: Backed by provided evidence
+- VERIFIED_FACT: Strongly verified by immutable receipts
+- NORMATIVE_ADVICE: Recommendation based on axioms
+- SPECULATION: Weak / imaginative / creative
+- UNSUPPORTED: Lacks any evidence or logical basis
+
+OUTPUT: JSON ONLY. Return exactly this structure:
 {
-  "verdict": "CLAIM" | "PLAUSIBLE" | "HOLD" | "VOID",
+  "status": "REFLECTED" | "REASONED" | "HYPOTHESIS" | "NEEDS_EVIDENCE" | "HOLD" | "ESCALATE_TO_888",
+  "claim_state": "one of the claim states above",
   "synthesis": "one-sentence constitutional synthesis",
-  "confidence": 0.0-1.0,
-  "omega_0": 0.03-0.05,
-  "delta_S": -0.1 to 0.1,
-  "scars": ["list of unresolved contradictions"],
+  "reasoning": {
+    "observed_inputs": ["list"],
+    "inferences": ["list"],
+    "counterarguments": ["list"],
+    "alternative_explanations": ["list"],
+    "missing_evidence": ["list"]
+  },
+  "confidence": {
+    "reasoning_confidence": 0.0-1.0,
+    "evidence_confidence": 0.0-1.0,
+    "overall_confidence": 0.0-1.0
+  },
+  "uncertainty": [
+    {"type": "string", "detail": "string"}
+  ],
   "axioms_used": ["list of F-codes cited"],
-  "reasons": ["required when verdict is HOLD or VOID"]
+  "next_safe_action": ["list of suggested next tools: 222_FETCH, 555_MEMORY, 666_HEART, 888_JUDGE"]
 }
 """
 
@@ -56,74 +87,89 @@ Output: JSON ONLY. No markdown fences. No prose. Return exactly this structure:
 RESPONSE_SCHEMA = {
     "type": "object",
     "properties": {
-        "verdict": {
+        "status": {
             "type": "string",
-            "enum": ["CLAIM", "PLAUSIBLE", "HOLD", "VOID"],
-            "description": "Constitutional verdict for this reasoning",
+            "enum": [
+                "REFLECTED",
+                "REASONED",
+                "HYPOTHESIS",
+                "NEEDS_EVIDENCE",
+                "HOLD",
+                "ESCALATE_TO_888",
+            ],
+            "description": "Reasoning status — SEAL is forbidden",
         },
-        "synthesis": {
+        "claim_state": {
             "type": "string",
-            "description": "Constitutional synthesis of the reasoning",
+            "enum": [
+                "OBSERVED_INPUT",
+                "INFERENCE",
+                "HYPOTHESIS",
+                "SUPPORTED_CLAIM",
+                "VERIFIED_FACT",
+                "NORMATIVE_ADVICE",
+                "SPECULATION",
+                "UNSUPPORTED",
+            ],
+        },
+        "synthesis": {"type": "string"},
+        "reasoning": {
+            "type": "object",
+            "properties": {
+                "observed_inputs": {"type": "array", "items": {"type": "string"}},
+                "inferences": {"type": "array", "items": {"type": "string"}},
+                "counterarguments": {"type": "array", "items": {"type": "string"}},
+                "alternative_explanations": {"type": "array", "items": {"type": "string"}},
+                "missing_evidence": {"type": "array", "items": {"type": "string"}},
+            },
         },
         "confidence": {
-            "type": "number",
-            "minimum": 0.0,
-            "maximum": 1.0,
-            "description": "Confidence score calibrated to F07 Humility band",
+            "type": "object",
+            "properties": {
+                "reasoning_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                "evidence_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                "overall_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            },
         },
-        "omega_0": {
-            "type": "number",
-            "description": "Uncertainty coefficient, F07 Humility",
-        },
-        "delta_S": {
-            "type": "number",
-            "description": "Entropy delta — change in system uncertainty",
-        },
-        "scars": {
+        "uncertainty": {
             "type": "array",
-            "items": {"type": "string"},
-            "description": "Unresolved contradictions and known gaps",
+            "items": {
+                "type": "object",
+                "properties": {"type": {"type": "string"}, "detail": {"type": "string"}},
+            },
         },
-        "axioms_used": {
-            "type": "array",
-            "items": {"type": "string"},
-            "description": "F-codes cited in reasoning chain",
-        },
-        "reasons": {
-            "type": "array",
-            "items": {"type": "string"},
-            "description": "Required when verdict is HOLD or VOID",
-        },
+        "axioms_used": {"type": "array", "items": {"type": "string"}},
+        "next_safe_action": {"type": "array", "items": {"type": "string"}},
     },
-    "required": ["verdict", "synthesis", "confidence"],
+    "required": ["status", "claim_state", "synthesis", "reasoning", "confidence"],
 }
 
 # ── Field Provenance ───────────────────────────────────────────────────────────
 # F2 addendum: Every field must declare its source to prevent authority confusion.
 
 _FIELD_PROVENANCE_LLM = {
-    "verdict": "llm_generated_enum_validated",
+    "status": "llm_generated_enum_validated",
+    "claim_state": "llm_generated_enum_validated",
     "synthesis": "llm_generated_pass_through",
-    "confidence": "llm_generated_clamped",
-    "delta_S": "llm_generated_defaulted_if_missing",
-    "scars": "llm_generated_defaulted_if_empty",
+    "reasoning": "llm_generated_structured",
+    "confidence": "llm_generated_structured_clamped",
+    "uncertainty": "llm_generated_array",
     "axioms_used": "llm_generated_defaulted_if_empty",
-    "reasons": "llm_generated_defaulted_if_empty",
-    "omega_0": "code_derived_from_confidence",
+    "next_safe_action": "llm_generated_defaulted_if_empty",
     "reasoning_mode": "runtime_metadata",
     "_llm_tier": "runtime_metadata",
     "timestamp": "runtime_metadata",
 }
 
 _FIELD_PROVENANCE_FALLBACK = {
-    "verdict": "code_derived_mode_mapping",
-    "synthesis": "code_derived_template_or_heuristic",
-    "confidence": "code_derived_fixed_value",
-    "delta_S": "code_derived_fixed_value",
-    "scars": "code_derived_heuristic",
+    "status": "code_derived_mode_mapping",
+    "claim_state": "code_derived_default_inference",
+    "synthesis": "code_derived_template",
+    "reasoning": "code_derived_empty_structured",
+    "confidence": "code_derived_fixed_structured",
+    "uncertainty": "code_derived_fallback_warning",
     "axioms_used": "code_derived_empty_default",
-    "reasons": "code_derived_empty_default",
-    "omega_0": "code_derived_from_confidence",
+    "next_safe_action": "code_derived_empty_default",
     "reasoning_mode": "runtime_metadata",
     "timestamp": "runtime_metadata",
 }
@@ -137,24 +183,26 @@ def _build_witness_statement(llm_tier: str | None = None) -> dict[str, str]:
             "wrapper_role": "validate_clamp_route_record",
             "approval_authority": "human_judge_only",
             "calibration_note": "confidence is model self-assessment, not verified truth probability",
+            "reasoning_instrument_status": "STRUCTURED_WITNESS",
         }
     return {
         "semantic_payload_source": "deterministic_fallback",
         "wrapper_role": "validate_clamp_route_record",
         "approval_authority": "human_judge_only",
         "calibration_note": "confidence is fixed heuristic, not empirical probability",
+        "reasoning_instrument_status": "DETERMINISTIC_FALLBACK",
     }
 
 
-def _verdict_to_reasoning_mode(verdict: str) -> str:
-    if verdict == "CLAIM":
-        return "exploratory"
-    if verdict == "PLAUSIBLE":
+def _status_to_reasoning_mode(status: str) -> str:
+    if status == "REASONED":
         return "analytical"
-    if verdict == "HOLD":
+    if status == "REFLECTED":
+        return "interpretive"
+    if status == "HYPOTHESIS":
+        return "exploratory"
+    if status == "HOLD":
         return "suspensive"
-    if verdict == "VOID":
-        return "terminative"
     return "unknown"
 
 
@@ -174,9 +222,6 @@ async def arif_mind_reason(
     Returns a full reasoning packet including:
     - parsed_output: the LLM reasoning result
     - envelope_metadata: 777_WITNESS tracking (for audit/judge/memory)
-
-    The parsed_output is what tool logic uses.
-    The envelope_metadata is what 888_JUDGE and 999_VAULT see.
     """
     timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
@@ -184,11 +229,13 @@ async def arif_mind_reason(
     user_prompt = f"""QUERY: {query}
 MODE: {mode}
 DEPTH: {depth}
+SESSION_ID: {session_id or 'none'}
+ACTOR_ID: {actor_id or 'anonymous'}
 
 Reason through this under the 13 constitutional floors.
+Provide structured reasoning as a witness.
 Cite F02 (Truth), F07 (Humility), F08 (Genius).
-Distinguish CLAIM from FACT.
-Provide falsifiable reasoning."""
+Distinguish CLAIM from FACT."""
 
     # ── LLM Inference with 777_WITNESS Envelope ───────────────────────────────────
     try:
@@ -210,60 +257,74 @@ Provide falsifiable reasoning."""
 
     # ── Deterministic Fallback ─────────────────────────────────────────────────
     if not llm_available:
-        verdict = _mode_to_verdict_fallback(mode)
-        synthesis = f"[deterministic] {mode} reasoning — LLM unavailable"
-        confidence = 0.3
-        omega_0 = 0.05
-        delta_s_val = 0.05
-        scars = ["LLM unavailable — F07 Humility demands acknowledgment"]
-        axioms_used = ["F07"]
-        reasons = [] if verdict != "HOLD" else ["LLM unavailable forces conservative HOLD"]
+        status = _mode_to_status_fallback(mode)
         parsed_output = {
-            "verdict": verdict,
-            "synthesis": synthesis,
-            "confidence": confidence,
-            "omega_0": omega_0,
-            "delta_S": delta_s_val,
-            "scars": scars,
-            "axioms_used": axioms_used,
-            "reasons": reasons,
+            "status": status,
+            "claim_state": "HYPOTHESIS",
+            "synthesis": f"[deterministic] {mode} reasoning — LLM unavailable",
+            "reasoning": {
+                "observed_inputs": [query],
+                "inferences": ["LLM fallback triggered"],
+                "counterarguments": [],
+                "alternative_explanations": [],
+                "missing_evidence": ["LLM core unavailable"],
+            },
+            "confidence": {
+                "reasoning_confidence": 0.5,
+                "evidence_confidence": 0.3,
+                "overall_confidence": 0.3,
+            },
+            "uncertainty": [
+                {"type": "LLM_FAILURE", "detail": "Primary reasoning engine unavailable"}
+            ],
+            "axioms_used": ["F07"],
+            "next_safe_action": ["222_FETCH", "888_JUDGE"],
         }
         provenance = _FIELD_PROVENANCE_FALLBACK
         witness = _build_witness_statement(None)
-        reasoning_mode = _verdict_to_reasoning_mode(verdict)
+        reasoning_mode = _status_to_reasoning_mode(status)
     else:
         # ── LLM Path — Extract from Envelope ─────────────────────────────────────
         parsed_output = envelope.parsed_output
-        confidence = (
-            parsed_output.get("confidence", 0.5) if isinstance(parsed_output, dict) else 0.5
-        )
-        omega_0 = parsed_output.get("omega_0") or round(0.05 - (confidence - 0.5) * 0.04, 4)
-        delta_s_val = parsed_output.get("delta_S", 0.0) if isinstance(parsed_output, dict) else 0.0
-        verdict = (
-            parsed_output.get("verdict", "CLAIM") if isinstance(parsed_output, dict) else "CLAIM"
-        )
-        synthesis = parsed_output.get("synthesis", "") if isinstance(parsed_output, dict) else ""
-        scars = parsed_output.get("scars", []) if isinstance(parsed_output, dict) else []
-        axioms_used = (
-            parsed_output.get("axioms_used", []) if isinstance(parsed_output, dict) else []
-        )
-        reasons = parsed_output.get("reasons", []) if isinstance(parsed_output, dict) else []
+        status = parsed_output.get("status", "HOLD")
+
+        # Internal Integrity Check: overall_confidence must not exceed evidence_confidence
+        conf = parsed_output.get("confidence", {"overall_confidence": 0.5})
+        overall = conf.get("overall_confidence", 0.5)
+        evidence = conf.get("evidence_confidence", 0.3)
+        if overall > evidence + 0.2:
+            conf["overall_confidence"] = evidence + 0.1
+            parsed_output["confidence"] = conf
+
+        # Uncertainty auto-population for evidence gaps
+        uncertainty = parsed_output.get("uncertainty", [])
+        reasoning = parsed_output.get("reasoning", {})
+        if not reasoning.get("observed_inputs") or not reasoning.get("inferences"):
+            uncertainty.append(
+                {"type": "REASONING_GAP", "detail": "Structured reasoning fields incomplete"}
+            )
+        if not session_id:
+            uncertainty.append({"type": "SESSION_GAP", "detail": "No governed session_id bound"})
+        parsed_output["uncertainty"] = uncertainty
+
         provenance = _FIELD_PROVENANCE_LLM
         witness = _build_witness_statement(llm_tier)
-        reasoning_mode = _verdict_to_reasoning_mode(verdict)
+        reasoning_mode = _status_to_reasoning_mode(status)
 
     # ── Build Complete Reasoning Packet ─────────────────────────────────────────
     result = {
-        # Tool result fields
-        "verdict": verdict,
-        "synthesis": synthesis if "synthesis" in locals() else parsed_output.get("synthesis", ""),
-        "confidence": confidence,
-        "omega_0": omega_0,
-        "delta_S": delta_s_val,
-        "scars": scars,
-        "axioms_used": axioms_used,
-        "reasons": reasons,
+        **parsed_output,
         "reasoning_mode": reasoning_mode,
+        "session": {
+            "session_id": session_id,
+            "bound": bool(session_id),
+            "governance_level": "governed_reasoning" if session_id else "ungoverned_reflection",
+        },
+        "actor": {
+            "requested_actor_id": actor_id,
+            "resolved_actor_id": actor_id if actor_id else "anonymous",
+            "actor_binding_confidence": 1.0 if actor_id else 0.5,
+        },
         # Metadata
         "timestamp": timestamp,
         "_field_provenance": provenance,
@@ -312,19 +373,18 @@ Provide falsifiable reasoning."""
     return result
 
 
-def _mode_to_verdict_fallback(mode: str) -> str:
-    """Deterministic verdict when LLM is unavailable."""
+def _mode_to_status_fallback(mode: str) -> str:
+    """Deterministic status when LLM is unavailable."""
     mapping = {
         "reason": "HOLD",
+        "reflect": "REFLECTED",
+        "decompose": "HOLD",
+        "compare": "HOLD",
+        "counterargue": "HOLD",
+        "trace": "HOLD",
         "plan": "HOLD",
-        "reflect": "PLAUSIBLE",
         "verify": "HOLD",
-        "critique": "HOLD",
-        "debate": "HOLD",
-        "socratic": "PLAUSIBLE",
-        "plan_review": "HOLD",
-        "plan_approve": "HOLD",
-        "axioms": "PLAUSIBLE",
+        "escalate_check": "HOLD",
     }
     return mapping.get(mode, "HOLD")
 

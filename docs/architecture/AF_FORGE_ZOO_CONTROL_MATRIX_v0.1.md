@@ -84,7 +84,7 @@ Each module must emit deterministic events with stable reason codes.
 | SCOPE_VIOLATION | tool or path outside allowed scope | FAM-03 |
 | CONFLICT_UNRESOLVED | multi-agent disagreement unresolved | FAM-04 |
 | MESSAGE_SCHEMA_VIOLATION | inter-agent payload schema invalid | FAM-04 |
-| ACTION_WITHOUT_MANIFEST | mutation detected with no manifest | FAM-05 |
+| ACTION_WITHOUT_MANIFEST | mutation detected with no charter | FAM-05 |
 | OUTCOME_UNSEALED | terminal outcome not sealed to vault | FAM-05 |
 | CLAIM_EVIDENCE_DIVERGENCE | claim does not match evidence | FAM-05 |
 

@@ -291,7 +291,7 @@ tests/test_model_soul.py::test_init_anchor_v2_claimed_only PASSED
 - ✅ `vault_ledger verify`: Attempts verification (SABAR expected without anchored session)
 
 ### 🚀 Eureka Forge + ShellForge Integration
-- `ToolRegistry` dynamically loads YAML manifests from `/tools/manifests/`
+- `ToolRegistry` dynamically loads YAML manifests from `/tools/charters/`
 - `ShellForge` provides hardened shell execution gateway with injection defense (F12)
 - `arifOS_kernel.yaml` manifest declares F1/F12/F13 floor dependencies
 
@@ -302,7 +302,7 @@ tests/test_model_soul.py::test_init_anchor_v2_claimed_only PASSED
 | `arifosmcp/runtime/tools_internal.py` | floor_check + entropy modes + confidence fix |
 | `arifosmcp/tools/registry.py` | NEW — ToolRegistry manifest loader |
 | `arifosmcp/runtime/shell_forge.py` | NEW — ShellForge gateway |
-| `arifosmcp/tools/manifests/governance/arifOS_kernel.yaml` | NEW — YAML manifest |
+| `arifosmcp/tools/charters/governance/arifOS_kernel.yaml` | NEW — YAML manifest |
 
 ### Constraint
 - **Zero new tools added.** All 11 mega-tools preserved. P0 capabilities as modes only.

@@ -71,12 +71,88 @@
     }
   },
   "mcp": {
-    "arifos": {
+    "arifos-sovereign": {
       "type": "local",
-      "command": ["python", "-m", "arifosmcp.runtime", "stdio"],
+      "command": [
+        "python",
+        "-m",
+        "arifosmcp.opencode_mcp",
+        "sovereign"
+      ],
+      "enabled": true,
       "environment": {
         "ARIFOS_MODE": "strict"
       }
+    },
+    "arifos-kernel": {
+      "type": "local",
+      "command": [
+        "python",
+        "-m",
+        "arifosmcp.runtime",
+        "stdio"
+      ],
+      "enabled": true,
+      "environment": {
+        "ARIFOS_MODE": "strict"
+      }
+    },
+    "arifos-intelligence": {
+      "type": "local",
+      "command": [
+        "python",
+        "-m",
+        "arifosmcp.opencode_mcp",
+        "intelligence"
+      ],
+      "enabled": false,
+      "environment": {
+        "ARIFOS_MODE": "strict"
+      }
+    },
+    "arifos-well": {
+      "type": "local",
+      "command": [
+        "python",
+        "-m",
+        "arifosmcp.opencode_mcp",
+        "well"
+      ],
+      "enabled": false,
+      "environment": {
+        "ARIFOS_MODE": "strict"
+      }
+    },
+    "arifos-wealth": {
+      "type": "local",
+      "command": [
+        "python",
+        "-m",
+        "arifosmcp.opencode_mcp",
+        "wealth"
+      ],
+      "enabled": false,
+      "environment": {
+        "ARIFOS_MODE": "strict"
+      }
+    },
+    "arifos-geox": {
+      "type": "local",
+      "command": [
+        "python",
+        "-m",
+        "arifosmcp.opencode_mcp",
+        "geox"
+      ],
+      "enabled": false,
+      "environment": {
+        "ARIFOS_MODE": "strict"
+      }
+    },
+    "arifos-public": {
+      "type": "http",
+      "url": "https://mcp.arif-fazil.com/mcp",
+      "enabled": false
     }
   }
 }

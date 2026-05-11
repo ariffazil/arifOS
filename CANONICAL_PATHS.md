@@ -62,7 +62,7 @@ This document is the **single source of truth** for which files in this reposito
 |-----------|------------|------|
 | **HTTP / Streamable-HTTP** | `python -m arifosmcp.runtime.server` or `server.py` | `server.py` (project root) |
 | **STDIO** | **REMOVED in KANON** | `arifosmcp/stdio_server.py` (tombstone only) |
-| **Docker** | `docker compose up arifosmcp` | `Dockerfile` + `docker-compose.yml` |
+| **Docker** | `docker compose up -d` | `Dockerfile` + `docker-compose.yml` (`deploy/docker-compose.yml` is the aligned deployment copy) |
 
 **Non-canonical entrypoints (do not use):**
 - `arifosmcp/server.py` (old unified entry)

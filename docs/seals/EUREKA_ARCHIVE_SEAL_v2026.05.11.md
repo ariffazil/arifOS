@@ -335,7 +335,7 @@ SEALED_EVENTS.jsonl is the only live data — **back it up before any vault cons
 | `/srv/arifos/C:` | VPS directory | Delete — Windows path artifact |
 | `/srv/arifos/vault-service/` | VPS directory | Design absorbed in E1–E6; delete after VAULT999 backup |
 | `/srv/arifos/vault999_writer/` | VPS directory | Design absorbed in E1–E6; delete after VAULT999 backup |
-| `/srv/arifos/governor_mcp/` | VPS directory | Tool manifest absorbed in E4–E5; delete |
+| `/srv/arifos/governor_mcp/` | VPS directory | Tool charter absorbed in E4–E5; delete |
 | `/srv/arifos/geox-wealth/` | VPS directory | WELD-004 topology absorbed in E7; delete |
 | `/srv/openclaw/workspace/` | VPS directory | **Arif must decide** — 1.6GB untracked, data risk (GEOX 442MB, arifOS copy 227MB) |
 | `/srv/arifos/VAULT999/SEALED_EVENTS.jsonl` | VPS data | **BACK UP FIRST** — only live vault ledger data on this VPS |

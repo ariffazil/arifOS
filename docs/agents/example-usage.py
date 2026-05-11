@@ -167,7 +167,7 @@ def main():
   ✅ #1: Agent identity + policy-gated execution
   ✅ #2: Unified memory ledger (memory-ledger.yaml)
   ✅ #3: Event-driven orchestration (event-bus.yaml)
-  ✅ #4: Capability self-knowledge (capability-manifest.yaml)
+  ✅ #4: Capability self-knowledge (capability.charter.yaml)
   ✅ #5: Broken paths quarantined (kimi/aider/opencode DISABLED)
   ✅ #6: Immutable operational replay (forensic-replay.yaml)
     """

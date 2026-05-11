@@ -776,6 +776,65 @@ const FLOOR_NAMES = {
   F10:'ONTOLOGY',F11:'AUTH',F12:'INJECTION',F13:'SOVEREIGN'
 };
 
+function statusToNavDot(status) {
+  if (status === 'healthy') return 'dot-ok';
+  if (status === 'degraded' || status === 'unknown') return 'dot-hold';
+  return 'dot-err';
+}
+
+function statusToSiteDot(status) {
+  if (status === 'healthy') return 'smap-ok';
+  if (status === 'degraded' || status === 'unknown') return 'smap-hold';
+  return 'smap-err';
+}
+
+function applyOrganStatusDots(organId, status) {
+  const navDot = document.getElementById(organId + 'Dot');
+  const siteDot = document.getElementById(organId + 'SmDot');
+  if (navDot) navDot.className = 'dot ' + statusToNavDot(status);
+  if (siteDot) siteDot.className = 'smap-dot ' + statusToSiteDot(status);
+}
+
+function splitOrganTruth(org, probed) {
+  const healthStatus = probed.health || 'unknown';
+  const activeGaps = [];
+  const historicalNotes = [];
+  const architecture = [];
+  const architectureHistory = [];
+
+  const gapLooksStale = (text) => {
+    const value = String(text || '').toLowerCase();
+    return healthStatus === 'healthy' && (
+      value.includes('removed from production compose') ||
+      value.includes('currently offline') ||
+      value.includes('no http /health') ||
+      value.includes('no /health exposed') ||
+      value.includes('probe via mcp')
+    );
+  };
+
+  (org.known_gaps || []).forEach((gap) => {
+    if (gapLooksStale(gap.item)) {
+      historicalNotes.push({
+        title: gap.item,
+        note: 'Runtime probe currently contradicts this legacy note.',
+      });
+    } else {
+      activeGaps.push(gap);
+    }
+  });
+
+  (org.architecture_notes || []).forEach((note) => {
+    if (gapLooksStale(note)) {
+      architectureHistory.push(note);
+    } else {
+      architecture.push(note);
+    }
+  });
+
+  return { healthStatus, activeGaps, historicalNotes, architecture, architectureHistory };
+}
+
 function renderFloors(rf) {
   const grid = document.getElementById('floorGrid');
   let html = '', pass = 0;
@@ -1002,6 +1061,7 @@ async function loadOrganDiscovery() {
   for (const o of organs) {
     const probed = probeResults[o.id] || {};
     const healthStatus = probed.health || 'unknown';
+    applyOrganStatusDots(o.id, healthStatus);
     const isHealthy = healthStatus === 'healthy';
     const isDegraded = healthStatus === 'degraded';
     const toolCount = probed.tool_count ?? o.verifiedCount ?? null;
@@ -1034,7 +1094,7 @@ async function loadOrganDiscovery() {
 loadOrganDiscovery();
 setInterval(loadOrganDiscovery, 60000);
 
-// ── Federation Manifest & Dossiers ───────────────────────────────────────
+// ── Federation Charter & Dossiers ───────────────────────────────────────
 // loadFederationProbe() fetches organ health/build-info server-side,
 // bypassing Cloudflare CORS restrictions that block browser-side cross-origin fetches.
 async function loadFederationProbe() {
@@ -1049,16 +1109,16 @@ async function loadFederationProbe() {
   }
 }
 
-async function loadFederationManifest() {
+async function loadFederationCharter() {
   try {
-    const [manifest, probeResults] = await Promise.all([
-      fetch('/federation-manifest.json').then(r => { if (!r.ok) throw new Error('http '+r.status); return r.json(); }),
+    const [charter, probeResults] = await Promise.all([
+      fetch('/federation.charter.json').then(r => { if (!r.ok) throw new Error('http '+r.status); return r.json(); }),
       loadFederationProbe(),
     ]);
-    renderStackTopology(manifest.stack || {});
-    renderFederationDossiers(manifest.organs || {}, probeResults);
+    renderStackTopology(charter.stack || {});
+    renderFederationDossiers(charter.organs || {}, probeResults);
   } catch(e) {
-    console.warn('Federation manifest failed:', e);
+    console.warn('Federation charter failed:', e);
   }
 }
 
@@ -1102,7 +1162,8 @@ async function renderFederationDossiers(organs, probeResults) {
 
     // Use server-side probe results (bypasses Cloudflare CORS block)
     const probed = probeResults[key] || {};
-    const healthStatus = probed.health || 'unknown';
+    const { healthStatus, activeGaps, historicalNotes, architecture, architectureHistory } = splitOrganTruth(org, probed);
+    applyOrganStatusDots(key, healthStatus);
 
     const buildInfo = probed.build_info || {};
     const buildInfoHtml = Object.keys(buildInfo).length
@@ -1110,6 +1171,13 @@ async function renderFederationDossiers(organs, probeResults) {
       : '';
 
     let html = '';
+    const runtimeFacts = [];
+    if (probed.probe_endpoint) runtimeFacts.push(`probe ${probed.probe_endpoint}`);
+    if (probed.probe_method) runtimeFacts.push(probed.probe_method);
+    if (probed.tool_count !== null && probed.tool_count !== undefined) runtimeFacts.push(`${probed.tool_count} tools`);
+    if (buildInfo.version) runtimeFacts.push(`version ${buildInfo.version}`);
+    if (buildInfo.short_sha || buildInfo.sha) runtimeFacts.push(`build ${(buildInfo.short_sha || (buildInfo.sha || '').slice(0,7))}`);
+    if (probed.error) runtimeFacts.push(`error ${probed.error}`);
 
     // Health
     html += `<div class="organ-section">
@@ -1120,6 +1188,15 @@ async function renderFederationDossiers(organs, probeResults) {
       </div>
       ${buildInfoHtml}
     </div>`;
+
+    if (runtimeFacts.length) {
+      html += `<div class="organ-section">
+        <div class="organ-section-title">Runtime Evidence</div>
+        <ul class="organ-list">
+          ${runtimeFacts.map(f => `<li>${f}</li>`).join('')}
+        </ul>
+      </div>`;
+    }
 
     // Dependencies
     if (org.dependencies && org.dependencies.length) {
@@ -1142,11 +1219,11 @@ async function renderFederationDossiers(organs, probeResults) {
     }
 
     // Known Gaps
-    if (org.known_gaps && org.known_gaps.length) {
+    if (activeGaps.length) {
       html += `<div class="organ-section">
         <div class="organ-section-title">Known Gaps</div>
         <ul class="organ-list">
-          ${org.known_gaps.map(g => `<li>[${g.severity.toUpperCase()}] ${g.item}</li>`).join('')}
+          ${activeGaps.map(g => `<li>[${g.severity.toUpperCase()}] ${g.item}</li>`).join('')}
         </ul>
       </div>`;
     }
@@ -1162,11 +1239,21 @@ async function renderFederationDossiers(organs, probeResults) {
     }
 
     // Architecture Notes
-    if (org.architecture_notes && org.architecture_notes.length) {
+    if (architecture.length) {
       html += `<div class="organ-section">
         <div class="organ-section-title">Architecture</div>
         <ul class="organ-list">
-          ${org.architecture_notes.map(a => `<li>${a}</li>`).join('')}
+          ${architecture.map(a => `<li>${a}</li>`).join('')}
+        </ul>
+      </div>`;
+    }
+
+    if (historicalNotes.length || architectureHistory.length) {
+      html += `<div class="organ-section">
+        <div class="organ-section-title">Historical Notes</div>
+        <ul class="organ-list">
+          ${historicalNotes.map(n => `<li>${n.title} — ${n.note}</li>`).join('')}
+          ${architectureHistory.map(n => `<li>${n} — runtime probe indicates newer live state</li>`).join('')}
         </ul>
       </div>`;
     }
@@ -1188,7 +1275,7 @@ async function renderFederationDossiers(organs, probeResults) {
   }
 }
 
-loadFederationManifest();
+loadFederationCharter();
 
 // ── SOT Drift Badge ──────────────────────────────────────────────────────
 (async function sotBadge() {

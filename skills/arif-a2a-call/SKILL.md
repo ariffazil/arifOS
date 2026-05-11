@@ -86,7 +86,7 @@ curl -X POST http://localhost:3001/a2a/message/send \
   -H "x-a2a-key: aaa-a2a-apikey-dev" \
   -d '{"jsonrpc":"2.0","id":1,"method":"message/send","params":{"skill":"status-query","message":{"parts":[{"kind":"text","text":"federation status"}]}}}'
 
-# Check federation manifest
+# Check federation charter
 curl http://localhost:3001/.well-known/arifos-federation.json
 ```
 

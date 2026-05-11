@@ -29,7 +29,7 @@ Every sealed entry must carry these 10 fields:
 | `tool_name` | Caller | Which tool performed the write |
 | `tool_version` | Caller | From `tool_versions.json` |
 | `claim_state` | Caller | From `claim_tag_registry` (37 tags) |
-| `escalation_tier` | System | 0–3, from federation manifest |
+| `escalation_tier` | System | 0–3, from federation charter |
 | `input_hash` | System | Hash of input payload |
 | `output_hash` | System | Hash of output/result |
 | `timestamp_utc` | System | ISO-8601 UTC |
@@ -134,5 +134,5 @@ docker compose restart arifosmcp
 
 ---
 
-*Canonical source: `federation_manifest.json` commit `395f3e36`
+*Canonical source: `federation.charter.json` commit `395f3e36`
 *Federation Constitution v2 — arifOS Federation*

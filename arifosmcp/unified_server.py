@@ -250,12 +250,7 @@ def create_unified_mcp(
     if enable_router:
         router_mcp = create_router_mcp()
         for tool in router_mcp._tool_manager.tools.values():
-            mcp.add_tool(
-                tool.fn,
-                name=tool.name,
-                description=tool.description,
-                tags=tool.tags,
-            )
+            mcp.add_tool(tool)
 
     # Add informational tools
     @mcp.tool(tags={"system", "public"})

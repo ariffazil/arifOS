@@ -50,7 +50,7 @@ from arifosmcp.schemas.embodied_tool import (
     build_embodied_envelope,
 )
 from arifosmcp.tools.embodied_tool import (
-    ARIFOS_TOOL_MANIFESTS,
+    ARIFOS_TOOL_CHARTERS,
     EmbodiedTool,
     register_all_arifos_tools,
 )
@@ -105,8 +105,8 @@ def test_register_all_arifos_tools():
     model = get_tool_self_model()
     register_all_arifos_tools()
 
-    assert len(model.list_all()) == len(ARIFOS_TOOL_MANIFESTS)
-    for tool_id in ARIFOS_TOOL_MANIFESTS:
+    assert len(model.list_all()) == len(ARIFOS_TOOL_CHARTERS)
+    for tool_id in ARIFOS_TOOL_CHARTERS:
         entry = model.get(tool_id)
         assert entry is not None, f"{tool_id} not registered"
         assert entry.manifest.tool_id == tool_id
@@ -206,7 +206,7 @@ def test_classify_tool_base():
 @pytest.mark.asyncio
 async def test_preflight_seals_t1_tool(fresh_engine):
     """T1 tool with no dangerous params should SEAL."""
-    fresh_engine.self_model.register(ARIFOS_TOOL_MANIFESTS["arif_mind_reason"])
+    fresh_engine.self_model.register(ARIFOS_TOOL_CHARTERS["arif_mind_reason"])
     decision = await fresh_engine.run_preflight(
         tool_id="arif_mind_reason",
         params={"query": "What is 2+2?"},
@@ -221,7 +221,7 @@ async def test_preflight_seals_t1_tool(fresh_engine):
 @pytest.mark.asyncio
 async def test_preflight_holds_t4_tool(fresh_engine):
     """T4 tool should HOLD without explicit authority."""
-    fresh_engine.self_model.register(ARIFOS_TOOL_MANIFESTS["arif_vault_seal"])
+    fresh_engine.self_model.register(ARIFOS_TOOL_CHARTERS["arif_vault_seal"])
     decision = await fresh_engine.run_preflight(
         tool_id="arif_vault_seal",
         params={"payload": "test"},
@@ -259,7 +259,7 @@ async def test_preflight_voids_critical_action(fresh_engine):
 @pytest.mark.asyncio
 async def test_preflight_holds_missing_session(fresh_engine):
     """T2+ tool without session_id should HOLD."""
-    fresh_engine.self_model.register(ARIFOS_TOOL_MANIFESTS["arif_kernel_route"])
+    fresh_engine.self_model.register(ARIFOS_TOOL_CHARTERS["arif_kernel_route"])
     decision = await fresh_engine.run_preflight(
         tool_id="arif_kernel_route",
         params={"task": "route to forge"},
@@ -273,7 +273,7 @@ async def test_preflight_holds_missing_session(fresh_engine):
 @pytest.mark.asyncio
 async def test_postflight_builds_envelope(fresh_engine):
     """Postflight must return a complete EmbodiedToolEnvelope."""
-    fresh_engine.self_model.register(ARIFOS_TOOL_MANIFESTS["arif_mind_reason"])
+    fresh_engine.self_model.register(ARIFOS_TOOL_CHARTERS["arif_mind_reason"])
     decision = EmbodiedDecision(
         can_proceed=True,
         status="SEAL",
@@ -406,7 +406,7 @@ def test_self_model_resource():
     resource = get_tool_self_model_resource()
     assert resource["uri"] == "arifos://tools/self-model"
     assert "tools" in resource["body"]
-    assert len(resource["body"]["tools"]) == len(ARIFOS_TOOL_MANIFESTS)
+    assert len(resource["body"]["tools"]) == len(ARIFOS_TOOL_CHARTERS)
 
 
 def test_permissions_resource():

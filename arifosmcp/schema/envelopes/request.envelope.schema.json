@@ -41,7 +41,7 @@
     },
     "mode": {
       "type": "string",
-      "description": "Operation mode — varies by tool, see tool manifest"
+      "description": "Operation mode — varies by tool, see tool charter"
     },
     "session": {
       "type": "object",

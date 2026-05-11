@@ -41,7 +41,7 @@ https://arifosmcp.arif-fazil.com/a2a/subscribe/{id}      ← SSE updates
 https://arifosmcp.arif-fazil.com/.well-known/webmcp      ← WebMCP manifest
 https://arifosmcp.arif-fazil.com/webmcp                  ← Console UI
 https://arifosmcp.arif-fazil.com/webmcp/sdk.js           ← JavaScript SDK
-https://arifosmcp.arif-fazil.com/webmcp/tools.json       ← Tool manifest
+https://arifosmcp.arif-fazil.com/webmcp/tools.json       ← Tool charter
 ```
 
 ---

@@ -98,7 +98,7 @@ All hardcoded version strings updated to `v2026.05.05-SSCT`:
 
 - `_schema`: `arifos-ssct-v2026.05.05-kanon-ssct`
 - `_source`: `arifosmcp.constitutional_map.CANONICAL_TOOLS`
-- Canonical operational metadata from `tool_manifest.py` merged in
+- Canonical operational metadata from `tool_charter.py` merged in
 - Eureka insights embedded per tool
 
 ---

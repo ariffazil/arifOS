@@ -67,7 +67,7 @@ class EmbodiedToolEngine:
     Every tool call goes through this pipeline:
 
     1. RECEIVE — accept raw params
-    2. SENSE — get tool manifest from self-model
+    2. SENSE — get tool charter from self-model
     3. BOUND — check domain boundary
     4. CLASSIFY — assign risk tier
     5. CHECK PERMISSIONS — authority verification
@@ -123,7 +123,7 @@ class EmbodiedToolEngine:
 
     def sense_and_bound(self, tool_id: str, actor_id: str | None) -> ToolSelfModelEntry:
         """
-        Stage 2: SENSE — get tool manifest from self-model.
+        Stage 2: SENSE — get tool charter from self-model.
         Stage 3: BOUND — verify domain boundary.
 
         Returns ToolSelfModelEntry or raises.
@@ -144,7 +144,7 @@ class EmbodiedToolEngine:
     def classify_risk(self, entry: ToolSelfModelEntry, params: dict[str, Any]) -> RiskTier:
         """
         Stage 4: CLASSIFY.
-        Assign T0-T4 risk tier based on tool manifest + params.
+        Assign T0-T4 risk tier based on tool charter + params.
         """
         # Start from tool's declared risk tier
         declared = entry.manifest.risk_tier
@@ -235,7 +235,7 @@ class EmbodiedToolEngine:
     ) -> tuple[BlastRadius, str]:
         """
         Stage 7: ESTIMATE CONSEQUENCE.
-        Compute blast radius from tool manifest + reversibility.
+        Compute blast radius from tool charter + reversibility.
 
         Returns: (blast_radius, description)
         """
@@ -248,7 +248,7 @@ class EmbodiedToolEngine:
             next_idx = min(current_idx + 1, len(radius_order) - 1)
             manifest_radius = BlastRadius(radius_order[next_idx])
 
-        return manifest_radius, f"Blast radius: {manifest_radius.value}"
+        return charter_radius, f"Blast radius: {manifest_radius.value}"
 
     # ── Pipeline Stage 8: Decision ─────────────────────────────────────────
 

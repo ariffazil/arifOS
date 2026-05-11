@@ -6,11 +6,11 @@
 
 ## PART I: ARCHITECTURE
 
-The arifOS Sovereign Action System replaces ad-hoc tool execution with a governed, manifest-driven runtime. Every action is audited, sealed, and verified against the constitutional floors (F1-F13).
+The arifOS Sovereign Action System replaces ad-hoc tool execution with a governed, charter-driven runtime. Every action is audited, sealed, and verified against the constitutional floors (F1-F13).
 
 ### 1. Tool Registry
-- **Dynamic Loading:** Tools are registered via YAML manifests in `/tools/manifests/`.
-- **Constitutional Mapping:** Each manifest declares its required floor dependencies.
+- **Dynamic Loading:** Tools are registered via YAML charters in `/tools/charters/`.
+- **Constitutional Mapping:** Each charter declares its required floor dependencies.
 
 ### 2. Shell Forge
 - **Secure Gateway:** All shell operations pass through `ShellForge` for injection defense and checkpointing.

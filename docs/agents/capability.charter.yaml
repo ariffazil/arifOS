@@ -1,4 +1,4 @@
-﻿# arifOS Agent Capability Manifest
+﻿# arifOS Agent Capability Charter
 # Self-Knowledge System for Constitutional Agents
 # Version: 2026.03.14-FORGED
 # Authority: 888_JUDGE
@@ -13,7 +13,7 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 
 constitutional_version: "2026.03.14-FORGED"
-manifest_id: "arifos-capability-manifest"
+charter_id: "arifos-capability-charter"
 authority: "888_JUDGE"
 refresh_interval_seconds: 60
 

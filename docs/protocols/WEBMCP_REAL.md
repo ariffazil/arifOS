@@ -64,7 +64,7 @@ navigator.modelContext.registerTool("bookFlight", {
 https://arifosmcp.arif-fazil.com/.well-known/webmcp     → WebMCP manifest
 https://arifosmcp.arif-fazil.com/webmcp                  → Console UI
 https://arifosmcp.arif-fazil.com/webmcp/sdk.js           → JavaScript SDK
-https://arifosmcp.arif-fazil.com/webmcp/tools.json       → Tool manifest
+https://arifosmcp.arif-fazil.com/webmcp/tools.json       → Tool charter
 https://arifosmcp.arif-fazil.com/webmcp/execute/{tool}   → HTTP execution
 https://arifosmcp.arif-fazil.com/webmcp/ws               → WebSocket
 ```

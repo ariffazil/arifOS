@@ -285,27 +285,27 @@ def create_unified_mcp(agents: list[str] | None = None, visibility: str = "publi
     if "P" in agents:
         perception = create_perception_mcp()
         for _key, tool in _get_tools(perception).items():
-            mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
+            mcp.add_tool(tool)
     if "T" in agents:
         transformation = create_transformation_mcp()
         for _key, tool in _get_tools(transformation).items():
-            mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
+            mcp.add_tool(tool)
     if "V" in agents:
         valuation = create_valuation_mcp()
         for _key, tool in _get_tools(valuation).items():
-            mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
+            mcp.add_tool(tool)
     if "G" in agents:
         governance = create_governance_mcp()
         for _key, tool in _get_tools(governance).items():
-            mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
+            mcp.add_tool(tool)
     if "E" in agents:
         execution = create_execution_mcp()
         for _key, tool in _get_tools(execution).items():
-            mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
+            mcp.add_tool(tool)
     if "M" in agents:
         meta = create_meta_mcp()
         for _key, tool in _get_tools(meta).items():
-            mcp.add_tool(tool.fn, name=tool.name, description=tool.description, tags=tool.tags)
+            mcp.add_tool(tool)
 
     return mcp
 

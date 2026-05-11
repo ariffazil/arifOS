@@ -61,7 +61,7 @@ Categorize each of the 8 untracked items:
 333_APPS/         → local app experiments (NOT canonical)
 AGENTS.md.sig     → signature artifact (NOT canonical)
 arifos/tools/floors.py → real code (KEEP, commit)
-deploy/           → B++ deploy artifact (KEEP, stack.manifest.json committed)
+deploy/           → B++ deploy artifact (KEEP, stack.charter.json committed)
 identity/         → OpenClaw identity config (NOT canonical, local only)
 skills/           → OpenClaw skills (NOT canonical, local only)
 soul/             → OpenClaw soul config (NOT canonical, local only)
@@ -96,7 +96,7 @@ git -C /root/arifos commit -m "IGNORE: exclude local-only dirs from git tracking
 - well/ → .gitignore
 - *.sig → .gitignore
 - arifos/tools/floors.py: KEEP — real code, NOT local config
-- deploy/: KEEP — stack.manifest.json is canonical"
+- deploy/: KEEP — stack.charter.json is canonical"
 ```
 
 ### Quant Success
@@ -114,7 +114,7 @@ git -C /root/arifos commit -m "IGNORE: exclude local-only dirs from git tracking
 **Option D (recommended): Image-based**
 - GEOX repo builds to `ghcr.io/ariffazil/geox:<tag>`
 - docker-compose pulls pinned image
-- stack.manifest.json records image tag + SHA
+- stack.charter.json records image tag + SHA
 
 **Option E (sibling-acceptable):**
 - /srv/siblings/GEOX-repo/ cloned once, fixed ref checked out
@@ -127,7 +127,7 @@ Create `scripts/pre-deploy-check.sh`:
 
 ```bash
 #!/bin/bash
-MANIFEST="deploy/stack.manifest.json"
+MANIFEST="deploy/stack.charter.json"
 
 ARIFOS_REF=$(python3 -c "import json; print(json.load(open('$MANIFEST'))['arifos']['ref'])")
 GEOX_REF=$(python3 -c "import json; print(json.load(open('$MANIFEST'))['geox']['ref'])")
@@ -220,7 +220,7 @@ docker push ghcr.io/ariffazil/geox:v2026.04.22
 | Deploy mismatch events | 0 |
 | Answer "what's live?" time | < 30s |
 | Pre-deploy check script | exists + executable |
-| stack.manifest.json | present in main |
+| stack.charter.json | present in main |
 
 ### Qual Metrics
 
@@ -385,7 +385,7 @@ git -C /root/arifos status --short | grep "^[ M]" && echo "FAIL: tracked changes
 git -C /root/arifos submodule status | grep geox && echo "FAIL: geox still present" || echo "PASS: no geox"
 
 # 3. Manifest exists + pins refs
-[ -f /root/arifos/deploy/stack.manifest.json ] && echo "PASS: manifest exists" || echo "FAIL: no manifest"
+[ -f /root/arifos/deploy/stack.charter.json ] && echo "PASS: charter exists" || echo "FAIL: no charter"
 bash /root/arifos/scripts/pre-deploy-check.sh && echo "PASS: refs match" || echo "FAIL: ref mismatch"
 
 # 4. Suspicious dirs declared

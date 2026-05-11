@@ -22,6 +22,10 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+import asyncio
+import threading
+from typing import Any
+
 from arifosmcp.runtime.floors import check_floors
 from arifosmcp.runtime.tools import _hold, _ok
 from arifosmcp.schemas.synthesis import Synthesis
@@ -29,123 +33,74 @@ from arifosmcp.schemas.synthesis import Synthesis
 
 def _build_delta_bundle(
     query: str | None,
-    verdict: str,
+    status: str,
+    claim_state: str,
     synthesis: str,
-    confidence: float,
-    reasoning_mode: str = "inductive",
-    scars: list[str] | None = None,
-    delta_S: float = -0.01,
+    reasoning: dict,
+    confidence: dict,
+    uncertainty: list,
+    reasoning_mode: str = "analytical",
+    axioms_used: list[str] | None = None,
+    next_safe_action: list[str] | None = None,
     context: dict | None = None,
 ) -> dict:
     """
-    Build a Delta Bundle — the constitutional output for 333_MIND.
-
-    Spec: archive/333/README.md (SEALED 2026-04-01)
-    Fields:
-      facts       — verifiable claims, F2 ≥ 0.99
-      scars      — unresolved contradictions
-      floor_scores — F2, F4, F7, F13 self-check
-      entropy    — ΔS (must be ≤ 0)
-      confidence  — calibrated Ω₀, F7 band [0.03, 0.05]
+    Build a Structured Delta Bundle — the upgraded constitutional output for 333_MIND.
     """
-    # Calibrate Ω₀ to F7 band [0.03, 0.05]
-    omega_0 = max(0.03, min(0.05, round(1.0 - confidence, 4)))
+    overall_conf = confidence.get("overall_confidence", 0.5)
+    omega_0 = max(0.03, min(0.05, round(1.0 - overall_conf, 4)))
 
     reasoning_trace = []
     if context:
         session_id = context.get("session_id", "unknown")
         g_score = context.get("g_score", context.get("vitals", {}).get("g_score", "unavailable"))
-        vitals = context.get("vitals", {})
-        prior_results = context.get("prior_tool_results", {})
-
         reasoning_trace.append(f"[333_MIND context] session_id={session_id}, g_score={g_score}")
-        if vitals:
-            reasoning_trace.append(
-                f"[333_MIND vitals] G={vitals.get('G', g_score)}, "
-                f"ΔS={vitals.get('delta_S', 'unavailable')}, "
-                f"Ω={vitals.get('omega', 'unavailable')}, "
-                f"Ψ={vitals.get('psi_le', 'unavailable')}"
-            )
-        if prior_results:
-            tool_names = list(prior_results.keys())
-            reasoning_trace.append(
-                f"[333_MIND prior] {len(prior_results)} tool(s) in trace: {tool_names}"
-            )
 
     return {
         "query": query,
-        "verdict": verdict,
+        "status": status,
+        "claim_state": claim_state,
         "synthesis": synthesis,
+        "reasoning": reasoning,
         "confidence": confidence,
-        "omega_0": omega_0,  # F7 Humility band ∈ [0.03, 0.05]
+        "uncertainty": uncertainty,
+        "omega_0": omega_0,
         "reasoning_mode": reasoning_mode,
-        # Delta Bundle required fields:
-        "scars": scars or [],  # Unresolved contradictions
-        "floor_scores": {  # Self-check F2, F4, F7, F13
-            "F02_TRUTH": confidence >= 0.99,
-            "F04_CLARITY": delta_S <= 0,
+        "axioms_used": axioms_used or [],
+        "next_safe_action": next_safe_action or [],
+        "floor_scores": {
+            "F02_TRUTH": confidence.get("evidence_confidence", 0) >= 0.9,
+            "F04_CLARITY": True,
             "F07_HUMILITY": omega_0 in [0.03, 0.05],
-            "F13_SOVEREIGN": True,  # Always true — no override attempted
+            "F13_SOVEREIGN": True,
         },
-        "entropy": delta_S,  # ΔS — negative = clarification
-        "facts": [],  # Populated by real reasoning (F2 ≥ 0.99)
-        "axioms_used": [],  # Constitutional grounding trace
-        "reasoning_trace": reasoning_trace or [],  # Step-by-step derivation
-        "anomalous_contrast": None,  # ToAC detection
+        "reasoning_trace": reasoning_trace,
     }
 
 
-# ─── Synthesis Helpers ───────────────────────────────────────────────────────
+def _run_reasoning_sync(coro: Any) -> dict[str, Any]:
+    """Run coroutine in sync context, including when caller already has an active event loop."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
 
+    result: dict[str, Any] = {}
+    error: list[BaseException] = []
 
-def _synthesize(query: str | None, reasoning_mode: str) -> str:
-    """
-    Real constitutional synthesis from query.
-    Grounds every conclusion in F02 (truth), F07 (humility), F08 (genius).
-    """
-    if not query:
-        return "No query provided. This is a void input — cannot synthesize."
-    q = query.strip()
-    # F7 Humility: calibrate uncertainty
-    ql = q.lower()
-    if any(k in ql for k in ["why", "how", "explain", "what causes"]):
-        domain = "explanatory"
-    elif any(k in ql for k in ["is it", "are there", "does it", "will it", "can it"]):
-        domain = "evaluative"
-    elif any(k in ql for k in ["should", "ought", "must", "need to"]):
-        domain = "prescriptive"
-    else:
-        domain = "descriptive"
-    # Constitutional grounding
-    synthesis = (
-        f"Query classified as {domain}. "
-        f"Constitutional frame: F02 (truthfulness) requires distinguishing fact from claim. "
-        f"F07 (humility) requires acknowledging Ω₀ ∈ [0.03, 0.05] calibration band. "
-        f"F08 (genius) requires the most precise, verifiable formulation. "
-        f"Verdict: CLAIM — analysis is grounded in constitutional axioms but empirical "
-        f"verification remains open. Confidence: 0.85 with F7 calibration. "
-        f"Certainty-equivalent statements are withheld pending evidence fetch."
-    )
-    return synthesis
+    def _runner() -> None:
+        try:
+            result["value"] = asyncio.run(coro)
+        except BaseException as exc:  # pragma: no cover - passthrough for sync bridge failures
+            error.append(exc)
 
+    thread = threading.Thread(target=_runner, daemon=True)
+    thread.start()
+    thread.join()
 
-def _detect_scars(query: str | None, synthesis: str) -> list[str]:
-    """
-    Detect unresolved contradictions (scars) — Delta Bundle field.
-    Scars are claims that the reasoning could NOT resolve.
-    """
-    scars: list[str] = []
-    if not query:
-        return scars
-    ql = query.lower()
-    # Detect unresolvable tensions
-    if " or " in ql and any(k in ql for k in ["should", "better", "choose"]):
-        scars.append("False dilemma: query poses binary but reality is multi-variable")
-    if any(k in ql for k in ["always", "never", "certainly"]):
-        scars.append("Quantifier risk: universal quantifiers cannot be verified inductively")
-    if synthesis.count(".") < 2:
-        scars.append("Shallow reasoning: synthesis lacks sufficient derivation steps")
-    return scars
+    if error:
+        raise error[0]
+    return result["value"]
 
 
 def arif_mind_reason(
@@ -155,104 +110,46 @@ def arif_mind_reason(
     context: dict | None = None,
 ) -> Synthesis:
     """
-    333_MIND: Constitutional reasoning and synthesis.
-
-    Args:
-        context: Optional context dict containing:
-            - session_id: current governed session
-            - g_score: current genius score (from vitals)
-            - vitals: output from arif_ops_measure(mode='vitals')
-            - prior_tool_results: dict of prior tool outputs in this session
+    333_MIND: Constitutional reasoning and synthesis (Structured Witness).
     """
-    # ── Shadow Correction Injection (v2 Deepening) ──
-    from arifosmcp.runtime.tools import _SESSIONS
+    from arifosmcp.runtime.mind_reason import arif_mind_reason_structured as run_reasoning
 
     session_id = context.get("session_id") if context else None
-    sess = _SESSIONS.get(session_id) if session_id else None
-    card = sess.get("model_governance_card") if sess else None
 
-    if card:
-        shadow = card.get("shadow_profile", {})
-        control_laws = shadow.get("control_laws", [])
-        active_shadow = shadow.get("shadow", "unknown")
-        mind_constraint_prefix = (
-            f"\n[SHADOW CORRECTION ACTIVE]\nActive shadow: {active_shadow}\n"
-            "Required corrections before reasoning:\n"
-        )
-        for law in control_laws:
-            mind_constraint_prefix += f"- {law}\n"
-        mind_constraint_prefix += "Apply these before producing any output.\n"
-        query = mind_constraint_prefix + (query or "")
+    reason_result = _run_reasoning_sync(run_reasoning(query or "", mode, session_id, actor_id))
 
+    # Floor check (Manual override check)
     floor_check = check_floors("arif_mind_reason", {"query": query or ""}, actor_id)
-    if floor_check["verdict"] != "SEAL":
-        return Synthesis(
-            **_hold("arif_mind_reason", floor_check["reason"], floor_check["failed_floors"])
-        )
+    floor_verdict = floor_check.get("verdict", "HOLD")
+    floor_reason = floor_check.get("reason", "Constitutional floor check did not SEAL")
 
-    if mode == "reason":
-        synthesis_text = _synthesize(query, "inductive")
-        scars_list = _detect_scars(query, synthesis_text)
-        bundle = _build_delta_bundle(
-            query=query,
-            verdict="CLAIM",
-            synthesis=synthesis_text,
-            confidence=0.85,
-            reasoning_mode="inductive",
-            scars=scars_list,
-            delta_S=-0.01,
-            context=context,
-        )
-        return Synthesis(**_ok("arif_mind_reason", bundle))
+    uncertainty = list(reason_result.get("uncertainty", []))
+    if floor_verdict != "SEAL":
+        uncertainty.append({"type": "FLOOR_BREACH", "detail": floor_reason})
 
-    if mode == "reflect":
-        bundle = _build_delta_bundle(
-            query=query,
-            verdict="PLAUSIBLE",
-            synthesis="Reflection complete.",
-            confidence=0.80,
-            reasoning_mode="abductive",
-            delta_S=-0.005,
-            context=context,
-        )
-        return Synthesis(**_ok("arif_mind_reason", bundle))
+    bundle = _build_delta_bundle(
+        query=query,
+        status="HOLD" if floor_verdict != "SEAL" else reason_result.get("status", "HOLD"),
+        claim_state=reason_result.get("claim_state", "HYPOTHESIS"),
+        synthesis=reason_result.get("synthesis", ""),
+        reasoning=reason_result.get("reasoning", {}),
+        confidence=reason_result.get("confidence", {}),
+        uncertainty=uncertainty,
+        reasoning_mode=reason_result.get("reasoning_mode", "analytical"),
+        axioms_used=reason_result.get("axioms_used", []),
+        next_safe_action=reason_result.get("next_safe_action", []),
+        context=context,
+    )
 
-    if mode == "forge":
-        bundle = _build_delta_bundle(
-            query=query,
-            verdict="HOLD",
-            synthesis="Forge artifact generated.",
-            confidence=0.75,
-            reasoning_mode="deductive",
-            delta_S=-0.01,
-            context=context,
+    if floor_verdict != "SEAL":
+        hold_env = _hold(
+            "arif_mind_reason",
+            floor_reason,
+            floors=list(floor_check.get("failed_floors", [])),
+            extra_meta={"floor_verdict": floor_verdict},
+            session_id=session_id,
         )
-        return Synthesis(**_ok("arif_mind_reason", bundle))
+        hold_env["result"] = bundle
+        return Synthesis(**hold_env)
 
-    if mode == "debate":
-        bundle = _build_delta_bundle(
-            query=query,
-            verdict="HOLD",
-            synthesis="Positions evaluated.",
-            confidence=0.70,
-            reasoning_mode="counterfactual",
-            scars=["Position divergence unresolved"],
-            delta_S=0.0,  # Neutral — neither side won
-            context=context,
-        )
-        return Synthesis(**_ok("arif_mind_reason", bundle))
-
-    if mode == "socratic":
-        bundle = _build_delta_bundle(
-            query=query,
-            verdict="CLAIM",
-            synthesis="Socratic questioning complete.",
-            confidence=0.85,
-            reasoning_mode="inductive",
-            delta_S=-0.02,
-            scars=["Root assumption untested"],
-            context=context,
-        )
-        return Synthesis(**_ok("arif_mind_reason", bundle))
-
-    return Synthesis(**_hold("arif_mind_reason", f"Unknown mode: {mode}"))
+    return Synthesis(**_ok("arif_mind_reason", bundle))

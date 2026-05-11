@@ -3,7 +3,7 @@
   "description": "arifOS Federation Constitution v2 \u2014 Domain trust boundaries, governance topology, and epistemic contracts. Governs all MCP servers in the arifOS constitutional federation.",
   "version": "2.1.0",
   "effective_date": "2026-04-26",
-  "last_updated": "2026-05-05",
+  "last_updated": "2026-05-11",
   "update_hash": "SEE_GIT_COMMIT",
   "commit": "SEE_GIT_COMMIT",
   "kernel": {

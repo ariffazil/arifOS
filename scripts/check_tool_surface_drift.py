@@ -137,7 +137,19 @@ def main() -> int:
     canonical_ids = tuple(module.tool_names())
     canonical_set = set(canonical_ids)
     canonical_count = len(canonical_ids)
-    legacy_aliases = dict(module.LEGACY_NAME_MAP)
+
+    # Map legacy names to canonical names
+    if hasattr(module, "LEGACY_NAME_MAP"):
+        legacy_aliases = dict(module.LEGACY_NAME_MAP)
+    else:
+        # Fallback to direct import if attribute not on module
+        try:
+            from arifosmcp.runtime.tool_spec import LEGACY_NAME_MAP
+
+            legacy_aliases = dict(LEGACY_NAME_MAP)
+        except ImportError:
+            legacy_aliases = {}
+
     dotted_aliases = tuple(name.replace("arifos_", "arifos.") for name in canonical_ids)
     dotted_alias_set = set(dotted_aliases)
 

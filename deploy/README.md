@@ -11,7 +11,7 @@ This directory is the **canonical source of truth** for the arifOS Constitutiona
 | `Caddyfile` | Reverse proxy configuration for `*.arif-fazil.com` domains |
 | `vault999/` | VAULT999 sidecar — append-only constitutional ledger (FastAPI, port 8100) |
 | `vault999-writer/` | VAULT999 writer service — seal event ingestion (FastAPI, port 5001) |
-| `stack.manifest.json` | Deployment epoch manifest — tracks which version of each component is deployed |
+| `stack.charter.json` | Deployment epoch charter — tracks which version of each component is deployed |
 | `machine-law/` | Legacy compose variant (historical) |
 
 ## Deployment Workflow

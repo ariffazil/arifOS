@@ -354,22 +354,22 @@ def build_mcp_discovery_json(
 ) -> dict[str, Any]:
     from arifosmcp.capability_map import build_llm_context_map
 
-    manifest = (
+    charter = (
         build_internal_server_json(public_base_url, surface_mode or "expanded45")
         if internal
         else build_server_json(public_base_url, surface_mode)
     )
-    manifest["llm_context_resource"] = "arifos://mcp/context"
-    manifest["continuity_contract_version"] = "0.1.0"
-    manifest["llm_context"] = build_llm_context_map()
-    manifest["discovery_notes"] = [
+    charter["llm_context_resource"] = "arifos://mcp/context"
+    charter["continuity_contract_version"] = "0.1.0"
+    charter["llm_context"] = build_llm_context_map()
+    charter["discovery_notes"] = [
         "Use arifos://mcp/context for full functional tool and continuity guidance.",
         "Do not infer authority from prior success; read continuity envelope on every call.",
     ]
-    return manifest
+    return charter
 
 
-def build_mcp_manifest(
+def build_mcp_charter(
     public_base_url: str = DEFAULT_PUBLIC_BASE_URL,
     surface_mode: str | None = None,
 ) -> dict[str, Any]:
