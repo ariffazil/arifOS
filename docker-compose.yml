@@ -45,6 +45,9 @@ services:
       ARIFOS_ML_SELFTEST_TEXT: seal confirmed
       ARIFOS_STATE_MACHINE_ENFORCE: "true"
       ARIFOS_ONTOLOGY_VALIDATE: "true"
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+      FIRECRAWL_API_KEY: ${FIRECRAWL_API_KEY}
+      EXA_API_KEY: ${EXA_API_KEY}
     volumes:
       - /root/arifOS/arifosmcp/server.py:/app/arifosmcp/server.py:ro
       - /root/arifos-model-registry:/app/arifos-model-registry:ro
@@ -113,7 +116,7 @@ services:
       - /root/wealth/internal/monolith.py:/app/internal/monolith.py:ro
       - /root/wealth:/opt/wealth-src:ro
     environment:
-      WEALTH_REPO_HEAD: 2fe1114
+      WEALTH_REPO_HEAD: cad82c5
       WEALTH_REPO_DIR: /opt/wealth-src
     ports:
       - "127.0.0.1:8082:8082"
