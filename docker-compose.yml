@@ -111,6 +111,9 @@ services:
     command: ["python", "internal/monolith.py"]
     volumes:
       - /root/wealth/internal/monolith.py:/app/internal/monolith.py:ro
+      - /root/wealth:/opt/wealth-src:ro
+    environment:
+      WEALTH_REPO_DIR: /opt/wealth-src
     ports:
       - "127.0.0.1:8082:8082"
     networks: [arifos_core]
