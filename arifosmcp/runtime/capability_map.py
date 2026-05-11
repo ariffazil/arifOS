@@ -81,12 +81,8 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
             if _env_present("DATABASE_URL") or _env_present("POSTGRES_PASSWORD")
             else "not_configured"
         ),
-        "session_cache": (
-            "configured" if _env_present("REDIS_URL") else "not_configured"
-        ),
-        "vector_memory": (
-            "configured" if _env_present("QDRANT_URL") else "not_configured"
-        ),
+        "session_cache": ("configured" if _env_present("REDIS_URL") else "not_configured"),
+        "vector_memory": ("configured" if _env_present("QDRANT_URL") else "not_configured"),
     }
 
     providers = {
@@ -103,6 +99,8 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
         "jina": _configured("JINA_API_KEY"),
         "perplexity": _configured("PPLX_API_KEY", "PERPLEXITY_API_KEY"),
         "firecrawl": _configured("FIRECRAWL_API_KEY"),
+        "tavily": _configured("TAVILY_API_KEY"),
+        "exa": _configured("EXA_API_KEY"),
         "browserless": _url_configured("BROWSERLESS_URL"),
         "ddgs_local": (
             "configured"
@@ -113,21 +111,13 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
 
     substrates = {
         "git": (
-            "configured"
-            if _env_truthy("ARIFOS_SUBSTRATE_GIT_ENABLED")
-            else "configured"
+            "configured" if _env_truthy("ARIFOS_SUBSTRATE_GIT_ENABLED") else "configured"
         ),  # Default to configured for arifOS Core
-        "fetch": (
-            "configured"
-            if _env_truthy("ARIFOS_SUBSTRATE_FETCH_ENABLED")
-            else "configured"
-        ),
+        "fetch": ("configured" if _env_truthy("ARIFOS_SUBSTRATE_FETCH_ENABLED") else "configured"),
         "memory": "configured",
         "time": "configured",
         "filesystem": "configured",
-        "validation": {
-            "everything": {"probe": "configured", "protocol_smoke": "configured"}
-        },
+        "validation": {"everything": {"probe": "configured", "protocol_smoke": "configured"}},
     }
 
     ops = {
@@ -153,6 +143,8 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
         providers["jina"],
         providers["perplexity"],
         providers["firecrawl"],
+        providers["tavily"],
+        providers["exa"],
         providers["browserless"],
         providers["ddgs_local"],
     ]
@@ -160,8 +152,7 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
     capabilities = {
         "governed_continuity": (
             "enabled"
-            if ml_model_available
-            and continuity_signing in {"configured", "open_dev_mode"}
+            if ml_model_available and continuity_signing in {"configured", "open_dev_mode"}
             else (
                 "heuristic_fallback"
                 if continuity_signing in {"configured", "open_dev_mode"}
@@ -171,25 +162,19 @@ def build_runtime_capability_map(*, ml_model_available: bool = True) -> dict[str
         "vault_persistence": (
             "enabled" if storage["vault_postgres"] == "configured" else "degraded"
         ),
-        "vector_memory": (
-            "enabled" if storage["vector_memory"] == "configured" else "degraded"
-        ),
+        "vector_memory": ("enabled" if storage["vector_memory"] == "configured" else "degraded"),
         "external_grounding": (
             "enabled"
             if any(state == "configured" for state in grounding_provider_states)
             else "limited"
         ),
         "model_provider_access": (
-            "enabled"
-            if any(state == "configured" for state in llm_provider_states)
-            else "disabled"
+            "enabled" if any(state == "configured" for state in llm_provider_states) else "disabled"
         ),
         "local_model_runtime": (
             "enabled" if providers["ollama_local"] == "configured" else "disabled"
         ),
-        "auto_deploy": (
-            "enabled" if ops["webhook_deploy"] == "configured" else "disabled"
-        ),
+        "auto_deploy": ("enabled" if ops["webhook_deploy"] == "configured" else "disabled"),
     }
 
     credential_classes = {

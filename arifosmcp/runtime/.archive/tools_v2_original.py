@@ -267,7 +267,7 @@ async def arifos_sense(
             ok=ok,
             tool="arifos.sense",
             canonical_tool_name="arifos.sense",
-            stage="111_SENSE",
+            stage="111_OBSERVE",
             status=status,
             verdict=verdict,
             session_id=session_id,

@@ -42,7 +42,6 @@ from arifosmcp.runtime.public_registry import (
 from arifosmcp.runtime.resources import apex_tools_markdown_table
 from starlette.requests import Request
 from starlette.responses import FileResponse, HTMLResponse, JSONResponse, Response
-from starlette.staticfiles import StaticFiles
 
 from core.shared.floor_audit import get_ml_floor_runtime
 from core.shared.floors import (
@@ -5178,17 +5177,31 @@ def register_rest_routes(
     # Register imperatively — function is defined after register_rest_routes() was called
     route("/constitution", methods=["GET"])(constitution_redirect)
 
-    dashboard_dir = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "sites",
-        "dashboard",
-    )
-    if os.path.exists(dashboard_dir) and hasattr(mcp, "_app"):
-        mcp._app.mount(
-            "/dashboard",
-            StaticFiles(directory=dashboard_dir, html=True),
-            name="dashboard",
-        )
+    # ── Observatory Dashboard (served directly via route) ────
+    @route("/dashboard", methods=["GET"])
+    async def serve_dashboard_root(request: Request) -> Response:
+        return RedirectResponse(url="/dashboard/", status_code=307)
+
+    @route("/dashboard/", methods=["GET"])
+    async def serve_dashboard(request: Request) -> Response:
+        try:
+            dashboard_html_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                "sites",
+                "dashboard",
+                "dashboard-v2.html",
+            )
+            with open(dashboard_html_path, encoding="utf-8") as fh:
+                html_content = fh.read()
+            return HTMLResponse(
+                html_content,
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
+            )
+        except Exception:
+            return _rest_error(
+                "Dashboard unavailable — visit /api/live/all for raw data",
+                status_code=503,
+            )
 
     @route("/chatgpt/widgets/vault-seal.html", methods=["GET", "OPTIONS"])
     async def chatgpt_vault_widget(request: Request) -> Response:

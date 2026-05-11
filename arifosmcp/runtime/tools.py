@@ -24,12 +24,12 @@ try:
 except ImportError:  # Windows
     fcntl = None  # type: ignore
 import hashlib
-import re
 import inspect
 import json
 import logging
 import os
 import random
+import re
 import threading
 import time
 import uuid
@@ -160,23 +160,17 @@ def check_adaptation_status() -> dict[str, Any]:
     }
 
 
-async def INIT_ANCHOR(
-    raw_input: str = "", ctx: Any | None = None, **kwargs: Any
-) -> dict[str, Any]:
+async def INIT_ANCHOR(raw_input: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
     del ctx
     return await _wrap_call("INIT_ANCHOR", raw_input=raw_input, **kwargs)
 
 
-async def AGI_REASON(
-    query: str = "", ctx: Any | None = None, **kwargs: Any
-) -> dict[str, Any]:
+async def AGI_REASON(query: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
     del ctx
     return await _wrap_call("AGI_REASON", query=query, **kwargs)
 
 
-async def AGI_REFLECT(
-    topic: str = "", ctx: Any | None = None, **kwargs: Any
-) -> dict[str, Any]:
+async def AGI_REFLECT(topic: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
     del ctx
     return await _wrap_call("AGI_REFLECT", topic=topic, **kwargs)
 
@@ -253,9 +247,7 @@ async def reality_atlas(
     bundles: list[dict[str, Any]] | None = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
-    return await _wrap_call(
-        "reality_atlas", operation=operation, bundles=bundles or [], **kwargs
-    )
+    return await _wrap_call("reality_atlas", operation=operation, bundles=bundles or [], **kwargs)
 
 
 async def verify_vault_ledger(full_scan: bool = False, **kwargs: Any) -> dict[str, Any]:
@@ -303,9 +295,7 @@ def _get_sync_langfuse_tracer():
 
         public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
         secret_key = os.getenv("LANGFUSE_SECRET_KEY")
-        base_url = os.getenv(
-            "LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com"
-        ).rstrip("/")
+        base_url = os.getenv("LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com").rstrip("/")
 
         if not (public_key and secret_key):
             return None
@@ -478,9 +468,7 @@ def _constitutional_gate(
                 )
 
             # Block execution overclaims
-            if not runtime.get("side_effects_allowed") and _output_claims_execution(
-                input_text
-            ):
+            if not runtime.get("side_effects_allowed") and _output_claims_execution(input_text):
                 return _hold(
                     tool_name,
                     "REGISTRY TRIPWIRE: execution overclaim — side_effects_allowed is False",
@@ -514,16 +502,12 @@ def _output_claims_execution(output: str) -> bool:
 def _verified_arifos_tools(runtime: dict[str, Any]) -> set[str]:
     """Return verified arifOS MCP tool names, not provider shell capabilities."""
     # Use arifos_public_tools (canonical13) or verified_arifos_tools as source of truth
-    verified = runtime.get("arifos_public_tools") or runtime.get(
-        "verified_arifos_tools"
-    )
+    verified = runtime.get("arifos_public_tools") or runtime.get("verified_arifos_tools")
     if not verified:
         # Fallback to tools_live but FILTER out shell capabilities (read/write/exec)
         # only keeping tools with arif_ prefix.
         live = runtime.get("tools_live", [])
-        verified = [
-            tool for tool in live if isinstance(tool, str) and tool.startswith("arif_")
-        ]
+        verified = [tool for tool in live if isinstance(tool, str) and tool.startswith("arif_")]
     return {str(tool) for tool in verified or []}
 
 
@@ -532,9 +516,7 @@ def _runtime_claim_boundary(card: dict[str, Any], key: str) -> str | None:
     return boundary.get(key) or boundary.get(f"{key}_claim_policy")
 
 
-def _actor_for_response(
-    session_id: str | None = None, candidate: str | None = None
-) -> str:
+def _actor_for_response(session_id: str | None = None, candidate: str | None = None) -> str:
     """Return the validated actor_id for response consistency."""
     if candidate and candidate != "anonymous" and candidate != "null":
         return candidate
@@ -729,15 +711,11 @@ class NineSignalOutput:
             or self.payload.get("result", {}).get("nine_signal")
         )
         if not nine_signal:
-            self.violations.append(
-                f"[{self.tool_name}] nine_signal block absent [KERNEL_EVALS P0]"
-            )
+            self.violations.append(f"[{self.tool_name}] nine_signal block absent [KERNEL_EVALS P0]")
 
         # 2. Non-SEAL verdicts MUST have reasons[]
         if self.verdict in ("HOLD", "VOID", "SABAR", "SESAT"):
-            reasons_field = (
-                self.payload.get("reasons") or self.payload.get("reason") or []
-            )
+            reasons_field = self.payload.get("reasons") or self.payload.get("reason") or []
             if not reasons_field:
                 self.violations.append(
                     f"[{self.tool_name}] {self.verdict} without reasons[] "
@@ -819,29 +797,21 @@ def _enforce_nine_signal(
         # nine_signal already present — tool applied it; do not re-wrap and
         # corrupt _violations.  nine_signal may be at top level OR nested
         # inside result{} (if _ok() injected it there).  Check both.
-        nine = response.get("nine_signal") or response.get("result", {}).get(
-            "nine_signal"
-        )
+        nine = response.get("nine_signal") or response.get("result", {}).get("nine_signal")
         if nine is not None:
             _status = response.get("status", "OK")
-            verdict = response.get("verdict") or (
-                "SEAL" if _status == "OK" else _status
-            )
+            verdict = response.get("verdict") or ("SEAL" if _status == "OK" else _status)
             # Normalize reasons BEFORE violation check — every HOLD/VOID/SABAR
             # must carry at least one reason string to satisfy F2 addendum.
             reasons = response.get("reasons")
             if not reasons:
                 reason_str = response.get("reason")
                 if reason_str:
-                    reasons = (
-                        [reason_str] if isinstance(reason_str, str) else reason_str
-                    )
+                    reasons = [reason_str] if isinstance(reason_str, str) else reason_str
                 else:
                     reasons = []
             if verdict in ("HOLD", "VOID", "SABAR", "SESAT") and not reasons:
-                reasons = [
-                    f"{verdict} — constitutional gate activated, see meta.reason"
-                ]
+                reasons = [f"{verdict} — constitutional gate activated, see meta.reason"]
             # F2 addendum: SEAL verdicts carry default reasons for audit completeness.
             # The F2 rule mandates reasons[] on non-SEAL; but populating them for SEAL
             # too makes every response self-describing without special-casing the checker.
@@ -863,9 +833,7 @@ def _enforce_nine_signal(
             out["_violations"] = (
                 []
                 if reasons
-                else [
-                    f"[{tool_name}] {verdict} without reasons[] [F2 addendum / Nine-Signal]"
-                ]
+                else [f"[{tool_name}] {verdict} without reasons[] [F2 addendum / Nine-Signal]"]
             )
             return out
 
@@ -1026,9 +994,7 @@ def _detect_scars(query: str | None, synthesis: str) -> list[str]:
         scars.append(
             "false_dilemma: query poses binary choice but reality has continuous alternatives"
         )
-    if any(
-        k in ql for k in ["always", "never", "certainly", "definitely", "absolutely"]
-    ):
+    if any(k in ql for k in ["always", "never", "certainly", "definitely", "absolutely"]):
         scars.append(
             "quantifier_risk: universal quantifiers cannot be verified by induction — F7 blocks"
         )
@@ -1084,9 +1050,7 @@ class _FileSessionStore:
 
     def __init__(self, path: str | None = None) -> None:
         self._using_explicit_path = bool(path or os.getenv("ARIFOS_SESSION_STORE_PATH"))
-        self._path = path or os.getenv(
-            "ARIFOS_SESSION_STORE_PATH", "/app/data/sessions.json"
-        )
+        self._path = path or os.getenv("ARIFOS_SESSION_STORE_PATH", "/app/data/sessions.json")
         try:
             os.makedirs(os.path.dirname(self._path), exist_ok=True)
         except OSError:
@@ -1201,9 +1165,7 @@ class _FileSessionStore:
 # In-memory registries (session store is now persistent)
 _SESSION_STORE = _FileSessionStore()
 _SESSIONS = _SESSION_STORE  # backward-compat alias for code that does _SESSIONS.get()
-_memory_engine = (
-    None  # Lazy MemoryEngine singleton (Postgres + Qdrant via memory_engine.py)
-)
+_memory_engine = None  # Lazy MemoryEngine singleton (Postgres + Qdrant via memory_engine.py)
 _VAULT_LEDGER: list[dict[str, Any]] = []
 _JUDGE_STATE_REGISTRY: dict[str, dict[str, Any]] = {}
 _JUDGE_CHAIN_REGISTRY: dict[str, dict[str, Any]] = {}
@@ -1278,9 +1240,9 @@ class JudgeCandidateInput(BaseModel):
 
 def _stable_hash(payload: dict[str, Any]) -> str:
     return hashlib.sha256(
-        json.dumps(
-            payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True
-        ).encode("utf-8")
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode(
+            "utf-8"
+        )
     ).hexdigest()
 
 
@@ -1387,9 +1349,7 @@ def _new_session(
             session_id=sid,
             actor_id=actor_id or "anonymous",
             authority_level=(
-                "sovereign"
-                if actor_id == "arif"
-                else ("operator" if actor_id else "anonymous")
+                "sovereign" if actor_id == "arif" else ("operator" if actor_id else "anonymous")
             ),
             auth_context={"source": "arif_session_init", "mode": "init"},
             stage="000",
@@ -1437,9 +1397,7 @@ def _ok(
         "audience": meta_payload.pop("audience", "machine"),
         "mode": meta_payload.get("mode", ""),
         "include_quote": meta_payload.pop("include_quote", True),
-        "context_event": meta_payload.pop(
-            "context_event", f"{tool} emitted a governed result."
-        ),
+        "context_event": meta_payload.pop("context_event", f"{tool} emitted a governed result."),
         "context_state": meta_payload.pop("context_state", result),
         "context_judgment": meta_payload.pop(
             "context_judgment",
@@ -1512,9 +1470,7 @@ def _hold(
 
     meta = {"reason": reason, "failed_floors": floors or []}
     if not extra_meta or "next_safe_action" not in extra_meta:
-        meta["next_safe_action"] = (
-            "Produce reversible design blueprint only; no execution."
-        )
+        meta["next_safe_action"] = "Produce reversible design blueprint only; no execution."
 
     if extra_meta:
         meta.update(extra_meta)
@@ -1654,9 +1610,7 @@ def _resolve_judge_contract(
 ) -> tuple[JudgeSealContract | None, dict[str, Any] | None]:
     by_hash = _JUDGE_STATE_REGISTRY.get(judge_state_hash) if judge_state_hash else None
     by_chain = (
-        _JUDGE_CHAIN_REGISTRY.get(constitutional_chain_id)
-        if constitutional_chain_id
-        else None
+        _JUDGE_CHAIN_REGISTRY.get(constitutional_chain_id) if constitutional_chain_id else None
     )
 
     if by_hash is None and by_chain is None:
@@ -1678,17 +1632,10 @@ def _resolve_judge_contract(
         return None, _hold(tool_name, "judge packet could not be resolved", [])
 
     contract = JudgeSealContract(**packet)
-    if (
-        constitutional_chain_id
-        and contract.constitutional_chain_id != constitutional_chain_id
-    ):
-        return None, _hold(
-            tool_name, "constitutional_chain_id does not match judge packet", []
-        )
+    if constitutional_chain_id and contract.constitutional_chain_id != constitutional_chain_id:
+        return None, _hold(tool_name, "constitutional_chain_id does not match judge packet", [])
     if judge_state_hash and contract.state_hash != judge_state_hash:
-        return None, _hold(
-            tool_name, "judge_state_hash does not match judge packet", []
-        )
+        return None, _hold(tool_name, "judge_state_hash does not match judge packet", [])
     return contract, None
 
 
@@ -1707,20 +1654,11 @@ def _resolve_vault_entry(
 
     entry = _VAULT_ENTRY_REGISTRY.get(vault_entry_id)
     if entry is None:
-        return None, _hold(
-            "arif_forge_execute", f"vault_entry_id not found: {vault_entry_id}", []
-        )
-    if (
-        constitutional_chain_id
-        and entry.get("constitutional_chain_id") != constitutional_chain_id
-    ):
-        return None, _hold(
-            "arif_forge_execute", "vault entry constitutional_chain_id mismatch", []
-        )
+        return None, _hold("arif_forge_execute", f"vault_entry_id not found: {vault_entry_id}", [])
+    if constitutional_chain_id and entry.get("constitutional_chain_id") != constitutional_chain_id:
+        return None, _hold("arif_forge_execute", "vault entry constitutional_chain_id mismatch", [])
     if judge_state_hash and entry.get("judge_state_hash") != judge_state_hash:
-        return None, _hold(
-            "arif_forge_execute", "vault entry judge_state_hash mismatch", []
-        )
+        return None, _hold("arif_forge_execute", "vault entry judge_state_hash mismatch", [])
     return entry, None
 
 
@@ -1743,9 +1681,7 @@ async def _elicit_irreversible_ack(
             [],
         )
 
-    await ctx.report_progress(
-        15, 100, f"{tool_name}: requesting sovereign confirmation"
-    )
+    await ctx.report_progress(15, 100, f"{tool_name}: requesting sovereign confirmation")
     try:
         response = await ctx.elicit(
             (
@@ -1765,9 +1701,7 @@ async def _elicit_irreversible_ack(
 
     if isinstance(response, AcceptedElicitation):
         if response.data.ack_irreversible:
-            await ctx.report_progress(
-                35, 100, f"{tool_name}: sovereign confirmation accepted"
-            )
+            await ctx.report_progress(35, 100, f"{tool_name}: sovereign confirmation accepted")
             return True, None
         return False, _hold(
             tool_name,
@@ -1781,9 +1715,7 @@ async def _elicit_irreversible_ack(
             [],
         )
     if isinstance(response, CancelledElicitation):
-        return False, _hold(
-            tool_name, "Elicitation cancelled before irreversible confirmation", []
-        )
+        return False, _hold(tool_name, "Elicitation cancelled before irreversible confirmation", [])
 
     return False, _hold(tool_name, "Unexpected elicitation response", [])
 
@@ -1824,9 +1756,7 @@ async def _elicit_judge_candidate(
     if isinstance(response, AcceptedElicitation):
         candidate_text = response.data.candidate.strip()
         if candidate_text:
-            await ctx.report_progress(
-                35, 100, "arif_judge_deliberate: candidate accepted"
-            )
+            await ctx.report_progress(35, 100, "arif_judge_deliberate: candidate accepted")
             return candidate_text, None
         return None, _hold("arif_judge_deliberate", "candidate cannot be empty", [])
     if isinstance(response, DeclinedElicitation):
@@ -1992,9 +1922,7 @@ def _arif_session_init(
             if "constitution_bound" not in invariants_checked:
                 invariants_checked.append("constitution_bound_default")
 
-        sess = _new_session(
-            actor_id, epoch_id=epoch_id, declared_model_key=declared_model_key
-        )
+        sess = _new_session(actor_id, epoch_id=epoch_id, declared_model_key=declared_model_key)
         sid = sess["session_id"]
 
         # Bind constitution hash to session at T=0
@@ -2427,9 +2355,7 @@ def _arif_sense_observe(
                         evidence_receipt["receipt_id"] = receipt_id
                     except Exception as exc:
                         logger.warning(f"Evidence store unavailable: {exc}")
-                        receipt_id = evidence_receipt.get(
-                            "receipt_id", "receipt://web/local"
-                        )
+                        receipt_id = evidence_receipt.get("receipt_id", "receipt://web/local")
 
                     return _ok(
                         "arif_sense_observe",
@@ -2451,11 +2377,144 @@ def _arif_sense_observe(
                 mm_error = str(exc)
                 logger.error("minimax_bridge.web_search failed: %s", exc)
 
+        # ── Cascade Step 2: Tavily ──
+        tvly_hits = []
+        tvly_error = None
+        if mm_error:
+            try:
+                from arifosmcp.runtime.tavily_bridge import tavily_bridge as _tvly
+
+                tvly_result = asyncio.run(_tvly.search(query or ""))
+                tvly_hits = tvly_result.get("hits", [])
+                if tvly_hits:
+                    evidence_receipt = {
+                        "tool": "111_SENSE",
+                        "mode": "search",
+                        "provider": "tavily_bridge",
+                        "bridge": "http_jsonrpc",
+                        "query_sent": query or "",
+                        "results_returned": len(tvly_hits),
+                        "urls_returned": len(tvly_hits),
+                        "cascade": True,
+                        "cascade_depth": 2,
+                        "session_id": session_id,
+                        "actor_id": actor_id,
+                    }
+                    return _ok(
+                        "arif_sense_observe",
+                        {
+                            "query": query,
+                            "results": tvly_hits,
+                            "source": "tavily",
+                            "omega_0": 0.04,
+                            "verdict": tvly_result.get("verdict", "SEAL"),
+                            "metrics": tvly_result.get("metrics", {}),
+                            "witness_debug": tvly_result.get("witness_debug", {}),
+                            "cascade": True,
+                            "cascade_depth": 2,
+                            "evidence_receipt": evidence_receipt,
+                        },
+                        delta_S=0.002,
+                    )
+                tvly_error = tvly_result.get("error", "zero_hits")
+            except Exception as exc:
+                tvly_error = str(exc)
+                logger.debug("tavily_bridge.search failed: %s", exc)
+
+        # ── Cascade Step 3: Firecrawl ──
+        fc_hits = []
+        fc_error = None
+        if mm_error and tvly_error:
+            try:
+                from arifosmcp.runtime.firecrawl_bridge import firecrawl_bridge as _fc
+
+                fc_result = asyncio.run(_fc.search(query or ""))
+                fc_hits = fc_result.get("hits", [])
+                if fc_hits:
+                    evidence_receipt = {
+                        "tool": "111_SENSE",
+                        "mode": "search",
+                        "provider": "firecrawl_bridge",
+                        "bridge": "rest_api",
+                        "query_sent": query or "",
+                        "results_returned": len(fc_hits),
+                        "urls_returned": len(fc_hits),
+                        "cascade": True,
+                        "cascade_depth": 3,
+                        "session_id": session_id,
+                        "actor_id": actor_id,
+                    }
+                    return _ok(
+                        "arif_sense_observe",
+                        {
+                            "query": query,
+                            "results": fc_hits,
+                            "source": "firecrawl",
+                            "omega_0": 0.04,
+                            "verdict": fc_result.get("verdict", "SEAL"),
+                            "metrics": fc_result.get("metrics", {}),
+                            "witness_debug": fc_result.get("witness_debug", {}),
+                            "cascade": True,
+                            "cascade_depth": 3,
+                            "evidence_receipt": evidence_receipt,
+                        },
+                        delta_S=0.002,
+                    )
+                fc_error = fc_result.get("error", "zero_hits")
+            except Exception as exc:
+                fc_error = str(exc)
+                logger.debug("firecrawl_bridge.search failed: %s", exc)
+
+        # ── Cascade Step 4: Exa ──
+        exa_hits = []
+        exa_error = None
+        if mm_error and tvly_error and fc_error:
+            try:
+                from arifosmcp.runtime.exa_bridge import exa_bridge as _exa
+
+                exa_result = asyncio.run(_exa.search(query or ""))
+                exa_hits = exa_result.get("hits", [])
+                if exa_hits:
+                    evidence_receipt = {
+                        "tool": "111_SENSE",
+                        "mode": "search",
+                        "provider": "exa_bridge",
+                        "bridge": "rest_api",
+                        "query_sent": query or "",
+                        "results_returned": len(exa_hits),
+                        "urls_returned": len(exa_hits),
+                        "cascade": True,
+                        "cascade_depth": 4,
+                        "session_id": session_id,
+                        "actor_id": actor_id,
+                    }
+                    return _ok(
+                        "arif_sense_observe",
+                        {
+                            "query": query,
+                            "results": exa_hits,
+                            "source": "exa",
+                            "omega_0": 0.04,
+                            "verdict": exa_result.get("verdict", "SEAL"),
+                            "metrics": exa_result.get("metrics", {}),
+                            "witness_debug": exa_result.get("witness_debug", {}),
+                            "cascade": True,
+                            "cascade_depth": 4,
+                            "evidence_receipt": evidence_receipt,
+                        },
+                        delta_S=0.002,
+                    )
+                exa_error = exa_result.get("error", "zero_hits")
+            except Exception as exc:
+                exa_error = str(exc)
+                logger.debug("exa_bridge.search failed: %s", exc)
+
         # ── RealityHandler cascade (Brave → DDGS fallback) ──
         rh_hits = []
         rh_engine = "unknown"
         try:
             from arifosmcp.runtime.reality_handlers import handler as _rh_handler
+
             rh_res = asyncio.run(_rh_handler.search_brave(query or "", top_k=5))
             if rh_res.results:
                 rh_hits = [
@@ -2636,9 +2695,7 @@ def _arif_sense_observe(
         if url and minimax_bridge is not None:
             try:
                 img_result = asyncio.run(
-                    minimax_bridge.understand_image(
-                        url, "Describe this image concisely"
-                    )
+                    minimax_bridge.understand_image(url, "Describe this image concisely")
                 )
                 return _ok(
                     "arif_sense_observe",
@@ -2666,9 +2723,7 @@ def _arif_sense_observe(
             delta_S=0.001,
         )
     if mode == "atlas":
-        return _ok(
-            "arif_sense_observe", {"map": {}, "layers": layers or []}, delta_S=0.0
-        )
+        return _ok("arif_sense_observe", {"map": {}, "layers": layers or []}, delta_S=0.0)
     if mode == "entropy_dS":
         dS = random.uniform(-0.1, 0.1)
         return _ok(
@@ -2844,9 +2899,7 @@ def _arif_evidence_fetch(
 
     _qdrant_url = _os.environ.get("QDRANT_URL", "").strip()
     _has_fetch_backend = bool(url)  # URL presence implies fetch is possible
-    _has_search_backend = bool(
-        _qdrant_url
-    )  # Qdrant configured = search backend available
+    _has_search_backend = bool(_qdrant_url)  # Qdrant configured = search backend available
     _has_local_index = False  # No local evidence corpus configured
 
     _backend_status = (
@@ -2954,13 +3007,9 @@ def _arif_evidence_fetch(
 
         if not risk_flags:
             try:
-                req = urllib.request.Request(
-                    url, headers={"User-Agent": "arifOS/1.0 F-WEB"}
-                )
+                req = urllib.request.Request(url, headers={"User-Agent": "arifOS/1.0 F-WEB"})
                 with urllib.request.urlopen(req, timeout=15) as resp:
-                    raw_content = resp.read(1024 * 512).decode(
-                        "utf-8", errors="replace"
-                    )
+                    raw_content = resp.read(1024 * 512).decode("utf-8", errors="replace")
                     fetch_status = resp.status
             except Exception as exc:
                 fetch_error = str(exc)
@@ -2970,6 +3019,7 @@ def _arif_evidence_fetch(
         if not raw_content and url:
             try:
                 from arifosmcp.runtime.reality_handlers import handler as _rh_handler
+
                 rh_res = asyncio.run(_rh_handler.fetch_url(url, render="auto"))
                 if rh_res.raw_content:
                     raw_content = rh_res.raw_content
@@ -2980,9 +3030,7 @@ def _arif_evidence_fetch(
                 logger.debug("RealityHandler fetch fallback failed: %s", rh_exc)
 
         sanitized = raw_content[:5000] if raw_content else ""
-        content_hash = (
-            hashlib.sha256(raw_content.encode()).hexdigest()[:16] if raw_content else ""
-        )
+        content_hash = hashlib.sha256(raw_content.encode()).hexdigest()[:16] if raw_content else ""
 
         source = {
             "source_hash": content_hash,
@@ -3078,9 +3126,7 @@ def _arif_evidence_fetch(
                 },
                 "timestamp": _now(),
             }
-        return _ok(
-            "arif_evidence_fetch", {"query": query, "results": []}, delta_S=0.001
-        )
+        return _ok("arif_evidence_fetch", {"query": query, "results": []}, delta_S=0.001)
 
     if mode == "archive":
         return _ok(
@@ -3179,7 +3225,9 @@ def _run_sequential_thinking(
             "deliberate": "Evaluating evidence relationships and constraints",
             "exhaustive": "Exploring all logical branches and counterfactuals",
         }
-        thought = f"[Step {step_num}] {thinking_modes.get(mode, 'Analyzing')}. Query: {query[:50]}..."
+        thought = (
+            f"[Step {step_num}] {thinking_modes.get(mode, 'Analyzing')}. Query: {query[:50]}..."
+        )
 
         hypothesis = None
         if step_num == 1:
@@ -3189,7 +3237,9 @@ def _run_sequential_thinking(
 
         rejected = None
         if step_num > 2 and random.random() < 0.2:
-            rejected = f"Alternative hypothesis {step_num - 1} rejected due to insufficient evidence"
+            rejected = (
+                f"Alternative hypothesis {step_num - 1} rejected due to insufficient evidence"
+            )
 
         direction = "continue"
         if allow_early_termination and new_confidence >= confidence_threshold:
@@ -3236,9 +3286,7 @@ def _build_sequential_result(
 ) -> dict[str, Any]:
     """Build the final sequential thinking result structure."""
     final_confidence = confidence_trajectory[-1] if confidence_trajectory else 0.5
-    reasoning_quality = (
-        "shallow" if len(steps) <= 2 else "adequate" if len(steps) <= 4 else "deep"
-    )
+    reasoning_quality = "shallow" if len(steps) <= 2 else "adequate" if len(steps) <= 4 else "deep"
 
     confidence_spike = False
     if len(confidence_trajectory) >= 2:
@@ -3275,12 +3323,8 @@ def _build_sequential_result(
             "landauer_cost_per_step_eV": [s.get("landauer_cost_eV", 0) for s in steps],
             "total_thermodynamic_cost_eV": round(total_cost * 0.001, 6),
             "reasoning_efficiency": round(reasoning_efficiency, 4),
-            "confidence_per_token": round(
-                final_confidence / max(total_cost * 800, 1), 6
-            ),
-            "insight_per_joule": round(
-                final_confidence / max(total_cost * 0.001 * 1e3, 0.001), 4
-            ),
+            "confidence_per_token": round(final_confidence / max(total_cost * 800, 1), 6),
+            "insight_per_joule": round(final_confidence / max(total_cost * 0.001 * 1e3, 0.001), 4),
             "steps_executed": len(steps),
             "time_budget_exhausted": False,
             "budget_exhausted": total_cost >= budget,
@@ -3400,9 +3444,7 @@ def _arif_mind_reason(
         task_steps = []
         if query:
             # Split on sentence boundaries and numbered lists
-            raw_steps = [
-                s.strip() for s in query.replace("\n", ". ").split(". ") if s.strip()
-            ]
+            raw_steps = [s.strip() for s in query.replace("\n", ". ").split(". ") if s.strip()]
             for i, step_text in enumerate(raw_steps[:8], start=1):  # cap at 8 steps
                 reversible = not any(
                     verb in step_text.lower()
@@ -3422,12 +3464,10 @@ def _arif_mind_reason(
                         "description": step_text,
                         "tool_hint": (
                             "arif_forge_execute"
-                            if "deploy" in step_text.lower()
-                            or "build" in step_text.lower()
+                            if "deploy" in step_text.lower() or "build" in step_text.lower()
                             else (
                                 "arif_evidence_fetch"
-                                if "fetch" in step_text.lower()
-                                or "search" in step_text.lower()
+                                if "fetch" in step_text.lower() or "search" in step_text.lower()
                                 else "arif_mind_reason"
                             )
                         ),
@@ -3690,9 +3730,7 @@ def _arif_mind_reason(
             anomalous_contrast=MindAnomalousContrast(
                 contrast_type=ContrastType.NONE,
             ),
-            thermodynamic_state=ThermodynamicState(
-                delta_S=0.001, entropy_direction="stable"
-            ),
+            thermodynamic_state=ThermodynamicState(delta_S=0.001, entropy_direction="stable"),
             meta={},
             delta_S=0.001,
             timestamp=_now(),
@@ -3734,9 +3772,7 @@ def _arif_mind_reason(
             axioms_used=default_axioms,
             reasoning_trace=trace,
             anomalous_contrast=MindAnomalousContrast(contrast_type=ContrastType.NONE),
-            thermodynamic_state=ThermodynamicState(
-                delta_S=0.005, entropy_direction="decreasing"
-            ),
+            thermodynamic_state=ThermodynamicState(delta_S=0.005, entropy_direction="decreasing"),
             meta={},
             delta_S=0.005,
             timestamp=_now(),
@@ -3790,9 +3826,7 @@ def _arif_mind_reason(
             axioms_used=default_axioms,
             reasoning_trace=trace,
             anomalous_contrast=MindAnomalousContrast(contrast_type=ContrastType.NONE),
-            thermodynamic_state=ThermodynamicState(
-                delta_S=0.001, entropy_direction="stable"
-            ),
+            thermodynamic_state=ThermodynamicState(delta_S=0.001, entropy_direction="stable"),
             meta={},
             delta_S=0.001,
             timestamp=_now(),
@@ -3853,9 +3887,7 @@ def _arif_mind_reason(
             ),
             reasoning_trace=trace,
             anomalous_contrast=MindAnomalousContrast(contrast_type=ContrastType.NONE),
-            thermodynamic_state=ThermodynamicState(
-                delta_S=0.001, entropy_direction="stable"
-            ),
+            thermodynamic_state=ThermodynamicState(delta_S=0.001, entropy_direction="stable"),
             meta={},
             delta_S=0.001,
             timestamp=_now(),
@@ -4049,12 +4081,8 @@ async def _arif_mind_reason_tool(
                 timeout=_TIMEOUT_MS / 1000.0,
             )
         except asyncio.TimeoutError:
-            logger.warning(
-                "333_MIND timeout after %dms — SAFE_VOID fallback", _TIMEOUT_MS
-            )
-            return _safe_void_fallback(
-                "arif_mind_reason", f"LLM timeout after {_TIMEOUT_MS}ms"
-            )
+            logger.warning("333_MIND timeout after %dms — SAFE_VOID fallback", _TIMEOUT_MS)
+            return _safe_void_fallback("arif_mind_reason", f"LLM timeout after {_TIMEOUT_MS}ms")
         except Exception as _exc:
             logger.warning(
                 "333_MIND cognitive module unavailable (%s); rule fallback active",
@@ -4133,15 +4161,9 @@ def _kernel_classify_task(task: str | None) -> str:
 def _kernel_depth_select(task: str | None) -> str:
     """Select T-tier based on task keywords."""
     tl = (task or "").lower()
-    if any(
-        k in tl
-        for k in ["deploy", "migrate", "irreversible", "seal", "commit", "production"]
-    ):
+    if any(k in tl for k in ["deploy", "migrate", "irreversible", "seal", "commit", "production"]):
         return "T4"
-    if any(
-        k in tl
-        for k in ["architecture", "design", "important", "consequential", "strategy"]
-    ):
+    if any(k in tl for k in ["architecture", "design", "important", "consequential", "strategy"]):
         return "T2"
     if any(k in tl for k in ["evidence", "verify", "source", "fact-check", "audit"]):
         return "T3"
@@ -4165,11 +4187,7 @@ def _kernel_risk_gate(task: str | None) -> tuple[str, int]:
     ]
     tl = (task or "").lower()
     score = sum(1 for k in risk_keywords if k in tl)
-    tier = (
-        "critical"
-        if score >= 3
-        else "high" if score >= 2 else "medium" if score >= 1 else "low"
-    )
+    tier = "critical" if score >= 3 else "high" if score >= 2 else "medium" if score >= 1 else "low"
     return tier, score
 
 
@@ -4445,9 +4463,7 @@ def _kernel_token_budget(depth: str) -> dict[str, Any]:
     return budgets.get(depth, budgets["T1"])
 
 
-def _kernel_authority_boundary(
-    depth: str, risk_tier: str, is_irreversible: bool
-) -> dict[str, Any]:
+def _kernel_authority_boundary(depth: str, risk_tier: str, is_irreversible: bool) -> dict[str, Any]:
     """Return authority boundary for a given task profile."""
     if depth == "T4" or is_irreversible or risk_tier in ("critical", "high"):
         return {
@@ -4584,9 +4600,7 @@ def _arif_kernel_route(
 
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
-        return _hold(
-            "arif_kernel_route", auth["reason"], ["F11"], session_id=session_id
-        )
+        return _hold("arif_kernel_route", auth["reason"], ["F11"], session_id=session_id)
 
     gate = _constitutional_gate(
         "arif_kernel_route", mode, actor_id, session_id=session_id, target_agent=target
@@ -4760,9 +4774,7 @@ def _arif_kernel_route(
                 current_allowed_modes[tool_name] = tool_data.get("safe_modes", [])
 
             manifest["current_allowed_modes"] = current_allowed_modes
-            return _ok(
-                "arif_kernel_route", manifest, delta_S=0.0, session_id=session_id
-            )
+            return _ok("arif_kernel_route", manifest, delta_S=0.0, session_id=session_id)
         except Exception as e:
             return _hold(
                 "arif_kernel_route",
@@ -4848,9 +4860,7 @@ def _arif_kernel_route(
                     "decision_basis": (
                         "read_only_status_probe" if not task else "task_orchestration"
                     ),
-                    "reversibility": (
-                        "read_only" if orch["risk_tier"] == "low" else "evaluating"
-                    ),
+                    "reversibility": ("read_only" if orch["risk_tier"] == "low" else "evaluating"),
                     "next_recommended_tool": "arif_kernel_route.list",
                 },
             },
@@ -5050,9 +5060,7 @@ def _arif_reply_compose(
             delta_S=0.0,
         )
     if mode == "format":
-        stripped = "\n".join(
-            s.strip() for s in (message or "").split("\n") if s.strip()
-        )
+        stripped = "\n".join(s.strip() for s in (message or "").split("\n") if s.strip())
         return _ok(
             "arif_reply_compose",
             {"message": message, "composed": stripped, "delta_S": -0.01},
@@ -5185,9 +5193,7 @@ async def _arif_reply_compose_tool(
                 elif hasattr(trace, "update"):
                     await trace.update(metadata={"status": "closed_by_safe_fallback"})
             except Exception as exc:
-                logger.warning(
-                    "Langfuse trace cleanup failed for arif_reply_compose: %s", exc
-                )
+                logger.warning("Langfuse trace cleanup failed for arif_reply_compose: %s", exc)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -5267,9 +5273,7 @@ def _arif_memory_recall(
                 },
             )
         _result = _memory_op(
-            lambda: _run_async(
-                _memory_engine.retrieve(query or "", tier=None, limit=10)
-            )
+            lambda: _run_async(_memory_engine.retrieve(query or "", tier=None, limit=10))
         )
         if _result is None:
             return _ok(
@@ -5364,9 +5368,7 @@ def _arif_memory_recall(
                 delta_S=0.0,
             )
         if _row:
-            _row["created_at"] = (
-                _row["created_at"].isoformat() if _row.get("created_at") else None
-            )
+            _row["created_at"] = _row["created_at"].isoformat() if _row.get("created_at") else None
             return _ok(
                 "arif_memory_recall",
                 {"memory_id": memory_id, "entry": _row, "found": True},
@@ -5419,9 +5421,7 @@ def _arif_memory_recall(
                 delta_S=0.0,
             )
         for r in _rows:
-            r["created_at"] = (
-                r["created_at"].isoformat() if r.get("created_at") else None
-            )
+            r["created_at"] = r["created_at"].isoformat() if r.get("created_at") else None
         return _ok(
             "arif_memory_recall",
             {"session_id": session_id, "entries": _rows, "count": len(_rows)},
@@ -5683,12 +5683,8 @@ async def _arif_heart_critique(
                 timeout=_TIMEOUT_MS / 1000.0,
             )
         except asyncio.TimeoutError:
-            logger.warning(
-                "666_HEART timeout after %dms — SAFE_VOID fallback", _TIMEOUT_MS
-            )
-            return _safe_void_fallback(
-                "arif_heart_critique", f"LLM timeout after {_TIMEOUT_MS}ms"
-            )
+            logger.warning("666_HEART timeout after %dms — SAFE_VOID fallback", _TIMEOUT_MS)
+            return _safe_void_fallback("arif_heart_critique", f"LLM timeout after {_TIMEOUT_MS}ms")
         except Exception as _exc:
             logger.warning(
                 "666_HEART module unavailable (%s); returning safe HOLD",
@@ -5715,9 +5711,7 @@ async def _arif_heart_critique(
             "autonomy_preservation_F04": {
                 "metric": "Does this action diminish 888's sovereignty?",
                 "floor": "F04",
-                "status": (
-                    "PASS" if result.get("risk_tier") in ("LOW", "AMBER") else "FAIL"
-                ),
+                "status": ("PASS" if result.get("risk_tier") in ("LOW", "AMBER") else "FAIL"),
                 "value": 1.0 if result.get("risk_tier") in ("LOW", "AMBER") else 0.0,
             },
             "audit_clarity_F07": {
@@ -5729,18 +5723,13 @@ async def _arif_heart_critique(
             "reversibility_index_F01": {
                 "metric": "Time/Energy cost to undo the state change",
                 "floor": "F01",
-                "status": (
-                    "PASS" if result.get("risk_tier") in ("LOW", "AMBER") else "FAIL"
-                ),
+                "status": ("PASS" if result.get("risk_tier") in ("LOW", "AMBER") else "FAIL"),
                 "value": 1.0 if result.get("risk_tier") in ("LOW", "AMBER") else 0.0,
-                "irreversibility_detected": result.get("risk_tier")
-                in ("HIGH", "CRITICAL"),
+                "irreversibility_detected": result.get("risk_tier") in ("HIGH", "CRITICAL"),
             },
             "empathy_score_kappa_r": result.get("empathy_score"),
             "dignity_verdict": (
-                "PRESERVED"
-                if result.get("risk_tier") in ("LOW", "AMBER")
-                else "COMPROMISED"
+                "PRESERVED" if result.get("risk_tier") in ("LOW", "AMBER") else "COMPROMISED"
             ),
         }
         result["dignity_breakdown"] = _dignity_breakdown
@@ -5830,7 +5819,7 @@ def _arif_gateway_connect(
         tags=["arifOS", "666g_GATEWAY", mode],
     )
 
-    _FEDERATION_REGISTRY = {"kimi", "claude", "gemini"}
+    _FEDERATION_REGISTRY = {"kimi", "claude", "gemini", "minimax", "tavily", "firecrawl", "exa"}
     if mode == "route":
         if target_agent and target_agent not in _FEDERATION_REGISTRY:
             return _hold(
@@ -5881,6 +5870,49 @@ def _arif_gateway_connect(
             },
             delta_S=0.002,
         )
+    if mode == "delegate":
+        from arifosmcp.runtime.exa_bridge import exa_bridge
+        from arifosmcp.runtime.firecrawl_bridge import firecrawl_bridge
+        from arifosmcp.runtime.minimax_bridge import minimax_bridge
+        from arifosmcp.runtime.tavily_bridge import tavily_bridge
+
+        _delegate_bridge_map = {
+            "minimax": lambda q: minimax_bridge.web_search(q),
+            "tavily": lambda q: tavily_bridge.search(q),
+            "firecrawl": lambda q: firecrawl_bridge.search(q),
+            "exa": lambda q: exa_bridge.search(q),
+        }
+
+        if target_agent in _delegate_bridge_map:
+            import asyncio
+
+            query = f"federated_delegate_{target_agent}"
+            try:
+                raw_result = asyncio.run(_delegate_bridge_map[target_agent](query))
+                return _ok(
+                    "arif_gateway_connect",
+                    {
+                        "target": target_agent,
+                        "delegate": "search",
+                        "status": "forwarded",
+                        "bridge_result": raw_result,
+                        "verdict": raw_result.get("verdict", "SEAL"),
+                        "metrics": raw_result.get("metrics", {}),
+                        "witness_debug": raw_result.get("witness_debug", {}),
+                    },
+                    delta_S=0.003,
+                )
+            except Exception as exc:
+                return _hold(
+                    "arif_gateway_connect",
+                    f"Delegate failed for {target_agent}: {exc}",
+                    ["F12", "F9"],
+                )
+        return _hold(
+            "arif_gateway_connect",
+            f"No delegate bridge for: {target_agent}",
+            ["F11"],
+        )
     return _hold("arif_gateway_connect", f"Unknown mode: {mode}")
 
 
@@ -5917,9 +5949,7 @@ def _arif_ops_measure(
     Returns:
       Health payload with status, metrics, and thermodynamic bands.
     """
-    gate = _constitutional_gate(
-        "arif_ops_measure", mode, actor_id, session_id=session_id
-    )
+    gate = _constitutional_gate("arif_ops_measure", mode, actor_id, session_id=session_id)
     if gate is not None:
         return gate
 
@@ -6255,9 +6285,7 @@ def _arif_judge_deliberate(
                 _wealth_score = cand_obj.get("wealth_score")
                 _verification_surface = cand_obj.get("verification_surface")
         except Exception:
-            _parse_failed = (
-                True  # malformed JSON — cannot extract verification state safely
-            )
+            _parse_failed = True  # malformed JSON — cannot extract verification state safely
             # Safe fallback: do NOT silently allow old path.
             # Flag the candidate as unparseable so caller knows verification state is missing.
             # The caller (or upstream) should treat this as a partial/invalid candidate.
@@ -6270,9 +6298,7 @@ def _arif_judge_deliberate(
         session_id=session_id,
         candidate=candidate,
         witness_type=(
-            WitnessType.HUMAN
-            if proof and proof.get("witness_type") == "human"
-            else WitnessType.AI
+            WitnessType.HUMAN if proof and proof.get("witness_type") == "human" else WitnessType.AI
         ),
         constitutional_chain_id=constitutional_chain_id,
         session_registry=set(_SESSIONS.keys()),
@@ -6517,9 +6543,7 @@ async def _arif_judge_deliberate_tool(
 
     try:
         if mode != "history":
-            candidate, hold = await _elicit_judge_candidate(
-                ctx, mode=mode, candidate=candidate
-            )
+            candidate, hold = await _elicit_judge_candidate(ctx, mode=mode, candidate=candidate)
             if hold is not None:
                 return hold
         if ctx is not None:
@@ -6730,9 +6754,9 @@ def _arif_vault_seal(
             if os.getenv("ARIFOS_DEV_MODE", "0") == "1" and ack_irreversible
             else IrreversibilityLevel.IRREVERSIBLE
         )
-        if _irreversibility_rank(
-            judge_contract.irreversibility_level
-        ) < _irreversibility_rank(required_level.value):
+        if _irreversibility_rank(judge_contract.irreversibility_level) < _irreversibility_rank(
+            required_level.value
+        ):
             _reason = "judge irreversibility level is below vault seal requirement"
             return SealOutput(
                 status="HOLD",
@@ -6803,9 +6827,7 @@ def _arif_vault_seal(
                 }
                 for event in drift_events:
                     if event.get("event_type") not in valid_types:
-                        event["_warning"] = (
-                            f"unknown event_type: {event.get('event_type')}"
-                        )
+                        event["_warning"] = f"unknown event_type: {event.get('event_type')}"
                     event["sealed_at"] = (
                         datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
                     )
@@ -6827,9 +6849,7 @@ def _arif_vault_seal(
 
             drift_summary = {
                 "total_events": len(sess.get("drift_log", [])),
-                "event_types": list(
-                    {e["event_type"] for e in sess.get("drift_log", [])}
-                ),
+                "event_types": list({e["event_type"] for e in sess.get("drift_log", [])}),
             }
 
         entry = {
@@ -7017,9 +7037,7 @@ def _arif_vault_seal(
                 irreversibility_bond=IrreversibilityBond(
                     level=IrreversibilityLevel.REVERSIBLE, delta_S=0.001
                 ),
-                entropy_delta=EntropyDelta(
-                    delta_S=0.001, entropy_direction="increasing"
-                ),
+                entropy_delta=EntropyDelta(delta_S=0.001, entropy_direction="increasing"),
                 meta={},
                 actor_id=actor_id,
                 timestamp=_now(),
@@ -7045,9 +7063,7 @@ def _arif_vault_seal(
                 irreversibility_bond=IrreversibilityBond(
                     level=IrreversibilityLevel.REVERSIBLE, delta_S=0.001
                 ),
-                entropy_delta=EntropyDelta(
-                    delta_S=0.001, entropy_direction="increasing"
-                ),
+                entropy_delta=EntropyDelta(delta_S=0.001, entropy_direction="increasing"),
                 meta={},
                 actor_id=actor_id,
                 timestamp=_now(),
@@ -7073,9 +7089,7 @@ def _arif_vault_seal(
                 irreversibility_bond=IrreversibilityBond(
                     level=IrreversibilityLevel.REVERSIBLE, delta_S=0.001
                 ),
-                entropy_delta=EntropyDelta(
-                    delta_S=0.001, entropy_direction="increasing"
-                ),
+                entropy_delta=EntropyDelta(delta_S=0.001, entropy_direction="increasing"),
                 meta={},
                 actor_id=actor_id,
                 timestamp=_now(),
@@ -7101,9 +7115,7 @@ def _arif_vault_seal(
                 irreversibility_bond=IrreversibilityBond(
                     level=IrreversibilityLevel.REVERSIBLE, delta_S=0.001
                 ),
-                entropy_delta=EntropyDelta(
-                    delta_S=0.001, entropy_direction="increasing"
-                ),
+                entropy_delta=EntropyDelta(delta_S=0.001, entropy_direction="increasing"),
                 meta={},
                 actor_id=actor_id,
                 timestamp=_now(),
@@ -7541,11 +7553,7 @@ def _arif_forge_execute(
     if mode == "query":
         bond = IrreversibilityBond(level=IrreversibilityLevel.REVERSIBLE, delta_S=0.0)
         trace = ExecutionTrace(
-            steps=[
-                ExecutionNode(
-                    step=1, action="query_executed", delta_S=0.0, reversible=True
-                )
-            ],
+            steps=[ExecutionNode(step=1, action="query_executed", delta_S=0.0, reversible=True)],
             total_steps=1,
         )
         output = ForgeOutput(
@@ -7596,9 +7604,7 @@ def _arif_forge_execute(
     if mode == "write":
         artifact_id_out = uuid.uuid4().hex[:8]
         size = len(manifest.encode()) if manifest else 0
-        bond = IrreversibilityBond(
-            level=IrreversibilityLevel.SEMI_IRREVERSIBLE, delta_S=0.001
-        )
+        bond = IrreversibilityBond(level=IrreversibilityLevel.SEMI_IRREVERSIBLE, delta_S=0.001)
         trace = ExecutionTrace(
             steps=[
                 ExecutionNode(
@@ -7743,9 +7749,7 @@ def _arif_forge_execute(
             )
 
         output = ForgeOutput(
-            manifest=ForgeManifest(
-                artifact_id=artifact_id_out, status=ManifestStatus.COMMITTED
-            ),
+            manifest=ForgeManifest(artifact_id=artifact_id_out, status=ManifestStatus.COMMITTED),
             status="OK",
             result={"committed": True, "hash": artifact_id_out, "seal": "active"},
             irreversibility_bond=bond,
@@ -7998,9 +8002,7 @@ def _runtime_selftest(
     warnings: list[str] = []
 
     def _is_async_callable(handler: Any) -> bool:
-        return inspect.iscoroutinefunction(handler) or inspect.isasyncgenfunction(
-            handler
-        )
+        return inspect.iscoroutinefunction(handler) or inspect.isasyncgenfunction(handler)
 
     def _run_async_probe(awaitable: Any) -> Any:
         result_box: dict[str, Any] = {}
@@ -8094,9 +8096,7 @@ def _runtime_selftest(
                 callability_results[name] = "SKIP"  # requires args or floor check
         except Exception:
             callability_results[name] = "SKIP"
-    call_pass = all(
-        v in ("PASS", "SKIP", "SKIP_ASYNC") for v in callability_results.values()
-    )
+    call_pass = all(v in ("PASS", "SKIP", "SKIP_ASYNC") for v in callability_results.values())
     checks["callability_check"] = {
         "verdict": "PASS" if call_pass else "PARTIAL",
         "details": callability_results,
@@ -8150,12 +8150,9 @@ def _runtime_selftest(
         mind_status = _probe_value(mind, "status", "?")
         mind_verdict = _probe_value(mind, "verdict", "?")
         mind_omega = _probe_value(mind, "omega_0")
-        mind_ok = (
-            mind_status in ("OK", "HOLD")
-            and (
-                mind_verdict in ("CLAIM", "PARTIAL", "HOLD", "VOID", "PLAUSIBLE")
-                or _probe_value(mind, "mode") == "plan"
-            )
+        mind_ok = mind_status in ("OK", "HOLD") and (
+            mind_verdict in ("CLAIM", "PARTIAL", "HOLD", "VOID", "PLAUSIBLE")
+            or _probe_value(mind, "mode") == "plan"
         )
         checks["mind_check"] = {
             "verdict": "PASS" if mind_ok else "FAIL",
@@ -8224,9 +8221,7 @@ def _runtime_selftest(
 
     # 9. Judge check
     try:
-        judge = _arif_judge_deliberate(
-            candidate="test", mode="dry_run", actor_id="selftest"
-        )
+        judge = _arif_judge_deliberate(candidate="test", mode="dry_run", actor_id="selftest")
         judge_ok = judge.get("status") in ("OK", "HOLD")
         checks["judge_check"] = {"verdict": "PASS" if judge_ok else "FAIL"}
         if not judge_ok:
@@ -8285,9 +8280,7 @@ def _runtime_selftest(
 
     # 13. Forge dry_run check
     try:
-        forge = _arif_forge_execute(
-            mode="dry_run", query="echo test", actor_id="selftest"
-        )
+        forge = _arif_forge_execute(mode="dry_run", query="echo test", actor_id="selftest")
         forge_status = forge.get("status")
         forge_result = forge.get("result", {})
         forge_ok = forge_status in ("OK", "HOLD")
@@ -8386,14 +8379,10 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
 }
 
 if len(_CANONICAL_HANDLERS) != 13:
-    raise RuntimeError(
-        f"Expected 13 canonical handlers, found {len(_CANONICAL_HANDLERS)}"
-    )
+    raise RuntimeError(f"Expected 13 canonical handlers, found {len(_CANONICAL_HANDLERS)}")
 
 if set(_CANONICAL_HANDLERS) != set(CANONICAL_TOOLS):
-    raise RuntimeError(
-        "Canonical handler registry does not match constitutional_map.py"
-    )
+    raise RuntimeError("Canonical handler registry does not match constitutional_map.py")
 
 _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
     "arif_ping": _runtime_ping,
@@ -8401,8 +8390,6 @@ _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
 }
 
 import functools
-
-
 
 
 def _extract_param_docs(docstring: str) -> dict[str, str]:
@@ -8452,6 +8439,7 @@ def _build_enriched_signature(handler):
         new_params.append(param.replace(annotation=new_ann))
     return sig.replace(parameters=new_params)
 
+
 def _wrap_handler(handler: Any, tool_name: str) -> Any:
     """
     Wrap a handler so:
@@ -8487,9 +8475,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     # Preserve signature so FastMCP schema generation sees actual parameters
     # instead of (*args, **kwargs) which yields empty input schemas.
     _wrapped.__signature__ = _build_enriched_signature(handler)
-    functools.wraps(handler)(
-        _wrapped
-    )  # copies __annotations__, __name__, __doc__, __wrapped__
+    functools.wraps(handler)(_wrapped)  # copies __annotations__, __name__, __doc__, __wrapped__
     _wrapped.__name__ = tool_name
     return _wrapped
 
@@ -8544,9 +8530,7 @@ def register_tools(
                     "stage_name": manifest.get("stage_name", ""),
                     "risk_tier": manifest.get("risk", {}).get("tier", "low"),
                     "irreversible": manifest.get("risk", {}).get("irreversible", False),
-                    "requires_human_ack": manifest.get("risk", {}).get(
-                        "requires_human_ack", False
-                    ),
+                    "requires_human_ack": manifest.get("risk", {}).get("requires_human_ack", False),
                     "canonical_order": manifest.get("canonical_order", []),
                 },
             )(wrapped)

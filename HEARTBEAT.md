@@ -1,6 +1,6 @@
 # HEARTBEAT.md — Runtime Liveness Signal
 
-**Version:** 2026.05.01
+**Version:** 2026.05.11
 **Purpose:** Live runtime pulse — answers "are we stable, should we continue, pause, escalate, or seal?"
 
 This file changes on every loop iteration. It is not durable memory — it is a live
@@ -20,20 +20,20 @@ If `risk_level` rises to `critical` OR `loop_count` > 20: **pause and summarize 
 ## Current Session State
 
 ```yaml
-session_id:     OC-006
+session_id:     OC-007
 status:         sealed        # idle | active | paused | degraded | sealed
 stage:          999_SEAL
 risk_level:     low           # low | medium | high | critical
-entropy_delta:  0.08          # Confusion delta since last beat (0.0–1.0)
+entropy_delta:  0.05          # Confusion delta since last beat (0.0–1.0)
 tool_health:    healthy       # unknown | healthy | degraded | failing
-loop_count:     6             # Increments each turn
-last_action:    999 SEAL - Hermes gateway stabilized: duplicate user unit removed, plugin kwarg/F13 matcher fixed, state.db rebuilt, service healthy
+loop_count:     7             # Increments each turn
+last_action:    999 SEAL — PARADOX_DOCTRINE_V1 forged + floor priority code + circuit breakers + Observatory dashboard live data fix. All 52 floor tests pass. Dashboard serves 200 at /dashboard/. /api/live/all returns 13/13 tools, 13/13 floors, SEAL verdict, vault healthy, all organs active, zero drift.
 next_gate:      none          # Next governance gate
 human_approval_required: false
-current_task:   OC-006 - Hermes gateway restart-loop and plugin-chaos stabilization
+current_task:   OC-007 — Complete: Paradox Doctrine + immunity architecture + Observatory SoT hardened
 blockers:       []
-autonomy_level: L3
-timestamp:      2026-05-11T18:12:23Z
+autonomy_level: L2
+timestamp:      2026-05-11T23:00:00Z
 ```
 
 ---
@@ -96,4 +96,4 @@ timestamp:      2026-05-11T18:12:23Z
 
 ## Runtime Notes
 
-_OC-002 sealed. Sovereign bundle is buildable and Observatory favors runtime truth over stale dossier text._
+_OC-007 SEALED. Paradox Doctrine V1 forged at 000/THEORY/. 8 paradox scenarios with resolution protocols, external falsifiability table, floor tension hierarchy. Code implemented: HARD/SOFT floor priority in core/floors.py, paradox conductance in core/judgment.py, CONFLICTING_VERDICTS in governance_kernel.py, CB1-CB5 circuit breakers in core/paradox/. Observatory dashboard now serves live truth at /dashboard/ — 13/13 tools, 13/13 floors, vault healthy, runtime_drift: false. 52/52 tests pass. The immune system is born._

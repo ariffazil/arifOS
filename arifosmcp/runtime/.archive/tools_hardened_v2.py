@@ -1049,7 +1049,7 @@ class HardenedVaultSeal:
                     event_type="seal",
                     session_id=session_id,
                     actor_id=auth_context.get("actor_id", "system") if auth_context else "system",
-                    stage="999_VAULT",
+                    stage="999_SEAL",
                     verdict=verdict_str,
                     payload={
                         "decision": decision,

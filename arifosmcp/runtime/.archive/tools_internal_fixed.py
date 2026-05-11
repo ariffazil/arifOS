@@ -826,7 +826,7 @@ async def engineering_memory_dispatch_impl(
     if mode not in valid_modes:
         return _create_error_envelope(
             tool_name="engineering_memory",
-            stage="555_MEMORY",
+            stage="555m_MEMORY",
             session_id=session_id,
             error_msg=f"Invalid mode '{mode}'. Valid modes: {valid_modes}",
             error_code="INVALID_MODE",
@@ -841,7 +841,7 @@ async def engineering_memory_dispatch_impl(
             ok=True,
             tool="engineering_memory",
             session_id=session_id,
-            stage="555_MEMORY",
+            stage="555m_MEMORY",
             verdict=Verdict.SABAR,
             status=RuntimeStatus.SABAR,
             payload={
@@ -861,7 +861,7 @@ async def engineering_memory_dispatch_impl(
             logger.error(f"Engineer mode failed: {e}")
             return _create_error_envelope(
                 tool_name="engineering_memory",
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 session_id=session_id,
                 error_msg=f"Engineer task failed: {e}",
                 error_code="ENGINEER_ERROR",
@@ -891,7 +891,7 @@ async def engineering_memory_dispatch_impl(
                         ok=True,
                         tool="engineering_memory",
                         session_id=session_id,
-                        stage="555_MEMORY",
+                        stage="555m_MEMORY",
                         verdict=Verdict.SEAL,
                         status=RuntimeStatus.SUCCESS,
                         payload={
@@ -918,7 +918,7 @@ async def engineering_memory_dispatch_impl(
                 else:
                     return _create_error_envelope(
                         tool_name="engineering_memory",
-                        stage="555_MEMORY",
+                        stage="555m_MEMORY",
                         session_id=session_id,
                         error_msg=error or "Qdrant write failed",
                         error_code="STORE_ERROR",
@@ -928,7 +928,7 @@ async def engineering_memory_dispatch_impl(
                 logger.error(f"Write mode failed: {e}")
                 return _create_error_envelope(
                     tool_name="engineering_memory",
-                    stage="555_MEMORY",
+                    stage="555m_MEMORY",
                     session_id=session_id,
                     error_msg=f"Write failed: {e}",
                     error_code="WRITE_ERROR",
@@ -940,7 +940,7 @@ async def engineering_memory_dispatch_impl(
             ok=True,
             tool="engineering_memory",
             session_id=session_id,
-            stage="555_MEMORY",
+            stage="555m_MEMORY",
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
             payload={
@@ -1005,7 +1005,7 @@ async def engineering_memory_dispatch_impl(
                 ok=True,
                 tool="engineering_memory",
                 session_id=session_id,
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 payload={
@@ -1072,7 +1072,7 @@ async def engineering_memory_dispatch_impl(
             except Exception as emb_err:
                 return _create_error_envelope(
                     tool_name="engineering_memory",
-                    stage="555_MEMORY",
+                    stage="555m_MEMORY",
                     session_id=session_id,
                     error_msg=f"Embedding service not reachable: {emb_err}",
                     error_code="EMBEDDING_UNAVAILABLE",
@@ -1101,7 +1101,7 @@ async def engineering_memory_dispatch_impl(
                 ok=True,
                 tool="engineering_memory",
                 session_id=session_id,
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 payload={
@@ -1124,7 +1124,7 @@ async def engineering_memory_dispatch_impl(
         except Exception as e:
             return _create_error_envelope(
                 tool_name="engineering_memory",
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 session_id=session_id,
                 error_msg=f"Legacy memory query failed: {e}",
                 error_code="QUERY_ERROR",
@@ -1146,7 +1146,7 @@ async def engineering_memory_dispatch_impl(
                     ok=True,
                     tool="engineering_memory",
                     session_id=session_id,
-                    stage="555_MEMORY",
+                    stage="555m_MEMORY",
                     verdict=Verdict.SEAL,
                     status=RuntimeStatus.SUCCESS,
                     payload={
@@ -1160,7 +1160,7 @@ async def engineering_memory_dispatch_impl(
             except Exception as e:
                 return _create_error_envelope(
                     tool_name="engineering_memory",
-                    stage="555_MEMORY",
+                    stage="555m_MEMORY",
                     session_id=session_id,
                     error_msg=f"Query failed: {e}",
                     error_code="QUERY_ERROR",
@@ -1171,7 +1171,7 @@ async def engineering_memory_dispatch_impl(
         except Exception as e:
             return _create_error_envelope(
                 tool_name="engineering_memory",
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 session_id=session_id,
                 error_msg=f"Legacy query failed: {e}",
                 error_code="QUERY_ERROR",
@@ -1183,7 +1183,7 @@ async def engineering_memory_dispatch_impl(
         if not content.strip():
             return _create_error_envelope(
                 tool_name="engineering_memory",
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 session_id=session_id,
                 error_msg="vector_store requires non-empty 'content'",
                 error_code="MISSING_CONTENT",
@@ -1212,7 +1212,7 @@ async def engineering_memory_dispatch_impl(
                         ok=True,
                         tool="engineering_memory",
                         session_id=session_id,
-                        stage="555_MEMORY",
+                        stage="555m_MEMORY",
                         verdict=Verdict.SEAL,
                         status=RuntimeStatus.SUCCESS,
                         payload={
@@ -1226,7 +1226,7 @@ async def engineering_memory_dispatch_impl(
                     )
                 return _create_error_envelope(
                     tool_name="engineering_memory",
-                    stage="555_MEMORY",
+                    stage="555m_MEMORY",
                     session_id=session_id,
                     error_msg=error or "Store failed",
                     error_code="STORE_ERROR",
@@ -1235,7 +1235,7 @@ async def engineering_memory_dispatch_impl(
             except Exception as e:
                 return _create_error_envelope(
                     tool_name="engineering_memory",
-                    stage="555_MEMORY",
+                    stage="555m_MEMORY",
                     session_id=session_id,
                     error_msg=f"Store failed: {e}",
                     error_code="STORE_ERROR",
@@ -1247,7 +1247,7 @@ async def engineering_memory_dispatch_impl(
             ok=True,
             tool="engineering_memory",
             session_id=session_id,
-            stage="555_MEMORY",
+            stage="555m_MEMORY",
             verdict=Verdict.SEAL,
             status=RuntimeStatus.SUCCESS,
             payload={"stored": True, "backend": "none", "warning": "Qdrant unavailable"},
@@ -1263,7 +1263,7 @@ async def engineering_memory_dispatch_impl(
         if not memory_ids and not query:
             return _create_error_envelope(
                 tool_name="engineering_memory",
-                stage="555_MEMORY",
+                stage="555m_MEMORY",
                 session_id=session_id,
                 error_msg="vector_forget requires 'memory_ids' list or 'query' to identify targets",
                 error_code="MISSING_PARAMETER",
@@ -1290,7 +1290,7 @@ async def engineering_memory_dispatch_impl(
             ok=len(errors) == 0,
             tool="engineering_memory",
             session_id=session_id,
-            stage="555_MEMORY",
+            stage="555m_MEMORY",
             verdict=Verdict.SEAL if len(errors) == 0 else Verdict.SABAR,
             status=RuntimeStatus.SUCCESS if len(errors) == 0 else RuntimeStatus.ERROR,
             payload={
@@ -1304,7 +1304,7 @@ async def engineering_memory_dispatch_impl(
     # Should not reach here due to mode validation at start
     return _create_error_envelope(
         tool_name="engineering_memory",
-        stage="555_MEMORY",
+        stage="555m_MEMORY",
         session_id=session_id,
         error_msg=f"Unhandled mode: {mode}",
         error_code="UNHANDLED_MODE",
@@ -1332,7 +1332,7 @@ async def math_estimator_dispatch_impl(
     if mode not in valid_modes:
         return _create_error_envelope(
             tool_name="math_estimator",
-            stage="444_ROUTER",
+            stage="555_ROUTE",
             session_id=session_id,
             error_msg=f"Invalid mode '{mode}'. Valid modes: {valid_modes}",
             error_code="INVALID_MODE",
@@ -1364,7 +1364,7 @@ async def math_estimator_dispatch_impl(
                 tool="math_estimator",
                 canonical_tool_name="arifos.ops",
                 session_id=session_id,
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 payload={
@@ -1392,7 +1392,7 @@ async def math_estimator_dispatch_impl(
                 tool="math_estimator",
                 canonical_tool_name="arifos.ops",
                 session_id=session_id,
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 payload={
@@ -1413,7 +1413,7 @@ async def math_estimator_dispatch_impl(
         except Exception as e:
             return _create_error_envelope(
                 tool_name="math_estimator",
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 session_id=session_id,
                 error_msg=f"Vitals collection failed: {e}",
                 error_code="VITALS_ERROR",
@@ -1445,7 +1445,7 @@ async def math_estimator_dispatch_impl(
                 tool="math_estimator",
                 canonical_tool_name="arifos.ops",
                 session_id=session_id,
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 payload={
@@ -1466,7 +1466,7 @@ async def math_estimator_dispatch_impl(
         except Exception as e:
             return _create_error_envelope(
                 tool_name="math_estimator",
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 session_id=session_id,
                 error_msg=f"Cost estimation failed: {e}",
                 error_code="COST_ERROR",
@@ -1481,7 +1481,7 @@ async def math_estimator_dispatch_impl(
                 tool="math_estimator",
                 canonical_tool_name="arifos.ops",
                 session_id=session_id,
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 payload={
@@ -1498,7 +1498,7 @@ async def math_estimator_dispatch_impl(
         except Exception as e:
             return _create_error_envelope(
                 tool_name="math_estimator",
-                stage="444_ROUTER",
+                stage="555_ROUTE",
                 session_id=session_id,
                 error_msg=f"Health check failed: {e}",
                 error_code="HEALTH_ERROR",
@@ -1508,7 +1508,7 @@ async def math_estimator_dispatch_impl(
     # Fallback for unhandled modes (shouldn't reach here due to validation)
     return _create_error_envelope(
         tool_name="math_estimator",
-        stage="444_ROUTER",
+        stage="555_ROUTE",
         session_id=session_id,
         error_msg=f"Mode '{mode}' validation passed but not implemented",
         error_code="NOT_IMPLEMENTED",

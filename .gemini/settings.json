@@ -2,8 +2,11 @@
   "mcpServers": {
     "arifOS": {
       "command": "python",
-      "args": ["stdio_server.py"],
+      "args": ["-m", "arifosmcp.runtime.__main__", "--mode", "stdio"],
       "cwd": "/root/arifOS"
+    },
+    "supabase": {
+      "url": "https://mcp.supabase.com/mcp?project_ref=utbmmjmbolmuahwixjqc"
     }
   }
 }

@@ -96,7 +96,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
     ToolSpec(
         name="arifos.route",
         public=True,
-        stage="444_ROUTER",
+        stage="555_ROUTE",
         role="arifOS Kernel",
         layer="GOVERNANCE",
         description="Execution lane selection and metabolic routing.",
@@ -132,7 +132,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
     ToolSpec(
         name="arifos.sense",
         public=False,
-        stage="111_SENSE",
+        stage="111_OBSERVE",
         role="Physics Reality",
         layer="MACHINE",
         description="Reality grounding, time, and evidence verification.",
@@ -148,7 +148,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
     ToolSpec(
         name="arifos.mind",
         public=False,
-        stage="333_MIND",
+        stage="333_REASON",
         role="AGI Mind",
         layer="INTELLIGENCE",
         description="Structured first-principles reasoning and synthesis.",
@@ -160,7 +160,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
     ToolSpec(
         name="arifos.heart",
         public=False,
-        stage="666_HEART",
+        stage="444_CRITIQUE",
         role="ASI Heart",
         layer="INTELLIGENCE",
         description="Safety, dignity, and adversarial critique.",
@@ -174,7 +174,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
     ToolSpec(
         name="arifos.ops",
         public=False,
-        stage="444_ROUTER",
+        stage="555_ROUTE",
         role="Math Estimator",
         layer="MACHINE",
         description="Calculate operation costs and thermodynamic vitals.",
@@ -186,7 +186,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
     ToolSpec(
         name="arifos.memory",
         public=False,
-        stage="555_MEMORY",
+        stage="555m_MEMORY",
         role="Engineering Memory",
         layer="INTELLIGENCE",
         description="Governed memory retrieval (Requires Session).",
@@ -198,7 +198,7 @@ PUBLIC_TOOL_SPECS: tuple[ToolSpec, ...] = (
     ToolSpec(
         name="arifos.vault",
         public=False,
-        stage="999_VAULT",
+        stage="999_SEAL",
         role="Vault Ledger",
         layer="GOVERNANCE",
         description="Immutable verdict logging (Requires Session).",

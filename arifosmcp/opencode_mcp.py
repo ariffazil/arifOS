@@ -13,14 +13,10 @@ def _iter_tools(mcp: FastMCP) -> list[Any]:
 
     provider = getattr(mcp, "_local_provider", None)
     components = getattr(provider, "_components", {}) if provider is not None else {}
-    return [
-        component for key, component in components.items() if key.startswith("tool:")
-    ]
+    return [component for key, component in components.items() if key.startswith("tool:")]
 
 
-def _mount_tools(
-    target: FastMCP, source: FastMCP, seen: set[str] | None = None
-) -> set[str]:
+def _mount_tools(target: FastMCP, source: FastMCP, seen: set[str] | None = None) -> set[str]:
     names = seen or set()
     for tool in _iter_tools(source):
         name = getattr(tool, "name", "")
@@ -81,10 +77,10 @@ def create_well_mcp() -> FastMCP:
 
 
 def create_wealth_mcp() -> FastMCP:
-    from arifosmcp.mcp_tools import create_valuation_mcp
+    from arifosmcp.apps.wealth_app import wealth_app
 
     mcp = FastMCP("arifOS-OpenCode-WEALTH")
-    _mount_tools(mcp, create_valuation_mcp())
+    _mount_tools(mcp, wealth_app)
 
     @mcp.tool(name="opencode_wealth_surface", tags={"system", "public"})
     def opencode_wealth_surface() -> dict[str, Any]:

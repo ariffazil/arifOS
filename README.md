@@ -132,6 +132,8 @@ arifOS is live and under active hardening.
 - Constitutional verdict flow (SEAL / HOLD / VOID)
 - Model registry deep lookup, including nested provider resolution
 - VAULT999 ledger interface and observatory governance dashboard
+- Public `/ready` now returns `pass` after canonical MIND/HEART probe repair and ingress reconciliation
+- Webhook intake now enforces approval-boundary hardening, replay resistance, policy pinning, and hash-chained vault evidence
 
 **In progress:**
 - Cryptographic identity attestation (Ed25519 / ES256)
@@ -768,6 +770,7 @@ Human / Agent request
 |---------|-----|---------|
 | Human (SOUL) | https://arif-fazil.com/ | Human anchor, portfolio, identity |
 | arifOS (MIND) | https://arifos.arif-fazil.com/ | Kernel governance documentation + Observatory |
+| arifOS Ready | https://arifos.arif-fazil.com/ready | Live readiness contract (`status: pass`) |
 | Cockpit (BODY) | https://aaa.arif-fazil.com/ | Agent workspace and A-FORGE cockpit |
 | MCP Canonical | https://mcp.arif-fazil.com/ | Production MCP endpoint |
 | GEOX | https://geox.arif-fazil.com/ | Earth intelligence coprocessor |
@@ -775,6 +778,7 @@ Human / Agent request
 | WELL | https://well.arif-fazil.com/ | Biological substrate monitor |
 
 > **Note:** `https://arifosmcp.arif-fazil.com/` is a legacy 301 redirect to the canonical `mcp.arif-fazil.com` endpoint.
+> **Runtime truth:** `https://arifos.arif-fazil.com/ready` currently returns `status: pass`.
 
 ---
 
