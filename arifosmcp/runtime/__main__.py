@@ -107,6 +107,9 @@ def _run_minimal_stdio_server() -> None:
     # FastMCP instance for resources + prompts (all three surfaces)
     _mcp = create_aaa_mcp_server()
 
+    # Persistent event loop — shared across all async bridge calls (resources/prompts)
+    _async_loop = asyncio.new_event_loop()
+
     # tool_handlers uses arif_* names (CANONICAL_TOOL_HANDLERS keys)
     tool_handlers: dict[str, Any] = CANONICAL_TOOL_HANDLERS.copy()
 
@@ -151,17 +154,9 @@ def _run_minimal_stdio_server() -> None:
         if hasattr(result, "contents"):
             for c in result.contents:
                 if hasattr(c, "text"):
-                    contents.append(
-                        {
-                            "uri": str(c.uri),
-                            "mimeType": getattr(c, "mime_type", "text/plain") or "text/plain",
-                            "text": c.text,
-                        }
-                    )
+                    contents.append({"uri": str(c.uri), "mimeType": getattr(c, "mime_type", "text/plain") or "text/plain", "text": c.text})
                 elif hasattr(c, "data"):
-                    contents.append(
-                        {"uri": str(c.uri), "mimeType": "application/octet-stream", "data": c.data}
-                    )
+                    contents.append({"uri": str(c.uri), "mimeType": "application/octet-stream", "data": c.data})
         return {"contents": contents}
 
     async def _list_prompts() -> list[dict[str, Any]]:
@@ -171,11 +166,7 @@ def _run_minimal_stdio_server() -> None:
                 "name": p.name,
                 "description": p.description or "",
                 "arguments": [
-                    {
-                        "name": a.name,
-                        "description": a.description or "",
-                        "required": getattr(a, "required", False),
-                    }
+                    {"name": a.name, "description": a.description or "", "required": getattr(a, "required", False)}
                     for a in (getattr(p, "arguments", []) or [])
                 ],
             }
@@ -201,7 +192,6 @@ def _run_minimal_stdio_server() -> None:
                 messages.append({"role": role, "content": {"type": "text", "text": content}})
         return {"description": getattr(prompt, "description", "") or "", "messages": messages}
 
-    _loop = asyncio.new_event_loop()
     while True:
         line = sys.stdin.buffer.readline()
         if not line:
@@ -248,82 +238,46 @@ def _run_minimal_stdio_server() -> None:
         # ── resources/list ───────────────────────────────────────────────────
         if method == "resources/list":
             try:
-                resources = _loop.run_until_complete(_list_resources())
+                resources = _async_loop.run_until_complete(_list_resources())
                 send({"jsonrpc": "2.0", "id": request_id, "result": {"resources": resources}})
             except Exception as exc:
-                send(
-                    {
-                        "jsonrpc": "2.0",
-                        "id": request_id,
-                        "error": {"code": -32000, "message": str(exc)},
-                    }
-                )
+                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32000, "message": str(exc)}})
             continue
 
         # ── resources/read ───────────────────────────────────────────────────
         if method == "resources/read":
             uri = params.get("uri")
             if not uri:
-                send(
-                    {
-                        "jsonrpc": "2.0",
-                        "id": request_id,
-                        "error": {"code": -32602, "message": "Missing uri"},
-                    }
-                )
+                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32602, "message": "Missing uri"}})
                 continue
             try:
-                result = _loop.run_until_complete(_read_resource(uri))
+                result = _async_loop.run_until_complete(_read_resource(uri))
                 send({"jsonrpc": "2.0", "id": request_id, "result": result})
             except Exception as exc:
-                send(
-                    {
-                        "jsonrpc": "2.0",
-                        "id": request_id,
-                        "error": {"code": -32000, "message": str(exc)},
-                    }
-                )
+                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32000, "message": str(exc)}})
             continue
 
         # ── prompts/list ─────────────────────────────────────────────────────
         if method == "prompts/list":
             try:
-                prompts = _loop.run_until_complete(_list_prompts())
+                prompts = _async_loop.run_until_complete(_list_prompts())
                 send({"jsonrpc": "2.0", "id": request_id, "result": {"prompts": prompts}})
             except Exception as exc:
-                send(
-                    {
-                        "jsonrpc": "2.0",
-                        "id": request_id,
-                        "error": {"code": -32000, "message": str(exc)},
-                    }
-                )
+                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32000, "message": str(exc)}})
             continue
 
         # ── prompts/get ─────────────────────────────────────────────────────
         if method == "prompts/get":
             name = params.get("name")
             if not name:
-                send(
-                    {
-                        "jsonrpc": "2.0",
-                        "id": request_id,
-                        "error": {"code": -32602, "message": "Missing name"},
-                    }
-                )
+                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32602, "message": "Missing name"}})
                 continue
             try:
                 arguments = params.get("arguments") or {}
-                result = _loop.run_until_complete(_get_prompt(name, arguments))
+                result = _async_loop.run_until_complete(_get_prompt(name, arguments))
                 send({"jsonrpc": "2.0", "id": request_id, "result": result})
             except Exception as exc:
-                send(
-                    {
-                        "jsonrpc": "2.0",
-                        "id": request_id,
-                        "error": {"code": -32000, "message": str(exc)},
-                    }
-                )
+                send({"jsonrpc": "2.0", "id": request_id, "error": {"code": -32000, "message": str(exc)}})
             continue
 
         # ── tools/list ───────────────────────────────────────────────────────
@@ -354,7 +308,7 @@ def _run_minimal_stdio_server() -> None:
                 continue
 
             try:
-                envelope = _loop.run_until_complete(_invoke_stdio_tool(handler, arguments))
+                envelope = asyncio.run(_invoke_stdio_tool(handler, arguments))
                 send(
                     {
                         "jsonrpc": "2.0",

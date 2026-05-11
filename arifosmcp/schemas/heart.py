@@ -41,7 +41,7 @@ class HeartResult(BaseModel):
     condensed: bool = False
     maruah: MaruahScore = Field(default_factory=MaruahScore)
     # LLM metadata
-    llm_tier: str | None = Field(None, alias="_llm_tier")
+    llm_tier: str | None = None
     timestamp_iso: str | None = None
     target: str | None = None
 
@@ -58,4 +58,4 @@ class HeartOutput(BaseModel):
     nine_signal: dict[str, Any] = Field(default_factory=dict)
     output_policy: str = "DOMAIN_SEAL"
     reasons: list[str] = Field(default_factory=list)
-    model_config = {"extra": "forbid"}
+    model_config = {"extra": "allow"}

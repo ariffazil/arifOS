@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 
 VAULT_PATH = "/root/.agent-workbench/vault999.jsonl"
 
-
 def log_event(agent_id, action, target, status, message):
     entry = {
         "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
@@ -15,7 +14,7 @@ def log_event(agent_id, action, target, status, message):
         "action": action,
         "target": target,
         "status": status,
-        "message": message,
+        "message": message
     }
     try:
         with open(VAULT_PATH, "a") as f:
@@ -23,39 +22,32 @@ def log_event(agent_id, action, target, status, message):
     except Exception as e:
         print(f"FAILED TO LOG TO VAULT: {e}", file=sys.stderr)
 
-
 def get_git_root(filepath):
     """Dynamically find the git root for the target file."""
     dirname = os.path.dirname(os.path.abspath(filepath))
     try:
         result = subprocess.run(
             ["git", "-C", dirname, "rev-parse", "--show-toplevel"],
-            capture_output=True,
-            text=True,
-            check=True,
+            capture_output=True, text=True, check=True
         )
         return result.stdout.strip()
     except subprocess.CalledProcessError:
         return None
 
-
 def check_git_status(filepath):
     git_root = get_git_root(filepath)
     if not git_root:
-        return None  # Not in a git repo
-
+        return None # Not in a git repo
+    
     try:
         # Check for uncommitted changes in the specific file relative to its git root
         result = subprocess.run(
             ["git", "-C", git_root, "diff", "--name-only", filepath],
-            capture_output=True,
-            text=True,
-            check=True,
+            capture_output=True, text=True, check=True
         )
         return result.stdout.strip() != ""
     except subprocess.CalledProcessError:
         return None
-
 
 def main():
     if len(sys.argv) < 3:
@@ -64,7 +56,7 @@ def main():
 
     agent_id = sys.argv[1]
     target_file = os.path.abspath(sys.argv[2])
-
+    
     # 1. Physical Integrity Check
     file_exists = os.path.exists(target_file)
 
@@ -75,7 +67,7 @@ def main():
         # For new files, check the parent directory's git status instead
         parent_dir = os.path.dirname(target_file)
         is_dirty = check_git_status(parent_dir) if os.path.isdir(parent_dir) else None
-
+    
     if is_dirty is True:
         log_event(agent_id, "PREFLIGHT", target_file, "HOLD", "Uncommitted changes detected")
         print(f"[888-HOLD] UNCOMMITTED CHANGES DETECTED IN {target_file}")
@@ -91,7 +83,6 @@ def main():
         log_event(agent_id, "PREFLIGHT", target_file, "QUALIFY", "Untracked/Non-Git file")
         print(f"[QUALIFY] {target_file} is not under version control. Proceeding with caution.")
         sys.exit(0)
-
 
 if __name__ == "__main__":
     main()

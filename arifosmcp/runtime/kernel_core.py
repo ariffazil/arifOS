@@ -12,6 +12,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from typing import Any
 
 from arifosmcp.constitutional_map import RiskClass, RiskDecision, preflight

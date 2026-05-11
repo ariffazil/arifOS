@@ -18,7 +18,10 @@ ARIF_DOCTRINE: dict = {
 }
 
 import asyncio
-import fcntl
+try:
+    import fcntl  # type: ignore
+except ImportError:  # Windows
+    fcntl = None  # type: ignore
 import hashlib
 import inspect
 import json
@@ -30,6 +33,24 @@ import uuid
 from contextvars import ContextVar
 from enum import Enum
 from typing import Any
+
+
+def _lock_shared(handle: Any) -> None:
+    if fcntl is None:
+        return
+    fcntl.flock(handle, fcntl.LOCK_SH)
+
+
+def _lock_exclusive(handle: Any) -> None:
+    if fcntl is None:
+        return
+    fcntl.flock(handle, fcntl.LOCK_EX)
+
+
+def _unlock(handle: Any) -> None:
+    if fcntl is None:
+        return
+    fcntl.flock(handle, fcntl.LOCK_UN)
 
 from fastmcp import Context, FastMCP
 from fastmcp.server.elicitation import (
@@ -49,6 +70,7 @@ from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_bu
 from arifosmcp.core.threat_engine import ThreatTier
 from arifosmcp.evidence.store import EvidenceStore, get_evidence_store
 from arifosmcp.runtime.floors import check_floors
+from arifosmcp.schemas.evidence import EvidenceOutput
 from arifosmcp.schemas.forge import (
     ConstitutionalCompliance,
     DeltaSEvidence,
@@ -60,7 +82,13 @@ from arifosmcp.schemas.forge import (
     IrreversibilityLevel,
     ManifestStatus,
 )
+from arifosmcp.schemas.gateway import GatewayOutput
+from arifosmcp.schemas.heart import HeartOutput
+from arifosmcp.schemas.kernel import KernelOutput
 from arifosmcp.schemas.lineage import JudgeSealContract
+from arifosmcp.schemas.memory import MemoryOutput
+from arifosmcp.schemas.reply import ReplyOutput
+from arifosmcp.schemas.sense import SenseOutput
 from arifosmcp.schemas.synthesis import (
     AxiomSource,
     AxiomsUsed,
@@ -103,9 +131,6 @@ class Stage:
     VAULT_999 = "999_VAULT"
 
 
-_SABAR_TIMESTAMPS: dict[str, float] = {}
-
-
 class Verdict(Enum):
     SEAL = "SEAL"
     PROVISIONAL = "PROVISIONAL"
@@ -138,49 +163,43 @@ def check_adaptation_status() -> dict[str, Any]:
     }
 
 
-async def INIT_ANCHOR(  # noqa: N802
-    raw_input: str = "", ctx: Any | None = None, **kwargs: Any
-) -> dict[str, Any]:  # noqa: N802
+async def INIT_ANCHOR(raw_input: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
     del ctx
     return await _wrap_call("INIT_ANCHOR", raw_input=raw_input, **kwargs)
 
 
-async def AGI_REASON(  # noqa: N802
-    query: str = "", ctx: Any | None = None, **kwargs: Any
-) -> dict[str, Any]:  # noqa: N802
+async def AGI_REASON(query: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
     del ctx
     return await _wrap_call("AGI_REASON", query=query, **kwargs)
 
 
-async def AGI_REFLECT(  # noqa: N802
-    topic: str = "", ctx: Any | None = None, **kwargs: Any
-) -> dict[str, Any]:  # noqa: N802
+async def AGI_REFLECT(topic: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
     del ctx
     return await _wrap_call("AGI_REFLECT", topic=topic, **kwargs)
 
 
-async def ASI_CRITIQUE(  # noqa: N802
+async def ASI_CRITIQUE(
     draft_output: Any = None, ctx: Any | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     del ctx
     return await _wrap_call("ASI_CRITIQUE", draft_output=draft_output, **kwargs)
 
 
-async def ASI_SIMULATE(  # noqa: N802
+async def ASI_SIMULATE(
     scenario: Any = None, ctx: Any | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     del ctx
     return await _wrap_call("ASI_SIMULATE", scenario=scenario, **kwargs)
 
 
-async def APEX_JUDGE(  # noqa: N802
+async def APEX_JUDGE(
     candidate_output: Any = None, ctx: Any | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     del ctx
     return await _wrap_call("APEX_JUDGE", candidate_output=candidate_output, **kwargs)
 
 
-async def VAULT_SEAL(  # noqa: N802
+async def VAULT_SEAL(
     verdict: Any = None, evidence: Any = None, ctx: Any | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     del ctx
@@ -1039,13 +1058,13 @@ class _FileSessionStore:
     def _load(self) -> dict[str, Any]:
         try:
             with open(self._path, encoding="utf-8") as f:
-                fcntl.flock(f, fcntl.LOCK_SH)
+                _lock_shared(f)
                 try:
                     data = json.load(f)
                     if isinstance(data, dict):
                         return data
                 finally:
-                    fcntl.flock(f, fcntl.LOCK_UN)
+                    _unlock(f)
         except (FileNotFoundError, json.JSONDecodeError):
             pass
         return {}
@@ -1068,25 +1087,25 @@ class _FileSessionStore:
     def _save(self, data: dict[str, Any]) -> None:
         try:
             with open(self._path, "w", encoding="utf-8") as f:
-                fcntl.flock(f, fcntl.LOCK_EX)
+                _lock_exclusive(f)
                 try:
                     json.dump(data, f, ensure_ascii=True, separators=(",", ":"))
                     f.flush()
                     os.fsync(f.fileno())
                 finally:
-                    fcntl.flock(f, fcntl.LOCK_UN)
+                    _unlock(f)
         except OSError:
             if self._using_explicit_path:
                 raise
             self._fallback_to_tmp()
             with open(self._path, "w", encoding="utf-8") as f:
-                fcntl.flock(f, fcntl.LOCK_EX)
+                _lock_exclusive(f)
                 try:
                     json.dump(data, f, ensure_ascii=True, separators=(",", ":"))
                     f.flush()
                     os.fsync(f.fileno())
                 finally:
-                    fcntl.flock(f, fcntl.LOCK_UN)
+                    _unlock(f)
 
     def get(self, key: str) -> dict[str, Any] | None:
         return self._get_session(key)
@@ -1750,71 +1769,6 @@ async def _elicit_judge_candidate(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def _load_agent_card(agent_id: str | None) -> dict[str, Any] | None:
-    """
-    Phase 1 — Identity-by-Reference: load pre-registered agent card.
-
-    Lookup order:
-      1. /root/arifOS/arifosmcp/runtime/agent_registry/cards/{agent_id}.json  (host)
-      2. /app/arifOS/arifosmcp/runtime/agent_registry/cards/{agent_id}.json  (container)
-      3. Environment override ARIFOS_AGENT_CARD_{AGENT_ID}
-
-    Returns None if no card found — session will be QUARANTINE (read-only).
-    """
-    if not agent_id:
-        return None
-
-    import json
-    import os
-    from pathlib import Path
-
-    # Candidate roots: host mount | container mount
-    _candidates = [
-        Path("/root/arifOS/arifosmcp/runtime/agent_registry/cards"),
-        Path("/app/arifOS/arifosmcp/runtime/agent_registry/cards"),
-        Path("/app/arifosmcp/runtime/agent_registry/cards"),
-    ]
-    for _cards_dir in _candidates:
-        try:
-            if not _cards_dir.exists():
-                continue
-        except PermissionError:
-            continue  # try next path
-        card_file = _cards_dir / f"{agent_id}.json"
-        try:
-            if card_file.exists():
-                try:
-                    with open(card_file) as f:
-                        return json.load(f)  # type: ignore[return-value]
-                except Exception:
-                    pass
-        except PermissionError:
-            continue  # try next path
-
-    # Path 2: env override (for containerised deployments)
-    env_key = f"ARIFOS_AGENT_CARD_{agent_id.upper().replace('-', '_')}"
-    env_val = os.environ.get(env_key)
-    if env_val:
-        try:
-            return json.loads(env_val)  # type: ignore[return-value]
-        except Exception:
-            pass
-
-    return None
-
-
-def _quarantine_session(sess: dict[str, Any], reason: str) -> dict[str, Any]:
-    """Downgrade session to QUARANTINE (read-only, dry-run only)."""
-    sess["stage"] = "000"
-    sess["lane"] = "QUARANTINE"
-    sess["entropy_delta"] = 0.0
-    sess["sealed"] = False
-    if "session_warnings" not in sess:
-        sess["session_warnings"] = []
-    sess["session_warnings"].append(f"QUARANTINE: {reason}")
-    return sess
-
-
 def _arif_session_init(
     mode: str = "init",
     actor_id: str | None = None,
@@ -1960,42 +1914,6 @@ def _arif_session_init(
         sess = _new_session(actor_id, epoch_id=epoch_id, declared_model_key=declared_model_key)
         sid = sess["session_id"]
 
-        # ── Phase 1: Agent Card Lookup ──────────────────────────────────────────
-        # Identity-by-reference: bind pre-registered agent card to session.
-        # If no card found → QUARANTINE (read-only, dry-run only).
-        agent_card = _load_agent_card(actor_id)
-        card_lane: str | None = None
-        if agent_card:
-            card_lane = agent_card.get("declared_lane")
-            sess["agent_card"] = {
-                "agent_id": agent_card.get("agent_id"),
-                "card_hash": agent_card.get("card_hash"),
-                "declared_lane": card_lane,
-                "compliance_tier": agent_card.get("compliance_tier"),
-                "phase": agent_card.get("phase", 0),
-            }
-            # Flag if Hermes claims ASI but system returned AGI → QUARANTINE
-            if card_lane and card_lane != "AGI" and sess.get("lane") == "AGI":
-                sess = _quarantine_session(
-                    sess,
-                    f"lane_mismatch: card declares {card_lane} but system defaulted to AGI. "
-                    "Prove F3 Witness before upgrade request.",
-                )
-                logger.warning(
-                    "QUARANTINE for agent_id=%s: declared_lane=%s vs system lane=AGI",
-                    actor_id,
-                    card_lane,
-                )
-        else:
-            # Unregistered agent — full quarantine
-            sess = _quarantine_session(
-                sess,
-                f"agent_id={actor_id} not found in registry. "
-                "Register at /agent_registry/cards/ before init.",
-            )
-            logger.warning("QUARANTINE for unregistered agent_id=%s", actor_id)
-        # ── End Phase 1 ────────────────────────────────────────────────────────
-
         # Bind constitution hash to session at T=0
         sess["constitution_hash"] = constitution_hash
         sess["actor_signature"] = actor_signature
@@ -2020,9 +1938,6 @@ def _arif_session_init(
             if warning_msg not in session_warnings:
                 session_warnings.append(warning_msg)
         sess["session_warnings"] = session_warnings
-
-        # Persist fully enriched session before returning
-        _SESSIONS[sid] = sess
 
         # H2: Store write acknowledgment
         store_ack = {"_SESSIONS": False, "_SESSION_IDENTITY": False}
@@ -2650,7 +2565,7 @@ def _arif_sense_observe(
                     if key not in all_claims:
                         all_claims[key] = []
                     all_claims[key].append({**t, "query": res["query"]})
-        for _key, claim_group in all_claims.items():
+        for key, claim_group in all_claims.items():
             if len(claim_group) >= 2:
                 obj_values = set(c["obj"] for c in claim_group)
                 if len(obj_values) == 1:
@@ -2840,11 +2755,7 @@ def _arif_evidence_fetch(
 
         # SSRF validation
         parsed = urllib.parse.urlparse(url)
-        if parsed.hostname in (
-            "127.0.0.1",
-            "localhost",
-            "0.0.0.0",
-        ) or parsed.hostname.startswith(  # nosec: B104
+        if parsed.hostname in ("127.0.0.1", "localhost", "0.0.0.0") or parsed.hostname.startswith(
             ("10.", "192.168.", "172.")
         ):
             risk_flags.append("private_ip_access")
@@ -3461,7 +3372,6 @@ def _arif_mind_reason(
         synthesis_text = _synthesize(query, "inductive")
         scars_list = _detect_scars(query, synthesis_text)
         output = MindOutput(
-            omega_0=0.05,
             status="OK",
             tool="arif_mind_reason",
             result={
@@ -3517,7 +3427,6 @@ def _arif_mind_reason(
             total_landauer_cost_eV=0.0002,
         )
         output = MindOutput(
-            omega_0=0.05,
             status="OK",
             tool="arif_mind_reason",
             result={"query": query, "verdict": "PLAUSIBLE", "reflection": ""},
@@ -3574,7 +3483,6 @@ def _arif_mind_reason(
             total_landauer_cost_eV=0.0003,
         )
         output = MindOutput(
-            omega_0=0.05,
             status="OK",
             tool="arif_mind_reason",
             result={"query": query, "artifact": "", "delta_S": -0.01},
@@ -3628,7 +3536,6 @@ def _arif_mind_reason(
             total_landauer_cost_eV=0.0004,
         )
         output = MindOutput(
-            omega_0=0.05,
             status="OK",
             tool="arif_mind_reason",
             result={"query": query, "positions": ["pro", "con"], "resolution": "HOLD"},
@@ -3671,7 +3578,6 @@ def _arif_mind_reason(
             total_landauer_cost_eV=0.0001,
         )
         output = MindOutput(
-            omega_0=0.05,
             status="OK",
             tool="arif_mind_reason",
             result={"query": query, "questions": questions},
@@ -4213,19 +4119,6 @@ def _arif_kernel_route(
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
         return _hold("arif_kernel_route", auth["reason"], ["F11"], session_id=session_id)
-
-    # SABAR Cooling Period (Conflict Resolution Protocol)
-    if session_id and session_id in _SABAR_TIMESTAMPS:
-        time_since = _now() - _SABAR_TIMESTAMPS[session_id]
-        if time_since < 300:
-            return _hold(
-                "arif_kernel_route",
-                f"CRP Active: Session under SABAR cooling period. Wait {int(300 - time_since)}s.",
-                ["F13"],
-                session_id=session_id,
-            )
-        else:
-            del _SABAR_TIMESTAMPS[session_id]
 
     gate = _constitutional_gate(
         "arif_kernel_route", mode, actor_id, session_id=session_id, target_agent=target
@@ -5124,385 +5017,11 @@ def _arif_memory_recall(
             delta_S=0.001,
         )
 
-    # ── searah ─────────────────────────────────────────────────
-    # SEARAH Investigation — Level 2 Agentic RAG
-    # Multi-hop retrieval across entity graph + chunk corpus
-    # Constitutional validation: F2 TRUTH + F3 WITNESS
-    if mode == "searah":
-        import asyncio as _asyncio
-        import os
-
-        import httpx as _httpx
-
-        _OLLAMA = os.getenv("OLLAMA_URL", "http://ollama-engine-prod:11434")
-        _QDRANT = os.getenv("QDRANT_URL", "http://qdrant:6333")
-        _COLL_ENTITIES = "searah_entities"
-        _COLL_CHUNKS = "searah_docs"
-        _COLL_RELS = "searah_relations"
-        _REL_THRESH = 0.30
-        _CHUNK_THRESH = 0.28
-
-        _QUESTION_MAP = {
-            "ownership": "Who owns SEARAH LIMITED and what are the ownership stakes? Who are the directors?",
-            "jurisdiction": "What is the governing law and dispute resolution mechanism for SEARAH LIMITED? Why does this put Malaysia at a disadvantage?",
-            "petros_exclusion": "Why was PETROS (Petroleum Sarawak Berhad) excluded from SEARAH despite Kasawari gas being a Sarawak asset?",
-            "parliament": "Was Parliament notified or involved in approving the SEARAH deal?",
-            "asset": "What assets does SEARAH hold? Focus on Kasawari gas field, Block SK316, and MLNG Bintulu.",
-            "legal_framework": "What is the legal basis for the PETRONAS vs PETROS jurisdiction dispute under PDA 1974 vs Malaysia Agreement 1963?",
-            "value": "What is the financial value and commitment of the SEARAH deal?",
-            "timing": "What is the full timeline — Anwar-Meloni meeting, ADIPEC signing, incorporation, PETROS filing, Federal Court ruling, company rename?",
-            "人物": "Who are the key people — PETRONAS CEO, Eni CEO, Chairman, and Board directors?",
-            "dispute": "What is the PETROS vs PETRONAS dispute about, and what is the Federal Court ruling?",
-            "constitutional": "What are the constitutional implications — federal vs state petroleum rights?",
-            "board": "What is the board composition — how many Malaysian vs Italian directors?",
-            "general": "What are all key facts about the SEARAH joint venture?",
-        }
-        _PATTERNS = {
-            "ownership": [
-                "siapa punya",
-                "whose",
-                "who owns",
-                "ownership",
-                "50%",
-                "shareholder",
-                "ENI House",
-            ],
-            "jurisdiction": [
-                "mahkamah",
-                "court",
-                "jurisdiction",
-                "arbitration",
-                "ICC",
-                "LCIA",
-                "English law",
-                "governing law",
-                "London",
-            ],
-            "petros_exclusion": [
-                "PETROS",
-                "exclude",
-                "excluded",
-                "Sarawak excluded",
-                "state petroleum",
-            ],
-            "parliament": [
-                "parliament",
-                "parliamen",
-                "hansard",
-                "notified",
-                "approval",
-                "dimaklumkan",
-            ],
-            "asset": [
-                "Kasawari",
-                "SK316",
-                "gas field",
-                "LNG",
-                "Masela",
-                "mmscf",
-                "feeds",
-                "Bintulu",
-            ],
-            "legal_framework": [
-                "PDA 1974",
-                "Petroleum Development Act",
-                "MA1963",
-                "Malaysia Agreement",
-                "federal",
-            ],
-            "value": ["RM70", "USD 15", "billion", "nilai", "worth"],
-            "timing": [
-                "timeline",
-                "when",
-                "date",
-                "tarikh",
-                "February",
-                "March 2026",
-                "November",
-                "ADIPEC",
-                "incorporated",
-                "renamed",
-            ],
-            "人物": ["who is", "CEO", "chairman", "Tengku", "Claudio", "Descalzi", "Bakke"],
-            "dispute": [
-                "dispute",
-                "saman",
-                "court case",
-                "Federal Court",
-                "PETROS vs PETRONAS",
-                "Kuching",
-            ],
-            "constitutional": ["constitutional", "federal", "Sabah", "Sarawak", "state rights"],
-            "board": ["board", "director", "Italian", "Malaysian", "asymmetry"],
-        }
-
-        async def _embed(text: str) -> list[float]:
-            async with _httpx.AsyncClient() as c:  # nosec B113
-                r = await c.post(
-                    f"{_OLLAMA}/api/embeddings",
-                    json={"model": "bge-m3:latest", "prompt": text},
-                    timeout=30,
-                )
-                r.raise_for_status()
-                return r.json()["embedding"]
-
-        async def _qsearch(collection: str, vector: list[float], top_k: int = 8) -> list[dict]:
-            async with _httpx.AsyncClient() as c:  # nosec B113
-                r = await c.post(
-                    f"{_QDRANT}/collections/{collection}/points/search",
-                    json={
-                        "vector": vector,
-                        "limit": top_k,
-                        "with_payload": True,
-                        "with_vector": False,
-                    },
-                    headers={"Content-Type": "application/json"},
-                    timeout=15,
-                )
-            if r.status_code != 200:
-                return []
-            return [
-                {"id": h["id"], "score": h["score"], "payload": h.get("payload", {})}
-                for h in r.json().get("result", [])
-            ]
-
-        async def _follow_rels(eids: list[str], rtypes: list[str]) -> list[dict]:
-            results = []
-            for eid in eids:
-                async with _httpx.AsyncClient() as c:  # nosec B113
-                    r = await c.post(
-                        f"{_QDRANT}/collections/{_COLL_RELS}/points/search",
-                        json={
-                            "filter": {"should": [{"key": "from", "match": {"value": eid}}]},
-                            "with_payload": True,
-                            "limit": 8,
-                        },
-                        headers={"Content-Type": "application/json"},
-                        timeout=10,
-                    )
-                    if r.status_code == 200:
-                        for rel in r.json().get("result", []):
-                            rp = rel["payload"]
-                            if not rtypes or rp["type"] in rtypes:
-                                results.append(
-                                    {
-                                        "id": rp["to"],
-                                        "score": rel["score"],
-                                        "payload": {
-                                            "id": rp["to"],
-                                            "type": "relation_traversed",
-                                            "name": rp["to"].replace("-", " "),
-                                            "relation": rp,
-                                            "properties": {"label": rp.get("label", "")},
-                                            "verification": "VERIFIED",
-                                        },
-                                    }
-                                )
-            return results
-
-        def _decompose(query: str) -> list[dict]:
-            q = query.lower()
-            matched = list(
-                dict.fromkeys(t for t, pats in _PATTERNS.items() for p in pats if p.lower() in q)
-            )
-            if not matched:
-                matched = ["general"]
-            return [
-                {"type": t, "question": _QUESTION_MAP[t]} for t in matched if t in _QUESTION_MAP
-            ]
-
-        async def _multi_hop(sq: dict) -> dict:
-            collected_e, collected_c = [], []
-            vec = await _embed(sq["question"])
-            er = await _qsearch(_COLL_ENTITIES, vec, 8)
-            cr = await _qsearch(_COLL_CHUNKS, vec, 8)
-            good_e = [e for e in er if e["score"] >= _REL_THRESH]
-            good_c = [c for c in cr if c["score"] >= _CHUNK_THRESH]
-            collected_e.extend(good_e)
-            collected_c.extend(good_c)
-            top_eids = [e["payload"].get("id") for e in good_e[:5]]
-            rel_map = {
-                "petros_exclusion": [
-                    "EXCLUDES",
-                    "DISPUTES_WITH",
-                    "CLAIMS_JURISDICTION",
-                    "LITIGATES_IN",
-                    "LEGAL_BASIS",
-                ],
-                "dispute": ["DISPUTES_WITH", "CLAIMS_JURISDICTION", "LITIGATES_IN", "LEGAL_BASIS"],
-                "jurisdiction": ["GOVERNED_BY", "LEGAL_BASIS", "EXCLUDES"],
-                "asset": [
-                    "OWNS_ASSET",
-                    "FEEDS",
-                    "LOCATED_IN",
-                    "PRECEDED_BY",
-                    "RESULTED_IN",
-                    "OWNS_50",
-                ],
-                "timing": ["PRECEDED_BY", "RESULTED_IN", "ENABLED", "AUTHORIZED_BY"],
-                "ownership": ["OWNS_50", "SHAREHOLDER", "LEADS", "CHAIRS", "OPERATIONS_LEAD"],
-                "board": ["LEADS", "CHAIRS", "OPERATIONS_LEAD", "GM_STRATEGY"],
-                "constitutional": ["LEGAL_BASIS", "CLAIMS_JURISDICTION", "DISPUTES_WITH"],
-            }
-            if sq["type"] in rel_map:
-                rels = await _follow_rels(top_eids, rel_map[sq["type"]])
-                collected_e.extend(rels)
-            for e in good_e[:4]:
-                ename = e["payload"].get("name", e["id"])
-                cvec = await _embed(f"SEARAH {ename} evidence")
-                xc = await _qsearch(_COLL_CHUNKS, cvec, 4)
-                collected_c.extend([c for c in xc if c["score"] >= _CHUNK_THRESH])
-            seen_e, seen_c = set(), set()
-            ue = [e for e in collected_e if e["id"] not in seen_e and not seen_e.add(e["id"])][:8]
-            uc = [c for c in collected_c if c["id"] not in seen_c and not seen_c.add(c["id"])][:8]
-            avg = (
-                sum(x["score"] for x in ue) / max(len(ue), 1) * 0.55
-                + sum(x["score"] for x in uc) / max(len(uc), 1) * 0.45
-            )
-            return {
-                "type": sq["type"],
-                "sub_question": sq["question"],
-                "entities": ue,
-                "chunks": uc,
-                "avg_confidence": round(avg, 3),
-                "total_entities": len(ue),
-                "total_chunks": len(uc),
-                "hops": 3,
-            }
-
-        def _governance(srs: list[dict]) -> dict:
-            all_e = [e for sr in srs for e in sr.get("entities", [])]
-            unv = [
-                e
-                for e in all_e
-                if e["payload"].get("verification") in ("UNVERIFIED", "CONTRADICTED")
-            ]
-            weak = [e for e in all_e if len(e["payload"].get("evidence", [])) == 0]
-            return {
-                "verdict": "PASS" if not unv and not weak else "FAIL",
-                "floors": "F2+F3",
-                "unverified": [e["id"] for e in unv],
-                "weak_source": [e["id"] for e in weak],
-            }
-
-        def _reflect(srs: list[dict], val: dict) -> str:
-            conf = val["confidence"]
-            if val["needs_retry"]:
-                return f"INCOMPLETE — gaps: {val['flags']}"
-            elif conf >= 0.60 and not val["flags"]:
-                return f"COMPLETE (conf: {conf:.2f}) ✅"
-            elif conf >= 0.45:
-                return f"PARTIAL (conf: {conf:.2f}), caveats: {val['flags']}"
-            return f"WEAK (conf: {conf:.2f}) — more evidence needed"
-
-        def _synth(srs: list[dict], query: str, refl: str, gov: dict) -> str:
-            te = sum(s["total_entities"] for s in srs)
-            tc = sum(s["total_chunks"] for s in srs)
-            lines = [
-                "## 🔍 SEARAH Agentic RAG — Level 2\n",
-                f"**Query:** {query}\n",
-                f"**Status:** {refl}\n",
-                f"**Constitutional:** {gov['verdict']} | {gov['floors']}\n",
-                f"**Retrieval:** {len(srs)} sub-questions → {te} entities + {tc} chunks across 3 hops\n",
-                "---\n",
-            ]
-            for sr in srs:
-                b = (
-                    "✅"
-                    if sr["avg_confidence"] >= 0.55
-                    else "⚠️" if sr["avg_confidence"] >= 0.40 else "❌"
-                )
-                lines.append(f"### [{b}] {sr['type'].upper()}")
-                lines.append(f"_{sr['sub_question']}_\n")
-                lines.append("| Entities | Chunks | Confidence | Hops |")
-                lines.append("|----------|--------|------------|------|")
-                lines.append(
-                    f"| {sr['total_entities']} | {sr['total_chunks']} | {sr['avg_confidence']} | {sr['hops']} |\n"
-                )
-                for e in sr["entities"][:6]:
-                    p = e["payload"]
-                    if p.get("type") == "relation_traversed":
-                        rel = p.get("relation", {})
-                        lines.append(
-                            f"**REL:** `{rel.get('from','?')}` --[{rel.get('type','?')}]--> `{rel.get('to','?')}`"
-                        )
-                        lines.append(f"→ {rel.get('label','—')}")
-                        continue
-                    v = p.get("verification", "")
-                    vb = {
-                        "VERIFIED": "✅",
-                        "INFERRED": "⚠️",
-                        "UNVERIFIED": "❓",
-                        "CONTRADICTED": "❌",
-                    }.get(v, "?")
-                    lines.append(f"**{p.get('name',p.get('id','?'))}** `{p.get('type','?')}` {vb}")
-                    for k, v2 in list(p.get("properties", {}).items())[:4]:
-                        if v2:
-                            lines.append(f"  • {k}: {v2}")
-                if sr["chunks"]:
-                    lines.append("_📄 Evidence:_")
-                    for c in sr["chunks"][:2]:
-                        t = c["payload"].get("text", "")[:280].replace("\n", " ")
-                        lines.append(f"> {t}... `[score:{c['score']:.2f}]`")
-                lines.append("")
-            if gov.get("unverified"):
-                lines.append("---\n**Constitutional Flags:**\n")
-                for ue in gov["unverified"]:
-                    lines.append(f"  ⚠️ F2+F3: `{ue}` — unverified, requires sourcing")
-            lines.append(
-                "\n---\n_SEARAH Level 2 Agentic RAG | Multi-hop + F2/F3 Constitutional Validation_\n"
-            )
-            return "\n".join(lines)
-
-        async def _searah_run(raw_query: str) -> str:
-            sqs = _decompose(raw_query)
-            srs = [_multi_hop(sq) for sq in sqs]
-            srs = await _asyncio.gather(*srs)
-            flags, cons = [], []
-            for sr in srs:
-                for e in sr.get("entities", []):
-                    v = e["payload"].get("verification", "")
-                    if v in ("CONTRADICTED", "UNVERIFIED"):
-                        flags.append(f"⚠️ [{e['id']}] {v}")
-                        if v == "CONTRADICTED":
-                            cons.append(e)
-                if sr["total_entities"] == 0 and sr["total_chunks"] == 0:
-                    flags.append(f"❌ Empty: [{sr['type']}]")
-            val = {
-                "flags": flags,
-                "contradictions": cons,
-                "needs_retry": len(cons) > 0 or len(flags) > len(srs),
-                "confidence": sum(s["avg_confidence"] for s in srs) / max(len(srs), 1),
-            }
-            gov = _governance(srs)
-            refl = _reflect(srs, val)
-            return _synth(srs, raw_query, refl, gov)
-
-        try:
-            answer = _asyncio.run(_searah_run(query or ""))
-            return _ok(
-                "arif_memory_recall",
-                {"mode": "searah", "query": query, "answer": answer, "confidence": 0.60},
-                delta_S=0.002,
-            )
-        except Exception as _err:
-            import logging as _log
-
-            _log.warning(f"SEARAH agentic RAG failed: {_err}")
-            return _ok(
-                "arif_memory_recall",
-                {
-                    "mode": "searah",
-                    "query": query,
-                    "answer": f"[SEARAH RAG unavailable: {_err}]",
-                    "confidence": 0.0,
-                },
-                delta_S=0.0,
-            )
-
     return _hold("arif_memory_recall", f"Unknown mode: {mode}")
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# 666_HEART  →  arif_heart_critique
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
@@ -6209,17 +5728,9 @@ def _arif_judge_deliberate(
             meta_state["parse_warning"] = (
                 "candidate JSON unparseable — verification state not extracted",
             )
-        v_code = VerdictCode.VOID
-        if verdict.verdict == "HOLD":
-            v_code = VerdictCode.HOLD
-        elif verdict.verdict == "SABAR":
-            v_code = VerdictCode.SABAR
-            if session_id:
-                _SABAR_TIMESTAMPS[session_id] = _now()
-
         output = VerdictOutput(
             status=verdict.status,
-            verdict=v_code,
+            verdict=VerdictCode.HOLD if verdict.verdict == "HOLD" else VerdictCode.VOID,
             candidate=candidate,
             result={
                 "candidate": candidate,
@@ -6397,7 +5908,7 @@ async def _arif_judge_deliberate_tool(
     888_JUDGE: Final constitutional arbitration and verdict sealing.
 
     The apex adjudication organ. Evaluates a candidate action against
-    all 13 constitutional floors (F1–F13) and returns a constitutional advisory verdict:
+    all 13 constitutional floors (F1–F13) and returns a binding verdict:
     SEAL (approved), SABAR (conditional), HOLD (paused), or VOID (rejected).
     Irreversible actions require explicit human confirmation via ctx elicitation.
 
@@ -6577,11 +6088,7 @@ def _arif_vault_seal(
             if dev_mode_bypass
             else _KERNEL.evaluate_intent(
                 tool_name="arif_vault_seal",
-                params={
-                    "mode": mode,
-                    "ack_irreversible": ack_irreversible,
-                    "session_registry": set(_SESSIONS.keys()),
-                },
+                params={"mode": mode, "ack_irreversible": ack_irreversible},
                 session_id=session_id,
                 witness_type=wt,
             )
@@ -7198,11 +6705,7 @@ def _arif_forge_execute(
         wt = WitnessType.HUMAN if witness_type == "human" else WitnessType.AI
         k_verdict = _KERNEL.evaluate_intent(
             tool_name="arif_forge_execute",
-            params={
-                "mode": mode,
-                "manifest": manifest,
-                "session_registry": set(_SESSIONS.keys()),
-            },
+            params={"mode": mode, "manifest": manifest},
             session_id=session_id,
             actor_id=actor_id,
             witness_type=wt,
@@ -7298,7 +6801,6 @@ def _arif_forge_execute(
             "ack_irreversible": ack_irreversible,
             "manifest": manifest,
             "plan_id": plan_id,
-            "session_registry": set(_SESSIONS.keys()),
             "plan_registry": set(_PLAN_REGISTRY.keys()),
         },
         session_id=session_id,
