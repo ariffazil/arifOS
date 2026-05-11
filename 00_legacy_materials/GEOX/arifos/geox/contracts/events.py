@@ -16,18 +16,14 @@ class AppInitialize(GeoxEvent):
     """Emitted when the app is first mounted in the host."""
 
     method: Literal["app.initialize"] = "app.initialize"
-    params: dict[str, any] = Field(
-        ..., description="Initial context, user id, and host caps."
-    )
+    params: dict[str, any] = Field(..., description="Initial context, user id, and host caps.")
 
 
 class UIAction(GeoxEvent):
     """Emitted when a user interacts with the GEOX UI."""
 
     method: Literal["ui.action"] = "ui.action"
-    params: dict[str, any] = Field(
-        ..., description="Action name, coordinates, or payload."
-    )
+    params: dict[str, any] = Field(..., description="Action name, coordinates, or payload.")
 
 
 class UIStateSync(GeoxEvent):

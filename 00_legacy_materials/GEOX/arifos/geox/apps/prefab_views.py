@@ -353,9 +353,7 @@ def feasibility_check_view(
                     constraint_md = "\n".join(f"- {c}" for c in constraints)
                     Markdown(constraint_md)
                 else:
-                    Muted(
-                        "No explicit constraints provided — world-state defaults applied."
-                    )
+                    Muted("No explicit constraints provided — world-state defaults applied.")
 
         # --- Constitutional Floors ---
         with Card():
@@ -489,9 +487,7 @@ def prospect_verdict_view(
 
     with Column(gap=4, css_class="p-6") as view:
         H2(f"Prospect Evaluation — {prospect_id}")
-        Muted(
-            f"Interpretation: {interpretation_id}  ·  Stage: 222_REFLECT  ·  999_VAULT logged"
-        )
+        Muted(f"Interpretation: {interpretation_id}  ·  Stage: 222_REFLECT  ·  999_VAULT logged")
         Separator()
 
         # --- Status strip ---
@@ -719,18 +715,14 @@ def petrophysics_compute_view(
                                 "φt (Total Porosity)",
                                 css_class="text-sm text-muted-foreground",
                             )
-                            Metric(
-                                value=f"{phi_t[0]:.2f}–{phi_t[1]:.2f}", label="fraction"
-                            )
+                            Metric(value=f"{phi_t[0]:.2f}–{phi_t[1]:.2f}", label="fraction")
                     with Card():
                         with CardContent():
                             Text(
                                 "φe (Effective Porosity)",
                                 css_class="text-sm text-muted-foreground",
                             )
-                            Metric(
-                                value=f"{phi_e[0]:.2f}–{phi_e[1]:.2f}", label="fraction"
-                            )
+                            Metric(value=f"{phi_e[0]:.2f}–{phi_e[1]:.2f}", label="fraction")
                     with Card():
                         with CardContent():
                             Text(

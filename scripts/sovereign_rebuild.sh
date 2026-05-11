@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Sovereign Rebuild Script
-# 
+#
 # One-command rebuild of arifOS from cold storage.
 # For use when VPS is seized/destroyed.
 #
@@ -127,14 +127,14 @@ mkdir -p "$BACKUP_DIR"
 
 if [[ -z "$BACKUP_FILE" ]]; then
     log_info "Finding latest backup..."
-    
+
     # Try local cold storage first
     BACKUP_FILE=$(find "$BACKUP_DIR" -name "vault999_backup_*.tar.gz.gpg" -type f -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
-    
+
     # If not found locally, try cloud providers
     if [[ -z "$BACKUP_FILE" ]]; then
         log_warn "No local backup found, trying cloud providers..."
-        
+
         # Try S3
         if command -v aws &> /dev/null; then
             LATEST_S3=$(aws s3 ls s3://arifos-vault-backups/vault999/ 2>/dev/null | sort | tail -1 | awk '{print $4}')
@@ -144,7 +144,7 @@ if [[ -z "$BACKUP_FILE" ]]; then
                 BACKUP_FILE="$BACKUP_DIR/$LATEST_S3"
             fi
         fi
-        
+
         # Try GCS
         if [[ -z "$BACKUP_FILE" ]] && command -v gsutil &> /dev/null; then
             LATEST_GCS=$(gsutil ls gs://arifos-vault-backups/vault999/ 2>/dev/null | sort | tail -1)
@@ -263,7 +263,7 @@ docker build \
     -t "arifos/mcp:hardened" \
     . || log_warn "MCP container build failed"
 
-# Build Forge container  
+# Build Forge container
 docker build \
     -f "core/vault999/layer2_isolation/Dockerfile.forge" \
     -t "arifos/forge:hardened" \

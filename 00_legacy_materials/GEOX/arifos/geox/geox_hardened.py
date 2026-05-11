@@ -30,9 +30,7 @@ class HardenedGeoxAgent:
     Enforces strict compliance with constitutional floors.
     """
 
-    def __init__(
-        self, config: HardenedConfig | None = None, session_id: str | None = None
-    ):
+    def __init__(self, config: HardenedConfig | None = None, session_id: str | None = None):
         from .geox_tools import ToolRegistry
 
         self.config = config or HardenedConfig()
@@ -63,9 +61,7 @@ class HardenedGeoxAgent:
         """Get processing history."""
         return self._history.copy()
 
-    async def execute_tool(
-        self, tool_name: str, params: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def execute_tool(self, tool_name: str, params: dict[str, Any]) -> dict[str, Any]:
         """Execute a tool by name."""
         tool = self.registry.get(tool_name)
         if tool is None:
@@ -77,9 +73,7 @@ class HardenedGeoxAgent:
                 return {
                     "success": result.success,
                     "tool_name": result.tool_name or tool_name,
-                    "quantities": [
-                        q.model_dump(mode="json") for q in result.quantities
-                    ],
+                    "quantities": [q.model_dump(mode="json") for q in result.quantities],
                     "raw_output": result.raw_output,
                     "metadata": result.metadata,
                     "latency_ms": result.latency_ms,

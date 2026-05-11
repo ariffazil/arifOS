@@ -127,9 +127,7 @@ class GovernancePolicy:
             )
 
         # Check for critical transforms
-        critical_transforms = [
-            t for t in taxonomy.transforms if t.artifact_risk == "critical"
-        ]
+        critical_transforms = [t for t in taxonomy.transforms if t.artifact_risk == "critical"]
         if critical_transforms and taxonomy.source.name == "UNKNOWN":
             triggers.append(
                 HOLDTrigger(

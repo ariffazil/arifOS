@@ -42,9 +42,7 @@ class GeoxErrorCode(Enum):
 class GeoxError(Exception):
     """Base exception for GEOX errors."""
 
-    def __init__(
-        self, code: GeoxErrorCode, message: str, data: dict[str, Any] | None = None
-    ):
+    def __init__(self, code: GeoxErrorCode, message: str, data: dict[str, Any] | None = None):
         super().__init__(message)
         self.code = code
         self.message = message

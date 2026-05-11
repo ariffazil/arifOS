@@ -11,20 +11,14 @@ class UIEntry(BaseModel):
     )
     version: str = Field(..., description="Semantic version of the UI bundle.")
     mode: str = Field("inline-or-external", description="Preferred rendering mode.")
-    visibility: str = Field(
-        "both", description="Visibility: 'model', 'app', or 'both'."
-    )
-    csp: str = Field(
-        "default-src 'self'", description="Content Security Policy for the iframe."
-    )
+    visibility: str = Field("both", description="Visibility: 'model', 'app', or 'both'.")
+    csp: str = Field("default-src 'self'", description="Content Security Policy for the iframe.")
     permissions: list[str] = Field(
         default_factory=lambda: ["allow-scripts", "allow-forms"],
         description="Sandbox permissions.",
     )
     domain: Optional[str] = Field(None, description="Stable origin for the sandbox.")
-    prefers_border: bool = Field(
-        True, description="Whether the host should render a border."
-    )
+    prefers_border: bool = Field(True, description="Whether the host should render a border.")
 
 
 class AppManifest(BaseModel):
@@ -35,9 +29,7 @@ class AppManifest(BaseModel):
 
     app_id: str = Field(..., description="Unique identifier: geox.[domain].[name]")
     version: str = Field(..., description="Version of the application.")
-    dimension: str = Field(
-        ..., description="The canonical dimension (PROSPECT, WELL, etc.)"
-    )
+    dimension: str = Field(..., description="The canonical dimension (PROSPECT, WELL, etc.)")
     domain: str = Field(
         ..., description="Geoscientific domain: seismic, petrophysics, geology, etc."
     )

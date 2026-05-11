@@ -226,9 +226,7 @@ class ACRiskCalculator:
         verdict = cls._risk_to_verdict(ac_risk)
 
         # Generate explanation
-        explanation = cls._generate_explanation(
-            ac_risk, u_phys, d_transform, b_cog, verdict
-        )
+        explanation = cls._generate_explanation(ac_risk, u_phys, d_transform, b_cog, verdict)
 
         return ACRiskResult(
             ac_risk=ac_risk,
@@ -293,8 +291,7 @@ class ACRiskCalculator:
         # Component breakdown
         if u_phys > 0.7:
             explanations.append(
-                f"Physical ambiguity high ({u_phys:.2f}): "
-                "Multiple geological models fit data."
+                f"Physical ambiguity high ({u_phys:.2f}): " "Multiple geological models fit data."
             )
 
         if d_transform > 0.5:

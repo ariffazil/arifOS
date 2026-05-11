@@ -20,20 +20,20 @@ If `risk_level` rises to `critical` OR `loop_count` > 20: **pause and summarize 
 ## Current Session State
 
 ```yaml
-session_id:     OC-003
+session_id:     OC-006
 status:         sealed        # idle | active | paused | degraded | sealed
 stage:          999_SEAL
 risk_level:     low           # low | medium | high | critical
-entropy_delta:  0.10          # Confusion delta since last beat (0.0–1.0)
+entropy_delta:  0.08          # Confusion delta since last beat (0.0–1.0)
 tool_health:    healthy       # unknown | healthy | degraded | failing
-loop_count:     5             # Increments each turn
-last_action:    999 SEAL — residual working tree fully committed and pushed on main across all targeted repos
+loop_count:     6             # Increments each turn
+last_action:    999 SEAL - Hermes gateway stabilized: duplicate user unit removed, plugin kwarg/F13 matcher fixed, state.db rebuilt, service healthy
 next_gate:      none          # Next governance gate
 human_approval_required: false
-current_task:   OC-005 — Reduce chaos in GitHub + MCP via constraints and hygiene
+current_task:   OC-006 - Hermes gateway restart-loop and plugin-chaos stabilization
 blockers:       []
 autonomy_level: L3
-timestamp:      2026-05-11T17:27:00Z
+timestamp:      2026-05-11T18:12:23Z
 ```
 
 ---

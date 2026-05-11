@@ -60,6 +60,7 @@ from arifosmcp.runtime.contracts import (
     AAA_TOOL_STAGE_MAP,
     TRINITY_BY_TOOL,
 )
+from arifosmcp.runtime.federation_epistemology import FederationEpistemicLedger
 from arifosmcp.runtime.floors import get_floor_count
 
 # External MCP tool name → internal contract name
@@ -414,9 +415,7 @@ def _collect_container_status(limit: int = 24) -> list[dict[str, Any]]:
     return containers
 
 
-def _local_service_connect_latency_ms(
-    host: str = "127.0.0.1", port: int = 8080
-) -> float | None:
+def _local_service_connect_latency_ms(host: str = "127.0.0.1", port: int = 8080) -> float | None:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(0.5)
     started = time.perf_counter()
@@ -474,12 +473,9 @@ def _build_trinity_matrix(
     floors = health_payload.get("runtime_floors") or {}
     caps = (health_payload.get("capability_map") or {}).get("capabilities") or {}
     running = {
-        container["name"]: "Up" in str(container.get("status") or "")
-        for container in containers
+        container["name"]: "Up" in str(container.get("status") or "") for container in containers
     }
-    missing_critical = sorted(
-        name for name in _CRITICAL_CONTAINERS if not running.get(name, False)
-    )
+    missing_critical = sorted(name for name in _CRITICAL_CONTAINERS if not running.get(name, False))
     entropy_delta = float(thermo.get("entropy_delta") or 0.0)
     confidence = float(thermo.get("confidence") or 0.0)
     stage = int(thermo.get("metabolic_stage") or 0)
@@ -503,13 +499,9 @@ def _build_trinity_matrix(
     # Compute version drift before the if/elif chain
     version = health_payload.get("version", "")
     release_tag = health_payload.get("release_tag", "")
-    source_commit = health_payload.get("source_commit") or health_payload.get(
-        "git_commit", ""
-    )
+    source_commit = health_payload.get("source_commit") or health_payload.get("git_commit", "")
     version_drift = (
-        version != release_tag
-        and source_commit not in version
-        and source_commit not in release_tag
+        version != release_tag and source_commit not in version and source_commit not in release_tag
     )
 
     if missing_critical:
@@ -558,11 +550,7 @@ def _build_trinity_matrix(
             raw_val=len(failed_floors),
             unit="failed_floors",
         )
-    elif (
-        caps.get("governed_continuity") == "enabled"
-        and confidence >= 0.99
-        and verdict == "SEAL"
-    ):
+    elif caps.get("governed_continuity") == "enabled" and confidence >= 0.99 and verdict == "SEAL":
         psi = _matrix_domain(
             state="POSITIVE",
             label_bm="AMANAH",
@@ -638,9 +626,7 @@ def _merge_headers(*header_sets: dict[str, str]) -> dict[str, str]:
 
 # Hard doctrinal floors — these must pass on every tool response.
 # Not just listed; enforced: _check_hard_floors_pass() is wired into /health governance.
-_HARD_FLOOR_IDS: frozenset[str] = frozenset(
-    {"F1", "F2", "F6", "F9", "F10", "F11", "F13"}
-)
+_HARD_FLOOR_IDS: frozenset[str] = frozenset({"F1", "F2", "F6", "F9", "F10", "F11", "F13"})
 _SOFT_FLOOR_IDS: frozenset[str] = frozenset({"F3", "F4", "F5", "F7", "F8", "F12"})
 
 
@@ -688,9 +674,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         from core.governance_kernel import get_governance_kernel
 
         kernel = get_governance_kernel()
-        state = (
-            kernel.get_current_state() if hasattr(kernel, "get_current_state") else {}
-        )
+        state = kernel.get_current_state() if hasattr(kernel, "get_current_state") else {}
         if state:
             session_id = state.get("session_id")
             floors = state.get("floors", {})
@@ -728,11 +712,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
     if live_containers:
         live_signals.append("container_runtime")
 
-    if (
-        False
-        and len(live_signals) >= 4
-        and float(telemetry.get("confidence") or 0.0) < 0.99
-    ):
+    if False and len(live_signals) >= 4 and float(telemetry.get("confidence") or 0.0) < 0.99:
         try:
             from ..core.governance_kernel import get_kernel
 
@@ -749,21 +729,15 @@ def _build_governance_status_payload() -> dict[str, Any]:
                         ),
                         "human_witness": _WITNESS_DEFAULTS["human"],
                         "ai_witness": 0.99,
-                        "earth_witness": (
-                            0.99 if live_containers else _WITNESS_DEFAULTS["earth"]
-                        ),
+                        "earth_witness": (0.99 if live_containers else _WITNESS_DEFAULTS["earth"]),
                     }
                 )
             live_kernel.record_event(
                 "assumption",
-                {
-                    "content": "Live SOT must remain evidence-backed and continuously revalidated."
-                },
+                {"content": "Live SOT must remain evidence-backed and continuously revalidated."},
             )
             for signal in live_signals:
-                live_kernel.record_event(
-                    "action", {"signal": signal, "reversible": True}
-                )
+                live_kernel.record_event("action", {"signal": signal, "reversible": True})
                 live_kernel.record_event("success", {"signal": signal})
 
             state = live_kernel.get_current_state()
@@ -822,8 +796,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         capability_map = live_capability_map or build_runtime_capability_map()
         if (
             float(resolved_floors.get("F11", 0.0)) <= 0.0
-            and capability_map.get("capabilities", {}).get("governed_continuity")
-            == "enabled"
+            and capability_map.get("capabilities", {}).get("governed_continuity") == "enabled"
         ):
             resolved_floors["F11"] = _FLOOR_DEFAULTS["F11"]
     except Exception:
@@ -866,8 +839,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
     # trinity matrix can reach POSITIVE. Stale kernel state should not block
     # a healthy runtime from reporting its true status.
     all_floors_pass = all(
-        _floor_passes(fid, float(resolved_floors.get(fid, 0.0)))
-        for fid in FLOOR_SPEC_KEYS
+        _floor_passes(fid, float(resolved_floors.get(fid, 0.0))) for fid in FLOOR_SPEC_KEYS
     )
     if all_floors_pass:
         resolved_telemetry["verdict"] = "SEAL"
@@ -910,11 +882,7 @@ def _render_status_html(payload: dict[str, Any]) -> str:
     )
 
     load_avg = vitals.get("load_avg", [])
-    load_text = (
-        ", ".join(f"{float(value):.2f}" for value in load_avg[:3])
-        if load_avg
-        else "n/a"
-    )
+    load_text = ", ".join(f"{float(value):.2f}" for value in load_avg[:3]) if load_avg else "n/a"
 
     # ── Nine-Signal computation ───────────────────────────────────────────────
     _dS = float(telemetry.get("dS") or 0.0)
@@ -1353,12 +1321,8 @@ def _load_welcome_html() -> str:
 
     # Replace placeholders
     html_content = html_content.replace("__BUILD_VERSION__", BUILD_VERSION)
-    html_content = html_content.replace(
-        "__BUILD_COMMIT__", BUILD_INFO["build"]["commit_short"]
-    )
-    html_content = html_content.replace(
-        "__BUILD_TIME__", BUILD_INFO["build"]["built_at"]
-    )
+    html_content = html_content.replace("__BUILD_COMMIT__", BUILD_INFO["build"]["commit_short"])
+    html_content = html_content.replace("__BUILD_TIME__", BUILD_INFO["build"]["built_at"])
 
     # Inject live deployment identity card
     deployment_card = """
@@ -1717,11 +1681,7 @@ def _public_base_url(request: Request) -> str:
     if explicit:
         return explicit
     scheme = request.headers.get("x-forwarded-proto") or request.url.scheme or "https"
-    host = (
-        request.headers.get("x-forwarded-host")
-        or request.headers.get("host")
-        or "localhost"
-    )
+    host = request.headers.get("x-forwarded-host") or request.headers.get("host") or "localhost"
     return f"{scheme}://{host}".rstrip("/")
 
 
@@ -1737,18 +1697,14 @@ def _tool_openapi_paths(base_url: str, tools: list[Any]) -> dict[str, Any]:
                         "description": "Available tools",
                         "content": {
                             "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ToolListResponse"
-                                }
+                                "schema": {"$ref": "#/components/schemas/ToolListResponse"}
                             }
                         },
                     },
                     "401": {
                         "description": "Unauthorized",
                         "content": {
-                            "application/json": {
-                                "schema": {"$ref": "#/components/schemas/Error"}
-                            }
+                            "application/json": {"schema": {"$ref": "#/components/schemas/Error"}}
                         },
                     },
                 },
@@ -1785,9 +1741,7 @@ def _tool_openapi_paths(base_url: str, tools: list[Any]) -> dict[str, Any]:
                             "application/json": {
                                 "schema": {
                                     "allOf": [
-                                        {
-                                            "$ref": "#/components/schemas/ToolInvocationResponse"
-                                        },
+                                        {"$ref": "#/components/schemas/ToolInvocationResponse"},
                                         {
                                             "type": "object",
                                             "properties": {
@@ -1809,33 +1763,25 @@ def _tool_openapi_paths(base_url: str, tools: list[Any]) -> dict[str, Any]:
                     "400": {
                         "description": "Invalid request",
                         "content": {
-                            "application/json": {
-                                "schema": {"$ref": "#/components/schemas/Error"}
-                            }
+                            "application/json": {"schema": {"$ref": "#/components/schemas/Error"}}
                         },
                     },
                     "401": {
                         "description": "Unauthorized",
                         "content": {
-                            "application/json": {
-                                "schema": {"$ref": "#/components/schemas/Error"}
-                            }
+                            "application/json": {"schema": {"$ref": "#/components/schemas/Error"}}
                         },
                     },
                     "404": {
                         "description": "Tool not found",
                         "content": {
-                            "application/json": {
-                                "schema": {"$ref": "#/components/schemas/Error"}
-                            }
+                            "application/json": {"schema": {"$ref": "#/components/schemas/Error"}}
                         },
                     },
                     "500": {
                         "description": "Tool execution failed",
                         "content": {
-                            "application/json": {
-                                "schema": {"$ref": "#/components/schemas/Error"}
-                            }
+                            "application/json": {"schema": {"$ref": "#/components/schemas/Error"}}
                         },
                     },
                 },
@@ -1894,9 +1840,7 @@ def _openapi_schema(base_url: str, tools: list[Any]) -> dict[str, Any]:
                         "required": True,
                         "content": {
                             "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/CheckpointRequest"
-                                }
+                                "schema": {"$ref": "#/components/schemas/CheckpointRequest"}
                             }
                         },
                     },
@@ -1905,9 +1849,7 @@ def _openapi_schema(base_url: str, tools: list[Any]) -> dict[str, Any]:
                             "description": "Checkpoint completed",
                             "content": {
                                 "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/CheckpointResponse"
-                                    }
+                                    "schema": {"$ref": "#/components/schemas/CheckpointResponse"}
                                 }
                             },
                         },
@@ -1947,9 +1889,7 @@ def _openapi_schema(base_url: str, tools: list[Any]) -> dict[str, Any]:
                             "description": "Service healthy",
                             "content": {
                                 "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/HealthResponse"
-                                    }
+                                    "schema": {"$ref": "#/components/schemas/HealthResponse"}
                                 }
                             },
                         }
@@ -2093,9 +2033,7 @@ def _compute_schema_hash(mcp: Any, tool_registry: dict[str, Callable]) -> str:
         schema: dict[str, Any] = {"name": name}
         # FastMCP tool schema access
         tool_obj = (
-            getattr(mcp, "_tool_registry", {}).get(name)
-            if hasattr(mcp, "_tool_registry")
-            else None
+            getattr(mcp, "_tool_registry", {}).get(name) if hasattr(mcp, "_tool_registry") else None
         )
         if tool_obj is None:
             tool_obj = tool_registry.get(name)
@@ -2124,9 +2062,7 @@ def _compute_schema_hash(mcp: Any, tool_registry: dict[str, Callable]) -> str:
                     input_schema = {"type": "object"}
             schema["inputSchema"] = input_schema or {"type": "object"}
         schemas.append(schema)
-    payload = json.dumps(
-        schemas, separators=(",", ":"), ensure_ascii=False, sort_keys=True
-    )
+    payload = json.dumps(schemas, separators=(",", ":"), ensure_ascii=False, sort_keys=True)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
@@ -2401,9 +2337,7 @@ def register_rest_routes(
             elif hasattr(mcp, "route"):
                 mcp.route(full_path, methods=methods)(handler)
             else:
-                logger.warning(
-                    f"Failed to register route {full_path}: {mcp} has no route method"
-                )
+                logger.warning(f"Failed to register route {full_path}: {mcp} has no route method")
             return handler
 
         return decorator
@@ -2415,6 +2349,11 @@ def register_rest_routes(
             return HTMLResponse(WELCOME_HTML)
         ml_runtime = get_ml_floor_runtime()
         graphiti_enabled = _probe_graphiti_enabled()
+        federation_ledger = FederationEpistemicLedger()
+        try:
+            federation_epistemology = federation_ledger.stats()
+        finally:
+            federation_ledger.close()
 
         return JSONResponse(
             {
@@ -2449,9 +2388,7 @@ def register_rest_routes(
         """AAA MCP landing page — serves HTML to browsers, API info to MCP clients."""
         accept = request.headers.get("Accept", "")
         if "text/html" in accept:
-            return HTMLResponse(
-                aaa_landing_html, headers={"Cache-Control": "max-age=60"}
-            )
+            return HTMLResponse(aaa_landing_html, headers={"Cache-Control": "max-age=60"})
         # For MCP clients requesting JSON
         return JSONResponse(
             {
@@ -2502,6 +2439,11 @@ def register_rest_routes(
 
         ml_runtime = get_ml_floor_runtime()
         graphiti_enabled = _probe_graphiti_enabled()
+        federation_ledger = FederationEpistemicLedger()
+        try:
+            federation_epistemology = federation_ledger.stats()
+        finally:
+            federation_ledger.close()
 
         return JSONResponse(
             {
@@ -2523,53 +2465,36 @@ def register_rest_routes(
                 "vault999_health": _probe_vault999_health(),
                 "langfuse_tracing": _probe_langfuse_tracing(),
                 "ml_floors": ml_runtime,
+                "federation_epistemology": federation_epistemology,
                 "semantic_readiness": {
                     "graphiti_transport": "healthy" if graphiti_enabled else "degraded",
                     "graphiti_storage": "healthy" if graphiti_enabled else "degraded",
                     "graphiti_embedding_runtime": (
                         "healthy"
                         if ml_runtime["ml_runtime_ready"]
-                        else (
-                            "disabled"
-                            if not ml_runtime["ml_floors_enabled"]
-                            else "hold"
-                        )
+                        else ("disabled" if not ml_runtime["ml_floors_enabled"] else "hold")
                     ),
                     "graphiti_semantic_floor": (
                         "enabled"
                         if ml_runtime["ml_runtime_ready"]
-                        else (
-                            "disabled"
-                            if not ml_runtime["ml_floors_enabled"]
-                            else "hold"
-                        )
+                        else ("disabled" if not ml_runtime["ml_floors_enabled"] else "hold")
                     ),
                 },
                 # ── Forensic Audit Panels (F2 Truth, F11 Auditability) ──────────
                 "seal_readiness": {
                     "vault999_health": _probe_vault999_health(),
                     "ack_irreversible_gate": (
-                        "passable"
-                        if _probe_vault999_health() == "healthy"
-                        else "blocked"
+                        "passable" if _probe_vault999_health() == "healthy" else "blocked"
                     ),
                     "hold_reasons_schema": "returns top-level reasons[] + next_safe_action",
-                    "runtime_drift": _compute_runtime_drift().get(
-                        "runtime_drift", False
-                    ),
+                    "runtime_drift": _compute_runtime_drift().get("runtime_drift", False),
                     "graphiti_read": "degraded" if not graphiti_enabled else "healthy",
                     "semantic_floor": (
                         "enabled"
                         if ml_runtime["ml_runtime_ready"]
-                        else (
-                            "disabled"
-                            if not ml_runtime["ml_floors_enabled"]
-                            else "hold"
-                        )
+                        else ("disabled" if not ml_runtime["ml_floors_enabled"] else "hold")
                     ),
-                    "langfuse_traces": _probe_langfuse_tracing().get(
-                        "status", "unknown"
-                    ),
+                    "langfuse_traces": _probe_langfuse_tracing().get("status", "unknown"),
                 },
                 "known_gaps": _compute_known_gaps(
                     langfuse_tracing=_probe_langfuse_tracing(),
@@ -2580,9 +2505,7 @@ def register_rest_routes(
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 # SoT linkage — enables drift detection between repo / docs / runtime
                 "source_commit": BUILD_INFO["build"]["commit"],
-                "source_repo": BUILD_INFO.get(
-                    "source_repo", "https://github.com/ariffazil/arifOS"
-                ),
+                "source_repo": BUILD_INFO.get("source_repo", "https://github.com/ariffazil/arifOS"),
                 "release_tag": BUILD_INFO.get("release_tag", BUILD_INFO["version"]),
                 "source_of_truth": {
                     "doctrine": "https://github.com/ariffazil/arifOS",
@@ -2591,9 +2514,7 @@ def register_rest_routes(
                 },
                 # Thermodynamic Truth — Energy Dimension (F4 Clarity, F5 Peace², Ψ Vitality)
                 "thermodynamic": {
-                    "entropy_delta": telemetry.get(
-                        "dS", -0.35
-                    ),  # ΔS ≤ 0 for F4 Clarity
+                    "entropy_delta": telemetry.get("dS", -0.35),  # ΔS ≤ 0 for F4 Clarity
                     "peace_squared": telemetry.get("peace2", 1.04),  # F5 ≥ 1.0
                     "vitality_index": telemetry.get("psi_le", 0.82),  # Ψ vitality
                     "echo_debt": telemetry.get("echoDebt", 0.4),
@@ -2618,13 +2539,20 @@ def register_rest_routes(
                     "peace_squared": telemetry.get("peace2"),
                     # Last VAULT999 seal — null if no seal yet or vault unavailable
                     "last_seal_timestamp": vault_last_seal,
-                    # Hard/soft floor classification — runtime-verified each /health call.
-                    # _check_hard_floors_pass() runs against live governance kernel state.
-                    "floors_hard_doctrinal": sorted(_HARD_FLOOR_IDS),
-                    "floors_soft_doctrinal": sorted(_SOFT_FLOOR_IDS),
-                    "hard_floors_enforced": _check_hard_floors_pass(
-                        thermo.get("floors", _FLOOR_DEFAULTS)
-                    ),
+                    # Hard/soft floor classification: DOCTRINAL INTERPRETATION ONLY.
+                    # Not verified against runtime enforcement mode. May not reflect
+                    # actual per-floor enforcement behavior. Verify against floor spec
+                    # at https://github.com/ariffazil/arifOS before treating as fact.
+                    "floors_hard_doctrinal": [
+                        "F1",
+                        "F2",
+                        "F6",
+                        "F9",
+                        "F10",
+                        "F11",
+                        "F13",
+                    ],
+                    "floors_soft_doctrinal": ["F3", "F4", "F5", "F7", "F8", "F12"],
                     "sovereign_status": getattr(
                         getattr(request.app.state, "arifos_sovereign_status", {}),
                         "get",
@@ -2773,9 +2701,7 @@ def register_rest_routes(
             if sovereign and callable(getattr(sovereign, "get", None)):
                 pending = sovereign.get("pending_approvals")
                 if pending:
-                    pending_approvals = (
-                        pending if isinstance(pending, list) else [pending]
-                    )
+                    pending_approvals = pending if isinstance(pending, list) else [pending]
         except Exception:
             pass
 
@@ -2880,9 +2806,7 @@ def register_rest_routes(
         payload["build_time"] = BUILD_INFO.get("build", {}).get("built_at")
         return JSONResponse(payload)
 
-    async def _probe_tcp_port(
-        host: str, port: int, timeout: float = 1.0
-    ) -> dict[str, Any]:
+    async def _probe_tcp_port(host: str, port: int, timeout: float = 1.0) -> dict[str, Any]:
         """Probe a single TCP port. Returns status and latency_ms."""
         import asyncio
 
@@ -2909,9 +2833,7 @@ def register_rest_routes(
                 "latency_ms": None,
             }
 
-    async def _probe_http(
-        path: str = "/health", timeout: float = 2.0
-    ) -> dict[str, Any]:
+    async def _probe_http(path: str = "/health", timeout: float = 2.0) -> dict[str, Any]:
         """Probe an internal HTTP endpoint. Returns status, response_ms, and parsed JSON."""
         import httpx
 
@@ -3048,9 +2970,7 @@ def register_rest_routes(
 
         external_results = await asyncio.gather(*external_tasks)
 
-        def build_component(
-            name: str, ctype: str, host: str, port: int | None, info: dict
-        ) -> dict:
+        def build_component(name: str, ctype: str, host: str, port: int | None, info: dict) -> dict:
             status = (
                 info.get("status", "ON")
                 if info.get("status") in ("ON", "OFF")
@@ -3077,9 +2997,7 @@ def register_rest_routes(
             build_component("Redis", "cache", "redis", 6379, infra_results[1]),
             build_component("Qdrant", "vector", "qdrant", 6333, infra_results[2]),
             build_component("Vault999", "ledger", "vault999", 8100, infra_results[3]),
-            build_component(
-                "Vault999-Writer", "ledger", "vault999-writer", 5001, infra_results[4]
-            ),
+            build_component("Vault999-Writer", "ledger", "vault999-writer", 5001, infra_results[4]),
         ]
 
         # Ollama model list
@@ -3094,9 +3012,7 @@ def register_rest_routes(
 
         external_layer = [
             build_component("Ollama", "llm", "ollama", 11434, external_results[0]),
-            build_component(
-                "SEA-LION", "llm", "api.sea-lion.ai", 443, external_results[1]
-            ),
+            build_component("SEA-LION", "llm", "api.sea-lion.ai", 443, external_results[1]),
             build_component(
                 "Langfuse",
                 "observability",
@@ -3118,9 +3034,7 @@ def register_rest_routes(
         summary = {
             "total": sum(len(v) for v in layers.values()),
             "online": sum(1 for v in layers.values() for c in v if c["status"] == "ON"),
-            "offline": sum(
-                1 for v in layers.values() for c in v if c["status"] == "OFF"
-            ),
+            "offline": sum(1 for v in layers.values() for c in v if c["status"] == "OFF"),
         }
 
         return JSONResponse(
@@ -3156,9 +3070,7 @@ def register_rest_routes(
             "image_digest": image_digest,
             "build_time": os.getenv("DEPLOY_BUILD_TIME", "unknown"),
             "registry_hash": registry_hash,
-            "started_at": os.getenv(
-                "START_TIME", datetime.now(timezone.utc).isoformat()
-            ),
+            "started_at": os.getenv("START_TIME", datetime.now(timezone.utc).isoformat()),
             "runtime_drift": git_sha == "unknown" or image_digest == "unknown",
         }
         return JSONResponse(fingerprint)
@@ -3196,9 +3108,7 @@ def register_rest_routes(
             "true",
             "yes",
         )
-        state_machine_enforced = os.getenv(
-            "ARIFOS_STATE_MACHINE_ENFORCE", "false"
-        ).lower() in (
+        state_machine_enforced = os.getenv("ARIFOS_STATE_MACHINE_ENFORCE", "false").lower() in (
             "1",
             "true",
             "yes",
@@ -3232,9 +3142,7 @@ def register_rest_routes(
                 "git_commit": os.getenv("DEPLOY_GIT_COMMIT", "unknown"),
                 "build_time": os.getenv("DEPLOY_BUILD_TIME", "unknown"),
                 "image": os.getenv("DEPLOY_IMAGE", "unknown"),
-                "started_at": os.getenv(
-                    "START_TIME", datetime.now(timezone.utc).isoformat()
-                ),
+                "started_at": os.getenv("START_TIME", datetime.now(timezone.utc).isoformat()),
             },
             "sessions": {
                 "active_count": active_sessions,
@@ -3253,14 +3161,10 @@ def register_rest_routes(
         tool_list = []
         for tool_name in public_tool_names():
             tool = (
-                _get_tool_obj(tool_registry.get(tool_name))
-                if tool_name in tool_registry
-                else None
+                _get_tool_obj(tool_registry.get(tool_name)) if tool_name in tool_registry else None
             )
             spec = public_specs[tool_name]
-            annotations = (
-                getattr(tool, "annotations", None) if tool is not None else None
-            )
+            annotations = getattr(tool, "annotations", None) if tool is not None else None
             meta = getattr(tool, "meta", None) if tool is not None else None
             entry = {
                 "name": tool_name,
@@ -3419,9 +3323,7 @@ def register_rest_routes(
                                 "error": "EMBODIMENT_HOLD",
                                 "reason": _emb.get("reason"),
                                 "failed_floors": _emb.get("floors", ["F11"]),
-                                "embodiment_violation": _emb.get(
-                                    "embodiment_violation"
-                                ),
+                                "embodiment_violation": _emb.get("embodiment_violation"),
                                 "next_safe_action": _emb.get(
                                     "next_safe_action",
                                     "Review agent card and constitutional lane.",
@@ -3561,9 +3463,7 @@ def register_rest_routes(
         """Mock OAuth 2.1 Authorize endpoint with constitutional consent."""
         client_id = request.query_params.get("client_id", "Unknown Client")
         state = request.query_params.get("state", "").replace('"', "&quot;")
-        redirect_uri = request.query_params.get("redirect_uri", "").replace(
-            '"', "&quot;"
-        )
+        redirect_uri = request.query_params.get("redirect_uri", "").replace('"', "&quot;")
         client_display = (
             client_id
             if client_id != "Unknown Client"
@@ -3577,7 +3477,8 @@ def register_rest_routes(
             else ""
         )
 
-        return HTMLResponse(f"""
+        return HTMLResponse(
+            f"""
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -3759,12 +3660,14 @@ def register_rest_routes(
                 </div>
             </body>
             </html>
-            """)
+            """
+        )
 
     @route("/api/auth/deny", methods=["POST"])
     async def oauth_deny(request: Request) -> Response:
         """Constitutional denial endpoint — F13 SOVEREIGN veto."""
-        return HTMLResponse("""
+        return HTMLResponse(
+            """
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -3829,7 +3732,8 @@ def register_rest_routes(
                 </div>
             </body>
             </html>
-            """)
+            """
+        )
 
     @route("/api/auth/token", methods=["POST"])
     async def oauth_token(request: Request) -> Response:
@@ -3904,10 +3808,7 @@ def register_rest_routes(
 
     @route("/.well-known/mcp/internal-server.json", methods=["GET"])
     async def internal_well_known(request: Request) -> Response:
-        profile = (
-            os.getenv("ARIFOS_PUBLIC_TOOL_PROFILE", "public").strip().lower()
-            or "public"
-        )
+        profile = os.getenv("ARIFOS_PUBLIC_TOOL_PROFILE", "public").strip().lower() or "public"
         if profile in {"public", "chatgpt", "agnostic_public"}:
             return JSONResponse(
                 {"error": "Internal contract disabled on public profile."},
@@ -3939,9 +3840,7 @@ def register_rest_routes(
             payload = _build_governance_status_payload()
             return JSONResponse(
                 payload,
-                headers=_merge_headers(
-                    _cache_headers(), _dashboard_cors_headers(request)
-                ),
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
             )
         except Exception:
             logger.exception("governance_status endpoint failed")
@@ -3959,12 +3858,9 @@ def register_rest_routes(
             manifest = build_server_json(_public_base_url(request))
             containers = _collect_container_status()
             latency_ms = (
-                _local_service_connect_latency_ms(port=int(os.getenv("PORT", "8080")))
-                or 999.0
+                _local_service_connect_latency_ms(port=int(os.getenv("PORT", "8080"))) or 999.0
             )
-            matrix = _build_trinity_matrix(
-                health_payload, containers, latency_ms=latency_ms
-            )
+            matrix = _build_trinity_matrix(health_payload, containers, latency_ms=latency_ms)
 
             # TASK 3: Wire Trinity Witness values
             from arifosmcp.runtime.tools import _SESSIONS
@@ -3981,10 +3877,7 @@ def register_rest_routes(
             any_organ_up = any(
                 "Up" in str(c.get("status", ""))
                 for c in containers
-                if any(
-                    name in str(c.get("name", ""))
-                    for name in {"geox", "wealth", "well"}
-                )
+                if any(name in str(c.get("name", "")) for name in {"geox", "wealth", "well"})
             )
             if not any_organ_up:
                 # Fallback: probe organ health endpoints via Docker DNS
@@ -4031,8 +3924,7 @@ def register_rest_routes(
                     )
                     else (
                         "git"
-                        if build.get("commit")
-                        not in ("unknown", "not-injected", None, "")
+                        if build.get("commit") not in ("unknown", "not-injected", None, "")
                         else "fallback"
                     )
                 ),
@@ -4102,9 +3994,7 @@ def register_rest_routes(
             }
             return JSONResponse(
                 payload,
-                headers=_merge_headers(
-                    _cache_headers(), _dashboard_cors_headers(request)
-                ),
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
             )
         except Exception:
             logger.exception("api_status endpoint failed")
@@ -4126,10 +4016,7 @@ def register_rest_routes(
         # rest_routes.py is at /app/arifosmcp/runtime/rest_routes/rest_routes.py
         # parents[0] = /app/arifosmcp/runtime/rest_routes, parents[1] = /app/arifosmcp/runtime, parents[2] = /app/arifosmcp
         MANIFEST_PATH = (
-            Path(__file__).parents[2]
-            / "sites"
-            / "apex-dashboard"
-            / "federation.charter.json"
+            Path(__file__).parents[2] / "sites" / "apex-dashboard" / "federation.charter.json"
         )
 
         try:
@@ -4247,9 +4134,7 @@ def register_rest_routes(
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "probed": results,
                 },
-                headers=_merge_headers(
-                    _cache_headers(), _dashboard_cors_headers(request)
-                ),
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
             )
 
         except Exception:
@@ -4274,8 +4159,7 @@ def register_rest_routes(
         )
 
     GITHUB_RAW_TOOL_REGISTRY = (
-        "https://raw.githubusercontent.com/ariffazil/arifOS"
-        "/main/arifosmcp/tool_registry.json"
+        "https://raw.githubusercontent.com/ariffazil/arifOS" "/main/arifosmcp/tool_registry.json"
     )
     LOCAL_FALLBACK_TOOL_REGISTRY = "/root/arifOS/arifosmcp/tool_registry.json"
 
@@ -4353,9 +4237,7 @@ def register_rest_routes(
             langfuse = health_payload.get("langfuse_tracing", {})
             langfuse_active = langfuse.get("status") == "ACTIVE"
             langfuse_count = langfuse.get("traced_tools_count", 0)
-            ui_langfuse_header = health_payload.get("langfuse_tracing", {}).get(
-                "status", "UNKNOWN"
-            )
+            ui_langfuse_header = health_payload.get("langfuse_tracing", {}).get("status", "UNKNOWN")
             checks.append(
                 {
                     "name": "langfuse_tracing",
@@ -4406,9 +4288,7 @@ def register_rest_routes(
                     "backend": {"runtime_drift": runtime_drift, "witness": witness},
                     "ui_conflation_risk": runtime_drift is False and trinity_all_zero,
                     "result": (
-                        "MISMATCH"
-                        if (runtime_drift is False and trinity_all_zero)
-                        else "MATCH"
+                        "MISMATCH" if (runtime_drift is False and trinity_all_zero) else "MATCH"
                     ),
                     "severity": "INFO",
                     "message": (
@@ -4419,18 +4299,14 @@ def register_rest_routes(
                 }
             )
 
-            verdict_backend = health_payload.get("thermodynamic", {}).get(
-                "verdict", "UNKNOWN"
-            )
+            verdict_backend = health_payload.get("thermodynamic", {}).get("verdict", "UNKNOWN")
             verdict_governance = governance_telemetry.get("verdict", "UNKNOWN")
             checks.append(
                 {
                     "name": "verdict_consistency",
                     "backend_health": verdict_backend,
                     "backend_governance": verdict_governance,
-                    "result": (
-                        "MATCH" if verdict_backend == verdict_governance else "MISMATCH"
-                    ),
+                    "result": ("MATCH" if verdict_backend == verdict_governance else "MISMATCH"),
                     "severity": "WARNING",
                     "message": (
                         f"Verdict in /health.thermodynamic='{verdict_backend}', "
@@ -4508,9 +4384,7 @@ def register_rest_routes(
                         "langfuse_traced_count": langfuse_count,
                     },
                 },
-                headers=_merge_headers(
-                    _cache_headers(), _dashboard_cors_headers(request)
-                ),
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
             )
         except Exception:
             logger.exception("observatory_check endpoint failed")
@@ -4604,13 +4478,9 @@ def register_rest_routes(
                     ),
                     "score": float(governance_floors.get(fid, _FLOOR_DEFAULTS[fid])),
                 }
-                for fid in sorted(
-                    FLOOR_SPEC_KEYS.keys(), key=lambda item: int(item[1:])
-                )
+                for fid in sorted(FLOOR_SPEC_KEYS.keys(), key=lambda item: int(item[1:]))
             }
-            floors_passing = sum(
-                1 for data in floors.values() if data["status"] == "pass"
-            )
+            floors_passing = sum(1 for data in floors.values() if data["status"] == "pass")
             verdict = governance_telemetry.get("verdict", vitals.get("verdict", "HOLD"))
             system_status = "HEALTHY" if verdict == "SEAL" else "DEGRADED"
 
@@ -4654,9 +4524,7 @@ def register_rest_routes(
                     "witness_ai": float(governance_witness.get("ai", 0.0)),
                     "witness_earth": float(governance_witness.get("earth", 0.0)),
                     "avg_latency_ms": 0.0,
-                    "tau_confidence_system": float(
-                        governance_telemetry.get("confidence") or 0.0
-                    ),
+                    "tau_confidence_system": float(governance_telemetry.get("confidence") or 0.0),
                     "f2_threshold": float(_FLOOR_DEFAULTS["F2"]),
                     "psi_vitality": vitals.get("psi_vitality", 0.0),
                     "vault999": health_payload.get("vault999_health", "unknown"),
@@ -4676,9 +4544,7 @@ def register_rest_routes(
             }
             return JSONResponse(
                 payload,
-                headers=_merge_headers(
-                    _cache_headers(), _dashboard_cors_headers(request)
-                ),
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
             )
         except Exception:
             logger.exception("api_live/all endpoint failed")
@@ -4708,9 +4574,7 @@ def register_rest_routes(
 
             return JSONResponse(
                 {"entries": entries, "count": len(entries)},
-                headers=_merge_headers(
-                    _cache_headers(), _dashboard_cors_headers(request)
-                ),
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
             )
         except Exception:
             logger.exception("api_live/vault endpoint failed")
@@ -4768,9 +4632,7 @@ def register_rest_routes(
                 floors_list.append(
                     {
                         "floor": (
-                            floor_key.value
-                            if hasattr(floor_key, "value")
-                            else str(floor_key)
+                            floor_key.value if hasattr(floor_key, "value") else str(floor_key)
                         ),
                         "name": (
                             floor_key.name.replace("_", " ")
@@ -4896,11 +4758,7 @@ def register_rest_routes(
                     raise ImportError("VaultSQLite not available")
 
                 vault = VaultSQLite()
-                raw = (
-                    vault.query_recent(limit=limit)
-                    if hasattr(vault, "query_recent")
-                    else []
-                )
+                raw = vault.query_recent(limit=limit) if hasattr(vault, "query_recent") else []
                 for entry in raw:
                     sessions.append(
                         {
@@ -4912,9 +4770,7 @@ def register_rest_routes(
                         }
                     )
             except (ImportError, AttributeError):
-                logger.debug(
-                    "VAULT999 SQLite unavailable — returning empty session history"
-                )
+                logger.debug("VAULT999 SQLite unavailable — returning empty session history")
             except Exception:
                 logger.exception("Unexpected error querying VAULT999 history")
 
@@ -4983,9 +4839,7 @@ def register_rest_routes(
 
             risk_tier = body.get("risk_tier")
             if risk_tier not in ["low", "medium", "high", "critical"]:
-                risk_tier = (
-                    mode if mode in ["low", "medium", "high", "critical"] else "medium"
-                )
+                risk_tier = mode if mode in ["low", "medium", "high", "critical"] else "medium"
 
             # Execute through the canonical mega-tool envelope.
             envelope = await kernel_fn(
@@ -5007,9 +4861,7 @@ def register_rest_routes(
             )
 
             # Extract results from the RuntimeEnvelope
-            judge_data = (
-                envelope.model_dump() if hasattr(envelope, "model_dump") else envelope
-            )
+            judge_data = envelope.model_dump() if hasattr(envelope, "model_dump") else envelope
             verdict = judge_data.get("verdict", "VOID")
 
             # Extract floors and metrics
@@ -5161,9 +5013,7 @@ def register_rest_routes(
         from arifosmcp.runtime.a2a.agent_card_v2 import get_arifOS_agent_card
 
         card = get_arifOS_agent_card()
-        return JSONResponse(
-            card.model_dump(), headers={"Access-Control-Allow-Origin": "*"}
-        )
+        return JSONResponse(card.model_dump(), headers={"Access-Control-Allow-Origin": "*"})
 
     @route("/.well-known/agent-card.json", methods=["GET"])
     async def agent_card_v2(_request: Request) -> Response:
@@ -5171,9 +5021,7 @@ def register_rest_routes(
         from arifosmcp.runtime.a2a.agent_card_v2 import get_arifOS_agent_card
 
         card = get_arifOS_agent_card()
-        return JSONResponse(
-            card.model_dump(), headers={"Access-Control-Allow-Origin": "*"}
-        )
+        return JSONResponse(card.model_dump(), headers={"Access-Control-Allow-Origin": "*"})
 
     @route("/agent-card", methods=["GET"])
     async def agent_card_summary(_request: Request) -> Response:
@@ -5207,9 +5055,7 @@ def register_rest_routes(
 
         verifier = get_seal_verifier()
         return JSONResponse(
-            json.loads(
-                json.dumps(verifier.get_orthogonality().model_dump(), default=str)
-            )
+            json.loads(json.dumps(verifier.get_orthogonality().model_dump(), default=str))
         )
 
     @route("/meta/omega/violations", methods=["GET"])
@@ -5264,9 +5110,7 @@ def register_rest_routes(
         session_id = _request.path_params.get("session_id", "")
         verdict = _request.query_params.get("verdict", "SEAL")
         state_hash = _request.query_params.get("state_hash")
-        req = SealVerificationRequest(
-            session_id=session_id, verdict=verdict, state_hash=state_hash
-        )
+        req = SealVerificationRequest(session_id=session_id, verdict=verdict, state_hash=state_hash)
         verifier = get_seal_verifier()
         return JSONResponse(
             json.loads(json.dumps(verifier.verify_seal(req).model_dump(), default=str))
@@ -5392,9 +5236,7 @@ def register_rest_routes(
 
             content = await read_resource_content(uri)
             if not content:
-                return JSONResponse(
-                    {"error": f"Resource not found: {uri}"}, status_code=404
-                )
+                return JSONResponse({"error": f"Resource not found: {uri}"}, status_code=404)
             return JSONResponse({"uri": uri, "content": content})
         except Exception:
             return _rest_error("Resource retrieval failed", status_code=500)
@@ -5472,9 +5314,7 @@ def register_rest_routes(
                             "arguments": getattr(p, "arguments", []) or [],
                         }
                     )
-            return JSONResponse(
-                {"error": f"Prompt not found: {prompt_name}"}, status_code=404
-            )
+            return JSONResponse({"error": f"Prompt not found: {prompt_name}"}, status_code=404)
         except Exception:
             return _rest_error("Failed to retrieve prompt", status_code=500)
 
@@ -5510,9 +5350,7 @@ def register_rest_routes(
                 {
                     "task_id": task.id,
                     "status": (
-                        task.state.value
-                        if hasattr(task.state, "value")
-                        else str(task.state)
+                        task.state.value if hasattr(task.state, "value") else str(task.state)
                     ),
                 }
             )
@@ -5529,23 +5367,17 @@ def register_rest_routes(
             task_id = request.path_params.get("task_id", "")
             task = await a2a.task_manager.get_task(task_id)
             if not task:
-                return JSONResponse(
-                    {"error": f"Task not found: {task_id}"}, status_code=404
-                )
+                return JSONResponse({"error": f"Task not found: {task_id}"}, status_code=404)
             return JSONResponse(
                 {
                     "task_id": task.id,
                     "status": (
-                        task.state.value
-                        if hasattr(task.state, "value")
-                        else str(task.state)
+                        task.state.value if hasattr(task.state, "value") else str(task.state)
                     ),
                     "task": {
                         "id": task.id,
                         "status": (
-                            task.state.value
-                            if hasattr(task.state, "value")
-                            else str(task.state)
+                            task.state.value if hasattr(task.state, "value") else str(task.state)
                         ),
                     },
                 }
@@ -5731,9 +5563,7 @@ setInterval(refreshSot, 30000);
         try:
             _tool_names = getattr(mcp, "_tool_registry", list(tool_registry.keys()))
             tools = [{"name": t, "description": ""} for t in _tool_names]
-            return JSONResponse(
-                {"webmcp_version": "1.0", "tools": tools, "count": len(tools)}
-            )
+            return JSONResponse({"webmcp_version": "1.0", "tools": tools, "count": len(tools)})
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -5877,18 +5707,14 @@ setInterval(refreshSot, 30000);
         _overall_status = "ok"
 
         # ── Helper: shallow JSON-RPC call ─────────────────────────────────────
-        async def _mcp_initialize(
-            host: str, port: int, path: str = "/mcp"
-        ) -> dict[str, Any]:
+        async def _mcp_initialize(host: str, port: int, path: str = "/mcp") -> dict[str, Any]:
             """Lightweight MCP initialize probe. Returns dict with keys: ok, error, tools_count."""
             import httpx
 
             url = f"http://{host}:{port}{path}"
             result = {"ok": False, "error": None, "tools_count": None}
             try:
-                async with httpx.AsyncClient(
-                    timeout=5.0, follow_redirects=False
-                ) as client:
+                async with httpx.AsyncClient(timeout=5.0, follow_redirects=False) as client:
                     resp = await client.post(
                         url,
                         json={
@@ -5934,13 +5760,8 @@ setInterval(refreshSot, 30000);
                                 )
                                 if tools_resp.status_code == 200:
                                     tools_data = tools_resp.json()
-                                    if (
-                                        "result" in tools_data
-                                        and "tools" in tools_data["result"]
-                                    ):
-                                        result["tools_count"] = len(
-                                            tools_data["result"]["tools"]
-                                        )
+                                    if "result" in tools_data and "tools" in tools_data["result"]:
+                                        result["tools_count"] = len(tools_data["result"]["tools"])
                             except Exception:
                                 pass
                     else:
@@ -5950,9 +5771,7 @@ setInterval(refreshSot, 30000);
             return result
 
         # ── Helper: HTTP health check ──────────────────────────────────────────
-        async def _http_health(
-            host: str, port: int, path: str = "/health"
-        ) -> dict[str, Any]:
+        async def _http_health(host: str, port: int, path: str = "/health") -> dict[str, Any]:
             import httpx
 
             url = f"http://{host}:{port}{path}"
@@ -6111,9 +5930,7 @@ setInterval(refreshSot, 30000);
                             _svc_results["geox"] = {
                                 "status": "ok",
                                 "mcp_probe": "ok",
-                                "session_id": (
-                                    session_id[:16] + "..." if session_id else None
-                                ),
+                                "session_id": (session_id[:16] + "..." if session_id else None),
                                 "tools_count": tools_count,
                             }
                         else:
@@ -6167,9 +5984,7 @@ setInterval(refreshSot, 30000);
                         "mcp.arif-fazil.com", "geox.arif-fazil.com"
                     ),
                     "status": _svc_results.get("geox", {}).get("status", "unknown"),
-                    "mcp_probe": _svc_results.get("geox", {}).get(
-                        "mcp_probe", "unknown"
-                    ),
+                    "mcp_probe": _svc_results.get("geox", {}).get("mcp_probe", "unknown"),
                     "tools_count": _svc_results.get("geox", {}).get("tools_count"),
                 },
                 "wealth": {
@@ -6188,6 +6003,85 @@ setInterval(refreshSot, 30000);
         }
 
         return JSONResponse(payload, media_type="application/json")
+
+    @route("/federation/beliefs", methods=["GET"])
+    async def federation_beliefs(request: Request) -> JSONResponse:
+        ledger = FederationEpistemicLedger()
+        try:
+            params = request.query_params
+            subject_id = params.get("subject_id")
+            query = params.get("query")
+            claim_id = params.get("claim_id")
+            include_events = params.get("include_events", "false").lower() == "true"
+            include_lineage = params.get("include_lineage", "true").lower() != "false"
+            if not any([subject_id, query, claim_id]):
+                return JSONResponse(
+                    {
+                        "error": "Provide at least one of: subject_id, query, claim_id",
+                        "endpoint": "/federation/beliefs",
+                    },
+                    status_code=400,
+                )
+            payload = ledger.belief_state(
+                query=query,
+                subject_id=subject_id,
+                claim_id=claim_id,
+                include_events=include_events,
+                include_lineage=include_lineage,
+            )
+            status_code = 200 if payload.get("status") != "no_evidence" else 404
+            return JSONResponse(
+                payload,
+                status_code=status_code,
+                headers={"Access-Control-Allow-Origin": "*"},
+            )
+        finally:
+            ledger.close()
+
+    @route("/federation/claims/{claim_id:path}/lineage", methods=["GET"])
+    async def federation_claim_lineage(request: Request) -> JSONResponse:
+        ledger = FederationEpistemicLedger()
+        try:
+            claim_id = request.path_params.get("claim_id", "")
+            payload = ledger.claim_lineage(claim_id)
+            status_code = 200 if payload.get("status") == "ok" else 404
+            return JSONResponse(
+                payload,
+                status_code=status_code,
+                headers={"Access-Control-Allow-Origin": "*"},
+            )
+        finally:
+            ledger.close()
+
+    @route("/federation/witness", methods=["GET"])
+    async def federation_witness(request: Request) -> JSONResponse:
+        ledger = FederationEpistemicLedger()
+        try:
+            params = request.query_params
+            subject_id = params.get("subject_id")
+            query = params.get("query")
+            claim_id = params.get("claim_id")
+            if not any([subject_id, query, claim_id]):
+                return JSONResponse(
+                    {
+                        "error": "Provide at least one of: subject_id, query, claim_id",
+                        "endpoint": "/federation/witness",
+                    },
+                    status_code=400,
+                )
+            payload = ledger.witness_audit(
+                subject_id=subject_id,
+                query=query,
+                claim_id=claim_id,
+            )
+            status_code = 200 if payload.get("status") != "not_found" else 404
+            return JSONResponse(
+                payload,
+                status_code=status_code,
+                headers={"Access-Control-Allow-Origin": "*"},
+            )
+        finally:
+            ledger.close()
 
     # ── P1: JSON Schema Generator ─────────────────────────────────────────────
     def _python_type_to_json_schema(python_annotation: Any) -> dict[str, Any]:
@@ -6255,9 +6149,7 @@ setInterval(refreshSot, 30000);
                     "lane": spec.get("lane", ""),
                     "risk": {
                         "tier": manifest_spec.get("risk", {}).get("tier", "low"),
-                        "irreversible": manifest_spec.get("risk", {}).get(
-                            "irreversible", False
-                        ),
+                        "irreversible": manifest_spec.get("risk", {}).get("irreversible", False),
                         "requires_human_ack": manifest_spec.get("risk", {}).get(
                             "requires_human_ack", False
                         ),

@@ -139,7 +139,7 @@ confidence: 0.95
 ### Minimum Viable Understanding
 To operate arifOS, you MUST understand:
 1. **What-is-arifOS** → The philosophy
-2. **Floors** → The constraints  
+2. **Floors** → The constraints
 3. **Trinity_Architecture** → The separation of concerns
 4. **Metabolic_Loop** → The execution flow
 
@@ -171,55 +171,55 @@ dependencies:
   What-is-arifOS:
     requires: [SCHEMA]
     unlocks: [Floors, Trinity_Architecture]
-  
+
   Floors:
     requires: [What-is-arifOS]
     unlocks: [Metabolic_Loop, Concept_Godellock, Concept_Floor_Tensions, MCP_Tools]
-  
+
   Trinity_Architecture:
     requires: [What-is-arifOS]
     unlocks: [Concept_Architecture, Agents-and-AAA-Architecture, Concept_Floor_Tensions]
-  
+
   Concept_Floor_Tensions:
     requires: [Floors, Trinity_Architecture]
     unlocks: [Concept_Epistemic_Circuit_Breakers, Concept_Decision_Velocity, Concept_Governance_Enforcer]
-  
+
   Metabolic_Loop:
     requires: [Floors]
     unlocks: [Concept_Decision_Velocity, MCP_Tools]
-  
+
   Concept_Godellock:
     requires: [Floors]
     unlocks: [Concept_Epistemic_Circuit_Breakers, Philosophy_Registry]
-  
+
   Concept_Epistemic_Circuit_Breakers:
     requires: [Floors, Concept_Floor_Tensions, Concept_Godellock]
     unlocks: [Concept_Decision_Velocity]
-  
+
   Concept_Decision_Velocity:
     requires: [Metabolic_Loop, Concept_Floor_Tensions, Concept_Epistemic_Circuit_Breakers]
     unlocks: []
-  
+
   MCP_Tools:
     requires: [Floors, Metabolic_Loop]
     unlocks: [Tool_Surface_Architecture]
-  
+
   Concept_Governance_Enforcer:
     requires: [Floors, Concept_Floor_Tensions]
     unlocks: [Tool_Surface_Architecture]
-  
+
   Tool_Surface_Architecture:
     requires: [MCP_Tools, Concept_Governance_Enforcer]
     unlocks: [Audit_Surface_Fragmentation]
-  
+
   Audit_Surface_Fragmentation:
     requires: [Tool_Surface_Architecture]
     unlocks: [Drift_Checks]
-  
+
   Concept_Architecture:
     requires: [Trinity_Architecture]
     unlocks: [Concept_Deployment_Architecture, Horizon_2_Swarm]
-  
+
   Horizon_2_Swarm:
     requires: [Concept_Architecture, MCP_Tools]
     unlocks: [Horizon_3_Universal_Body]
@@ -281,7 +281,7 @@ python scripts/generate_prerequisite_map.py --output wiki/pages/Prerequisite_Map
 ---
 
 > **Ω-Wiki Tag**: `prerequisite_map_v1.0`
-> 
+>
 > **Generated From**: YAML frontmatter of 36 wiki pages
-> 
+>
 > **Last Validation**: 2026-04-08 — All prerequisite chains verified, no circular dependencies found.

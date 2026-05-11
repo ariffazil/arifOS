@@ -231,3 +231,10 @@ No AI output enters memory, judge, vault, forge, gateway, or user reply
 unless wrapped, hashed, schema-validated, risk-scanned, and authority-bounded.
 
 Partial SEAL → **FULL SEAL** pending deployment verification.
+
+## Checkpoint - 2026-05-11T18:12:23Z
+- session_id: OC-006
+- stage: 999_SEAL
+- task: Hermes gateway restart-loop diagnosis and stabilization
+- last_action: Fixed aaa-governance F13 substring bug (`rm` falsely matching `terminal`), rebuilt corrupted `/root/AAA/.hermes/state.db`, removed duplicate root user gateway unit file, verified system service healthy.
+- entropy_delta: 0.08

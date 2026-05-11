@@ -36,9 +36,7 @@ class ConflationRisk(BaseModel):
     )
 
     # Risk factors
-    factors: List[str] = Field(
-        default_factory=list, description="Specific risk factors identified"
-    )
+    factors: List[str] = Field(default_factory=list, description="Specific risk factors identified")
 
     def is_critical(self) -> bool:
         """True if risk is critical (> 0.8)."""
@@ -82,9 +80,7 @@ class AnomalousContrastTheory:
     """Core theory implementation."""
 
     @staticmethod
-    def identify_conflation_risk(
-        physical_axes: List[str], display_transforms: List[str]
-    ) -> float:
+    def identify_conflation_risk(physical_axes: List[str], display_transforms: List[str]) -> float:
         """Calculate Risk Level (0.0 - 1.0). High risk if complex transforms used."""
         return min(1.0, len(display_transforms) * 0.2 + 0.1)
 
@@ -105,16 +101,12 @@ class AnomalousContrastTheory:
     ) -> bool:
         """Anomalous if visual contrast >> physical signal."""
         if physical_contrast <= 0:
-            return (
-                visual_contrast > 0.1
-            )  # Any visual contrast is anomalous if no physical
+            return visual_contrast > 0.1  # Any visual contrast is anomalous if no physical
         return visual_contrast > physical_contrast * threshold
 
 
 class ToACCore:
     @staticmethod
-    def identify_conflation_risk(
-        physical_axes: List[str], display_transforms: List[str]
-    ) -> float:
+    def identify_conflation_risk(physical_axes: List[str], display_transforms: List[str]) -> float:
         """Calculate Risk Level (0.0 - 1.0). High risk if complex transforms used."""
         return min(1.0, len(display_transforms) * 0.2 + 0.1)

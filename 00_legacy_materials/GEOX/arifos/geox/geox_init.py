@@ -84,9 +84,7 @@ class GEOXFoundation:
         if sys.version_info < cls.REQUIRED_PY_VERSION:
             status["checks"]["python_version"] = "FAIL"
             status["verdict"] = "VOID"
-            logger.error(
-                f"Python {cls.REQUIRED_PY_VERSION} required, found {sys.version}"
-            )
+            logger.error(f"Python {cls.REQUIRED_PY_VERSION} required, found {sys.version}")
         else:
             status["checks"]["python_version"] = "OK"
 
@@ -102,9 +100,7 @@ class GEOXFoundation:
                 missing_deps.append(dep)
 
         if missing_deps:
-            status["checks"][
-                "dependencies"
-            ] = f"FAIL (missing: {', '.join(missing_deps)})"
+            status["checks"]["dependencies"] = f"FAIL (missing: {', '.join(missing_deps)})"
             # arifosmcp is not strictly mandatory for local tools but good for hardening
             if "arifosmcp" not in missing_deps:
                 status["verdict"] = "VOID"

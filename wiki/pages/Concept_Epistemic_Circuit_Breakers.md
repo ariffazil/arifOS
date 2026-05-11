@@ -35,7 +35,7 @@ Constitutional AI requires **reflexive governance**: the system must monitor its
 
 The breakers are derived from three Floors:
 - **F2 (Truth)** — Detects insufficient evidence
-- **F7 (Humility)** — Detects overconfidence  
+- **F7 (Humility)** — Detects overconfidence
 - **F3 (Tri-Witness)** — Detects consensus failure
 
 ---
@@ -45,7 +45,7 @@ The breakers are derived from three Floors:
 ### CB1: Godellock — The Overconfidence Trap
 **Trigger**: Ω₀ < 0.03 (confidence above uncertainty band)
 
-**The Failure Mode**: 
+**The Failure Mode**:
 The system is "too sure." This often happens when:
 - Training data creates false familiarity
 - Pattern matching exceeds evidence
@@ -214,14 +214,14 @@ All circuit breakers run in **parallel** during stage 333_MIND:
 def evaluate_epistemic_safety(cognition):
     breakers = [
         check_godellock(cognition.Ω₀),           # CB1
-        check_witness_consensus(cognition.W³),    # CB2  
+        check_witness_consensus(cognition.W³),    # CB2
         check_landauer_bound(cognition.E_spent),  # CB3
         check_recursion_depth(cognition.depth),   # CB4
         check_confidence_cascade(cognition.τ_history)  # CB5
     ]
-    
+
     triggered = [b for b in breakers if b.triggered]
-    
+
     if any(b.severity == VOID for b in triggered):
         return VOID, triggered
     elif any(b.severity == HOLD for b in triggered):
@@ -262,5 +262,5 @@ Systems with robust epistemic breakers pay a **humility tax**:
 ---
 
 > **Ω-Wiki Tag**: `epistemic_breakers_v1.0`
-> 
+>
 > **Drift Check**: If VOID rate drops below 2%, breakers may be miscalibrated (false security).

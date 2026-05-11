@@ -304,9 +304,7 @@ class FaultTrace(BaseModel):
     trace_points: list[ProfilePoint] = Field(..., description="Fault trace points")
     dip_degrees: float | None = Field(None, description="Apparent dip if known")
     throw_m: float | None = Field(None, description="Measured throw if known")
-    is_observed: bool = Field(
-        True, description="True if from seismic, False if inferred"
-    )
+    is_observed: bool = Field(True, description="True if from seismic, False if inferred")
 
 
 class UnitPolygon(BaseModel):
@@ -318,9 +316,7 @@ class UnitPolygon(BaseModel):
     lithology: str | None = Field(None, description="e.g., 'sandstone', 'shale'")
     polygon_coords: list[ProfilePoint] = Field(..., description="Unit boundary points")
     color: str = Field(default="#808080", pattern="^#[0-9A-Fa-f]{6}$")
-    is_observed: bool = Field(
-        True, description="True if well-control, False if interpolated"
-    )
+    is_observed: bool = Field(True, description="True if well-control, False if interpolated")
 
 
 class UncertaintyZone(BaseModel):
@@ -395,9 +391,7 @@ class GeoXSeismicSectionState(BaseModel):
     detected_faults: list[dict[str, Any]] = Field(default_factory=list)
     segmented_facies: list[dict[str, Any]] = Field(default_factory=list)
     image_quality: str = Field(default="unknown", description="good, fair, poor")
-    polarity: str = Field(
-        default="unknown", description="SEG_normal, SEG_reverse, unknown"
-    )
+    polarity: str = Field(default="unknown", description="SEG_normal, SEG_reverse, unknown")
     stretch_artifacts: bool = False
     linked_cross_section_id: str | None = Field(None)
     well_tie_points: list[dict[str, Any]] = Field(default_factory=list)

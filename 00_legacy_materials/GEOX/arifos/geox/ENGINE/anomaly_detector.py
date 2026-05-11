@@ -113,13 +113,15 @@ class AnomalyDetector:
 
         # Determine recommendation
         if score > 5.0:
-            recommendation = "REJECT — Feature likely represents display artifact, not physical signal"
-        elif score > 3.0:
-            recommendation = "REVIEW REQUIRED — High anomalous contrast. Verify against raw data before use"
-        else:
             recommendation = (
-                "FLAG — Moderate anomaly. Document transform chain for audit"
+                "REJECT — Feature likely represents display artifact, not physical signal"
             )
+        elif score > 3.0:
+            recommendation = (
+                "REVIEW REQUIRED — High anomalous contrast. Verify against raw data before use"
+            )
+        else:
+            recommendation = "FLAG — Moderate anomaly. Document transform chain for audit"
 
         # Build explanation
         explanation = (

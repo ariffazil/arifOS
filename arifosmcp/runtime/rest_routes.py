@@ -60,6 +60,7 @@ from arifosmcp.runtime.contracts import (
     AAA_TOOL_STAGE_MAP,
     TRINITY_BY_TOOL,
 )
+from arifosmcp.runtime.federation_epistemology import FederationEpistemicLedger
 from arifosmcp.runtime.floors import get_floor_count
 
 # External MCP tool name → internal contract name
@@ -2241,6 +2242,11 @@ def register_rest_routes(
             return HTMLResponse(WELCOME_HTML)
         ml_runtime = get_ml_floor_runtime()
         graphiti_enabled = _probe_graphiti_enabled()
+        federation_ledger = FederationEpistemicLedger()
+        try:
+            federation_epistemology = federation_ledger.stats()
+        finally:
+            federation_ledger.close()
 
         return JSONResponse(
             {
@@ -2328,6 +2334,11 @@ def register_rest_routes(
 
         ml_runtime = get_ml_floor_runtime()
         graphiti_enabled = _probe_graphiti_enabled()
+        federation_ledger = FederationEpistemicLedger()
+        try:
+            federation_epistemology = federation_ledger.stats()
+        finally:
+            federation_ledger.close()
 
         return JSONResponse(
             {
@@ -2349,6 +2360,7 @@ def register_rest_routes(
                 "vault999_health": _probe_vault999_health(),
                 "langfuse_tracing": _probe_langfuse_tracing(),
                 "ml_floors": ml_runtime,
+                "federation_epistemology": federation_epistemology,
                 "semantic_readiness": {
                     "graphiti_transport": "healthy" if graphiti_enabled else "degraded",
                     "graphiti_storage": "healthy" if graphiti_enabled else "degraded",
@@ -5711,6 +5723,85 @@ setInterval(refreshSot, 30000);
         }
 
         return JSONResponse(payload, media_type="application/json")
+
+    @route("/federation/beliefs", methods=["GET"])
+    async def federation_beliefs(request: Request) -> JSONResponse:
+        ledger = FederationEpistemicLedger()
+        try:
+            params = request.query_params
+            subject_id = params.get("subject_id")
+            query = params.get("query")
+            claim_id = params.get("claim_id")
+            include_events = params.get("include_events", "false").lower() == "true"
+            include_lineage = params.get("include_lineage", "true").lower() != "false"
+            if not any([subject_id, query, claim_id]):
+                return JSONResponse(
+                    {
+                        "error": "Provide at least one of: subject_id, query, claim_id",
+                        "endpoint": "/federation/beliefs",
+                    },
+                    status_code=400,
+                )
+            payload = ledger.belief_state(
+                query=query,
+                subject_id=subject_id,
+                claim_id=claim_id,
+                include_events=include_events,
+                include_lineage=include_lineage,
+            )
+            status_code = 200 if payload.get("status") != "no_evidence" else 404
+            return JSONResponse(
+                payload,
+                status_code=status_code,
+                headers={"Access-Control-Allow-Origin": "*"},
+            )
+        finally:
+            ledger.close()
+
+    @route("/federation/claims/{claim_id:path}/lineage", methods=["GET"])
+    async def federation_claim_lineage(request: Request) -> JSONResponse:
+        ledger = FederationEpistemicLedger()
+        try:
+            claim_id = request.path_params.get("claim_id", "")
+            payload = ledger.claim_lineage(claim_id)
+            status_code = 200 if payload.get("status") == "ok" else 404
+            return JSONResponse(
+                payload,
+                status_code=status_code,
+                headers={"Access-Control-Allow-Origin": "*"},
+            )
+        finally:
+            ledger.close()
+
+    @route("/federation/witness", methods=["GET"])
+    async def federation_witness(request: Request) -> JSONResponse:
+        ledger = FederationEpistemicLedger()
+        try:
+            params = request.query_params
+            subject_id = params.get("subject_id")
+            query = params.get("query")
+            claim_id = params.get("claim_id")
+            if not any([subject_id, query, claim_id]):
+                return JSONResponse(
+                    {
+                        "error": "Provide at least one of: subject_id, query, claim_id",
+                        "endpoint": "/federation/witness",
+                    },
+                    status_code=400,
+                )
+            payload = ledger.witness_audit(
+                subject_id=subject_id,
+                query=query,
+                claim_id=claim_id,
+            )
+            status_code = 200 if payload.get("status") != "not_found" else 404
+            return JSONResponse(
+                payload,
+                status_code=status_code,
+                headers={"Access-Control-Allow-Origin": "*"},
+            )
+        finally:
+            ledger.close()
 
     # ── P1: JSON Schema Generator ─────────────────────────────────────────────
     def _python_type_to_json_schema(python_annotation: Any) -> dict[str, Any]:

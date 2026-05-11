@@ -22,9 +22,7 @@ try:
     from arifos.geox.geox_validator import GeoXValidator
 except ImportError:
     # If not installed as a package, try relative or direct import setup
-    sys.path.append(
-        os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
-    )
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
     from arifos.geox.geox_agent import GeoXAgent, GeoXConfig
     from arifos.geox.geox_memory import DualMemoryStore
     from arifos.geox.geox_schemas import CoordinatePoint, GeoRequest

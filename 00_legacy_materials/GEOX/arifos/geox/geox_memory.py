@@ -279,9 +279,7 @@ class GeoMemoryStore:
                 e_lon = loc_meta.get("longitude", loc_meta.get("lon"))
                 if e_lat is not None and e_lon is not None:
                     # Simple Euclidean distance squared for sorting
-                    dist_sq = (location.latitude - e_lat) ** 2 + (
-                        location.longitude - e_lon
-                    ) ** 2
+                    dist_sq = (location.latitude - e_lat) ** 2 + (location.longitude - e_lon) ** 2
                     proximity_boost = 1.0 / (1.0 + dist_sq * 25.0)
                 elif not query_terms:
                     continue
@@ -289,11 +287,7 @@ class GeoMemoryStore:
             # Final composite score
             # Adjust weights: if location is provided, give it high weight
             if location and not query_terms:
-                score = (
-                    0.80 * proximity_boost
-                    + 0.10 * recency_boost
-                    + 0.10 * entry.confidence
-                )
+                score = 0.80 * proximity_boost + 0.10 * recency_boost + 0.10 * entry.confidence
             elif location:
                 score = (
                     0.30 * keyword_score
@@ -340,9 +334,7 @@ class GeoMemoryStore:
         """
         basin_lower = basin.lower()
         if self._qdrant is not None:
-            return await self._qdrant_search(
-                basin, basin=basin, location=None, limit=100
-            )
+            return await self._qdrant_search(basin, basin=basin, location=None, limit=100)
 
         entries = [e for e in self._store.values() if basin_lower in e.basin.lower()]
         entries.sort(key=lambda e: e.timestamp)
@@ -465,9 +457,7 @@ class DualMemoryStore:
         self.qdrant = qdrant_client
         self._macrostrat = macrostrat_tool
         self.cache_dir = cache_dir
-        self._legacy_store = GeoMemoryStore(
-            qdrant_client
-        )  # Use GeoMemoryStore for actual storage
+        self._legacy_store = GeoMemoryStore(qdrant_client)  # Use GeoMemoryStore for actual storage
 
         # Ensure cache dir exists
         if not os.path.exists(cache_dir):
@@ -542,9 +532,7 @@ class DualMemoryStore:
             },
         }
 
-    async def _query_macrostrat(
-        self, location: CoordinatePoint
-    ) -> list[dict[str, Any]]:
+    async def _query_macrostrat(self, location: CoordinatePoint) -> list[dict[str, Any]]:
         """Fetch discrete geological facts from Macrostrat."""
         if not self._macrostrat:
             try:
@@ -565,9 +553,7 @@ class DualMemoryStore:
     ) -> list[dict[str, Any]]:
         """ANN search results from Qdrant or local cache."""
         # Query legacy store as fallback for embeddings
-        legacy_entries = await self._legacy_store.retrieve(
-            query, location=location, limit=top_k
-        )
+        legacy_entries = await self._legacy_store.retrieve(query, location=location, limit=top_k)
 
         results = []
         for entry in legacy_entries:

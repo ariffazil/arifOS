@@ -382,7 +382,7 @@ def get_sovereign_vault(
     """Get or create the singleton VAULT999 instance."""
     global _vault999_instance
     if _vault999_instance is None:
-        path = vault_path or Path("/root/arifOS/VAULT999")
+        path = vault_path or Path(os.getenv("ARIFOS_VAULT_DIR", "/app/telemetry"))
         _vault999_instance = SovereignVault999(path)
     return _vault999_instance
 

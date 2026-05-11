@@ -68,9 +68,7 @@ class FloorEnforcer:
             violations.append("Operation cannot be undone (F1 Amanah violation)")
 
         if not undo_method and can_undo is not True:
-            violations.append(
-                "No undo method specified for potentially destructive operation"
-            )
+            violations.append("No undo method specified for potentially destructive operation")
 
         return FloorCheckResult(
             floor="F1",

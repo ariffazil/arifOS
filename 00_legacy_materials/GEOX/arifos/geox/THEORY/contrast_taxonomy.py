@@ -92,20 +92,14 @@ class VisualTransform:
 TRANSFORM_CATALOG = {
     "grayscale": VisualTransform("grayscale", "colormap", artifact_risk="low"),
     "inverted": VisualTransform("inverted", "colormap", artifact_risk="low"),
-    "seismic_colormap": VisualTransform(
-        "seismic_colormap", "colormap", artifact_risk="medium"
-    ),
+    "seismic_colormap": VisualTransform("seismic_colormap", "colormap", artifact_risk="medium"),
     "rainbow": VisualTransform(
         "rainbow", "colormap", artifact_risk="high"
     ),  # Perceptually non-uniform
-    "linear_stretch": VisualTransform(
-        "linear_stretch", "intensity", artifact_risk="low"
-    ),
+    "linear_stretch": VisualTransform("linear_stretch", "intensity", artifact_risk="low"),
     "gamma_0.8": VisualTransform("gamma_0.8", "intensity", {"gamma": 0.8}, "medium"),
     "gamma_1.2": VisualTransform("gamma_1.2", "intensity", {"gamma": 1.2}, "medium"),
-    "gaussian_smooth": VisualTransform(
-        "gaussian_smooth", "filter", {"kernel": "gaussian"}, "low"
-    ),
+    "gaussian_smooth": VisualTransform("gaussian_smooth", "filter", {"kernel": "gaussian"}, "low"),
     "sharpen": VisualTransform("sharpen", "filter", artifact_risk="high"),
     "median_filter": VisualTransform("median_filter", "filter", artifact_risk="low"),
     "sobel": VisualTransform(
@@ -120,9 +114,7 @@ TRANSFORM_CATALOG = {
         artifact_risk="high",
         affects_quantities=["edge", "boundary"],
     ),
-    "histogram_eq": VisualTransform(
-        "histogram_eq", "histogram", artifact_risk="medium"
-    ),
+    "histogram_eq": VisualTransform("histogram_eq", "histogram", artifact_risk="medium"),
     "CLAHE": VisualTransform(
         "CLAHE",
         "histogram",
@@ -323,10 +315,7 @@ class ContrastTaxonomy:
 
         # Confidence risk
         if self.confidence:
-            if (
-                not self.confidence.is_constitutional
-                and not self.confidence.f7_override
-            ):
+            if not self.confidence.is_constitutional and not self.confidence.f7_override:
                 score += 0.2
         else:
             score += 0.2  # No confidence declared

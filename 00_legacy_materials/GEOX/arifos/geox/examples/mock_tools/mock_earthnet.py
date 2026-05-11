@@ -157,9 +157,7 @@ class MockEarthNetTool(BaseTool):
         vp_ms = rng.uniform(vp_lo, vp_hi)
 
         # Add a mild depth gradient within the zone
-        depth_fraction = (
-            mid_depth - {"shallow": 0, "mid": 1500, "deep": 3000}[zone]
-        ) / 1500.0
+        depth_fraction = (mid_depth - {"shallow": 0, "mid": 1500, "deep": 3000}[zone]) / 1500.0
         vp_ms += depth_fraction * (vp_hi - vp_lo) * 0.2
         vp_ms = max(vp_lo, min(vp_hi, vp_ms))
 
@@ -195,9 +193,7 @@ class MockEarthNetTool(BaseTool):
         prov = _build_mock_prov(source_id, "LEM", confidence=0.82)
 
         # --- Build quantities ---
-        def _qty(
-            value: float, units: str, qtype: str, unc: float = 0.08
-        ) -> GeoQuantity:
+        def _qty(value: float, units: str, qtype: str, unc: float = 0.08) -> GeoQuantity:
             unc_clamped = max(0.03, min(0.15, unc))
             return GeoQuantity(
                 value=round(value, 4),
@@ -263,9 +259,7 @@ class MockEarthNetTool(BaseTool):
 # ---------------------------------------------------------------------------
 
 
-def _build_mock_prov(
-    source_id: str, source_type: str, confidence: float
-) -> ProvenanceRecord:
+def _build_mock_prov(source_id: str, source_type: str, confidence: float) -> ProvenanceRecord:
     return ProvenanceRecord(
         source_id=source_id,
         source_type=source_type,  # type: ignore[arg-type]
@@ -312,9 +306,7 @@ if __name__ == "__main__":
         print(f"Latency: {result.latency_ms:.2f} ms")
         print(f"Quantities returned: {len(result.quantities)}")
         for qty in result.quantities:
-            print(
-                f"  {qty.quantity_type}: {qty.value} {qty.units} (±{qty.uncertainty:.0%})"
-            )
+            print(f"  {qty.quantity_type}: {qty.value} {qty.units} (±{qty.uncertainty:.0%})")
 
         print(f"\nRaw output keys: {list(result.raw_output.keys())}")
         print(f"Seed: {result.metadata['seed']}")

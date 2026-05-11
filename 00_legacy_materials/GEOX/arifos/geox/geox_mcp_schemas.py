@@ -112,9 +112,7 @@ class GEOXSeismicImageInput(BaseModel):
         le=1.0,
         description="Source data quality 0-1 (SEG-Y=1.0, raster=0.6)",
     )
-    provenance: ProvenanceRecord = Field(
-        ..., description="Provenance of the seismic image"
-    )
+    provenance: ProvenanceRecord = Field(..., description="Provenance of the seismic image")
     telemetry: dict[str, Any] = Field(
         default_factory=dict,
         description="Runtime telemetry",
@@ -151,14 +149,10 @@ class GEOXIngestResult(BaseModel):
     n_traces: int = Field(..., ge=1)
     n_samples: int = Field(..., ge=1)
     time_depth_domain: TimeDepthDomain
-    vertical_exaggeration: float | None = Field(
-        default=None, description="VE ratio if known"
-    )
+    vertical_exaggeration: float | None = Field(default=None, description="VE ratio if known")
     frame_detected: bool = Field(default=False, description="Axes/label frame detected")
     source_quality: float
-    aggregate_uncertainty: float = Field(
-        ..., ge=0.03, le=0.20, description="F7 Humility band"
-    )
+    aggregate_uncertainty: float = Field(..., ge=0.03, le=0.20, description="F7 Humility band")
     verdict: str = Field(
         default="QUALIFY",
         description="SEAL|QUALIFY|HOLD|GEOX_BLOCK — ceiling for 2D is QUALIFY",
@@ -200,9 +194,7 @@ class GEOXSeismicView(BaseModel):
         default=1.0, ge=1.0, le=10.0, description="CLAHE clip limit or equivalent"
     )
     provenance: ProvenanceRecord
-    uncertainty: float = Field(
-        ..., ge=0.03, le=0.20, description="View-specific uncertainty"
-    )
+    uncertainty: float = Field(..., ge=0.03, le=0.20, description="View-specific uncertainty")
     telemetry: dict[str, Any] = Field(default_factory=dict)
 
     model_config = {"arbitrary_types_allowed": True, "strict": False}
@@ -215,9 +207,7 @@ class GEOXContrastViewSet(BaseModel):
     views: list[GEOXSeismicView] = Field(
         ..., min_length=1, max_length=12, description="1-12 canonical views"
     )
-    canonical_view_ref: str = Field(
-        ..., description="Reference to the primary canonical view"
-    )
+    canonical_view_ref: str = Field(..., description="Reference to the primary canonical view")
     provenance: ProvenanceRecord
     aggregate_uncertainty: float = Field(
         ..., ge=0.03, le=0.20, description="Worst-case view uncertainty"
@@ -256,9 +246,7 @@ class GEOXFeatureSet(BaseModel):
         default_factory=list, description="Detected discontinuity locations"
     )
     dip_field: Any = Field(default=None, description="2D apparent dip field array")
-    dip_field_stats: dict[str, float] = Field(
-        default_factory=dict, description="Dip statistics"
-    )
+    dip_field_stats: dict[str, float] = Field(default_factory=dict, description="Dip statistics")
     coherence_map: Any = Field(default=None, description="2D coherence map")
     coherence_stats: dict[str, float] = Field(default_factory=dict)
     curvature_map: Any = Field(default=None, description="2D curvature map")
@@ -308,18 +296,12 @@ class GEOXStructuralCandidate(BaseModel):
     location: tuple[int, int] | None = Field(
         default=None, description="(trace_index, sample_index) if applicable"
     )
-    geometry_score: float = Field(
-        ..., ge=0.0, le=1.0, description="Geometric consistency score"
-    )
+    geometry_score: float = Field(..., ge=0.0, le=1.0, description="Geometric consistency score")
     stability_score: float = Field(
         ..., ge=0.0, le=1.0, description="Seen in N views / N total views"
     )
-    geology_score: float = Field(
-        ..., ge=0.0, le=1.0, description="Passes geological rule engine"
-    )
-    composite_score: float = Field(
-        ..., ge=0.0, le=1.0, description="Weighted composite score"
-    )
+    geology_score: float = Field(..., ge=0.0, le=1.0, description="Passes geological rule engine")
+    composite_score: float = Field(..., ge=0.0, le=1.0, description="Weighted composite score")
     supporting_features: list[str] = Field(
         default_factory=list, description="Feature IDs supporting this candidate"
     )
