@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude doctor:*)",
+      "Bash(where python:*)",
+      "Bash(cmd /c \"npx -y @modelcontextprotocol/server-postgres \"\"%DATABASE_URL%\"\"\")",
+      "Bash(CLOUDFLARE_API_TOKEN=\"$CLOUDFLARE_API_TOKEN\" npx wrangler whoami)"
+    ]
+  }
+}
