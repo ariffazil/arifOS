@@ -738,12 +738,12 @@ arifOS is part of a federated AI governance system. Each organ has a narrow resp
 | Organ | Human Meaning | System Role | Docs |
 |---|---|---|---|
 | **ARIF / APEX** | Final human authority | F13 sovereign veto, approval, override, terminal judgment | [arif-fazil.com](https://arif-fazil.com) |
-| **AAA** | Operator cockpit | Identity, A2A federation gateway, session control, agent supervision | [README](https://github.com/ariffazil/AAA) |
-| **A-FORGE** | Execution shell | Runs tools, performs dry-runs, executes approved actions, reports outcomes | [README](https://github.com/ariffazil/A-FORGE) |
-| **arifOS** | Governance kernel | Checks evidence, risk, authority, verdicts, and auditability before action | [README](https://github.com/ariffazil/arifOS) |
-| **GEOX** | Earth intelligence | Seismic, petrophysics, basin, subsurface, and physics-grounded evidence | [README](https://github.com/ariffazil/geox) |
-| **WEALTH** | Capital intelligence | NPV, IRR, EMV, risk scoring, crisis triage, economic judgment | [README](https://github.com/ariffazil/wealth) |
-| **WELL** | Human readiness mirror | Operator pressure, biological state, cognitive load, human-system safety | [README](https://github.com/ariffazil/well) |
+| **AAA** | Control Plane Agent Gateway | Identity, A2A mesh, session anchoring, agent supervision | [README](https://github.com/ariffazil/AAA) |
+| **A-FORGE** | Execution Intelligence / Forge Engine | Build, deploy, artifact execution under governance | [README](https://github.com/ariffazil/A-FORGE) |
+| **arifOS** | Constitutional Intelligence Kernel | Governance, routing, judgment, memory, audit — structures decision, does not decide | [README](https://github.com/ariffazil/arifOS) |
+| **GEOX** | Earth Intelligence / Governed World Model | Seismic, petrophysics, subsurface, physics-grounded evidence preparation | [README](https://github.com/ariffazil/geox) |
+| **WEALTH** | Resource Intelligence / Capital Thermodynamics | NPV, IRR, risk, allocation, stewardship | [README](https://github.com/ariffazil/wealth) |
+| **WELL** | Vitality Intelligence | H-WELL / M-WELL / C-WELL / G-WELL — human readiness, machine substrate, coupled state | [README](https://github.com/ariffazil/well) |
 | **Ω-Wiki** | Knowledge base | Persistent compiled knowledge, doctrine, references, and memory surfaces | [wiki.arif-fazil.com](https://wiki.arif-fazil.com) |
 
 ### How the organs work together

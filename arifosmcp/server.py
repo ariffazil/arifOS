@@ -247,9 +247,21 @@ async def webmcp_discovery(request: Request) -> JSONResponse:
 
 
 async def tools_with_meta(request: Request) -> JSONResponse:
-    from arifosmcp.runtime.public_registry import public_tool_names
+    from arifosmcp.runtime.public_registry import public_tool_specs
 
-    tools_payload = [{"name": name, "canonical": name} for name in public_tool_names()]
+    tools_payload = [
+        {
+            "name": spec.name,
+            "canonical": spec.name,
+            "description": spec.description,
+            "stage": spec.stage,
+            "lane": spec.trinity,
+            "access": spec.access,
+            "inputSchema": spec.input_schema,
+            "outputSchema": spec.output_schema,
+        }
+        for spec in public_tool_specs()
+    ]
     return JSONResponse(
         {
             "tools": tools_payload,

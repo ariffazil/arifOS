@@ -11,6 +11,8 @@
 
 ## 1. Purpose
 
+> **Machine is substrate. Governance is constraint. Intelligence is interpretation. Judgment remains Arif.**
+
 The Sovereign Interface (SI) is the mandatory surface through which the human Sovereign (L6) maintains veto authority over all AGI/ASI/APEX actions. Without a sealed SI, F13 (SOVEREIGN) cannot be enforced at runtime — any action can proceed without human oversight.
 
 **SI Invariant:** No AGI/ASI/APEX execution involving irreversible operations, epoch transitions, or cross-agent orchestration may proceed without the SI being reachable and responsive.
@@ -135,9 +137,9 @@ Authorization: Bearer <sovereign-token>
   "epoch_id": "<uuid>",
   "timestamp": "<ISO8601-UTC>",
   "nine_signal": {
-    "delta": { "state": "KUKUH|RETAK|LEBUR", "en": "SOLID|CRACKED|DISSOLVED", "evidence": "<string>" },
-    "psi":   { "state": "AMANAH|GANTUNG|KHIANAT", "en": "TRUSTED|PENDING|BETRAYED", "evidence": "<string>" },
-    "omega": { "state": "BIJAKSANA|BIJAK|SESAT", "en": "WISE|SMART|LOST", "evidence": "<string>" }
+    "delta": { "plane": "machine_physical_state", "state": "KUKUH|RETAK|ROSAK", "en": "SOLID|CRACKED|BROKEN", "evidence": "<string>" },
+    "psi":   { "plane": "governance_integrity", "state": "AMANAH|SYUBHAH|KHIANAT", "en": "TRUSTED|DOUBTFUL|BETRAYED", "evidence": "<string>" },
+    "omega": { "plane": "intelligence_discipline", "state": "BIJAKSANA|BIJAK|BANGANG", "en": "WISE|SMART|FOOLISH", "evidence": "<string>" }
   },
   "open_holds": <int>,
   "pending_approvals": <int>,
@@ -147,19 +149,19 @@ Authorization: Bearer <sovereign-token>
 
 ---
 
-## 4. Nine-Signal Dashboard Contract (HORIZON-v2026.04.18)
+## 4. Nine-Signal Dashboard Contract
 
-| Plane | BM States | EN States | Palette |
-|-------|-----------|-----------|---------|
-| Δ DELTA (Infrastructure) | KUKUH / RETAK / LEBUR | SOLID / CRACKED / DISSOLVED | teal / amber / red |
-| Ψ PSI (Governance) | AMANAH / GANTUNG / KHIANAT | TRUSTED / PENDING / BETRAYED | teal / amber / red |
-| Ω OMEGA (Intelligence) | BIJAKSANA / BIJAK / SESAT | WISE / SMART / LOST | teal / amber / red |
+| Plane | Domain | BM States | EN States | Palette |
+|-------|--------|-----------|-----------|---------|
+| Δ DELTA | Machine / Physical State | KUKUH / RETAK / ROSAK | SOLID / CRACKED / BROKEN | teal / amber / red |
+| Ψ PSI | Governance Integrity | AMANAH / SYUBHAH / KHIANAT | TRUSTED / DOUBTFUL / BETRAYED | teal / amber / red |
+| Ω OMEGA | Intelligence Discipline | BIJAKSANA / BIJAK / BANGANG | WISE / SMART / FOOLISH | teal / amber / red |
 
 **Signal derivation rules:**
 
-- **Δ DELTA:** KUKUH if `dS > -0.1` AND `verdict == SEAL`; LEBUR if `dS ≤ -0.5` OR `verdict == VOID`; RETAK otherwise.
-- **Ψ PSI:** AMANAH if `psi_le > 0.9` OR `tau ≥ 0.99`; KHIANAT if `psi_le < 0.7`; GANTUNG otherwise.
-- **Ω OMEGA:** BIJAKSANA if `echoDebt < 0.2` AND `psi_le > 0.85`; SESAT if `echoDebt ≥ 0.7`; BIJAK otherwise.
+- **Δ DELTA:** KUKUH if `dS > -0.1` AND `verdict == SEAL`; ROSAK if `dS ≤ -0.5` OR `verdict == VOID`; RETAK otherwise.
+- **Ψ PSI:** AMANAH if `psi_le > 0.9` OR `tau ≥ 0.99`; KHIANAT if `psi_le < 0.7`; SYUBHAH otherwise.
+- **Ω OMEGA:** BIJAKSANA if `echoDebt < 0.2` AND `psi_le > 0.85`; BANGANG if `echoDebt ≥ 0.7`; BIJAK otherwise.
 
 **Accessibility:** WCAG AA contrast ratio ≥ 4.5:1 for all signal colors.
 

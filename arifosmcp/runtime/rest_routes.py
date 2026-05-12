@@ -36,6 +36,7 @@ from typing import Any
 from arifosmcp.runtime.public_registry import (
     build_mcp_discovery_json,
     build_server_json,
+    contract_status_summary,
     public_tool_names,
     public_tool_specs,
 )
@@ -2026,6 +2027,7 @@ def _compute_known_gaps(
     langfuse_tracing: dict[str, Any],
     vault999: str,
     runtime_drift: bool,
+    contract_status: dict[str, Any],
 ) -> list[dict[str, Any]]:
     """Compute known gaps dynamically based on current system state."""
     gaps = []
@@ -2076,17 +2078,25 @@ def _compute_known_gaps(
             }
         )
 
-    # outputschema_validation — wired: validate_tool_response_schema now called in
-    # _enforce_nine_signal for every tool response (all 13 tools). Secondary check
-    # after NineSignalOutput._enforce(). Non-fatal logging only. F8 G≥0.80 target
-    # is architectural — runtime G is measured by the judge organ, not by schema.
+    schemas_complete = contract_status.get("schemas_complete", False)
+    input_count = contract_status.get("input_schemas_published", 0)
+    output_count = contract_status.get("output_schemas_published", 0)
+    tool_count = contract_status.get("tool_count", 0)
     gaps.append(
         {
-            "id": "outputschema_validation",
-            "title": "outputSchema validation: ENFORCED — validate_tool_response_schema wired for all 13 tools via _enforce_nine_signal",
-            "detail": "9-tool gap CLOSED. validate_tool_response_schema now secondary gate in _enforce_nine_signal. All 13 canonical tools validated on every response.",
-            "severity": "info",
-            "floors": ["F8", "F10"],
+            "id": "mcp_contract_publication",
+            "title": (
+                "MCP contract publication: all canonical tools publish input/output schemas"
+                if schemas_complete
+                else "MCP contract publication: schema coverage incomplete"
+            ),
+            "detail": (
+                f"Published input schemas {input_count}/{tool_count}; "
+                f"output schemas {output_count}/{tool_count}. "
+                "This measures the live MCP contract surface, not just internal validator hooks."
+            ),
+            "severity": "info" if schemas_complete else "warning",
+            "floors": ["F4", "F10"],
         }
     )
 
@@ -2248,6 +2258,7 @@ def register_rest_routes(
         # Get thermodynamic state for Energy dimension
         thermo = _build_governance_status_payload()
         telemetry = thermo.get("telemetry", {})
+        contracts = contract_status_summary()
 
         # Probe vault for last seal timestamp (best-effort, null if unavailable)
         vault_last_seal = None
@@ -2286,6 +2297,8 @@ def register_rest_routes(
                 "tools_loaded": getattr(mcp, "_tool_count", len(tool_registry)),
                 "tool_registry_hash": _compute_tool_registry_hash(tool_registry),
                 "schema_hash": _compute_schema_hash(mcp, tool_registry),
+                "contract_status": contracts,
+                "contract_drift": contracts.get("contract_drift", True),
                 **_compute_runtime_drift(),
                 "graphiti_enabled": graphiti_enabled,
                 "vault999_health": _probe_vault999_health(),
@@ -2314,6 +2327,7 @@ def register_rest_routes(
                     ),
                     "hold_reasons_schema": "returns top-level reasons[] + next_safe_action",
                     "runtime_drift": _compute_runtime_drift().get("runtime_drift", False),
+                    "contract_drift": contracts.get("contract_drift", True),
                     "graphiti_read": "degraded" if not graphiti_enabled else "healthy",
                     "semantic_floor": (
                         "enabled"
@@ -2326,6 +2340,7 @@ def register_rest_routes(
                     langfuse_tracing=_probe_langfuse_tracing(),
                     vault999=_probe_vault999_health(),
                     runtime_drift=_compute_runtime_drift().get("runtime_drift", False),
+                    contract_status=contracts,
                 ),
                 "capability_map": build_runtime_capability_map(),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -3082,16 +3097,19 @@ def register_rest_routes(
     async def server_card_json(request: Request) -> Response:
         base = _public_base_url(request)
         payload = build_server_json(base)
-        mcp_tools = getattr(mcp, "_tool_registry", list(tool_registry.keys()))
+        spec_by_name = {spec.name: spec for spec in public_tool_specs()}
         live_tools = []
-        for tool in mcp_tools:
-            t = _get_tool_obj(tool)
+        for tool_name in public_tool_names():
+            t = _get_tool_obj(tool_name)
+            spec = spec_by_name.get(tool_name)
             schema = getattr(t, "parameters", {}) or {}
             live_tools.append(
                 {
                     "name": t.name,
-                    "description": getattr(t, "description", "") or "",
+                    "description": getattr(t, "description", "") or (spec.description if spec else ""),
                     "inputSchema": schema,
+                    "outputSchema": getattr(t, "output_schema", None)
+                    or (spec.output_schema if spec else None),
                 }
             )
         payload["tools"] = live_tools
@@ -5669,29 +5687,25 @@ setInterval(refreshSot, 30000);
     @route("/tools.json", methods=["GET"])
     async def tools_json_endpoint(request: Request) -> JSONResponse:
         """P1: Machine-readable tool charter — real JSON Schema, risk labels, floor bindings."""
-        from arifosmcp.constitutional_map import _TOOL_INPUT_SCHEMAS, CANONICAL_TOOLS
+        from arifosmcp.constitutional_map import CANONICAL_TOOLS
         from arifosmcp.tool_charter import TOOL_CHARTER
 
+        spec_by_name = {spec.name: spec for spec in public_tool_specs()}
         tools_out = []
         for name, spec in CANONICAL_TOOLS.items():
-            py_schema = _TOOL_INPUT_SCHEMAS.get(name, {})
-            properties = {}
-            required = []
-            for param_name, param_type in py_schema.items():
-                if param_name == "__extra__":
-                    continue
-                properties[param_name] = _python_type_to_json_schema(param_type)
+            runtime_spec = spec_by_name.get(name)
             manifest_spec = TOOL_CHARTER.get(name, {})
             tools_out.append(
                 {
                     "name": name,
-                    "description": spec.get("description", ""),
-                    "inputSchema": {
-                        "type": "object",
-                        "properties": properties,
-                        "required": required if required else [],
-                    },
-                    "stage": spec.get("stage_code", ""),
+                    "description": (runtime_spec.description if runtime_spec else spec.get("description", "")),
+                    "inputSchema": (
+                        runtime_spec.input_schema
+                        if runtime_spec is not None
+                        else {"type": "object", "properties": {}, "additionalProperties": False}
+                    ),
+                    "outputSchema": (runtime_spec.output_schema if runtime_spec is not None else None),
+                    "stage": spec.get("stage", ""),
                     "lane": spec.get("lane", ""),
                     "risk": {
                         "tier": manifest_spec.get("risk", {}).get("tier", "low"),
@@ -5709,7 +5723,10 @@ setInterval(refreshSot, 30000);
             {
                 "tools": tools_out,
                 "count": len(tools_out),
-                "schema_valid": all(t["inputSchema"]["properties"] for t in tools_out),
+                "schema_valid": all(
+                    "properties" in t["inputSchema"] and t.get("outputSchema") is not None
+                    for t in tools_out
+                ),
                 "version": f"kanon-{os.environ.get('DEPLOY_GIT_COMMIT', 'dev')}",
             }
         )

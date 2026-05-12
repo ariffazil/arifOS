@@ -115,11 +115,11 @@ Covers: NPV / IRR / PI / payback · EMV / Monte Carlo · DSCR / net worth / cash
 
 ---
 
-## WELL — Human Substrate
+## WELL — Vitality Intelligence
 
-WELL is the most original layer. It holds a mirror at the biological state of the sovereign operator.
+WELL is Vitality Intelligence: human readiness (H-WELL), machine substrate (M-WELL), coupled interaction risk (C-WELL), and governance coherence (G-WELL). It holds a mirror to the operational state of the sovereign operator and the machine substrate.
 
-**The law:** WELL advises. WELL does not override. It is not medical diagnosis. It is operational readiness telemetry.
+**The law:** WELL advises. WELL does not override. It is not medical diagnosis. It is operational readiness telemetry and substrate monitoring.
 
 **Key tools:**
 

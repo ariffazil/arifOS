@@ -599,47 +599,54 @@ def _kernel_eval(
 _SESAT_COUNTER = 0  # Per-process SESAT count — exported to OPS telemetry
 
 
-def _nine_signal_from_status(status: str) -> dict[str, str]:
+def _nine_signal_from_status(status: str) -> dict[str, str | dict]:
     """Build Nine-Signal block from response status field.
 
-    Must be injected into EVERY _ok() / _hold() response BEFORE returning,
-    so NineSignalOutput._enforce() never sees nine_signal as absent.
-    Ref: RIK HORIZON / Nine-Signal Evidence Protocol.
+    Three planes × three states = 9 perceptual signals:
+      Δ DELTA (Machine/Physical): KUKUH / RETAK / ROSAK
+      Ψ PSI   (Governance):       AMANAH / SYUBHAH / KHIANAT
+      Ω OMEGA (Intelligence):     BIJAKSANA / BIJAK / BANGANG
+
+    overall collapses the three planes into one verdict label.
+    Ref: KERNELHASIAPEX.md §4 — Nine-Signal Dashboard Contract
     """
     if status == "OK":
         return {
-            "delta": "KUKUH",
-            "psi": "DITERIMA",
-            "omega": "BIJAK",
-            "overall": "SELAMAT",
+            "delta": {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
+            "psi": {"plane": "governance_integrity", "state": "AMANAH", "en": "TRUSTED"},
+            "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
+            "overall": {"state": "SELAMAT", "en": "SAFE"},
         }
     if status in ("HOLD", "VOID"):
         return {
-            "delta": "GANTUNG",
-            "psi": "GANTUNG",
-            "omega": "SESAT",
-            "overall": "RETAK",
+            "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
+            "psi": {"plane": "governance_integrity", "state": "KHIANAT", "en": "BETRAYED"},
+            "omega": {"plane": "intelligence_discipline", "state": "BANGANG", "en": "FOOLISH"},
+            "overall": {"state": "RETAK", "en": "FAILED"},
         }
     if status == "SABAR":
         return {
-            "delta": "GANTUNG",
-            "psi": "GANTUNG",
-            "omega": "BIJAK",
-            "overall": "SABAR",
+            "delta": {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
+            "psi": {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
+            "omega": {"plane": "intelligence_discipline", "state": "BIJAK", "en": "SMART"},
+            "overall": {"state": "SABAR", "en": "PATIENCE"},
         }
     # DRY_RUN / default
     return {
-        "delta": "GANTUNG",
-        "psi": "GANTUNG",
-        "omega": "BIJAK",
-        "overall": "SELAMAT",
+        "delta": {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
+        "psi": {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
+        "omega": {"plane": "intelligence_discipline", "state": "BIJAK", "en": "SMART"},
+        "overall": {"state": "SELAMAT", "en": "SAFE"},
     }
 
 
-def _inject_nine_signal(model_dump_json: dict, status: str) -> dict:
+def _inject_nine_signal(model_dump_json: dict, status: str, tool: str = "") -> dict:
     """Inject nine_signal block into a raw model_dump(mode='json') dict."""
     out = dict(model_dump_json)
-    out["nine_signal"] = _nine_signal_from_status(status)
+    ns = _nine_signal_from_status(status)
+    if tool:
+        ns = _annotate_nine_signal(ns, _domain_for_tool(tool))
+    out["nine_signal"] = ns
     out.setdefault("output_policy", _output_policy_for_verdict(status))
     return out
 
@@ -746,21 +753,40 @@ class NineSignalOutput:
         """Return the nine_signal-enforced response."""
         nine = self.payload.get("nine_signal", {})
         if not nine:
-            # Auto-generate from verdict
-            overall = (
-                "RETAK"
-                if self.verdict in ("VOID", "HOLD", "SESAT")
-                else "SELAMAT" if self.verdict == "SEAL" else "SABAR"
-            )
-            nine = {
-                "delta": "KUKUH" if self.verdict == "SEAL" else "GANTUNG",
-                "psi": "DITERIMA" if self.verdict == "SEAL" else "GANTUNG",
-                "omega": "BIJAK" if self.verdict == "SEAL" else "SESAT",
-                "overall": overall,
-            }
+            # Auto-generate from verdict — three-plane nine-signal contract
+            verdict = self.verdict
+            if verdict in ("VOID", "HOLD"):
+                nine = {
+                    "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
+                    "psi": {"plane": "governance_integrity", "state": "KHIANAT", "en": "BETRAYED"},
+                    "omega": {
+                        "plane": "intelligence_discipline",
+                        "state": "BANGANG",
+                        "en": "FOOLISH",
+                    },
+                    "overall": {"state": "RETAK", "en": "FAILED"},
+                }
+            elif verdict == "SEAL":
+                nine = {
+                    "delta": {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
+                    "psi": {"plane": "governance_integrity", "state": "AMANAH", "en": "TRUSTED"},
+                    "omega": {
+                        "plane": "intelligence_discipline",
+                        "state": "BIJAKSANA",
+                        "en": "WISE",
+                    },
+                    "overall": {"state": "SELAMAT", "en": "SAFE"},
+                }
+            else:  # SABAR / DRY_RUN
+                nine = {
+                    "delta": {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
+                    "psi": {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
+                    "omega": {"plane": "intelligence_discipline", "state": "BIJAK", "en": "SMART"},
+                    "overall": {"state": "SABAR", "en": "PATIENCE"},
+                }
 
         out = dict(self.payload)
-        out["nine_signal"] = nine
+        out["nine_signal"] = _annotate_nine_signal(nine, _domain_for_tool(self.tool_name))
         out["reasons"] = self.reasons or self.payload.get("reasons", [])
         out["output_policy"] = self.output_policy
         out["_nine_signal_compliant"] = self.is_compliant
@@ -1375,6 +1401,299 @@ def get_session(session_id: str | None) -> dict[str, Any] | None:
     return _SESSIONS.get(session_id)
 
 
+_WISDOM_QUOTES: dict[str, list[dict[str, str]]] = {
+    "arif_session_init": [
+        {
+            "quote": "Execute every act of thy life as though it were thy last.",
+            "author": "Marcus Aurelius, Meditations",
+        },
+        {
+            "quote": "For of those to whom much is given, much is required.",
+            "author": "John F. Kennedy",
+        },
+        {"quote": "Wisdom is knowing what you do not know.", "author": "Socrates, Apology 21d"},
+    ],
+    "arif_sense_observe": [
+        {
+            "quote": "The ability to observe without evaluation is the highest form of intelligence.",
+            "author": "Jiddu Krishnamurti",
+        },
+        {
+            "quote": "Science is simply common sense at its best — rigidly accurate in observation, and merciless to fallacy in logic.",
+            "author": "Thomas Henry Huxley",
+        },
+        {
+            "quote": "Sit down before fact as a little child, be prepared to give up every preconceived notion.",
+            "author": "Thomas Henry Huxley",
+        },
+    ],
+    "arif_evidence_fetch": [
+        {
+            "quote": "A wise man proportions his belief to the evidence.",
+            "author": "David Hume, An Enquiry Concerning Human Understanding (1748)",
+        },
+        {
+            "quote": "The deepest sin against the human mind is to believe things without evidence.",
+            "author": "Thomas Henry Huxley",
+        },
+        {
+            "quote": "Truth emerges more readily from error than from confusion.",
+            "author": "Francis Bacon, Novum Organum (1620)",
+        },
+    ],
+    "arif_mind_reason": [
+        {
+            "quote": "The test of a first-rate intelligence is the ability to hold two opposed ideas in mind at the same time and still retain the ability to function.",
+            "author": "F. Scott Fitzgerald",
+        },
+        {"quote": "The highest sign of intelligence is doubt.", "author": "Francois Mauriac"},
+        {"quote": "Wisdom alone is the science of other sciences.", "author": "Plato"},
+    ],
+    "arif_kernel_route": [
+        {
+            "quote": "No man can be fully known until he hath been seen versed in rule and law-giving.",
+            "author": "Sophocles, Antigone",
+        },
+        {
+            "quote": "It is not enough to have a good mind; the main thing is to use it well.",
+            "author": "René Descartes, Discourse on the Method (1637)",
+        },
+        {
+            "quote": "The voyage of the best ship is a zigzag line of a hundred tacks. See the line from a sufficient distance, and it straightens itself.",
+            "author": "Ralph Waldo Emerson",
+        },
+    ],
+    "arif_reply_compose": [
+        {
+            "quote": "Art is long, life short, judgment difficult, opportunity transient. To act is easy, to think is hard; to act according to our thought is troublesome.",
+            "author": "Johann Wolfgang von Goethe",
+        },
+        {
+            "quote": "The function of education is to teach one to think intensively and to think critically. Intelligence plus character — that is the goal of true education.",
+            "author": "Martin Luther King Jr.",
+        },
+        {
+            "quote": "I should make it my object to teach thinking, not orthodoxy, or even heterodoxy.",
+            "author": "Bertrand Russell",
+        },
+    ],
+    "arif_memory_recall": [
+        {
+            "quote": "Memory is a presumption of a possession of the future. With every new insight we come into new possession of the past.",
+            "author": "Ralph Waldo Emerson",
+        },
+        {
+            "quote": "The force of character is cumulative. All the foregone days of virtue work their health into this.",
+            "author": "Ralph Waldo Emerson",
+        },
+        {
+            "quote": "With every broader generalization which the mind makes, with every deeper insight, its retrospect is also wider.",
+            "author": "Ralph Waldo Emerson",
+        },
+    ],
+    "arif_heart_critique": [
+        {
+            "quote": "The king who judges the poor with fairness — his throne will be established forever.",
+            "author": "Proverbs 29:14",
+        },
+        {
+            "quote": "The only medicine for suffering, crime, and all the woes of mankind, is wisdom.",
+            "author": "Thomas Henry Huxley",
+        },
+        {
+            "quote": "There is no alleviation for the sufferings of mankind except veracity of thought and of action.",
+            "author": "Thomas Henry Huxley",
+        },
+    ],
+    "arif_gateway_connect": [
+        {
+            "quote": "For of one will, the actions will be harmonious, however unlike they seem.",
+            "author": "Ralph Waldo Emerson",
+        },
+        {
+            "quote": "Our form of government does not enter into rivalry with the institutions of others. It is an example to them.",
+            "author": "Pericles, Funeral Oration",
+        },
+        {
+            "quote": "What we do in life echoes in eternity.",
+            "author": "Marcus Aurelius, Meditations",
+        },
+    ],
+    "arif_ops_measure": [
+        {
+            "quote": "The man of science has learned to believe in justification, not by faith, but by verification.",
+            "author": "Thomas Henry Huxley",
+        },
+        {"quote": "Know thyself.", "author": "Inscribed at the Temple of Apollo at Delphi"},
+        {
+            "quote": "The measure of intelligence is the ability to change.",
+            "author": "Albert Einstein",
+        },
+    ],
+    "arif_judge_deliberate": [
+        {"quote": "Time is the fairest and toughest judge.", "author": "Edgar Quinet"},
+        {
+            "quote": "The opinions that are held with passion are always those for which no good ground exists.",
+            "author": "Bertrand Russell",
+        },
+        {
+            "quote": "Wisdom is keeping a sense of fallibility of all our views and opinions.",
+            "author": "Thomas Sowell",
+        },
+    ],
+    "arif_vault_seal": [
+        {
+            "quote": "Science is organized knowledge. Wisdom is organized life.",
+            "author": "Immanuel Kant",
+        },
+        {
+            "quote": "The whole earth is the tomb of famous men.",
+            "author": "Pericles, Funeral Oration",
+        },
+        {
+            "quote": "Next to being right, the best of all things is to be clearly and definitely wrong, because you will come out somewhere.",
+            "author": "Thomas Henry Huxley",
+        },
+    ],
+    "arif_forge_execute": [
+        {
+            "quote": "Genius is nothing but a continued attention.",
+            "author": "Claude Adrien Helvétius",
+        },
+        {"quote": "Genius is a protracted patience.", "author": "Comte de Buffon"},
+        {
+            "quote": "Nothing in life is to be feared, it is only to be understood. Now is the time to understand more, so that we may fear less.",
+            "author": "Marie Curie",
+        },
+    ],
+}
+
+
+def _wisdom_for_tool(tool: str) -> dict[str, str]:
+    """Return a single wisdom quote for the given tool."""
+    quotes = _WISDOM_QUOTES.get(tool)
+    if not quotes:
+        return {"quote": "", "author": ""}
+    idx = hash(tool) % len(quotes)
+    return dict(quotes[idx])  # stable per tool
+
+
+def _domain_for_tool(tool: str) -> str:
+    """Map canonical tool name to domain for nine-signal domain_meaning."""
+    if tool in (
+        "arif_session_init",
+        "arif_kernel_route",
+        "arif_judge_deliberate",
+        "arif_vault_seal",
+        "arif_gateway_connect",
+        "arif_forge_execute",
+    ):
+        return "governance"
+    if tool in ("arif_sense_observe", "arif_evidence_fetch"):
+        return "earth"
+    if tool in ("arif_mind_reason", "arif_reply_compose", "arif_memory_recall"):
+        return "intelligence"
+    if tool in ("arif_heart_critique",):
+        return "vitality"
+    if tool == "arif_ops_measure":
+        return "ops"
+    return "governance"
+
+
+_DOMAIN_MEANINGS: dict[str, dict[str, str]] = {
+    "governance": {
+        "delta_kukuh": "Tool surface alive, schema valid, memory reachable, forge/vault callable",
+        "delta_retak": "Tool available but session, auth, schema, or dependency degraded",
+        "delta_rosak": "Kernel/tooling broken, unavailable, corrupted, or unsafe to execute",
+        "psi_amanah": "Floors respected, authority boundary intact, evidence not overstated",
+        "psi_syubhah": "Missing session, uncertain authority, incomplete chain, pending verification",
+        "psi_khianat": "Floor violation, unauthorized action, false claim, unsafe escalation",
+        "omega_bijaksana": "Reasoning constrained, humble, evidence-aware, consequence-aware",
+        "omega_bijak": "Useful reasoning but not final judgment",
+        "omega_bangang": "Confused, overconfident, circular, hallucinated, or authority-blind",
+    },
+    "earth": {
+        "delta_kukuh": "Data artifact loads correctly; CRS, units, depth basis, shape valid",
+        "delta_retak": "Partial curves, missing metadata, questionable datum, weak density",
+        "delta_rosak": "Corrupt file, invalid coordinates, unusable depth basis, no valid evidence",
+        "psi_amanah": "QC verified, provenance present, evidence refs valid, claim honest",
+        "psi_syubhah": "Hypothesis only, evidence incomplete, uncertainty moderate, needs QC",
+        "psi_khianat": "Claim exceeds evidence, fake QC, ignored physics guard",
+        "omega_bijaksana": "Interpretation respects physics, uncertainty, basin context, alternatives",
+        "omega_bijak": "Useful technical interpretation but still advisory",
+        "omega_bangang": "Geologically incoherent, unit-confused, overfit, ignores evidence",
+    },
+    "capital": {
+        "delta_kukuh": "Financial data available, ledgers consistent, calculations executable",
+        "delta_retak": "Missing price, stale FX, incomplete ledger, uncertain input",
+        "delta_rosak": "Broken feed, impossible balance sheet, corrupt ledger",
+        "psi_amanah": "Stewardship, constraint, maruah, disclosure, risk boundaries respected",
+        "psi_syubhah": "Conflict of interest, uncertain assumptions, weak evidence, hidden risk",
+        "psi_khianat": "Deception, predatory allocation, false return claim",
+        "omega_bijaksana": "Allocates with prudence, second-order effects, time, risk, dignity",
+        "omega_bijak": "Mathematically useful but needs judgment",
+        "omega_bangang": "Chases yield blindly, ignores leverage, misunderstands risk",
+    },
+    "vitality": {
+        "delta_kukuh": "Telemetry system, event log, health probe, machine substrate readable",
+        "delta_retak": "Missing telemetry, stale state, partial signal, degraded reliability",
+        "delta_rosak": "No readable state, broken health surface, corrupted telemetry",
+        "psi_amanah": "Consent intact, non-medical boundary clear, sovereignty preserved",
+        "psi_syubhah": "Readiness unknown, emotional load unclear, consent needs check",
+        "psi_khianat": "Medical overclaim, coercive recommendation, dignity violation",
+        "omega_bijaksana": "Humble readiness reflection, adapts task ceiling, protects dignity",
+        "omega_bijak": "Useful advisory readiness signal",
+        "omega_bangang": "Pretends diagnosis, ignores fatigue, overrules operator",
+    },
+    "forge": {
+        "delta_kukuh": "Build environment, files, dependencies, tests, permissions stable",
+        "delta_retak": "Tests partial, dependency warning, reversible patch only",
+        "delta_rosak": "Build broken, destructive mutation risk, missing files",
+        "psi_amanah": "Dry run default, plan approved, reversible, ack required",
+        "psi_syubhah": "Plan incomplete, unclear blast radius, missing judge seal",
+        "psi_khianat": "Unapproved mutation, hidden side effect, irreversible without consent",
+        "omega_bijaksana": "Minimal safe patch, tested, rollback-aware, explains uncertainty",
+        "omega_bijak": "Working implementation but needs review",
+        "omega_bangang": "Random patching, no tests, breaks contracts, hides errors",
+    },
+    "vault": {
+        "delta_kukuh": "Ledger reachable, hash valid, chain intact",
+        "delta_retak": "Pending seal, unverifiable lineage, partial receipt",
+        "delta_rosak": "Hash mismatch, broken chain, missing entry, corrupted vault",
+        "psi_amanah": "Authorized seal, correct ack, immutable audit respected",
+        "psi_syubhah": "Pending authorization, dry-run only, incomplete witness",
+        "psi_khianat": "Unauthorized seal, altered record, false permanence claim",
+        "omega_bijaksana": "Records only what is warranted; separates evidence from verdict",
+        "omega_bijak": "Useful record but needs context",
+        "omega_bangang": "Treats vault as truth itself instead of provenance",
+    },
+    "ops": {
+        "delta_kukuh": "Telemetry available, metrics readable, resource surface stable",
+        "delta_retak": "Partial telemetry, stale probe, degraded metric quality",
+        "delta_rosak": "No telemetry, broken probe, corrupted metric surface",
+        "psi_amanah": "Measurements honest, bounds declared, no metric fabrication",
+        "psi_syubhah": "Uncertain measurement, uncalibrated probe, pending verification",
+        "psi_khianat": "Fabricated metric, false health claim, concealed degradation",
+        "omega_bijaksana": "Contextual interpretation of metrics, aware of limits",
+        "omega_bijak": "Useful numeric summary but needs human read",
+        "omega_bangang": "Misreads metrics, false alarm, ignores baseline drift",
+    },
+}
+
+
+def _annotate_nine_signal(nine: dict, domain: str) -> dict:
+    """Add domain_meaning to each plane in nine_signal."""
+    meanings = _DOMAIN_MEANINGS.get(domain, _DOMAIN_MEANINGS["governance"])
+    out = dict(nine)
+    for plane, prefix in (("delta", "delta_"), ("psi", "psi_"), ("omega", "omega_")):
+        pobj = out.get(plane)
+        if isinstance(pobj, dict):
+            state = pobj.get("state", "").lower()
+            key = f"{prefix}{state}"
+            pobj["domain_meaning"] = meanings.get(key, "")
+    return out
+
+
 def _ok(
     tool: str,
     result: dict[str, Any],
@@ -1443,7 +1762,11 @@ def _ok(
         "session_id": session_id,
         "actor_id": actor_id,
         "output_policy": "DOMAIN_SEAL",
-        "nine_signal": _nine_signal_from_status("OK"),
+        "wisdom": _wisdom_for_tool(tool),
+        "nine_signal": _annotate_nine_signal(
+            _nine_signal_from_status("OK"),
+            _domain_for_tool(tool),
+        ),
         "reasons": [
             "Reversible operation — no irreversible state change",
             f"tool={tool}",
@@ -1483,7 +1806,10 @@ def _hold(
                 epoch["verdict"] = "VOID"
                 epoch["peace2"] = min(epoch.get("peace2", 1.0), 0.0)
     # F2 / Nine-Signal: inject nine_signal into HOLD payload (status=HOLD → RETAK)
-    meta["nine_signal"] = _nine_signal_from_status("HOLD")
+    meta["nine_signal"] = _annotate_nine_signal(
+        _nine_signal_from_status("HOLD"),
+        _domain_for_tool(tool),
+    )
     response_ctx = _RESPONSE_CONTEXT.get() or {}
     if session_id is None:
         session_id = response_ctx.get("session_id")
@@ -1499,6 +1825,7 @@ def _hold(
         "session_id": session_id,
         "actor_id": actor_id,
         "output_policy": _output_policy_for_verdict("HOLD"),
+        "wisdom": _wisdom_for_tool(tool),
         "reasons": reasons,
     }
     return _enforce_nine_signal(
@@ -2694,7 +3021,7 @@ def _arif_sense_observe(
     if mode == "ingest":
         if url and minimax_bridge is not None:
             try:
-                img_result = asyncio.run(
+                img_result = _run_async(
                     minimax_bridge.understand_image(url, "Describe this image concisely")
                 )
                 return _ok(
@@ -2861,6 +3188,13 @@ def _arif_evidence_fetch(
     """
     222_FETCH: Evidence-preserving web ingestion with sequential thinking.
 
+    Modes:
+      fetch       — Ingest a URL into the evidence store with receipt emission.
+      search      — Query configured evidence/search backends.
+      archive     — Seal a lightweight archive receipt for a URL.
+      verify      — Return a verification stub for an existing URL/receipt.
+      void_audit  — Build a void report across recent evidence receipts.
+
     Sequential thinking parameters (civilization intelligence):
     - thinking_depth: Max reasoning steps (0-10). 0 = disabled.
     - thinking_budget: Token/time budget for thinking (0.0-10.0).
@@ -3020,7 +3354,7 @@ def _arif_evidence_fetch(
             try:
                 from arifosmcp.runtime.reality_handlers import handler as _rh_handler
 
-                rh_res = asyncio.run(_rh_handler.fetch_url(url, render="auto"))
+                rh_res = _run_async(_rh_handler.fetch_url(url, render="auto"))
                 if rh_res.raw_content:
                     raw_content = rh_res.raw_content
                     fetch_status = rh_res.status_code or 200
@@ -4981,7 +5315,7 @@ def _arif_reply_compose(
       nudge    — Append F05/F06 constitutional guidance nudge without commanding.
 
     Parameters:
-      mode             — compose | style | cite | summary
+      mode             — compose | style | cite | summary | format | nudge
       message          — Raw message text to compose or transform
       style            — Tone/style directive
       citations        — List of verified source identifiers to cite
@@ -5791,9 +6125,11 @@ def _arif_gateway_connect(
       discover  — List available agents in the federation mesh.
       handshake — Initiate a verified constitutional handshake.
       relay     — Pass a sealed message through the gateway without mutation.
+      seal      — Emit a pending cross-agent SEAL handoff contract.
+      delegate  — Forward to an external bridge-backed agent adapter.
 
     Parameters:
-      mode        — route | discover | handshake | relay
+      mode        — route | discover | handshake | relay | seal | delegate
       target_agent — Canonical agent name (e.g., kimi, claude, gemini)
       session_id  — Governed session ID
       actor_id    — Sovereign actor identifier
@@ -5884,11 +6220,10 @@ def _arif_gateway_connect(
         }
 
         if target_agent in _delegate_bridge_map:
-            import asyncio
 
             query = f"federated_delegate_{target_agent}"
             try:
-                raw_result = asyncio.run(_delegate_bridge_map[target_agent](query))
+                raw_result = _run_async(_delegate_bridge_map[target_agent](query))
                 return _ok(
                     "arif_gateway_connect",
                     {
@@ -8509,21 +8844,26 @@ def register_tools(
     include_legacy_compat: bool = False,
 ) -> list[str]:
     """Register the active canonical public surface with the MCP server."""
+    from arifosmcp.runtime.public_registry import public_tool_spec_by_name
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
     from arifosmcp.tool_charter import TOOL_CHARTER
 
     registered: list[str] = []
     del include_legacy_compat
+    spec_by_name = public_tool_spec_by_name(surface_mode)
     for name in public_tool_names_for_mode(surface_mode):
         handler = _CANONICAL_HANDLERS.get(name)
         if handler is None:
             continue
         try:
             manifest = TOOL_CHARTER.get(name, {})
+            spec = spec_by_name.get(name)
             wrapped = _wrap_handler(handler, name)
             mcp.tool(
                 name=name,
+                description=(spec.description if spec is not None else None),
                 tags={"canonical", "arifos"},
+                output_schema=(spec.output_schema if spec is not None else None),
                 meta={
                     "arifos_manifest": manifest,
                     "stage_code": manifest.get("stage_code", ""),

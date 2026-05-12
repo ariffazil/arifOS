@@ -983,14 +983,18 @@ _TOOL_OUTPUT_SCHEMAS: dict[str, dict[str, Any]] = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 NINE_SIGNAL_FIELDS = [
-    "tau",  # F2 Truth score (≥ 0.99 for SEAL)
-    "omega",  # F7 Humility band (∈ [0.03, 0.05])
-    "delta_S",  # F4 Clarity: entropy change (≤ 0 for SEAL)
-    "w3",  # F3 Witness: tri-witness score (≥ 0.75)
-    "p2",  # F5 Peace² score (≥ 1.0)
-    "kappa",  # F6 Empathy score (≥ 0.70)
-    "c_dark",  # F9 Anti-hantu dark-pattern score (≤ 0.30)
-    "omega_ont",  # F10 Ontology coherence (BOOLEAN)
+    # Δ DELTA — Machine/Physical plane
+    #   {"plane": "machine_physical_state", "state": "KUKUH"|"RETAK"|"ROSAK", "en": "SOLID"|"CRACKED"|"BROKEN"}
+    "delta",
+    # Ψ PSI — Governance plane
+    #   {"plane": "governance_integrity", "state": "AMANAH"|"SYUBHAH"|"KHIANAT", "en": "TRUSTED"|"DOUBTFUL"|"BETRAYED"}
+    "psi",
+    # Ω OMEGA — Intelligence plane
+    #   {"plane": "intelligence_discipline", "state": "BIJAKSANA"|"BIJAK"|"BANGANG", "en": "WISE"|"SMART"|"FOOLISH"}
+    "omega",
+    # overall — aggregate verdict label
+    #   {"state": "SELAMAT"|"RETAK"|"SABAR", "en": "SAFE"|"FAILED"|"PATIENCE"}
+    "overall",
 ]
 
 
@@ -1016,9 +1020,22 @@ def validate_tool_response_schema(tool_name: str, response: dict) -> tuple[bool,
     if nine is None:
         violations.append(f"nine_signal block absent in {tool_name} response [KERNEL_EVALS]")
 
-    # F10 ONTOLOGY: omega_ont must be present
-    if nine is not None and "omega_ont" not in nine:
-        violations.append("nine_signal missing omega_ont [F10 ONTOLOGY]")
+    # F10 ONTOLOGY: all three nine-signal planes must be present with state + en
+    if nine is not None:
+        for plane in ("delta", "psi", "omega"):
+            if plane not in nine:
+                violations.append(f"nine_signal missing {plane} plane [F10 ONTOLOGY]")
+            elif not isinstance(nine[plane], dict) or "state" not in nine[plane]:
+                violations.append(f"nine_signal.{plane} missing state [F10 ONTOLOGY]")
+            elif "en" not in nine[plane]:
+                violations.append(f"nine_signal.{plane} missing en [F10 ONTOLOGY]")
+        overall = nine.get("overall")
+        if overall is None:
+            violations.append("nine_signal missing overall verdict [F10 ONTOLOGY]")
+        elif isinstance(overall, str):
+            pass  # flat string backward compat
+        elif not isinstance(overall, dict) or "state" not in overall:
+            violations.append("nine_signal.overall missing state [F10 ONTOLOGY]")
 
     # reasons[] check for non-SEAL verdicts
     verdict = response.get("verdict", "")

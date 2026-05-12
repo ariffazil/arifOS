@@ -86,13 +86,14 @@ arifos.arif-fazil.com {
     encode zstd gzip
     root * /var/www/html/arifos
 
-    handle_path /.well-known/* {
-        root * /var/www/html/arifos/.well-known
-        respond "WELL_KNOWN_MATCHED"
+    handle /.well-known/* {
+        reverse_proxy 127.0.0.1:8080
     }
 
     handle /mcp* {
-        reverse_proxy 127.0.0.1:8080
+        reverse_proxy 127.0.0.1:8080 {
+            header_up Accept "text/event-stream, application/json, application/json-rpc"
+        }
     }
     handle /health {
         reverse_proxy 127.0.0.1:8080
@@ -103,13 +104,21 @@ arifos.arif-fazil.com {
     handle /tools {
         reverse_proxy 127.0.0.1:8080
     }
+    handle /tools/* {
+        reverse_proxy 127.0.0.1:8080
+    }
     handle /tools.json {
         reverse_proxy 127.0.0.1:8080
     }
     handle /sse* {
+        reverse_proxy 127.0.0.1:8080 {
+            header_up Accept "text/event-stream, application/json, application/json-rpc"
+        }
+    }
+    handle /api/* {
         reverse_proxy 127.0.0.1:8080
     }
-    handle /api/status {
+    handle /inspector/* {
         reverse_proxy 127.0.0.1:8080
     }
 
@@ -141,10 +150,20 @@ aaa.arif-fazil.com {
         rewrite * /health
         reverse_proxy 127.0.0.1:3001
     }
+    handle /.well-known/* {
+        reverse_proxy 127.0.0.1:3001
+    }
     handle {
         try_files {path} /index.html
         file_server
     }
+}
+
+ai.arif-fazil.com {
+    import tls_origin
+    encode zstd gzip
+
+    reverse_proxy 127.0.0.1:3005
 }
 
 # ═══════════════════════════════════════════════════════════════════════

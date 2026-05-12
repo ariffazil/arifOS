@@ -386,6 +386,27 @@ CORRECTION_SEAL issuance:
 
 ---
 
+## 9.5 — WEALTH Organ: 12 Invariants + 2 Diagnostics = 14 Public Tools
+
+The WEALTH organ (economic-physics coprocessor) exposes 14 public MCP tools:
+
+**12 Substrate Invariant Tools** (economic physics):
+`wealth_conservation_capital`, `wealth_flow_liquidity`, `wealth_gradient_price`,
+`wealth_entropy_risk`, `wealth_energy_productivity`, `wealth_time_discount`,
+`wealth_inertia_leverage`, `wealth_field_macro`, `wealth_signal_information`,
+`wealth_game_coordination`, `wealth_boundary_governance`, `wealth_hysteresis_ledger`
+
+**2 Diagnostic Tools** (registry truth):
+`mcp_health_check`, `wealth_system_registry_status`
+
+Each invariant tool obeys: schema loads, mode dispatch works, emergence layer returns,
+common envelope returns, bad mode fails closed. Default-call behavior matrix verified 33/33 PASS.
+Registry truth: PASS. Repo head: cad82c5. Hidden aliases: 68.
+
+The 12 invariants answer: *What is happening economically?*
+The immune system (CB1-CB5 + floor hierarchy) answers: *What if the reasoning process itself becomes unsafe?*
+
+
 ## 10. Floor Tension Resolution
 
 ### 10.1 Floor Priority Hierarchy

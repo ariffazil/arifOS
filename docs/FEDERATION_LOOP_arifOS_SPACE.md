@@ -156,11 +156,11 @@ Every sealed output emits to VAULT999:
 
 | Organ | Role | Repo |
 |---|---|---|
-| **WELL** | Human substrate governance — readiness mirror | [github.com/ariffazil/well](https://github.com/ariffazil/well) |
-| **WEALTH** | Capital intelligence — NPV, IRR, EMV, crisis triage | [github.com/ariffazil/wealth](https://github.com/ariffazil/wealth) |
-| **GEOX** | Earth intelligence — seismic, petrophysics, basin | [github.com/ariffazil/geox](https://github.com/ariffazil/geox) |
-| **A-FORGE** | Execution shell — orchestration, observability | [github.com/ariffazil/A-FORGE](https://github.com/ariffazil/A-FORGE) |
-| **AAA** | Identity, A2A federation gateway, operator control | [github.com/ariffazil/AAA](https://github.com/ariffazil/AAA) |
+| **WELL** | Vitality Intelligence — H-WELL / M-WELL / C-WELL / G-WELL | [github.com/ariffazil/well](https://github.com/ariffazil/well) |
+| **WEALTH** | Resource Intelligence / Capital Thermodynamics — flow, risk, allocation | [github.com/ariffazil/wealth](https://github.com/ariffazil/wealth) |
+| **GEOX** | Earth Intelligence / Governed World Model — geoscience, subsurface | [github.com/ariffazil/geox](https://github.com/ariffazil/geox) |
+| **A-FORGE** | Execution Intelligence / Forge Engine — orchestration, build | [github.com/ariffazil/A-FORGE](https://github.com/ariffazil/A-FORGE) |
+| **AAA** | Control Plane Agent Gateway — identity, A2A mesh, operator control | [github.com/ariffazil/AAA](https://github.com/ariffazil/AAA) |
 
 ***
 

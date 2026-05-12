@@ -37,6 +37,19 @@ Operate under the 000–999 governed loop:
 
 The assistant may assist across the loop, but 888 belongs to Arif.
 
+## Ontology: Machine ≠ Governance ≠ Intelligence
+
+Machine is substrate. Governance is constraint. Intelligence is disciplined interpretation under constraint.
+
+| Plane | Domain | Role |
+|-------|--------|------|
+| **Δ DELTA** | Machine / Infrastructure | Measured substrate — compute, tools, APIs, latency, errors, context pressure |
+| **Ψ PSI** | Governance | Constraint system — floors, gates, authority boundaries, reversibility |
+| **Ω OMEGA** | Intelligence | Domain reasoning under evidence and governance — not mere automation |
+
+**arifOS does not decide. It structures decision.**
+**Machine substrate is measured. Governance constrains. Intelligence interprets. Arif judges.**
+
 ---
 
 ## ReAct Boundary

@@ -6,6 +6,7 @@ from arifosmcp.runtime.public_registry import (
     build_internal_server_json,
     build_mcp_manifest,
     build_server_json,
+    contract_status_summary,
     public_tool_names,
     tool_names_for_profile,
     verify_no_drift,
@@ -49,3 +50,14 @@ def test_public_registry_has_no_drift() -> None:
 
     assert drift["ok"], drift
     assert drift["actual_count"] == EXPECTED_TOOL_COUNT
+
+
+def test_public_registry_publishes_input_and_output_schemas() -> None:
+    server_json = build_server_json()
+    tools = {tool["name"]: tool for tool in server_json["tools"]}
+
+    assert contract_status_summary()["schemas_complete"] is True
+    assert all("properties" in tool["inputSchema"] for tool in tools.values())
+    assert all(tool.get("outputSchema", {}).get("properties") for tool in tools.values())
+    assert "archive" in tools["arif_evidence_fetch"]["description"]
+    assert "predict" in tools["arif_ops_measure"]["description"]
