@@ -3,181 +3,185 @@
 # 3 Main Sites: arif-fazil.com | arifos.arif-fazil.com | aaa.arif-fazil.com
 # Federation MCP: arifos (13) | geox (28) | wealth (40+) | well (30+)
 # Last reconcile: 2026-05-01
-
 {
-    admin unix//var/run/caddy-admin.sock
-    email arif@arif-fazil.com
+	admin unix//var/run/caddy-admin.sock
+	email arif@arif-fazil.com
 }
 
 (tls_origin) {
-    # NOTE: Cloudflare origin cert was corrupt (2026-05-11).
-    # Switched to Caddy automatic HTTPS (Let's Encrypt ACME).
-    # Original manual tls directive removed; Caddy manages certs automatically.
-    header {
-        Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "SAMEORIGIN"
-        Referrer-Policy "strict-origin-when-cross-origin"
-    }
+	header {
+		Strict-Transport-Security "max-age=15552000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
 }
 
 (shared_assets) {
-    handle /_shared/* {
-        root * /var/www/html/_shared
-        file_server
-    }
+	handle /_shared/* {
+		root * /var/www/html/_shared
+		file_server
+	}
 }
 
 (cors_public) {
-    header Access-Control-Allow-Origin *
-    header Access-Control-Allow-Methods "GET, POST, OPTIONS"
+	header Access-Control-Allow-Origin *
+	header Access-Control-Allow-Methods "GET, POST, OPTIONS"
 }
 
 # ═══════════════════════════════════════════════════════════════════════
 # MAIN SITE 1 — Ψ HUMAN SURFACE
 # ═══════════════════════════════════════════════════════════════════════
 www.arif-fazil.com {
-    import tls_origin
-    redir https://arif-fazil.com{uri} permanent
+	import tls_origin
+	redir https://arif-fazil.com{uri} permanent
 }
 
 arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/arif
+	import tls_origin
+	import shared_assets
+	encode zstd gzip
+	root * /var/www/html/arif
 
-    @well-known path /.well-known/*
-    handle @well-known {
-        uri strip_prefix /.well-known
-        root * /var/www/html/arif/.well-known
-        try_files {path} /index.html
-        file_server
-    }
+	@well-known path /.well-known/*
+	handle @well-known {
+		uri strip_prefix /.well-known
+		root * /var/www/html/arif/.well-known
+		try_files {path} /index.html
+		file_server
+	}
 
-    @genesis path /000/*
-    handle @genesis {
-        uri strip_prefix /000
-        root * /var/www/html/arif/000
-        try_files {path} /index.html
-        file_server
-    }
+	@genesis path /000/*
+	handle @genesis {
+		uri strip_prefix /000
+		root * /var/www/html/arif/000
+		try_files {path} /index.html
+		file_server
+	}
 
-    @validation path /999/*
-    handle @validation {
-        uri strip_prefix /999
-        root * /var/www/html/arif/999
-        try_files {path} /index.html
-        file_server
-    }
+	@validation path /999/*
+	handle @validation {
+		uri strip_prefix /999
+		root * /var/www/html/arif/999
+		try_files {path} /index.html
+		file_server
+	}
 
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }
 
 # ═══════════════════════════════════════════════════════════════════════
 # MAIN SITE 2 — Ω ARIFOS OBSERVATORY
 # ═══════════════════════════════════════════════════════════════════════
 arifos.arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/arifos
+	import tls_origin
+	import shared_assets
+	encode zstd gzip
+	root * /var/www/html/arifos
 
-    handle /.well-known/* {
-        reverse_proxy 127.0.0.1:8080
-    }
+	handle /.well-known/* {
+		reverse_proxy 127.0.0.1:8080
+	}
 
-    handle /mcp* {
-        reverse_proxy 127.0.0.1:8080 {
-            header_up Accept "text/event-stream, application/json, application/json-rpc"
-        }
-    }
-    handle /health {
-        reverse_proxy 127.0.0.1:8080
-    }
-    handle /ready {
-        reverse_proxy 127.0.0.1:8080
-    }
-    handle /tools {
-        reverse_proxy 127.0.0.1:8080
-    }
-    handle /tools/* {
-        reverse_proxy 127.0.0.1:8080
-    }
-    handle /tools.json {
-        reverse_proxy 127.0.0.1:8080
-    }
-    handle /sse* {
-        reverse_proxy 127.0.0.1:8080 {
-            header_up Accept "text/event-stream, application/json, application/json-rpc"
-        }
-    }
-    handle /api/* {
-        reverse_proxy 127.0.0.1:8080
-    }
-    handle /inspector/* {
-        reverse_proxy 127.0.0.1:8080
-    }
+	handle /mcp* {
+		reverse_proxy 127.0.0.1:8080 {
+			header_up Accept "text/event-stream, application/json, application/json-rpc"
+		}
+	}
+	handle /health {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle /ready {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle /tools {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle /tools/* {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle /tools.json {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle /sse* {
+		reverse_proxy 127.0.0.1:8080 {
+			header_up Accept "text/event-stream, application/json, application/json-rpc"
+		}
+	}
+	handle /api/* {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle /inspector/* {
+		reverse_proxy 127.0.0.1:8080
+	}
 
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }
 
 # ═══════════════════════════════════════════════════════════════════════
 # MAIN SITE 3 — Δ AAA COCKPIT
 # ═══════════════════════════════════════════════════════════════════════
 aaa.arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/aaa
+	import tls_origin
+	import shared_assets
+	encode zstd gzip
+	root * /var/www/html/aaa
 
-    handle /a2a/* {
-        reverse_proxy 127.0.0.1:3001
-    }
-    handle /api/* {
-        reverse_proxy 127.0.0.1:3001
-    }
-    handle /health {
-        reverse_proxy 127.0.0.1:3001
-    }
-    handle /ready {
-        rewrite * /health
-        reverse_proxy 127.0.0.1:3001
-    }
-    handle /.well-known/* {
-        reverse_proxy 127.0.0.1:3001
-    }
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
+	handle /a2a/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+	handle /api/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+	handle /health {
+		reverse_proxy 127.0.0.1:3001
+	}
+	handle /ready {
+		rewrite * /health
+		reverse_proxy 127.0.0.1:3001
+	}
+	handle /.well-known/* {
+		reverse_proxy 127.0.0.1:3001
+	}
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }
 
 ai.arif-fazil.com {
-    import tls_origin
-    encode zstd gzip
+	import tls_origin
+	encode zstd gzip
 
-    reverse_proxy 127.0.0.1:3005
+	handle /api/* {
+		reverse_proxy 127.0.0.1:50001
+	}
+	handle /mcp/* {
+		reverse_proxy 127.0.0.1:50001
+	}
+	handle {
+		reverse_proxy 127.0.0.1:50001
+	}
 }
 
 # ═══════════════════════════════════════════════════════════════════════
 # THEORY / APEX
 # ═══════════════════════════════════════════════════════════════════════
 apex.arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/apex
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
+	import tls_origin
+	import shared_assets
+	encode zstd gzip
+	root * /var/www/html/apex
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -185,62 +189,62 @@ apex.arif-fazil.com {
 # Keep at geox.arif-fazil.com — ChatGPT registered here
 # ═══════════════════════════════════════════════════════════════════════
 geox.arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/geox
+	import tls_origin
+	import shared_assets
+	encode zstd gzip
+	root * /var/www/html/geox
 
-    handle /mcp {
-        import cors_public
-        reverse_proxy 127.0.0.1:8081 {
-            header_up Host geox.arif-fazil.com
-        }
-    }
-    handle /mcp/* {
-        import cors_public
-        reverse_proxy 127.0.0.1:8081 {
-            header_up Host geox.arif-fazil.com
-        }
-    }
-    handle /health {
-        import cors_public
-        reverse_proxy 127.0.0.1:8081 {
-            header_up Host geox.arif-fazil.com
-        }
-    }
-    handle /ready {
-        import cors_public
-        reverse_proxy 127.0.0.1:8081 {
-            header_up Host geox.arif-fazil.com
-        }
-    }
-    handle /sse* {
-        reverse_proxy 127.0.0.1:8081 {
-            header_up Host geox.arif-fazil.com
-        }
-    }
-    handle /status {
-        import cors_public
-        reverse_proxy 127.0.0.1:8081 {
-            header_up Host geox.arif-fazil.com
-        }
-    }
-    handle /.well-known/mcp/server.json {
-        import cors_public
-        reverse_proxy 127.0.0.1:8081 {
-            header_up Host geox.arif-fazil.com
-        }
-    }
-    handle /tools {
-        import cors_public
-        reverse_proxy 127.0.0.1:8081 {
-            header_up Host geox.arif-fazil.com
-        }
-    }
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
+	handle /mcp {
+		import cors_public
+		reverse_proxy 127.0.0.1:8081 {
+			header_up Host geox.arif-fazil.com
+		}
+	}
+	handle /mcp/* {
+		import cors_public
+		reverse_proxy 127.0.0.1:8081 {
+			header_up Host geox.arif-fazil.com
+		}
+	}
+	handle /health {
+		import cors_public
+		reverse_proxy 127.0.0.1:8081 {
+			header_up Host geox.arif-fazil.com
+		}
+	}
+	handle /ready {
+		import cors_public
+		reverse_proxy 127.0.0.1:8081 {
+			header_up Host geox.arif-fazil.com
+		}
+	}
+	handle /sse* {
+		reverse_proxy 127.0.0.1:8081 {
+			header_up Host geox.arif-fazil.com
+		}
+	}
+	handle /status {
+		import cors_public
+		reverse_proxy 127.0.0.1:8081 {
+			header_up Host geox.arif-fazil.com
+		}
+	}
+	handle /.well-known/mcp/server.json {
+		import cors_public
+		reverse_proxy 127.0.0.1:8081 {
+			header_up Host geox.arif-fazil.com
+		}
+	}
+	handle /tools {
+		import cors_public
+		reverse_proxy 127.0.0.1:8081 {
+			header_up Host geox.arif-fazil.com
+		}
+	}
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -249,38 +253,38 @@ geox.arif-fazil.com {
 # Note: wealth-organ internal port is 8082
 # ═══════════════════════════════════════════════════════════════════════
 wealth.arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/wealth
+	import tls_origin
+	import shared_assets
+	encode zstd gzip
+	root * /var/www/html/wealth
 
-    handle /mcp* {
-        import cors_public
-        reverse_proxy 127.0.0.1:8082
-    }
-    handle /health {
-        import cors_public
-        reverse_proxy 127.0.0.1:8082
-    }
-    handle /sse* {
-        reverse_proxy 127.0.0.1:8082
-    }
-    handle /.well-known/mcp/server.json {
-        import cors_public
-        reverse_proxy 127.0.0.1:8082
-    }
-    handle /tools {
-        import cors_public
-        reverse_proxy 127.0.0.1:8082
-    }
-    handle /ready {
-        import cors_public
-        reverse_proxy 127.0.0.1:8082
-    }
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
+	handle /mcp* {
+		import cors_public
+		reverse_proxy 127.0.0.1:8082
+	}
+	handle /health {
+		import cors_public
+		reverse_proxy 127.0.0.1:8082
+	}
+	handle /sse* {
+		reverse_proxy 127.0.0.1:8082
+	}
+	handle /.well-known/mcp/server.json {
+		import cors_public
+		reverse_proxy 127.0.0.1:8082
+	}
+	handle /tools {
+		import cors_public
+		reverse_proxy 127.0.0.1:8082
+	}
+	handle /ready {
+		import cors_public
+		reverse_proxy 127.0.0.1:8082
+	}
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -289,54 +293,54 @@ wealth.arif-fazil.com {
 # ChatGPT registered at well.arif-fazil.com/mcp
 # ═══════════════════════════════════════════════════════════════════════
 well.arif-fazil.com {
-    import tls_origin
-    encode zstd gzip
+	import tls_origin
+	encode zstd gzip
 
-    handle /mcp* {
-        import cors_public
-        reverse_proxy 127.0.0.1:8083
-    }
-    handle /health {
-        import cors_public
-        reverse_proxy 127.0.0.1:8083
-    }
-    handle /ready {
-        import cors_public
-        rewrite * /health
-        reverse_proxy 127.0.0.1:8083
-    }
-    handle /sse* {
-        reverse_proxy 127.0.0.1:8083
-    }
-    handle /.well-known/mcp/server.json {
-        import cors_public
-        reverse_proxy 127.0.0.1:8083
-    }
-    handle /tools {
-        import cors_public
-        reverse_proxy 127.0.0.1:8083
-    }
-    handle {
-        redir https://arifos.arif-fazil.com permanent
-    }
+	handle /mcp* {
+		import cors_public
+		reverse_proxy 127.0.0.1:8083
+	}
+	handle /health {
+		import cors_public
+		reverse_proxy 127.0.0.1:8083
+	}
+	handle /ready {
+		import cors_public
+		rewrite * /health
+		reverse_proxy 127.0.0.1:8083
+	}
+	handle /sse* {
+		reverse_proxy 127.0.0.1:8083
+	}
+	handle /.well-known/mcp/server.json {
+		import cors_public
+		reverse_proxy 127.0.0.1:8083
+	}
+	handle /tools {
+		import cors_public
+		reverse_proxy 127.0.0.1:8083
+	}
+	handle {
+		redir https://arifos.arif-fazil.com permanent
+	}
 }
 
 # ═══════════════════════════════════════════════════════════════════════
 # LEGACY REDIRECTS — old subdomains → main sites
 # ═══════════════════════════════════════════════════════════════════════
 arifosmcp.arif-fazil.com {
-    import tls_origin
-    redir https://arifos.arif-fazil.com/mcp{uri} permanent
+	import tls_origin
+	redir https://arifos.arif-fazil.com/mcp{uri} permanent
 }
 
 mcp.arif-fazil.com {
-    import tls_origin
-    handle /mcp* {
-        reverse_proxy 127.0.0.1:8080
-    }
-    handle {
-        redir https://arifos.arif-fazil.com permanent
-    }
+	import tls_origin
+	handle /mcp* {
+		reverse_proxy 127.0.0.1:8080
+	}
+	handle {
+		redir https://arifos.arif-fazil.com permanent
+	}
 }
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -344,36 +348,36 @@ mcp.arif-fazil.com {
 # Route: forge.arif-fazil.com/webhook/forge → port 8443 (local)
 # ─────────────────────────────────────────────────────────────────────
 forge.arif-fazil.com {
-    import tls_origin
-    handle /webhook/forge* {
-        reverse_proxy 127.0.0.1:8443
-    }
-    handle /webhook/github* {
-        reverse_proxy 127.0.0.1:8443
-    }
-    handle /health {
-        reverse_proxy 127.0.0.1:8443
-    }
-    handle {
-        respond "forge.arif-fazil.com — A-FORGE webhook gateway"
-    }
+	import tls_origin
+	handle /webhook/forge* {
+		reverse_proxy 127.0.0.1:8443
+	}
+	handle /webhook/github* {
+		reverse_proxy 127.0.0.1:8443
+	}
+	handle /health {
+		reverse_proxy 127.0.0.1:8443
+	}
+	handle {
+		respond "forge.arif-fazil.com — A-FORGE webhook gateway"
+	}
 }
 
 wiki.arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/wiki
-    handle {
-        try_files {path} /index.html
-        file_server
-    }
+	import tls_origin
+	import shared_assets
+	encode zstd gzip
+	root * /var/www/html/wiki
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }
 
 # ═══════════════════════════════════════════════════════════════════════
 # INFRASTRUCTURE
 # ═══════════════════════════════════════════════════════════════════════
 ollama.arif-fazil.com {
-    import tls_origin
-    reverse_proxy ollama-engine-prod:11434
+	import tls_origin
+	reverse_proxy ollama-engine-prod:11434
 }

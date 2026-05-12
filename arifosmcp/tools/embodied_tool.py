@@ -420,6 +420,7 @@ ARIFOS_TOOL_CHARTERS = {
         blast_radius=BlastRadius.LOW,
         required_permissions=[],
         required_floors=["F01", "F11", "F12"],
+        expose=True,
     ),
     "arif_mind_reason": ToolManifest(
         tool_id="arif_mind_reason",
@@ -431,6 +432,7 @@ ARIFOS_TOOL_CHARTERS = {
         blast_radius=BlastRadius.LOW,
         required_permissions=[],
         required_floors=["F02", "F07", "F08", "F10"],
+        expose=True,
     ),
     "arif_sense_observe": ToolManifest(
         tool_id="arif_sense_observe",
@@ -442,6 +444,7 @@ ARIFOS_TOOL_CHARTERS = {
         blast_radius=BlastRadius.LOW,
         required_permissions=[],
         required_floors=["F02", "F07"],
+        expose=True,
     ),
     "arif_evidence_fetch": ToolManifest(
         tool_id="arif_evidence_fetch",
@@ -453,6 +456,7 @@ ARIFOS_TOOL_CHARTERS = {
         blast_radius=BlastRadius.LOW,
         required_permissions=[],
         required_floors=["F02", "F03", "F05", "F12"],
+        expose=True,
     ),
     "arif_kernel_route": ToolManifest(
         tool_id="arif_kernel_route",
@@ -464,6 +468,7 @@ ARIFOS_TOOL_CHARTERS = {
         blast_radius=BlastRadius.MEDIUM,
         required_permissions=["route"],
         required_floors=["F01", "F04", "F03", "F10"],
+        expose=True,
     ),
     "arif_reply_compose": ToolManifest(
         tool_id="arif_reply_compose",
@@ -475,6 +480,7 @@ ARIFOS_TOOL_CHARTERS = {
         blast_radius=BlastRadius.LOW,
         required_permissions=[],
         required_floors=["F04", "F06", "F09"],
+        expose=True,
     ),
     "arif_memory_recall": ToolManifest(
         tool_id="arif_memory_recall",
@@ -486,6 +492,7 @@ ARIFOS_TOOL_CHARTERS = {
         blast_radius=BlastRadius.MEDIUM,
         required_permissions=[],
         required_floors=["F01", "F08"],
+        expose=True,
     ),
     "arif_heart_critique": ToolManifest(
         tool_id="arif_heart_critique",
@@ -497,6 +504,7 @@ ARIFOS_TOOL_CHARTERS = {
         blast_radius=BlastRadius.MEDIUM,
         required_permissions=["heart"],
         required_floors=["F05", "F06", "F09"],
+        expose=True,
     ),
     "arif_gateway_connect": ToolManifest(
         tool_id="arif_gateway_connect",
@@ -508,6 +516,7 @@ ARIFOS_TOOL_CHARTERS = {
         blast_radius=BlastRadius.MEDIUM,
         required_permissions=["gateway"],
         required_floors=["F01", "F03"],
+        expose=True,
     ),
     "arif_ops_measure": ToolManifest(
         tool_id="arif_ops_measure",
@@ -519,6 +528,7 @@ ARIFOS_TOOL_CHARTERS = {
         blast_radius=BlastRadius.LOW,
         required_permissions=[],
         required_floors=["F04"],
+        expose=True,
     ),
     "arif_judge_deliberate": ToolManifest(
         tool_id="arif_judge_deliberate",
@@ -531,6 +541,7 @@ ARIFOS_TOOL_CHARTERS = {
         required_permissions=["judge"],
         required_floors=["F11", "F13"],
         safe_compose_with=["arif_vault_seal"],
+        expose=True,
     ),
     "arif_forge_execute": ToolManifest(
         tool_id="arif_forge_execute",
@@ -543,6 +554,7 @@ ARIFOS_TOOL_CHARTERS = {
         required_permissions=["forge"],
         required_floors=["F01", "F11", "F13"],
         dangerous_compose_with=["arif_mind_reason"],
+        expose=True,
     ),
     "arif_vault_seal": ToolManifest(
         tool_id="arif_vault_seal",
@@ -554,6 +566,7 @@ ARIFOS_TOOL_CHARTERS = {
         blast_radius=BlastRadius.CRITICAL,
         required_permissions=["vault"],
         required_floors=["F01", "F11", "F13"],
+        expose=True,
     ),
     "well_classify_substrate": ToolManifest(
         tool_id="well_classify_substrate",
@@ -572,6 +585,7 @@ ARIFOS_TOOL_CHARTERS = {
             "well_assess_metabolism",
             "well_reflect_intelligence",
         ],
+        expose=True,
     ),
     "well_trace_lineage": ToolManifest(
         tool_id="well_trace_lineage",
@@ -589,6 +603,7 @@ ARIFOS_TOOL_CHARTERS = {
             "well_assess_homeostasis",
             "well_reflect_intelligence",
         ],
+        expose=True,
     ),
     "well_detect_boundary": ToolManifest(
         tool_id="well_detect_boundary",
@@ -609,6 +624,7 @@ ARIFOS_TOOL_CHARTERS = {
             "well_assess_metabolism",
             "well_guard_dignity",
         ],
+        expose=True,
     ),
     "well_measure_gradient": ToolManifest(
         tool_id="well_measure_gradient",
@@ -629,6 +645,7 @@ ARIFOS_TOOL_CHARTERS = {
             "well_assess_homeostasis",
             "well_assess_livelihood",
         ],
+        expose=True,
     ),
     "well_assess_metabolism": ToolManifest(
         tool_id="well_assess_metabolism",
@@ -647,6 +664,7 @@ ARIFOS_TOOL_CHARTERS = {
             "well_assess_livelihood",
             "well_guard_dignity",
         ],
+        expose=True,
     ),
     "well_assess_homeostasis": ToolManifest(
         tool_id="well_assess_homeostasis",
@@ -667,6 +685,7 @@ ARIFOS_TOOL_CHARTERS = {
             "well_guard_dignity",
             "well_reflect_intelligence",
         ],
+        expose=True,
     ),
     "well_check_repair": ToolManifest(
         tool_id="well_check_repair",
@@ -686,6 +705,7 @@ ARIFOS_TOOL_CHARTERS = {
             "well_assess_reliability",
             "well_reflect_intelligence",
         ],
+        expose=True,
     ),
     "well_validate_vitality": ToolManifest(
         tool_id="well_validate_vitality",
@@ -706,6 +726,7 @@ ARIFOS_TOOL_CHARTERS = {
             "well_guard_dignity",
             "well_anchor_evidence",
         ],
+        expose=True,
     ),
     "well_assess_livelihood": ToolManifest(
         tool_id="well_assess_livelihood",
@@ -725,6 +746,7 @@ ARIFOS_TOOL_CHARTERS = {
             "well_guard_dignity",
             "well_validate_vitality",
         ],
+        expose=True,
     ),
     "well_assess_reliability": ToolManifest(
         tool_id="well_assess_reliability",
@@ -744,6 +766,7 @@ ARIFOS_TOOL_CHARTERS = {
             "well_reflect_intelligence",
             "well_anchor_evidence",
         ],
+        expose=True,
     ),
     "well_reflect_intelligence": ToolManifest(
         tool_id="well_reflect_intelligence",
@@ -765,6 +788,7 @@ ARIFOS_TOOL_CHARTERS = {
             "well_assess_reliability",
             "well_guard_dignity",
         ],
+        expose=True,
     ),
     "well_guard_dignity": ToolManifest(
         tool_id="well_guard_dignity",
@@ -787,6 +811,7 @@ ARIFOS_TOOL_CHARTERS = {
         dangerous_compose_with=[
             "well_anchor_evidence",
         ],
+        expose=True,
     ),
     "well_anchor_evidence": ToolManifest(
         tool_id="well_anchor_evidence",
@@ -809,18 +834,20 @@ ARIFOS_TOOL_CHARTERS = {
             "well_guard_dignity",
             "well_assess_homeostasis",
         ],
+        expose=True,
     ),
     "mcp_health_check": ToolManifest(
         tool_id="mcp_health_check",
         tool_name="mcp_health_check",
         domain="WEALTH",
         description=(
-            "Universal health check for federation stability. Reports transport readiness for MCP clients. This is the canonical readiness probe — use this instead of probing /mcp directly."
+            "Universal health check for federation stability. Reports transport readiness for MCP clients."
         ),
         risk_tier="T0",
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
         required_floors=["F04"],
+        expose=True,
     ),
     "wealth_conservation_capital": ToolManifest(
         tool_id="wealth_conservation_capital",
@@ -833,6 +860,7 @@ ARIFOS_TOOL_CHARTERS = {
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
         required_floors=["F02", "F08"],
+        expose=True,
     ),
     "wealth_flow_liquidity": ToolManifest(
         tool_id="wealth_flow_liquidity",
@@ -843,18 +871,18 @@ ARIFOS_TOOL_CHARTERS = {
         reversibility="reversible",
         blast_radius=BlastRadius.MEDIUM,
         required_floors=["F01", "F04", "F05"],
+        expose=True,
     ),
     "wealth_gradient_price": ToolManifest(
         tool_id="wealth_gradient_price",
         tool_name="wealth_gradient_price",
         domain="WEALTH",
-        description=(
-            "Ω-WEALTH-03: Gradient — price pressure, spread, mispricing detection. Where capital wants to move because differential pressure exists."
-        ),
+        description=("Ω-WEALTH-03: Gradient — price pressure, spread, mispricing detection."),
         risk_tier="T1",
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
         required_floors=["F02", "F07"],
+        expose=True,
     ),
     "wealth_entropy_risk": ToolManifest(
         tool_id="wealth_entropy_risk",
@@ -865,6 +893,7 @@ ARIFOS_TOOL_CHARTERS = {
         reversibility="reversible",
         blast_radius=BlastRadius.MEDIUM,
         required_floors=["F02", "F07", "F08"],
+        expose=True,
     ),
     "wealth_energy_productivity": ToolManifest(
         tool_id="wealth_energy_productivity",
@@ -875,6 +904,7 @@ ARIFOS_TOOL_CHARTERS = {
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
         required_floors=["F02", "F08"],
+        expose=True,
     ),
     "wealth_time_discount": ToolManifest(
         tool_id="wealth_time_discount",
@@ -885,6 +915,7 @@ ARIFOS_TOOL_CHARTERS = {
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
         required_floors=["F02", "F08"],
+        expose=True,
     ),
     "wealth_inertia_leverage": ToolManifest(
         tool_id="wealth_inertia_leverage",
@@ -895,6 +926,7 @@ ARIFOS_TOOL_CHARTERS = {
         reversibility="reversible",
         blast_radius=BlastRadius.MEDIUM,
         required_floors=["F01", "F04", "F05"],
+        expose=True,
     ),
     "wealth_field_macro": ToolManifest(
         tool_id="wealth_field_macro",
@@ -905,6 +937,7 @@ ARIFOS_TOOL_CHARTERS = {
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
         required_floors=["F02", "F03"],
+        expose=True,
     ),
     "wealth_signal_information": ToolManifest(
         tool_id="wealth_signal_information",
@@ -915,6 +948,7 @@ ARIFOS_TOOL_CHARTERS = {
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
         required_floors=["F02", "F03", "F07"],
+        expose=True,
     ),
     "wealth_game_coordination": ToolManifest(
         tool_id="wealth_game_coordination",
@@ -925,6 +959,7 @@ ARIFOS_TOOL_CHARTERS = {
         reversibility="reversible",
         blast_radius=BlastRadius.MEDIUM,
         required_floors=["F05", "F06", "F08"],
+        expose=True,
     ),
     "wealth_boundary_governance": ToolManifest(
         tool_id="wealth_boundary_governance",
@@ -937,31 +972,30 @@ ARIFOS_TOOL_CHARTERS = {
         reversibility="reversible",
         blast_radius=BlastRadius.HIGH,
         required_floors=["F01", "F04", "F11", "F13"],
+        expose=True,
     ),
     "wealth_hysteresis_ledger": ToolManifest(
         tool_id="wealth_hysteresis_ledger",
         tool_name="wealth_hysteresis_ledger",
         domain="WEALTH",
-        description=(
-            "Ω-WEALTH-12: Hysteresis — path dependence, ledger, sealed financial memory. F01 AMANAH: ledger writes are irreversible."
-        ),
+        description=("Ω-WEALTH-12: Hysteresis — path dependence, ledger, sealed financial memory."),
         risk_tier="T2",
         reversibility="partial",
         blast_radius=BlastRadius.HIGH,
         required_permissions=["vault"],
         required_floors=["F01", "F11", "F13"],
+        expose=True,
     ),
     "wealth_system_registry_status": ToolManifest(
         tool_id="wealth_system_registry_status",
         tool_name="wealth_system_registry_status",
         domain="WEALTH",
-        description=(
-            "Registry truth diagnostic — intended, registered, and alias surfaces. Verifies that public MCP surface matches registry SOT."
-        ),
+        description=("Registry truth diagnostic — intended, registered, and alias surfaces."),
         risk_tier="T0",
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
         required_floors=["F04"],
+        expose=True,
     ),
 }
 

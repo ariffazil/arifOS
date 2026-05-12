@@ -59,7 +59,8 @@ def arif_kernel_route(
       status       — kernel session status
       telemetry    — thermodynamic metrics
       bridge       — direct organ bridge call (geox, wealth)
-      441_surprise — disequilibrium handler (automatic hijack when δ_surprise > threshold)
+      intent       — route by cognitive axis using FEDERATION_TOOLS manifest
+     441_surprise — disequilibrium handler (automatic hijack when δ_surprise > threshold)
 
     441_SURPRISE Protocol:
       When a tool's prediction is falsified with δ_surprise > critical_threshold,
@@ -127,6 +128,9 @@ def arif_kernel_route(
 
     if mode == "bridge":
         return _run_async_bridge(_bridge_organ_call(organ, tool_name, arguments))
+
+    if mode == "intent":
+        return _intent_route(axis=task, organ=organ)
 
     if mode == "command_center":
         return _command_center_cockpit()
@@ -274,6 +278,54 @@ def _441_surprise_handler(
 
     model = get_tool_self_model()
     entry = model.get(tool_id)
+    contradiction_count = entry.contradiction_count if entry else 0
+
+    # ── Metabolic Umbilical: Write 441 event to WELL state ──────────────
+    # This is the bridge from cognition (ToolSelfModel) to substrate (WELL).
+    # Each 441_SURPRISE event writes into state.json so WELL's
+    # _compute_cognitive_entropy_rate can read contradiction_count.
+    try:
+        from arifosmcp.runtime.well_bridge import signal_cognitive_pressure
+
+        # Surprise load scales with delta: mild ∼0.5, critical ∼3.0
+        surprise_load = min(3.0, delta_surprise * 3.0)
+
+        # Write contradiction data directly to WELL state
+        import json as _json
+        import os as _os
+        from pathlib import Path as _Path
+
+        _well_state_path = _Path(_os.environ.get("WELL_STATE_PATH", "/root/WELL/state.json"))
+        if _well_state_path.exists():
+            with open(_well_state_path) as _f:
+                _well = _json.load(_f)
+            _metrics = _well.get("metrics", {})
+            _cog = dict(_metrics.get("cognitive", {}))
+            _cog["contradiction_count"] = contradiction_count
+            _cog["total_predictions"] = max(
+                _cog.get("total_predictions", 0),
+                contradiction_count,
+            )
+            _cog["avg_confidence_of_failures"] = min(
+                10.0,
+                (_cog.get("avg_confidence_of_failures", 5.0) + delta_surprise * 10.0) / 2.0,
+            )
+            _cog["last_surprise"] = round(delta_surprise, 4)
+            _cog["last_surprise_tool"] = tool_id
+            _metrics["cognitive"] = _cog
+            _well["metrics"] = _metrics
+            # Drop well_score proportionally
+            _well["well_score"] = max(
+                0.0,
+                _well.get("well_score", 50.0) - (surprise_load * 2.0),
+            )
+            with open(_well_state_path, "w") as _f:
+                _json.dump(_well, _f, indent=2)
+
+        # Also signal cognitive pressure (fatigue increment)
+        signal_cognitive_pressure(load_delta=surprise_load, source=f"441_surprise:{tool_id}")
+    except Exception:
+        pass  # Non-fatal — 441 still returns its verdict
 
     return {
         "verdict": "SURPRISE",
@@ -298,6 +350,92 @@ def _441_surprise_handler(
         "action_required": "reflect_and_repair",
         "actor_id": actor_id,
     }
+
+
+def _intent_route(
+    axis: str | None = None,
+    organ: str | None = None,
+) -> dict[str, Any]:
+    """Route by cognitive axis using FEDERATION_TOOLS manifest.
+
+    Instead of resolving by tool name or organ prefix, resolves by
+    semantic coordinate (cognitive_axis). Returns all matching tools.
+
+    Parameters:
+      axis:  CognitiveAxis value (e.g. "vitality", "reason", "seal")
+      organ: Optional organ filter ("well", "geox", "wealth", "arifos")
+
+    Example call:
+      arif_kernel_route(mode="intent", task="vitality", organ="well")
+      → returns well_assess_metabolism, well_compute_metabolic_flux, etc.
+    """
+    if not axis:
+        return _hold(
+            "arif_kernel_route", "intent mode requires axis parameter (e.g. task='vitality')"
+        )
+
+    try:
+        from federation.tool_manifest import (
+            CognitiveAxis,
+            tools_by_axis,
+            tools_by_organ,
+        )
+
+        # Validate axis
+        try:
+            CognitiveAxis(axis.lower())
+        except ValueError:
+            valid = [a.value for a in CognitiveAxis]
+            return _hold(
+                "arif_kernel_route",
+                f"Unknown axis: '{axis}'. Valid: {', '.join(valid)}",
+            )
+
+        matches = tools_by_axis(axis.lower())
+
+        if organ:
+            matches = [m for m in matches if m.organ == organ.lower()]
+
+        if not matches:
+            return _ok(
+                "arif_kernel_route",
+                {
+                    "mode": "intent",
+                    "axis": axis.lower(),
+                    "organ": organ,
+                    "tools": [],
+                    "count": 0,
+                    "message": f"No tools found for axis={axis}"
+                    + (f", organ={organ}" if organ else ""),
+                },
+            )
+
+        return _ok(
+            "arif_kernel_route",
+            {
+                "mode": "intent",
+                "axis": axis.lower(),
+                "organ": organ,
+                "tools": [
+                    {
+                        "name": m.name,
+                        "organ": m.organ,
+                        "expose": m.expose,
+                    }
+                    for m in sorted(matches, key=lambda x: x.name)
+                ],
+                "count": len(matches),
+                "somatic": sum(1 for m in matches if m.expose),
+                "autonomic": sum(1 for m in matches if not m.expose),
+            },
+        )
+    except ImportError:
+        return _hold(
+            "arif_kernel_route",
+            "FEDERATION_TOOLS manifest not available. Install federation.tool_manifest.",
+        )
+    except Exception as e:
+        return _hold("arif_kernel_route", f"Intent routing error: {e}")
 
 
 def _command_center_cockpit() -> dict[str, Any]:

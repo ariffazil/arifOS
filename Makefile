@@ -96,8 +96,8 @@ publish-ghcr:
 	docker push ghcr.io/ariffazil/arifos:$$GIT_SHA && \
 	docker tag ghcr.io/ariffazil/arifos:$$VERSION ghcr.io/ariffazil/arifos:latest && \
 	docker push ghcr.io/ariffazil/arifos:latest && \
-	# Sync .env DEPLOY_GIT_COMMIT so compose uses the correct baked value
-	sed -i 's/^DEPLOY_GIT_COMMIT=.*/DEPLOY_GIT_COMMIT=$$GIT_SHA/' /root/compose/.env 2>/dev/null || true && \
+	:
+	sed -i 's/^DEPLOY_GIT_COMMIT=.*/DEPLOY_GIT_COMMIT='"$$GIT_SHA"'/' /root/compose/.env 2>/dev/null || true && \
 	echo "✅ GHCR: arifos:$$VERSION ($$GIT_SHA) pushed with embedded git metadata"
 
 ## GitGist: Sync 000_LAW.md to public gist

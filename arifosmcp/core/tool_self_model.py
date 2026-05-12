@@ -120,6 +120,12 @@ class ToolManifest(BaseModel):
     # Failure modes
     known_failure_modes: list[ToolFailureMode] = Field(default_factory=list)
 
+    # Visibility — somatic membrane gate
+    expose: bool = Field(
+        default=False,
+        description="If True, tool appears in public MCP surface. If False, internal/autonomic only.",
+    )
+
     # Example
     example_params: dict[str, Any] | None = Field(default=None, description="Example parameters")
 

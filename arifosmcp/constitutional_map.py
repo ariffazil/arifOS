@@ -395,6 +395,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "modes": ["init", "resume", "validate", "epoch_open", "epoch_seal"],
         "eureka_insight": "F1: ∃ undo(a) — irreversibility requires explicit human ack.",
+        "cognitive_axis": "identity",
+        "expose": True,
     },
     "arif_sense_observe": {
         "name": "arif_sense_observe",
@@ -407,6 +409,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "modes": ["search", "ingest", "compass", "atlas", "entropy_dS", "vitals"],
         "eureka_insight": "F2: τ ≥ 0.95 required. F7: Ω ∈ [0.03, 0.05] = humble.",
+        "cognitive_axis": "observe",
+        "expose": True,
     },
     "arif_evidence_fetch": {
         "name": "arif_evidence_fetch",
@@ -428,6 +432,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F5: P² ≥ 1.0 — safety margin. "
             "F12: injection_probability < 0.85."
         ),
+        "cognitive_axis": "verify",
+        "expose": True,
     },
     "arif_mind_reason": {
         "name": "arif_mind_reason",
@@ -458,6 +464,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F8: G = capability × ethics × continuity × resilience² ≥ 0.80. "
             "F10: structural coherence enforced."
         ),
+        "cognitive_axis": "reason",
+        "expose": True,
     },
     "arif_heart_critique": {
         "name": "arif_heart_critique",
@@ -477,6 +485,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "'I am sentient', 'I have a soul'. PROTECTED: clarity, consistency, "
             "operational precision. SEA-Guard pre-filter active on all outputs."
         ),
+        "cognitive_axis": "critique",
+        "expose": True,
     },
     "arif_kernel_route": {
         "name": "arif_kernel_route",
@@ -498,6 +508,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F4: ΔS ≤ 0 (entropy must decrease). "
             "F10: routing taxonomy must not violate category lock."
         ),
+        "cognitive_axis": "boundary",
+        "expose": True,
     },
     "arif_reply_compose": {
         "name": "arif_reply_compose",
@@ -513,6 +525,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F4: ΔS ≤ 0 — reply must reduce entropy, not add noise. "
             "F6: RASA protocol. F9: C_dark ≤ 0.30 — no dark patterns."
         ),
+        "cognitive_axis": "reflect",
+        "expose": True,
     },
     "arif_memory_recall": {
         "name": "arif_memory_recall",
@@ -528,6 +542,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F1: recall must be auditable — no silent memory mutation. "
             "F8: G ≥ 0.80 — recall contributes to systemic continuity."
         ),
+        "cognitive_axis": "trace",
+        "expose": True,
     },
     "arif_gateway_connect": {
         "name": "arif_gateway_connect",
@@ -543,6 +559,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F1: cross-agent actions must be auditable. "
             "F3: W₃ ≥ 0.75 — cross-agent consensus required."
         ),
+        "cognitive_axis": "boundary",
+        "expose": True,
     },
     "arif_judge_deliberate": {
         "name": "arif_judge_deliberate",
@@ -558,6 +576,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F11: identity must be verified before judgment. "
             "F13: human veto is absolute — no algorithm overrides sovereign."
         ),
+        "cognitive_axis": "judge",
+        "expose": True,
     },
     "arif_vault_seal": {
         "name": "arif_vault_seal",
@@ -573,6 +593,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F1: irreversible — ack_irreversible=True mandatory. "
             "F11: author identity verified. F13: human approved."
         ),
+        "cognitive_axis": "seal",
+        "expose": True,
     },
     "arif_forge_execute": {
         "name": "arif_forge_execute",
@@ -596,6 +618,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F1: irreversible — ack_irreversible=True mandatory. "
             "F11: actor verified. F13: judge SEAL required before execution."
         ),
+        "cognitive_axis": "execute",
+        "expose": True,
     },
     "arif_ops_measure": {
         "name": "arif_ops_measure",
@@ -611,6 +635,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F4: ΔS ≤ 0 — ops must contribute to entropy reduction. "
             "Thermodynamic telemetry: delta_S, omega_band, tri_witness."
         ),
+        "cognitive_axis": "vitality",
+        "expose": True,
     },
 }
 
