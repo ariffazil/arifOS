@@ -63,7 +63,7 @@ services:
       - /root/arifOS/arifosmcp:/app/arifosmcp:ro
       - /root/compose/secrets/arifos_governance_secret:/run/secrets/arifos_governance_secret:ro
       - /root/compose/secrets/arifos_session_secret:/run/secrets/arifos_session_secret:ro
-      - /root/volumes/vault999:/var/lib/arifos/vault:rw
+      - /var/lib/arifos/volumes/vault999:/var/lib/arifos/vault:rw
       - /root/WELL/state.json:/root/WELL/state.json:ro
       - telemetry-data:/app/telemetry
     networks: [arifos_core]
@@ -150,7 +150,7 @@ services:
       POSTGRES_DB: vault999
       POSTGRES_USER: arifos_admin
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes: [/root/volumes/postgres:/var/lib/postgresql/data:rw]
+    volumes: [/var/lib/arifos/volumes/postgres:/var/lib/postgresql/data:rw]
     networks: [arifos_core]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U arifos_admin -d vault999"]
@@ -185,7 +185,7 @@ services:
     container_name: qdrant
     restart: unless-stopped
     ports: ["127.0.0.1:6333:6333", "127.0.0.1:6334:6334"]
-    volumes: [/root/volumes/qdrant:/qdrant/storage:rw]
+    volumes: [/var/lib/arifos/volumes/qdrant:/qdrant/storage:rw]
     networks: [arifos_core]
     healthcheck:
       test: ["CMD-SHELL", "bash -lc 'exec 3<>/dev/tcp/127.0.0.1/6333 && printf \"GET /readyz HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && grep -q \"200 OK\" <&3'"]
@@ -283,7 +283,7 @@ services:
       OLLAMA_MAX_LOADED_MODELS: 1
       OLLAMA_KEEP_ALIVE: 5m
     ports: ["127.0.0.1:11434:11434"]
-    volumes: [/root/volumes/ollama:/root/.ollama:rw]
+    volumes: [/var/lib/arifos/volumes/ollama:/root/.ollama:rw]
     networks: [arifos_core]
     healthcheck:
       test: ["CMD-SHELL", "bash -lc 'exec 3<>/dev/tcp/127.0.0.1/11434 && printf \"GET /api/tags HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && grep -q \"200 OK\" <&3'"]
