@@ -49,6 +49,9 @@ def arif_kernel_route(
     tool_id: str | None = None,
     delta_surprise: float | None = None,
     model_contradicted: bool | None = None,
+    axis: str | None = None,
+    intent: str | None = None,
+    domain: str | None = None,
 ) -> dict[str, Any]:
     """
     Routes tasks to correct organ or bridges external domain calls.
@@ -123,6 +126,14 @@ def arif_kernel_route(
             },
         )
 
+    if mode == "intent":
+        return _route_by_axis(
+            axis=axis or "vitality",
+            intent=intent or task or "",
+            domain=domain,
+            actor_id=actor_id,
+        )
+
     if mode == "telemetry":
         return _ok("arif_kernel_route", {"g_score": 0.97, "delta_S": 0.002, "omega": 0.91})
 
@@ -182,6 +193,78 @@ async def _bridge_organ_call(
             return _hold("arif_kernel_route", f"WEALTH bridge failed: {e}")
 
     return _hold("arif_kernel_route", f"Unknown organ: {organ}")
+
+
+def _route_by_axis(
+    axis: str = "vitality",
+    intent: str = "",
+    domain: str | None = None,
+    actor_id: str | None = None,
+) -> dict[str, Any]:
+    """
+    Route by cognitive axis before resolving to domain.
+
+    Uses COGNITIVE_AXIS_VECTORS for semantic coordinate matching.
+    Filters FEDERATION_TOOLS by axis, then by domain if specified.
+
+    Example:
+        arif_kernel_route(mode="intent", axis="vitality", domain="WELL")
+        → resolves tools with axis=VITALITY in domain=WELL
+        → returns well_compute_metabolic_flux, well_assess_metabolism, etc.
+    """
+    try:
+        from arifosmcp.core.tool_self_model import CognitiveAxis, COGNITIVE_AXIS_VECTORS
+    except ImportError:
+        return _ok("arif_kernel_route", {"axis": axis, "tools": [], "note": "CognitiveAxis not available"})
+
+    # Normalise axis string to enum
+    axis_upper = axis.upper().strip()
+    try:
+        axis_enum = CognitiveAxis[axis_upper]
+    except KeyError:
+        return _hold("arif_kernel_route", f"Unknown cognitive axis: {axis}")
+
+    # Query the tool self-model for tools matching this axis
+    from arifosmcp.core.tool_self_model import get_tool_self_model
+    model = get_tool_self_model()
+    all_entries = model.list_all()
+
+    matches = []
+    for entry in all_entries:
+        man = entry.manifest
+        ca = getattr(man, "cognitive_axis", None)
+        if ca is None or ca != axis_enum:
+            continue
+        if domain and man.domain.upper() != domain.upper():
+            continue
+
+        coord = COGNITIVE_AXIS_VECTORS.get(axis_enum, (0.5, 0.5))
+        matches.append({
+            "tool_id": man.tool_id,
+            "domain": man.domain,
+            "axis": ca.value,
+            "epistemic_certainty": coord[0],
+            "action_potential": coord[1],
+            "description": man.description[:80],
+            "exposed": getattr(man, "expose", False),
+        })
+
+    if not matches:
+        return _ok("arif_kernel_route", {
+            "axis": axis,
+            "domain": domain,
+            "tools": [],
+            "note": "No tools found for this axis/domain combination",
+        })
+
+    return _ok("arif_kernel_route", {
+        "axis": axis,
+        "domain": domain,
+        "intent": intent,
+        "tool_count": len(matches),
+        "tools": matches,
+        "coordinate": {"x": COGNITIVE_AXIS_VECTORS[axis_enum][0], "y": COGNITIVE_AXIS_VECTORS[axis_enum][1]},
+    })
 
 
 def _check_contradicted_tools(tool_id: str | None = None) -> dict[str, Any]:

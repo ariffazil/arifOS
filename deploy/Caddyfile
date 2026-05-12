@@ -84,9 +84,8 @@ arifos.arif-fazil.com {
     encode zstd gzip
     root * /var/www/html/arifos
 
-    handle_path /.well-known/* {
-        root * /var/www/html/arifos/.well-known
-        respond "WELL_KNOWN_MATCHED"
+    handle /.well-known/* {
+        reverse_proxy arifosmcp:8080
     }
 
     handle /mcp* {
@@ -104,7 +103,16 @@ arifos.arif-fazil.com {
     handle /sse* {
         reverse_proxy arifosmcp:8080
     }
-    handle /api/status {
+    handle /ready {
+        reverse_proxy arifosmcp:8080
+    }
+    handle /api/* {
+        reverse_proxy arifosmcp:8080
+    }
+    handle /dashboard* {
+        reverse_proxy arifosmcp:8080
+    }
+    handle /inspector/* {
         reverse_proxy arifosmcp:8080
     }
 
@@ -336,5 +344,32 @@ wiki.arif-fazil.com {
 # ═══════════════════════════════════════════════════════════════════════
 ollama.arif-fazil.com {
     import tls_origin
-    reverse_proxy ollama-engine-prod:11434
+    reverse_proxy 127.0.0.1:11434
+}
+
+# ═══════════════════════════════════════════════════════════════════════
+# INFRASTRUCTURE — Vaultwarden (Password Manager)
+# ═══════════════════════════════════════════════════════════════════════
+vault.arif-fazil.com {
+    import tls_origin
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:8085
+}
+
+# ═══════════════════════════════════════════════════════════════════════
+# INFRASTRUCTURE — Uptime Kuma (Service Monitoring)
+# ═══════════════════════════════════════════════════════════════════════
+status.arif-fazil.com {
+    import tls_origin
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:8086
+}
+
+# ═══════════════════════════════════════════════════════════════════════
+# INFRASTRUCTURE — Netdata (System Metrics)
+# ═══════════════════════════════════════════════════════════════════════
+metrics.arif-fazil.com {
+    import tls_origin
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:19999
 }

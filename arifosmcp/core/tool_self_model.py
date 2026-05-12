@@ -32,6 +32,44 @@ from pydantic import BaseModel, Field
 logger = logging.getLogger(__name__)
 
 
+class CognitiveAxis(str, Enum):
+    """
+    11 orthogonal cognitive vectors + 2 lifecycle verbs.
+    Enables intent-based routing prior to domain resolution.
+    """
+
+    IDENTITY = "identity"   # Who/what is this?
+    OBSERVE  = "observe"    # What is the raw state?
+    TRACE    = "trace"      # How did we get here?
+    BOUNDARY = "boundary"   # What are the limits?
+    VERIFY   = "verify"     # Is this true? [F2]
+    REASON   = "reason"     # What does this mean?
+    VITALITY = "vitality"   # Can we sustain?
+    REFLECT  = "reflect"    # Are we thinking right?
+    CRITIQUE = "critique"   # Is this ethical/coherent?
+    JUDGE    = "judge"      # What's the verdict?
+    SEAL     = "seal"       # Lock it in? [W_scar]
+    REPAIR   = "repair"     # Do we fix?
+    EXECUTE  = "execute"    # Do it?
+
+
+COGNITIVE_AXIS_VECTORS: dict[CognitiveAxis, tuple[float, float]] = {
+    CognitiveAxis.IDENTITY: (0.3, 0.1),
+    CognitiveAxis.OBSERVE:  (0.2, 0.0),
+    CognitiveAxis.TRACE:    (0.6, 0.1),
+    CognitiveAxis.BOUNDARY: (0.5, 0.3),
+    CognitiveAxis.VERIFY:   (0.9, 0.2),
+    CognitiveAxis.REASON:   (0.4, 0.4),
+    CognitiveAxis.VITALITY: (0.5, 0.5),
+    CognitiveAxis.REFLECT:  (0.3, 0.1),
+    CognitiveAxis.CRITIQUE: (0.7, 0.3),
+    CognitiveAxis.JUDGE:    (0.8, 0.7),
+    CognitiveAxis.SEAL:     (1.0, 0.9),
+    CognitiveAxis.REPAIR:   (0.5, 0.6),
+    CognitiveAxis.EXECUTE:  (0.9, 1.0),
+}
+
+
 class BlastRadius(str, Enum):
     """How widely effects propagate from this tool."""
 
@@ -124,6 +162,12 @@ class ToolManifest(BaseModel):
     expose: bool = Field(
         default=False,
         description="If True, tool appears in public MCP surface. If False, internal/autonomic only.",
+    )
+
+    # Cognitive axis — intent-based routing vector
+    cognitive_axis: CognitiveAxis | None = Field(
+        default=None,
+        description="The orthogonal cognitive axis for intent-based routing.",
     )
 
     # Example
@@ -601,6 +645,8 @@ def register_tool_in_self_model(manifest: ToolManifest) -> None:
 
 __all__ = [
     "BlastRadius",
+    "CognitiveAxis",
+    "COGNITIVE_AXIS_VECTORS",
     "ToolCapability",
     "ToolLimitation",
     "ToolFailureMode",
