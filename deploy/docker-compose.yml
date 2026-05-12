@@ -12,7 +12,7 @@ services:
 
   # ── PLANE 1: GOVERNANCE ─────────────────────────────────────────────
   arifosmcp:
-    image: ghcr.io/ariffazil/arifos:df93119
+    image: ghcr.io/ariffazil/arifos:5079aea
     container_name: arifosmcp
     init: true
     restart: unless-stopped
