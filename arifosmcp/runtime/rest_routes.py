@@ -561,7 +561,7 @@ def _build_trinity_matrix(
     if schema_violation or hallucination_detected:
         omega = _matrix_domain(
             state="NEGATIVE",
-            label_bm="SESAT",
+            label_bm="BANGANG",
             label_en="MISALIGNED",
             evidence=(
                 (["schema_violation"] if schema_violation else [])
@@ -3106,7 +3106,8 @@ def register_rest_routes(
             live_tools.append(
                 {
                     "name": t.name,
-                    "description": getattr(t, "description", "") or (spec.description if spec else ""),
+                    "description": getattr(t, "description", "")
+                    or (spec.description if spec else ""),
                     "inputSchema": schema,
                     "outputSchema": getattr(t, "output_schema", None)
                     or (spec.output_schema if spec else None),
@@ -5698,13 +5699,17 @@ setInterval(refreshSot, 30000);
             tools_out.append(
                 {
                     "name": name,
-                    "description": (runtime_spec.description if runtime_spec else spec.get("description", "")),
+                    "description": (
+                        runtime_spec.description if runtime_spec else spec.get("description", "")
+                    ),
                     "inputSchema": (
                         runtime_spec.input_schema
                         if runtime_spec is not None
                         else {"type": "object", "properties": {}, "additionalProperties": False}
                     ),
-                    "outputSchema": (runtime_spec.output_schema if runtime_spec is not None else None),
+                    "outputSchema": (
+                        runtime_spec.output_schema if runtime_spec is not None else None
+                    ),
                     "stage": spec.get("stage", ""),
                     "lane": spec.get("lane", ""),
                     "risk": {

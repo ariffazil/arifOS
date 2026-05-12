@@ -75,6 +75,30 @@ def _sanitize_dict(d: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+def _domain_nine_signal(status: str) -> dict[str, Any]:
+    """Universal nine-signal block for WEALTH domain responses."""
+    if status == "OK":
+        return {
+            "delta": {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
+            "psi": {"plane": "governance_integrity", "state": "AMANAH", "en": "TRUSTED"},
+            "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
+            "overall": {"state": "SELAMAT", "en": "SAFE"},
+        }
+    if status in ("HOLD", "VOID"):
+        return {
+            "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
+            "psi": {"plane": "governance_integrity", "state": "KHIANAT", "en": "BETRAYED"},
+            "omega": {"plane": "intelligence_discipline", "state": "BANGANG", "en": "FOOLISH"},
+            "overall": {"state": "RETAK", "en": "FAILED"},
+        }
+    return {
+        "delta": {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
+        "psi": {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
+        "omega": {"plane": "intelligence_discipline", "state": "BIJAK", "en": "SMART"},
+        "overall": {"state": "SABAR", "en": "PATIENCE"},
+    }
+
+
 def _missing_input_response(
     tool: str, mode: str, required: list[str], provided: dict[str, Any]
 ) -> dict[str, Any]:
@@ -103,6 +127,7 @@ def _missing_input_response(
         },
         "schema_version": "wealth.physics_economics.v1",
         "final_authority": "ARIF",
+        "nine_signal": _domain_nine_signal("VOID"),
     }
 
 
@@ -179,6 +204,15 @@ def _wrap_output(
     """Attach emergence layer and canonical envelope to every tool result."""
     emergence = _run_emergence(payload)
     sanitized = _sanitize_dict(result)
+    # Determine status from result for nine-signal mapping
+    result_status = sanitized.get("status", "OK")
+    domain_verdict = sanitized.get("domain_verdict", "PASS")
+    if result_status == "FAIL" or domain_verdict in ("VOID", "HOLD"):
+        ns_status = "VOID"
+    elif domain_verdict in ("SABAR", "PENDING"):
+        ns_status = "SABAR"
+    else:
+        ns_status = "OK"
     return {
         "tool": tool_name,
         "mode": mode,
@@ -186,6 +220,7 @@ def _wrap_output(
         "emergence": emergence,
         "schema_version": "wealth.physics_economics.v1",
         "final_authority": "ARIF",
+        "nine_signal": _domain_nine_signal(ns_status),
     }
 
 

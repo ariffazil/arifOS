@@ -27,6 +27,7 @@ from arifosmcp.core.reversibility_engine import (
 )
 from arifosmcp.core.tool_self_model import (
     BlastRadius,
+    PredictionRecord,
     ToolManifest,
     ToolSelfModel,
     ToolSelfModelEntry,
@@ -248,7 +249,14 @@ class EmbodiedToolEngine:
             next_idx = min(current_idx + 1, len(radius_order) - 1)
             manifest_radius = BlastRadius(radius_order[next_idx])
 
-        return charter_radius, f"Blast radius: {manifest_radius.value}"
+        # Upgrade if tool's model is contradicted (unreliable predictions → higher consequence)
+        if entry.model_contradicted:
+            radius_order = ["low", "medium", "high", "critical"]
+            current_idx = radius_order.index(manifest_radius.value)
+            next_idx = min(current_idx + 1, len(radius_order) - 1)
+            manifest_radius = BlastRadius(radius_order[next_idx])
+
+        return manifest_radius, f"Blast radius: {manifest_radius.value}"
 
     # ── Pipeline Stage 8: Decision ─────────────────────────────────────────
 
@@ -491,20 +499,23 @@ class EmbodiedToolEngine:
         tool_id: str,
         result: dict[str, Any] | None = None,
         error: str | None = None,
-    ) -> None:
+        prediction: PredictionRecord | None = None,
+    ) -> dict[str, Any]:
         """
         Update the global self-model after tool execution.
 
         Called by EmbodiedTool.postflight() after every execution.
-        This closes the feedback loop: execute → witness → update self-model.
+        This closes the feedback loop:
 
-        The smart summary extraction (verdict, confidence, latency) lives
-        in ToolSelfModel.update_from_outcome().
+            PREDICT → EXECUTE → COMPARE → IF δ_surprise > threshold → FLAG CONTRADICTED
+
+        Returns dict with delta_surprise, triggered_surprise, model_contradicted flags.
         """
-        self.self_model.update_from_outcome(
+        return self.self_model.update_from_outcome(
             tool_id=tool_id,
             result=result,
             error=error,
+            prediction=prediction,
         )
 
     def _infer_domain(self, tool_id: str) -> str:

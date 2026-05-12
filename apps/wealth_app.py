@@ -143,7 +143,74 @@ def mcp_health_check() -> dict[str, Any]:
         "image_tag": commit,
         "branch": branch,
         "build_time": build_time,
+        "nine_signal": {
+            "delta": {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
+            "psi": {"plane": "governance_integrity", "state": "AMANAH", "en": "TRUSTED"},
+            "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
+            "overall": {"state": "SELAMAT", "en": "SAFE"},
+        },
     }
+
+
+# ═══════════════════════════════════════════════════════
+# ERROR GUARD — prevents raw Python exceptions from leaking to users
+# ═══════════════════════════════════════════════════════
+
+
+def _wealth_error_guard(fn):
+    """Decorator: catch unhandled exceptions and return governed error language."""
+    from functools import wraps
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except TypeError as exc:
+            return {
+                "status": "HOLD",
+                "tool": fn.__name__.lstrip("_"),
+                "result": {
+                    "domain_verdict": "VOID",
+                    "engine_status": "INPUT_REQUIRED",
+                    "error": f"INPUT_REQUIRED: {exc}",
+                },
+                "schema_version": "wealth.physics_economics.v1",
+                "final_authority": "ARIF",
+                "nine_signal": {
+                    "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
+                    "psi": {"plane": "governance_integrity", "state": "KHIANAT", "en": "BETRAYED"},
+                    "omega": {
+                        "plane": "intelligence_discipline",
+                        "state": "BANGANG",
+                        "en": "FOOLISH",
+                    },
+                    "overall": {"state": "RETAK", "en": "FAILED"},
+                },
+            }
+        except Exception as exc:
+            return {
+                "status": "HOLD",
+                "tool": fn.__name__.lstrip("_"),
+                "result": {
+                    "domain_verdict": "VOID",
+                    "engine_status": "CALCULATION_ERROR",
+                    "error": f"CALCULATION_ERROR: {exc}",
+                },
+                "schema_version": "wealth.physics_economics.v1",
+                "final_authority": "ARIF",
+                "nine_signal": {
+                    "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
+                    "psi": {"plane": "governance_integrity", "state": "KHIANAT", "en": "BETRAYED"},
+                    "omega": {
+                        "plane": "intelligence_discipline",
+                        "state": "BANGANG",
+                        "en": "FOOLISH",
+                    },
+                    "overall": {"state": "RETAK", "en": "FAILED"},
+                },
+            }
+
+    return wrapper
 
 
 # ═══════════════════════════════════════════════════════
@@ -152,6 +219,7 @@ def mcp_health_check() -> dict[str, Any]:
 
 
 @wealth_app.tool(name="wealth_conservation_capital", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
 def _wealth_conservation_capital(
     mode: str = "state",
     initial_investment: float = 0,
@@ -173,6 +241,7 @@ def _wealth_conservation_capital(
 
 
 @wealth_app.tool(name="wealth_flow_liquidity", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
 def _wealth_flow_liquidity(
     mode: str = "cashflow",
     cashflows: list[float] | None = None,
@@ -192,6 +261,7 @@ def _wealth_flow_liquidity(
 
 
 @wealth_app.tool(name="wealth_gradient_price", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
 def _wealth_gradient_price(
     mode: str = "spread",
     price_a: float = 0,
@@ -211,6 +281,7 @@ def _wealth_gradient_price(
 
 
 @wealth_app.tool(name="wealth_entropy_risk", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
 def _wealth_entropy_risk(
     mode: str = "emv",
     outcomes: list[float] | None = None,
@@ -228,6 +299,7 @@ def _wealth_entropy_risk(
 
 
 @wealth_app.tool(name="wealth_energy_productivity", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
 def _wealth_energy_productivity(
     mode: str = "efficiency",
     revenue: float = 0,
@@ -253,6 +325,7 @@ def _wealth_energy_productivity(
 
 
 @wealth_app.tool(name="wealth_time_discount", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
 def _wealth_time_discount(
     mode: str = "npv",
     initial_investment: float = 0,
@@ -276,6 +349,7 @@ def _wealth_time_discount(
 
 
 @wealth_app.tool(name="wealth_inertia_leverage", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
 def _wealth_inertia_leverage(
     mode: str = "dscr",
     ebitda: float = 0,
@@ -299,6 +373,7 @@ def _wealth_inertia_leverage(
 
 
 @wealth_app.tool(name="wealth_field_macro", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
 def _wealth_field_macro(
     mode: str = "macro",
     fed_rate: float | None = None,
@@ -318,6 +393,7 @@ def _wealth_field_macro(
 
 
 @wealth_app.tool(name="wealth_signal_information", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
 def _wealth_signal_information(
     mode: str = "sharpe",
     returns: list[float] | None = None,
@@ -333,6 +409,7 @@ def _wealth_signal_information(
 
 
 @wealth_app.tool(name="wealth_game_coordination", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
 def _wealth_game_coordination(
     mode: str = "nash",
     payoff_matrix: dict[str, Any] | None = None,
@@ -346,6 +423,7 @@ def _wealth_game_coordination(
 
 
 @wealth_app.tool(name="wealth_boundary_governance", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
 def _wealth_boundary_governance(
     mode: str = "floors",
     floor_scores: dict[str, float] | None = None,
@@ -359,6 +437,7 @@ def _wealth_boundary_governance(
 
 
 @wealth_app.tool(name="wealth_hysteresis_ledger", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
 def _wealth_hysteresis_ledger(
     mode: str = "status",
     session_id: str = "",

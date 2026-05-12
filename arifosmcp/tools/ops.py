@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from arifosmcp.runtime.floors import check_floors
 from arifosmcp.runtime.session_auth import validate_session
-from arifosmcp.runtime.tools import _hold, _ok
+from arifosmcp.runtime.tools import _hold, _ok, _sabar
 from arifosmcp.schemas.telemetry import TelemetryBlock
 
 
@@ -21,6 +21,10 @@ def arif_ops_measure(
 ) -> TelemetryBlock:
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
+        if auth.get("expired"):
+            return TelemetryBlock(
+                **_sabar("arif_ops_measure", auth["reason"], session_id=session_id)
+            )
         return TelemetryBlock(
             **_hold("arif_ops_measure", auth["reason"], ["F11"], session_id=session_id)
         )

@@ -25,6 +25,7 @@ from typing import Any
 from arifosmcp.core.embodied_tool_engine import EmbodiedDecision, EmbodiedToolEngine
 from arifosmcp.core.tool_self_model import (
     BlastRadius,
+    PredictionRecord,
     ToolCapability,
     ToolLimitation,
     ToolManifest,
@@ -128,6 +129,9 @@ class EmbodiedTool:
     _engine: EmbodiedToolEngine | None = None
     _registered: bool = False
 
+    # Current prediction for this tool invocation (set in run(), used in postflight)
+    _current_prediction: PredictionRecord | None = None
+
     @classmethod
     def manifest(cls) -> ToolManifest:
         """Build this tool's manifest."""
@@ -163,6 +167,69 @@ class EmbodiedTool:
         if cls._engine is None:
             cls._engine = EmbodiedToolEngine()
         return cls._engine
+
+    def make_prediction(
+        self,
+        params: dict,
+        expected_outcome: str = "SEAL",
+        confidence: float = 0.7,
+        falsification_condition: str = "VOID or HOLD returned",
+    ) -> PredictionRecord:
+        """
+        Create a PredictionRecord before tool execution.
+
+        The agent must stake a claim about what reality will return.
+        This is the core of the disequilibrium loop.
+
+        Args:
+            params: Tool parameters (used to infer expected outcome)
+            expected_outcome: What the agent expects to happen
+            confidence: How confident the agent is (0.0-1.0)
+            falsification_condition: What would prove the agent's model wrong
+
+        Returns:
+            PredictionRecord to be passed through postflight
+        """
+        risk_map = {"T0": 0.9, "T1": 0.85, "T2": 0.7, "T3": 0.5, "T4": 0.3}
+        risk_conf = risk_map.get(self.risk_tier, 0.7)
+
+        if params.get("mode") == "health":
+            expected_outcome = "healthy"
+            falsification_condition = "unhealthy or error"
+            confidence = 0.95
+        elif confidence == 0.7 and risk_conf < 0.7:
+            confidence = risk_conf
+            falsification_condition = f"error or unexpected {self.risk_tier} outcome"
+
+        record = PredictionRecord(
+            predicted_outcome=expected_outcome,
+            confidence=confidence,
+            falsification_condition=falsification_condition,
+        )
+        self._current_prediction = record
+        return record
+
+    def resolve_prediction(
+        self,
+        prediction: PredictionRecord | None,
+        actual_outcome: str = "OK",
+        model_importance: float = 1.0,
+    ) -> dict[str, Any]:
+        """
+        Resolve a prediction against actual outcome.
+
+        Returns dict with delta_surprise, triggered_surprise for logging.
+        """
+        if prediction is None:
+            return {"delta_surprise": 0.0, "triggered_surprise": False}
+        delta = prediction.compute_delta_surprise(
+            actual_outcome=actual_outcome,
+            model_importance=model_importance,
+        )
+        return {
+            "delta_surprise": delta,
+            "triggered_surprise": prediction.triggered_surprise,
+        }
 
     @abstractmethod
     async def execute(self, params: dict, ctx: Any) -> dict:
@@ -248,11 +315,16 @@ class EmbodiedTool:
         )
 
         # Also update the self-model — closes the feedback loop
+        # Includes prediction comparison for disequilibrium detection
         self.engine().update_self_model_from_outcome(
             tool_id=self.tool_id,
             result=result,
             error=error,
+            prediction=self._current_prediction,
         )
+
+        # Clear the prediction for the next invocation
+        self._current_prediction = None
 
         return envelope
 
@@ -274,36 +346,48 @@ class EmbodiedTool:
         actor_id = actor_id or getattr(ctx, "actor_id", None)
         session_id = session_id or getattr(ctx, "session_id", None)
 
-        # Stage 1: Preflight
+        # Stage 1: Preflight — includes making a prediction about the outcome
         decision = await self.preflight(params, actor_id, session_id)
 
+        # Make a prediction before execution (disequilibrium pre-commitment)
+        self.make_prediction(
+            params=params,
+            expected_outcome=decision.status if decision.can_proceed else "HOLD",
+            confidence=0.7,
+            falsification_condition=f"!{decision.status}",
+        )
+
         if not decision.can_proceed:
-            # Tool is held or void — build envelope without execution
-            latency_ms = (time.time() - start_time) * 1000
-            return await self.postflight(
-                params=params,
-                actor_id=actor_id,
-                session_id=session_id,
-                decision=decision,
-                result={},
-                latency_ms=latency_ms,
-                error=None,
-                confidence=0.0,
-                reasoning_summary=decision.reason,
+            # Update prediction with the HOLD outcome (prediction resolved)
+            self.resolve_prediction(
+                prediction=self._current_prediction,
+                actual_outcome=decision.status,
+                model_importance=1.0,
             )
 
-        # Stage 2: Execute
-        try:
-            result = await self.execute(params, ctx)
-            error = None
-        except Exception as e:
+            # Tool is held or void — build envelope without execution
+            latency_ms = (time.time() - start_time) * 1000
             result = {}
-            error = str(e)
-            logger.warning(f"Tool {self.tool_id} execution error: {e}")
+        else:
+            # Stage 2: Execute
+            try:
+                result = await self.execute(params, ctx)
+                error = None
+            except Exception as e:
+                result = {}
+                error = str(e)
+                logger.warning(f"Tool {self.tool_id} execution error: {e}")
+
+                # Update prediction with error
+                self.resolve_prediction(
+                    prediction=self._current_prediction,
+                    actual_outcome="ERROR",
+                    model_importance=2.0,
+                )
 
         latency_ms = (time.time() - start_time) * 1000
 
-        # Stage 3: Postflight
+        # Stage 3: Postflight (prediction is passed to self-model update inside postflight)
         envelope = await self.postflight(
             params=params,
             actor_id=actor_id,
@@ -311,10 +395,12 @@ class EmbodiedTool:
             decision=decision,
             result=result,
             latency_ms=latency_ms,
-            error=error,
-            confidence=0.5,  # TODO: extract from result
+            error=error if not decision.can_proceed else (error if "error" in dir() else None),
+            confidence=0.5,
             reasoning_summary=(
-                "Tool executed successfully" if error is None else f"Tool error: {error}"
+                decision.reason
+                if not decision.can_proceed
+                else ("Tool executed successfully" if error is None else f"Tool error: {error}")
             ),
         )
 

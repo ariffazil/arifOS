@@ -547,7 +547,7 @@ def _output_policy_for_verdict(verdict: str) -> str:
         return "SIMULATION_ONLY"
     if verdict == "HOLD":
         return "DOMAIN_HOLD"
-    if verdict in ("VOID", "SABAR", "SESAT"):
+    if verdict in ("VOID", "SABAR"):
         return "DOMAIN_VOID"
     return "DOMAIN_SEAL"
 
@@ -596,7 +596,7 @@ def _kernel_eval(
 # This is not optional — without it, the Nine-Signal contract is a doc, not a guarantee.
 # ─────────────────────────────────────────────────────────────────────────────
 
-_SESAT_COUNTER = 0  # Per-process SESAT count — exported to OPS telemetry
+_VIOLATION_COUNTER = 0  # Per-process contract-violation count — exported to OPS telemetry
 
 
 def _nine_signal_from_status(status: str) -> dict[str, str | dict]:
@@ -694,7 +694,7 @@ class NineSignalOutput:
         session_id: str | None = None,
         actor_id: str | None = None,
     ):
-        global _SESAT_COUNTER
+        global _VIOLATION_COUNTER
 
         self.tool_name = tool_name
         self.verdict = verdict
@@ -709,7 +709,7 @@ class NineSignalOutput:
 
     def _enforce(self) -> None:
         """Enforce Nine-Signal contract. Mutates self.violations."""
-        global _SESAT_COUNTER
+        global _VIOLATION_COUNTER
 
         # 1. nine_signal block must be present (top-level or nested in meta/result)
         nine_signal = (
@@ -721,14 +721,14 @@ class NineSignalOutput:
             self.violations.append(f"[{self.tool_name}] nine_signal block absent [KERNEL_EVALS P0]")
 
         # 2. Non-SEAL verdicts MUST have reasons[]
-        if self.verdict in ("HOLD", "VOID", "SABAR", "SESAT"):
+        if self.verdict in ("HOLD", "VOID", "SABAR"):
             reasons_field = self.payload.get("reasons") or self.payload.get("reason") or []
             if not reasons_field:
                 self.violations.append(
                     f"[{self.tool_name}] {self.verdict} without reasons[] "
                     "[F2 addendum / Nine-Signal contract]"
                 )
-                _SESAT_COUNTER += 1
+                _VIOLATION_COUNTER += 1
 
         # 3. F2 addendum: domain payload requires output_policy
         if self.payload.get("domain_payload_present") and not self.output_policy:
@@ -736,7 +736,7 @@ class NineSignalOutput:
                 f"[{self.tool_name}] domain payload without output_policy "
                 "[F2 addendum: VerdictScope.DOMAIN_VOID required]"
             )
-            _SESAT_COUNTER += 1
+            _VIOLATION_COUNTER += 1
 
         # 4. DRY_RUN must be labeled SIMULATION_ONLY
         if self.verdict == "DRY_RUN" and self.output_policy != "SIMULATION_ONLY":
@@ -836,7 +836,7 @@ def _enforce_nine_signal(
                     reasons = [reason_str] if isinstance(reason_str, str) else reason_str
                 else:
                     reasons = []
-            if verdict in ("HOLD", "VOID", "SABAR", "SESAT") and not reasons:
+            if verdict in ("HOLD", "VOID", "SABAR") and not reasons:
                 reasons = [f"{verdict} — constitutional gate activated, see meta.reason"]
             # F2 addendum: SEAL verdicts carry default reasons for audit completeness.
             # The F2 rule mandates reasons[] on non-SEAL; but populating them for SEAL
@@ -849,17 +849,28 @@ def _enforce_nine_signal(
                 ]
             out = dict(response)
             out["reasons"] = reasons
-            out["_nine_signal_compliant"] = (
-                False
-                if reasons
-                and reasons[0].startswith(verdict)
-                and verdict in ("HOLD", "VOID", "SABAR", "SESAT")
-                else len(reasons) > 0
+            # Hoist nine_signal to top level if it was nested in meta/result
+            nine = (
+                out.get("nine_signal")
+                or out.get("meta", {}).get("nine_signal")
+                or out.get("result", {}).get("nine_signal")
             )
+            if nine:
+                out["nine_signal"] = nine
+            # Compliant if nine_signal present AND reasons present for non-SEAL verdicts
+            has_nine = bool(nine)
+            has_reasons = bool(reasons)
+            if verdict == "SEAL":
+                compliant = has_nine
+            else:
+                compliant = has_nine and has_reasons
+            out["_nine_signal_compliant"] = compliant
             out["_violations"] = (
                 []
-                if reasons
-                else [f"[{tool_name}] {verdict} without reasons[] [F2 addendum / Nine-Signal]"]
+                if compliant
+                else [
+                    f"[{tool_name}] {verdict} without nine_signal or reasons[] [F2 addendum / Nine-Signal]"
+                ]
             )
             return out
 
@@ -940,7 +951,8 @@ def _enforce_nine_signal(
         )
         if phi_quote and phi_quote.get("quote"):
             atlas_zone = phi_result.get("atlas_result", {}).get("zone", {})
-            enforced["philosophical_anchor"] = {
+            source_status = phi_quote.get("source_status", "CANDIDATE")
+            anchor_payload = {
                 "quote_id": phi_quote.get("quote_id", "NONE"),
                 "text": phi_quote.get("quote", ""),
                 "author": phi_quote.get("author", "arifOS"),
@@ -948,7 +960,22 @@ def _enforce_nine_signal(
                 "zone": atlas_zone.get("name", "Unknown"),
                 "zone_id": atlas_zone.get("id", "Z??"),
                 "atlas_mode": phi_result.get("apex_mode", "atlas_27"),
+                "source_status": source_status,
             }
+            # P4: Block synthetic quotes from immutable seal (VAULT999)
+            if tool_name == "arif_vault_seal" and source_status == "SYNTHETIC":
+                enforced["philosophical_anchor"] = {
+                    "quote_id": "BLOCKED",
+                    "text": "Synthetic quote withheld from immutable seal per F02 TRUTH hygiene.",
+                    "author": "arifOS Governance",
+                    "source": "constitutional_guard",
+                    "zone": "F02_BLOCKED",
+                    "zone_id": "Z00",
+                    "atlas_mode": "guard",
+                    "source_status": "BLOCKED",
+                }
+            else:
+                enforced["philosophical_anchor"] = anchor_payload
     except Exception:
         # Non-fatal: philosophy injection must never crash a tool response
         pass
@@ -956,9 +983,14 @@ def _enforce_nine_signal(
     return enforced
 
 
+def get_violation_counter() -> int:
+    """Return the process-local contract-violation count. Wired to arif_ops_measure."""
+    return _VIOLATION_COUNTER
+
+
 def get_sesat_counter() -> int:
-    """Return the process-local SESAT count. Wired to arif_ops_measure."""
-    return _SESAT_COUNTER
+    """Deprecated alias — use get_violation_counter()."""
+    return get_violation_counter()
 
 
 # ─── MIND Synthesis Helpers ───────────────────────────────────────────────────
@@ -1825,6 +1857,53 @@ def _hold(
         "session_id": session_id,
         "actor_id": actor_id,
         "output_policy": _output_policy_for_verdict("HOLD"),
+        "wisdom": _wisdom_for_tool(tool),
+        "reasons": reasons,
+    }
+    return _enforce_nine_signal(
+        tool,
+        response,
+        session_id=session_id,
+        actor_id=actor_id,
+    )
+
+
+def _sabar(
+    tool: str,
+    reason: str,
+    session_id: str | None = None,
+) -> dict[str, Any]:
+    """Constitutional SABAR — session expired or continuity cracked, but recoverable.
+
+    Returns RETAK/SYUBHAH/BIJAK (cracked/doubtful/smart) instead of
+    ROSAK/KHIANAT/BANGANG (broken/betrayed/foolish) so the caller knows
+    reasoning is still usable and re-authentication may restore full governance.
+    """
+    reasons = [reason] if reason else []
+    meta = {
+        "reason": reason,
+        "next_safe_action": "Re-authenticate session via arif_session_init (mode=resume) or initiate new constitutional binding.",
+    }
+    # Do NOT degrade epoch health — SABAR is a recoverable state, not a breach
+    meta["nine_signal"] = _annotate_nine_signal(
+        _nine_signal_from_status("SABAR"),
+        _domain_for_tool(tool),
+    )
+    response_ctx = _RESPONSE_CONTEXT.get() or {}
+    if session_id is None:
+        session_id = response_ctx.get("session_id")
+    actor_id = _actor_for_response(session_id, meta.get("actor_id"))
+    meta.setdefault("actor_id", actor_id)
+    response = {
+        "status": "SABAR",
+        "tool": tool,
+        "result": {},
+        "meta": meta,
+        "delta_S": 0.0,
+        "timestamp": _now(),
+        "session_id": session_id,
+        "actor_id": actor_id,
+        "output_policy": _output_policy_for_verdict("SABAR"),
         "wisdom": _wisdom_for_tool(tool),
         "reasons": reasons,
     }
@@ -4934,6 +5013,8 @@ def _arif_kernel_route(
 
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
+        if auth.get("expired"):
+            return _sabar("arif_kernel_route", auth["reason"], session_id=session_id)
         return _hold("arif_kernel_route", auth["reason"], ["F11"], session_id=session_id)
 
     gate = _constitutional_gate(
@@ -7041,6 +7122,7 @@ def _arif_vault_seal(
                 next_safe_action="Produce reversible design blueprint only; no execution.",
                 actor_id=actor_id,
                 timestamp=_now(),
+                ack_irreversible_received=ack_irreversible,
             ).model_dump(mode="json")
 
     if mode == "seal":
@@ -7064,6 +7146,7 @@ def _arif_vault_seal(
                 next_safe_action="Ensure constitutional_chain_id and judge_state_hash are valid and match.",
                 actor_id=actor_id,
                 timestamp=_now(),
+                ack_irreversible_received=ack_irreversible,
             ).model_dump(mode="json")
         if judge_contract is None:
             _reason = "judge contract required — irreversible execution requires a prior judge packet via constitutional_chain_id and judge_state_hash"
@@ -7081,6 +7164,7 @@ def _arif_vault_seal(
                 next_safe_action="Run arif_judge_deliberate first to obtain a judge packet.",
                 actor_id=actor_id,
                 timestamp=_now(),
+                ack_irreversible_received=ack_irreversible,
             ).model_dump(mode="json")
 
         entry_id = uuid.uuid4().hex[:16]
@@ -7109,6 +7193,7 @@ def _arif_vault_seal(
                 next_safe_action="Re-run judgment with a higher irreversibility classification.",
                 actor_id=actor_id,
                 timestamp=_now(),
+                ack_irreversible_received=ack_irreversible,
             ).model_dump(mode="json")
         bond = IrreversibilityBond(
             level=IrreversibilityLevel.IRREVERSIBLE,

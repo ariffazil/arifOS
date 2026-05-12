@@ -571,7 +571,7 @@ def _build_trinity_matrix(
     if schema_violation or hallucination_detected:
         omega = _matrix_domain(
             state="NEGATIVE",
-            label_bm="SESAT",
+            label_bm="BANGANG",
             label_en="MISALIGNED",
             evidence=(
                 (["schema_violation"] if schema_violation else [])

@@ -12,17 +12,17 @@ services:
 
   # ── PLANE 1: GOVERNANCE ─────────────────────────────────────────────
   arifosmcp:
-    image: ghcr.io/ariffazil/arifos:5079aea
+    image: ghcr.io/ariffazil/arifos:697c7955
     container_name: arifosmcp
     init: true
     restart: unless-stopped
     command: ["python", "-m", "arifosmcp.runtime.__main__"]
     env_file: [.env]
     environment:
-      DEPLOY_GIT_COMMIT: 9b25c84c  # pragma: allowlist secret
-      ARIFOS_BUILD_SHA: 9b25c84c  # pragma: allowlist secret
-      ARIFOS_IMAGE: ghcr.io/ariffazil/arifos:9b25c84c-mlruntime
-      ARIFOS_BUILD_TIME: "2026-05-11T17:03:02+00:00"
+      DEPLOY_GIT_COMMIT: 697c7955  # pragma: allowlist secret
+      ARIFOS_BUILD_SHA: 697c7955  # pragma: allowlist secret
+      ARIFOS_IMAGE: ghcr.io/ariffazil/arifos:697c7955
+      ARIFOS_BUILD_TIME: "2026-05-12T15:35:00+00:00"
       ARIFOS_GOVERNANCE_OPEN_MODE: "false"
       ARIFOS_GOVERNANCE_SECRET_FILE: /run/secrets/arifos_governance_secret
       ARIFOS_SESSION_SECRET_FILE: /run/secrets/arifos_session_secret

@@ -57,6 +57,21 @@ async def verify_location(
         from core.organs import verify_geospatial
 
         res = verify_geospatial(lat, lon)
+        ns_status = "OK" if res["valid"] else "VOID"
+        nine_signal = {
+            "OK": {
+                "delta": {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
+                "psi": {"plane": "governance_integrity", "state": "AMANAH", "en": "TRUSTED"},
+                "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
+                "overall": {"state": "SELAMAT", "en": "SAFE"},
+            },
+            "VOID": {
+                "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
+                "psi": {"plane": "governance_integrity", "state": "KHIANAT", "en": "BETRAYED"},
+                "omega": {"plane": "intelligence_discipline", "state": "BANGANG", "en": "FOOLISH"},
+                "overall": {"state": "RETAK", "en": "FAILED"},
+            },
+        }[ns_status]
         return ToolResult(
             content=[
                 {
@@ -75,6 +90,7 @@ async def verify_location(
                         "valid": res["valid"],
                         "jurisdiction": res["jurisdiction"],
                         "crs": res["crs"],
+                        "nine_signal": nine_signal,
                     },
                 },
             ]

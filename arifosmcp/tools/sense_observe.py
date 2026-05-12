@@ -25,7 +25,7 @@ from arifosmcp.runtime.floors import check_floors
 from arifosmcp.runtime.reality_handlers import handler as reality_handler
 from arifosmcp.runtime.reality_models import BundleInput
 from arifosmcp.runtime.session_auth import validate_session
-from arifosmcp.runtime.tools import _hold, _ok
+from arifosmcp.runtime.tools import _hold, _ok, _sabar
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,8 @@ def arif_sense_observe(
     """
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
+        if auth.get("expired"):
+            return _sabar("arif_sense_observe", auth["reason"], session_id=session_id)
         return _hold("arif_sense_observe", auth["reason"], ["F11"], session_id=session_id)
 
     floor_check = check_floors("arif_sense_observe", {"query": query or ""}, actor_id)

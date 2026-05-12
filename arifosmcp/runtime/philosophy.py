@@ -176,11 +176,33 @@ def deterministic_select_from_zone(
 
 def _format_quote(quote: dict[str, Any], zone: dict[str, Any]) -> dict[str, Any]:
     """Format a quote for output."""
+    author = quote.get("author", "Unknown")
+    source = quote.get("source", "")
+    # Infer source_status based on author and source provenance
+    if author in ("arifOS Foundry", "arifOS Atlas", "arifOS") or "arifOS" in source:
+        source_status = "SYNTHETIC"
+    elif source in (
+        "Meditations",
+        "Tao Te Ching",
+        "Nicomachean Ethics",
+        "Platonic Dialogues",
+        "Analects",
+        "Man's Search for Meaning",
+        "Letters",
+        "Speeches",
+        "Citizenship Day Speech",
+        "Leaders Eat Last",
+    ):
+        source_status = "VERIFIED"
+    elif source and quote.get("year"):
+        source_status = "VERIFIED"
+    else:
+        source_status = "CANDIDATE"
     return {
         "quote_id": quote.get("id", "UNKNOWN"),
         "quote": quote.get("text", ""),
-        "author": quote.get("author", "Unknown"),
-        "source": quote.get("source", ""),
+        "author": author,
+        "source": source,
         "year": quote.get("year", ""),
         "category": zone.get("name", "Unknown"),
         "zone_id": zone.get("id", "Z??"),
@@ -190,6 +212,7 @@ def _format_quote(quote: dict[str, Any], zone: dict[str, Any]) -> dict[str, Any]
         "Omega": zone.get("Omega", 0),
         "character": zone.get("character", ""),
         "source_type": "atlas_27",
+        "source_status": source_status,
     }
 
 

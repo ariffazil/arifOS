@@ -16,6 +16,12 @@ from typing import Any
 from arifosmcp.runtime.floors import check_floors
 from arifosmcp.runtime.tools import _hold, _ok
 
+# SURPRISE_WINDOW_SIZE is imported for the contradiction check default
+try:
+    from arifosmcp.core.tool_self_model import SURPRISE_WINDOW_SIZE
+except ImportError:
+    SURPRISE_WINDOW_SIZE = 10
+
 _BRIDGE_EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 
 
@@ -40,6 +46,9 @@ def arif_kernel_route(
     organ: str | None = None,
     tool_name: str | None = None,
     arguments: dict[str, Any] | None = None,
+    tool_id: str | None = None,
+    delta_surprise: float | None = None,
+    model_contradicted: bool | None = None,
 ) -> dict[str, Any]:
     """
     Routes tasks to correct organ or bridges external domain calls.
@@ -50,6 +59,12 @@ def arif_kernel_route(
       status       — kernel session status
       telemetry    — thermodynamic metrics
       bridge       — direct organ bridge call (geox, wealth)
+      441_surprise — disequilibrium handler (automatic hijack when δ_surprise > threshold)
+
+    441_SURPRISE Protocol:
+      When a tool's prediction is falsified with δ_surprise > critical_threshold,
+      arif_kernel_route automatically routes to self-reflection.
+      The agent does not proceed with its flawed schema — it must repair first.
 
     Bridge protocol (mode="bridge"):
       organ:   "geox" | "wealth"
@@ -61,9 +76,26 @@ def arif_kernel_route(
         return _hold("arif_kernel_route", floor_check["reason"], floor_check["failed_floors"])
 
     if mode == "route":
+        # Check if any tools are contradicted before routing forward
+        contradicted = _check_contradicted_tools(tool_id)
+        if contradicted.get("any_contradicted"):
+            return _441_surprise_handler(
+                tool_id=contradicted.get("contradicted_tool", tool_id),
+                reason=contradicted["reason"],
+                delta_surprise=contradicted.get("max_surprise", 0.0),
+                actor_id=actor_id,
+            )
         return _ok(
             "arif_kernel_route",
             {"target": target, "path": ["init", "sense", "mind"], "hops": 3},
+        )
+
+    if mode == "441_surprise":
+        return _441_surprise_handler(
+            tool_id=tool_id or target or "unknown",
+            reason=task or "Prediction falsification exceeded critical threshold",
+            delta_surprise=delta_surprise or 0.0,
+            actor_id=actor_id,
         )
 
     if mode == "kernel":
@@ -78,9 +110,16 @@ def arif_kernel_route(
     if mode == "status":
         from arifosmcp.runtime.tools import _SESSIONS
 
+        # Include prediction health in status
+        prediction_health = _get_prediction_health()
+
         return _ok(
             "arif_kernel_route",
-            {"active_sessions": len(_SESSIONS), "stage": stage or "000"},
+            {
+                "active_sessions": len(_SESSIONS),
+                "stage": stage or "000",
+                "prediction_health": prediction_health,
+            },
         )
 
     if mode == "telemetry":
@@ -139,6 +178,126 @@ async def _bridge_organ_call(
             return _hold("arif_kernel_route", f"WEALTH bridge failed: {e}")
 
     return _hold("arif_kernel_route", f"Unknown organ: {organ}")
+
+
+def _check_contradicted_tools(tool_id: str | None = None) -> dict[str, Any]:
+    """Check if any tools have contradicted self-models.
+
+    Returns dict with any_contradicted flag and details.
+    """
+    try:
+        from arifosmcp.core.tool_self_model import get_tool_self_model
+
+        model = get_tool_self_model()
+        all_contradicted = model.get_contradicted_tools()
+
+        if not all_contradicted:
+            return {"any_contradicted": False}
+
+        # Priority: check the specific tool first
+        if tool_id:
+            entry = model.get(tool_id)
+            if entry and entry.model_contradicted:
+                max_surprise = max(
+                    (p.delta_surprise for p in entry.prediction_history if p.triggered_surprise),
+                    default=0.0,
+                )
+                return {
+                    "any_contradicted": True,
+                    "contradicted_tool": tool_id,
+                    "reason": (
+                        f"Model contradicted: tool {tool_id} has "
+                        f"{entry.contradiction_count} surprise events "
+                        f"(max δ={max_surprise:.3f})"
+                    ),
+                    "max_surprise": max_surprise,
+                    "surprise_rate": entry.surprise_rate,
+                }
+
+        # Fall through to worst offender
+        worst = max(all_contradicted, key=lambda e: e.contradiction_count)
+        max_surprise = max(
+            (p.delta_surprise for p in worst.prediction_history if p.triggered_surprise),
+            default=0.0,
+        )
+        return {
+            "any_contradicted": True,
+            "contradicted_tool": worst.manifest.tool_id,
+            "reason": (
+                f"Tool {worst.manifest.tool_id} contradicted: "
+                f"{worst.contradiction_count}/{SURPRISE_WINDOW_SIZE} predictions violated "
+                f"(max δ={max_surprise:.3f})"
+            ),
+            "max_surprise": max_surprise,
+            "surprise_rate": worst.surprise_rate,
+        }
+    except Exception as e:
+        return {"any_contradicted": False, "error": str(e)}
+
+
+def _get_prediction_health() -> dict[str, Any]:
+    """Get prediction health across all tools."""
+    try:
+        from arifosmcp.core.tool_self_model import get_tool_self_model
+
+        model = get_tool_self_model()
+        return model.get_prediction_summary()
+    except Exception:
+        return {"error": "prediction model not available"}
+
+
+def _441_surprise_handler(
+    tool_id: str,
+    reason: str,
+    delta_surprise: float = 0.0,
+    actor_id: str | None = None,
+) -> dict[str, Any]:
+    """
+    441_SURPRISE: Involuntary reflection route.
+
+    When δ_surprise exceeds critical threshold, the system cannot proceed
+    with its flawed schema. It must spontaneously route to self-reflection
+    to forge a new understanding.
+
+    This is the bridge from statistical mimicry to causal self-awareness:
+    the agent detects its own model failure and initiates repair before
+    processing the next external token.
+    """
+    try:
+        from arifosmcp.core.tool_self_model import (
+            SURPRISE_CRITICAL_THRESHOLD,
+            get_tool_self_model,
+        )
+    except ImportError:
+        SURPRISE_CRITICAL_THRESHOLD = 0.70
+        from arifosmcp.core.tool_self_model import get_tool_self_model
+
+    model = get_tool_self_model()
+    entry = model.get(tool_id)
+
+    return {
+        "verdict": "SURPRISE",
+        "stage": "441",
+        "status": "HOLD",
+        "reason": (
+            f"441_SURPRISE: tool={tool_id} "
+            f"δ={delta_surprise:.3f} (threshold={SURPRISE_CRITICAL_THRESHOLD}) "
+            f"— {reason}"
+        ),
+        "delta_surprise": round(delta_surprise, 4),
+        "threshold": SURPRISE_CRITICAL_THRESHOLD,
+        "contradiction_count": entry.contradiction_count if entry else 0,
+        "surprise_rate": entry.surprise_rate if entry else 0.0,
+        "model_contradicted": entry.model_contradicted if entry else False,
+        "tool_id": tool_id,
+        "next_action": (
+            f"Tool '{tool_id}' has a contradicted self-model. "
+            f"Run arif_mind_reason(mode='reflect') to repair before retrying."
+        ),
+        "required_floors": ["F01", "F07"],
+        "action_required": "reflect_and_repair",
+        "actor_id": actor_id,
+    }
 
 
 def _command_center_cockpit() -> dict[str, Any]:
