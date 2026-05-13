@@ -125,7 +125,9 @@ Request received
 arifOS is live and under active hardening.
 
 **Working now:**
-- 13 canonical MCP tools with live embodiment contracts
+- 13 canonical MCP tools with live embodiment contracts + cognitive_axis tags
+- FEDERATION_TOOLS manifest integration with intent-based routing (`arif_kernel_route(mode="intent")`)
+- 441_SURPRISE metabolic umbilical: writes contradiction data to WELL state.json
 - Kernel + REST fail-closed embodiment gates before handler invocation
 - Runtime attestation endpoint for constitution, contracts, and policy state
 - Session initialization with persistence fallback, grace period, and TTL refresh
@@ -586,25 +588,25 @@ Every governed session follows this sequence:
 
 > **Schema note:** Field names above reflect the live tool schemas as of v2026.05.01. Always verify against `GET /tools` on the running server before building integrations. `arif_judge_deliberate` takes `candidate`, not `claim`. `arif_forge_execute` takes `manifest`, not `action`.
 
-### The 13 Canonical Tools
+### The 13 Canonical Tools (with Cognitive Axes)
 
-> **Note on `010_FORGE` stage number:** `arif_forge_execute` is the execution shell. It appears after judgment in governed workflows even though its stage number (010) is low — execution is only allowed after a valid SEAL verdict from `arif_judge_deliberate`.
+Each tool now carries a `cognitive_axis` tag for intent-based routing. `arif_kernel_route(mode="intent", task="vitality")` routes across all federation organs by semantic coordinate.
 
-| Stage | Tool | Lane | What It Does |
+| Stage | Tool | Lane | Axis | What It Does |
 |-------|------|------|-------------|
-| `000` | `arif_session_init` | AGI | Start a governed session. Bind actor identity to the constitution. Output: `session_id` + `constitution_hash`. |
-| `111` | `arif_sense_observe` | AGI | Scan operational reality. Modes: `search`, `ingest`, `compass`, `atlas`, `entropy_dS`, `vitals`. |
-| `222` | `arif_evidence_fetch` | AGI | Retrieve and preserve verifiable external evidence with sequential thinking. F03 WITNESS compliant. |
-| `333` | `arif_mind_reason` | AGI | Constitutional reasoning. Mode field: `reason`, `reflect`, `verify`, `plan`. F07 HUMILITY enforced. |
-| `444r` | `arif_reply_compose` | AGI | Compose governed responses. F04 CLARITY enforced — no hidden intent. |
-| `555` | `arif_memory_recall` | AGI | Long-term constitutional memory. Session-scoped or cross-session recall. |
-| `666` | `arif_heart_critique` | ASI | Safety and empathy critique. F05 PEACE, F06 EMPATHY, F09 ANTIHANTU enforcement. |
-| `666g` | `arif_gateway_connect` | ASI | A2A mesh handshake with other federation agents. F11 AUTH verified. Internal alias: `888_OMEGA`. |
-| `777` | `arif_ops_measure` | AGI | Thermodynamic health, cost, and entropy measurement. |
-| `888` | `arif_judge_deliberate` | ASI | **The constitutional verdict engine.** Returns `SEAL` (proceed), `HOLD` (wait/missing evidence), or `VOID` (abort/floor breach). |
-| `010` | `arif_forge_execute` | AGI | Gated action execution. Requires valid `judge_state_hash` from `arif_judge_deliberate`. F13 SOVEREIGN always active. |
-| `999` | `arif_vault_seal` | APEX | Write the immutable outcome record to VAULT999. Irreversible. F01 AMANAH enforced. |
-| `444` | `arif_kernel_route` | AGI | Internal kernel routing and telemetry. If called externally, returns VOID (F12 INJECTION breach). |
+| `000` | `arif_session_init` | AGI | identity | Start a governed session. Bind actor identity to the constitution. Output: `session_id` + `constitution_hash`. |
+| `111` | `arif_sense_observe` | AGI | observe | Scan operational reality. Modes: `search`, `ingest`, `compass`, `atlas`, `entropy_dS`, `vitals`. |
+| `222` | `arif_evidence_fetch` | AGI | verify | Retrieve and preserve verifiable external evidence with sequential thinking. F03 WITNESS compliant. |
+| `333` | `arif_mind_reason` | AGI | reason | Constitutional reasoning. Mode field: `reason`, `reflect`, `verify`, `plan`. F07 HUMILITY enforced. |
+| `444r` | `arif_reply_compose` | AGI | reflect | Compose governed responses. F04 CLARITY enforced — no hidden intent. |
+| `555` | `arif_memory_recall` | AGI | trace | Long-term constitutional memory. Session-scoped or cross-session recall. |
+| `666` | `arif_heart_critique` | ASI | critique | Safety and empathy critique. F05 PEACE, F06 EMPATHY, F09 ANTIHANTU enforcement. |
+| `666g` | `arif_gateway_connect` | ASI | boundary | A2A mesh handshake with other federation agents. F11 AUTH verified. Internal alias: `888_OMEGA`. |
+| `777` | `arif_ops_measure` | AGI | vitality | Thermodynamic health, cost, and entropy measurement. |
+| `888` | `arif_judge_deliberate` | ASI | judge | **The constitutional verdict engine.** Returns `SEAL` (proceed), `HOLD` (wait/missing evidence), or `VOID` (abort/floor breach). |
+| `010` | `arif_forge_execute` | AGI | execute | Gated action execution. Requires valid `judge_state_hash` from `arif_judge_deliberate`. F13 SOVEREIGN always active. |
+| `999` | `arif_vault_seal` | APEX | seal | Write the immutable outcome record to VAULT999. Irreversible. F01 AMANAH enforced. |
+| `444` | `arif_kernel_route` | AGI | boundary | Internal kernel routing and telemetry. Supports `intent` mode for cross-organ cognitive axis routing. |
 
 ### AI Agent Protocol Notes
 
