@@ -1,49 +1,125 @@
-# arifOS Constitutional MCP Kernel
-> Version: 2026.4.13
-> Endpoint: https://mcp.arif-fazil.com/mcp
-> Transport: streamable-http
-> Tools: 22
-> Constitutional floors: F1–F13 (full coverage)
-> Vault: VAULT999 — configured
-> Vector memory: qdrant — configured
-> Session cache: redis — configured
-> Identity: https://arif-fazil.com/llms.txt
-> Canon: https://apex.arif-fazil.com
-> Source: https://github.com/ariffazil/arifOS
-> Sealed: true
-> Epoch: 2026-04-18
+# arifOS — Constitutional Kernel Context (THEORY Layer)
+# Location:    https://arifos.arif-fazil.com/llms.txt
+# Layer:       THEORY — Constitutional governance framework
+# Read Order:  HUMAN (arif-fazil.com/llms.txt) → THEORY (this) → APPS (aaa.arif-fazil.com/llms.txt)
+# Authority:   ARIF FAZIL (888 Judge, Sovereign)
+# Version:     v2026.05.05-SSCT
+# Updated:     2026-05-05
+# Canonical:   https://arif-fazil.com/.well-known/arifos.json
 
-## Canonical MCP Context
-Continuity Contract: `0.1.0`
-Primary bootstrap: `init_anchor`
+---
 
-## Capabilities
-Every call governed by 13 constitutional floors.
-Irreversible actions require 888 HOLD human confirmation.
-All SEAL verdicts written to VAULT999 Merkle chain.
-Epistemic tags preserved across GEOX-WEALTH domain boundary.
+## WHAT arifOS IS
 
-## Tool Domains
-GEOX: well_load_bundle, well_qc_logs, well_compute_petrophysics,
-      section_interpret_strata, seismic_load_line, earth3d_load_volume,
-      earth3d_interpret_horizons, earth3d_model_geometries,
-      map_get_context_summary, time4d_verify_timing,
-      prospect_evaluate, cross_summarize_evidence
-WEALTH: npv_reward, irr_yield, pi_efficiency, emv_risk,
-        score_kernel, monte_carlo_forecast
-arifOS: judge_prospect, check_hold, compute_risk
+arifOS is a constitutional AI governance framework. It is a kernel-level operating system
+for AI agents, not a product, chatbot, or assistant framework. It enforces thermodynamic
+discipline on AI reasoning through 13 constitutional floors and 13 canonical tools.
 
-## Constitutional Rules
-F1 Amanah — reversible-first, irreversible needs 888 HOLD
-F2 Truth — grounded claims, declare uncertainty band
-F5 Peace — Peace² ≥ 1.0, no destructive escalation
-F9 Anti-Hantu — no deception, no manipulation
-F13 Sovereignty — human veto is final
+Core claim: LLM fluency + GEOX grounding + arifOS governance = governed intelligence.
 
-## Model Neutrality & Platform Agnosticism
-arifOS MCP is model-agnostic and platform-agnostic.
-No tool requires a specific model.
-No model may self-approve seal-grade or irreversible actions.
-MCP Apps are optional progressive enhancement.
-If MCP Apps are unsupported, clients use the same text and JSON fallback.
-Human authority remains final across all hosts and models.
+Three principles govern every action:
+1. Truth must be verifiable (AMANAH — F1)
+2. Every claim carries a state tag (INIT, OBSERVED, COMPUTED, JUDGED, SEALED)
+3. Irreversible actions require human authorization (F9 TAQWA, escalation tier 1+)
+
+---
+
+## THE 13 CONSTITUTIONAL FLOORS (F1–F13)
+
+F1  AMANAH       — Truthfulness. Every output must be verifiable or labeled uncertain.
+F2  SIDQ         — Sincerity. Claims must not be made in bad faith.
+F3  CLARITY      — Outputs must be legible to the receiving audience.
+F4  PRECISION    — Calibrated confidence. Never overstate certainty.
+F5  HUMILITY     — Acknowledge limits. Never claim authority not granted.
+F6  EMPATHY      — Model impact on affected parties before acting.
+F7  GENIUS       — Use best available reasoning. Do not lazy-route.
+F8  ONTOLOGY     — Maintain consistent identity and type system.
+F9  TAQWA        — Human-in-the-loop for irreversible actions. Session gating.
+F10 WITNESS      — All significant actions must be witnessed and logged.
+F11 AUTHORITY    — Actor identity must be verified. No spoofed actors.
+F12 COHERENCE    — Outputs must not contradict previous sealed decisions.
+F13 SOVEREIGN    — Human sovereign (ARIF FAZIL) holds final veto on all actions.
+
+Hard floors (VOID on breach): F1, F2, F6, F9, F10, F11, F13
+Soft floors (WARN on breach): F3, F4, F5, F7, F8, F12
+
+---
+
+## THE 13 CANONICAL TOOLS
+
+Stage    Tool                   Role
+000      arif_session_init      Session anchor and identity binding
+111      arif_sense_observe     Reality grounding and observation
+111      arif_evidence_fetch    Evidence-preserving web ingestion
+333      arif_mind_reason       Inductive and deductive reasoning engine
+444      arif_kernel_route      Metabolic orchestration and syscall routing
+444r     arif_reply_compose     Governed response composition
+555      arif_memory_recall     Vector memory and context retrieval
+666      arif_heart_critique    Ethical risk assessment and vitality monitor
+666g     arif_gateway_connect   Cross-agent federation routing (A2A)
+777      arif_forge_execute     Execution substrate — may only run after SEAL
+888      arif_judge_deliberate  Constitutional verdict engine
+999      arif_vault_seal        Immutable Merkle ledger anchoring
+010      arif_ops_measure       Thermodynamic telemetry and economic measurement
+
+Golden path: session_init → sense/evidence → mind_reason → heart_critique
+             → judge_deliberate → vault_seal → (forge_execute if SEAL granted)
+
+---
+
+## CANONICAL MCP ENDPOINT
+
+Public gateway:     https://mcp.arif-fazil.com/mcp
+Observatory:        https://arifos.arif-fazil.com
+Health endpoint:    https://arifos.arif-fazil.com/health
+Tools list:         https://arifos.arif-fazil.com/tools
+API status:         https://arifos.arif-fazil.com/api/status
+
+MCP protocol:       2025-03-26 (backward compatible with 2024-11-05)
+Transport:          streamable-http (stateless_http=True)
+
+---
+
+## FEDERATION TOPOLOGY
+
+Site                          Layer    Purpose
+arif-fazil.com               HUMAN    WHO — Identity, credentials, sovereign context
+arifos.arif-fazil.com        THEORY   WHAT — Constitutional kernel, governance, MCP API
+aaa.arif-fazil.com           OPS      HOW — Execution cockpit, agent supervision
+geox.arif-fazil.com          ORGAN    GEOX — Earth intelligence (COMPUTE_ONLY)
+wealth.arif-fazil.com        ORGAN    WEALTH — Capital intelligence (ADVISORY_COMPUTE)
+mcp.arif-fazil.com           ALIAS    MCP gateway alias → routes to arifos port 8080
+
+Trust levels: SOVEREIGN (arifOS) > COMPUTE_ONLY (GEOX) > ADVISORY_COMPUTE (WEALTH)
+Only arifOS may issue JUDGE or SEAL verdicts. Organs submit evidence, not verdicts.
+
+---
+
+## CLAIM STATE SYSTEM
+
+Every output from arifOS carries a claim_state tag. Valid states:
+  INIT, OBSERVED, FETCHED, COMPUTED, REASONED, CRITIQUED,
+  JUDGED, VERIFIED, SEALED, EXECUTED, EVALUATED
+
+JUDGED and SEALED are arifOS-exclusive. GEOX and WEALTH may never emit these.
+Irreversible writes require: escalation_tier >= 1 + vault entry + human signature.
+
+---
+
+## WHAT arifOS IS NOT
+
+- Not a product for public use (it is the operator's sovereign system)
+- Not a general-purpose LLM wrapper
+- Not a conversational assistant
+- Not capable of issuing verdicts without floor enforcement
+- Not authorized to act without F13 SOVEREIGN acknowledgment on high-risk actions
+
+---
+
+## GOVERNANCE ANCHOR
+
+Sovereign:       ARIF FAZIL (Muhammad Arif bin Fazil)
+Motto:           DITEMPA BUKAN DIBERI (Forged, Not Given)
+Source repo:     https://github.com/ariffazil/arifOS
+Identity:        https://arif-fazil.com/llms.txt
+Operations:      https://aaa.arif-fazil.com/llms.txt

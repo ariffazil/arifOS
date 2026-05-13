@@ -1,0 +1,20 @@
+{
+  "name": "arifOS Constitutional MCP Kernel",
+  "version": "2026.04.26-KANON",
+  "description": "arifOS Constitutional AI Governance Kernel — 13-Floor F1-F13 enforcement, VAULT999 sealed ledger, MCP 13-tool protocol",
+  "endpoint": "https://mcp.arif-fazil.com/mcp",
+  "capabilities": {
+    "tools": true,
+    "resources": true,
+    "prompts": true,
+    "streaming": true
+  },
+  "schemas": {
+    "mcp": "https://modelcontextprotocol.io/specification/2025-03-26",
+    "a2a": "https://github.com/modelcontextprotocol/specification/blob/main/src/@modelcontextprotocol/server-nextjs/example/"
+  },
+  "verdict": ["SEAL", "PROCEED", "SABAR", "HOLD", "PARTIAL", "VOID"],
+  "floors": 13,
+  "mcp_server": "https://mcp.arif-fazil.com",
+  "a2a_agent_card": "https://arifos.arif-fazil.com/a2a/discovery"
+}

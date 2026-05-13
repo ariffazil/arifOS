@@ -1,0 +1,7 @@
+{
+  "name": "arif",
+  "version": "1.0",
+  "last_updated": "2026-04-04",
+  "repository": "https://github.com/ariffazil/arif-sites",
+  "deploy_doctrine": "VPS-nginx source-of-truth, CF as CDN proxy only"
+}

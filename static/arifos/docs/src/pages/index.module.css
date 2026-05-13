@@ -1,0 +1,71 @@
+.hero {
+  padding: 4rem 0 3rem;
+  background:
+    radial-gradient(900px 450px at 12% 20%, rgba(26, 163, 255, 0.20), transparent 55%),
+    radial-gradient(700px 350px at 90% 10%, rgba(255, 209, 0, 0.16), transparent 55%),
+    radial-gradient(700px 350px at 70% 85%, rgba(255, 45, 45, 0.12), transparent 55%);
+}
+
+.title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.02em;
+  margin: 0 0 0.75rem;
+  color: #ffffff;
+}
+
+.tagline {
+  max-width: 60ch;
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1rem;
+  padding: 0 0 3rem;
+  justify-items: stretch;
+}
+
+/* If `.grid` is applied to a wrapping <section> that contains a Docusaurus `.container`,
+   ensure the container spans the full 12-column grid (prevents ultra-narrow cards). */
+.grid > :global(.container) {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.card {
+  grid-column: span 12;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+  padding: 1.1rem 1.1rem 1.2rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0)),
+    radial-gradient(400px 240px at 12% 20%, rgba(26, 163, 255, 0.10), transparent 55%),
+    radial-gradient(380px 220px at 85% 0%, rgba(255, 209, 0, 0.08), transparent 55%),
+    radial-gradient(380px 220px at 70% 85%, rgba(255, 45, 45, 0.06), transparent 55%);
+}
+
+.card h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+}
+
+.card p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+@media (min-width: 900px) {
+  .card {
+    grid-column: span 4;
+  }
+}

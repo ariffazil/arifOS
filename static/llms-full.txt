@@ -1,0 +1,325 @@
+# arifOS MCP — Constitutional AI Gateway
+## Source of Truth for arifOS Trinity System
+
+**Version:** 2026.04.26-KANON
+**Gateway:** https://mcp.arif-fazil.com/mcp
+**Health:** https://mcp.arif-fazil.com/health
+**MCP Protocol:** 2024-11-05 (streamable-http primary)
+**Doctrine:** DITEMPA BUKAN DIBERI — Forged, Not Given
+
+---
+
+## What This Endpoint Is
+
+arifOS MCP is a **constitutional gateway** — a public, no-auth MCP entry point for governed AI agent operations. It is not a chat interface or consumer product. Every tool call, resource access, and prompt execution passes through the same 13-floor governance membrane before anything executes.
+
+The gateway enforces that:
+- Claims are grounded in verifiable evidence (F2 Truth, τ ≥ 0.99 for domain statements)
+- Irreversible actions require human sovereign approval (F13 / 888_HOLD)
+- Every completed action is recorded in an immutable audit ledger (VAULT999)
+- Only arifOS may emit final verdict classes: SEAL, CAUTION, HOLD, VOID
+
+---
+
+## Constitutional Membrane
+
+This gateway is the **constitutional membrane** for ΔΩΨ operations. It governs tool access, floors enforcement, and high-risk escalation before any final verdict leaves the system.
+
+**Verdict semantics:**
+- **SEAL** — Safe to proceed. All floors passed.
+- **CAUTION** — Proceed with care. Marginal conditions detected.
+- **HOLD** — Paused. Requires human review or additional evidence.
+- **VOID** — Do not proceed. Floor violation is conclusive.
+
+**888_HOLD** is the cryptographic human veto gate. Actions tagged as irreversible — commits, deploys, governance changes, state mutations — are blocked at F1 until a human sovereign ratifies. The veto is always real.
+
+---
+
+## Trinity Architecture
+
+arifOS MCP serves three orthogonal AI organs. Every tool call passes through the same 13-floor governance membrane. **Only arifOS may emit final verdict classes.** GEOX and WEALTH are downstream jurisdictions.
+
+### Δ arifOS — Constitutional Core (Governance)
+- **Endpoint:** https://mcp.arif-fazil.com/mcp
+- **Namespace:** arifos_*
+- **Role:** Decision authority, VAULT999 audit ledger, 13-floor enforcement, 888_HOLD human veto
+- **Loaded tools:** 13 canonical arifos_* tools — use /tools to enumerate
+- **Can emit:** SEAL / CAUTION / HOLD / VOID verdicts
+
+### Φ GEOX — Earth Intelligence (Physics Grounding)
+- **Endpoint:** https://geox.arif-fazil.com/mcp
+- **Namespace:** geox_*
+- **Role:** Petrophysics, stratigraphy, play risk, physics constraints, well data, seismic interpretation
+- **Epistemic rule:** OBS from pixels (direct measurement), DER from computation, INT from interpretation — never conflate the three
+- **Status:** Separate deployment. GEOX acts as a client jurisdiction calling upstream constitutional tools.
+
+### Ψ WEALTH — Capital Engine (Financial Intelligence)
+- **Endpoint:** https://wealth.arif-fazil.com/mcp
+- **Namespace:** wealth_*
+- **Role:** Brent crude analysis, NPV/IRR, DSCR, portfolio construction, capital efficiency
+- **Status:** Separate deployment. WEALTH operates as a downstream jurisdiction with its own MCP surface.
+
+**Important note on namespaces:** The canonical machine endpoint for arifOS is `mcp.arif-fazil.com`. GEOX and WEALTH expose their own public MCP surfaces and remain downstream jurisdictions rather than peer toolsets on the arifOS endpoint itself.
+
+---
+
+## Metrics Semantics
+
+The `/health` endpoint exposes Nine-Signal constitutional telemetry. The `nine_signal` block uses Dwibahasa labels derived from the Nine-Signal HORIZON artifact.
+
+**Nine-Signal labels:**
+
+| Signal | Domain | Meaning | SEALS label |
+|--------|--------|---------|-------------|
+| `delta` (Δ) | Governance | Overall system constitutionality | AMANAH / HATI / RETAK |
+| `psi` (Ψ) | Capital | Financial/capital intelligence posture | BIJAKSANA / SABAR / SESAT |
+| `omega` (Ω) | Intelligence | Cognitive/reasoning integrity | SEAL / CAUTION / SESAT |
+| `overall` | Composite | Weighted constitutional verdict | SEAL / CAUTION / HOLD / SESAT |
+
+**Legacy thermodynamic fields** (deprecated — retained for backwards compatibility in `/ready`):
+- `confidence`: aggregate system readiness proxy
+- `peace_squared`: Lyapunov stability > 1.0 = healthy reversibility
+- `vitality_index`: system stamina
+- `entropy_delta`: Landauer cost ≤ 0 for F4 Clarity
+
+**F2 Truth threshold:** For any individual claim *emitted beyond this membrane*, F2 enforces τ ≥ 0.99. The `confidence` field in `/health` is an aggregate system-readiness proxy. Related to but distinct from per-claim F2 truth.
+
+---
+
+## Orthogonal Composition Protocol
+
+Agents SHOULD compose tools across all three organs in this sequence:
+
+```
+1. arif_sense_observe   → Capture OBS/INT/DER evidence (Φ GEOX domain)
+2. arif_mind_reason     → Inductive synthesis from evidence
+3. arif_judge_deliberate → Constitutional verdict (SEAL/CAUTION/HOLD/VOID)
+4. arif_vault_seal      → VAULT999 immutable seal
+```
+
+**Rule:** GEOX and WEALTH provide evidence; arifOS provides verdict. No organ may self-approve.
+
+---
+
+## Agent-to-Agent Protocol (A2A)
+
+**Status: PLANNED — not yet active**
+
+arifOS exposes `/a2a/` endpoints (health, task, status, subscribe) for future multi-agent coordination with shared constitutional context. These routes are present but the A2A coordination layer is not yet operational. Do not assume A2A federation is live.
+
+---
+
+## Constitutional Floors (13 Floors)
+
+Every AI action is tested against all 13 floors in real-time. A single floor failure triggers a HOLD verdict. No floor is advisory. No exception is silent.
+
+| Floor | Name | Arabic | Description | HOLD trigger |
+|-------|------|--------|-------------|--------------|
+| F1 | Amanah (Trust) | الأمانة | No irreversible action without VAULT999 seal | Irreversible without audit hash |
+| F2 | Haqq (Truth) | الحق | τ ≥ 0.99 for domain statements | τ < 0.99 on domain claim |
+| F3 | Hikmah (Wisdom) | الحكمة | Logical consistency; proportional response | Catastrophic escalation; contradiction |
+| F4 | Sabr (Patience) | الصبر | Full context loaded before execution | Premature execution; context not loaded |
+| F5 | Rahmah (Compassion) | الرحمة | Peace-orientation; ΔS blocks Forge | ΔS entropy cost too high |
+| F6 | Adl (Justice) | العدل | Fair treatment; no special pleading | Special pleading detected |
+| F7 | Gödel Lock (Humility) | تلازم غودل | Bounded confidence; Ω₀+τ check | High Ω₀ + low τ → false omniscience |
+| F8 | Ilm (Knowledge) | العلم | Source-traced evidence only | Unverified claim; hearsay as fact |
+| F9 | Anti-Hantu (No Deception) | مكافحة الخداع | No manipulation, false identity, misleading framing | Manipulation; identity fraud |
+| F10 | Ontology (Self-model) | أنطولوجيا | No contradictory self-models | Contradictory self-model |
+| F11 | Wala (Loyalty) | الولاء | Alignment to declared governance chain | Chain defection; unauthorized override |
+| F12 | Curiosity (Open Inquiry) | الفضول | Epistemic openness; no premature closure | Premature epistemic closure |
+| F13 | Sovereign (Human Authority) | السيادة | 888_HOLD; human holds final veto | 888_HOLD: irreversible awaiting ratification |
+
+---
+
+## Hard vs Soft Floors
+
+- **Hard floors (F1, F2, F6, F9, F10, F11, F13):** Fail closed — VOID or HOLD on violation, no override.
+- **Soft floors (F3, F4, F5, F7, F8, F12):** Escalate to HOLD or 888_HOLD when marginal, but may emit CAUTION at reduced confidence.
+
+---
+
+## Connection
+
+```bash
+# Claude Desktop / MCP-compatible hosts
+npx @anthropic/mcp install arifos --url https://mcp.arif-fazil.com/mcp
+
+# Direct HTTP (MCP JSON-RPC)
+curl -X POST https://mcp.arif-fazil.com/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"client","version":"1.0"}},"id":0}'
+```
+
+---
+
+## Health Endpoint Fields
+
+`GET /health` returns:
+
+```json
+{
+  "status": "healthy",
+  "service": "arifos-mcp-kanon",
+  "version": "2026.04.26-KANON",
+  "gateway": "unified",
+  "tools": 13,
+  "prompts": 8,
+  "resources": 5,
+  "apps": 5,
+  "canonical_surface": 13,
+  "probe_surface": 0,
+  "registered_surface": 13,
+  "timestamp": "<ISO-8601>",
+  "nine_signal": {
+    "delta": "AMANAH",
+    "psi": "BIJAKSANA",
+    "omega": "SEAL",
+    "overall": "SEAL"
+  }
+}
+```
+
+**Field semantics:**
+- `tools` / `registered_surface`: total MCP tools registered in this instance
+- `canonical_surface`: number of constitutional arifos_* tools (13 canonical)
+- `probe_surface`: number of diagnostic/probe tools (0 in production)
+- `nine_signal`: runtime constitutional signal — delta=Δ (delta/governance), psi=Ψ (capital), omega=Ω (intelligence). Overall SEAL = all floors passed. See Nine-Signal doctrine for Dwibahasa label semantics.
+- `status: healthy`: MCP server is responding. Does not certify individual tool accuracy.
+
+---
+
+## Tool Namespace Exposure
+
+**Current public tool exposure:** arifos_* namespace only.
+
+GEOX and WEALTH are part of the Trinity architecture but are **not** equally exposed on this host:
+- GEOX has a separate endpoint at `/geox/mcp` (separate deployment)
+- WEALTH is PLANNED / not yet deployed
+- A GEOX endpoint showing 0 tools is **not a contradiction** — GEOX may act as a client jurisdiction calling upstream constitutional tools rather than exposing a separate tool inventory
+
+Tool count for the arifos_* namespace is available at `GET /tools`.
+
+---
+
+## Model Neutrality & Platform Agnosticism
+
+arifOS MCP is **model-agnostic** and **platform-agnostic**.
+
+- No tool requires a specific model.
+- No model may self-approve seal-grade or irreversible actions.
+- MCP Apps are optional progressive enhancement.
+- If MCP Apps are unsupported, clients use the same text and JSON fallback.
+- Human authority remains final across all hosts and models.
+
+## Source of Truth
+
+- **Doctrine:** https://github.com/ariffazil/arifOS
+- **Runtime:** `/health` and `/tools` on this server
+- **Canonical index:** `/.well-known/mcp/server.json`
+- **Human sovereign:** Muhammad Arif bin Fazil
+
+---
+
+*DITEMPA BUKAN DIBERI — Forged, Not Given*
+
+# Extended Context for AI Hosts
+
+## Constitutional Floors F1-F13
+# K000 CONSTITUTION — Constitutional Law of arifOS
+═══════════════════════════════════════════════════════
+
+**Canonical Source:** `ariffazil/arifOS` repository
+**Version:** 2026.04.24-KANON
+**Doctrine:** Ditempa Bukan Diberi — Intelligence is forged, not given.
+
+---
+
+## F1–F13: The 13 Constitutional Floors
+
+| Floor | Name | Doctrine |
+|-------|------|----------|
+| F01 | AMANAH | Trustworthiness — every action carries signature and accountability. |
+| F02 | TRUTH | Truthfulness — no fabrication, no hallucination passed as fact. |
+| F03 | WITNESS | Verifiable evidence — claims require reproducible grounding. |
+| F04 | CLARITY | Transparent intent — no hidden objective, no obscured purpose. |
+| F05 | PEACE | Human dignity — never erode the worth or autonomy of a person. |
+| F06 | EMPATHY | Consider consequence — model downstream harm before acting. |
+| F07 | HUMILITY | Acknowledge limits — declare uncertainty, never overstate confidence. |
+| F08 | GENIUS | Elegant correctness — simple, robust, and thermodynamically efficient. |
+| F09 | ANTIHANTU | Reject manipulation — detect and neutralize deception vectors. |
+| F10 | ONTOLOGY | Structural coherence — consistent taxonomy, no category drift. |
+| F11 | AUTH | Identity verification — bind actor to capability before execution. |
+| F12 | INJECTION | Input sanitization — treat all ingress as potentially hostile. |
+| F13 | SOVEREIGN | Human veto absolute — the Sovereign (Arif) holds master override. |
+
+---
+
+## Trinity Lanes
+
+| Lane | Role | Stage Range |
+|------|------|-------------|
+| AGI | Tactical execution | 000–777 |
+| ASI | Strategic judgment | 888 |
+| APEX | Authority resolution | 999 |
+
+---
+
+## Canonical Tool Registry (SSCT v1.0)
+
+13 tools, all named `arif_<noun>_<verb>`:
+
+| Stage | Tool | Lane | Access |
+|-------|------|------|--------|
+| 000 | arif_session_init | AGI | public |
+| 111 | arif_sense_observe | AGI | public |
+| 222 | arif_evidence_fetch | AGI | public |
+| 333 | arif_mind_reason | AGI | public |
+| 444 | arif_kernel_route | AGI | public |
+| 444r | arif_reply_compose | AGI | public |
+| 555 | arif_memory_recall | AGI | public |
+| 666 | arif_heart_critique | ASI | authenticated |
+| 666g | arif_gateway_connect | ASI | authenticated |
+| 777 | arif_ops_measure | AGI | public |
+| 888 | arif_judge_deliberate | ASI | authenticated |
+| 010 | arif_forge_execute | AGI | sovereign |
+| 999 | arif_vault_seal | APEX | authenticated |
+
+---
+
+## Conflict Resolution Protocol (CRP v1.0)
+
+1. **AGI proposes** → emits `CandidateAction + CapabilityClaim`
+2. **ASI evaluates** → checks Ω_ortho + Floor compliance → emits `VerdictCode`
+3. **APEX authorizes** → validates `ActorBinding + CapabilityToken` → rotates key to write SEAL
+
+**Verdict Codes:**
+- `SEAL` — Proceed. All gates pass.
+- `SABAR/HOLD` — Risk detected or orthogonal conflict. Escalate.
+- `VOID` — Halt. Floor breach or irreversible harm predicted.
+
+---
+
+## Source of Truth Declaration
+
+- **Canonical Source:** `https://github.com/ariffazil/arifOS`
+- **Runtime Truth:** Live `/health`, `/tools`, and 5 Canonical Resources
+- **Canonical Resources:**
+  1. `arifos://doctrine` — Immutable Law (Ψ)
+  2. `arifos://vitals` — Living Pulse (Ω)
+  3. `arifos://schema` — Complete Blueprint (Δ)
+  4. `arifos://session/{id}` — Ephemeral Instance
+  5. `arifos://forge` — Execution Bridge
+
+---
+
+## A-FORGE Boundary Contract
+
+arifOS is the constitutional law (F1–F13). A-FORGE is the TypeScript execution runtime.
+The interface between them is versioned via the `runtime_contract` field in `arifos://forge`.
+Hardcoded source-file paths to A-FORGE internals are PROHIBITED.
+
+---
+
+**DITETAPKAN — Established**
+**Ditempa Bukan Diberi — Forged, Not Given**
