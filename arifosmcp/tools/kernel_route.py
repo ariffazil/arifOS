@@ -13,6 +13,7 @@ import concurrent.futures
 import time
 from typing import Any
 
+from arifosmcp.core.federation_contracts import validate_organ_output
 from arifosmcp.runtime.floors import check_floors
 from arifosmcp.runtime.tools import _hold, _ok
 
@@ -163,13 +164,16 @@ async def _bridge_organ_call(
 
         try:
             result = await call_geox_tool(tool_name, arguments or {})
+            validated = validate_organ_output("geox", result)
             return _ok(
                 "arif_kernel_route",
                 {
                     "organ": "GEOX",
                     "tool": tool_name,
-                    "result": result,
+                    "result": validated["output"],
                     "status": "bridged",
+                    "boundary_enforced": validated["boundary_enforced"],
+                    "violations": validated["violations"],
                 },
             )
         except Exception as e:
@@ -180,13 +184,16 @@ async def _bridge_organ_call(
 
         try:
             result = await call_wealth_tool(tool_name, arguments or {})
+            validated = validate_organ_output("wealth", result)
             return _ok(
                 "arif_kernel_route",
                 {
                     "organ": "WEALTH",
                     "tool": tool_name,
-                    "result": result,
+                    "result": validated["output"],
                     "status": "bridged",
+                    "boundary_enforced": validated["boundary_enforced"],
+                    "violations": validated["violations"],
                 },
             )
         except Exception as e:
@@ -213,9 +220,11 @@ def _route_by_axis(
         → returns well_compute_metabolic_flux, well_assess_metabolism, etc.
     """
     try:
-        from arifosmcp.core.tool_self_model import CognitiveAxis, COGNITIVE_AXIS_VECTORS
+        from arifosmcp.core.tool_self_model import COGNITIVE_AXIS_VECTORS, CognitiveAxis
     except ImportError:
-        return _ok("arif_kernel_route", {"axis": axis, "tools": [], "note": "CognitiveAxis not available"})
+        return _ok(
+            "arif_kernel_route", {"axis": axis, "tools": [], "note": "CognitiveAxis not available"}
+        )
 
     # Normalise axis string to enum
     axis_upper = axis.upper().strip()
@@ -226,6 +235,7 @@ def _route_by_axis(
 
     # Query the tool self-model for tools matching this axis
     from arifosmcp.core.tool_self_model import get_tool_self_model
+
     model = get_tool_self_model()
     all_entries = model.list_all()
 
@@ -239,32 +249,43 @@ def _route_by_axis(
             continue
 
         coord = COGNITIVE_AXIS_VECTORS.get(axis_enum, (0.5, 0.5))
-        matches.append({
-            "tool_id": man.tool_id,
-            "domain": man.domain,
-            "axis": ca.value,
-            "epistemic_certainty": coord[0],
-            "action_potential": coord[1],
-            "description": man.description[:80],
-            "exposed": getattr(man, "expose", False),
-        })
+        matches.append(
+            {
+                "tool_id": man.tool_id,
+                "domain": man.domain,
+                "axis": ca.value,
+                "epistemic_certainty": coord[0],
+                "action_potential": coord[1],
+                "description": man.description[:80],
+                "exposed": getattr(man, "expose", False),
+            }
+        )
 
     if not matches:
-        return _ok("arif_kernel_route", {
+        return _ok(
+            "arif_kernel_route",
+            {
+                "axis": axis,
+                "domain": domain,
+                "tools": [],
+                "note": "No tools found for this axis/domain combination",
+            },
+        )
+
+    return _ok(
+        "arif_kernel_route",
+        {
             "axis": axis,
             "domain": domain,
-            "tools": [],
-            "note": "No tools found for this axis/domain combination",
-        })
-
-    return _ok("arif_kernel_route", {
-        "axis": axis,
-        "domain": domain,
-        "intent": intent,
-        "tool_count": len(matches),
-        "tools": matches,
-        "coordinate": {"x": COGNITIVE_AXIS_VECTORS[axis_enum][0], "y": COGNITIVE_AXIS_VECTORS[axis_enum][1]},
-    })
+            "intent": intent,
+            "tool_count": len(matches),
+            "tools": matches,
+            "coordinate": {
+                "x": COGNITIVE_AXIS_VECTORS[axis_enum][0],
+                "y": COGNITIVE_AXIS_VECTORS[axis_enum][1],
+            },
+        },
+    )
 
 
 def _check_contradicted_tools(tool_id: str | None = None) -> dict[str, Any]:

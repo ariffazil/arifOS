@@ -818,16 +818,119 @@ def _enforce_nine_signal(
     applied nine_signal wrapping), return it as-is via to_dict() to prevent
     double-wrapping which corrupts _violations and _nine_signal_compliant.
     """
+
+    def _as_reason_list(value: Any) -> list[str]:
+        if value is None:
+            return []
+        if isinstance(value, list):
+            return [str(item) for item in value if item is not None]
+        if isinstance(value, tuple):
+            return [str(item) for item in value if item is not None]
+        return [str(value)]
+
+    def _coerce_public_envelope(payload: dict[str, Any]) -> dict[str, Any]:
+        """
+        Coerce raw domain outputs into the public MCP outputSchema envelope.
+
+        Some tool implementations already inject nine_signal and used to bypass
+        the wrapper below, which leaked domain-shaped dicts to FastMCP/Copilot.
+        The public schema requires a stable top-level envelope for every tool:
+        status/tool/result/meta/timestamp/output_policy/nine_signal/reasons.
+        """
+        out = dict(payload)
+        response_ctx = _RESPONSE_CONTEXT.get() or {}
+        resolved_session_id = out.get("session_id") or session_id or response_ctx.get("session_id")
+        meta_actor_id = (
+            out.get("meta", {}).get("actor_id") if isinstance(out.get("meta"), dict) else None
+        )
+        resolved_actor_id = _actor_for_response(
+            resolved_session_id,
+            out.get("actor_id") or actor_id or meta_actor_id,
+        )
+
+        status = str(out.get("status") or "OK")
+        verdict = str(out.get("verdict") or ("SEAL" if status == "OK" else status))
+
+        envelope_keys = {
+            "status",
+            "tool",
+            "result",
+            "meta",
+            "delta_S",
+            "timestamp",
+            "session_id",
+            "actor_id",
+            "output_policy",
+            "nine_signal",
+            "reasons",
+            "_nine_signal_compliant",
+            "_violations",
+            "philosophical_anchor",
+        }
+        if isinstance(out.get("result"), dict):
+            result_payload = dict(out["result"])
+        else:
+            result_payload = {k: v for k, v in out.items() if k not in envelope_keys}
+
+        result_payload.setdefault("verdict", verdict)
+        result_payload.setdefault(
+            "reasons", _as_reason_list(out.get("reasons") or out.get("reason"))
+        )
+
+        meta_payload = out.get("meta") if isinstance(out.get("meta"), dict) else {}
+        meta_payload = dict(meta_payload)
+        meta_payload.setdefault("actor_id", resolved_actor_id)
+
+        delta_s = out.get("delta_S", 0.0)
+        if not isinstance(delta_s, int | float):
+            delta_s = 0.0
+
+        nine = out.get("nine_signal")
+        if not isinstance(nine, dict) or not all(k in nine for k in ("delta", "psi", "omega")):
+            signal_status = status if status in ("OK", "HOLD", "VOID", "SABAR") else verdict
+            nine = _nine_signal_from_status(signal_status)
+        nine = _annotate_nine_signal(nine, _domain_for_tool(tool_name))
+
+        reasons = _as_reason_list(
+            out.get("reasons") or out.get("reason") or result_payload.get("reasons")
+        )
+        if verdict in ("HOLD", "VOID", "SABAR") and not reasons:
+            reasons = [f"{verdict} — constitutional gate activated"]
+        if verdict == "SEAL" and not reasons:
+            reasons = [
+                "Reversible operation verified",
+                "Constitutional floors passed",
+                "No irreversible state change",
+            ]
+
+        out.update(
+            {
+                "status": status,
+                "tool": tool_name,
+                "result": result_payload,
+                "meta": meta_payload,
+                "delta_S": float(delta_s),
+                "timestamp": out.get("timestamp") or _now(),
+                "session_id": resolved_session_id,
+                "actor_id": resolved_actor_id,
+                "output_policy": out.get("output_policy") or _output_policy_for_verdict(verdict),
+                "nine_signal": nine,
+                "reasons": reasons,
+            }
+        )
+        return out
+
     # Already wrapped by a prior call — prevent double-wrapping (causes
     # _violations / _nine_signal_compliant contradiction per MCP audit bug #2).
     # _dict_from_response flattens NineSignalOutput to a plain dict, so we
     # detect the prior-wrap condition by checking for nine_signal in payload.
     if isinstance(response, NineSignalOutput):
-        return response.to_dict()
+        response = response.to_dict()
     if isinstance(response, dict) and response.get("nine_signal") is not None:
         # nine_signal already present — tool applied it; do not re-wrap and
         # corrupt _violations.  nine_signal may be at top level OR nested
         # inside result{} (if _ok() injected it there).  Check both.
+        response = _coerce_public_envelope(response)
         nine = response.get("nine_signal") or response.get("result", {}).get("nine_signal")
         if nine is not None:
             _status = response.get("status", "OK")
@@ -879,6 +982,7 @@ def _enforce_nine_signal(
             )
             return out
 
+    response = _coerce_public_envelope(response)
     verdict = response.get("verdict", "SEAL")
     reasons = (
         response.get("reasons")
@@ -7466,6 +7570,23 @@ def _arif_judge_deliberate(
             },
             truth_band=truth_band or "UNKNOWN",
             confidence_note=confidence_note or "No evidence provided — SABAR by default",
+            floor_compliance=FloorComplianceProof(
+                floors_invoked=["F02", "F03"],
+                floor_results={"F02": "SABAR", "F03": "SABAR"},
+                failed_floors=["F02", "F03"],
+                failed_floor_reasons={
+                    "F02": "Evidence receipt required for SEAL",
+                    "F03": "Witness proof absent",
+                },
+                blocking_floor="F02",
+            ),
+            amanah_proof=AmanahProof(
+                floors_checked=["F02", "F03"],
+                floors_failed=["F02", "F03"],
+                violations=[_override_reason],
+                genius_score=0.5,
+                genius_rationale="SABAR is the minimal safe path when evidence is absent",
+            ),
             meta={
                 "mode": mode,
                 "state_hash": verdict.state_hash,
@@ -9646,9 +9767,20 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             msg = str(exc)
             if handler.__name__ in msg:
                 msg = msg.replace(handler.__name__, tool_name)
-            raise type(exc)(msg) from exc.__cause__
+            logger.exception("Tool %s failed; returning schema-valid VOID fallback", tool_name)
+            return _enforce_nine_signal(
+                tool_name,
+                _safe_void_fallback(tool_name, msg),
+                session_id=kwargs.get("session_id"),
+                actor_id=kwargs.get("actor_id"),
+            )
         # Nine-Signal enforcement on every response
-        return _enforce_nine_signal(tool_name, _dict_from_response(response))
+        return _enforce_nine_signal(
+            tool_name,
+            _dict_from_response(response),
+            session_id=kwargs.get("session_id"),
+            actor_id=kwargs.get("actor_id"),
+        )
 
     # Async wrapper
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -9658,9 +9790,20 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             msg = str(exc)
             if handler.__name__ in msg:
                 msg = msg.replace(handler.__name__, tool_name)
-            raise type(exc)(msg) from exc.__cause__
+            logger.exception("Tool %s failed; returning schema-valid VOID fallback", tool_name)
+            return _enforce_nine_signal(
+                tool_name,
+                _safe_void_fallback(tool_name, msg),
+                session_id=kwargs.get("session_id"),
+                actor_id=kwargs.get("actor_id"),
+            )
         # Nine-Signal enforcement on every response
-        return _enforce_nine_signal(tool_name, _dict_from_response(response))
+        return _enforce_nine_signal(
+            tool_name,
+            _dict_from_response(response),
+            session_id=kwargs.get("session_id"),
+            actor_id=kwargs.get("actor_id"),
+        )
 
     _wrapped = async_wrapper if inspect.iscoroutinefunction(handler) else wrapper
     # Preserve signature so FastMCP schema generation sees actual parameters

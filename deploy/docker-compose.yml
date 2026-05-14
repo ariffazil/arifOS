@@ -12,7 +12,7 @@ services:
 
   # ── PLANE 1: GOVERNANCE ─────────────────────────────────────────────
   arifosmcp:
-    image: ghcr.io/ariffazil/arifos:c55ba6e
+    image: ghcr.io/ariffazil/arifos:2d27e464
     container_name: arifosmcp
     init: true
     restart: unless-stopped
@@ -354,7 +354,7 @@ services:
       start_period: 10s
   # ── WELL: Biological Substrate ─────────────────────────────────────────
   well:
-    image: ghcr.io/ariffazil/well:535fc15
+    image: ghcr.io/ariffazil/well:federation-output
     container_name: well
     init: true
     restart: unless-stopped

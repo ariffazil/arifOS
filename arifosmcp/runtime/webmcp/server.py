@@ -56,6 +56,35 @@ from .session import WebSessionManager
 logger = logging.getLogger(__name__)
 
 
+# ── No-op fallbacks for when Redis is unavailable ─────────────────────────────
+class _NoOpSessionManager:
+    """Fallback session manager when Redis is offline. Sessions are ephemeral."""
+
+    def __init__(self, config: Any):
+        self.config = config
+
+    async def mint_session(self, actor_id: str, **kwargs: Any) -> Any:
+        from .session import WebSession
+
+        return WebSession(session_id="NO_REDIS_EPHEMERAL", actor_id=actor_id)
+
+    async def get_session(self, session_id: str) -> Any | None:
+        return None
+
+    async def revoke_session(self, session_id: str) -> bool:
+        return True
+
+
+class _NoOpRateLimiter:
+    """Fallback rate limiter when Redis is offline. All requests allowed."""
+
+    def __init__(self, config: Any):
+        self.config = config
+
+    async def check_rate_limit(self, key: str) -> tuple[bool, dict[str, Any]]:
+        return True, {"allowed": True, "remaining": 9999, "window": 60, "limit": 100}
+
+
 def _utcnow() -> datetime:
     return datetime.now(UTC)
 
@@ -98,13 +127,27 @@ class WebMCPGateway:
             description="AI-governed WebMCP environment with 13 Constitutional Floors",
         )
 
-        # Initialize components
-        self.redis = redis.from_url(
-            os.getenv("REDIS_URL", "redis://localhost:6379"), decode_responses=True
+        # Initialize components (resilient to Redis failure)
+        try:
+            redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+            if not redis_url or not redis_url.startswith(("redis://", "rediss://", "unix://")):
+                redis_url = "redis://localhost:6379"
+            self.redis = redis.from_url(redis_url, decode_responses=True)
+        except Exception as exc:
+            logger.warning(
+                f"Redis unavailable for WebMCP: {exc}. Sessions and rate limiting disabled."
+            )
+            self.redis = None
+
+        self.session_manager = (
+            WebSessionManager(self.redis, self.config)
+            if self.redis
+            else _NoOpSessionManager(self.config)
         )
-        self.session_manager = WebSessionManager(self.redis, self.config)
         self.injection_guard = WebInjectionGuard()
-        self.rate_limiter = RateLimiter(self.redis, self.config)
+        self.rate_limiter = (
+            RateLimiter(self.redis, self.config) if self.redis else _NoOpRateLimiter(self.config)
+        )
 
         # Setup
         self._setup_middleware()
