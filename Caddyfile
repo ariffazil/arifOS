@@ -19,7 +19,7 @@
 
 (shared_assets) {
 	handle /_shared/* {
-		root * /var/www/html/_shared
+		root * /var/www/html
 		file_server
 	}
 }
@@ -39,9 +39,13 @@ www.arif-fazil.com {
 
 arif-fazil.com {
 	import tls_origin
-	import shared_assets
 	encode zstd gzip
 	root * /var/www/html/arif
+
+	handle /_shared/* {
+		root * /var/www/html
+		file_server
+	}
 
 	@well-known path /.well-known/*
 	handle @well-known {

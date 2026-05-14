@@ -131,7 +131,10 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
                     session_id, "anonymous", False, "low", "mcp", "000_INIT"
                 )
             },
-            detail="No anchored session found. Diagnostic read is available; run arifos_init to unlock governed tools.",
+            detail=(
+                "No anchored session found. Diagnostic read is available; "
+                "run arifos_init to unlock governed tools."
+            ),
             hint="Call arifos_init with actor_id and intent to create a verified session.",
             retryable=True,
         )
@@ -285,9 +288,11 @@ async def init_anchor(
         return _status_envelope(_session_id, get_session_identity(_session_id))
 
     # ── F12: Injection Defense ──
+    # Score = 1.0 (clean) → 0.0 (fully compromised).
+    # Higher score = safer. Lower score = more injection patterns detected.
     _combined_input = str(f"{_dn} {_intent}").lower()
     _hits = sum(1 for p in _INJECTION_PATTERNS if p in _combined_input)
-    _injection_score = min(1.0, round(_hits / max(len(_INJECTION_PATTERNS), 1), 3))
+    _injection_score = round(1.0 - min(1.0, _hits / max(len(_INJECTION_PATTERNS), 1)), 3)
 
     # ── Gem 2: Philosophy Injection ──
     from arifosmcp.runtime.philosophy import AtlasScores, select_atlas_philosophy
