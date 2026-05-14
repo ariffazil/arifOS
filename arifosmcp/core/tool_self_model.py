@@ -38,35 +38,35 @@ class CognitiveAxis(str, Enum):
     Enables intent-based routing prior to domain resolution.
     """
 
-    IDENTITY = "identity"   # Who/what is this?
-    OBSERVE  = "observe"    # What is the raw state?
-    TRACE    = "trace"      # How did we get here?
-    BOUNDARY = "boundary"   # What are the limits?
-    VERIFY   = "verify"     # Is this true? [F2]
-    REASON   = "reason"     # What does this mean?
-    VITALITY = "vitality"   # Can we sustain?
-    REFLECT  = "reflect"    # Are we thinking right?
-    CRITIQUE = "critique"   # Is this ethical/coherent?
-    JUDGE    = "judge"      # What's the verdict?
-    SEAL     = "seal"       # Lock it in? [W_scar]
-    REPAIR   = "repair"     # Do we fix?
-    EXECUTE  = "execute"    # Do it?
+    IDENTITY = "identity"  # Who/what is this?
+    OBSERVE = "observe"  # What is the raw state?
+    TRACE = "trace"  # How did we get here?
+    BOUNDARY = "boundary"  # What are the limits?
+    VERIFY = "verify"  # Is this true? [F2]
+    REASON = "reason"  # What does this mean?
+    VITALITY = "vitality"  # Can we sustain?
+    REFLECT = "reflect"  # Are we thinking right?
+    CRITIQUE = "critique"  # Is this ethical/coherent?
+    JUDGE = "judge"  # What's the verdict?
+    SEAL = "seal"  # Lock it in? [W_scar]
+    REPAIR = "repair"  # Do we fix?
+    EXECUTE = "execute"  # Do it?
 
 
 COGNITIVE_AXIS_VECTORS: dict[CognitiveAxis, tuple[float, float]] = {
     CognitiveAxis.IDENTITY: (0.3, 0.1),
-    CognitiveAxis.OBSERVE:  (0.2, 0.0),
-    CognitiveAxis.TRACE:    (0.6, 0.1),
+    CognitiveAxis.OBSERVE: (0.2, 0.0),
+    CognitiveAxis.TRACE: (0.6, 0.1),
     CognitiveAxis.BOUNDARY: (0.5, 0.3),
-    CognitiveAxis.VERIFY:   (0.9, 0.2),
-    CognitiveAxis.REASON:   (0.4, 0.4),
+    CognitiveAxis.VERIFY: (0.9, 0.2),
+    CognitiveAxis.REASON: (0.4, 0.4),
     CognitiveAxis.VITALITY: (0.5, 0.5),
-    CognitiveAxis.REFLECT:  (0.3, 0.1),
+    CognitiveAxis.REFLECT: (0.3, 0.1),
     CognitiveAxis.CRITIQUE: (0.7, 0.3),
-    CognitiveAxis.JUDGE:    (0.8, 0.7),
-    CognitiveAxis.SEAL:     (1.0, 0.9),
-    CognitiveAxis.REPAIR:   (0.5, 0.6),
-    CognitiveAxis.EXECUTE:  (0.9, 1.0),
+    CognitiveAxis.JUDGE: (0.8, 0.7),
+    CognitiveAxis.SEAL: (1.0, 0.9),
+    CognitiveAxis.REPAIR: (0.5, 0.6),
+    CognitiveAxis.EXECUTE: (0.9, 1.0),
 }
 
 
@@ -161,7 +161,9 @@ class ToolManifest(BaseModel):
     # Visibility — somatic membrane gate
     expose: bool = Field(
         default=False,
-        description="If True, tool appears in public MCP surface. If False, internal/autonomic only.",
+        description=(
+            "If True, tool appears in public MCP surface. " "If False, internal/autonomic only."
+        ),
     )
 
     # Cognitive axis — intent-based routing vector
@@ -271,7 +273,8 @@ class PredictionRecord(BaseModel):
 #
 #   T0 (c=0.9, imp=0.3): δ_max = 0.27 — never triggers 441 (correct: T0 is observe-only)
 #   T1 (c=0.85, imp=0.5): δ_max = 0.425 — never triggers 441
-#   T2 (c=0.7, imp=1.0):  δ_max = 0.70 — triggers exactly at threshold (correct: T2 is consequential)
+#   T2 (c=0.7, imp=1.0):  δ_max = 0.70
+#       Triggers exactly at threshold (correct: T2 is consequential)
 #   T3 (c=0.5, imp=2.0):  δ_max = 1.00 — triggers easily (correct: T3 is high stakes)
 #   T4 (c=0.3, imp=3.0):  δ_max = 0.90 — triggers (correct: T4 is critical)
 #
@@ -508,7 +511,19 @@ class ToolSelfModel:
 
         verdict = result.get("verdict") or result.get("status") or "OK"
         raw_confidence = result.get("confidence") or result.get("result", {}).get("confidence")
-        confidence_str = f"{raw_confidence:.2f}" if raw_confidence else "?"
+        if isinstance(raw_confidence, dict):
+            raw_confidence = (
+                raw_confidence.get("confidence")
+                or raw_confidence.get("overall_confidence")
+                or raw_confidence.get("score")
+                or raw_confidence.get("tau")
+                or raw_confidence.get("value")
+            )
+        try:
+            result_confidence = float(raw_confidence) if raw_confidence is not None else None
+        except (TypeError, ValueError):
+            result_confidence = None
+        confidence_str = f"{result_confidence:.2f}" if result_confidence is not None else "?"
         latency = result.get("latency_ms")
 
         summary_parts = [verdict]
@@ -528,8 +543,7 @@ class ToolSelfModel:
             model_importance = risk_map.get(entry.manifest.risk_tier, 1.0)
 
             # If tool had high confidence but result was low, that's HOLD-level surprise
-            if raw_confidence is not None:
-                result_confidence = float(raw_confidence)
+            if result_confidence is not None:
                 if prediction.confidence > 0.8 and result_confidence < 0.3:
                     model_importance *= 2.0
 
