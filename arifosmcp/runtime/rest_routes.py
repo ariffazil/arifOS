@@ -42,7 +42,7 @@ from arifosmcp.runtime.public_registry import (
 )
 from arifosmcp.runtime.resources import apex_tools_markdown_table
 from starlette.requests import Request
-from starlette.responses import FileResponse, HTMLResponse, JSONResponse, Response
+from starlette.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from starlette.staticfiles import StaticFiles
 
 from core.shared.floor_audit import get_ml_floor_runtime
@@ -1943,6 +1943,73 @@ def _probe_vault999_health() -> str:
         return "unreachable"
 
 
+def _probe_provider_status() -> dict[str, Any]:
+    """Lightweight provider diagnostics — no secrets, no API keys."""
+    import os as _os_probe
+
+    status: dict[str, Any] = {
+        "primary_provider": None,
+        "sea_lion_configured": False,
+        "sea_lion_healthy": False,
+        "ollama_configured": False,
+        "ollama_healthy": False,
+        "deterministic_fallback": True,
+        "last_fallback_reason": None,
+    }
+
+    # SEA-LION
+    sea_key = _os_probe.getenv("SEA_LION_API_KEY")
+    sea_url = _os_probe.getenv("SEA_LION_BASE_URL", "https://api.sea-lion.ai/v1")
+    if sea_key:
+        status["sea_lion_configured"] = True
+        status["primary_provider"] = "sea_lion"
+        try:
+            import urllib.request
+            import ssl as _ssl
+
+            ctx = _ssl.create_default_context()
+            req = urllib.request.Request(
+                f"{sea_url}/models",
+                headers={"Authorization": f"Bearer {sea_key}"},
+            )
+            with urllib.request.urlopen(req, timeout=5, context=ctx) as resp:
+                if resp.status == 200:
+                    status["sea_lion_healthy"] = True
+                    status["deterministic_fallback"] = False
+        except Exception:
+            status["last_fallback_reason"] = "SEA_LION_UNREACHABLE"
+
+    # Ollama
+    if not status["sea_lion_healthy"]:
+        ollama_host = _os_probe.getenv("OLLAMA_HOST", "localhost")
+        ollama_port = _os_probe.getenv("OLLAMA_PORT", "11434")
+        try:
+            import urllib.request
+
+            req = urllib.request.Request(f"http://{ollama_host}:{ollama_port}/api/tags")
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                if resp.status == 200:
+                    import json as _json
+
+                    data = _json.loads(resp.read())
+                    status["ollama_configured"] = True
+                    status["ollama_healthy"] = bool(data.get("models"))
+                    if not status["primary_provider"]:
+                        status["primary_provider"] = "ollama"
+                    if status["ollama_healthy"]:
+                        status["deterministic_fallback"] = False
+        except Exception:
+            if not status["last_fallback_reason"]:
+                status["last_fallback_reason"] = "OLLAMA_UNREACHABLE"
+
+    if status["deterministic_fallback"]:
+        status["primary_provider"] = status["primary_provider"] or "deterministic"
+        if not status["last_fallback_reason"]:
+            status["last_fallback_reason"] = "ALL_PROVIDERS_UNAVAILABLE"
+
+    return status
+
+
 def _probe_graphiti_enabled() -> bool:
     """Best-effort Graphiti reachability probe."""
     try:
@@ -2343,6 +2410,7 @@ def register_rest_routes(
                     contract_status=contracts,
                 ),
                 "capability_map": build_runtime_capability_map(),
+                "provider_status": _probe_provider_status(),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 # SoT linkage — enables drift detection between repo / docs / runtime
                 "source_commit": BUILD_INFO["build"]["commit"],
@@ -3827,7 +3895,7 @@ def register_rest_routes(
         )
 
     GITHUB_RAW_TOOL_REGISTRY = (
-        "https://raw.githubusercontent.com/ariffazil/arifOS" "/main/arifosmcp/tool_registry.json"
+        "https://raw.githubusercontent.com/ariffazil/arifOS/main/arifosmcp/tool_registry.json"
     )
     LOCAL_FALLBACK_TOOL_REGISTRY = "/root/arifOS/arifosmcp/tool_registry.json"
 
