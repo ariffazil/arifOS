@@ -6012,6 +6012,43 @@ async def _arif_reply_compose_tool(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+def _try_reformulate_query(query: str) -> str | None:
+    """Lightweight query reformulation for RAG correction loop.
+
+    Attempts Ollama-based reformulation, falls back to simple keyword expansion.
+    Degrades gracefully on any failure.
+    """
+    try:
+        import os
+
+        ollama_url = os.getenv("OLLAMA_URL", "http://ollama:11434")
+        import urllib.request, json as _json
+
+        payload = _json.dumps({
+            "model": "qwen2.5:7b",
+            "prompt": (
+                f"Rewrite this search query to be more specific and likely to match "
+                f"relevant documents. Return ONLY the rewritten query, no explanation:\n\n"
+                f"Original: {query}\n\nRewritten:"
+            ),
+            "stream": False,
+            "options": {"num_predict": 100, "temperature": 0.3},
+        }).encode()
+        req = urllib.request.Request(
+            f"{ollama_url}/api/generate",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        resp = urllib.request.urlopen(req, timeout=5)
+        data = _json.loads(resp.read())
+        rewritten = data.get("response", "").strip().strip('"').strip()
+        if rewritten and len(rewritten) > 5 and rewritten.lower() != query.lower():
+            return rewritten
+    except Exception:
+        pass
+    return None
+
+
 def _arif_memory_recall(
     mode: str = "recall",
     query: str | None = None,
@@ -6098,9 +6135,70 @@ def _arif_memory_recall(
             )
         memories = _result.get("memories", [])
         confidence = 0.85 if memories else 0.0
+
+        # ── Agentic RAG Correction Loop ──────────────────────────
+        correction_loop = {"triggered": False, "attempts": 0, "reformulated_query": None}
+        relevance_scores = []
+
+        if memories and query:
+            # Fast relevance scoring (keyword overlap, no LLM dependency)
+            query_tokens = set(query.lower().split())
+            for mem in memories[:10]:
+                mem_text = str(mem.get("text", mem.get("content", ""))).lower()
+                if not mem_text:
+                    relevance_scores.append(0.0)
+                    continue
+                mem_tokens = set(mem_text.split())
+                if query_tokens:
+                    overlap = len(query_tokens & mem_tokens) / max(len(query_tokens), 1)
+                    # Bonus for exact phrase matches
+                    if query.lower() in mem_text:
+                        overlap = min(1.0, overlap + 0.3)
+                    relevance_scores.append(round(overlap, 3))
+                else:
+                    relevance_scores.append(0.5)
+
+            avg_relevance = sum(relevance_scores) / max(len(relevance_scores), 1)
+
+            # Reformulate if relevance is low
+            if avg_relevance < 0.6 and query:
+                correction_loop["triggered"] = True
+                correction_loop["attempts"] = 1
+                try:
+                    # Attempt lightweight query reformulation via Ollama
+                    _reformulated = _try_reformulate_query(query)
+                    if _reformulated and _reformulated != query:
+                        correction_loop["reformulated_query"] = _reformulated
+                        _r2 = _memory_op(
+                            lambda: _run_async(
+                                _memory_engine.retrieve(_reformulated, tier=None, limit=10)
+                            )
+                        )
+                        if _r2:
+                            r2_memories = _r2.get("memories", [])
+                            # Merge dedup: prefer reformulated results, append new ones
+                            seen_ids = {str(m.get("id", "")) for m in memories}
+                            for m in r2_memories:
+                                if str(m.get("id", "")) not in seen_ids:
+                                    memories.append(m)
+                                    seen_ids.add(str(m.get("id", "")))
+                            correction_loop["new_results"] = len(r2_memories)
+                except Exception:
+                    correction_loop["degraded"] = "Query reformulation failed"
+
+        else:
+            avg_relevance = 0.0
+
         return _ok(
             "arif_memory_recall",
-            {"query": query, "memories": memories, "confidence": confidence},
+            {
+                "query": query,
+                "memories": memories,
+                "confidence": confidence,
+                "relevance_scores": relevance_scores,
+                "avg_relevance": round(avg_relevance, 3),
+                "correction_loop": correction_loop,
+            },
             delta_S=0.001,
         )
 
@@ -9701,6 +9799,145 @@ def _runtime_ping(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# 777_BRIEF  →  arif_daily_intelligence_brief
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _arif_daily_intelligence_brief(
+    mode: str = "brief",
+    session_id: str | None = None,
+    actor_id: str | None = None,
+) -> dict[str, Any]:
+    """777_BRIEF: Daily intelligence brief aggregating GEOX, WEALTH, WELL, and memory.
+
+    Modes:
+      brief    — Full brief across all organs (default).
+      earth    — GEOX-only section.
+      capital  — WEALTH-only section.
+      vitality — WELL-only section.
+      memory   — Memory-only section.
+    """
+    import time as _time
+
+    gate = _constitutional_gate(
+        "arif_daily_intelligence_brief", mode, actor_id,
+        session_id=session_id
+    )
+    if gate is not None:
+        return gate
+
+    timestamp_utc = _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime())
+    sections = {}
+
+    # ── Earth (GEOX) ───────────────────────────────────────
+    if mode in ("brief", "earth"):
+        try:
+            import urllib.request, json as _json
+            geo_url = "http://geox:8081/health"
+            req = urllib.request.Request(geo_url, headers={"Accept": "application/json"})
+            resp = urllib.request.urlopen(req, timeout=3)
+            geo_data = _json.loads(resp.read())
+            sections["earth"] = {
+                "status": geo_data.get("status", "unknown"),
+                "source": "GEOX",
+                "summary": geo_data.get("service", "GEOX LEM"),
+            }
+        except Exception:
+            sections["earth"] = {
+                "status": "unavailable",
+                "source": "GEOX",
+                "summary": "GEOX organ unreachable",
+            }
+
+    # ── Capital (WEALTH) ───────────────────────────────────
+    if mode in ("brief", "capital"):
+        try:
+            import urllib.request, json as _json
+            wlth_url = "http://wealth:8082/health"
+            req = urllib.request.Request(wlth_url, headers={"Accept": "application/json"})
+            resp = urllib.request.urlopen(req, timeout=3)
+            wlth_data = _json.loads(resp.read())
+            sections["capital"] = {
+                "status": wlth_data.get("status", "unknown"),
+                "source": "WEALTH",
+                "summary": wlth_data.get("service", "WEALTH Ω"),
+            }
+        except Exception:
+            sections["capital"] = {
+                "status": "unavailable",
+                "source": "WEALTH",
+                "summary": "WEALTH organ unreachable",
+            }
+
+    # ── Vitality (WELL) ────────────────────────────────────
+    if mode in ("brief", "vitality"):
+        try:
+            import urllib.request, json as _json
+            well_url = "http://well:8083/health"
+            req = urllib.request.Request(well_url, headers={"Accept": "application/json"})
+            resp = urllib.request.urlopen(req, timeout=3)
+            well_data = _json.loads(resp.read())
+            sections["vitality"] = {
+                "status": well_data.get("status", "unknown"),
+                "source": "WELL",
+                "summary": well_data.get("service", "WELL Ψ"),
+            }
+        except Exception:
+            sections["vitality"] = {
+                "status": "unavailable",
+                "source": "WELL",
+                "summary": "WELL organ unreachable",
+            }
+
+    # ── Memory (VAULT999) ──────────────────────────────────
+    if mode in ("brief", "memory"):
+        try:
+            mem_result = _arif_memory_recall(
+                mode="recall",
+                query="recent decisions events context",
+                session_id=session_id,
+                actor_id=actor_id,
+            )
+            mem_data = mem_result.get("result", mem_result)
+            memories = mem_data.get("memories", []) if isinstance(mem_data, dict) else []
+            sections["memory"] = {
+                "status": "available" if memories else "empty",
+                "source": "555_MEMORY",
+                "summary": f"{len(memories)} recent memories retrieved",
+                "count": len(memories),
+            }
+        except Exception:
+            sections["memory"] = {
+                "status": "unavailable",
+                "source": "555_MEMORY",
+                "summary": "Memory engine unreachable",
+            }
+
+    # ── Verdict ────────────────────────────────────────────
+    organ_statuses = [s.get("status") for s in sections.values()]
+    available_count = sum(1 for s in organ_statuses if s not in ("unavailable",))
+    total_organs = len(sections)
+
+    if available_count == total_organs:
+        verdict = "SELAMAT"
+    elif available_count >= total_organs // 2:
+        verdict = "DEGRADED"
+    else:
+        verdict = "VOID"
+
+    return _ok(
+        "arif_daily_intelligence_brief",
+        {
+            "timestamp": timestamp_utc,
+            "verdict": verdict,
+            "organs_available": f"{available_count}/{total_organs}",
+            "sections": sections,
+        },
+        delta_S=-0.005,
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # CANONICAL REGISTRY
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -9718,10 +9955,11 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_judge_deliberate": _arif_judge_deliberate_tool,
     "arif_vault_seal": _arif_vault_seal_tool,
     "arif_forge_execute": _arif_forge_execute_tool,
+    "arif_daily_intelligence_brief": _arif_daily_intelligence_brief,
 }
 
-if len(_CANONICAL_HANDLERS) != 13:
-    raise RuntimeError(f"Expected 13 canonical handlers, found {len(_CANONICAL_HANDLERS)}")
+if len(_CANONICAL_HANDLERS) != 14:
+    raise RuntimeError(f"Expected 14 canonical handlers, found {len(_CANONICAL_HANDLERS)}")
 
 if set(_CANONICAL_HANDLERS) != set(CANONICAL_TOOLS):
     raise RuntimeError("Canonical handler registry does not match constitutional_map.py")
