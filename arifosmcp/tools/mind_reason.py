@@ -27,6 +27,7 @@ import threading
 from typing import Any
 
 from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.llm_client import LLMUnavailableError
 from arifosmcp.runtime.tools import _hold, _ok
 from arifosmcp.schemas.synthesis import Synthesis
 
@@ -78,8 +79,12 @@ def _build_delta_bundle(
     }
 
 
-def _run_reasoning_sync(coro: Any) -> dict[str, Any]:
-    """Run coroutine in sync context, including when caller already has an active event loop."""
+def _run_reasoning_sync(coro: Any, timeout: float = 15.0) -> dict[str, Any]:
+    """Run coroutine in sync context, including when caller already has an active event loop.
+
+    F13 TIMEOUT_SAFE: Hard timeout prevents indefinite hangs when LLM backends stall.
+    Default 15s balances SEA-LION latency (~1-3s) against CPU-Ollama slowness.
+    """
     try:
         asyncio.get_running_loop()
     except RuntimeError:
@@ -96,7 +101,14 @@ def _run_reasoning_sync(coro: Any) -> dict[str, Any]:
 
     thread = threading.Thread(target=_runner, daemon=True)
     thread.start()
-    thread.join()
+    thread.join(timeout=timeout)
+
+    if thread.is_alive():
+        # Thread still running after timeout — LLM backend stalled
+        raise LLMUnavailableError(
+            f"Reasoning backend timeout after {timeout}s — "
+            "SEA-LION unreachable or Ollama CPU inference too slow"
+        )
 
     if error:
         raise error[0]

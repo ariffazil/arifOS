@@ -120,7 +120,9 @@ async def _call_sea_lion(
 
     try:
         data = response.json()
-        content = data["choices"][0]["message"]["content"]
+        msg = data["choices"][0]["message"]
+        # SEA-LION v4 returns reasoning_content instead of content for some models
+        content = msg.get("content") or msg.get("reasoning_content", "")
     except Exception as exc:
         logger.warning("SEA-LION parse error: %s", exc)
         raise LLMUnavailableError(f"SEA-LION response parse error: {exc}") from exc
@@ -170,7 +172,10 @@ async def _call_ollama(
         payload["format"] = "json"
 
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        # F13 TIMEOUT_SAFE: CPU inference on 7B model is ~2 tok/s.
+        # 10s allows ~20 tokens — enough for structured JSON stub.
+        # Longer prompts should use SEA-LION (GPU-accelerated API).
+        async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(
                 f"{OLLAMA_BASE_URL}/api/generate",
                 json=payload,

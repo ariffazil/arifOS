@@ -17,7 +17,7 @@ services:
     init: true
     restart: unless-stopped
     command: ["python", "-m", "arifosmcp.runtime.__main__"]
-    env_file: [.env]
+    env_file: [.env.decrypted]
     environment:
       ARIFOS_BUILD_TIME: "2026-05-14T11:09:46Z"
       DEPLOY_GIT_COMMIT: "2bda2c6"
@@ -178,6 +178,7 @@ services:
     networks: [arifos_core]
     ports:
       - "127.0.0.1:6379:6379"
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
