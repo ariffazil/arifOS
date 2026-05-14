@@ -235,8 +235,8 @@ async def arif_mind_reason(
     user_prompt = f"""QUERY: {query}
 MODE: {mode}
 DEPTH: {depth}
-SESSION_ID: {session_id or 'none'}
-ACTOR_ID: {actor_id or 'anonymous'}
+SESSION_ID: {session_id or "none"}
+ACTOR_ID: {actor_id or "anonymous"}
 
 Reason through this under the 13 constitutional floors.
 Provide structured reasoning as a witness.
@@ -299,6 +299,11 @@ Distinguish CLAIM from FACT."""
 
         # Internal Integrity Check: overall_confidence must not exceed evidence_confidence
         conf = parsed_output.get("confidence", {"overall_confidence": 0.5})
+        # F02 TRUTH guard: LLM may return confidence as a bare float (e.g. 0.85)
+        # instead of a structured dict.  Normalize before accessing .get().
+        if not isinstance(conf, dict):
+            raw = float(conf) if isinstance(conf, int | float) else 0.5
+            conf = {"overall_confidence": raw, "evidence_confidence": raw * 0.6}
         overall = conf.get("overall_confidence", 0.5)
         evidence = conf.get("evidence_confidence", 0.3)
         if overall > evidence + 0.2:

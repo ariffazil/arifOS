@@ -245,6 +245,13 @@ async def call_llm(
             system, user, response_schema, temperature, max_tokens
         )
         latency_ms = (time.monotonic() - t0) * 1000
+        confidence_val = parsed.get("confidence") if isinstance(parsed, dict) else None
+        if isinstance(confidence_val, dict):
+            confidence_val = confidence_val.get("overall_confidence") or confidence_val.get(
+                "confidence", 0.5
+            )
+        if not isinstance(confidence_val, int | float):
+            confidence_val = 0.5
         envelope = wrap_llm_output(
             raw_output=raw_output,
             parsed_output=parsed,
@@ -254,7 +261,7 @@ async def call_llm(
             mode=mode,
             prompt=combined_prompt,
             schema_valid=True,
-            confidence=parsed.get("confidence") if isinstance(parsed, dict) else None,
+            confidence=confidence_val,
             latency_ms=latency_ms,
         )
         if response_schema:
@@ -273,6 +280,13 @@ async def call_llm(
             system, user, response_schema, temperature, max_tokens
         )
         latency_ms = (time.monotonic() - t0) * 1000
+        confidence_val = parsed.get("confidence") if isinstance(parsed, dict) else None
+        if isinstance(confidence_val, dict):
+            confidence_val = confidence_val.get("overall_confidence") or confidence_val.get(
+                "confidence", 0.5
+            )
+        if not isinstance(confidence_val, int | float):
+            confidence_val = 0.5
         envelope = wrap_llm_output(
             raw_output=raw_output,
             parsed_output=parsed,
@@ -282,7 +296,7 @@ async def call_llm(
             mode=mode,
             prompt=combined_prompt,
             schema_valid=True,
-            confidence=parsed.get("confidence") if isinstance(parsed, dict) else None,
+            confidence=confidence_val,
             latency_ms=latency_ms,
         )
         if response_schema:
@@ -303,6 +317,67 @@ async def call_llm(
         prompt=combined_prompt,
         error_message="All LLM tiers exhausted (SEA-LION + Ollama)",
     )
+
+
+async def check_provider_health() -> dict[str, Any]:
+    """
+    777_OPS: Lightweight provider-state diagnostic.
+
+    Returns reachable/unknown for each LLM tier without generating tokens.
+    Logs state for audit; does not mutate provider configs.
+    """
+    status: dict[str, Any] = {
+        "primary": "unknown",
+        "fallback": "unknown",
+        "active_provider": "none",
+        "errors": [],
+    }
+
+    # Check SEA-LION (Tier 1)
+    if not SEA_LION_API_KEY:
+        status["primary"] = "unconfigured"
+        status["errors"].append("SEA_LION_API_KEY not set")
+    else:
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                # Lightweight health-like probe: list models endpoint
+                r = await client.get(
+                    f"{SEA_LION_BASE_URL}/models",
+                    headers={"Authorization": f"Bearer {SEA_LION_API_KEY}"},
+                )
+                if r.status_code in (200, 401):
+                    # 401 means auth works but endpoint may not support /models
+                    status["primary"] = "reachable"
+                else:
+                    status["primary"] = f"http_{r.status_code}"
+        except Exception as exc:
+            status["primary"] = "unreachable"
+            status["errors"].append(f"SEA_LION: {exc}")
+
+    # Check Ollama (Tier 2)
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            r = await client.get(f"{OLLAMA_BASE_URL}/api/tags")
+            if r.status_code == 200:
+                models = r.json().get("models", [])
+                status["fallback"] = "reachable"
+                status["ollama_models"] = [m.get("name") for m in models]
+            else:
+                status["fallback"] = f"http_{r.status_code}"
+    except Exception as exc:
+        status["fallback"] = "unreachable"
+        status["errors"].append(f"Ollama: {exc}")
+
+    # Determine active provider
+    if status["primary"] == "reachable":
+        status["active_provider"] = "sea_lion"
+    elif status["fallback"] == "reachable":
+        status["active_provider"] = "ollama"
+    else:
+        status["active_provider"] = "none"
+
+    logger.info("LLM provider health: %s", status)
+    return status
 
 
 async def call_llm_raw(
@@ -326,6 +401,7 @@ async def call_llm_raw(
 __all__ = [
     "call_llm",
     "call_llm_raw",  # deprecated
+    "check_provider_health",
     "LLMUnavailableError",
     "LLMOutputEnvelope",
 ]

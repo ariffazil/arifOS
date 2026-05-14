@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+from arifosmcp.runtime.llm_client import LLMOutputEnvelope
+
 import arifosmcp.tools.mind_reason as mind_reason_tool
 
 
@@ -67,3 +69,64 @@ async def test_mind_reason_from_async_context_does_not_use_run_until_complete(
 
     assert result.status == "OK"
     assert result.result["status"] == "SEAL"
+
+
+async def _fake_call_llm_dict_confidence(*args, **kwargs):
+    """Mock call_llm returning structured output with dict-style confidence."""
+    from datetime import datetime, timezone
+
+    return LLMOutputEnvelope(
+        provider="sea_lion",
+        model="aisingapore/Qwen-SEA-LION-v4-32B-IT",  # pragma: allowlist secret
+        tool_origin="333_REASON",
+        mode="reason",
+        raw_output='{"status": "REASONED", "synthesis": "MIND_OK", "confidence": {"overall_confidence": 0.85}}',
+        raw_output_hash="sha256:test",
+        parsed_output={
+            "status": "REASONED",
+            "claim_state": "VERIFIED",
+            "synthesis": "MIND_OK",
+            "reasoning": {"path": "test"},
+            "confidence": {
+                "reasoning_confidence": 0.88,
+                "evidence_confidence": 0.82,
+                "overall_confidence": 0.85,
+            },
+            "uncertainty": [],
+            "reasoning_mode": "analytical",
+            "axioms_used": ["F02"],
+            "next_safe_action": ["continue"],
+        },
+        schema_valid=True,
+        confidence_claimed=0.85,
+        prompt_hash="sha256:test",
+        timestamp=datetime.now(timezone.utc).isoformat(),
+    )
+
+
+def test_mind_reason_dict_confidence_no_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    """
+    Smoke test: 333_MIND with dict-confidence must NOT trigger deterministic fallback.
+
+    Regression guard for the confidence-dict TypeError that previously caused
+    arif_mind_reason to silently return LLM_UNAVAILABLE.
+    """
+    monkeypatch.setattr(
+        "arifosmcp.runtime.mind_reason.call_llm",
+        _fake_call_llm_dict_confidence,
+    )
+    monkeypatch.setattr(
+        mind_reason_tool,
+        "check_floors",
+        lambda *_args, **_kwargs: {"verdict": "SEAL", "reason": "ok"},
+    )
+
+    result = mind_reason_tool.arif_mind_reason(query="Say exactly: MIND_OK", actor_id="arif")
+
+    assert result.status == "OK"
+    assert result.result["status"] == "REASONED"
+    assert result.result["synthesis"] == "MIND_OK"
+    assert result.result["claim_state"] == "VERIFIED"
+    # Critical invariant: must NOT be the deterministic fallback message
+    assert "LLM unavailable" not in result.result.get("synthesis", "").lower()
+    assert "deterministic" not in result.result.get("synthesis", "").lower()

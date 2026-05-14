@@ -235,6 +235,11 @@ def wrap_llm_output(
         confidence = (
             parsed_output.get("confidence", 0.5) if isinstance(parsed_output, dict) else 0.5
         )
+    # Defensive: some structured outputs return confidence as a dict (e.g. 333_MIND)
+    if isinstance(confidence, dict):
+        confidence = confidence.get("overall_confidence") or confidence.get("confidence", 0.5)
+    if not isinstance(confidence, int | float):
+        confidence = 0.5
 
     # F12 INJECTION scan — detect prompt injection in LLM output before release
     injection_detected = _scan_injection(raw_output)

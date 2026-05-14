@@ -41,6 +41,7 @@ from arifosmcp.runtime.public_registry import (
 )
 from arifosmcp.runtime.resources import apex_tools_markdown_table
 from starlette.requests import Request
+from starlette.responses import RedirectResponse
 from starlette.responses import FileResponse, HTMLResponse, JSONResponse, Response
 
 from core.shared.floor_audit import get_ml_floor_runtime
@@ -54,6 +55,7 @@ from core.shared.floors import (
 
 from arifosmcp.runtime.build_info import get_build_info
 from arifosmcp.runtime.capability_map import build_runtime_capability_map
+from arifosmcp.runtime.llm_client import check_provider_health
 from arifosmcp.runtime.contracts import (
     AAA_TOOL_ALIASES,
     AAA_TOOL_STAGE_MAP,
@@ -2563,6 +2565,7 @@ def register_rest_routes(
                         lambda *_args, **_kwargs: None,
                     )("subject"),
                 },
+                "llm_providers": await check_provider_health(),
             },
             headers={
                 "Access-Control-Allow-Origin": "*",
