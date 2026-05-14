@@ -19,7 +19,10 @@ services:
     command: ["python", "-m", "arifosmcp.runtime.__main__"]
     env_file: [.env]
     environment:
-      ARIFOS_BUILD_TIME: "2026-05-13T13:45:00+00:00"
+      ARIFOS_BUILD_TIME: "2026-05-14T07:24:44+00:00"
+      DEPLOY_GIT_COMMIT: "2d27e464"
+      DEPLOY_BUILD_TIME: "2026-05-14T07:24:44+00:00"
+      DEPLOY_GIT_BRANCH: "main"
       ARIFOS_GOVERNANCE_OPEN_MODE: "false"
       ARIFOS_GOVERNANCE_SECRET_FILE: /run/secrets/arifos_governance_secret
       ARIFOS_SESSION_SECRET_FILE: /run/secrets/arifos_session_secret
@@ -38,6 +41,10 @@ services:
       JWT_AUDIENCE: arifOS
       JWT_ENFORCE_MODE: enforce
       ARIFOS_REGISTRY_ROOT: /app/arifos-model-registry
+      ARIFOS_RISK_LEASH_PATH: /app/risk_leash.yaml
+      ARIFOS_VAULT_PATH: /var/lib/arifos/vault/outcomes.jsonl
+      AAA_BUDGET_CONTRACT_PATH: /app/contracts/budget/AAA-GOV-BUDGET-v1.json
+      WELL_STATE_PATH: /app/well_state.json
       OLLAMA_URL: http://ollama:11434
       ARIFOS_ML_FLOORS: "true"
       ARIFOS_ML_MODEL_NAME: sentence-transformers/all-MiniLM-L6-v2
@@ -47,6 +54,9 @@ services:
     volumes:
       - /root/arifOS/arifosmcp/server.py:/app/arifosmcp/server.py:ro
       - /root/arifos-model-registry:/app/arifos-model-registry:ro
+      - /root/arifOS/risk_leash.yaml:/app/risk_leash.yaml:ro
+      - /root/arifOS/contracts/budget:/app/contracts/budget:ro
+      - /root/WELL/state.json:/app/well_state.json:ro
       - /root/arifOS/arifosmcp/runtime/tools_internal.py:/app/arifosmcp/runtime/tools_internal.py:ro
       - /root/arifOS/arifosmcp/runtime/tools.py:/app/arifosmcp/runtime/tools.py:ro
       - /root/arifOS/arifosmcp/runtime/rest_routes.py:/app/arifosmcp/runtime/rest_routes.py:ro
@@ -111,6 +121,9 @@ services:
     ports:
       - "127.0.0.1:8082:8082"
     networks: [arifos_core]
+    environment:
+      WEALTH_REPO_HEAD: "f248633"
+      WEALTH_IMAGE_TAG: "ghcr.io/ariffazil/wealth:9344f85"
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/health')\""]
       interval: 30s
@@ -341,7 +354,7 @@ services:
       start_period: 10s
   # ── WELL: Biological Substrate ─────────────────────────────────────────
   well:
-    image: ghcr.io/ariffazil/well:5c9d0ff
+    image: ghcr.io/ariffazil/well:535fc15
     container_name: well
     init: true
     restart: unless-stopped
@@ -349,6 +362,11 @@ services:
     ports:
       - "127.0.0.1:8083:8083"
     networks: [arifos_core]
+    environment:
+      WELL_STATE_PATH: /app/state.json
+      WELL_SOMATIC_BOUNDARY: "1"
+    volumes:
+      - /root/WELL/state.json:/app/state.json:rw
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8083/health')\""]
       interval: 60s

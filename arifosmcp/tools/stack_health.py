@@ -14,20 +14,69 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
+# ── Container detection ────────────────────────────────────────────────────────
+def _is_inside_container() -> bool:
+    """Detect if running inside a Docker / containerd runtime."""
+    # Modern cgroup v2 may not include "docker" in the path; check .dockerenv as well.
+    try:
+        with open("/proc/1/cgroup", encoding="utf-8") as f:
+            cgroup = f.read()
+        if "docker" in cgroup or "containerd" in cgroup:
+            return True
+    except Exception:
+        pass
+    return Path("/.dockerenv").exists()
+
+
 # ── Federation service endpoints ───────────────────────────────────────────────
+# docker_host is used when running inside a Docker container where localhost
+# does not resolve to the host machine but to the container's own namespace.
 _SERVICE_ENDPOINTS: dict[str, dict[str, Any]] = {
-    "arifos_mcp": {"url": "http://localhost:8080/health", "timeout": 5.0},
-    "well": {"url": "http://localhost:8083/health", "timeout": 5.0},
-    "wealth": {"url": "http://localhost:8082/health", "timeout": 5.0},
-    "geox": {"url": "http://localhost:8081/health", "timeout": 5.0},
-    "a_forge": {"url": "http://localhost:7071/health", "timeout": 5.0},
-    "vault999": {"url": "http://localhost:8100/health", "timeout": 5.0},
+    "arifos_mcp": {
+        "url": "http://localhost:8080/health",
+        "docker_host": None,
+        "timeout": 5.0,
+    },
+    "well": {
+        "url": "http://localhost:8083/health",
+        "docker_host": "well:8083",
+        "timeout": 5.0,
+    },
+    "wealth": {
+        "url": "http://localhost:8082/health",
+        "docker_host": "wealth-organ:8082",
+        "timeout": 5.0,
+    },
+    "geox": {
+        "url": "http://localhost:8081/health",
+        "docker_host": "geox:8081",
+        "timeout": 5.0,
+    },
+    "a_forge": {
+        "url": "http://localhost:7071/health",
+        "docker_host": "af-bridge:7071",
+        "timeout": 5.0,
+    },
+    "vault999": {
+        "url": "http://localhost:8100/health",
+        "docker_host": "vault999:8100",
+        "timeout": 5.0,
+    },
 }
+
+
+def _service_url(name: str, cfg: dict[str, Any]) -> str:
+    """Return the correct health URL depending on runtime context."""
+    if _is_inside_container() and cfg.get("docker_host"):
+        return f"http://{cfg['docker_host']}/health"
+    return cfg["url"]
 
 
 async def _probe_http(url: str, timeout: float) -> dict[str, Any]:
@@ -46,12 +95,20 @@ async def _probe_http(url: str, timeout: float) -> dict[str, Any]:
 
 def _check_model_registry() -> dict[str, Any]:
     """Check filesystem model registry health."""
-    try:
-        registry_roots = [
+    # ARIFOS_REGISTRY_ROOT is set inside the Docker container to the mounted path.
+    env_root = os.environ.get("ARIFOS_REGISTRY_ROOT")
+    registry_roots: list[Path] = []
+    if env_root:
+        registry_roots.append(Path(env_root))
+    registry_roots.extend(
+        [
             Path("/root/arifos-model-registry"),
             Path(__file__).resolve().parents[3] / "arifos-model-registry",
         ]
-        for root in registry_roots:
+    )
+
+    for root in registry_roots:
+        try:
             if root.exists() and (root / "models").exists() and (root / "provider_souls").exists():
                 models_count = len(list((root / "models").rglob("*.json")))
                 souls_count = len(list((root / "provider_souls").glob("*.json")))
@@ -61,69 +118,112 @@ def _check_model_registry() -> dict[str, Any]:
                     "models": models_count,
                     "provider_souls": souls_count,
                 }
-        return {"status": "missing", "error": "No registry root found"}
-    except Exception as exc:
-        return {"status": "error", "error": str(exc)}
+        except PermissionError:
+            # Non-root container users cannot stat /root paths; fall through to next candidate.
+            continue
+        except Exception as exc:
+            logger.debug(f"Model registry check failed for {root}: {exc}")
+            continue
+
+    return {"status": "missing", "error": "No registry root found"}
 
 
 def _check_risk_leash() -> dict[str, Any]:
     """Check risk leash configuration."""
-    try:
-        leash_path = Path("/root/arifOS/risk_leash.yaml")
-        if not leash_path.exists():
-            leash_path = Path(__file__).resolve().parents[3] / "risk_leash.yaml"
-        if leash_path.exists():
-            import yaml
+    # ARIFOS_RISK_LEASH_PATH can be set inside the Docker container.
+    env_path = os.environ.get("ARIFOS_RISK_LEASH_PATH")
+    leash_paths: list[Path] = []
+    if env_path:
+        leash_paths.append(Path(env_path))
+    leash_paths.extend(
+        [
+            Path("/app/risk_leash.yaml"),  # canonical Docker mount point
+            Path("/root/arifOS/risk_leash.yaml"),
+            Path(__file__).resolve().parents[3] / "risk_leash.yaml",
+        ]
+    )
 
-            with open(leash_path, encoding="utf-8") as f:
-                data = yaml.safe_load(f)
-            return {
-                "status": "healthy",
-                "path": str(leash_path),
-                "version": data.get("risk_leash", {}).get("version", "unknown"),
-                "rules_count": len(data.get("risk_leash", {}).keys())
-                - 2,  # minus version/authority
-            }
-        return {"status": "missing", "error": "risk_leash.yaml not found"}
-    except Exception as exc:
-        return {"status": "error", "error": str(exc)}
+    for leash_path in leash_paths:
+        try:
+            if leash_path.exists():
+                import yaml
+
+                with open(leash_path, encoding="utf-8") as f:
+                    data = yaml.safe_load(f)
+                return {
+                    "status": "healthy",
+                    "path": str(leash_path),
+                    "version": data.get("risk_leash", {}).get("version", "unknown"),
+                    "rules_count": len(data.get("risk_leash", {}).keys())
+                    - 2,  # minus version/authority
+                }
+        except PermissionError:
+            continue
+        except Exception as exc:
+            logger.debug(f"Risk leash check failed for {leash_path}: {exc}")
+            continue
+
+    return {"status": "missing", "error": "risk_leash.yaml not found"}
 
 
 def _check_tool_registry() -> dict[str, Any]:
     """Check canonical tool registry."""
-    try:
-        registry_path = Path(__file__).resolve().parents[2] / "arifosmcp" / "tool_registry.json"
-        if not registry_path.exists():
-            registry_path = Path("/root/arifOS/arifosmcp/tool_registry.json")
-        if registry_path.exists():
-            with open(registry_path, encoding="utf-8") as f:
-                data = json.load(f)
-            return {
-                "status": "healthy",
-                "canonical_tools": data.get("canonical_count", 0),
-                "total_surface": data.get("total_surface", 0),
-            }
-        return {"status": "missing", "error": "tool_registry.json not found"}
-    except Exception as exc:
-        return {"status": "error", "error": str(exc)}
+    registry_paths = [
+        Path(__file__).resolve().parents[2] / "arifosmcp" / "tool_registry.json",
+        Path("/app/arifosmcp/tool_registry.json"),  # canonical Docker mount point
+        Path("/root/arifOS/arifosmcp/tool_registry.json"),
+    ]
+
+    for registry_path in registry_paths:
+        try:
+            if registry_path.exists():
+                with open(registry_path, encoding="utf-8") as f:
+                    data = json.load(f)
+                return {
+                    "status": "healthy",
+                    "canonical_tools": data.get("canonical_count", 0),
+                    "total_surface": data.get("total_surface", 0),
+                }
+        except PermissionError:
+            continue
+        except Exception as exc:
+            logger.debug(f"Tool registry check failed for {registry_path}: {exc}")
+            continue
+
+    return {"status": "missing", "error": "tool_registry.json not found"}
 
 
 def _check_vault999() -> dict[str, Any]:
     """Check vault ledger integrity."""
-    try:
-        vault_path = Path("/root/.local/share/arifos/vault999/outcomes.jsonl")
-        if not vault_path.exists():
-            vault_path = Path("/root/arifOS/arifosmcp/VAULT999/SEALED_EVENTS.jsonl")
-        if vault_path.exists():
-            size = vault_path.stat().st_size
-            return {
-                "status": "healthy",
-                "path": str(vault_path),
-                "size_bytes": size,
-            }
-        return {"status": "missing", "error": "Vault ledger not found"}
-    except Exception as exc:
-        return {"status": "error", "error": str(exc)}
+    # Inside the Docker container the vault is mounted at /var/lib/arifos/vault.
+    env_path = os.environ.get("ARIFOS_VAULT_PATH")
+    vault_paths: list[Path] = []
+    if env_path:
+        vault_paths.append(Path(env_path))
+    vault_paths.extend(
+        [
+            Path("/var/lib/arifos/vault/outcomes.jsonl"),
+            Path("/root/.local/share/arifos/vault999/outcomes.jsonl"),
+            Path("/root/arifOS/arifosmcp/VAULT999/SEALED_EVENTS.jsonl"),
+        ]
+    )
+
+    for vault_path in vault_paths:
+        try:
+            if vault_path.exists():
+                size = vault_path.stat().st_size
+                return {
+                    "status": "healthy",
+                    "path": str(vault_path),
+                    "size_bytes": size,
+                }
+        except PermissionError:
+            continue
+        except Exception as exc:
+            logger.debug(f"Vault999 check failed for {vault_path}: {exc}")
+            continue
+
+    return {"status": "missing", "error": "Vault ledger not found"}
 
 
 async def arif_stack_health_probe(
@@ -154,13 +254,15 @@ async def arif_stack_health_probe(
     # ── Probe federation services ──────────────────────────────────────────────
     service_tasks = {
         name: _probe_http(
-            _SERVICE_ENDPOINTS[name]["url"],
+            _service_url(name, _SERVICE_ENDPOINTS[name]),
             _SERVICE_ENDPOINTS[name]["timeout"],
         )
         for name in services_to_check
         if name in _SERVICE_ENDPOINTS
     }
-    service_results = dict(zip(service_tasks.keys(), await asyncio.gather(*service_tasks.values()), strict=False))
+    service_results = dict(
+        zip(service_tasks.keys(), await asyncio.gather(*service_tasks.values()), strict=False)
+    )
 
     # ── Probe constitutional infrastructure ────────────────────────────────────
     registry_result = _check_model_registry()

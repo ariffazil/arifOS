@@ -24,11 +24,20 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 # ── Locate the budget contract ──────────────────────────────────────────────
-_CONTRACT_PATHS = [
-    Path("/srv/openclaw/workspace/arifOS/contracts/budget/AAA-GOV-BUDGET-v1.json"),
-    Path("/app/arifosmcp/contracts/budget/AAA-GOV-BUDGET-v1.json"),
-    Path("/root/arifOS/contracts/budget/AAA-GOV-BUDGET-v1.json"),
-]
+# Inside Docker containers /root paths are often inaccessible to non-root users.
+# The env var allows operators to mount the contract at a container-friendly path.
+_env_contract = os.environ.get("AAA_BUDGET_CONTRACT_PATH")
+_CONTRACT_PATHS: list[Path] = []
+if _env_contract:
+    _CONTRACT_PATHS.append(Path(_env_contract))
+_CONTRACT_PATHS.extend(
+    [
+        Path("/app/contracts/budget/AAA-GOV-BUDGET-v1.json"),
+        Path("/srv/openclaw/workspace/arifOS/contracts/budget/AAA-GOV-BUDGET-v1.json"),
+        Path("/app/arifosmcp/contracts/budget/AAA-GOV-BUDGET-v1.json"),
+        Path("/root/arifOS/contracts/budget/AAA-GOV-BUDGET-v1.json"),
+    ]
+)
 
 DEFAULT_CONTRACT = {
     "policy_id": "AAA-GOV-BUDGET-v1",
@@ -91,12 +100,15 @@ class BudgetContract:
                 logger.warning(f"Could not load contract from {contract_path}: {e}")
 
         for path in _CONTRACT_PATHS:
-            if path.exists():
-                try:
+            try:
+                if path.exists():
                     logger.info(f"Budget contract loaded from {path}")
                     return json.load(open(path))
-                except Exception as e:
-                    logger.warning(f"Could not load {path}: {e}")
+            except PermissionError:
+                # Non-root container users cannot stat /root parent directories.
+                continue
+            except Exception as e:
+                logger.warning(f"Could not load {path}: {e}")
 
         logger.warning("No budget contract found — using defaults.")
         return DEFAULT_CONTRACT

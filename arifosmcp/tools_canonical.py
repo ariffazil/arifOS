@@ -35,6 +35,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import math
+import os
 import random
 from typing import Any
 
@@ -789,16 +790,37 @@ def arifos_oracle_bio(
     import json
     from pathlib import Path
 
-    well_state = Path("/root/WELL/state.json")
+    # Inside Docker containers /root paths may be inaccessible to non-root users.
+    # Allow operators to mount the state file at a container-friendly path.
+    _env_state = os.environ.get("WELL_STATE_PATH")
+    well_state = Path(_env_state) if _env_state else Path("/root/WELL/state.json")
+    # Fallback candidates (ordered by preference)
+    _well_state_candidates = [well_state]
+    if not _env_state:
+        _well_state_candidates.extend(
+            [
+                Path("/app/well_state.json"),
+                Path("/root/WELL/state.json"),
+            ]
+        )
+
+    _well_state: Path | None = None
+    for candidate in _well_state_candidates:
+        try:
+            if candidate.exists():
+                _well_state = candidate
+                break
+        except PermissionError:
+            continue
 
     if mode == "snapshot_read":
-        if not well_state.exists():
+        if _well_state is None:
             return {
                 "agent": "P",
                 "action": "well_state_read",
                 "error": "WELL state not found",
             }
-        with open(well_state) as f:
+        with open(_well_state) as f:
             state = json.load(f)
         return {
             "agent": "P",

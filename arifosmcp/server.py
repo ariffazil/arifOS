@@ -211,6 +211,13 @@ try:
     # ── Inclusive Topology / Anti-Sink Diagnostics (777 FORGE) ────────────────
     # Reversible runtime diagnostics. NOT canonical constitutional tools.
     # Authority ceiling: advisory estimates only. No state mutation.
+    #
+    # NOTE: The public registry defines an "expanded45" mode listing 44 tool
+    # names (canonical + aliases). The LIVE MCP server here registers only the
+    # 13 canonical tools + these 3 diagnostics = 16 callable tools. The expanded
+    # registry names are for documentation and future expansion; they are NOT
+    # guaranteed to be registered at runtime. Use MCP tools/list for the
+    # authoritative live count.
     from arifosmcp.tools.inclusive_topology import (
         arif_anti_sink_check,
         institutional_drift_check,
