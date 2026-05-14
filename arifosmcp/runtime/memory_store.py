@@ -221,13 +221,13 @@ def search(
         try:
             vector = _generate_embedding(query)
             client = _get_qdrant_client()
-            hits = client.search(
+            response = client.query_points(
                 collection_name=_QDRANT_COLLECTION,
-                query_vector=vector,
+                query=vector,
                 limit=limit * 2,
                 with_payload=True,
             )
-            for hit in hits:
+            for hit in response.points:
                 p = hit.payload or {}
                 if mode and p.get("mode") != mode:
                     continue
