@@ -19,3 +19,4 @@ scikit-learn==1.8.0
 torch==2.11.0
 transformers==4.46.3
 sentence-transformers==5.4.1
+qdrant-client>=1.17.0
