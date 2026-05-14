@@ -76,6 +76,25 @@ from arifosmcp.schemas.synthesis import (
 
 # Telemetry (777_OPS, 111_SENSE)
 from arifosmcp.schemas.telemetry import TelemetryBlock, VitalsBlock
+
+# Topology (777_OPS — Anti-Sink / Inclusive Topology diagnostics)
+from arifosmcp.schemas.topology import (
+    AntiSinkCheck,
+    AppealPath,
+    Confidence,
+    Delta,
+    InnovationRights,
+    InstitutionalDrift,
+    InstitutionalVerdict,
+    ParticipationWidth,
+    Presence,
+    RiskBand,
+    SovereigntyIntegrity,
+    Strength,
+)
+from arifosmcp.schemas.topology import (
+    Verdict as TopologyVerdict,
+)
 from arifosmcp.schemas.verdict import (
     AkalState,
     AmanahProof,
@@ -100,6 +119,20 @@ from arifosmcp.schemas.verdict import (
 )
 
 __all__ = [
+    # Topology (777_OPS — Anti-Sink / Inclusive Topology diagnostics)
+    "AntiSinkCheck",
+    "InstitutionalDrift",
+    "TopologyVerdict",
+    "Delta",
+    "Strength",
+    "RiskBand",
+    "Confidence",
+    "Presence",
+    "ParticipationWidth",
+    "InnovationRights",
+    "AppealPath",
+    "SovereigntyIntegrity",
+    "InstitutionalVerdict",
     # Session (000_INIT)
     "SessionManifest",
     "SessionState",

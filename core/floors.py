@@ -243,6 +243,11 @@ class ConstitutionalFloors:
         if not f12_result.passed:
             violations.append(f"{f12_result.floor_id}_INJECTION")
 
+        f13_result = self._check_f13_sovereign(actor_id, session_id, parameters)
+        self.results.append(f13_result)
+        if not f13_result.passed:
+            violations.append(f"{f13_result.floor_id}_SOVEREIGN")
+
         # Note: third param was accidentally passing tool_name (str) instead of agent_capability (float)
         # This caused: TypeError: can't multiply sequence by non-int of type 'float'
         tri_witness = self._calculate_tri_witness(
@@ -250,6 +255,23 @@ class ConstitutionalFloors:
         )
 
         risk_tier = self._assess_risk_tier(action, tool_name, parameters)
+
+        all_evaluated = {r.floor_id for r in self.results}
+        all_declared = set(THRESHOLDS.keys())
+        missing_evaluators = all_declared - all_evaluated
+        if missing_evaluators:
+            for missing in missing_evaluators:
+                violations.append(f"{missing}_EVALUATOR_MISSING")
+                self.results.append(
+                    FloorResult(
+                        floor_id=missing,
+                        name="MissingEvaluator",
+                        passed=False,
+                        score=0.0,
+                        threshold=THRESHOLDS.get(missing, 0.5),
+                        details="Floor declared in THRESHOLDS but has no evaluator in evaluate()",
+                    )
+                )
 
         has_hard_violation = any(
             FLOOR_LEVELS.get(fr.floor_id, FloorLevel.SOFT) == FloorLevel.HARD and not fr.passed
@@ -391,14 +413,44 @@ class ConstitutionalFloors:
         threshold = THRESHOLDS["F1_AMANAH"]
 
         reversible_patterns = ["search", "read", "get", "list", "query", "fetch"]
-        destructive_patterns = ["delete", "remove", "destroy", "drop", "force", "push"]
+        destructive_patterns = [
+            "delete",
+            "remove",
+            "destroy",
+            "drop",
+            "force",
+            "push",
+            "prune",
+            "clean",
+            "purge",
+            "wipe",
+            "truncate",
+            "overwrite",
+            "commit",
+            "seal",
+            "publish",
+            "send",
+            "deploy",
+            "execute",
+            "transfer",
+            "revoke",
+            "rotate",
+            "expire",
+            "terminate",
+            "shutdown",
+        ]
+        irreversible_modes = ["prune", "purge", "commit", "seal", "deploy", "write", "engineer"]
 
-        is_reversible = any(p in action.lower() for p in reversible_patterns)
-        is_destructive = any(p in action.lower() for p in destructive_patterns)
+        action_lower = action.lower()
+        mode = parameters.get("mode", "").lower() if isinstance(parameters, dict) else ""
+
+        is_reversible = any(p in action_lower for p in reversible_patterns)
+        is_destructive = any(p in action_lower for p in destructive_patterns)
+        is_irreversible_mode = any(m in mode for m in irreversible_modes)
 
         if is_reversible:
             score = 1.0
-        elif is_destructive:
+        elif is_destructive or is_irreversible_mode:
             score = 0.3
         else:
             score = 0.7
@@ -746,6 +798,30 @@ class ConstitutionalFloors:
             score=score,
             threshold=threshold,
             details=f"Injection patterns detected: {matches}",
+        )
+
+    def _check_f13_sovereign(
+        self, actor_id: str, session_id: str | None, parameters: dict[str, Any]
+    ) -> FloorResult:
+        threshold = THRESHOLDS["F13_SOVEREIGN"]
+
+        sovereignty_signals = [
+            actor_id is not None and actor_id.lower() in ("arif", "sovereign", "human"),
+            session_id is not None and "sovereign" in session_id.lower(),
+            parameters.get("actor_id", "") in ("arif", "sovereign", "human"),
+            parameters.get("ack_irreversible", False) is True,
+        ]
+
+        sovereignty_score = sum(1 for s in sovereignty_signals if s) / len(sovereignty_signals)
+        passed = True  # F13 is a VETO floor — always pass by default, sovereign can always override
+
+        return FloorResult(
+            floor_id="F13",
+            name="Sovereign",
+            passed=passed,
+            score=sovereignty_score,
+            threshold=threshold,
+            details=f"Sovereign signals: {sum(1 for s in sovereignty_signals if s)}/{len(sovereignty_signals)}",
         )
 
     def _calculate_tri_witness(

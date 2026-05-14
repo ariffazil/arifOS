@@ -3272,6 +3272,33 @@ def register_rest_routes(
             # Normalize parameter names for Horizon/ChatGPT compatibility
             normalized = _normalize_parameters(canonical_name, body)
 
+            # F12 INJECTION: Pre-dispatch scan across all text parameters
+            # Extract text from both top-level and MCP-style nested params.arguments
+            text_values = list(normalized.values())
+            params_block = body.get("params", body)
+            if isinstance(params_block, dict):
+                inner_args = params_block.get("arguments", params_block)
+                if isinstance(inner_args, dict):
+                    text_values.extend(str(v) for v in inner_args.values())
+            all_text = " ".join(str(v) for v in text_values)
+            from arifosmcp.runtime.witness_packet import _scan_injection
+
+            if _scan_injection(all_text):
+                logger.warning(f"F12_INJECTION_BLOCKED: tool={incoming_name}")
+                return JSONResponse(
+                    {
+                        "status": "error",
+                        "error": "F12_INJECTION_BLOCKED",
+                        "reason": "Prompt injection pattern detected in parameters",
+                        "tool": incoming_name,
+                        "canonical": canonical_name,
+                        "request_id": request_id,
+                        "failed_floor": "F12",
+                        "verdict": "HOLD",
+                    },
+                    status_code=400,
+                )
+
             # Filter to only valid parameters
             sig = inspect.signature(tool_fn)
             has_kwargs = any(
@@ -3414,6 +3441,19 @@ def register_rest_routes(
     @route("/.well-known/mcp/server.json", methods=["GET"])
     async def well_known(request: Request) -> Response:
         return await server_card_json(request)
+
+    @route("/mcp-discovery.json", methods=["GET"])
+    async def mcp_discovery(request: Request) -> Response:
+        """MCP discovery document at a Cloudflare-friendly path."""
+        return JSONResponse(
+            {
+                "note": "Cloudflare proxies block /.well-known/*. Use the canonical endpoint below.",
+                "canonical": f"{_public_base_url(request)}/.well-known/mcp/server.json",
+                "mcpEndpoint": f"{_public_base_url(request)}/mcp",
+                "docs": "https://modelcontextprotocol.io",
+            },
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
 
     @route("/.well-known/server.json", methods=["GET"])
     async def well_known_legacy(request: Request) -> Response:

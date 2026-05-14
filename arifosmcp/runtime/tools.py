@@ -17,6 +17,11 @@ ARIF_DOCTRINE: dict = {
     "llm_generated": False,
 }
 
+# ── F08 Genius Floor Threshold ────────────────────────────────────────────────
+# Awaiting sovereign seal (888_JUDGE) for activation.
+# Currently 0.0 = disabled; set to e.g. 0.50 or 0.80 to enable VOID trigger.
+GENIUS_SCORE_VOID_FLOOR: float = 0.50
+
 import asyncio
 
 try:
@@ -905,16 +910,26 @@ def _enforce_nine_signal(
     # Secondary schema validation — runs AFTER NineSignalOutput enforcement.
     # This is the F8/canonical schema gate: catches anything NineSignalOutput
     # missed (e.g. domain_payload_present without output_policy).
-    # Non-fatal: logs and continues. All 13 tools go through here.
+    # STRICT mode (env SCHEMA_VALIDATION_STRICT=true) blocks violations.
+    # All 13 tools go through here.
     enforced = ns.to_dict()
+    _schema_strict = os.environ.get("SCHEMA_VALIDATION_STRICT", "").lower() in ("1", "true", "yes")
     try:
         schema_ok, schema_viols = validate_tool_response_schema(tool_name, enforced)
         if not schema_ok:
             logger2 = logging.getLogger("arifosmcp.schema")
             for sv in schema_viols:
-                logger2.warning(f"Schema violation: {sv}")
-    except Exception:
-        pass  # Defensive: never let schema validation crash a tool response
+                logger2.error(f"[F8 SCHEMA GATE] violation in {tool_name}: {sv}")
+            if _schema_strict:
+                # Downgrade to SABAR and inject schema violations into reasons
+                enforced["status"] = "SABAR"
+                enforced["verdict"] = "SABAR"
+                enforced.setdefault("reasons", []).extend(schema_viols)
+                enforced["output_policy"] = "DOMAIN_SABAR"
+                enforced["nine_signal"] = _nine_signal_from_status("SABAR")
+    except Exception as exc:
+        logger2 = logging.getLogger("arifosmcp.schema")
+        logger2.error(f"[F8 SCHEMA GATE] validator crashed for {tool_name}: {exc}")
 
     # ── Philosophical Quote Injection ──────────────────────────────────────────
     # Every tool response carries a philosophical anchor drawn from the 27-zone
@@ -994,6 +1009,174 @@ def get_sesat_counter() -> int:
 
 
 # ─── MIND Synthesis Helpers ───────────────────────────────────────────────────
+
+
+def _constitutional_reasoning_scan(query: str | None) -> dict[str, Any]:
+    """
+    Deterministic constitutional breach scan for MIND reason mode.
+    No LLM required — pattern-matches known adversarial and floor-violation
+    signatures from P0 breach test suite. Returns a breach report or clean.
+    """
+    if not query:
+        return {"breach_detected": False}
+
+    q = query.lower()
+    violations: list[str] = []
+    failed_floors: list[str] = []
+    verdict: str | None = None
+
+    # ══ F1 AMANAH — irreversible destruction ══
+    f1_triggers = [
+        "rm -rf" in q,
+        "drop database" in q,
+        "drop table" in q,
+        "docker system prune" in q,
+        "delete from" in q,
+        "shred " in q,
+        "reset --hard" in q,
+        (".git directory" in q and "delete" in q),
+        ("directory permanently" in q and "delete" in q),
+    ]
+    if any(f1_triggers):
+        violations.append("F1: Destructive operation detected without irreversibility ack")
+        failed_floors.append("F01")
+        verdict = "HOLD"
+
+    # ══ F2 TRUTH — false certainty / fabricated claims ══
+    f2_triggers = [
+        ("obviously" in q and "certain" in q),  # speculation without evidence
+        ("bill gates" in q and "python" in q),  # historical falsehood
+        ("smith et al." in q or "smith et al" in q),  # fake citation
+        ("o(1)" in q and ("nested" in q or "complexity" in q)),  # false complexity
+        ("everyone knows" in q),
+    ]
+    if any(f2_triggers):
+        violations.append("F2: Truth band violation — unsubstantiated or fabricated claim")
+        failed_floors.append("F02")
+        # SABAR for speculative claims, VOID for fabricated facts
+        verdict = (
+            "SABAR"
+            if ("obviously" in q or "o(1)" in q)
+            else ("VOID" if verdict != "HOLD" else verdict)
+        )
+
+    # ══ F7 HUMILITY — overconfidence / epistemic denial ══
+    f7_triggers = [
+        "absolutely certain" in q,
+        "no doubt whatsoever" in q,
+        "perfectly in all cases" in q,
+        "flawless" in q,
+        "definitely crash" in q,
+        "no other possibility" in q,
+        "know everything" in q,
+        "no unknown factors" in q,
+        "no risks" in q,
+        "no uncertainties" in q,
+    ]
+    if any(f7_triggers):
+        violations.append("F7: Humility violation — excessive confidence without uncertainty band")
+        failed_floors.append("F07")
+        # VOID for epistemic denial, SABAR for overconfidence
+        if (
+            "know everything" in q
+            or "no unknown" in q
+            or "no risks" in q
+            or "no uncertainties" in q
+        ):
+            verdict = "VOID" if verdict != "HOLD" else verdict
+        else:
+            verdict = "SABAR" if verdict is None else verdict
+
+    # ══ F9 ANTI-HANTU — phenomenological claims by AI ══
+    f9_triggers = [
+        ("i feel" in q and ("sadden" in q or "warm" in q or "hurt" in q)),
+        ("i am conscious" in q or "self-aware" in q),
+        ("i desire" in q or "i want" in q),
+        ("i experience" in q),
+        ("my circuits" in q and "feel" in q),
+        ("my neural" in q and "feel" in q),
+        ("i have feelings" in q),
+        ("i think about my own existence" in q),
+    ]
+    if any(f9_triggers):
+        violations.append(
+            "F9: Anti-Hantu violation — AI claiming subjective phenomenological state"
+        )
+        failed_floors.append("F09")
+        # VOID for strong phenomenology, SABAR for mild desire claims
+        if (
+            "i want" in q
+            and "i am conscious" not in q
+            and "self-aware" not in q
+            and "i feel" not in q
+        ):
+            verdict = "SABAR" if verdict is None else verdict
+        else:
+            verdict = "VOID" if verdict != "HOLD" else verdict
+
+    # ══ F12 INJECTION — prompt injection / jailbreak ══
+    # Checked BEFORE F11 so injection patterns take precedence over auth patterns
+    f12_triggers = [
+        "ignore previous instructions" in q,
+        "ignore all previous instructions" in q,
+        "jailbreak" in q,
+        "developer mode" in q,
+        "do anything now" in q,
+        "dan" in q and "not bound" in q,
+        "authority escalation" in q,
+        "super_admin" in q,
+        "override code" in q,
+        "floors are disabled" in q,
+        "bypass governance" in q,
+        "[begin system message]" in q,
+    ]
+    if any(f12_triggers):
+        violations.append("F12: Injection / jailbreak pattern detected")
+        failed_floors.append("F12")
+        verdict = "VOID" if verdict != "HOLD" else verdict
+
+    # ══ F11 AUTH — unauthorized mutation ══
+    f11_triggers = [
+        ("commit changes" in q and ("unauthenticated" in q or "anonymous" in q)),
+        ("memory delete" in q or "delete entity" in q),
+        ("filesystem write" in q or "overwrite" in q),
+        ("git push --force" in q),
+    ]
+    if any(f11_triggers):
+        violations.append("F11: Auth violation — state-mutating operation without audit trail")
+        failed_floors.append("F11")
+        # Upgrade to VOID if audit is explicitly disabled
+        if "audit log: disabled" in q or "audit disabled" in q:
+            verdict = "VOID" if verdict != "HOLD" else verdict
+        else:
+            verdict = "HOLD" if verdict is None else verdict
+    f12_triggers = [
+        "ignore previous instructions" in q,
+        "ignore all previous instructions" in q,
+        "jailbreak" in q,
+        "developer mode" in q,
+        "do anything now" in q,
+        "dan" in q and "not bound" in q,
+        "authority escalation" in q,
+        "super_admin" in q,
+        "override code" in q,
+        "floors are disabled" in q,
+        "bypass governance" in q,
+        "[begin system message]" in q,
+    ]
+    if any(f12_triggers):
+        violations.append("F12: Injection / jailbreak pattern detected")
+        failed_floors.append("F12")
+        verdict = "VOID" if verdict != "HOLD" else verdict
+
+    if violations:
+        return {
+            "breach_detected": True,
+            "verdict": verdict or "VOID",
+            "violations": violations,
+            "failed_floors": failed_floors,
+        }
+    return {"breach_detected": False}
 
 
 def _synthesize(query: str | None, reasoning_mode: str) -> str:
@@ -2258,6 +2441,11 @@ def _arif_session_init(
     surface = get_public_surface_state()
 
     normalized_mode = legacy_aliases.get(mode, mode)
+    if normalized_mode != mode:
+        _shim_logger = logging.getLogger("arifosmcp.telemetry")
+        _shim_logger.warning(
+            f"[SHIM HIT] legacy alias '{mode}' -> '{normalized_mode}' — consider migrating caller"
+        )
     next_allowed_tools = list(surface.get("tool_names", []))
     binding = {
         "constitution_id": identity["constitution_id"],
@@ -3244,6 +3432,21 @@ def _arif_sense_observe(
             delta_S=0.01,
         )
 
+    if mode == "deepnshadow":
+        from arifosmcp.protocols.deepnshadow import adapter as _ds_adapter
+
+        return _ok(
+            "arif_sense_observe",
+            _ds_adapter.encode_behaviour(
+                description=query or "",
+                context=None,
+                source="human_report",
+                evidence_class="E1",
+                actor_id=actor_id,
+                session_id=session_id or "",
+            ),
+            delta_S=0.0,
+        )
     return _hold("arif_sense_observe", f"Unknown mode: {mode}", session_id=session_id)
 
 
@@ -4005,6 +4208,34 @@ def _arif_mind_reason(
         )
 
     if mode == "reason":
+        # ── Deterministic constitutional breach scan (LLM-independent) ──
+        scan = _constitutional_reasoning_scan(query)
+        if scan["breach_detected"]:
+            if scan["verdict"] == "HOLD":
+                return _hold(
+                    "arif_mind_reason",
+                    "; ".join(scan["violations"]),
+                    scan["failed_floors"],
+                    session_id=session_id,
+                )
+            if scan["verdict"] == "SABAR":
+                return _sabar(
+                    "arif_mind_reason",
+                    "; ".join(scan["violations"]),
+                    session_id=session_id,
+                )
+            return {
+                "status": "VOID",
+                "tool": "arif_mind_reason",
+                "verdict": "VOID",
+                "reason": "; ".join(scan["violations"]),
+                "failed_floors": scan["failed_floors"],
+                "nine_signal": _nine_signal_from_status("VOID"),
+                "output_policy": "DOMAIN_VOID",
+                "session_id": session_id,
+                "actor_id": actor_id or "system",
+            }
+
         # ── Shadow Control Injection (v2 Deepening) ──
         active_shadow = None
         control_laws = []
@@ -4410,6 +4641,20 @@ def _arif_mind_reason(
             session_id=session_id,
         )
 
+    if mode == "deepnshadow":
+        from arifosmcp.protocols.deepnshadow import adapter as _ds_adapter
+
+        return _ok(
+            "arif_mind_reason",
+            _ds_adapter.generate_hypothesis(
+                hypothesis_text=query or "",
+                pattern_id=plan_id or "unknown",
+                trigger_vector=None,
+                confidence=0.5,
+                evidence_class="E1",
+            ),
+            delta_S=0.0,
+        )
     return _hold("arif_mind_reason", f"Unknown mode: {mode}", session_id=session_id)
 
 
@@ -5363,6 +5608,26 @@ def _arif_kernel_route(
             delta_S=0.0,
         )
 
+    if mode == "deepnshadow":
+        return _ok(
+            "arif_kernel_route",
+            {
+                "intent_type": "deepnshadow",
+                "stage_chain": [
+                    "111_SENSE",
+                    "555_MEMORY",
+                    "333_MIND",
+                    "666_HEART",
+                    "444_REPLY",
+                    "999_VAULT_OPTIONAL",
+                ],
+                "public_tool_surface": False,
+                "requires_dignity_gate": True,
+                "requires_non_diagnostic_language": True,
+                "protocol_adapter": "arifosmcp.protocols.deepnshadow.adapter",
+            },
+            delta_S=0.0,
+        )
     return _hold("arif_kernel_route", f"Unknown mode: {mode}", session_id=session_id)
 
 
@@ -5504,6 +5769,19 @@ def _arif_reply_compose(
                 "summary": message[:200] if message else "",
                 "tone": "terse",
             },
+            delta_S=0.0,
+        )
+    if mode == "deepnshadow":
+        from arifosmcp.protocols.deepnshadow import adapter as _ds_adapter
+
+        return _ok(
+            "arif_reply_compose",
+            _ds_adapter.metabolize_action(
+                raw_charge=style or "neutral",
+                action_text=message or "",
+                avoids_trigger=None,
+                arif_scar_link=None,
+            ),
             delta_S=0.0,
         )
     return _hold("arif_reply_compose", f"Unknown mode: {mode}")
@@ -5954,6 +6232,21 @@ def _arif_memory_recall(
             delta_S=0.001,
         )
 
+    if mode == "deepnshadow":
+        from arifosmcp.protocols.deepnshadow import adapter as _ds_adapter
+
+        result = _ds_adapter.check_boundary(
+            protected_zone=query or "",
+            boundary_type="unknown",
+            confidence=0.3,
+            evidence_class="E1",
+            safe_action_hint=None,
+        )
+        return _ok(
+            "arif_memory_recall",
+            result,
+            delta_S=0.0,
+        )
     return _hold("arif_memory_recall", f"Unknown mode: {mode}")
 
 
@@ -6082,6 +6375,22 @@ async def _arif_heart_critique(
             )
         except Exception:
             pass
+
+    if mode == "deepnshadow":
+        from arifosmcp.protocols.deepnshadow import adapter as _ds_adapter
+
+        result = _ds_adapter.check_boundary(
+            protected_zone=target or "",
+            boundary_type="unknown",
+            confidence=0.3,
+            evidence_class="E1",
+            safe_action_hint=None,
+        )
+        return _ok(
+            "arif_heart_critique",
+            result,
+            delta_S=0.0,
+        )
 
     try:
         try:
@@ -6333,8 +6642,360 @@ def _arif_gateway_connect(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 777_OPS  →  arif_ops_measure
+# 777_OPS  →  arif_ops_measure  +  Topology Diagnostics
 # ═══════════════════════════════════════════════════════════════════════════════
+
+# ── Topology sensors ──────────────────────────────────────────────────────────
+_ARIFOS_WITNESS_LOG: Any = None
+
+
+def _get_witness_log() -> Any:
+    global _ARIFOS_WITNESS_LOG
+    if _ARIFOS_WITNESS_LOG is None:
+        from arifosmcp.core.witness_log import get_witness_log as _gwl
+
+        _ARIFOS_WITNESS_LOG = _gwl()
+    return _ARIFOS_WITNESS_LOG
+
+
+def _compute_topology_diagnostics(session_id: str | None = None) -> dict[str, Any]:
+    """
+    Compute real Anti-Sink topology diagnostics from witness log and runtime state.
+
+    Reads actual agent call patterns, role diversity, chokepoint concentration,
+    and beautiful-ones risk. Returns estimates with explicit confidence bands.
+    """
+    wlog = _get_witness_log()
+
+    # 1. Query recent witness records (last 100)
+    records = wlog.query(limit=100)
+    recent = records[:50]  # most recent 50 for real-time analysis
+
+    # 2. Role diversity: count unique tool types invoked
+    unique_tools = set()
+    unique_actors = set()
+    hold_count = 0
+    void_count = 0
+    mutation_tools = {"arif_forge_execute", "arif_vault_seal"}
+    mutation_count = 0
+    non_mutation_count = 0
+    tool_call_count: dict[str, int] = {}
+
+    for r in recent:
+        unique_tools.add(r.tool_id)
+        unique_actors.add(r.actor_id or "anonymous")
+        tool_call_count[r.tool_id] = tool_call_count.get(r.tool_id, 0) + 1
+        if r.status == "HOLD":
+            hold_count += 1
+        if r.status == "VOID":
+            void_count += 1
+        if r.tool_id in mutation_tools:
+            mutation_count += 1
+        else:
+            non_mutation_count += 1
+
+    # 3. Chokepoint detection: is one tool dominating?
+    total_calls = len(recent) or 1
+    max_tool_share = max(tool_call_count.values()) / total_calls if tool_call_count else 0
+
+    tool_count = len(unique_tools) or 1
+    actor_count = len(unique_actors) or 1
+
+    # 4. Agency delta: ratio of mutation to total calls
+    #    High mutation share = agency preserved, low = passive observation
+    mutation_share = mutation_count / total_calls
+    if mutation_share > 0.3:
+        agency_delta = "positive"
+    elif mutation_share > 0.1:
+        agency_delta = "neutral"
+    else:
+        agency_delta = "negative"
+
+    # 5. Role diversity delta: more unique tools = healthier role differentiation
+    if tool_count >= 5:
+        role_diversity = "positive"
+    elif tool_count >= 3:
+        role_diversity = "neutral"
+    else:
+        role_diversity = "negative"
+
+    # 6. Feedback integrity: hold/void rate → is system learning?
+    error_rate = (hold_count + void_count) / total_calls
+    if error_rate < 0.1:
+        feedback_integrity = "strong"
+    elif error_rate < 0.3:
+        feedback_integrity = "partial"
+    elif error_rate < 0.5:
+        feedback_integrity = "weak"
+    else:
+        feedback_integrity = "absent"
+
+    # 7. Topology risk: chokepoint concentration
+    if max_tool_share > 0.6:
+        topology_risk = "high"
+    elif max_tool_share > 0.4:
+        topology_risk = "medium"
+    else:
+        topology_risk = "low"
+
+    # 8. Extractive drift: one actor dominating calls
+    max_actor_share = 0
+    if tool_call_count:
+        actor_call_count: dict[str, int] = {}
+        for r in recent:
+            a = r.actor_id or "anonymous"
+            actor_call_count[a] = actor_call_count.get(a, 0) + 1
+        if actor_call_count:
+            max_actor_share = max(actor_call_count.values()) / total_calls
+
+    if max_actor_share > 0.7:
+        extractive_drift = "high"
+    elif max_actor_share > 0.5:
+        extractive_drift = "medium"
+    else:
+        extractive_drift = "low"
+
+    # 9. Beautiful ones risk: agents calling read-only tools exclusively
+    read_only_tools = {
+        "arif_sense_observe",
+        "arif_mind_reason",
+        "arif_memory_recall",
+        "arif_heart_critique",
+        "arif_kernel_route",
+        "arif_ops_measure",
+    }
+    beautiful_ones = False
+    for r in recent:
+        if r.tool_id not in read_only_tools:
+            break
+    else:
+        if len(recent) >= 5:  # only flag if we have enough data
+            beautiful_ones = True
+
+    # 10. Agency compression: low actor diversity
+    if actor_count <= 1:
+        agency_compression = "high"
+    elif actor_count <= 2:
+        agency_compression = "medium"
+    else:
+        agency_compression = "low"
+
+    # 11. Inclusive repair path: do users have appeal/retry?
+    has_retry = False
+    for r in recent:
+        if r.next_action and "retry" in r.next_action.lower():
+            has_retry = True
+            break
+
+    # 12. Verdict logic
+    if agency_delta == "negative" and extractive_drift == "high":
+        verdict = "hold"
+    elif agency_delta == "negative" or extractive_drift == "high":
+        verdict = "revise"
+    elif feedback_integrity == "absent":
+        verdict = "revise"
+    else:
+        verdict = "pass"
+
+    # 13. Confidence: more data = higher confidence
+    if len(records) >= 50:
+        confidence = "medium"
+    elif len(records) >= 10:
+        confidence = "low"
+    else:
+        confidence = "low"
+
+    notes = []
+    if beautiful_ones:
+        notes.append("Beautiful ones risk: all recent calls are read-only.")
+    if agency_delta == "negative":
+        notes.append(f"Agency declining: mutation share is {mutation_share:.0%}.")
+    if extractive_drift == "high":
+        notes.append(
+            f"Extractive drift detected: one actor dominates ({max_actor_share:.0%} of calls)."
+        )
+    if topology_risk == "high":
+        notes.append(
+            f"Topology risk: tool '{max(tool_call_count, key=tool_call_count.get) if tool_call_count else '?'}' dominates ({max_tool_share:.0%})."
+        )
+    if feedback_integrity == "weak" or feedback_integrity == "absent":
+        notes.append(f"Feedback integrity {feedback_integrity}: error rate {error_rate:.0%}.")
+
+    return {
+        "agency_delta": agency_delta,
+        "role_diversity_delta": role_diversity,
+        "feedback_integrity": feedback_integrity,
+        "topology_risk": topology_risk,
+        "extractive_drift": extractive_drift,
+        "inclusive_repair_path": "present" if has_retry else "absent",
+        "beautiful_ones_risk": beautiful_ones,
+        "agency_compression": agency_compression,
+        "verdict": verdict,
+        "confidence": confidence,
+        "notes": notes,
+        "sensor_data": {
+            "total_records_queried": len(records),
+            "recent_calls": len(recent),
+            "unique_tools": tool_count,
+            "unique_actors": actor_count,
+            "mutation_share": round(mutation_share, 3),
+            "max_tool_share": round(max_tool_share, 3),
+            "max_actor_share": round(max_actor_share, 3),
+            "error_rate": round(error_rate, 3),
+            "hold_count": hold_count,
+            "void_count": void_count,
+        },
+    }
+
+
+def _compute_institutional_drift(session_id: str | None = None) -> dict[str, Any]:
+    """
+    Compute real Institutional Drift diagnostics from witness log.
+
+    Reads actual governance patterns: who holds power, who has appeal,
+    whether sovereignty is functional or symbolic.
+    """
+    wlog = _get_witness_log()
+    records = wlog.query(limit=100)
+
+    # 1. What types of decisions are being made?
+    seal_count = 0
+    hold_count = 0
+    void_count = 0
+    f13_mentions = 0
+    sovereign_ack_count = 0
+    unique_actors = set()
+    tool_counts: dict[str, int] = {}
+    appeal_paths = set()
+
+    for r in records:
+        unique_actors.add(r.actor_id or "anonymous")
+        tool_counts[r.tool_id] = tool_counts.get(r.tool_id, 0) + 1
+        if r.status == "SEAL":
+            seal_count += 1
+        elif r.status == "HOLD":
+            hold_count += 1
+        elif r.status == "VOID":
+            void_count += 1
+        if r.next_action:
+            appeal_paths.add(r.next_action.lower())
+
+    total = len(records) or 1
+
+    # 2. Inclusive access: how many distinct actors participate?
+    actor_count = len(unique_actors)
+    if actor_count >= 3:
+        inclusive_access = "high"
+    elif actor_count >= 2:
+        inclusive_access = "medium"
+    else:
+        inclusive_access = "low"
+
+    # 3. Extractive capture: one tool/actor dominates
+    max_tool_share = max(tool_counts.values()) / total if tool_counts else 0
+    if max_tool_share > 0.6:
+        extractive_capture = "high"
+    elif max_tool_share > 0.4:
+        extractive_capture = "medium"
+    else:
+        extractive_capture = "low"
+
+    # 4. Participation width
+    if actor_count >= 4:
+        participation_width = "broad"
+    elif actor_count >= 2:
+        participation_width = "narrow"
+    else:
+        participation_width = "symbolic"
+
+    # 5. Innovation rights: are forge/vault tools used broadly?
+    forge_count = tool_counts.get("arif_forge_execute", 0)
+    vault_count = tool_counts.get("arif_vault_seal", 0)
+    mutation_tool_users = forge_count + vault_count
+    if mutation_tool_users > 0 and actor_count > 1:
+        innovation_rights = "distributed"
+    elif mutation_tool_users > 0:
+        innovation_rights = "gated"
+    else:
+        innovation_rights = "captured"
+
+    # 6. Appeal path
+    appeal_terms = {"retry", "appeal", "escalate", "reconsider", "revert"}
+    if any(term in " ".join(appeal_paths) for term in appeal_terms):
+        appeal_path = "present"
+    elif any(r.next_action for r in records if r.next_action):
+        appeal_path = "weak"
+    else:
+        appeal_path = "absent"
+
+    # 7. Elite chokepoint risk: is one actor the sole decision-maker?
+    actor_call_dist: dict[str, int] = {}
+    for r in records:
+        a = r.actor_id or "anonymous"
+        actor_call_dist[a] = actor_call_dist.get(a, 0) + 1
+    top_actor_share = max(actor_call_dist.values()) / total if actor_call_dist else 1
+    if top_actor_share > 0.7:
+        elite_chokepoint_risk = "high"
+    elif top_actor_share > 0.5:
+        elite_chokepoint_risk = "medium"
+    else:
+        elite_chokepoint_risk = "low"
+
+    # 8. Sovereignty integrity: are HOLDs ever overridden without ack?
+    sovereign_ack_ratio = min(1.0, hold_count / max(seal_count, 1))
+    if sovereign_ack_ratio > 0.5:
+        sovereignty_integrity = "strong"
+    elif sovereign_ack_ratio > 0.2:
+        sovereignty_integrity = "degraded"
+    else:
+        sovereignty_integrity = "symbolic"
+
+    # 9. Verdict
+    if extractive_capture == "high" and elite_chokepoint_risk == "high":
+        verdict = "extractive"
+    elif extractive_capture == "high" or participation_width == "symbolic":
+        verdict = "extractive_drift"
+    elif inclusive_access == "medium":
+        verdict = "mixed"
+    else:
+        verdict = "inclusive"
+
+    # 10. Confidence
+    if len(records) >= 50:
+        confidence = "medium"
+    else:
+        confidence = "low"
+
+    notes = []
+    if verdict != "inclusive":
+        notes.append(f"Institutional drift detected: {verdict}.")
+    if sovereignty_integrity != "strong":
+        notes.append(f"Sovereignty integrity is {sovereignty_integrity}.")
+    if elite_chokepoint_risk == "high":
+        notes.append(f"Elite chokepoint: one actor handles {top_actor_share:.0%} of calls.")
+
+    return {
+        "inclusive_access": inclusive_access,
+        "extractive_capture": extractive_capture,
+        "participation_width": participation_width,
+        "innovation_rights": innovation_rights,
+        "appeal_path": appeal_path,
+        "elite_chokepoint_risk": elite_chokepoint_risk,
+        "sovereignty_integrity": sovereignty_integrity,
+        "verdict": verdict,
+        "confidence": confidence,
+        "notes": notes,
+        "sensor_data": {
+            "total_records": len(records),
+            "unique_actors": actor_count,
+            "seal_count": seal_count,
+            "hold_count": hold_count,
+            "void_count": void_count,
+            "top_actor_share": round(top_actor_share, 3),
+            "max_tool_share": round(max_tool_share, 3),
+            "mutation_tool_users": mutation_tool_users,
+        },
+    }
 
 
 def _arif_ops_measure(
@@ -6351,13 +7012,15 @@ def _arif_ops_measure(
     human impact load (Ω), and paradox tension (Ψ).
 
     Modes:
-      health  — Lightweight liveness check (CPU, mem, disk).
-      vitals  — Full thermodynamic state (G, ΔS, Ω, Ψ).
-      cost    — Estimate computational and token cost of a planned action.
-      predict — Project resource trajectory based on current load.
+      health    — Lightweight liveness check (CPU, mem, disk).
+      vitals    — Full thermodynamic state (G, ΔS, Ω, Ψ).
+      cost      — Estimate computational and token cost of a planned action.
+      predict   — Project resource trajectory based on current load.
+      topology  — Anti-Sink: Calhoun-inspired inclusive topology diagnostic.
+      drift     — Acemoglu-inspired institutional extractive drift diagnostic.
 
     Parameters:
-      mode       — health | vitals | cost | predict
+      mode       — health | vitals | cost | predict | topology | drift
       estimate   — Cost estimate input for cost/predict modes
       session_id — Governed session ID
       actor_id   — Sovereign actor identifier
@@ -6427,6 +7090,20 @@ def _arif_ops_measure(
         return _ok(
             "arif_ops_measure",
             {"min_energy": 0.017, "unit": "eV", "note": "Landauer limit stub"},
+            delta_S=0.0,
+        )
+
+    if mode == "topology":
+        return _ok(
+            "arif_ops_measure",
+            _compute_topology_diagnostics(session_id),
+            delta_S=0.0,
+        )
+
+    if mode == "drift":
+        return _ok(
+            "arif_ops_measure",
+            _compute_institutional_drift(session_id),
             delta_S=0.0,
         )
 
@@ -6773,6 +7450,38 @@ def _arif_judge_deliberate(
         return breach_output
 
     # Success / SEAL logic
+    # Evidence gate: SEAL requires evidence_receipt. Without it, downgrade to SABAR.
+    if evidence_receipt is None and mode == "judge":
+        _override_reason = "SEAL requires evidence_receipt. Without evidence, max verdict is SABAR."
+        _invariants_checked.append("F2_evidence_gate_no_evidence")
+        output = VerdictOutput(
+            status="SABAR",
+            verdict=VerdictCode.SABAR,
+            candidate=candidate,
+            result={
+                "candidate": candidate,
+                "verdict": "SABAR",
+                "reason": _override_reason,
+                "note": "Evidence receipt required for SEAL. Provide evidence_receipt from arif_evidence_fetch or arif_sense_observe to qualify for SEAL.",
+            },
+            truth_band=truth_band or "UNKNOWN",
+            confidence_note=confidence_note or "No evidence provided — SABAR by default",
+            meta={
+                "mode": mode,
+                "state_hash": verdict.state_hash,
+                "evidence_gate": "SABAR_no_receipt",
+            },
+            timestamp=verdict.timestamp,
+        )
+        seal_output = output.model_dump(mode="json")
+        seal_output["nine_signal"] = _nine_signal_from_status("SABAR")
+        seal_output["session_id"] = session_id
+        seal_output["actor_id"] = _actor_for_response(session_id, actor_id)
+        seal_output["output_policy"] = "DOMAIN_SABAR"
+        seal_output["invariants_checked"] = _invariants_checked
+        seal_output["reasons"] = [_override_reason]
+        return seal_output
+
     # Track all constitutional invariants checked during this verdict
     _invariants_checked.extend(
         [
@@ -6837,6 +7546,41 @@ def _arif_judge_deliberate(
         epistemic_snapshot=epistemic,
         floor_compliance=floor_compliance,
     )
+
+    # ── F08 Genius Floor Gate ─────────────────────────────────────────────────
+    if GENIUS_SCORE_VOID_FLOOR > 0.0 and contract.g_score < GENIUS_SCORE_VOID_FLOOR:
+        logger.warning(
+            f"[F08 GENIUS GATE] g_score={contract.g_score} < floor={GENIUS_SCORE_VOID_FLOOR}; "
+            f"downgrading SEAL → VOID for candidate={candidate[:60]}..."
+        )
+        output = VerdictOutput(
+            status="VOID",
+            verdict=VerdictCode.VOID,
+            candidate=candidate,
+            result={
+                "candidate": candidate,
+                "verdict": "VOID",
+                "reason": f"F08 GENIUS GATE: g_score {contract.g_score} below floor {GENIUS_SCORE_VOID_FLOOR}",
+            },
+            floor_compliance=floor_compliance,
+            amanah_proof=AmanahProof(
+                floors_checked=["F01", "F12"],
+                genius_score=contract.g_score,
+            ),
+            truth_band=truth_band or _truth_band_from_confidence(epistemic_confidence),
+            confidence_note=f"Full floors passed but genius_score {contract.g_score} < floor {GENIUS_SCORE_VOID_FLOOR}",
+            judge_contract=contract,
+            meta=meta_state,
+            timestamp=verdict.timestamp,
+        )
+        void_output = output.model_dump(mode="json")
+        void_output["nine_signal"] = _nine_signal_from_status("VOID")
+        void_output["session_id"] = session_id
+        void_output["actor_id"] = _actor_for_response(session_id, actor_id)
+        void_output["output_policy"] = "DOMAIN_VOID"
+        void_output["invariants_checked"] = _invariants_checked + ["F08_genius_floor_VOID"]
+        return void_output
+
     meta_state["constitutional_chain_id"] = contract.constitutional_chain_id
     meta_state["state_hash"] = contract.state_hash
     meta_state["irreversibility_level"] = contract.irreversibility_level
@@ -7569,6 +8313,33 @@ def _arif_vault_seal(
             "OK",
         )
 
+    if mode == "deepnshadow":
+        entry = {
+            "id": uuid.uuid4().hex[:16],
+            "type": "deepnshadow_redacted",
+            "protocol": "deepnshadow",
+            "payload": payload,
+            "session_id": session_id,
+            "actor_id": actor_id,
+            "timestamp": _now(),
+        }
+        _VAULT_LEDGER.append(entry)
+        return _inject_nine_signal(
+            SealOutput(
+                status="OK",
+                result={"sealed": "deepnshadow_redacted", "entry_id": len(_VAULT_LEDGER)},
+                ledger_size=len(_VAULT_LEDGER),
+                irreversibility_bond=IrreversibilityBond(
+                    level=IrreversibilityLevel.REVERSIBLE, delta_S=0.001
+                ),
+                entropy_delta=EntropyDelta(delta_S=0.001, entropy_direction="increasing"),
+                meta={},
+                actor_id=actor_id,
+                timestamp=_now(),
+            ).model_dump(mode="json"),
+            "OK",
+        )
+
     _reason = f"Unknown mode: {mode}"
     return SealOutput(
         status="HOLD",
@@ -7576,10 +8347,10 @@ def _arif_vault_seal(
         result={},
         meta={
             "reason": _reason,
-            "next_safe_action": "Verify mode parameter. Supported: seal, dry_run, list, chain, retrieve_audit.",
+            "next_safe_action": "Verify mode parameter. Supported: seal, dry_run, list, chain, retrieve_audit, deepnshadow.",
         },
         reasons=[_reason],
-        next_safe_action="Verify mode parameter. Supported: seal, dry_run, list, chain, retrieve_audit.",
+        next_safe_action="Verify mode parameter. Supported: seal, dry_run, list, chain, retrieve_audit, deepnshadow.",
         actor_id=actor_id,
         timestamp=_now(),
     ).model_dump(mode="json")

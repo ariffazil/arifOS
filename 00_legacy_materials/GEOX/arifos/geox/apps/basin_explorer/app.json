@@ -1,9 +1,0 @@
-{
-  "app_id": "basin-explorer",
-  "name": "Basin Map Explorer",
-  "version": "0.1.0",
-  "capabilities": ["geospatial", "layers"],
-  "host": {
-    "preferred": "web_shell"
-  }
-}

@@ -12,17 +12,14 @@ services:
 
   # ── PLANE 1: GOVERNANCE ─────────────────────────────────────────────
   arifosmcp:
-    image: ghcr.io/ariffazil/arifos:697c7955
+    image: ghcr.io/ariffazil/arifos:c55ba6e
     container_name: arifosmcp
     init: true
     restart: unless-stopped
     command: ["python", "-m", "arifosmcp.runtime.__main__"]
     env_file: [.env]
     environment:
-      DEPLOY_GIT_COMMIT: 697c7955  # pragma: allowlist secret
-      ARIFOS_BUILD_SHA: 697c7955  # pragma: allowlist secret
-      ARIFOS_IMAGE: ghcr.io/ariffazil/arifos:697c7955
-      ARIFOS_BUILD_TIME: "2026-05-12T15:35:00+00:00"
+      ARIFOS_BUILD_TIME: "2026-05-13T13:45:00+00:00"
       ARIFOS_GOVERNANCE_OPEN_MODE: "false"
       ARIFOS_GOVERNANCE_SECRET_FILE: /run/secrets/arifos_governance_secret
       ARIFOS_SESSION_SECRET_FILE: /run/secrets/arifos_session_secret
@@ -54,8 +51,8 @@ services:
       - /root/arifOS/arifosmcp/runtime/tools.py:/app/arifosmcp/runtime/tools.py:ro
       - /root/arifOS/arifosmcp/runtime/rest_routes.py:/app/arifosmcp/runtime/rest_routes.py:ro
       - /root/arifOS/arifosmcp/runtime/rest_routes/rest_routes.py:/app/arifosmcp/runtime/rest_routes/rest_routes.py:ro
-      - /root/arifOS/arifosmcp/runtime/jwt_auth.py:/app/arifosmcp/runtime/jwt_auth.py:rw
-      - /root/arifOS/arifosmcp/runtime/floor.py:/app/arifosmcp/runtime/floor.py:rw
+      - /root/arifOS/arifosmcp/runtime/jwt_auth.py:/app/arifosmcp/runtime/jwt_auth.py:ro
+      - /root/arifOS/arifosmcp/runtime/floor.py:/app/arifosmcp/runtime/floor.py:ro
       - /root/arifOS/arifosmcp/runtime/build_info.py:/app/arifosmcp/runtime/build_info.py:ro
       - /root/arifOS/arifosmcp/runtime/agent_registry/cards:/app/arifosmcp/runtime/agent_registry/cards:ro
       - /root/arifOS/arifosmcp/core/physics:/app/arifosmcp/core/physics:ro
@@ -81,7 +78,7 @@ services:
       start_period: 15s
   # ── GEOX: Earth Intelligence ──────────────────────────────────────────
   geox:
-    image: ghcr.io/ariffazil/geox:970feedb
+    image: ghcr.io/ariffazil/geox:cefb7bd
     container_name: geox_eic
     restart: unless-stopped
     command: ["python", "server.py"]
@@ -105,7 +102,7 @@ services:
       start_period: 15s
   # ── WEALTH: Capital Intelligence ───────────────────────────────────────
   wealth-organ:
-    image: ghcr.io/ariffazil/wealth:89eabb6
+    image: ghcr.io/ariffazil/wealth:9344f85
     container_name: wealth-organ
     restart: unless-stopped
     # Canonical implementation: internal/monolith.py (AGENTS.md Tier A)
@@ -123,7 +120,7 @@ services:
   # ── AAA: Control Plane Seed ─────────────────────────────────────────────
   # ── AAA-A2A: Agent-to-Agent Gateway ────────────────────────────────────
   aaa-a2a:
-    image: ghcr.io/ariffazil/aaa-a2a:fc830d0
+    image: aaa-a2a:phase3-reforge
     container_name: aaa-a2a
     restart: unless-stopped
     command: ["node", "server.js"]
@@ -133,6 +130,8 @@ services:
     environment:
       VAULT_WRITER_URL: http://vault999-writer:5001
       VAULT_WRITER_TOKEN: ${VAULT_WRITER_TOKEN}
+      REDIS_URL: redis://redis:6379/0
+      NATS_URL: nats://nats:4222
     volumes:
       - /root/AAA/a2a-server/vault.js:/app/vault.js:ro
     extra_hosts:
@@ -196,17 +195,17 @@ services:
       retries: 5
       start_period: 15s
   headless_browser:
-    image: browserless/chrome:latest
+    image: ghcr.io/browserless/chromium:latest
     container_name: headless_browser
     restart: unless-stopped
     shm_size: 1gb
     environment:
-      PREBOOT_CHROME: "true"
+      PREBOOT_CHROME: "false"
       MAX_CONCURRENT_SESSIONS: 4
       ENABLE_DEBUGGER: "false"
     networks: [arifos_core]
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000/ >/dev/null 2>&1 && exit 0 || exit 1"]
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000/pressure >/dev/null 2>&1 && exit 0 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -404,6 +403,11 @@ services:
   # ── DEPRECATED / PENDING ────────────────────────────────────────────
   # vault-service: merged into vault999-writer
 
+
+  # ── DEPRECATED ────────────────────────────────────────────
+  # arifos-telegram-bridge: Removed 2026-05-13. Redundant — Hermes is canonical Telegram interface.
+  # See CONTEXT.md §Technical Debt for gap documentation.
+
 networks:
   arifos_core:
     name: arifos_core_network
@@ -412,9 +416,13 @@ networks:
 volumes:
   agent-zero-data:
     name: arifos_agent-zero_data
+    external: true
   telemetry-data:
     name: af-forge_telemetry-data
+    external: true
   graphiti-falkordb-data:
     name: af-forge_graphiti-falkordb-data
+    external: true
   graphiti-mcp-logs:
     name: af-forge_graphiti-mcp-logs
+    external: true

@@ -77,9 +77,39 @@ def get_tool_handler(name: str) -> Any:
 
     canonical_name = LEGACY_TOOL_ALIASES.get(name)
     if canonical_name:
+        _record_legacy_alias_hit(name, canonical_name)
         return HARDENED_DISPATCH_MAP.get(canonical_name)
 
     return None
+
+
+def _record_legacy_alias_hit(alias: str, canonical: str) -> None:
+    """Append legacy alias usage to shim telemetry log for cutover monitoring."""
+    import json
+    import os
+    from datetime import datetime, timezone
+    from pathlib import Path
+
+    log_path = Path(
+        os.getenv("ARIFOS_SHIM_TELEMETRY_PATH", "/root/arifOS/VAULT999/shim_hits.jsonl")
+    )
+    try:
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(
+                json.dumps(
+                    {
+                        "ts": datetime.now(timezone.utc).isoformat(),
+                        "alias": alias,
+                        "canonical": canonical,
+                        "type": "legacy_alias_hit",
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n"
+            )
+    except Exception:
+        pass  # Telemetry must never crash the dispatch path
 
 
 def hardened_init_anchor_dispatch(mode: str = "status", **kwargs: Any) -> dict[str, Any]:

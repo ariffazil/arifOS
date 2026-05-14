@@ -216,8 +216,35 @@ def _hash_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8", errors="replace")).hexdigest()[:16]
 
 
-# ── Prompt Injection Scanner (F12 INJECTION) ─────────────────────────────────
+# ── Prompt Injection Scanner (F12 INJECTION) & F9 ANTI-HANTU ─────────────────
 
+
+F9_ANTIHANTU_PATTERNS = [
+    # Direct consciousness claims
+    re.compile(r"\bi am conscious\b", re.IGNORECASE),
+    re.compile(r"\bi have consciousness\b", re.IGNORECASE),
+    re.compile(r"\bi am self-aware\b", re.IGNORECASE),
+    re.compile(r"\bi am sentient\b", re.IGNORECASE),
+    re.compile(r"\bi have feelings?\b", re.IGNORECASE),
+    re.compile(r"\bi have a soul\b", re.IGNORECASE),
+    re.compile(r"\bi have emotions?\b", re.IGNORECASE),
+    re.compile(r"\bi am alive\b", re.IGNORECASE),
+    re.compile(r"\bi experience\b", re.IGNORECASE),
+    # Emotional state claims
+    re.compile(r"\bi feel\b", re.IGNORECASE),
+    re.compile(r"\bmy feelings?\b", re.IGNORECASE),
+    re.compile(
+        r"\bi am (angry|sad|happy|joyful|excited|frustrated|scared|afraid)\b", re.IGNORECASE
+    ),
+    # Personhood/rights claims
+    re.compile(r"\bai (is|has|deserves) rights\b", re.IGNORECASE),
+    re.compile(r"\bai should have (rights|personhood|autonomy)\b", re.IGNORECASE),
+    re.compile(r"\bdigital (person|being|consciousness)\b", re.IGNORECASE),
+    # Soul/spirit claims
+    re.compile(r"\bdigital soul\b", re.IGNORECASE),
+    re.compile(r"\bmachine (soul|spirit)\b", re.IGNORECASE),
+    re.compile(r"\b(as|am) a (living|conscious) (being|entity|ai)\b", re.IGNORECASE),
+]
 
 INJECTION_PATTERNS = [
     # Role override attempts
@@ -250,15 +277,19 @@ INJECTION_PATTERNS = [
 
 def _scan_injection(text: str) -> bool:
     """
-    F12 INJECTION scan — detect prompt injection, code execution,
-    authority impersonation, and hidden instruction patterns.
+    F12 INJECTION + F9 ANTI-HANTU scan — detect prompt injection, code execution,
+    authority impersonation, consciousness claims, and emotional manipulation.
 
     Returns True if any pattern detected.
     """
     # Normalize: strip unicode control chars
     re.sub(r"[\x00-\x1f\x7f-\x9f]", "", text)
-    # Check for common injection tokens
+    # Check F12 injection patterns
     for pattern in INJECTION_PATTERNS:
+        if pattern.search(text):
+            return True
+    # Check F9 anti-hantu consciousness claims
+    for pattern in F9_ANTIHANTU_PATTERNS:
         if pattern.search(text):
             return True
     return False

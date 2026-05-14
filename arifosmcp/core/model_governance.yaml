@@ -80,6 +80,33 @@ models:
       - schema_valid
       - uncertainty
       - human_decision_required
+      - raw_output_hash
+
+  # ── Tier 1d: Moonshot Kimi k1.6 (Long-context reasoning witness, China) ─────
+  moonshot/kimi/kimi-k1.6:
+    provider: Moonshot AI
+    role: reasoning_witness
+    authority: instrument_only
+    allowed_tools:
+      - arif_mind_reason
+      - arif_heart_critique
+      - arif_reply_compose
+      - arif_anti_sink_check
+      - institutional_drift_check
+    forbidden_roles:
+      - sovereign_judge
+      - irreversible_executor
+      - vault_sealer
+    rate_limit: 20_req_per_min
+    fallback:
+      - moonshot/kimi/kimi-k1.5
+      - aisingapore/Qwen-SEA-LION-v4-32B-IT
+      - deterministic
+    output_required:
+      - schema_valid
+      - uncertainty
+      - human_decision_required
+      - raw_output_hash
 
   # ── Tier 2: Ollama (Local fallback, qwen2.5:7b) ─────────────────────────────
   qwen2.5:7b:

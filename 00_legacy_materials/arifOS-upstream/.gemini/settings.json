@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "arifOS": {
-      "command": "python",
-      "args": ["stdio_server.py"],
-      "cwd": "/root/arifOS"
-    }
-  }
-}

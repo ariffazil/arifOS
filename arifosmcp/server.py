@@ -207,6 +207,57 @@ try:
     _assert_registered_surface(v2_tools_registered)
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
+
+    # ── Inclusive Topology / Anti-Sink Diagnostics (777 FORGE) ────────────────
+    # Reversible runtime diagnostics. NOT canonical constitutional tools.
+    # Authority ceiling: advisory estimates only. No state mutation.
+    from arifosmcp.tools.inclusive_topology import (
+        arif_anti_sink_check,
+        institutional_drift_check,
+    )
+
+    mcp.tool(
+        name="arif_anti_sink_check",
+        description=(
+            "777_TOPOLOGY: Anti-sink runtime diagnostic. "
+            "Evaluates a system against anti-sink invariants (F05, F08, F10, F13). "
+            "Returns advisory estimates — not verdicts. Reversible. No state mutation."
+        ),
+        tags={"diagnostic", "topology", "governance"},
+    )(arif_anti_sink_check)
+
+    mcp.tool(
+        name="institutional_drift_check",
+        description=(
+            "777_TOPOLOGY: Institutional drift runtime diagnostic. "
+            "Evaluates extractive vs inclusive topology (Acemoglu frame). "
+            "Returns advisory estimates — not verdicts. Reversible. No state mutation."
+        ),
+        tags={"diagnostic", "topology", "governance"},
+    )(institutional_drift_check)
+
+    from arifosmcp.tools.stack_health import arif_stack_health_probe
+
+    mcp.tool(
+        name="arif_stack_health_probe",
+        description=(
+            "777_OPS: Federation stack health and governance probe. "
+            "Checks arifOS MCP, organs, model registry, risk leash, tool registry, VAULT999. "
+            "Returns SELAMAT / AMANAH / VOID with per-component diagnostics."
+        ),
+        tags={"diagnostic", "ops", "health", "governance"},
+    )(arif_stack_health_probe)
+
+    v2_tools_registered.extend(
+        [
+            "arif_anti_sink_check",
+            "institutional_drift_check",
+            "arif_stack_health_probe",
+        ]
+    )
+    logger.info(
+        "Registered diagnostics: arif_anti_sink_check, institutional_drift_check, arif_stack_health_probe"
+    )
 except Exception as e:
     logger.error(f"Failed to initialize runtime components: {e}")
     raise

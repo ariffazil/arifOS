@@ -22,7 +22,6 @@ _refactor = _load_skill("code-refactor")
 _deploy = _load_skill("deployment")
 _recovery = _load_skill("recovery")
 _check = _load_skill("constitutional-check")
-
 # Skill Registry
 SKILL_REGISTRY = {}
 

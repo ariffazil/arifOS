@@ -371,7 +371,7 @@ def preflight(
 #        arif_gateway_connect, arif_vault_seal, arif_forge_execute  (6)
 #   F02: arif_sense_observe, arif_evidence_fetch, arif_mind_reason  (3)
 #   F03: arif_evidence_fetch, arif_gateway_connect, arif_kernel_route (3)
-#   F04: arif_kernel_route, arif_reply_compose, arif_ops_measure   (3)
+#   F04: arif_kernel_route, arif_reply_compose, arif_ops_measure   (3, incl. topology/drift)
 #   F05: arif_heart_critique, arif_evidence_fetch                   (2)
 #   F06: arif_heart_critique, arif_reply_compose                     (2)
 #   F07: arif_mind_reason, arif_sense_observe                       (2)
@@ -630,7 +630,17 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "floors": [Floor.F04_CLARITY],
         "risk_tier": "low",
         "irreversible": False,
-        "modes": ["health", "vitals", "cost", "genius", "psi_le", "omega", "landauer"],
+        "modes": [
+            "health",
+            "vitals",
+            "cost",
+            "genius",
+            "psi_le",
+            "omega",
+            "landauer",
+            "topology",
+            "drift",
+        ],
         "eureka_insight": (
             "F4: ΔS ≤ 0 — ops must contribute to entropy reduction. "
             "Thermodynamic telemetry: delta_S, omega_band, tri_witness."

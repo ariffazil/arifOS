@@ -1,0 +1,90 @@
+# risk_leash.yaml — arifOS Federation Risk Leash Configuration
+# ============================================================
+#
+# Domain-specific risk limits and human-confirmation requirements.
+# Applied by 777_WITNESS and 888_JUDGE runtime gates.
+#
+# DITEMPA BUKAN DIBERI — Forged, Not Given
+
+risk_leash:
+  version: "2026.05.14-v1"
+  authority: "777_FORGE | 888_JUDGE"
+
+  # ── Irreversible Actions (F01 Amanah) ──────────────────────────────────────
+  irreversible_actions:
+    require_human_ack: true
+    auto_hold: true
+    examples:
+      - vault_seal
+      - git_push_force
+      - docker_system_prune
+      - database_drop_table
+      - volume_deletion
+
+  # ── Constitutional Changes (F13 Sovereign) ─────────────────────────────────
+  constitutional_change:
+    require_judge_review: true
+    require_human_ack: true
+    auto_hold: true
+    examples:
+      - floor_modification
+      - canonical_tool_addition
+      - doctrine_seal
+
+  # ── External Relay (F12 Injection) ─────────────────────────────────────────
+  external_relay:
+    require_human_ack: true
+    evidence_required: true
+    examples:
+      - email_send
+      - social_media_post
+      - public_communication
+      - webhook_to_external
+
+  # ── Financial / Legal / Medical (F05 Peace / F06 Empathy) ──────────────────
+  medical_legal_financial:
+    require_evidence: true
+    require_witness: true
+    human_decision_required: true
+    examples:
+      - wealth_allocation
+      - contract_modification
+      - health_recommendation
+
+  # ── Cross-Repo Architectural Changes (F10 Ontology) ────────────────────────
+  cross_repo_change:
+    require_judge_review: true
+    max_repos_without_hold: 1
+    examples:
+      - api_breaking_change
+      - shared_schema_modification
+      - federation_protocol_change
+
+  # ── Topology / Agency Risk (Anti-Sink Annex) ───────────────────────────────
+  topology_agency_risk:
+    require_anti_sink_check: true
+    trigger_threshold: "medium"
+    auto_hold_on: ["high"]
+    examples:
+      - role_removal_automation
+      - centralization_increase
+      - human_decision_point_elimination
+
+  # ── Default Behavior ───────────────────────────────────────────────────────
+  default:
+    require_human_ack: false
+    auto_hold: false
+    evidence_required: false
+
+  # ── Model Identity (F11 AUTH) ──────────────────────────────────────────────
+  model_identity:
+    require_verified_registry: true
+    fallback_to_degraded_card: true
+    degrade_on_registry_unavailable: true
+
+  # ── Session Lifecycle (F04 Clarity) ────────────────────────────────────────
+  session_lifecycle:
+    max_active_sessions: 2
+    stale_session_timeout_minutes: 60
+    auto_mark_stale: true
+    require_ack_for_epoch_seal: true

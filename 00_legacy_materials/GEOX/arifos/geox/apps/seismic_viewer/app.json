@@ -1,9 +1,0 @@
-{
-  "app_id": "seismic-viewer",
-  "name": "GEOX Seismic Viewer",
-  "version": "0.1.0",
-  "capabilities": ["3d_render", "slicing"],
-  "host": {
-    "preferred": "web_shell"
-  }
-}
