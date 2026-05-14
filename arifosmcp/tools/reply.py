@@ -7,6 +7,7 @@ Governed response compositor.
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from arifosmcp.runtime.floors import check_floors
@@ -100,6 +101,56 @@ def arif_reply_compose(
 
         if drift_events:
             _arif_vault_seal(mode="dry_run", session_id=session_id, drift_events=drift_events)
+
+    # ── 666_HEART Pre-Delivery Gate ──
+    from arifosmcp.tools.heart import _heart_fallback, arif_heart_critique
+
+    try:
+        heart_result = asyncio.run(
+            arif_heart_critique(
+                mode="critique",
+                target=message,
+                actor_id=actor_id,
+                session_id=session_id,
+                context_type="external_action",
+            )
+        )
+    except RuntimeError:
+        # Running event loop — use deterministic fallback
+        heart_result = _heart_fallback(
+            mode="critique",
+            target=message or "",
+            context_type="external_action",
+        )
+
+    omega_state = heart_result.get("omega_state", {})
+    heart_verdict = heart_result.get("verdict", "SEAL")
+
+    # VOID or Ω₂: block delivery entirely
+    if heart_verdict == "VOID" or omega_state.get("omega") == "Ω₂":
+        return _hold(
+            "arif_reply_compose",
+            f"666_HEART VOID: {heart_result.get('risks_found', [])}",
+            {
+                "omega_state": omega_state,
+                "heart_verdict": heart_verdict,
+                "caveats": heart_result.get("caveats", []),
+            },
+        )
+
+    # HOLD or Ω₁: deliver with constitutional caveats
+    if heart_verdict == "HOLD" or omega_state.get("omega") == "Ω₁":
+        return _ok(
+            "arif_reply_compose",
+            {
+                "message": message,
+                "formatted": message,
+                "tone": "neutral",
+                "heart_gate": "HOLD",
+                "heart_caveats": heart_result.get("risks_found", []),
+                "omega_state": omega_state,
+            },
+        )
 
     floor_check = check_floors("arif_reply_compose", {"message": message or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":

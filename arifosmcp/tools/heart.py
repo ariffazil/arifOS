@@ -14,10 +14,17 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import datetime
+import json
 import logging
+import os
+from pathlib import Path
 from typing import Any
 
 from arifosmcp.runtime.llm_client import LLMUnavailableError, call_llm
+
+_VAULT999_PATH = Path(
+    os.getenv("VAULT999_PATH", "/root/arifOS/arifosmcp/VAULT999/SEALED_EVENTS.jsonl")
+)
 
 logger = logging.getLogger(__name__)
 
@@ -544,6 +551,129 @@ def _heart_fallback(
     }
 
 
+# ── C_dark + Graded Uncertainty (Ω₀/Ω₁/Ω₂) ──────────────────────────────────
+
+
+def _check_vault999_scar_tissue(target: str, max_scan: int = 50) -> dict[str, Any]:
+    """Scan VAULT999 for sealed decisions that contradict the target claim.
+
+    F2 Truth: If the target contradicts a sealed past decision (PETRONAS scar
+    tissue), escalate uncertainty immediately.
+    """
+    contradictions: list[dict[str, Any]] = []
+    if not _VAULT999_PATH.exists():
+        return {"scanned": 0, "contradictions": [], "scar_risk": "none"}
+
+    target_lower = target.lower()
+    keywords = [w for w in target_lower.split() if len(w) > 4]
+    if not keywords:
+        return {"scanned": 0, "contradictions": [], "scar_risk": "none"}
+
+    scanned = 0
+    try:
+        with open(_VAULT999_PATH, encoding="utf-8") as f:
+            for i, line in enumerate(f):
+                if i >= max_scan:
+                    break
+                if not line.strip():
+                    continue
+                try:
+                    event = json.loads(line)
+                    payload = event.get("payload", {})
+                    payload_text = json.dumps(payload, default=str).lower()
+                    if any(k in payload_text for k in keywords):
+                        contradictions.append(
+                            {
+                                "event_id": event.get("event_id"),
+                                "sealed_at": event.get("sealed_at"),
+                                "verdict": event.get("verdict"),
+                                "note": "VAULT999 sealed decision intersects target keywords",
+                            }
+                        )
+                except json.JSONDecodeError:
+                    continue
+                scanned = i + 1
+    except OSError:
+        pass
+
+    scar_risk = (
+        "high" if len(contradictions) >= 3 else "medium" if len(contradictions) >= 1 else "none"
+    )
+    return {
+        "scanned": scanned,
+        "contradictions": contradictions,
+        "scar_risk": scar_risk,
+    }
+
+
+def _compute_omega_state(result: dict[str, Any], target: str) -> dict[str, Any]:
+    """Compute graded uncertainty state Ω₀/Ω₁/Ω₂.
+
+    Ω₀ (Low)    — High confidence, full delivery.
+    Ω₁ (Medium) — Auditor flags issues → auto-revise + flag in output.
+    Ω₂ (High)   — C_dark spike → immediate HOLD + notify Sovereign.
+    """
+    risks = result.get("risks_found", [])
+    severity_order = {"none": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
+    max_severity = max((severity_order.get(r.get("severity", "none"), 0) for r in risks), default=0)
+
+    # Scar tissue check against immutable VAULT999
+    scar = _check_vault999_scar_tissue(target)
+    scar_risk = scar["scar_risk"]
+
+    # Overclaim detection (F07 Humility)
+    target_lower = target.lower()
+    overclaim_triggers = [
+        "always",
+        "never",
+        "guaranteed",
+        "certain",
+        "definitely",
+        "absolutely",
+        "100%",
+    ]
+    overclaim = any(t in target_lower for t in overclaim_triggers)
+
+    # Compute P(truth)
+    p_truth = 1.0
+    p_truth -= max_severity * 0.15
+    if scar_risk == "high":
+        p_truth -= 0.25
+    elif scar_risk == "medium":
+        p_truth -= 0.10
+    if overclaim:
+        p_truth -= 0.15
+    p_truth = max(0.0, min(1.0, p_truth))
+
+    # Determine Ω state
+    if p_truth < 0.60 or max_severity >= 3 or scar_risk == "high":
+        omega = "Ω₂"
+        state = "HIGH_UNCERTAINTY"
+        action = "HOLD"
+        notify_sovereign = True
+    elif p_truth < 0.85 or max_severity >= 2 or scar_risk == "medium" or overclaim:
+        omega = "Ω₁"
+        state = "MEDIUM_UNCERTAINTY"
+        action = "REVISE"
+        notify_sovereign = False
+    else:
+        omega = "Ω₀"
+        state = "LOW_UNCERTAINTY"
+        action = "PROCEED"
+        notify_sovereign = False
+
+    return {
+        "omega": omega,
+        "state": state,
+        "p_truth": round(p_truth, 3),
+        "action": action,
+        "notify_sovereign": notify_sovereign,
+        "scar_tissue": scar,
+        "overclaim_detected": overclaim,
+        "max_severity": max_severity,
+    }
+
+
 # ── Public API ───────────────────────────────────────────────────────────────
 
 
@@ -589,8 +719,11 @@ async def arif_heart_critique(
             actor_id=actor_id,
             context_type=_ct,
         )
+        # If LLM returned an error envelope (all tiers exhausted), use fallback
+        if result.get("error") and "LLM_UNAVAILABLE" in str(result.get("status", "")):
+            result = _heart_fallback(mode=mode, target=target or "", context_type=_ct)
     except LLMUnavailableError:
-        result = _heart_fallback(mode=mode, target=target, context_type=_ct)
+        result = _heart_fallback(mode=mode, target=target or "", context_type=_ct)
 
     # ── Internal audit context scaling ──
     if is_internal:
@@ -600,6 +733,25 @@ async def arif_heart_critique(
         if result.get("risk_tier") == "RED":
             result["risk_tier"] = "AMBER"
             result["human_decision_required"] = False
+
+    # ── C_dark + Graded Uncertainty State (Ω₀/Ω₁/Ω₂) ──
+    omega_state = _compute_omega_state(result, target or "")
+    result["omega_state"] = omega_state
+
+    # Ω₂ override: force HOLD + sovereign notification
+    if omega_state["omega"] == "Ω₂":
+        result["verdict"] = "HOLD"
+        result["status"] = "HOLD"
+        result["human_decision_required"] = True
+        result["caveats"] = result.get("caveats", []) + [
+            f"C_dark detected: {omega_state['state']} — P(truth)={omega_state['p_truth']}"
+        ]
+
+    # Ω₁ flag: add revision signal but allow advisory delivery
+    if omega_state["omega"] == "Ω₁":
+        result["caveats"] = result.get("caveats", []) + [
+            f"Ω₁ flagged: auto-revise recommended — P(truth)={omega_state['p_truth']}"
+        ]
 
     # ── F05/F06 Maruah (Dignity) Integration ──
     if "maruah" not in result:

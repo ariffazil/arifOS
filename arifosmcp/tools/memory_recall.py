@@ -178,23 +178,80 @@ def arif_memory_recall(
         )
         return _ok("arif_memory_recall", result)
 
-    # ── Search ───────────────────────────────────────────────────────────────
+    # ── Search with JITU Circuit Breaker ────────────────────────────────────
     if mode == "search":
-        results = memory_search(
-            query=query,
-            tags=tags,
-            session_id=session_id,
-            limit=limit,
+        _max_rag_iterations = 3
+        _relevance_threshold = 0.65
+
+        iterations = 0
+        prev_avg_score = 0.0
+        all_results: list[dict[str, Any]] = []
+        delta_s = 0.0
+        current_query = query
+
+        while iterations < _max_rag_iterations:
+            iterations += 1
+            results = memory_search(
+                query=current_query,
+                tags=tags,
+                session_id=session_id,
+                limit=limit,
+            )
+
+            if results:
+                scores = [r.get("score", 0.0) for r in results if "score" in r]
+                avg_score = sum(scores) / len(scores) if scores else 0.0
+                delta_s = avg_score - prev_avg_score
+                prev_avg_score = avg_score
+                all_results = results
+
+                # Convergence: relevance above threshold OR entropy decreasing
+                if avg_score >= _relevance_threshold or delta_s < 0:
+                    break
+
+            # Broaden query for next iteration if not converged
+            if iterations < _max_rag_iterations and current_query:
+                words = current_query.split()
+                if len(words) > 1:
+                    current_query = " ".join(words[:-1])
+
+        # JITU: max iterations exhausted without convergence
+        last_scores = [r.get("score", 0.0) for r in all_results if "score" in r]
+        last_avg = sum(last_scores) / len(last_scores) if last_scores else 0.0
+        jitu_triggered = (
+            iterations >= _max_rag_iterations and last_avg < _relevance_threshold and delta_s >= 0
         )
+
+        if jitu_triggered:
+            return _ok(
+                "arif_memory_recall",
+                {
+                    "query": query,
+                    "status": "JITU",
+                    "verdict": "UNKNOWN",
+                    "reason": (
+                        f"Entropy non-decreasing after {iterations} iterations. "
+                        f"ΔS={round(delta_s, 4)}, avg_score={round(last_avg, 3)}"
+                    ),
+                    "iterations": iterations,
+                    "delta_s": round(delta_s, 4),
+                    "results": [],
+                    "count": 0,
+                    "confidence": 0.0,
+                    "Ω_0": True,
+                },
+            )
+
         hits = [
             {
-                "memory_id": r["memory_id"],
-                "summary": r["summary"],
-                "tags": r["tags"],
-                "mode": r["mode"],
-                "created_at": r["created_at"],
+                "memory_id": r.get("memory_id", ""),
+                "summary": r.get("summary"),
+                "tags": r.get("tags", []),
+                "mode": r.get("mode"),
+                "created_at": r.get("created_at"),
+                "score": r.get("score", 0.0),
             }
-            for r in results
+            for r in all_results
         ]
         return _ok(
             "arif_memory_recall",
@@ -202,6 +259,8 @@ def arif_memory_recall(
                 "query": query,
                 "results": hits,
                 "count": len(hits),
+                "iterations": iterations,
+                "delta_s": round(delta_s, 4),
                 "searched_at": __import__("datetime")
                 .datetime.now(__import__("datetime").timezone.utc)
                 .isoformat(),
