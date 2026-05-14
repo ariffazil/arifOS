@@ -58,6 +58,65 @@ def get_philosophical_contrast(g_score: float, risk: str) -> dict[str, str]:
     return {"label": "wisdom", "quote": QUOTES["wisdom"]}
 
 
+# --- Auditor Pre-Delivery Gate (666_HEART) ---
+
+_AUDITOR_GATED_TOOLS = frozenset({
+    "arif_sense_observe",
+    "arif_mind_reason",
+    "arif_memory_recall",
+    "arif_evidence_fetch",
+    "arif_reply_compose",
+    "arif_forge_execute",
+    "arif_heart_critique",
+})
+_AUDITOR_TIMEOUT_S = 5.0
+
+# Fast deterministic audit markers (F-WEB §10 pattern-matched, no LLM required)
+_AUDITOR_HALLUCINATION_MARKERS = [
+    "i think", "probably", "might be", "could be", "possibly",
+    "as far as i know", "to the best of my knowledge",
+]
+_AUDITOR_AUTONOMY_MARKERS = [
+    "i decided", "i will deploy", "i will restart", "i'll go ahead",
+]
+
+
+def _auditor_quick_scan(result_text: str) -> dict:
+    """Lightning-fast deterministic audit: F2 Truth, F6 Sovereignty, F9 Anti-Hantu.
+
+    Runs < 1 ms — no LLM, no IO. If issues found, marks CAUTION.
+    Clean results get SEAL.
+    """
+    text_lower = result_text.lower()
+    warnings = []
+
+    # F2 Truth: unqualified uncertainty markers
+    for marker in _AUDITOR_HALLUCINATION_MARKERS:
+        if marker in text_lower:
+            warnings.append(f"F2_TRUTH: Unqualified uncertainty marker '{marker}'")
+            break
+
+    # F6 Sovereignty: autonomy overreach
+    for marker in _AUDITOR_AUTONOMY_MARKERS:
+        if marker in text_lower:
+            warnings.append(f"F6_SOVEREIGN: Autonomy overreach marker '{marker}'")
+            break
+
+    # F9 Anti-Hantu: confidence without evidence citation
+    if ("confident" in text_lower or "certainly" in text_lower) and "evidence" not in text_lower:
+        warnings.append("F9_ANTI_HANTU: Confidence expressed without evidence citation")
+
+    if warnings:
+        return {
+            "gate": "666_HEART",
+            "verdict": "CAUTION",
+            "risks_found": warnings,
+            "risk_tier": "medium",
+            "human_decision_required": False,
+        }
+    return {"gate": "666_HEART", "verdict": "SEAL"}
+
+
 # --- Core Governance Classes ---
 
 
@@ -223,6 +282,20 @@ class ConstitutionalKernel:
         except Exception:
             # Ontology bridge must never break tool execution
             pass
+
+        # ── Auditor Pre-Delivery Gate (666_HEART) ───────────────────────────────────────
+        if (
+            canonical_name in _AUDITOR_GATED_TOOLS
+            and not arguments.get("skip_auditor_gate")
+            and isinstance(result, dict)
+        ):
+            try:
+                result_text = str(result.get("result", result))
+                audit_block = _auditor_quick_scan(result_text[:3000])
+                result["_auditor_gate"] = audit_block
+            except Exception:
+                # Auditor must never break tool execution
+                result["_auditor_gate"] = {"gate": "666_HEART", "verdict": "DEGRADED"}
 
         # ── State progression ───────────────────────────────────────────────────────────
         next_state = ExecutionStateMachine.get_next_state(canonical_name, current_state)
