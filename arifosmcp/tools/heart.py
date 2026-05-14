@@ -561,7 +561,10 @@ def _check_vault999_scar_tissue(target: str, max_scan: int = 50) -> dict[str, An
     tissue), escalate uncertainty immediately.
     """
     contradictions: list[dict[str, Any]] = []
-    if not _VAULT999_PATH.exists():
+    try:
+        if not _VAULT999_PATH.exists():
+            return {"scanned": 0, "contradictions": [], "scar_risk": "none"}
+    except OSError:
         return {"scanned": 0, "contradictions": [], "scar_risk": "none"}
 
     target_lower = target.lower()
@@ -593,7 +596,7 @@ def _check_vault999_scar_tissue(target: str, max_scan: int = 50) -> dict[str, An
                 except json.JSONDecodeError:
                     continue
                 scanned = i + 1
-    except OSError:
+    except (OSError, PermissionError):
         pass
 
     scar_risk = (
