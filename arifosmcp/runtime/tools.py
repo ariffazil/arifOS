@@ -165,43 +165,49 @@ def check_adaptation_status() -> dict[str, Any]:
     }
 
 
-async def INIT_ANCHOR(raw_input: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
+async def INIT_ANCHOR(  # noqa: N802
+    raw_input: str = "", ctx: Any | None = None, **kwargs: Any
+) -> dict[str, Any]:
     del ctx
     return await _wrap_call("INIT_ANCHOR", raw_input=raw_input, **kwargs)
 
 
-async def AGI_REASON(query: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
+async def AGI_REASON(  # noqa: N802
+    query: str = "", ctx: Any | None = None, **kwargs: Any
+) -> dict[str, Any]:
     del ctx
     return await _wrap_call("AGI_REASON", query=query, **kwargs)
 
 
-async def AGI_REFLECT(topic: str = "", ctx: Any | None = None, **kwargs: Any) -> dict[str, Any]:
+async def AGI_REFLECT(  # noqa: N802
+    topic: str = "", ctx: Any | None = None, **kwargs: Any
+) -> dict[str, Any]:
     del ctx
     return await _wrap_call("AGI_REFLECT", topic=topic, **kwargs)
 
 
-async def ASI_CRITIQUE(
+async def ASI_CRITIQUE(  # noqa: N802
     draft_output: Any = None, ctx: Any | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     del ctx
     return await _wrap_call("ASI_CRITIQUE", draft_output=draft_output, **kwargs)
 
 
-async def ASI_SIMULATE(
+async def ASI_SIMULATE(  # noqa: N802
     scenario: Any = None, ctx: Any | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     del ctx
     return await _wrap_call("ASI_SIMULATE", scenario=scenario, **kwargs)
 
 
-async def APEX_JUDGE(
+async def APEX_JUDGE(  # noqa: N802
     candidate_output: Any = None, ctx: Any | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     del ctx
     return await _wrap_call("APEX_JUDGE", candidate_output=candidate_output, **kwargs)
 
 
-async def VAULT_SEAL(
+async def VAULT_SEAL(  # noqa: N802
     verdict: Any = None, evidence: Any = None, ctx: Any | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     del ctx
@@ -887,7 +893,7 @@ def _enforce_nine_signal(
 
         nine = out.get("nine_signal")
         if not isinstance(nine, dict) or not all(k in nine for k in ("delta", "psi", "omega")):
-            signal_status = status if status in ("OK", "HOLD", "VOID", "SABAR") else verdict
+            signal_status = status if status in ("OK", "HOLD", "VOID", "SABAR") else "HOLD"
             nine = _nine_signal_from_status(signal_status)
         nine = _annotate_nine_signal(nine, _domain_for_tool(tool_name))
 
@@ -902,18 +908,24 @@ def _enforce_nine_signal(
                 "Constitutional floors passed",
                 "No irreversible state change",
             ]
+        if verdict != "SEAL" and not reasons:
+            reasons = [f"{verdict} — tool returned a non-SEAL status"]
 
         out.update(
             {
                 "status": status,
                 "tool": tool_name,
+                "verdict": verdict,
                 "result": result_payload,
                 "meta": meta_payload,
                 "delta_S": float(delta_s),
                 "timestamp": out.get("timestamp") or _now(),
                 "session_id": resolved_session_id,
                 "actor_id": resolved_actor_id,
-                "output_policy": out.get("output_policy") or _output_policy_for_verdict(verdict),
+                "output_policy": out.get("output_policy")
+                or _output_policy_for_verdict(
+                    verdict if verdict in ("SEAL", "HOLD", "VOID", "SABAR", "DRY_RUN") else "HOLD"
+                ),
                 "nine_signal": nine,
                 "reasons": reasons,
             }
@@ -3495,7 +3507,7 @@ def _arif_sense_observe(
                     if key not in all_claims:
                         all_claims[key] = []
                     all_claims[key].append({**t, "query": res["query"]})
-        for key, claim_group in all_claims.items():
+        for _key, claim_group in all_claims.items():
             if len(claim_group) >= 2:
                 obj_values = set(c["obj"] for c in claim_group)
                 if len(obj_values) == 1:
@@ -3719,7 +3731,7 @@ def _arif_evidence_fetch(
         if parsed.hostname in (
             "127.0.0.1",
             "localhost",
-            "0.0.0.0",
+            "0.0.0.0",  # nosec B104 - blocked SSRF target, not a bind address.
         ) or parsed.hostname.startswith(("10.", "192.168.", "172.")):
             risk_flags.append("private_ip_access")
         if parsed.scheme not in ("http", "https"):
