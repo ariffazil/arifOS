@@ -621,7 +621,7 @@ def _nine_signal_from_status(status: str) -> dict[str, str | dict]:
     overall collapses the three planes into one verdict label.
     Ref: KERNELHASIAPEX.md §4 — Nine-Signal Dashboard Contract
     """
-    if status == "OK":
+    if status in ("OK", "SEAL"):
         return {
             "delta": {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
             "psi": {"plane": "governance_integrity", "state": "AMANAH", "en": "TRUSTED"},
@@ -893,7 +893,7 @@ def _enforce_nine_signal(
 
         nine = out.get("nine_signal")
         if not isinstance(nine, dict) or not all(k in nine for k in ("delta", "psi", "omega")):
-            signal_status = status if status in ("OK", "HOLD", "VOID", "SABAR") else "HOLD"
+            signal_status = status if status in ("OK", "SEAL", "HOLD", "VOID", "SABAR") else "HOLD"
             nine = _nine_signal_from_status(signal_status)
         nine = _annotate_nine_signal(nine, _domain_for_tool(tool_name))
 
@@ -1532,7 +1532,9 @@ _EPOCH_REGISTRY: dict[str, dict[str, Any]] = {}
 _IRREVERSIBLE_ELICITATION_MODES = {"seal", "commit"}
 _NONCE_STORE: dict[str, float] = {}  # Replay attack prevention: nonce -> timestamp
 _NONCE_TTL_SECONDS = 300  # 5 minute nonce validity window
-_TIMEOUT_MS = 2000  # Deterministic timeout for LLM calls (F13: no dead zones)
+_TIMEOUT_MS = int(
+    os.getenv("HEART_TIMEOUT_MS", "30000")
+)  # LLM timeout (F13: configurable, default 30s)
 _MAX_HOPS = 10  # Maximum tool hops per intent (prevents metabolic death spiral)
 _ENTROPY_LIMIT = 1.0  # Maximum entropy per route (ΔS budget cap)
 _HOP_COUNTER: dict[str, int] = {}  # session_id -> current hop count
@@ -1563,7 +1565,7 @@ def _safe_void_fallback(tool_name: str, reason: str) -> dict[str, Any]:
             "reasons": [f"SAFE_VOID: {reason}"],
         },
         "timeout_fallback": True,
-        "fallback_reason": "LLM did not respond within 2000ms — returning pre-signed SAFE_VOID per F13",
+        "fallback_reason": f"LLM did not respond within {_TIMEOUT_MS}ms — returning pre-signed SAFE_VOID per F13",
         "session_id": None,
         "actor_id": None,
         "output_policy": "DOMAIN_VOID",
@@ -6726,7 +6728,6 @@ def _arif_gateway_connect(
         }
 
         if target_agent in _delegate_bridge_map:
-
             query = f"federated_delegate_{target_agent}"
             try:
                 raw_result = _run_async(_delegate_bridge_map[target_agent](query))
@@ -8721,6 +8722,23 @@ def _arif_forge_execute(
             )
         _transition_plan_state(
             plan_id, "in_execution", {"tool": "arif_forge_execute", "mode": mode}
+        )
+
+    # Read-only modes (query, recall) bypass constitutional kernel check.
+    # They inspect state without mutation — F11/F13 auth gate not required.
+    if mode in ("query", "recall"):
+        return _inject_nine_signal(
+            ForgeOutput(
+                status="OK",
+                result={
+                    "query_result": query,
+                    "mode": mode,
+                    "note": "Read-only inspection — no mutation.",
+                },
+                manifest=ForgeManifest(status=ManifestStatus.PENDING),
+                timestamp=_now(),
+            ).model_dump(mode="json"),
+            "OK",
         )
 
     from arifosmcp.core.constitution_kernel import WitnessType
