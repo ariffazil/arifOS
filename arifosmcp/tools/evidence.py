@@ -63,7 +63,7 @@ def arif_evidence_fetch(
                 {
                     "url": url,
                     "content": f_res.raw_content or "",
-                    "status": f_res.status_code or 0,
+                    "status": str(f_res.status_code or 0),
                     "content_type": f_res.content_type,
                     "content_length": f_res.content_length,
                     "final_url": f_res.final_url,
@@ -90,7 +90,7 @@ def arif_evidence_fetch(
                 {
                     "url": url,
                     "content": "",
-                    "status": 0,
+                    "status": "0",
                     "error": str(e),
                     "archived": False,
                     "evidence_receipt": {

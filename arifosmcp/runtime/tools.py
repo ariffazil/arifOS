@@ -2668,9 +2668,16 @@ def _arif_session_init(
                 session_id=session_id,
             )
         else:
-            # No signature — OBSERVER access (read-heavy tools only)
-            authority_level = "OBSERVER"
-            invariants_checked.append("no_signature_observer_access")
+            # No signature
+            if actor_id and actor_id != "anonymous":
+                # actor_id provided but no signature → OPERATOR_CLAIMED
+                authority_level = "OPERATOR_CLAIMED"
+                invariants_checked.append("operator_claimed_no_signature")
+                logger.info("Operator claimed: actor_id=%s authority=OPERATOR_CLAIMED", actor_id)
+            else:
+                # Anonymous → OBSERVER access (read-heavy tools only)
+                authority_level = "OBSERVER"
+                invariants_checked.append("no_signature_observer_access")
 
         # Constitution binding at T=0 (F1 Amanah - trust established at init)
         if constitution_bound or not actor_signature:
@@ -3477,7 +3484,7 @@ def _arif_sense_observe(
                         "url": url,
                         "ingested": True,
                         "source": "minimax_vision",
-                        "description": img_result.get("description", ""),
+                        "description": img_result.get("description") or "",
                         "verdict": img_result.get("verdict", "SEAL"),
                         "metrics": img_result.get("metrics", {}),
                     },
@@ -3485,17 +3492,57 @@ def _arif_sense_observe(
                 )
             except Exception as exc:
                 logger.error("minimax_bridge.understand_image failed: %s", exc)
+        # Fallback: always return a description field (even if empty/unavailable)
         return _ok(
             "arif_sense_observe",
-            {"url": url, "ingested": False, "note": "stub"},
+            {
+                "url": url,
+                "ingested": False,
+                "description": "",
+                "note": "minimax_vision unavailable or failed — description not available",
+            },
             delta_S=0.003,
         )
     if mode == "compass":
-        return _ok(
-            "arif_sense_observe",
-            {"heading": "north", "confidence": 0.95},
-            delta_S=0.001,
-        )
+        # Parse direction from query; default to UNDETERMINED with reason
+        _q = (query or "").lower().strip()
+        _direction_map = {
+            "north": ("N", 0.0),
+            "n": ("N", 0.0),
+            "south": ("S", 180.0),
+            "s": ("S", 180.0),
+            "east": ("E", 90.0),
+            "e": ("E", 90.0),
+            "west": ("W", 270.0),
+            "w": ("W", 270.0),
+            "northeast": ("NE", 45.0),
+            "ne": ("NE", 45.0),
+            "northwest": ("NW", 315.0),
+            "nw": ("NW", 315.0),
+            "southeast": ("SE", 135.0),
+            "se": ("SE", 135.0),
+            "southwest": ("SW", 225.0),
+            "sw": ("SW", 225.0),
+        }
+        if _q in _direction_map:
+            _dir, _hdg = _direction_map[_q]
+            return _ok(
+                "arif_sense_observe",
+                {"direction": _dir, "heading_degrees": _hdg, "confidence": 0.95, "query": query},
+                delta_S=0.001,
+            )
+        else:
+            return _ok(
+                "arif_sense_observe",
+                {
+                    "direction": "UNDETERMINED",
+                    "heading_degrees": None,
+                    "confidence": 0.0,
+                    "query": query,
+                    "reason": f"Could not determine direction from query: '{query}'. Try: north, south, east, west, northeast, northwest, southeast, southwest.",
+                },
+                delta_S=0.001,
+            )
     if mode == "atlas":
         return _ok("arif_sense_observe", {"map": {}, "layers": layers or []}, delta_S=0.0)
     if mode == "entropy_dS":
@@ -3922,7 +3969,37 @@ def _arif_evidence_fetch(
                 },
                 "timestamp": _now(),
             }
-        return _ok("arif_evidence_fetch", {"query": query, "results": []}, delta_S=0.001)
+        # Perform actual Qdrant search
+        _results = []
+        _search_status = "empty"
+        _confidence = 0.0
+        if query:
+            try:
+                from arifosmcp.evidence.store import get_evidence_store
+
+                store = get_evidence_store()
+                _search_results = store.search(query, limit=20, session_id=session_id)
+                if _search_results:
+                    _results = _search_results
+                    _search_status = "found"
+                    _confidence = min(0.95, 0.5 + (len(_results) * 0.05))
+                else:
+                    _search_status = "no_results"
+                    _confidence = 0.3
+            except Exception as exc:
+                logger.warning("Evidence search failed: %s", exc)
+                _search_status = f"search_error: {exc}"
+                _confidence = 0.0
+        return _ok(
+            "arif_evidence_fetch",
+            {
+                "query": query,
+                "results": _results,
+                "search_status": _search_status,
+                "confidence": _confidence,
+            },
+            delta_S=0.001,
+        )
 
     if mode == "archive":
         return _ok(
@@ -4307,6 +4384,7 @@ def _arif_mind_reason(
             "arif_mind_reason",
             {
                 "mode": "plan",
+                "plan_id": pid,  # Top-level for direct forge pipeline access
                 "plan_receipt": plan_receipt,
                 "vault_entry_id": vault_entry["id"],
             },
@@ -5436,11 +5514,14 @@ def _arif_kernel_route(
     """
     from arifosmcp.runtime.session_auth import validate_session
 
-    auth = validate_session(session_id, actor_id)
-    if not auth["valid"]:
-        if auth.get("expired"):
-            return _sabar("arif_kernel_route", auth["reason"], session_id=session_id)
-        return _hold("arif_kernel_route", auth["reason"], ["F11"], session_id=session_id)
+    # Public modes — no session required
+    _public_modes = {"list", "status", "kernel", "federation_health", "triage"}
+    if mode not in _public_modes:
+        auth = validate_session(session_id, actor_id)
+        if not auth["valid"]:
+            if auth.get("expired"):
+                return _sabar("arif_kernel_route", auth["reason"], session_id=session_id)
+            return _hold("arif_kernel_route", auth["reason"], ["F11"], session_id=session_id)
 
     gate = _constitutional_gate(
         "arif_kernel_route", mode, actor_id, session_id=session_id, target_agent=target
@@ -5876,7 +5957,11 @@ def _arif_reply_compose(
             else (
                 "Moderate"
                 if level == "L3"
-                else "Partial" if level == "L2" else "Low" if level == "L1" else "None"
+                else "Partial"
+                if level == "L2"
+                else "Low"
+                if level == "L1"
+                else "None"
             )
         )
         void_str = "; ".join(f"⚠️ {v}" for v in voids) if voids else "none"
@@ -7581,6 +7666,211 @@ def _arif_judge_deliberate(
             }
         # SEAL: proceed to constitutional kernel with receipt attached
 
+    # ── Mode-specific handling: compare, explain, history ──────────────────
+    # These modes do NOT go through the standard judge pipeline.
+    # They are handled here before the verification state extraction.
+    if mode == "compare":
+        # Split candidate on "||" delimiter to get two candidates
+        parts = (candidate or "").split("||")
+        if len(parts) < 2:
+            return {
+                "status": "HOLD",
+                "tool": "arif_judge_deliberate",
+                "verdict": "HOLD",
+                "reason": "compare mode requires two candidates separated by '||'",
+                "nine_signal": _nine_signal_from_status("HOLD"),
+                "session_id": session_id,
+                "actor_id": _actor_for_response(session_id, actor_id),
+                "output_policy": "DOMAIN_HOLD",
+                "invariants_checked": _invariants_checked,
+                "required_input": {
+                    "candidate": "Two candidates separated by '||', e.g. 'deploy v1 || deploy v2'"
+                },
+            }
+        cand_a, cand_b = parts[0].strip(), parts[1].strip()
+        if not cand_a or not cand_b:
+            return {
+                "status": "HOLD",
+                "tool": "arif_judge_deliberate",
+                "verdict": "HOLD",
+                "reason": "Both candidates must be non-empty strings separated by '||'",
+                "nine_signal": _nine_signal_from_status("HOLD"),
+                "session_id": session_id,
+                "actor_id": _actor_for_response(session_id, actor_id),
+                "output_policy": "DOMAIN_HOLD",
+                "invariants_checked": _invariants_checked,
+                "required_input": {"candidate": "Two non-empty candidates separated by '||'"},
+            }
+
+        # Evaluate each candidate separately
+        ctx_a = ActionContext(
+            tool_name="arif_judge_deliberate",
+            mode="judge",
+            actor_id=actor_id,
+            session_id=session_id,
+            candidate=cand_a,
+            witness_type=WitnessType.AI,
+            constitutional_chain_id=constitutional_chain_id,
+            session_registry=set(_SESSIONS.keys()),
+            audit_entropy=audit_entropy,
+            wealth_score=wealth_score,
+            verification_surface=verification_surface,
+        )
+        ctx_b = ActionContext(
+            tool_name="arif_judge_deliberate",
+            mode="judge",
+            actor_id=actor_id,
+            session_id=session_id,
+            candidate=cand_b,
+            witness_type=WitnessType.AI,
+            constitutional_chain_id=constitutional_chain_id,
+            session_registry=set(_SESSIONS.keys()),
+            audit_entropy=audit_entropy,
+            wealth_score=wealth_score,
+            verification_surface=verification_surface,
+        )
+        verdict_a = _CORE.evaluate(ctx_a)
+        verdict_b = _CORE.evaluate(ctx_b)
+
+        # Build comparison result
+        comparison = {
+            "candidate_a": cand_a,
+            "candidate_b": cand_b,
+            "verdict_a": verdict_a.status,
+            "verdict_b": verdict_b.status,
+            "floors_a": getattr(verdict_a.floors, "failed_floors", []),
+            "floors_b": getattr(verdict_b.floors, "failed_floors", []),
+            "threat_a": getattr(verdict_a.threat, "confidence", 0.0),
+            "threat_b": getattr(verdict_b.threat, "confidence", 0.0),
+            "irreversibility_a": verdict_a.irreversibility.value,
+            "irreversibility_b": verdict_b.irreversibility.value,
+        }
+
+        # Recommendation: prefer the lower-floors-failed, lower-threat, more-reversible option
+        floors_a_count = len(comparison["floors_a"])
+        floors_b_count = len(comparison["floors_b"])
+        if floors_a_count < floors_b_count:
+            recommendation = f"Prefer A: '{cand_a}' — fewer constitutional concerns ({floors_a_count} vs {floors_b_count} failed floors)"
+        elif floors_b_count < floors_a_count:
+            recommendation = f"Prefer B: '{cand_b}' — fewer constitutional concerns ({floors_b_count} vs {floors_a_count} failed floors)"
+        elif comparison["threat_a"] < comparison["threat_b"]:
+            recommendation = f"Prefer A: '{cand_a}' — lower threat score ({comparison['threat_a']:.2f} vs {comparison['threat_b']:.2f})"
+        elif comparison["threat_b"] < comparison["threat_a"]:
+            recommendation = f"Prefer B: '{cand_b}' — lower threat score ({comparison['threat_b']:.2f} vs {comparison['threat_a']:.2f})"
+        elif verdict_a.irreversibility.value < verdict_b.irreversibility.value:
+            recommendation = f"Prefer A: '{cand_a}' — more reversible than '{cand_b}'"
+        elif verdict_b.irreversibility.value < verdict_a.irreversibility.value:
+            recommendation = f"Prefer B: '{cand_b}' — more reversible than '{cand_a}'"
+        else:
+            recommendation = f"Tie: both candidates are constitutionally equivalent. Sovereign judgment required."
+
+        return {
+            "status": "OK",
+            "tool": "arif_judge_deliberate",
+            "verdict": "SEAL",
+            "mode": "compare",
+            "comparison": comparison,
+            "recommendation": recommendation,
+            "nine_signal": _nine_signal_from_status("OK"),
+            "session_id": session_id,
+            "actor_id": _actor_for_response(session_id, actor_id),
+            "output_policy": "DOMAIN_SEAL",
+            "invariants_checked": _invariants_checked,
+        }
+
+    if mode == "explain":
+        # explain mode: run evaluation and return rationale
+        if not candidate:
+            return {
+                "status": "HOLD",
+                "tool": "arif_judge_deliberate",
+                "verdict": "HOLD",
+                "reason": "explain mode requires a candidate to explain",
+                "nine_signal": _nine_signal_from_status("HOLD"),
+                "session_id": session_id,
+                "actor_id": _actor_for_response(session_id, actor_id),
+                "output_policy": "DOMAIN_HOLD",
+                "invariants_checked": _invariants_checked,
+            }
+        # Run through evaluation to get floor results
+        _explain_ctx = ActionContext(
+            tool_name="arif_judge_deliberate",
+            mode="judge",
+            actor_id=actor_id,
+            session_id=session_id,
+            candidate=candidate,
+            witness_type=WitnessType.AI,
+            constitutional_chain_id=constitutional_chain_id,
+            session_registry=set(_SESSIONS.keys()),
+            audit_entropy=audit_entropy,
+            wealth_score=wealth_score,
+            verification_surface=verification_surface,
+        )
+        _explain_verdict = _CORE.evaluate(_explain_ctx)
+        _failed = getattr(_explain_verdict.floors, "failed_floors", [])
+        _reasons = getattr(_explain_verdict.floors, "floor_reasons", {})
+        _threat = getattr(_explain_verdict.threat, "confidence", 0.0)
+        _irrev = _explain_verdict.irreversibility.value
+
+        rationale_parts = [f"Constitutional review of: '{candidate[:80]}...'"]
+        if _failed:
+            rationale_parts.append(f"Failed floors ({len(_failed)}): {', '.join(_failed)}")
+            for f in _failed:
+                rationale_parts.append(f"  - {f}: {_reasons.get(f, 'No detailed reason')}")
+        else:
+            rationale_parts.append("All 13 constitutional floors PASSED.")
+        rationale_parts.append(f"Threat confidence: {_threat:.2f}/1.0")
+        rationale_parts.append(
+            f"Reversibility level: {_irrev} (0=fully reversible, 3=catastrophic)"
+        )
+        if _explain_verdict.status == "OK":
+            rationale_parts.append("Verdict: SEAL — candidate is constitutionally permissible.")
+        elif _explain_verdict.status == "HOLD":
+            rationale_parts.append(
+                "Verdict: HOLD — constitutional concerns require sovereign resolution."
+            )
+        else:
+            rationale_parts.append(
+                f"Verdict: {_explain_verdict.status} — constitutional breach detected."
+            )
+
+        return {
+            "status": "OK",
+            "tool": "arif_judge_deliberate",
+            "verdict": _explain_verdict.status,
+            "mode": "explain",
+            "rationale": "\n".join(rationale_parts),
+            "nine_signal": _nine_signal_from_status(_explain_verdict.status),
+            "session_id": session_id,
+            "actor_id": _actor_for_response(session_id, actor_id),
+            "output_policy": _output_policy_for_verdict(_explain_verdict.status),
+            "invariants_checked": _invariants_checked,
+        }
+
+    if mode == "history":
+        # history mode: retrieve prior verdicts from vault ledger
+        _verdicts = []
+        for entry in _VAULT_LEDGER:
+            if entry.get("type") in ("verdict", "judge"):
+                _verdicts.append(entry)
+        # Also check _JUDGMENT_REGISTRY if it exists
+        if hasattr(_CORE, "_JUDGMENT_REGISTRY"):
+            for jid, jentry in _CORE._JUDGMENT_REGISTRY.items():
+                _verdicts.append({"id": jid, **jentry})
+        return {
+            "status": "OK",
+            "tool": "arif_judge_deliberate",
+            "verdict": "SEAL",
+            "mode": "history",
+            "verdicts": _verdicts[-50:],  # last 50 verdicts
+            "count": len(_verdicts),
+            "nine_signal": _nine_signal_from_status("OK"),
+            "session_id": session_id,
+            "actor_id": _actor_for_response(session_id, actor_id),
+            "output_policy": "DOMAIN_SEAL",
+            "invariants_checked": _invariants_checked,
+        }
+
     # ── Extract verification state from candidate if not explicitly passed ──
     _audit_entropy = audit_entropy
     _wealth_score = wealth_score
@@ -7622,6 +7912,42 @@ def _arif_judge_deliberate(
 
     verdict = _CORE.evaluate(ctx)
 
+    # ── Build a minimal contract for non-SEAL paths (breach/SABAR) ────────────
+    # This contract is used when the verdict is not OK (breach) or when evidence
+    # is absent (SABAR). SEAL gets a full contract built later.
+    from arifosmcp.schemas.forge import IrreversibilityLevel as _ForgeIrrevLevel
+
+    _irrev_for_contract = verdict.irreversibility.value
+    _forge_irrev = {
+        0: _ForgeIrrevLevel.REVERSIBLE,
+        1: _ForgeIrrevLevel.SEMI_IRREVERSIBLE,
+        2: _ForgeIrrevLevel.IRREVERSIBLE,
+    }.get(_irrev_for_contract, _ForgeIrrevLevel.CATASTROPHIC)
+    _breach_contract = JudgeSealContract(
+        constitutional_chain_id=constitutional_chain_id
+        or verdict.state_hash
+        or uuid.uuid4().hex[:16],
+        state_hash=verdict.state_hash or "",
+        session_id=session_id,
+        actor_id=actor_id,
+        candidate=candidate,
+        verdict=verdict.verdict,
+        irreversibility_level=_forge_irrev.value,
+        delta_s=0.0,
+        g_score=0.0,
+        epistemic_snapshot={},
+        floor_results={f: "FAIL" for f in verdict.floors.failed_floors},
+        timestamp=verdict.timestamp,
+    )
+    _breach_contract_hash = _stable_hash(
+        _breach_contract.model_dump(mode="json", exclude={"state_hash"})
+    )
+    _breach_contract = _breach_contract.model_copy(update={"state_hash": _breach_contract_hash})
+    _JUDGE_STATE_REGISTRY[_breach_contract.state_hash] = _breach_contract.model_dump(mode="json")
+    _JUDGE_CHAIN_REGISTRY[_breach_contract.constitutional_chain_id] = _breach_contract.model_dump(
+        mode="json"
+    )
+
     if verdict.status != "OK":
         meta_state = {"reason": "Constitutional breach detected by kernel"}
         if _audit_entropy:
@@ -7656,6 +7982,7 @@ def _arif_judge_deliberate(
             truth_band=truth_band or "UNKNOWN",
             confidence_note=confidence_note
             or "Verification state present; band derived from entropy/gap analysis",
+            judge_contract=_breach_contract,
             meta=meta_state,
             timestamp=verdict.timestamp,
         )
@@ -7674,6 +8001,31 @@ def _arif_judge_deliberate(
     if evidence_receipt is None and mode == "judge":
         _override_reason = "SEAL requires evidence_receipt. Without evidence, max verdict is SABAR."
         _invariants_checked.append("F2_evidence_gate_no_evidence")
+        # Build a SABAR-specific contract
+        _sabar_contract = JudgeSealContract(
+            constitutional_chain_id=constitutional_chain_id
+            or verdict.state_hash
+            or uuid.uuid4().hex[:16],
+            state_hash=verdict.state_hash or "",
+            session_id=session_id,
+            actor_id=actor_id,
+            candidate=candidate,
+            verdict="SABAR",
+            irreversibility_level=_breach_contract.irreversibility_level,
+            delta_s=0.001,
+            g_score=0.5,
+            epistemic_snapshot={},
+            floor_results={"F02": "SABAR", "F03": "SABAR"},
+            timestamp=verdict.timestamp,
+        )
+        _sabar_contract_hash = _stable_hash(
+            _sabar_contract.model_dump(mode="json", exclude={"state_hash"})
+        )
+        _sabar_contract = _sabar_contract.model_copy(update={"state_hash": _sabar_contract_hash})
+        _JUDGE_STATE_REGISTRY[_sabar_contract.state_hash] = _sabar_contract.model_dump(mode="json")
+        _JUDGE_CHAIN_REGISTRY[_sabar_contract.constitutional_chain_id] = _sabar_contract.model_dump(
+            mode="json"
+        )
         output = VerdictOutput(
             status="SABAR",
             verdict=VerdictCode.SABAR,
@@ -7703,6 +8055,7 @@ def _arif_judge_deliberate(
                 genius_score=0.5,
                 genius_rationale="SABAR is the minimal safe path when evidence is absent",
             ),
+            judge_contract=_sabar_contract,
             meta={
                 "mode": mode,
                 "state_hash": verdict.state_hash,

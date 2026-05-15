@@ -38,6 +38,9 @@ from arifosmcp.runtime.phoenix_72 import (  # noqa: E402, PLC0415
 from arifosmcp.runtime.phoenix_72 import (
     phoenix_entry as _phoenix_entry,
 )
+from arifosmcp.runtime.f4_contradiction_handler import (  # noqa: E402, PLC0415
+    f4_write_path_hook,
+)
 
 _MEMORY_DIR = Path(os.getenv("ARIFOS_MEMORY_DIR", "/root/.arifOS/memory"))
 _INDEX_FILE = _MEMORY_DIR / ".qdrant_index.json"
@@ -101,8 +104,14 @@ async def _pg_write(
     metadata: dict,
     qdrant_id: str | None,
     session_id: str | None,
+    entity_tags: list[str] | None = None,
+    distillation_status: str | None = None,
+    distillation_metadata: dict | None = None,
 ) -> bool:
-    """Insert a memory record into Postgres memory_store table."""
+    """Insert a memory record into Postgres memory_store table.
+
+    Phase 1b: Extended to include entity_tags (F4) and distillation metadata.
+    """
     try:
         import asyncpg  # noqa: PLC0415
 
@@ -110,8 +119,10 @@ async def _pg_write(
         try:
             await conn.execute(
                 """
-                INSERT INTO memory_store (id, tier, text, metadata, qdrant_id, session_id)
-                VALUES ($1::uuid, $2, $3, $4::jsonb, $5::uuid, $6)
+                INSERT INTO memory_store
+                    (id, tier, text, metadata, qdrant_id, session_id,
+                     entity_tags, distillation_status, distillation_metadata)
+                VALUES ($1::uuid, $2, $3, $4::jsonb, $5::uuid, $6, $7, $8, $9::jsonb)
                 ON CONFLICT (id) DO NOTHING
                 """,
                 memory_id,
@@ -120,6 +131,9 @@ async def _pg_write(
                 json.dumps(metadata, default=str),
                 qdrant_id,
                 session_id,
+                entity_tags,
+                distillation_status,
+                json.dumps(distillation_metadata, default=str) if distillation_metadata else None,
             )
             return True
         finally:
@@ -500,6 +514,17 @@ def store(
     pg_memory_id = str(uuid.uuid4())  # separate proper UUID for Postgres
     text = _summarize(content)
     normalised_tier = _normalise_tier(tier)
+    now = datetime.now(timezone.utc)
+
+    # --- F4 ENTITY EXTRACTION + CONTRADICTION HANDLING (Phase 1b) ---
+    # Called after HARAM scan passes, before dual-write.
+    # Detects T1/T2/T3 contradictions and resolves via SUPERSEDE/ESCALATE.
+    f4_result = f4_write_path_hook(
+        content=content,
+        content_hash=_content_hash(content),
+        recorded_at=now,
+        valid_at=None,  # Bi-temporal Phase 1d will add valid_at support
+    )
 
     try:
         vector = _generate_embedding(text)
@@ -515,13 +540,22 @@ def store(
         "session_id": session_id,
         "summary": summary or text,
         "content_hash": _content_hash(content),
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": now.isoformat(),
         "tier": normalised_tier,
         "version": "v3",
         # Include memory_id so recall() can look up by memory_id directly in Qdrant
         "memory_id": memory_id,
         "pg_id": pg_memory_id,
+        # Phase 1b: F4 entity extraction
+        "entity_tags": f4_result.entity_tags,
+        "temporal_marker": "active",  # Default; updated if superseded
+        "extraction_metadata": f4_result.extraction_metadata,
     }
+
+    # If resolution was SUPERSEDE or ESCALATE, update Phoenix state accordingly
+    phoenix_override_state = None
+    if f4_result.resolution == "escalate":
+        phoenix_override_state = "contradiction_hold"
 
     # --- Phoenix-72 Band: create entry ---
     phoenix = _phoenix_entry(
@@ -536,6 +570,8 @@ def store(
         provenance={"tool": "arif_memory_recall", "mode": mode},
     )
     # Merge Phoenix fields into payload
+    if phoenix_override_state:
+        phoenix["state"] = phoenix_override_state
     payload.update(
         {
             "phoenix_id": phoenix["phoenix_id"],
@@ -574,6 +610,11 @@ def store(
                 metadata=payload,
                 qdrant_id=point_id,
                 session_id=session_id,
+                entity_tags=f4_result.entity_tags,
+                distillation_status=phoenix_override_state or "pending",
+                distillation_metadata=f4_result.new_entry_meta
+                if f4_result.resolution != "none"
+                else None,
             )
         )
     except Exception as exc:
@@ -587,6 +628,7 @@ def store(
         "mode": mode,
         "tier": normalised_tier,
         "tags": tags or [],
+        "entity_tags": f4_result.entity_tags,  # Phase 1b
         "summary": payload["summary"],
         "content_hash": payload["content_hash"],
         "created_at": payload["created_at"],
@@ -607,6 +649,15 @@ def store(
         "tier": normalised_tier,
         "backends": {"qdrant": qdrant_ok, "postgres": pg_ok},
         "phoenix": phoenix_summary(phoenix),
+        # Phase 1b: F4 result
+        "f4": {
+            "entity_tags": f4_result.entity_tags,
+            "contradiction_signals": f4_result.contradiction_signals,
+            "resolution": f4_result.resolution,
+            "conflicts_count": len(f4_result.conflicts),
+            "superseded_by_old": f4_result.superseded_by_old,
+            "contradictions_logged": f4_result.contradictions_logged,
+        },
     }
 
 
@@ -680,6 +731,12 @@ def recall(memory_id: str) -> dict[str, Any] | None:
             "phoenix_anti_hantu_flag": p.get("phoenix_anti_hantu_flag", False),
             "phoenix_cooldown_expiry": p.get("phoenix_cooldown_expiry"),
             "phoenix_created_at": p.get("phoenix_created_at"),
+            # Phase 1c: F4 entity + temporal fields
+            "entity_tags": p.get("entity_tags", []),
+            "temporal_marker": p.get("temporal_marker", "unknown"),
+            "superseded_by": p.get("superseded_by"),
+            "superseded_at": p.get("superseded_at"),
+            "extraction_metadata": p.get("extraction_metadata"),
         }
         # Attach live Phoenix summary
         if p.get("phoenix_id"):
@@ -724,7 +781,25 @@ def recall(memory_id: str) -> dict[str, Any] | None:
         except Exception as exc:
             logger.warning("Qdrant recall via index failed for %s: %s", memory_id, exc)
 
-    # Fallback: scan Qdrant directly for memory_id in payload
+    # Fallback A: try direct Qdrant retrieve by point_id
+    # (handles case where memory_id is actually a Qdrant point ID returned by search())
+    try:
+        client = _get_qdrant_client()
+        points = client.retrieve(
+            collection_name=_QDRANT_COLLECTION,
+            ids=[str(memory_id)],
+            with_payload=True,
+        )
+        if points and points[0].payload:
+            point_id = str(points[0].id)
+            pg_row = _check_postgres(point_id)
+            if pg_row is None:
+                return None  # soft-deleted
+            return _from_payload(points[0].payload, point_id)
+    except Exception:
+        pass  # Not a valid Qdrant point ID, try Fallback B
+
+    # Fallback B: scan Qdrant directly for memory_id in payload
     # This works even when JSON index is empty (e.g. after container restart)
     try:
         client = _get_qdrant_client()
@@ -765,7 +840,20 @@ def search(
     mode: str | None = None,
     session_id: str | None = None,
     limit: int = 20,
+    # Phase 1c: F4 entity filter + temporal query
+    entity_filter: list[str] | None = None,  # Filter by F4 entity tags (e.g. ["ORG:PETRONAS"])
+    include_historical: bool = False,  # Include entries marked temporal_marker=historical
 ) -> list[dict[str, Any]]:
+    """Search memory with optional F4 entity filtering and temporal awareness.
+
+    Phase 1c enhancements:
+    - entity_filter: Filter by F4 entity_tags (AND logic — must match all)
+    - include_historical: If False (default), excludes entries superseded by newer facts
+    - temporal_marker: Returned in every result for F4 Clarity
+    - superseded_by / superseded_at: Supersession lineage for audit
+
+    Without entity_filter + include_historical, behaves identically to prior version.
+    """
     _ensure_dir()
     idx = _index_read()
     results: list[tuple[float, dict[str, Any]]] = []
@@ -788,6 +876,18 @@ def search(
                     continue
                 if tags and not all(t in p.get("tags", []) for t in tags):
                     continue
+
+                # Phase 1c: F4 entity filter
+                if entity_filter:
+                    entry_tags = set(p.get("entity_tags", []) or [])
+                    if not entry_tags.intersection(entity_filter):
+                        continue  # No matching entity tag
+
+                # Phase 1c: Temporal filter — exclude historical unless asked
+                temporal_marker = p.get("temporal_marker", "unknown")
+                if not include_historical and temporal_marker == "historical":
+                    continue
+
                 results.append(
                     (
                         hit.score,
@@ -811,6 +911,12 @@ def search(
                             "phoenix_psi_utility": p.get("phoenix_psi_utility", 0),
                             "phoenix_tri_witness": p.get("phoenix_tri_witness", {}),
                             "phoenix_anti_hantu_flag": p.get("phoenix_anti_hantu_flag", False),
+                            # Phase 1c: F4 temporal fields
+                            "entity_tags": p.get("entity_tags", []),
+                            "temporal_marker": temporal_marker,
+                            "superseded_by": p.get("superseded_by"),
+                            "superseded_at": p.get("superseded_at"),
+                            "extraction_metadata": p.get("extraction_metadata"),
                         },
                     )
                 )
@@ -824,12 +930,56 @@ def search(
                 continue
             if tags and not all(t in meta.get("tags", []) for t in tags):
                 continue
+
+            # Phase 1c: F4 entity filter
+            if entity_filter:
+                entry_tags = set(meta.get("entity_tags", []) or [])
+                if not entry_tags.intersection(entity_filter):
+                    continue
+
             record = recall(memory_id)
             if record:
+                # Phase 1c: Temporal filter
+                temporal_marker = record.get("temporal_marker", "unknown")
+                if not include_historical and temporal_marker == "historical":
+                    continue
                 results.append((1.0, record))
 
     results.sort(key=lambda x: x[0], reverse=True)
+
+    # Phase 1c: Supersession deduplication —
+    # If result A was superseded by result B (same entity, newer),
+    # and B is also in results, drop A.
+    if not include_historical:
+        results = _deduplicate_superseded(results)
+
     return [r for _, r in results[:limit]]
+
+
+def _deduplicate_superseded(
+    results: list[tuple[float, dict[str, Any]]],
+) -> list[tuple[float, dict[str, Any]]]:
+    """Remove entries that have been superseded by higher-ranked entries in results.
+
+    When two entries share an entity_tag and one has superseded_by pointing to the other,
+    only the superseding (newer) one is kept.
+    """
+    if not results:
+        return results
+
+    # Build supersession map: memory_id → superseded_by
+    superseded_by_map: dict[str, str | None] = {}
+    for _, record in results:
+        superseded_by_map[record.get("memory_id", "")] = record.get("superseded_by")
+
+    # Collect IDs that are superseded by another entry in results
+    to_remove: set[str] = set()
+    for memory_id, superseded_by in superseded_by_map.items():
+        if superseded_by and superseded_by in superseded_by_map:
+            # Both entries are in results; the superseded one should be dropped
+            to_remove.add(memory_id)
+
+    return [(score, r) for score, r in results if r.get("memory_id") not in to_remove]
 
 
 def prune(

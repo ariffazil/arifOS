@@ -146,9 +146,9 @@ def create_envelope(
 
 
 def calculate_npv(
-    initial: float, flows: list[float], rate: float, terminal: float = 0
+    initial: float, flows: list[float], rate: float, terminal_value: float = 0
 ) -> dict[str, Any]:
-    series = build_cashflow_series(initial, flows, terminal)
+    series = build_cashflow_series(initial, flows, terminal_value)
     npv = npv_from_series(series, rate)
     return {
         "npv": round_value(npv),
