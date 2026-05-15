@@ -1027,14 +1027,14 @@ async def call_kernel(
             )
 
         elif canonical_name == "agentzero_engineer":
-            from arifosmcp.tools.agentzero_tools import agentzero_engineer
+            from arifosmcp.tools.agentzero import agentzero_engineer
 
             result = await agentzero_engineer(
                 task=payload.get("task") or query_input, session_id=session_id
             )
 
         elif canonical_name == "agentzero_validate":
-            from arifosmcp.tools.agentzero_tools import agentzero_validate
+            from arifosmcp.tools.agentzero import agentzero_validate
 
             result = await agentzero_validate(
                 input_to_validate=payload.get("input_to_validate") or query_input,

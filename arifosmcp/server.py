@@ -197,7 +197,7 @@ try:
     from arifosmcp.tools.embodied_instances.arif_mind_reason_handler import (
         embodied_mind_reason_handler,
     )
-    from arifosmcp.tools.embodied_tool import register_all_arifos_tools
+    from arifosmcp.tools.embodied import register_all_arifos_tools
 
     register_all_arifos_tools()
 

@@ -57,7 +57,7 @@ from arifosmcp.schemas.embodied_tool import (
     WitnessEntry,
     build_embodied_envelope,
 )
-from arifosmcp.tools.embodied_tool import (
+from arifosmcp.tools.embodied import (
     ARIFOS_TOOL_CHARTERS,
     EmbodiedTool,
     register_all_arifos_tools,

@@ -32,19 +32,19 @@ from arifosmcp.runtime.schemas import IntentType
 from arifosmcp.runtime.sessions import (
     get_session_identity,
 )
-from arifosmcp.tools.agentzero_tools import (
+from arifosmcp.tools.agentzero import (
     agentzero_armor_scan as _az_armor_scan,
 )
-from arifosmcp.tools.agentzero_tools import (
+from arifosmcp.tools.agentzero import (
     agentzero_engineer as _az_engineer,
 )
-from arifosmcp.tools.agentzero_tools import (
+from arifosmcp.tools.agentzero import (
     agentzero_hold_check as _az_hold_check,
 )
-from arifosmcp.tools.agentzero_tools import (
+from arifosmcp.tools.agentzero import (
     agentzero_memory_query as _az_memory_query,
 )
-from arifosmcp.tools.agentzero_tools import (
+from arifosmcp.tools.agentzero import (
     agentzero_validate as _az_validate,
 )
 from core.shared.mottos import (
