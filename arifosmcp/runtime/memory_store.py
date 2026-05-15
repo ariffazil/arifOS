@@ -30,6 +30,15 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# Phoenix-72 Band Middleware
+from arifosmcp.runtime.phoenix_72 import (  # noqa: E402, PLC0415
+    is_tri_witness_complete,
+    phoenix_summary,
+)
+from arifosmcp.runtime.phoenix_72 import (
+    phoenix_entry as _phoenix_entry,
+)
+
 _MEMORY_DIR = Path(os.getenv("ARIFOS_MEMORY_DIR", "/root/.arifOS/memory"))
 _INDEX_FILE = _MEMORY_DIR / ".qdrant_index.json"
 _LEGACY_INDEX_FILE = _MEMORY_DIR / ".index.json"
@@ -514,6 +523,31 @@ def store(
         "pg_id": pg_memory_id,
     }
 
+    # --- Phoenix-72 Band: create entry ---
+    phoenix = _phoenix_entry(
+        memory_id=memory_id,
+        content=content,
+        mode=mode,
+        tags=tags,
+        actor_id=actor_id,
+        session_id=session_id,
+        summary=summary,
+        tier=normalised_tier,
+        provenance={"tool": "arif_memory_recall", "mode": mode},
+    )
+    # Merge Phoenix fields into payload
+    payload.update(
+        {
+            "phoenix_id": phoenix["phoenix_id"],
+            "phoenix_state": phoenix["state"],
+            "phoenix_created_at": phoenix["created_at"],
+            "phoenix_cooldown_expiry": phoenix["cooldown_expiry"],
+            "phoenix_psi_utility": phoenix["psi_utility"],
+            "phoenix_tri_witness": phoenix["tri_witness"],
+            "phoenix_anti_hantu_flag": phoenix["anti_hantu_flag"],
+        }
+    )
+
     # --- Qdrant write ---
     point_id = str(uuid.uuid4())
     qdrant_ok = False
@@ -572,6 +606,7 @@ def store(
         "pg_ok": pg_ok,
         "tier": normalised_tier,
         "backends": {"qdrant": qdrant_ok, "postgres": pg_ok},
+        "phoenix": phoenix_summary(phoenix),
     }
 
 
@@ -611,9 +646,20 @@ def recall(memory_id: str) -> dict[str, Any] | None:
         except Exception:
             return None
 
+    # Helper: compute remaining cooldown hours
+    def _cooldown_remaining(cooldown_expiry_str: str | None) -> float | None:
+        if not cooldown_expiry_str:
+            return None
+        try:
+            exp = datetime.fromisoformat(cooldown_expiry_str.replace("Z", "+00:00"))
+            remaining = (exp - datetime.now(timezone.utc)).total_seconds() / 3600
+            return round(max(0, remaining), 1)
+        except (ValueError, TypeError):
+            return None
+
     # Helper: build return dict from Qdrant payload
     def _from_payload(p: dict, point_id: str) -> dict:
-        return {
+        result = {
             "memory_id": p.get("memory_id") or memory_id,
             "content": p.get("content"),
             "mode": p.get("mode"),
@@ -626,7 +672,37 @@ def recall(memory_id: str) -> dict[str, Any] | None:
             "tier": p.get("tier", TIER_CANONICAL),
             "point_id": point_id,
             "version": p.get("version", "v3"),
+            # Phoenix-72 fields
+            "phoenix_id": p.get("phoenix_id"),
+            "phoenix_state": p.get("phoenix_state"),
+            "phoenix_psi_utility": p.get("phoenix_psi_utility", 0),
+            "phoenix_tri_witness": p.get("phoenix_tri_witness", {}),
+            "phoenix_anti_hantu_flag": p.get("phoenix_anti_hantu_flag", False),
+            "phoenix_cooldown_expiry": p.get("phoenix_cooldown_expiry"),
+            "phoenix_created_at": p.get("phoenix_created_at"),
         }
+        # Attach live Phoenix summary
+        if p.get("phoenix_id"):
+            phoenix_data = {
+                "phoenix_id": p.get("phoenix_id"),
+                "state": p.get("phoenix_state", "candidate"),
+                "psi_utility": p.get("phoenix_psi_utility", 0),
+                "psi_hits": 0,
+                "psi_misses": 0,
+                "tri_witness": p.get("phoenix_tri_witness", {}),
+                "tri_witness_complete": is_tri_witness_complete(
+                    {"tri_witness": p.get("phoenix_tri_witness", {})}
+                ),
+                "anti_hantu_flag": p.get("phoenix_anti_hantu_flag", False),
+                "cooldown_expiry": p.get("phoenix_cooldown_expiry"),
+                "cooldown_remaining_hours": _cooldown_remaining(p.get("phoenix_cooldown_expiry")),
+                "created_at": p.get("phoenix_created_at"),
+                "sealed_at": None,
+                "voided_at": None,
+                "tier": p.get("tier", "canon"),
+            }
+            result["phoenix"] = phoenix_data
+        return result
 
     # Try JSON index first (fast path, if index exists and is populated)
     idx = _index_read()
@@ -729,6 +805,12 @@ def search(
                             "point_id": str(hit.id),
                             "score": hit.score,
                             "version": p.get("version", "v3"),
+                            # Phoenix-72 fields
+                            "phoenix_id": p.get("phoenix_id"),
+                            "phoenix_state": p.get("phoenix_state"),
+                            "phoenix_psi_utility": p.get("phoenix_psi_utility", 0),
+                            "phoenix_tri_witness": p.get("phoenix_tri_witness", {}),
+                            "phoenix_anti_hantu_flag": p.get("phoenix_anti_hantu_flag", False),
                         },
                     )
                 )
