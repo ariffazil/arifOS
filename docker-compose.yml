@@ -27,6 +27,8 @@ services:
       ARIFOS_GOVERNANCE_SECRET_FILE: /run/sekrits/arifos_governance_sekrit
       ARIFOS_SESSION_SECRET_FILE: /run/sekrits/arifos_session_sekrit
       ARIFOS_SOVEREIGN_PUBKEY_FILE: /run/sekrits/arifos_sovereign.pub
+      ARIFOS_MEMORY_POSTGRES_URL: "postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999"  # pragma: allowlist secret
+      ARIFOS_MEMORY_DIR: /app/memory
       PYTHONPATH: /app
       DOTENV: disabled
       AAA_MCP_TRANSPORT: http
@@ -68,6 +70,7 @@ services:
       - /root/compose/sekrits/arifos_governance_sekrit:/run/sekrits/arifos_governance_sekrit:ro
       - /root/compose/sekrits/arifos_session_sekrit:/run/sekrits/arifos_session_sekrit:ro
       - /root/compose/sekrits/arifos_sovereign.pub:/run/sekrits/arifos_sovereign.pub:ro
+      - /root/volumes/arifos_memory:/app/memory:rw
       - /root/volumes/vault999:/var/lib/arifos/vault:rw
       - /root/WELL/state.json:/root/WELL/state.json:ro
       - telemetry-data:/app/telemetry

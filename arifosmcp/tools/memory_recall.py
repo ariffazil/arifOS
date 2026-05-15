@@ -43,6 +43,7 @@ def arif_memory_recall(
     # ── Store-specific ──
     content: Any | None = None,
     tags: list[str] | None = None,
+    tier: str | None = None,
     # ── Search filters ──
     limit: int = 20,
 ) -> dict[str, Any]:
@@ -167,14 +168,15 @@ def arif_memory_recall(
 
     # ── Store ───────────────────────────────────────────────────────────────
     if mode == "store":
-        if content is None:
-            return _hold("arif_memory_recall", "content required for store mode")
+        if content is None and query is None:
+            return _hold("arif_memory_recall", "content or query required for store mode")
         result = store(
-            content=content,
+            content=content if content is not None else query,
             mode=tags[0] if tags and len(tags) == 1 else "generic",
             tags=tags,
             actor_id=actor_id,
             session_id=session_id,
+            tier=tier,
         )
         return _ok("arif_memory_recall", result)
 
@@ -267,11 +269,39 @@ def arif_memory_recall(
             },
         )
 
+    # ── Recall by query (semantic search without memory_id) ─────────────────
+    if mode == "recall" and not memory_id and query:
+        results = memory_search(query=query, session_id=session_id, limit=limit)
+        hits = [
+            {
+                "memory_id": r.get("memory_id", ""),
+                "summary": r.get("summary"),
+                "tags": r.get("tags", []),
+                "mode": r.get("mode"),
+                "tier": r.get("tier"),
+                "created_at": r.get("created_at"),
+                "score": r.get("score", 0.0),
+            }
+            for r in results
+        ]
+        return _ok("arif_memory_recall", {"query": query, "results": hits, "count": len(hits)})
+
     # ── Prune ────────────────────────────────────────────────────────────────
     if mode == "prune":
         from arifosmcp.runtime.memory_store import prune as _prune
 
         result = _prune(memory_id=memory_id, reason=f"arif_memory_recall/prune by {actor_id}")
+        # SACRED tier protection
+        if result.get("sacred_protected"):
+            return _ok(
+                "arif_memory_recall",
+                {
+                    **result,
+                    "status": "PARTIAL",
+                    "floor_citation": "F06 — SACRED tier memories are immune to prune. "
+                    "Pass allow_sacred=True via direct store call to override (sovereign only).",
+                },
+            )
         return _ok("arif_memory_recall", result)
 
     # ── Session context ──────────────────────────────────────────────────────

@@ -2707,6 +2707,19 @@ def _arif_session_init(
                 session_warnings.append(warning_msg)
         sess["session_warnings"] = session_warnings
 
+        # P0-B: Memory bootstrap — load last 5 CANONICAL memories for actor at init
+        memory_context: list[dict] = []
+        memory_loaded = 0
+        try:
+            from arifosmcp.runtime.memory_store import load_canonical_for_actor
+
+            memory_context = load_canonical_for_actor(actor_id or "anonymous", limit=5)
+            memory_loaded = len(memory_context)
+            sess["memory_context"] = memory_context
+            sess["memory_loaded"] = memory_loaded
+        except Exception as exc:
+            logger.warning("Memory bootstrap failed: %s", exc)
+
         # H2: Store write acknowledgment
         store_ack = {"_SESSIONS": False, "_SESSION_IDENTITY": False}
         if sid in _SESSIONS:
@@ -2732,6 +2745,7 @@ def _arif_session_init(
                 "authority_level": authority_level,
                 "constitution_bound": constitution_bound,
                 "invariants_checked": invariants_checked,
+                "memory_loaded": memory_loaded,
                 "lineage": {
                     "previous_session_hash": previous_session_hash,
                     "session_genesis_hash": hashlib.sha256(
@@ -6106,6 +6120,7 @@ def _arif_memory_recall(
     session_id: str | None = None,
     actor_id: str | None = None,
     metadata: dict | None = None,
+    tier: str | None = None,
 ) -> dict[str, Any]:
     """
     555_MEMORY: Live associative memory via MemoryEngine
@@ -6254,38 +6269,30 @@ def _arif_memory_recall(
 
     # ── store ────────────────────────────────────────────────
     if mode == "store":
-        text = (metadata or {}).get("text", "")
+        # Accept text from: query param (direct), or metadata.text (legacy)
+        text = query or (metadata or {}).get("text", "")
         if not text:
-            return _hold("arif_memory_recall", "store mode requires metadata.text")
-        if _memory_engine is None:
+            return _hold("arif_memory_recall", "store mode requires query or metadata.text")
+        resolved_tier = tier or (metadata or {}).get("tier")
+        try:
+            from arifosmcp.runtime.memory_store import store as _ms_store
+
+            _result = _ms_store(
+                content=text,
+                mode=(metadata or {}).get("mode", "store"),
+                tags=(metadata or {}).get("tags"),
+                actor_id=actor_id,
+                session_id=session_id,
+                tier=resolved_tier,
+            )
+            return _ok("arif_memory_recall", {"stored": True, **_result}, delta_S=0.002)
+        except Exception as exc:
+            logger.warning("memory_store.store failed: %s", exc)
             return _ok(
                 "arif_memory_recall",
-                {"stored": True, "memory_id": None, "_degraded": "DB unavailable"},
+                {"stored": False, "_degraded": str(exc)},
                 delta_S=0.002,
             )
-        _result = _memory_op(
-            lambda: _run_async(
-                _memory_engine.store(
-                    {
-                        "text": text,
-                        "session_id": session_id,
-                        "metadata": metadata or {},
-                    },
-                    tier=(metadata or {}).get("tier", "working"),
-                )
-            )
-        )
-        if _result is None:
-            return _ok(
-                "arif_memory_recall",
-                {
-                    "stored": True,
-                    "memory_id": None,
-                    "_degraded": "DB connection failed",
-                },
-                delta_S=0.002,
-            )
-        return _ok("arif_memory_recall", {"stored": True, **_result}, delta_S=0.002)
 
     # ── get ──────────────────────────────────────────────────
     if mode == "get":
@@ -6387,6 +6394,15 @@ def _arif_memory_recall(
             delta_S=0.0,
         )
 
+    # ── stats ────────────────────────────────────────────────
+    if mode == "stats":
+        try:
+            from arifosmcp.runtime.memory_store import stats as _ms_stats
+
+            return _ok("arif_memory_recall", _ms_stats(), delta_S=0.0)
+        except Exception as exc:
+            return _ok("arif_memory_recall", {"error": str(exc)}, delta_S=0.0)
+
     # ── search ──────────────────────────────────────────────
     if mode == "search":
         return _arif_memory_recall(
@@ -6396,6 +6412,7 @@ def _arif_memory_recall(
             session_id=session_id,
             actor_id=actor_id,
             metadata=metadata,
+            tier=tier,
         )
 
     # ── prune ────────────────────────────────────────────────
@@ -7312,9 +7329,30 @@ def _arif_ops_measure(
             delta_S=0.001,
         )
     if mode == "vitals":
+        mem_mode = "unavailable"
+        mem_stats: dict = {}
+        try:
+            from arifosmcp.runtime.memory_store import (
+                memory_mode as _memory_mode,
+            )
+            from arifosmcp.runtime.memory_store import (
+                stats as _memory_stats,
+            )
+
+            mem_mode = _memory_mode()
+            mem_stats = _memory_stats()
+        except Exception as exc:
+            logger.warning("Memory vitals unavailable: %s", exc)
         return _ok(
             "arif_ops_measure",
-            {"g_score": 0.98, "delta_S": 0.001, "omega": 0.95, "psi_le": 1.02},
+            {
+                "g_score": 0.98,
+                "delta_S": 0.001,
+                "omega": 0.95,
+                "psi_le": 1.02,
+                "memory_mode": mem_mode,
+                "memory_stats": mem_stats,
+            },
             delta_S=0.001,
         )
     if mode == "cost":
