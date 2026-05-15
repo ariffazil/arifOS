@@ -34,6 +34,35 @@ from arifosmcp.runtime.memory_store import (
 from arifosmcp.runtime.tools import _hold, _ok
 
 
+def _annotate_recall_context(result: dict, context: str) -> dict:
+    """Annotate recall results with SABAR cooldown context.
+
+    Stage 2A: advisory metadata only (no hard filtering yet).
+    When context is 'high_stakes' or 'canon', appends cooldown
+    vitals so upstream consumers know the deliberation state.
+    """
+    if context == "normal":
+        return result
+
+    try:
+        from arifosmcp.core.cooldown_engine import get_cooldown_engine
+
+        engine = get_cooldown_engine()
+        cooldown_vitals = engine.vitals()
+        result["sabar_context"] = {
+            "context": context,
+            "stage": "advisory",
+            "cooldown_active": cooldown_vitals["cooldown_active_count"],
+            "note": (
+                f"Stage 2A — {context} context requested. "
+                f"Hard filtering not yet enforced. See sabar_cooldown for active entries."
+            ),
+        }
+    except Exception:
+        result["sabar_context"] = {"context": context, "stage": "unavailable"}
+    return result
+
+
 def arif_memory_recall(
     mode: str = "recall",
     query: str | None = None,
@@ -46,6 +75,8 @@ def arif_memory_recall(
     tier: str | None = None,
     # ── Search filters ──
     limit: int = 20,
+    # ── SABAR cooldown context (Stage 2A) ──
+    context: str = "normal",
 ) -> dict[str, Any]:
     """
     555_MEMORY: Governed persistent memory.
@@ -58,6 +89,12 @@ def arif_memory_recall(
       prune       — Delete memories by ID or age.
       context     — Load all memories for a given session.
       stats       — Return memory store statistics.
+
+    Args:
+        context: Recall context filter (SABAR Stage 2A — advisory only).
+            "normal"      — all entries visible (default, backward compat)
+            "high_stakes" — annotate with cooldown advisory metadata
+            "canon"       — annotate with cooldown advisory metadata
 
     Storage backend: /root/.arifOS/memory/ (JSON files)
     """
@@ -149,21 +186,27 @@ def arif_memory_recall(
             return _hold("arif_memory_recall", "memory_id required for recall mode")
         record = recall(memory_id)
         if record is None:
-            return _ok(
-                "arif_memory_recall",
-                {"memory_id": memory_id, "found": False, "content": None},
+            return _annotate_recall_context(
+                _ok(
+                    "arif_memory_recall",
+                    {"memory_id": memory_id, "found": False, "content": None},
+                ),
+                context,
             )
-        return _ok(
-            "arif_memory_recall",
-            {
-                "memory_id": record["memory_id"],
-                "found": True,
-                "content": record["content"],
-                "mode": record["mode"],
-                "tags": record["tags"],
-                "created_at": record["created_at"],
-                "summary": record["summary"],
-            },
+        return _annotate_recall_context(
+            _ok(
+                "arif_memory_recall",
+                {
+                    "memory_id": record["memory_id"],
+                    "found": True,
+                    "content": record["content"],
+                    "mode": record["mode"],
+                    "tags": record["tags"],
+                    "created_at": record["created_at"],
+                    "summary": record["summary"],
+                },
+            ),
+            context,
         )
 
     # ── Store ───────────────────────────────────────────────────────────────
@@ -178,7 +221,7 @@ def arif_memory_recall(
             session_id=session_id,
             tier=tier,
         )
-        return _ok("arif_memory_recall", result)
+        return _annotate_recall_context(_ok("arif_memory_recall", result), context)
 
     # ── Search with JITU Circuit Breaker ────────────────────────────────────
     if mode == "search":
@@ -255,18 +298,21 @@ def arif_memory_recall(
             }
             for r in all_results
         ]
-        return _ok(
-            "arif_memory_recall",
-            {
-                "query": query,
-                "results": hits,
-                "count": len(hits),
-                "iterations": iterations,
-                "delta_s": round(delta_s, 4),
-                "searched_at": __import__("datetime")
-                .datetime.now(__import__("datetime").timezone.utc)
-                .isoformat(),
-            },
+        return _annotate_recall_context(
+            _ok(
+                "arif_memory_recall",
+                {
+                    "query": query,
+                    "results": hits,
+                    "count": len(hits),
+                    "iterations": iterations,
+                    "delta_s": round(delta_s, 4),
+                    "searched_at": __import__("datetime")
+                    .datetime.now(__import__("datetime").timezone.utc)
+                    .isoformat(),
+                },
+            ),
+            context,
         )
 
     # ── Recall by query (semantic search without memory_id) ─────────────────
