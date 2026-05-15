@@ -9965,11 +9965,10 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_judge_deliberate": _arif_judge_deliberate_tool,
     "arif_vault_seal": _arif_vault_seal_tool,
     "arif_forge_execute": _arif_forge_execute_tool,
-    "arif_daily_intelligence_brief": _arif_daily_intelligence_brief,
 }
 
-if len(_CANONICAL_HANDLERS) != 14:
-    raise RuntimeError(f"Expected 14 canonical handlers, found {len(_CANONICAL_HANDLERS)}")
+if len(_CANONICAL_HANDLERS) != 13:
+    raise RuntimeError(f"Expected 13 canonical handlers, found {len(_CANONICAL_HANDLERS)}")
 
 if set(_CANONICAL_HANDLERS) != set(CANONICAL_TOOLS):
     raise RuntimeError("Canonical handler registry does not match constitutional_map.py")

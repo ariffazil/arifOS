@@ -648,24 +648,6 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "cognitive_axis": "vitality",
         "expose": True,
     },
-    "arif_daily_intelligence_brief": {
-        "name": "arif_daily_intelligence_brief",
-        "description": "777_BRIEF: + synthesize — Daily brief: GEOX, WEALTH, WELL, memory.",
-        "access": "public",
-        "stage": ToolStage.OBSERVE,
-        "lane": TrinityLane.AGI,
-        "floors": [Floor.F02_TRUTH, Floor.F03_WITNESS, Floor.F05_PEACE],
-        "risk_tier": "low",
-        "irreversible": False,
-        "modes": ["brief", "earth", "capital", "vitality", "memory"],
-        "eureka_insight": (
-            "F2: aggregated data must cite sources. "
-            "F3: W₃ — Earth (GEOX), Capital (WEALTH), Vitality (WELL). "
-            "F5: Peace² — brief must not amplify panic or noise."
-        ),
-        "cognitive_axis": "synthesize",
-        "expose": True,
-    },
 }
 
 
