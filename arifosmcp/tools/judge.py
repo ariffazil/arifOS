@@ -14,36 +14,73 @@ the judge output is automatically routed to arif_vault_seal for immutable anchor
 from __future__ import annotations
 
 import json as json_lib
+import os
+import urllib.request
 from pathlib import Path
 from typing import Any
 
 from arifosmcp.runtime.tools import _arif_judge_deliberate
 from arifosmcp.schemas.verdict import VerdictOutput
 
-_WELL_STATE_PATH = Path("/root/WELL/state.json")
+# WELL state file candidates — covers docker-compose path, manual-start path, env override
+_WELL_STATE_CANDIDATES = [
+    Path(p)
+    for p in [
+        os.environ.get("WELL_STATE_PATH", ""),  # docker-compose: /app/well_state.json
+        "/app/well_state.json",
+        "/root/WELL/state.json",
+    ]
+    if p
+]
+
+# WELL internal HTTP fallback — used when no state file is accessible
+_WELL_INTERNAL_URLS = [
+    "http://well:8083/health",  # Docker Compose service name
+    "http://172.19.0.5:8083/health",  # Docker network IP (static for this deployment)
+]
 
 
 def _read_well_substrate() -> dict[str, Any]:
-    """Read WELL state file and return a minimal biological substrate packet.
+    """Read WELL biological substrate state and return a minimal advisory packet.
+
+    Strategy:
+      1. Try state file candidates in order (fastest, no network)
+      2. Fall back to WELL HTTP health endpoint (stable internal route)
 
     W0 invariant preserved: WELL informs. The judge decides. The operator
     holds the veto. This packet is advisory evidence — not a gate.
     """
-    try:
-        if not _WELL_STATE_PATH.exists():
-            return {
-                "status": "unavailable",
-                "coupled_verdict": "CAUTION",
-                "source": "no_state_file",
-            }
-        with open(_WELL_STATE_PATH) as fh:
-            state = json_lib.load(fh)
-    except Exception as exc:
-        return {
-            "status": "unavailable",
-            "coupled_verdict": "CAUTION",
-            "source": f"read_error:{exc}",
-        }
+    # ── Strategy 1: state file candidates ────────────────────────────────────
+    state = None
+    for path in _WELL_STATE_CANDIDATES:
+        try:
+            with open(path) as fh:
+                state = json_lib.load(fh)
+            break
+        except Exception:
+            continue
+
+    # ── Strategy 2: HTTP fallback via WELL's internal health endpoint ─────────
+    if state is None:
+        for url in _WELL_INTERNAL_URLS:
+            try:
+                with urllib.request.urlopen(url, timeout=2) as resp:
+                    raw = json_lib.loads(resp.read())
+                # /health returns minimal dict — build a minimal state shape
+                state = {
+                    "well_score": raw.get("well_score", 50.0),
+                    "floors_violated": [],
+                    "metrics": {},
+                    "truth_status": "OPERATOR_REPORTED",
+                    "_source": "http_health",
+                    "_url": url,
+                }
+                break
+            except Exception:
+                continue
+
+    if state is None:
+        return {"status": "unavailable", "coupled_verdict": "CAUTION", "source": "all_paths_failed"}
 
     well_score = float(state.get("well_score", 50.0))
     floors_violated: list = state.get("floors_violated", []) or []
