@@ -1522,7 +1522,8 @@ class _FileSessionStore:
 # In-memory registries (session store is now persistent)
 _SESSION_STORE = _FileSessionStore()
 _SESSIONS = _SESSION_STORE  # backward-compat alias for code that does _SESSIONS.get()
-_memory_engine = None  # Lazy MemoryEngine singleton (Postgres + Qdrant via memory_engine.py)
+# _memory_engine deprecated — all memory paths migrated to arifosmcp.runtime.memory_store (2026-05-15)
+_memory_engine = None
 _VAULT_LEDGER: list[dict[str, Any]] = []
 _JUDGE_STATE_REGISTRY: dict[str, dict[str, Any]] = {}
 _JUDGE_CHAIN_REGISTRY: dict[str, dict[str, Any]] = {}
@@ -6136,70 +6137,43 @@ def _arif_memory_recall(
       context — Session context window.
       dry_run — Ephemeral write/recall/cleanup cycle.
     """
-    global _memory_engine
     gate = _constitutional_gate(
         "arif_memory_recall", mode, actor_id, session_id=session_id, query=query
     )
     if gate is not None:
         return gate
 
-    # Lazy MemoryEngine singleton — wrapped in try/except so DB failures
-    # degrade gracefully instead of crashing the tool for all users.
-    global _memory_engine
-    if _memory_engine is None:
-        import os
-
-        try:
-            from arifosmcp.memory_engine import MemoryEngine
-
-            _memory_engine = MemoryEngine(
-                postgres_url=os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL"),
-                qdrant_url=os.getenv("QDRANT_URL", "http://qdrant:6333"),
-                ollama_url=os.getenv("OLLAMA_URL", "http://ollama:11434"),
-            )
-        except Exception:
-            _memory_engine = None
-
-    # Helper: run a memory op, degrade gracefully on any DB error.
-    def _memory_op(fn):
-        """Wrap a lambda that returns (ok_payload_dict,).
-        On DB error: return SABAR/empty result instead of crashing."""
-        try:
-            return fn()
-        except Exception as err:
-            # Log but don't expose internal errors to caller
-            import logging as _log
-
-            _log.warning(f"MemoryEngine degraded: {err}")
-            return None
-
     # ── recall ──────────────────────────────────────────────
     if mode == "recall":
-        if _memory_engine is None:
+        try:
+            from arifosmcp.runtime.memory_store import search as _ms_search
+
+            _results = _ms_search(query=query or "", limit=10)
+            memories = []
+            for r in _results:
+                memories.append(
+                    {
+                        "id": r.get("memory_id") or str(r.get("point_id", "")),
+                        "text": r.get("summary", ""),
+                        "content": r.get("content"),
+                        "tier": r.get("tier", "canon"),
+                        "score": r.get("score", 0.5),
+                        "created_at": r.get("created_at"),
+                        "session_id": r.get("session_id"),
+                    }
+                )
+            confidence = 0.85 if memories else 0.0
+        except Exception as exc:
+            logger.warning("memory_store.search failed: %s", exc)
             return _ok(
                 "arif_memory_recall",
                 {
                     "query": query,
                     "memories": [],
                     "confidence": 0.0,
-                    "_degraded": "DB unavailable",
+                    "_degraded": f"DB connection failed: {exc}",
                 },
             )
-        _result = _memory_op(
-            lambda: _run_async(_memory_engine.retrieve(query or "", tier=None, limit=10))
-        )
-        if _result is None:
-            return _ok(
-                "arif_memory_recall",
-                {
-                    "query": query,
-                    "memories": [],
-                    "confidence": 0.0,
-                    "_degraded": "DB connection failed",
-                },
-            )
-        memories = _result.get("memories", [])
-        confidence = 0.85 if memories else 0.0
 
         # ── Agentic RAG Correction Loop ──────────────────────────
         correction_loop = {"triggered": False, "attempts": 0, "reformulated_query": None}
@@ -6234,13 +6208,20 @@ def _arif_memory_recall(
                     _reformulated = _try_reformulate_query(query)
                     if _reformulated and _reformulated != query:
                         correction_loop["reformulated_query"] = _reformulated
-                        _r2 = _memory_op(
-                            lambda: _run_async(
-                                _memory_engine.retrieve(_reformulated, tier=None, limit=10)
-                            )
-                        )
-                        if _r2:
-                            r2_memories = _r2.get("memories", [])
+                        _r2_results = _ms_search(query=_reformulated, limit=10)
+                        if _r2_results:
+                            r2_memories = [
+                                {
+                                    "id": r.get("memory_id") or str(r.get("point_id", "")),
+                                    "text": r.get("summary", ""),
+                                    "content": r.get("content"),
+                                    "tier": r.get("tier", "canon"),
+                                    "score": r.get("score", 0.5),
+                                    "created_at": r.get("created_at"),
+                                    "session_id": r.get("session_id"),
+                                }
+                                for r in _r2_results
+                            ]
                             # Merge dedup: prefer reformulated results, append new ones
                             seen_ids = {str(m.get("id", "")) for m in memories}
                             for m in r2_memories:
@@ -6296,48 +6277,27 @@ def _arif_memory_recall(
 
     # ── get ──────────────────────────────────────────────────
     if mode == "get":
-        if _memory_engine is None:
+        try:
+            from arifosmcp.runtime.memory_store import recall as _ms_recall
+
+            entry = _ms_recall(memory_id or "")
+        except Exception as exc:
+            logger.warning("memory_store.recall failed: %s", exc)
             return _ok(
                 "arif_memory_recall",
                 {
                     "memory_id": memory_id,
                     "entry": None,
                     "found": False,
-                    "_degraded": "DB unavailable",
+                    "_degraded": f"DB connection failed: {exc}",
                 },
                 delta_S=0.0,
             )
 
-        async def _do_get():
-            pool = await _memory_engine._get_pg_pool()
-            async with pool.acquire() as conn:
-                row = await conn.fetchrow(
-                    "SELECT id, tier, text, metadata, epoch, created_at FROM memory_store WHERE id = $1 AND deleted_at IS NULL",
-                    (
-                        uuid.UUID(memory_id)
-                        if memory_id
-                        else uuid.UUID("00000000-0000-0000-0000-000000000000")
-                    ),
-                )
-                return dict(row) if row else None
-
-        _row = _memory_op(lambda: _run_async(_do_get()))
-        if _row is None:
+        if entry:
             return _ok(
                 "arif_memory_recall",
-                {
-                    "memory_id": memory_id,
-                    "entry": None,
-                    "found": False,
-                    "_degraded": "DB connection failed",
-                },
-                delta_S=0.0,
-            )
-        if _row:
-            _row["created_at"] = _row["created_at"].isoformat() if _row.get("created_at") else None
-            return _ok(
-                "arif_memory_recall",
-                {"memory_id": memory_id, "entry": _row, "found": True},
+                {"memory_id": memory_id, "entry": entry, "found": True},
                 delta_S=0.0,
             )
         return _ok(
@@ -6348,49 +6308,30 @@ def _arif_memory_recall(
 
     # ── list ────────────────────────────────────────────────
     if mode == "list":
-        if _memory_engine is None:
+        try:
+            from arifosmcp.runtime.memory_store import context_for_session as _ms_ctx
+            from arifosmcp.runtime.memory_store import search as _ms_search
+
+            if session_id:
+                entries = _ms_ctx(session_id, limit=50)
+            else:
+                entries = _ms_search(limit=50)
+        except Exception as exc:
+            logger.warning("memory_store list failed: %s", exc)
             return _ok(
                 "arif_memory_recall",
                 {
                     "session_id": session_id,
                     "entries": [],
                     "count": 0,
-                    "_degraded": "DB unavailable",
+                    "_degraded": f"DB connection failed: {exc}",
                 },
                 delta_S=0.0,
             )
 
-        async def _do_list():
-            pool = await _memory_engine._get_pg_pool()
-            async with pool.acquire() as conn:
-                if session_id:
-                    rows = await conn.fetch(
-                        "SELECT id, tier, text, metadata, epoch, created_at FROM memory_store WHERE session_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 50",
-                        session_id,
-                    )
-                else:
-                    rows = await conn.fetch(
-                        "SELECT id, tier, text, metadata, epoch, created_at FROM memory_store WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 50"
-                    )
-                return [dict(r) for r in rows]
-
-        _rows = _memory_op(lambda: _run_async(_do_list()))
-        if _rows is None:
-            return _ok(
-                "arif_memory_recall",
-                {
-                    "session_id": session_id,
-                    "entries": [],
-                    "count": 0,
-                    "_degraded": "DB connection failed",
-                },
-                delta_S=0.0,
-            )
-        for r in _rows:
-            r["created_at"] = r["created_at"].isoformat() if r.get("created_at") else None
         return _ok(
             "arif_memory_recall",
-            {"session_id": session_id, "entries": _rows, "count": len(_rows)},
+            {"session_id": session_id, "entries": entries, "count": len(entries)},
             delta_S=0.0,
         )
 
@@ -6417,58 +6358,34 @@ def _arif_memory_recall(
 
     # ── prune ────────────────────────────────────────────────
     if mode == "prune":
-        if _memory_engine is None:
+        try:
+            from arifosmcp.runtime.memory_store import prune as _ms_prune
+
+            _result = _ms_prune(memory_id=memory_id or "", allow_sacred=False)
+        except Exception as exc:
+            logger.warning("memory_store.prune failed: %s", exc)
             return _ok(
                 "arif_memory_recall",
                 {
                     "pruned": memory_id,
-                    "reason": "DB unavailable — no-op",
-                    "_degraded": "DB unavailable",
-                },
-                delta_S=0.001,
-            )
-
-        async def _do_prune():
-            pool = await _memory_engine._get_pg_pool()
-            async with pool.acquire() as conn:
-                row = await conn.fetchrow(
-                    "SELECT tier FROM memory_store WHERE id = $1",
-                    (
-                        uuid.UUID(memory_id)
-                        if memory_id
-                        else uuid.UUID("00000000-0000-0000-0000-000000000000")
-                    ),
-                )
-                if not row:
-                    return {"status": "error", "message": "Memory not found"}
-                if row["tier"] == "sacred":
-                    return {
-                        "status": "888_HOLD",
-                        "reason": "Sacred memories require human confirmation for deletion",
-                        "memory_id": memory_id,
-                    }
-                await conn.execute(
-                    "UPDATE memory_store SET deleted_at = NOW() WHERE id = $1",
-                    uuid.UUID(memory_id),
-                )
-                return {"status": "success", "pruned": memory_id}
-
-        _result = _memory_op(lambda: _run_async(_do_prune()))
-        if _result is None:
-            return _ok(
-                "arif_memory_recall",
-                {
-                    "pruned": memory_id,
-                    "reason": "DB connection failed — no-op",
+                    "reason": f"DB connection failed: {exc}",
                     "_degraded": "DB connection failed",
                 },
                 delta_S=0.001,
             )
-        if _result.get("status") == "888_HOLD":
-            return _hold("arif_memory_recall", _result["reason"])
+
+        if _result.get("sacred_protected"):
+            return _hold(
+                "arif_memory_recall",
+                f"Sacred memories require human confirmation for deletion. Blocked: {_result.get('blocked_sacred', [])}",
+            )
         return _ok(
             "arif_memory_recall",
-            {"pruned": memory_id, "reason": _result.get("reason", "entropy")},
+            {
+                "pruned": _result.get("pruned", []),
+                "reason": _result.get("reason", "entropy"),
+                "count": _result.get("count", 0),
+            },
             delta_S=0.001,
         )
 
