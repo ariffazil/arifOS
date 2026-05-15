@@ -12,7 +12,7 @@ services:
 
   # ── PLANE 1: GOVERNANCE ─────────────────────────────────────────────
   arifosmcp:
-    image: ghcr.io/ariffazil/arifos:${DEPLOY_GIT_COMMIT:-fd7b60a}
+    image: ghcr.io/ariffazil/arifos:${DEPLOY_GIT_COMMIT:-latest}
     container_name: arifosmcp
     init: true
     restart: unless-stopped
@@ -20,7 +20,7 @@ services:
     env_file: [.env.decrypted]
     environment:
       ARIFOS_BUILD_TIME: "2026-05-14T11:09:46Z"
-      DEPLOY_GIT_COMMIT: "${DEPLOY_GIT_COMMIT:-fd7b60a}"
+      DEPLOY_GIT_COMMIT: "${DEPLOY_GIT_COMMIT:-latest}"
       DEPLOY_BUILD_TIME: "2026-05-14T11:09:46Z"
       DEPLOY_GIT_BRANCH: "main"
       ARIFOS_GOVERNANCE_OPEN_MODE: "false"
