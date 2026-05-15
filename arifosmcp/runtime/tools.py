@@ -2586,10 +2586,22 @@ def _arif_session_init(
 
     if normalized_mode == "init":
         signature_verified = False
+        identity_verified = False
         constitution_bound = False
+        authority_level = "OBSERVER"
         invariants_checked: list[str] = []
         identity = get_constitution_identity()
         constitution_hash = identity["constitution_hash"]
+
+        # F1/F11: Purge expired nonces before checking (prevent unbounded growth)
+        try:
+            from arifosmcp.runtime.sovereign_verify import purge_expired_nonces
+
+            purged = purge_expired_nonces(_NONCE_STORE, _NONCE_TTL_SECONDS)
+            if purged:
+                logger.debug("Purged %d expired nonces from store", purged)
+        except Exception as exc:
+            logger.warning("Nonce purge failed: %s", exc)
 
         # F1/F11: Nonce replay prevention
         if nonce:
@@ -2603,23 +2615,50 @@ def _arif_session_init(
             _NONCE_STORE[nonce] = time.time()
             invariants_checked.append("nonce_fresh")
 
-        # F1/F11: Signature verification (if provided)
+        # F1/F11: Ed25519 signature verification (replaces SHA-256 stub)
         if actor_signature and nonce:
             try:
-                sig_payload = f"{actor_id or 'anonymous'}:{constitution_hash}:{nonce}"
-                expected_sig = hashlib.sha256(sig_payload.encode()).hexdigest()[:16]
-                if actor_signature == expected_sig:
+                from arifosmcp.runtime.sovereign_verify import (
+                    AUTHORITY_SOVEREIGN,
+                    AUTHORITY_VOID,
+                    verify_sovereign_signature,
+                )
+
+                verified, reason = verify_sovereign_signature(
+                    actor_id=actor_id or "anonymous",
+                    constitution_hash=constitution_hash,
+                    nonce=nonce,
+                    actor_signature=actor_signature,
+                )
+                invariants_checked.append(reason)
+                if verified:
                     signature_verified = True
+                    identity_verified = True
                     constitution_bound = True
-                    invariants_checked.append("actor_signature_verified")
+                    authority_level = AUTHORITY_SOVEREIGN
                     invariants_checked.append("constitution_bound")
-                    logger.info("Actor signature verified for actor_id=%s", actor_id)
+                    logger.info(
+                        "Ed25519 identity verified — actor_id=%s authority=SOVEREIGN",
+                        actor_id,
+                    )
                 else:
-                    logger.warning("Invalid actor_signature for actor_id=%s", actor_id)
-                    invariants_checked.append("actor_signature_invalid")
+                    authority_level = AUTHORITY_VOID
+                    logger.warning(
+                        "Ed25519 verification failed — actor_id=%s reason=%s",
+                        actor_id,
+                        reason,
+                    )
+                    # VOID authority: reject session, do not proceed
+                    return _hold(
+                        "arif_session_init",
+                        f"F11 AUTH: Signature verification failed — {reason}. "
+                        "Session rejected. Resubmit with valid Ed25519 signature or omit signature for OBSERVER access.",
+                        ["F01", "F11"],
+                        session_id=session_id,
+                    )
             except Exception as exc:
-                logger.warning("Signature verification failed: %s", exc)
-                invariants_checked.append("signature_verification_error")
+                logger.warning("Signature verification error: %s", exc)
+                invariants_checked.append(f"signature_verification_error: {type(exc).__name__}")
         elif actor_signature and not nonce:
             return _hold(
                 "arif_session_init",
@@ -2627,6 +2666,10 @@ def _arif_session_init(
                 ["F01"],
                 session_id=session_id,
             )
+        else:
+            # No signature — OBSERVER access (read-heavy tools only)
+            authority_level = "OBSERVER"
+            invariants_checked.append("no_signature_observer_access")
 
         # Constitution binding at T=0 (F1 Amanah - trust established at init)
         if constitution_bound or not actor_signature:
@@ -2637,11 +2680,13 @@ def _arif_session_init(
         sess = _new_session(actor_id, epoch_id=epoch_id, declared_model_key=declared_model_key)
         sid = sess["session_id"]
 
-        # Bind constitution hash to session at T=0
+        # Bind constitution hash and identity state to session at T=0
         sess["constitution_hash"] = constitution_hash
         sess["actor_signature"] = actor_signature
         sess["nonce"] = nonce
         sess["signature_verified"] = signature_verified
+        sess["identity_verified"] = identity_verified
+        sess["authority_level"] = authority_level
         sess["constitution_bound"] = constitution_bound
 
         # P3 Fix: Initialize thermodynamic budget for the new session
@@ -2683,6 +2728,8 @@ def _arif_session_init(
                 "store_ack": store_ack,
                 "doctrine": ARIF_DOCTRINE,
                 "signature_verified": signature_verified,
+                "identity_verified": identity_verified,
+                "authority_level": authority_level,
                 "constitution_bound": constitution_bound,
                 "invariants_checked": invariants_checked,
                 "lineage": {
@@ -6022,18 +6069,21 @@ def _try_reformulate_query(query: str) -> str | None:
         import os
 
         ollama_url = os.getenv("OLLAMA_URL", "http://ollama:11434")
-        import urllib.request, json as _json
+        import json as _json
+        import urllib.request
 
-        payload = _json.dumps({
-            "model": "qwen2.5:7b",
-            "prompt": (
-                f"Rewrite this search query to be more specific and likely to match "
-                f"relevant documents. Return ONLY the rewritten query, no explanation:\n\n"
-                f"Original: {query}\n\nRewritten:"
-            ),
-            "stream": False,
-            "options": {"num_predict": 100, "temperature": 0.3},
-        }).encode()
+        payload = _json.dumps(
+            {
+                "model": "qwen2.5:7b",
+                "prompt": (
+                    f"Rewrite this search query to be more specific and likely to match "
+                    f"relevant documents. Return ONLY the rewritten query, no explanation:\n\n"
+                    f"Original: {query}\n\nRewritten:"
+                ),
+                "stream": False,
+                "options": {"num_predict": 100, "temperature": 0.3},
+            }
+        ).encode()
         req = urllib.request.Request(
             f"{ollama_url}/api/generate",
             data=payload,
@@ -9820,8 +9870,7 @@ def _arif_daily_intelligence_brief(
     import time as _time
 
     gate = _constitutional_gate(
-        "arif_daily_intelligence_brief", mode, actor_id,
-        session_id=session_id
+        "arif_daily_intelligence_brief", mode, actor_id, session_id=session_id
     )
     if gate is not None:
         return gate
@@ -9832,7 +9881,9 @@ def _arif_daily_intelligence_brief(
     # ── Earth (GEOX) ───────────────────────────────────────
     if mode in ("brief", "earth"):
         try:
-            import urllib.request, json as _json
+            import json as _json
+            import urllib.request
+
             geo_url = "http://geox:8081/health"
             req = urllib.request.Request(geo_url, headers={"Accept": "application/json"})
             resp = urllib.request.urlopen(req, timeout=3)
@@ -9852,7 +9903,9 @@ def _arif_daily_intelligence_brief(
     # ── Capital (WEALTH) ───────────────────────────────────
     if mode in ("brief", "capital"):
         try:
-            import urllib.request, json as _json
+            import json as _json
+            import urllib.request
+
             wlth_url = "http://wealth:8082/health"
             req = urllib.request.Request(wlth_url, headers={"Accept": "application/json"})
             resp = urllib.request.urlopen(req, timeout=3)
@@ -9872,7 +9925,9 @@ def _arif_daily_intelligence_brief(
     # ── Vitality (WELL) ────────────────────────────────────
     if mode in ("brief", "vitality"):
         try:
-            import urllib.request, json as _json
+            import json as _json
+            import urllib.request
+
             well_url = "http://well:8083/health"
             req = urllib.request.Request(well_url, headers={"Accept": "application/json"})
             resp = urllib.request.urlopen(req, timeout=3)

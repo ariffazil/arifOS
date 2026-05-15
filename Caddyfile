@@ -328,9 +328,10 @@ well.arif-fazil.com {
 	handle /sse* {
 		reverse_proxy 127.0.0.1:8083
 	}
-	handle /.well-known/mcp/server.json {
+	handle /.well-known/* {
 		import cors_public
-		reverse_proxy 127.0.0.1:8083
+		root * /var/www/html/well
+		file_server
 	}
 	handle /tools {
 		import cors_public
