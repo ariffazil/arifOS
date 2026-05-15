@@ -648,29 +648,27 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "cognitive_axis": "vitality",
         "expose": True,
     },
-    "arif_daily_intelligence_brief": {
-        "name": "arif_daily_intelligence_brief",
-        "description": "777_BRIEF: + synthesize — Daily brief: GEOX, WEALTH, WELL, memory.",
-        "access": "public",
-        "stage": ToolStage.OBSERVE,
-        "lane": TrinityLane.AGI,
-        "floors": [Floor.F02_TRUTH, Floor.F03_WITNESS, Floor.F05_PEACE],
-        "risk_tier": "low",
-        "irreversible": False,
-        "modes": ["brief", "earth", "capital", "vitality", "memory"],
-        "eureka_insight": (
-            "F2: aggregated data must cite sources. "
-            "F3: W₃ — Earth (GEOX), Capital (WEALTH), Vitality (WELL). "
-            "F5: Peace² — brief must not amplify panic or noise."
-        ),
-        "cognitive_axis": "synthesize",
-        "expose": True,
-    },
 }
 
 
 PROBE_TOOLS: tuple[str, ...] = ()
 CONSTITUTIONAL_TOOLS: tuple[str, ...] = tuple(CANONICAL_TOOLS.keys())
+
+TOOL_STAGES: dict[str, ToolStage] = {
+    "arif_session_init": ToolStage.INIT,
+    "arif_sense_observe": ToolStage.OBSERVE,
+    "arif_evidence_fetch": ToolStage.EVIDENCE,
+    "arif_mind_reason": ToolStage.REASON,
+    "arif_heart_critique": ToolStage.CRITIQUE,
+    "arif_kernel_route": ToolStage.ROUTE,
+    "arif_reply_compose": ToolStage.REPLY,
+    "arif_memory_recall": ToolStage.MEMORY,
+    "arif_gateway_connect": ToolStage.GATEWAY,
+    "arif_judge_deliberate": ToolStage.JUDGE,
+    "arif_vault_seal": ToolStage.SEAL,
+    "arif_forge_execute": ToolStage.FORGE,
+    "arif_ops_measure": ToolStage.MEASURE,
+}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

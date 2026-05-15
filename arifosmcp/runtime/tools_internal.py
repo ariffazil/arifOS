@@ -28,8 +28,8 @@ from arifosmcp.runtime.model import (
     Stage,
     Verdict,
 )
-from arifosmcp.runtime.schemas import IntentType
-from arifosmcp.runtime.sessions import (
+from arifosmcp.runtime.schema import IntentType
+from arifosmcp.runtime.session import (
     get_session_identity,
 )
 from arifosmcp.tools.agentzero import (
@@ -65,7 +65,7 @@ except ImportError:
 
 
 # P0: Import from sessions.py to avoid circular imports
-from arifosmcp.runtime.sessions import _normalize_session_id
+from arifosmcp.runtime.session import _normalize_session_id
 
 logger = logging.getLogger(__name__)
 
@@ -474,7 +474,7 @@ async def _wrap_call(
 
     # Propagate actor_id from session if missing in payload
     if "actor_id" not in payload:
-        from arifosmcp.runtime.sessions import get_session_identity
+        from arifosmcp.runtime.session import get_session_identity
 
         ident = get_session_identity(session_id)
         if ident:

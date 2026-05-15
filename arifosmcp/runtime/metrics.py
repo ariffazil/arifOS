@@ -411,7 +411,7 @@ def record_w3(tool: str, w3_score: float) -> None:
 def update_prometheus_metrics() -> None:
     """Refreshes dynamic gauges like active sessions and vault record counts (Job 5)."""
     try:
-        from arifosmcp.runtime.sessions import list_active_sessions_count
+        from arifosmcp.runtime.session import list_active_sessions_count
 
         ACTIVE_SESSIONS.set(list_active_sessions_count())
     except Exception:

@@ -16,13 +16,14 @@ from typing import Any
 
 from arifosmcp.constitutional_map import RiskClass, RiskDecision, preflight
 from arifosmcp.models.verdicts import PipelineStage
-from arifosmcp.runtime.sessions import get_session_continuity_state
+from arifosmcp.runtime.session import get_session_continuity_state
 from arifosmcp.runtime.shadow_defense import ShadowDefense
-from core.kernel.pattern_registry import PatternRegistry
-from core.kernel.pattern_selector import PatternSelector
-from core.kernel.planner import Planner
-from core.kernel.role_registry import AgentRoleRegistry
-from core.kernel.tool_registry import ToolContractRegistry
+from arifosmcp.core.kernel.pattern_registry import PatternRegistry
+from arifosmcp.core.kernel.pattern_selector import PatternSelector
+from arifosmcp.core.kernel.planner import Planner
+from arifosmcp.core.kernel.role_registry import AgentRoleRegistry
+from arifosmcp.core.kernel.tool_registry import ToolContractRegistry
+from arifosmcp.runtime.continuity import seal_runtime_envelope
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +77,7 @@ class KernelCore:
         effective_query = payload.get("query") or query or ""
 
         # ── Identity Resolution (F11 Hardening) ──
-        from arifosmcp.runtime.sessions import get_session_identity
+        from arifosmcp.runtime.session import get_session_identity
 
         _bound_actor = None
         if session_id and session_id != "global":
@@ -133,7 +134,7 @@ class KernelCore:
     def _get_session_state(self, session_id: str | None) -> dict[str, Any]:
         """Fetch session continuity state for G02 RouteContext population."""
         try:
-            from arifosmcp.runtime.sessions import get_session_continuity_state
+            from arifosmcp.runtime.session import get_session_continuity_state
 
             return get_session_continuity_state(session_id) or {}
         except Exception:
@@ -146,7 +147,7 @@ class KernelCore:
         if not session_id:
             return
         try:
-            from arifosmcp.runtime.sessions import (
+            from arifosmcp.runtime.session import (
                 get_session_continuity_state,
                 set_session_continuity_state,
             )
@@ -188,8 +189,8 @@ class KernelCore:
         return True, "OK"
 
     async def orchestrate_stage(self, context: dict[str, Any]) -> dict[str, Any]:
-        from arifosmcp.runtime.governance_enforcer import classify_and_route
-        from arifosmcp.runtime.tools_hardened_dispatch import get_tool_handler
+        from arifosmcp.runtime.enforcer import classify_and_route
+        from arifosmcp.runtime.dispatcher import get_tool_handler
 
         query = context.get("query", "")
         actor_id = context.get("actor_id", "anonymous")
@@ -290,8 +291,10 @@ class KernelCore:
             context["g02_operation_class"] = g02_result.operation_class
             context["g02_verdict"] = g02_result.verdict
 
+            axis_val = getattr(g02_result.target_axis, "value", str(g02_result.target_axis))
+            op_val = getattr(g02_result.operation_class, "value", str(g02_result.operation_class))
             logger.info(
-                f"[G02] Allowed: {tool_name} → {g02_result.target_axis.value}/{g02_result.operation_class.value}"
+                f"[G02] Allowed: {tool_name} → {axis_val}/{op_val}"
             )
 
         except ImportError:
@@ -421,7 +424,7 @@ class KernelCore:
                 )
                 kwargs["judge_state_hash"] = session_state.get("judge_state_hash")
 
-            from arifosmcp.runtime.tools_hardened_dispatch import (
+            from arifosmcp.runtime.dispatcher import (
                 dispatch_with_fail_closed,
             )
 
@@ -436,7 +439,6 @@ class KernelCore:
         context: dict[str, Any],
         routing_result: dict[str, Any],
     ) -> dict[str, Any]:
-        from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
         from arifosmcp.runtime.model import RuntimeEnvelope
 
         session_id = context.get("session_id")
@@ -450,7 +452,7 @@ class KernelCore:
                 ok=tool_result.get("ok", True),
                 tool=tool_name,
                 canonical_tool_name=tool_name,
-                stage=PipelineStage.S555_ROUTE.value,
+                stage=str(PipelineStage.S555_ROUTE.value),
                 session_id=session_id,
                 payload=tool_result,
             )
@@ -501,7 +503,7 @@ class KernelCore:
                 session_stage=str(envelope.stage),
             )
 
-            phi = select_atlas_philosophy(scores, session_id=session_id)
+            phi = select_atlas_philosophy(scores, session_id=session_id or "global")
             if isinstance(envelope.payload, dict):
                 envelope.payload["philosophy"] = phi
 
@@ -571,7 +573,7 @@ class KernelCore:
 
         final_result = await self.output_stage(
             orchestrate_result.get("tool_result", {}),
-            orchestrate_result.get("tool_name"),
+            orchestrate_result.get("tool_name") or "unknown",
             context,
             orchestrate_result.get("routing_result", {}),
         )

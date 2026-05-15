@@ -39,7 +39,7 @@ from arifosmcp.runtime.public_registry import (
     public_tool_names,
     public_tool_specs,
 )
-from arifosmcp.runtime.resources import apex_tools_markdown_table
+from arifosmcp.runtime.resource import apex_tools_markdown_table
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from starlette.responses import FileResponse, HTMLResponse, JSONResponse, Response
@@ -62,7 +62,7 @@ from arifosmcp.runtime.contracts import (
     TRINITY_BY_TOOL,
 )
 from arifosmcp.runtime.federation_epistemology import FederationEpistemicLedger
-from arifosmcp.runtime.floors import get_floor_count
+from arifosmcp.runtime.floor import get_floor_count
 
 # External MCP tool name → internal contract name
 # This is the authoritative mapping for stage/lane lookups
@@ -5271,7 +5271,7 @@ def register_rest_routes(
     async def list_resources(request: Request) -> Response:
         """List MCP resources — governed context objects."""
         try:
-            from arifosmcp.runtime.resources import manifest_resources
+            from arifosmcp.runtime.resource import manifest_resources
 
             resources = manifest_resources()
             return JSONResponse(
@@ -5288,7 +5288,7 @@ def register_rest_routes(
     async def read_resource(request: Request, uri: str) -> Response:
         """Read a specific resource by URI."""
         try:
-            from arifosmcp.runtime.resources import read_resource_content
+            from arifosmcp.runtime.resource import read_resource_content
 
             content = await read_resource_content(uri)
             if not content:

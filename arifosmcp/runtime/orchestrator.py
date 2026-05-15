@@ -372,7 +372,7 @@ async def run_stage(
 
             # F12: Retrieve constitutional grounding context from session
             if session_id:
-                from arifosmcp.runtime.sessions import get_session_identity
+                from arifosmcp.runtime.session import get_session_identity
 
                 ident = get_session_identity(session_id)
                 if ident:
@@ -547,7 +547,7 @@ async def metabolic_loop(
             "meta": {"dry_run": True},
         }
 
-    from arifosmcp.runtime.sessions import _resolve_session_id as _normalize_session_id
+    from arifosmcp.runtime.session import _resolve_session_id as _normalize_session_id
     from core.governance_kernel import route_pipeline
 
     # Track if we're approaching timeout

@@ -265,6 +265,14 @@ try:
     logger.info(
         "Registered diagnostics: arif_anti_sink_check, institutional_drift_check, arif_stack_health_probe"
     )
+
+    # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
+    try:
+        from arifosmcp.runtime.workers.memory_janitor import MemoryJanitor
+        janitor = MemoryJanitor.start(interval_seconds=3600)
+        logger.info("Phoenix-72 Memory Janitor: ACTIVE")
+    except Exception as e:
+        logger.warning(f"Failed to start Memory Janitor: {e}")
 except Exception as e:
     logger.error(f"Failed to initialize runtime components: {e}")
     raise

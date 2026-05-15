@@ -89,6 +89,7 @@ def arif_memory_recall(
       prune       — Delete memories by ID or age.
       context     — Load all memories for a given session.
       stats       — Return memory store statistics.
+      import      — Batch ingestion of external agent conclusions (Phoenix-72).
 
     Args:
         context: Recall context filter (SABAR Stage 2A — advisory only).
@@ -98,6 +99,15 @@ def arif_memory_recall(
 
     Storage backend: /root/.arifOS/memory/ (JSON files)
     """
+    # ── Floor F11 AUTH Gate (Sovereign Hardening) ─────────────────────────────
+    if mode in ("store", "import"):
+        if not actor_id or actor_id == "anonymous":
+            return _hold(
+                "arif_memory_recall",
+                "F11 AUTH: actor_id is mandatory (WAJIB) for storage/import operations.",
+                ["F11"],
+            )
+
     floor_check = check_floors(
         "arif_memory_recall",
         {"query": query or "", "content": str(content) if content else ""},

@@ -78,7 +78,7 @@ from arifosmcp.constitutional_map import (
 from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_budget
 from arifosmcp.core.threat_engine import ThreatTier
 from arifosmcp.evidence.store import EvidenceStore, get_evidence_store
-from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.floor import check_floors
 from arifosmcp.schemas.forge import (
     ConstitutionalCompliance,
     DeltaSEvidence,
@@ -10262,6 +10262,21 @@ __all__ = [
 # ── Server.py compatibility shims ──────────────────────────────────────────
 CANONICAL_TOOL_HANDLERS = _CANONICAL_HANDLERS
 FINAL_TOOL_IMPLEMENTATIONS = _CANONICAL_HANDLERS
+
+
+def get_tool_handler(name: str) -> Any:
+    """Resolve a tool handler by name (canonical or legacy alias)."""
+    # 1. Try canonical name directly
+    handler = _CANONICAL_HANDLERS.get(name)
+    if handler:
+        return handler
+
+    # 2. Try legacy alias
+    canonical_name = _LEGACY_ALIASES.get(name)
+    if canonical_name:
+        return _CANONICAL_HANDLERS.get(canonical_name)
+
+    return None
 
 
 def register_v2_tools(mcp: FastMCP, **kwargs: Any) -> list[str]:

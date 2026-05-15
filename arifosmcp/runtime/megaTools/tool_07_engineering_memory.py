@@ -35,7 +35,7 @@ async def engineering_memory(
     raw_input: str | None = None,
     ctx: Any | None = None,
 ) -> RuntimeEnvelope:
-    from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+    from arifosmcp.runtime.dispatcher import HARDENED_DISPATCH_MAP
 
     payload = dict(payload or {})
     if raw_input:

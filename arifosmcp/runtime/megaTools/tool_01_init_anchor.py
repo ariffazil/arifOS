@@ -263,7 +263,7 @@ async def init_anchor(
     _intent = intent or query or resolved_payload.get("query") or f"Init {_dn}"
     _session_id = session_id or resolved_payload.get("session_id") or f"sess-{secrets.token_hex(8)}"
 
-    from arifosmcp.runtime.sessions import bind_session_identity, get_session_identity
+    from arifosmcp.runtime.session import bind_session_identity, get_session_identity
 
     if mode in {"state", "status", "probe", "refresh"}:
         if mode == "refresh":
