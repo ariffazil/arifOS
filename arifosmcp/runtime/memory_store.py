@@ -308,6 +308,9 @@ def store(
         "created_at": datetime.now(timezone.utc).isoformat(),
         "tier": normalised_tier,
         "version": "v3",
+        # Include memory_id so recall() can look up by memory_id directly in Qdrant
+        "memory_id": memory_id,
+        "pg_id": pg_memory_id,
     }
 
     # --- Qdrant write ---
@@ -372,37 +375,100 @@ def store(
 
 
 def recall(memory_id: str) -> dict[str, Any] | None:
-    _ensure_dir()
-    idx = _index_read()
+    """Recall a memory entry by memory_id. Queries Qdrant (with Postgres soft-delete check).
 
+    The Qdrant store is append-only for audit integrity. Postgres holds the mutable
+    soft-delete flag (deleted_at). We verify soft-delete status before returning.
+    """
+    if not memory_id:
+        return None
+
+    # Helper: check Postgres soft-delete status and return entry if not deleted
+    def _check_postgres(point_id: str | None) -> dict[str, Any] | None:
+        if not point_id:
+            return None
+        try:
+            import asyncpg
+
+            async def _pg_get():
+                conn = await asyncpg.connect(_PG_URL, timeout=5)
+                try:
+                    row = await conn.fetchrow(
+                        """
+                        SELECT id, tier, text, metadata,
+                               qdrant_id, session_id, created_at, deleted_at
+                        FROM memory_store
+                        WHERE qdrant_id = $1 AND deleted_at IS NULL
+                        """,
+                        uuid.UUID(point_id),
+                    )
+                    return dict(row) if row else None
+                finally:
+                    await conn.close()
+
+            return _pg_run(_pg_get())
+        except Exception:
+            return None
+
+    # Helper: build return dict from Qdrant payload
+    def _from_payload(p: dict, point_id: str) -> dict:
+        return {
+            "memory_id": p.get("memory_id") or memory_id,
+            "content": p.get("content"),
+            "mode": p.get("mode"),
+            "tags": p.get("tags", []),
+            "actor_id": p.get("actor_id"),
+            "session_id": p.get("session_id"),
+            "summary": p.get("summary"),
+            "content_hash": p.get("content_hash"),
+            "created_at": p.get("created_at"),
+            "tier": p.get("tier", TIER_CANONICAL),
+            "point_id": point_id,
+            "version": p.get("version", "v3"),
+        }
+
+    # Try JSON index first (fast path, if index exists and is populated)
+    idx = _index_read()
     if memory_id in idx:
         point_id = idx[memory_id].get("point_id")
-        if point_id:
-            try:
-                client = _get_qdrant_client()
-                points = client.retrieve(
-                    collection_name=_QDRANT_COLLECTION,
-                    ids=[point_id],
-                    with_payload=True,
-                )
-                if points and points[0].payload:
-                    p = points[0].payload
-                    return {
-                        "memory_id": memory_id,
-                        "content": p.get("content"),
-                        "mode": p.get("mode"),
-                        "tags": p.get("tags", []),
-                        "actor_id": p.get("actor_id"),
-                        "session_id": p.get("session_id"),
-                        "summary": p.get("summary"),
-                        "content_hash": p.get("content_hash"),
-                        "created_at": p.get("created_at"),
-                        "tier": p.get("tier", TIER_CANONICAL),
-                        "point_id": point_id,
-                        "version": p.get("version", "v3"),
-                    }
-            except Exception as exc:
-                logger.warning("Qdrant recall failed for %s: %s", memory_id, exc)
+        pg_row = _check_postgres(point_id)
+        if pg_row is None:
+            # Soft-deleted in Postgres or not found
+            return None
+        try:
+            client = _get_qdrant_client()
+            points = client.retrieve(
+                collection_name=_QDRANT_COLLECTION,
+                ids=[str(point_id)],
+                with_payload=True,
+            )
+            if points and points[0].payload:
+                return _from_payload(points[0].payload, str(point_id))
+        except Exception as exc:
+            logger.warning("Qdrant recall via index failed for %s: %s", memory_id, exc)
+
+    # Fallback: scan Qdrant directly for memory_id in payload
+    # This works even when JSON index is empty (e.g. after container restart)
+    try:
+        client = _get_qdrant_client()
+        from qdrant_client.models import FieldCondition, Filter, MatchValue
+
+        results, _ = client.scroll(
+            collection_name=_QDRANT_COLLECTION,
+            scroll_filter=Filter(
+                must=[FieldCondition(key="memory_id", match=MatchValue(value=memory_id))]
+            ),
+            limit=1,
+            with_payload=True,
+        )
+        if results:
+            point_id = str(results[0].id)
+            pg_row = _check_postgres(point_id)
+            if pg_row is None:
+                return None  # soft-deleted
+            return _from_payload(results[0].payload or {}, point_id)
+    except Exception as exc:
+        logger.warning("Qdrant scroll recall failed for %s: %s", memory_id, exc)
 
     # Legacy file fallback
     legacy_path = _MEMORY_DIR / f"{memory_id}.json"
@@ -449,7 +515,7 @@ def search(
                     (
                         hit.score,
                         {
-                            "memory_id": "",
+                            "memory_id": p.get("memory_id") or str(hit.id),
                             "content": p.get("content"),
                             "mode": p.get("mode"),
                             "tags": p.get("tags", []),
@@ -459,7 +525,7 @@ def search(
                             "content_hash": p.get("content_hash"),
                             "created_at": p.get("created_at"),
                             "tier": p.get("tier", TIER_CANONICAL),
-                            "point_id": hit.id,
+                            "point_id": str(hit.id),
                             "score": hit.score,
                             "version": p.get("version", "v3"),
                         },
