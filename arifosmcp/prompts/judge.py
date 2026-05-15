@@ -66,7 +66,7 @@ def register_judge_prompt(mcp: FastMCP) -> list[str]:
     """Register the 888_JUDGE verdict prompt."""
 
     @mcp.prompt(
-        name="judge",
+        name="arif_judge",
         description=(
             "888_JUDGE constitutional verdict engine context. "
             "Guides ASI-strategic adjudication across four axes: "

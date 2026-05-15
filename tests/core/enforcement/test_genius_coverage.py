@@ -1,4 +1,5 @@
 from __future__ import annotations
+import importlib
 import pytest
 from core.enforcement.genius import (
     APEXDials,
@@ -10,6 +11,16 @@ from core.enforcement.genius import (
 )
 from core.shared.floor_audit import AuditResult, FloorResult
 from core.shared.types import FloorScores, Verdict
+
+
+@pytest.fixture(autouse=True)
+def reload_genius_module():
+    """Reload genius module to prevent test ordering pollution from cached validators."""
+    import core.enforcement.genius as genius_module
+
+    importlib.reload(genius_module)
+    yield
+    importlib.reload(genius_module)
 
 
 def test_geometric_mean():

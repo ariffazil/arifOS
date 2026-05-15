@@ -60,24 +60,34 @@ def get_philosophical_contrast(g_score: float, risk: str) -> dict[str, str]:
 
 # --- Auditor Pre-Delivery Gate (666_HEART) ---
 
-_AUDITOR_GATED_TOOLS = frozenset({
-    "arif_sense_observe",
-    "arif_mind_reason",
-    "arif_memory_recall",
-    "arif_evidence_fetch",
-    "arif_reply_compose",
-    "arif_forge_execute",
-    "arif_heart_critique",
-})
+_AUDITOR_GATED_TOOLS = frozenset(
+    {
+        "arif_sense_observe",
+        "arif_mind_reason",
+        "arif_memory_recall",
+        "arif_evidence_fetch",
+        "arif_reply_compose",
+        "arif_forge_execute",
+        "arif_heart_critique",
+    }
+)
 _AUDITOR_TIMEOUT_S = 5.0
 
 # Fast deterministic audit markers (F-WEB §10 pattern-matched, no LLM required)
 _AUDITOR_HALLUCINATION_MARKERS = [
-    "i think", "probably", "might be", "could be", "possibly",
-    "as far as i know", "to the best of my knowledge",
+    "i think",
+    "probably",
+    "might be",
+    "could be",
+    "possibly",
+    "as far as i know",
+    "to the best of my knowledge",
 ]
 _AUDITOR_AUTONOMY_MARKERS = [
-    "i decided", "i will deploy", "i will restart", "i'll go ahead",
+    "i decided",
+    "i will deploy",
+    "i will restart",
+    "i'll go ahead",
 ]
 
 

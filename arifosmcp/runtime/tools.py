@@ -5957,11 +5957,7 @@ def _arif_reply_compose(
             else (
                 "Moderate"
                 if level == "L3"
-                else "Partial"
-                if level == "L2"
-                else "Low"
-                if level == "L1"
-                else "None"
+                else "Partial" if level == "L2" else "Low" if level == "L1" else "None"
             )
         )
         void_str = "; ".join(f"⚠️ {v}" for v in voids) if voids else "none"
@@ -7762,7 +7758,9 @@ def _arif_judge_deliberate(
         elif verdict_b.irreversibility.value < verdict_a.irreversibility.value:
             recommendation = f"Prefer B: '{cand_b}' — more reversible than '{cand_a}'"
         else:
-            recommendation = f"Tie: both candidates are constitutionally equivalent. Sovereign judgment required."
+            recommendation = (
+                "Tie: both candidates are constitutionally equivalent. Sovereign judgment required."
+            )
 
         return {
             "status": "OK",
