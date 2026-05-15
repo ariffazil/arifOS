@@ -14,9 +14,73 @@ the judge output is automatically routed to arif_vault_seal for immutable anchor
 from __future__ import annotations
 
 import json as json_lib
+from pathlib import Path
+from typing import Any
 
 from arifosmcp.runtime.tools import _arif_judge_deliberate
 from arifosmcp.schemas.verdict import VerdictOutput
+
+_WELL_STATE_PATH = Path("/root/WELL/state.json")
+
+
+def _read_well_substrate() -> dict[str, Any]:
+    """Read WELL state file and return a minimal biological substrate packet.
+
+    W0 invariant preserved: WELL informs. The judge decides. The operator
+    holds the veto. This packet is advisory evidence — not a gate.
+    """
+    try:
+        if not _WELL_STATE_PATH.exists():
+            return {
+                "status": "unavailable",
+                "coupled_verdict": "CAUTION",
+                "source": "no_state_file",
+            }
+        with open(_WELL_STATE_PATH) as fh:
+            state = json_lib.load(fh)
+    except Exception as exc:
+        return {
+            "status": "unavailable",
+            "coupled_verdict": "CAUTION",
+            "source": f"read_error:{exc}",
+        }
+
+    well_score = float(state.get("well_score", 50.0))
+    floors_violated: list = state.get("floors_violated", []) or []
+    metrics: dict = state.get("metrics") or {}
+    truth_status: str = state.get("truth_status", "UNVERIFIED")
+    has_metrics = bool(
+        isinstance(metrics, dict)
+        and any(metrics.get(d) for d in ("sleep", "stress", "cognitive", "metabolic", "structural"))
+    )
+
+    if not has_metrics or truth_status in ("VOID", "TEST", "UNVERIFIED"):
+        human_ready, coupled_verdict = "UNKNOWN", "CAUTION"
+    elif floors_violated:
+        human_ready, coupled_verdict = "DEGRADED", "HOLD"
+    elif well_score >= 80:
+        human_ready, coupled_verdict = "OPTIMAL", "PROCEED"
+    elif well_score >= 60:
+        human_ready, coupled_verdict = "FUNCTIONAL", "PROCEED"
+    else:
+        human_ready, coupled_verdict = "LOW_CAPACITY", "CAUTION"
+
+    clarity = metrics.get("cognitive", {}).get("clarity") if has_metrics else None
+
+    packet: dict[str, Any] = {
+        "status": "available",
+        "well_score": well_score,
+        "human_ready": human_ready,
+        "coupled_verdict": coupled_verdict,
+        "has_telemetry": has_metrics,
+        "truth_status": truth_status,
+        "active_violations": floors_violated,
+        "source": "live_state_file",
+        "w0": "OPERATOR_VETO_INTACT / HIERARCHY_INVARIANT",
+    }
+    if clarity is not None:
+        packet["clarity"] = clarity
+    return packet
 
 
 def arif_judge_deliberate(
@@ -53,6 +117,11 @@ def arif_judge_deliberate(
             except Exception:
                 _evidence["vitals"] = {"status": "unavailable"}
 
+        # ── WELL biological substrate pre-load (Gap 2 wire) ──────────────────
+        # W0 preserved: WELL informs, judge decides, operator holds veto.
+        # This is advisory evidence surfaced alongside every verdict — not a gate.
+        _evidence["well_substrate"] = _read_well_substrate()
+
     audit_entropy = _evidence.get("vitals", {}).get("audit_entropy")
     result = _arif_judge_deliberate(
         mode=mode,
@@ -64,6 +133,19 @@ def arif_judge_deliberate(
         wealth_score=_evidence.get("wealth_score"),
         verification_surface=_evidence.get("verification_surface"),
     )
+
+    # ── Attach WELL substrate to result ──────────────────────────────────────
+    # Every judge verdict now carries biological readiness evidence. This closes
+    # the loop: constitutional decisions are grounded in operator substrate state.
+    well_sub = _evidence.get("well_substrate", {})
+    if isinstance(result, dict):
+        result.setdefault("meta", {})["well_substrate"] = well_sub
+        if well_sub.get("coupled_verdict") == "HOLD" and well_sub.get("has_telemetry"):
+            result["meta"]["well_gate"] = (
+                f"WELL HOLD: human_ready={well_sub.get('human_ready')} "
+                f"floors_violated={well_sub.get('active_violations')} — "
+                "biological substrate flags active. Verdict stands; ARIF confirmation advised."
+            )
 
     # ── SABAR cooldown awareness (Stage 2A: advisory) ──
     _apply_cooldown_awareness(result, cooldown_entry_id)
