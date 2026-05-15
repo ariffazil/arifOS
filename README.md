@@ -125,7 +125,7 @@ Request received
 arifOS is live and under active hardening.
 
 **Working now:**
-- 13 canonical MCP tools with live embodiment contracts + cognitive_axis tags
+- 13 canonical MCP tools + diagnostics + bridges with live embodiment contracts + cognitive_axis tags
 - FEDERATION_TOOLS manifest integration with intent-based routing (`arif_kernel_route(mode="intent")`)
 - 441_SURPRISE metabolic umbilical: writes contradiction data to WELL state.json
 - Kernel + REST fail-closed embodiment gates before handler invocation
