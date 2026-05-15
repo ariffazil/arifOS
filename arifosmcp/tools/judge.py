@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from arifosmcp.runtime.tools import _arif_judge_deliberate
-from arifosmcp.schemas.verdict import VerdictOutput
+from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
 
 # WELL state file candidates — covers docker-compose path, manual-start path, env override
 _WELL_STATE_CANDIDATES = [
@@ -66,15 +66,21 @@ def _read_well_substrate() -> dict[str, Any]:
             try:
                 with urllib.request.urlopen(url, timeout=2) as resp:
                     raw = json_lib.loads(resp.read())
-                # /health now exposes substrate advisory fields — forward them directly
+                # W-1: /health now exposes substrate advisory fields — forward them.
                 state = {
-                    "well_score": raw.get("well_score", 50.0),
+                    "well_score": float(raw.get("well_score", 50.0)),
                     "floors_violated": raw.get("floors_violated") or [],
                     "metrics": raw.get("metrics") or {},
                     "truth_status": raw.get("truth_status", "OPERATOR_REPORTED"),
                     "_source": "http_health",
                     "_url": url,
                 }
+                # W-1: /health exposes clarity at top level — reconstruct cognitive metrics shape
+                _http_clarity = raw.get("clarity")
+                if _http_clarity is not None and not state["metrics"].get("cognitive", {}).get(
+                    "clarity"
+                ):
+                    state["metrics"]["cognitive"] = {"clarity": float(_http_clarity)}
                 break
             except Exception:
                 continue
@@ -120,6 +126,63 @@ def _read_well_substrate() -> dict[str, Any]:
     return packet
 
 
+def _read_well_governance(state_path_candidates: list | None = None) -> dict[str, Any]:
+    """Read G-WELL governance packet from state file.
+
+    W-4: Called for C4/C5 sovereign-tier actions. Extracts machine governance
+    flags, vault status, and authority boundary from the WELL state file.
+    Returns advisory only — W0 sovereignty invariant preserved.
+    """
+    candidates = state_path_candidates or _WELL_STATE_CANDIDATES
+    for path in candidates:
+        try:
+            with open(path) as fh:
+                state = json_lib.load(fh)
+            break
+        except Exception:
+            continue
+    else:
+        return {"status": "unavailable", "g_well_verdict": "UNKNOWN", "source": "all_paths_failed"}
+
+    m_machine = state.get("m_machine") or {}
+    vault_status = m_machine.get("vault_status", "unknown")
+    model_reliability = float(m_machine.get("model_reliability", 1.0))
+    tool_availability = float(m_machine.get("tool_availability", 1.0))
+    security_flags = m_machine.get("security_flags") or []
+    amanah = state.get("amanah", "UNLOCKED")
+    truth_status = state.get("truth_status", "UNVERIFIED")
+
+    governance_flags: list[str] = []
+    if not state.get("identity_valid", True):
+        governance_flags.append("well_identity_compromised")
+    if vault_status not in ("ok", "healthy", "unknown"):
+        governance_flags.append(f"vault_disconnected:{vault_status}")
+    if model_reliability < 0.5 or tool_availability < 0.5:
+        governance_flags.append("machine_substrate_critical")
+    if security_flags:
+        governance_flags.append(f"security_flags:{','.join(security_flags)}")
+    if amanah == "LOCKED":
+        governance_flags.append("amanah_locked")
+
+    if len(governance_flags) == 0:
+        g_verdict = "COHERENT"
+    elif len(governance_flags) <= 2:
+        g_verdict = "FRAGMENTED"
+    else:
+        g_verdict = "INCOHERENT"
+
+    return {
+        "status": "available",
+        "g_well_verdict": g_verdict,
+        "governance_flags": governance_flags,
+        "vault_status": vault_status,
+        "model_reliability": model_reliability,
+        "tool_availability": tool_availability,
+        "truth_status": truth_status,
+        "w0": "OPERATOR_VETO_INTACT / HIERARCHY_INVARIANT",
+    }
+
+
 def arif_judge_deliberate(
     mode: str = "judge",
     candidate: str | None = None,
@@ -128,11 +191,17 @@ def arif_judge_deliberate(
     constitutional_chain_id: str | None = None,
     vault_entry_id: str | None = None,
     cooldown_entry_id: str | None = None,
+    action_tier: str = "standard",
 ) -> VerdictOutput:
     """
     888_JUDGE: Constitutional adjudication and verdict emission.
 
     Args:
+        action_tier: "standard" | "sovereign" | "c4" | "c5".
+            SOVEREIGN gate (W-2): if action_tier is "sovereign"/"c4"/"c5" and
+            operator cognitive clarity is below 4/10, verdict is hard-blocked
+            to HOLD (W5 → F2 constitutional floor). W0 preserved — WELL informs,
+            judge decides, operator holds veto.
         vault_entry_id: If provided and verdict is SEAL, the output is
             automatically routed to arif_vault_seal for immutable anchoring
             (post-SEAL auto-hook per P3).
@@ -143,6 +212,7 @@ def arif_judge_deliberate(
     from arifosmcp.tools.ops import arif_ops_measure
 
     _evidence: dict = {}
+    _is_elevated_tier = action_tier.lower() in ("sovereign", "c4", "c5")
 
     if mode != "history":
         if _evidence.get("vitals") is None:
@@ -158,6 +228,51 @@ def arif_judge_deliberate(
         # W0 preserved: WELL informs, judge decides, operator holds veto.
         # This is advisory evidence surfaced alongside every verdict — not a gate.
         _evidence["well_substrate"] = _read_well_substrate()
+
+        # ── W-4: G-WELL governance pre-load for elevated-tier actions ─────────
+        # C4/C5/sovereign actions require governance coherence check before deliberation.
+        if _is_elevated_tier:
+            _evidence["well_governance"] = _read_well_governance()
+
+        # ── W-2: SOVEREIGN clarity gate (W5 → F2 hard block) ─────────────────
+        # If action_tier is sovereign/C4/C5 and cognitive clarity is below threshold,
+        # return HOLD before deliberation. Operator readiness is constitutional.
+        if _is_elevated_tier:
+            _w2_sub = _evidence["well_substrate"]
+            _w2_clarity = _w2_sub.get("clarity")
+            if (
+                _w2_clarity is not None
+                and float(_w2_clarity) < 4.0
+                and _w2_sub.get("has_telemetry")
+            ):
+                return VerdictOutput(
+                    verdict=VerdictCode.HOLD,
+                    reasons=[
+                        (
+                            f"W5_COGNITIVE_ENTROPY: clarity={_w2_clarity}/10"
+                            " below SOVEREIGN threshold (4/10)."
+                        ),
+                        (
+                            "Operator cognitive substrate does not meet"
+                            " constitutional requirements for elevated-tier action."
+                        ),
+                        "Rest. Reassess when clarity ≥ 6/10.",
+                    ],
+                    next_safe_action=(
+                        "Rest. Return when clarity ≥ 6/10."
+                        " Then re-run with action_tier='sovereign'."
+                    ),
+                    meta={
+                        "well_gate": "SOVEREIGN_BLOCKED",
+                        "w_floor": "W5 → F2",
+                        "action_tier": action_tier,
+                        "clarity": _w2_clarity,
+                        "threshold": 4.0,
+                        "human_ready": _w2_sub.get("human_ready"),
+                        "active_violations": _w2_sub.get("active_violations", []),
+                        "well_substrate": _w2_sub,
+                    },
+                )
 
     audit_entropy = _evidence.get("vitals", {}).get("audit_entropy")
     result = _arif_judge_deliberate(
@@ -183,6 +298,22 @@ def arif_judge_deliberate(
                 f"floors_violated={well_sub.get('active_violations')} — "
                 "biological substrate flags active. Verdict stands; ARIF confirmation advised."
             )
+
+        # ── W-4: Attach G-WELL governance to elevated-tier verdicts ───────────
+        if _is_elevated_tier and "well_governance" in _evidence:
+            gov = _evidence["well_governance"]
+            result["meta"]["well_governance"] = gov
+            if gov.get("g_well_verdict") == "INCOHERENT":
+                result["meta"]["governance_gate"] = (
+                    f"G-WELL INCOHERENT: {gov.get('governance_flags')} — "
+                    "machine governance substrate flagged."
+                    " ARIF confirmation required for C4/C5 actions."
+                )
+            elif gov.get("g_well_verdict") == "FRAGMENTED":
+                result["meta"]["governance_advisory"] = (
+                    f"G-WELL FRAGMENTED: {gov.get('governance_flags')} — "
+                    "governance integrity stressed. Proceed with caution."
+                )
 
     # ── SABAR cooldown awareness (Stage 2A: advisory) ──
     _apply_cooldown_awareness(result, cooldown_entry_id)
