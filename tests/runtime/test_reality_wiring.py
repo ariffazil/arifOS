@@ -38,7 +38,7 @@ class TestSenseObserveStubWiring:
             )
         )
 
-        from arifosmcp.tools.sense_observe import arif_sense_observe
+        from arifosmcp.tools.sense import arif_sense_observe
 
         result = arif_sense_observe(mode="search", query="test query")
 
@@ -58,7 +58,7 @@ class TestSenseObserveStubWiring:
         mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
         mock_rh.search_brave = AsyncMock(side_effect=Exception("network down"))
 
-        from arifosmcp.tools.sense_observe import arif_sense_observe
+        from arifosmcp.tools.sense import arif_sense_observe
 
         result = arif_sense_observe(mode="search", query="test query")
 
@@ -83,7 +83,7 @@ class TestSenseObserveStubWiring:
         mock_bundle.results = [MagicMock()]
         mock_rh.handle_compass = AsyncMock(return_value=mock_bundle)
 
-        from arifosmcp.tools.sense_observe import arif_sense_observe
+        from arifosmcp.tools.sense import arif_sense_observe
 
         result = arif_sense_observe(
             mode="ingest", url="https://example.com/page", actor_id="u1", session_id="s1"
@@ -100,7 +100,7 @@ class TestSenseObserveStubWiring:
         mock_auth.return_value = {"valid": True}
         mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
 
-        from arifosmcp.tools.sense_observe import arif_sense_observe
+        from arifosmcp.tools.sense import arif_sense_observe
 
         result = arif_sense_observe(mode="search", query="x", partition_mode="DEAD")
         assert result["status"] == "HOLD"

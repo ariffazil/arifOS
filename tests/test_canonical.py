@@ -32,7 +32,7 @@ from arifosmcp.runtime.tools import (
     register_tools,
 )
 from arifosmcp.tools.session import arif_session_init
-from arifosmcp.tools.sense_observe import arif_sense_observe
+from arifosmcp.tools.sense import arif_sense_observe
 from arifosmcp.tools.vault import arif_vault_seal
 from arifosmcp.tools.forge import arif_forge_execute
 from arifosmcp.tools.judge import arif_judge_deliberate

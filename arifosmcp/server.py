@@ -218,7 +218,7 @@ try:
     # registry names are for documentation and future expansion; they are NOT
     # guaranteed to be registered at runtime. Use MCP tools/list for the
     # authoritative live count.
-    from arifosmcp.tools.inclusive_topology import (
+    from arifosmcp.tools.topology import (
         arif_anti_sink_check,
         institutional_drift_check,
     )
@@ -243,7 +243,7 @@ try:
         tags={"diagnostic", "topology", "governance"},
     )(institutional_drift_check)
 
-    from arifosmcp.tools.stack_health import arif_stack_health_probe
+    from arifosmcp.tools.health import arif_stack_health_probe
 
     mcp.tool(
         name="arif_stack_health_probe",
