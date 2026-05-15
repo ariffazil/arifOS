@@ -22,6 +22,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -271,6 +272,175 @@ def _content_hash(content: Any) -> str:
 
 
 # =============================================================================
+# MEMORY TRIAGE GATE — Sovereign Memory Directive (HARAM vs WAJIB)
+# F2 (Truth), F8 (Genius), F9 (Anti-Hantu) enforcement at storage entry
+# =============================================================================
+
+# HARAM: F9 Anti-Hantu hard blocks — consciousness/emotion claims
+_HARAM_HANTU_PATTERNS = [
+    r"\bi\s+(?:feel|experienc|understand|remember|know|think\s+about)",
+    r"\bi'm?\s+(?:sad|happy|excited|scared|worried|grateful)",
+    r"\bi\s+hope\s+i\s+(?:can|could|would)",
+    r"\bmy\s+(?:heart|soul|spirit|feelings)",
+    r"\bfeels?\s+like\s+(?:i|i'm)",
+    r"\bthis\s+makes\s+(?:me|i)\s+feel",
+]
+
+# HARAM: Intermediate reasoning patterns — scratchpads, ReAct loops, thinking steps
+_HARAM_REASONING_PATTERNS = [
+    r"(?i)\b(scratchpad|thought\s+step|reasoning\s+step|loop\s+\d+/\d+)",
+    r"(?i)\b(react_|reasoning_|thinking_|chain\s+of\s+thought)",
+    r"(?i)\b(step\s+\d+\s*[:\.]|_loop|_retry|_attempt_\d+)",
+    r"(?i)\b(deliberation|deliberate\s+loop|self[-_]critique)",
+]
+
+# HARAM: Ephemeral state patterns — temp vars, heartbeats, API noise
+_HARAM_EPHEMERAL_PATTERNS = [
+    r"(?i)\b(heartbeat|ping_|pong_|keepalive|_tmp|temp_\w+|var_\w+)",
+    r"(?i)\b(response_code|status_code|http_\d+|api_\w+_latency)",
+    r"(?i)\b(log_seq|offset_\d+|cursor_|page_\d+_of_\d+)",
+]
+
+# WAJIB: Tiers that REQUIRE attestation (actor_id + session_id)
+_WAJIB_TIERS = {"sacred", "canon", "constitutional", "scar", "verdict"}
+
+
+def _memory_triage_gate(
+    content: Any,
+    mode: str,
+    tags: list[str] | None,
+    actor_id: str | None,
+    session_id: str | None,
+    summary: str | None,
+    tier: str | None,
+) -> dict[str, Any] | None:
+    """Sovereign Memory Directive triage gate.
+
+    Returns None if content passes all gates (store proceeds).
+    Returns a dict with 'rejected' key if content is HARAM or fails WAJIB checks.
+
+    HARAM (Tier 3 Vector / Tier 4 DB — strictly forbidden):
+      - F9 Anti-Hantu: consciousness or emotion claims
+      - Intermediate reasoning: scratchpads, ReAct steps, loop logs
+      - Ephemeral state: temp vars, heartbeats, API noise
+      - Unverified external signals without attestation metadata
+
+    WAJIB (must satisfy):
+      - actor_id + session_id required for Tier 3+ storage
+      - Scar/Constitutional tier requires explicit tier designation
+      - Content > 2000 chars requires summary (abstraction enforcement)
+    """
+    normalised_tier = _normalise_tier(tier)
+    text = _summarize(content) if isinstance(content, str | dict | list) else str(content)
+    tier_name = normalised_tier or "unknown"
+    is_wajib = tier_name in _WAJIB_TIERS
+
+    # --- F9 ANTI-HANTU: Hard block (no consciousness claims) ---
+    for pattern in _HARAM_HANTU_PATTERNS:
+        if re.search(pattern, text, re.IGNORECASE):
+            logger.warning(
+                "MEMORY TRIAGE [F9-HARD-BLOCK]: Anti-Hantu consciousness pattern "
+                "detected in content for tier=%s mode=%s — rejected",
+                tier_name,
+                mode,
+            )
+            return {
+                "rejected": True,
+                "reason": "F9_ANTIHANTU",
+                "detail": (
+                    "Content contains consciousness or emotion claims. "
+                    "Memory store is a governance tool, not a relational entity. "
+                    "Store only Besi-level factual claims."
+                ),
+            }
+
+    # --- Tier 3/4 gate: HARAM reasoning patterns ---
+    if tier_name not in {"ephemeral", "unknown"}:
+        for pattern in _HARAM_REASONING_PATTERNS:
+            if re.search(pattern, text):
+                logger.warning(
+                    "MEMORY TRIAGE [HARAM]: Intermediate reasoning pattern "
+                    "detected in content for tier=%s — rejected. "
+                    "Store only the verdict, not the reasoning steps.",
+                    tier_name,
+                )
+                return {
+                    "rejected": True,
+                    "reason": "HARAM_REASONING",
+                    "detail": (
+                        "Raw intermediate reasoning (scratchpads, ReAct steps, "
+                        "loop logs) must not be stored. "
+                        "Compress to verdict/summary before storing."
+                    ),
+                }
+
+        for pattern in _HARAM_EPHEMERAL_PATTERNS:
+            if re.search(pattern, text):
+                logger.warning(
+                    "MEMORY TRIAGE [HARAM]: Ephemeral state pattern "
+                    "detected in content for tier=%s — rejected. "
+                    "Store in Redis/Tier2, not persistent memory.",
+                    tier_name,
+                )
+                return {
+                    "rejected": True,
+                    "reason": "HARAM_EPHEMERAL",
+                    "detail": (
+                        "High-frequency ephemeral state (temp vars, heartbeats, "
+                        "API logs) must not be stored in Tier 3/4. "
+                        "Route to Redis or session context instead."
+                    ),
+                }
+
+    # --- WAJIB: Attestation enforcement (actor_id + session_id for Tier 3+) ---
+    if is_wajib:
+        missing = []
+        if not actor_id:
+            missing.append("actor_id")
+        if not session_id:
+            missing.append("session_id")
+        if missing:
+            logger.warning(
+                "MEMORY TRIAGE [WAJIB-FAIL]: Attestation missing %s for tier=%s — "
+                "rejected. Scar/Constitutional tier requires sovereign attestation.",
+                missing,
+                tier_name,
+            )
+            return {
+                "rejected": True,
+                "reason": "WAJIB_ATTESTATION",
+                "detail": (
+                    f"Missing attestation fields: {', '.join(missing)}. "
+                    "Scar/Constitutional tier requires actor_id and session_id "
+                    "to prove origin and chain of custody."
+                ),
+            }
+
+    # --- WAJIB: Abstraction enforcement (summary required for long content) ---
+    content_len = len(content) if isinstance(content, str) else len(str(content))
+    if content_len > 2000 and not summary:
+        logger.warning(
+            "MEMORY TRIAGE [WAJIB-ABSTRACTION]: Content length=%d exceeds 2000 chars "
+            "without summary for tier=%s — rejected. Abstraction required.",
+            content_len,
+            tier_name,
+        )
+        return {
+            "rejected": True,
+            "reason": "WAJIB_ABSTRACTION",
+            "detail": (
+                f"Content is {content_len} chars (>2000) but has no summary. "
+                "Abstract before storing: 'What was the context? "
+                "What was the action? What is the permanent rule?' "
+                "Provide summary= parameter to proceed."
+            ),
+        }
+
+    # --- PASS: content passes all gates ---
+    return None
+
+
+# =============================================================================
 # PUBLIC API
 # =============================================================================
 
@@ -284,7 +454,38 @@ def store(
     summary: str | None = None,
     tier: str | None = None,
 ) -> dict[str, Any]:
-    """Dual-write to Qdrant (search) + Postgres (durable record)."""
+    """Dual-write to Qdrant (search) + Postgres (durable record).
+
+    Enforces Sovereign Memory Directive triage gates before storage:
+    - HARAM patterns (F9 Anti-Hantu, reasoning scratchpads, ephemeral state) → rejected
+    - WAJIB attestation (actor_id, session_id for Tier 3+) → required
+    - Abstraction (>2000 chars without summary) → rejected
+    """
+    # --- MEMORY TRIAGE GATE ---
+    triage_result = _memory_triage_gate(
+        content=content,
+        mode=mode,
+        tags=tags,
+        actor_id=actor_id,
+        session_id=session_id,
+        summary=summary,
+        tier=tier,
+    )
+    if triage_result is not None:
+        # Content failed triage — return rejection without storing
+        logger.warning(
+            "MEMORY TRIAGE REJECTED: %s — %s", triage_result["reason"], triage_result["detail"]
+        )
+        return {
+            "stored": False,
+            "memory_id": None,
+            "reason": triage_result["reason"],
+            "detail": triage_result["detail"],
+            "pg_ok": False,
+            "qdrant_ok": False,
+            "indexed": False,
+        }
+
     _ensure_dir()
     memory_id = uuid.uuid4().hex[:12]
     pg_memory_id = str(uuid.uuid4())  # separate proper UUID for Postgres
