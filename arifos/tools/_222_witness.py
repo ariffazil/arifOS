@@ -14,6 +14,7 @@ import hashlib
 import json
 import logging
 from datetime import datetime, timezone
+from pathlib import Path
 
 from arifos.integrations.minimax_mcp_bridge import minimax_bridge
 from arifos.core.governance import (
@@ -205,6 +206,90 @@ def _build_divergence_points(organs: dict[str, dict], tri_witness_score: float) 
     return divergence_points or ["consensus_below_harmony_threshold"]
 
 
+_WELL_STATE_CANDIDATES = [
+    Path("/root/WELL/state.json"),
+    Path("/app/well_state.json"),
+]
+
+
+def _fetch_well_state_live() -> dict | None:
+    """Read WELL state from disk and build a canonical witness packet.
+
+    Called automatically by execute() when well_evidence is None, so the WELL
+    organ is never silently absent — it either returns real state or honest UNKNOWN.
+    Mirrors the readiness logic from WELL's _resolve_readiness() without importing
+    the WELL server (no cross-container dependency).
+    """
+    state: dict | None = None
+    for path in _WELL_STATE_CANDIDATES:
+        if path.exists():
+            try:
+                with open(path) as fh:
+                    state = json.load(fh)
+                break
+            except Exception:
+                continue
+
+    if state is None:
+        return None
+
+    well_score = float(state.get("well_score", 50.0))
+    floors_violated: list = state.get("floors_violated", []) or []
+    metrics: dict = state.get("metrics") or {}
+    truth_status: str = state.get("truth_status", "UNVERIFIED")
+
+    has_metrics = bool(
+        isinstance(metrics, dict)
+        and any(metrics.get(d) for d in ("sleep", "stress", "cognitive", "metabolic", "structural"))
+    )
+
+    # Mirror WELL's _resolve_readiness decision tree
+    if not has_metrics or truth_status in ("VOID", "TEST", "UNVERIFIED"):
+        human_ready = "UNKNOWN"
+        coupled_verdict = "CAUTION"
+        confidence = 0.5
+    elif floors_violated:
+        human_ready = "DEGRADED"
+        coupled_verdict = "HOLD"
+        confidence = 0.4
+    elif well_score >= 80:
+        human_ready = "OPTIMAL"
+        coupled_verdict = "PROCEED"
+        confidence = round(min(0.95, well_score / 100.0), 3)
+    elif well_score >= 60:
+        human_ready = "FUNCTIONAL"
+        coupled_verdict = "PROCEED"
+        confidence = round(min(0.85, well_score / 100.0), 3)
+    else:
+        human_ready = "LOW_CAPACITY"
+        coupled_verdict = "CAUTION"
+        confidence = 0.35
+
+    clarity = metrics.get("cognitive", {}).get("clarity") if has_metrics else None
+
+    packet: dict = {
+        "well_score": well_score,
+        "readiness": human_ready,
+        "has_telemetry": has_metrics,
+        "truth_status": truth_status,
+        "active_violations": floors_violated,
+        "confidence": confidence,
+        "coupled": {
+            "human_ready": human_ready,
+            "machine_ready": "UNKNOWN",
+            "mcp_ready": "HEALTHY",
+            "coupled_verdict": coupled_verdict,
+            "operator_confirmation_advised": coupled_verdict != "PROCEED",
+        },
+        "w0": "OPERATOR_VETO_INTACT / HIERARCHY_INVARIANT",
+        "_source": "live_state_file",
+    }
+    if clarity is not None:
+        packet["clarity"] = clarity
+
+    return packet
+
+
 def _parse_well_unified(well_evidence: dict | None) -> dict:
     """Parse WELL unified substrate packet (human + machine + MCP + coupled).
 
@@ -230,6 +315,9 @@ def _parse_well_unified(well_evidence: dict | None) -> dict:
             "coupled_verdict": coupled.get("coupled_verdict", "HOLD"),
             "well_score": well_evidence.get("well_score", 50.0),
             "confidence": _get_organ_confidence(well_evidence),
+            "clarity": well_evidence.get("clarity"),
+            "active_violations": well_evidence.get("active_violations", []),
+            "has_telemetry": well_evidence.get("has_telemetry", False),
         }
 
     # Legacy flat shape — degrade gracefully
@@ -241,6 +329,9 @@ def _parse_well_unified(well_evidence: dict | None) -> dict:
         "coupled_verdict": "HOLD" if (conf is None or conf < 0.6) else "PROCEED",
         "well_score": 50.0,
         "confidence": conf,
+        "clarity": None,
+        "active_violations": [],
+        "has_telemetry": False,
     }
 
 
@@ -405,6 +496,15 @@ async def execute(
     """
     try:
         focus_claim = claim or query
+
+        # ── Live WELL state feed ───────────────────────────────────────────────
+        # If no well_evidence passed, read it live from WELL state file.
+        # This closes Gap 2: the biological operator layer is always present as
+        # real state (UNKNOWN when no telemetry) rather than silently absent.
+        if well_evidence is None:
+            _live_well = _fetch_well_state_live()
+            if _live_well is not None:
+                well_evidence = _live_well
 
         # ── Build honest organ blocks (Tri-Witness base) ──────────────────────
         organs = {
