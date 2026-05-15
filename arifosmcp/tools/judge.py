@@ -355,7 +355,7 @@ def arif_judge_deliberate(
 
 
 def _apply_cooldown_awareness(result: dict, cooldown_entry_id: str | None) -> None:
-    """Check cooldown state and annotate verdict. Stage 2A: advisory only — no hard block."""
+    """Check cooldown state and enforce SABAR. Stage 2B: SEAL blocked when cooling incomplete."""
     if cooldown_entry_id is None:
         return
 
@@ -397,14 +397,18 @@ def _apply_cooldown_awareness(result: dict, cooldown_entry_id: str | None) -> No
             cooldown_info["status"] = "pending"
             cooldown_info["note"] = (
                 f"SABAR: cooling incomplete ({entry.remaining_hours:.1f}h remaining, "
-                f"{entry.tri_witness.count}/3 witnesses). "
-                f"Stage 2A — advisory only, not blocking SEAL."
+                f"{entry.tri_witness.count}/3 witnesses)."
             )
 
-            # Stage 2A: downgrade SEAL to SABAR advisory (not hard block)
+            # Stage 2B: hard enforcement — SEAL downgraded to SABAR when cooling incomplete
             verdict = str(result.get("verdict", ""))
             if "SEAL" in verdict:
-                cooldown_info["advisory"] = "verdict would be SABAR in Stage 2B (hard enforcement)"
+                result["verdict"] = "SABAR"
+                cooldown_info["enforcement"] = (
+                    f"SABAR enforced — SEAL blocked. "
+                    f"Return in {entry.remaining_hours:.1f}h with {3 - entry.tri_witness.count} "
+                    "more witness(es) to unlock SEAL."
+                )
 
         result["meta"]["sabar_cooldown"] = cooldown_info
 

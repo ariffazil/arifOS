@@ -45,7 +45,42 @@ def arif_forge_execute(
     judge_state_hash: str | None = None,
     vault_entry_id: str | None = None,
     witness_type: str = "ai",
+    action_tier: str = "standard",
 ) -> ForgeOutput:
+    # ── W-2: SOVEREIGN clarity gate for elevated-tier FORGE actions ───────────
+    _is_elevated = action_tier.lower() in ("sovereign", "c4", "c5")
+    if _is_elevated:
+        try:
+            from arifosmcp.tools.judge import _read_well_substrate
+
+            _forge_sub = _read_well_substrate()
+            _forge_clarity = _forge_sub.get("clarity")
+            if (
+                _forge_clarity is not None
+                and float(_forge_clarity) < 4.0
+                and _forge_sub.get("has_telemetry")
+            ):
+                return ForgeOutput(
+                    status="HOLD",
+                    result={},
+                    manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                    meta={
+                        "reason": (
+                            f"W5_COGNITIVE_ENTROPY: clarity={_forge_clarity}/10 below "
+                            "SOVEREIGN threshold (4/10). FORGE blocked. "
+                            "Rest. Reassess when clarity >= 6."
+                        ),
+                        "well_gate": "SOVEREIGN_BLOCKED",
+                        "w_floor": "W5 -> F2",
+                        "action_tier": action_tier,
+                        "clarity": _forge_clarity,
+                        "well_substrate": _forge_sub,
+                    },
+                    timestamp=datetime.now(timezone.utc).isoformat(),
+                )
+        except Exception:
+            pass  # WELL offline is non-fatal — W0 sovereignty invariant
+
     # ── Side Effect Gate (v2 Deepening) ──
     from arifosmcp.runtime.tools import _SESSIONS
 
