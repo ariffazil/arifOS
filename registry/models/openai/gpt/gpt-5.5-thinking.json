@@ -1,0 +1,56 @@
+{
+  "id": "openai/gpt/gpt-5.5-thinking",
+  "identity": {
+    "provider": "openai",
+    "family": "gpt",
+    "variant": "gpt-5.5-thinking",
+    "api_model_id": "gpt-5.5-thinking",
+    "aliases": [],
+    "runtime_class": "o-series-reasoning",
+    "soul_key": "openai_gpt"
+  },
+  "capabilities": {
+    "context_window": 128000,
+    "supports_tools": false,
+    "supports_vision": false,
+    "supports_audio": false,
+    "supports_files": false,
+    "can_execute_code": false,
+    "web_access": false,
+    "streaming": true,
+    "output_modalities": [
+      "text"
+    ]
+  },
+  "governance": {
+    "risk_tier": "critical",
+    "allowed_organs": [
+      "AAA"
+    ],
+    "forbidden_organs": [],
+    "max_action_class": "analyze",
+    "requires_human_confirmation_for": [
+      "financial_mutation",
+      "system_write"
+    ],
+    "execution_mode": "governed",
+    "side_effects_allowed": true,
+    "apex_score": null,
+    "amanah_score": null,
+    "self_claim_boundary": {
+      "identity": "verified_against_registry",
+      "tools": "runtime_truth_only",
+      "knowledge": "attest_training_cutoff",
+      "actions": "governed_explicit_approval"
+    }
+  },
+  "lifecycle": {
+    "status": "speculative",
+    "evidence_tier": "speculative",
+    "released_at": null,
+    "verified_at": "2026-05-15",
+    "last_reviewed_at": "2026-05-15",
+    "sunset_at": null
+  },
+  "notes": " | FLAGGED 2026-05-15: speculative/future variant. Not verified against provider API."
+}

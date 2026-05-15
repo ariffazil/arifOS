@@ -95,7 +95,7 @@ def arif_forge_execute(
         injected = _inject_nine_signal(raw, "HOLD")
         injected["reasons"] = [floor_check["reason"]] if floor_check.get("reason") else []
         return ForgeOutput(**injected)
-    return ForgeOutput(
+    result = ForgeOutput(
         **_arif_forge_execute(
             mode=mode,
             manifest=manifest,
@@ -110,3 +110,59 @@ def arif_forge_execute(
             witness_type=witness_type,
         )
     )
+    _register_forge_cooldown(result, mode, manifest, artifact_id, session_id)
+    return result
+
+
+def _register_forge_cooldown(
+    result: ForgeOutput,
+    mode: str,
+    manifest: str,
+    artifact_id: str | None,
+    session_id: str | None,
+) -> None:
+    """Auto-register forge artifacts in SABAR cooldown band. Stage 2A: observe+warn only."""
+    side_effect_modes = {"engineer", "write", "generate", "commit"}
+    if mode not in side_effect_modes:
+        return
+
+    try:
+        import hashlib
+
+        from arifosmcp.core.cooldown_engine import get_cooldown_engine
+
+        engine = get_cooldown_engine()
+        artifact_ref = (
+            artifact_id
+            or hashlib.md5(  # nosec B324
+                f"{mode}:{manifest}:{session_id or 'anon'}:{result.timestamp or ''}".encode()
+            ).hexdigest()[:12]
+        )
+        desc = f"forge:{mode}:{manifest[:80]}" if manifest else f"forge:{mode}"
+
+        entry = engine.propose(
+            artifact_ref=artifact_ref,
+            description=desc,
+            risk_tier="medium",
+            session_id=session_id,
+        )
+
+        # Attach cooldown metadata to result (observe only — no block)
+        if result.meta is None:
+            result.meta = {}
+        result.meta["sabar_cooldown"] = {
+            "stage": "registered",
+            "cooldown_entry_id": entry.entry_id,
+            "cooldown_expiry": entry.cooldown_expiry.isoformat() if entry.cooldown_expiry else None,
+            "cooldown_hours": entry.cooldown_hours,
+            "remaining_hours": round(entry.remaining_hours, 1),
+            "verdict": entry.verdict,
+            "note": "artifact entered SABAR cooldown — not yet sealed for permanence",
+        }
+    except Exception:
+        if result.meta is None:
+            result.meta = {}
+        result.meta["sabar_cooldown"] = {
+            "stage": "unavailable",
+            "note": "cooldown engine not reachable",
+        }

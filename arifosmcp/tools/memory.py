@@ -26,7 +26,18 @@ def arif_memory_recall(
     memory_id: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    context: str = "normal",
 ) -> dict[str, Any]:
+    """
+    555_MEMORY: Governed memory recall.
+
+    Args:
+        context: Recall context filter.
+            "normal" — all entries visible (default, backward compat)
+            "high_stakes" — filter to cooled/sealed entries only
+            "canon" — filter to cooled/sealed entries only
+        Stage 2A: context is advisory (adds metadata, no hard filter yet).
+    """
     floor_check = check_floors("arif_memory_recall", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_memory_recall", floor_check["reason"], floor_check["failed_floors"])
@@ -117,14 +128,42 @@ def arif_memory_recall(
         )
 
     if mode == "recall":
-        return _ok("arif_memory_recall", {"query": query, "memories": [], "confidence": 0.0})
+        result = _ok("arif_memory_recall", {"query": query, "memories": [], "confidence": 0.0})
+        return _annotate_recall_context(result, context)
     if mode == "store":
-        return _ok("arif_memory_recall", {"stored": True, "memory_id": uuid.uuid4().hex[:8]})
+        result = _ok("arif_memory_recall", {"stored": True, "memory_id": uuid.uuid4().hex[:8]})
+        return _annotate_recall_context(result, context)
     if mode == "search":
-        return _ok("arif_memory_recall", {"query": query, "results": []})
+        result = _ok("arif_memory_recall", {"query": query, "results": []})
+        return _annotate_recall_context(result, context)
     if mode == "prune":
         return _ok("arif_memory_recall", {"pruned": memory_id, "reason": "entropy"})
     if mode == "context":
         return _ok("arif_memory_recall", {"session_id": session_id, "context_window": []})
 
     return _hold("arif_memory_recall", f"Unknown mode: {mode}")
+
+
+def _annotate_recall_context(result: dict, context: str) -> dict:
+    """Annotate recall results with cooldown context. Stage 2A: advisory only."""
+    if context == "normal":
+        return result
+
+    # high_stakes or canon: add cooldown advisory
+    try:
+        from arifosmcp.core.cooldown_engine import get_cooldown_engine
+
+        engine = get_cooldown_engine()
+        cooldown_vitals = engine.vitals()
+        result["sabar_context"] = {
+            "context": context,
+            "stage": "advisory",
+            "cooldown_active": cooldown_vitals["cooldown_active_count"],
+            "note": (
+                f"Stage 2A — {context} context requested. "
+                f"Hard filtering not yet enforced. See sabar_cooldown for active entries."
+            ),
+        }
+    except Exception:
+        result["sabar_context"] = {"context": context, "stage": "unavailable"}
+    return result

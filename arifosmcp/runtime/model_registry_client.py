@@ -1,178 +1,255 @@
+# ruff: noqa: F821
 """
 arifosmcp/runtime/model_registry_client.py
 ==========================================
 
-Lightweight async client for arifOS Model Registry.
-Provides constitutional identity verification and model metadata lookup.
+File-based model registry client. Reads directly from the JSON passport files
+mounted at ARIFOS_REGISTRY_ROOT (default: /app/arifos-model-registry).
+
+No HTTP. No separate container. Just a file database.
 
 Wired to:
-- architect_registry tool (model discovery modes)
-- init_anchor (identity verification)
-- A-ARCHITECT (model governance)
+- arif_session_init (000) — identity verification + APEX gating
+- arif_ops_measure (777) — registry health vitals
+- arif_stack_health_probe (777) — federation health
+- kernel routing — governance posture enforcement
 
-Environment:
-- MODEL_REGISTRY_URL: http://model_registry:18792 (docker internal)
-- Fallback: http://host.docker.internal:18792 (host access)
+DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
 
+import json
 import logging
 import os
-from dataclasses import dataclass
-from typing import Any
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_REGISTRY_URL = os.getenv("MODEL_REGISTRY_URL", "http://model_registry:18792")
+
+# Registry root — env var, Docker default, or VPS fallback
+def _detect_registry_root() -> Path:
+    env = os.environ.get("ARIFOS_REGISTRY_ROOT")
+    if env:
+        return Path(env)
+    for candidate in ["/app/registry", "/root/arifOS/registry"]:
+        p = Path(candidate)
+        if (p / "catalog.json").exists():
+            return p
+    return Path("/app/registry")  # fallback for Docker
 
 
-@dataclass
-class ModelProfile:
-    """Canonical model profile from registry."""
-
-    provider: str
-    family: str
-    variant: str
-    model_key: str
-    capabilities: list[str]
-    context_window: int
-    constitutional_notes: str
-
-
-@dataclass
-class ProviderSoul:
-    """Provider soul (governance archetype) from registry."""
-
-    soul_key: str
-    provider_name: str
-    archetype: str
-    constitutional_alignment: dict[str, Any]
-    default_behavior: dict[str, Any]
-
-
-@dataclass
-class IdentityVerification:
-    """Result of identity claim verification."""
-
-    verified: bool
-    declared: str
-    matched_key: str | None
-    model: dict | None
-    mismatch_detected: bool
-    drift_risk: str
+REGISTRY_ROOT = _detect_registry_root()
 
 
 class ModelRegistryClient:
     """
-    Async client for arifOS Model Registry.
+    File-based registry client. Reads JSON passports directly from disk.
 
-    Provides:
-    - Model profile lookup (provider/family/variant)
-    - Provider soul retrieval
-    - Runtime profile lookup
-    - Identity claim verification (F11 grounding)
-    - Session anchor v2 creation
+    The registry root contains:
+      catalog.json          — master index
+      models/               — model passports (provider/family/variant.json)
+      provider_souls/       — provider soul files
+      runtime_profiles/     — runtime deployment profiles
     """
 
-    def __init__(self, base_url: str = DEFAULT_REGISTRY_URL):
-        self.base_url = base_url.rstrip("/")
-        self._client: Any = None
+    def __init__(self, root: Path | str | None = None):
+        self.root = Path(root) if root else REGISTRY_ROOT
+        self._catalog: dict | None = None
+        self._model_cache: dict[str, ModelProfile] = {}
+        self._soul_cache: dict[str, ProviderSoul] = {}
+        self._runtime_cache: dict[str, RuntimeProfile] = {}
 
-    async def _get_client(self):
-        """Lazy httpx client initialization."""
-        if self._client is None:
-            import httpx
+    # ── Low-level file readers ──
 
-            self._client = httpx.AsyncClient(timeout=10.0)
-        return self._client
-
-    async def health(self) -> dict:
-        """Check registry health."""
+    def _read_json(self, rel_path: str) -> dict:
+        path = self.root / rel_path
+        if not path.exists():
+            return {}
         try:
-            client = await self._get_client()
-            response = await client.get(f"{self.base_url}/health")
-            response.raise_for_status()
-            return response.json()
+            return json.loads(path.read_text())
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.warning(f"Failed to read registry file {rel_path}: {exc}")
+            return {}
+
+    def _load_catalog(self) -> dict:
+        if self._catalog is None:
+            self._catalog = self._read_json("catalog.json")
+        return self._catalog
+
+    # ── Health ──
+
+    def health(self) -> dict:
+        """Check registry health (filesystem access)."""
+        try:
+            catalog = self._load_catalog()
+            models = catalog.get("models", [])
+            souls = catalog.get("soul_archetypes", [])
+            profiles = catalog.get("runtime_profiles", [])
+            return {
+                "status": "healthy",
+                "version": catalog.get("registry_version", "unknown"),
+                "models_count": len(models),
+                "souls_count": len(souls),
+                "runtime_profiles_count": len(profiles),
+                "root": str(self.root),
+            }
         except Exception as exc:
-            logger.warning(f"Model registry health check failed: {exc}")
             return {"status": "unavailable", "error": str(exc)}
 
-    async def get_model_profile(self, model_key: str) -> ModelProfile | None:
-        """
-        Get full model profile.
+    # ── Model Profile ──
 
-        model_key format: "provider/family/variant" (e.g., "anthropic/claude/claude-3-7-sonnet")
-        """
-        try:
-            client = await self._get_client()
-            response = await client.get(f"{self.base_url}/model/{model_key}")
-            response.raise_for_status()
-            data = response.json()
-            result = data.get("result", {})
-            return ModelProfile(
-                provider=result.get("provider", ""),
-                family=result.get("family", ""),
-                variant=result.get("variant", ""),
-                model_key=model_key,
-                capabilities=result.get("capabilities", []),
-                context_window=result.get("context_window", 0),
-                constitutional_notes=result.get("constitutional_notes", ""),
-            )
-        except Exception as exc:
-            logger.warning(f"Failed to get model profile for {model_key}: {exc}")
+    def _resolve_model_path(self, model_key: str) -> str | None:
+        path = f"models/{model_key}.json"
+        if (self.root / path).exists():
+            return path
+        return None
+
+    def get_model_profile(self, model_key: str) -> ModelProfile | None:
+        if model_key in self._model_cache:
+            return self._model_cache[model_key]
+        path = self._resolve_model_path(model_key)
+        if path is None:
+            return self._fuzzy_find_model(model_key)
+        data = self._read_json(path)
+        if not data:
+            return None
+        profile = self._parse_model(data, model_key)
+        self._model_cache[model_key] = profile
+        return profile
+
+    def _fuzzy_find_model(self, variant: str) -> ModelProfile | None:
+        models_dir = self.root / "models"
+        if not models_dir.exists():
+            return None
+        for json_file in models_dir.rglob("*.json"):
+            data = self._read_json(str(json_file.relative_to(self.root)))
+            if not data:
+                continue
+            identity = data.get("identity", {})
+            if identity.get("variant") == variant or variant in identity.get("aliases", []):
+                key = data.get("id", str(json_file.relative_to(self.root)))
+                profile = self._parse_model(data, key)
+                self._model_cache[key] = profile
+                return profile
+        return None
+
+    def _parse_model(self, data: dict, model_key: str) -> ModelProfile:
+        identity = data.get("identity", {})
+        capabilities = data.get("capabilities", {})
+        governance = data.get("governance", {})
+        lifecycle = data.get("lifecycle", {})
+        return ModelProfile(
+            provider=identity.get("provider", ""),
+            family=identity.get("family", ""),
+            variant=identity.get("variant", ""),
+            model_key=model_key,
+            canonical_model_id=data.get("id", model_key),
+            aliases=identity.get("aliases", []),
+            status=lifecycle.get("status", "unknown"),
+            evidence_tier=lifecycle.get("evidence_tier", "unknown"),
+            soul_archetype=identity.get("soul_key", ""),
+            runtime_class=identity.get("runtime_class", ""),
+            capabilities=capabilities if isinstance(capabilities, dict) else {},
+            governance_posture=governance if isinstance(governance, dict) else {},
+            identity_integrity={},
+            lifecycle=lifecycle if isinstance(lifecycle, dict) else {},
+            apex={
+                "apex_composite": governance.get("apex_score"),
+                "amanah_score": governance.get("amanah_score"),
+            },
+            sources=data.get("sources", []),
+            notes=data.get("notes", ""),
+            raw=data,
+        )
+
+    def get_provider_soul(self, soul_key: str) -> ProviderSoul | None:
+        """Get provider soul by key (filename without .json)."""
+        if soul_key in self._soul_cache:
+            return self._soul_cache[soul_key]
+
+        # Try exact filename
+        data = self._read_json(f"provider_souls/{soul_key}.json")
+        if not data:
+            # Try by provider_key matching
+            data = self._find_soul_by_provider_key(soul_key)
+        if not data:
             return None
 
-    async def get_provider_soul(self, soul_key: str) -> ProviderSoul | None:
-        """
-        Get provider soul (governance archetype).
+        soul = ProviderSoul(
+            soul_key=soul_key,
+            provider_name=data.get("provider_key", soul_key),
+            soul_label=data.get("soul_label", ""),
+            archetype=data.get("soul_label", ""),
+            origin=data.get("origin", ""),
+            governance=data.get("governance", ""),
+            character_summary=data.get("character_summary", ""),
+            in_one_sentence=data.get("in_one_sentence", ""),
+            constitutional_alignment=data.get("constitutional_alignment", {}),
+            default_behavior=data.get("default_behavior", {}),
+        )
+        self._soul_cache[soul_key] = soul
+        return soul
 
-        soul_key format: e.g., "anthropic_claude", "openai_gpt"
-        """
-        try:
-            client = await self._get_client()
-            response = await client.get(f"{self.base_url}/soul/{soul_key}")
-            response.raise_for_status()
-            data = response.json()
-            result = data.get("result", {})
-            return ProviderSoul(
-                soul_key=soul_key,
-                provider_name=result.get("provider_name", ""),
-                archetype=result.get("archetype", ""),
-                constitutional_alignment=result.get("constitutional_alignment", {}),
-                default_behavior=result.get("default_behavior", {}),
-            )
-        except Exception as exc:
-            logger.warning(f"Failed to get provider soul for {soul_key}: {exc}")
+    def _find_soul_by_provider_key(self, provider_key: str) -> dict:
+        """Fuzzy match provider soul by provider_key field."""
+        souls_dir = self.root / "provider_souls"
+        if not souls_dir.exists():
+            return {}
+        for json_file in souls_dir.glob("*.json"):
+            data = self._read_json(str(json_file.relative_to(self.root)))
+            if data.get("provider_key") == provider_key:
+                return data
+        return {}
+
+    # ── Runtime Profile ──
+
+    def get_runtime_profile(self, deployment_id: str) -> RuntimeProfile | None:
+        """Get runtime profile by deployment ID."""
+        if deployment_id in self._runtime_cache:
+            return self._runtime_cache[deployment_id]
+
+        data = self._read_json(f"runtime_profiles/{deployment_id}.json")
+        if not data:
             return None
 
-    async def verify_identity(
+        cap = data.get("capabilities", {})
+        boundary = data.get("self_claim_boundary", {})
+        profile = RuntimeProfile(
+            deployment_id=data.get("deployment_id", deployment_id),
+            provider_key=data.get("provider_key", ""),
+            family_key=data.get("family_key", ""),
+            model_id=data.get("model_id", ""),
+            routing_mode=data.get("routing_mode", "direct"),
+            tools_live=data.get("tools_live", []),
+            web_on=data.get("web_on", False),
+            memory_mode=data.get("memory_mode", "session_only"),
+            execution_mode=data.get("execution_mode", "governed"),
+            side_effects_allowed=data.get("side_effects_allowed", False),
+            auth_level=data.get("auth_level", ""),
+            capabilities=cap if isinstance(cap, dict) else {},
+            self_claim_boundary=boundary if isinstance(boundary, dict) else {},
+            notes=data.get("notes", ""),
+        )
+        self._runtime_cache[deployment_id] = profile
+        return profile
+
+    # ── Identity Verification (F11 grounding) ──
+
+    def verify_identity(
         self, claimed_identity: str, claimed_provider: str | None = None
     ) -> IdentityVerification:
         """
         Verify a model's claimed identity against the canonical registry.
 
-        This is F11 (Identity) grounding - ensures the model is who it claims to be.
+        Steps:
+          1. Look up model passport
+          2. Check status — reject speculative
+          3. Check provider match if claimed
+          4. Return full verification with APEX scores + governance posture
         """
-        try:
-            client = await self._get_client()
-            payload = {"claimed_identity": claimed_identity}
-            if claimed_provider:
-                payload["claimed_provider"] = claimed_provider
-            response = await client.post(f"{self.base_url}/verify/identity", json=payload)
-            response.raise_for_status()
-            data = response.json()
-            result = data.get("result", {})
-            return IdentityVerification(
-                verified=result.get("verification_status") == "confirmed",
-                declared=result.get("declared", claimed_identity),
-                matched_key=result.get("verified"),
-                model=result.get("model"),
-                mismatch_detected=result.get("mismatch_detected", False),
-                drift_risk=result.get("drift_risk", "unknown"),
-            )
-        except Exception as exc:
-            logger.warning(f"Identity verification failed for {claimed_identity}: {exc}")
+        profile = self.get_model_profile(claimed_identity)
+        if profile is None:
             return IdentityVerification(
                 verified=False,
                 declared=claimed_identity,
@@ -180,77 +257,95 @@ class ModelRegistryClient:
                 model=None,
                 mismatch_detected=True,
                 drift_risk="high",
+                block_reason="model not found in registry",
             )
 
-    async def list_models(self) -> list[str]:
-        """List all registered model keys."""
-        try:
-            client = await self._get_client()
-            response = await client.get(f"{self.base_url}/models")
-            response.raise_for_status()
-            data = response.json()
-            return data.get("models", [])
-        except Exception as exc:
-            logger.warning(f"Failed to list models: {exc}")
+        # Check status — reject speculative
+        if profile.is_speculative:
+            return IdentityVerification(
+                verified=False,
+                declared=claimed_identity,
+                matched_key=profile.model_key,
+                model=profile.raw,
+                mismatch_detected=True,
+                drift_risk="high",
+                status=profile.status,
+                evidence_tier=profile.evidence_tier,
+                block_reason="model is speculative — not grounded in production attestation",
+            )
+
+        # Check provider match
+        provider_mismatch = False
+        if claimed_provider and profile.provider != claimed_provider:
+            provider_mismatch = True
+
+        # Determine drift risk
+        if profile.evidence_tier in ("official_doc", "official_blog"):
+            drift_risk = "low"
+        elif profile.evidence_tier == "provider_api":
+            drift_risk = "medium"
+        elif profile.evidence_tier == "third_party_report":
+            drift_risk = "moderate"
+        elif profile.evidence_tier == "self_asserted":
+            drift_risk = "high"
+        else:
+            drift_risk = "unknown"
+
+        block_reason = None
+        if provider_mismatch:
+            block_reason = (
+                f"provider mismatch: claimed '{claimed_provider}', "
+                f"registry has '{profile.provider}'"
+            )
+
+        return IdentityVerification(
+            verified=not provider_mismatch,
+            declared=claimed_identity,
+            matched_key=profile.model_key,
+            model=profile.raw,
+            mismatch_detected=provider_mismatch,
+            drift_risk=drift_risk,
+            status=profile.status,
+            evidence_tier=profile.evidence_tier,
+            amanah_score=profile.amanah_score,
+            apex_composite=profile.apex_composite,
+            governance_posture=profile.governance_posture,
+            block_reason=block_reason,
+        )
+
+    # ── Listing ──
+
+    def list_models(self) -> list[str]:
+        """List all registered model keys from catalog."""
+        catalog = self._load_catalog()
+        models = catalog.get("models", [])
+        if isinstance(models, list):
+            return [
+                m if isinstance(m, str) else m.get("canonical_model_id", str(m)) for m in models
+            ]
+        return list(models.keys()) if isinstance(models, dict) else []
+
+    def list_providers(self) -> list[str]:
+        """List all registered provider soul keys from catalog."""
+        catalog = self._load_catalog()
+        return catalog.get("soul_archetypes", [])
+
+    def list_runtime_profiles(self) -> list[str]:
+        """List all runtime profile deployment IDs."""
+        rp_dir = self.root / "runtime_profiles"
+        if not rp_dir.exists():
             return []
+        return sorted([f.stem for f in rp_dir.glob("*.json")])
 
-    async def list_providers(self) -> list[str]:
-        """List all registered provider soul keys."""
-        try:
-            client = await self._get_client()
-            response = await client.get(f"{self.base_url}/providers")
-            response.raise_for_status()
-            data = response.json()
-            return data.get("providers", [])
-        except Exception as exc:
-            logger.warning(f"Failed to list providers: {exc}")
-            return []
-
-    async def init_anchor_v2(
-        self,
-        actor_id: str,
-        declared_model_key: str,
-        declared_role: str | None = None,
-        requested_scope: list[str] | None = None,
-    ) -> dict:
-        """
-        Create a MODEL_SOUL-bound session anchor.
-
-        This is the v2 init_anchor that binds sessions to canonical model identities.
-        """
-        try:
-            client = await self._get_client()
-            payload = {
-                "actor_id": actor_id,
-                "declared_model_key": declared_model_key,
-                "declared_role": declared_role,
-                "requested_scope": requested_scope or ["read", "query"],
-            }
-            response = await client.post(f"{self.base_url}/init_anchor_v2", json=payload)
-            response.raise_for_status()
-            return response.json()
-        except Exception as exc:
-            logger.warning(f"Init anchor v2 failed for {actor_id}: {exc}")
-            return {
-                "ok": False,
-                "tool": "init_anchor_v2",
-                "status": "FAIL",
-                "errors": [str(exc)],
-            }
-
-    async def get_catalog(self) -> dict:
+    def get_catalog(self) -> dict:
         """Get the full registry catalog."""
-        try:
-            client = await self._get_client()
-            response = await client.get(f"{self.base_url}/catalog")
-            response.raise_for_status()
-            return response.json()
-        except Exception as exc:
-            logger.warning(f"Failed to get catalog: {exc}")
-            return {}
+        return self._load_catalog()
 
 
-# Singleton instance for reuse
+# ═══════════════════════════════════════════════════════════
+# Singleton
+# ═══════════════════════════════════════════════════════════
+
 _registry_client: ModelRegistryClient | None = None
 
 
@@ -270,11 +365,11 @@ async def verify_model_identity(
     Convenience function for F11 identity verification.
 
     Usage:
-        result = await verify_model_identity("claude-3-7-sonnet", "anthropic")
+        result = await verify_model_identity("claude-sonnet-4", "anthropic")
         if result.verified:
-            print(f"Identity confirmed: {result.matched_key}")
-        else:
-            print(f"DRIFT DETECTED: {result.drift_risk}")
+            print(f"APEX: {result.apex_composite}, AMANAH: {result.amanah_score}")
+        if result.status == "speculative":
+            print(f"REJECTED: {result.block_reason}")
     """
     client = get_model_registry_client()
-    return await client.verify_identity(claimed_identity, claimed_provider)
+    return client.verify_identity(claimed_identity, claimed_provider)

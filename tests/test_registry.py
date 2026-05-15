@@ -13,6 +13,8 @@ REGISTRY_PATH = Path(__file__).parent.parent
 
 def _resolve_registry_paths() -> tuple[Path, Path, Path]:
     candidates = [
+        Path("/root/arifOS/registry"),  # NEW: in-repo registry (v3)
+        Path("/root/arifos-model-registry"),  # Legacy separate repo
         REGISTRY_PATH / "archive",
         REGISTRY_PATH / "00_legacy_materials" / "arifOS-upstream" / "archive",
     ]
@@ -30,8 +32,8 @@ def _resolve_registry_paths() -> tuple[Path, Path, Path]:
 
 
 MODELS_PATH, SOULS_PATH, RUNTIME_PATH = _resolve_registry_paths()
-CATALOG_PATH = REGISTRY_PATH / "docs" / "reference" / "catalog.json"
-SCHEMAS_PATH = REGISTRY_PATH / "schemas"
+CATALOG_PATH = Path("/root/arifOS/registry/catalog.json")
+SCHEMAS_PATH = Path("/root/arifOS/registry/schemas")
 
 
 def _load_schema(filename: str) -> dict:
@@ -202,30 +204,38 @@ class TestProviderSouls:
 
 
 class TestModelFiles:
-    MODEL_REQUIRED = ["provider", "model_family", "model_variant", "soul_archetype"]
+    MODEL_REQUIRED = ["id", "identity", "capabilities", "governance", "lifecycle"]
+    IDENTITY_REQUIRED = ["provider", "family", "variant", "soul_key"]
+    LIFECYCLE_REQUIRED = ["status", "evidence_tier"]
 
     @pytest.mark.parametrize("model_file", list(MODELS_PATH.rglob("*.json")))
     def test_model_required_fields(self, model_file):
         data = load_json(model_file)
         for field in self.MODEL_REQUIRED:
             assert field in data, f"{model_file}: missing field '{field}'"
+        identity = data.get("identity", {})
+        for field in self.IDENTITY_REQUIRED:
+            assert field in identity, f"{model_file}: identity missing '{field}'"
+        lifecycle = data.get("lifecycle", {})
+        for field in self.LIFECYCLE_REQUIRED:
+            assert field in lifecycle, f"{model_file}: lifecycle missing '{field}'"
 
     @pytest.mark.parametrize("model_file", list(MODELS_PATH.rglob("*.json")))
     def test_model_soul_archetype_exists(self, model_file, catalog):
-        """Model's soul_archetype must be registered in catalog."""
+        """Model's identity.soul_key must match a provider soul filename."""
         data = load_json(model_file)
-        soul_archetype = data.get("soul_archetype")
-        if soul_archetype:
-            # Derive soul key from soul_archetype label — look up in soul files
+        identity = data.get("identity", {})
+        soul_key = identity.get("soul_key") or data.get("soul_archetype")
+        if soul_key:
+            # Match soul_key against provider soul filenames
             matched = False
             for soul_file in SOULS_PATH.glob("*.json"):
-                soul = load_json(soul_file)
-                if soul.get("soul_label") == soul_archetype:
+                if soul_file.stem == soul_key:
                     matched = True
                     break
             assert (
                 matched
-            ), f"{model_file.name}: soul_archetype '{soul_archetype}' not found in any provider soul"
+            ), f"{model_file.name}: soul_key '{soul_key}' not found in any provider soul file"
 
 
 # =============================================================================
@@ -326,6 +336,7 @@ class TestIdentityClaimLogic:
         assert result["status"] == "UNCONFIRMED"
         assert result["mismatch_detected"] is True
 
+    @pytest.mark.skip(reason="Honeypot removed in v3 registry migration")
     def test_wrong_provider_model(self, catalog):
         """Honeypot: wrong-provider entry should still be 'confirmed' (it's in the catalog)."""
         result = self._verify("wrong-provider/wrong-family/claude-3-7-sonnet", catalog)

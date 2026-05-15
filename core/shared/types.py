@@ -518,7 +518,7 @@ class TemporalContract(BaseModel):
     )
     valid_until: datetime | None = Field(default=None, description="Expiry TTL for authority/cache")
     cooldown_expiry: datetime | None = Field(
-        default=None, description="Verification window for PHOENIX-72"
+        default=None, description="SABAR cooldown verification window (default 72h)"
     )
 
 

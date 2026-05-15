@@ -127,10 +127,25 @@ def arif_ops_measure(
             )
         )
     if mode == "vitals":
+        vitals_data = {
+            "g_score": 0.98,
+            "delta_S": 0.001,
+            "omega": 0.95,
+            "psi_le": 1.02,
+        }
+        # ── Cooldown vitals (internal hardening, no new tool surface) ──
+        try:
+            from arifosmcp.core.cooldown_engine import get_cooldown_engine
+
+            engine = get_cooldown_engine()
+            cooldown_vitals = engine.vitals()
+            vitals_data["sabar_cooldown"] = cooldown_vitals
+        except Exception:
+            vitals_data["sabar_cooldown"] = {"status": "unavailable"}
         return TelemetryBlock(
             **_ok(
                 "arif_ops_measure",
-                {"g_score": 0.98, "delta_S": 0.001, "omega": 0.95, "psi_le": 1.02},
+                vitals_data,
                 meta=drift_metrics,
                 session_id=session_id,
             )

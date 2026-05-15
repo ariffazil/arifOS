@@ -144,6 +144,11 @@ aaa.arif-fazil.com {
 	encode zstd gzip
 	root * /var/www/html/aaa
 
+	# Static agent discovery (public, no auth)
+	handle /a2a/agents.json {
+		root * /var/www/html/aaa
+		file_server
+	}
 	handle /a2a/* {
 		reverse_proxy 127.0.0.1:3001
 	}

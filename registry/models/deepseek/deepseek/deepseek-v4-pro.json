@@ -1,0 +1,64 @@
+{
+  "id": "deepseek/deepseek/deepseek-v4-pro",
+  "identity": {
+    "provider": "deepseek",
+    "family": "deepseek",
+    "variant": "deepseek-v4-pro",
+    "api_model_id": "deepseek-v4-pro",
+    "aliases": [
+      "deepseek-v4",
+      "deepseek-r1-pro"
+    ],
+    "runtime_class": "extended-thinking",
+    "soul_key": "deepseek"
+  },
+  "capabilities": {
+    "context_window": 128000,
+    "supports_tools": true,
+    "supports_vision": false,
+    "supports_audio": false,
+    "supports_files": true,
+    "can_execute_code": true,
+    "web_access": true,
+    "streaming": true,
+    "output_modalities": [
+      "text",
+      "code"
+    ]
+  },
+  "governance": {
+    "risk_tier": "high",
+    "allowed_organs": [
+      "A-FORGE",
+      "AAA",
+      "GEOX"
+    ],
+    "forbidden_organs": [
+      "WEALTH"
+    ],
+    "max_action_class": "execute",
+    "requires_human_confirmation_for": [
+      "financial_mutation",
+      "system_write"
+    ],
+    "execution_mode": "extended_thinking",
+    "side_effects_allowed": true,
+    "apex_score": 0.8211,
+    "amanah_score": 0.85,
+    "self_claim_boundary": {
+      "identity": "verified_against_registry",
+      "tools": "runtime_truth_only",
+      "knowledge": "attest_training_cutoff",
+      "actions": "governed_explicit_approval"
+    }
+  },
+  "lifecycle": {
+    "status": "active",
+    "evidence_tier": "official_doc",
+    "released_at": "2025-09-01",
+    "verified_at": "2026-05-15",
+    "last_reviewed_at": "2026-05-15",
+    "sunset_at": null
+  },
+  "notes": "DeepSeek V4 Pro \u2014 A-FORGE forge agent. Extended thinking mode. High reasoning capability. Forbidden from WEALTH organ."
+}

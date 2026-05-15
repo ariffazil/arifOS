@@ -20,8 +20,11 @@ def _candidate_registry_roots() -> list[Path]:
     env_root = os.environ.get("ARIFOS_REGISTRY_ROOT")
     candidates = [
         Path(env_root).expanduser() if env_root else None,
-        Path("/root/arifos-model-registry"),
-        _REPO_ROOT / "arifos-model-registry",
+        Path("/app/registry"),  # Docker default
+        Path("/root/arifOS/registry"),  # VPS default
+        Path("/root/arifos-model-registry"),  # Legacy separate repo
+        _REPO_ROOT / "registry",  # Relative to arifOS repo
+        _REPO_ROOT / "arifos-model-registry",  # Legacy relative
         _REPO_ROOT / "00_legacy_materials" / "arifOS-upstream" / "archive",
     ]
     return [path for path in candidates if path is not None]
@@ -76,7 +79,7 @@ def load_json(path: Path) -> dict:
 
 
 def get_model_spec(model_key: str) -> dict:
-    """Load model spec by key (provider/family/variant)."""
+    """Load model spec by key (provider/family/variant). Returns v3 5-layer passport."""
     # 1. Flat lookup (legacy / short key)
     flat_path = MODELS_PATH / f"{model_key}.json"
     if flat_path.exists():
@@ -103,16 +106,18 @@ def get_runtime_truth(deployment_id: str) -> dict:
 
 
 def derive_soul_key(model_spec: dict) -> str:
-    """Derive soul key from model spec (provider + _ + family)."""
-    provider = model_spec.get("provider", "")
-    family = model_spec.get("model_family", "")
-    if provider == "anthropic" and family == "claude":
-        return "anthropic_claude"
-    if provider == "openai" and family == "gpt":
-        return "openai_gpt"
-    if provider == "google" and family == "gemini":
-        return "google_gemini"
-    if provider == "minimax" and family == "minimax":
+    """Derive soul key from model spec (prefer identity.soul_key, fallback to provider_family)."""
+    # v3 schema: identity.soul_key
+    identity = model_spec.get("identity", {})
+    soul_key = identity.get("soul_key", "")
+    if soul_key:
+        return soul_key
+    # Legacy fallback
+    provider = identity.get("provider") or model_spec.get("provider", "")
+    family = identity.get("family") or model_spec.get("model_family", "")
+    if provider == "deepseek":
+        return "deepseek"
+    if provider == "minimax":
         return "minimax_m27"
     return f"{provider}_{family}"
 
@@ -123,6 +128,10 @@ def build_governance_card(
     """Assemble the full model_governance_card with graceful fallback."""
     try:
         model_spec = get_model_spec(declared_model_key)
+        identity = model_spec.get("identity", {})
+        governance = model_spec.get("governance", {})
+        model_spec.get("lifecycle", {})
+
         soul_key = derive_soul_key(model_spec) if model_spec else "unknown"
         soul = get_provider_soul(soul_key)
         runtime = get_runtime_truth(deployment_id)
@@ -142,9 +151,15 @@ def build_governance_card(
             },
         )
 
-        # Risk leash mapping
+        # Risk leash mapping — uses v3 governance fields
         risk_leash = {
             "primary_control": "certainty_discipline",
+            "risk_tier": governance.get("risk_tier", "medium"),
+            "allowed_organs": governance.get("allowed_organs", []),
+            "forbidden_organs": governance.get("forbidden_organs", []),
+            "max_action_class": governance.get("max_action_class", "analyze"),
+            "apex_score": governance.get("apex_score"),
+            "amanah_score": governance.get("amanah_score"),
             "required_behaviors": soul.get("reasoning_style", []),
             "forbidden_behaviors": [
                 "claiming unverified identity",
@@ -156,30 +171,17 @@ def build_governance_card(
 
     except Exception as e:
         # ── Graceful Degraded Card (Task 3) ──
-        model_spec = {
+        identity = {
             "provider": (
                 declared_model_key.split("/")[0] if "/" in declared_model_key else "unknown"
             ),
-            "model_family": "unknown",
+            "family": "unknown",
         }
+        governance = {"risk_tier": "degraded"}
         soul = {"soul_label": "degraded_clerk_fallback"}
         runtime = {
             "provider_capabilities": ["read", "write"],
-            "tools_live": [
-                "arif_session_init",
-                "arif_sense_observe",
-                "arif_evidence_fetch",
-                "arif_mind_reason",
-                "arif_heart_critique",
-                "arif_kernel_route",
-                "arif_reply_compose",
-                "arif_memory_recall",
-                "arif_gateway_connect",
-                "arif_judge_deliberate",
-                "arif_vault_seal",
-                "arif_forge_execute",
-                "arif_ops_measure",
-            ],
+            "tools_live": CANONICAL_ARIFOS_TOOLS,
             "arifos_public_tools": CANONICAL_ARIFOS_TOOLS,
             "verified_arifos_tools": CANONICAL_ARIFOS_TOOLS,
             "web_on": False,
@@ -196,8 +198,8 @@ def build_governance_card(
         "model_anchor": {
             "declared_model_key": declared_model_key,
             "verified_model_key": declared_model_key if identity_verified else None,
-            "provider_key": model_spec.get("provider"),
-            "family_key": model_spec.get("model_family"),
+            "provider_key": identity.get("provider"),
+            "family_key": identity.get("family"),
             "soul_key": soul_key,
             "soul_label": soul.get("soul_label"),
             "identity_verified": identity_verified,
