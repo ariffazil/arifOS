@@ -2111,30 +2111,9 @@ def _compute_known_gaps(
             }
         )
 
-    # mcp_session_init — always present (inherent limitation of MCP session protocol)
-    gaps.append(
-        {
-            "id": "mcp_session_init",
-            "title": "Public /mcp route: returns Session not found",
-            "detail": "MCP session requires initialization via tool call, not direct HTTP",
-            "severity": "info",
-            "floors": [],
-        }
-    )
-
-    # langfuse_tool_traces — RESOLVED: all 13 canonical tools now wired (6 async + 7 sync via _sync_trace)
+    # langfuse_tool_traces — only report when tracing is actually degraded.
     lf_status = langfuse_tracing.get("status", "UNKNOWN")
-    if lf_status == "ACTIVE":
-        gaps.append(
-            {
-                "id": "langfuse_tool_traces",
-                "title": "Langfuse tool traces: all 13 canonical tools wired (6 async _LANGFUSE_TRACER.trace + 7 sync _sync_trace)",
-                "detail": "SDK active with 13/13 tools traced",
-                "severity": "info",
-                "floors": [],
-            }
-        )
-    elif lf_status != "NOT_WIRED":
+    if lf_status not in ("ACTIVE", "NOT_WIRED"):
         gaps.append(
             {
                 "id": "langfuse_tool_traces",
@@ -2149,34 +2128,20 @@ def _compute_known_gaps(
     input_count = contract_status.get("input_schemas_published", 0)
     output_count = contract_status.get("output_schemas_published", 0)
     tool_count = contract_status.get("tool_count", 0)
-    gaps.append(
-        {
-            "id": "mcp_contract_publication",
-            "title": (
-                "MCP contract publication: all canonical tools publish input/output schemas"
-                if schemas_complete
-                else "MCP contract publication: schema coverage incomplete"
-            ),
-            "detail": (
-                f"Published input schemas {input_count}/{tool_count}; "
-                f"output schemas {output_count}/{tool_count}. "
-                "This measures the live MCP contract surface, not just internal validator hooks."
-            ),
-            "severity": "info" if schemas_complete else "warning",
-            "floors": ["F4", "F10"],
-        }
-    )
-
-    # cosign_supply_chain — signed with cosign key pair
-    gaps.append(
-        {
-            "id": "cosign_supply_chain",
-            "title": "Cosign/SLSA: image signed with cosign key pair — provenance verified",
-            "detail": "ghcr.io/ariffazil/arifos:kanon-final signed; transparency log entry index 1422405653",
-            "severity": "info",
-            "floors": [],
-        }
-    )
+    if not schemas_complete:
+        gaps.append(
+            {
+                "id": "mcp_contract_publication",
+                "title": "MCP contract publication: schema coverage incomplete",
+                "detail": (
+                    f"Published input schemas {input_count}/{tool_count}; "
+                    f"output schemas {output_count}/{tool_count}. "
+                    "This measures the live MCP contract surface, not just internal validator hooks."
+                ),
+                "severity": "warning",
+                "floors": ["F4", "F10"],
+            }
+        )
 
     # langfuse_degraded — only when Langfuse is degraded or auth failed
     if lf_status in ("DEGRADED_AUTH_FAILED", "NOT_WIRED"):
