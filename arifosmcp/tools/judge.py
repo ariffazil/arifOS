@@ -66,12 +66,12 @@ def _read_well_substrate() -> dict[str, Any]:
             try:
                 with urllib.request.urlopen(url, timeout=2) as resp:
                     raw = json_lib.loads(resp.read())
-                # /health returns minimal dict — build a minimal state shape
+                # /health now exposes substrate advisory fields — forward them directly
                 state = {
                     "well_score": raw.get("well_score", 50.0),
-                    "floors_violated": [],
-                    "metrics": {},
-                    "truth_status": "OPERATOR_REPORTED",
+                    "floors_violated": raw.get("floors_violated") or [],
+                    "metrics": raw.get("metrics") or {},
+                    "truth_status": raw.get("truth_status", "OPERATOR_REPORTED"),
                     "_source": "http_health",
                     "_url": url,
                 }
@@ -112,7 +112,7 @@ def _read_well_substrate() -> dict[str, Any]:
         "has_telemetry": has_metrics,
         "truth_status": truth_status,
         "active_violations": floors_violated,
-        "source": "live_state_file",
+        "source": state.get("_source", "live_state_file"),
         "w0": "OPERATOR_VETO_INTACT / HIERARCHY_INVARIANT",
     }
     if clarity is not None:
