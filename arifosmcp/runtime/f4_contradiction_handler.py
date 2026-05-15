@@ -521,6 +521,7 @@ def resolve_contradictions(
         "superseded_count": len(superseded_olds),
         "resolution": resolution,
         "contradictions_logged": contradictions_logged,
+        "valid_at": new_valid_at.isoformat() if new_valid_at else None,
     }
 
     return ResolutionResult(
@@ -753,7 +754,7 @@ def f4_write_path_hook(
             resolution="none",
             conflicts=[],
             superseded_by_old=[],
-            new_entry_meta={},
+            new_entry_meta={"valid_at": valid_at.isoformat() if valid_at else None},
             contradictions_logged=0,
             extraction_metadata=extraction.extraction_metadata,
         )
@@ -773,7 +774,7 @@ def f4_write_path_hook(
             resolution="none",
             conflicts=[],
             superseded_by_old=[],
-            new_entry_meta={},
+            new_entry_meta={"valid_at": valid_at.isoformat() if valid_at else None},
             contradictions_logged=0,
             extraction_metadata=extraction.extraction_metadata,
         )

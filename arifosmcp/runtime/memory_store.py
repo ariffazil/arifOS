@@ -107,10 +107,13 @@ async def _pg_write(
     entity_tags: list[str] | None = None,
     distillation_status: str | None = None,
     distillation_metadata: dict | None = None,
+    valid_at: datetime | None = None,
+    recorded_at: datetime | None = None,
 ) -> bool:
     """Insert a memory record into Postgres memory_store table.
 
     Phase 1b: Extended to include entity_tags (F4) and distillation metadata.
+    Phase 1d: Extended to include valid_at (world-time of fact) and recorded_at.
     """
     try:
         import asyncpg  # noqa: PLC0415
@@ -121,8 +124,9 @@ async def _pg_write(
                 """
                 INSERT INTO memory_store
                     (id, tier, text, metadata, qdrant_id, session_id,
-                     entity_tags, distillation_status, distillation_metadata)
-                VALUES ($1::uuid, $2, $3, $4::jsonb, $5::uuid, $6, $7, $8, $9::jsonb)
+                     entity_tags, distillation_status, distillation_metadata,
+                     valid_at, recorded_at)
+                VALUES ($1::uuid, $2, $3, $4::jsonb, $5::uuid, $6, $7, $8, $9::jsonb, $10, $11)
                 ON CONFLICT (id) DO NOTHING
                 """,
                 memory_id,
@@ -134,6 +138,8 @@ async def _pg_write(
                 entity_tags,
                 distillation_status,
                 json.dumps(distillation_metadata, default=str) if distillation_metadata else None,
+                valid_at,
+                recorded_at,
             )
             return True
         finally:
@@ -612,9 +618,11 @@ def store(
                 session_id=session_id,
                 entity_tags=f4_result.entity_tags,
                 distillation_status=phoenix_override_state or "pending",
-                distillation_metadata=f4_result.new_entry_meta
-                if f4_result.resolution != "none"
-                else None,
+                distillation_metadata=(
+                    f4_result.new_entry_meta if f4_result.resolution != "none" else None
+                ),
+                valid_at=None,
+                recorded_at=now,
             )
         )
     except Exception as exc:
