@@ -1,13 +1,20 @@
 name: arifos
 description: Constitutional AI governance kernel — 13-floor truth-gated MCP server
-version: 2026.04.17
+version: 2026.05.16
 homepage: https://arif-fazil.com
 transport: sse
 docker_image: ghcr.io/ariffazil/arifos:latest
 tools:
-  - name: truth_gate
-    description: Validate any claim against the 13-floor constitutional law
-  - name: epoch_seal
-    description: Emit sovereign telemetry JSON for an agent action
-  - name: vault_query
-    description: Query VAULT999 vector store for governed knowledge
+  - name: arif_read_status
+  - name: arif_sense_reality
+  - name: arif_query_memory
+  - name: arif_reason_mind
+  - name: arif_simulate_heart
+  - name: arif_judge_apex
+  - name: arif_forge_system
+  - name: arif_deploy_substrate
+  - name: arif_seal_artifact
+  - name: arif_audit_ledger
+  - name: arif_search_web
+  - name: arif_fetch_url
+  - name: arif_execute_command
