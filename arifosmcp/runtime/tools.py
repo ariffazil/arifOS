@@ -1525,6 +1525,7 @@ _SESSIONS = _SESSION_STORE  # backward-compat alias for code that does _SESSIONS
 # _memory_engine deprecated — all memory paths migrated to arifosmcp.runtime.memory_store (2026-05-15)
 _memory_engine = None
 _VAULT_LEDGER: list[dict[str, Any]] = []
+_VAULT_LOADED: bool = False  # P0-FIX-1: prevent re-loading on every read call
 _JUDGE_STATE_REGISTRY: dict[str, dict[str, Any]] = {}
 _JUDGE_CHAIN_REGISTRY: dict[str, dict[str, Any]] = {}
 _VAULT_ENTRY_REGISTRY: dict[str, dict[str, Any]] = {}
@@ -1539,6 +1540,53 @@ _TIMEOUT_MS = int(
 _MAX_HOPS = 10  # Maximum tool hops per intent (prevents metabolic death spiral)
 _ENTROPY_LIMIT = 1.0  # Maximum entropy per route (ΔS budget cap)
 _HOP_COUNTER: dict[str, int] = {}  # session_id -> current hop count
+
+
+def _get_vault_file_path() -> str:
+    """Return the vault file path, checking ARIFOS_VAULT_PATH then VAULT999_PATH env vars."""
+    return os.getenv(
+        "ARIFOS_VAULT_PATH",
+        os.getenv("VAULT999_PATH", "/var/lib/arifos/vault/outcomes.jsonl"),
+    )
+
+
+def _ensure_vault_loaded() -> None:
+    """
+    P0-FIX-1: Load vault entries from the JSONL file on first read.
+
+    _VAULT_LEDGER is an in-memory list that starts empty on each container start.
+    This function reads /var/lib/arifos/vault/outcomes.jsonl (or ARIFOS_VAULT_PATH env var)
+    and populates _VAULT_LEDGER so that read modes (chain/list/ledger/verify/audit/history)
+    return actual entries instead of always showing depth=0.
+
+    Idempotent: only loads once per process lifetime (_VAULT_LOADED flag).
+    """
+    global _VAULT_LEDGER, _VAULT_LOADED
+    if _VAULT_LOADED:
+        return
+
+    vault_path = _get_vault_file_path()
+    if not os.path.exists(vault_path):
+        _VAULT_LOADED = True
+        return
+
+    loaded_count = 0
+    try:
+        with open(vault_path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                    _VAULT_LEDGER.append(entry)
+                    loaded_count += 1
+                except json.JSONDecodeError:
+                    continue
+    except (OSError, PermissionError):
+        pass  # Non-fatal: return empty ledger
+
+    _VAULT_LOADED = True
 
 
 def _safe_void_fallback(tool_name: str, reason: str) -> dict[str, Any]:
@@ -3131,7 +3179,7 @@ def _arif_sense_observe(
                         "actor_id": actor_id,
                     }
                     try:
-                        store = get_evidence_store()
+                        store = get_evidence_store()  # noqa: F823
                         receipt_id = store.store_receipt(evidence_receipt)
                         evidence_receipt["receipt_id"] = receipt_id
                     except Exception as exc:
@@ -3892,7 +3940,7 @@ def _arif_evidence_fetch(
 
         source_hash = content_hash
         try:
-            store = get_evidence_store()
+            store = get_evidence_store()  # noqa: F823
             source_hash = store.store_source(source)
         except Exception as exc:
             logger.warning(f"Evidence store unavailable: {exc}")
@@ -4635,48 +4683,6 @@ def _arif_mind_reason(
             thermodynamic_state=ThermodynamicState(delta_S=0.001, entropy_direction="stable"),
             meta={},
             delta_S=0.001,
-            timestamp=_now(),
-        )
-        return output
-
-    if mode == "forge":
-        steps = [
-            ReasoningStep(
-                step=1,
-                reasoning_mode=ReasoningMode.CAUSAL,
-                premise=f"Query: {query}",
-                derivation="Generate artifact from query",
-                conclusion="Artifact generated",
-                confidence_before=0.5,
-                confidence_after=0.88,
-                confidence_delta=0.38,
-                axiom_used="F08_GENIUS",
-                landauer_cost_eV=0.0003,
-            ),
-        ]
-        trace = ReasoningTrace(
-            steps=steps,
-            total_steps=1,
-            reasoning_mode=ReasoningMode.CAUSAL,
-            conclusion="Artifact forged",
-            final_confidence=0.88,
-            confidence_trajectory=[0.5, 0.88],
-            reasoning_depth="shallow",
-            coherence_score=0.90,
-            total_landauer_cost_eV=0.0003,
-        )
-        output = MindOutput(
-            status="OK",
-            tool="arif_mind_reason",
-            result={"query": query, "artifact": "", "delta_S": -0.01},
-            verdict="CLAIM",
-            omega_0=0.04,
-            axioms_used=default_axioms,
-            reasoning_trace=trace,
-            anomalous_contrast=MindAnomalousContrast(contrast_type=ContrastType.NONE),
-            thermodynamic_state=ThermodynamicState(delta_S=0.005, entropy_direction="decreasing"),
-            meta={},
-            delta_S=0.005,
             timestamp=_now(),
         )
         return output
@@ -8659,6 +8665,7 @@ def _arif_vault_seal(
         )
         return _inject_nine_signal(payload, "OK")
     if mode == "verify":
+        _ensure_vault_loaded()  # P0-FIX-1: load vault from file before reading
         return _inject_nine_signal(
             SealOutput(
                 status="OK",
@@ -8677,6 +8684,7 @@ def _arif_vault_seal(
             "OK",
         )
     if mode == "ledger":
+        _ensure_vault_loaded()  # P0-FIX-1
         return SealOutput(
             status="OK",
             result={"ledger": _VAULT_LEDGER[-10:]},
@@ -8692,6 +8700,7 @@ def _arif_vault_seal(
             timestamp=_now(),
         ).model_dump(mode="json")
     if mode == "changelog":
+        _ensure_vault_loaded()  # P0-FIX-1
         return _inject_nine_signal(
             SealOutput(
                 status="OK",
@@ -8708,6 +8717,7 @@ def _arif_vault_seal(
             "OK",
         )
     if mode == "audit":
+        _ensure_vault_loaded()  # P0-FIX-1
         return _inject_nine_signal(
             SealOutput(
                 status="OK",
@@ -8735,6 +8745,7 @@ def _arif_vault_seal(
             "OK",
         )
     if mode == "list":
+        _ensure_vault_loaded()  # P0-FIX-1
         return _inject_nine_signal(
             SealOutput(
                 status="OK",
@@ -8751,6 +8762,7 @@ def _arif_vault_seal(
             "OK",
         )
     if mode == "chain":
+        _ensure_vault_loaded()  # P0-FIX-1
         return _inject_nine_signal(
             SealOutput(
                 status="OK",

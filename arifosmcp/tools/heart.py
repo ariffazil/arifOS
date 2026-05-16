@@ -23,7 +23,10 @@ from typing import Any
 from arifosmcp.runtime.llm_client import LLMUnavailableError, call_llm
 
 _VAULT999_PATH = Path(
-    os.getenv("VAULT999_PATH", "/root/arifOS/arifosmcp/VAULT999/SEALED_EVENTS.jsonl")
+    os.getenv(
+        "ARIFOS_VAULT_PATH",
+        "/var/lib/arifos/vault/outcomes.jsonl",
+    )
 )
 
 logger = logging.getLogger(__name__)
@@ -213,7 +216,7 @@ async def _heart_with_llm(
 
     user = f"""TARGET: {target}
 MODE: {mode}
-CONTEXT_TYPE: {context_type or 'external_action'}
+CONTEXT_TYPE: {context_type or "external_action"}
 
 {mode_prompt}
 

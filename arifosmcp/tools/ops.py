@@ -127,25 +127,45 @@ def arif_ops_measure(
             )
         )
     if mode == "vitals":
-        vitals_data = {
-            "g_score": 0.98,
-            "delta_S": 0.001,
+        # P2-OBS-2 fix: Wire to live thermodynamic telemetry instead of hardcoded values.
+        # Sources: core.physics.thermodynamics_hardened (G_star, entropy_delta, omega)
+        #          + cooldown_engine for sabar state.
+        live_vitals = {
+            "g_score": 0.97,
+            "delta_S": 0.002,
             "omega": 0.95,
             "psi_le": 1.02,
+            "source": "default",
         }
-        # ── Cooldown vitals (internal hardening, no new tool surface) ──
         try:
-            from arifosmcp.core.cooldown_engine import get_cooldown_engine
+            # Primary: live thermodynamic report from physics engine
+            from core.physics.thermodynamics_hardened import get_thermodynamic_report
 
-            engine = get_cooldown_engine()
-            cooldown_vitals = engine.vitals()
-            vitals_data["sabar_cooldown"] = cooldown_vitals
+            thermo = get_thermodynamic_report()
+            live_vitals["g_score"] = thermo.get("G_star", 0.97)
+            live_vitals["delta_S"] = thermo.get("entropy_delta", 0.002)
+            live_vitals["omega"] = thermo.get("omega", 0.95)
+            live_vitals["psi_le"] = thermo.get("psi_le", 1.02)
+            live_vitals["source"] = "thermodynamic_report"
         except Exception:
-            vitals_data["sabar_cooldown"] = {"status": "unavailable"}
+            # Fallback: try cooldown engine vitals as secondary source
+            try:
+                from arifosmcp.core.cooldown_engine import get_cooldown_engine
+
+                engine = get_cooldown_engine()
+                cd_vitals = engine.vitals()
+                if isinstance(cd_vitals, dict):
+                    live_vitals["g_score"] = cd_vitals.get("g_score", live_vitals["g_score"])
+                    live_vitals["delta_S"] = cd_vitals.get("delta_S", live_vitals["delta_S"])
+                    live_vitals["omega"] = cd_vitals.get("omega", live_vitals["omega"])
+                    live_vitals["source"] = "cooldown_engine"
+            except Exception:
+                live_vitals["source"] = "default_unavailable"
+
         return TelemetryBlock(
             **_ok(
                 "arif_ops_measure",
-                vitals_data,
+                live_vitals,
                 meta=drift_metrics,
                 session_id=session_id,
             )

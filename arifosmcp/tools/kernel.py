@@ -44,6 +44,7 @@ def arif_kernel_route(
     task: str | None = None,
     stage: str | None = None,
     actor_id: str | None = None,
+    session_id: str | None = None,
     organ: str | None = None,
     tool_name: str | None = None,
     arguments: dict[str, Any] | None = None,
@@ -118,11 +119,22 @@ def arif_kernel_route(
         # Include prediction health in status
         prediction_health = _get_prediction_health()
 
+        # P2-OBS-1 fix: Resolve live session stage from session state, not hardcoded fallback.
+        # If session_id is provided, read actual stage from that session.
+        # Fall back to the passed stage parameter, or "unknown" if neither is set.
+        live_stage = "unknown"
+        if session_id:
+            sess = _SESSIONS.get(session_id, {})
+            live_stage = sess.get("stage", stage or "unknown")
+        elif stage:
+            live_stage = stage  # Use explicitly passed stage parameter
+
         return _ok(
             "arif_kernel_route",
             {
                 "active_sessions": len(_SESSIONS),
-                "stage": stage or "000",
+                "stage": live_stage,
+                "stage_source": "session" if session_id else ("parameter" if stage else "unknown"),
                 "prediction_health": prediction_health,
             },
         )

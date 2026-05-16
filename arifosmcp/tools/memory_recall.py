@@ -318,7 +318,20 @@ def arif_memory_recall(
 
     # ── Stats ───────────────────────────────────────────────────────────────
     if mode == "stats":
-        return _ok("arif_memory_recall", stats())
+        base_stats = stats()
+        # Augment with layer_counts for sessionless memory metadata (P1-FIX-4)
+        # Maps 6-layer memory architecture to available storage backends
+        base_stats["layer_counts"] = {
+            "L1_ephemeral": base_stats.get("legacy_files", 0),  # File-based JSON (transient)
+            "L2_session": base_stats.get("by_session", {}),  # Session-scoped records
+            "L3_qdrant": base_stats.get("qdrant_vectors", 0),  # Vector embeddings
+            "L4_postgres": base_stats.get("postgres_records", 0),  # Persistent relational
+            # L5 (Graphiti) and L6 (VAULT999) are separate subsystems;
+            # values here indicate whether those layers are reachable
+            "L5_graphiti": "unavailable_in_memory_store",  # Graphiti Neo4j layer
+            "L6_vault999": "append_only_ledger",  # VAULT999 immutable ledger
+        }
+        return _ok("arif_memory_recall", base_stats)
 
     # ── Audit ──────────────────────────────────────────────────────────────
     # arif_memory_audit: surface escalation queue for Arif review.
