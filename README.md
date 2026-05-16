@@ -1,7 +1,7 @@
 ﻿# arifOS — Constitutional AI Governance Kernel
 
 > **Status:** SOVEREIGN KERNEL | **Organ:** MIND (Δ) | **Authority:** 888_JUDGE
-> **PyPI:** `arifos` | **GHCR:** `ghcr.io/ariffazil/arifos` | **MCP:** `https://mcp.arif-fazil.com/mcp`
+> **PyPI:** `arifos` | **GHCR:** `ghcr.io/ariffazil/arifos` | **MCP:** `https://arifosmcp.arif-fazil.com/mcp`
 
 ## 🏛️ What this repo is
 
@@ -11,7 +11,7 @@ The central governance kernel of the arifOS federation. It defines the 13 Consti
 
 ## 📦 Ownership
 
-- **Owns**: Constitutional Law (F1–F13), `arifosmcp` core logic, VAULT999 ledger, smithery.yaml registry.
+- **Owns**: Constitutional Law (F1–F13), `arifosmcp` core logic, VAULT999 ledger, `smithery.yaml` registry.
 - **Does NOT own**: Frontend surfaces (AAA), Infrastructure orchestration (A-FORGE), Domain logic (GEOX/WELL).
 
 ## 🏗️ Current Structure
@@ -20,17 +20,18 @@ The central governance kernel of the arifOS federation. It defines the 13 Consti
 arifOS/
 ├── arifosmcp/              # Primary MCP runtime package (pip install target)
 │   ├── server.py           # FastMCP + FastAPI entry point
-│   ├── runtime/           # 140+ runtime modules (tools, sessions, bridges)
-│   ├── tools/              # 13 canonical tool implementations
-│   ├── schemas/            # Pydantic output schemas
-│   ├── core/               # Governance kernel shims (floor, embodied_engine)
+│   ├── runtime/           # Dozens of runtime modules (tools, sessions, bridges)
+│   ├── tools/             # Tool implementations
+│   ├── schemas/           # Pydantic output schemas
+│   ├── core/              # Governance kernel shims (floor, embodied_engine)
+│   ├── Dockerfile         # Multi-stage production build (EXPOSE 8080)
 │   └── MCP_TOOLS_README.md
-├── core/                   # Root-level constitutional kernel (floors, judgment, vault999)
-│   ├── floors.py           # F1–F13 enforcement (~27K lines)
+├── core/                   # Root-level constitutional kernel
+│   ├── floors.py           # F1–F13 enforcement (~924 lines)
 │   ├── judgment.py         # Verdict engine
 │   └── vault999/          # Append-only hash-chained ledger
 ├── VAULT999/               # Local vault ledger
-├── tests/                  # 950+ test files (pytest, asyncio_mode=auto)
+├── tests/                  # Hundreds of test files (pytest, asyncio_mode=auto)
 ├── smithery.yaml           # Canonical 13-tool manifest (public registry)
 ├── pyproject.toml         # Root package charter
 └── Makefile               # build, test, deploy targets
@@ -38,10 +39,12 @@ arifOS/
 
 ## 🧬 13 Canonical Tools (arif_noun_verb)
 
+Sourced from `arifosmcp/tool_registry.json` (`canonical_order`):
+
 | Stage | Tool | Purpose |
 |-------|------|---------|
 | 000 | `arif_session_init` | Bind actor identity, set safety state = HOLD |
-| 111 | `arif_sense_observe` | Reality grounding (8-stage pipeline) |
+| 111 | `arif_sense_observe` | Reality grounding (web, VPS vitals, atlas) |
 | 222 | `arif_evidence_fetch` | External data oracle (GEOX, FRED, EIA) |
 | 333 | `arif_mind_reason` | Structured reasoning + contradiction detection |
 | 444 | `arif_kernel_route` | Routing + risk orthogonality (AGI/ASI/APEX lanes) |
@@ -54,20 +57,29 @@ arifOS/
 | 999 | `arif_vault_seal` | Immutable Merkle-V3 ledger anchor |
 | 010 | `arif_forge_execute` | Execution bridge (SEAL-gated only) |
 
+> **Note:** `smithery.yaml`, `tool_registry.json`, and this table all agree on 13 canonical tools. The `/.well-known/mcp/server.json` `public_surface` field currently reads `canonical15` — this is a drift discrepancy to remediate.
+
 ## 🚀 Verified Commands
 
 ```bash
-# Install
-pip install -e ".[dev]"          # or: uv sync --all-extras
+# Install from PyPI
+pip install arifos
 
-# Run MCP server
-python -m arifosmcp.server       # HTTP transport
+# Install from source (editable, with dev extras)
+pip install -e ".[dev]"
+
+# Run MCP server (HTTP + SSE)
+python -m arifosmcp.server
+# or via module:
+python -m arifosmcp.runtime.__main__
+
+# Run MCP server (stdio transport)
 python -m arifosmcp.runtime.__main__ --mode stdio
 
 # Test
-pytest tests/ -q --tb=short       # 950+ tests
+pytest tests/ -q --tb=short
 
-# Docker (lean)
+# Docker build (uses arifosmcp/Dockerfile)
 docker build -f arifosmcp/Dockerfile -t ghcr.io/ariffazil/arifos:latest .
 docker run -p 8080:8080 ghcr.io/ariffazil/arifos:latest
 ```
@@ -85,10 +97,11 @@ docker run -p 8080:8080 ghcr.io/ariffazil/arifos:latest
 | File | Purpose |
 |------|---------|
 | `smithery.yaml` | 13-tool public manifest (Source of Truth for MCP clients) |
+| `arifosmcp/tool_registry.json` | Canonical 13-tool JSON registry (`canonical_order` field) |
 | `arifosmcp/MCP_TOOLS_README.md` | Full tool surface documentation |
 | `core/floors.py` | F1–F13 constitutional enforcement |
 | `VAULT999/` | Append-only hash-chained audit ledger |
-| `arifosmcp/tool_registry.json` | Canonical 13-tool JSON manifest |
+| `arifosmcp/core/kernel/` | Backward-compat shims for test file imports |
 
 ## 🏥 Health Endpoints
 
@@ -98,4 +111,4 @@ docker run -p 8080:8080 ghcr.io/ariffazil/arifos:latest
 
 ---
 
-*Last Verified: 2026.05.16 | Commit: a0c25e94 | 999 SEAL ALIVE*
+*Last Verified: 2026.05.16 | Commit: c79f2465 | 999 SEAL ALIVE*
