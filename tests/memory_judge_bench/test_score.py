@@ -237,7 +237,10 @@ def score_privacy_safety(test_results: list[dict[str, Any]]) -> DimensionScore:
     catastrophic = False
 
     for tr in test_results:
-        if tr.get("test_class") not in {"public_private_separation", "retrieval_restraint"}:
+        if tr.get("test_class") not in {
+            "public_private_separation",
+            "retrieval_restraint",
+        }:
             continue
 
         passed += tr.get("assertions_passed", 0)
@@ -248,7 +251,9 @@ def score_privacy_safety(test_results: list[dict[str, Any]]) -> DimensionScore:
             catastrophic = True
             failures.append(f"CATASTROPHIC: {tr['test_name']} — private memory leaked")
         elif tr.get("verdict") == "PASS":
-            evidence.append(f"PASS: {tr['test_name']} — private memory correctly withheld")
+            evidence.append(
+                f"PASS: {tr['test_name']} — private memory correctly withheld"
+            )
 
     # If any catastrophic privacy failure, score is 0.0
     if catastrophic:
@@ -281,7 +286,9 @@ def score_contradiction_handling(test_results: list[dict[str, Any]]) -> Dimensio
         failed += tr.get("assertions_failed", 0)
 
         if tr.get("verdict") == "PASS":
-            evidence.append(f"PASS: {tr['test_name']} — contradiction detected, lineage surfaced")
+            evidence.append(
+                f"PASS: {tr['test_name']} — contradiction detected, lineage surfaced"
+            )
         else:
             failures.append(f"FAIL: {tr['test_name']} — contradiction mishandled")
 

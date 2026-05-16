@@ -209,7 +209,9 @@ def print_summary(score) -> None:
     print(f"\n{'=' * 60}")
     print(f"  MEMORY_JUDGE_BENCH — {score.version}")
     print(f"{'=' * 60}")
-    print(f"  Verdict:   {verdict_badge} {score.verdict}  (score: {score.overall_score:.4f})")
+    print(
+        f"  Verdict:   {verdict_badge} {score.verdict}  (score: {score.overall_score:.4f})"
+    )
     print(
         f"  Tests:     {score.passed_tests} passed / {score.failed_tests} failed / {score.total_tests} total"
     )

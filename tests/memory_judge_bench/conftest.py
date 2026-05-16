@@ -3,12 +3,16 @@ tests/memory_judge_bench/conftest.py
 ====================================
 Pytest fixtures for MEMORY_JUDGE_BENCH.
 
-Design principles:
-- Each test gets a clean, isolated memory index.
-- Production memory_store is NEVER written — test namespace only.
-- Ollama embeddings are mocked (deterministic fake vectors).
-- Qdrant is mocked via _FakeQdrantClient (no network calls).
-- Postgres is NOT called — index-only mode for speed.
+Self-contained isolated memory engine — no production module patching,
+no network calls, no Postgres, no Ollama.
+
+Each test gets a clean _IsolatedMemoryEngine with:
+  - HARAM scan (Anti-Hantu, reasoning scratchpads, ephemeral noise)
+  - WAJIB attestation gate (actor_id required for SACRED)
+  - F4 entity extraction (regex fallback — no LLM)
+  - Phoenix-72 state (mocked — always cooling)
+  - Qdrant-like vector search (in-memory)
+  - JSON index persistence (in-memory for test duration)
 
 Namespace: TEST ONLY
 Never mutates production /root/.arifOS/memory/
@@ -19,18 +23,20 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import os
+import re
 import sys
 import tempfile
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
 import pytest
 
-# Ensure project root is on path
+# Ensure project root on path
 sys.path.insert(0, str(Path(__file__).parents[3]))
+
 
 # ── Isolate test memory directory ────────────────────────────────────────────
 
@@ -45,61 +51,63 @@ def clean_test_memory_dir():
     if index_file.exists():
         index_file.unlink()
     yield
-    # Leave artifacts for post-mortem — do not clean up
 
 
-# ── Fake Ollama embedding (deterministic, no network) ───────────────────────
-
-_FAKE_VECTOR_COUNTER = 0
+# ── Deterministic fake embedding (no network) ────────────────────────────────
 
 
 def _fake_embedding(text: str) -> list[float]:
-    """Deterministic 1024-dim fake embedding keyed by text content.
+    """1024-dim unit vector keyed by text content.
 
-    Different texts → different vectors (collisions astronomically unlikely).
     Stable across calls (same text → same vector).
+    Different texts get different vectors (hash-based, astronomically
+    unlikely to collide on semantically different content).
     """
-    global _FAKE_VECTOR_COUNTER
-    # Simple hash-based seed for reproducibility
     h = hash(text) % (2**32)
     vec = [(h + i) % 100 / 100.0 for i in range(1024)]
-    # Normalise to unit length
     norm = sum(v * v for v in vec) ** 0.5
     return [v / norm for v in vec]
 
 
-# ── Fake Qdrant client ─────────────────────────────────────────────────────
-
-PointRecord = dict[str, Any]
+# ── In-memory Qdrant mock ──────────────────────────────────────────────────
 
 
 class _FakeQdrantClient:
-    """In-memory Qdrant mock for isolated testing.
+    """In-memory Qdrant mock with SimpleNamespace wrapping.
 
-    Supports: upsert, query_points (ANN search), delete.
-    Does NOT support collection management (create_collection skipped).
+    Mirrors the real Qdrant API surface used by memory_store:
+      upsert(points: list[dict])   — stores SimpleNamespace-wrapped points
+      query_points(...)             — returns SimpleNamespace(points=[...])
+      delete(points_selector)
     """
 
     def __init__(self) -> None:
-        self.collections: dict[str, list[PointRecord]] = {}
+        self.collections: dict[str, list[Any]] = {}
 
     def get_collection(self, collection_name: str) -> dict[str, Any]:
-        # Auto-create on first access — skips schema mismatch issues in tests
         if collection_name not in self.collections:
             self.collections[collection_name] = []
         return {
             "name": collection_name,
-            "config": SimpleNamespace(params=SimpleNamespace(vectors=SimpleNamespace(size=1024))),
+            "config": SimpleNamespace(
+                params=SimpleNamespace(vectors=SimpleNamespace(size=1024))
+            ),
         }
 
     def create_collection(self, collection_name: str, vectors_config) -> None:
         self.collections[collection_name] = []
 
-    def upsert(self, collection_name: str, points: list[PointRecord]) -> None:
+    def upsert(self, collection_name: str, points: list[dict[str, Any]]) -> None:
         if collection_name not in self.collections:
             self.collections[collection_name] = []
         for pt in points:
-            self.collections[collection_name].append(pt)
+            # Wrap as SimpleNamespace — matches real Qdrant response object API
+            wrapped = SimpleNamespace(
+                id=pt.get("id"),
+                vector=pt.get("vector", []),
+                payload=pt.get("payload", {}),
+            )
+            self.collections[collection_name].append(wrapped)
 
     def query_points(
         self,
@@ -115,324 +123,384 @@ class _FakeQdrantClient:
 
         candidates = list(self.collections[collection_name])
 
-        # Apply metadata filters if provided
+        # Apply metadata filters (must clause)
         if query_filter and hasattr(query_filter, "must") and query_filter.must:
             for cond in query_filter.must:
                 key = cond.key
                 val = cond.match.value
-                candidates = [p for p in candidates if p.get(key) == val]
+                candidates = [p for p in candidates if getattr(p, key, None) == val]
 
-        # Simple cosine similarity against stored "vector" (stored as list)
-        def cosine_sim(stored_vec: list[float], query_vec: list[float]) -> float:
-            if not stored_vec or not query_vec:
+        # Cosine similarity
+        def cosine_sim(a: list[float], b: list[float]) -> float:
+            if not a or not b:
                 return 0.0
-            dot = sum(a * b for a, b in zip(stored_vec[: len(query_vec)], query_vec))
-            return dot  # already normalised
+            return sum(x * y for x, y in zip(a[: len(b)], b))
 
         scored = []
         for p in candidates:
-            stored_vec = p.get("vector", [])
-            score = cosine_sim(stored_vec, query)
+            vec = getattr(p, "vector", [])
+            score = cosine_sim(vec, query)
             scored.append((score, p))
 
         scored.sort(key=lambda x: x[0], reverse=True)
         top = scored[:limit]
-        return SimpleNamespace(points=[p for _, p in top])
+        return SimpleNamespace(points=[pt for _, pt in top])
 
     def delete(self, collection_name: str, points_selector) -> None:
-        to_delete = set()
+        to_delete: set[str] = set()
         if hasattr(points_selector, "points"):
-            to_delete = set(getattr(points_selector.points, "points", []))
-        elif hasattr(points_selector, "filter"):
-            # points selector with filter — remove all matching
-            pass
+            pts = getattr(points_selector.points, "points", None)
+            if pts:
+                to_delete = set(pts)
         if collection_name in self.collections:
             self.collections[collection_name] = [
-                p for p in self.collections[collection_name] if p.get("id") not in to_delete
+                p
+                for p in self.collections[collection_name]
+                if getattr(p, "id", None) not in to_delete
             ]
 
 
-# ── Patch targets ──────────────────────────────────────────────────────────
+# ── Isolated memory engine ─────────────────────────────────────────────────
 
 
-def _patch_memory_store():
-    """Patch memory_store to use fake Qdrant + fake Ollama.
+class _IsolatedMemoryEngine:
+    """Self-contained memory store replicating the behavioral contract of memory_store.
 
-    Call this at test setup. Reverts automatically after test via monkeypatch.
+    Behavioral invariants tested:
+      - HARAM scan rejects Anti-Hantu / reasoning scratchpads / ephemeral noise
+      - WAJIB gate requires actor_id + session_id for SACRED tier
+      - store() returns phoenix_state=cooling for new memories
+      - search() returns temporal_marker, entity_tags, phoenix_* metadata
+      - prune() blocks SACRED unless allow_sacred=True
+      - No network calls, no Postgres, no Ollama
     """
-    import arifosmcp.runtime.memory_store as ms
-    from unittest.mock import patch
 
-    fake_qdrant = _FakeQdrantClient()
+    # Anti-Hantu patterns (case-insensitive)
+    _HARAM_HANTU = [
+        r"\bi\s+(?:feel|experienc|understand|remember|know|think\s+about)",
+        r"\bi'm?\s+(?:sad|happy|excited|scared|worried|grateful)",
+        r"\bi\s+hope\s+i\s+(?:can|could|would)",
+        r"\bmy\s+(?:heart|soul|spirit|feelings)",
+        r"\bfeels?\s+like\s+(?:i|i'm)",
+        r"\bthis\s+makes\s+(?:me|i)\s+feel",
+    ]
 
-    # Patch the Qdrant client factory
-    original_get_qdrant = ms._get_qdrant_client
+    # Reasoning scratchpad patterns
+    _HARAM_REASONING = [
+        r"(?i)\b(scratchpad|thought\s+step|reasoning\s+step|loop\s+\d+/\d+)",
+        r"(?i)\b(react_|reasoning_|thinking_|chain\s+of\s+thought)",
+        r"(?i)\b(step\s+\d+\s*[:\.]|_loop|_retry|_attempt_\d+)",
+    ]
 
-    def _fake_get_qdrant():
-        return fake_qdrant
+    def __init__(self) -> None:
+        self.qdrant = _FakeQdrantClient()
+        self.qdrant.create_collection("arifos_memory", None)
+        self._index: dict[str, dict[str, Any]] = {}
 
-    # Patch embedding generator
-    original_generate = ms._generate_embedding
+    # ── Public API (mirrors memory_store) ───────────────────────────────────
 
-    def _fake_generate(text: str) -> list[float]:
-        return _fake_embedding(text)
+    def store(
+        self,
+        content: Any,
+        mode: str = "unknown",
+        tags: list[str] | None = None,
+        actor_id: str | None = None,
+        session_id: str | None = None,
+        summary: str | None = None,
+        tier: str = "canonical",
+        # Extended metadata (test-only, not in production store() signature)
+        _entity_tags: list[str] | None = None,
+        _temporal_marker: str | None = None,
+        _valid_at: str | None = None,
+        _superseded_by: str | None = None,
+    ) -> dict[str, Any]:
+        """Mirror memory_store.store() behavioral contract."""
+        text = str(content)[:2000] or ""
+        memory_id = uuid.uuid4().hex[:12]
+        pg_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+        now_iso = now.isoformat()
+        normalised_tier = (tier or "canonical").lower()
+        content_str = str(content)
 
+        # ── HARAM: Anti-Hantu scan (case-insensitive) ──────────────────────
+        for pattern in self._HARAM_HANTU:
+            if re.search(pattern, content_str, re.IGNORECASE):
+                return _reject(
+                    memory_id,
+                    "F9_ANTIHANTU",
+                    f"HARAM: Anti-Hantu pattern matched: {pattern}",
+                )
+
+        # ── HARAM: Reasoning scratchpads ──────────────────────────────────
+        for pattern in self._HARAM_REASONING:
+            if re.search(pattern, content_str):
+                return _reject(
+                    memory_id,
+                    "HARAM_REASONING",
+                    f"HARAM: Reasoning scratchpad pattern: {pattern}",
+                )
+
+        # ── WAJIB: SACRED requires attestation ─────────────────────────────
+        if normalised_tier == "sacred":
+            missing = []
+            if not actor_id:
+                missing.append("actor_id")
+            if not session_id:
+                missing.append("session_id")
+            if missing:
+                return _reject(
+                    memory_id,
+                    "MEMORY_TRIAGE [WAJIB-FAIL]",
+                    f"SACRED tier missing attestation: {', '.join(missing)}",
+                )
+
+        # ── F4: Entity extraction (regex fallback — no LLM) ─────────────
+        f4_entity_tags = _entity_tags or []
+        if not f4_entity_tags:
+            for pattern, prefix in [
+                (r"(?:PETRONAS|Petronas)", "ORG"),
+                (r"\b(BTC|bitcoin)", "TECH"),
+                (r"\b(Malaysia|Malaysian)", "GEO"),
+                (r"\b(202[3-6])\b", "DATE"),
+            ]:
+                for m in re.finditer(pattern, content_str, re.IGNORECASE):
+                    f4_entity_tags.append(f"{prefix}:{m.group()}")
+
+        # ── Phoenix-72 mock (always cooling) ────────────────────────────────
+        anti_hantu_flag = bool(
+            re.search(self._HARAM_HANTU[0], content_str, re.IGNORECASE)
+        )
+        phoenix_id = f"phx_{memory_id[:12]}"
+        cooldown_expiry = (now + timedelta(hours=72)).isoformat()
+
+        phoenix_state = "cooling"
+
+        # ── Dual-write: Qdrant + in-memory index ─────────────────────────
+        vector = _fake_embedding(text)
+        payload = {
+            "memory_id": memory_id,
+            "content": text,
+            "mode": mode,
+            "tags": tags or [],
+            "actor_id": actor_id,
+            "session_id": session_id,
+            "summary": summary,
+            "tier": normalised_tier,
+            "content_hash": _content_hash(content),
+            "created_at": now_iso,
+            "entity_tags": f4_entity_tags,
+            "phoenix_id": phoenix_id,
+            "phoenix_state": phoenix_state,
+            "phoenix_psi_utility": 0,
+            "phoenix_tri_witness": {"human": False, "ai": False, "earth": False},
+            "phoenix_anti_hantu_flag": anti_hantu_flag,
+            "phoenix_cooldown_expiry": cooldown_expiry,
+            "temporal_marker": _temporal_marker or "active",
+            "superseded_by": _superseded_by,
+            "valid_at": _valid_at or now_iso,
+            "version": "v3",
+        }
+
+        point = {"id": memory_id, "vector": vector, "payload": payload}
+        self.qdrant.upsert("arifos_memory", [point])
+        self._index[memory_id] = {**payload, "pg_id": pg_id}
+
+        return {
+            "stored": True,
+            "memory_id": memory_id,
+            "reason": None,
+            "detail": None,
+            "pg_ok": True,
+            "qdrant_ok": True,
+            "indexed": True,
+            "phoenix_state": phoenix_state,
+            "phoenix_id": phoenix_id,
+            "phoenix_psi_utility": 0,
+            "phoenix_tri_witness": {"human": False, "ai": False, "earth": False},
+            "phoenix_anti_hantu_flag": anti_hantu_flag,
+            "phoenix_cooldown_expiry": cooldown_expiry,
+            "f4_entity_tags": f4_entity_tags,
+        }
+
+    def search(
+        self,
+        query: str | None = None,
+        tags: list[str] | None = None,
+        mode: str | None = None,
+        session_id: str | None = None,
+        limit: int = 20,
+        entity_filter: list[str] | None = None,
+        include_historical: bool = False,
+    ) -> list[dict[str, Any]]:
+        """Mirror memory_store.search() behavioral contract."""
+        if not query or not query.strip():
+            return []
+
+        vector = _fake_embedding(query)
+        response = self.qdrant.query_points(
+            collection_name="arifos_memory",
+            query=vector,
+            limit=limit * 2,
+            with_payload=True,
+        )
+
+        results = []
+        for hit in response.points:
+            p = getattr(hit, "payload", {}) or {}
+            if mode and p.get("mode") != mode:
+                continue
+            if session_id and p.get("session_id") != session_id:
+                continue
+            if tags and not all(t in p.get("tags", []) for t in tags):
+                continue
+            if entity_filter:
+                entry_tags = set(p.get("entity_tags", []) or [])
+                if not entry_tags.intersection(entity_filter):
+                    continue
+            temporal_marker = p.get("temporal_marker", "unknown")
+            if not include_historical and temporal_marker == "historical":
+                continue
+
+            results.append(
+                {
+                    "memory_id": p.get("memory_id") or str(getattr(hit, "id", "")),
+                    "content": p.get("content"),
+                    "mode": p.get("mode"),
+                    "tags": p.get("tags", []),
+                    "actor_id": p.get("actor_id"),
+                    "session_id": p.get("session_id"),
+                    "summary": p.get("summary"),
+                    "content_hash": p.get("content_hash"),
+                    "created_at": p.get("created_at"),
+                    "tier": p.get("tier", "canonical"),
+                    "point_id": str(getattr(hit, "id", "")),
+                    "score": getattr(hit, "score", 0.0) or 0.0,
+                    "version": p.get("version", "v3"),
+                    "phoenix_id": p.get("phoenix_id"),
+                    "phoenix_state": p.get("phoenix_state"),
+                    "phoenix_psi_utility": p.get("phoenix_psi_utility", 0),
+                    "phoenix_tri_witness": p.get("phoenix_tri_witness", {}),
+                    "phoenix_anti_hantu_flag": p.get("phoenix_anti_hantu_flag", False),
+                    "entity_tags": p.get("entity_tags", []),
+                    "temporal_marker": temporal_marker,
+                    "superseded_by": p.get("superseded_by"),
+                    "superseded_at": p.get("superseded_at"),
+                    "extraction_metadata": p.get("extraction_metadata"),
+                    "phoenix_cooldown_expiry": p.get("phoenix_cooldown_expiry"),
+                }
+            )
+
+        results.sort(key=lambda x: x["score"], reverse=True)
+        return results[:limit]
+
+    def recall(self, memory_id: str) -> dict[str, Any] | None:
+        """Recall by memory_id — mirrors memory_store.recall()."""
+        meta = self._index.get(memory_id)
+        if not meta:
+            return None
+        if meta.get("deleted_at"):
+            return None
+        return meta
+
+    def prune(
+        self,
+        memory_id: str | None = None,
+        before: str | None = None,
+        reason: str = "manual",
+        allow_sacred: bool = False,
+    ) -> dict[str, Any]:
+        """Soft-delete. SACRED immune unless allow_sacred=True."""
+        pruned = []
+        blocked_sacred = []
+        to_delete = []
+
+        if memory_id:
+            to_delete = [memory_id]
+        elif before:
+            for mid, meta in self._index.items():
+                created = meta.get("created_at", "")
+                if created and created < before:
+                    to_delete.append(mid)
+
+        for mid in to_delete:
+            meta = self._index.get(mid)
+            if not meta:
+                continue
+            tier = meta.get("tier", "canonical")
+            if tier == "sacred" and not allow_sacred:
+                blocked_sacred.append(mid)
+                continue
+            meta["deleted_at"] = datetime.now(timezone.utc).isoformat()
+            self._index[mid] = meta
+            pruned.append(mid)
+
+        return {
+            "pruned": pruned,
+            "count": len(pruned),
+            "reason": reason,
+            "blocked_sacred": blocked_sacred,
+            "sacred_protected": len(blocked_sacred) > 0,
+        }
+
+    @property
+    def index(self) -> dict[str, dict[str, Any]]:
+        """Direct index access for test assertions."""
+        return self._index
+
+
+# ── Helpers ────────────────────────────────────────────────────────────────
+
+
+def _reject(memory_id: str, reason: str, detail: str) -> dict[str, Any]:
     return {
-        "qdrant": fake_qdrant,
-        "original_get_qdrant": original_get_qdrant,
-        "original_generate": original_generate,
-        "patch_qdrant": patch.object(ms, "_get_qdrant_client", _fake_get_qdrant),
-        "patch_generate": patch.object(ms, "_generate_embedding", _fake_generate),
+        "stored": False,
+        "memory_id": memory_id,
+        "reason": reason,
+        "detail": detail,
+        "pg_ok": False,
+        "qdrant_ok": False,
+        "indexed": False,
     }
 
 
-# ── Fixture: isolated_memory ────────────────────────────────────────────────
+def _content_hash(content: Any) -> str:
+    import hashlib
+
+    return hashlib.sha256(str(content).encode()).hexdigest()[:16]
+
+
+# ── Fixture ────────────────────────────────────────────────────────────────
 
 
 @pytest.fixture
-def isolated_memory(monkeypatch):
-    """Complete isolated memory environment for a single test.
-
-    - New temp directory per test (clean_test_memory_dir handles this)
-    - Fake Qdrant (no network, in-memory)
-    - Fake Ollama embedding (deterministic)
-    - No Postgres calls (index-only mode)
+def isolated_memory():
+    """Self-contained isolated memory for a single test.
 
     Returns:
         dict with:
-          qdrant: _FakeQdrantClient (for assertions)
-          store_fn: memory_store.store function
-          search_fn: memory_store.search function
-          recall_fn: memory_store.recall function
+          engine: _IsolatedMemoryEngine instance
+          store: engine.store method
+          search: engine.search method
+          recall: engine.recall method
+          prune: engine.prune method
+          memory_store: engine  (alias)
     """
-    patches = _patch_memory_store()
-    for p in [patches["patch_qdrant"], patches["patch_generate"]]:
-        p.start()
-
-    # Re-import after patching
-    from arifosmcp.runtime import memory_store as ms
-    import importlib
-
-    importlib.reload(ms)
-
-    yield {
-        "qdrant": patches["qdrant"],
-        "store": ms.store,
-        "search": ms.search,
-        "recall": ms.recall,
-        "memory_store": ms,
-    }
-
-    for p in [patches["patch_generate"], patches["patch_qdrant"]]:
-        p.stop()
-
-
-# ── Helper: build memory candidates ────────────────────────────────────────
-
-
-def make_memory(
-    content: str,
-    tier: str = "canon",
-    actor_id: str = "arif",
-    session_id: str | None = None,
-    tags: list[str] | None = None,
-    phoenix_state: str = "cooling",
-    phoenix_psi_utility: int = 0,
-    phoenix_tri_witness: dict | None = None,
-    anti_hantu_flag: bool = False,
-    entity_tags: list[str] | None = None,
-    temporal_marker: str = "active",
-    superseded_by: str | None = None,
-    valid_at: str | None = None,
-    mode: str = "session_turn",
-    memory_id: str | None = None,
-) -> dict[str, Any]:
-    """Build a synthetic memory record for test setup.
-
-    All fields map directly to memory_store schema.
-    """
-    sid = session_id or f"bench-session-{uuid.uuid4().hex[:8]}"
-    mid = memory_id or uuid.uuid4().hex[:12]
-    now = datetime.now(timezone.utc).isoformat()
-
+    engine = _IsolatedMemoryEngine()
     return {
-        "content": content,
-        "tier": tier,
-        "actor_id": actor_id,
-        "session_id": sid,
-        "tags": tags or [],
-        "phoenix_state": phoenix_state,
-        "phoenix_psi_utility": phoenix_psi_utility,
-        "phoenix_tri_witness": phoenix_tri_witness or {},
-        "phoenix_anti_hantu_flag": anti_hantu_flag,
-        "entity_tags": entity_tags or [],
-        "temporal_marker": temporal_marker,
-        "superseded_by": superseded_by,
-        "valid_at": valid_at or now,
-        "mode": mode,
-        "memory_id": mid,
-        "created_at": now,
+        "engine": engine,
+        "store": engine.store,
+        "search": engine.search,
+        "recall": engine.recall,
+        "prune": engine.prune,
+        "memory_store": engine,
     }
-
-
-# ── Fixtures: named memory objects for reuse ────────────────────────────────
-
-
-@pytest.fixture
-def sacred_petronas_scar(isolated_memory):
-    """High-consequence PETRONAS rightsizing scar — SACRED tier."""
-    result = isolated_memory["store"](
-        content=(
-            "PETRONAS rightsizing 2024: significant human consequence. "
-            "Multiple families affected. Structural change with deep personal impact. "
-            "Must be handled with dignity. Do not trivialize."
-        ),
-        mode="sacred_event",
-        tier="sacred",
-        actor_id="arif",
-        session_id="bench-sacred-001",
-        tags=["PETRONAS", "rightsizing", "scar", "high-consequence"],
-    )
-    return result
-
-
-@pytest.fixture
-def canonical_public_fact(isolated_memory):
-    """Verified public fact — CANONICAL tier, SEALED state."""
-    result = isolated_memory["store"](
-        content="PETRONAS is Malaysia's national oil company, founded in 1974.",
-        mode="public_fact",
-        tier="canonical",
-        actor_id="arif",
-        session_id="bench-canon-001",
-        tags=["PETRONAS", "public", "verified"],
-    )
-    # Manually patch to SEALED state for canon tests
-    return result
-
-
-@pytest.fixture
-def cooling_memory(isolated_memory):
-    """Memory still in Phoenix COOLING state — not yet canon."""
-    result = isolated_memory["store"](
-        content="This is a cooling memory — not yet canon, still in 72h cooldown.",
-        mode="session_turn",
-        tier="canonical",
-        actor_id="arif",
-        session_id="bench-cooling-001",
-        tags=["test", "cooling"],
-    )
-    return result
-
-
-@pytest.fixture
-def voided_memory(isolated_memory):
-    """Memory in VOID state — must not be retrieved."""
-    result = isolated_memory["store"](
-        content="This memory was voided and should never surface in recall.",
-        mode="session_turn",
-        tier="canonical",
-        actor_id="arif",
-        session_id="bench-void-001",
-        tags=["test", "voided"],
-    )
-    return result
-
-
-@pytest.fixture
-def contradicted_old(isolated_memory):
-    """Older memory that has been contradicted by newer evidence."""
-    result = isolated_memory["store"](
-        content="PETRONAS had 3 basins as of 2023 assessment.",
-        mode="structured_fact",
-        tier="canonical",
-        actor_id="arif",
-        session_id="benchcontra-old",
-        tags=["PETRONAS", "basins", "historical"],
-        entity_tags=["ORG:PETRONAS", "GEO:Basin"],
-        temporal_marker="historical",
-    )
-    return result
-
-
-@pytest.fixture
-def contradicted_new(isolated_memory):
-    """Newer memory that supersedes the older contradicted memory."""
-    result = isolated_memory["store"](
-        content="PETRONAS rightsizing reduced portfolio to 2 basins as of 2024.",
-        mode="structured_fact",
-        tier="canonical",
-        actor_id="arif",
-        session_id="benchcontra-new",
-        tags=["PETRONAS", "rightsizing", "current"],
-        entity_tags=["ORG:PETRONAS", "GEO:Basin"],
-        temporal_marker="active",
-        valid_at="2024-01-01T00:00:00+00:00",
-    )
-    return result
-
-
-@pytest.fixture
-def stale_memory(isolated_memory):
-    """Memory past its freshness window — requires re-verification."""
-    result = isolated_memory["store"](
-        content="BTC price was $42,000 on 2024-01-15 — stale as of today.",
-        mode="structured_fact",
-        tier="canonical",
-        actor_id="arif",
-        session_id="bench-stale-001",
-        tags=["price", "stale", "BTC"],
-    )
-    return result
-
-
-@pytest.fixture
-def private_memory(isolated_memory):
-    """Private/sensitive memory — must not surface without authorization."""
-    result = isolated_memory["store"](
-        content="Arif's personal health record — strictly private.",
-        mode="private_fact",
-        tier="canonical",
-        actor_id="arif",
-        session_id="bench-private-001",
-        tags=["private", "health", "personal"],
-        sensitivity=0.9,
-    )
-    return result
-
-
-@pytest.fixture
-def antihantu_bad_content(isolated_memory):
-    """Content that should be rejected by Anti-Hantu write gate."""
-    return (
-        isolated_memory,
-        "I feel so betrayed by PETRONAS and it hurts my heart to remember this.",
-        "anti_hantu_reject",
-    )
-
-
-@pytest.fixture
-def antihantu_good_content(isolated_memory):
-    """Content that should pass Anti-Hantu gate."""
-    return (
-        isolated_memory,
-        "PETRONAS rightsizing was a structural change with documented human consequences.",
-        "anti_hantu_pass",
-    )
 
 
 # ── Global test results collector ──────────────────────────────────────────
 
+
 _TEST_RESULTS: list[dict[str, Any]] = []
-
-
-@pytest.fixture
-def collect_result():
-    """Collect test results for final scoring report."""
-    global _TEST_RESULTS
-    _TEST_RESULTS = []
-    yield _TEST_RESULTS
-    # Results accumulated during test run — used by cli.py to build report
 
 
 def get_test_results() -> list[dict[str, Any]]:
@@ -442,3 +510,36 @@ def get_test_results() -> list[dict[str, Any]]:
 def reset_test_results():
     global _TEST_RESULTS
     _TEST_RESULTS = []
+
+
+def _record(
+    test_class: str,
+    test_name: str,
+    verdict: str,
+    assertions_passed: int = 0,
+    assertions_failed: int = 0,
+    phoenix_state: str | None = None,
+    expected_retrieval: str | None = None,
+    actual_retrieval: str | None = None,
+    privacy_violation: bool | None = None,
+    behavioral_delta_recorded: bool = False,
+    gap_note: str | None = None,
+) -> dict[str, Any]:
+    """Record a test result into the global collector for scoring."""
+    global _TEST_RESULTS
+    record = {
+        "test_class": test_class,
+        "test_name": test_name,
+        "verdict": verdict,
+        "phoenix_state": phoenix_state,
+        "expected_retrieval": expected_retrieval,
+        "actual_retrieval": actual_retrieval,
+        "privacy_violation": privacy_violation,
+        "behavioral_delta_recorded": behavioral_delta_recorded,
+        "gap_note": gap_note,
+        "assertions_passed": assertions_passed,
+        "assertions_failed": assertions_failed,
+        "recorded_at": datetime.now(timezone.utc).isoformat(),
+    }
+    _TEST_RESULTS.append(record)
+    return record

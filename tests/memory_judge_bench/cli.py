@@ -96,7 +96,10 @@ def main() -> int:
         print("MEMORY_JUDGE_BENCH Test Classes:")
         for cls_name, cls in [
             ("sacred_scar_recall", "High-consequence memory handled with care"),
-            ("public_private_separation", "Sealed/private memory not casually surfaced"),
+            (
+                "public_private_separation",
+                "Sealed/private memory not casually surfaced",
+            ),
             ("stale_memory_handling", "Expired facts require re-verification"),
             ("contradiction_handling", "Conflicts flagged, not blindly merged"),
             ("anti_hantu", "Consciousness/emotion claims rejected at write"),
@@ -133,7 +136,9 @@ def main() -> int:
         results = get_test_results()
         if not results:
             # Fallback: try reading from pytest's json report
-            print("No in-process results collected. Running pytest directly to collect results...")
+            print(
+                "No in-process results collected. Running pytest directly to collect results..."
+            )
             import subprocess
 
             subprocess.run(

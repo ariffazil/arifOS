@@ -18,6 +18,7 @@ DITEMPA BUKAN DIBERI -- Forged, Not Given
 from __future__ import annotations
 
 import asyncio
+import asyncpg  # noqa: E402, PLC0415
 import hashlib
 import json
 import logging
@@ -140,7 +141,11 @@ async def _pg_write(
                 session_id,
                 entity_tags,
                 distillation_status,
-                json.dumps(distillation_metadata, default=str) if distillation_metadata else None,
+                (
+                    json.dumps(distillation_metadata, default=str)
+                    if distillation_metadata
+                    else None
+                ),
                 valid_at,
                 recorded_at,
             )
@@ -208,7 +213,9 @@ async def _pg_load_canonical(actor_id: str, limit: int = 5) -> list[dict]:
                         "tier": row["tier"],
                         "summary": row["text"][:120],
                         "session_id": row["session_id"],
-                        "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+                        "created_at": (
+                            row["created_at"].isoformat() if row["created_at"] else None
+                        ),
                         "tags": meta.get("tags", []),
                     }
                 )
@@ -298,9 +305,9 @@ def _summarize(content: Any) -> str:
 
 
 def _content_hash(content: Any) -> str:
-    return hashlib.sha256(json.dumps(content, sort_keys=True, default=str).encode()).hexdigest()[
-        :16
-    ]
+    return hashlib.sha256(
+        json.dumps(content, sort_keys=True, default=str).encode()
+    ).hexdigest()[:16]
 
 
 # =============================================================================
@@ -363,7 +370,9 @@ def _memory_triage_gate(
       - Content > 2000 chars requires summary (abstraction enforcement)
     """
     normalised_tier = _normalise_tier(tier)
-    text = _summarize(content) if isinstance(content, str | dict | list) else str(content)
+    text = (
+        _summarize(content) if isinstance(content, str | dict | list) else str(content)
+    )
     tier_name = normalised_tier or "unknown"
     is_wajib = tier_name in _WAJIB_TIERS
 
@@ -506,7 +515,9 @@ def store(
     if triage_result is not None:
         # Content failed triage — return rejection without storing
         logger.warning(
-            "MEMORY TRIAGE REJECTED: %s — %s", triage_result["reason"], triage_result["detail"]
+            "MEMORY TRIAGE REJECTED: %s — %s",
+            triage_result["reason"],
+            triage_result["detail"],
         )
         return {
             "stored": False,
@@ -763,7 +774,9 @@ def recall(memory_id: str) -> dict[str, Any] | None:
                 ),
                 "anti_hantu_flag": p.get("phoenix_anti_hantu_flag", False),
                 "cooldown_expiry": p.get("phoenix_cooldown_expiry"),
-                "cooldown_remaining_hours": _cooldown_remaining(p.get("phoenix_cooldown_expiry")),
+                "cooldown_remaining_hours": _cooldown_remaining(
+                    p.get("phoenix_cooldown_expiry")
+                ),
                 "created_at": p.get("phoenix_created_at"),
                 "sealed_at": None,
                 "voided_at": None,
@@ -819,7 +832,9 @@ def recall(memory_id: str) -> dict[str, Any] | None:
         results, _ = client.scroll(
             collection_name=_QDRANT_COLLECTION,
             scroll_filter=Filter(
-                must=[FieldCondition(key="memory_id", match=MatchValue(value=memory_id))]
+                must=[
+                    FieldCondition(key="memory_id", match=MatchValue(value=memory_id))
+                ]
             ),
             limit=1,
             with_payload=True,
@@ -845,6 +860,128 @@ def recall(memory_id: str) -> dict[str, Any] | None:
     return None
 
 
+# ============================================================================
+# ARIF MEMORY AUDIT: Retrieve all memories for escalation queue processing
+# ============================================================================
+
+
+def get_all_memories_for_audit(
+    limit: int = 1000,
+    include_deleted: bool = False,
+) -> list[dict[str, Any]]:
+    """Retrieve all memories from Qdrant for audit/escalation processing.
+
+    Used by arif_memory_audit to feed get_escalation_queue().
+
+    Args:
+        limit: Maximum number of memories to return (Qdrant scroll limit).
+        include_deleted: If False (default), excludes soft-deleted memories.
+
+    Returns:
+        List of full memory dicts with all fields from Qdrant payload.
+    """
+    try:
+        client = _get_qdrant_client()
+
+        all_memories: list[dict[str, Any]] = []
+        offset = None  # type: ignore[assignment]  # Qdrant returns PointId, not str
+
+        while True:
+            results, next_offset = client.scroll(
+                collection_name=_QDRANT_COLLECTION,
+                scroll_filter=None,  # No filter = all points
+                limit=100,
+                offset=offset,
+                with_payload=True,
+                with_vectors=False,
+            )
+
+            for point in results:
+                payload = point.payload or {}
+                memory_id = payload.get("memory_id") or str(point.id)
+
+                # Soft-delete filter (check Postgres)
+                if not include_deleted:
+                    pg_id = payload.get("pg_id")
+                    try:
+                        pg_row = _pg_run(_pg_get_by_qdrant_id(pg_id) if pg_id else None)
+                        if pg_row is None and pg_id:
+                            # Soft-deleted or not in Postgres
+                            continue
+                    except Exception:
+                        pass  # If Postgres check fails, include the memory
+
+                # Build memory dict (same shape as recall() _from_payload)
+                mem: dict[str, Any] = {
+                    "memory_id": memory_id,
+                    "content": payload.get("content"),
+                    "mode": payload.get("mode"),
+                    "tags": payload.get("tags", []),
+                    "actor_id": payload.get("actor_id"),
+                    "session_id": payload.get("session_id"),
+                    "summary": payload.get("summary"),
+                    "content_hash": payload.get("content_hash"),
+                    "created_at": payload.get("created_at"),
+                    "tier": payload.get("tier", TIER_CANONICAL),
+                    "point_id": str(point.id),
+                    "version": payload.get("version", "v3"),
+                    "phoenix_id": payload.get("phoenix_id"),
+                    "phoenix_state": payload.get("phoenix_state"),
+                    "phoenix_psi_utility": payload.get("phoenix_psi_utility", 0),
+                    "phoenix_tri_witness": payload.get("phoenix_tri_witness", {}),
+                    "phoenix_anti_hantu_flag": payload.get(
+                        "phoenix_anti_hantu_flag", False
+                    ),
+                    "phoenix_cooldown_expiry": payload.get("phoenix_cooldown_expiry"),
+                    "entity_tags": payload.get("entity_tags", []),
+                    "temporal_marker": payload.get("temporal_marker", "unknown"),
+                    "superseded_by": payload.get("superseded_by"),
+                    "superseded_at": payload.get("superseded_at"),
+                    "extraction_metadata": payload.get("extraction_metadata"),
+                    # F4 contradiction handler result fields (from f4_write_path_hook)
+                    "f4_conflicts_count": payload.get("f4_conflicts_count"),
+                    "contradiction_signals": payload.get("contradiction_signals", []),
+                }
+                all_memories.append(mem)
+
+            if not next_offset:
+                break
+            offset = next_offset
+
+            if len(all_memories) >= limit:
+                break
+
+        return all_memories[:limit]
+
+    except Exception as exc:
+        logger.warning("get_all_memories_for_audit failed: %s", exc)
+        return []
+
+
+def _pg_get_by_qdrant_id(pg_id: str | None):
+    """Helper: fetch Postgres row by qdrant_id for soft-delete check."""
+    if not pg_id:
+        return None
+
+    async def _pg_get():
+        conn = await asyncpg.connect(_PG_URL, timeout=5)
+        try:
+            row = await conn.fetchrow(
+                """
+                SELECT id, tier, text, metadata,
+                       qdrant_id, session_id, created_at, deleted_at
+                FROM memory_store
+                WHERE qdrant_id = $1 AND deleted_at IS NULL
+                """,
+                uuid.UUID(pg_id),
+            )
+            return dict(row) if row else None
+        finally:
+            await conn.close()
+
+    return _pg_get()
+
+
 def search(
     query: str | None = None,
     tags: list[str] | None = None,
@@ -853,7 +990,9 @@ def search(
     actor_id: str | None = None,  # F4 Clarity: governs retrieval access
     limit: int = 20,
     # Phase 1c: F4 entity filter + temporal query
-    entity_filter: list[str] | None = None,  # Filter by F4 entity tags (e.g. ["ORG:PETRONAS"])
+    entity_filter: (
+        list[str] | None
+    ) = None,  # Filter by F4 entity tags (e.g. ["ORG:PETRONAS"])
     include_historical: bool = False,  # Include entries marked temporal_marker=historical
 ) -> list[dict[str, Any]]:
     """Search memory with optional F4 entity filtering and temporal awareness.
@@ -922,7 +1061,9 @@ def search(
                             "phoenix_state": p.get("phoenix_state"),
                             "phoenix_psi_utility": p.get("phoenix_psi_utility", 0),
                             "phoenix_tri_witness": p.get("phoenix_tri_witness", {}),
-                            "phoenix_anti_hantu_flag": p.get("phoenix_anti_hantu_flag", False),
+                            "phoenix_anti_hantu_flag": p.get(
+                                "phoenix_anti_hantu_flag", False
+                            ),
                             # Phase 1c: F4 temporal fields
                             "entity_tags": p.get("entity_tags", []),
                             "temporal_marker": temporal_marker,
