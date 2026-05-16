@@ -197,6 +197,12 @@ apex.arif-fazil.com {
 	redir https://aaa.arif-fazil.com{uri} 308
 }
 
+# TEMPORARY REDIRECT — legacy hostname kept for compatibility only.
+hermes.arif-fazil.com {
+	import tls_origin
+	redir https://aaa.arif-fazil.com{uri} 308
+}
+
 # ═══════════════════════════════════════════════════════════════════════
 # FEDERATION MCP — GEOX
 # Keep at geox.arif-fazil.com — ChatGPT registered here
