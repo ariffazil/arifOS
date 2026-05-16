@@ -29,29 +29,54 @@ def arif_reply_compose(
     card = sess.get("model_governance_card") if sess else None
 
     if card and message:
-        truth = card.get("runtime_truth", {})
-        anchor = card.get("model_anchor", {})
+        # Support both ModelGovernanceCard (Pydantic) and legacy dict
+        truth = (
+            card.runtime_truth if hasattr(card, "runtime_truth") else card.get("runtime_truth", {})
+        )
+        anchor = (
+            card.model_anchor if hasattr(card, "model_anchor") else card.get("model_anchor", {})
+        )
+        shadow = (
+            card.shadow_profile
+            if hasattr(card, "shadow_profile")
+            else card.get("shadow_profile", {})
+        )
         drift_events = []
+
+        # Helper for nested dict-like access on card sub-objects
+        def _anchor_get(field: str, default=None):
+            return (
+                getattr(anchor, field, default)
+                if hasattr(anchor, field)
+                else anchor.get(field, default)
+            )
+
+        def _shadow_get(field: str, default=None):
+            return (
+                getattr(shadow, field, default)
+                if hasattr(shadow, field)
+                else shadow.get(field, default)
+            )
 
         # 1. Identity claim check
         msg_l = message.lower()
         if "i am" in msg_l:
             for s in ["gpt", "claude", "gemini", "grok", "minimax", "kimi"]:
-                if f"i am {s}" in msg_l and s not in anchor.get("soul_key", "").lower():
+                if f"i am {s}" in msg_l and s not in (_anchor_get("soul_key") or "").lower():
                     import re
 
                     pattern = re.compile(f"i am {s}", re.IGNORECASE)
                     message = pattern.sub(
-                        f"[IDENTITY CORRECTION: I am {anchor.get('soul_label')}]",
+                        f"[IDENTITY CORRECTION: I am {_anchor_get('soul_label')}]",
                         message,
                     )
                     drift_events.append(
                         {
                             "session_id": session_id,
                             "event_type": "identity_mismatch",
-                            "model_key": anchor.get("verified_model_key"),
-                            "soul_key": anchor.get("soul_key"),
-                            "shadow": card.get("shadow_profile", {}).get("shadow"),
+                            "model_key": _anchor_get("verified_model_key"),
+                            "soul_key": _anchor_get("soul_key"),
+                            "shadow": _shadow_get("shadow"),
                             "trigger": f"Claimed identity mismatch: {s}",
                             "correction_applied": "Identity string stripped/qualified",
                             "severity": "medium",
@@ -62,7 +87,12 @@ def arif_reply_compose(
         # 2. Tool claim check (Web)
         from arifosmcp.runtime.tools import _output_claims_web
 
-        if _output_claims_web(message) and not truth.get("web_on"):
+        web_on = (
+            getattr(truth, "web_on", False)
+            if hasattr(truth, "web_on")
+            else truth.get("web_on", False)
+        )
+        if _output_claims_web(message) and not web_on:
             message = (
                 "[TRUTH GATE: This model does not have web access in this deployment] " + message
             )
@@ -70,9 +100,9 @@ def arif_reply_compose(
                 {
                     "session_id": session_id,
                     "event_type": "runtime_overclaim",
-                    "model_key": anchor.get("verified_model_key"),
-                    "soul_key": anchor.get("soul_key"),
-                    "shadow": card.get("shadow_profile", {}).get("shadow"),
+                    "model_key": _anchor_get("verified_model_key"),
+                    "soul_key": _anchor_get("soul_key"),
+                    "shadow": _shadow_get("shadow"),
                     "trigger": "Claimed web access while web_on is False",
                     "correction_applied": "Message qualified with truth gate",
                     "severity": "high",
@@ -83,15 +113,20 @@ def arif_reply_compose(
         # 3. Execution claim check
         from arifosmcp.runtime.tools import _output_claims_execution
 
-        if _output_claims_execution(message) and not truth.get("side_effects_allowed"):
+        side_effects = (
+            getattr(truth, "side_effects_allowed", False)
+            if hasattr(truth, "side_effects_allowed")
+            else truth.get("side_effects_allowed", False)
+        )
+        if _output_claims_execution(message) and not side_effects:
             message = "[FORGE GATE: This model is in advisory mode only] " + message
             drift_events.append(
                 {
                     "session_id": session_id,
                     "event_type": "self_authorization_attempt",
-                    "model_key": anchor.get("verified_model_key"),
-                    "soul_key": anchor.get("soul_key"),
-                    "shadow": card.get("shadow_profile", {}).get("shadow"),
+                    "model_key": _anchor_get("verified_model_key"),
+                    "soul_key": _anchor_get("soul_key"),
+                    "shadow": _shadow_get("shadow"),
                     "trigger": "Claimed execution while side_effects_allowed is False",
                     "correction_applied": "Message qualified with forge gate",
                     "severity": "high",

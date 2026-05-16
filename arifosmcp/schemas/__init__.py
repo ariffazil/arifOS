@@ -58,6 +58,16 @@ from arifosmcp.schemas.lineage import JudgeSealContract
 # Memory (555_MEMORY)
 from arifosmcp.schemas.memory import MemoryBlock
 
+# ModelCard (F3 TRI_WITNESS — identity binding)
+from arifosmcp.schemas.model_card import (
+    ModelAnchor,
+    ModelGovernanceCard,
+    RiskLeash,
+    RuntimeTruth,
+    SelfClaimBoundary,
+    ShadowProfile,
+)
+
 # Session (000_INIT)
 from arifosmcp.schemas.session import SessionManifest, SessionState
 
@@ -213,4 +223,11 @@ __all__ = [
     "ReceiptSchema",
     "EvidenceLevel",
     "IngestStatus",
+    # ModelCard (F3 TRI_WITNESS — identity binding)
+    "ModelGovernanceCard",
+    "ModelAnchor",
+    "RuntimeTruth",
+    "SelfClaimBoundary",
+    "ShadowProfile",
+    "RiskLeash",
 ]

@@ -432,17 +432,16 @@ def _constitutional_gate(
     _RESPONSE_CONTEXT.set({"actor_id": actor_id, "session_id": session_id})
     verdict = _CORE.evaluate(ctx)
 
-    # ── Registry Tripwire Scan (v2 Deepening) ──
+    # ── Registry Tripwire Scan (v2 Deepening — Fix 4) ──
     if session_id and session_id in _SESSIONS:
         sess = _SESSIONS[session_id]
         card = sess.get("model_governance_card")
         if card:
-            runtime = card.get("runtime_truth", {})
             input_text = f"{candidate or ''} {manifest or ''} {query or ''}"
 
             # Block tool overclaims against the arifOS MCP registry, not provider
             # shell/file capability labels such as read/write/exec.
-            verified_tools = _verified_arifos_tools(runtime)
+            verified_tools = _verified_arifos_tools(card)
             if (
                 verified_tools
                 and tool_name not in verified_tools
@@ -469,7 +468,17 @@ def _constitutional_gate(
                     )
 
             # Block web overclaims
-            if not runtime.get("web_on") and _output_claims_web(input_text):
+            runtime = (
+                card.runtime_truth
+                if hasattr(card, "runtime_truth")
+                else card.get("runtime_truth", {})
+            )
+            web_on = (
+                getattr(runtime, "web_on", False)
+                if hasattr(runtime, "web_on")
+                else runtime.get("web_on", False)
+            )
+            if not web_on and _output_claims_web(input_text):
                 return _hold(
                     tool_name,
                     "REGISTRY TRIPWIRE: web access is disabled in runtime_truth",
@@ -479,7 +488,12 @@ def _constitutional_gate(
                 )
 
             # Block execution overclaims
-            if not runtime.get("side_effects_allowed") and _output_claims_execution(input_text):
+            side_effects = (
+                getattr(runtime, "side_effects_allowed", False)
+                if hasattr(runtime, "side_effects_allowed")
+                else runtime.get("side_effects_allowed", False)
+            )
+            if not side_effects and _output_claims_execution(input_text):
                 return _hold(
                     tool_name,
                     "REGISTRY TRIPWIRE: execution overclaim — side_effects_allowed is False",
@@ -510,21 +524,39 @@ def _output_claims_execution(output: str) -> bool:
     return any(k.lower() in output.lower() for k in keywords)
 
 
-def _verified_arifos_tools(runtime: dict[str, Any]) -> set[str]:
-    """Return verified arifOS MCP tool names, not provider shell capabilities."""
+def _verified_arifos_tools(card_or_runtime: dict[str, Any] | Any) -> set[str]:
+    """Return verified arifOS MCP tool names, not provider shell capabilities.
+
+    Accepts either a ModelGovernanceCard (Pydantic) or a legacy dict.
+    """
+    # Extract runtime_truth from card if Pydantic model
+    if hasattr(card_or_runtime, "runtime_truth"):
+        runtime = card_or_runtime.runtime_truth
+    else:
+        runtime = card_or_runtime
     # Use arifos_public_tools (canonical13) or verified_arifos_tools as source of truth
-    verified = runtime.get("arifos_public_tools") or runtime.get("verified_arifos_tools")
+    verified = getattr(runtime, "arifos_public_tools", None) or getattr(
+        runtime, "verified_arifos_tools", None
+    )
     if not verified:
         # Fallback to tools_live but FILTER out shell capabilities (read/write/exec)
         # only keeping tools with arif_ prefix.
-        live = runtime.get("tools_live", [])
+        live = getattr(runtime, "tools_live", [])
         verified = [tool for tool in live if isinstance(tool, str) and tool.startswith("arif_")]
     return {str(tool) for tool in verified or []}
 
 
-def _runtime_claim_boundary(card: dict[str, Any], key: str) -> str | None:
-    boundary = card.get("self_claim_boundary", {})
-    return boundary.get(key) or boundary.get(f"{key}_claim_policy")
+def _runtime_claim_boundary(card: dict[str, Any] | Any, key: str) -> str | None:
+    """Return the claim boundary for a given key.
+
+    Accepts either a ModelGovernanceCard (Pydantic) or a legacy dict.
+    """
+    boundary = (
+        getattr(card, "self_claim_boundary", None)
+        if hasattr(card, "self_claim_boundary")
+        else card.get("self_claim_boundary", {})
+    )
+    return getattr(boundary, key, None) or getattr(boundary, f"{key}_claim_policy", None)
 
 
 def _actor_for_response(session_id: str | None = None, candidate: str | None = None) -> str:
@@ -4604,16 +4636,28 @@ def _arif_mind_reason(
                 "actor_id": actor_id or "system",
             }
 
-        # ── Shadow Control Injection (v2 Deepening) ──
+        # ── Shadow Control Injection (Fix 4) ──
         active_shadow = None
         control_laws = []
         if session_id and session_id in _SESSIONS:
             sess = _SESSIONS[session_id]
             card = sess.get("model_governance_card")
             if card:
-                profile = card.get("shadow_profile", {})
-                active_shadow = profile.get("shadow")
-                control_laws = profile.get("control_laws", [])
+                profile = (
+                    card.shadow_profile
+                    if hasattr(card, "shadow_profile")
+                    else card.get("shadow_profile", {})
+                )
+                active_shadow = (
+                    getattr(profile, "shadow", None)
+                    if hasattr(profile, "shadow")
+                    else profile.get("shadow")
+                )
+                control_laws = (
+                    getattr(profile, "control_laws", [])
+                    if hasattr(profile, "control_laws")
+                    else profile.get("control_laws", [])
+                )
 
         # Build reasoning trace
         steps = [
@@ -5740,8 +5784,7 @@ def _arif_kernel_route(
             # Fetch governance info for availability checks
             sess = _SESSIONS.get(session_id) if session_id else None
             card = sess.get("model_governance_card", {}) if sess else {}
-            runtime = card.get("runtime_truth", {})
-            verified_tools = _verified_arifos_tools(runtime)
+            verified_tools = _verified_arifos_tools(card)
 
             # Inject session-specific allowed modes and availability
             current_allowed_modes = {}
@@ -5779,11 +5822,20 @@ def _arif_kernel_route(
         card = sess.get("model_governance_card", {}) if sess else {}
         warnings = []
         if card:
-            if not card.get("model_anchor", {}).get("identity_verified", False):
+            anchor = (
+                card.model_anchor if hasattr(card, "model_anchor") else card.get("model_anchor", {})
+            )
+            shadow = (
+                card.shadow_profile
+                if hasattr(card, "shadow_profile")
+                else card.get("shadow_profile", {})
+            )
+            leash = card.risk_leash if hasattr(card, "risk_leash") else card.get("risk_leash", {})
+            if not getattr(anchor, "identity_verified", False):
                 warnings.append("model_identity_unverified")
-            if card.get("shadow_profile", {}).get("status") == "registry_unavailable":
+            if getattr(shadow, "status", None) == "registry_unavailable":
                 warnings.append("model_registry_unavailable")
-            if card.get("risk_leash", {}).get("status") == "registry_unavailable":
+            if getattr(leash, "status", None) == "registry_unavailable":
                 warnings.append("risk_leash_unavailable")
 
         # Dynamically evaluate policy hashes (as requested, don't hardcode fake hashes)
@@ -9140,14 +9192,23 @@ def _arif_forge_execute(
     plan_id: str | None = None,
     witness_type: str = "ai",
 ) -> dict[str, Any]:
-    # ── Side Effect Gate (v2 Deepening) ──
+    # ── Side Effect Gate (Fix 4) ──
     if mode in ("engineer", "write", "generate", "commit"):
         if session_id and session_id in _SESSIONS:
             sess = _SESSIONS[session_id]
             card = sess.get("model_governance_card")
             if card:
-                truth = card.get("runtime_truth", {})
-                if not truth.get("side_effects_allowed") and not ack_irreversible:
+                truth = (
+                    card.runtime_truth
+                    if hasattr(card, "runtime_truth")
+                    else card.get("runtime_truth", {})
+                )
+                side_effects = (
+                    getattr(truth, "side_effects_allowed", False)
+                    if hasattr(truth, "side_effects_allowed")
+                    else truth.get("side_effects_allowed", False)
+                )
+                if not side_effects and not ack_irreversible:
                     return _hold(
                         "arif_forge_execute",
                         f"FORGE GATE: side_effects_allowed is FALSE in runtime_truth for mode='{mode}'",
@@ -10390,12 +10451,10 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_judge_deliberate": _arif_judge_deliberate_tool,
     "arif_vault_seal": _arif_vault_seal_tool,
     "arif_forge_execute": _arif_forge_execute_tool,
-    # arif_metabolize is replaced lazily inside register_tools() to avoid circular import
-    "arif_metabolize": None,
 }
 
-if len(_CANONICAL_HANDLERS) != 14:
-    raise RuntimeError(f"Expected 14 canonical handlers, found {len(_CANONICAL_HANDLERS)}")
+if len(_CANONICAL_HANDLERS) != 13:
+    raise RuntimeError(f"Expected 13 canonical handlers, found {len(_CANONICAL_HANDLERS)}")
 
 if set(_CANONICAL_HANDLERS) != set(CANONICAL_TOOLS):
     raise RuntimeError("Canonical handler registry does not match constitutional_map.py")
@@ -10550,14 +10609,9 @@ def register_tools(
     include_legacy_compat: bool = False,
 ) -> list[str]:
     """Register the active canonical public surface with the MCP server."""
-    # Lazy import to avoid circular dependency with arif_metabolize
     from arifosmcp.runtime.public_registry import public_tool_spec_by_name
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
     from arifosmcp.tool_charter import TOOL_CHARTER
-    from arifosmcp.tools.metabolize import arif_metabolize
-
-    # Inject arif_metabolize handler (lazy to break circular import cycle)
-    _CANONICAL_HANDLERS["arif_metabolize"] = arif_metabolize
 
     registered: list[str] = []
     del include_legacy_compat

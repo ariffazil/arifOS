@@ -490,7 +490,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_kernel_route": {
         "name": "arif_kernel_route",
-        "description": "555_ROUTE: Orchestration kernel — routes intent to the correct tool or organ. Call this when: unsure which tool to call, task requires multi-tool sequencing, or delegating to GEOX/WEALTH/WELL. Do NOT call this for direct execution — routing returns a plan, not a result.",  # noqa: E501
+        "description": "555_ROUTE: Routes intent to correct tool or organ. "
+        "Use when unsure which tool to call, task needs multi-tool sequencing, "
+        "or delegating to GEOX/WEALTH/WELL. Returns a plan, not a result.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,

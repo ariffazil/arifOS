@@ -77,15 +77,26 @@ def arif_ops_measure(
     if mode == "health":
         sess = get_session(session_id) if session_id else {}
         card = sess.get("model_governance_card", {}) if sess else {}
-        runtime = card.get("runtime_truth", {})
+        runtime = (
+            card.runtime_truth if hasattr(card, "runtime_truth") else card.get("runtime_truth", {})
+        )
 
         warnings = []
         if card:
-            if not card.get("model_anchor", {}).get("identity_verified", False):
+            anchor = (
+                card.model_anchor if hasattr(card, "model_anchor") else card.get("model_anchor", {})
+            )
+            shadow = (
+                card.shadow_profile
+                if hasattr(card, "shadow_profile")
+                else card.get("shadow_profile", {})
+            )
+            leash = card.risk_leash if hasattr(card, "risk_leash") else card.get("risk_leash", {})
+            if not getattr(anchor, "identity_verified", False):
                 warnings.append("model_identity_unverified")
-            if card.get("shadow_profile", {}).get("status") == "registry_unavailable":
+            if getattr(shadow, "status", None) == "registry_unavailable":
                 warnings.append("model_registry_unavailable")
-            if card.get("risk_leash", {}).get("status") == "registry_unavailable":
+            if getattr(leash, "status", None) == "registry_unavailable":
                 warnings.append("risk_leash_unavailable")
 
         health_payload = {

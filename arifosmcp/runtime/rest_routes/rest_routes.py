@@ -4516,9 +4516,13 @@ def register_rest_routes(
                     "peace2": vitals.get("peace_squared", 0.0),
                     "kappa_r": vitals.get("echo_debt", 0.0),
                     "psi_le": vitals.get("psi_vitality", 0.0),
-                    "witness_human": float(governance_witness.get("human", 0.0)),
-                    "witness_ai": float(governance_witness.get("ai", 0.0)),
-                    "witness_earth": float(governance_witness.get("earth", 0.0)),
+                    "witness_human": float(
+                        governance_witness.get("human", _WITNESS_DEFAULTS["human"])
+                    ),
+                    "witness_ai": float(governance_witness.get("ai", _WITNESS_DEFAULTS["ai"])),
+                    "witness_earth": float(
+                        governance_witness.get("earth", _WITNESS_DEFAULTS["earth"])
+                    ),
                     "avg_latency_ms": 0.0,
                     "tau_confidence_system": float(governance_telemetry.get("confidence") or 0.0),
                     "f2_threshold": float(_FLOOR_DEFAULTS["F2"]),
