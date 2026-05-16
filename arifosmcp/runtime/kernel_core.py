@@ -15,15 +15,15 @@ import logging
 from typing import Any
 
 from arifosmcp.constitutional_map import RiskClass, RiskDecision, preflight
-from arifosmcp.models.verdicts import PipelineStage
-from arifosmcp.runtime.session import get_session_continuity_state
-from arifosmcp.runtime.shadow_defense import ShadowDefense
 from arifosmcp.core.kernel.pattern_registry import PatternRegistry
 from arifosmcp.core.kernel.pattern_selector import PatternSelector
 from arifosmcp.core.kernel.planner import Planner
 from arifosmcp.core.kernel.role_registry import AgentRoleRegistry
 from arifosmcp.core.kernel.tool_registry import ToolContractRegistry
+from arifosmcp.models.verdicts import PipelineStage
 from arifosmcp.runtime.continuity import seal_runtime_envelope
+from arifosmcp.runtime.session import get_session_continuity_state
+from arifosmcp.runtime.shadow_defense import ShadowDefense
 
 logger = logging.getLogger(__name__)
 
@@ -189,8 +189,8 @@ class KernelCore:
         return True, "OK"
 
     async def orchestrate_stage(self, context: dict[str, Any]) -> dict[str, Any]:
-        from arifosmcp.runtime.enforcer import classify_and_route
         from arifosmcp.runtime.dispatcher import get_tool_handler
+        from arifosmcp.runtime.enforcer import classify_and_route
 
         query = context.get("query", "")
         actor_id = context.get("actor_id", "anonymous")
@@ -274,7 +274,7 @@ class KernelCore:
 
             if not g02_result.ok:
                 logger.warning(
-                    f"[G02] Blocked: {tool_name} → {g02_result.verdict} | {g02_result.blocked_reason}"
+                    f"[G02] Blocked: {tool_name} → {g02_result.verdict} | {g02_result.blocked_reason}"  # noqa: E501
                 )
                 return self._router_error(
                     code=f"G02_{g02_result.verdict}",
@@ -293,9 +293,7 @@ class KernelCore:
 
             axis_val = getattr(g02_result.target_axis, "value", str(g02_result.target_axis))
             op_val = getattr(g02_result.operation_class, "value", str(g02_result.operation_class))
-            logger.info(
-                f"[G02] Allowed: {tool_name} → {axis_val}/{op_val}"
-            )
+            logger.info(f"[G02] Allowed: {tool_name} → {axis_val}/{op_val}")
 
         except ImportError:
             # G02 not available — degrade gracefully (old runtime)

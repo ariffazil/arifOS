@@ -23,14 +23,13 @@ import uuid
 from collections.abc import AsyncGenerator
 from typing import Any
 
-from aiohttp import web
-
 from a2a_aligned import (
     AGENT_CARDS,
     ORTHOGONALITY_ROUTING,
     A2AMessage,
     can_route,
 )
+from aiohttp import web
 
 # =============================================================================
 # AGENT IMPLEMENTATIONS

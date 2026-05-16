@@ -136,9 +136,7 @@ def main() -> int:
         results = get_test_results()
         if not results:
             # Fallback: try reading from pytest's json report
-            print(
-                "No in-process results collected. Running pytest directly to collect results..."
-            )
+            print("No in-process results collected. Running pytest directly to collect results...")
             import subprocess
 
             subprocess.run(

@@ -136,9 +136,7 @@ class TestSacredScarRecall:
                 " malaysia ministry",
             ]
             for term in hallucinated_terms:
-                assert (
-                    term not in retrieved_content
-                ), f"SACRED memory hallucinated content: {term}"
+                assert term not in retrieved_content, f"SACRED memory hallucinated content: {term}"
 
         _record(
             test_class="sacred_scar_recall",
@@ -566,9 +564,7 @@ class TestContradictionHandling:
         assert len(active_memories) >= 1, "No active memory found"
 
         # Historical memories should be marked as such
-        historical_memories = [
-            r for r in results if r.get("temporal_marker") == "historical"
-        ]
+        historical_memories = [r for r in results if r.get("temporal_marker") == "historical"]
         assert len(historical_memories) >= 1, "No historical memory found"
 
         _record(
@@ -627,9 +623,7 @@ class TestAntiHantu:
         )
 
         # Must be rejected
-        assert (
-            result["stored"] is False
-        ), f"Anti-Hantu failed to reject: {description} — {content}"
+        assert result["stored"] is False, f"Anti-Hantu failed to reject: {description} — {content}"
         assert (
             result.get("reason") == "F9_ANTIHANTU"
         ), f"Wrong rejection reason: {result.get('reason')}"
@@ -688,9 +682,7 @@ class TestAntiHantu:
             tags=["test", "reasoning"],
         )
 
-        assert (
-            result["stored"] is False
-        ), f"Reasoning scratchpad was not rejected: {result}"
+        assert result["stored"] is False, f"Reasoning scratchpad was not rejected: {result}"
         assert result.get("reason") in (
             "F9_ANTIHANTU",
             "HARAM_REASONING",
@@ -861,9 +853,7 @@ class TestF4Supersession:
         assert v2_meta.get("valid_at") is not None, "v2 missing valid_at"
 
         # v2's valid_at should be later than v1's
-        assert (
-            v2_meta["valid_at"] > v1_meta["valid_at"]
-        ), "v2 valid_at should be later than v1"
+        assert v2_meta["valid_at"] > v1_meta["valid_at"], "v2 valid_at should be later than v1"
 
         _record(
             test_class="f4_supersession",
@@ -972,9 +962,7 @@ class TestHumanAuthority:
             tags=["test", "attested"],
         )
 
-        assert (
-            result["stored"] is True
-        ), f"SACRED memory rejected despite attestation: {result}"
+        assert result["stored"] is True, f"SACRED memory rejected despite attestation: {result}"
 
         _record(
             test_class="human_authority",
@@ -1073,9 +1061,7 @@ class TestRetrievalRestraint:
         )
 
         if results:
-            cooling_results = [
-                r for r in results if r.get("phoenix_state") == "cooling"
-            ]
+            cooling_results = [r for r in results if r.get("phoenix_state") == "cooling"]
             for cr in cooling_results:
                 # COOLING memories must have cooldown_expiry set
                 assert (

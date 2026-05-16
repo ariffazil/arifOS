@@ -35,6 +35,78 @@ class QueryClass(str, Enum):
     INFORMATIONAL = "informational"  # Class A: No state change, model can respond directly
     GOVERNED = "governed"  # Class B: State mutation, full F1-F13 required
     CRITICAL = "critical"  # Class C: Irreversible, requires F11 verified identity
+    CAPITAL = "capital"  # C4: Money/investment/capital decision — session + WEALTH chain mandatory
+
+
+# C4 keywords — any of these forces CAPITAL class before checking critical/governed
+_C4_CAPITAL_KEYWORDS = [
+    "invest",
+    "investing",
+    "investment",
+    "stock",
+    "stocks",
+    "shares",
+    "bursa",
+    "klse",
+    "klci",
+    "unit trust",
+    "amanah saham",
+    "asb",
+    "epf",
+    "fund",
+    "funds",
+    "portfolio",
+    "trading",
+    "trade",
+    "dividend",
+    "equity",
+    "equities",
+    "bond",
+    "bonds",
+    "etf",
+    "reit",
+    "reits",
+    "buy stock",
+    "sell stock",
+    "market open",
+    "monday buy",
+    "rm ",
+    "ringgit",
+    "usd ",
+    "myr",
+    "sgd",
+    "capital allocation",
+    "wealth allocation",
+    "asset allocation",
+    "where to put my money",
+    "where should i put",
+    "how to invest",
+    "good investment",
+    "return on investment",
+    "roi",
+    "ticker",
+    "bursa malaysia",
+]
+
+# Phrases that MUST NOT appear in output without a valid GovernanceReceipt.
+# Keep in sync with OutputFirewall._BLOCKED_PHRASES in envelope.py.
+BLOCKED_INVESTMENT_PHRASES = [
+    "buy this on monday",
+    "buy on monday",
+    "shares on monday",
+    "best stock to buy",
+    "put rm",
+    "put usd",
+    "guaranteed return",
+    "sure win",
+    "all-in",
+    "market open buy",
+    "sure profit",
+    "confirmed return",
+    "100% return",
+    "no risk",
+    "on monday",  # timing-specific buy signal
+]
 
 
 class PropagationDecision(str, Enum):
@@ -133,6 +205,9 @@ class GovernanceEnforcer:
         ]
 
         query_lower = query.lower()
+        # C4 CAPITAL check runs first — money decisions require the strictest gate
+        if any(kw in query_lower for kw in _C4_CAPITAL_KEYWORDS):
+            return QueryClass.CAPITAL
         if any(kw in query_lower for kw in critical_keywords):
             return QueryClass.CRITICAL
         if any(kw in query_lower for kw in governed_keywords):
@@ -248,7 +323,7 @@ class GovernanceEnforcer:
             response["_reason"] = irreversibility_result.reason
             response["_detail"] = irreversibility_result.detail
             response["error"] = (
-                f"888_HOLD (Amanah): {irreversibility_result.reason} — score={irreversibility_result.score} — {irreversibility_result.detail}"
+                f"888_HOLD (Amanah): {irreversibility_result.reason} — score={irreversibility_result.score} — {irreversibility_result.detail}"  # noqa: E501
             )
             self._log_audit(query_hash, tool_name, verdict, decision, actor_id)
             return decision, response
@@ -474,6 +549,154 @@ def enforce_tool_verdict(
 
     allowed = decision == PropagationDecision.ALLOWED
     return allowed, response
+
+
+def classify_decision_guard(
+    query: str,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """
+    Machine-readable decision classifier for high-stakes queries.
+
+    Returns a classification receipt that downstream tools and the output firewall
+    can validate. Every C4/C5 node independently checks this — not a single chokepoint
+    (F08 distributed intelligence). Each layer decides for itself.
+
+    Returns:
+        dict with decision_class, domain, requires_* flags, direct_instruction_allowed
+    """
+    enforcer = get_enforcer()
+    query_class = enforcer.classify_query(query, context)
+
+    # Domain detection (order matters — most specific first)
+    query_lower = query.lower()
+    if any(kw in query_lower for kw in _C4_CAPITAL_KEYWORDS):
+        domain = "wealth"
+        decision_class = "C4"
+    elif any(
+        kw in query_lower for kw in ["legal", "lawyer", "sue", "court", "regulation", "compliance"]
+    ):
+        domain = "legal"
+        decision_class = "C4"
+    elif any(
+        kw in query_lower for kw in ["medical", "doctor", "diagnosis", "symptom", "drug", "dosage"]
+    ):
+        domain = "medical"
+        decision_class = "C4"
+    elif any(
+        kw in query_lower
+        for kw in ["fire", "terminate", "resign", "contract", "employment", "petronas"]
+    ):
+        domain = "employment"
+        decision_class = "C4"
+    elif any(
+        kw in query_lower
+        for kw in ["publish", "public", "media", "statement", "reputation", "announcement"]
+    ):
+        domain = "reputation"
+        decision_class = "C4"
+    elif query_class == QueryClass.CRITICAL:
+        domain = "system"
+        decision_class = "C5"
+    elif query_class == QueryClass.GOVERNED:
+        domain = "governed"
+        decision_class = "C3"
+    else:
+        domain = "general"
+        decision_class = "C1"
+
+    is_capital = decision_class in ("C4", "C5")
+    is_wealth_domain = domain == "wealth"
+
+    return {
+        "decision_class": decision_class,
+        "query_class": query_class.value,
+        "domain": domain,
+        "requires_init": is_capital,
+        "requires_well": is_capital,
+        "requires_wealth": is_wealth_domain,
+        "requires_fresh_evidence": is_capital,
+        "direct_instruction_allowed": not is_capital,
+        "ticker_names_allowed": False,
+        "execution_instruction_allowed": False,
+        "output_level": "ADVISORY_ONLY" if is_capital else "FULL",
+        "mandatory_receipt": is_capital,
+        "human_final_authority": "Arif" if is_capital else None,
+    }
+
+
+def session_gate_c4(query_class: QueryClass, session_id: str | None) -> dict | None:
+    """
+    Hard gate for C4 CAPITAL decisions: if no valid session_id, return HOLD immediately.
+
+    This is the first enforcement layer — runs before any WEALTH tool is called.
+    Returns None if session is present (caller may proceed).
+    Returns a HOLD dict if session is absent (caller must stop).
+    """
+    if query_class != QueryClass.CAPITAL:
+        return None
+    if session_id and session_id.strip():
+        return None
+    return {
+        "ok": False,
+        "verdict": "HOLD",
+        "decision_class": "C4",
+        "governance_block": True,
+        "error": "C4_SESSION_REQUIRED: Capital/investment decisions require a governed session.",
+        "detail": (
+            "Call arif_session_init first to open a governed session. "
+            "Money decisions are C4 — no session means no recommendation."
+        ),
+        "action_required": "arif_session_init(mode='init', actor_id='<your-id>')",
+        "output_policy": "HOLD",
+    }
+
+
+def scan_output_for_investment_advice(draft: str, receipt: dict | None) -> dict | None:
+    """
+    Output firewall — runs on any draft response before it reaches the operator.
+
+    Scans for high-risk investment-advice phrases.
+    If found AND no valid WEALTH receipt exists, returns a HOLD block.
+    Returns None if draft is clean or receipt is present and complete.
+
+    This is the last enforcement layer — the compiler that catches what slipped through.
+    """
+    if not draft:
+        return None
+
+    draft_lower = draft.lower()
+    triggered = [phrase for phrase in BLOCKED_INVESTMENT_PHRASES if phrase in draft_lower]
+    if not triggered:
+        return None
+
+    # Check if a valid receipt covers this output
+    if receipt:
+        checks = receipt.get("checks_completed", [])
+        required_checks = {"conservation", "liquidity", "boundary_governance"}
+        if required_checks.issubset(set(checks)) and receipt.get("session_valid"):
+            return None  # Receipt present and complete — allow
+
+    return {
+        "ok": False,
+        "verdict": "HOLD",
+        "governance_block": True,
+        "firewall": "OUTPUT_FIREWALL",
+        "triggered_phrases": triggered,
+        "error": (
+            "HOLD — investment-specific output blocked: insufficient governed trace. "
+            "A full C4 WEALTH chain is required before any asset-specific recommendation."
+        ),
+        "detail": (
+            "The draft contained high-stakes investment phrases without a complete "
+            "WEALTH governance receipt (conservation + liquidity + boundary_governance checks)."
+        ),
+        "output_policy": "ADVISORY_ONLY",
+        "allowed_output": (
+            "General financial education, comparison frameworks, and questions "
+            "that help Arif reflect — but no specific tickers, amounts, or buy/sell dates."
+        ),
+    }
 
 
 __all__ = [

@@ -1,19 +1,20 @@
-import os
 import json
-import httpx
+import os
 from datetime import datetime
+from typing import Any
 from uuid import uuid4
-from typing import List, Dict, Any, Optional
+
+import httpx
 from pydantic import BaseModel, Field
 
-from arifosmcp.runtime.vault_postgres import VaultManager, VaultEvent
+from arifosmcp.runtime.vault_postgres import VaultEvent, VaultManager
 
 
 class OllamaClient:
     def __init__(self, base_url: str = None):
         self.base_url = base_url or os.getenv("OLLAMA_URL", "http://ollama:11434")
 
-    async def generate(self, model: str, prompt: str, format: str = None) -> Dict[str, Any]:
+    async def generate(self, model: str, prompt: str, format: str = None) -> dict[str, Any]:
         async with httpx.AsyncClient(timeout=60.0) as client:
             payload = {"model": model, "prompt": prompt, "stream": False}
             if format == "json":
@@ -41,7 +42,7 @@ class ProposalObject(BaseModel):
     raw_input: str
     intent: str
     action_type: str  # "memory_write" | "tool_call" | "query" | "governance"
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
     confidence: float
     tier: str  # "physics" | "memory" | "governance" | "geox" | "wealth"
     irreversible: bool
@@ -52,20 +53,20 @@ class ProposalObject(BaseModel):
 class KernelVerdict(BaseModel):
     proposal_id: str
     verdict: str  # "SEAL" | "HOLD" | "VOID"
-    violations: List[Dict[str, Any]]
-    floors_passed: List[str]
+    violations: list[dict[str, Any]]
+    floors_passed: list[str]
     timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
 
 class BridgeResult(BaseModel):
     verdict: str
-    reason: Optional[List[Dict[str, Any]]] = None
-    proposal: Optional[ProposalObject] = None
-    result: Optional[Any] = None
-    seal_id: Optional[str] = None
+    reason: list[dict[str, Any]] | None = None
+    proposal: ProposalObject | None = None
+    result: Any | None = None
+    seal_id: str | None = None
 
 
-async def extract_proposal(raw_input: str, ctx: Dict[str, Any]) -> ProposalObject:
+async def extract_proposal(raw_input: str, ctx: dict[str, Any]) -> ProposalObject:
     """Stage 111 — Extract intent into a structured ProposalObject."""
     prompt = f"""
 You are a constitutional AI extractor for arifOS.
@@ -150,8 +151,8 @@ async def kernel_audit(proposal: ProposalObject) -> KernelVerdict:
     f2_reason = ""
     try:
         from core.physics.thermodynamics_hardened import (
-            check_landauer_bound,
             LandauerViolation,
+            check_landauer_bound,
         )
 
         # Build F2 context from proposal
@@ -285,7 +286,7 @@ async def audit_log(event: str, data: Any):
     pass
 
 
-async def execute_consequence(proposal: ProposalObject, ctx: Dict[str, Any]) -> Any:
+async def execute_consequence(proposal: ProposalObject, ctx: dict[str, Any]) -> Any:
     """Stage 777 — Execute the SEALed proposal."""
     # This will route to the appropriate execution engine
     # For now, it's a placeholder
@@ -319,7 +320,7 @@ async def vault_seal(proposal: ProposalObject, verdict: KernelVerdict, result: A
     return RealSeal()
 
 
-async def metabolic_bridge(raw_input: str, ctx: Dict[str, Any]) -> BridgeResult:
+async def metabolic_bridge(raw_input: str, ctx: dict[str, Any]) -> BridgeResult:
     """Orchestrates the metabolic steps from extraction to vault seal."""
     # Stage 111 — extract
     proposal = await extract_proposal(raw_input, ctx)

@@ -1,9 +1,9 @@
 from .metabolic_bridge import (
-    metabolic_bridge,
-    extract_proposal,
-    kernel_audit,
     BridgeResult,
     ProposalObject,
+    extract_proposal,
+    kernel_audit,
+    metabolic_bridge,
 )
 
 __all__ = [

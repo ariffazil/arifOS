@@ -21,6 +21,9 @@ Version: 2026.04.06-HARDENED
 
 from __future__ import annotations
 
+import logging
+from typing import Any
+
 from arifosmcp.runtime.belief import update_belief
 from arifosmcp.runtime.enforcer import (
     QueryClass,
@@ -29,9 +32,6 @@ from arifosmcp.runtime.enforcer import (
     get_enforcer,
 )
 from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
-
-import logging
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -204,7 +204,7 @@ class HardenedKernelRouter:
             # Try legacy alias resolution before declaring not found
             handler = get_tool_handler(tool_name)
         if not handler:
-            # Return structured error envelope — NOT VOID (VOID is a governance verdict, not a dispatch failure)
+            # Return structured error envelope — NOT VOID (VOID is a governance verdict, not a dispatch failure)  # noqa: E501
             return RuntimeEnvelope(
                 tool=tool_name,
                 stage="555_ROUTE",

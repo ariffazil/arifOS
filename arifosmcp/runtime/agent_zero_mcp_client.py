@@ -23,7 +23,6 @@ from typing import Any
 from urllib.parse import urljoin
 
 import httpx
-
 from mcp.types import CallToolResult, ListToolsResult
 
 logger = logging.getLogger(__name__)

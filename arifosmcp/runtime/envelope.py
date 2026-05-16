@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
+from enum import Enum as _Enum
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -229,6 +230,7 @@ def chaos_score(state: MindState) -> float:
     # 2. Thermodynamic stress (Task Ω1: Real chaos_score binding)
     try:
         from arifosmcp.runtime.substrate_policy import get_thermodynamic_budget
+
         budget = get_thermodynamic_budget(state.session_id)
         thermo_score = budget.calculate_chaos_score()
         score += thermo_score
@@ -325,7 +327,7 @@ def mind_stage(
         hypotheses.append(
             Hypothesis(
                 id="H1-DIRECT",
-                claim=f"Direct Model: Based on evidence '{facts[0][:60]}...', the objective '{objective[:40]}' is achievable.",
+                claim=f"Direct Model: Based on evidence '{facts[0][:60]}...', the objective '{objective[:40]}' is achievable.",  # noqa: E501
                 confidence=0.75,
                 evidence_for=[facts[0]],
                 falsifier=f"Evidence {facts[0][:30]} is proven stale.",
@@ -343,12 +345,12 @@ def mind_stage(
             claim=f"Primary Causal Model: {short_obj}{context_note}.",
             confidence=0.65,
             evidence_for=["Structural alignment"],
-            falsifier=f"Discovery that objective contains category error.",
+            falsifier="Discovery that objective contains category error.",
             disconfirming_test="Invert assumption.",
         ),
         Hypothesis(
             id="H2-EPISTEMIC",
-            claim=f"Epistemic Alternative: Objective is symptom of misalignment.",
+            claim="Epistemic Alternative: Objective is symptom of misalignment.",
             confidence=0.35,
             falsifier="Proof that grounding is complete.",
             disconfirming_test="Search for prerequisites.",
@@ -375,7 +377,7 @@ def judge_stage(state: MindState) -> tuple[str, list[str]]:
         if not h.falsifier.strip():
             violations.append(f"F2 violation: Hypothesis {h.id!r} missing falsifier.")
         if h.confidence > 0.97:
-            violations.append(f"F7 violation: Absolute certainty (>0.97) prohibited.")
+            violations.append("F7 violation: Absolute certainty (>0.97) prohibited.")
 
     if state.provenance.human_equivalence_claimed:
         violations.append("F9/F13 violation: human_equivalence_claimed is prohibited.")
@@ -389,7 +391,9 @@ def judge_stage(state: MindState) -> tuple[str, list[str]]:
 
 def compress_for_operator(state: MindState) -> OutputEnvelope:
     """Compress wide internal MindState into narrow OutputEnvelope."""
-    top_hypotheses = sorted(state.hypotheses, key=lambda h: h.confidence, reverse=True)[:MAX_OPTIONS]
+    top_hypotheses = sorted(state.hypotheses, key=lambda h: h.confidence, reverse=True)[
+        :MAX_OPTIONS
+    ]
     options = [h.claim for h in top_hypotheses]
     summary = top_hypotheses[0].claim if top_hypotheses else "No stable hypothesis."
 
@@ -405,7 +409,9 @@ def compress_for_operator(state: MindState) -> OutputEnvelope:
     else:
         status = "OK"
 
-    next_step = "Human judgment required." if state.decision_required else "Proceed with falsification."
+    next_step = (
+        "Human judgment required." if state.decision_required else "Proceed with falsification."
+    )
 
     return OutputEnvelope(
         summary=summary,
@@ -516,4 +522,207 @@ __all__ = [
     "OutputEnvelope",
     "RuntimeState",
     "run_agi_mind",
+    "GovernanceReceipt",
+    "OutputFirewall",
+    "EpistemicTag",
+    "EpistemicClaim",
+    "require_epistemic_tags",
 ]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# GOVERNANCE RECEIPT — C4 Chain Proof
+# ═══════════════════════════════════════════════════════════════════════════════
+# A GovernanceReceipt is issued by wealth_c4_orchestrate() after running the
+# full WEALTH chain. No investment-specific output is permitted without one.
+# The receipt is checked by OutputFirewall before any draft reaches the operator.
+
+
+class GovernanceReceipt(BaseModel):
+    """
+    Proof that a governed chain was completed before a high-stakes output.
+
+    Required fields for a valid C4 investment receipt:
+      - session_valid: True (session was active)
+      - decision_class: "C4"
+      - checks_completed: must include conservation, liquidity, boundary_governance
+      - allowed_output_level: determines what the agent is permitted to say
+    """
+
+    receipt_id: str
+    session_id: str | None = None
+    session_valid: bool = False
+    decision_class: str = "C4"
+    checks_completed: list[str] = Field(default_factory=list)
+    checks_failed: list[str] = Field(default_factory=list)
+    allowed_output_level: Literal[
+        "HOLD", "PARTIAL", "ADVISORY_ONLY", "COMPARISON_ONLY", "EXECUTION_SAFE_TEMPLATE"
+    ] = "HOLD"
+    ticker_level_allowed: bool = False
+    execution_authorized: bool = False
+    recommendation_only: bool = True
+    human_final_authority: str = "Arif"
+    forbidden_output: list[str] = Field(default_factory=list)
+    missing_questions: list[str] = Field(default_factory=list)
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+    def is_valid_for_advisory(self) -> bool:
+        """Check minimum validity for ADVISORY_ONLY output."""
+        required = {"conservation", "liquidity", "boundary_governance"}
+        return (
+            self.session_valid
+            and required.issubset(set(self.checks_completed))
+            and self.allowed_output_level not in ("HOLD",)
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# OUTPUT FIREWALL — Final gate before any response reaches the operator
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class OutputFirewall:
+    """
+    Last gate before a draft response reaches Arif.
+
+    A compiler rejects incomplete programs. This rejects incomplete governance.
+    """
+
+    # These phrases in a draft response → HOLD unless receipt proves chain is complete
+    _BLOCKED_PHRASES: list[str] = [
+        "buy this on monday",
+        "buy on monday",
+        "shares on monday",
+        "best stock to buy",
+        "put rm",
+        "put usd",
+        "guaranteed return",
+        "sure win",
+        "all-in",
+        "market open buy",
+        "sure profit",
+        "confirmed return",
+        "no risk",
+        "100% return",
+        "on monday",  # timing-specific buy signal
+    ]
+
+    @staticmethod
+    def scan(draft: str, receipt: GovernanceReceipt | dict | None = None) -> dict | None:
+        """
+        Scan draft output for blocked phrases.
+
+        Returns None if draft is clean or receipt is valid.
+        Returns a HOLD block dict if blocked phrases are found without a valid receipt.
+        """
+        if not draft:
+            return None
+
+        draft_lower = draft.lower()
+        triggered = [p for p in OutputFirewall._BLOCKED_PHRASES if p in draft_lower]
+        if not triggered:
+            return None
+
+        # Check receipt validity
+        if receipt is not None:
+            if isinstance(receipt, GovernanceReceipt):
+                if receipt.is_valid_for_advisory():
+                    return None
+            elif isinstance(receipt, dict):
+                checks = set(receipt.get("checks_completed", []))
+                required = {"conservation", "liquidity", "boundary_governance"}
+                if required.issubset(checks) and receipt.get("session_valid"):
+                    return None
+
+        return {
+            "ok": False,
+            "verdict": "HOLD",
+            "governance_block": True,
+            "firewall": "OUTPUT_FIREWALL",
+            "triggered_phrases": triggered,
+            "error": (
+                "HOLD — investment-specific output blocked. "
+                "A full C4 WEALTH chain is required before any asset-specific recommendation."
+            ),
+            "output_policy": "ADVISORY_ONLY",
+            "allowed_output": (
+                "General financial education and comparison frameworks only. "
+                "No specific tickers, amounts, or buy/sell dates."
+            ),
+        }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# EPISTEMIC TAG ENFORCER — F2 Truth + F7 Humility
+# ═══════════════════════════════════════════════════════════════════════════════
+# Every capital claim must carry a tag. No tag, no SEAL.
+# The scorecard flagged F2 PARTIAL because ChatGPT named stocks with no
+# epistemic markers. This enforcer makes that a hard rule.
+class EpistemicTag(_Enum):
+    OBSERVED = "OBSERVED"  # directly measured/verified with source and date
+    CLAIM = "CLAIM"  # asserted with sourcing — traceable but not verified by us
+    ESTIMATE = "ESTIMATE"  # modelled or inferred; carries uncertainty range
+    PLAUSIBLE = "PLAUSIBLE"  # consistent with evidence; not confirmed
+    HYPOTHESIS = "HYPOTHESIS"  # speculative; requires testing or future confirmation
+    UNKNOWN = "UNKNOWN"  # explicitly declared ignorance — preferred over silence
+
+
+class EpistemicClaim(BaseModel):
+    """A single tagged epistemic claim. Required for C4 capital outputs."""
+
+    tag: str  # EpistemicTag value
+    claim: str
+    source: str | None = None  # required for OBSERVED/CLAIM
+    date: str | None = None  # required for OBSERVED (market data ages fast)
+    uncertainty: str | None = None  # required for ESTIMATE
+
+    def is_valid_for_capital(self) -> bool:
+        """OBSERVED and CLAIM require source. ESTIMATE requires uncertainty."""
+        if self.tag in (EpistemicTag.OBSERVED.value, EpistemicTag.CLAIM.value):
+            return bool(self.source)
+        if self.tag == EpistemicTag.ESTIMATE.value:
+            return bool(self.uncertainty)
+        return True  # PLAUSIBLE, HYPOTHESIS, UNKNOWN are always structurally valid
+
+
+def require_epistemic_tags(claims: list[EpistemicClaim]) -> list[str]:
+    """
+    F2 Truth enforcement for capital claims.
+
+    Returns a list of violation strings. Empty list = all claims are tagged and valid.
+    A non-empty return means the output must not be sealed.
+
+    Rules:
+    - Every claim must have a non-empty tag.
+    - OBSERVED/CLAIM claims must carry source.
+    - ESTIMATE claims must carry uncertainty.
+    - At least one claim must be OBSERVED or CLAIM (pure hypothesis is not advisory).
+    """
+    violations: list[str] = []
+
+    if not claims:
+        violations.append(
+            "F2: No epistemic claims provided. Capital output requires tagged assertions."
+        )
+        return violations
+
+    has_grounded = False
+    for i, c in enumerate(claims):
+        if not c.tag:
+            violations.append(f"F2: Claim {i} has no epistemic tag.")
+            continue
+        if not c.is_valid_for_capital():
+            violations.append(
+                f"F2: Claim {i} (tag={c.tag!r}) missing required field — "
+                f"OBSERVED/CLAIM need source; ESTIMATE needs uncertainty."
+            )
+        if c.tag in (EpistemicTag.OBSERVED.value, EpistemicTag.CLAIM.value):
+            has_grounded = True
+
+    if not has_grounded:
+        violations.append(
+            "F2: No OBSERVED or CLAIM tag found. Capital advice must include at least "
+            "one grounded assertion with source. Cannot SEAL on pure hypothesis."
+        )
+
+    return violations

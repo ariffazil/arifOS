@@ -212,7 +212,7 @@ async def _vault_dryrun() -> SubstrateCheckResult:
         vault_path.parent.mkdir(parents=True, exist_ok=True)
         with open(vault_path, "a", encoding="utf-8") as f:
             f.write(test_line)
-        with open(vault_path, "r", encoding="utf-8") as f:
+        with open(vault_path, encoding="utf-8") as f:
             content = f.read()
             if test_line.strip() in content:
                 did_pass = True
@@ -445,7 +445,7 @@ async def emit_substrate_assert_event(result: SubstrateAssertResult) -> None:
     try:
         await seal(
             session_id=result.session_id or "SUBSTRATE_ASSERT",
-            summary=f"SUBSTRATE_ASSERT {result.status}: {result.legibility_state} | gate={result.pipeline_gate}",
+            summary=f"SUBSTRATE_ASSERT {result.status}: {result.legibility_state} | gate={result.pipeline_gate}",  # noqa: E501
             verdict=verdict,
             telemetry=vault_payload,
             source_agent="arifos_kernel",

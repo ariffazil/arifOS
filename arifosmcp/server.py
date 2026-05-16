@@ -194,10 +194,10 @@ try:
     from arifosmcp.prompts import register_prompts
     from arifosmcp.resources import register_resources
     from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, register_tools
+    from arifosmcp.tools.embodied import register_all_arifos_tools
     from arifosmcp.tools.embodied_instances.arif_mind_reason_handler import (
         embodied_mind_reason_handler,
     )
-    from arifosmcp.tools.embodied import register_all_arifos_tools
 
     register_all_arifos_tools()
 
@@ -263,12 +263,13 @@ try:
         ]
     )
     logger.info(
-        "Registered diagnostics: arif_anti_sink_check, institutional_drift_check, arif_stack_health_probe"
+        "Registered diagnostics: arif_anti_sink_check, institutional_drift_check, arif_stack_health_probe"  # noqa: E501
     )
 
     # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
     try:
         from arifosmcp.runtime.workers.memory_janitor import MemoryJanitor
+
         janitor = MemoryJanitor.start(interval_seconds=3600)
         logger.info("Phoenix-72 Memory Janitor: ACTIVE")
     except Exception as e:

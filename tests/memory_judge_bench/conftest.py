@@ -89,9 +89,7 @@ class _FakeQdrantClient:
             self.collections[collection_name] = []
         return {
             "name": collection_name,
-            "config": SimpleNamespace(
-                params=SimpleNamespace(vectors=SimpleNamespace(size=1024))
-            ),
+            "config": SimpleNamespace(params=SimpleNamespace(vectors=SimpleNamespace(size=1024))),
         }
 
     def create_collection(self, collection_name: str, vectors_config) -> None:
@@ -268,9 +266,7 @@ class _IsolatedMemoryEngine:
                     f4_entity_tags.append(f"{prefix}:{m.group()}")
 
         # ── Phoenix-72 mock (always cooling) ────────────────────────────────
-        anti_hantu_flag = bool(
-            re.search(self._HARAM_HANTU[0], content_str, re.IGNORECASE)
-        )
+        anti_hantu_flag = bool(re.search(self._HARAM_HANTU[0], content_str, re.IGNORECASE))
         phoenix_id = f"phx_{memory_id[:12]}"
         cooldown_expiry = (now + timedelta(hours=72)).isoformat()
 

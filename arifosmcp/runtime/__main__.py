@@ -165,6 +165,7 @@ def _run_minimal_stdio_server() -> None:
     # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
     try:
         from .workers.memory_janitor import MemoryJanitor
+
         # Using the same loop if possible, or start it in background
         _async_loop.create_task(MemoryJanitor(interval_seconds=3600).run_loop())
         logging.getLogger("arifosmcp").info("Phoenix-72 Memory Janitor: ACTIVE (stdio)")
