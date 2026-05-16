@@ -357,6 +357,34 @@ async def auto_sync_bundle(
     if actor_id:
         canonical.actor_id = actor_id
 
+    # ── Phase 3: Extract entities + relations from search results ───────────────
+    # Only extract when we have real search results (not when already Canonical)
+    if not isinstance(bundle, CanonicalEvidenceBundle):
+        bundle_results = getattr(bundle, "results", None) or []
+        if bundle_results:
+            try:
+                # Lazy import to avoid circular dependency
+                from arifosmcp.intelligence.tools.relate_bridge import extract_graph
+
+                entities, relations = await extract_graph(
+                    bundle_results=bundle_results,
+                    query=canonical.query,
+                    session_id=canonical.session_id,
+                )
+                if entities:
+                    canonical.entities = entities
+                    sys.stderr.write(
+                        f"[vector_bridge] RELATE extracted {len(entities)} entities, "
+                        f"{len(relations)} relations for bundle {canonical.bundle_id}\n"
+                    )
+                if relations:
+                    canonical.relations = relations
+            except Exception as rel_err:
+                # Non-fatal: entity extraction failure should not block ingest
+                sys.stderr.write(
+                    f"[vector_bridge] RELATE extraction failed (non-fatal): {rel_err}\n"
+                )
+
     canonical.ensure_idempotency_key()
 
     return await ingest_evidence_bundle(
