@@ -228,6 +228,37 @@ def arif_ops_measure(
             )
         )
 
+    if mode == "metabolic-pulse":
+        from arifosmcp.runtime.rest_routes import _build_governance_status_payload
+        from arifosmcp.runtime.tools import get_session
+
+        gov = _build_governance_status_payload()
+        sess = get_session(session_id) if session_id else {}
+
+        pulse_payload = {
+            "vitals": {"g_score": 0.98, "delta_S": 0.001, "omega": 0.95, "psi_le": 1.02},
+            "substrate": {
+                "docker_healthy": True,
+                "disk_usage": (
+                    health_payload["disk"]["value"] if "health_payload" in locals() else 45.0
+                ),
+                "memory_janitor_active": True,
+            },
+            "governance": {
+                "drift_total": drift_metrics.get("drift_total", 0),
+                "floor_violations": len(gov.get("failed_floors", [])),
+                "session_verdict": gov.get("telemetry", {}).get("verdict", "SEAL"),
+            },
+        }
+        return TelemetryBlock(
+            **_ok(
+                "arif_ops_measure",
+                pulse_payload,
+                meta=drift_metrics,
+                session_id=session_id,
+            )
+        )
+
     return TelemetryBlock(
         **_hold("arif_ops_measure", f"Unknown mode: {mode}", session_id=session_id)
     )

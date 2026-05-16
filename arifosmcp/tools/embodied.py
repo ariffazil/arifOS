@@ -582,11 +582,21 @@ ARIFOS_TOOL_CHARTERS = {
         cognitive_axis=CognitiveAxis.SEAL,
         expose=True,
     ),
+    # REMOVED per orthogonal MCP alignment (2026-05-14):
+    # WELL speaks ONLY biological substrate physics.
+    # Constitutional functions moved to autonomic/internal-only in WELL.
+    #   well_reflect_intelligence  → REFLECT/routing (arifOS 444_KERNEL)
+    #   well_guard_dignity         → CRITIQUE/meaning (arifOS 666_HEART)
+    #   well_anchor_evidence       → SEAL/vault (arifOS 999_VAULT)
+    # ── WELL Domain ─────────────────────────────────────────────────────────────
+    # Canonical Ω-WELL tools (SOT: live WELL MCP /root/WELL/server.py)
+    # Updated 2026-05-16: well_compute_metabolic_flux (Ω-WELL-10b) and
+    # well_guard_dignity (Ω-WELL-12) added; descriptions aligned to live MCP.
     "well_classify_substrate": ToolManifest(
         tool_id="well_classify_substrate",
         tool_name="well_classify_substrate",
         domain="WELL",
-        description="Ω-WELL-01: Substrate classification and boundary sensing",
+        description="Ω-WELL-01: Substrate classification and boundary sensing.",
         risk_tier="T0",
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
@@ -605,7 +615,7 @@ ARIFOS_TOOL_CHARTERS = {
         tool_id="well_trace_lineage",
         tool_name="well_trace_lineage",
         domain="WELL",
-        description="Ω-WELL-02: Memory, trend, ledger, and vault chain tracing",
+        description="Ω-WELL-02: Memory, trend, ledger, and vault chain tracing.",
         risk_tier="T0",
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
@@ -623,7 +633,7 @@ ARIFOS_TOOL_CHARTERS = {
         tool_id="well_detect_boundary",
         tool_name="well_detect_boundary",
         domain="WELL",
-        description="Ω-WELL-03: Boundary detection across membrane, body, machine, federation",
+        description="Ω-WELL-03: Boundary detection across membrane, body, machine, and federation.",
         risk_tier="T0",
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
@@ -641,7 +651,7 @@ ARIFOS_TOOL_CHARTERS = {
         tool_id="well_measure_gradient",
         tool_name="well_measure_gradient",
         domain="WELL",
-        description="Ω-WELL-04: Measure chemical, energy, pressure, attention gradients",
+        description="Ω-WELL-04: Measure chemical, energy, pressure, attention, and gradients.",
         risk_tier="T1",
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
@@ -661,7 +671,7 @@ ARIFOS_TOOL_CHARTERS = {
         tool_id="well_assess_metabolism",
         tool_name="well_assess_metabolism",
         domain="WELL",
-        description="Ω-WELL-05: Assess biological metabolism and system throughput",
+        description="Ω-WELL-05: Assess biological metabolism and system throughput.",
         risk_tier="T1",
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
@@ -680,7 +690,7 @@ ARIFOS_TOOL_CHARTERS = {
         tool_id="well_assess_homeostasis",
         tool_name="well_assess_homeostasis",
         domain="WELL",
-        description="Ω-WELL-06: Assess regulation, stability, empathic balance under change",
+        description="Ω-WELL-06: Assess regulation, stability, and empathic balance under change.",
         risk_tier="T1",
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
@@ -694,7 +704,7 @@ ARIFOS_TOOL_CHARTERS = {
         tool_id="well_check_repair",
         tool_name="well_check_repair",
         domain="WELL",
-        description="Ω-WELL-07: Check repair, recovery, resilience, forge cycle integrity",
+        description="Ω-WELL-07: Check repair, recovery, resilience, and forge cycle integrity.",
         risk_tier="T1",
         reversibility="reversible",
         blast_radius=BlastRadius.MEDIUM,
@@ -708,7 +718,7 @@ ARIFOS_TOOL_CHARTERS = {
         tool_id="well_validate_vitality",
         tool_name="well_validate_vitality",
         domain="WELL",
-        description="Ω-WELL-08: Validate vitality, readiness, NIAT, floor compliance",
+        description="Ω-WELL-08: Validate vitality, readiness, NIAT. (Advisory — floors optional.)",
         risk_tier="T1",
         reversibility="reversible",
         blast_radius=BlastRadius.MEDIUM,
@@ -726,7 +736,7 @@ ARIFOS_TOOL_CHARTERS = {
         tool_id="well_assess_livelihood",
         tool_name="well_assess_livelihood",
         domain="WELL",
-        description="Ω-WELL-09: Assess human wellness, role, dignity, support, meaning",
+        description="Ω-WELL-09: Assess human wellness, role, dignity, support, and meaning.",
         risk_tier="T1",
         reversibility="reversible",
         blast_radius=BlastRadius.LOW,
@@ -744,7 +754,7 @@ ARIFOS_TOOL_CHARTERS = {
         tool_id="well_assess_reliability",
         tool_name="well_assess_reliability",
         domain="WELL",
-        description="Ω-WELL-10: Assess machine, tool, institution, operational reliability",
+        description="Ω-WELL-10: Assess machine, tool, institution, and operational reliability.",
         risk_tier="T1",
         reversibility="reversible",
         blast_radius=BlastRadius.MEDIUM,
@@ -754,24 +764,35 @@ ARIFOS_TOOL_CHARTERS = {
         cognitive_axis=CognitiveAxis.VITALITY,
         expose=True,
     ),
-    # REMOVED per orthogonal MCP alignment (2026-05-14):
-    # WELL speaks ONLY biological substrate physics.
-    # Constitutional functions moved to autonomic/internal-only in WELL.
-    #   well_reflect_intelligence  → REFLECT/routing (arifOS 444_KERNEL)
-    #   well_guard_dignity         → CRITIQUE/meaning (arifOS 666_HEART)
-    #   well_anchor_evidence       → SEAL/vault (arifOS 999_VAULT)
-    "mcp_health_check": ToolManifest(
-        tool_id="mcp_health_check",
-        tool_name="mcp_health_check",
-        domain="WEALTH",
-        description="Universal health check for federation stability.",
-        risk_tier="T0",
+    "well_compute_metabolic_flux": ToolManifest(
+        tool_id="well_compute_metabolic_flux",
+        tool_name="well_compute_metabolic_flux",
+        domain="WELL",
+        description="Ω-WELL-10b: Compute metabolic_flux — unified thermodynamic entropy rate.",
+        risk_tier="T1",
         reversibility="reversible",
-        blast_radius=BlastRadius.LOW,
-        required_floors=["F04"],
+        blast_radius=BlastRadius.MEDIUM,
+        required_permissions=[],
+        required_floors=["F04", "F08"],
+        safe_compose_with=["well_assess_reliability", "well_check_repair"],
         cognitive_axis=CognitiveAxis.VITALITY,
-        expose=False,
+        expose=True,
     ),
+    "well_guard_dignity": ToolManifest(
+        tool_id="well_guard_dignity",
+        tool_name="well_guard_dignity",
+        domain="WELL",
+        description="Ω-WELL-12: Guard soul, personhood, meaning, and symbolic boundaries.",
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.MEDIUM,
+        required_permissions=[],
+        required_floors=["F05", "F06", "F09"],
+        safe_compose_with=["well_assess_homeostasis", "well_assess_livelihood"],
+        cognitive_axis=CognitiveAxis.VITALITY,
+        expose=True,
+    ),
+    # ── WEALTH Domain ────────────────────────────────────────────────────────────
     "wealth_conservation_capital": ToolManifest(
         tool_id="wealth_conservation_capital",
         tool_name="wealth_conservation_capital",
