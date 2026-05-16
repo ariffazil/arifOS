@@ -41,6 +41,9 @@ from arifosmcp.runtime.phoenix_72 import (
 from arifosmcp.runtime.f4_contradiction_handler import (  # noqa: E402, PLC0415
     f4_write_path_hook,
 )
+from arifosmcp.runtime.f4_retrieval_policy import (  # noqa: E402, PLC0415
+    integrate_with_search_results,
+)
 
 _MEMORY_DIR = Path(os.getenv("ARIFOS_MEMORY_DIR", "/root/.arifOS/memory"))
 _INDEX_FILE = _MEMORY_DIR / ".qdrant_index.json"
@@ -847,6 +850,7 @@ def search(
     tags: list[str] | None = None,
     mode: str | None = None,
     session_id: str | None = None,
+    actor_id: str | None = None,  # F4 Clarity: governs retrieval access
     limit: int = 20,
     # Phase 1c: F4 entity filter + temporal query
     entity_filter: list[str] | None = None,  # Filter by F4 entity tags (e.g. ["ORG:PETRONAS"])
@@ -961,7 +965,34 @@ def search(
     if not include_historical:
         results = _deduplicate_superseded(results)
 
-    return [r for _, r in results[:limit]]
+    # F4 Retrieval Governance Gate — filter before returning to caller
+    # integrate_with_search_results applies:
+    #   - Tier isolation (session vs sacred vs canon)
+    #   - Evidence confidence floor
+    #   - Relevance threshold
+    #   - Temporal staleness (historical block unless asked)
+    #   - Emotional exaggeration / scar-hijack guard
+    #   - Privacy sensitivity (private memories)
+    #   - Scar distortion detection
+    #   - Contradiction ESCALATE for Arif review
+    raw_mems = [r for _, r in results[:limit]]
+    filtered_mems, _policy_report = integrate_with_search_results(
+        raw_results=raw_mems,
+        actor_id=actor_id,
+        session_id=session_id,
+        query=query or "",
+    )
+    # Log policy report at DEBUG for observability
+    if _policy_report.total_candidates > 0:
+        logger.debug(
+            "F4 Retrieval Governance: %s/%s passed | flagged=%s blocked=%s escalated=%s",
+            len(filtered_mems),
+            _policy_report.total_candidates,
+            _policy_report.flagged,
+            _policy_report.blocked,
+            _policy_report.escalated,
+        )
+    return filtered_mems
 
 
 def _deduplicate_superseded(

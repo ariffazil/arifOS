@@ -271,7 +271,7 @@ def arif_memory_recall(
 
     # ── Recall by query (semantic search without memory_id) ─────────────────
     if mode == "recall" and not memory_id and query:
-        results = memory_search(query=query, session_id=session_id, limit=limit)
+        results = memory_search(query=query, session_id=session_id, actor_id=actor_id, limit=limit)
         hits = [
             {
                 "memory_id": r.get("memory_id", ""),

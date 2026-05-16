@@ -350,6 +350,25 @@ copilot.arif-fazil.com {
     }
 }
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AGENT ZERO — ai.arif-fazil.com
+# Autonomous agent interface. MCP server exposed for arifOS forge integration.
+# Login: https://ai.arif-fazil.com | ROOT_PASSWORD set in compose
+# MCP endpoint: ai.arif-fazil.com:9000 (streamable HTTP MCP)
+# ═══════════════════════════════════════════════════════════════════════════════
+ai.arif-fazil.com {
+    import tls_origin
+    encode zstd gzip
+
+    # Web UI (Flask on port 80 inside container → 50001 host)
+    handle /* {
+        reverse_proxy agent-zero:50001 {
+            header_up Host ai.arif-fazil.com
+        }
+    }
+}
+
 # LEGACY REDIRECTS — old subdomains → main sites
 # ═══════════════════════════════════════════════════════════════════════
 arifosmcp.arif-fazil.com {
