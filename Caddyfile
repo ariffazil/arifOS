@@ -1,7 +1,7 @@
 # arifOS Sovereign Caddyfile
 # DITEMPA BUKAN DIBERI
 # 3 Main Sites: arif-fazil.com | arifos.arif-fazil.com | aaa.arif-fazil.com
-# Federation MCP: arifos (13) | geox (28) | wealth (40+) | well (30+)
+# Federation MCP: arifos (13 canonical) | geox (21) | wealth (17) | well (13 canonical, 77 total)
 # Last reconcile: 2026-05-01
 {
 	admin unix//var/run/caddy-admin.sock

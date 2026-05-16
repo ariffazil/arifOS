@@ -1,7 +1,9 @@
 ﻿# arifOS — Constitutional AI Governance Kernel
 
 > **Status:** SOVEREIGN KERNEL | **Organ:** MIND (Δ) | **Authority:** 888_JUDGE
-> **PyPI:** `arifos` | **GHCR:** `ghcr.io/ariffazil/arifos` | **MCP:** `https://arifosmcp.arif-fazil.com/mcp`
+> **PyPI:** `arifos` | **GHCR:** `ghcr.io/ariffazil/arifos`
+> **MCP (canonical):** `https://arifos.arif-fazil.com/mcp`
+> **MCP (short alias):** `https://mcp.arif-fazil.com/mcp`
 
 ## 🏛️ What this repo is
 
@@ -57,7 +59,7 @@ Sourced from `arifosmcp/tool_registry.json` (`canonical_order`):
 | 999 | `arif_vault_seal` | Immutable Merkle-V3 ledger anchor |
 | 010 | `arif_forge_execute` | Execution bridge (SEAL-gated only) |
 
-> **Note:** `smithery.yaml`, `tool_registry.json`, and this table all agree on 13 canonical tools. The `/.well-known/mcp/server.json` `public_surface` field currently reads `canonical15` — this is a drift discrepancy to remediate.
+> **Note:** `tool_registry.json` and this table agree on **13 constitutional tools**. The `/.well-known/mcp/server.json` `public_surface` field reads `canonical15` — this is intentional: the MCP surface exposes 15 tools (13 constitutional + `arif_ping` + `arif_selftest` probes). `smithery.yaml` also lists 13 because it tracks constitutional tools only.
 
 ## 🚀 Verified Commands
 
@@ -111,4 +113,4 @@ docker run -p 8080:8080 ghcr.io/ariffazil/arifos:latest
 
 ---
 
-*Last Verified: 2026.05.16 | Commit: c79f2465 | 999 SEAL ALIVE*
+*Last Verified: 2026.05.16 | Commit: 656f31f3 | 999 SEAL ALIVE*
