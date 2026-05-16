@@ -70,7 +70,7 @@ class TestBuildCashflowSeries:
 
 class TestCalculateNpv:
     def test_positive_npv(self) -> None:
-        result = calculate_npv(100, [50, 60], 0.1)
+        result = calculate_npv(100, [60, 60], 0.1)  # [60,60] at 10% → NPV ≈ +4.14
         assert result["npv"] is not None
         assert result["npv"] > 0
         assert "INVALID_NPV" not in result["flags"]

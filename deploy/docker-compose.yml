@@ -12,7 +12,7 @@ services:
 
   # ── PLANE 1: GOVERNANCE ─────────────────────────────────────────────
   arifosmcp:
-    image: ghcr.io/ariffazil/arifos:2bda2c6
+    image: ghcr.io/ariffazil/arifos:${DEPLOY_GIT_COMMIT:-latest}
     container_name: arifosmcp
     init: true
     restart: unless-stopped
@@ -20,7 +20,7 @@ services:
     env_file: [.env.decrypted]
     environment:
       ARIFOS_BUILD_TIME: "2026-05-14T11:09:46Z"
-      DEPLOY_GIT_COMMIT: "2bda2c6"
+      DEPLOY_GIT_COMMIT: "${DEPLOY_GIT_COMMIT:-latest}"
       DEPLOY_BUILD_TIME: "2026-05-14T11:09:46Z"
       DEPLOY_GIT_BRANCH: "main"
       ARIFOS_GOVERNANCE_OPEN_MODE: "false"
@@ -372,15 +372,15 @@ services:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8083/health')\""]
       interval: 60s
       start_period: 10s
-# ── HERMES AGENT: ASI Deliberative Server ─────────────────────────────────
+# ── APEX PRIME: ASI Deliberative Server ────────────────────────────────────
   hermes-agent:
-    image: hermes-agent:v1.0.5
-    container_name: hermes-agent
+    image: apex-prime:v1.0.5
+    container_name: apex-prime
     init: true
     restart: unless-stopped
     command: ["node", "src/server.js"]
     env_file:
-      - /root/AAA/.hermes/.env
+      - /root/AAA/.apex/.env
     environment:
       - PORT=3002
       - A2A_TOKEN=hermes-a2a-token-163c4a17

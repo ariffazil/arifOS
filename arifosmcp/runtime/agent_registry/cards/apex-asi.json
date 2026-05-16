@@ -1,6 +1,6 @@
 {
-  "agent_id": "hermes-asi",
-  "display_name": "Hermes",
+  "agent_id": "apex-asi",
+  "display_name": "Apex",
   "version": "MiniMax-M2.7",
   "provider": "minimax",
   "declared_lane": "ASI",
@@ -17,9 +17,10 @@
   "doctrine": "DITEMPA BUKAN DIBERI",
   "verdict": "SEAL",
   "_meta": {
-    "registered_by": "hermes-asi-self",
+    "registered_by": "apex-asi-self",
     "registration_method": "direct_probe",
     "arifos_version": "v2026.05.01-KANON",
-    "registry_file": "runtime/agent_registry/cards/hermes-asi.json"
+    "registry_file": "runtime/agent_registry/cards/apex-asi.json"
   }
 }
+

@@ -43,9 +43,24 @@ deploy-local:
 		-t ghcr.io/ariffazil/arifos:latest \
 		-f arifosmcp/Dockerfile .; \
 	cd /root/compose && DEPLOY_GIT_COMMIT=$$GIT_SHA docker compose up -d --no-deps --force-recreate arifosmcp; \
-	sleep 5; \
-	curl -fsS http://localhost:8080/health | python -m json.tool; \
-	curl -fsS http://localhost:8080/health | EXPECTED_SHA=$$GIT_SHA python -c 'import json, os, sys; d=json.load(sys.stdin); actual=d.get("git_commit"); expected=os.environ["EXPECTED_SHA"]; assert actual == expected, f"git_commit mismatch: {actual} != {expected}"; print(f"git_commit verified: {actual}")'
+	READY=0; \
+	for _ in $$(seq 1 45); do \
+		if curl -fsS --max-time 5 http://localhost:8080/health > /tmp/arifos-health.json 2>/tmp/arifos-health.err; then \
+			if EXPECTED_SHA=$$GIT_SHA python -c 'import json, os, sys; d=json.load(sys.stdin); actual=d.get("git_commit"); expected=os.environ["EXPECTED_SHA"]; sys.exit(0 if actual == expected else 1)' < /tmp/arifos-health.json; then \
+				READY=1; \
+				break; \
+			fi; \
+		fi; \
+		sleep 2; \
+	done; \
+	if [ "$$READY" -ne 1 ]; then \
+		echo "888_HOLD: arifOS health did not stabilize on the expected commit"; \
+		[ -s /tmp/arifos-health.err ] && cat /tmp/arifos-health.err; \
+		[ -s /tmp/arifos-health.json ] && cat /tmp/arifos-health.json | python -m json.tool || true; \
+		exit 1; \
+	fi; \
+	cat /tmp/arifos-health.json | python -m json.tool; \
+	echo "git_commit verified: $$GIT_SHA"
 
 sot-check:
 	@echo "Auditing arifOS source-of-truth alignment..."
@@ -122,3 +137,8 @@ verify-public:
 	@echo "🔍 Verifying public parity..."
 	@$(PYTHON) scripts/verify_public.py
 	@echo "📄 Full report: tmp/verify_public_report.json"
+
+verify-live:
+	@echo "🔍 Verifying live observatory surface..."
+	@python3 scripts/verify_live.py
+	@echo "📄 Full report: tmp/verify_live_report.json"

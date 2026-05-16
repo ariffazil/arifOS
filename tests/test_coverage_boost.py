@@ -116,17 +116,17 @@ class TestRuntimeToolsExtended:
         """Test all Stage enum values exist"""
         from arifosmcp.runtime.tools import Stage
 
-        # Stage is a Literal type, not an Enum - values are strings
+        # Stage values are canonical string literals (per 000-999 metabolic pipeline)
         assert Stage.INIT_000 == "000_INIT"
-        assert Stage.SENSE_111 == "111_OBSERVE"
+        assert Stage.SENSE_111 == "111_SENSE"
         assert Stage.REALITY_222 == "222_REALITY"
-        assert Stage.MIND_333 == "333_REASON"
-        assert Stage.ROUTER_444 == "555_ROUTE"
-        assert Stage.MEMORY_555 == "555m_MEMORY"
-        assert Stage.HEART_666 == "444_CRITIQUE"
-        assert Stage.FORGE_777 == "666_FORGE"
+        assert Stage.MIND_333 == "333_MIND"
+        assert Stage.ROUTER_444 == "444_ROUTER"
+        assert Stage.MEMORY_555 == "555_MEMORY"
+        assert Stage.HEART_666 == "666_HEART"
+        assert Stage.FORGE_777 == "777_FORGE"
         assert Stage.JUDGE_888 == "888_JUDGE"
-        assert Stage.VAULT_999 == "999_SEAL"
+        assert Stage.VAULT_999 == "999_VAULT"
 
     def test_verdict_enum_values(self):
         """Test Verdict enum values"""

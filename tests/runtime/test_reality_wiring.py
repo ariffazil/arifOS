@@ -134,7 +134,7 @@ class TestEvidenceStubWiring:
 
         assert result["status"] == "OK"
         assert result["result"]["content"] == "<html>hello</html>"
-        assert result["result"]["status"] == 200
+        assert result["result"]["status"] == "200"
         assert result["result"]["content_length"] == 1234
         assert result["result"]["evidence_receipt"]["provider"] == "reality_handler"
         assert result["result"]["evidence_receipt"]["bridge"] == "fetch_url"

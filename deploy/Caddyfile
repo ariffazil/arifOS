@@ -311,6 +311,64 @@ well.arif-fazil.com {
 }
 
 # ═══════════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COPILOT GOVERNANCE BRIDGE — copilot.arif-fazil.com
+# Layer 2 (JUDGMENT) gateway: Copilot output → arifOS 888_JUDGE → VAULT999
+# Internal only — authenticated via X-API-Key header.
+# ═══════════════════════════════════════════════════════════════════════════════
+copilot.arif-fazil.com {
+    import tls_origin
+    encode zstd gzip
+
+    # CORS preflight for programmatic callers (Teams / Power Automate)
+    @cors_preflight method OPTIONS
+    handle @cors_preflight {
+        header Access-Control-Allow-Origin "*"
+        header Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        header Access-Control-Allow-Headers "X-API-Key, Content-Type, X-Request-ID"
+        respond "" 204
+    }
+
+    handle /health {
+        reverse_proxy copilot-gateway:8090
+    }
+    handle /copilot/* {
+        import cors_public
+        reverse_proxy copilot-gateway:8090 {
+            header_up Host copilot.arif-fazil.com
+        }
+    }
+    handle /arifos/* {
+        import cors_public
+        reverse_proxy copilot-gateway:8090 {
+            header_up Host copilot.arif-fazil.com
+        }
+    }
+    handle {
+        respond "Copilot Governance Gateway — use /copilot/ingest or /health" 200
+    }
+}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AGENT ZERO — ai.arif-fazil.com
+# Autonomous agent interface. MCP server exposed for arifOS forge integration.
+# Login: https://ai.arif-fazil.com | ROOT_PASSWORD set in compose
+# MCP endpoint: ai.arif-fazil.com:9000 (streamable HTTP MCP)
+# ═══════════════════════════════════════════════════════════════════════════════
+ai.arif-fazil.com {
+    import tls_origin
+    encode zstd gzip
+
+    # Web UI (Flask on port 80 inside container → 50001 host)
+    handle /* {
+        reverse_proxy agent-zero:50001 {
+            header_up Host ai.arif-fazil.com
+        }
+    }
+}
+
 # LEGACY REDIRECTS — old subdomains → main sites
 # ═══════════════════════════════════════════════════════════════════════
 arifosmcp.arif-fazil.com {

@@ -301,6 +301,9 @@ ignore = []
 # imports for circular-import safety, N803/N806 constitutional variable names).
 "runtime/tools.py" = ["E402", "E501", "F821", "F841", "N803", "N806"]
 "runtime/mind_reason.py" = ["E501"]
+# memory_store.py imports phoenix_72 after logger (E402) for architectural clarity;
+# phoenix_72 is the Phoenix-72 band middleware loaded as a second-stage import.
+"runtime/memory_store.py" = ["E402", "I001"]
 
 [tool.ruff.format]
 quote-style = "double"

@@ -69,7 +69,7 @@ _TOOL_DOMAIN_MAP: dict[str, str] = {
     "arif_geox_": "GEOX",
     "arif_wealth_": "WEALTH",
     "arif_aaa_": "AAA",
-    "arif_hermes_": "HERMES",
+    "arif_apex_": "APEX",
 }
 
 

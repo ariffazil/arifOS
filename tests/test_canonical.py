@@ -133,12 +133,36 @@ def test_injection_guard_blocks():
     assert "F12" not in floors or floors.index("F11") < floors.index("F12")
 
 
-def test_judge_emits_seal():
+def test_judge_without_evidence_returns_sabar():
+    """F2 Evidence Gate: Without evidence_receipt, SEAL is downgraded to SABAR."""
     r = arif_judge_deliberate(mode="judge", candidate="deploy", actor_id="arif")
-    assert r.status == "OK"
-    assert r.result["verdict"] == "SEAL"
-    assert r.judge_contract is not None
-    assert r.judge_contract.state_hash
+    assert r.status == "SABAR"
+    assert r.result["verdict"] == "SABAR"
+    assert "evidence" in r.result["reason"].lower()
+
+
+def test_judge_emits_seal_with_evidence():
+    """SEAL is granted only when evidence_receipt is provided (F2 Evidence Gate)."""
+    # Import the runtime function which accepts evidence_receipt
+    from arifosmcp.runtime.tools import _arif_judge_deliberate
+
+    minimal_receipt = {
+        "query_sent": "deploy evidence check",
+        "results_returned": 1,
+        "urls_ingested": 1,
+        "provider": "test",
+        "bridge": "unit_test",
+    }
+    r = _arif_judge_deliberate(
+        mode="judge",
+        candidate="deploy",
+        actor_id="arif",
+        evidence_receipt=minimal_receipt,
+    )
+    assert r["status"] == "OK"
+    assert r["result"]["verdict"] == "SEAL"
+    assert r["judge_contract"] is not None
+    assert r["judge_contract"]["state_hash"]
 
 
 def test_vault_requires_judge_contract_even_with_ack():

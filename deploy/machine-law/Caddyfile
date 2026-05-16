@@ -36,15 +36,6 @@ arifos.arif-fazil.com {
     try_files {path} /index.html
 }
 
-apex.arif-fazil.com {
-    import tls_origin
-    import shared_assets
-    encode zstd gzip
-    root * /var/www/html/apex
-    file_server
-    try_files {path} /index.html
-}
-
 forge.arif-fazil.com {
     import tls_origin
     import shared_assets
@@ -186,13 +177,19 @@ dozzle.arif-fazil.com {
     reverse_proxy dozzle:8080
 }
 
+# TEMPORARY REDIRECT — APEX is internal-only. Redirects public traffic to AAA.
+# TODO: Remove this block after all clients are updated to use aaa.arif-fazil.com directly.
+apex.arif-fazil.com {
+    import tls_origin
+    redir https://aaa.arif-fazil.com{uri} 308
+}
+
+# TEMPORARY REDIRECT — Legacy HERMES public hostname kept only for compatibility.
+# TODO: Remove once DNS record is deleted and clients are migrated.
 hermes.arif-fazil.com {
     import tls_origin
-    reverse_proxy hermes-agent:3002
+    redir https://aaa.arif-fazil.com{uri} 308
 }
 
 # AAA A2A Gateway
-aaa.arif-fazil.com {
-    import tls_origin
-    reverse_proxy aaa-a2a:3001
-}
+# (aaa.arif-fazil.com is defined above with static + /a2a/* proxy)

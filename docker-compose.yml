@@ -347,15 +347,15 @@ services:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8083/health')\""]
       interval: 60s
       start_period: 10s
-# ── HERMES AGENT: ASI Deliberative Server ─────────────────────────────────
-  hermes-agent:
-    image: hermes-agent:v1.0.3
-    container_name: hermes-agent
+# ── APEX PRIME: ASI Deliberative Server (internal only) ─────────────────────
+  apex-prime:
+    image: apex-prime:v1.0.5
+    container_name: apex-prime
     init: true
     restart: unless-stopped
     command: ["node", "src/server.js"]
     env_file:
-      - /root/AAA/.hermes/.env
+      - /root/AAA/.apex/.env
     environment:
       - PORT=3002
       - A2A_TOKEN=***-dev
