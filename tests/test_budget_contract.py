@@ -5,7 +5,7 @@ Verifies AAA-GOV-BUDGET-v1 contract enforcement in A-FORGE.
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
-from arifosmcp.runtime.budget_contract import (
+from arifosmcp.runtime.budget import (
     BudgetContract,
     get_budget_contract,
     clear_budget_contract,

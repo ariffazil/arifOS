@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.memory_store import (
     context_for_session,
     recall,
@@ -67,9 +67,7 @@ def arif_memory_recall(
         actor_id,
     )
     if floor_check["verdict"] != "SEAL":
-        return _hold(
-            "arif_memory_recall", floor_check["reason"], floor_check["failed_floors"]
-        )
+        return _hold("arif_memory_recall", floor_check["reason"], floor_check["failed_floors"])
 
     # ── Session init ──────────────────────────────────────────────────────────
     if mode == "init_recall":
@@ -171,9 +169,7 @@ def arif_memory_recall(
     # ── Store ───────────────────────────────────────────────────────────────
     if mode == "store":
         if content is None and query is None:
-            return _hold(
-                "arif_memory_recall", "content or query required for store mode"
-            )
+            return _hold("arif_memory_recall", "content or query required for store mode")
         result = store(
             content=content if content is not None else query,
             mode=tags[0] if tags and len(tags) == 1 else "generic",
@@ -225,9 +221,7 @@ def arif_memory_recall(
         last_scores = [r.get("score", 0.0) for r in all_results if "score" in r]
         last_avg = sum(last_scores) / len(last_scores) if last_scores else 0.0
         jitu_triggered = (
-            iterations >= _max_rag_iterations
-            and last_avg < _relevance_threshold
-            and delta_s >= 0
+            iterations >= _max_rag_iterations and last_avg < _relevance_threshold and delta_s >= 0
         )
 
         if jitu_triggered:
@@ -277,9 +271,7 @@ def arif_memory_recall(
 
     # ── Recall by query (semantic search without memory_id) ─────────────────
     if mode == "recall" and not memory_id and query:
-        results = memory_search(
-            query=query, session_id=session_id, actor_id=actor_id, limit=limit
-        )
+        results = memory_search(query=query, session_id=session_id, actor_id=actor_id, limit=limit)
         hits = [
             {
                 "memory_id": r.get("memory_id", ""),
@@ -292,17 +284,13 @@ def arif_memory_recall(
             }
             for r in results
         ]
-        return _ok(
-            "arif_memory_recall", {"query": query, "results": hits, "count": len(hits)}
-        )
+        return _ok("arif_memory_recall", {"query": query, "results": hits, "count": len(hits)})
 
     # ── Prune ────────────────────────────────────────────────────────────────
     if mode == "prune":
         from arifosmcp.runtime.memory_store import prune as _prune
 
-        result = _prune(
-            memory_id=memory_id, reason=f"arif_memory_recall/prune by {actor_id}"
-        )
+        result = _prune(memory_id=memory_id, reason=f"arif_memory_recall/prune by {actor_id}")
         # SACRED tier protection
         if result.get("sacred_protected"):
             return _ok(

@@ -53,8 +53,8 @@ from core.shared.floors import (
     get_floor_threshold,
 )
 
-from arifosmcp.runtime.build_info import get_build_info
-from arifosmcp.runtime.capability_map import build_runtime_capability_map
+from arifosmcp.runtime.build import get_build_info
+from arifosmcp.runtime.capabilities import build_runtime_capability_map
 from arifosmcp.runtime.llm_client import check_provider_health
 from arifosmcp.runtime.contracts import (
     AAA_TOOL_ALIASES,
@@ -5057,7 +5057,7 @@ def register_rest_routes(
     @route("/meta/omega/violations", methods=["GET"])
     async def meta_omega_violations(_request: Request) -> Response:
         """Detailed Ω_ortho violations."""
-        from arifosmcp.runtime.m01_correlation_auditor import get_auditor
+        from arifosmcp.runtime.auditor import get_auditor
 
         auditor = get_auditor()
         report = auditor.compute_orthogonality()

@@ -18,6 +18,11 @@ import os
 from datetime import datetime, timezone
 from typing import Any
 
+from core.shared.mottos import (
+    MOTTO_000_INIT_HEADER,
+    MOTTO_999_SEAL_HEADER,
+    get_motto_for_stage,
+)
 from fastmcp.server.context import Context
 
 from arifosmcp.runtime.model import (
@@ -46,11 +51,6 @@ from arifosmcp.tools.agentzero import (
 )
 from arifosmcp.tools.agentzero import (
     agentzero_validate as _az_validate,
-)
-from core.shared.mottos import (
-    MOTTO_000_INIT_HEADER,
-    MOTTO_999_SEAL_HEADER,
-    get_motto_for_stage,
 )
 
 from .bridge import call_kernel
@@ -314,7 +314,7 @@ def _resolve_motto(stage_value: str) -> str | None:
 
 async def _call_model_registry(mode: str, payload: dict[str, Any]) -> dict[str, Any]:
     """Helper to route calls to the model registry service."""
-    from arifosmcp.runtime.model_registry_client import get_model_registry_client
+    from arifosmcp.runtime.registry_client import get_model_registry_client
 
     client = get_model_registry_client()
     try:

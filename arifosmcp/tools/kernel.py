@@ -14,7 +14,7 @@ import time
 from typing import Any
 
 from arifosmcp.core.federation_contracts import validate_organ_output
-from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.tools import _hold, _ok
 
 # SURPRISE_WINDOW_SIZE is imported for the contradiction check default
@@ -376,8 +376,10 @@ def _441_surprise_handler(
             SURPRISE_CRITICAL_THRESHOLD,
             get_tool_self_model,
         )
+
+        _surprise_threshold = SURPRISE_CRITICAL_THRESHOLD
     except ImportError:
-        SURPRISE_CRITICAL_THRESHOLD = 0.70
+        _surprise_threshold = 0.70
         from arifosmcp.core.tool_self_model import get_tool_self_model
 
     model = get_tool_self_model()
@@ -437,11 +439,11 @@ def _441_surprise_handler(
         "status": "HOLD",
         "reason": (
             f"441_SURPRISE: tool={tool_id} "
-            f"δ={delta_surprise:.3f} (threshold={SURPRISE_CRITICAL_THRESHOLD}) "
+            f"δ={delta_surprise:.3f} (threshold={_surprise_threshold}) "
             f"— {reason}"
         ),
         "delta_surprise": round(delta_surprise, 4),
-        "threshold": SURPRISE_CRITICAL_THRESHOLD,
+        "threshold": _surprise_threshold,
         "contradiction_count": entry.contradiction_count if entry else 0,
         "surprise_rate": entry.surprise_rate if entry else 0.0,
         "model_contradicted": entry.model_contradicted if entry else False,
@@ -482,7 +484,6 @@ def _intent_route(
         from federation.tool_manifest import (
             CognitiveAxis,
             tools_by_axis,
-            tools_by_organ,
         )
 
         # Validate axis

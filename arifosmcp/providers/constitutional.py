@@ -16,7 +16,7 @@ from fastmcp.tools.tool import Tool, ToolResult
 from mcp.types import TextContent
 
 from arifosmcp.constitutional_map import CANONICAL_TOOLS
-from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.floor import check_floors
 
 logger = logging.getLogger(__name__)
 

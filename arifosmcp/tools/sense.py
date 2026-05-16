@@ -21,7 +21,7 @@ import logging
 import random
 from typing import Any
 
-from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.reality_handlers import handler as reality_handler
 from arifosmcp.runtime.reality_models import BundleInput
 from arifosmcp.runtime.session_auth import validate_session
@@ -212,11 +212,11 @@ def arif_sense_observe(
             },
         )
     if mode == "entropy_dS":
-        dS = random.uniform(-0.1, 0.1)
+        ds = random.uniform(-0.1, 0.1)
         return _ok(
             "arif_sense_observe",
             {
-                "delta_S": round(dS, 6),
+                "delta_S": round(ds, 6),
                 "trend": "stable",
                 "partition": partition_mode,
             },

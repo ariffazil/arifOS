@@ -7,7 +7,7 @@ Operations and economic thermodynamics telemetry.
 
 from __future__ import annotations
 
-from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.session_auth import validate_session
 from arifosmcp.runtime.tools import _hold, _ok, _sabar
 from arifosmcp.schemas.telemetry import TelemetryBlock

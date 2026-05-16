@@ -23,7 +23,7 @@ from arifosmcp.resources import (
     EVIDENCE_RESOURCES,
     register_resources,
 )
-from arifosmcp.runtime.floors import get_floor_status
+from arifosmcp.runtime.floor import get_floor_status
 from arifosmcp.runtime.tools import (
     IrreversibleConfirmation,
     JudgeCandidateInput,

@@ -1,6 +1,6 @@
 import pytest
 
-from arifosmcp.runtime.governance_enforcer import classify_and_route
+from arifosmcp.runtime.enforcer import classify_and_route
 
 
 @pytest.mark.asyncio

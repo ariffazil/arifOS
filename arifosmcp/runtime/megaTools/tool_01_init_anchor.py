@@ -28,7 +28,7 @@ from arifosmcp.runtime.model import (
     RuntimeStatus,
     Verdict,
 )
-from arifosmcp.runtime.model_registry_client import get_model_registry_client
+from arifosmcp.runtime.registry_client import get_model_registry_client
 
 logger = logging.getLogger(__name__)
 

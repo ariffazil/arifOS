@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import arifosmcp.runtime.capability_map as capability_map_module
+import arifosmcp.runtime.capabilities as capability_map_module
 
-from arifosmcp.runtime.capability_map import build_runtime_capability_map
+from arifosmcp.runtime.capabilities import build_runtime_capability_map
 
 
 def test_capability_map_reports_file_backed_governance_secret(monkeypatch, tmp_path):

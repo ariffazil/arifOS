@@ -9,7 +9,7 @@ import yaml
 from arifosmcp.runtime import (
     authority_gate,
     evidence_guard,
-    irreversibility_guard,
+    guard,
     uncertainty_gate,
 )
 
@@ -69,7 +69,7 @@ def run_checks() -> list[str]:
         )
 
     contract_rule = contract.get("irreversible_rule")
-    runtime_rule = irreversibility_guard.RULE_NO_IRREVERSIBLE_ACTION_WITHOUT_EXPLICIT_HUMAN_ACK
+    runtime_rule = guard.RULE_NO_IRREVERSIBLE_ACTION_WITHOUT_EXPLICIT_HUMAN_ACK
     if contract_rule != runtime_rule:
         errors.append(
             f"irreversibility rule mismatch doctrine={contract_rule} runtime={runtime_rule}"

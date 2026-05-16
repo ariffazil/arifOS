@@ -15,15 +15,15 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.kernel.planner import Plan, Planner, Task
-from core.kernel.substrate_assert import substrate_assert, emit_substrate_assert_event
+from arifosmcp.core.kernel.planner import Plan, Planner, Task
+from arifosmcp.core.kernel.substrate_assert import emit_substrate_assert_event, substrate_assert
+
+# We assume the organs expose async interfaces as described in _0_init.py etc.
+from core.organs import _0_init, _1_agi, _2_asi, _3_apex, _4_vault
 
 # arifOS Core Imports
 from core.shared.types import Verdict
 from core.shared.verdict_contract import normalize_verdict
-
-# We assume the organs expose async interfaces as described in _0_init.py etc.
-from core.organs import _0_init, _1_agi, _2_asi, _3_apex, _4_vault
 
 logger = logging.getLogger("arifOS.SabarLoop")
 
@@ -119,7 +119,10 @@ class SabarLoopController:
                 retries = self.task_retries.get(task.id, 0)
                 if retries < self.sabar_retry_limit:
                     logger.info(
-                        f"SABAR verdict on Task {task.id}. Initiating repair cycle {retries+1}/{self.sabar_retry_limit}"
+                        "SABAR verdict on Task %s. Repair cycle %d/%d",
+                        task.id,
+                        retries + 1,
+                        self.sabar_retry_limit,
                     )
                     self.task_retries[task.id] = retries + 1
                     # Repair: Update task description with feedback for next iteration
@@ -209,7 +212,7 @@ class SabarLoopController:
                 query=task.description,
                 session_id=session_id,
                 actor_id="arif",  # Default to Sovereign for loop execution in v1
-                auth_token="IM ARIF",
+                auth_token="IM ARIF",  # nosec: B106 — sovereign actor token, not a secret
             )
 
             if init_out.verdict != Verdict.SEAL:
@@ -256,7 +259,7 @@ class SabarLoopController:
 
             await _4_vault.vault(
                 session_id=session_id,
-                summary=f"Metabolic loop iteration {self.current_iteration} for task: {task.description[:50]}",
+                summary=f"Metabolic loop {self.current_iteration} for {task.description[:40]}",
                 verdict=apex_verdict,
                 evidence=f"Loop Iteration {self.current_iteration} for Task {task.id}",
                 payload={

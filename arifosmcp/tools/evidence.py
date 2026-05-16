@@ -18,7 +18,7 @@ import logging
 import uuid
 from typing import Any, Literal
 
-from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.reality_handlers import handler as reality_handler
 from arifosmcp.runtime.tools import _hold, _ok
 

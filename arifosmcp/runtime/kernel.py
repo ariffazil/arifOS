@@ -145,7 +145,7 @@ class ConstitutionalKernel:
         """Fail-Closed Dispatch Gateway (F12/F13) + Formal Execution State Machine."""
         import time as _time
 
-        from arifosmcp.runtime.execution_state_machine import (
+        from arifosmcp.runtime.executor import (
             ExecutionState,
             ExecutionStateMachine,
         )

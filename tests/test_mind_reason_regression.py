@@ -4,7 +4,7 @@ import pytest
 
 from arifosmcp.runtime.llm_client import LLMOutputEnvelope
 
-import arifosmcp.tools.mind_reason as mind_reason_tool
+import arifosmcp.tools.reason as mind_reason_tool
 
 
 async def _fake_structured_reasoning(

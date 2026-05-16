@@ -22,7 +22,7 @@ from typing import Any
 
 import httpx
 
-from arifosmcp.runtime.llm_output_envelope import (
+from arifosmcp.runtime.llm_envelope import (
     LLMOutputEnvelope,
     wrap_llm_error,
     wrap_llm_output,

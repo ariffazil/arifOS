@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.kernel.pattern_registry import PatternRegistry
+from arifosmcp.core.kernel.pattern_registry import PatternRegistry
 
 
 class PatternSelector:

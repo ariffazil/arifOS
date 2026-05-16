@@ -4689,7 +4689,7 @@ def register_rest_routes(
     @route("/meta/omega/violations", methods=["GET"])
     async def meta_omega_violations(_request: Request) -> Response:
         """Detailed Ω_ortho violations."""
-        from arifosmcp.runtime.m01_correlation_auditor import get_auditor
+        from arifosmcp.runtime.auditor import get_auditor
 
         auditor = get_auditor()
         report = auditor.compute_orthogonality()

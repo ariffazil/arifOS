@@ -26,7 +26,7 @@ import asyncio
 import threading
 from typing import Any
 
-from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.llm_client import LLMUnavailableError
 from arifosmcp.runtime.tools import _hold, _ok
 from arifosmcp.schemas.synthesis import Synthesis

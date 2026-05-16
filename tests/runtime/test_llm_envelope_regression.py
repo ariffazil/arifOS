@@ -11,7 +11,7 @@ with float 0.3, causing TypeError and silent deterministic fallback.
 from __future__ import annotations
 
 
-from arifosmcp.runtime.llm_output_envelope import wrap_llm_output
+from arifosmcp.runtime.llm_envelope import wrap_llm_output
 
 
 def _minimal_envelope_kwargs(confidence_val=None, parsed_output=None):

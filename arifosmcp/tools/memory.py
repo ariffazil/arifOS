@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.memory_store import (
     context_for_session,
     recall,
