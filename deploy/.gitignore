@@ -1,0 +1,6 @@
+.env
+.env.decrypted
+*.pem
+*.key
+secrets/
+stack.manifest.json

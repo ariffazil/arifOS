@@ -1,0 +1,495 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# arifos — AF-FORGE Canonical Compose
+# Version: v2026.05.17-RECONCILED | DITEMPA BUKAN DIBERI | F1–F13
+# Reconciled: compose now matches runtime reality
+# Healthcheck audit: 2026-04-30
+# NOTE: Only change image tags when you control the registry and can verify.
+# External images (ollama, qdrant, caddy, mcp/everything) use :latest — safe.
+# Local images (geox, wealth-organ, aaa, etc.) use :v1.0.0 — pinned to known good.
+# ══════════════════════════════════════════════════════════════════════════════
+
+services:
+
+  # ── PLANE 1: GOVERNANCE ─────────────────────────────────────────────
+  arifosmcp:
+    image: ghcr.io/ariffazil/arifos:8dfc8b18
+    container_name: arifosmcp
+    init: true
+    restart: unless-stopped
+    command: ["python", "-m", "arifosmcp.runtime.__main__"]
+    env_file: [.env.decrypted]
+    environment:
+      ARIFOS_BUILD_TIME: "2026-05-15T00:00:00Z"
+      DEPLOY_GIT_COMMIT: "${DEPLOY_GIT_COMMIT:-latest}"
+      DEPLOY_BUILD_TIME: "2026-05-15T07:03:55Z"
+      DEPLOY_GIT_BRANCH: "main"
+      ARIFOS_GOVERNANCE_OPEN_MODE: "false"
+      ARIFOS_GOVERNANCE_SECRET_FILE: /run/secrets/arifos_governance_secret
+      ARIFOS_SESSION_SECRET_FILE: /run/secrets/arifos_session_secret
+      PYTHONPATH: /app
+      DOTENV: disabled
+      ARIFOS_MEMORY_DIR: /home/arifos/.arifOS/memory
+      AAA_MCP_TRANSPORT: http
+      ARIFOS_SERVER_MODE: http
+      BROWSERLESS_URL: http://headless_browser:3000
+      OPENCLAW_RESTART_TOKEN: openclaw-restart-888  # pragma: allowlist secret
+      POSTGRES_URL: postgresql://arifos_admin:***@postgres:5432/vault999
+      TELEMETRY_PATH: /app/telemetry
+      SUPABASE_JWKS_URL: https://utbmmjmbolmuahwixjqc.supabase.co/auth/v1/.well-known/jwks.json
+      JWT_TRUSTED_ISSUERS: https://utbmmjmbolmuahwixjqc.supabase.co,arifos-internal
+      JWT_AUDIENCE: arifOS
+      JWT_ENFORCE_MODE: enforce
+      ARIFOS_REGISTRY_ROOT: /app/registry
+      ARIFOS_RISK_LEASH_PATH: /app/risk_leash.yaml
+      ARIFOS_VAULT_PATH: /var/lib/arifos/vault/outcomes.jsonl
+      AAA_BUDGET_CONTRACT_PATH: /app/contracts/budget/AAA-GOV-BUDGET-v1.json
+      WELL_STATE_PATH: /app/well_state.json
+      OLLAMA_URL: http://ollama:11434
+      ARIFOS_ML_FLOORS: "true"
+      ARIFOS_ML_MODEL_NAME: sentence-transformers/all-MiniLM-L6-v2
+      ARIFOS_ML_SELFTEST_TEXT: seal confirmed
+      ARIFOS_STATE_MACHINE_ENFORCE: "true"
+      ARIFOS_ONTOLOGY_VALIDATE: "true"
+      # Auto-ID: autonomous governance session binding for all tool calls
+      ARIFOS_SESSION_ID: "SEAL-cbc5d95eb9df4bad"
+      ARIFOS_ACTOR_ID: "a-forge"
+      SEA_LION_API_KEY: "sk-znzfOJH_Yc7LKewfrfsl2A"  # pragma: allowlist secret
+      SEA_LION_BASE_URL: "https://api.sea-lion.ai/v1"
+    volumes:
+      - /root/arifOS/arifosmcp/server.py:/app/arifosmcp/server.py:ro
+      - /root/arifOS/registry:/app/registry:ro
+      - /root/arifOS/risk_leash.yaml:/app/risk_leash.yaml:ro
+      - /root/arifOS/contracts/budget:/app/contracts/budget:ro
+      - /root/WELL/state.json:/app/well_state.json:ro
+      - /root/arifOS/arifosmcp/runtime/tools_internal.py:/app/arifosmcp/runtime/tools_internal.py:ro
+      - /root/arifOS/arifosmcp/runtime/tools.py:/app/arifosmcp/runtime/tools.py:ro
+      - /root/arifOS/arifosmcp/runtime/rest_routes.py:/app/arifosmcp/runtime/rest_routes.py:ro
+      - /root/arifOS/arifosmcp/runtime/rest_routes/rest_routes.py:/app/arifosmcp/runtime/rest_routes/rest_routes.py:ro
+      - /root/arifOS/arifosmcp/runtime/jwt_auth.py:/app/arifosmcp/runtime/jwt_auth.py:ro
+      - /root/arifOS/arifosmcp/runtime/floor.py:/app/arifosmcp/runtime/floor.py:ro
+      - /root/arifOS/arifosmcp/runtime/build_info.py:/app/arifosmcp/runtime/build_info.py:ro
+      - /root/arifOS/arifosmcp/runtime/agent_registry/cards:/app/arifosmcp/runtime/agent_registry/cards:ro
+      - /root/arifOS/arifosmcp/core/physics:/app/arifosmcp/core/physics:ro
+      - /root/arifOS/core:/app/core:ro
+      # H1 Core: Formal State Machine + Ontology Bridge (2026-05-10)
+      # Mount entire arifosmcp package to ensure all new/modified files are available
+      - /root/arifOS/arifosmcp:/app/arifosmcp:ro
+      - /root/compose/secrets/arifos_governance_secret:/run/secrets/arifos_governance_secret:ro
+      - /root/compose/secrets/arifos_session_secret:/run/secrets/arifos_session_secret:ro
+      - /var/lib/arifos/volumes/vault999:/var/lib/arifos/vault:rw
+      - /root/WELL/state.json:/root/WELL/state.json:ro
+      - telemetry-data:/app/telemetry
+    networks: [arifos_core]
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres: { condition: service_healthy }
+      headless_browser: { condition: service_healthy }
+      graphiti-mcp: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/health')\""]
+      interval: 60s
+      start_period: 15s
+  # ── GEOX: Earth Intelligence ──────────────────────────────────────────
+  geox:
+    image: ghcr.io/ariffazil/geox:fc9b57bd
+    container_name: geox_eic
+    restart: unless-stopped
+    command: ["python", "server.py"]
+    env_file: [/root/geox/.env]
+    environment:
+      PYTHONPATH: /app
+      GEOX_HOST: 0.0.0.0
+      GEOX_PORT: 8081
+    ports:
+      - "127.0.0.1:8081:8081"
+    volumes:
+      - /root/geox/server.py:/app/server.py:ro
+      - /root/geox/contracts:/app/contracts:ro
+      - /root/geox/control_plane_server_patch.py:/app/control_plane_server_patch.py:ro
+      - /root/geox/geox/canonical:/app/geox/canonical:ro
+      - /root/geox/compatibility:/app/compatibility:ro
+    networks: [arifos_core]
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8081/health')\""]
+      interval: 60s
+      start_period: 15s
+  # ── WEALTH: Capital Intelligence ───────────────────────────────────────
+  wealth-organ:
+    image: ghcr.io/ariffazil/wealth:e036c71
+    container_name: wealth-organ
+    restart: unless-stopped
+    # Canonical implementation: internal/monolith.py (AGENTS.md Tier A)
+    # server.py is a thin backward-compat wrapper.
+    command: ["python", "internal/monolith.py"]
+    ports:
+      - "127.0.0.1:8082:8082"
+    networks: [arifos_core]
+    environment:
+      WEALTH_REPO_HEAD: "f248633"
+      WEALTH_IMAGE_TAG: "ghcr.io/ariffazil/wealth:9344f85"
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/health')\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+  # ── AAA: Control Plane Seed ─────────────────────────────────────────────
+  # ── AAA-A2A: Agent-to-Agent Gateway ────────────────────────────────────
+  aaa-a2a:
+    image: aaa-a2a:phase3-reforge
+    container_name: aaa-a2a
+    restart: unless-stopped
+    command: ["node", "server.js"]
+    ports:
+      - "127.0.0.1:3001:3001"
+    networks: [arifos_core]
+    environment:
+      VAULT_WRITER_URL: http://vault999-writer:5001
+      VAULT_WRITER_TOKEN: ${VAULT_WRITER_TOKEN}
+      REDIS_URL: redis://redis:6379/0
+      NATS_URL: nats://nats:4222
+    volumes:
+      - /root/AAA/a2a-server/vault.js:/app/vault.js:ro
+      - /root/AAA/a2a-server/server.js:/app/server.js:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://127.0.0.1:3001/health',r=>process.exit(r.statusCode===200?0:1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+  # ── PLANE 3: DATA & MEMORY ──────────────────────────────────────────
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vault999
+      POSTGRES_USER: arifos_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes: [/var/lib/arifos/volumes/postgres:/var/lib/postgresql/data:rw]
+    networks: [arifos_core]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arifos_admin -d vault999"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    networks: [arifos_core]
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+  nats:
+    image: nats:latest
+    container_name: nats
+    restart: unless-stopped
+    command: ["--config", "nats-server.conf"]
+    ports: ["127.0.0.1:4222:4222", "127.0.0.1:8222:8222"]
+    networks: [arifos_core]
+    healthcheck:
+      test: ["CMD", "/nats-server", "--signal", "reload=1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    restart: unless-stopped
+    ports: ["127.0.0.1:6333:6333", "127.0.0.1:6334:6334"]
+    volumes: [/var/lib/arifos/volumes/qdrant:/qdrant/storage:rw]
+    networks: [arifos_core]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -lc 'exec 3<>/dev/tcp/127.0.0.1/6333 && printf \"GET /readyz HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && grep -q \"200 OK\" <&3'"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+  headless_browser:
+    image: ghcr.io/browserless/chromium:latest
+    container_name: headless_browser
+    restart: unless-stopped
+    shm_size: 1gb
+    environment:
+      PREBOOT_CHROME: "false"
+      MAX_CONCURRENT_SESSIONS: 4
+      ENABLE_DEBUGGER: "false"
+    networks: [arifos_core]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:3000/pressure >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+  graphiti-mcp:
+    image: zepai/knowledge-graph-mcp:latest
+    container_name: graphiti-mcp
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      OPENAI_API_KEY: ollama  # pragma: allowlist secret
+      OPENAI_API_URL: http://ollama:11434/v1
+      FALKORDB_URI: redis://localhost:6379
+      FALKORDB_DATABASE: arifos
+      GRAPHITI_GROUP_ID: af-forge
+      SEMAPHORE_LIMIT: 10
+      CONFIG_PATH: /app/mcp/config/config.yaml
+      BROWSER: "0"
+    volumes:
+      - ./graphiti-config.yaml:/app/mcp/config/config.yaml:ro
+      - graphiti-falkordb-data:/var/lib/falkordb/data
+      - graphiti-mcp-logs:/var/log/graphiti
+    networks: [arifos_core]
+    depends_on:
+      ollama: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+  # ── PLANE 5: OBSERVABILITY ──────────────────────────────────────────
+  loki:
+    image: grafana/loki:3.4.2
+    container_name: arifos-loki
+    restart: unless-stopped
+    ports: ["127.0.0.1:3100:3100"]
+    volumes:
+      - /root/compose/loki-data:/loki
+    networks: [arifos_core]
+
+  promtail:
+    image: grafana/promtail:2.9.6
+    container_name: arifos-promtail
+    user: root
+    restart: unless-stopped
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /root/compose/promtail-config.yaml:/etc/promtail/promtail-config.yaml:ro
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    networks: [arifos_core]
+    depends_on: [loki]
+
+  grafana:
+    image: grafana/grafana:12.0.2
+    container_name: arifos-grafana
+    restart: unless-stopped
+    ports: ["127.0.0.1:3000:3000"]
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=arifOS_grafana_secure_pass
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - /root/compose/grafana-data:/var/lib/grafana
+      - /root/compose/grafana-provisioning:/etc/grafana/provisioning:ro
+    networks: [arifos_core]
+    user: "472"
+    depends_on: [loki]
+  # ── PLANE 6: ENGINES & PROXIES ──────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama-engine-prod
+    restart: unless-stopped
+    mem_limit: 6g
+    environment:
+      OLLAMA_MAX_LOADED_MODELS: 1
+      OLLAMA_KEEP_ALIVE: 5m
+    ports: ["127.0.0.1:11434:11434"]
+    volumes: [/var/lib/arifos/volumes/ollama:/root/.ollama:rw]
+    networks: [arifos_core]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -lc 'exec 3<>/dev/tcp/127.0.0.1/11434 && printf \"GET /api/tags HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && grep -q \"200 OK\" <&3'"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+  # ── PLANE 7: UTILITIES ──────────────────────────────────────────────
+  vault999:
+    build:
+      context: ./vault999
+      dockerfile: Dockerfile
+    image: compose-vault999:v1.0.0
+    container_name: vault999
+    init: true
+    restart: unless-stopped
+    command: ["python", "server.py"]
+    ports:
+      - "127.0.0.1:8100:8100"
+    networks: [arifos_core]
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8100/health')\""]
+      interval: 60s
+  vault999-writer:
+    build:
+      context: ./vault999-writer
+      dockerfile: Dockerfile
+    image: compose-vault999-writer:v1.0.0
+    container_name: vault999-writer
+    init: true
+    environment:
+      VAULT999_DB: "postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999"
+      VAULT_WRITER_TOKEN_FILE: /run/secrets/vault_writer_token
+      VAULT_WRITER_TOKEN: ade8242fcd8882cfd6b22b489b6c66d21c2234f9f4f35b187d84d9e814e1a56e  # pragma: allowlist secret
+    volumes:
+      - /root/compose/secrets:/run/secrets:ro
+    ports:
+      - "127.0.0.1:5001:5001"
+    networks: [arifos_core]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:5001/health')\""]
+      interval: 60s
+      start_period: 10s
+  forge-notifier:
+    image: compose-forge-notifier:v1.0.0
+    container_name: forge-notifier
+    restart: unless-stopped
+    command: ["python", "main.py"]
+    networks: [arifos_core]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import os; [open(f'/proc/{p}/cmdline').read() for p in os.listdir('/proc') if p.isdigit() and 'main.py' in open(f'/proc/{p}/cmdline').read()]\""]
+      interval: 60s
+      start_period: 10s
+  # ── WELL: Biological Substrate ─────────────────────────────────────────
+  well:
+    image: ghcr.io/ariffazil/well:9803b50
+    container_name: well
+    init: true
+    restart: unless-stopped
+    command: ["python", "server.py"]
+    ports:
+      - "127.0.0.1:8083:8083"
+    networks: [arifos_core]
+    environment:
+      WELL_STATE_PATH: /app/state.json
+      WELL_SOMATIC_BOUNDARY: "1"
+    volumes:
+      - /root/WELL/state.json:/app/state.json:rw
+      - /root/WELL/server.py:/app/server.py:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8083/health')\""]
+      interval: 60s
+      start_period: 10s
+# ── APEX PRIME: ASI Deliberative Server ────────────────────────────────────
+  apex-prime:
+    image: apex-prime:v1.0.5
+    container_name: apex-prime
+    init: true
+    restart: unless-stopped
+    command: ["node", "src/server.js"]
+    env_file:
+      - /root/AAA/.apex/.env
+    environment:
+      - PORT=3002
+      - A2A_TOKEN=***-dev
+      - A2A_API_KEY=***-dev
+      - OLLAMA_BASE_URL=http://ollama-engine-prod:11434/v1
+      - REDIS_URL=redis://redis:6379/1
+    networks: [arifos_core]
+    ports:
+      - "127.0.0.1:3002:3002"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://127.0.0.1:3002/health',r=>process.exit(r.statusCode===200?0:1))\""]
+      interval: 30s
+      retries: 5
+      start_period: 15s
+
+  # ── PLANE 8: INFRASTRUCTURE TOOLS ──────────────────────────────────
+
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    volumes:
+      - /var/lib/arifos/volumes/vaultwarden:/data:rw
+    networks: [arifos_core]
+    ports:
+      - "127.0.0.1:8085:80"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:80/alive >/dev/null 2>&1 || curl -sf http://127.0.0.1:80/ >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    volumes:
+      - /var/lib/arifos/volumes/uptime-kuma:/app/data:rw
+    networks: [arifos_core]
+    ports:
+      - "127.0.0.1:8086:3001"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:3001/health >/dev/null 2>&1 || curl -sf http://127.0.0.1:3001/ >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  netdata:
+    image: netdata/netdata:latest
+    container_name: netdata
+    restart: unless-stopped
+    hostname: arifos-node
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - apparmor:unconfined
+    networks: [arifos_core]
+    ports:
+      - "127.0.0.1:19999:19999"
+    volumes:
+      - /var/lib/arifos/volumes/netdata:/var/lib/netdata:rw
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+    environment:
+      DOCKER_HOST: "unix:///var/run/docker.sock"
+      NETDATA_CLAIM_URL: ""
+      NETDATA_CLAIM_TOKEN: ""
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:19999/api/v1/info >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # ── DEPRECATED / PENDING ────────────────────────────────────────────
+  # vault-service: merged into vault999-writer
+
+
+  # ── DEPRECATED ────────────────────────────────────────────
+  # arifos-telegram-bridge: Removed 2026-05-13. Redundant — Hermes is canonical Telegram interface.
+  # See CONTEXT.md §Technical Debt for gap documentation.
+
+networks:
+  arifos_core:
+    name: arifos_core_network
+    external: true
+
+volumes:
+  telemetry-data:
+    name: af-forge_telemetry-data
+    external: true
+  graphiti-falkordb-data:
+    name: af-forge_graphiti-falkordb-data
+    external: true
+  graphiti-mcp-logs:
+    name: af-forge_graphiti-mcp-logs
+    external: true
