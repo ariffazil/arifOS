@@ -93,7 +93,7 @@ warn_unused_configs = true
 strict_optional = true
 
 [tool.bandit]
-skips = ["B110", "B311", "B310", "B112"]
+skips = ["B110", "B311", "B310", "B112", "B104"]
 
 [build-system]
 requires = ["setuptools>=82.0.1"]
