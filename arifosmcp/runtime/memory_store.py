@@ -706,7 +706,8 @@ class MemoryStore:
             conn = await self.get_pg_conn()
             try:
                 row = await conn.fetchrow(
-                    "SELECT id, text, metadata, tier, session_id, phoenix_state FROM memory_store WHERE id = $1::uuid",
+                    "SELECT id, text, metadata, tier, session_id, "
+                    "phoenix_state FROM memory_store WHERE id = $1::uuid",
                     memory_id,
                 )
                 return dict(row) if row else None
@@ -801,6 +802,65 @@ def get_memory_store() -> MemoryStore:
     return _instance
 
 
+async def _pg_get_all_for_audit(limit: int = 1000, include_deleted: bool = False) -> list[dict]:
+    """Fetch all memories from Postgres for auditing purposes."""
+    try:
+        import asyncpg  # noqa: PLC0415
+
+        conn = await asyncpg.connect(_PG_URL, timeout=5)
+        try:
+            query = """
+                SELECT id::text, tier, text, metadata, session_id, created_at, phoenix_state
+                FROM memory_store
+                WHERE (deleted_at IS NULL OR $1)
+                ORDER BY created_at DESC
+                LIMIT $2
+            """
+            rows = await conn.fetch(query, include_deleted, limit)
+            result = []
+            for row in rows:
+                meta = {}
+                try:
+                    metadata_val = row["metadata"]
+                    if isinstance(metadata_val, str):
+                        meta = json.loads(metadata_val)
+                    else:
+                        meta = metadata_val or {}
+                except Exception:
+                    pass
+
+                # Format to match retrieval gate expectations in f4_retrieval_policy.py
+                result.append(
+                    {
+                        "memory_id": row["id"],
+                        "tier": row["tier"],
+                        "content": meta.get("content") or row["text"],
+                        "summary": row["text"],
+                        "tags": meta.get("tags", []),
+                        "actor_id": meta.get("actor_id"),
+                        "session_id": row["session_id"],
+                        "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+                        "score": 1.0,  # Audit uses base records, no search score
+                        "phoenix_state": row["phoenix_state"],
+                        "contradiction_signals": meta.get("contradiction_signals", []),
+                        "valid_until": meta.get("valid_until"),
+                        "sensitivity": meta.get("sensitivity", "public"),
+                        "temporal_marker": meta.get("temporal_marker", "active"),
+                    }
+                )
+            return result
+        finally:
+            await conn.close()
+    except Exception as exc:
+        logger.warning("Audit load failed: %s", exc)
+        return []
+
+
+def get_all_memories_for_audit(limit: int = 1000, include_deleted: bool = False) -> list[dict]:
+    """Synchronous wrapper for audit memory retrieval."""
+    return _pg_run(_pg_get_all_for_audit(limit, include_deleted))
+
+
 __all__ = [
     "store",
     "recall",
@@ -808,6 +868,7 @@ __all__ = [
     "prune",
     "context_for_session",
     "load_canonical_for_actor",
+    "get_all_memories_for_audit",
     "memory_mode",
     "stats",
     "get_memory_store",
