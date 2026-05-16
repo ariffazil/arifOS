@@ -1,14 +1,25 @@
 """
 arifosmcp/runtime/session_auth.py
-═════════════════════════════════
+════════════════════════════════
 
 Single F11 AUTH validator for all tools.
 """
 
+import os
 import time
 
 SESSION_TTL_SECONDS = 3600  # 1 hour
 SESSION_GRACE_SECONDS = 300  # 5 min grace period after TTL
+
+
+def _get_env_actor() -> str | None:
+    """Fall back to env var for auto-ID when MCP client doesn't pass actor_id."""
+    return os.getenv("ARIFOS_ACTOR_ID") or os.getenv("ARIFOS_DEFAULT_ACTOR_ID")
+
+
+def _get_env_session() -> str | None:
+    """Fall back to env var for auto-session when MCP client doesn't pass session_id."""
+    return os.getenv("ARIFOS_SESSION_ID") or os.getenv("ARIFOS_DEFAULT_SESSION_ID")
 
 
 def validate_session(session_id: str | None, actor_id: str | None = None) -> dict:
@@ -16,8 +27,19 @@ def validate_session(session_id: str | None, actor_id: str | None = None) -> dic
     Centralized F11 session validator.
     Falls back to persisted session store if in-memory _SESSIONS miss.
     Auto-refreshes TTL on valid validation to improve continuity.
+
+    Auto-ID: if session_id or actor_id is None AND the corresponding
+    env var (ARIFOS_SESSION_ID / ARIFOS_ACTOR_ID) is set, use it.
+    This enables autonomous governance when MCP clients don't pass IDs.
+
     Returns: {"valid": bool, "session": dict|None, "reason": str, "actor_id": str|None, ...}
     """
+    # ── Auto-ID: env var fallback for autonomous governance ───────────────────
+    if not session_id:
+        session_id = _get_env_session()
+    if not actor_id:
+        actor_id = _get_env_actor()
+
     if not session_id:
         return {
             "valid": False,
