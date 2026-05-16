@@ -102,9 +102,18 @@ async def ingest_evidence_bundle(
     *,
     dry_run: bool = True,
     tier: str = "session",
+    authorized: bool = False,
+    session_verified: bool = False,
+    sovereign_ack: bool = False,
 ) -> IngestResult:
     """
     Persist an EvidenceBundle to memory (Qdrant + Postgres dual-write).
+
+    Authorization gates (ALL must be True for permanent write):
+        dry_run=False  AND
+        authorized=True  AND
+        session_verified=True  AND
+        sovereign_ack=True
 
     Args:
         bundle: CanonicalEvidenceBundle to persist.
@@ -112,19 +121,45 @@ async def ingest_evidence_bundle(
                  Set to False only after explicit authorization.
         tier: Memory tier to use. Options: sacred, canon, session, ephemeral.
               Default: session (24h TTL).
+        authorized: Caller explicitly authorized the write. Default False.
+        session_verified: Session is verified (not anonymous/global). Default False.
+        sovereign_ack: Human sovereign acknowledged the write. Default False.
 
     Returns:
-        IngestResult with status, memory_id, backend write results.
+        IngestResult with status, memory_id, backend write results, auth fields.
 
     Governing principle:
-        No permanent write unless dry_run=False AND explicit session context.
+        No permanent write unless ALL authorization gates are True.
     """
     result = IngestResult(
         bundle_id=bundle.bundle_id,
         dry_run=dry_run,
+        authorized=authorized,
+        session_verified=session_verified,
+        sovereign_ack=sovereign_ack,
         idempotency_key=bundle.idempotency_key,
         timestamp_utc=datetime.now(timezone.utc).isoformat(),
     )
+
+    # ── Authorization gate check ────────────────────────────────────────
+    auth_gates_met = not dry_run and authorized and session_verified and sovereign_ack
+    if not auth_gates_met and not dry_run:
+        # Permanent write requested but not all gates are True
+        result.status = IngestStatus.BLOCKED_AUTH_REQUIRED
+        reasons = []
+        if dry_run:
+            reasons.append("dry_run=True")
+        if not authorized:
+            reasons.append("authorized=False")
+        if not session_verified:
+            reasons.append("session_verified=False")
+        if not sovereign_ack:
+            reasons.append("sovereign_ack=False")
+        result.blocked_reason = "; ".join(reasons)
+        sys.stderr.write(
+            f"[vector_bridge] BLOCK_AUTH bundle {bundle.bundle_id} — {result.blocked_reason}\n"
+        )
+        return result
 
     # ── Empty bundle guard ───────────────────────────────────────────────
     if not bundle.query and not bundle.claims:
@@ -189,11 +224,19 @@ async def ingest_evidence_bundle(
         result.postgres_written = store_result.get("backends", {}).get("postgres", False)
         result.status = result.compute_status()
 
+        # Phase 2: Recall verification — prove the bundle can be retrieved
+        if result.memory_id and result.status in (
+            IngestStatus.SUCCESS,
+            IngestStatus.PARTIAL_SUCCESS,
+        ):
+            result.recall_verified = await _verify_recall(result.memory_id, bundle.bundle_id)
+
         sys.stderr.write(
             f"[vector_bridge] WROTE bundle {bundle.bundle_id} "
             f"→ memory_id={result.memory_id} "
             f"qdrant={result.qdrant_written} "
-            f"pg={result.postgres_written}\n"
+            f"pg={result.postgres_written} "
+            f"recall={result.recall_verified}\n"
         )
 
     except Exception as exc:
@@ -206,6 +249,33 @@ async def ingest_evidence_bundle(
     return result
 
 
+async def _verify_recall(memory_id: str, bundle_id: str) -> bool:
+    """
+    Phase 2: Verify a written bundle can be recalled by memory_id.
+
+    Returns True if recall succeeds, False otherwise.
+    Best-effort — recall failure does NOT fail the ingest, but IS recorded.
+    """
+    try:
+        from arifosmcp.runtime.memory_store import recall as _recall_fn
+
+        recalled = _recall_fn(memory_id)
+        if recalled and recalled.get("memory_id") == memory_id:
+            sys.stderr.write(
+                f"[vector_bridge] RECALL_OK memory_id={memory_id} bundle_id={bundle_id}\n"
+            )
+            return True
+        sys.stderr.write(
+            f"[vector_bridge] RECALL_MISMATCH memory_id={memory_id} bundle_id={bundle_id}\n"
+        )
+        return False
+    except Exception as exc:
+        sys.stderr.write(
+            f"[vector_bridge] RECALL_FAIL memory_id={memory_id} bundle_id={bundle_id}: {exc}\n"
+        )
+        return False
+
+
 # ── Legacy auto_sync_bundle interface (called from reality_handlers) ─────────
 
 
@@ -215,6 +285,9 @@ async def auto_sync_bundle(
     session_id: str | None = None,
     actor_id: str | None = None,
     dry_run: bool = True,
+    authorized: bool = False,
+    session_verified: bool = False,
+    sovereign_ack: bool = False,
 ) -> IngestResult:
     """
     Bridge from RealityHandler.handle_compass() to ingest_evidence_bundle().
@@ -222,11 +295,20 @@ async def auto_sync_bundle(
     This is the function imported by reality_handlers.py:
         from ..intelligence.tools.vector_bridge import auto_sync_bundle
 
+    Authorization gates (ALL must be True for permanent write):
+        dry_run=False  AND
+        authorized=True  AND
+        session_verified=True  AND
+        sovereign_ack=True
+
     Args:
         bundle: EvidenceBundle from reality_models.py (runtime/reality_models.py)
         session_id: Session context — overrides bundle.session_id if provided.
         actor_id: Actor context — overrides bundle.actor_id if provided.
         dry_run: If True, no permanent write. Default True (F1 reversibility).
+        authorized: Caller explicitly authorized the write. Default False.
+        session_verified: Session is verified (not anonymous/global). Default False.
+        sovereign_ack: Human sovereign acknowledged the write. Default False.
 
     Returns:
         IngestResult describing what was (or would be) written.
@@ -257,8 +339,10 @@ async def auto_sync_bundle(
             or (getattr(actor_obj, "actor_id", None) if isinstance(actor_obj, Actor) else None)
             or "global",
             actor_id=actor_id or "anonymous",
-            query=getattr(bundle_input, "value", "") if bundle_input is not None else "",
-            mode=getattr(bundle_input, "mode", "search") if bundle_input is not None else "search",
+            query=(getattr(bundle_input, "value", "") if bundle_input is not None else ""),
+            mode=(
+                getattr(bundle_input, "mode", "search") if bundle_input is not None else "search"
+            ),
             provider=(
                 bundle_provenance.get("engine", "unknown")
                 if isinstance(bundle_provenance, dict)
@@ -278,4 +362,7 @@ async def auto_sync_bundle(
     return await ingest_evidence_bundle(
         canonical,
         dry_run=dry_run,
+        authorized=authorized,
+        session_verified=session_verified,
+        sovereign_ack=sovereign_ack,
     )

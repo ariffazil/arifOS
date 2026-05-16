@@ -42,6 +42,7 @@ class IngestStatus(str, Enum):
     SUCCESS = "success"  # Both backends wrote
     PARTIAL_SUCCESS = "partial_success"  # One backend wrote
     SKIPPED = "skipped"  # dry_run=True or empty bundle
+    BLOCKED_AUTH_REQUIRED = "blocked_auth_required"  # Not authorized for permanent write
     FAILED = "failed"  # Both backends failed
 
 
@@ -208,6 +209,11 @@ class IngestResult(BaseModel):
     Result of an ingest_evidence_bundle() call.
 
     Returned to caller so they know what was written and to which backend.
+    Authorization gates must ALL be True for permanent writes:
+      - dry_run=False
+      - authorized=True
+      - session_verified=True
+      - sovereign_ack=True
     """
 
     status: IngestStatus = IngestStatus.SKIPPED
@@ -217,16 +223,24 @@ class IngestResult(BaseModel):
     postgres_written: bool = False
     idempotency_key: str | None = None
     dry_run: bool = True
+    authorized: bool = False  # Phase 2: caller must explicitly authorize
+    session_verified: bool = False  # Phase 2: session is verified
+    sovereign_ack: bool = False  # Phase 2: human sovereign ack obtained
+    blocked_reason: str | None = None  # Phase 2: why auth was blocked
     error: str | None = None
     backend_errors: dict[str, str] = Field(default_factory=dict)
+    recall_verified: bool = False  # Phase 2: bundle was recalled after write
     timestamp_utc: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     model_config = {"extra": "forbid", "str_strip_whitespace": True}
 
     def compute_status(self) -> IngestStatus:
-        """Derive ingest status from backend write results."""
+        """Derive ingest status from backend write results and auth state."""
         if self.dry_run:
             return IngestStatus.SKIPPED
+        # Phase 2: check authorization gates
+        if not (self.authorized and self.session_verified and self.sovereign_ack):
+            return IngestStatus.BLOCKED_AUTH_REQUIRED
         if self.qdrant_written and self.postgres_written:
             return IngestStatus.SUCCESS
         if self.qdrant_written or self.postgres_written:
