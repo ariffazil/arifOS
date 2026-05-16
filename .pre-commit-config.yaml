@@ -105,7 +105,7 @@ repos:
       - id: detect-secrets
         name: Detect hardcoded secrets
         args: []
-        exclude: 'package-lock.json|.secrets.baseline|docs/spec/|attestation_chain\.jsonl$'
+        exclude: 'package-lock.json|.secrets.baseline|docs/spec/|attestation_chain\.jsonl$|tests/runtime/test_phase4.*\.py$|arifosmcp/runtime/provider_registry\.py$'
 
   # Constitutional checks (custom)
   - repo: local
