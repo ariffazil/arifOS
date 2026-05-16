@@ -20,13 +20,17 @@ services:
     container_name: copilot-gateway
     init: true
     restart: unless-stopped
-    command: >
-      python -c "
-      import uvicorn, sys
-      sys.path.insert(0, '/app')
-      from arifosmcp.runtime import copilot_gateway
-      uvicorn.run(copilot_gateway.app, host='0.0.0.0', port=8090, log_level='info')
-      "
+    command:
+      - python
+      - -m
+      - uvicorn
+      - arifosmcp.runtime.copilot_gateway:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8090"
+      - --log-level
+      - info
     env_file: [.env.decrypted]
     environment:
       PYTHONPATH: /app
