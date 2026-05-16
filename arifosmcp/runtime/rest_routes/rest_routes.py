@@ -2829,7 +2829,7 @@ def register_rest_routes(
 
         Returns a layered topology map:
           Layer 0: Infrastructure  (Postgres, Redis, Qdrant, Vault999)
-          Layer 1: MCP Servers      (arifOS, GEOX, WEALTH, WELL, A-FORGE, AAA, Hermes)
+          Layer 1: MCP Servers      (arifOS, GEOX, WEALTH, WELL, A-FORGE, AAA, Apex)
           Layer 2: AI Providers     (Ollama, SEA-LION, Langfuse, Supabase)
           Layer 3: Edge / Routing   (Caddy, Cloudflare)
         Each entry: name, type, host, port, status, latency_ms, version (if available).
@@ -2853,7 +2853,7 @@ def register_rest_routes(
             _probe_http(path="http://well:8083/health", timeout=3.0),
             _probe_http(path="http://af-bridge-prod:7071/health", timeout=3.0),
             _probe_http(path="http://aaa-a2a:3001/health", timeout=3.0),
-            _probe_http(path="http://hermes-agent:3002/health", timeout=3.0),
+            _probe_http(path="http://apex-prime:3002/health", timeout=3.0),
             _probe_tcp_port("ollama", 11434),
         ]
 
@@ -2915,9 +2915,9 @@ def register_rest_routes(
                 **mcp_http[5],
             },
             {
-                "name": "Hermes",
+                "name": "Apex",
                 "type": "mcp",
-                "host": "hermes-agent",
+                "host": "apex-prime",
                 "port": 3002,
                 **mcp_http[6],
             },
@@ -4155,7 +4155,7 @@ def register_rest_routes(
         )
 
     GITHUB_RAW_TOOL_REGISTRY = (
-        "https://raw.githubusercontent.com/ariffazil/arifOS" "/main/arifosmcp/tool_registry.json"
+        "https://raw.githubusercontent.com/ariffazil/arifOS/main/arifosmcp/tool_registry.json"
     )
     LOCAL_FALLBACK_TOOL_REGISTRY = "/root/arifOS/arifosmcp/tool_registry.json"
 

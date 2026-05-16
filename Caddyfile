@@ -187,17 +187,14 @@ ai.arif-fazil.com {
 }
 
 # ═══════════════════════════════════════════════════════════════════════
-# THEORY / APEX
+# APEX — INTERNAL DELIBERATIVE RELAY (no public surface)
+# TEMPORARY REDIRECT — All public traffic redirected to AAA.
+# TODO: Remove this block after all clients updated to aaa.arif-fazil.com.
+# APEX remains running internally at apex-prime:3002 for federation use.
 # ═══════════════════════════════════════════════════════════════════════
 apex.arif-fazil.com {
 	import tls_origin
-	import shared_assets
-	encode zstd gzip
-	root * /var/www/html/apex
-	handle {
-		try_files {path} /index.html
-		file_server
-	}
+	redir https://aaa.arif-fazil.com{uri} 308
 }
 
 # ═══════════════════════════════════════════════════════════════════════
