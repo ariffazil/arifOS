@@ -1,17 +1,21 @@
 """
 arifOS Canonical Output Schemas (v2026.04.26-KANON)
-════════════════════════════════════════════════════
+═══════════════════════════════════════════════════
 
 Phase 2 Civilization Intelligence:
-- 888_JUDGE: VerdictOutput with ToAC, ThermodynamicState, DecisionCollapse, GrowthParadox, AKAL, AmanahProof
-- 999_VAULT: SealOutput with IrreversibilityBond, EntropyDelta, EpistemicSnapshot
+- 888_JUDGE: VerdictOutput with ToAC, ThermodynamicState,
+  DecisionCollapse, GrowthParadox, AKAL, AmanahProof
+- 999_VAULT: SealOutput with IrreversibilityBond, EntropyDelta,
+  EpistemicSnapshot
 - 333_MIND: MindOutput with AxiomsUsed, Metrics, ReasoningTrace
 - 222_FETCH: Sequential thinking schemas
 - 010_FORGE: ForgeOutput with IrreversibilityFlag, DeltaSEvidence
 - 444_KERNEL: KernelMetrics with stage trajectory
 - 777_OPS: WEALTH metrics with Landauer, psi_le, omega
+- 114_INGEST: CanonicalEvidenceBundle + IngestResult + ClaimSchema
+  (Phase 1 SENSE-INGEST pipeline)
 
-DITEMPA BUKAN DIBERI — Forged, Not Given
+DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 
 from __future__ import annotations
@@ -200,4 +204,13 @@ __all__ = [
     "UncertaintyGeometry",
     "EvidenceCivilizationContext",
     "EpistemicHumility",
+    # EvidenceBundle (111_SENSE → 114_INGEST pipeline)
+    "CanonicalEvidenceBundle",
+    "IngestResult",
+    "ClaimSchema",
+    "EntitySchema",
+    "RelationSchema",
+    "ReceiptSchema",
+    "EvidenceLevel",
+    "IngestStatus",
 ]
