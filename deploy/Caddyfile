@@ -311,6 +311,45 @@ well.arif-fazil.com {
 }
 
 # ═══════════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COPILOT GOVERNANCE BRIDGE — copilot.arif-fazil.com
+# Layer 2 (JUDGMENT) gateway: Copilot output → arifOS 888_JUDGE → VAULT999
+# Internal only — authenticated via X-API-Key header.
+# ═══════════════════════════════════════════════════════════════════════════════
+copilot.arif-fazil.com {
+    import tls_origin
+    encode zstd gzip
+
+    # CORS preflight for programmatic callers (Teams / Power Automate)
+    @cors_preflight method OPTIONS
+    handle @cors_preflight {
+        header Access-Control-Allow-Origin "*"
+        header Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        header Access-Control-Allow-Headers "X-API-Key, Content-Type, X-Request-ID"
+        respond "" 204
+    }
+
+    handle /health {
+        reverse_proxy copilot-gateway:8090
+    }
+    handle /copilot/* {
+        import cors_public
+        reverse_proxy copilot-gateway:8090 {
+            header_up Host copilot.arif-fazil.com
+        }
+    }
+    handle /arifos/* {
+        import cors_public
+        reverse_proxy copilot-gateway:8090 {
+            header_up Host copilot.arif-fazil.com
+        }
+    }
+    handle {
+        respond "Copilot Governance Gateway — use /copilot/ingest or /health" 200
+    }
+}
+
 # LEGACY REDIRECTS — old subdomains → main sites
 # ═══════════════════════════════════════════════════════════════════════
 arifosmcp.arif-fazil.com {

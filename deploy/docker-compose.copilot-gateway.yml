@@ -1,0 +1,63 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# docker-compose.copilot-gateway.yml — arifOS Copilot Governance Gateway
+# Override for deploy/docker-compose.yml
+# DITEMPA BUKAN DIBERI — Forged, Not Given
+# Usage: docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.copilot-gateway.yml up -d
+# ══════════════════════════════════════════════════════════════════════════════
+
+services:
+
+  # ── COPILOT GOVERNANCE BRIDGE ──────────────────────────────────────────────
+  # Layer 2 (JUDGMENT) + Layer 3 (RECORD) of the 4-layer architecture.
+  # Receives Copilot output → arifOS 888_JUDGE → VAULT999 ledger.
+  # Fail-closed: HOLD when judge unreachable.
+  # ────────────────────────────────────────────────────────────────────────────
+  copilot-gateway:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.copilot-gateway
+    image: ghcr.io/ariffazil/copilot-gateway:latest
+    container_name: copilot-gateway
+    init: true
+    restart: unless-stopped
+    command: >
+      python -c "
+      import uvicorn, sys
+      sys.path.insert(0, '/app')
+      from arifosmcp.runtime import copilot_gateway
+      uvicorn.run(copilot_gateway.app, host='0.0.0.0', port=8090, log_level='info')
+      "
+    env_file: [.env.decrypted]
+    environment:
+      PYTHONPATH: /app
+      DOTENV: disabled
+      # Gateway listens on internal network
+      ARIFOS_COPILOT_API_KEY_FILE: /run/secrets/arifos_copilot_api_key
+      # arifOS judge is on the same Docker network
+      ARIFOS_JUDGE_URL: http://arifosmcp:8080
+      # Shared vault path with arifOS
+      ARIFOS_VAULT_PATH: /var/lib/arifos/vault
+      # Rate limiting (20 req per 300s window)
+      ARIFOS_COPILOT_RL_WINDOW: "300"
+      ARIFOS_COPILOT_RL_MAX: "20"
+    volumes:
+      # Mount gateway source for live-reload in dev (mounted read-only)
+      - ../arifosmcp/runtime/copilot_gateway.py:/app/arifosmcp/runtime/copilot_gateway.py:ro
+      # Secrets (API key)
+      - /root/compose/secrets:/run/secrets:ro
+      # Shared vault with arifOS
+      - /var/lib/arifos/volumes/vault999:/var/lib/arifos/vault:rw
+    networks: [arifos_core]
+    ports:
+      - "127.0.0.1:8090:8090"   # Local-only: relay CLI runs on host
+    depends_on:
+      arifosmcp:
+        condition: service_healthy
+      vault999:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8090/health')\""]
+      interval: 60s
+      start_period: 15s
+      timeout: 10s
+      retries: 3
