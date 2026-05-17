@@ -60,11 +60,6 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Evaluates a system against anti-sink invariants (F05, F08, F10, F13). "
         "Returns advisory estimates — not verdicts. Reversible. No state mutation."
     ),
-    "institutional_drift_check": (
-        "777_TOPOLOGY: Institutional drift runtime diagnostic. "
-        "Evaluates extractive vs inclusive topology (Acemoglu frame). "
-        "Returns advisory estimates — not verdicts. Reversible. No state mutation."
-    ),
     "arif_stack_health_probe": (
         "777_OPS: Federation stack health and governance probe. "
         "Checks arifOS MCP, organs, model registry, risk leash, tool registry, VAULT999. "

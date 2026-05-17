@@ -233,16 +233,6 @@ try:
         tags={"diagnostic", "topology", "governance"},
     )(arif_anti_sink_check)
 
-    mcp.tool(
-        name="institutional_drift_check",
-        description=(
-            "777_TOPOLOGY: Institutional drift runtime diagnostic. "
-            "Evaluates extractive vs inclusive topology (Acemoglu frame). "
-            "Returns advisory estimates — not verdicts. Reversible. No state mutation."
-        ),
-        tags={"diagnostic", "topology", "governance"},
-    )(institutional_drift_check)
-
     from arifosmcp.tools.health import arif_stack_health_probe
 
     mcp.tool(
@@ -263,7 +253,7 @@ try:
         ]
     )
     logger.info(
-        "Registered diagnostics: arif_anti_sink_check, institutional_drift_check, arif_stack_health_probe"  # noqa: E501
+        "Registered diagnostics: arif_anti_sink_check, arif_stack_health_probe"  # noqa: E501
     )
 
     # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────

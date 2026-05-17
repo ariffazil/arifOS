@@ -57,7 +57,6 @@ EXPANDED_45: tuple[str, ...] = tuple(
 # Diagnostic tools — reversible governance inspectors, not canonical constitutional tools.
 DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arif_anti_sink_check",
-    "institutional_drift_check",
     "arif_stack_health_probe",
 )
 

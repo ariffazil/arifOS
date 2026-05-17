@@ -480,5 +480,4 @@ async def institutional_drift_check(
 
 __all__ = [
     "arif_anti_sink_check",
-    "institutional_drift_check",
 ]
