@@ -1759,11 +1759,16 @@ def _new_session(
         try:
             from arifosmcp.runtime.registry import build_governance_card
 
-            sess["model_governance_card"] = build_governance_card(
+            card = build_governance_card(
                 session_id=sid,
                 declared_model_key=declared_model_key,
                 deployment_id=deployment_id,
             )
+            # P0 FIX: Convert Pydantic model to dict before storing in sess.
+            # Without this, json.dumps(sess) fails with
+            # "Object of type ModelGovernanceCard is not JSON serializable"
+            # because nested Pydantic models are not auto-serialized by stdlib json.
+            sess["model_governance_card"] = card.model_dump() if card else None
             if not sess["model_governance_card"]:
                 sess["session_warnings"].append(
                     "model_governance_card_unbound — F3_TRI_WITNESS degraded. Bind a model identity for full governance."
