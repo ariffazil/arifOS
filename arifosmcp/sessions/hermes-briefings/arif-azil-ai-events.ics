@@ -1,0 +1,113 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Hermes World Model Agent//ARIF FAZIL EVENTS//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Arif Fazil - AI & Tech Events 2026-2027
+X-WR-TIMEZONE:Asia/Kuala_Lumpur
+
+BEGIN:VEVENT
+DTSTART:20260610T090000
+DTEND:20260611T180000
+DTSTAMP:20260517T080000Z
+UID:superai-2026@hermes-arif
+SUMMARY:SuperAI 2026
+DESCRIPTION:Asia's premier AI event. 10-11 June 2026. Marina Bay Sands Singapore. Speakers include Balaji Srinivasan, Max Tegmark, Benedict Evans. 10000 attendees, 1500+ AI companies.
+LOCATION:Marina Bay Sands, Singapore
+URL:https://www.superai.com/
+STATUS:CONFIRMED
+CATEGORIES:AI,Tech,Conference
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20260601T090000
+DTEND:20260630T180000
+DTSTAMP:20260517T080000Z
+UID:atxsummit-2026@hermes-arif
+SUMMARY:Asia Tech x Singapore (ATxSG) 2026
+DESCRIPTION:Asia's flagship tech event. AI leaders converging in Singapore. Organized by IMDA. Over 17,000 global leaders and decision makers.
+LOCATION:Resorts World Sentosa, Singapore
+URL:https://www.imda.gov.sg/
+STATUS:CONFIRMED
+CATEGORIES:AI,Tech,Conference
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20260501T090000
+DTEND:20260531T180000
+DTSTAMP:20260517T080000Z
+UID:gitex-ai-asia-2026@hermes-arif
+SUMMARY:GITEX AI Asia 2026
+DESCRIPTION:GITEX AI Asia - Asia's most global tech, startup and digital investments event. AI infrastructure and deployment focus.
+LOCATION:Singapore
+URL:https://gitexasia.com/
+STATUS:CONFIRMED
+CATEGORIES:AI,Tech,Conference
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20260701T090000
+DTEND:20260731T180000
+DTSTAMP:20260517T080000Z
+UID:singapore-tech-week-2026@hermes-arif
+SUMMARY:Singapore Tech Week 2026
+DESCRIPTION:Singapore Tech Week - cloud, AI, cybersecurity, smart nation, digital infrastructure. Organized by IMDA and MSTD.
+LOCATION:Marina Bay Sands / Suntec, Singapore
+URL:https://www.imda.gov.sg/
+STATUS:TENTATIVE
+CATEGORIES:AI,Tech,Conference
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20260901T090000
+DTEND:20260930T180000
+DTSTAMP:20260517T080000Z
+UID:ai-singapore-summit-2026@hermes-arif
+SUMMARY:AI Singapore Summit 2026
+DESCRIPTION:AI Singapore Summit Q3 2026 - National AI strategy, LLM development, AI safety, industry deployment.
+LOCATION:Singapore EXPO, Singapore
+URL:https://www.aisingapore.org/
+STATUS:TENTATIVE
+CATEGORIES:AI,Tech,Conference
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20261001T090000
+DTEND:20261031T180000
+DTSTAMP:20260517T080000Z
+UID:switch-2026@hermes-arif
+SUMMARY:SWITCH 2026 (Singapore Week of Innovation & Technology)
+DESCRIPTION:SWITCH - deep tech, AI, medtech, cleantech, startup ecosystem. Organized by Enterprise Singapore.
+LOCATION:Marina Bay Sands, Singapore
+URL:https://www.enterprise singapore.gov.sg/
+STATUS:TENTATIVE
+CATEGORIES:AI,Tech,Innovation
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20261101T090000
+DTEND:20261130T180000
+DTSTAMP:20260517T080000Z
+UID:tech-in-asia-jakarta-2026@hermes-arif
+SUMMARY:Tech in Asia Jakarta 2026
+DESCRIPTION:Tech in Asia Jakarta - AI startups, venture capital, product demos, regional expansion. Largest ASEAN market.
+LOCATION:Jakarta, Indonesia
+URL:https://techinasia.com/
+STATUS:TENTATIVE
+CATEGORIES:AI,Tech,Startup,VC
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20270429T090000
+DTEND:20270430T180000
+DTSTAMP:20260517T080000Z
+UID:gitex-ai-asia-2027@hermes-arif
+SUMMARY:GITEX AI Asia 2027
+DESCRIPTION:GITEX AI Asia 2027 - 29-30 April 2027. Asia's most global tech, startup and digital investments event.
+LOCATION:Marina Bay Sands, Singapore
+URL:https://gitexasia.com/
+STATUS:CONFIRMED
+CATEGORIES:AI,Tech,Conference
+END:VEVENT
+
+END:VCALENDAR

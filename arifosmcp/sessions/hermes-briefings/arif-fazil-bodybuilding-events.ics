@@ -1,0 +1,113 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Hermes World Model Agent//ARIF FAZIL BODYBUILDING EVENTS//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Arif Fazil - Bodybuilding & Men's Physique Events 2026-2027
+X-WR-TIMEZONE:Asia/Kuala_Lumpur
+
+BEGIN:VEVENT
+DTSTART:20260601T090000
+DTEND:20260630T180000
+DTSTAMP:20260517T080000Z
+UID:mr-sarawak-60th-2026@hermes-arif
+SUMMARY:60th Mr Sarawak Championship 2026
+DESCRIPTION:60th Mr Sarawak Championship - June 2026, Kuching. One of Malaysia's oldest bodybuilding championships. Hosted by Sarawak State Federation.
+LOCATION:Kuching, Sarawak, Malaysia
+URL:https://borneopost.com/
+STATUS:CONFIRMED
+CATEGORIES:Bodybuilding,Competition
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20261201T090000
+DTEND:20261231T180000
+DTSTAMP:20260517T080000Z
+UID:hyrox-kuala-lumpur-2026@hermes-arif
+SUMMARY:HYROX Kuala Lumpur 2026
+DESCRIPTION:HYROX Kuala Lumpur - December 2026. First time in Malaysia! Global fitness race. Partnered with AirAsia. Asia-Pacific circuit.
+LOCATION:Kuala Lumpur, Malaysia
+URL:https://hyrox.com/
+STATUS:CONFIRMED
+CATEGORIES:FitnessRace,FunctionalFitness
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20261001T090000
+DTEND:20261130T180000
+DTSTAMP:20260517T080000Z
+UID:npc-malaysia-2026@hermes-arif
+SUMMARY:NPC Malaysia 2026 Season
+DESCRIPTION:NPC Malaysia 2026 competition season - typically Oct-Nov. National-level qualifying for NPC International. Check npcmalaysia.com for exact dates.
+LOCATION:Kuala Lumpur, Malaysia
+URL:https://npcmalaysia.com/
+STATUS:TENTATIVE
+CATEGORIES:Bodybuilding,Men'sPhysique,Competition
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20260901T090000
+DTEND:20260930T180000
+DTSTAMP:20260517T080000Z
+UID:mr-olympia-2026@hermes-arif
+SUMMARY:Mr Olympia 2026
+DESCRIPTION:Mr Olympia 2026 - September 2026. Top world level bodybuilding. Las Vegas venue.
+LOCATION:Las Vegas, USA
+URL:https://www.mrolympiallc.com/
+STATUS:CONFIRMED
+CATEGORIES:Bodybuilding,Competition
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20260601T090000
+DTEND:20260630T180000
+DTSTAMP:20260517T080000Z
+UID:arnold-classic-asia-2026@hermes-arif
+SUMMARY:Arnold Classic Asia 2026
+DESCRIPTION:Arnold Classic Asia 2026 - June 2026 window. Arnold brand regional event. Check Arnold Sports Festival for Asia schedule.
+LOCATION:Asia (TBC - Singapore or Bangkok)
+URL:https://www.arnoldsportsfestival.com/
+STATUS:TENTATIVE
+CATEGORIES:Bodybuilding,Competition
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20261001T090000
+DTEND:20261231T180000
+DTSTAMP:20260517T080000Z
+UID:mfbb-national-2026@hermes-arif
+SUMMARY:MFBB Malaysia National Championships 2026
+DESCRIPTION:MFBB Malaysia National Championships - typically Q4. Malaysia Fitness and Bodybuilding Federation national event.
+LOCATION:Kuala Lumpur, Malaysia
+URL:https://www.mfbb.com.my/
+STATUS:TENTATIVE
+CATEGORIES:Bodybuilding,Competition
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20270101T090000
+DTEND:20271231T180000
+DTSTAMP:20260517T080000Z
+UID:sea-games-2027@hermes-arif
+SUMMARY:SEA Games 2027 - Kuala Lumpur (Bodybuilding)
+DESCRIPTION:SEA Games 2027 - Malaysia host. Bodybuilding likely included as medal sport. Q3 2027.
+LOCATION:Kuala Lumpur, Malaysia
+URL:https://www.seagames2027kl.com/
+STATUS:CONFIRMED
+CATEGORIES:Bodybuilding,Competition,RegionalGames
+END:VEVENT
+
+BEGIN:VEVENT
+DTSTART:20260601T090000
+DTEND:20260630T180000
+DTSTAMP:20260517T080000Z
+UID:arnold-amateur-asia-2026@hermes-arif
+SUMMARY:Arnold Amateur Asia 2026
+DESCRIPTION:Arnold Amateur Asia 2026 - pathway to pro card. Check Arnold Sports Festival for Asia amateur qualifying dates.
+LOCATION:Asia (TBC)
+URL:https://www.arnoldsportsfestival.com/
+STATUS:TENTATIVE
+CATEGORIES:Bodybuilding,Amateur,ProQualification
+END:VEVENT
+
+END:VCALENDAR
