@@ -536,8 +536,10 @@ async def federation_audit(
     try:
         import httpx
 
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            r = await client.get("http://localhost:8083/health")
+        well_cfg = _SERVICE_ENDPOINTS.get("well", {})
+        well_health_url = _service_url("well", well_cfg)
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            r = await client.get(well_health_url)
             if r.status_code == 200:
                 data = r.json()
                 human_fresh = data.get("freshness_band", "UNKNOWN")
