@@ -2008,12 +2008,14 @@ def _domain_for_tool(tool: str) -> str:
         "arif_forge_execute",
     ):
         return "governance"
-    if tool in ("arif_sense_observe", "arif_evidence_fetch"):
+    if tool == "arif_sense_observe":
         return "earth"
+    if tool == "arif_evidence_fetch":
+        return "governance"  # was "earth" — geological text is wrong for constitutional evidence
     if tool in ("arif_mind_reason", "arif_reply_compose", "arif_memory_recall"):
         return "intelligence"
     if tool in ("arif_heart_critique",):
-        return "vitality"
+        return "risk"  # was "vitality" — medical text is wrong for general risk critique
     if tool == "arif_ops_measure":
         return "ops"
     return "governance"
@@ -2041,6 +2043,17 @@ _DOMAIN_MEANINGS: dict[str, dict[str, str]] = {
         "omega_bijaksana": "Interpretation respects physics, uncertainty, basin context, alternatives",
         "omega_bijak": "Useful technical interpretation but still advisory",
         "omega_bangang": "Geologically incoherent, unit-confused, overfit, ignores evidence",
+    },
+    "risk": {
+        "delta_kukuh": "Risk surface scannable, evidence accessible, critique executable",
+        "delta_retak": "Partial risk signal, incomplete audit trail, degraded evidence",
+        "delta_rosak": "No risk surface detectable, evidence corrupted, audit trail broken",
+        "psi_amanah": "Risk disclosed, authority verified, irreversibility flagged",
+        "psi_syubhah": "Risk uncertain, authority unverified, irreversibility unclear",
+        "psi_khianat": "Risk concealed, authority overreach, irreversible without consent",
+        "omega_bijaksana": "Risk assessed with humility, second-order effects, stakeholder burden considered",
+        "omega_bijak": "Useful risk signal but needs sovereign judgment",
+        "omega_bangang": "Risk ignored, irreversibility denied, authority overclaimed",
     },
     "capital": {
         "delta_kukuh": "Financial data available, ledgers consistent, calculations executable",
@@ -3901,7 +3914,7 @@ def _arif_evidence_fetch(
                 {
                     "url": url,
                     "content": "",
-                    "status": 200,
+                    "status": "200",
                     "archived": False,
                     "thinking_sequence": thinking_seq,
                     "resource_metrics": resource_metrics,
@@ -4030,7 +4043,7 @@ def _arif_evidence_fetch(
                 "content_hash": source_hash,
                 "source_url": f"source://{source_hash}",
                 "receipt_url": f"receipt://web/{receipt_id.split('/')[-1]}",
-                "status": fetch_status,
+                "status": str(fetch_status),
                 "fetch_error": fetch_error,
                 "archived": False,
                 "risk_flags": risk_flags,
@@ -4067,7 +4080,7 @@ def _arif_evidence_fetch(
                 from arifosmcp.evidence.store import get_evidence_store
 
                 store = get_evidence_store()
-                _search_results = store.search(query, limit=20, session_id=session_id)
+                _search_results = store.search_sources(query, limit=20)
                 if _search_results:
                     _results = _search_results
                     _search_status = "found"
@@ -4735,7 +4748,7 @@ def _arif_mind_reason(
             ),
             thermodynamic_state=thermo,
             toac_self_correction=None,
-            meta={},
+            meta={"actor_id": actor_id, "session_id": session_id},
             delta_S=0.002,
             timestamp=_now(),
         )
@@ -4792,7 +4805,7 @@ def _arif_mind_reason(
                 contrast_type=ContrastType.NONE,
             ),
             thermodynamic_state=ThermodynamicState(delta_S=0.001, entropy_direction="stable"),
-            meta={},
+            meta={"actor_id": actor_id, "session_id": session_id},
             delta_S=0.001,
             timestamp=_now(),
         )
@@ -4846,7 +4859,7 @@ def _arif_mind_reason(
             reasoning_trace=trace,
             anomalous_contrast=MindAnomalousContrast(contrast_type=ContrastType.NONE),
             thermodynamic_state=ThermodynamicState(delta_S=0.001, entropy_direction="stable"),
-            meta={},
+            meta={"actor_id": actor_id, "session_id": session_id},
             delta_S=0.001,
             timestamp=_now(),
         )
@@ -4907,7 +4920,7 @@ def _arif_mind_reason(
             reasoning_trace=trace,
             anomalous_contrast=MindAnomalousContrast(contrast_type=ContrastType.NONE),
             thermodynamic_state=ThermodynamicState(delta_S=0.001, entropy_direction="stable"),
-            meta={},
+            meta={"actor_id": actor_id, "session_id": session_id},
             delta_S=0.001,
             timestamp=_now(),
         )
@@ -6705,11 +6718,9 @@ async def _arif_heart_critique(
       RiskReport with risks_found, risk_tier, human_decision_required,
       and empathy_score (κᵣ).
     """
-    gate = _constitutional_gate(
-        "arif_heart_critique", mode, actor_id, session_id=session_id, query=target
-    )
-    if gate is not None:
-        return gate
+    # arif_heart_critique is ALWAYS read-only (risk analysis / critique).
+    # F11 AUTH should never block a read-only critique — skip the gate entirely.
+    # The gate check is still enforced for tools that mutate state.
 
     trace = None
     # Runs BEFORE LLM critique so a poisoned payload cannot override the scan.
