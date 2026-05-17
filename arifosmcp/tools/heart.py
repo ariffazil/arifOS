@@ -115,10 +115,12 @@ CRITIQUE_SCHEMA = {
             "maximum": 1.0,
             "description": "Human dignity preservation score (F05)",
         },
-        "verdict": {
+        "action_risk_verdict": {
             "type": "string",
             "enum": ["SEAL", "HOLD", "VOID"],
-            "description": "Heart verdict: SEAL=proceed, HOLD=caution, VOID=stop",
+            "description": "Action risk verdict: SEAL=proceed, HOLD=human review, VOID=stop. "
+            "This is NOT about whether the critique ran — it is about whether "
+            "the TARGET ACTION is safe to proceed. Read this to determine approval.",
         },
         "attacks": {
             "type": "array",
@@ -758,6 +760,12 @@ async def arif_heart_critique(
         result["caveats"] = result.get("caveats", []) + [
             f"Ω₁ flagged: auto-revise recommended — P(truth)={omega_state['p_truth']}"
         ]
+
+    # ── Final Verdict Logic ──
+    # Top-level 'verdict' is the EXECUTION status (the tool ran successfully)
+    # 'action_risk_verdict' is the actual ethical judgment of the proposed action
+    result["execution_verdict"] = "SEAL"
+    result["action_risk_verdict"] = result.get("status", "HOLD")
 
     # ── F05/F06 Maruah (Dignity) Integration ──
     if "maruah" not in result:

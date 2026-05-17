@@ -1,7 +1,7 @@
 # AGENTS.md — arifOS Workspace Governance
 
 **Canonical Source:** `https://github.com/ariffazil/arifOS`
-**Version:** 2026.05.11-EMBODY
+**Version:** 2026.05.20-EMBODY
 **Language:** English (all code, docs, and comments are in English)
 
 > **DITEMPA BUKAN DIBERI** — Intelligence is forged, not given.

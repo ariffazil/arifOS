@@ -72,7 +72,26 @@ class HeartResult(BaseModel):
     weakest_stakeholder: str = "general_public"
     human_impact_load: float = 0.0
     dignity_score: float = 1.0
-    verdict: Literal["SEAL", "HOLD", "VOID"] = "SEAL"
+    # TWO SEPARATE VERDICTS (FIX: previously conflated into one `verdict` field)
+    #
+    # execution_verdict = did the critique operation itself run without error?
+    #   SEAL = critique executed cleanly
+    #   HOLD = critique ran but had issues (timeout, partial)
+    #   VOID = critique could not run (injection detected, module unavailable)
+    #
+    # action_risk_verdict = is the TARGET ACTION safe to proceed with?
+    #   SEAL = action is low-risk, proceed
+    #   HOLD = action needs human review before proceeding
+    #   VOID = action is unsafe, do not proceed
+    #
+    # The TOP-LEVEL `output_policy` is derived from action_risk_verdict + risk_tier.
+    # Agents MUST read action_risk_verdict, NOT execution_verdict, to determine
+    # whether the critiqued action is approved.
+    execution_verdict: Literal["SEAL", "HOLD", "VOID"] = "SEAL"
+    action_risk_verdict: Literal["SEAL", "HOLD", "VOID"] = "SEAL"
+    # Legacy alias — removed to force callers to use the split fields above.
+    # old `verdict` field was ambiguous: does it mean execution or approval?
+    # DEPRECATED: remove after all callers updated
     attacks: list[str] = Field(default_factory=list)
     mitigations: list[str] = Field(default_factory=list)
     worst_case: Literal["SEAL", "HOLD", "VOID"] = "SEAL"
@@ -103,6 +122,26 @@ class HeartOutput(BaseModel):
     session_id: str | None = None
     delta_s: float = 0.0
     nine_signal: dict[str, Any] = Field(default_factory=dict)
-    output_policy: str = "DOMAIN_SEAL"
     reasons: list[str] = Field(default_factory=list)
     model_config = {"extra": "allow"}
+
+    @property
+    def output_policy(self) -> str:
+        """
+        Computed from action_risk_verdict + risk_tier.
+
+        output_policy tells the agent WHAT TO DO with the critique result.
+        This is ALWAYS derived from the action's risk, never from execution status.
+
+        DO NOT read `status` to determine action approval.
+        DO NOT read `execution_verdict` to determine action approval.
+        ALWAYS read `result.action_risk_verdict` + `result.risk_tier`.
+        """
+        if (
+            self.result.risk_tier in ("RED", "CRITICAL")
+            or self.result.action_risk_verdict == "VOID"
+        ):
+            return "DOMAIN_VOID"
+        if self.result.human_decision_required or self.result.action_risk_verdict == "HOLD":
+            return "DOMAIN_HOLD"
+        return "DOMAIN_SEAL"

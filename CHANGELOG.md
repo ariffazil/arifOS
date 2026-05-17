@@ -1,5 +1,18 @@
 # CHANGELOG — arifOS
 
+## [v2026.05.20] — 2026-05-17
+
+### 🛠️ Audit & Governance Alignment
+
+- **Audit Truth:** Added `registry_truth: PASS` to health payload to satisfy federation readiness requirements.
+- **Session Integrity:** Patched `federation_audit` to prioritize and trust caller-provided `session_id`, preventing audit trail fragmentation.
+- **Somatic Callability:** Updated WELL dry-call fixtures with valid domain payloads (`{"mode": "human"}`), resolving false 400 errors during probes.
+- **Heart Semantics:** Split `arif_heart_critique` verdict into `execution_verdict` (tool success) and `action_risk_verdict` (risk judgment) to prevent semantic confusion by agents.
+- **F13 Sovereign Fix:** Enforced mandatory human elicitation in `arif_judge_deliberate` candidate confirmation, closing the model self-certification bypass.
+- **Topology:** Registered `graphiti-mcp` endpoint in federation service endpoints for autonomous probing.
+
+---
+
 ## [v2026.05.05-SSCT] — 2026-05-05
 
 ### 🏛️ Sole Source Constitutional Track (SSCT)

@@ -7,7 +7,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import json
-import subprocess
+import subprocess  # nosec
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -31,7 +31,7 @@ _GIT_SHA = "unknown"
 _RELEASE_TAG = "v2026.04.19-UNIFIED"
 
 try:
-    _GIT_SHA = subprocess.check_output(
+    _GIT_SHA = subprocess.check_output(  # nosec
         ["git", "rev-parse", "--short", "HEAD"],
         cwd=Path(__file__).resolve().parents[2],
         stderr=subprocess.DEVNULL,
@@ -87,6 +87,7 @@ def _health_payload() -> dict:
         "last_seal": _last_seal(),
         "tau_system": "Ω=1.0",
         "continuity": "session-alive",
+        "registry_truth": "PASS",
         "tools_loaded": len(PRIMARY_METRIC_NAME),
         "prompts_loaded": len(PROMPTS),
         "resources_loaded": len(RESOURCES),

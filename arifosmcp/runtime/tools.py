@@ -2532,23 +2532,52 @@ async def _elicit_judge_candidate(
     mode: str,
     candidate: str | None,
 ) -> tuple[str | None, dict[str, Any] | None]:
+    # F13 FIX: Always elicit — the model cannot self-certify even if it provides
+    # a candidate as a tool argument. The candidate is treated as context for the
+    # human to review, not as self-certification. This closes the F13 bypass where
+    # a model could call arif_judge_deliberate(candidate="my action is safe") and
+    # have judgment run directly without human review.
+    #
+    # Rule: arif_judge_deliberate is a two-party protocol. The model requests
+    # judgment. The human (via elicitation) confirms the candidate. The model
+    # never однозначно accepts its own safety argument.
+
     if mode == "rules":
+        # rules mode returns constitutional text — not a verdict judgment.
+        # No candidate required; bypass is safe here.
         return candidate, None
 
-    if candidate and candidate.strip():
-        return candidate.strip(), None
-
     if ctx is None:
+        # No MCP context means no elicitation possible. Require explicit candidate.
+        if not candidate or not candidate.strip():
+            return None, _hold(
+                "arif_judge_deliberate",
+                "candidate is required when elicitation is unavailable",
+                [],
+            )
+        # Fall through to elicitation if ctx is None but candidate exists.
+        # This path still requires the model to present the candidate through
+        # an MCP client with elicitation support — the model cannot judge itself.
         return None, _hold(
             "arif_judge_deliberate",
-            "candidate is required or an MCP client with elicitation support must provide it",
+            "MCP client with elicitation support is required to confirm the candidate. "
+            "Model cannot self-certify (F13). Provide candidate via an MCP client that "
+            "supports elicitation, or use mode='history' to browse past verdicts.",
             [],
         )
 
-    await ctx.report_progress(15, 100, "arif_judge_deliberate: requesting candidate")
+    # Always elicit — candidate provided as tool argument is advisory context,
+    # not a bypass. The human must explicitly confirm through the elicitation dialog.
+    await ctx.report_progress(15, 100, "arif_judge_deliberate: requesting human confirmation")
     try:
+        candidate_preview = (
+            candidate[:500] + "..." if candidate and len(candidate) > 500 else (candidate or "")
+        )
         response = await ctx.elicit(
-            "Provide the candidate action, artifact, or proposal that should be judged.",
+            f"arif_judge_deliberate: Confirm the candidate to be judged.\n"
+            f"The model has requested judgment on an action. "
+            f"You (Arif) must confirm or modify the candidate before adjudication proceeds.\n\n"
+            f"Candidate: {candidate_preview}",
             JudgeCandidateInput,
         )
     except (McpError, RuntimeError) as exc:
@@ -6763,7 +6792,8 @@ async def _arif_heart_critique(
                 "result": {
                     "risks_found": _injection_flags,
                     "risk_tier": "CRITICAL",
-                    "verdict": "VOID",
+                    "execution_verdict": "VOID",
+                    "action_risk_verdict": "VOID",
                     "human_decision_required": True,
                     "injection_detected": True,
                     "injection_flags": _injection_flags,
@@ -6775,6 +6805,7 @@ async def _arif_heart_critique(
                 },
                 "meta": {"actor_id": actor_id, "session_id": session_id},
                 "nine_signal": _nine_signal_from_status("VOID"),
+                "output_policy": "DOMAIN_VOID",
             }
 
     trace = None
@@ -6835,16 +6866,29 @@ async def _arif_heart_critique(
                 "tool": "arif_heart_critique",
                 "status": "HOLD",
                 "risk_tier": "AMBER",
-                "verdict": "HOLD",
+                "execution_verdict": "HOLD",
+                "action_risk_verdict": "HOLD",
                 "human_decision_required": True,
                 "risks_found": [],
                 "error": f"666_HEART unavailable: {type(_exc).__name__}",
                 "nine_signal": _nine_signal_from_status("HOLD"),
+                "output_policy": "DOMAIN_HOLD",
             }
 
         result["tool"] = "arif_heart_critique"
         result["status"] = result.get("status", "OK")
         result["nine_signal"] = _nine_signal_from_status(result["status"])
+
+        # Derive output_policy from action_risk_verdict + risk_tier
+        # This is the ONLY field agents should read for action approval.
+        _risk = result.get("risk_tier", "GREEN")
+        _verdict = result.get("action_risk_verdict", "SEAL")
+        if _risk in ("RED", "CRITICAL") or _verdict == "VOID":
+            result["output_policy"] = "DOMAIN_VOID"
+        elif result.get("human_decision_required") or _verdict == "HOLD":
+            result["output_policy"] = "DOMAIN_HOLD"
+        else:
+            result["output_policy"] = "DOMAIN_SEAL"
 
         # ── F05/F06 Dignity Breakdown ──────────────────────────────────────────
         # Quantifies "Maruah" (ASEAN dignity floor) for human impact assessment
@@ -6858,8 +6902,8 @@ async def _arif_heart_critique(
             "audit_clarity_F07": {
                 "metric": "Can a human trace this in < 30 seconds?",
                 "floor": "F07",
-                "status": "PASS" if result.get("verdict") != "VOID" else "FAIL",
-                "value": 0.95 if result.get("verdict") != "VOID" else 0.0,
+                "status": "PASS" if result.get("action_risk_verdict") != "VOID" else "FAIL",
+                "value": 0.95 if result.get("action_risk_verdict") != "VOID" else 0.0,
             },
             "reversibility_index_F01": {
                 "metric": "Time/Energy cost to undo the state change",
