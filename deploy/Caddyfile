@@ -55,14 +55,6 @@ arif-fazil.com {
 		file_server
 	}
 
-	@genesis path /000/*
-	handle @genesis {
-		uri strip_prefix /000
-		root * /var/www/html/arif/000
-		try_files {path} /index.html
-		file_server
-	}
-
 	@validation path /999/*
 	handle @validation {
 		uri strip_prefix /999
