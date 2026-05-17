@@ -53,7 +53,7 @@ async def physics_reality(
     raw_input: str | None = None,
     ctx: Any | None = None,
 ) -> RuntimeEnvelope:
-    from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+    from arifosmcp.runtime.dispatcher import HARDENED_DISPATCH_MAP
 
     # ═══════════════════════════════════════════════════════════════════════
     # PATCH (2026-04-06): Validate query to prevent empty string collapse

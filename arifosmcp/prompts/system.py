@@ -60,7 +60,7 @@ def register_system_prompt(mcp: FastMCP) -> list[str]:
     """Register the system constitutional prompt."""
 
     @mcp.prompt(
-        name="system",
+        name="arif_system",
         description=(
             "Constitutional system context for arifOS MCP. "
             "Provides the full F1–F13 floor doctrine, cognitive Trinity (AGI/ASI/APEX), "

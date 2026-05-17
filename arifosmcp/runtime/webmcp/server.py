@@ -34,7 +34,7 @@ except ImportError:
             await self.app(scope, receive, send)
 
 
-from arifosmcp.runtime.build_info import get_build_info
+from arifosmcp.runtime.build import get_build_info
 from arifosmcp.runtime.optional_deps import redis
 from arifosmcp.runtime.public_registry import PUBLIC_TOOL_SPECS
 

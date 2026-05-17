@@ -141,7 +141,7 @@ class TelemetryEnvelope(BaseModel):
     verdict_hint: VerdictCode | None = Field(None, description="Indicative verdict")
 
 
-from arifosmcp.runtime.floors import get_floor_count
+from arifosmcp.runtime.floor import get_floor_count
 
 
 class ConstitutionalHealthView(BaseModel):

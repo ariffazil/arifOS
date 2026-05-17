@@ -23,7 +23,7 @@ import json
 import logging
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -91,8 +91,12 @@ async def _pg_write(
     metadata: dict,
     qdrant_id: str | None,
     session_id: str | None,
+    phoenix_state: str = "cooling",
+    cooldown_expiry: datetime | None = None,
+    psi_utility: int = 0,
+    tri_witness: str = "[false, false, false]",
 ) -> bool:
-    """Insert a memory record into Postgres memory_store table."""
+    """Insert a memory record into Postgres memory_store table with Phoenix metadata."""
     try:
         import asyncpg  # noqa: PLC0415
 
@@ -100,8 +104,11 @@ async def _pg_write(
         try:
             await conn.execute(
                 """
-                INSERT INTO memory_store (id, tier, text, metadata, qdrant_id, session_id)
-                VALUES ($1::uuid, $2, $3, $4::jsonb, $5::uuid, $6)
+                INSERT INTO memory_store (
+                    id, tier, text, metadata, qdrant_id, session_id,
+                    phoenix_state, phoenix_cooldown_expiry, phoenix_psi_utility, phoenix_tri_witness
+                )
+                VALUES ($1::uuid, $2, $3, $4::jsonb, $5::uuid, $6, $7, $8, $9, $10::jsonb)
                 ON CONFLICT (id) DO NOTHING
                 """,
                 memory_id,
@@ -110,6 +117,10 @@ async def _pg_write(
                 json.dumps(metadata, default=str),
                 qdrant_id,
                 session_id,
+                phoenix_state,
+                cooldown_expiry,
+                psi_utility,
+                tri_witness,
             )
             return True
         finally:
@@ -227,7 +238,7 @@ def _index_write(idx: dict[str, dict[str, Any]]) -> None:
 def _get_qdrant_client():
     from qdrant_client import QdrantClient  # noqa: PLC0415
 
-    # Resolve QDRANT_URL: if ENC[...] (SOPS placeholder), use default
+    # Resolve QDRANT_URL
     qdrant_url = _QDRANT_URL
     if qdrant_url.startswith("ENC["):
         qdrant_url = "http://qdrant:6333"
@@ -308,9 +319,6 @@ def store(
         "created_at": datetime.now(timezone.utc).isoformat(),
         "tier": normalised_tier,
         "version": "v3",
-        # Include memory_id so recall() can look up by memory_id directly in Qdrant
-        "memory_id": memory_id,
-        "pg_id": pg_memory_id,
     }
 
     # --- Qdrant write ---
@@ -328,6 +336,12 @@ def store(
     except Exception as exc:
         logger.error("Qdrant store failed: %s", exc)
 
+    # --- Phoenix-72 Metadata ---
+    # Non-sacred tiers default to 'cooling' state with 72-hour expiry
+    is_sacred = normalised_tier in _SACRED_TIERS
+    phoenix_state = "sealed" if is_sacred else "cooling"
+    cooldown_expiry = None if is_sacred else (datetime.now(timezone.utc) + timedelta(hours=72))
+
     # --- Postgres dual-write (non-blocking failure) ---
     pg_ok = False
     try:
@@ -339,6 +353,8 @@ def store(
                 metadata=payload,
                 qdrant_id=point_id,
                 session_id=session_id,
+                phoenix_state=phoenix_state,
+                cooldown_expiry=cooldown_expiry,
             )
         )
     except Exception as exc:
@@ -375,100 +391,37 @@ def store(
 
 
 def recall(memory_id: str) -> dict[str, Any] | None:
-    """Recall a memory entry by memory_id. Queries Qdrant (with Postgres soft-delete check).
-
-    The Qdrant store is append-only for audit integrity. Postgres holds the mutable
-    soft-delete flag (deleted_at). We verify soft-delete status before returning.
-    """
-    if not memory_id:
-        return None
-
-    # Helper: check Postgres soft-delete status and return entry if not deleted
-    def _check_postgres(point_id: str | None) -> dict[str, Any] | None:
-        if not point_id:
-            return None
-        try:
-            import asyncpg
-
-            async def _pg_get():
-                conn = await asyncpg.connect(_PG_URL, timeout=5)
-                try:
-                    row = await conn.fetchrow(
-                        """
-                        SELECT id, tier, text, metadata,
-                               qdrant_id, session_id, created_at, deleted_at
-                        FROM memory_store
-                        WHERE qdrant_id = $1 AND deleted_at IS NULL
-                        """,
-                        uuid.UUID(point_id),
-                    )
-                    return dict(row) if row else None
-                finally:
-                    await conn.close()
-
-            return _pg_run(_pg_get())
-        except Exception:
-            return None
-
-    # Helper: build return dict from Qdrant payload
-    def _from_payload(p: dict, point_id: str) -> dict:
-        return {
-            "memory_id": p.get("memory_id") or memory_id,
-            "content": p.get("content"),
-            "mode": p.get("mode"),
-            "tags": p.get("tags", []),
-            "actor_id": p.get("actor_id"),
-            "session_id": p.get("session_id"),
-            "summary": p.get("summary"),
-            "content_hash": p.get("content_hash"),
-            "created_at": p.get("created_at"),
-            "tier": p.get("tier", TIER_CANONICAL),
-            "point_id": point_id,
-            "version": p.get("version", "v3"),
-        }
-
-    # Try JSON index first (fast path, if index exists and is populated)
+    _ensure_dir()
     idx = _index_read()
+
     if memory_id in idx:
         point_id = idx[memory_id].get("point_id")
-        pg_row = _check_postgres(point_id)
-        if pg_row is None:
-            # Soft-deleted in Postgres or not found
-            return None
-        try:
-            client = _get_qdrant_client()
-            points = client.retrieve(
-                collection_name=_QDRANT_COLLECTION,
-                ids=[str(point_id)],
-                with_payload=True,
-            )
-            if points and points[0].payload:
-                return _from_payload(points[0].payload, str(point_id))
-        except Exception as exc:
-            logger.warning("Qdrant recall via index failed for %s: %s", memory_id, exc)
-
-    # Fallback: scan Qdrant directly for memory_id in payload
-    # This works even when JSON index is empty (e.g. after container restart)
-    try:
-        client = _get_qdrant_client()
-        from qdrant_client.models import FieldCondition, Filter, MatchValue
-
-        results, _ = client.scroll(
-            collection_name=_QDRANT_COLLECTION,
-            scroll_filter=Filter(
-                must=[FieldCondition(key="memory_id", match=MatchValue(value=memory_id))]
-            ),
-            limit=1,
-            with_payload=True,
-        )
-        if results:
-            point_id = str(results[0].id)
-            pg_row = _check_postgres(point_id)
-            if pg_row is None:
-                return None  # soft-deleted
-            return _from_payload(results[0].payload or {}, point_id)
-    except Exception as exc:
-        logger.warning("Qdrant scroll recall failed for %s: %s", memory_id, exc)
+        if point_id:
+            try:
+                client = _get_qdrant_client()
+                points = client.retrieve(
+                    collection_name=_QDRANT_COLLECTION,
+                    ids=[point_id],
+                    with_payload=True,
+                )
+                if points and points[0].payload:
+                    p = points[0].payload
+                    return {
+                        "memory_id": memory_id,
+                        "content": p.get("content"),
+                        "mode": p.get("mode"),
+                        "tags": p.get("tags", []),
+                        "actor_id": p.get("actor_id"),
+                        "session_id": p.get("session_id"),
+                        "summary": p.get("summary"),
+                        "content_hash": p.get("content_hash"),
+                        "created_at": p.get("created_at"),
+                        "tier": p.get("tier", TIER_CANONICAL),
+                        "point_id": point_id,
+                        "version": p.get("version", "v3"),
+                    }
+            except Exception as exc:
+                logger.warning("Qdrant recall failed for %s: %s", memory_id, exc)
 
     # Legacy file fallback
     legacy_path = _MEMORY_DIR / f"{memory_id}.json"
@@ -515,7 +468,7 @@ def search(
                     (
                         hit.score,
                         {
-                            "memory_id": p.get("memory_id") or str(hit.id),
+                            "memory_id": "",
                             "content": p.get("content"),
                             "mode": p.get("mode"),
                             "tags": p.get("tags", []),
@@ -525,7 +478,7 @@ def search(
                             "content_hash": p.get("content_hash"),
                             "created_at": p.get("created_at"),
                             "tier": p.get("tier", TIER_CANONICAL),
-                            "point_id": str(hit.id),
+                            "point_id": hit.id,
                             "score": hit.score,
                             "version": p.get("version", "v3"),
                         },
@@ -704,6 +657,210 @@ def _session_counts(idx: dict) -> dict[str, int]:
     return counts
 
 
+# =============================================================================
+# CLASS INTERFACE (FOR JANITOR & SERVICES)
+# =============================================================================
+
+
+class MemoryStore:
+    """Structured interface for arifOS Memory Tiers."""
+
+    def __init__(self):
+        self.qdrant = None
+        try:
+            self.qdrant = _get_qdrant_client()
+        except Exception:
+            pass
+        self._pg_url = _PG_URL
+
+    async def get_pg_conn(self):
+        import asyncpg  # noqa: PLC0415
+
+        return await asyncpg.connect(self._pg_url, timeout=5)
+
+    async def get_expired_cooling_entries(self) -> list[dict[str, Any]]:
+        """Fetch Phoenix entries where cooling has expired."""
+        try:
+            conn = await self.get_pg_conn()
+            try:
+                rows = await conn.fetch(
+                    """
+                    SELECT id, tier, text, metadata, qdrant_id,
+                           phoenix_psi_utility, phoenix_anti_hantu_flag
+                    FROM memory_store
+                    WHERE phoenix_state = 'cooling'
+                      AND phoenix_cooldown_expiry <= NOW()
+                      AND deleted_at IS NULL
+                    """
+                )
+                return [dict(r) for r in rows]
+            finally:
+                await conn.close()
+        except Exception as exc:
+            logger.error("Janitor: Expired fetch failed: %s", exc)
+            return []
+
+    async def get_entry(self, memory_id: str) -> dict[str, Any] | None:
+        """Fetch memory record by ID."""
+        try:
+            conn = await self.get_pg_conn()
+            try:
+                row = await conn.fetchrow(
+                    "SELECT id, text, metadata, tier, session_id, "
+                    "phoenix_state FROM memory_store WHERE id = $1::uuid",
+                    memory_id,
+                )
+                return dict(row) if row else None
+            finally:
+                await conn.close()
+        except Exception as exc:
+            logger.error("Janitor: Fetch failed for %s: %s", memory_id, exc)
+            return None
+
+    async def seal_entry(self, memory_id: str) -> bool:
+        """Promote entry to CANON and SEALED state with Tier 5 Vault-999 commitment."""
+        try:
+            # 1. Fetch metadata for vault commitment
+            entry = await self.get_entry(memory_id)
+            if not entry:
+                logger.error("Janitor: Cannot seal missing memory %s", memory_id)
+                return False
+
+            # 2. Update Postgres state
+            conn = await self.get_pg_conn()
+            try:
+                await conn.execute(
+                    """
+                    UPDATE memory_store
+                    SET phoenix_state = 'sealed',
+                        tier = 'canon',
+                        phoenix_sealed_at = NOW()
+                    WHERE id = $1::uuid
+                    """,
+                    memory_id,
+                )
+            finally:
+                await conn.close()
+
+            # 3. ── Tier 5 Vault-999 Sealing (Merkle chain + JSONL) ──
+            try:
+                from arifosmcp.runtime.vault_postgres import seal_to_vault
+
+                # Extract actor_id from metadata
+                metadata = entry.get("metadata") or {}
+                if isinstance(metadata, str):
+                    try:
+                        metadata = json.loads(metadata)
+                    except Exception:
+                        metadata = {}
+
+                actor_id = metadata.get("actor_id") or "arifOS_janitor"
+                session_id = entry.get("session_id") or "system"
+
+                await seal_to_vault(
+                    event_type="MEMORY_CANON_SEAL",
+                    session_id=session_id,
+                    actor_id=actor_id,
+                    stage="999_SEAL",
+                    verdict="SEAL",
+                    payload={
+                        "memory_id": str(memory_id),
+                        "text_hash": hashlib.sha256(entry.get("text", "").encode()).hexdigest(),
+                        "original_tier": entry.get("tier"),
+                        "action": "PHOENIX_72_PROMOTION",
+                        "sealed_by": "arifOS_janitor",
+                    },
+                )
+                logger.info("Janitor: Tier 5 Vault SEAL complete for %s", memory_id)
+            except Exception as v_err:
+                logger.warning("Janitor: Vault sealing failed (non-fatal): %s", v_err)
+
+            return True
+        except Exception as exc:
+            logger.error("Janitor: Seal failed for %s: %s", memory_id, exc)
+            return False
+
+    async def void_entry(self, memory_id: str) -> bool:
+        """Purge entry from Postgres (soft-delete) and Qdrant."""
+        try:
+            # 1. Soft delete in Postgres
+            await _pg_soft_delete(memory_id)
+            logger.info("Janitor: VOIDED %s", memory_id)
+            return True
+        except Exception as exc:
+            logger.error("Janitor: Void failed for %s: %s", memory_id, exc)
+            return False
+
+
+_instance: MemoryStore | None = None
+
+
+def get_memory_store() -> MemoryStore:
+    global _instance
+    if _instance is None:
+        _instance = MemoryStore()
+    return _instance
+
+
+async def _pg_get_all_for_audit(limit: int = 1000, include_deleted: bool = False) -> list[dict]:
+    """Fetch all memories from Postgres for auditing purposes."""
+    try:
+        import asyncpg  # noqa: PLC0415
+
+        conn = await asyncpg.connect(_PG_URL, timeout=5)
+        try:
+            query = """
+                SELECT id::text, tier, text, metadata, session_id, created_at, phoenix_state
+                FROM memory_store
+                WHERE (deleted_at IS NULL OR $1)
+                ORDER BY created_at DESC
+                LIMIT $2
+            """
+            rows = await conn.fetch(query, include_deleted, limit)
+            result = []
+            for row in rows:
+                meta = {}
+                try:
+                    metadata_val = row["metadata"]
+                    if isinstance(metadata_val, str):
+                        meta = json.loads(metadata_val)
+                    else:
+                        meta = metadata_val or {}
+                except Exception:
+                    pass
+
+                # Format to match retrieval gate expectations in f4_retrieval_policy.py
+                result.append(
+                    {
+                        "memory_id": row["id"],
+                        "tier": row["tier"],
+                        "content": meta.get("content") or row["text"],
+                        "summary": row["text"],
+                        "tags": meta.get("tags", []),
+                        "actor_id": meta.get("actor_id"),
+                        "session_id": row["session_id"],
+                        "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+                        "score": 1.0,  # Audit uses base records, no search score
+                        "phoenix_state": row["phoenix_state"],
+                        "contradiction_signals": meta.get("contradiction_signals", []),
+                        "valid_until": meta.get("valid_until"),
+                        "sensitivity": meta.get("sensitivity", "public"),
+                        "temporal_marker": meta.get("temporal_marker", "active"),
+                    }
+                )
+            return result
+        finally:
+            await conn.close()
+    except Exception as exc:
+        logger.warning("Audit load failed: %s", exc)
+        return []
+
+
+def get_all_memories_for_audit(limit: int = 1000, include_deleted: bool = False) -> list[dict]:
+    """Synchronous wrapper for audit memory retrieval."""
+    return _pg_run(_pg_get_all_for_audit(limit, include_deleted))
+
+
 __all__ = [
     "store",
     "recall",
@@ -711,8 +868,11 @@ __all__ = [
     "prune",
     "context_for_session",
     "load_canonical_for_actor",
+    "get_all_memories_for_audit",
     "memory_mode",
     "stats",
+    "get_memory_store",
+    "MemoryStore",
     "TIER_SACRED",
     "TIER_CANONICAL",
     "TIER_SESSION",

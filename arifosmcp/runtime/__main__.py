@@ -110,7 +110,7 @@ def _stdio_constitutional_floors() -> list[dict[str, str]]:
 async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[str, Any]:
     handler_name = getattr(handler, "__name__", "")
 
-    from arifosmcp.runtime.sessions import get_session_identity
+    from arifosmcp.runtime.session import get_session_identity
 
     if not arguments.get("actor_id"):
         sid = arguments.get("session_id")
@@ -161,6 +161,16 @@ def _run_minimal_stdio_server() -> None:
 
     # Build spec lookup from canonical TOOLS tuple
     _spec_by_name = {spec.name: spec for spec in TOOLS}
+
+    # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
+    try:
+        from .workers.memory_janitor import MemoryJanitor
+
+        # Using the same loop if possible, or start it in background
+        _async_loop.create_task(MemoryJanitor(interval_seconds=3600).run_loop())
+        logging.getLogger("arifosmcp").info("Phoenix-72 Memory Janitor: ACTIVE (stdio)")
+    except Exception as e:
+        logging.getLogger("arifosmcp").warning(f"Failed to start Memory Janitor in stdio: {e}")
 
     def tool_descriptor(name: str) -> dict[str, Any]:
         spec = _spec_by_name.get(name)

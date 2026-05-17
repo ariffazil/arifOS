@@ -346,30 +346,3 @@ ollama.arif-fazil.com {
     import tls_origin
     reverse_proxy 127.0.0.1:11434
 }
-
-# ═══════════════════════════════════════════════════════════════════════
-# INFRASTRUCTURE — Vaultwarden (Password Manager)
-# ═══════════════════════════════════════════════════════════════════════
-vault.arif-fazil.com {
-    import tls_origin
-    encode zstd gzip
-    reverse_proxy 127.0.0.1:8085
-}
-
-# ═══════════════════════════════════════════════════════════════════════
-# INFRASTRUCTURE — Uptime Kuma (Service Monitoring)
-# ═══════════════════════════════════════════════════════════════════════
-status.arif-fazil.com {
-    import tls_origin
-    encode zstd gzip
-    reverse_proxy 127.0.0.1:8086
-}
-
-# ═══════════════════════════════════════════════════════════════════════
-# INFRASTRUCTURE — Netdata (System Metrics)
-# ═══════════════════════════════════════════════════════════════════════
-metrics.arif-fazil.com {
-    import tls_origin
-    encode zstd gzip
-    reverse_proxy 127.0.0.1:19999
-}

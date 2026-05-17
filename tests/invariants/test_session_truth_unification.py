@@ -7,7 +7,7 @@ across all runtime contexts.
 These tests prevent truth-surface split regression.
 """
 
-from arifosmcp.runtime.sessions import resolve_runtime_context, bind_session_identity
+from arifosmcp.runtime.session import resolve_runtime_context, bind_session_identity
 
 
 class TestSessionTruthInvariant:

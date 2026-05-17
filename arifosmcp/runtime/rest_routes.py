@@ -40,7 +40,7 @@ from arifosmcp.runtime.public_registry import (
     public_tool_names,
     public_tool_specs,
 )
-from arifosmcp.runtime.resources import apex_tools_markdown_table
+from arifosmcp.runtime.resource import apex_tools_markdown_table
 from starlette.requests import Request
 from starlette.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from starlette.staticfiles import StaticFiles
@@ -54,15 +54,15 @@ from core.shared.floors import (
     get_floor_threshold,
 )
 
-from arifosmcp.runtime.build_info import get_build_info
-from arifosmcp.runtime.capability_map import build_runtime_capability_map
+from arifosmcp.runtime.build import get_build_info
+from arifosmcp.runtime.capabilities import build_runtime_capability_map
 from arifosmcp.runtime.contracts import (
     AAA_TOOL_ALIASES,
     AAA_TOOL_STAGE_MAP,
     TRINITY_BY_TOOL,
 )
 from arifosmcp.runtime.federation_epistemology import FederationEpistemicLedger
-from arifosmcp.runtime.floors import get_floor_count
+from arifosmcp.runtime.floor import get_floor_count
 
 # External MCP tool name → internal contract name
 # This is the authoritative mapping for stage/lane lookups
@@ -2111,30 +2111,9 @@ def _compute_known_gaps(
             }
         )
 
-    # mcp_session_init — always present (inherent limitation of MCP session protocol)
-    gaps.append(
-        {
-            "id": "mcp_session_init",
-            "title": "Public /mcp route: returns Session not found",
-            "detail": "MCP session requires initialization via tool call, not direct HTTP",
-            "severity": "info",
-            "floors": [],
-        }
-    )
-
-    # langfuse_tool_traces — RESOLVED: all 13 canonical tools now wired (6 async + 7 sync via _sync_trace)
+    # langfuse_tool_traces — only report when tracing is actually degraded.
     lf_status = langfuse_tracing.get("status", "UNKNOWN")
-    if lf_status == "ACTIVE":
-        gaps.append(
-            {
-                "id": "langfuse_tool_traces",
-                "title": "Langfuse tool traces: all 13 canonical tools wired (6 async _LANGFUSE_TRACER.trace + 7 sync _sync_trace)",
-                "detail": "SDK active with 13/13 tools traced",
-                "severity": "info",
-                "floors": [],
-            }
-        )
-    elif lf_status != "NOT_WIRED":
+    if lf_status not in ("ACTIVE", "NOT_WIRED"):
         gaps.append(
             {
                 "id": "langfuse_tool_traces",
@@ -2149,34 +2128,20 @@ def _compute_known_gaps(
     input_count = contract_status.get("input_schemas_published", 0)
     output_count = contract_status.get("output_schemas_published", 0)
     tool_count = contract_status.get("tool_count", 0)
-    gaps.append(
-        {
-            "id": "mcp_contract_publication",
-            "title": (
-                "MCP contract publication: all canonical tools publish input/output schemas"
-                if schemas_complete
-                else "MCP contract publication: schema coverage incomplete"
-            ),
-            "detail": (
-                f"Published input schemas {input_count}/{tool_count}; "
-                f"output schemas {output_count}/{tool_count}. "
-                "This measures the live MCP contract surface, not just internal validator hooks."
-            ),
-            "severity": "info" if schemas_complete else "warning",
-            "floors": ["F4", "F10"],
-        }
-    )
-
-    # cosign_supply_chain — signed with cosign key pair
-    gaps.append(
-        {
-            "id": "cosign_supply_chain",
-            "title": "Cosign/SLSA: image signed with cosign key pair — provenance verified",
-            "detail": "ghcr.io/ariffazil/arifos:kanon-final signed; transparency log entry index 1422405653",
-            "severity": "info",
-            "floors": [],
-        }
-    )
+    if not schemas_complete:
+        gaps.append(
+            {
+                "id": "mcp_contract_publication",
+                "title": "MCP contract publication: schema coverage incomplete",
+                "detail": (
+                    f"Published input schemas {input_count}/{tool_count}; "
+                    f"output schemas {output_count}/{tool_count}. "
+                    "This measures the live MCP contract surface, not just internal validator hooks."
+                ),
+                "severity": "warning",
+                "floors": ["F4", "F10"],
+            }
+        )
 
     # langfuse_degraded — only when Langfuse is degraded or auth failed
     if lf_status in ("DEGRADED_AUTH_FAILED", "NOT_WIRED"):
@@ -2778,7 +2743,7 @@ def register_rest_routes(
 
         Returns a layered topology map:
           Layer 0: Infrastructure  (Postgres, Redis, Qdrant, Vault999)
-          Layer 1: MCP Servers      (arifOS, GEOX, WEALTH, WELL, A-FORGE, AAA, Hermes)
+          Layer 1: MCP Servers      (arifOS, GEOX, WEALTH, WELL, A-FORGE, AAA, Apex)
           Layer 2: AI Providers     (Ollama, SEA-LION, Langfuse, Supabase)
           Layer 3: Edge / Routing   (Caddy, Cloudflare)
         Each entry: name, type, host, port, status, latency_ms, version (if available).
@@ -2802,7 +2767,7 @@ def register_rest_routes(
             _probe_http("/health", timeout=3.0, path="http://well:8083/health"),
             _probe_http("/health", timeout=3.0, path="http://af-bridge-prod:7071/health"),
             _probe_http("/health", timeout=3.0, path="http://aaa-a2a:3001/health"),
-            _probe_http("/health", timeout=3.0, path="http://hermes-agent:3002/health"),
+            _probe_http("/health", timeout=3.0, path="http://apex-prime:3002/health"),
             _probe_tcp_port("ollama", 11434),
         ]
 
@@ -2864,9 +2829,8 @@ def register_rest_routes(
                 **mcp_http[5],
             },
             {
-                "name": "Hermes",
-                "type": "mcp",
-                "host": "hermes-agent",
+                "name": "Apex",
+                "host": "apex-prime",
                 "port": 3002,
                 **mcp_http[6],
             },
@@ -4725,7 +4689,7 @@ def register_rest_routes(
     @route("/meta/omega/violations", methods=["GET"])
     async def meta_omega_violations(_request: Request) -> Response:
         """Detailed Ω_ortho violations."""
-        from arifosmcp.runtime.m01_correlation_auditor import get_auditor
+        from arifosmcp.runtime.auditor import get_auditor
 
         auditor = get_auditor()
         report = auditor.compute_orthogonality()
@@ -4888,7 +4852,7 @@ def register_rest_routes(
     async def list_resources(request: Request) -> Response:
         """List MCP resources — governed context objects."""
         try:
-            from arifosmcp.runtime.resources import manifest_resources
+            from arifosmcp.runtime.resource import manifest_resources
 
             resources = manifest_resources()
             return JSONResponse(
@@ -4905,7 +4869,7 @@ def register_rest_routes(
     async def read_resource(request: Request, uri: str) -> Response:
         """Read a specific resource by URI."""
         try:
-            from arifosmcp.runtime.resources import read_resource_content
+            from arifosmcp.runtime.resource import read_resource_content
 
             content = await read_resource_content(uri)
             if not content:

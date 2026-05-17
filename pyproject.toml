@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "2026.5.11"
+version = "2026.05.16"
 description = "arifOS Constitutional AI Kernel — 13 canonical MCP tools, VAULT999 ledger, F1–F13 floor enforcement"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -42,11 +42,11 @@ dependencies = [
     "rich>=15.0.0",
     "psutil>=7.2.2",
     "numpy==2.1.3",
-    "scipy==1.17.1",
-    "scikit-learn==1.8.0",
-    "torch==2.11.0",
+    "scipy==1.14.1",
+    "scikit-learn==1.5.2",
+    "torch==2.5.1",
     "transformers==4.46.3",
-    "sentence-transformers==5.4.1",
+    "sentence-transformers==3.3.1",
 ]
 
 [project.optional-dependencies]
@@ -93,7 +93,7 @@ warn_unused_configs = true
 strict_optional = true
 
 [tool.bandit]
-skips = ["B110", "B311", "B310", "B112"]
+skips = ["B110", "B311", "B310", "B112", "B104"]
 
 [build-system]
 requires = ["setuptools>=82.0.1"]

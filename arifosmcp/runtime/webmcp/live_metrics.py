@@ -21,7 +21,7 @@ from typing import Any
 
 import httpx
 
-from arifosmcp.runtime.floors import get_floor_count
+from arifosmcp.runtime.floor import get_floor_count
 
 try:
     import psutil

@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from arifosmcp.core.floors import check_floors
+from arifosmcp.core.floor import check_floors
 
 logger = logging.getLogger(__name__)
 

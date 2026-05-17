@@ -26,7 +26,7 @@ async def compat_probe(
     - Authority ladder alignment (Identity vs Class)
     - Protocol signature parity
     """
-    from arifosmcp.runtime.sessions import get_session_identity
+    from arifosmcp.runtime.session import get_session_identity
 
     # 1. Check Identity
     identity = get_session_identity(session_id) if session_id else None

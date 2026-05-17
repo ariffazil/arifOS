@@ -20,8 +20,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.tools.embodied_tool import EmbodiedTool
-from arifosmcp.tools.mind_reason import arif_mind_reason as _mind_reason_kernel
+from arifosmcp.tools.embodied import EmbodiedTool
+from arifosmcp.tools.reason import arif_mind_reason as _mind_reason_kernel
 
 
 class ArifMindReasonEmbodied(EmbodiedTool):

@@ -53,7 +53,7 @@ def get_telemetry() -> dict:
 def get_floors_enforced() -> list[str]:
     """Return list of floors currently enforced by runtime."""
     try:
-        from arifosmcp.runtime.floors import get_floor_status
+        from arifosmcp.runtime.floor import get_floor_status
 
         status = get_floor_status()
         floors = status.get("floors", [])

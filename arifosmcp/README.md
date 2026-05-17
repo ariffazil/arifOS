@@ -24,7 +24,7 @@
 | **MCP Endpoint** | https://mcp.arif-fazil.com/mcp | Main API (canonical15 public surface) |
 | **Health + Tools** | https://mcp.arif-fazil.com/health | Capability map |
 | **Tool Explorer** | https://mcp.arif-fazil.com/tools | Interactive browser |
-| ⚠️ **Stale (do not use)** | `arifosmcp.arif-fazil.com/*` | Redirects to `mcp.arif-fazil.com` (older 11-tool snapshot) |
+| ⚠️ **Legacy (do not use)** | `arifosmcp.arif-fazil.com/*` | 302 redirect → `arifos.arif-fazil.com/mcp{uri}` (surfaces same 15-tool MCP) |
 
 ### GitHub Repositories
 | Repo | URL |
@@ -456,12 +456,12 @@ async def code_engine(
 
 ```bash
 # List tools
-curl -X POST https://arifosmcp.arif-fazil.com/mcp \
+curl -X POST https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 
 # Call init_anchor
-curl -X POST https://arifosmcp.arif-fazil.com/mcp \
+curl -X POST https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc":"2.0","id":2,"method":"tools/call",
@@ -503,7 +503,7 @@ services:
     environment:
       - OLLAMA_URL=http://ollama_engine:11434
       - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql://user:pass@postgres:5432/arifos_vault
+      - DATABASE_URL=postgresql://user:pass@postgres:5432/arifos_vault  # pragma: allowlist secret
       - QDRANT_URL=http://qdrant:6333
     ports:
       - "127.0.0.1:8080:8080"
@@ -712,7 +712,7 @@ PYEOF
 ### Health Check
 
 ```bash
-curl -s https://arifosmcp.arif-fazil.com/health | python3 -m json.tool
+curl -s https://mcp.arif-fazil.com/health | python3 -m json.tool
 ```
 
 ---
@@ -732,7 +732,7 @@ curl -s https://arifosmcp.arif-fazil.com/health | python3 -m json.tool
 
 ### Grafana Dashboard
 
-URL: https://monitor.arifosmcp.arif-fazil.com
+URL: `status.arif-fazil.com` (Uptime Kuma) — Grafana dashboard URI needs updating
 
 Dashboards:
 - Constitutional Health (F1-F13 compliance)

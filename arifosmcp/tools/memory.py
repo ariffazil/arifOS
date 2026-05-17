@@ -1,5 +1,5 @@
 """
-arifosmcp/tools/memory_recall.py — 555_MEMORY
+arifosmcp/tools/memory.py — 555_MEMORY
 ════════════════════════════════════════════
 
 Vector memory and context retrieval.
@@ -9,15 +9,58 @@ init_recall hook (P3): When mode='init_recall', the tool auto-loads
   resource URIs, floor summary, tool registry surface, and prior
   session context. This grounds every session in the constitutional
   substrate before any tool is called.
+
+PERSISTENT STORAGE (FIX): LLM outputs from mind_reason, heart_critique,
+  and reply_compose are now ACTUALLY stored via memory_store.py in
+  /root/.arifOS/memory/. Previously returned stub data.
+
+DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
 
-import uuid
 from typing import Any
 
-from arifosmcp.runtime.floors import check_floors
-from arifosmcp.runtime.tools import _hold, _ok, _sync_trace
+from arifosmcp.runtime.floor import check_floors
+from arifosmcp.runtime.memory_store import (
+    context_for_session,
+    recall,
+    stats,
+    store,
+)
+from arifosmcp.runtime.memory_store import (
+    search as memory_search,
+)
+from arifosmcp.runtime.tools import _hold, _ok
+
+
+def _annotate_recall_context(result: dict, context: str) -> dict:
+    """Annotate recall results with SABAR cooldown context.
+
+    Stage 2A: advisory metadata only (no hard filtering yet).
+    When context is 'high_stakes' or 'canon', appends cooldown
+    vitals so upstream consumers know the deliberation state.
+    """
+    if context == "normal":
+        return result
+
+    try:
+        from arifosmcp.core.cooldown_engine import get_cooldown_engine
+
+        engine = get_cooldown_engine()
+        cooldown_vitals = engine.vitals()
+        result["sabar_context"] = {
+            "context": context,
+            "stage": "advisory",
+            "cooldown_active": cooldown_vitals["cooldown_active_count"],
+            "note": (
+                f"Stage 2A — {context} context requested. "
+                f"Hard filtering not yet enforced. See sabar_cooldown for active entries."
+            ),
+        }
+    except Exception:
+        result["sabar_context"] = {"context": context, "stage": "unavailable"}
+    return result
 
 
 def arif_memory_recall(
@@ -26,34 +69,54 @@ def arif_memory_recall(
     memory_id: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    # ── Store-specific ──
+    content: Any | None = None,
+    tags: list[str] | None = None,
+    tier: str | None = None,
+    # ── Search filters ──
+    limit: int = 20,
+    # ── SABAR cooldown context (Stage 2A) ──
     context: str = "normal",
 ) -> dict[str, Any]:
     """
-    555_MEMORY: Governed memory recall.
+    555_MEMORY: Governed persistent memory.
+
+    Modes:
+      init_recall — Load sacred constitutional context at session boot.
+      recall      — Retrieve a single memory by ID.
+      store       — Persist an LLM output or arbitrary content.
+      search      — Full-text + tag search across all memories.
+      prune       — Delete memories by ID or age.
+      context     — Load all memories for a given session.
+      stats       — Return memory store statistics.
+      import      — Batch ingestion of external agent conclusions (Phoenix-72).
 
     Args:
-        context: Recall context filter.
-            "normal" — all entries visible (default, backward compat)
-            "high_stakes" — filter to cooled/sealed entries only
-            "canon" — filter to cooled/sealed entries only
-        Stage 2A: context is advisory (adds metadata, no hard filter yet).
+        context: Recall context filter (SABAR Stage 2A — advisory only).
+            "normal"      — all entries visible (default, backward compat)
+            "high_stakes" — annotate with cooldown advisory metadata
+            "canon"       — annotate with cooldown advisory metadata
+
+    Storage backend: /root/.arifOS/memory/ (JSON files)
     """
-    floor_check = check_floors("arif_memory_recall", {"query": query or ""}, actor_id)
+    # ── Floor F11 AUTH Gate (Sovereign Hardening) ─────────────────────────────
+    if mode in ("store", "import"):
+        if not actor_id or actor_id == "anonymous":
+            return _hold(
+                "arif_memory_recall",
+                "F11 AUTH: actor_id is mandatory (WAJIB) for storage/import operations.",
+                ["F11"],
+            )
+
+    floor_check = check_floors(
+        "arif_memory_recall",
+        {"query": query or "", "content": str(content) if content else ""},
+        actor_id,
+    )
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_memory_recall", floor_check["reason"], floor_check["failed_floors"])
 
-    # Langfuse sync trace — 555_MEMORY
-    _sync_trace(
-        f"arif_memory_recall/{mode}",
-        session_id=session_id,
-        metadata={
-            "mode": mode,
-            "actor_id": actor_id,
-            "query_len": len(query) if query else 0,
-        },
-        tags=["arifOS", "555_MEMORY", mode],
-    )
-
+    # ── Session init ──────────────────────────────────────────────────────────
     if mode == "init_recall":
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
@@ -127,43 +190,190 @@ def arif_memory_recall(
             },
         )
 
+    # ── Recall single ────────────────────────────────────────────────────────
     if mode == "recall":
-        result = _ok("arif_memory_recall", {"query": query, "memories": [], "confidence": 0.0})
-        return _annotate_recall_context(result, context)
+        if not memory_id:
+            return _hold("arif_memory_recall", "memory_id required for recall mode")
+        record = recall(memory_id)
+        if record is None:
+            return _annotate_recall_context(
+                _ok(
+                    "arif_memory_recall",
+                    {"memory_id": memory_id, "found": False, "content": None},
+                ),
+                context,
+            )
+        return _annotate_recall_context(
+            _ok(
+                "arif_memory_recall",
+                {
+                    "memory_id": record["memory_id"],
+                    "found": True,
+                    "content": record["content"],
+                    "mode": record["mode"],
+                    "tags": record["tags"],
+                    "created_at": record["created_at"],
+                    "summary": record["summary"],
+                },
+            ),
+            context,
+        )
+
+    # ── Store ───────────────────────────────────────────────────────────────
     if mode == "store":
-        result = _ok("arif_memory_recall", {"stored": True, "memory_id": uuid.uuid4().hex[:8]})
-        return _annotate_recall_context(result, context)
+        if content is None and query is None:
+            return _hold("arif_memory_recall", "content or query required for store mode")
+        result = store(
+            content=content if content is not None else query,
+            mode=tags[0] if tags and len(tags) == 1 else "generic",
+            tags=tags,
+            actor_id=actor_id,
+            session_id=session_id,
+            tier=tier,
+        )
+        return _annotate_recall_context(_ok("arif_memory_recall", result), context)
+
+    # ── Search with JITU Circuit Breaker ────────────────────────────────────
     if mode == "search":
-        result = _ok("arif_memory_recall", {"query": query, "results": []})
-        return _annotate_recall_context(result, context)
+        _max_rag_iterations = 3
+        _relevance_threshold = 0.65
+
+        iterations = 0
+        prev_avg_score = 0.0
+        all_results: list[dict[str, Any]] = []
+        delta_s = 0.0
+        current_query = query
+
+        while iterations < _max_rag_iterations:
+            iterations += 1
+            results = memory_search(
+                query=current_query,
+                tags=tags,
+                session_id=session_id,
+                limit=limit,
+            )
+
+            if results:
+                scores = [r.get("score", 0.0) for r in results if "score" in r]
+                avg_score = sum(scores) / len(scores) if scores else 0.0
+                delta_s = avg_score - prev_avg_score
+                prev_avg_score = avg_score
+                all_results = results
+
+                # Convergence: relevance above threshold OR entropy decreasing
+                if avg_score >= _relevance_threshold or delta_s < 0:
+                    break
+
+            # Broaden query for next iteration if not converged
+            if iterations < _max_rag_iterations and current_query:
+                words = current_query.split()
+                if len(words) > 1:
+                    current_query = " ".join(words[:-1])
+
+        # JITU: max iterations exhausted without convergence
+        last_scores = [r.get("score", 0.0) for r in all_results if "score" in r]
+        last_avg = sum(last_scores) / len(last_scores) if last_scores else 0.0
+        jitu_triggered = (
+            iterations >= _max_rag_iterations and last_avg < _relevance_threshold and delta_s >= 0
+        )
+
+        if jitu_triggered:
+            return _ok(
+                "arif_memory_recall",
+                {
+                    "query": query,
+                    "status": "JITU",
+                    "verdict": "UNKNOWN",
+                    "reason": (
+                        f"Entropy non-decreasing after {iterations} iterations. "
+                        f"ΔS={round(delta_s, 4)}, avg_score={round(last_avg, 3)}"
+                    ),
+                    "iterations": iterations,
+                    "delta_s": round(delta_s, 4),
+                    "results": [],
+                    "count": 0,
+                    "confidence": 0.0,
+                    "Ω_0": True,
+                },
+            )
+
+        hits = [
+            {
+                "memory_id": r.get("memory_id", ""),
+                "summary": r.get("summary"),
+                "tags": r.get("tags", []),
+                "mode": r.get("mode"),
+                "created_at": r.get("created_at"),
+                "score": r.get("score", 0.0),
+            }
+            for r in all_results
+        ]
+        return _annotate_recall_context(
+            _ok(
+                "arif_memory_recall",
+                {
+                    "query": query,
+                    "results": hits,
+                    "count": len(hits),
+                    "iterations": iterations,
+                    "delta_s": round(delta_s, 4),
+                    "searched_at": __import__("datetime")
+                    .datetime.now(__import__("datetime").timezone.utc)
+                    .isoformat(),
+                },
+            ),
+            context,
+        )
+
+    # ── Recall by query (semantic search without memory_id) ─────────────────
+    if mode == "recall" and not memory_id and query:
+        results = memory_search(query=query, session_id=session_id, limit=limit)
+        hits = [
+            {
+                "memory_id": r.get("memory_id", ""),
+                "summary": r.get("summary"),
+                "tags": r.get("tags", []),
+                "mode": r.get("mode"),
+                "tier": r.get("tier"),
+                "created_at": r.get("created_at"),
+                "score": r.get("score", 0.0),
+            }
+            for r in results
+        ]
+        return _ok("arif_memory_recall", {"query": query, "results": hits, "count": len(hits)})
+
+    # ── Prune ────────────────────────────────────────────────────────────────
     if mode == "prune":
-        return _ok("arif_memory_recall", {"pruned": memory_id, "reason": "entropy"})
+        from arifosmcp.runtime.memory_store import prune as _prune
+
+        result = _prune(memory_id=memory_id, reason=f"arif_memory_recall/prune by {actor_id}")
+        # SACRED tier protection
+        if result.get("sacred_protected"):
+            return _ok(
+                "arif_memory_recall",
+                {
+                    **result,
+                    "status": "PARTIAL",
+                    "floor_citation": "F06 — SACRED tier memories are immune to prune. "
+                    "Pass allow_sacred=True via direct store call to override (sovereign only).",
+                },
+            )
+        return _ok("arif_memory_recall", result)
+
+    # ── Session context ──────────────────────────────────────────────────────
     if mode == "context":
-        return _ok("arif_memory_recall", {"session_id": session_id, "context_window": []})
+        records = context_for_session(session_id=session_id or "", limit=limit)
+        return _ok(
+            "arif_memory_recall",
+            {
+                "session_id": session_id,
+                "context_window": records,
+                "count": len(records),
+            },
+        )
+
+    # ── Stats ───────────────────────────────────────────────────────────────
+    if mode == "stats":
+        return _ok("arif_memory_recall", stats())
 
     return _hold("arif_memory_recall", f"Unknown mode: {mode}")
-
-
-def _annotate_recall_context(result: dict, context: str) -> dict:
-    """Annotate recall results with cooldown context. Stage 2A: advisory only."""
-    if context == "normal":
-        return result
-
-    # high_stakes or canon: add cooldown advisory
-    try:
-        from arifosmcp.core.cooldown_engine import get_cooldown_engine
-
-        engine = get_cooldown_engine()
-        cooldown_vitals = engine.vitals()
-        result["sabar_context"] = {
-            "context": context,
-            "stage": "advisory",
-            "cooldown_active": cooldown_vitals["cooldown_active_count"],
-            "note": (
-                f"Stage 2A — {context} context requested. "
-                f"Hard filtering not yet enforced. See sabar_cooldown for active entries."
-            ),
-        }
-    except Exception:
-        result["sabar_context"] = {"context": context, "stage": "unavailable"}
-    return result

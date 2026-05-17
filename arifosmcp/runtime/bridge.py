@@ -498,7 +498,7 @@ def _build_vitals_report(session_id: str) -> dict[str, Any]:
     Build the system vitals report for check_vital tool.
     Returns health status, thermodynamic budget, and capability map.
     """
-    from arifosmcp.runtime.sessions import get_session_identity
+    from arifosmcp.runtime.session import get_session_identity
     from core.shared.floors import THRESHOLDS
 
     try:
@@ -623,7 +623,7 @@ async def call_kernel(
     valid_until = now_utc + timedelta(minutes=15)
     dry_run = bool(payload.get("dry_run", False))
 
-    from arifosmcp.runtime.sessions import get_session_identity
+    from arifosmcp.runtime.session import get_session_identity
 
     auth_ctx = _normalize_auth_context(payload, payload.get("auth_context"))
 
@@ -1027,14 +1027,14 @@ async def call_kernel(
             )
 
         elif canonical_name == "agentzero_engineer":
-            from arifosmcp.tools.agentzero_tools import agentzero_engineer
+            from arifosmcp.tools.agentzero import agentzero_engineer
 
             result = await agentzero_engineer(
                 task=payload.get("task") or query_input, session_id=session_id
             )
 
         elif canonical_name == "agentzero_validate":
-            from arifosmcp.tools.agentzero_tools import agentzero_validate
+            from arifosmcp.tools.agentzero import agentzero_validate
 
             result = await agentzero_validate(
                 input_to_validate=payload.get("input_to_validate") or query_input,

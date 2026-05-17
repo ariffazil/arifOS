@@ -4,7 +4,7 @@ import os
 from typing import Any
 
 from arifosmcp.constitutional_map import list_canonical_tools, list_constitutional_tools
-from arifosmcp.runtime.build_info import get_build_info
+from arifosmcp.runtime.build import get_build_info
 
 try:
     from arifosmcp.tools_canonical import TOOL_ALIAS_MAP

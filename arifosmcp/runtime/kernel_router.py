@@ -21,16 +21,19 @@ Version: 2026.04.06-HARDENED
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
-from arifosmcp.runtime.belief_registry import update_belief
-from arifosmcp.runtime.governance_enforcer import (
+from arifosmcp.runtime.belief import update_belief
+from arifosmcp.runtime.enforcer import (
     QueryClass,
     classify_and_route,
     enforce_tool_verdict,
     get_enforcer,
 )
 from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
+
+logger = logging.getLogger(__name__)
 
 
 class HardenedKernelRouter:
@@ -62,7 +65,10 @@ class HardenedKernelRouter:
         # ═══════════════════════════════════════════════════════════════════════
         # STEP 1: CLASSIFY QUERY (Before any tool invocation)
         # ═══════════════════════════════════════════════════════════════════════
-        query_class, requires_tool = classify_and_route(query, context)
+        routing = await classify_and_route(query, context)
+        query_class_val = routing["query_class"]
+        query_class = QueryClass(query_class_val)
+        # requires_tool = routing["requires_tool"]
 
         # ═══════════════════════════════════════════════════════════════════════
         # STEP 2: CLASS A — INFORMATIONAL (No state change)
@@ -198,7 +204,7 @@ class HardenedKernelRouter:
             # Try legacy alias resolution before declaring not found
             handler = get_tool_handler(tool_name)
         if not handler:
-            # Return structured error envelope — NOT VOID (VOID is a governance verdict, not a dispatch failure)
+            # Return structured error envelope — NOT VOID (VOID is a governance verdict, not a dispatch failure)  # noqa: E501
             return RuntimeEnvelope(
                 tool=tool_name,
                 stage="555_ROUTE",

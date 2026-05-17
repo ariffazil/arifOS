@@ -20,7 +20,7 @@ import hashlib
 from typing import Any
 
 from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
-from arifosmcp.runtime.schemas import (
+from arifosmcp.runtime.schema import (
     AgiReplyEnvelopeAgent,
     AgiReplyEnvelopeHuman,
     AgiReplyGovernanceTrace,
@@ -698,7 +698,7 @@ def format_output_legacy(
     Format output in legacy format for backward compatibility.
     Use this only during migration period.
     """
-    from arifosmcp.runtime.schemas import migrate_to_legacy_output
+    from arifosmcp.runtime.schema import migrate_to_legacy_output
 
     clean = format_output(envelope, options)
     return migrate_to_legacy_output(CleanOutput(**clean))

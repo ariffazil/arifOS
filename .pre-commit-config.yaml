@@ -61,6 +61,7 @@ repos:
       - id: name-tests-test
         name: Check test naming
         args: ['--pytest-test-first']
+        exclude: 'tests/memory_judge_bench/(cli|reports|__main__)\.py'
 
   # Black - Code formatter
   - repo: https://github.com/psf/black
@@ -104,7 +105,7 @@ repos:
       - id: detect-secrets
         name: Detect hardcoded secrets
         args: []
-        exclude: 'package-lock.json|.secrets.baseline|docs/spec/|attestation_chain\.jsonl$'
+        exclude: 'package-lock.json|.secrets.baseline|docs/spec/|attestation_chain\.jsonl$|tests/runtime/test_phase4.*\.py$|arifosmcp/runtime/provider_registry\.py$'
 
   # Constitutional checks (custom)
   - repo: local

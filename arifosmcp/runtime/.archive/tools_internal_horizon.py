@@ -24,7 +24,7 @@ from arifosmcp.runtime.model import (
     Verdict,
     VerdictCode,
 )
-from arifosmcp.runtime.sessions import _normalize_session_id, get_session_identity
+from arifosmcp.runtime.session import _normalize_session_id, get_session_identity
 from fastmcp.server.context import Context
 
 logger = logging.getLogger(__name__)

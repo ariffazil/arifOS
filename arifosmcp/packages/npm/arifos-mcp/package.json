@@ -1,6 +1,6 @@
 {
   "name": "@arifos/mcp",
-  "version": "2026.05.01",
+  "version": "2026.05.16",
   "description": "arifOS MCP Client v2026.05.01 — TypeScript adapter for 13 Canonical Tools (arif_verb_noun), 13 Constitutional Floors (F1-F13), ConstitutionKernel dynamic enforcement, Protocol Trinity (MCP + A2A + WebMCP), VAULT999 immutable ledger.",
   "keywords": [
     "mcp",

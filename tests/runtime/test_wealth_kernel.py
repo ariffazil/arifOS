@@ -61,7 +61,7 @@ class TestCalculateNpv:
         assert r["npv"] == pytest.approx(200.0, 0.01)
 
     def test_with_terminal_value(self):
-        r = calculate_npv(1000, [300, 300], 0.1, terminal=500)
+        r = calculate_npv(1000, [300, 300], 0.1, terminal_value=500)
         # series = [-1000, 300, 800]
         assert r["npv"] is not None
 

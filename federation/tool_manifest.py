@@ -109,8 +109,7 @@ class ToolManifest(BaseModel):
     )
     description: str = Field(
         ...,
-        description="Functional description. First sentence should "
-        "answer the axis question.",
+        description="Functional description. First sentence should " "answer the axis question.",
     )
     expose: bool = Field(
         default=False,
@@ -133,7 +132,7 @@ class ToolManifest(BaseModel):
 
 
 FEDERATION_TOOLS: dict[str, ToolManifest] = {}
-"""Global registry: name → ToolManifest. Populated by each organ at init."""
+# Global registry: name → ToolManifest. Populated by each organ at init.
 
 
 def is_tool_somatic(name: str) -> bool:
@@ -156,14 +155,16 @@ def get_tool_axis(name: str) -> str | None:
     val = manifest.cognitive_axis
     if isinstance(val, str):
         return val
-    return str(val.value) if hasattr(val, 'value') else str(val)
+    return str(val.value) if hasattr(val, "value") else str(val)
 
 
 def tools_by_axis(axis: str) -> list[ToolManifest]:
     """Return all registered tools on a given cognitive axis."""
     return [
-        m for m in FEDERATION_TOOLS.values()
-        if (m.cognitive_axis.value if hasattr(m.cognitive_axis, 'value') else m.cognitive_axis) == axis
+        m
+        for m in FEDERATION_TOOLS.values()
+        if (m.cognitive_axis.value if hasattr(m.cognitive_axis, "value") else m.cognitive_axis)
+        == axis
     ]
 
 

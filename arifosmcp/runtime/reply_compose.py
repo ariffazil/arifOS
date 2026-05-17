@@ -381,9 +381,12 @@ async def arif_reply_compose(
     msg = message or ""
     sess = get_session(session_id)
     card = sess.get("model_governance_card") if sess else {}
-    truth = card.get("runtime_truth", {})
+    truth = card.runtime_truth if hasattr(card, "runtime_truth") else card.get("runtime_truth", {})
+    web_on = (
+        getattr(truth, "web_on", False) if hasattr(truth, "web_on") else truth.get("web_on", False)
+    )
 
-    if _output_claims_web(msg) and not truth.get("web_on"):
+    if _output_claims_web(msg) and not web_on:
         return {
             "error": "F11 Breach: Model attempted web-claim while web_on is False",
             "verdict": "VOID",
@@ -414,8 +417,7 @@ async def arif_reply_compose(
         logger.warning("SEA-Guard BLOCKED arif_reply_compose: categories=%s", safety.blocked)
         return {
             "error": (
-                f"F09 Anti-Hantu / SEA-Guard safety violation: "
-                f"blocked_categories={safety.blocked}"
+                f"F09 Anti-Hantu / SEA-Guard safety violation: blocked_categories={safety.blocked}"
             ),
             "verdict": "BLOCKED",
             "safety_result": safety.to_dict(),

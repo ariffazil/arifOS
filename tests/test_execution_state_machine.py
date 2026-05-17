@@ -13,7 +13,7 @@ import uuid
 
 import pytest
 
-from arifosmcp.runtime.execution_state_machine import (
+from arifosmcp.runtime.executor import (
     ExecutionState,
     ExecutionStateMachine,
 )

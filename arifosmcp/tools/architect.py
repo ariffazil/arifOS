@@ -13,10 +13,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from arifosmcp.runtime.floor import get_active_floors
+
 logger = logging.getLogger(__name__)
-
-
-from arifosmcp.runtime.floors import get_active_floors
 
 # ─────────────────────────────────────────────────────────────
 # A-ARCHITECT Tool Manifest

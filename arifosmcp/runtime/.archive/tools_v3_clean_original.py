@@ -29,7 +29,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
+from arifosmcp.runtime.continuity import seal_runtime_envelope
 from arifosmcp.runtime.megaTools import (
     agi_mind as _mega_agi_mind,
 )
@@ -57,7 +57,7 @@ from arifosmcp.runtime.megaTools import (
 from arifosmcp.runtime.megaTools import (
     vault_ledger as _mega_vault_ledger,
 )
-from arifosmcp.runtime.schemas_v2_clean import CleanInput, QueryOptions
+from arifosmcp.runtime.schema_v2_clean import CleanInput, QueryOptions
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLEAN INPUT WRAPPER

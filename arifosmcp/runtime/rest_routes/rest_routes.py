@@ -39,7 +39,7 @@ from arifosmcp.runtime.public_registry import (
     public_tool_names,
     public_tool_specs,
 )
-from arifosmcp.runtime.resources import apex_tools_markdown_table
+from arifosmcp.runtime.resource import apex_tools_markdown_table
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from starlette.responses import FileResponse, HTMLResponse, JSONResponse, Response
@@ -53,8 +53,8 @@ from core.shared.floors import (
     get_floor_threshold,
 )
 
-from arifosmcp.runtime.build_info import get_build_info
-from arifosmcp.runtime.capability_map import build_runtime_capability_map
+from arifosmcp.runtime.build import get_build_info
+from arifosmcp.runtime.capabilities import build_runtime_capability_map
 from arifosmcp.runtime.llm_client import check_provider_health
 from arifosmcp.runtime.contracts import (
     AAA_TOOL_ALIASES,
@@ -62,7 +62,7 @@ from arifosmcp.runtime.contracts import (
     TRINITY_BY_TOOL,
 )
 from arifosmcp.runtime.federation_epistemology import FederationEpistemicLedger
-from arifosmcp.runtime.floors import get_floor_count
+from arifosmcp.runtime.floor import get_floor_count
 
 # External MCP tool name → internal contract name
 # This is the authoritative mapping for stage/lane lookups
@@ -2217,30 +2217,9 @@ def _compute_known_gaps(
             }
         )
 
-    # mcp_session_init — always present (inherent limitation of MCP session protocol)
-    gaps.append(
-        {
-            "id": "mcp_session_init",
-            "title": "Public /mcp route: returns Session not found",
-            "detail": "MCP session requires initialization via tool call, not direct HTTP",
-            "severity": "info",
-            "floors": [],
-        }
-    )
-
-    # langfuse_tool_traces — RESOLVED: all 13 canonical tools now wired (6 async + 7 sync via _sync_trace)
+    # langfuse_tool_traces — only report when tracing is actually degraded.
     lf_status = langfuse_tracing.get("status", "UNKNOWN")
-    if lf_status == "ACTIVE":
-        gaps.append(
-            {
-                "id": "langfuse_tool_traces",
-                "title": "Langfuse tool traces: all 13 canonical tools wired (6 async _LANGFUSE_TRACER.trace + 7 sync _sync_trace)",
-                "detail": "SDK active with 13/13 tools traced",
-                "severity": "info",
-                "floors": [],
-            }
-        )
-    elif lf_status != "NOT_WIRED":
+    if lf_status not in ("ACTIVE", "NOT_WIRED"):
         gaps.append(
             {
                 "id": "langfuse_tool_traces",
@@ -2250,31 +2229,6 @@ def _compute_known_gaps(
                 "floors": ["F11"],
             }
         )
-
-    # outputschema_validation — wired: validate_tool_response_schema now called in
-    # _enforce_nine_signal for every tool response (all 13 tools). Secondary check
-    # after NineSignalOutput._enforce(). Non-fatal logging only. F8 G≥0.80 target
-    # is architectural — runtime G is measured by the judge organ, not by schema.
-    gaps.append(
-        {
-            "id": "outputschema_validation",
-            "title": "outputSchema validation: ENFORCED — validate_tool_response_schema wired for all 13 tools via _enforce_nine_signal",
-            "detail": "9-tool gap CLOSED. validate_tool_response_schema now secondary gate in _enforce_nine_signal. All 13 canonical tools validated on every response.",
-            "severity": "info",
-            "floors": ["F8", "F10"],
-        }
-    )
-
-    # cosign_supply_chain — signed with cosign key pair
-    gaps.append(
-        {
-            "id": "cosign_supply_chain",
-            "title": "Cosign/SLSA: image signed with cosign key pair — provenance verified",
-            "detail": "ghcr.io/ariffazil/arifos:kanon-final signed; transparency log entry index 1422405653",
-            "severity": "info",
-            "floors": [],
-        }
-    )
 
     # langfuse_degraded — only when Langfuse is degraded or auth failed
     if lf_status in ("DEGRADED_AUTH_FAILED", "NOT_WIRED"):
@@ -2875,7 +2829,7 @@ def register_rest_routes(
 
         Returns a layered topology map:
           Layer 0: Infrastructure  (Postgres, Redis, Qdrant, Vault999)
-          Layer 1: MCP Servers      (arifOS, GEOX, WEALTH, WELL, A-FORGE, AAA, Hermes)
+          Layer 1: MCP Servers      (arifOS, GEOX, WEALTH, WELL, A-FORGE, AAA, Apex)
           Layer 2: AI Providers     (Ollama, SEA-LION, Langfuse, Supabase)
           Layer 3: Edge / Routing   (Caddy, Cloudflare)
         Each entry: name, type, host, port, status, latency_ms, version (if available).
@@ -2899,7 +2853,7 @@ def register_rest_routes(
             _probe_http(path="http://well:8083/health", timeout=3.0),
             _probe_http(path="http://af-bridge-prod:7071/health", timeout=3.0),
             _probe_http(path="http://aaa-a2a:3001/health", timeout=3.0),
-            _probe_http(path="http://hermes-agent:3002/health", timeout=3.0),
+            _probe_http(path="http://apex-prime:3002/health", timeout=3.0),
             _probe_tcp_port("ollama", 11434),
         ]
 
@@ -2961,9 +2915,9 @@ def register_rest_routes(
                 **mcp_http[5],
             },
             {
-                "name": "Hermes",
+                "name": "Apex",
                 "type": "mcp",
-                "host": "hermes-agent",
+                "host": "apex-prime",
                 "port": 3002,
                 **mcp_http[6],
             },
@@ -4201,7 +4155,7 @@ def register_rest_routes(
         )
 
     GITHUB_RAW_TOOL_REGISTRY = (
-        "https://raw.githubusercontent.com/ariffazil/arifOS" "/main/arifosmcp/tool_registry.json"
+        "https://raw.githubusercontent.com/ariffazil/arifOS/main/arifosmcp/tool_registry.json"
     )
     LOCAL_FALLBACK_TOOL_REGISTRY = "/root/arifOS/arifosmcp/tool_registry.json"
 
@@ -4562,9 +4516,13 @@ def register_rest_routes(
                     "peace2": vitals.get("peace_squared", 0.0),
                     "kappa_r": vitals.get("echo_debt", 0.0),
                     "psi_le": vitals.get("psi_vitality", 0.0),
-                    "witness_human": float(governance_witness.get("human", 0.0)),
-                    "witness_ai": float(governance_witness.get("ai", 0.0)),
-                    "witness_earth": float(governance_witness.get("earth", 0.0)),
+                    "witness_human": float(
+                        governance_witness.get("human", _WITNESS_DEFAULTS["human"])
+                    ),
+                    "witness_ai": float(governance_witness.get("ai", _WITNESS_DEFAULTS["ai"])),
+                    "witness_earth": float(
+                        governance_witness.get("earth", _WITNESS_DEFAULTS["earth"])
+                    ),
                     "avg_latency_ms": 0.0,
                     "tau_confidence_system": float(governance_telemetry.get("confidence") or 0.0),
                     "f2_threshold": float(_FLOOR_DEFAULTS["F2"]),
@@ -5103,7 +5061,7 @@ def register_rest_routes(
     @route("/meta/omega/violations", methods=["GET"])
     async def meta_omega_violations(_request: Request) -> Response:
         """Detailed Ω_ortho violations."""
-        from arifosmcp.runtime.m01_correlation_auditor import get_auditor
+        from arifosmcp.runtime.auditor import get_auditor
 
         auditor = get_auditor()
         report = auditor.compute_orthogonality()
@@ -5271,7 +5229,7 @@ def register_rest_routes(
     async def list_resources(request: Request) -> Response:
         """List MCP resources — governed context objects."""
         try:
-            from arifosmcp.runtime.resources import manifest_resources
+            from arifosmcp.runtime.resource import manifest_resources
 
             resources = manifest_resources()
             return JSONResponse(
@@ -5288,7 +5246,7 @@ def register_rest_routes(
     async def read_resource(request: Request, uri: str) -> Response:
         """Read a specific resource by URI."""
         try:
-            from arifosmcp.runtime.resources import read_resource_content
+            from arifosmcp.runtime.resource import read_resource_content
 
             content = await read_resource_content(uri)
             if not content:

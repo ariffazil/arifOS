@@ -192,10 +192,11 @@ class TestFloorTensionsAndTax:
         # Non-empty query → F2 passes (score=1.0).
         # Action lacks witness keywords → F3 weak (< 2 lanes).
         # Strong intent + weak evidence → P1 triggers, downgrades HOLD → SABAR.
+        # Use "query" action (reversible) so F1 passes; "deploy" triggers F1 VOID.
         result = floors.evaluate(
-            action="deploy app",
+            action="query app config",
             tool_name="arif_forge_execute",
-            parameters={"query": "deploy to production"},
+            parameters={"query": "show config"},
             actor_id="test",
             session_id="sess-001",
             human_intent=0.9,

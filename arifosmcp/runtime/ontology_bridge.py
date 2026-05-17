@@ -17,7 +17,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from arifosmcp.runtime.execution_state_machine import ExecutionState
+from arifosmcp.runtime.executor import ExecutionState
 
 try:
     from core.shared.constitutional_ontology import (
@@ -69,7 +69,7 @@ _TOOL_DOMAIN_MAP: dict[str, str] = {
     "arif_geox_": "GEOX",
     "arif_wealth_": "WEALTH",
     "arif_aaa_": "AAA",
-    "arif_hermes_": "HERMES",
+    "arif_apex_": "APEX",
 }
 
 

@@ -1,12 +1,6 @@
-# Runtime data — never commit
 .env
-.env.*
+.env.decrypted
+*.pem
+*.key
 secrets/
-loki-data/
-loki-wal/
-caddy-data/
-config/
-
-# Build artifacts
-__pycache__/
-*.pyc
+stack.manifest.json

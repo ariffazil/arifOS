@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.tools import _arif_forge_execute
 from arifosmcp.schemas.forge import ForgeManifest, ForgeOutput, ManifestStatus
 
@@ -87,8 +87,23 @@ def arif_forge_execute(
     sess = _SESSIONS.get(session_id) if session_id else None
     card = sess.get("model_governance_card") if sess else None
     if card:
-        rt = card.get("runtime_truth", {})
-        if not rt.get("side_effects_allowed", False) and not ack_irreversible:
+        rt = card.runtime_truth if hasattr(card, "runtime_truth") else card.get("runtime_truth", {})
+        side_effects = (
+            getattr(rt, "side_effects_allowed", False)
+            if hasattr(rt, "side_effects_allowed")
+            else rt.get("side_effects_allowed", False)
+        )
+        shadow = (
+            card.shadow_profile
+            if hasattr(card, "shadow_profile")
+            else card.get("shadow_profile", {})
+        )
+        shadow_val = (
+            getattr(shadow, "shadow", "unknown")
+            if hasattr(shadow, "shadow")
+            else shadow.get("shadow", "unknown")
+        )
+        if not side_effects and not ack_irreversible:
             if action_has_side_effects(mode, manifest, query):
                 return ForgeOutput(
                     status="HOLD",
@@ -96,7 +111,7 @@ def arif_forge_execute(
                     manifest=ForgeManifest(status=ManifestStatus.HOLD),
                     meta={
                         "reason": f"888 HOLD — side_effects_allowed=False in runtime_truth. "
-                        f"Shadow: {card['shadow_profile'].get('shadow')}. "
+                        f"Shadow: {shadow_val}. "
                         f"Required: human_ack before proceeding."
                     },
                     timestamp=datetime.now(timezone.utc).isoformat(),

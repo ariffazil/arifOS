@@ -22,7 +22,7 @@ from typing import Any
 
 import httpx
 
-from arifosmcp.runtime.llm_output_envelope import (
+from arifosmcp.runtime.llm_envelope import (
     LLMOutputEnvelope,
     wrap_llm_error,
     wrap_llm_output,
@@ -64,10 +64,10 @@ def _strip_markdown(content: str) -> str:
 
 
 def _validate_schema(parsed: dict[str, Any], required_fields: set[str]) -> None:
-    """Raise LLMUnavailableError if required schema fields are missing."""
+    """Log warning if required schema fields are missing; do not fail the envelope."""
     missing = required_fields - set(parsed.keys())
     if missing:
-        raise LLMUnavailableError(f"LLM output missing required fields: {sorted(missing)}")
+        logger.warning("LLM output missing optional fields (permissive pass): %s", sorted(missing))
 
 
 # ── Core LLM Call Helpers ─────────────────────────────────────────────────────

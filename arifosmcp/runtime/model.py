@@ -251,6 +251,32 @@ class PNSContext(BaseModel):
     health: PNSSignal | None = None
 
 
+class TelemetryMetrics(BaseModel):
+    ds: float = 0.0
+    confidence: float = 0.85
+    G_star: float = 0.0
+    peace2: float = 1.0
+    omega_ortho: float = 1.0
+    shadow: float = 0.0
+
+
+class TelemetryBasis(BaseModel):
+    source: str | None = None
+    mode: str | None = None
+
+
+class TripleWitness(BaseModel):
+    human: float = 0.0
+    ai: float = 0.0
+    earth: float = 0.0
+
+
+class CanonicalMetrics(BaseModel):
+    telemetry: TelemetryMetrics = Field(default_factory=TelemetryMetrics)
+    witness: TripleWitness = Field(default_factory=TripleWitness)
+    basis: TelemetryBasis = Field(default_factory=TelemetryBasis)
+
+
 class RuntimeEnvelope(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
@@ -294,39 +320,24 @@ class RuntimeEnvelope(BaseModel):
     errors: list[CanonicalError] = Field(default_factory=list)
     contract_version: str = "0.1.0"
 
+    # Metabolic Attributes (DITEMPA)
+    metrics: CanonicalMetrics = Field(default_factory=CanonicalMetrics)
+    detail: str | None = None
+    hint: str | None = None
+
+    def to_dict(self, compact: bool = False) -> dict[str, Any]:
+        """Convert to dict, optionally removing empty fields."""
+        data = self.model_dump(mode="json")
+        if compact:
+            return {k: v for k, v in data.items() if v not in (None, [], {})}
+        return data
+
 
 class VerdictCode(str, Enum):
     SEAL = "SEAL"
     SABAR = "SABAR"
     PARTIAL = "PARTIAL"
     VOID = "VOID"
-
-
-class TelemetryMetrics(BaseModel):
-    ds: float = 0.0
-    confidence: float = 0.85
-    G_star: float = 0.0
-
-
-class TelemetryBasis(BaseModel):
-    source: str | None = None
-    mode: str | None = None
-
-
-class TripleWitness(BaseModel):
-    human: float = 0.0
-    ai: float = 0.0
-    earth: float = 0.0
-
-
-class TelemetryVitals(BaseModel):
-    metrics: TelemetryMetrics
-    basis: TelemetryBasis = Field(default_factory=TelemetryBasis)
-    witness: TripleWitness = Field(default_factory=TripleWitness)
-
-
-class CanonicalMetrics(BaseModel):
-    telemetry: TelemetryMetrics = Field(default_factory=TelemetryMetrics)
 
 
 class PhilosophyState(BaseModel):

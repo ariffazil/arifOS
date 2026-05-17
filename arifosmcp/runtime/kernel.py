@@ -6,10 +6,10 @@ from arifosmcp.runtime.DNA import OMEGA_BAND, VERSION
 
 # --- Thermodynamics & Physics Stubs ---
 try:
-    from core.physics.thermodynamics_hardened import (
+    from arifosmcp.core.physics.thermodynamics_hardened import (
         check_landauer_bound as landauer_limit,
     )
-    from core.shared.physics import build_qt_quad_proof, genius_score
+    from arifosmcp.core.shared.physics import build_qt_quad_proof, genius_score
 except ImportError:
 
     def landauer_limit(bits_erased: float) -> dict:
@@ -60,24 +60,34 @@ def get_philosophical_contrast(g_score: float, risk: str) -> dict[str, str]:
 
 # --- Auditor Pre-Delivery Gate (666_HEART) ---
 
-_AUDITOR_GATED_TOOLS = frozenset({
-    "arif_sense_observe",
-    "arif_mind_reason",
-    "arif_memory_recall",
-    "arif_evidence_fetch",
-    "arif_reply_compose",
-    "arif_forge_execute",
-    "arif_heart_critique",
-})
+_AUDITOR_GATED_TOOLS = frozenset(
+    {
+        "arif_sense_observe",
+        "arif_mind_reason",
+        "arif_memory_recall",
+        "arif_evidence_fetch",
+        "arif_reply_compose",
+        "arif_forge_execute",
+        "arif_heart_critique",
+    }
+)
 _AUDITOR_TIMEOUT_S = 5.0
 
 # Fast deterministic audit markers (F-WEB §10 pattern-matched, no LLM required)
 _AUDITOR_HALLUCINATION_MARKERS = [
-    "i think", "probably", "might be", "could be", "possibly",
-    "as far as i know", "to the best of my knowledge",
+    "i think",
+    "probably",
+    "might be",
+    "could be",
+    "possibly",
+    "as far as i know",
+    "to the best of my knowledge",
 ]
 _AUDITOR_AUTONOMY_MARKERS = [
-    "i decided", "i will deploy", "i will restart", "i'll go ahead",
+    "i decided",
+    "i will deploy",
+    "i will restart",
+    "i'll go ahead",
 ]
 
 
@@ -135,7 +145,7 @@ class ConstitutionalKernel:
         """Fail-Closed Dispatch Gateway (F12/F13) + Formal Execution State Machine."""
         import time as _time
 
-        from arifosmcp.runtime.execution_state_machine import (
+        from arifosmcp.runtime.executor import (
             ExecutionState,
             ExecutionStateMachine,
         )

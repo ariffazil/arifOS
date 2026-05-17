@@ -18,6 +18,11 @@ import os
 from datetime import datetime, timezone
 from typing import Any
 
+from core.shared.mottos import (
+    MOTTO_000_INIT_HEADER,
+    MOTTO_999_SEAL_HEADER,
+    get_motto_for_stage,
+)
 from fastmcp.server.context import Context
 
 from arifosmcp.runtime.model import (
@@ -28,29 +33,24 @@ from arifosmcp.runtime.model import (
     Stage,
     Verdict,
 )
-from arifosmcp.runtime.schemas import IntentType
-from arifosmcp.runtime.sessions import (
+from arifosmcp.runtime.schema import IntentType
+from arifosmcp.runtime.session import (
     get_session_identity,
 )
-from arifosmcp.tools.agentzero_tools import (
+from arifosmcp.tools.agentzero import (
     agentzero_armor_scan as _az_armor_scan,
 )
-from arifosmcp.tools.agentzero_tools import (
+from arifosmcp.tools.agentzero import (
     agentzero_engineer as _az_engineer,
 )
-from arifosmcp.tools.agentzero_tools import (
+from arifosmcp.tools.agentzero import (
     agentzero_hold_check as _az_hold_check,
 )
-from arifosmcp.tools.agentzero_tools import (
+from arifosmcp.tools.agentzero import (
     agentzero_memory_query as _az_memory_query,
 )
-from arifosmcp.tools.agentzero_tools import (
+from arifosmcp.tools.agentzero import (
     agentzero_validate as _az_validate,
-)
-from core.shared.mottos import (
-    MOTTO_000_INIT_HEADER,
-    MOTTO_999_SEAL_HEADER,
-    get_motto_for_stage,
 )
 
 from .bridge import call_kernel
@@ -65,7 +65,7 @@ except ImportError:
 
 
 # P0: Import from sessions.py to avoid circular imports
-from arifosmcp.runtime.sessions import _normalize_session_id
+from arifosmcp.runtime.session import _normalize_session_id
 
 logger = logging.getLogger(__name__)
 
@@ -314,7 +314,7 @@ def _resolve_motto(stage_value: str) -> str | None:
 
 async def _call_model_registry(mode: str, payload: dict[str, Any]) -> dict[str, Any]:
     """Helper to route calls to the model registry service."""
-    from arifosmcp.runtime.model_registry_client import get_model_registry_client
+    from arifosmcp.runtime.registry_client import get_model_registry_client
 
     client = get_model_registry_client()
     try:
@@ -474,7 +474,7 @@ async def _wrap_call(
 
     # Propagate actor_id from session if missing in payload
     if "actor_id" not in payload:
-        from arifosmcp.runtime.sessions import get_session_identity
+        from arifosmcp.runtime.session import get_session_identity
 
         ident = get_session_identity(session_id)
         if ident:

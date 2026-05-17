@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 # Lazy import to avoid circular dependency at module load time
 def _get_budget_contract(session_id: str):
-    from arifosmcp.runtime.budget_contract import get_budget_contract as _gc
+    from arifosmcp.runtime.budget import get_budget_contract as _gc
 
     return _gc(session_id)
 
@@ -465,10 +465,25 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
     }
 
 
+ACTIVE_FLOORS = [f.value for f in Floor]
+
+
+def get_active_floors() -> list[str]:
+    """Returns the list of active constitutional floor identifiers."""
+    return ACTIVE_FLOORS
+
+
+def get_floor_count() -> int:
+    """Returns the total number of active constitutional floors."""
+    return len(ACTIVE_FLOORS)
+
+
 def get_floor_status() -> dict[str, Any]:
     """Return current constitutional floor status."""
     return {
         "floors": {f.value: FLOOR_DESCRIPTIONS[f] for f in Floor},
+        "active_floors": get_active_floors(),
+        "floor_count": get_floor_count(),
         "status": "aligned",
         "version": "2026.05.05-SSCT",
     }

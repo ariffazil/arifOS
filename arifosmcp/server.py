@@ -194,10 +194,10 @@ try:
     from arifosmcp.prompts import register_prompts
     from arifosmcp.resources import register_resources
     from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, register_tools
+    from arifosmcp.tools.embodied import register_all_arifos_tools
     from arifosmcp.tools.embodied_instances.arif_mind_reason_handler import (
         embodied_mind_reason_handler,
     )
-    from arifosmcp.tools.embodied_tool import register_all_arifos_tools
 
     register_all_arifos_tools()
 
@@ -218,7 +218,7 @@ try:
     # registry names are for documentation and future expansion; they are NOT
     # guaranteed to be registered at runtime. Use MCP tools/list for the
     # authoritative live count.
-    from arifosmcp.tools.inclusive_topology import (
+    from arifosmcp.tools.topology import (
         arif_anti_sink_check,
         institutional_drift_check,
     )
@@ -243,7 +243,7 @@ try:
         tags={"diagnostic", "topology", "governance"},
     )(institutional_drift_check)
 
-    from arifosmcp.tools.stack_health import arif_stack_health_probe
+    from arifosmcp.tools.health import arif_stack_health_probe
 
     mcp.tool(
         name="arif_stack_health_probe",
@@ -263,8 +263,17 @@ try:
         ]
     )
     logger.info(
-        "Registered diagnostics: arif_anti_sink_check, institutional_drift_check, arif_stack_health_probe"
+        "Registered diagnostics: arif_anti_sink_check, institutional_drift_check, arif_stack_health_probe"  # noqa: E501
     )
+
+    # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
+    try:
+        from arifosmcp.runtime.workers.memory_janitor import MemoryJanitor
+
+        janitor = MemoryJanitor.start(interval_seconds=3600)
+        logger.info("Phoenix-72 Memory Janitor: ACTIVE")
+    except Exception as e:
+        logger.warning(f"Failed to start Memory Janitor: {e}")
 except Exception as e:
     logger.error(f"Failed to initialize runtime components: {e}")
     raise

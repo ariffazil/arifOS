@@ -7,7 +7,7 @@ Constitutional session bootstrap + identity binding.
 
 from __future__ import annotations
 
-from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.tools import ARIF_DOCTRINE, _new_session
 from arifosmcp.schemas.session import SessionManifest
 

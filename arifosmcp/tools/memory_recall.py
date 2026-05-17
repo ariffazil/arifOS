@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.memory_store import (
     context_for_session,
     recall,
@@ -271,7 +271,7 @@ def arif_memory_recall(
 
     # ── Recall by query (semantic search without memory_id) ─────────────────
     if mode == "recall" and not memory_id and query:
-        results = memory_search(query=query, session_id=session_id, limit=limit)
+        results = memory_search(query=query, session_id=session_id, actor_id=actor_id, limit=limit)
         hits = [
             {
                 "memory_id": r.get("memory_id", ""),
@@ -318,6 +318,65 @@ def arif_memory_recall(
 
     # ── Stats ───────────────────────────────────────────────────────────────
     if mode == "stats":
-        return _ok("arif_memory_recall", stats())
+        base_stats = stats()
+        # Augment with layer_counts for sessionless memory metadata (P1-FIX-4)
+        # Maps 6-layer memory architecture to available storage backends
+        base_stats["layer_counts"] = {
+            "L1_ephemeral": base_stats.get("legacy_files", 0),  # File-based JSON (transient)
+            "L2_session": base_stats.get("by_session", {}),  # Session-scoped records
+            "L3_qdrant": base_stats.get("qdrant_vectors", 0),  # Vector embeddings
+            "L4_postgres": base_stats.get("postgres_records", 0),  # Persistent relational
+            # L5 (Graphiti) and L6 (VAULT999) are separate subsystems;
+            # values here indicate whether those layers are reachable
+            "L5_graphiti": "unavailable_in_memory_store",  # Graphiti Neo4j layer
+            "L6_vault999": "append_only_ledger",  # VAULT999 immutable ledger
+        }
+        return _ok("arif_memory_recall", base_stats)
+
+    # ── Audit ──────────────────────────────────────────────────────────────
+    # arif_memory_audit: surface escalation queue for Arif review.
+    # Priority 2 of 7 unsolved memory problems.
+    if mode == "audit":
+        from arifosmcp.runtime.f4_retrieval_policy import (
+            get_escalation_queue,
+        )
+        from arifosmcp.runtime.memory_store import (
+            get_all_memories_for_audit,
+        )
+
+        # Retrieve all memories (no filters — full audit surface)
+        all_memories = get_all_memories_for_audit(limit=1000, include_deleted=False)
+
+        # Feed through escalation queue — returns only ESCALATE-tier memories
+        escalation_queue = get_escalation_queue(
+            memories=all_memories,
+            actor_id=actor_id,
+        )
+
+        # Group by priority for readability
+        critical = [e for e in escalation_queue if e.get("priority") == 3]
+        high = [e for e in escalation_queue if e.get("priority") == 2]
+        medium = [e for e in escalation_queue if e.get("priority") == 1]
+
+        return _ok(
+            "arif_memory_recall",
+            {
+                "mode": "audit",
+                "audit_summary": {
+                    "total_memories_scanned": len(all_memories),
+                    "escalation_queue_size": len(escalation_queue),
+                    "critical_count": len(critical),
+                    "high_count": len(high),
+                    "medium_count": len(medium),
+                },
+                "escalation_queue": escalation_queue,
+                "critical": critical,
+                "high": high,
+                "medium": medium,
+                "scanned_at": __import__("datetime")
+                .datetime.now(__import__("datetime").timezone.utc)
+                .isoformat(),
+            },
+        )
 
     return _hold("arif_memory_recall", f"Unknown mode: {mode}")
