@@ -1,7 +1,14 @@
 [project]
 name = "arifos"
-version = "2026.05.16"
+version = "2026.05.18"
 
+# 2026.05.18 — MCP contract fixes
+#   W1: arif_evidence_fetch status str, store.search_sources
+#   W2: arif_heart_critique F11 AUTH gate removed (read-only)
+#   W3: arif_mind_reason actor_id propagated to MindOutput.meta
+#   S2: nine-signal domain governance (not earth) for evidence_fetch
+#       nine-signal domain risk (not vitality) for heart_critique
+# 2026.05.17-omega — W3 session binding, schema hardening, 13-tool registry
 # 2026.05.16 — 999 SEAL Hardening
 #   Federation Truth Hardening: Root hygiene, directory canonicalization, README SOT.
 #   Authentication: persistent GITHUB_TOKEN integration for agent activity.
@@ -67,7 +74,7 @@ version = "2026.05.16"
 # 2026.1.26 — Live constitutional metrics; 13/13 floors passing
 # 2026.1.24 — Unified core: arifosmcp.transport pure transport, all logic in core/
 # 2026.1.18 — Constitutional Forge: 13 floors F1-F13, Trinity ΔΩΨ, VAULT999, 9-tool MCP
-description = "arifOS v2026.05.16 — Constitutional AI Governance Kernel. 13 canonical tools (arif_verb_noun), dynamic F1-F13 enforcement via ConstitutionKernel + FloorEvaluator, VAULT999 immutable ledger, streamable-http MCP transport."
+description = "arifOS v2026.05.18 — Constitutional AI Governance Kernel. 13 canonical tools (arif_verb_noun), dynamic F1-F13 enforcement via ConstitutionKernel + FloorEvaluator, VAULT999 immutable ledger, streamable-http MCP transport."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "AGPL-3.0-only"
