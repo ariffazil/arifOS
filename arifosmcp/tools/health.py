@@ -740,4 +740,4 @@ async def federation_audit(
     }
 
 
-__all__ = ["arif_stack_health_probe", "federation_audit"]
+__all__ = ["arif_stack_health_probe"]

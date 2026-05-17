@@ -243,7 +243,7 @@ try:
         tags={"diagnostic", "topology", "governance"},
     )(institutional_drift_check)
 
-    from arifosmcp.tools.health import arif_stack_health_probe, federation_audit
+    from arifosmcp.tools.health import arif_stack_health_probe
 
     mcp.tool(
         name="arif_stack_health_probe",
@@ -255,29 +255,15 @@ try:
         tags={"diagnostic", "ops", "health", "governance"},
     )(arif_stack_health_probe)
 
-    mcp.tool(
-        name="federation_audit",
-        description=(
-            "P3 FEDERATION AUDIT: Read-only federation readiness probe. "
-            "Computes 0-100 readiness score across all federation organs. "
-            "Scoring: server_liveness(10) + session_binding(15) + registry_truth(15) + "
-            "tool_callability(15) + cross_organ(15) + safety_gates(10) + "
-            "human_readiness(10) + audit_clarity(10). "
-            "Returns safe_action_class (C0-C3/HOLD), failed_links, and next_fix guidance."
-        ),
-        tags={"diagnostic", "federation", "audit", "governance"},
-    )(federation_audit)
-
     v2_tools_registered.extend(
         [
             "arif_anti_sink_check",
             "institutional_drift_check",
             "arif_stack_health_probe",
-            "federation_audit",
         ]
     )
     logger.info(
-        "Registered diagnostics: arif_anti_sink_check, institutional_drift_check, arif_stack_health_probe, federation_audit"  # noqa: E501
+        "Registered diagnostics: arif_anti_sink_check, institutional_drift_check, arif_stack_health_probe"  # noqa: E501
     )
 
     # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
