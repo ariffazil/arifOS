@@ -351,7 +351,7 @@ _SCORE_WEIGHTS = {
 
 
 async def _probe_jsonrpc(
-    url: str, tool_name: str, arguments: dict, timeout: float = 15.0
+    url: str, tool_name: str, arguments: dict, timeout: float = 8.0
 ) -> dict[str, Any]:
     """Call an MCP tool via JSON-RPC and return the parsed response."""
     payload = {
@@ -381,17 +381,19 @@ async def _probe_jsonrpc(
 
 
 async def _count_callable_tools(base_url: str, tool_list: list[str]) -> tuple[int, int, list[str]]:
-    """Return (passed, total, failed_names) for a list of tools."""
-    passed = 0
-    failed_names: list[str] = []
-    for tool in tool_list:
+    """Return (passed, total, failed_names) for a list of tools — parallel probe."""
+
+    async def probe_one(tool: str) -> tuple[str, bool]:
         result = await _probe_jsonrpc(base_url, tool, {})
         if result.get("error") and "Unknown tool" in str(result.get("error", "")):
-            failed_names.append(tool)
-        elif result.get("status") == "ERROR":
-            failed_names.append(tool)
-        else:
-            passed += 1
+            return (tool, False)
+        if result.get("status") == "ERROR":
+            return (tool, False)
+        return (tool, True)
+
+    results = await asyncio.gather(*[probe_one(t) for t in tool_list])
+    passed = sum(1 for _, ok in results if ok)
+    failed_names = [tool for tool, ok in results if not ok]
     return passed, len(tool_list), failed_names
 
 
@@ -437,22 +439,23 @@ async def federation_audit(
         Scored readiness report with overall_score, safe_action_class,
         failed_links, and next_fix recommendations.
     """
-    # ── 1. Server liveness ──────────────────────────────────────────────────
-    # Use _SERVICE_ENDPOINTS so docker hostnames are used inside containers
+    # ── 1. Server liveness (parallel probe) ─────────────────────────────────
     live_names = ["arifos_mcp", "well", "wealth", "geox"]
-    live_results: dict[str, str] = {}
-    for svc_name in live_names:
+
+    async def probe_live(svc_name: str) -> tuple[str, str]:
         cfg = _SERVICE_ENDPOINTS.get(svc_name, {})
         url = _service_url(svc_name, cfg)
         try:
             import httpx
 
-            async with httpx.AsyncClient(timeout=5.0) as client:
+            async with httpx.AsyncClient(timeout=3.0) as client:
                 r = await client.get(url)
-                live_results[svc_name] = "healthy" if r.status_code == 200 else "degraded"
+                return (svc_name, "healthy" if r.status_code == 200 else "degraded")
         except Exception:  # noqa: BLE001
-            live_results[svc_name] = "unreachable"
+            return (svc_name, "unreachable")
 
+    live_results_list = await asyncio.gather(*[probe_live(n) for n in live_names])
+    live_results = dict(live_results_list)
     live_count = sum(1 for v in live_results.values() if v == "healthy")
     server_liveness_score = min(10, (live_count / len(live_names)) * 10)
 
@@ -476,28 +479,28 @@ async def federation_audit(
 
     session_binding_score = 15 if session_ok else 5  # Partial credit if session creates
 
-    # ── 3. Cross-organ registry truth via health endpoints ─────────────────────
-    registry_checks: dict[str, Any] = {}
-    registry_pass_count = 0
-    for svc_name in live_names:
+    # ── 3. Cross-organ registry truth via health endpoints (parallel) ───────────
+    async def probe_registry(svc_name: str) -> tuple[str, str]:
         cfg = _SERVICE_ENDPOINTS.get(svc_name, {})
         url = _service_url(svc_name, cfg)
         try:
             import httpx
 
-            async with httpx.AsyncClient(timeout=8.0) as client:
+            async with httpx.AsyncClient(timeout=4.0) as client:
                 r = await client.get(url)
                 if r.status_code == 200:
                     data = r.json()
                     truth = data.get("registry_truth", data.get("truth_status", "UNKNOWN"))
-                    registry_checks[svc_name] = truth
-                    if truth in ("PASS", "VERIFIED"):
-                        registry_pass_count += 1
-                else:
-                    registry_checks[svc_name] = "unreachable"
+                    return (svc_name, truth)
+                return (svc_name, "unreachable")
         except Exception:  # noqa: BLE001
-            registry_checks[svc_name] = "error"
+            return (svc_name, "error")
 
+    registry_results = await asyncio.gather(*[probe_registry(n) for n in live_names])
+    registry_checks = dict(registry_results)
+    registry_pass_count = sum(
+        1 for truth in registry_checks.values() if truth in ("PASS", "VERIFIED")
+    )
     registry_truth_score = min(15, (registry_pass_count / len(live_names)) * 15)
 
     # ── 4. Tool callability (WELL 15-tool full probe) ──────────────────────
