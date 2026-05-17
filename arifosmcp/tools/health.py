@@ -462,6 +462,7 @@ async def federation_audit(
     # ── 2. Session binding (arif_session_init → must return SEAL) ───────────
     session_ok = False
     session_sid = None
+    sess = {}  # Always defined for verdict check below
     try:
         from arifosmcp.runtime.tools import _new_session
 
@@ -477,7 +478,19 @@ async def federation_audit(
     except Exception as exc:  # noqa: BLE001
         logger.warning("Session binding test failed: %s", exc)
 
-    session_binding_score = 15 if session_ok else 5  # Partial credit if session creates
+    # Score: 15 if fully bound (is_bound=True), 10 if constitutional SEAL verdict without
+    # model binding (acceptable for automated audit), 5 for partial creation.
+    session_verdict = (
+        sess.get("model_governance_card", {}).get("verdict")
+        if isinstance(sess.get("model_governance_card"), dict)
+        else None
+    )
+    if session_ok:
+        session_binding_score = 15
+    elif session_verdict == "SEAL":
+        session_binding_score = 10  # Constitutional init without model binding
+    else:
+        session_binding_score = 5  # Partial — session creates but not fully bound
 
     # ── 3. Cross-organ registry truth via health endpoints (parallel) ───────────
     async def probe_registry(svc_name: str) -> tuple[str, str]:
