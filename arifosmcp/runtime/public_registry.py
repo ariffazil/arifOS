@@ -55,11 +55,6 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_forge_execute": "666_FORGE: < build — System modification and build execution.",
     "arif_ops_measure": "777_MEASURE: measure — Resource thermodynamics.",
     "arif_mcp_health": "Lightweight service health check for the arifOS MCP gateway.",
-    "arif_anti_sink_check": (
-        "777_TOPOLOGY: Anti-sink runtime diagnostic. "
-        "Evaluates a system against anti-sink invariants (F05, F08, F10, F13). "
-        "Returns advisory estimates — not verdicts. Reversible. No state mutation."
-    ),
     "arif_stack_health_probe": (
         "777_OPS: Federation stack health and governance probe. "
         "Checks arifOS MCP, organs, model registry, risk leash, tool registry, VAULT999. "

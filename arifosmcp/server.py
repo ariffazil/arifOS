@@ -208,31 +208,7 @@ try:
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
 
-    # ── Inclusive Topology / Anti-Sink Diagnostics (777 FORGE) ────────────────
-    # Reversible runtime diagnostics. NOT canonical constitutional tools.
-    # Authority ceiling: advisory estimates only. No state mutation.
-    #
-    # NOTE: The public registry defines an "expanded45" mode listing 44 tool
-    # names (canonical + aliases). The LIVE MCP server here registers only the
-    # 13 canonical tools + these 3 diagnostics = 16 callable tools. The expanded
-    # registry names are for documentation and future expansion; they are NOT
-    # guaranteed to be registered at runtime. Use MCP tools/list for the
-    # authoritative live count.
-    from arifosmcp.tools.topology import (
-        arif_anti_sink_check,
-        institutional_drift_check,
-    )
-
-    mcp.tool(
-        name="arif_anti_sink_check",
-        description=(
-            "777_TOPOLOGY: Anti-sink runtime diagnostic. "
-            "Evaluates a system against anti-sink invariants (F05, F08, F10, F13). "
-            "Returns advisory estimates — not verdicts. Reversible. No state mutation."
-        ),
-        tags={"diagnostic", "topology", "governance"},
-    )(arif_anti_sink_check)
-
+    # ── Stack Health Probe (777 OPS) ──────────────────────────────────────────
     from arifosmcp.tools.health import arif_stack_health_probe
 
     mcp.tool(
@@ -247,13 +223,11 @@ try:
 
     v2_tools_registered.extend(
         [
-            "arif_anti_sink_check",
-            "institutional_drift_check",
             "arif_stack_health_probe",
         ]
     )
     logger.info(
-        "Registered diagnostics: arif_anti_sink_check, arif_stack_health_probe"  # noqa: E501
+        "Registered diagnostics: arif_stack_health_probe"  # noqa: E501
     )
 
     # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────

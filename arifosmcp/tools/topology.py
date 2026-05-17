@@ -1,12 +1,11 @@
 """
 arifOS Inclusive Topology / Anti-Sink Diagnostics
-══════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════════════════════
 
 Reversible runtime MCP tools for detecting extractive topology and
 behavioral sink risk.
 
 Tools:
-  - arif_anti_sink_check     : Evaluates a system/workflow against anti-sink criteria.
   - institutional_drift_check: Evaluates federation state for extractive drift.
 
 Authority: 777 FORGE — reversible diagnostics only.
@@ -22,7 +21,6 @@ import logging
 from typing import Any
 
 from arifosmcp.schemas.topology import (
-    AntiSinkCheck,
     Confidence,
     InstitutionalDrift,
 )
@@ -306,91 +304,6 @@ def _derive_institutional_verdict(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-async def arif_anti_sink_check(
-    system_context: dict[str, Any] | None = None,
-    session_id: str | None = None,
-    actor_id: str | None = None,
-) -> dict[str, Any]:
-    """
-    777_TOPOLOGY: Anti-sink runtime diagnostic.
-
-    Evaluates a system, workflow, or design against anti-sink invariants.
-    Returns ESTIMATES and FLAGS — not verdicts. All enforcement is advisory.
-
-    Args:
-        system_context: Dict describing the system being evaluated.
-            Supported keys (all optional):
-            - automation_level: "full_replacement" | "augmentation" | "unknown"
-            - human_roles_remaining: "none" | "single" | "multiple"
-            - distinct_human_roles: int
-            - feedback_loop: "closed" | "partial" | "open" | "absent"
-            - centralization: "monopoly" | "moderate" | "distributed"
-            - chokepoint_count: int
-            - agency_trend: "declining" | "stable" | "rising"
-            - capture_trend: "rising" | "stable" | "falling"
-            - participation_trend: "narrowing" | "stable" | "broadening"
-            - contestable: bool
-            - reversible: bool
-            - abstraction_level: "high" | "moderate" | "low"
-            - role_pathway: "none" | "weak" | "strong"
-            - human_decision_points: int
-        session_id: Governed session ID for audit trace.
-        actor_id: Sovereign actor identifier.
-
-    Returns:
-        AntiSinkCheck dict with advisory estimates.
-    """
-    ctx = system_context or {}
-
-    agency_delta, agency_note = _evaluate_agency_delta(ctx)
-    role_delta, role_note = _evaluate_role_diversity(ctx)
-    feedback, feedback_note = _evaluate_feedback_integrity(ctx)
-    topo_risk, topo_note = _evaluate_topology_risk(ctx)
-    drift, drift_note = _evaluate_extractive_drift(ctx)
-    repair, repair_note = _evaluate_repair_path(ctx)
-    beautiful, beautiful_note = _evaluate_beautiful_ones_risk(ctx)
-    compression, compression_note = _evaluate_agency_compression(ctx)
-
-    verdict, verdict_note = _derive_verdict(drift, topo_risk, compression, beautiful)
-
-    notes = [
-        agency_note,
-        role_note,
-        feedback_note,
-        topo_note,
-        drift_note,
-        repair_note,
-        beautiful_note,
-        compression_note,
-        verdict_note,
-    ]
-
-    result = AntiSinkCheck(
-        agency_delta=agency_delta,
-        role_diversity_delta=role_delta,
-        feedback_integrity=feedback,
-        topology_risk=topo_risk,
-        extractive_drift=drift,
-        inclusive_repair_path=repair,
-        beautiful_ones_risk=beautiful,
-        agency_compression=compression,
-        verdict=verdict,
-        confidence=Confidence.LOW,  # Until real sensors are wired
-        notes=[n for n in notes if n],
-        constitutional_floors_checked=["F05", "F08", "F10", "F13"],
-    )
-
-    logger.info(
-        "arif_anti_sink_check session=%s actor=%s verdict=%s confidence=%s",
-        session_id,
-        actor_id,
-        verdict,
-        Confidence.LOW,
-    )
-
-    return result.model_dump()
-
-
 async def institutional_drift_check(
     system_context: dict[str, Any] | None = None,
     session_id: str | None = None,
@@ -479,5 +392,5 @@ async def institutional_drift_check(
 
 
 __all__ = [
-    "arif_anti_sink_check",
+    "institutional_drift_check",
 ]
