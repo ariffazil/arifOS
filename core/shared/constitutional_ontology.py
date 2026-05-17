@@ -208,7 +208,7 @@ class ConstitutionalOntologyPayload(BaseModel):
             "WEALTH",
             "ARIFOS",
             "AAA",
-            "HERMES",
+            "APEX",
             "A-FORGE",
             "UNKNOWN",
         }

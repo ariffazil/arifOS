@@ -1,20 +1,20 @@
 ---
 name: arif-a2a-call
-description: A2A v1.0.0 client + 888 JUDGMENT integration for OPENCLAW. Use when candidate actions require ASI deliberation or A2A federation with Hermes Agent.
+description: A2A v1.0.0 client + 888 JUDGMENT integration for OPENCLAW. Use when candidate actions require ASI deliberation or A2A federation with APEX (formerly Hermes).
 version: 2026.05.01
-tags: [a2a, federation, judgment, hermes, 888]
+tags: [a2a, federation, judgment, apex, 888]
 ---
 
 # arif-a2a-call — A2A Client for OPENCLAW
 
-Use this skill when OPENCLAW needs 888 JUDGMENT or A2A federation with Hermes Agent.
+Use this skill when OPENCLAW needs 888 JUDGMENT or A2A federation with APEX (port 3002).
 
 ## Architecture
 
 ```
 OPENCLAW
   ├── MCP ──── arifOS MCP ──── arif_judge_deliberate (888 JUDGMENT)
-  └── A2A ──── Hermes Agent (direct) ──── 888 JUDGMENT (fallback/deliberation)
+  └── A2A ──── APEX (direct) ──── 888 JUDGMENT (fallback/deliberation)
 ```
 
 ## Two-Step Judgment Path
@@ -33,15 +33,15 @@ Tool: arif_judge_deliberate
 
 Returns: SEAL / HOLD / VOID with floor compliance proof.
 
-### Step 2: A2A Fallback — Hermes Agent (direct A2A)
+### Step 2: A2A Fallback — APEX (direct A2A)
 
-If arifOS MCP is unavailable, route to Hermes Agent via A2A:
+If arifOS MCP is unavailable, route to APEX via A2A:
 
 ```bash
-# Direct to Hermes Agent (port 3002)
+# Direct to APEX (port 3002)
 curl -X POST http://localhost:3002/tasks \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer hermes-agent-token-dev" \
+  -H "Authorization: Bearer apex-prime-token-dev" \
   -d '{
     "jsonrpc": "2.0",
     "id": 1,
@@ -67,13 +67,13 @@ curl -X POST http://localhost:3002/tasks \
 
 | Service | URL | Auth |
 |---------|-----|------|
-| Hermes Agent (direct) | `http://localhost:3002` | Bearer: `hermes-agent-token-dev` |
+| APEX (direct) | `http://localhost:3002` | Bearer: `apex-prime-token-dev` |
 | AAA Gateway | `http://localhost:3001` | Bearer: `aaa-a2a-token-dev` |
 
 ## Test Commands
 
 ```bash
-# Test Hermes Agent directly
+# Test APEX directly
 curl -X POST http://localhost:3002/tasks \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer hermes-agent-token-dev" \
@@ -90,7 +90,7 @@ curl -X POST http://localhost:3001/a2a/message/send \
 curl http://localhost:3001/.well-known/arifos-federation.json
 ```
 
-## When to Route to Hermes via A2A
+## When to Route to APEX via A2A
 
 - arifOS MCP unavailable (network/timeout)
 - Complex multi-agent deliberation required
@@ -101,7 +101,7 @@ curl http://localhost:3001/.well-known/arifos-federation.json
 
 | Action | Endpoint | Method |
 |--------|----------|--------|
-| Send task to Hermes | `/tasks` | POST |
+| Send task to APEX | `/tasks` | POST |
 | Get task status | `/tasks/{id}` | GET |
 | Stream task | `/tasks/{id}/stream` | GET |
 | Cancel task | `/tasks/{id}/cancel` | POST |
