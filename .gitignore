@@ -139,6 +139,8 @@ __pycache__/
 # Runtime & secrets
 SECRETS.md
 state/
+# Federation audit runtime state
+objective_state.json
 memory/
 .openclaw/
 

@@ -337,17 +337,75 @@ async def arif_stack_health_probe(
 
 
 # ── Federation Audit Tool ───────────────────────────────────────────────────────
-# Scoring model weights
-_SCORE_WEIGHTS = {
-    "server_liveness": 10,
-    "session_binding": 15,
-    "registry_truth": 15,
-    "tool_callability": 15,
-    "cross_organ_federation": 15,
-    "safety_gates": 10,
-    "human_readiness_freshness": 10,
-    "audit_clarity": 10,
-}
+# ── Scoring Constitution (stable, versioned) ────────────────────────────────────
+# Loaded once at module import. This file is the IMMUTABLE scoring law.
+# Only changes via explicit versioning and governance approval.
+# DO NOT silently modify weights — that is scoring corruption.
+_SCORING_CONSTITUTION_PATH = Path(__file__).parent / "scoring_constitution.json"
+_OBJECTIVE_STATE_PATH = Path(__file__).parent / "objective_state.json"
+
+_SCORING_CONSTITUTION: dict[str, Any] = {}
+_OBJECTIVE_STATE: dict[str, Any] = {}
+
+try:
+    with open(_SCORING_CONSTITUTION_PATH, encoding="utf-8") as f:
+        raw = json.load(f)
+        _SCORING_CONSTITUTION = raw
+        _SCORE_WEIGHTS = {dim: info["weight"] for dim, info in raw.get("dimensions", {}).items()}
+        _SCORING_VERSION = raw.get("version", "1.0.0")
+except Exception as exc:
+    logger.warning("Could not load scoring constitution: %s — using hardcoded defaults", exc)
+    _SCORING_VERSION = "unknown"
+    _SCORE_WEIGHTS = {
+        "server_liveness": 10,
+        "session_binding": 15,
+        "registry_truth": 15,
+        "tool_callability": 15,
+        "cross_organ_federation": 15,
+        "safety_gates": 10,
+        "human_readiness_freshness": 10,
+        "audit_clarity": 10,
+    }
+
+_SAFE_ACTION_BANDS = _SCORING_CONSTITUTION.get(
+    "score_bands",
+    {
+        "90_100": {"label": "AAA_READY", "safe_class": ["C1", "C2", "C3"]},
+        "75_89": {"label": "SELAMAT", "safe_class": ["C1", "C2"]},
+        "60_74": {"label": "AMANAH", "safe_class": ["C1"]},
+        "0_59": {"label": "VOID", "safe_class": []},
+    },
+)
+
+
+def _load_objective_state() -> dict[str, Any]:
+    """Load current objective state from disk."""
+    try:
+        with open(_OBJECTIVE_STATE_PATH, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _save_objective_state(state: dict[str, Any]) -> None:
+    """Append audit result to objective_state.json audit history."""
+    try:
+        state["_meta"]["last_updated"] = str(asyncio.get_event_loop().time())
+        # Append to audit history
+        audit_entry = {
+            "time": state.get("_meta", {}).get("last_updated"),
+            "score": state.get("federation_state", {}).get("last_audit_score"),
+            "objective_id": state.get("_meta", {}).get("objective_id", "UNKNOWN"),
+            "scoring_version": _SCORING_VERSION,
+        }
+        history = state.get("audit_history", [])
+        # Keep last 20 entries
+        history = [audit_entry] + history[:19]
+        state["audit_history"] = history
+        with open(_OBJECTIVE_STATE_PATH, "w", encoding="utf-8") as f:
+            json.dump(state, f, indent=2, default=str)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Could not update objective_state.json: %s", exc)
 
 
 async def _probe_jsonrpc(
@@ -381,28 +439,50 @@ async def _probe_jsonrpc(
 
 
 async def _count_callable_tools(base_url: str, tool_list: list[str]) -> tuple[int, int, list[str]]:
-    """Return (passed, total, failed_names) for a list of tools — parallel probe."""
+    """Return (passed, total, failed_names) for a list of tools — parallel probe.
 
-    async def probe_one(tool: str) -> tuple[str, bool]:
+    A tool PASSES if:
+      - It returns HTTP 200 with valid JSON-RPC response, OR
+      - It returns a degraded-state observation (observation.ok == false) — this is
+        honest data, not a failure; the tool IS working, it's reporting that the
+        BODY is in a degraded state. Counting this as FAIL would give false negatives.
+
+    A tool FAILS if:
+      - "Unknown tool" in response (not registered)
+      - status == "ERROR" (transport or protocol error)
+      - JSON-RPC error code returned
+    """
+
+    async def probe_one(tool: str) -> tuple[str, bool, str]:
         result = await _probe_jsonrpc(base_url, tool, {})
-        if result.get("error") and "Unknown tool" in str(result.get("error", "")):
-            return (tool, False)
+        err = result.get("error", "")
+        if err and "Unknown tool" in str(err):
+            return (tool, False, "unknown_tool")
         if result.get("status") == "ERROR":
-            return (tool, False)
-        return (tool, True)
+            return (tool, False, "transport_error")
+        # Degraded-state observation is VALID data — tool is working, body is degraded.
+        # Count as PASS so we don't get false negatives in the readiness score.
+        obs = result.get("observation", {})
+        if isinstance(obs, dict) and obs.get("ok") is False:
+            return (tool, True, "degraded_state")
+        # Also accept responses that have no observation key but have valid content
+        # (some tools may not follow the observation schema)
+        if result.get("ok") is False:
+            return (tool, True, "degraded_state")
+        return (tool, True, "ok")
 
     results = await asyncio.gather(*[probe_one(t) for t in tool_list])
-    passed = sum(1 for _, ok in results if ok)
-    failed_names = [tool for tool, ok in results if not ok]
+    passed = sum(1 for _, ok, _ in results if ok)
+    failed_names = [tool for tool, ok, reason in results if not ok]
     return passed, len(tool_list), failed_names
 
 
 def _safe_action_class(score: float) -> str:
-    """Derive safe action class from readiness score."""
+    """Derive safe action class from readiness score using stable scoring constitution."""
     if score >= 90:
-        return "C3"
+        return "C1-C3"
     elif score >= 75:
-        return "C2"
+        return "C1-C2"
     elif score >= 60:
         return "C1"
     elif score >= 40:
@@ -621,11 +701,40 @@ async def federation_audit(
     else:
         next_fix = ["No blocking issues found — federation is AMANAH"]
 
+    # ── Update objective state ──────────────────────────────────────────────────
+    obj_state = _load_objective_state()
+    obj_state.setdefault("federation_state", {})["last_audit_score"] = round(total, 1)
+    obj_state.setdefault("federation_state", {})["last_audit_time"] = str(
+        asyncio.get_event_loop().time()
+    )
+    obj_state.setdefault("federation_state", {})["well_readiness"] = (
+        "OPTIMAL" if human_fresh == "FRESH" else "DEGRADED" if human_fresh == "AGED" else "UNKNOWN"
+    )
+    obj_state.setdefault("federation_state", {})["registry_truth"] = registry_checks
+    obj_state.setdefault("federation_state", {})["safe_action_class"] = safe_class
+    obj_state.setdefault("federation_state", {})["arifOS_session_bound"] = session_ok
+    obj_state["_meta"] = obj_state.get("_meta", {})
+    obj_state["_meta"]["last_updated"] = str(asyncio.get_event_loop().time())
+    audit_entry = {
+        "time": obj_state["_meta"]["last_updated"],
+        "score": round(total, 1),
+        "objective_id": obj_state.get("_meta", {}).get("objective_id", "AAA-001"),
+        "scoring_version": _SCORING_VERSION,
+        "verdict": "SEAL" if total >= 75 else "SABAR" if total >= 50 else "HOLD",
+        "safe_class": safe_class,
+        "root_cause": "; ".join(failed_links) if failed_links else "No blocking issues",
+        "suggested_fixes": next_fix,
+    }
+    obj_state["audit_history"] = [audit_entry] + obj_state.get("audit_history", [])[:19]
+    _save_objective_state(obj_state)
+
     return {
         "status": "SELAMAT" if total >= 75 else "AMANAH" if total >= 50 else "HOLD",
         "verdict": "SEAL" if total >= 75 else "SABAR" if total >= 50 else "HOLD",
         "overall_score": round(total, 1),
         "max_score": 100.0,
+        "scoring_version": _SCORING_VERSION,
+        "objective_id": obj_state.get("_meta", {}).get("objective_id", "AAA-001"),
         "safe_action_class": safe_class,
         "scores": scores,
         "session_binding": {

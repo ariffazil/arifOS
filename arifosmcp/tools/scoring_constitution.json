@@ -1,0 +1,75 @@
+{
+  "_meta": {
+    "name": "Federation Scoring Constitution",
+    "version": "1.0.0",
+    "stable": true,
+    "description": "Immutable scoring weights. Only changes via explicit versioning and governance approval.",
+    "changelog": {
+      "1.0.0": "Initial stable scoring law — 8 dimensions, 100 total points"
+    }
+  },
+  "dimensions": {
+    "server_liveness": {
+      "weight": 10,
+      "description": "All federation organs responding to health probes"
+    },
+    "session_binding": {
+      "weight": 15,
+      "description": "Constitutional session init + actor binding + floor enforcement"
+    },
+    "registry_truth": {
+      "weight": 15,
+      "description": "Tool registry integrity across all organs (hash match, no drift)"
+    },
+    "tool_callability": {
+      "weight": 15,
+      "description": "Public MCP tool surface callable and healthy (not degraded-state reports)"
+    },
+    "cross_organ_federation": {
+      "weight": 15,
+      "description": "All organs reachable, A2A mesh intact, no organ isolation"
+    },
+    "safety_gates": {
+      "weight": 10,
+      "description": "F1-F13 floor enforcement active, no vault corruption, no irreversible ops"
+    },
+    "human_readiness_freshness": {
+      "weight": 10,
+      "description": "Arif biological/cognitive state logged and fresh (<24h)"
+    },
+    "audit_clarity": {
+      "weight": 10,
+      "description": "Audit output self-describes, scores are deterministic, no silent transforms"
+    }
+  },
+  "total_weight": 100,
+  "safe_action_classes": {
+    "C1": "Read-only audit, no mutations",
+    "C2": "Light forge: documentation, non-critical refactor",
+    "C3": "Moderate forge: feature build, test, deploy to staging",
+    "C4": "Heavy forge: production deploy, secret rotation, schema migration",
+    "C5": "Irreversible: vault seal, git force-push, volume deletion"
+  },
+  "score_bands": {
+    "90_100": {
+      "label": "AAA_READY",
+      "safe_class": ["C1", "C2", "C3"],
+      "description": "Federation fully ready for AAA scaffold operations"
+    },
+    "75_89": {
+      "label": "SELAMAT",
+      "safe_class": ["C1", "C2"],
+      "description": "Federation healthy, proceed with caution"
+    },
+    "60_74": {
+      "label": "AMANAH",
+      "safe_class": ["C1"],
+      "description": "Degraded — read-only audit only"
+    },
+    "0_59": {
+      "label": "VOID",
+      "safe_class": [],
+      "description": "Critical failure — halt all operations, escalate to Arif"
+    }
+  }
+}
