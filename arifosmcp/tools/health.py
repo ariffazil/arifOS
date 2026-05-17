@@ -79,6 +79,14 @@ def _service_url(name: str, cfg: dict[str, Any]) -> str:
     return cfg["url"]
 
 
+def _well_mcp_url() -> str:
+    """Return the WELL MCP endpoint URL depending on runtime context."""
+    well_cfg = _SERVICE_ENDPOINTS.get("well", {})
+    if _is_inside_container() and well_cfg.get("docker_host"):
+        return f"http://{well_cfg['docker_host']}/mcp"
+    return "http://localhost:8083/mcp"
+
+
 async def _probe_http(url: str, timeout: float) -> dict[str, Any]:
     """Best-effort HTTP health probe."""
     try:
@@ -510,9 +518,7 @@ async def federation_audit(
         "well_trace_lineage",
         "well_validate_vitality",
     ]
-    well_passed, well_total, well_failed = await _count_callable_tools(
-        "http://localhost:8083/mcp", well_tools
-    )
+    well_passed, well_total, well_failed = await _count_callable_tools(_well_mcp_url(), well_tools)
     tool_callability_score = min(15, (well_passed / well_total) * 15) if well_total else 0
 
     # ── 5. Cross-organ federation (all services reachable) ────────────────────
