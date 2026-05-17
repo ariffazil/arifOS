@@ -137,9 +137,7 @@ def _get_live_session() -> dict:
         sessions = _SESSION_STORE.values()
         if sessions:
             # Sort by created_at desc
-            sorted_sessions = sorted(
-                sessions, key=lambda x: x.get("created_at", ""), reverse=True
-            )
+            sorted_sessions = sorted(sessions, key=lambda x: x.get("created_at", ""), reverse=True)
             return sorted_sessions[0]
     except Exception:
         pass
@@ -201,9 +199,7 @@ def _route_action(target: str, task: str) -> dict:
     """Route an action intent through 444_KERNEL. Returns routing decision."""
     try:
         handler = _CANONICAL_HANDLERS.get("arif_kernel_route")
-        return _invoke_handler(
-            handler, mode="route", target=target, task=task, actor_id="arif"
-        )
+        return _invoke_handler(handler, mode="route", target=target, task=task, actor_id="arif")
     except Exception as e:
         return {"result": {}, "status": "HOLD", "meta": {"reason": str(e)}}
 
@@ -589,9 +585,7 @@ def arif_cc_forge_dry_run(manifest: str) -> dict:
         judge_state_hash=judge_state_hash,
         approved_plan_id=approved_plan_id,
         blocked_reason=(
-            forge_result.get("reason")
-            if forge_result.get("status") != "allowed"
-            else None
+            forge_result.get("reason") if forge_result.get("status") != "allowed" else None
         ),
     ).model_dump()
 
@@ -774,12 +768,8 @@ def arif_cc_vault_dry_seal(payload: str) -> dict:
     ).model_dump()
 
 
-_READ_ONLY = ToolAnnotations(
-    readOnlyHint=True, destructiveHint=False, openWorldHint=False
-)
-_DRY_RUN = ToolAnnotations(
-    readOnlyHint=True, destructiveHint=False, openWorldHint=False
-)
+_READ_ONLY = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=False)
+_DRY_RUN = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=False)
 
 
 @command_center_app.tool(name="session_status")
@@ -924,16 +914,12 @@ def command_center() -> PrefabApp:
                         children=[
                             Column(
                                 children=[
-                                    Text(
-                                        content="Actor: {{ session_actor }}", bold=True
-                                    ),
+                                    Text(content="Actor: {{ session_actor }}", bold=True),
                                     Text(
                                         content="Constitution: {{ session_constitution }}",
                                         bold=True,
                                     ),
-                                    Text(
-                                        content="Stage: {{ session_stage }}", bold=True
-                                    ),
+                                    Text(content="Stage: {{ session_stage }}", bold=True),
                                     Text(content="Lane: {{ session_lane }}", bold=True),
                                     Text(
                                         content="Authority: {{ session_authority }}",
@@ -961,9 +947,7 @@ def command_center() -> PrefabApp:
                                                     "session_stage",
                                                     "{{ $result.stage }}",
                                                 ),
-                                                SetState(
-                                                    "session_lane", "{{ $result.lane }}"
-                                                ),
+                                                SetState("session_lane", "{{ $result.lane }}"),
                                                 SetState(
                                                     "session_sealed",
                                                     "{{ $result.sealed }}",
@@ -991,9 +975,7 @@ def command_center() -> PrefabApp:
         children=[
             Card(
                 children=[
-                    CardHeader(
-                        children=[CardTitle(content="111_SENSE: Reality Grounding")]
-                    ),
+                    CardHeader(children=[CardTitle(content="111_SENSE: Reality Grounding")]),
                     CardContent(
                         children=[
                             Column(
@@ -1006,11 +988,7 @@ def command_center() -> PrefabApp:
                                         on_click=CallTool(
                                             "arif_cc_sense_observe",
                                             args={"mode": "vitals"},
-                                            on_success=[
-                                                SetState(
-                                                    "sense_result", "{{ $result }}"
-                                                )
-                                            ],
+                                            on_success=[SetState("sense_result", "{{ $result }}")],
                                         ),
                                     ),
                                 ],
@@ -1029,9 +1007,7 @@ def command_center() -> PrefabApp:
         children=[
             Card(
                 children=[
-                    CardHeader(
-                        children=[CardTitle(content="333_MIND: Symbolic Reasoning")]
-                    ),
+                    CardHeader(children=[CardTitle(content="333_MIND: Symbolic Reasoning")]),
                     CardContent(
                         children=[
                             Column(
@@ -1040,9 +1016,7 @@ def command_center() -> PrefabApp:
                                     Text(content="{{ mind_result }}", italic=True),
                                     Input(
                                         label="Query",
-                                        on_change=SetState(
-                                            "mind_query", "{{ $value }}"
-                                        ),
+                                        on_change=SetState("mind_query", "{{ $value }}"),
                                     ),
                                     Button(
                                         label="Reason",
@@ -1050,9 +1024,7 @@ def command_center() -> PrefabApp:
                                         on_click=CallTool(
                                             "arif_cc_mind_reason",
                                             args={"query": "{{ mind_query }}"},
-                                            on_success=[
-                                                SetState("mind_result", "{{ $result }}")
-                                            ],
+                                            on_success=[SetState("mind_result", "{{ $result }}")],
                                         ),
                                     ),
                                 ],
@@ -1071,9 +1043,7 @@ def command_center() -> PrefabApp:
         children=[
             Card(
                 children=[
-                    CardHeader(
-                        children=[CardTitle(content="666_HEART: Ethical Critique")]
-                    ),
+                    CardHeader(children=[CardTitle(content="666_HEART: Ethical Critique")]),
                     CardContent(
                         children=[
                             Column(
@@ -1082,9 +1052,7 @@ def command_center() -> PrefabApp:
                                     Text(content="{{ heart_result }}", italic=True),
                                     Input(
                                         label="Target",
-                                        on_change=SetState(
-                                            "heart_target", "{{ $value }}"
-                                        ),
+                                        on_change=SetState("heart_target", "{{ $value }}"),
                                     ),
                                     Button(
                                         label="Critique",
@@ -1092,11 +1060,7 @@ def command_center() -> PrefabApp:
                                         on_click=CallTool(
                                             "arif_cc_heart_critique",
                                             args={"target": "{{ heart_target }}"},
-                                            on_success=[
-                                                SetState(
-                                                    "heart_result", "{{ $result }}"
-                                                )
-                                            ],
+                                            on_success=[SetState("heart_result", "{{ $result }}")],
                                         ),
                                     ),
                                 ],
@@ -1115,9 +1079,7 @@ def command_center() -> PrefabApp:
         children=[
             Card(
                 children=[
-                    CardHeader(
-                        children=[CardTitle(content="555_MEMORY: Associative Recall")]
-                    ),
+                    CardHeader(children=[CardTitle(content="555_MEMORY: Associative Recall")]),
                     CardContent(
                         children=[
                             Column(
@@ -1126,9 +1088,7 @@ def command_center() -> PrefabApp:
                                     Text(content="{{ memory_result }}", italic=True),
                                     Input(
                                         label="Search",
-                                        on_change=SetState(
-                                            "memory_query", "{{ $value }}"
-                                        ),
+                                        on_change=SetState("memory_query", "{{ $value }}"),
                                     ),
                                     Button(
                                         label="Recall",
@@ -1136,11 +1096,7 @@ def command_center() -> PrefabApp:
                                         on_click=CallTool(
                                             "arif_cc_memory_recall",
                                             args={"query": "{{ memory_query }}"},
-                                            on_success=[
-                                                SetState(
-                                                    "memory_result", "{{ $result }}"
-                                                )
-                                            ],
+                                            on_success=[SetState("memory_result", "{{ $result }}")],
                                         ),
                                     ),
                                 ],
@@ -1159,9 +1115,7 @@ def command_center() -> PrefabApp:
         children=[
             Card(
                 children=[
-                    CardHeader(
-                        children=[CardTitle(content="222_FETCH: Evidence Ingestion")]
-                    ),
+                    CardHeader(children=[CardTitle(content="222_FETCH: Evidence Ingestion")]),
                     CardContent(
                         children=[
                             Column(
@@ -1179,11 +1133,7 @@ def command_center() -> PrefabApp:
                                         on_click=CallTool(
                                             "arif_cc_evidence_fetch",
                                             args={"url": "{{ fetch_url }}"},
-                                            on_success=[
-                                                SetState(
-                                                    "fetch_result", "{{ $result }}"
-                                                )
-                                            ],
+                                            on_success=[SetState("fetch_result", "{{ $result }}")],
                                         ),
                                     ),
                                 ],
@@ -1245,22 +1195,14 @@ def command_center() -> PrefabApp:
                                         on_click=CallTool(
                                             "ops_vitals",
                                             on_success=[
-                                                SetState(
-                                                    "ops_g", "{{ $result.g_score }}"
-                                                ),
+                                                SetState("ops_g", "{{ $result.g_score }}"),
                                                 SetState(
                                                     "ops_delta_s",
                                                     "{{ $result.delta_S }}",
                                                 ),
-                                                SetState(
-                                                    "ops_omega", "{{ $result.omega }}"
-                                                ),
-                                                SetState(
-                                                    "ops_psi", "{{ $result.psi_le }}"
-                                                ),
-                                                SetState(
-                                                    "ops_status", "{{ $result.status }}"
-                                                ),
+                                                SetState("ops_omega", "{{ $result.omega }}"),
+                                                SetState("ops_psi", "{{ $result.psi_le }}"),
+                                                SetState("ops_status", "{{ $result.status }}"),
                                             ],
                                         ),
                                     ),
@@ -1282,9 +1224,7 @@ def command_center() -> PrefabApp:
             Card(
                 children=[
                     CardHeader(
-                        children=[
-                            CardTitle(content="888 Judge — Constitutional Review")
-                        ],
+                        children=[CardTitle(content="888 Judge — Constitutional Review")],
                     ),
                     CardContent(
                         children=[
@@ -1302,9 +1242,7 @@ def command_center() -> PrefabApp:
                                         variant="secondary",
                                         on_click=CallTool(
                                             "judge_action",
-                                            arguments={
-                                                "candidate": "{{ judge_candidate }}"
-                                            },
+                                            arguments={"candidate": "{{ judge_candidate }}"},
                                             on_success=[
                                                 SetState(
                                                     "judge_verdict",
@@ -1331,9 +1269,7 @@ def command_center() -> PrefabApp:
                                         label="{{ judge_verdict }}",
                                         variant="{{ judge_verdict == 'SEAL' ? 'success' : (judge_verdict == 'SABAR' ? 'warning' : 'destructive') }}",  # noqa: E501
                                     ),
-                                    Text(
-                                        content="Risk Tier: {{ judge_risk }}", bold=True
-                                    ),
+                                    Text(content="Risk Tier: {{ judge_risk }}", bold=True),
                                     Text(
                                         content="Reason: {{ judge_reason }}",
                                         italic=True,
@@ -1381,13 +1317,9 @@ def command_center() -> PrefabApp:
                                         variant="outline",
                                         on_click=CallTool(
                                             "forge_dry_run",
-                                            arguments={
-                                                "manifest": "{{ forge_manifest }}"
-                                            },
+                                            arguments={"manifest": "{{ forge_manifest }}"},
                                             on_success=[
-                                                SetState(
-                                                    "forge_mode", "{{ $result.mode }}"
-                                                ),
+                                                SetState("forge_mode", "{{ $result.mode }}"),
                                                 SetState(
                                                     "forge_summary",
                                                     "{{ $result.manifest_summary }}",
@@ -1441,9 +1373,7 @@ def command_center() -> PrefabApp:
                         children=[
                             Column(
                                 children=[
-                                    Text(
-                                        content="Target agent for constitutional handshake:"
-                                    ),
+                                    Text(content="Target agent for constitutional handshake:"),
                                     Input(
                                         name="gateway_target",
                                         placeholder="e.g., geox-mcp, wealth-mcp, a-forge",
@@ -1453,17 +1383,13 @@ def command_center() -> PrefabApp:
                                         variant="outline",
                                         on_click=CallTool(
                                             "gateway_handshake",
-                                            arguments={
-                                                "target_agent": "{{ gateway_target }}"
-                                            },
+                                            arguments={"target_agent": "{{ gateway_target }}"},
                                             on_success=[
                                                 SetState(
                                                     "gw_target",
                                                     "{{ $result.target_agent }}",
                                                 ),
-                                                SetState(
-                                                    "gw_status", "{{ $result.status }}"
-                                                ),
+                                                SetState("gw_status", "{{ $result.status }}"),
                                                 SetState(
                                                     "gw_hash_req",
                                                     "{{ $result.constitution_hash_required }}",
@@ -1477,9 +1403,7 @@ def command_center() -> PrefabApp:
                                     ),
                                     Separator(),
                                     Text(content="Target: {{ gw_target }}", bold=True),
-                                    Text(
-                                        content="Status: {{ gw_status }}", italic=True
-                                    ),
+                                    Text(content="Status: {{ gw_status }}", italic=True),
                                     Badge(
                                         label="Hash Required: {{ gw_hash_req }}",
                                         variant="{{ gw_hash_req == 'true' ? 'success' : 'warning' }}",  # noqa: E501
@@ -1545,13 +1469,9 @@ def command_center() -> PrefabApp:
                                         variant="secondary",
                                         on_click=CallTool(
                                             "vault_dry_seal",
-                                            arguments={
-                                                "payload": "{{ vault_payload }}"
-                                            },
+                                            arguments={"payload": "{{ vault_payload }}"},
                                             on_success=[
-                                                SetState(
-                                                    "seal_mode", "{{ $result.mode }}"
-                                                ),
+                                                SetState("seal_mode", "{{ $result.mode }}"),
                                                 SetState(
                                                     "seal_hash",
                                                     "{{ $result.payload_hash_preview }}",
@@ -1577,9 +1497,7 @@ def command_center() -> PrefabApp:
                                         label="Permanent: {{ seal_permanent }}",
                                         variant="{{ seal_permanent == 'true' ? 'destructive' : 'success' }}",  # noqa: E501
                                     ),
-                                    Text(
-                                        content="Status: {{ seal_status }}", italic=True
-                                    ),
+                                    Text(content="Status: {{ seal_status }}", italic=True),
                                 ],
                                 gap=2,
                             ),

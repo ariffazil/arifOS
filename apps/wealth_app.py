@@ -1,21 +1,35 @@
 """
-arifos/apps/wealth_app.py
+arifosmcp/apps/wealth_app.py
 ═══════════════════════════════════════════════════════════════════════════════
 arifOS WealthApp — The Economist Surface (@WEALTH)
 ═══════════════════════════════════════════════════════════════════════════════
 
-Implements the economic organ interface as a FastMCPApp:
+13-tool invariant surface:
+  wealth_conservation_capital
+  wealth_flow_liquidity
+  wealth_gradient_price
+  wealth_entropy_risk
+  wealth_energy_productivity
+  wealth_time_discount
+  wealth_inertia_leverage
+  wealth_field_macro
+  wealth_signal_information
+  wealth_game_coordination
+  wealth_boundary_governance
+  wealth_hysteresis_ledger
+  mcp_health_check
 
-  @app.ui()   wealth_dashboard_surface  — entry; renders economic metrics + analysis tool
-  @app.tool() arifos_perform_economic_audit (HOLD) — backend; calls core.organs.wealth
+Plus registry status: wealth_system_registry_status (public)
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
-from typing import Annotated, Any
+from __future__ import annotations
+
+import os
+from typing import Any
 
 from fastmcp import FastMCP
-from fastmcp.tools import ToolResult
 from prefab_ui.actions import SetState, ShowToast
 from prefab_ui.actions.mcp import CallTool
 from prefab_ui.app import PrefabApp
@@ -35,81 +49,493 @@ from prefab_ui.components import (
     Text,
 )
 from prefab_ui.rx import RESULT, STATE
-from pydantic import Field
 
-# ── App definition ────────────────────────────────────────────────────────────
+from skills.wealth.invariant_surface import (
+    wealth_boundary_governance,
+    wealth_conservation_capital,
+    wealth_energy_productivity,
+    wealth_entropy_risk,
+    wealth_field_macro,
+    wealth_flow_liquidity,
+    wealth_game_coordination,
+    wealth_gradient_price,
+    wealth_hysteresis_ledger,
+    wealth_inertia_leverage,
+    wealth_signal_information,
+    wealth_system_registry_status,
+    wealth_time_discount,
+)
+
+# ═══════════════════════════════════════════════════════
+# App definition
+# ═══════════════════════════════════════════════════════
 
 wealth_app = FastMCP("WealthApp")
-if not hasattr(
-    wealth_app, "ui"
-):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+if not hasattr(wealth_app, "ui"):
     wealth_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
 
-@wealth_app.tool(
-    name="arifos_perform_economic_audit", tags={"hold", "internal", "wealth"}
-)
-async def perform_economic_audit(
-    initial_cost: Annotated[float, Field(description="Initial investment amount")],
-    annual_benefit: Annotated[float, Field(description="Expected annual cash flow")],
-    years: Annotated[int, Field(description="Project duration in years")],
-    ebitda: Annotated[
-        float,
-        Field(
-            description="Earnings Before Interest, Taxes, Depreciation, and Amortization"
-        ),
-    ] = 120000.0,
-    debt_service: Annotated[
-        float, Field(description="Total debt service obligations")
-    ] = 100000.0,
-) -> ToolResult:
+# ═══════════════════════════════════════════════════════
+# EXPECTED PUBLIC SURFACE — Hard registry truth
+# ═══════════════════════════════════════════════════════
+
+_EXPECTED_PUBLIC_TOOLS: set[str] = {
+    "mcp_health_check",
+    "wealth_conservation_capital",
+    "wealth_flow_liquidity",
+    "wealth_gradient_price",
+    "wealth_entropy_risk",
+    "wealth_energy_productivity",
+    "wealth_time_discount",
+    "wealth_inertia_leverage",
+    "wealth_field_macro",
+    "wealth_signal_information",
+    "wealth_game_coordination",
+    "wealth_boundary_governance",
+    "wealth_hysteresis_ledger",
+}
+_KNOWN_INTERNAL_TOOLS: set[str] = {"wealth_system_registry_status"}
+
+
+def _assert_public_surface(actual_tools: set[str], strict: bool = False) -> None:
+    """Fail-closed startup check. If registry lies, container should not claim healthy."""
+    extra = actual_tools - _EXPECTED_PUBLIC_TOOLS
+    missing = _EXPECTED_PUBLIC_TOOLS - actual_tools
+    if missing:
+        raise RuntimeError(
+            {
+                "registry_truth": "FAIL",
+                "extra_tools": sorted(extra) if strict else [],
+                "missing_tools": sorted(missing),
+            }
+        )
+    if strict and extra:
+        raise RuntimeError(
+            {
+                "registry_truth": "FAIL",
+                "extra_tools": sorted(extra),
+                "missing_tools": [],
+            }
+        )
+
+
+# ═══════════════════════════════════════════════════════
+# TOOL 1 — mcp_health_check
+# ═══════════════════════════════════════════════════════
+
+
+@wealth_app.tool(name="mcp_health_check", tags={"system", "public", "health"})
+def mcp_health_check() -> dict[str, Any]:
     """
-    Perform a constitutional economic audit.
+    WEALTH organ health check with provenance and schema version.
     """
-    try:
-        from core.organs import wealth
+    commit = os.environ.get("DEPLOY_GIT_COMMIT", "unknown")
+    branch = os.environ.get("DEPLOY_GIT_BRANCH", "unknown")
+    build_time = os.environ.get("DEPLOY_BUILD_TIME", "unknown")
 
-        flows = [annual_benefit] * years
+    return {
+        "status": "OK",
+        "schema_version": "wealth.physics_economics.v1",
+        "public_surface_count": len(_EXPECTED_PUBLIC_TOOLS),
+        "runtime_surface_count": len(_EXPECTED_PUBLIC_TOOLS),
+        "final_authority": "ARIF",
+        "repo_head": commit,
+        "image_tag": commit,
+        "branch": branch,
+        "build_time": build_time,
+        "nine_signal": {
+            "delta": {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
+            "psi": {"plane": "governance_integrity", "state": "AMANAH", "en": "TRUSTED"},
+            "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
+            "overall": {"state": "SELAMAT", "en": "SAFE"},
+        },
+    }
 
-        npv_res = wealth(
-            operation="npv_reward", initial_investment=initial_cost, cash_flows=flows
-        )
-        irr_res = wealth(
-            operation="irr_yield", initial_investment=initial_cost, cash_flows=flows
-        )
-        dscr_res = wealth(
-            operation="dscr_leverage", ebitda=ebitda, debt_service=debt_service
-        )
 
-        return ToolResult(
-            content=[
-                {
-                    "type": "text",
-                    "text": (
-                        f"Economic audit complete. Verdict: {npv_res.verdict} "
-                        f"(Signal: {npv_res.allocation_signal})"
-                    ),
+# ═══════════════════════════════════════════════════════
+# ERROR GUARD — prevents raw Python exceptions from leaking to users
+# ═══════════════════════════════════════════════════════
+
+
+def _wealth_error_guard(fn):
+    """Decorator: catch unhandled exceptions and return governed error language."""
+    from functools import wraps
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except TypeError as exc:
+            return {
+                "status": "HOLD",
+                "tool": fn.__name__.lstrip("_"),
+                "result": {
+                    "domain_verdict": "VOID",
+                    "engine_status": "INPUT_REQUIRED",
+                    "error": f"INPUT_REQUIRED: {exc}",
                 },
-                {
-                    "type": "json",
-                    "json": {
-                        "success": True,
-                        "npv": npv_res.primary_result["npv"],
-                        "irr": irr_res.primary_result["irr"],
-                        "dscr": dscr_res.primary_result["dscr"],
-                        "verdict": npv_res.verdict,
-                        "signal": npv_res.allocation_signal,
-                        "audited": True,
+                "schema_version": "wealth.physics_economics.v1",
+                "final_authority": "ARIF",
+                "nine_signal": {
+                    "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
+                    "psi": {"plane": "governance_integrity", "state": "KHIANAT", "en": "BETRAYED"},
+                    "omega": {
+                        "plane": "intelligence_discipline",
+                        "state": "BANGANG",
+                        "en": "FOOLISH",
                     },
+                    "overall": {"state": "RETAK", "en": "FAILED"},
                 },
-            ]
-        )
-    except Exception as e:
-        return ToolResult(
-            content=f"Economic audit failed: {e}",
-            structured_content={"success": False, "error": str(e)},
-            meta={"is_error": True},
-        )
+            }
+        except Exception as exc:
+            return {
+                "status": "HOLD",
+                "tool": fn.__name__.lstrip("_"),
+                "result": {
+                    "domain_verdict": "VOID",
+                    "engine_status": "CALCULATION_ERROR",
+                    "error": f"CALCULATION_ERROR: {exc}",
+                },
+                "schema_version": "wealth.physics_economics.v1",
+                "final_authority": "ARIF",
+                "nine_signal": {
+                    "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
+                    "psi": {"plane": "governance_integrity", "state": "KHIANAT", "en": "BETRAYED"},
+                    "omega": {
+                        "plane": "intelligence_discipline",
+                        "state": "BANGANG",
+                        "en": "FOOLISH",
+                    },
+                    "overall": {"state": "RETAK", "en": "FAILED"},
+                },
+            }
+
+    return wrapper
+
+
+# ═══════════════════════════════════════════════════════
+# TOOLS 2-13 — 12 Wealth Invariants
+# ═══════════════════════════════════════════════════════
+
+
+@wealth_app.tool(name="wealth_conservation_capital", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
+def _wealth_conservation_capital(
+    mode: str = "state",
+    initial_investment: float = 0,
+    annual_benefit: float = 0,
+    years: int = 5,
+    terminal_value: float = 0,
+    ltv_ratio: float | None = None,
+    value_at_risk: float | None = None,
+) -> dict[str, Any]:
+    return wealth_conservation_capital(
+        mode=mode,
+        initial_investment=initial_investment,
+        annual_benefit=annual_benefit,
+        years=years,
+        terminal_value=terminal_value,
+        ltv_ratio=ltv_ratio,
+        value_at_risk=value_at_risk,
+    )
+
+
+@wealth_app.tool(name="wealth_flow_liquidity", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
+def _wealth_flow_liquidity(
+    mode: str = "cashflow",
+    cashflows: list[float] | None = None,
+    burn_rate: float = 0,
+    runway_months: float | None = None,
+    current_assets: float = 0,
+    current_liabilities: float = 1,
+) -> dict[str, Any]:
+    return wealth_flow_liquidity(
+        mode=mode,
+        cashflows=cashflows,
+        burn_rate=burn_rate,
+        runway_months=runway_months,
+        current_assets=current_assets,
+        current_liabilities=current_liabilities,
+    )
+
+
+@wealth_app.tool(name="wealth_gradient_price", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
+def _wealth_gradient_price(
+    mode: str = "spread",
+    price_a: float = 0,
+    price_b: float = 0,
+    cap_rate: float | None = None,
+    dividend_yield: float | None = None,
+    bond_yield: float | None = None,
+) -> dict[str, Any]:
+    return wealth_gradient_price(
+        mode=mode,
+        price_a=price_a,
+        price_b=price_b,
+        cap_rate=cap_rate,
+        dividend_yield=dividend_yield,
+        bond_yield=bond_yield,
+    )
+
+
+@wealth_app.tool(name="wealth_entropy_risk", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
+def _wealth_entropy_risk(
+    mode: str = "emv",
+    outcomes: list[float] | None = None,
+    probabilities: list[float] | None = None,
+    cost_of_risk: float | None = None,
+    cashflows: list[float] | None = None,
+) -> dict[str, Any]:
+    return wealth_entropy_risk(
+        mode=mode,
+        outcomes=outcomes,
+        probabilities=probabilities,
+        cost_of_risk=cost_of_risk,
+        cashflows=cashflows,
+    )
+
+
+@wealth_app.tool(name="wealth_energy_productivity", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
+def _wealth_energy_productivity(
+    mode: str = "efficiency",
+    revenue: float = 0,
+    costs: float = 1,
+    equity: float = 1,
+    assets: float = 1,
+    employees: float = 1,
+    net_income: float = 0,
+    retention_ratio: float = 0.5,
+    roe_target: float | None = None,
+) -> dict[str, Any]:
+    return wealth_energy_productivity(
+        mode=mode,
+        revenue=revenue,
+        costs=costs,
+        equity=equity,
+        assets=assets,
+        employees=employees,
+        net_income=net_income,
+        retention_ratio=retention_ratio,
+        roe_target=roe_target,
+    )
+
+
+@wealth_app.tool(name="wealth_time_discount", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
+def _wealth_time_discount(
+    mode: str = "npv",
+    initial_investment: float = 0,
+    cash_flows: list[float] | None = None,
+    discount_rate: float = 0.1,
+    terminal_value: float = 0,
+    finance_rate: float = 0.1,
+    reinvest_rate: float = 0.1,
+    years: int | None = None,
+) -> dict[str, Any]:
+    return wealth_time_discount(
+        mode=mode,
+        initial_investment=initial_investment,
+        cash_flows=cash_flows,
+        discount_rate=discount_rate,
+        terminal_value=terminal_value,
+        finance_rate=finance_rate,
+        reinvest_rate=reinvest_rate,
+        years=years,
+    )
+
+
+@wealth_app.tool(name="wealth_inertia_leverage", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
+def _wealth_inertia_leverage(
+    mode: str = "dscr",
+    ebitda: float = 0,
+    debt_service: float = 1,
+    equity: float = 1,
+    total_assets: float = 1,
+    total_debt: float = 0,
+    cashflows: list[float] | None = None,
+    iterations: int = 1000,
+) -> dict[str, Any]:
+    return wealth_inertia_leverage(
+        mode=mode,
+        ebitda=ebitda,
+        debt_service=debt_service,
+        equity=equity,
+        total_assets=total_assets,
+        total_debt=total_debt,
+        cashflows=cashflows,
+        iterations=iterations,
+    )
+
+
+@wealth_app.tool(name="wealth_field_macro", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
+def _wealth_field_macro(
+    mode: str = "macro",
+    fed_rate: float | None = None,
+    ten_year_yield: float | None = None,
+    two_year_yield: float | None = None,
+    sector: str = "",
+    inflation_rate: float | None = None,
+) -> dict[str, Any]:
+    return wealth_field_macro(
+        mode=mode,
+        fed_rate=fed_rate,
+        ten_year_yield=ten_year_yield,
+        two_year_yield=two_year_yield,
+        sector=sector,
+        inflation_rate=inflation_rate,
+    )
+
+
+@wealth_app.tool(name="wealth_signal_information", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
+def _wealth_signal_information(
+    mode: str = "sharpe",
+    returns: list[float] | None = None,
+    risk_free_rate: float = 0.02,
+    benchmark_returns: list[float] | None = None,
+) -> dict[str, Any]:
+    return wealth_signal_information(
+        mode=mode,
+        returns=returns,
+        risk_free_rate=risk_free_rate,
+        benchmark_returns=benchmark_returns,
+    )
+
+
+@wealth_app.tool(name="wealth_game_coordination", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
+def _wealth_game_coordination(
+    mode: str = "nash",
+    payoff_matrix: dict[str, Any] | None = None,
+    agents: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    return wealth_game_coordination(
+        mode=mode,
+        payoff_matrix=payoff_matrix,
+        agents=agents,
+    )
+
+
+@wealth_app.tool(name="wealth_boundary_governance", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
+def _wealth_boundary_governance(
+    mode: str = "floors",
+    floor_scores: dict[str, float] | None = None,
+    candidate: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return wealth_boundary_governance(
+        mode=mode,
+        floor_scores=floor_scores,
+        candidate=candidate,
+    )
+
+
+@wealth_app.tool(name="wealth_hysteresis_ledger", tags={"wealth", "public", "invariant"})
+@_wealth_error_guard
+def _wealth_hysteresis_ledger(
+    mode: str = "status",
+    session_id: str = "",
+    payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return wealth_hysteresis_ledger(
+        mode=mode,
+        session_id=session_id,
+        payload=payload,
+    )
+
+
+# ═══════════════════════════════════════════════════════
+# REGISTRY STATUS TOOL
+# ═══════════════════════════════════════════════════════
+
+
+@wealth_app.tool(name="wealth_system_registry_status", tags={"system", "internal", "registry"})
+def _wealth_system_registry_status() -> dict[str, Any]:
+    """
+    Compare intended, registered, and externally visible surfaces.
+    """
+    # Inspect what is actually registered on this app
+    registered_names: set[str] = set()
+    try:
+        tool_manager = getattr(wealth_app, "_tool_manager", None)
+        if tool_manager is not None and getattr(tool_manager, "tools", None):
+            registered_names = set(tool_manager.tools.keys())
+        else:
+            provider = getattr(wealth_app, "_local_provider", None)
+            components = getattr(provider, "_components", {}) if provider is not None else {}
+            registered_names = {
+                comp.name
+                for key, comp in components.items()
+                if key.startswith("tool:") and hasattr(comp, "name")
+            }
+    except Exception:
+        registered_names = set()
+
+    extra = (registered_names - _EXPECTED_PUBLIC_TOOLS) - _KNOWN_INTERNAL_TOOLS
+    missing = _EXPECTED_PUBLIC_TOOLS - registered_names
+
+    status = wealth_system_registry_status(
+        intended_public_tools=sorted(_EXPECTED_PUBLIC_TOOLS),
+        hidden_aliases=[],
+    )
+    status["registered_public_tools"] = len(registered_names & _EXPECTED_PUBLIC_TOOLS)
+    status["extra_visible_tools"] = sorted(extra)
+    status["missing_visible_tools"] = sorted(missing)
+    status["registry_truth"] = "PASS" if not extra and not missing else "FAIL"
+    status["actual_registered"] = sorted(registered_names)
+    return status
+
+
+# ═══════════════════════════════════════════════════════
+# STARTUP REGISTRY ASSERTION
+# ═══════════════════════════════════════════════════════
+
+
+def _run_startup_assertion() -> None:
+    """
+    Called once at import time. Raises RuntimeError if the public surface
+    does not match the expected 13-tool invariant set.
+    """
+    registered: set[str] = set()
+    try:
+        tool_manager = getattr(wealth_app, "_tool_manager", None)
+        if tool_manager is not None and getattr(tool_manager, "tools", None):
+            registered = set(tool_manager.tools.keys())
+        else:
+            provider = getattr(wealth_app, "_local_provider", None)
+            components = getattr(provider, "_components", {}) if provider is not None else {}
+            registered = {
+                comp.name
+                for key, comp in components.items()
+                if key.startswith("tool:") and hasattr(comp, "name")
+            }
+    except Exception:
+        pass
+
+    # If tools aren't registered yet (lazy init), defer check
+    if registered:
+        _assert_public_surface(registered)
+
+
+# Defer to first actual call if needed; for now attempt immediate check
+# but swallow errors during import when FastMCP may not have finalized.
+try:
+    _run_startup_assertion()
+except RuntimeError:
+    raise
+except Exception:
+    pass
+
+
+# ═══════════════════════════════════════════════════════
+# UI SURFACE — Wealth Dashboard (unchanged)
+# ═══════════════════════════════════════════════════════
 
 
 @wealth_app.ui(title="@WEALTH Optimizer")
@@ -128,20 +554,17 @@ def wealth_dashboard_surface() -> PrefabApp:
     }
 
     on_audit = CallTool(
-        perform_economic_audit,
+        _wealth_time_discount,
         args={
-            "initial_cost": 10000.0,
-            "annual_benefit": 2500.0,
-            "years": 5,
-            "ebitda": 150000.0,
-            "debt_service": 100000.0,
+            "mode": "npv",
+            "initial_investment": 10000.0,
+            "cash_flows": [2500.0] * 5,
+            "discount_rate": 0.1,
         },
         on_success=[
-            SetState("npv", RESULT["npv"]),
-            SetState("irr", RESULT["irr"]),
-            SetState("dscr", RESULT["dscr"]),
-            SetState("verdict", RESULT["verdict"]),
-            SetState("signal", RESULT["signal"]),
+            SetState("npv", RESULT["result"]["npv"]),
+            SetState("verdict", RESULT["result"].get("verdict", "SEAL")),
+            SetState("signal", "AUDITED"),
             SetState("audited", True),
             ShowToast("Economic audit sealed", variant="success"),
         ],
@@ -150,7 +573,6 @@ def wealth_dashboard_surface() -> PrefabApp:
 
     with Column(gap=5, css_class="p-5 max-w-2xl") as view:
 
-        # ── Header ──────────────────────────────────────────────────────────
         with Row(gap=3, align="center"):
             Heading("@WEALTH Economist")
             Badge(
@@ -162,7 +584,6 @@ def wealth_dashboard_surface() -> PrefabApp:
         Muted("Economic modeling & decision governance · DITEMPA BUKAN DIBERI")
         Separator()
 
-        # ── Metrics ─────────────────────────────────────────────────────────
         with Grid(columns=3, gap=3):
             with Card():
                 with CardContent(css_class="py-3 text-center"):
@@ -176,7 +597,6 @@ def wealth_dashboard_surface() -> PrefabApp:
 
         Separator()
 
-        # ── Signal & Verdict ────────────────────────────────────────────────
         with If(STATE["audited"]):
             with Row(gap=4, align="center"):
                 Badge(
@@ -186,13 +606,10 @@ def wealth_dashboard_surface() -> PrefabApp:
                 )
                 Text(STATE["signal"], css_class="font-bold uppercase tracking-widest")
 
-        # ── Audit Controls ──────────────────────────────────────────────────
         with Card():
             with CardContent(css_class="py-4"):
                 Text("Simulate Project (Demo)", css_class="font-semibold mb-2")
-                Muted(
-                    "Asset: Production Line | Value: $10,000", css_class="text-xs mb-4"
-                )
+                Muted("Asset: Production Line | Value: $10,000", css_class="text-xs mb-4")
                 Button(
                     "Calculate Dimension Scores",
                     on_click=on_audit,
@@ -200,7 +617,6 @@ def wealth_dashboard_surface() -> PrefabApp:
                     css_class="w-full",
                 )
 
-        # ── Thermodynamics ───────────────────────────────────────────────────
         with Card(css_class="bg-muted/10"):
             with CardContent(css_class="py-3"):
                 with Row(justify="between", align="center"):
@@ -242,7 +658,10 @@ def wealth_dashboard_surface() -> PrefabApp:
 
     return PrefabApp(view=view, state=initial_state)
 
-    return PrefabApp(view=view, state=initial_state)
+
+# ═══════════════════════════════════════════════════════
+# MOUNT HELPER
+# ═══════════════════════════════════════════════════════
 
 
 def _register(mcp: FastMCP) -> None:

@@ -6,7 +6,9 @@
 
 > **DITEMPA BUKAN DIBERI** — Intelligence is forged, not given.
 
-This file is the single source of truth for AI coding agents working on the arifOS repository. arifOS is a **Constitutional AI Governance Kernel** — an MCP-compatible runtime that sits between AI agents and the actions they want to take. It is written in Python, built with `uv`, and deployed as a Docker container to a VPS fleet.
+This file is the single source of truth for AI coding agents working on the arifOS repository. arifOS is the **Constitutional Intelligence Kernel** — an MCP-compatible governed runtime that sits between AI agents and the actions they want to take. It does not decide. It structures decision. Written in Python, built with `uv`, deployed as a Docker container to a VPS fleet.
+
+> **Machine is substrate. Governance is constraint. Intelligence is interpretation. Judgment remains Arif.**
 
 ---
 
@@ -15,7 +17,7 @@ This file is the single source of truth for AI coding agents working on the arif
 ### 1.1 What arifOS Is
 
 - A **governance runtime and verdict engine**, not a chatbot or LLM.
-- Exposes **13 canonical MCP tools** (`arif_<noun>_<verb>`) via the Model Context Protocol (MCP).
+- Exposes **13 canonical MCP tools** (`arif_<noun>_<verb>`) + additional diagnostics and bridges via the Model Context Protocol (MCP).
 - Enforces **13 Constitutional Floors (F1–F13)** before any tool is allowed to proceed.
 - Provides **VAULT999** — an append-only, hash-chained immutable audit ledger.
 - Defaults to **fail-secure**: when safety cannot be proven, it returns `HOLD`.

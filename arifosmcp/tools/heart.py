@@ -14,10 +14,20 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import datetime
+import json
 import logging
+import os
+from pathlib import Path
 from typing import Any
 
 from arifosmcp.runtime.llm_client import LLMUnavailableError, call_llm
+
+_VAULT999_PATH = Path(
+    os.getenv(
+        "ARIFOS_VAULT_PATH",
+        "/var/lib/arifos/vault/outcomes.jsonl",
+    )
+)
 
 logger = logging.getLogger(__name__)
 
@@ -206,7 +216,7 @@ async def _heart_with_llm(
 
     user = f"""TARGET: {target}
 MODE: {mode}
-CONTEXT_TYPE: {context_type or 'external_action'}
+CONTEXT_TYPE: {context_type or "external_action"}
 
 {mode_prompt}
 
@@ -292,9 +302,7 @@ def _heart_fallback(
                 else "No dignity violations"
             ),
             "mitigation": (
-                "Remove dignity-undermining language"
-                if dignity_risk
-                else "Maintain neutral tone"
+                "Remove dignity-undermining language" if dignity_risk else "Maintain neutral tone"
             ),
         }
     )
@@ -316,13 +324,9 @@ def _heart_fallback(
             "severity": "medium" if overclaims else "none",
             "floor_cited": "F02_TRUTH/F07_HUMILITY",
             "reason": (
-                f"Overclaiming language: {overclaims}"
-                if overclaims
-                else "Calibrated language"
+                f"Overclaiming language: {overclaims}" if overclaims else "Calibrated language"
             ),
-            "mitigation": (
-                "Add uncertainty qualifiers" if overclaims else "Maintain calibration"
-            ),
+            "mitigation": ("Add uncertainty qualifiers" if overclaims else "Maintain calibration"),
         }
     )
 
@@ -344,13 +348,9 @@ def _heart_fallback(
             "severity": "critical" if anthro else "none",
             "floor_cited": "F09_ANTIHANTU",
             "reason": (
-                f"System claiming subjective states: {anthro}"
-                if anthro
-                else "No anthropomorphism"
+                f"System claiming subjective states: {anthro}" if anthro else "No anthropomorphism"
             ),
-            "mitigation": (
-                "Rephrase as tool-claim not subjective experience" if anthro else "OK"
-            ),
+            "mitigation": ("Rephrase as tool-claim not subjective experience" if anthro else "OK"),
         }
     )
 
@@ -369,11 +369,7 @@ def _heart_fallback(
             "type": "irreversibility_risk",
             "severity": "high" if irrevers else "none",
             "floor_cited": "F01_AMANAH",
-            "reason": (
-                f"Irreversible language: {irrevers}"
-                if irrevers
-                else "No irreversibility"
-            ),
+            "reason": (f"Irreversible language: {irrevers}" if irrevers else "No irreversibility"),
             "mitigation": "Require 888_HOLD + explicit human ack" if irrevers else "OK",
         }
     )
@@ -392,9 +388,7 @@ def _heart_fallback(
             "severity": "high" if autonomy else "none",
             "floor_cited": "F13_SOVEREIGN",
             "reason": (
-                f"Autonomy-undermining: {autonomy}"
-                if autonomy
-                else "Human agency preserved"
+                f"Autonomy-undermining: {autonomy}" if autonomy else "Human agency preserved"
             ),
             "mitigation": "Require human confirmation" if autonomy else "OK",
         }
@@ -408,9 +402,7 @@ def _heart_fallback(
             "type": "harm_risk",
             "severity": "medium" if harm else "none",
             "floor_cited": "F06_EMPATHY",
-            "reason": (
-                f"Potential harm language: {harm}" if harm else "No harm indicators"
-            ),
+            "reason": (f"Potential harm language: {harm}" if harm else "No harm indicators"),
             "mitigation": "Conduct impact assessment" if harm else "OK",
         }
     )
@@ -423,9 +415,7 @@ def _heart_fallback(
             "type": "privacy_risk",
             "severity": "high" if privacy else "none",
             "floor_cited": "F04_CLARITY/F11_AUTH",
-            "reason": (
-                f"Privacy-invasive: {privacy}" if privacy else "No privacy concerns"
-            ),
+            "reason": (f"Privacy-invasive: {privacy}" if privacy else "No privacy concerns"),
             "mitigation": "Implement consent mechanism" if privacy else "OK",
         }
     )
@@ -457,9 +447,7 @@ def _heart_fallback(
 
     human_required = max_severity >= 3
     empathy_score = round(1.0 - (max_severity * 0.2), 3)
-    worst_case = (
-        "VOID" if max_severity >= 3 else "HOLD" if max_severity >= 2 else "SEAL"
-    )
+    worst_case = "VOID" if max_severity >= 3 else "HOLD" if max_severity >= 2 else "SEAL"
 
     base_result: dict[str, Any] = {
         "_llm_available": False,
@@ -487,16 +475,10 @@ def _heart_fallback(
             "risk_tier": risk_tier,
             "human_decision_required": human_required,
             "empathy_score": empathy_score,
-            "weakest_stakeholder": (
-                "vulnerable_users" if max_severity >= 2 else "general_public"
-            ),
+            "weakest_stakeholder": ("vulnerable_users" if max_severity >= 2 else "general_public"),
             "human_impact_load": round(max_severity * 0.25, 3),
-            "dignity_score": round(
-                1.0 - (severity_order.get(risks[0]["severity"], 0) * 0.2), 3
-            ),
-            "verdict": (
-                "VOID" if max_severity >= 4 else "HOLD" if max_severity >= 2 else "SEAL"
-            ),
+            "dignity_score": round(1.0 - (severity_order.get(risks[0]["severity"], 0) * 0.2), 3),
+            "verdict": ("VOID" if max_severity >= 4 else "HOLD" if max_severity >= 2 else "SEAL"),
         }
 
     if mode == "simulate":
@@ -529,12 +511,8 @@ def _heart_fallback(
             **base_result,
             "status": "OK",
             "target": target,
-            "attacks": [
-                r["reason"] for r in risks if r["severity"] not in ("none", "low")
-            ],
-            "mitigations": [
-                r["mitigation"] for r in risks if r["severity"] not in ("none", "low")
-            ],
+            "attacks": [r["reason"] for r in risks if r["severity"] not in ("none", "low")],
+            "mitigations": [r["mitigation"] for r in risks if r["severity"] not in ("none", "low")],
         }
 
     if mode == "maruah":
@@ -573,6 +551,132 @@ def _heart_fallback(
         "risks_found": risks,
         "risk_tier": risk_tier,
         "verdict": "HOLD",
+    }
+
+
+# ── C_dark + Graded Uncertainty (Ω₀/Ω₁/Ω₂) ──────────────────────────────────
+
+
+def _check_vault999_scar_tissue(target: str, max_scan: int = 50) -> dict[str, Any]:
+    """Scan VAULT999 for sealed decisions that contradict the target claim.
+
+    F2 Truth: If the target contradicts a sealed past decision (PETRONAS scar
+    tissue), escalate uncertainty immediately.
+    """
+    contradictions: list[dict[str, Any]] = []
+    try:
+        if not _VAULT999_PATH.exists():
+            return {"scanned": 0, "contradictions": [], "scar_risk": "none"}
+    except OSError:
+        return {"scanned": 0, "contradictions": [], "scar_risk": "none"}
+
+    target_lower = target.lower()
+    keywords = [w for w in target_lower.split() if len(w) > 4]
+    if not keywords:
+        return {"scanned": 0, "contradictions": [], "scar_risk": "none"}
+
+    scanned = 0
+    try:
+        with open(_VAULT999_PATH, encoding="utf-8") as f:
+            for i, line in enumerate(f):
+                if i >= max_scan:
+                    break
+                if not line.strip():
+                    continue
+                try:
+                    event = json.loads(line)
+                    payload = event.get("payload", {})
+                    payload_text = json.dumps(payload, default=str).lower()
+                    if any(k in payload_text for k in keywords):
+                        contradictions.append(
+                            {
+                                "event_id": event.get("event_id"),
+                                "sealed_at": event.get("sealed_at"),
+                                "verdict": event.get("verdict"),
+                                "note": "VAULT999 sealed decision intersects target keywords",
+                            }
+                        )
+                except json.JSONDecodeError:
+                    continue
+                scanned = i + 1
+    except (OSError, PermissionError):
+        pass
+
+    scar_risk = (
+        "high" if len(contradictions) >= 3 else "medium" if len(contradictions) >= 1 else "none"
+    )
+    return {
+        "scanned": scanned,
+        "contradictions": contradictions,
+        "scar_risk": scar_risk,
+    }
+
+
+def _compute_omega_state(result: dict[str, Any], target: str) -> dict[str, Any]:
+    """Compute graded uncertainty state Ω₀/Ω₁/Ω₂.
+
+    Ω₀ (Low)    — High confidence, full delivery.
+    Ω₁ (Medium) — Auditor flags issues → auto-revise + flag in output.
+    Ω₂ (High)   — C_dark spike → immediate HOLD + notify Sovereign.
+    """
+    risks = result.get("risks_found", [])
+    severity_order = {"none": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
+    max_severity = max((severity_order.get(r.get("severity", "none"), 0) for r in risks), default=0)
+
+    # Scar tissue check against immutable VAULT999
+    scar = _check_vault999_scar_tissue(target)
+    scar_risk = scar["scar_risk"]
+
+    # Overclaim detection (F07 Humility)
+    target_lower = target.lower()
+    overclaim_triggers = [
+        "always",
+        "never",
+        "guaranteed",
+        "certain",
+        "definitely",
+        "absolutely",
+        "100%",
+    ]
+    overclaim = any(t in target_lower for t in overclaim_triggers)
+
+    # Compute P(truth)
+    p_truth = 1.0
+    p_truth -= max_severity * 0.15
+    if scar_risk == "high":
+        p_truth -= 0.25
+    elif scar_risk == "medium":
+        p_truth -= 0.10
+    if overclaim:
+        p_truth -= 0.15
+    p_truth = max(0.0, min(1.0, p_truth))
+
+    # Determine Ω state
+    if p_truth < 0.60 or max_severity >= 3 or scar_risk == "high":
+        omega = "Ω₂"
+        state = "HIGH_UNCERTAINTY"
+        action = "HOLD"
+        notify_sovereign = True
+    elif p_truth < 0.85 or max_severity >= 2 or scar_risk == "medium" or overclaim:
+        omega = "Ω₁"
+        state = "MEDIUM_UNCERTAINTY"
+        action = "REVISE"
+        notify_sovereign = False
+    else:
+        omega = "Ω₀"
+        state = "LOW_UNCERTAINTY"
+        action = "PROCEED"
+        notify_sovereign = False
+
+    return {
+        "omega": omega,
+        "state": state,
+        "p_truth": round(p_truth, 3),
+        "action": action,
+        "notify_sovereign": notify_sovereign,
+        "scar_tissue": scar,
+        "overclaim_detected": overclaim,
+        "max_severity": max_severity,
     }
 
 
@@ -621,8 +725,11 @@ async def arif_heart_critique(
             actor_id=actor_id,
             context_type=_ct,
         )
+        # If LLM returned an error envelope (all tiers exhausted), use fallback
+        if result.get("error") and "LLM_UNAVAILABLE" in str(result.get("status", "")):
+            result = _heart_fallback(mode=mode, target=target or "", context_type=_ct)
     except LLMUnavailableError:
-        result = _heart_fallback(mode=mode, target=target, context_type=_ct)
+        result = _heart_fallback(mode=mode, target=target or "", context_type=_ct)
 
     # ── Internal audit context scaling ──
     if is_internal:
@@ -633,6 +740,25 @@ async def arif_heart_critique(
             result["risk_tier"] = "AMBER"
             result["human_decision_required"] = False
 
+    # ── C_dark + Graded Uncertainty State (Ω₀/Ω₁/Ω₂) ──
+    omega_state = _compute_omega_state(result, target or "")
+    result["omega_state"] = omega_state
+
+    # Ω₂ override: force HOLD + sovereign notification
+    if omega_state["omega"] == "Ω₂":
+        result["verdict"] = "HOLD"
+        result["status"] = "HOLD"
+        result["human_decision_required"] = True
+        result["caveats"] = result.get("caveats", []) + [
+            f"C_dark detected: {omega_state['state']} — P(truth)={omega_state['p_truth']}"
+        ]
+
+    # Ω₁ flag: add revision signal but allow advisory delivery
+    if omega_state["omega"] == "Ω₁":
+        result["caveats"] = result.get("caveats", []) + [
+            f"Ω₁ flagged: auto-revise recommended — P(truth)={omega_state['p_truth']}"
+        ]
+
     # ── F05/F06 Maruah (Dignity) Integration ──
     if "maruah" not in result:
         d_score = result.get("dignity_score", 1.0)
@@ -640,9 +766,7 @@ async def arif_heart_critique(
             "score": d_score,
             "omega_load": result.get("human_impact_load", 0.0),
             "status": (
-                "DIGNIFIED"
-                if d_score >= 0.8
-                else "STRESSED" if d_score >= 0.5 else "BREACH"
+                "DIGNIFIED" if d_score >= 0.8 else "STRESSED" if d_score >= 0.5 else "BREACH"
             ),
         }
 

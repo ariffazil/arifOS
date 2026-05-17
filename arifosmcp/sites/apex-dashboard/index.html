@@ -347,6 +347,8 @@ a:hover{color:var(--color-gold)}
     </div>
     <div class="status-group">
       <span class="status-pill"><span class="val" id="vaultStatus">—</span> <span>VAULT999</span></span>
+      <span class="status-pill"><span class="val" id="langfuseStatus">—</span> <span>langfuse</span></span>
+      <span class="status-pill"><span class="val" id="runtimeDrift">—</span> <span>drift</span></span>
       <span class="status-pill"><span class="val" id="trinityStatus">—</span> <span>trinity</span></span>
     </div>
     <div class="status-group" style="margin-left:auto;">
@@ -570,7 +572,8 @@ a:hover{color:var(--color-gold)}
       <div class="metric-row"><span class="metric-label">F2 TRUTH THRESHOLD</span><span class="metric-val gold">0.99</span></div>
       <div class="metric-row"><span class="metric-label">PSI VITALITY</span><span class="metric-val primary" id="psiVit">—</span></div>
       <div class="metric-row"><span class="metric-label">VAULT999 HEALTH</span><span class="metric-val" id="vault999Val">—</span></div>
-      <div class="metric-row"><span class="metric-label">RUNTIME DRIFT</span><span class="metric-val" id="driftVal">—</span></div>
+      <div class="metric-row"><span class="metric-label">DEPLOY DRIFT</span><span class="metric-val" id="driftVal">—</span></div>
+      <div class="metric-row"><span class="metric-label">MCP CONTRACTS</span><span class="metric-val" id="contractVal">—</span></div>
       <div class="metric-row"><span class="metric-label">SEAL READINESS</span><span class="metric-val hold" id="sealRec">—</span></div>
     </div>
 
@@ -731,7 +734,7 @@ a:hover{color:var(--color-gold)}
   <div class="section-label">VI · Constitutional Tool Registry (13)</div>
   <p style="font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:var(--space-4);margin-top:calc(var(--space-2)*-1);line-height:1.5">
     Tool stage codes are <strong>binding identifiers</strong> in the constitutional map.
-    The canonical governing loop is: 000&nbsp;INIT → 111&nbsp;OBSERVE → 222&nbsp;EVIDENCE → 333&nbsp;REASON → 444&nbsp;CRITIQUE → 555&nbsp;ROUTE → 666&nbsp;FORGE → 777&nbsp;MEASURE → 888&nbsp;JUDGE → 999&nbsp;SEAL.
+    The cards below are sourced from the live <code>/api/status</code> payload. Deploy drift and MCP contract publication are reported separately so the site does not present schema alignment as a build-integrity signal.
   </p>
   <div class="tools-grid fade-up" id="toolsGrid" style="margin-bottom:var(--space-12)">
     <!-- JS populates -->
@@ -1044,6 +1047,10 @@ async function poll() {
     document.getElementById('vault999Val').className = 'metric-val ' + (h.vault999_health === 'healthy' ? 'ok' : 'err');
     document.getElementById('driftVal').textContent = String(sr.runtime_drift || false).toUpperCase();
     document.getElementById('driftVal').className = 'metric-val ' + (sr.runtime_drift ? 'err' : 'ok');
+    const contract = h.contract_status || {};
+    const contractText = `${contract.input_schemas_published || 0}/${contract.tool_count || 0} in · ${contract.output_schemas_published || 0}/${contract.tool_count || 0} out`;
+    document.getElementById('contractVal').textContent = contractText;
+    document.getElementById('contractVal').className = 'metric-val ' + (contract.schemas_complete ? 'ok' : 'hold');
     document.getElementById('sealRec').textContent = verdict;
     document.getElementById('sealRec').className = 'metric-val ' + (verdict === 'SEAL' ? 'ok' : 'hold');
 

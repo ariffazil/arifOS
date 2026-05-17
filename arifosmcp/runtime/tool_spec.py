@@ -20,9 +20,7 @@ class ToolSpec:
     stage: str  # Execution stage (documentation only)
     purpose: str  # One-line purpose
     role: str = ""  # Role-based purpose (alias for purpose)
-    layer: Literal["GOVERNANCE", "INTELLIGENCE", "MACHINE", "EXECUTION", "SURFACE"] = (
-        "MACHINE"
-    )
+    layer: Literal["GOVERNANCE", "INTELLIGENCE", "MACHINE", "EXECUTION", "SURFACE"] = "MACHINE"
     description: str = ""
     trinity: Literal["Δ", "Ω", "Ψ", "Δ/Ω", "Δ/Ψ", "Ω/Ψ", "ALL"] = "ALL"
     floors: tuple[str, ...] = field(default_factory=tuple)  # F1-F13 that apply

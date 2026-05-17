@@ -164,9 +164,7 @@ async def governed_ai_task(
             }
 
     # Execute with Marvin
-    result = marvin.run(
-        instructions, result_type=result_type, context=context or {}, agent=agent
-    )
+    result = marvin.run(instructions, result_type=result_type, context=context or {}, agent=agent)
 
     # Post-validation
     if enable_critique:
@@ -223,9 +221,7 @@ async def governed_extract(
 
 
 # Classification with governance
-async def governed_classify(
-    text: str, labels: list[str], enable_critique: bool = True
-) -> str:
+async def governed_classify(text: str, labels: list[str], enable_critique: bool = True) -> str:
     """
     Classify text with arifOS validation.
 

@@ -204,14 +204,10 @@ if IS_FASTMCP_3:
               - output: strong
             """
 
-            def __init__(
-                self, tool_param_sets: dict[str, set[str]] | None = None
-            ) -> None:
+            def __init__(self, tool_param_sets: dict[str, set[str]] | None = None) -> None:
                 self._tool_param_sets: dict[str, set[str]] = tool_param_sets or {}
 
-            def register_tool_params(
-                self, tool_name: str, param_names: set[str]
-            ) -> None:
+            def register_tool_params(self, tool_name: str, param_names: set[str]) -> None:
                 self._tool_param_sets[tool_name] = param_names
 
             async def on_call_tool(

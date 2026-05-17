@@ -211,9 +211,7 @@ def _compose_fallback(
     if mode == "compose":
         caveats = []
         if any(w in msg.lower() for w in ("always", "never", "guaranteed", "certain")):
-            caveats.append(
-                "F07 Humility: universal claims detected — verify before asserting"
-            )
+            caveats.append("F07 Humility: universal claims detected — verify before asserting")
         return {
             "composed": msg,
             "tone": "neutral",
@@ -383,9 +381,12 @@ async def arif_reply_compose(
     msg = message or ""
     sess = get_session(session_id)
     card = sess.get("model_governance_card") if sess else {}
-    truth = card.get("runtime_truth", {})
+    truth = card.runtime_truth if hasattr(card, "runtime_truth") else card.get("runtime_truth", {})
+    web_on = (
+        getattr(truth, "web_on", False) if hasattr(truth, "web_on") else truth.get("web_on", False)
+    )
 
-    if _output_claims_web(msg) and not truth.get("web_on"):
+    if _output_claims_web(msg) and not web_on:
         return {
             "error": "F11 Breach: Model attempted web-claim while web_on is False",
             "verdict": "VOID",
@@ -413,13 +414,10 @@ async def arif_reply_compose(
 
     safety = sea_guard_filter(msg)
     if not safety.passed:
-        logger.warning(
-            "SEA-Guard BLOCKED arif_reply_compose: categories=%s", safety.blocked
-        )
+        logger.warning("SEA-Guard BLOCKED arif_reply_compose: categories=%s", safety.blocked)
         return {
             "error": (
-                f"F09 Anti-Hantu / SEA-Guard safety violation: "
-                f"blocked_categories={safety.blocked}"
+                f"F09 Anti-Hantu / SEA-Guard safety violation: blocked_categories={safety.blocked}"
             ),
             "verdict": "BLOCKED",
             "safety_result": safety.to_dict(),

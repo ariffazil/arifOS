@@ -54,9 +54,7 @@ async def arifos_fetch(
     # 2. Substrate Execution
     try:
         # Note: mcp_fetch tool name is usually 'fetch'
-        raw_result = await bridge.fetch.call_tool(
-            "fetch", {"url": url, "max_length": max_length}
-        )
+        raw_result = await bridge.fetch.call_tool("fetch", {"url": url, "max_length": max_length})
         content = raw_result.get("content", "")
     except Exception as e:
         return _RE(

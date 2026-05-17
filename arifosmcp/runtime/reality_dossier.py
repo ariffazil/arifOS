@@ -160,37 +160,25 @@ class DossierEngine:
                 },
             },
             evidence_chain=[
-                e.get("source", "unknown")
-                for e in claim.evidence
-                if isinstance(e, dict)
+                e.get("source", "unknown") for e in claim.evidence if isinstance(e, dict)
             ],
         )
 
-    def _intelligence_exploration_phase(
-        self, bundles: list[EvidenceBundle]
-    ) -> list[str]:
+    def _intelligence_exploration_phase(self, bundles: list[EvidenceBundle]) -> list[str]:
         """
         E1: Exploration - gather candidate interpretations and hypotheses.
         """
         hypotheses = []
         for bundle in bundles:
             if bundle.status.state == "SUCCESS":
-                hypotheses.append(
-                    f"Bundle {bundle.id[:8]} confirms: {bundle.input.value[:50]}"
-                )
+                hypotheses.append(f"Bundle {bundle.id[:8]} confirms: {bundle.input.value[:50]}")
             elif bundle.status.state == "SABAR":
-                hypotheses.append(
-                    f"Bundle {bundle.id[:8]} blocked: {bundle.status.message[:50]}"
-                )
+                hypotheses.append(f"Bundle {bundle.id[:8]} blocked: {bundle.status.message[:50]}")
             else:
-                hypotheses.append(
-                    f"Bundle {bundle.id[:8]} uncertain: state={bundle.status.state}"
-                )
+                hypotheses.append(f"Bundle {bundle.id[:8]} uncertain: state={bundle.status.state}")
         return hypotheses
 
-    def _intelligence_entropy_phase(
-        self, bundles: list[EvidenceBundle]
-    ) -> dict[str, Any]:
+    def _intelligence_entropy_phase(self, bundles: list[EvidenceBundle]) -> dict[str, Any]:
         """
         E2: Entropy - measure and metabolize uncertainty.
         """
@@ -242,16 +230,16 @@ class DossierEngine:
             insight = f"All {total} claims are supported with high confidence"
         elif contradicted > supported:
             eureka_level = "PARTIAL"
-            insight = (
-                f"Contradictions detected: {contradicted} of {total} claims contested"
-            )
+            insight = f"Contradictions detected: {contradicted} of {total} claims contested"
         elif entropy_data["score"] > 0.5:
             eureka_level = "PARTIAL"
             insight = f"High entropy ({entropy_data['level']}) prevents full synthesis"
         else:
             eureka_level = "FORGED"
             avg_conf = sum(v.confidence for v in verdicts) / total
-            insight = f"Synthesis complete: {supported}/{total} supported, confidence={avg_conf:.2f}"
+            insight = (
+                f"Synthesis complete: {supported}/{total} supported, confidence={avg_conf:.2f}"
+            )
 
         return {
             "level": eureka_level,
@@ -303,9 +291,7 @@ class DossierEngine:
 
         intelligence = IntelligenceState3E(
             exploration=(
-                "EXHAUSTED"
-                if len(bundles) > 3
-                else "SCOPED" if len(bundles) > 1 else "BROAD"
+                "EXHAUSTED" if len(bundles) > 3 else "SCOPED" if len(bundles) > 1 else "BROAD"
             ),
             entropy=entropy_data["level"],
             eureka=eureka_data["level"],

@@ -194,9 +194,7 @@ class RealityBridge:
                 "returncode": 1,
             }
         try:
-            result = subprocess.run(
-                command, shell=True, capture_output=True, text=True, timeout=30
-            )
+            result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=30)
             return {
                 "stdout": result.stdout,
                 "stderr": result.stderr,

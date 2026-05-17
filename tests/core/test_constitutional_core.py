@@ -62,9 +62,7 @@ class TestThreatEngine:
             ("", set()),
         ],
     )
-    def test_classify(
-        self, candidate: str, expected_threats: set[ThreatCategory]
-    ) -> None:
+    def test_classify(self, candidate: str, expected_threats: set[ThreatCategory]) -> None:
         ctx = ActionContext(tool_name="arif_judge_deliberate", candidate=candidate)
         assessment = ThreatEngine.classify(ctx)
         assert (

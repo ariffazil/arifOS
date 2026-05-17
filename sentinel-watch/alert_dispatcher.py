@@ -58,11 +58,7 @@ def format_hard_sla_alert(verdict_entry: dict, age_hours: float) -> str:
 
 def format_drift_alert(flags: list[str]) -> str:
     lines = "\n".join(f"  • {f}" for f in flags)
-    return (
-        f"🚨 SLA NORM DRIFT DETECTED\n"
-        f"{lines}\n"
-        f"Sovereign re-baselining required."
-    )
+    return f"🚨 SLA NORM DRIFT DETECTED\n" f"{lines}\n" f"Sovereign re-baselining required."
 
 
 def format_flood_attack_alert(density: float, soft_count: int, hard_count: int) -> str:
@@ -164,9 +160,7 @@ class AlertDispatcher:
         }
         self.queue.append(entry)
         if self.telegram_available:
-            entry["sent"] = self._send(
-                f"{ALERT_EMOJI.get(level, '⚠️')} {message}", level
-            )
+            entry["sent"] = self._send(f"{ALERT_EMOJI.get(level, '⚠️')} {message}", level)
         self.sent_log.append(entry)
 
     def alert_sla_expiry(self, entry: dict, age_hours: float) -> None:
@@ -183,9 +177,7 @@ class AlertDispatcher:
             {"type": "DRIFT", "flags": flags},
         )
 
-    def alert_flood_attack(
-        self, density: float, soft_count: int, hard_count: int
-    ) -> None:
+    def alert_flood_attack(self, density: float, soft_count: int, hard_count: int) -> None:
         self.alert(
             AlertLevel.EXISTENTIAL,
             format_flood_attack_alert(density, soft_count, hard_count),

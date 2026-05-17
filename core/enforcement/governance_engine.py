@@ -41,9 +41,7 @@ def _derive_apex_dials(tool_name: str, result: dict[str, Any]) -> dict[str, Any]
     }
 
 
-def _calculate_tri_witness_consensus(
-    tool_name: str, result: dict[str, Any]
-) -> dict[str, Any]:
+def _calculate_tri_witness_consensus(tool_name: str, result: dict[str, Any]) -> dict[str, Any]:
     _ = tool_name
     human = 1.0 if result.get("authority") or result.get("auth_context") else 0.8
     ai = max(0.0, min(1.0, _safe_float(result, "truth_score", default=0.88)))
@@ -115,40 +113,26 @@ def wrap_tool_output(
     if verdict == "888_HOLD":
         verdict = "HOLD"
 
-    status = (
-        "ERROR"
-        if verdict == "VOID"
-        else ("DRY_RUN" if payload.get("dry_run") else "SUCCESS")
-    )
+    status = "ERROR" if verdict == "VOID" else ("DRY_RUN" if payload.get("dry_run") else "SUCCESS")
     law_checks = _law13_checks(tool_name, payload)
     apex_dials = _derive_apex_dials(tool_name, payload)
     vitality = _derive_vitality_index(payload, law_checks, apex_dials)
     tri = _calculate_tri_witness_consensus(tool_name, payload)
     failed = [
-        name
-        for name, meta in law_checks.items()
-        if meta.get("required") and not meta.get("pass")
+        name for name, meta in law_checks.items() if meta.get("required") and not meta.get("pass")
     ]
 
     # Human Language Population (CHANGE-01)
     if verdict == "SEAL":
         human_language = "All floors passing. Safe for consequential action."
     elif verdict in ("HOLD", "SABAR"):
-        human_language = (
-            "Session alive. Identity incomplete. Inspect before proceeding."
-        )
+        human_language = "Session alive. Identity incomplete. Inspect before proceeding."
     elif verdict == "PARTIAL":
-        human_language = (
-            "Core governance alive. Trust posture degraded. Use for inspection only."
-        )
+        human_language = "Core governance alive. Trust posture degraded. Use for inspection only."
     elif verdict == "VOID":
-        human_language = (
-            "Hard floor violated. No consequential action permitted. Human required."
-        )
+        human_language = "Hard floor violated. No consequential action permitted. Human required."
     else:
-        human_language = (
-            f"Verdict: {verdict}. System state: {vitality.get('status', 'UNKNOWN')}"
-        )
+        human_language = f"Verdict: {verdict}. System state: {vitality.get('status', 'UNKNOWN')}"
 
     if failed:
         human_language += f" (Violations: {', '.join(failed)})"
@@ -173,11 +157,7 @@ def wrap_tool_output(
                 "remediation": remediation,
             }
         )
-    note = (
-        payload.get("message")
-        or payload.get("note")
-        or ("Compatibility wrapper output")
-    )
+    note = payload.get("message") or payload.get("note") or ("Compatibility wrapper output")
 
     return {
         "ok": verdict != "VOID",

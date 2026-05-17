@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import arifosmcp.runtime.capability_map as capability_map_module
+import arifosmcp.runtime.capabilities as capability_map_module
 
-from arifosmcp.runtime.capability_map import build_runtime_capability_map
+from arifosmcp.runtime.capabilities import build_runtime_capability_map
 
 
 def test_capability_map_reports_file_backed_governance_secret(monkeypatch, tmp_path):
@@ -27,9 +27,7 @@ def test_capability_map_enables_external_grounding_with_ddgs(monkeypatch):
     monkeypatch.delenv("PERPLEXITY_API_KEY", raising=False)
     monkeypatch.delenv("FIRECRAWL_API_KEY", raising=False)
     monkeypatch.delenv("BROWSERLESS_TOKEN", raising=False)
-    monkeypatch.setattr(
-        capability_map_module, "_module_available", lambda name: name == "ddgs"
-    )
+    monkeypatch.setattr(capability_map_module, "_module_available", lambda name: name == "ddgs")
 
     capability_map = build_runtime_capability_map()
 

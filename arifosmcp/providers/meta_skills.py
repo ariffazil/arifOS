@@ -143,9 +143,7 @@ class MetaSkillsProvider:
         """List all loaded meta-skills."""
         return list(self._loaded.keys())
 
-    def check_prerequisites(
-        self, skill_id: str, context: dict[str, Any]
-    ) -> dict[str, Any]:
+    def check_prerequisites(self, skill_id: str, context: dict[str, Any]) -> dict[str, Any]:
         """
         Check if prerequisites for a meta-skill are met.
 

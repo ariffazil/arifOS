@@ -20,7 +20,6 @@ FROM python:3.12-slim AS deps
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /install
@@ -32,10 +31,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install uv
+RUN --mount=type=cache,target=/root/.cache/pip pip install uv
 
 COPY arifosmcp/requirements.txt requirements.txt
-RUN uv pip install --system --no-cache -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip uv pip install --system -r requirements.txt
 RUN python -c "import numpy, scipy, sklearn, torch, transformers, sentence_transformers"
 
 
@@ -75,7 +74,7 @@ COPY core /app/core
 COPY pyproject.toml /app/
 
 # Install runtime-only deps not in requirements.txt
-RUN pip install blake3==1.0.8 "fastapi>=0.100.0" "langfuse>=2.0.0"
+RUN --mount=type=cache,target=/root/.cache/pip pip install blake3==1.0.8 "fastapi>=0.100.0" "langfuse>=2.0.0"
 
 # Non-root user
 RUN useradd -m -u 1000 arifos && chown -R arifos:arifos /app

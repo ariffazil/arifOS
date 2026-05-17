@@ -9,9 +9,7 @@ import os
 
 
 def stable_hash(value: Any) -> str:
-    return hashlib.sha256(
-        json.dumps(value, sort_keys=True, default=str).encode()
-    ).hexdigest()
+    return hashlib.sha256(json.dumps(value, sort_keys=True, default=str).encode()).hexdigest()
 
 
 def invariant_fields(
@@ -90,14 +88,8 @@ def resolve_tcp_endpoint(
     }
 
 
-def probe_tcp_endpoint(
-    endpoint: dict[str, Any], *, timeout: float = 2.0
-) -> dict[str, Any]:
-    if (
-        not endpoint.get("configured")
-        or not endpoint.get("host")
-        or not endpoint.get("port")
-    ):
+def probe_tcp_endpoint(endpoint: dict[str, Any], *, timeout: float = 2.0) -> dict[str, Any]:
+    if not endpoint.get("configured") or not endpoint.get("host") or not endpoint.get("port"):
         return {
             "configured": False,
             "reachable": None,

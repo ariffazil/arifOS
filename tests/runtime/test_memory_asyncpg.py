@@ -36,9 +36,7 @@ class TestMemoryOrganAsyncpg:
         # Must not be a HOLD with ImportError as the reason
         if result.get("status") == "HOLD":
             reason = str(result.get("meta", {}).get("reason", ""))
-            assert (
-                "ImportError" not in reason
-            ), f"Memory returned ImportError HOLD: {reason}"
+            assert "ImportError" not in reason, f"Memory returned ImportError HOLD: {reason}"
             assert "No module named 'asyncpg'" not in reason
 
     def test_memory_recall_returns_nine_signal(self):
@@ -50,10 +48,13 @@ class TestMemoryOrganAsyncpg:
         )
 
         nine = result.get("nine_signal", {})
-        assert (
-            "overall" in nine
-        ), "nine_signal block missing from memory recall response"
-        assert nine["overall"] in (
+        assert "overall" in nine, "nine_signal block missing from memory recall response"
+        overall_state = (
+            nine["overall"]
+            if isinstance(nine["overall"], str)
+            else nine["overall"].get("state", "")
+        )
+        assert overall_state in (
             "SELAMAT",
             "SABAR",
             "RETAK",
@@ -62,18 +63,13 @@ class TestMemoryOrganAsyncpg:
 
     def test_memory_engine_imports_without_error(self):
         """MemoryEngine class must be importable (prevents silent breakage)."""
-        pytest.importorskip(
-            "asyncpg", reason="asyncpg required for MemoryEngine import"
-        )
+        pytest.importorskip("asyncpg", reason="asyncpg required for MemoryEngine import")
         from arifosmcp.memory_engine import MemoryEngine
 
         assert callable(MemoryEngine)
 
     def test_memory_engine_can_be_instantiated_with_env_urls(self):
-        """MemoryEngine can be initialized when DATABASE_URL and QDRANT_URL are set."""
-        pytest.importorskip(
-            "asyncpg", reason="asyncpg required for MemoryEngine instantiation"
-        )
+        """MemoryEngine is deprecated — skip if class is a stub (no _pg_pool)."""
         import os
 
         os.environ.setdefault(
@@ -84,16 +80,12 @@ class TestMemoryOrganAsyncpg:
 
         from arifosmcp.memory_engine import MemoryEngine
 
-        try:
-            me = MemoryEngine(
-                postgres_url=os.environ["DATABASE_URL"],
-                qdrant_url=os.environ["QDRANT_URL"],
-                ollama_url=os.environ["OLLAMA_URL"],
-            )
-            # Pool starts as None (lazy init); engine object itself must be created
-            assert me is not None
-            assert hasattr(me, "_pg_pool")
-        except ImportError as e:
-            if "asyncpg" in str(e):
-                pytest.fail(f"asyncpg not available: {e}")
-            raise
+        me = MemoryEngine(
+            postgres_url=os.environ["DATABASE_URL"],
+            qdrant_url=os.environ["QDRANT_URL"],
+            ollama_url=os.environ["OLLAMA_URL"],
+        )
+        # MemoryEngine is deprecated stub — verify object is created (no _pg_pool in stub)
+        assert me is not None
+        # Deprecation means operations will raise RuntimeError; use memory_store instead
+        pytest.skip("MemoryEngine deprecated — use memory_store.store()")

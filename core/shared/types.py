@@ -102,9 +102,7 @@ class EnergyState(BaseModel):
 class MetabolismState(BaseModel):
     """M in EMD - Metabolism layer (Processing metrics)"""
 
-    delta_s: float = Field(
-        default=0.0, description="ΔS entropy change (semantic density ratio)"
-    )
+    delta_s: float = Field(default=0.0, description="ΔS entropy change (semantic density ratio)")
     peace2: float = Field(default=1.0, description="Peace² stability")
     kappa_r: float = Field(default=1.0, description="κᵣ empathy quotient")
     genius_index: float = Field(default=0.0, description="G Genius score")
@@ -113,9 +111,7 @@ class MetabolismState(BaseModel):
     )
     # APEX Theorem Extension
     G_star: float = Field(default=0.0, description="APEX Potential (G*)")
-    G_dagger: float = Field(
-        default=0.0, description="Governed Intelligence Realized (G†)"
-    )
+    G_dagger: float = Field(default=0.0, description="Governed Intelligence Realized (G†)")
     eta: float = Field(default=0.0, description="Intelligence Efficiency (η)")
 
 
@@ -335,9 +331,7 @@ class OracleAttestation(BaseModel):
     Not new LAW — formalisation of existing canonical requirement.
     """
 
-    oracle_type: OracleType = Field(
-        ..., description="Which witness type this attestation is from"
-    )
+    oracle_type: OracleType = Field(..., description="Which witness type this attestation is from")
     evidence_hash: str = Field(..., description="SHA-256 of what was attested")
     source_uri: str | None = Field(default=None, description="Declared source URI")
     attested_at: datetime = Field(
@@ -377,9 +371,7 @@ class ThoughtNode(BaseModel):
     thought_number: int = Field(ge=1)
     confidence: float = Field(ge=0.0, le=1.0, default=0.5)
     next_thought_needed: bool = True
-    stage: Literal[
-        "sense", "ground", "think", "reason", "sync", "forge", "judge", "seal"
-    ] = "think"
+    stage: Literal["sense", "ground", "think", "reason", "sync", "forge", "judge", "seal"] = "think"
     sources: list[str] = Field(default_factory=list)
     path_type: str | None = None
 
@@ -497,16 +489,12 @@ class ApexMetrics(BaseModel):
     """
 
     tri_witness: float = Field(ge=0.0, le=1.0, description="F3: W₃ ≥ 0.95")
-    quad_witness: float = Field(
-        ge=0.0, le=1.0, default=0.75, description="F3: W₄ ≥ 0.75"
-    )
+    quad_witness: float = Field(ge=0.0, le=1.0, default=0.75, description="F3: W₄ ≥ 0.75")
     genius_g: float = Field(ge=0.0, le=1.0, description="F8: G ≥ 0.80")
     ontology_valid: bool = Field(description="F10: Category lock")
     # APEX Theorem Extension
     G_star: float = Field(default=0.0, description="APEX Potential (G*)")
-    G_dagger: float = Field(
-        default=0.0, description="Governed Intelligence Realized (G†)"
-    )
+    G_dagger: float = Field(default=0.0, description="Governed Intelligence Realized (G†)")
     eta: float = Field(default=0.0, description="Intelligence Efficiency (η)")
 
 
@@ -528,11 +516,9 @@ class TemporalContract(BaseModel):
     recency_bias: float = Field(
         default=1.0, ge=0.0, le=1.0, description="Freshness weight [0=Stale, 1=Live]"
     )
-    valid_until: datetime | None = Field(
-        default=None, description="Expiry TTL for authority/cache"
-    )
+    valid_until: datetime | None = Field(default=None, description="Expiry TTL for authority/cache")
     cooldown_expiry: datetime | None = Field(
-        default=None, description="Verification window for PHOENIX-72"
+        default=None, description="SABAR cooldown verification window (default 72h)"
     )
 
 
@@ -614,14 +600,12 @@ class CodeState(BaseModel):
     """C in APEX-G: Runtime pipeline stage."""
 
     session_id: str = "unknown"
-    stage: Literal[
-        "000", "111", "222", "333", "444", "555", "666", "777", "888", "889", "999"
-    ] = "000"
+    stage: Literal["000", "111", "222", "333", "444", "555", "666", "777", "888", "889", "999"] = (
+        "000"
+    )
     lane: Literal["PHATIC", "SOFT", "HARD", "REFUSE", "UNKNOWN"] = "UNKNOWN"
     runtime_mode: Literal["init", "draft", "review", "judge", "seal"] = "init"
-    verdict: Literal[
-        "SEAL", "PROVISIONAL", "PARTIAL", "SABAR", "HOLD", "VOID", "UNSET"
-    ] = "UNSET"
+    verdict: Literal["SEAL", "PROVISIONAL", "PARTIAL", "SABAR", "HOLD", "VOID", "UNSET"] = "UNSET"
 
 
 class AuthorityLevel(str, Enum):
@@ -763,9 +747,7 @@ class CritiqueResult(BaseModel):
     thought_id: str
     severity: Literal["none", "low", "medium", "high"]
     findings: list[CritiqueFinding] = Field(default_factory=list)
-    suggested_action: Literal[
-        "accept_as_is", "minor_edit", "major_revision", "discard_and_restart"
-    ]
+    suggested_action: Literal["accept_as_is", "minor_edit", "major_revision", "discard_and_restart"]
 
 
 # ============================================================================
@@ -785,9 +767,7 @@ class EurekaProposal(BaseModel):
 class NextAction(BaseModel):
     """Safe follow-up action suggested by forge."""
 
-    action_type: Literal[
-        "run_eval", "update_schema_draft", "code_sandbox", "human_review", "none"
-    ]
+    action_type: Literal["run_eval", "update_schema_draft", "code_sandbox", "human_review", "none"]
     description: str
     requires_hold: bool = False
 
@@ -965,9 +945,9 @@ class VaultEntry(BaseModel):
 class VaultOutput(BaseOrganOutput):
     """Output from arifosmcp.core_memory (Memory Engine / Vector Memory / Sealing)."""
 
-    operation: Literal[
-        "store", "recall", "search", "forget", "write", "read", "query", "seal"
-    ] = "search"
+    operation: Literal["store", "recall", "search", "forget", "write", "read", "query", "seal"] = (
+        "search"
+    )
     result: VectorMemoryResult | None = None
 
     # Stage 999 output
@@ -1117,9 +1097,7 @@ class RepoEvidence(BaseModel):
     tree: str = Field(description="Directory structure representation")
     token_count: int = Field(description="F4: Calculated token usage")
     file_count: int = Field(description="Number of files ingested")
-    f12_risk_score: float = Field(
-        ge=0.0, le=1.0, description="F12: Injection risk score"
-    )
+    f12_risk_score: float = Field(ge=0.0, le=1.0, description="F12: Injection risk score")
     verdict: Verdict = Verdict.SEAL
     taint_lineage: dict[str, Any] = Field(default_factory=dict)
 

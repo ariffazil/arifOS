@@ -83,9 +83,7 @@ class FetchBridge:
         # 2. Pre-call Guard (F9: SSRF / Internal network protection)
         for pattern in FORBIDDEN_PATTERNS:
             if re.search(pattern, url, re.IGNORECASE):
-                logger.warning(
-                    f"F9 BLOCK: Potential internal/sensitive URL rejected: {url}"
-                )
+                logger.warning(f"F9 BLOCK: Potential internal/sensitive URL rejected: {url}")
                 return _RE(
                     ok=False,
                     verdict=Verdict.VOID,
@@ -124,9 +122,7 @@ class FetchBridge:
                     "is_prioritized": domain_match,
                     "source_rank": 2 if domain_match else 4,
                     "next_start_index": (
-                        start_index + len(content)
-                        if len(content) >= max_length
-                        else None
+                        start_index + len(content) if len(content) >= max_length else None
                     ),
                 },
             )

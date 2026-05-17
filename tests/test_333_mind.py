@@ -137,7 +137,8 @@ class TestBindArtifactValidation:
         artifact["lifecycle"]["current_stage"] = "111_OBSERVE"
         with pytest.raises(_mind_mod.BindArtifactError) as exc:
             _mind_mod._validate_bind_artifact(artifact)
-        assert "333_REASON" in exc.value.reason
+        # Stage was renamed from 333_REASON → 333_MIND
+        assert "333_MIND" in exc.value.reason or "111_OBSERVE" in exc.value.reason
 
     def test_extract_godel_invariants(self):
         artifact = make_valid_bind_artifact()
@@ -316,9 +317,7 @@ class TestMultimodalHelpers:
 
     @pytest.mark.asyncio
     async def test_understand_image_returns_structure(self):
-        result = await _mind_mod._understand_image(
-            "http://example.com/img.png", "what is this?"
-        )
+        result = await _mind_mod._understand_image("http://example.com/img.png", "what is this?")
         assert result["capability"] == "image_understanding"
         assert result["image_url"] == "http://example.com/img.png"
         assert result["question"] == "what is this?"

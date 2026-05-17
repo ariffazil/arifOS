@@ -35,7 +35,7 @@ async def code_engine(
     raw_input: str | None = None,
     ctx: Any | None = None,
 ) -> RuntimeEnvelope:
-    from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+    from arifosmcp.runtime.dispatcher import HARDENED_DISPATCH_MAP
 
     payload = dict(payload or {})
     if raw_input:
@@ -62,9 +62,7 @@ async def code_engine(
         if isinstance(res, dict):
             ok = res.get("ok", res.get("status") not in ("HOLD", "ERROR", "VOID", None))
             _next_tools = res.get("next_allowed_tools", [])
-            _payload = (
-                res.get("payload", res) if isinstance(res.get("payload"), dict) else res
-            )
+            _payload = res.get("payload", res) if isinstance(res.get("payload"), dict) else res
             _hold_reason = res.get("warnings", [""])[0] if res.get("warnings") else ""
             _next_action = None
             if not ok and _hold_reason:

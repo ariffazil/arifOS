@@ -132,9 +132,7 @@ class JuniorLoopImpact:
     junior_task_share_removed: float  # 0-1
     synthetic_training_available: bool
     human_skill_reproduction_risk: float  # 0-1
-    projected_senior_capacity_5y: (
-        float  # estimated senior verifiers in 5 years, relative to now
-    )
+    projected_senior_capacity_5y: float  # estimated senior verifiers in 5 years, relative to now
     status: str  # "SAFE" | "DEGRADING" | "CRITICAL"
 
     def to_dict(self) -> dict[str, Any]:
@@ -142,9 +140,7 @@ class JuniorLoopImpact:
             "domain": self.domain,
             "junior_task_share_removed": round(self.junior_task_share_removed, 4),
             "synthetic_training_available": self.synthetic_training_available,
-            "human_skill_reproduction_risk": round(
-                self.human_skill_reproduction_risk, 4
-            ),
+            "human_skill_reproduction_risk": round(self.human_skill_reproduction_risk, 4),
             "projected_senior_capacity_5y": round(self.projected_senior_capacity_5y, 4),
             "status": self.status,
         }
@@ -297,15 +293,11 @@ def wealth_measure_delta_m(
     # Notes
     notes = []
     if band in ("HIGH", "EXTREME"):
-        notes.append(
-            f"Δm={delta_m:.2f} exceeds safe threshold — human oversight required"
-        )
+        notes.append(f"Δm={delta_m:.2f} exceeds safe threshold — human oversight required")
     if svs < 0.4:
         notes.append(f"svs={svs:.2f} — less than 40% of execution is safely verifiable")
     if delta_m > executable_scope * 0.8:
-        notes.append(
-            "delta_m approaching executable_scope ceiling — structural limit reached"
-        )
+        notes.append("delta_m approaching executable_scope ceiling — structural limit reached")
 
     return AuditEntropyResult(
         executable_scope=executable_scope,
@@ -373,9 +365,7 @@ def wealth_track_codifier_curse(
     The expert who does their job well works themselves out of a job.
     Mitigation options: partial_redaction, airgapped_review, premium_liability_pricing.
     """
-    decay_risk = min(
-        1.0, captured_reasoning_depth * downstream_model_training_probability
-    )
+    decay_risk = min(1.0, captured_reasoning_depth * downstream_model_training_probability)
     mitigation: list[str] = []
     if captured_reasoning_depth > 0.5:
         mitigation.append("partial_redaction")

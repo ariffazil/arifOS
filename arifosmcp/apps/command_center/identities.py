@@ -71,15 +71,11 @@ def validate_sovereign_proof(actor_id: str, proof: dict | str | Any | None) -> b
     if isinstance(proof, str):
         semantic_candidate = proof
     elif isinstance(proof, dict):
-        semantic_candidate = (
-            proof.get("semantic_key") or proof.get("key") or proof.get("proof")
-        )
+        semantic_candidate = proof.get("semantic_key") or proof.get("key") or proof.get("proof")
 
     if semantic_candidate and actor_id_clean in SEMANTIC_KEYS:
         if isinstance(semantic_candidate, str):
-            candidate_hash = hashlib.sha256(
-                semantic_candidate.strip().upper().encode()
-            ).hexdigest()
+            candidate_hash = hashlib.sha256(semantic_candidate.strip().upper().encode()).hexdigest()
             if candidate_hash == SEMANTIC_KEYS[actor_id_clean]:
                 return True
 

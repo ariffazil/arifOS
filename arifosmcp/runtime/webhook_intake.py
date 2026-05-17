@@ -27,9 +27,8 @@ from pathlib import Path
 from threading import RLock
 from typing import Any
 
-from core.enforcement.auth_continuity import verify_auth_context_with_revocation
-
 from arifosmcp.runtime.integrity import REQUIRED_POLICY_VERSION
+from core.enforcement.auth_continuity import verify_auth_context_with_revocation
 
 logger = logging.getLogger(__name__)
 
@@ -97,9 +96,7 @@ def _get_policy_version() -> str:
 
 
 def _canonical_payload_hash(payload: dict[str, Any]) -> str:
-    governed_payload = {
-        key: value for key, value in payload.items() if key != "approval_artifact"
-    }
+    governed_payload = {key: value for key, value in payload.items() if key != "approval_artifact"}
     canonical = json.dumps(
         governed_payload, ensure_ascii=True, sort_keys=True, separators=(",", ":")
     )
@@ -518,9 +515,7 @@ def adjudicate_event(
     # ── Verdict derivation ─────────────────────────────────────────────
     # Webhooks NEVER auto-SEAL. Maximum is QUALIFY.
     if issues:
-        verdict = (
-            "VOID" if any(i.startswith(("F11", "F12")) for i in issues) else "888-HOLD"
-        )
+        verdict = "VOID" if any(i.startswith(("F11", "F12")) for i in issues) else "888-HOLD"
     else:
         verdict = "QUALIFY"
 
@@ -581,9 +576,7 @@ def _sanitize_actor(raw: Any) -> str:
     return cleaned or "unknown"
 
 
-def _classify_reversibility(
-    source: str, event_type: str, payload: dict[str, Any]
-) -> str:
+def _classify_reversibility(source: str, event_type: str, payload: dict[str, Any]) -> str:
     """Classify whether a webhook-triggered action is reversible."""
     irreversible_events = {
         ("github", "push"),
@@ -702,9 +695,9 @@ def append_vault_record(record: dict[str, Any]) -> dict[str, Any]:
                     # Corrupt ledger tail — reset chain to GENESIS rather than fail
                     prev_hash = "GENESIS"
 
-        chain_hash = hashlib.sha256(
-            f"{record['payload_hash']}:{prev_hash}".encode()
-        ).hexdigest()[:16]
+        chain_hash = hashlib.sha256(f"{record['payload_hash']}:{prev_hash}".encode()).hexdigest()[
+            :16
+        ]
         persisted = {
             **record,
             "entry_id": f"VAULT-{uuid.uuid4().hex[:12]}",
@@ -867,9 +860,7 @@ def process_webhook(
 
     payload_hash = _canonical_payload_hash(payload)
     approval_artifact, approval_parse_issues = _extract_approval_artifact(headers, payload)
-    approval_required = (
-        _classify_reversibility(source, event_type, payload) == "IRREVERSIBLE"
-    )
+    approval_required = _classify_reversibility(source, event_type, payload) == "IRREVERSIBLE"
     requested_action = f"{source}:{payload.get('intent', event_type)}"
     _, approval_summary, approval_issues = verify_approval_artifact(
         approval_artifact,

@@ -152,13 +152,9 @@ def validate_interpretation_safety(
         "meaning": str(interpretation["meaning"]),
         "interpretation": str(interpretation["interpretation"]),
         "arifos_alignment": {
-            "physics": str(
-                interpretation.get("arifos_alignment", {}).get("physics", "")
-            ),
+            "physics": str(interpretation.get("arifos_alignment", {}).get("physics", "")),
             "math": str(interpretation.get("arifos_alignment", {}).get("math", "")),
-            "linguistic": str(
-                interpretation.get("arifos_alignment", {}).get("linguistic", "")
-            ),
+            "linguistic": str(interpretation.get("arifos_alignment", {}).get("linguistic", "")),
         },
         "decision_boundary": str(interpretation["decision_boundary"]),
         "human_decision_required": human_required,

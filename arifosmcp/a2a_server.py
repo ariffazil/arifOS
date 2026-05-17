@@ -23,14 +23,13 @@ import uuid
 from collections.abc import AsyncGenerator
 from typing import Any
 
-from aiohttp import web
-
 from a2a_aligned import (
     AGENT_CARDS,
     ORTHOGONALITY_ROUTING,
     A2AMessage,
     can_route,
 )
+from aiohttp import web
 
 # =============================================================================
 # AGENT IMPLEMENTATIONS
@@ -77,9 +76,7 @@ class PerceptionAgent(Agent):
 
         return {"agent": "P", "error": "unknown command", "content": content}
 
-    async def _read(
-        self, source: str, action: str, session_id: str | None
-    ) -> dict[str, Any]:
+    async def _read(self, source: str, action: str, session_id: str | None) -> dict[str, Any]:
         if source not in self.sources:
             return {"agent": "P", "error": f"unknown source: {source}"}
         return {
@@ -137,18 +134,14 @@ class ValuationAgent(Agent):
 
         return {"agent": "V", "error": "unknown command", "content": content}
 
-    async def _rank(
-        self, ranking: str, candidates: list, session_id: str | None
-    ) -> dict[str, Any]:
+    async def _rank(self, ranking: str, candidates: list, session_id: str | None) -> dict[str, Any]:
         valid = ["NPV", "EMV", "allocation", "personal"]
         if ranking not in valid:
             return {"agent": "V", "error": f"unknown ranking: {ranking}"}
         return {
             "agent": "V",
             "ranking": ranking,
-            "rankings": [
-                {"id": c.get("id", i), "score": 0.0} for i, c in enumerate(candidates)
-            ],
+            "rankings": [{"id": c.get("id", i), "score": 0.0} for i, c in enumerate(candidates)],
             "session_id": session_id,
         }
 
@@ -182,9 +175,7 @@ class GovernanceAgent(Agent):
 
         return {"agent": "G", "error": "unknown command", "content": content}
 
-    async def _route(
-        self, target: str, payload: dict, session_id: str | None
-    ) -> dict[str, Any]:
+    async def _route(self, target: str, payload: dict, session_id: str | None) -> dict[str, Any]:
         result = await self.router.route(self.agent_id, target, payload, session_id)
         return {"agent": "G", "routing": result}
 

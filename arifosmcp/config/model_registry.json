@@ -1,0 +1,81 @@
+{
+  "comment": "arifOS Model Registry — canonical source of truth for model identity, capabilities, and risk bounds.",
+  "version": "2026.05.14-v1",
+  "models": [
+    {
+      "model_key": "deepseek/deepseek-chat",
+      "provider": "deepseek",
+      "family": "deepseek-chat",
+      "capabilities": ["reason", "draft", "code", "analyze", "search"],
+      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "constitutional_amendment"],
+      "risk_tier": "bounded",
+      "identity_verified": false,
+      "requires_human_ack_for": ["irreversible_delete", "git_push", "external_relay", "vault_seal"]
+    },
+    {
+      "model_key": "sea-lion",
+      "provider": "aisingapore",
+      "family": "sea-lion",
+      "capabilities": ["reason", "draft", "analyze"],
+      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "code_mutation_without_review"],
+      "risk_tier": "bounded",
+      "identity_verified": true,
+      "requires_human_ack_for": ["irreversible_delete", "vault_seal"]
+    },
+    {
+      "model_key": "kimi",
+      "provider": "moonshot",
+      "family": "kimi",
+      "capabilities": ["reason", "code", "analyze", "search"],
+      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "risk_tier": "bounded",
+      "identity_verified": false,
+      "requires_human_ack_for": ["irreversible_delete", "vault_seal"]
+    },
+    {
+      "model_key": "minimax-m2.7",
+      "provider": "minimax",
+      "family": "minimax",
+      "capabilities": ["reason", "draft", "analyze"],
+      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "risk_tier": "bounded",
+      "identity_verified": false,
+      "requires_human_ack_for": ["irreversible_delete", "vault_seal"]
+    },
+    {
+      "model_key": "openrouter/fallback",
+      "provider": "openrouter",
+      "family": "openrouter",
+      "capabilities": ["reason", "analyze"],
+      "forbidden": ["code_mutation", "self_authorize", "seal_without_judge", "irreversible_commit"],
+      "risk_tier": "guarded",
+      "identity_verified": false,
+      "requires_human_ack_for": ["irreversible_delete", "vault_seal", "git_push", "external_relay"]
+    },
+    {
+      "model_key": "ollama/qwen2.5",
+      "provider": "ollama",
+      "family": "qwen2.5",
+      "capabilities": ["reason", "analyze", "summarize"],
+      "forbidden": ["code_mutation", "self_authorize", "seal_without_judge", "irreversible_commit", "external_relay"],
+      "risk_tier": "constrained",
+      "identity_verified": false,
+      "requires_human_ack_for": ["all_irreversible"]
+    },
+    {
+      "model_key": "hermes/asi",
+      "provider": "hermes",
+      "family": "hermes-asi",
+      "capabilities": ["reason", "draft", "analyze", "relay"],
+      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "constitutional_amendment"],
+      "risk_tier": "bounded",
+      "identity_verified": true,
+      "requires_human_ack_for": ["irreversible_delete", "vault_seal", "git_push"]
+    }
+  ],
+  "default_for_unlisted": {
+    "risk_tier": "guarded",
+    "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+    "requires_human_ack_for": ["all_irreversible"]
+  }
+}

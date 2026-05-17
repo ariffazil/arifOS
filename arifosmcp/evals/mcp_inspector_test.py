@@ -195,9 +195,7 @@ class MCPInspectorRunner:
         await self._run_test(name, "health_check", self._test_health, config["url"])
 
         # Test 2: Tool discovery
-        await self._run_test(
-            name, "tool_discovery", self._test_tool_discovery, config["url"]
-        )
+        await self._run_test(name, "tool_discovery", self._test_tool_discovery, config["url"])
 
         # Test 3: Tool execution (happy path)
         if config["tools"]:
@@ -291,11 +289,7 @@ class MCPInspectorRunner:
                         response = await client.get(f"{url}{endpoint}")
                         if response.status_code == 200:
                             data = response.json()
-                            tools = (
-                                data.get("tools", [])
-                                if isinstance(data, dict)
-                                else data
-                            )
+                            tools = data.get("tools", []) if isinstance(data, dict) else data
                             return (
                                 True,
                                 f"{len(tools)} tools found",
@@ -313,9 +307,7 @@ class MCPInspectorRunner:
         except Exception as e:
             return False, str(e), {"error": str(e)}
 
-    async def _test_tool_execution(
-        self, url: str, tool_name: str
-    ) -> tuple[bool, str, dict]:
+    async def _test_tool_execution(self, url: str, tool_name: str) -> tuple[bool, str, dict]:
         """Test tool execution"""
         try:
             import httpx
@@ -468,9 +460,7 @@ async def main():
         choices=["http", "stdio"],
         help="Transport mode",
     )
-    parser.add_argument(
-        "--output", "-o", default="mcp_inspector_report.json", help="Output file"
-    )
+    parser.add_argument("--output", "-o", default="mcp_inspector_report.json", help="Output file")
     parser.add_argument(
         "--inspector", "-i", action="store_true", help="Output for MCP Inspector CLI"
     )

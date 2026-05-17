@@ -1,5 +1,5 @@
 # MCP Endpoint Registry — Source of Truth
-# Updated: 2026-05-04
+# Updated: 2026-05-16
 # Author: ASI
 
 ## Purpose

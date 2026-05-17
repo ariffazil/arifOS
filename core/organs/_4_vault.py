@@ -118,9 +118,7 @@ def verify_vault_ledger(path: Path) -> tuple[bool, str | None]:
                     continue
 
                 if "chain" not in payload:
-                    logger.warning(
-                        "Line %s: Skipping legacy record (no chain)", line_no
-                    )
+                    logger.warning("Line %s: Skipping legacy record (no chain)", line_no)
                     continue
 
                 ok, reason = verify_vault_record(payload)
@@ -201,9 +199,7 @@ async def get_last_seal_root() -> str:
         import asyncpg
 
         conn = await asyncpg.connect(_pg_url)
-        root = await conn.fetchval(
-            "SELECT merkle_root FROM vault_seals ORDER BY id DESC LIMIT 1"
-        )
+        root = await conn.fetchval("SELECT merkle_root FROM vault_seals ORDER BY id DESC LIMIT 1")
         await conn.close()
         return root or _CHAIN_SEED
     except Exception:
@@ -315,9 +311,7 @@ async def seal(
                 "sealed": True,
             }
         if action == "retrieve":
-            match = next(
-                (item for item in bucket if item["commit_id"] == commit_id), None
-            )
+            match = next((item for item in bucket if item["commit_id"] == commit_id), None)
             return {
                 "session_id": session_id,
                 "found": match is not None,
@@ -337,9 +331,7 @@ async def seal(
                 ],
             }
         if action == "verify":
-            match = next(
-                (item for item in bucket if item["commit_id"] == commit_id), None
-            )
+            match = next((item for item in bucket if item["commit_id"] == commit_id), None)
             return {
                 "session_id": session_id,
                 "commit_id": commit_id,
@@ -351,9 +343,7 @@ async def seal(
 
     if summary is None:
         summary = (
-            json.dumps(payload, sort_keys=True, ensure_ascii=False)
-            if payload is not None
-            else ""
+            json.dumps(payload, sort_keys=True, ensure_ascii=False) if payload is not None else ""
         )
 
     # C2 — hard-fail guard for VAULT_POSTGRES_REQUIRED
@@ -489,9 +479,7 @@ async def seal(
                         floor_code=ConstitutionalFaultCode.F1_AMANAH_BREACH,
                     )
 
-                entry_chain_hash = hashlib.sha256(
-                    (prev_hash + entry_hash).encode()
-                ).hexdigest()
+                entry_chain_hash = hashlib.sha256((prev_hash + entry_hash).encode()).hexdigest()
                 chain = HashChain(
                     payload_hash=entry_hash,
                     entry_hash=entry_chain_hash,
@@ -512,9 +500,7 @@ async def seal(
                 )
         else:
             prev_hash = get_last_vault_entry_hash(DEFAULT_VAULT_PATH)
-            entry_chain_hash = hashlib.sha256(
-                (prev_hash + entry_hash).encode()
-            ).hexdigest()
+            entry_chain_hash = hashlib.sha256((prev_hash + entry_hash).encode()).hexdigest()
             chain = HashChain(
                 payload_hash=entry_hash,
                 entry_hash=entry_chain_hash,
@@ -549,9 +535,7 @@ async def seal(
             reversible=seal_mode != "final",
         )
     except Exception as _oe:
-        logger.warning(
-            "OutcomeLedger hook failed (Layer 6 reality feedback degraded): %s", _oe
-        )
+        logger.warning("OutcomeLedger hook failed (Layer 6 reality feedback degraded): %s", _oe)
 
     # 7b. Postgres Audit Write-Through (999 SQL Schema)
     # C2: VAULT_POSTGRES_REQUIRED guard already ran at function entry.
@@ -567,7 +551,8 @@ async def seal(
                 conn = await asyncpg.connect(_pg_url)
                 try:
                     # 1. Ensure 999 Schema exists
-                    await conn.execute("""
+                    await conn.execute(
+                        """
                         CREATE TABLE IF NOT EXISTS vault_events (
                             id SERIAL PRIMARY KEY,
                             event_id UUID NOT NULL,
@@ -600,7 +585,8 @@ async def seal(
                         CREATE INDEX IF NOT EXISTS idx_vault_events_session ON vault_events(session_id);
                         CREATE INDEX IF NOT EXISTS idx_vault_events_stage_verdict ON vault_events(stage, verdict);
                         CREATE INDEX IF NOT EXISTS idx_vault_events_sealed_at ON vault_events(sealed_at DESC);
-                        """)
+                        """
+                    )
 
                     # 2. Insert into vault_events
                     new_event_id = uuid.uuid4()
@@ -642,9 +628,7 @@ async def seal(
                     # 3. Check if batch seal (vault_seals) is warranted
                     # Constitutional Trigger: Every 5 events or Phoenix-72 cycle
                     # (Reduced from 72 to 5 for bootstrap phase)
-                    event_count = await conn.fetchval(
-                        "SELECT count(*) FROM vault_events"
-                    )
+                    event_count = await conn.fetchval("SELECT count(*) FROM vault_events")
                     if event_count >= 5:
                         # Only seal if there are unsealed events
                         last_seal = await conn.fetchrow(
@@ -662,15 +646,11 @@ async def seal(
                             )
                             # Filter out empty leaves (from manual/failed entries)
                             valid_hashes = [
-                                r["merkle_leaf"]
-                                for r in batch_hashes
-                                if r["merkle_leaf"]
+                                r["merkle_leaf"] for r in batch_hashes if r["merkle_leaf"]
                             ]
                             if valid_hashes:
                                 combined = "".join(valid_hashes)
-                                merkle_root = hashlib.sha256(
-                                    combined.encode()
-                                ).hexdigest()
+                                merkle_root = hashlib.sha256(combined.encode()).hexdigest()
 
                                 await conn.execute(
                                     """
@@ -682,11 +662,7 @@ async def seal(
                                     """,
                                     len(valid_hashes),
                                     merkle_root,
-                                    (
-                                        last_seal["merkle_root"]
-                                        if last_seal
-                                        else _CHAIN_SEED
-                                    ),
+                                    (last_seal["merkle_root"] if last_seal else _CHAIN_SEED),
                                     first_id,
                                     last_id,
                                     signature,  # Batch signature
@@ -721,9 +697,7 @@ async def seal(
         human_witness=1.0,
         ai_witness=1.0,
         earth_witness=1.0,
-        evidence={
-            "grounding": f"v1 Tamper-Evident Chain Seal: {entry_chain_hash[:16]}..."
-        },
+        evidence={"grounding": f"v1 Tamper-Evident Chain Seal: {entry_chain_hash[:16]}..."},
     )
 
 

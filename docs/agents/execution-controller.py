@@ -437,9 +437,7 @@ class ExecutionController:
             files_deleted=[],
             verdict=Verdict.SEAL if ok else Verdict.VOID,
             floors_triggered=[],
-            human_approval=(
-                "REQUIRED" if context.get("requires_approval") else "NOT_REQUIRED"
-            ),
+            human_approval=("REQUIRED" if context.get("requires_approval") else "NOT_REQUIRED"),
         )
 
         # Compute hash

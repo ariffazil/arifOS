@@ -1,4 +1,0 @@
-networks:
-  arifos_core_network:
-    name: arifos_core_network
-    external: true

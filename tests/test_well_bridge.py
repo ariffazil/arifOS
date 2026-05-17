@@ -25,9 +25,7 @@ from arifosmcp.runtime.well_bridge import (
 def _mock_well_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Redirect WELL_STATE_PATH to a temp file for every test."""
     mock_path = tmp_path / "well_state.json"
-    monkeypatch.setattr(
-        "arifosmcp.runtime.well_bridge.WELL_STATE_PATH", mock_path
-    )
+    monkeypatch.setattr("arifosmcp.runtime.well_bridge.WELL_STATE_PATH", mock_path)
     return mock_path
 
 
@@ -64,9 +62,7 @@ class TestGetBiologicalReadiness:
         assert readiness["sabar_advisory"] is True
 
     def test_degraded_state_with_violations(self, _mock_well_path: Path) -> None:
-        _write_state(
-            _mock_well_path, well_score=90, floors_violated=["W6_METABOLIC_PAUSE"]
-        )
+        _write_state(_mock_well_path, well_score=90, floors_violated=["W6_METABOLIC_PAUSE"])
         readiness = get_biological_readiness()
         assert readiness["verdict"] == "DEGRADED"
         assert readiness["bandwidth"] == "RESTRICTED"
@@ -93,18 +89,14 @@ class TestInjectBiologicalContext:
         assert injected["telemetry"]["well_bandwidth"] == "NORMAL"
 
     def test_degraded_downgrades_seal_to_hold(self, _mock_well_path: Path) -> None:
-        _write_state(
-            _mock_well_path, well_score=90, floors_violated=["W6_METABOLIC_PAUSE"]
-        )
+        _write_state(_mock_well_path, well_score=90, floors_violated=["W6_METABOLIC_PAUSE"])
         state: dict[str, Any] = {"verdict": "SEAL", "telemetry": {}, "message": ""}
         injected = inject_biological_context(state)
         assert injected["verdict"] == "HOLD"
         assert "[WELL-HOLD]" in injected["message"]
 
     def test_does_not_downgrade_non_seal(self, _mock_well_path: Path) -> None:
-        _write_state(
-            _mock_well_path, well_score=90, floors_violated=["W6_METABOLIC_PAUSE"]
-        )
+        _write_state(_mock_well_path, well_score=90, floors_violated=["W6_METABOLIC_PAUSE"])
         state: dict[str, Any] = {"verdict": "HOLD", "telemetry": {}, "message": ""}
         injected = inject_biological_context(state)
         assert injected["verdict"] == "HOLD"
@@ -124,14 +116,22 @@ class TestInjectBiologicalContext:
 
 class TestSignalCognitivePressure:
     def test_updates_fatigue(self, _mock_well_path: Path) -> None:
-        _write_state(_mock_well_path, well_score=80, metrics={"cognitive": {"clarity": 10, "decision_fatigue": 2}})
+        _write_state(
+            _mock_well_path,
+            well_score=80,
+            metrics={"cognitive": {"clarity": 10, "decision_fatigue": 2}},
+        )
         ok = signal_cognitive_pressure(load_delta=1.5, source="forge")
         assert ok is True
         state = _read_state(_mock_well_path)
         assert state["metrics"]["cognitive"]["decision_fatigue"] == 3.5
 
     def test_caps_fatigue_at_10(self, _mock_well_path: Path) -> None:
-        _write_state(_mock_well_path, well_score=80, metrics={"cognitive": {"clarity": 10, "decision_fatigue": 9}})
+        _write_state(
+            _mock_well_path,
+            well_score=80,
+            metrics={"cognitive": {"clarity": 10, "decision_fatigue": 9}},
+        )
         ok = signal_cognitive_pressure(load_delta=5.0, source="forge")
         assert ok is True
         state = _read_state(_mock_well_path)
@@ -144,11 +144,11 @@ class TestSignalCognitivePressure:
         state = _read_state(_mock_well_path)
         assert "W6_METABOLIC_PAUSE" in state["floors_violated"]
 
-    def test_returns_false_when_state_missing(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_returns_false_when_state_missing(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         missing_path = tmp_path / "no_well_here.json"
-        monkeypatch.setattr(
-            "arifosmcp.runtime.well_bridge.WELL_STATE_PATH", missing_path
-        )
+        monkeypatch.setattr("arifosmcp.runtime.well_bridge.WELL_STATE_PATH", missing_path)
         ok = signal_cognitive_pressure(load_delta=1.0)
         assert ok is False
 
@@ -159,7 +159,12 @@ class TestSignalCognitivePressure:
         assert state["well_score"] == 56
 
 
-def _write_state(path: Path, well_score: float = 50, floors_violated: list[str] | None = None, metrics: dict[str, Any] | None = None) -> None:
+def _write_state(
+    path: Path,
+    well_score: float = 50,
+    floors_violated: list[str] | None = None,
+    metrics: dict[str, Any] | None = None,
+) -> None:
     state: dict[str, Any] = {
         "well_score": well_score,
         "floors_violated": floors_violated or [],

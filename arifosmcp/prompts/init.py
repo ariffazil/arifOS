@@ -41,7 +41,7 @@ def register_init_prompt(mcp: FastMCP) -> list[str]:
     """Register the 000_INIT session anchor prompt."""
 
     @mcp.prompt(
-        name="init",
+        name="arif_init",
         description=(
             "000_INIT session anchor context. "
             "AGI-tactical lane prompt for constitutional session bootstrap. "

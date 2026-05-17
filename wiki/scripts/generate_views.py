@@ -151,9 +151,7 @@ def generate_start_here(pages: list[dict]) -> str:
 
         # New tier header
         if tier != current_tier:
-            tier_name = (
-                tier.replace("_", " ").title() if tier != "00_INDEX" else "Orientation"
-            )
+            tier_name = tier.replace("_", " ").title() if tier != "00_INDEX" else "Orientation"
             lines.append(f"## Phase {page_num}: {tier_name}")
             lines.append("")
             current_tier = tier
@@ -166,12 +164,8 @@ def generate_start_here(pages: list[dict]) -> str:
             else "10 min" if difficulty == "intermediate" else "15 min"
         )
 
-        lines.append(
-            f"{page_num}. **[[{page['filename']}|{page['title']}]]** — {reading_time}"
-        )
-        lines.append(
-            f"   - *{page.get('strand', ['unknown'])[0]}* — {get_description(page)}"
-        )
+        lines.append(f"{page_num}. **[[{page['filename']}|{page['title']}]]** — {reading_time}")
+        lines.append(f"   - *{page.get('strand', ['unknown'])[0]}* — {get_description(page)}")
         lines.append("")
         page_num += 1
 
@@ -186,9 +180,7 @@ def generate_start_here(pages: list[dict]) -> str:
     lines.append("→ [[MCP_Tools]] → [[Integration_Patterns]] → [[Agent_Roles]]")
     lines.append("")
     lines.append("### ⚖️ Governance (strand: constitutional)")
-    lines.append(
-        "→ [[Philosophy_Registry]] → [[Floor_Tensions]] → [[Governance_Enforcer]]"
-    )
+    lines.append("→ [[Philosophy_Registry]] → [[Floor_Tensions]] → [[Governance_Enforcer]]")
     lines.append("")
     lines.append("### 🚀 Future (strand: roadmap)")
     lines.append("→ [[Horizon_2_Swarm]] → [[Horizon_3_Universal_Body]]")
@@ -262,9 +254,7 @@ def generate_tier_view(pages: list[dict], tier: str) -> str:
         strand = ", ".join(page.get("strand", ["-"]))
         difficulty = page.get("difficulty", "-")
         prereqs = ", ".join(page.get("prerequisites", ["-"]))
-        lines.append(
-            f"| [[{page['filename']}|{title}]] | {strand} | {difficulty} | {prereqs} |"
-        )
+        lines.append(f"| [[{page['filename']}|{title}]] | {strand} | {difficulty} | {prereqs} |")
 
     lines.append("")
     lines.append("## Description")
@@ -281,9 +271,7 @@ def generate_strand_view(pages: list[dict], strand: str) -> str:
 
     # Sort by tier, then by title
     tier_rank = {t: i for i, t in enumerate(TIER_ORDER)}
-    strand_pages.sort(
-        key=lambda p: (tier_rank.get(p.get("tier", ""), 999), p.get("title", ""))
-    )
+    strand_pages.sort(key=lambda p: (tier_rank.get(p.get("tier", ""), 999), p.get("title", "")))
 
     lines = [
         "---",
@@ -332,9 +320,7 @@ def generate_audience_view(pages: list[dict], audience: str) -> str:
         audience_pages = pages  # All pages
     else:
         audience_pages = [
-            p
-            for p in pages
-            if audience in p.get("audience", []) or "all" in p.get("audience", [])
+            p for p in pages if audience in p.get("audience", []) or "all" in p.get("audience", [])
         ]
 
     # Sort by tier, then by difficulty
@@ -379,9 +365,7 @@ def generate_audience_view(pages: list[dict], audience: str) -> str:
         tier = page.get("tier", "-").replace("_", " ")
         difficulty = page.get("difficulty", "-")
         strand = ", ".join(page.get("strand", ["-"]))
-        lines.append(
-            f"| [[{page['filename']}|{title}]] | {tier} | {difficulty} | {strand} |"
-        )
+        lines.append(f"| [[{page['filename']}|{title}]] | {tier} | {difficulty} | {strand} |")
 
     lines.append("")
 
@@ -391,9 +375,7 @@ def generate_audience_view(pages: list[dict], audience: str) -> str:
 def generate_gaps_view(pages: list[dict]) -> str:
     """Generate view showing orphans and gaps."""
     # Find orphans (no depended_by)
-    orphans = [
-        p for p in pages if not p.get("depended_by") and p.get("tier") != "90_ENTITIES"
-    ]
+    orphans = [p for p in pages if not p.get("depended_by") and p.get("tier") != "90_ENTITIES"]
 
     # Find missing prerequisites
     all_filenames = {p["filename"] for p in pages}
@@ -425,9 +407,7 @@ def generate_gaps_view(pages: list[dict]) -> str:
 
     if orphans:
         for page in orphans:
-            lines.append(
-                f"- [[{page['filename']}|{page['title']}]] ({page.get('tier', '-')})"
-            )
+            lines.append(f"- [[{page['filename']}|{page['title']}]] ({page.get('tier', '-')})")
     else:
         lines.append("*No orphans found.*")
 

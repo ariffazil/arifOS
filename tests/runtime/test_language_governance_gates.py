@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from arifosmcp.runtime.authority_gate import enforce_authority_boundary
 from arifosmcp.runtime.evidence_guard import enforce_evidence_guard
-from arifosmcp.runtime.irreversibility_guard import enforce_irreversibility
+from arifosmcp.runtime.guard import enforce_irreversibility
 from arifosmcp.runtime.trace_enforcer import enforce_trace
 from arifosmcp.runtime.uncertainty_gate import enforce_uncertainty_gate
 

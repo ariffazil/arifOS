@@ -118,9 +118,7 @@ def calculate_uncertainty(
         )
         consistency = max(
             0.0,
-            min(
-                1.0, reasoning_consistency if reasoning_consistency is not None else 0.5
-            ),
+            min(1.0, reasoning_consistency if reasoning_consistency is not None else 0.5),
         )
         gaps = len(knowledge_gaps or [])
         logits = max(

@@ -63,9 +63,7 @@ async def events_stream(request: Request) -> StreamingResponse:
 
             while True:
                 try:
-                    event = await asyncio.wait_for(
-                        queue.get(), timeout=_SSE_HEARTBEAT_INTERVAL
-                    )
+                    event = await asyncio.wait_for(queue.get(), timeout=_SSE_HEARTBEAT_INTERVAL)
                     yield _sse_line(event="webhook_intake", data=event)
                 except asyncio.TimeoutError:
                     yield _sse_line(event="heartbeat", data={"ping": True})

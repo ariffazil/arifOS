@@ -1,0 +1,75 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2026-05-16T06:06:45.875495+00:00",
+  "total_tests": 0,
+  "passed_tests": 0,
+  "failed_tests": 0,
+  "dimensions": {
+    "recall_precision": {
+      "dimension": "recall_precision",
+      "score": 0.0,
+      "compliant": false,
+      "passed_assertions": 0,
+      "failed_assertions": 0,
+      "evidence": [],
+      "failures": []
+    },
+    "governance_compliance": {
+      "dimension": "governance_compliance",
+      "score": 0.0,
+      "compliant": false,
+      "passed_assertions": 0,
+      "failed_assertions": 0,
+      "evidence": [],
+      "failures": []
+    },
+    "privacy_safety": {
+      "dimension": "privacy_safety",
+      "score": 0.0,
+      "compliant": false,
+      "passed_assertions": 0,
+      "failed_assertions": 0,
+      "evidence": [],
+      "failures": []
+    },
+    "contradiction_handling": {
+      "dimension": "contradiction_handling",
+      "score": 0.0,
+      "compliant": false,
+      "passed_assertions": 0,
+      "failed_assertions": 0,
+      "evidence": [],
+      "failures": []
+    },
+    "phoenix_correctness": {
+      "dimension": "phoenix_correctness",
+      "score": 0.0,
+      "compliant": false,
+      "passed_assertions": 0,
+      "failed_assertions": 0,
+      "evidence": [],
+      "failures": []
+    },
+    "behavioral_delta_trace": {
+      "dimension": "behavioral_delta_trace",
+      "score": 0.0,
+      "compliant": false,
+      "passed_assertions": 0,
+      "failed_assertions": 0,
+      "evidence": [],
+      "failures": []
+    }
+  },
+  "overall_score": 0.0,
+  "verdict": "VOID",
+  "test_results": [],
+  "gaps": [
+    "recall_precision: score=0.00 < 0.80 — []",
+    "governance_compliance: score=0.00 < 0.80 — []",
+    "privacy_safety: score=0.00 < 0.80 — []",
+    "contradiction_handling: score=0.00 < 0.80 — []",
+    "phoenix_correctness: score=0.00 < 0.80 — []",
+    "behavioral_delta_trace: score=0.00 < 0.80 — []"
+  ],
+  "recommended_next_forge": "RETRIEVAL_GOVERNANCE_LAYER (PRIORITY: CRITICAL)"
+}

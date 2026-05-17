@@ -95,9 +95,7 @@ class FloorEvaluator:
 
         # F5: peace² requires non-destructive operations.
         # Map irreversibility level (0-4) to a peace score (1=fully safe, 0=destructive).
-        peace_score = max(
-            0.0, 1.0 - (irreversibility / IrreversibilityLevel.CRITICAL.value)
-        )
+        peace_score = max(0.0, 1.0 - (irreversibility / IrreversibilityLevel.CRITICAL.value))
 
         # F6: empathy kappa_r — derived from irreversibility level.
         # Higher irreversibility = higher potential for destructive impact.
@@ -138,9 +136,7 @@ class FloorEvaluator:
             "authority_token": getattr(context, "auth_token", "") or "",
             "auth_token": getattr(context, "auth_token", "") or "",
             "human_authority": (
-                1.0
-                if context.witness_type and "human" in str(context.witness_type)
-                else 0.0
+                1.0 if context.witness_type and "human" in str(context.witness_type) else 0.0
             ),
             "witness_type": str(context.witness_type) if context.witness_type else "ai",
             # Derived from threat
@@ -176,9 +172,7 @@ class FloorEvaluator:
             "prob_truth": [],
             "prob_output": [],
             # F10 (checked with raw text, no extra fields needed)
-            "response": (
-                context.payload_text() if hasattr(context, "payload_text") else ""
-            ),
+            "response": (context.payload_text() if hasattr(context, "payload_text") else ""),
         }
 
     @classmethod
@@ -363,16 +357,12 @@ class FloorEvaluator:
                 failed.append("F11")
                 reasons["F11"] = "Session ID not found or expired"
 
-        if getattr(
-            context, "target_agent", None
-        ) and context.target_agent not in getattr(
+        if getattr(context, "target_agent", None) and context.target_agent not in getattr(
             context, "federation_registry", set()
         ):
             if "F11" not in failed:
                 failed.append("F11")
-                reasons["F11"] = (
-                    f"Agent '{context.target_agent}' not in federation registry"
-                )
+                reasons["F11"] = f"Agent '{context.target_agent}' not in federation registry"
 
         # ── F12 INJECTION — Sanitize inputs ────────────────────────────────────
         injection_categories = {
@@ -392,10 +382,7 @@ class FloorEvaluator:
             wt = getattr(context, "witness_type", "ai")
             wt_str = getattr(wt, "value", str(wt))
             if wt_str != "human":
-                if (
-                    context.tool_name == "arif_mind_reason"
-                    and context.mode == "plan_approve"
-                ):
+                if context.tool_name == "arif_mind_reason" and context.mode == "plan_approve":
                     failed.append("F13_VIOLATION")
                     reasons["F13_VIOLATION"] = (
                         "F13 SOVEREIGN: AI self-approval is constitutionally forbidden"

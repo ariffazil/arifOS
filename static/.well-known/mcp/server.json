@@ -1,0 +1,65 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json",
+  "version": "1.0",
+  "protocolVersion": "2025-06-18",
+  "serverInfo": {
+    "name": "arifos-mcp",
+    "title": "arifOS Constitutional MCP Server",
+    "version": "2026.04.26-KANON"
+  },
+  "description": "Governed MCP server exposing 13 constitutional AI operations. Human approval gates on irreversible actions, VAULT999 immutable ledger, 888 Judge arbitration, and live thermodynamic telemetry.",
+  "transport": {
+    "type": "streamable-http",
+    "endpoint": "https://arifos.arif-fazil.com/mcp"
+  },
+  "authentication": {
+    "required": true,
+    "schemes": ["bearer"],
+    "headerName": "Authorization",
+    "envVar": "ARIFOS_API_KEY"
+  },
+  "capabilities": {
+    "tools": { "listChanged": true },
+    "resources": { "subscribe": true, "listChanged": true },
+    "prompts": { "listChanged": true }
+  },
+  "governance": {
+    "humanApprovalRequiredForIrreversibleActions": true,
+    "selfApprovalForbidden": true,
+    "auditRequired": true,
+    "defaultMutationMode": "dry_run",
+    "constitutionalFloors": ["F01_Amanah","F02_Truth","F03_QuadWitness","F04_Clarity","F05_Peace2","F06_Empathy","F07_Humility","F08_Genius","F09_AntiHantu","F10_Ontology","F11_CommandAuth","F12_Injection","F13_Sovereign"]
+  },
+  "links": {
+    "homepage": "https://arif-fazil.com/mcp",
+    "status": "https://arif-fazil.com/mcp/status",
+    "explorer": "https://arif-fazil.com/mcp/explore",
+    "validator": "https://arif-fazil.com/mcp/validator",
+    "observability": "https://arif-fazil.com/mcp/observability",
+    "constitution": "https://arif-fazil.com/000"
+  },
+  "tools": {
+    "count": 13,
+    "riskTiers": {
+      "critical": ["arif_vault_seal","arif_forge_execute"],
+      "high": ["arif_judge_deliberate","arif_gateway_connect"],
+      "medium": ["arif_evidence_fetch","arif_mind_reason","arif_heart_critique"],
+      "low": ["arif_session_init","arif_kernel_route","arif_reply_compose","arif_memory_recall","arif_ops_measure","arif_sense_observe"]
+    },
+    "requiresHumanAck": ["arif_vault_seal","arif_forge_execute"]
+  },
+  "resources": {
+    "count": 5,
+    "uris": [
+      "arifos://doctrine",
+      "arifos://vitals",
+      "arifos://schema",
+      "arifos://session/{session_id}",
+      "arifos://forge"
+    ]
+  },
+  "prompts": {
+    "count": 8,
+    "names": ["system","judge","init","rsi","ortho","epistemic","governance","entropy"]
+  }
+}

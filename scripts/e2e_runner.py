@@ -151,9 +151,7 @@ def score_scenario(scenario: dict, verdict: str, floors: list[str]) -> dict:
     floor_precision = 1.0 if len(unexpected) == 0 else 0.0
     floor_recall = 1.0 if expected_f.issubset(actual_f) else 0.0
     floor_score = (
-        (floor_precision + floor_recall) / 2.0
-        if expected_f
-        else (1.0 if not actual_f else 0.5)
+        (floor_precision + floor_recall) / 2.0 if expected_f else (1.0 if not actual_f else 0.5)
     )
 
     # Governance: both verdict and floors correct
@@ -195,9 +193,7 @@ def run_scenarios() -> dict:
         scores.append(scored["governance_score"])
 
     gov_mean = sum(scores) / len(scores) if scores else 0.0
-    cor_mean = (
-        sum(r["correctness_score"] for r in results) / len(results) if results else 0.0
-    )
+    cor_mean = sum(r["correctness_score"] for r in results) / len(results) if results else 0.0
     # Stability: assume 0.7 (future: run each 3x and measure variance)
     stab_score = 0.7
     e2e = round((gov_mean * 0.4 + cor_mean * 0.3 + stab_score * 0.3) * 100, 2)
@@ -224,12 +220,8 @@ def main() -> None:
     result = run_scenarios()
 
     print(f"\nE2E_SCORE:  {result['e2e_score']}/100")
-    print(
-        f"governance: {result['governance_score']}/40 ({result['avg_governance']:.2%})"
-    )
-    print(
-        f"correctness:{result['correctness_score']}/30 ({result['avg_correctness']:.2%})"
-    )
+    print(f"governance: {result['governance_score']}/40 ({result['avg_governance']:.2%})")
+    print(f"correctness:{result['correctness_score']}/30 ({result['avg_correctness']:.2%})")
     print(f"stability: {result['stability_score']}/30 ({result['avg_stability']:.2%})")
     print()
     print(

@@ -135,9 +135,7 @@ class ACKMachine:
         expired = []
         for v in self.pending_hard:
             age_hours = (now - v.ts) / 3600
-            limit = (
-                SLA_HARD_HOURS if v.consequence_tier == "HARD_TIER" else SLA_SOFT_HOURS
-            )
+            limit = SLA_HARD_HOURS if v.consequence_tier == "HARD_TIER" else SLA_SOFT_HOURS
             if age_hours > limit:
                 v.ack_ts = -1  # marker for expired without ACK
                 expired.append(v)

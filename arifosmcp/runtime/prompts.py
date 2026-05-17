@@ -1,9 +1,9 @@
 # Fix the runtime/prompts.py stub to have proper V2_PROMPT_SPECS
 
 CANONICAL_PROMPTS = (
-    "system",
-    "judge",
-    "init",
+    "arif_system",
+    "arif_judge",
+    "arif_init",
     "rsi",
     "ortho",
     "epistemic",
@@ -14,21 +14,21 @@ CANONICAL_PROMPTS = (
 # Proper prompt specs that public_registry.py expects
 V2_PROMPT_SPECS = (
     {
-        "name": "system",
+        "name": "arif_system",
         "description": "Constitutional system context — arifOS F1-F13 governance floor",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "judge",
+        "name": "arif_judge",
         "description": "888_JUDGE verdict engine context — deliberative decision protocol",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "init",
+        "name": "arif_init",
         "description": "000_INIT session anchor context — temporal + identity grounding",
         "input_schema": {},
         "default_tools": [],

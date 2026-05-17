@@ -93,13 +93,20 @@ Covers: NPV / IRR / PI / payback · EMV / Monte Carlo · DSCR / net worth / cash
 
 | User intent | Canonical WEALTH tool |
 |---|---|
-| NPV / IRR / payback | `wealth_future_value` |
-| Monte Carlo | `wealth_future_simulate` |
-| Liquidity / runway | `wealth_survival_liquidity` |
-| Debt load | `wealth_survival_leverage` |
-| EVOI | `wealth_info_value` |
-| Governance floors | `wealth_rule_enforce` |
-| Final allocation | `wealth_allocate_optimize` |
+| Capital stock / net worth | `wealth_conservation_capital` |
+| Liquidity / cashflow / runway | `wealth_flow_liquidity` |
+| Price pressure / mispricing | `wealth_gradient_price` |
+| Risk / uncertainty / tail | `wealth_entropy_risk` |
+| Productivity / efficiency | `wealth_energy_productivity` |
+| NPV / IRR / time value | `wealth_time_discount` |
+| Leverage / fragility | `wealth_inertia_leverage` |
+| Macro environment | `wealth_field_macro` |
+| Evidence / schema / info quality | `wealth_signal_information` |
+| Multi-agent / coordination | `wealth_game_coordination` |
+| Governance / floors / stewardship | `wealth_boundary_governance` |
+| Ledger / memory / path dependence | `wealth_hysteresis_ledger` |
+| Health / readiness | `mcp_health_check` |
+| Registry truth / diagnostics | `wealth_system_registry_status` |
 
 **EVOI link to GEOX:**
 > "Should we buy more information before committing capital?" — that is the exploration question. GEOX computes uncertainty → WEALTH computes EVOI → decision.
@@ -108,11 +115,11 @@ Covers: NPV / IRR / PI / payback · EMV / Monte Carlo · DSCR / net worth / cash
 
 ---
 
-## WELL — Human Substrate
+## WELL — Vitality Intelligence
 
-WELL is the most original layer. It holds a mirror at the biological state of the sovereign operator.
+WELL is Vitality Intelligence: human readiness (H-WELL), machine substrate (M-WELL), coupled interaction risk (C-WELL), and governance coherence (G-WELL). It holds a mirror to the operational state of the sovereign operator and the machine substrate.
 
-**The law:** WELL advises. WELL does not override. It is not medical diagnosis. It is operational readiness telemetry.
+**The law:** WELL advises. WELL does not override. It is not medical diagnosis. It is operational readiness telemetry and substrate monitoring.
 
 **Key tools:**
 

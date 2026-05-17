@@ -1150,9 +1150,7 @@ def pick_quote_with_meta(
             "fallback_step": "unknown_surface",
         }
 
-    candidates = [
-        q for q in WISDOM_REGISTRY if q["active"] and surface in q["surfaces"]
-    ]
+    candidates = [q for q in WISDOM_REGISTRY if q["active"] and surface in q["surfaces"]]
 
     reason_map = {
         (False, False, False): "exact_match",
@@ -1173,9 +1171,7 @@ def pick_quote_with_meta(
         _tone = None if relax_tone else tone
         _shadow = None if relax_shadow else shadow_profile
 
-        scored = [
-            (_score_candidate(c, _tone, _lang, _shadow), c) for c in step_candidates
-        ]
+        scored = [(_score_candidate(c, _tone, _lang, _shadow), c) for c in step_candidates]
         scored.sort(key=lambda x: x[0], reverse=True)
 
         if scored:
@@ -1207,9 +1203,7 @@ def pick_quote_with_meta(
 
     # Ultimate fallback
     if audit:
-        audit_quote_injection(
-            "DEFAULT", surface, verdict, session_id, {"reason": "no_candidates"}
-        )
+        audit_quote_injection("DEFAULT", surface, verdict, session_id, {"reason": "no_candidates"})
     return {
         "quote": _DEFAULT_QUOTE,
         "selection_reason": "safe_default",
@@ -1280,18 +1274,10 @@ def arifos_wisdom_stats() -> dict[str, Any]:
         "shadow_index": {
             "max_scar": max((q["scar_weight"] for q in WISDOM_REGISTRY), default=0),
             "max_shadow": max((q["shadow_weight"] for q in WISDOM_REGISTRY), default=0),
-            "max_paradox": max(
-                (q["paradox_weight"] for q in WISDOM_REGISTRY), default=0
-            ),
-            "high_scar_quotes": [
-                q["id"] for q in WISDOM_REGISTRY if q["scar_weight"] >= 2
-            ],
-            "high_shadow_quotes": [
-                q["id"] for q in WISDOM_REGISTRY if q["shadow_weight"] >= 2
-            ],
-            "high_paradox_quotes": [
-                q["id"] for q in WISDOM_REGISTRY if q["paradox_weight"] >= 2
-            ],
+            "max_paradox": max((q["paradox_weight"] for q in WISDOM_REGISTRY), default=0),
+            "high_scar_quotes": [q["id"] for q in WISDOM_REGISTRY if q["scar_weight"] >= 2],
+            "high_shadow_quotes": [q["id"] for q in WISDOM_REGISTRY if q["shadow_weight"] >= 2],
+            "high_paradox_quotes": [q["id"] for q in WISDOM_REGISTRY if q["paradox_weight"] >= 2],
         },
         "contrast_pairs": [
             {

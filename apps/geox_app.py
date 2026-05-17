@@ -41,9 +41,7 @@ from pydantic import Field
 # ── App definition ────────────────────────────────────────────────────────────
 
 geox_app = FastMCP("GeoxApp")
-if not hasattr(
-    geox_app, "ui"
-):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
+if not hasattr(geox_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
     geox_app.ui = lambda *args, **kwargs: (lambda fn: fn)
 
 
@@ -59,6 +57,21 @@ async def verify_location(
         from core.organs import verify_geospatial
 
         res = verify_geospatial(lat, lon)
+        ns_status = "OK" if res["valid"] else "VOID"
+        nine_signal = {
+            "OK": {
+                "delta": {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
+                "psi": {"plane": "governance_integrity", "state": "AMANAH", "en": "TRUSTED"},
+                "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
+                "overall": {"state": "SELAMAT", "en": "SAFE"},
+            },
+            "VOID": {
+                "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
+                "psi": {"plane": "governance_integrity", "state": "KHIANAT", "en": "BETRAYED"},
+                "omega": {"plane": "intelligence_discipline", "state": "BANGANG", "en": "FOOLISH"},
+                "overall": {"state": "RETAK", "en": "FAILED"},
+            },
+        }[ns_status]
         return ToolResult(
             content=[
                 {
@@ -77,6 +90,7 @@ async def verify_location(
                         "valid": res["valid"],
                         "jurisdiction": res["jurisdiction"],
                         "crs": res["crs"],
+                        "nine_signal": nine_signal,
                     },
                 },
             ]
@@ -141,9 +155,7 @@ def geox_map_surface() -> PrefabApp:
                         Text("Verify Coordinate", css_class="font-semibold")
                         Muted("Ensure interpreted prospects are physically grounded")
 
-                    Button(
-                        "Verify (Kuala Lumpur)", on_click=on_verify, variant="default"
-                    )
+                    Button("Verify (Kuala Lumpur)", on_click=on_verify, variant="default")
 
         # ── Results ─────────────────────────────────────────────────────────
         with If(STATE["verified"]):
@@ -185,9 +197,7 @@ def geox_map_surface() -> PrefabApp:
             )
 
         Separator()
-        Muted(
-            "arifOS · @GEOX · Earth Witness Protocol", css_class="text-xs text-center"
-        )
+        Muted("arifOS · @GEOX · Earth Witness Protocol", css_class="text-xs text-center")
 
     return PrefabApp(view=view, state=initial_state)
 

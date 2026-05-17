@@ -136,9 +136,7 @@ class SessionLifecycle:
                 return True
             return False
 
-    def can_transition(
-        self, plan_id: str, to_state: LifecycleStage
-    ) -> tuple[bool, str]:
+    def can_transition(self, plan_id: str, to_state: LifecycleStage) -> tuple[bool, str]:
         """Check if a plan can transition to to_state."""
         with self._lock:
             plan = self.plans.get(plan_id)
@@ -153,9 +151,7 @@ class SessionLifecycle:
                 f"Allowed: {[s.value for s in valid]}"
             )
 
-    def advance(
-        self, plan_id: str, to_state: LifecycleStage, **kwargs: Any
-    ) -> PlanRecord:
+    def advance(self, plan_id: str, to_state: LifecycleStage, **kwargs: Any) -> PlanRecord:
         """Advance a plan to a new lifecycle state. Raises if transition is invalid."""
         can, msg = self.can_transition(plan_id, to_state)
         if not can:
@@ -179,9 +175,7 @@ class SessionLifecycle:
             plan.updated_at = self._now()
             return plan
 
-    def approve(
-        self, plan_id: str, judge_verdict: str, judge_state_hash: str
-    ) -> PlanRecord:
+    def approve(self, plan_id: str, judge_verdict: str, judge_state_hash: str) -> PlanRecord:
         """Approve a plan after SEAL verdict from Judge."""
         return self.advance(
             plan_id,
@@ -197,9 +191,7 @@ class SessionLifecycle:
 
     def seal(self, plan_id: str, vault_entry_id: str) -> PlanRecord:
         """Seal a plan after vault permanent write."""
-        return self.advance(
-            plan_id, LifecycleStage.SEALED, vault_entry_id=vault_entry_id
-        )
+        return self.advance(plan_id, LifecycleStage.SEALED, vault_entry_id=vault_entry_id)
 
     def summary(self) -> dict[str, Any]:
         """Return a summary dict for UI display."""

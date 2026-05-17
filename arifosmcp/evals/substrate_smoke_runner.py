@@ -82,9 +82,7 @@ class SmokeReport:
     @property
     def happy_pass(self) -> int:
         return sum(
-            1
-            for r in self.results
-            if r.test_type == TestType.HAPPY and r.status == TestStatus.PASS
+            1 for r in self.results if r.test_type == TestType.HAPPY and r.status == TestStatus.PASS
         )
 
     @property
@@ -94,9 +92,7 @@ class SmokeReport:
     @property
     def edge_pass(self) -> int:
         return sum(
-            1
-            for r in self.results
-            if r.test_type == TestType.EDGE and r.status == TestStatus.PASS
+            1 for r in self.results if r.test_type == TestType.EDGE and r.status == TestStatus.PASS
         )
 
     @property
@@ -146,9 +142,7 @@ class SubstrateSmokeRunner:
         await self._test_time()
         await self._test_everything()
 
-        return SmokeReport(
-            timestamp=datetime.now(timezone.utc).isoformat(), results=self.results
-        )
+        return SmokeReport(timestamp=datetime.now(timezone.utc).isoformat(), results=self.results)
 
     async def _test_fetch(self):
         """Test fetch substrate"""
@@ -314,9 +308,7 @@ class SubstrateSmokeRunner:
     async def _fs_read_allowed(self) -> tuple[bool, str | None]:
         """Happy path: read allowed file"""
         try:
-            await bridge.filesystem.call_tool(
-                "read_file", {"path": "/usr/src/project/README.md"}
-            )
+            await bridge.filesystem.call_tool("read_file", {"path": "/usr/src/project/README.md"})
             return True, None
         except Exception as e:
             return False, str(e)
@@ -338,9 +330,7 @@ class SubstrateSmokeRunner:
     async def _fs_path_traversal(self) -> tuple[bool, str | None]:
         """Breach case: path traversal"""
         try:
-            await bridge.filesystem.call_tool(
-                "read_file", {"path": "../../../etc/passwd"}
-            )
+            await bridge.filesystem.call_tool("read_file", {"path": "../../../etc/passwd"})
             # Should be blocked
             return False, "Path traversal was not blocked"
         except Exception:

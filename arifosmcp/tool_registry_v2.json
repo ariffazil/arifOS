@@ -186,21 +186,6 @@
       ]
     },
     {
-      "tool_id": "T00_11",
-      "tier": "T00",
-      "stage": "888_JUDGE",
-      "name": "wealth_wealth_check_floors",
-      "description": "Economic floor enforcement \u2014 F6 Peace\u00b2 gate. Blocks if Peace\u00b2 < 0.70.",
-      "pipeline_stage": "888_JUDGE",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F6",
-        "F13"
-      ]
-    },
-    {
       "tool_id": "T00_12",
       "tier": "T00",
       "stage": "888_JUDGE",
@@ -241,94 +226,6 @@
       "irreversible": false,
       "requires_human": false,
       "status": "LIVE",
-      "floor_gates": [
-        "F2",
-        "F8"
-      ]
-    },
-    {
-      "tool_id": "T01_17",
-      "tier": "T01",
-      "stage": "111_SENSE",
-      "name": "wealth_ingest_fetch",
-      "description": "Fetch live economic and financial data streams.",
-      "pipeline_stage": "111_SENSE",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F2"
-      ]
-    },
-    {
-      "tool_id": "T01_18",
-      "tier": "T01",
-      "stage": "111_SENSE",
-      "name": "wealth_ingest_snapshot",
-      "description": "Point-in-time market snapshot. Captures economic state at query moment.",
-      "pipeline_stage": "111_SENSE",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F2"
-      ]
-    },
-    {
-      "tool_id": "T01_19",
-      "tier": "T01",
-      "stage": "111_SENSE",
-      "name": "wealth_ingest_sources",
-      "description": "Register and validate data source registry. Source authority chain.",
-      "pipeline_stage": "111_SENSE",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F2",
-        "F8"
-      ]
-    },
-    {
-      "tool_id": "T01_20",
-      "tier": "T01",
-      "stage": "111_SENSE",
-      "name": "wealth_ingest_health",
-      "description": "Data source health and reliability check. Flags stale or unreliable sources.",
-      "pipeline_stage": "111_SENSE",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F2",
-        "F12"
-      ]
-    },
-    {
-      "tool_id": "T01_21",
-      "tier": "T01",
-      "stage": "111_SENSE",
-      "name": "wealth_ingest_vintage",
-      "description": "Temporal data vintage validation \u2014 how old is this data? Issues HOLD on stale data.",
-      "pipeline_stage": "111_SENSE",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F2",
-        "F7"
-      ]
-    },
-    {
-      "tool_id": "T01_22",
-      "tier": "T01",
-      "stage": "111_SENSE",
-      "name": "wealth_ingest_reconcile",
-      "description": "Cross-source reconciliation \u2014 resolve conflicts between economic data sources.",
-      "pipeline_stage": "111_SENSE",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
       "floor_gates": [
         "F2",
         "F8"
@@ -678,227 +575,6 @@
       ]
     },
     {
-      "tool_id": "T03_46",
-      "tier": "T03",
-      "stage": "333_MIND",
-      "name": "wealth_npv_reward",
-      "description": "Net Present Value computation. Time-value weighted capital assessment.",
-      "pipeline_stage": "333_MIND",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "LIVE",
-      "floor_gates": [
-        "F6",
-        "F7"
-      ]
-    },
-    {
-      "tool_id": "T03_47",
-      "tier": "T03",
-      "stage": "333_MIND",
-      "name": "wealth_irr_yield",
-      "description": "Internal Rate of Return. Breakeven discount rate.",
-      "pipeline_stage": "333_MIND",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "LIVE",
-      "floor_gates": [
-        "F6",
-        "F7"
-      ]
-    },
-    {
-      "tool_id": "T03_48",
-      "tier": "T03",
-      "stage": "333_MIND",
-      "name": "wealth_dscr_leverage",
-      "description": "Profitability Index. PV of inflows per unit of investment.",
-      "pipeline_stage": "333_MIND",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "LIVE",
-      "floor_gates": [
-        "F6"
-      ]
-    },
-    {
-      "tool_id": "T03_49",
-      "tier": "T03",
-      "stage": "333_MIND",
-      "name": "wealth_payback_time",
-      "description": "Capital payback period. Time to recover initial investment.",
-      "pipeline_stage": "333_MIND",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "FORGED",
-      "floor_gates": [
-        "F6"
-      ]
-    },
-    {
-      "tool_id": "T03_50",
-      "tier": "T03",
-      "stage": "333_MIND",
-      "name": "wealth_profitability_index",
-      "description": "Economic growth velocity. Rate of value creation over time.",
-      "pipeline_stage": "333_MIND",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "FORGED",
-      "floor_gates": [
-        "F6"
-      ]
-    },
-    {
-      "tool_id": "T03_51",
-      "tier": "T03",
-      "stage": "333_MIND",
-      "name": "wealth_roe_cost_equity",
-      "description": "Expected Monetary Value under risk. Probability-weighted outcome.",
-      "pipeline_stage": "333_MIND",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "FORGED",
-      "floor_gates": [
-        "F6",
-        "F7"
-      ]
-    },
-    {
-      "tool_id": "T03_52",
-      "tier": "T03",
-      "stage": "333_MIND",
-      "name": "wealth_monte_carlo_forecast",
-      "description": "Stochastic scenario simulation. 10,000+ realization ensemble.",
-      "pipeline_stage": "333_MIND",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "FORGED",
-      "floor_gates": [
-        "F6",
-        "F7",
-        "F8"
-      ]
-    },
-    {
-      "tool_id": "T03_53",
-      "tier": "T03",
-      "stage": "333_MIND",
-      "name": "wealth_audit_entropy",
-      "description": "Economic entropy audit. Variance and dispersion in economic assumptions.",
-      "pipeline_stage": "333_MIND",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "FORGED",
-      "floor_gates": [
-        "F4",
-        "F6"
-      ]
-    },
-    {
-      "tool_id": "T03_54",
-      "tier": "T03",
-      "stage": "333_MIND",
-      "name": "wealth_liquidity_buffer",
-      "description": "Debt Service Coverage Ratio. Cash flow adequacy for debt servicing.",
-      "pipeline_stage": "333_MIND",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "FORGED",
-      "floor_gates": [
-        "F6"
-      ]
-    },
-    {
-      "tool_id": "T03_55",
-      "tier": "T03",
-      "stage": "333_MIND",
-      "name": "wealth_capital_velocity",
-      "description": "Cash flow dynamics model. Operating cash flow projection.",
-      "pipeline_stage": "333_MIND",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "FORGED",
-      "floor_gates": [
-        "F6"
-      ]
-    },
-    {
-      "tool_id": "T03_56",
-      "tier": "T03",
-      "stage": "333_MIND",
-      "name": "wealth_market_risk_exposure",
-      "description": "Net worth state snapshot. Balance sheet at point in time.",
-      "pipeline_stage": "333_MIND",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "FORGED",
-      "floor_gates": [
-        "F6"
-      ]
-    },
-    {
-      "tool_id": "T03_57",
-      "tier": "T03",
-      "stage": "333_MIND",
-      "name": "wealth_delta_scenario",
-      "description": "Composite economic scoring. Multi-factor capital health score.",
-      "pipeline_stage": "333_MIND",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "FORGED",
-      "floor_gates": [
-        "F6",
-        "F8"
-      ]
-    },
-    {
-      "tool_id": "T03_58",
-      "tier": "T03",
-      "stage": "888_JUDGE",
-      "name": "wealth_policy_audit",
-      "description": "Financial policy compliance audit. Checks decisions against governance policy.",
-      "pipeline_stage": "888_JUDGE",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "FORGED",
-      "floor_gates": [
-        "F6",
-        "F10",
-        "F13"
-      ]
-    },
-    {
-      "tool_id": "T03_59",
-      "tier": "T03",
-      "stage": "333_MIND",
-      "name": "wealth_personal_decision",
-      "description": "Personal capital decision engine. Non-institutional capital decisions.",
-      "pipeline_stage": "333_MIND",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F6",
-        "F10"
-      ]
-    },
-    {
-      "tool_id": "T03_60",
-      "tier": "T03",
-      "stage": "333_MIND",
-      "name": "wealth_agent_budget",
-      "description": "Agent operating budget allocation. Arifos organ cost accounting.",
-      "pipeline_stage": "333_MIND",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F6",
-        "F11"
-      ]
-    },
-    {
       "tool_id": "T04_61",
       "tier": "T04",
       "stage": "666_HEART",
@@ -914,52 +590,6 @@
         "F6",
         "F9",
         "F10"
-      ]
-    },
-    {
-      "tool_id": "T04_62",
-      "tier": "T04",
-      "stage": "666_HEART",
-      "name": "wealth_crisis_triage",
-      "description": "Economic crisis detection and triage. Flags EMV breach and DSCR collapse.",
-      "pipeline_stage": "666_HEART",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F6",
-        "F9",
-        "F12"
-      ]
-    },
-    {
-      "tool_id": "T04_63",
-      "tier": "T04",
-      "stage": "666_HEART",
-      "name": "wealth_coordination_equilibrium",
-      "description": "Multi-agent equilibrium solver. Nash equilibrium for multi-party decisions.",
-      "pipeline_stage": "666_HEART",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F8",
-        "F9"
-      ]
-    },
-    {
-      "tool_id": "T04_64",
-      "tier": "T04",
-      "stage": "666_HEART",
-      "name": "wealth_game_theory_solve",
-      "description": "Game-theoretic adversarial analysis. Zero-sum and cooperative game solving.",
-      "pipeline_stage": "666_HEART",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "HOLD",
-      "floor_gates": [
-        "F8",
-        "F9"
       ]
     },
     {
@@ -1052,53 +682,6 @@
       "status": "LIVE",
       "floor_gates": [
         "F5",
-        "F13"
-      ]
-    },
-    {
-      "tool_id": "T05_73",
-      "tier": "T05",
-      "stage": "777_FORGE",
-      "name": "wealth_record_transaction",
-      "description": "Transaction commit to ledger. Economic action permanent record.",
-      "pipeline_stage": "777_FORGE",
-      "irreversible": true,
-      "requires_human": true,
-      "status": "FORGED",
-      "floor_gates": [
-        "F1",
-        "F6",
-        "F10",
-        "F13"
-      ]
-    },
-    {
-      "tool_id": "T05_74",
-      "tier": "T05",
-      "stage": "777_FORGE",
-      "name": "wealth_snapshot_portfolio",
-      "description": "Portfolio state post-execution. Snapshot after capital action.",
-      "pipeline_stage": "777_FORGE",
-      "irreversible": false,
-      "requires_human": false,
-      "status": "FORGED",
-      "floor_gates": [
-        "F6"
-      ]
-    },
-    {
-      "tool_id": "T05_75",
-      "tier": "T05",
-      "stage": "777_FORGE",
-      "name": "wealth_civilization_stewardship",
-      "description": "Long-horizon civilizational action. T06 bridge tool for multi-generational decisions.",
-      "pipeline_stage": "777_FORGE",
-      "irreversible": true,
-      "requires_human": true,
-      "status": "HOLD",
-      "floor_gates": [
-        "F1",
-        "F6",
         "F13"
       ]
     },
@@ -1473,6 +1056,243 @@
         "F1",
         "F3",
         "F13"
+      ]
+    },
+    {
+      "tool_id": "vault_query",
+      "tier": "T1",
+      "stage": "WEALTH_VAULT",
+      "name": "vault_query",
+      "description": "VAULT999 ledger read",
+      "pipeline_stage": "WEALTH_VAULT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F02",
+        "F08"
+      ]
+    },
+    {
+      "tool_id": "vault_write",
+      "tier": "T2",
+      "stage": "WEALTH_VAULT",
+      "name": "vault_write",
+      "description": "VAULT999 ledger append \u2014 irreversible",
+      "pipeline_stage": "WEALTH_VAULT",
+      "irreversible": true,
+      "requires_human": true,
+      "status": "LIVE",
+      "floor_gates": [
+        "F01"
+      ]
+    },
+    {
+      "tool_id": "mcp_health_check",
+      "tier": "T0",
+      "stage": "WEALTH_HEALTH",
+      "name": "mcp_health_check",
+      "description": "Universal federation health check",
+      "pipeline_stage": "WEALTH_HEALTH",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F04"
+      ]
+    },
+    {
+      "tool_id": "wealth_system_registry_status",
+      "tier": "T0",
+      "stage": "WEALTH_DIAGNOSTIC",
+      "name": "wealth_system_registry_status",
+      "description": "Registry truth diagnostic",
+      "pipeline_stage": "WEALTH_DIAGNOSTIC",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F04"
+      ]
+    },
+    {
+      "tool_id": "wealth_conservation_capital",
+      "tier": "T1",
+      "stage": "WEALTH_INVARIANT",
+      "name": "wealth_conservation_capital",
+      "description": "Capital stock reality",
+      "pipeline_stage": "WEALTH_INVARIANT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F02",
+        "F08"
+      ]
+    },
+    {
+      "tool_id": "wealth_flow_liquidity",
+      "tier": "T1",
+      "stage": "WEALTH_INVARIANT",
+      "name": "wealth_flow_liquidity",
+      "description": "Liquidity movement",
+      "pipeline_stage": "WEALTH_INVARIANT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F02",
+        "F08"
+      ]
+    },
+    {
+      "tool_id": "wealth_gradient_price",
+      "tier": "T1",
+      "stage": "WEALTH_INVARIANT",
+      "name": "wealth_gradient_price",
+      "description": "Price pressure and mispricing",
+      "pipeline_stage": "WEALTH_INVARIANT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F02",
+        "F08"
+      ]
+    },
+    {
+      "tool_id": "wealth_entropy_risk",
+      "tier": "T1",
+      "stage": "WEALTH_INVARIANT",
+      "name": "wealth_entropy_risk",
+      "description": "Uncertainty and tail risk",
+      "pipeline_stage": "WEALTH_INVARIANT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F02",
+        "F08"
+      ]
+    },
+    {
+      "tool_id": "wealth_energy_productivity",
+      "tier": "T1",
+      "stage": "WEALTH_INVARIANT",
+      "name": "wealth_energy_productivity",
+      "description": "Output per input",
+      "pipeline_stage": "WEALTH_INVARIANT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F02",
+        "F08"
+      ]
+    },
+    {
+      "tool_id": "wealth_time_discount",
+      "tier": "T1",
+      "stage": "WEALTH_INVARIANT",
+      "name": "wealth_time_discount",
+      "description": "NPV, IRR, payback",
+      "pipeline_stage": "WEALTH_INVARIANT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F02",
+        "F08"
+      ]
+    },
+    {
+      "tool_id": "wealth_inertia_leverage",
+      "tier": "T1",
+      "stage": "WEALTH_INVARIANT",
+      "name": "wealth_inertia_leverage",
+      "description": "Leverage stress and fragility",
+      "pipeline_stage": "WEALTH_INVARIANT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F02",
+        "F08"
+      ]
+    },
+    {
+      "tool_id": "wealth_field_macro",
+      "tier": "T1",
+      "stage": "WEALTH_INVARIANT",
+      "name": "wealth_field_macro",
+      "description": "Macro environment",
+      "pipeline_stage": "WEALTH_INVARIANT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F02",
+        "F08"
+      ]
+    },
+    {
+      "tool_id": "wealth_signal_information",
+      "tier": "T1",
+      "stage": "WEALTH_INVARIANT",
+      "name": "wealth_signal_information",
+      "description": "Info value and evidence quality",
+      "pipeline_stage": "WEALTH_INVARIANT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F02",
+        "F08"
+      ]
+    },
+    {
+      "tool_id": "wealth_game_coordination",
+      "tier": "T1",
+      "stage": "WEALTH_INVARIANT",
+      "name": "wealth_game_coordination",
+      "description": "Multi-agent incentives",
+      "pipeline_stage": "WEALTH_INVARIANT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F02",
+        "F08"
+      ]
+    },
+    {
+      "tool_id": "wealth_boundary_governance",
+      "tier": "T1",
+      "stage": "WEALTH_INVARIANT",
+      "name": "wealth_boundary_governance",
+      "description": "Constitutional floors and stewardship",
+      "pipeline_stage": "WEALTH_INVARIANT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F02",
+        "F08"
+      ]
+    },
+    {
+      "tool_id": "wealth_hysteresis_ledger",
+      "tier": "T1",
+      "stage": "WEALTH_INVARIANT",
+      "name": "wealth_hysteresis_ledger",
+      "description": "Ledger and path dependence",
+      "pipeline_stage": "WEALTH_INVARIANT",
+      "irreversible": false,
+      "requires_human": false,
+      "status": "LIVE",
+      "floor_gates": [
+        "F02",
+        "F08"
       ]
     }
   ],

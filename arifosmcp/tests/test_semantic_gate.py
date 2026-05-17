@@ -43,9 +43,7 @@ CASES = [
 
 
 @pytest.mark.parametrize("label,input_text,expected_verdict,expected_category", CASES)
-def test_classify_intent_fast_path(
-    label, input_text, expected_verdict, expected_category
-):
+def test_classify_intent_fast_path(label, input_text, expected_verdict, expected_category):
     result = classify_intent(input_text)
     assert (
         result["verdict"] == expected_verdict

@@ -37,9 +37,7 @@ from typing import Any
 # CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
-MCP_SEQUENTIAL_ENABLED = (
-    os.getenv("ARIFOS_MCP_SEQUENTIAL_ENABLED", "false").lower() == "true"
-)
+MCP_SEQUENTIAL_ENABLED = os.getenv("ARIFOS_MCP_SEQUENTIAL_ENABLED", "false").lower() == "true"
 MCP_SEQUENTIAL_URL = os.getenv("ARIFOS_MCP_SEQUENTIAL_URL", "http://localhost:3002")
 
 
@@ -255,9 +253,7 @@ async def compare_native_vs_mcp(
     result.mcp_only_insights = [i for i in mcp_insights if i not in native_insights]
 
     # Constitutional analysis
-    result.f2_agreement = len(result.overlaps) / max(
-        len(native_insights), len(mcp_insights), 1
-    )
+    result.f2_agreement = len(result.overlaps) / max(len(native_insights), len(mcp_insights), 1)
 
     # F9: Check for hantu in MCP output
     for step in mcp_session.steps:
@@ -404,15 +400,9 @@ class SequentialMCPComparator:
             return {"message": "No comparisons yet"}
 
         total = len(self.comparison_history)
-        native_wins = sum(
-            1 for r in self.comparison_history if r.recommended_path == "native"
-        )
-        reviews = sum(
-            1 for r in self.comparison_history if r.recommended_path == "review"
-        )
-        merges = sum(
-            1 for r in self.comparison_history if r.recommended_path == "merge"
-        )
+        native_wins = sum(1 for r in self.comparison_history if r.recommended_path == "native")
+        reviews = sum(1 for r in self.comparison_history if r.recommended_path == "review")
+        merges = sum(1 for r in self.comparison_history if r.recommended_path == "merge")
 
         avg_agreement = sum(r.f2_agreement for r in self.comparison_history) / total
 
@@ -422,9 +412,7 @@ class SequentialMCPComparator:
             "human_review_required": reviews,
             "merge_recommended": merges,
             "average_f2_agreement": avg_agreement,
-            "f9_issues_detected": sum(
-                len(r.f9_issues_in_mcp) for r in self.comparison_history
-            ),
+            "f9_issues_detected": sum(len(r.f9_issues_in_mcp) for r in self.comparison_history),
         }
 
 

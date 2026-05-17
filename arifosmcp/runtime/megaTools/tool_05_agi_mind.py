@@ -49,7 +49,7 @@ async def agi_mind(
     raw_input: str | None = None,
     ctx: Any | None = None,
 ) -> RuntimeEnvelope:
-    from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+    from arifosmcp.runtime.dispatcher import HARDENED_DISPATCH_MAP
 
     if context is not None and not isinstance(context, str):
         try:
@@ -93,9 +93,7 @@ async def agi_mind(
 
         # Extract metrics from hardened result
         metrics = CanonicalMetrics()
-        metrics.telemetry.ds = (
-            res_dict.get("metrics", {}).get("telemetry", {}).get("ds", 0.0)
-        )
+        metrics.telemetry.ds = res_dict.get("metrics", {}).get("telemetry", {}).get("ds", 0.0)
         metrics.telemetry.confidence = res_dict.get("confidence", 0.5)
 
         return forge_verdict(

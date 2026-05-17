@@ -51,9 +51,7 @@ def score_tool(result: ToolResult) -> dict:
         "latency_score": max(0, 100 - result.latency_ms / 10),
         "correctness": 100 if result.status == "PASS" else 0,
         "verdict_bonus": 20 if result.verdict in ["SEAL", "PARTIAL"] else 0,
-        "floor_compliance": (
-            len(result.floors_passed) * 5 if result.floors_passed else 0
-        ),
+        "floor_compliance": (len(result.floors_passed) * 5 if result.floors_passed else 0),
         "error_penalty": -50 if result.error else 0,
     }
     score["total"] = sum(score.values())
@@ -450,9 +448,7 @@ async def test_arifos_probe():
         from arifosmcp.runtime.tools import arifos_probe
 
         start = time.perf_counter()
-        result = await arifos_probe(
-            target="system", probe_type="status", timeout_ms=5000
-        )
+        result = await arifos_probe(target="system", probe_type="status", timeout_ms=5000)
         latency = (time.perf_counter() - start) * 1000
 
         return ToolResult(
@@ -562,9 +558,7 @@ async def run_all_tests():
     print("=" * 80)
     print("BENCHMARK RESULTS — RANKED BY SCORE")
     print("=" * 80)
-    print(
-        f"{'Rank':<6}{'Tool':<20}{'Status':<10}{'Latency':<12}{'Verdict':<10}{'Score':<8}"
-    )
+    print(f"{'Rank':<6}{'Tool':<20}{'Status':<10}{'Latency':<12}{'Verdict':<10}{'Score':<8}")
     print("-" * 80)
     for i, sr in enumerate(scored_results, 1):
         print(

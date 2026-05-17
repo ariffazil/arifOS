@@ -1,6 +1,0 @@
-[submodule "GEOX"]
-	path = GEOX
-	url = https://github.com/ariffazil/GEOX.git
-[submodule "WEALTH"]
-	path = WEALTH
-	url = https://github.com/ariffazil/WEALTH.git

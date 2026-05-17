@@ -294,10 +294,15 @@ class TestAdjudication:
 
     def test_actor_sanitization(self):
         raw_actor = "arif<script>alert(1)</script>"
-        result = adjudicate_event("manual", "health_check", {
-            "actor": raw_actor,
-            "intent": "health_check",
-        }, {})
+        result = adjudicate_event(
+            "manual",
+            "health_check",
+            {
+                "actor": raw_actor,
+                "intent": "health_check",
+            },
+            {},
+        )
         assert "<script>" not in result["actor"]
         assert result["actor"] == "arifscriptalert1script"
 

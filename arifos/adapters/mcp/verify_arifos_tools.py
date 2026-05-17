@@ -103,12 +103,7 @@ class VitalityRecord:
 
 
 def compute_verdict(primary_value: float, g: ThermodynamicMetrics) -> str:
-    if (
-        primary_value >= 0.9
-        and g.truth_score >= 0.99
-        and g.delta_s <= 0.0
-        and g.amanah_lock
-    ):
+    if primary_value >= 0.9 and g.truth_score >= 0.99 and g.delta_s <= 0.0 and g.amanah_lock:
         return "SEAL"
     if g.truth_score >= 0.95 and g.delta_s <= 0.05 and g.stakeholder_safety >= 0.8:
         return "SABAR"
@@ -275,9 +270,7 @@ TOOL_CALLS = {
 }
 
 
-async def run_tool_vitality(
-    tool_name: str, version: str = "workspace"
-) -> VitalityRecord:
+async def run_tool_vitality(tool_name: str, version: str = "workspace") -> VitalityRecord:
     func, kwargs = TOOL_CALLS[tool_name]
     started = time.time()
     result = await func(**kwargs)
@@ -285,9 +278,7 @@ async def run_tool_vitality(
     governance = result["metrics"]
     metrics = ThermodynamicMetrics(**governance)
     primary_value = (
-        1.0
-        if result["verdict"] == "SEAL"
-        else 0.5 if result["verdict"] == "SABAR" else 0.0
+        1.0 if result["verdict"] == "SEAL" else 0.5 if result["verdict"] == "SABAR" else 0.0
     )
     record = VitalityRecord(
         tool_name=tool_name,

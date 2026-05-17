@@ -20,8 +20,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.tools.embodied_tool import EmbodiedTool
-from arifosmcp.tools.mind_reason import arif_mind_reason as _mind_reason_kernel
+from arifosmcp.tools.embodied import EmbodiedTool
+from arifosmcp.tools.reason import arif_mind_reason as _mind_reason_kernel
 
 
 class ArifMindReasonEmbodied(EmbodiedTool):
@@ -42,7 +42,9 @@ class ArifMindReasonEmbodied(EmbodiedTool):
     tool_id = "arif_mind_reason"
     tool_name = "arif_mind_reason"
     domain = "AOS"
-    description = "Structured reasoning with constitutional awareness — axiom trace, synthesis, verification"
+    description = (
+        "Structured reasoning with constitutional awareness — axiom trace, synthesis, verification"
+    )
     risk_tier = "T1"
     reversibility = "reversible"
     blast_radius = "low"

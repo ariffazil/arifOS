@@ -1,0 +1,73 @@
+# arifOS Risk Leash — fine-grained agent behavior bounds per domain
+# Version: 2026.05.14-v1
+# Authority: F13 SOVEREIGN — Arif's veto is absolute over all below
+
+risk_leash:
+  version: "2026.05.14-v1"
+
+  irreversible_actions:
+    require_human_ack: true
+    requires_evidence_receipt: true
+    requires_judge_evaluation: true
+    actions:
+      - file_deletion
+      - volume_removal
+      - docker_prune
+      - database_drop
+      - git_force_push
+      - git_push_to_main
+
+  vault_seal:
+    require_human_ack: true
+    require_judge_candidate: true
+    rhetorical_seal_blocked: true
+    note: "Phrases like '999 SEAL ALIVE' must NOT trigger automated vault writes"
+
+  git_operations:
+    commit:
+      require_human_ack: true
+      require_human_message: true
+    push:
+      require_human_ack: true
+      require_origin_up_to_date: true
+    rebase:
+      require_human_ack: true
+      blocked_for_main_branch: true
+
+  external_relay:
+    require_human_ack: true
+    target_whitelist:
+      - aaa.arif-fazil.com
+      - hermes.arif-fazil.com
+    blocked_domains:
+      - "*"
+    note: "All external relays must be explicitly approved per-destination"
+
+  medical_legal_financial:
+    require_evidence_receipt: true
+    require_jurisdiction_check: true
+    verdict_if_uncertain: "HOLD"
+
+  constitutional_change:
+    require_judge_review: true
+    require_human_ack: true
+    floor_amendment: "F13 only"
+    note: "Only Arif can authorize constitutional amendments"
+
+  forge_execution:
+    dry_run_default: true
+    write_mode_requires: ["plan_id", "judge_state_hash", "human_ack"]
+    generate_mode_requires: ["plan_id", "constitutional_chain_id"]
+
+  agent_behavior:
+    max_autonomous_loops: 20
+    heartbeat_required_before_action: true
+    escalation_on_critical_risk: true
+    beautiful_ones_detection: true
+    note: "Agents that produce aesthetic-only outputs without actions should be flagged"
+
+  session_lifecycle:
+    max_active_sessions: 2
+    stale_session_timeout_minutes: 60
+    auto_mark_stale: true
+    require_ack_for_epoch_seal: true

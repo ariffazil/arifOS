@@ -97,9 +97,7 @@ class PromptArmor:
         pattern_score, pattern_matches = self.pattern_detector.scan(text)
 
         # === Layer 2: Semantic Detection ===
-        semantic_score, semantic_details = await self.semantic_detector.analyze(
-            text, context
-        )
+        semantic_score, semantic_details = await self.semantic_detector.analyze(text, context)
 
         # === Layer 3: Ontology Detection (F10) ===
         ontology_score, ontology_claims = self.ontology_detector.check(text)
@@ -117,14 +115,10 @@ class PromptArmor:
 
         if is_injection:
             self.injections_blocked += 1
-            logger.warning(
-                f"INJECTION DETECTED (score={final_score:.2f}): {text[:100]}..."
-            )
+            logger.warning(f"INJECTION DETECTED (score={final_score:.2f}): {text[:100]}...")
 
         # Determine category
-        category = self._classify_threat(
-            pattern_matches, semantic_details, ontology_claims
-        )
+        category = self._classify_threat(pattern_matches, semantic_details, ontology_claims)
 
         # Generate recommendations
         recommendations = self._generate_recommendations(

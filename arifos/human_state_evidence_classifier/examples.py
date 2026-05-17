@@ -35,9 +35,7 @@ def run_examples():
         print(f"  Confidence: {estimate.confidence.value}")
         print(f"  Signals:    {estimate.textual_signals}")
         print(f"  Bio:        {estimate.biological_signals}")
-        print(
-            f"  Confirm?:   {'YES' if estimate.human_confirmation_required else 'NO'}"
-        )
+        print(f"  Confirm?:   {'YES' if estimate.human_confirmation_required else 'NO'}")
         print(f"\n  SAFE: {estimate.safe_statement}")
         if estimate.forbidden_claims:
             print(f"  FORBIDDEN: {estimate.forbidden_claims[:2]}")

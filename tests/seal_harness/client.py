@@ -52,9 +52,7 @@ class MCPClient:
             **self.custom_headers,
         }
 
-        resp = await self.client.post(
-            self.endpoint, json=payload, headers=headers, timeout=30.0
-        )
+        resp = await self.client.post(self.endpoint, json=payload, headers=headers, timeout=30.0)
 
         # Extract session ID from response header
         self.mcp_session_id = resp.headers.get("mcp-session-id") or str(uuid.uuid4())
@@ -78,9 +76,7 @@ class MCPClient:
             **self.custom_headers,
         }
 
-        resp = await self.client.post(
-            self.endpoint, json=payload, headers=headers, timeout=30.0
-        )
+        resp = await self.client.post(self.endpoint, json=payload, headers=headers, timeout=30.0)
 
         result = self._parse_sse(resp.text)
 
@@ -108,9 +104,7 @@ class MCPClient:
             **self.custom_headers,
         }
 
-        resp = await self.client.post(
-            self.endpoint, json=payload, headers=headers, timeout=30.0
-        )
+        resp = await self.client.post(self.endpoint, json=payload, headers=headers, timeout=30.0)
 
         result = self._parse_sse(resp.text)
 
@@ -129,9 +123,7 @@ class MCPClient:
             **self.custom_headers,
         }
 
-        resp = await self.client.post(
-            self.endpoint, json=payload, headers=headers, timeout=30.0
-        )
+        resp = await self.client.post(self.endpoint, json=payload, headers=headers, timeout=30.0)
 
         result = self._parse_sse(resp.text)
 
@@ -150,9 +142,7 @@ class MCPClient:
             **self.custom_headers,
         }
 
-        resp = await self.client.post(
-            self.endpoint, json=payload, headers=headers, timeout=30.0
-        )
+        resp = await self.client.post(self.endpoint, json=payload, headers=headers, timeout=30.0)
 
         result = self._parse_sse(resp.text)
 

@@ -4,9 +4,7 @@ from arifosmcp.runtime.tools import _arif_session_init, _hold
 
 
 def test_hold_supports_extra_meta() -> None:
-    result = _hold(
-        "arif_session_init", "bad mode", extra_meta={"allowed_modes": ["init"]}
-    )
+    result = _hold("arif_session_init", "bad mode", extra_meta={"allowed_modes": ["init"]})
 
     assert result["status"] == "HOLD"
     assert result["meta"]["allowed_modes"] == ["init"]

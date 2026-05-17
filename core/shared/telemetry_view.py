@@ -23,9 +23,7 @@ TELEMETRY_MAPPING = {
         "label": "Humility Level",
         "floor": "F7",
         "meaning": "Honest about uncertainty — not overconfident, not paralyzed",
-        "eval": lambda v: (
-            "optimal" if 0.03 <= v <= 0.05 else ("fail" if v < 0.03 else "warning")
-        ),
+        "eval": lambda v: ("optimal" if 0.03 <= v <= 0.05 else ("fail" if v < 0.03 else "warning")),
         "format": lambda v: f"{v * 100:.0f}%",
         "ui_note": "Target band: 3-5%. Value in healthy range.",
     },
@@ -136,9 +134,7 @@ def build_human_view(
 
             if internal_key == "omega_0":
                 check_obj["ui_note"] = "Target band: 3-5%. " + (
-                    "Value in healthy range."
-                    if status == "optimal"
-                    else "Out of bounds."
+                    "Value in healthy range." if status == "optimal" else "Out of bounds."
                 )
 
             checks.append(check_obj)
@@ -166,9 +162,7 @@ def build_human_view(
         },
         "human": {
             "summary": {
-                "status": (
-                    "✅ SAFE TO PROCEED" if is_safe else "⚠️ PROCEED WITH CAUTION"
-                ),
+                "status": ("✅ SAFE TO PROCEED" if is_safe else "⚠️ PROCEED WITH CAUTION"),
                 "verdict": verdict,
                 "confidence": "High" if is_safe else "Moderate",
                 "one_liner": (

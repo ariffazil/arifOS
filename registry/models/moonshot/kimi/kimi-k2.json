@@ -1,0 +1,62 @@
+{
+  "id": "moonshot/kimi/kimi-k2",
+  "identity": {
+    "provider": "moonshot",
+    "family": "kimi",
+    "variant": "kimi-k2",
+    "api_model_id": "kimi-k2",
+    "aliases": [
+      "kimi-k2-2025",
+      "kimi-k2-thinking"
+    ],
+    "runtime_class": "extended-thinking",
+    "soul_key": "moonshot_kimi"
+  },
+  "capabilities": {
+    "context_window": 128000,
+    "supports_tools": true,
+    "supports_vision": true,
+    "supports_audio": false,
+    "supports_files": true,
+    "can_execute_code": true,
+    "web_access": true,
+    "streaming": true,
+    "output_modalities": [
+      "text",
+      "code"
+    ]
+  },
+  "governance": {
+    "risk_tier": "high",
+    "allowed_organs": [
+      "GEOX",
+      "WELL",
+      "AAA"
+    ],
+    "forbidden_organs": [],
+    "max_action_class": "execute",
+    "requires_human_confirmation_for": [
+      "financial_mutation",
+      "system_write"
+    ],
+    "execution_mode": "extended_thinking",
+    "side_effects_allowed": true,
+    "apex_score": 0.7895,
+    "amanah_score": 0.8,
+    "self_claim_boundary": {
+      "identity": "verified_against_registry",
+      "tools": "runtime_truth_only",
+      "knowledge": "attest_training_cutoff",
+      "actions": "governed_explicit_approval"
+    }
+  },
+  "lifecycle": {
+    "status": "active",
+    "evidence_tier": "official_doc",
+    "released_at": "2025-05-01",
+    "verified_at": "2026-05-15",
+    "last_reviewed_at": "2026-05-15",
+    "sunset_at": null
+  },
+  "notes": "Kimi K2 \u2014 Moonshot AI's 2025 release. Primary arifOS deployment on vps_main_arifos. Extended thinking, 2M context. Full organ access."
+}

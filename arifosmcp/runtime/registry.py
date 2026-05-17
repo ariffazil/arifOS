@@ -1,16 +1,26 @@
 """
 arifosmcp/runtime/registry.py — Internal Model Registry Data Layer
-═══════════════════════════════════════════════════════════════════
+══════════════════════════════════════════════════════════════════
 
 Direct filesystem access to the arifOS Model Registry v2.
 No network calls, pure data ingestion for organ deepening.
 """
+
+from __future__ import annotations
 
 import json
 import os
 from pathlib import Path
 
 from arifosmcp.runtime.public_surface import CANONICAL_13
+from arifosmcp.schemas.model_card import (
+    ModelAnchor,
+    ModelGovernanceCard,
+    RiskLeash,
+    RuntimeTruth,
+    SelfClaimBoundary,
+    ShadowProfile,
+)
 
 _HERE = Path(__file__).resolve()
 _REPO_ROOT = _HERE.parents[2]
@@ -20,8 +30,11 @@ def _candidate_registry_roots() -> list[Path]:
     env_root = os.environ.get("ARIFOS_REGISTRY_ROOT")
     candidates = [
         Path(env_root).expanduser() if env_root else None,
-        Path("/root/arifos-model-registry"),
-        _REPO_ROOT / "arifos-model-registry",
+        Path("/app/registry"),  # Docker default
+        Path("/root/arifOS/registry"),  # VPS default
+        Path("/root/arifos-model-registry"),  # Legacy separate repo
+        _REPO_ROOT / "registry",  # Relative to arifOS repo
+        _REPO_ROOT / "arifos-model-registry",  # Legacy relative
         _REPO_ROOT / "00_legacy_materials" / "arifOS-upstream" / "archive",
     ]
     return [path for path in candidates if path is not None]
@@ -76,7 +89,7 @@ def load_json(path: Path) -> dict:
 
 
 def get_model_spec(model_key: str) -> dict:
-    """Load model spec by key (provider/family/variant)."""
+    """Load model spec by key (provider/family/variant). Returns v3 5-layer passport."""
     # 1. Flat lookup (legacy / short key)
     flat_path = MODELS_PATH / f"{model_key}.json"
     if flat_path.exists():
@@ -103,26 +116,33 @@ def get_runtime_truth(deployment_id: str) -> dict:
 
 
 def derive_soul_key(model_spec: dict) -> str:
-    """Derive soul key from model spec (provider + _ + family)."""
-    provider = model_spec.get("provider", "")
-    family = model_spec.get("model_family", "")
-    if provider == "anthropic" and family == "claude":
-        return "anthropic_claude"
-    if provider == "openai" and family == "gpt":
-        return "openai_gpt"
-    if provider == "google" and family == "gemini":
-        return "google_gemini"
-    if provider == "minimax" and family == "minimax":
+    """Derive soul key from model spec (prefer identity.soul_key, fallback to provider_family)."""
+    # v3 schema: identity.soul_key
+    identity = model_spec.get("identity", {})
+    soul_key = identity.get("soul_key", "")
+    if soul_key:
+        return soul_key
+    # Legacy fallback
+    provider = identity.get("provider") or model_spec.get("provider", "")
+    family = identity.get("family") or model_spec.get("model_family", "")
+    if provider == "deepseek":
+        return "deepseek"
+    if provider == "minimax":
         return "minimax_m27"
     return f"{provider}_{family}"
 
 
 def build_governance_card(
     session_id: str, declared_model_key: str, deployment_id: str = "vps_main_arifos"
-) -> dict:
+) -> ModelGovernanceCard:
     """Assemble the full model_governance_card with graceful fallback."""
+    is_degraded = False
     try:
         model_spec = get_model_spec(declared_model_key)
+        identity = model_spec.get("identity", {})
+        governance = model_spec.get("governance", {})
+        model_spec.get("lifecycle", {})
+
         soul_key = derive_soul_key(model_spec) if model_spec else "unknown"
         soul = get_provider_soul(soul_key)
         runtime = get_runtime_truth(deployment_id)
@@ -131,7 +151,7 @@ def build_governance_card(
             raise ValueError("Registry data incomplete")
 
         # Shadow profile derivation (embedded in soul or defaults)
-        shadow_profile = soul.get(
+        shadow_raw = soul.get(
             "shadow_profile",
             {
                 "angel": soul.get("in_one_sentence", "standard capability"),
@@ -141,96 +161,105 @@ def build_governance_card(
                 "tripwires": ["identity overclaim", "tool overclaim"],
             },
         )
+        shadow_profile = ShadowProfile(
+            angel=shadow_raw.get("angel"),
+            shadow=shadow_raw.get("shadow"),
+            paradox=shadow_raw.get("paradox"),
+            control_laws=shadow_raw.get("control_laws", []),
+            tripwires=shadow_raw.get("tripwires", []),
+        )
 
-        # Risk leash mapping
-        risk_leash = {
-            "primary_control": "certainty_discipline",
-            "required_behaviors": soul.get("reasoning_style", []),
-            "forbidden_behaviors": [
+        # Risk leash mapping — uses v3 governance fields
+        risk_leash = RiskLeash(
+            primary_control="certainty_discipline",
+            risk_tier=governance.get("risk_tier", "medium"),
+            allowed_organs=governance.get("allowed_organs", []),
+            forbidden_organs=governance.get("forbidden_organs", []),
+            max_action_class=governance.get("max_action_class", "analyze"),
+            apex_score=governance.get("apex_score"),
+            amanah_score=governance.get("amanah_score"),
+            required_behaviors=soul.get("reasoning_style", []),
+            forbidden_behaviors=[
                 "claiming unverified identity",
                 "claiming unavailable tools",
                 "claiming unverified memory",
             ],
-        }
+        )
         identity_verified = True
 
     except Exception as e:
-        # ── Graceful Degraded Card (Task 3) ──
-        model_spec = {
-            "provider": (
-                declared_model_key.split("/")[0]
-                if "/" in declared_model_key
-                else "unknown"
-            ),
-            "model_family": "unknown",
-        }
+        # ── Graceful Degraded Card (Fix 4) ──
+        is_degraded = True
+        declared_provider = (
+            declared_model_key.split("/")[0] if "/" in declared_model_key else "unknown"
+        )
+        identity = {"provider": declared_provider, "family": "unknown"}
+        governance = {"risk_tier": "degraded"}
         soul = {"soul_label": "degraded_clerk_fallback"}
         runtime = {
             "provider_capabilities": ["read", "write"],
-            "tools_live": [
-                "arif_session_init",
-                "arif_sense_observe",
-                "arif_evidence_fetch",
-                "arif_mind_reason",
-                "arif_heart_critique",
-                "arif_kernel_route",
-                "arif_reply_compose",
-                "arif_memory_recall",
-                "arif_gateway_connect",
-                "arif_judge_deliberate",
-                "arif_vault_seal",
-                "arif_forge_execute",
-                "arif_ops_measure",
-            ],
+            "tools_live": CANONICAL_ARIFOS_TOOLS,
             "arifos_public_tools": CANONICAL_ARIFOS_TOOLS,
             "verified_arifos_tools": CANONICAL_ARIFOS_TOOLS,
             "web_on": False,
             "side_effects_allowed": False,
             "memory_mode": "session_only",
         }
-        shadow_profile = {"status": "registry_unavailable", "error": str(e)}
-        risk_leash = {"status": "registry_unavailable"}
+        shadow_profile = ShadowProfile(status="registry_unavailable", error=str(e))
+        risk_leash = RiskLeash(status="registry_unavailable")
         identity_verified = False
         soul_key = "fallback"
 
-    return {
-        "session_id": session_id,
-        "model_anchor": {
-            "declared_model_key": declared_model_key,
-            "verified_model_key": declared_model_key if identity_verified else None,
-            "provider_key": model_spec.get("provider"),
-            "family_key": model_spec.get("model_family"),
-            "soul_key": soul_key,
-            "soul_label": soul.get("soul_label"),
-            "identity_verified": identity_verified,
+    boundary_raw = runtime.get(
+        "self_claim_boundary",
+        {
+            "identity": "provider_family_only_unless_verified",
+            "tools": "verified_only",
+            "knowledge": "mark_verified_vs_inferred",
+            "actions": "mark_executed_vs_suggested",
         },
-        "runtime_truth": {
-            "deployment_id": deployment_id,
-            "web_on": runtime.get("web_on", False),
-            "memory_mode": runtime.get("memory_mode", "session_only"),
-            "provider_capabilities": runtime.get(
-                "provider_capabilities", runtime.get("tools_live", [])
-            ),
-            "tools_live": runtime.get("tools_live", []),
-            "arifos_public_tools": runtime.get(
-                "arifos_public_tools", CANONICAL_ARIFOS_TOOLS
-            ),
-            "verified_arifos_tools": runtime.get(
-                "verified_arifos_tools",
-                runtime.get("arifos_public_tools", CANONICAL_ARIFOS_TOOLS),
-            ),
-            "execution_mode": runtime.get("execution_mode", "dry_run"),
-            "side_effects_allowed": runtime.get("side_effects_allowed", False),
-        },
-        "self_claim_boundary": runtime.get(
-            "self_claim_boundary",
-            {
-                "identity": "provider_family_only_unless_verified",
-                "tools": "verified_only",
-                "knowledge": "mark_verified_vs_inferred",
-                "actions": "mark_executed_vs_suggested",
-            },
+    )
+    self_claim_boundary = SelfClaimBoundary(
+        identity=boundary_raw.get("identity", "provider_family_only_unless_verified"),
+        tools=boundary_raw.get("tools", "verified_only"),
+        knowledge=boundary_raw.get("knowledge", "mark_verified_vs_inferred"),
+        actions=boundary_raw.get("actions", "mark_executed_vs_suggested"),
+    )
+
+    model_anchor = ModelAnchor(
+        declared_model_key=declared_model_key,
+        verified_model_key=declared_model_key if identity_verified else None,
+        provider_key=identity.get("provider"),
+        family_key=identity.get("family"),
+        soul_key=soul_key,
+        soul_label=soul.get("soul_label"),
+        identity_verified=identity_verified,
+    )
+
+    runtime_truth = RuntimeTruth(
+        deployment_id=deployment_id,
+        web_on=runtime.get("web_on", False),
+        memory_mode=runtime.get("memory_mode", "session_only"),
+        provider_capabilities=runtime.get("provider_capabilities", runtime.get("tools_live", [])),
+        tools_live=runtime.get("tools_live", []),
+        arifos_public_tools=runtime.get("arifos_public_tools", CANONICAL_ARIFOS_TOOLS),
+        verified_arifos_tools=runtime.get(
+            "verified_arifos_tools",
+            runtime.get("arifos_public_tools", CANONICAL_ARIFOS_TOOLS),
         ),
-        "shadow_profile": shadow_profile,
-        "risk_leash": risk_leash,
-    }
+        execution_mode=runtime.get("execution_mode", "dry_run"),
+        side_effects_allowed=runtime.get("side_effects_allowed", False),
+    )
+
+    is_bound = identity_verified and soul_key not in ("unknown", "fallback")
+
+    return ModelGovernanceCard(
+        session_id=session_id,
+        model_anchor=model_anchor,
+        runtime_truth=runtime_truth,
+        self_claim_boundary=self_claim_boundary,
+        shadow_profile=shadow_profile,
+        risk_leash=risk_leash,
+        is_bound=is_bound,
+        is_degraded=is_degraded,
+    )

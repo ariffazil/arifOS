@@ -1,6 +1,7 @@
 """
 tests/runtime/test_wealth_kernel.py — WEALTH Capital Intelligence Tests
 """
+
 from __future__ import annotations
 
 import pytest
@@ -60,7 +61,7 @@ class TestCalculateNpv:
         assert r["npv"] == pytest.approx(200.0, 0.01)
 
     def test_with_terminal_value(self):
-        r = calculate_npv(1000, [300, 300], 0.1, terminal=500)
+        r = calculate_npv(1000, [300, 300], 0.1, terminal_value=500)
         # series = [-1000, 300, 800]
         assert r["npv"] is not None
 
@@ -168,6 +169,7 @@ class TestWealthDscrLeverage:
 class TestAnalyzeCostBenefit:
     def test_compatibility_wrapper(self):
         from core.organs._5_wealth import analyze_cost_benefit
+
         r = analyze_cost_benefit(1000, [500, 500, 500], 0.1)
         assert "initial_investment" in r
         assert "npv" in r

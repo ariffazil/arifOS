@@ -153,3 +153,4 @@ evidence/
 zkp_artifacts/
 arifos.egg-info/
 .archive/
+.env.decrypted

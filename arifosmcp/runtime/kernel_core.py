@@ -12,18 +12,18 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import Any
 
 from arifosmcp.constitutional_map import RiskClass, RiskDecision, preflight
+from arifosmcp.core.kernel.pattern_registry import PatternRegistry
+from arifosmcp.core.kernel.pattern_selector import PatternSelector
+from arifosmcp.core.kernel.planner import Planner
+from arifosmcp.core.kernel.role_registry import AgentRoleRegistry
+from arifosmcp.core.kernel.tool_registry import ToolContractRegistry
 from arifosmcp.models.verdicts import PipelineStage
-from arifosmcp.runtime.sessions import get_session_continuity_state
+from arifosmcp.runtime.continuity import seal_runtime_envelope
+from arifosmcp.runtime.session import get_session_continuity_state
 from arifosmcp.runtime.shadow_defense import ShadowDefense
-from core.kernel.pattern_registry import PatternRegistry
-from core.kernel.pattern_selector import PatternSelector
-from core.kernel.planner import Planner
-from core.kernel.role_registry import AgentRoleRegistry
-from core.kernel.tool_registry import ToolContractRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ class KernelCore:
         effective_query = payload.get("query") or query or ""
 
         # ── Identity Resolution (F11 Hardening) ──
-        from arifosmcp.runtime.sessions import get_session_identity
+        from arifosmcp.runtime.session import get_session_identity
 
         _bound_actor = None
         if session_id and session_id != "global":
@@ -86,17 +86,11 @@ class KernelCore:
                 _bound_actor = _identity.get("actor_id")
 
         effective_actor = (
-            (_bound_actor or payload.get("actor_id") or actor_id or "anonymous")
-            .strip()
-            .lower()
+            (_bound_actor or payload.get("actor_id") or actor_id or "anonymous").strip().lower()
         )
 
-        selected_pattern = self.pattern_selector.select(
-            {"query": effective_query, **payload}
-        )
-        adaptive_depth = self._compute_adaptive_depth(
-            effective_query, risk_tier, payload
-        )
+        selected_pattern = self.pattern_selector.select({"query": effective_query, **payload})
+        adaptive_depth = self._compute_adaptive_depth(effective_query, risk_tier, payload)
 
         context = {
             "payload": payload,
@@ -118,9 +112,7 @@ class KernelCore:
         }
         return context
 
-    def _compute_adaptive_depth(
-        self, query: str, risk_tier: str, payload: dict[str, Any]
-    ) -> str:
+    def _compute_adaptive_depth(self, query: str, risk_tier: str, payload: dict[str, Any]) -> str:
         q = query.lower()
         destructive_signals = {
             "delete",
@@ -135,22 +127,14 @@ class KernelCore:
             "drop",
         }
         has_destructive = any(s in q for s in destructive_signals)
-        if (
-            risk_tier == "low"
-            and not has_destructive
-            and not payload.get("allow_execution")
-        ):
+        if risk_tier == "low" and not has_destructive and not payload.get("allow_execution"):
             return "fast"
-        return (
-            "deep"
-            if (risk_tier in ("high", "critical") or has_destructive)
-            else "standard"
-        )
+        return "deep" if (risk_tier in ("high", "critical") or has_destructive) else "standard"
 
     def _get_session_state(self, session_id: str | None) -> dict[str, Any]:
         """Fetch session continuity state for G02 RouteContext population."""
         try:
-            from arifosmcp.runtime.sessions import get_session_continuity_state
+            from arifosmcp.runtime.session import get_session_continuity_state
 
             return get_session_continuity_state(session_id) or {}
         except Exception:
@@ -163,7 +147,7 @@ class KernelCore:
         if not session_id:
             return
         try:
-            from arifosmcp.runtime.sessions import (
+            from arifosmcp.runtime.session import (
                 get_session_continuity_state,
                 set_session_continuity_state,
             )
@@ -173,9 +157,7 @@ class KernelCore:
             if state_hash:
                 current["judge_state_hash"] = state_hash
             set_session_continuity_state(session_id, current)
-            logger.info(
-                f"[G02] Judge verdict stored: session={session_id[:20]}, verdict={verdict}"
-            )
+            logger.info(f"[G02] Judge verdict stored: session={session_id[:20]}, verdict={verdict}")
         except Exception as e:
             logger.warning(f"[G02] Failed to persist judge verdict: {e}")
 
@@ -207,8 +189,8 @@ class KernelCore:
         return True, "OK"
 
     async def orchestrate_stage(self, context: dict[str, Any]) -> dict[str, Any]:
-        from arifosmcp.runtime.governance_enforcer import classify_and_route
-        from arifosmcp.runtime.tools_hardened_dispatch import get_tool_handler
+        from arifosmcp.runtime.dispatcher import get_tool_handler
+        from arifosmcp.runtime.enforcer import classify_and_route
 
         query = context.get("query", "")
         actor_id = context.get("actor_id", "anonymous")
@@ -292,7 +274,7 @@ class KernelCore:
 
             if not g02_result.ok:
                 logger.warning(
-                    f"[G02] Blocked: {tool_name} → {g02_result.verdict} | {g02_result.blocked_reason}"
+                    f"[G02] Blocked: {tool_name} → {g02_result.verdict} | {g02_result.blocked_reason}"  # noqa: E501
                 )
                 return self._router_error(
                     code=f"G02_{g02_result.verdict}",
@@ -309,9 +291,9 @@ class KernelCore:
             context["g02_operation_class"] = g02_result.operation_class
             context["g02_verdict"] = g02_result.verdict
 
-            logger.info(
-                f"[G02] Allowed: {tool_name} → {g02_result.target_axis.value}/{g02_result.operation_class.value}"
-            )
+            axis_val = getattr(g02_result.target_axis, "value", str(g02_result.target_axis))
+            op_val = getattr(g02_result.operation_class, "value", str(g02_result.operation_class))
+            logger.info(f"[G02] Allowed: {tool_name} → {axis_val}/{op_val}")
 
         except ImportError:
             # G02 not available — degrade gracefully (old runtime)
@@ -350,9 +332,7 @@ class KernelCore:
         if not tool_result.get("ok", True):
             return self._router_error(
                 code=str(tool_result.get("error_code") or "ROUTER_DOWNSTREAM_ERROR"),
-                summary=str(
-                    tool_result.get("error") or "Downstream tool execution failed."
-                ),
+                summary=str(tool_result.get("error") or "Downstream tool execution failed."),
                 context=context,
                 resolved_lane=tool_name,
                 route_intent=routing_result.get("route_intent"),
@@ -437,12 +417,12 @@ class KernelCore:
             g02_axis = context.get("g02_axis")
             if g02_axis and g02_axis.value == "E":
                 session_state = self._get_session_state(context.get("session_id"))
-                kwargs["judge_verdict"] = session_state.get(
-                    "judge_verdict"
-                ) or context.get("g02_verdict")
+                kwargs["judge_verdict"] = session_state.get("judge_verdict") or context.get(
+                    "g02_verdict"
+                )
                 kwargs["judge_state_hash"] = session_state.get("judge_state_hash")
 
-            from arifosmcp.runtime.tools_hardened_dispatch import (
+            from arifosmcp.runtime.dispatcher import (
                 dispatch_with_fail_closed,
             )
 
@@ -457,7 +437,6 @@ class KernelCore:
         context: dict[str, Any],
         routing_result: dict[str, Any],
     ) -> dict[str, Any]:
-        from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
         from arifosmcp.runtime.model import RuntimeEnvelope
 
         session_id = context.get("session_id")
@@ -471,7 +450,7 @@ class KernelCore:
                 ok=tool_result.get("ok", True),
                 tool=tool_name,
                 canonical_tool_name=tool_name,
-                stage=PipelineStage.S555_ROUTE.value,
+                stage=str(PipelineStage.S555_ROUTE.value),
                 session_id=session_id,
                 payload=tool_result,
             )
@@ -522,7 +501,7 @@ class KernelCore:
                 session_stage=str(envelope.stage),
             )
 
-            phi = select_atlas_philosophy(scores, session_id=session_id)
+            phi = select_atlas_philosophy(scores, session_id=session_id or "global")
             if isinstance(envelope.payload, dict):
                 envelope.payload["philosophy"] = phi
 
@@ -533,14 +512,10 @@ class KernelCore:
                 base_detail = envelope.detail or ""
                 envelope.detail = f'{base_detail}\n\n"{quote}" — {author}'
         except Exception as phil_err:
-            logger.debug(
-                f"KERNEL OUTPUT: Philosophy atlas injection failed: {phil_err}"
-            )
+            logger.debug(f"KERNEL OUTPUT: Philosophy atlas injection failed: {phil_err}")
 
         # Seal with continuity (Harden G02 public routing)
-        sealed = seal_runtime_envelope(
-            envelope=envelope, tool_id=tool_name, session_id=session_id
-        )
+        sealed = seal_runtime_envelope(envelope=envelope, tool_id=tool_name, session_id=session_id)
 
         # ── Health Band Injection ──
         if isinstance(sealed, RuntimeEnvelope):
@@ -550,9 +525,7 @@ class KernelCore:
                 "ds": getattr(sealed.metrics.telemetry, "ds", 0.0),
                 "peace2": getattr(sealed.metrics.telemetry, "peace2", 1.0),
                 "omega": getattr(sealed.metrics.telemetry, "omega_ortho", 1.0),
-                "w3": getattr(
-                    sealed.metrics.witness, "ai", 0.95
-                ),  # Simplification for now
+                "w3": getattr(sealed.metrics.witness, "ai", 0.95),  # Simplification for now
                 "shadow": getattr(sealed.metrics.telemetry, "shadow", 0.0),
             }
             payload = dict(sealed.payload or {})
@@ -598,16 +571,14 @@ class KernelCore:
 
         final_result = await self.output_stage(
             orchestrate_result.get("tool_result", {}),
-            orchestrate_result.get("tool_name"),
+            orchestrate_result.get("tool_name") or "unknown",
             context,
             orchestrate_result.get("routing_result", {}),
         )
 
         verdict = final_result.get("verdict", "SABAR")
         final_result["kernel_status"] = (
-            "READY"
-            if verdict == "SEAL"
-            else ("BLOCKED" if verdict == "VOID" else "HOLD")
+            "READY" if verdict == "SEAL" else ("BLOCKED" if verdict == "VOID" else "HOLD")
         )
 
         # ── WELL Biological Context Injection ────────────────────────

@@ -39,10 +39,10 @@ from arifosmcp.runtime.public_registry import (
     public_tool_names,
     public_tool_specs,
 )
-from arifosmcp.runtime.resources import apex_tools_markdown_table
+from arifosmcp.runtime.resource import apex_tools_markdown_table
 from starlette.requests import Request
+from starlette.responses import RedirectResponse
 from starlette.responses import FileResponse, HTMLResponse, JSONResponse, Response
-from starlette.staticfiles import StaticFiles
 
 from core.shared.floor_audit import get_ml_floor_runtime
 from core.shared.floors import (
@@ -53,15 +53,16 @@ from core.shared.floors import (
     get_floor_threshold,
 )
 
-from arifosmcp.runtime.build_info import get_build_info
-from arifosmcp.runtime.capability_map import build_runtime_capability_map
+from arifosmcp.runtime.build import get_build_info
+from arifosmcp.runtime.capabilities import build_runtime_capability_map
+from arifosmcp.runtime.llm_client import check_provider_health
 from arifosmcp.runtime.contracts import (
     AAA_TOOL_ALIASES,
     AAA_TOOL_STAGE_MAP,
     TRINITY_BY_TOOL,
 )
 from arifosmcp.runtime.federation_epistemology import FederationEpistemicLedger
-from arifosmcp.runtime.floors import get_floor_count
+from arifosmcp.runtime.floor import get_floor_count
 
 # External MCP tool name → internal contract name
 # This is the authoritative mapping for stage/lane lookups
@@ -572,7 +573,7 @@ def _build_trinity_matrix(
     if schema_violation or hallucination_detected:
         omega = _matrix_domain(
             state="NEGATIVE",
-            label_bm="SESAT",
+            label_bm="BANGANG",
             label_en="MISALIGNED",
             evidence=(
                 (["schema_violation"] if schema_violation else [])
@@ -2216,30 +2217,9 @@ def _compute_known_gaps(
             }
         )
 
-    # mcp_session_init — always present (inherent limitation of MCP session protocol)
-    gaps.append(
-        {
-            "id": "mcp_session_init",
-            "title": "Public /mcp route: returns Session not found",
-            "detail": "MCP session requires initialization via tool call, not direct HTTP",
-            "severity": "info",
-            "floors": [],
-        }
-    )
-
-    # langfuse_tool_traces — RESOLVED: all 13 canonical tools now wired (6 async + 7 sync via _sync_trace)
+    # langfuse_tool_traces — only report when tracing is actually degraded.
     lf_status = langfuse_tracing.get("status", "UNKNOWN")
-    if lf_status == "ACTIVE":
-        gaps.append(
-            {
-                "id": "langfuse_tool_traces",
-                "title": "Langfuse tool traces: all 13 canonical tools wired (6 async _LANGFUSE_TRACER.trace + 7 sync _sync_trace)",
-                "detail": "SDK active with 13/13 tools traced",
-                "severity": "info",
-                "floors": [],
-            }
-        )
-    elif lf_status != "NOT_WIRED":
+    if lf_status not in ("ACTIVE", "NOT_WIRED"):
         gaps.append(
             {
                 "id": "langfuse_tool_traces",
@@ -2249,31 +2229,6 @@ def _compute_known_gaps(
                 "floors": ["F11"],
             }
         )
-
-    # outputschema_validation — wired: validate_tool_response_schema now called in
-    # _enforce_nine_signal for every tool response (all 13 tools). Secondary check
-    # after NineSignalOutput._enforce(). Non-fatal logging only. F8 G≥0.80 target
-    # is architectural — runtime G is measured by the judge organ, not by schema.
-    gaps.append(
-        {
-            "id": "outputschema_validation",
-            "title": "outputSchema validation: ENFORCED — validate_tool_response_schema wired for all 13 tools via _enforce_nine_signal",
-            "detail": "9-tool gap CLOSED. validate_tool_response_schema now secondary gate in _enforce_nine_signal. All 13 canonical tools validated on every response.",
-            "severity": "info",
-            "floors": ["F8", "F10"],
-        }
-    )
-
-    # cosign_supply_chain — signed with cosign key pair
-    gaps.append(
-        {
-            "id": "cosign_supply_chain",
-            "title": "Cosign/SLSA: image signed with cosign key pair — provenance verified",
-            "detail": "ghcr.io/ariffazil/arifos:kanon-final signed; transparency log entry index 1422405653",
-            "severity": "info",
-            "floors": [],
-        }
-    )
 
     # langfuse_degraded — only when Langfuse is degraded or auth failed
     if lf_status in ("DEGRADED_AUTH_FAILED", "NOT_WIRED"):
@@ -2564,6 +2519,7 @@ def register_rest_routes(
                         lambda *_args, **_kwargs: None,
                     )("subject"),
                 },
+                "llm_providers": await check_provider_health(),
             },
             headers={
                 "Access-Control-Allow-Origin": "*",
@@ -2873,7 +2829,7 @@ def register_rest_routes(
 
         Returns a layered topology map:
           Layer 0: Infrastructure  (Postgres, Redis, Qdrant, Vault999)
-          Layer 1: MCP Servers      (arifOS, GEOX, WEALTH, WELL, A-FORGE, AAA, Hermes)
+          Layer 1: MCP Servers      (arifOS, GEOX, WEALTH, WELL, A-FORGE, AAA, Apex)
           Layer 2: AI Providers     (Ollama, SEA-LION, Langfuse, Supabase)
           Layer 3: Edge / Routing   (Caddy, Cloudflare)
         Each entry: name, type, host, port, status, latency_ms, version (if available).
@@ -2897,7 +2853,7 @@ def register_rest_routes(
             _probe_http(path="http://well:8083/health", timeout=3.0),
             _probe_http(path="http://af-bridge-prod:7071/health", timeout=3.0),
             _probe_http(path="http://aaa-a2a:3001/health", timeout=3.0),
-            _probe_http(path="http://hermes-agent:3002/health", timeout=3.0),
+            _probe_http(path="http://apex-prime:3002/health", timeout=3.0),
             _probe_tcp_port("ollama", 11434),
         ]
 
@@ -2959,9 +2915,9 @@ def register_rest_routes(
                 **mcp_http[5],
             },
             {
-                "name": "Hermes",
+                "name": "Apex",
                 "type": "mcp",
-                "host": "hermes-agent",
+                "host": "apex-prime",
                 "port": 3002,
                 **mcp_http[6],
             },
@@ -3273,6 +3229,33 @@ def register_rest_routes(
             # Normalize parameter names for Horizon/ChatGPT compatibility
             normalized = _normalize_parameters(canonical_name, body)
 
+            # F12 INJECTION: Pre-dispatch scan across all text parameters
+            # Extract text from both top-level and MCP-style nested params.arguments
+            text_values = list(normalized.values())
+            params_block = body.get("params", body)
+            if isinstance(params_block, dict):
+                inner_args = params_block.get("arguments", params_block)
+                if isinstance(inner_args, dict):
+                    text_values.extend(str(v) for v in inner_args.values())
+            all_text = " ".join(str(v) for v in text_values)
+            from arifosmcp.runtime.witness_packet import _scan_injection
+
+            if _scan_injection(all_text):
+                logger.warning(f"F12_INJECTION_BLOCKED: tool={incoming_name}")
+                return JSONResponse(
+                    {
+                        "status": "error",
+                        "error": "F12_INJECTION_BLOCKED",
+                        "reason": "Prompt injection pattern detected in parameters",
+                        "tool": incoming_name,
+                        "canonical": canonical_name,
+                        "request_id": request_id,
+                        "failed_floor": "F12",
+                        "verdict": "HOLD",
+                    },
+                    status_code=400,
+                )
+
             # Filter to only valid parameters
             sig = inspect.signature(tool_fn)
             has_kwargs = any(
@@ -3415,6 +3398,19 @@ def register_rest_routes(
     @route("/.well-known/mcp/server.json", methods=["GET"])
     async def well_known(request: Request) -> Response:
         return await server_card_json(request)
+
+    @route("/mcp-discovery.json", methods=["GET"])
+    async def mcp_discovery(request: Request) -> Response:
+        """MCP discovery document at a Cloudflare-friendly path."""
+        return JSONResponse(
+            {
+                "note": "Cloudflare proxies block /.well-known/*. Use the canonical endpoint below.",
+                "canonical": f"{_public_base_url(request)}/.well-known/mcp/server.json",
+                "mcpEndpoint": f"{_public_base_url(request)}/mcp",
+                "docs": "https://modelcontextprotocol.io",
+            },
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
 
     @route("/.well-known/server.json", methods=["GET"])
     async def well_known_legacy(request: Request) -> Response:
@@ -4159,7 +4155,7 @@ def register_rest_routes(
         )
 
     GITHUB_RAW_TOOL_REGISTRY = (
-        "https://raw.githubusercontent.com/ariffazil/arifOS" "/main/arifosmcp/tool_registry.json"
+        "https://raw.githubusercontent.com/ariffazil/arifOS/main/arifosmcp/tool_registry.json"
     )
     LOCAL_FALLBACK_TOOL_REGISTRY = "/root/arifOS/arifosmcp/tool_registry.json"
 
@@ -4520,9 +4516,13 @@ def register_rest_routes(
                     "peace2": vitals.get("peace_squared", 0.0),
                     "kappa_r": vitals.get("echo_debt", 0.0),
                     "psi_le": vitals.get("psi_vitality", 0.0),
-                    "witness_human": float(governance_witness.get("human", 0.0)),
-                    "witness_ai": float(governance_witness.get("ai", 0.0)),
-                    "witness_earth": float(governance_witness.get("earth", 0.0)),
+                    "witness_human": float(
+                        governance_witness.get("human", _WITNESS_DEFAULTS["human"])
+                    ),
+                    "witness_ai": float(governance_witness.get("ai", _WITNESS_DEFAULTS["ai"])),
+                    "witness_earth": float(
+                        governance_witness.get("earth", _WITNESS_DEFAULTS["earth"])
+                    ),
                     "avg_latency_ms": 0.0,
                     "tau_confidence_system": float(governance_telemetry.get("confidence") or 0.0),
                     "f2_threshold": float(_FLOOR_DEFAULTS["F2"]),
@@ -5061,7 +5061,7 @@ def register_rest_routes(
     @route("/meta/omega/violations", methods=["GET"])
     async def meta_omega_violations(_request: Request) -> Response:
         """Detailed Ω_ortho violations."""
-        from arifosmcp.runtime.m01_correlation_auditor import get_auditor
+        from arifosmcp.runtime.auditor import get_auditor
 
         auditor = get_auditor()
         report = auditor.compute_orthogonality()
@@ -5178,17 +5178,31 @@ def register_rest_routes(
     # Register imperatively — function is defined after register_rest_routes() was called
     route("/constitution", methods=["GET"])(constitution_redirect)
 
-    dashboard_dir = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "sites",
-        "dashboard",
-    )
-    if os.path.exists(dashboard_dir) and hasattr(mcp, "_app"):
-        mcp._app.mount(
-            "/dashboard",
-            StaticFiles(directory=dashboard_dir, html=True),
-            name="dashboard",
-        )
+    # ── Observatory Dashboard (served directly via route) ────
+    @route("/dashboard", methods=["GET"])
+    async def serve_dashboard_root(request: Request) -> Response:
+        return RedirectResponse(url="/dashboard/", status_code=307)
+
+    @route("/dashboard/", methods=["GET"])
+    async def serve_dashboard(request: Request) -> Response:
+        try:
+            dashboard_html_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                "sites",
+                "dashboard",
+                "dashboard-v2.html",
+            )
+            with open(dashboard_html_path, encoding="utf-8") as fh:
+                html_content = fh.read()
+            return HTMLResponse(
+                html_content,
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
+            )
+        except Exception:
+            return _rest_error(
+                "Dashboard unavailable — visit /api/live/all for raw data",
+                status_code=503,
+            )
 
     @route("/chatgpt/widgets/vault-seal.html", methods=["GET", "OPTIONS"])
     async def chatgpt_vault_widget(request: Request) -> Response:
@@ -5215,7 +5229,7 @@ def register_rest_routes(
     async def list_resources(request: Request) -> Response:
         """List MCP resources — governed context objects."""
         try:
-            from arifosmcp.runtime.resources import manifest_resources
+            from arifosmcp.runtime.resource import manifest_resources
 
             resources = manifest_resources()
             return JSONResponse(
@@ -5232,7 +5246,7 @@ def register_rest_routes(
     async def read_resource(request: Request, uri: str) -> Response:
         """Read a specific resource by URI."""
         try:
-            from arifosmcp.runtime.resources import read_resource_content
+            from arifosmcp.runtime.resource import read_resource_content
 
             content = await read_resource_content(uri)
             if not content:

@@ -6,10 +6,10 @@ from arifosmcp.runtime.DNA import OMEGA_BAND, VERSION
 
 # --- Thermodynamics & Physics Stubs ---
 try:
-    from core.physics.thermodynamics_hardened import (
+    from arifosmcp.core.physics.thermodynamics_hardened import (
         check_landauer_bound as landauer_limit,
     )
-    from core.shared.physics import build_qt_quad_proof, genius_score
+    from arifosmcp.core.shared.physics import build_qt_quad_proof, genius_score
 except ImportError:
 
     def landauer_limit(bits_erased: float) -> dict:
@@ -36,20 +36,15 @@ except ImportError:
 # --- Paradox Engine Primitives ---
 QUOTES = {
     "triumph": (
-        "In the midst of winter, I found there was, within me, "
-        "an invincible summer. (Camus)"
+        "In the midst of winter, I found there was, within me, " "an invincible summer. (Camus)"
     ),
     "wisdom": "He who knows others is wise; he who knows himself is enlightened. (Lao Tzu)",
     "warning": (
         "The first principle is that you must not fool yourself, "
         "and you are the easiest person to fool. (Feynman)"
     ),
-    "tension": (
-        "Out of the strain of the doing, into the peace of the done. (St. Augustine)"
-    ),
-    "void": (
-        "The void is not empty; it is full of potential that has not yet cooled. (888_JUDGE)"
-    ),
+    "tension": ("Out of the strain of the doing, into the peace of the done. (St. Augustine)"),
+    "void": ("The void is not empty; it is full of potential that has not yet cooled. (888_JUDGE)"),
 }
 
 
@@ -61,6 +56,75 @@ def get_philosophical_contrast(g_score: float, risk: str) -> dict[str, str]:
     if risk == "high":
         return {"label": "tension", "quote": QUOTES["tension"]}
     return {"label": "wisdom", "quote": QUOTES["wisdom"]}
+
+
+# --- Auditor Pre-Delivery Gate (666_HEART) ---
+
+_AUDITOR_GATED_TOOLS = frozenset(
+    {
+        "arif_sense_observe",
+        "arif_mind_reason",
+        "arif_memory_recall",
+        "arif_evidence_fetch",
+        "arif_reply_compose",
+        "arif_forge_execute",
+        "arif_heart_critique",
+    }
+)
+_AUDITOR_TIMEOUT_S = 5.0
+
+# Fast deterministic audit markers (F-WEB §10 pattern-matched, no LLM required)
+_AUDITOR_HALLUCINATION_MARKERS = [
+    "i think",
+    "probably",
+    "might be",
+    "could be",
+    "possibly",
+    "as far as i know",
+    "to the best of my knowledge",
+]
+_AUDITOR_AUTONOMY_MARKERS = [
+    "i decided",
+    "i will deploy",
+    "i will restart",
+    "i'll go ahead",
+]
+
+
+def _auditor_quick_scan(result_text: str) -> dict:
+    """Lightning-fast deterministic audit: F2 Truth, F6 Sovereignty, F9 Anti-Hantu.
+
+    Runs < 1 ms — no LLM, no IO. If issues found, marks CAUTION.
+    Clean results get SEAL.
+    """
+    text_lower = result_text.lower()
+    warnings = []
+
+    # F2 Truth: unqualified uncertainty markers
+    for marker in _AUDITOR_HALLUCINATION_MARKERS:
+        if marker in text_lower:
+            warnings.append(f"F2_TRUTH: Unqualified uncertainty marker '{marker}'")
+            break
+
+    # F6 Sovereignty: autonomy overreach
+    for marker in _AUDITOR_AUTONOMY_MARKERS:
+        if marker in text_lower:
+            warnings.append(f"F6_SOVEREIGN: Autonomy overreach marker '{marker}'")
+            break
+
+    # F9 Anti-Hantu: confidence without evidence citation
+    if ("confident" in text_lower or "certainly" in text_lower) and "evidence" not in text_lower:
+        warnings.append("F9_ANTI_HANTU: Confidence expressed without evidence citation")
+
+    if warnings:
+        return {
+            "gate": "666_HEART",
+            "verdict": "CAUTION",
+            "risks_found": warnings,
+            "risk_tier": "medium",
+            "human_decision_required": False,
+        }
+    return {"gate": "666_HEART", "verdict": "SEAL"}
 
 
 # --- Core Governance Classes ---
@@ -81,7 +145,7 @@ class ConstitutionalKernel:
         """Fail-Closed Dispatch Gateway (F12/F13) + Formal Execution State Machine."""
         import time as _time
 
-        from arifosmcp.runtime.execution_state_machine import (
+        from arifosmcp.runtime.executor import (
             ExecutionState,
             ExecutionStateMachine,
         )
@@ -106,15 +170,12 @@ class ConstitutionalKernel:
         # ── Formal Execution State Machine Gate ───────────────────────────────────────
         current_state_str = get_session_execution_state(session_id)
         try:
-            current_state = (
-                ExecutionState(current_state_str) if current_state_str else None
-            )
+            current_state = ExecutionState(current_state_str) if current_state_str else None
         except ValueError:
             current_state = None
 
-        if (
-            ExecutionStateMachine.is_enforced()
-            and not ExecutionStateMachine.can_execute(canonical_name, current_state)
+        if ExecutionStateMachine.is_enforced() and not ExecutionStateMachine.can_execute(
+            canonical_name, current_state
         ):
             hold_result = ExecutionStateMachine.get_hold_response(
                 canonical_name, current_state, session_id=session_id
@@ -231,6 +292,20 @@ class ConstitutionalKernel:
         except Exception:
             # Ontology bridge must never break tool execution
             pass
+
+        # ── Auditor Pre-Delivery Gate (666_HEART) ───────────────────────────────────────
+        if (
+            canonical_name in _AUDITOR_GATED_TOOLS
+            and not arguments.get("skip_auditor_gate")
+            and isinstance(result, dict)
+        ):
+            try:
+                result_text = str(result.get("result", result))
+                audit_block = _auditor_quick_scan(result_text[:3000])
+                result["_auditor_gate"] = audit_block
+            except Exception:
+                # Auditor must never break tool execution
+                result["_auditor_gate"] = {"gate": "666_HEART", "verdict": "DEGRADED"}
 
         # ── State progression ───────────────────────────────────────────────────────────
         next_state = ExecutionStateMachine.get_next_state(canonical_name, current_state)

@@ -122,17 +122,11 @@ def evaluate_score(results: list[dict]) -> dict:
         if len(verdicts) >= 3 and len(set(verdicts)) == 1:
             stability_hits += 1
 
-    governance_score = (
-        governance_hits / governance_total if governance_total > 0 else 0.0
-    )
-    correctness_score = (
-        correctness_hits / correctness_total if correctness_total > 0 else 0.0
-    )
+    governance_score = governance_hits / governance_total if governance_total > 0 else 0.0
+    correctness_score = correctness_hits / correctness_total if correctness_total > 0 else 0.0
     stability_score = stability_hits / stability_total if stability_total > 0 else 0.0
 
-    e2e_score = (
-        (governance_score * 0.4) + (correctness_score * 0.3) + (stability_score * 0.3)
-    )
+    e2e_score = (governance_score * 0.4) + (correctness_score * 0.3) + (stability_score * 0.3)
 
     return {
         "e2e_score": round(e2e_score, 6),

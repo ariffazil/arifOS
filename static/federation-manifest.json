@@ -1,0 +1,423 @@
+{
+  "_schema": "arifos-federation-manifest-v1",
+  "_updated": "2026-05-03T11:50:00Z",
+  "_note": "Authored truth for the arifOS federation. Runtime truth (health, counts, version) is fetched live by the observatory.",
+  "stack": {
+    "name": "arifOS Federation",
+    "version": "kanon-6f99a42",
+    "topology": {
+      "layers": [
+        {
+          "name": "APEX · SOVEREIGN",
+          "role": "Human sovereign interface. Veto absolute. F13 floor witness.",
+          "status": "live",
+          "url": "https://apex.arif-fazil.com"
+        },
+        {
+          "name": "arifOS Kernel",
+          "role": "Constitutional governance engine. F1–F13 floors. 13 canonical tools. VAULT999 ledger. Trinity lanes ΔΩΨ.",
+          "status": "live",
+          "url": "https://arifos.arif-fazil.com"
+        },
+        {
+          "name": "MCP Gateway",
+          "role": "Streamable HTTP MCP endpoint. Tool discovery, capability negotiation, A2A mesh protocol.",
+          "status": "live",
+          "url": "https://mcp.arif-fazil.com"
+        },
+        {
+          "name": "Federation Organs",
+          "role": "Domain coprocessors: GEOX (Earth), WEALTH (Capital), WELL (Biological), AAA (Agent), A-FORGE (Metabolic), Ω-Wiki (Knowledge)",
+          "status": "live",
+          "url": "https://arifos.arif-fazil.com"
+        }
+      ],
+      "flow": [
+        "APEX issues intent → arifOS adjudicates (F1–F13) → MCP Gateway routes → Organ executes → arifOS seals verdict to VAULT999"
+      ]
+    }
+  },
+  "organs": {
+    "arifos": {
+      "id": "arifos",
+      "name": "arifOS",
+      "role": "Governance Kernel · ΔΩΨ Trinity",
+      "base_url": "https://arifos.arif-fazil.com",
+      "repo": "https://github.com/ariffazil/arifOS",
+      "endpoints": {
+        "health": "/health",
+        "discovery": "/.well-known/mcp/server.json",
+        "build_info": "/api/build-info",
+        "sot": "/inspector/sot",
+        "mcp": "/mcp",
+        "tools": "/tools",
+        "webmcp": "/webmcp"
+      },
+      "stack": {
+        "runtime": "Python 3.12+",
+        "framework": "FastMCP >=3.2.0, FastAPI, Uvicorn, SSE-Starlette",
+        "data": "Pydantic v2, PostgreSQL 16, Redis 7, Qdrant",
+        "observability": "Prometheus client, Rich console",
+        "infra": "Docker, Caddy 2, Nginx"
+      },
+      "dependencies": [
+        "postgres:16-alpine",
+        "redis:7-alpine",
+        "qdrant/qdrant:latest",
+        "caddy:2-alpine"
+      ],
+      "todo": [
+        {
+          "item": "Instrument remaining 9 MCP tools with Langfuse tracing (4/13 currently wired)",
+          "status": "in_progress",
+          "owner": "runtime",
+          "updated": "2026-05-01"
+        },
+        {
+          "item": "Enforce outputSchema validation for all 13 canonical tools",
+          "status": "planned",
+          "owner": "F8 Genius",
+          "updated": "2026-05-01"
+        },
+        {
+          "item": "Enable local model runtime (currently disabled)",
+          "status": "blocked",
+          "owner": "infra",
+          "updated": "2026-04-28"
+        }
+      ],
+      "known_gaps": [
+        {
+          "item": "outputSchema validation: partially enforced — 4 core tools have runtime enforcement, 9 others pending",
+          "severity": "warning",
+          "updated": "2026-05-01",
+          "source": "observatory/runtime_drift"
+        },
+        {
+          "item": "Public /mcp route returns 'Session not found' without prior tool-call initialization",
+          "severity": "info",
+          "updated": "2026-05-01",
+          "source": "observatory/known_gaps"
+        }
+      ],
+      "roadmap": [
+        {
+          "milestone": "Full 13-tool schema validation enforcement (G ≥ 0.80)",
+          "target": "2026-Q2",
+          "status": "planned"
+        },
+        {
+          "milestone": "Complete Langfuse instrumentation across all 13 tools",
+          "target": "2026-Q2",
+          "status": "in_progress"
+        },
+        {
+          "milestone": "Local model runtime (Ollama/SEA-LION fallback)",
+          "target": "2026-Q3",
+          "status": "blocked"
+        }
+      ],
+      "architecture_notes": [
+        "13-floor constitutional engine (F1 AMANAH → F13 SOVEREIGN)",
+        "13 canonical MCP tools with SSCT registry",
+        "VAULT999 append-only ledger",
+        "Trinity lanes: Δ (Evidence), Ω (Capital), Ψ (Earth)",
+        "Surface modes: canonical13 / canonical15 / expanded45"
+      ],
+      "negative_scope": "Not a generic AI framework. Constitutional governance is mandatory; no tool executes without floor evaluation."
+    },
+    "geox": {
+      "id": "geox",
+      "name": "GEOX",
+      "role": "Earth · Ψ Node",
+      "base_url": "https://geox.arif-fazil.com",
+      "repo": "https://github.com/ariffazil/geox",
+      "endpoints": {
+        "health": "/health",
+        "discovery": "/.well-known/mcp/server.json",
+        "mcp": "/mcp"
+      },
+      "stack": {
+        "runtime": "Python 3.11+",
+        "framework": "FastMCP, Pydantic v2, Uvicorn",
+        "science": "NumPy, SciPy, lasio, welly",
+        "frontend": "React + Vite + CesiumJS",
+        "infra": "Docker, Traefik"
+      },
+      "dependencies": [
+        "python:3.11-slim",
+        "FastMCP",
+        "numpy",
+        "scipy",
+        "lasio",
+        "welly"
+      ],
+      "todo": [
+        {
+          "item": "Expand petrophysics solver coverage beyond standard triple-combo logs",
+          "status": "planned",
+          "owner": "science",
+          "updated": "2026-04-20"
+        }
+      ],
+      "known_gaps": [
+        {
+          "item": "No HTTP /health exposed as MCP resource only; probe via MCP or /mcp",
+          "severity": "info",
+          "updated": "2026-05-01",
+          "source": "AGENTS.md"
+        }
+      ],
+      "roadmap": [
+        {
+          "milestone": "Physics-9 hardened agent for subsurface interpretation",
+          "target": "2026-Q2",
+          "status": "in_progress"
+        }
+      ],
+      "architecture_notes": [
+        "Earth-domain coprocessor — Ψ node",
+        "Physics-9 verification for all geoscience computations",
+        "WELL biological substrate monitor integrated",
+        "MCP-only health exposure (no HTTP /health)"
+      ],
+      "negative_scope": "Not generic consumer geology content. Physics-9 enforcement mandatory. No financial valuation."
+    },
+    "wealth": {
+      "id": "wealth",
+      "name": "WEALTH",
+      "role": "Capital · Ω Node",
+      "base_url": "https://wealth.arif-fazil.com",
+      "repo": "https://github.com/ariffazil/wealth",
+      "endpoints": {
+        "health": "/health",
+        "discovery": "/.well-known/mcp/server.json",
+        "mcp": "/mcp",
+        "ready": "/ready"
+      },
+      "stack": {
+        "runtime": "Python 3.12+",
+        "framework": "FastMCP (single-file monolith)",
+        "data": "Runtime soft-dependency on arifOS via sys.path injection"
+      },
+      "dependencies": [
+        "python:3.12-slim",
+        "fastmcp",
+        "arifOS (soft path injection)"
+      ],
+      "todo": [
+        {
+          "item": "Build pytest test suite (currently 0 tests)",
+          "status": "planned",
+          "owner": "quality",
+          "updated": "2026-04-15"
+        },
+        {
+          "item": "Decouple from arifOS soft path injection for standalone runtime",
+          "status": "planned",
+          "owner": "architecture",
+          "updated": "2026-04-20"
+        }
+      ],
+      "known_gaps": [
+        {
+          "item": "No test suite exists",
+          "severity": "warning",
+          "updated": "2026-04-15",
+          "source": "AGENTS.md"
+        },
+        {
+          "item": "Soft path injection to arifOS creates implicit coupling",
+          "severity": "info",
+          "updated": "2026-04-20",
+          "source": "AGENTS.md"
+        }
+      ],
+      "roadmap": [
+        {
+          "milestone": "Standalone test suite with pytest",
+          "target": "2026-Q2",
+          "status": "planned"
+        },
+        {
+          "milestone": "Makcik² relational credit scoring GA",
+          "target": "2026-Q3",
+          "status": "in_progress"
+        }
+      ],
+      "architecture_notes": [
+        "Capital intelligence coprocessor — Ω node",
+        "13 sovereign primitives + 66 legacy aliases = 79 MCP endpoints",
+        "Single-file monolith (~3,800 lines)",
+        "Graceful fallback stubs when arifOS absent"
+      ],
+      "negative_scope": "Not generic personal finance advice. Sovereign capital valuation and risk only. No consumer credit scoring."
+    },
+    "well": {
+      "id": "well",
+      "name": "WELL",
+      "role": "Biological · Substrate",
+      "base_url": "https://well.arif-fazil.com",
+      "repo": "https://github.com/ariffazil/well",
+      "endpoints": {
+        "health": "/health",
+        "discovery": "/.well-known/mcp/server.json",
+        "mcp": "/mcp"
+      },
+      "stack": {
+        "runtime": "Python 3.12+",
+        "framework": "FastMCP",
+        "domain": "Operator cognitive pressure, thermodynamic WELL state"
+      },
+      "dependencies": [
+        "python:3.12-slim",
+        "fastmcp"
+      ],
+      "todo": [
+        {
+          "item": "Rebuild WELL organ after removal from compose stack",
+          "status": "blocked",
+          "owner": "sovereign",
+          "updated": "2026-04-28"
+        }
+      ],
+      "known_gaps": [
+        {
+          "item": "Removed from production compose stack — pending sovereign rebuild decision",
+          "severity": "warning",
+          "updated": "2026-04-28",
+          "source": "compose/docker-compose.yml"
+        }
+      ],
+      "roadmap": [
+        {
+          "milestone": "Sovereign rebuild decision on WELL scope",
+          "target": "2026-Q2",
+          "status": "blocked"
+        }
+      ],
+      "architecture_notes": [
+        "Biological substrate governance organ",
+        "Monitors operator cognitive pressure (Ω_human)",
+        "Thermodynamic WELL state tracking",
+        "Currently offline in production compose"
+      ],
+      "negative_scope": "Not a wellness brand. Hard substrate monitoring only. No medical diagnosis."
+    },
+    "aaa": {
+      "id": "aaa",
+      "name": "AAA",
+      "role": "Agent · Control Plane",
+      "base_url": "https://aaa.arif-fazil.com",
+      "repo": "https://github.com/ariffazil/AAA",
+      "endpoints": {
+        "health": "/health",
+        "discovery": "/.well-known/mcp/server.json",
+        "a2a": "/a2a"
+      },
+      "stack": {
+        "runtime": "Node.js 22+ / Python 3.12+",
+        "framework": "Express / FastMCP",
+        "role": "Agentic AI control plane, ΔΩΨ agent supervision"
+      },
+      "dependencies": [
+        "node:22",
+        "python:3.12"
+      ],
+      "todo": [],
+      "known_gaps": [],
+      "roadmap": [
+        {
+          "milestone": "Live cockpit with ΔΩΨ triad visualization",
+          "target": "2026-Q2",
+          "status": "in_progress"
+        }
+      ],
+      "architecture_notes": [
+        "Arif Autonomous Agent control plane",
+        "ΔΩΨ agent supervision and session anchoring",
+        "A2A mesh protocol endpoint"
+      ],
+      "negative_scope": "Not a chatbot wrapper. Constitutional agent control only."
+    },
+    "forge": {
+      "id": "forge",
+      "name": "A-FORGE",
+      "role": "Metabolic Shell",
+      "base_url": "https://forge.arif-fazil.com",
+      "repo": "https://github.com/ariffazil/A-FORGE",
+      "endpoints": {
+        "health": "/health"
+      },
+      "stack": {
+        "runtime": "Node.js 22+",
+        "framework": "Express 4.x, TypeScript 5.8+, @modelcontextprotocol/sdk ^1.29.0",
+        "data": "PostgreSQL (pg), Supabase REST, Merkle anchoring",
+        "observability": "prom-client, ForgeScoreboard",
+        "infra": "Docker, Systemd, Kubernetes (ops/k8s/)"
+      },
+      "dependencies": [
+        "node:22",
+        "postgres:16",
+        "caddy:2-alpine"
+      ],
+      "todo": [
+        {
+          "item": "Complete cross-organ mesh protocol implementation",
+          "status": "planned",
+          "owner": "protocol",
+          "updated": "2026-04-25"
+        }
+      ],
+      "known_gaps": [],
+      "roadmap": [
+        {
+          "milestone": "Full A2A mesh protocol across all organs",
+          "target": "2026-Q3",
+          "status": "planned"
+        }
+      ],
+      "architecture_notes": [
+        "Metabolic execution shell — orchestrates agents, tools, policy gates",
+        "GovernanceBridge sends scripts to arifOS /governance/risk-classify",
+        "VaultClients: SupabaseVaultClient, PostgresVaultClient, FileVaultClient",
+        "MCP stdio/HTTP bridge for arifOS clients"
+      ],
+      "negative_scope": "Not a generic CI/CD pipeline. Sovereign metabolic execution only. No constitutional adjudication."
+    },
+    "wiki": {
+      "id": "wiki",
+      "name": "Ω-Wiki",
+      "role": "Knowledge Base",
+      "base_url": "https://wiki.arif-fazil.com",
+      "repo": "https://github.com/ariffazil/arif-sites",
+      "endpoints": {
+        "health": null,
+        "discovery": null
+      },
+      "stack": {
+        "runtime": "Static site",
+        "framework": "HTML/CSS/JS or React",
+        "role": "Persistent compiled knowledge. Text > Brain memory philosophy."
+      },
+      "dependencies": [],
+      "todo": [],
+      "known_gaps": [
+        {
+          "item": "No MCP health or discovery endpoint — static knowledge surface only",
+          "severity": "info",
+          "updated": "2026-05-01",
+          "source": "topology"
+        }
+      ],
+      "roadmap": [],
+      "architecture_notes": [
+        "Federation knowledge base",
+        "Persistent compiled knowledge across all repos",
+        "Text > Brain memory philosophy",
+        "Follows wiki/SCHEMA.md ingest rules"
+      ],
+      "negative_scope": "Not a generic wiki. Compiled constitutional memory only. No runtime execution."
+    }
+  }
+}

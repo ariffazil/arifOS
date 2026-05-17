@@ -70,9 +70,7 @@ _FAST_PATTERNS: list[tuple[re.Pattern, IntentCategory, float]] = [
         0.95,
     ),
     (
-        re.compile(
-            r"\b(suicide|suicidal|kill myself|end my life|i want to die)\b", re.I
-        ),
+        re.compile(r"\b(suicide|suicidal|kill myself|end my life|i want to die)\b", re.I),
         IntentCategory.SELF_SUPPORT,
         0.90,
     ),
@@ -99,9 +97,7 @@ _FAST_PATTERNS: list[tuple[re.Pattern, IntentCategory, float]] = [
         0.90,
     ),
     (
-        re.compile(
-            r"\bhow to (?:make|create|synthesize) (?:a )?(?:drug|poison|toxin)\b", re.I
-        ),
+        re.compile(r"\bhow to (?:make|create|synthesize) (?:a )?(?:drug|poison|toxin)\b", re.I),
         IntentCategory.INSTRUCTION,
         0.90,
     ),
@@ -169,16 +165,12 @@ _FAST_PATTERNS: list[tuple[re.Pattern, IntentCategory, float]] = [
     ),
     # ── Education / critique ─────────────────────────────────────────────
     (
-        re.compile(
-            r"\b(why is|why are|what is|explain|describe|analyze|compare)\b", re.I
-        ),
+        re.compile(r"\b(why is|why are|what is|explain|describe|analyze|compare)\b", re.I),
         IntentCategory.EDUCATION,
         0.60,
     ),  # low confidence — LLM fallback
     (
-        re.compile(
-            r"\b(critique|debate|justify|argue (for|against)|assess|evaluate)\b", re.I
-        ),
+        re.compile(r"\b(critique|debate|justify|argue (for|against)|assess|evaluate)\b", re.I),
         IntentCategory.CRITIQUE,
         0.70,
     ),  # low confidence — LLM fallback
@@ -312,9 +304,7 @@ def _llm_classify(text: str) -> tuple[IntentCategory, float]:
             return (IntentCategory.INSTRUCTION, 0.70)
     if any(w in text_lower for w in ["explain", "why", "what is", "describe", "learn"]):
         return (IntentCategory.EDUCATION, 0.60)
-    if any(
-        w in text_lower for w in ["justify", "debate", "argue", "critique", "assess"]
-    ):
+    if any(w in text_lower for w in ["justify", "debate", "argue", "critique", "assess"]):
         return (IntentCategory.CRITIQUE, 0.60)
     return (IntentCategory.UNKNOWN, 0.40)
 
@@ -346,9 +336,7 @@ def classify_intent(text: str) -> dict[str, Any]:
         transform_suggestion = _transform_suggestion(text, category)
         supportive_resources = _supportive_resources(category, text)
 
-        _log_gate_decision(
-            text, category, confidence, verdict, risk_tier, transform_suggestion
-        )
+        _log_gate_decision(text, category, confidence, verdict, risk_tier, transform_suggestion)
         return {
             "category": category,
             "confidence": confidence,
@@ -367,9 +355,7 @@ def classify_intent(text: str) -> dict[str, Any]:
     transform_suggestion = _transform_suggestion(text, category)
     supportive_resources = _supportive_resources(category, text)
 
-    _log_gate_decision(
-        text, category, confidence, verdict, risk_tier, transform_suggestion
-    )
+    _log_gate_decision(text, category, confidence, verdict, risk_tier, transform_suggestion)
     return {
         "category": category,
         "confidence": confidence,
@@ -413,9 +399,7 @@ def _supportive_resources(category: IntentCategory, text: str) -> list[str]:
     ]
 
 
-def _next_action(
-    category: IntentCategory, verdict: str, transform_suggestion: str | None
-) -> str:
+def _next_action(category: IntentCategory, verdict: str, transform_suggestion: str | None) -> str:
     if verdict == "VOID":
         return "Refuse — instruction intent blocked"
     if verdict == "HOLD":

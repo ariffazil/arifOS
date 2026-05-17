@@ -29,22 +29,14 @@ def _apply_path_priority() -> None:
     project_root = os.path.dirname(os.path.abspath(__file__))
     parent = os.path.dirname(project_root)
     parent_idx = sys.path.index(parent) if parent in sys.path else len(sys.path)
-    project_root_idx = (
-        sys.path.index(project_root) if project_root in sys.path else len(sys.path)
-    )
-    if (
-        parent not in sys.path
-        or project_root not in sys.path
-        or parent_idx > project_root_idx
-    ):
+    project_root_idx = sys.path.index(project_root) if project_root in sys.path else len(sys.path)
+    if parent not in sys.path or project_root not in sys.path or parent_idx > project_root_idx:
         _prioritize_paths(parent, project_root)
 
 
 from dotenv import load_dotenv  # noqa: E402
 
-_env_path = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"
-)
+_env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
 if os.path.exists(_env_path):
     load_dotenv(_env_path)
 
@@ -202,10 +194,10 @@ try:
     from arifosmcp.prompts import register_prompts
     from arifosmcp.resources import register_resources
     from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, register_tools
+    from arifosmcp.tools.embodied import register_all_arifos_tools
     from arifosmcp.tools.embodied_instances.arif_mind_reason_handler import (
         embodied_mind_reason_handler,
     )
-    from arifosmcp.tools.embodied_tool import register_all_arifos_tools
 
     register_all_arifos_tools()
 
@@ -215,6 +207,73 @@ try:
     _assert_registered_surface(v2_tools_registered)
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
+
+    # ── Inclusive Topology / Anti-Sink Diagnostics (777 FORGE) ────────────────
+    # Reversible runtime diagnostics. NOT canonical constitutional tools.
+    # Authority ceiling: advisory estimates only. No state mutation.
+    #
+    # NOTE: The public registry defines an "expanded45" mode listing 44 tool
+    # names (canonical + aliases). The LIVE MCP server here registers only the
+    # 13 canonical tools + these 3 diagnostics = 16 callable tools. The expanded
+    # registry names are for documentation and future expansion; they are NOT
+    # guaranteed to be registered at runtime. Use MCP tools/list for the
+    # authoritative live count.
+    from arifosmcp.tools.topology import (
+        arif_anti_sink_check,
+        institutional_drift_check,
+    )
+
+    mcp.tool(
+        name="arif_anti_sink_check",
+        description=(
+            "777_TOPOLOGY: Anti-sink runtime diagnostic. "
+            "Evaluates a system against anti-sink invariants (F05, F08, F10, F13). "
+            "Returns advisory estimates — not verdicts. Reversible. No state mutation."
+        ),
+        tags={"diagnostic", "topology", "governance"},
+    )(arif_anti_sink_check)
+
+    mcp.tool(
+        name="institutional_drift_check",
+        description=(
+            "777_TOPOLOGY: Institutional drift runtime diagnostic. "
+            "Evaluates extractive vs inclusive topology (Acemoglu frame). "
+            "Returns advisory estimates — not verdicts. Reversible. No state mutation."
+        ),
+        tags={"diagnostic", "topology", "governance"},
+    )(institutional_drift_check)
+
+    from arifosmcp.tools.health import arif_stack_health_probe
+
+    mcp.tool(
+        name="arif_stack_health_probe",
+        description=(
+            "777_OPS: Federation stack health and governance probe. "
+            "Checks arifOS MCP, organs, model registry, risk leash, tool registry, VAULT999. "
+            "Returns SELAMAT / AMANAH / VOID with per-component diagnostics."
+        ),
+        tags={"diagnostic", "ops", "health", "governance"},
+    )(arif_stack_health_probe)
+
+    v2_tools_registered.extend(
+        [
+            "arif_anti_sink_check",
+            "institutional_drift_check",
+            "arif_stack_health_probe",
+        ]
+    )
+    logger.info(
+        "Registered diagnostics: arif_anti_sink_check, institutional_drift_check, arif_stack_health_probe"  # noqa: E501
+    )
+
+    # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
+    try:
+        from arifosmcp.runtime.workers.memory_janitor import MemoryJanitor
+
+        janitor = MemoryJanitor.start(interval_seconds=3600)
+        logger.info("Phoenix-72 Memory Janitor: ACTIVE")
+    except Exception as e:
+        logger.warning(f"Failed to start Memory Janitor: {e}")
 except Exception as e:
     logger.error(f"Failed to initialize runtime components: {e}")
     raise
@@ -255,9 +314,21 @@ async def webmcp_discovery(request: Request) -> JSONResponse:
 
 
 async def tools_with_meta(request: Request) -> JSONResponse:
-    from arifosmcp.runtime.public_registry import public_tool_names
+    from arifosmcp.runtime.public_registry import public_tool_specs
 
-    tools_payload = [{"name": name, "canonical": name} for name in public_tool_names()]
+    tools_payload = [
+        {
+            "name": spec.name,
+            "canonical": spec.name,
+            "description": spec.description,
+            "stage": spec.stage,
+            "lane": spec.trinity,
+            "access": spec.access,
+            "inputSchema": spec.input_schema,
+            "outputSchema": spec.output_schema,
+        }
+        for spec in public_tool_specs()
+    ]
     return JSONResponse(
         {
             "tools": tools_payload,

@@ -75,9 +75,7 @@ class DeepResearchSkill:
             verified = self._cross_reference([result])
 
             # F3: Tri-Witness
-            w3 = compute_w3(
-                human_score=0.95, ai_score=0.92, earth_score=verified["consistency"]
-            )
+            w3 = compute_w3(human_score=0.95, ai_score=0.92, earth_score=verified["consistency"])
 
             # F7: Uncertainty
             omega = calculate_omega_zero([0.03])
@@ -148,9 +146,7 @@ async def execute(
 ) -> dict[str, Any]:
     """Main entry point."""
     skill = DeepResearchSkill(session_id, dry_run)
-    return await skill.execute(
-        action, params, session_id, dry_run, reality_bridge, checkpoint
-    )
+    return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
 
 
 metadata = {

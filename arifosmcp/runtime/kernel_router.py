@@ -21,16 +21,19 @@ Version: 2026.04.06-HARDENED
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
-from arifosmcp.runtime.belief_registry import update_belief
-from arifosmcp.runtime.governance_enforcer import (
+from arifosmcp.runtime.belief import update_belief
+from arifosmcp.runtime.enforcer import (
     QueryClass,
     classify_and_route,
     enforce_tool_verdict,
     get_enforcer,
 )
 from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
+
+logger = logging.getLogger(__name__)
 
 
 class HardenedKernelRouter:
@@ -62,7 +65,10 @@ class HardenedKernelRouter:
         # ═══════════════════════════════════════════════════════════════════════
         # STEP 1: CLASSIFY QUERY (Before any tool invocation)
         # ═══════════════════════════════════════════════════════════════════════
-        query_class, requires_tool = classify_and_route(query, context)
+        routing = await classify_and_route(query, context)
+        query_class_val = routing["query_class"]
+        query_class = QueryClass(query_class_val)
+        # requires_tool = routing["requires_tool"]
 
         # ═══════════════════════════════════════════════════════════════════════
         # STEP 2: CLASS A — INFORMATIONAL (No state change)
@@ -149,9 +155,7 @@ class HardenedKernelRouter:
             return "arifos.memory"
 
         # Execution/forge queries
-        if any(
-            kw in query_lower for kw in ["execute", "run", "deploy", "forge", "spawn"]
-        ):
+        if any(kw in query_lower for kw in ["execute", "run", "deploy", "forge", "spawn"]):
             return "arifos.forge"
 
         # Seal/vault queries
@@ -200,7 +204,7 @@ class HardenedKernelRouter:
             # Try legacy alias resolution before declaring not found
             handler = get_tool_handler(tool_name)
         if not handler:
-            # Return structured error envelope — NOT VOID (VOID is a governance verdict, not a dispatch failure)
+            # Return structured error envelope — NOT VOID (VOID is a governance verdict, not a dispatch failure)  # noqa: E501
             return RuntimeEnvelope(
                 tool=tool_name,
                 stage="555_ROUTE",
@@ -266,9 +270,7 @@ class HardenedKernelRouter:
                 if actor_id and actor_id != "anonymous":
                     belief = update_belief(
                         actor_id=actor_id,
-                        declared_intent=str(payload.get("declared_intent") or query)[
-                            :200
-                        ],
+                        declared_intent=str(payload.get("declared_intent") or query)[:200],
                         echo_debt=float(context.get("echo_debt", 0.0)),
                         shadow=float(context.get("shadow", 0.0)),
                         injection_score=float(context.get("injection_score", 0.0)),
@@ -292,9 +294,7 @@ class HardenedKernelRouter:
                 query=str(payload.get("query") or query), **extra_args, **common_args
             )
         if tool_name in ("arifos.kernel", "arifos_kernel"):
-            return await handler(
-                request=str(payload.get("query") or query), **common_args
-            )
+            return await handler(request=str(payload.get("query") or query), **common_args)
         if tool_name in ("arifos.heart", "arifos_heart"):
             return await handler(
                 content=str(payload.get("content") or payload.get("query") or query),
@@ -306,9 +306,7 @@ class HardenedKernelRouter:
                 **common_args,
             )
         if tool_name in ("arifos.judge", "arifos_judge"):
-            return await handler(
-                candidate_action=str(payload.get("query") or query), **common_args
-            )
+            return await handler(candidate_action=str(payload.get("query") or query), **common_args)
 
         return RuntimeEnvelope(
             tool=tool_name,

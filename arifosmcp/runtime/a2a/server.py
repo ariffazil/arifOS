@@ -114,9 +114,7 @@ class A2ATaskManager:
         async with self._lock:
             task = self.tasks.get(task_id)
             if not task:
-                return CancelTaskResponse(
-                    success=False, message=f"Task {task_id} not found"
-                )
+                return CancelTaskResponse(success=False, message=f"Task {task_id} not found")
 
             if task.state in [
                 TaskState.COMPLETED,
@@ -168,9 +166,7 @@ class A2ATaskManager:
             )
 
             # Step 2: APEX Judgment
-            await self._update_task_state(
-                task_id, TaskState.WORKING, "Awaiting APEX judgment..."
-            )
+            await self._update_task_state(task_id, TaskState.WORKING, "Awaiting APEX judgment...")
 
             judge_result = await self._call_mcp_tool(
                 "arif_judge_deliberate",
@@ -240,9 +236,7 @@ class A2ATaskManager:
                     pre_hash = await bridge.publish_hold(hold_event, action_payload)
 
                     # Log to VAULT999 with pre-execution hash (F1 AMANAH)
-                    await self._log_hold_to_vault(
-                        task, hold_event, pre_hash, action_payload
-                    )
+                    await self._log_hold_to_vault(task, hold_event, pre_hash, action_payload)
 
                     # Update task with hold metadata
                     task.hold_id = hold_event.hold_id
@@ -275,9 +269,7 @@ class A2ATaskManager:
 
             elif verdict == "SEAL":
                 # Execute the actual task
-                await self._update_task_state(
-                    task_id, TaskState.WORKING, "Executing with SEAL..."
-                )
+                await self._update_task_state(task_id, TaskState.WORKING, "Executing with SEAL...")
 
                 execution_result = await self._call_mcp_tool(
                     "arif_kernel_route",
@@ -316,22 +308,16 @@ class A2ATaskManager:
             task.updated_at = _utcnow()
             print(f"[A2A] Task execution error: {e}", file=sys.stderr)
 
-    async def _update_task_state(
-        self, task_id: str, state: TaskState, message: str = None
-    ):
+    async def _update_task_state(self, task_id: str, state: TaskState, message: str = None):
         """Update task state."""
         async with self._lock:
             if task_id in self.tasks:
                 self.tasks[task_id].state = state
                 self.tasks[task_id].updated_at = _utcnow()
                 if message:
-                    self.tasks[task_id].messages.append(
-                        TaskMessage(role="system", content=message)
-                    )
+                    self.tasks[task_id].messages.append(TaskMessage(role="system", content=message))
 
-    async def _call_mcp_tool(
-        self, tool_name: str, params: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def _call_mcp_tool(self, tool_name: str, params: dict[str, Any]) -> dict[str, Any]:
         """Call the MCP tool through the internal FastMCP kernel."""
         return await call_mcp_tool(self.mcp, tool_name, params)
 
@@ -401,9 +387,7 @@ class A2ATaskManager:
         try:
             async with aiofiles.open(vault_path, "a") as f:
                 await f.write(json.dumps(vault_entry) + "\n")
-            logger.info(
-                f"[F1 AMANAH] 888_HOLD logged to VAULT999: {hold_event.hold_id}"
-            )
+            logger.info(f"[F1 AMANAH] 888_HOLD logged to VAULT999: {hold_event.hold_id}")
         except Exception as e:
             logger.error(f"[F1 AMANAH] Failed to log to VAULT999: {e}")
 

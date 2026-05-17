@@ -7,7 +7,7 @@ Constitutional session bootstrap + identity binding.
 
 from __future__ import annotations
 
-from arifosmcp.runtime.floors import check_floors
+from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.tools import ARIF_DOCTRINE, _new_session
 from arifosmcp.schemas.session import SessionManifest
 
@@ -50,11 +50,22 @@ def arif_session_init(
         sess = _new_session(
             actor_id, declared_model_key=declared_model_key, deployment_id=deployment_id
         )
+        # W-3: Mirror M-WELL + G-WELL substrate at session open — every session starts informed
+        _well_mirror: dict = {}
+        try:
+            from arifosmcp.tools.judge import _read_well_governance, _read_well_substrate
+
+            _well_mirror["h_well"] = _read_well_substrate()
+            _well_mirror["g_well"] = _read_well_governance()
+            _well_mirror["w0"] = "WELL informs. arifOS judges. Arif decides."
+        except Exception:
+            _well_mirror["status"] = "unavailable"
         return SessionManifest(
             status="OK",
             result={
                 "session": sess,
                 "model_governance_card": sess.get("model_governance_card"),
+                "well_mirror": _well_mirror,
             },
             doctrine=ARIF_DOCTRINE,
         )

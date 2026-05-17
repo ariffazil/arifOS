@@ -44,11 +44,11 @@ systemctl start arifos-webhook
 
 ### Step 3: Configure Cloudflare or Caddy
 
-Cloudflare: proxy `https://arifOS.arif-fazil.com/webhook/github` → `http://127.0.0.1:8443/webhook/github`
+Cloudflare: proxy `https://arifos.arif-fazil.com/webhook/github` → `http://127.0.0.1:8443/webhook/github`
 
 Or Caddy (in your existing Caddyfile):
 ```
-arifOS.arif-fazil.com {
+arifos.arif-fazil.com {
     handle /webhook/github* {
         reverse_proxy localhost:8443
     }
@@ -60,7 +60,7 @@ arifOS.arif-fazil.com {
 
 Go to: **GitHub repo → Settings → Webhooks → Add webhook**
 ```
-Payload URL:     https://arifOS.arif-fazil.com/webhook/github
+Payload URL:     https://arifos.arif-fazil.com/webhook/github
 Content type:    application/json
 Secret:          <your ARIFOS_WEBHOOK_SECRET>
 Events:          Pushes, Releases, Repository dispatch

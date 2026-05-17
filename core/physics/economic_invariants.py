@@ -26,12 +26,9 @@ from core.physics.thermodynamics_hardened import (
     MAX_ENTROPY_DELTA,
     ThermodynamicBudget,
     ThermodynamicError,
-    check_landauer_bound,
-    entropy_delta,
     get_thermodynamic_budget,
     vector_orthogonality,
 )
-from core.organs._5_wealth import EconomicEnvelope
 
 # ═══════════════════════════════════════════════════════
 # EXCEPTIONS — Substrate (12 Economic-Physics)
@@ -349,8 +346,10 @@ def check_speed_limit_value(
     claimed_settlement_ms: float,
 ) -> dict[str, Any]:
     """Inv-11: Speed Limit on Value Transfer."""
-    causal_bandwidth_ms = computation_ms * (1 + 0.1 * math.log1p(consensus_depth)) * (
-        1 + 0.05 * math.log1p(audit_trail_length)
+    causal_bandwidth_ms = (
+        computation_ms
+        * (1 + 0.1 * math.log1p(consensus_depth))
+        * (1 + 0.05 * math.log1p(audit_trail_length))
     )
     if claimed_settlement_ms < causal_bandwidth_ms * 0.01:
         raise SpeedLimitError(
@@ -619,7 +618,11 @@ def run_all_invariants(
     # ── I01 ──
     if all(k in payload for k in ("v_in", "v_out")):
         try:
-            kw = {k: payload[k] for k in ("v_in", "v_out", "v_generated", "v_dissipated", "v_locked", "tolerance") if k in payload}
+            kw = {
+                k: payload[k]
+                for k in ("v_in", "v_out", "v_generated", "v_dissipated", "v_locked", "tolerance")
+                if k in payload
+            }
             _record("I01", check_conservation_of_value(**kw), None)
         except EconomicInvariantError as e:
             _record("I01", None, e)
@@ -627,76 +630,155 @@ def run_all_invariants(
     # ── I02 ──
     if "bits_resolved" in payload and "claimed_delta_s" in payload:
         try:
-            _record("I02", check_entropic_cost(payload["bits_resolved"], payload["claimed_delta_s"], payload.get("min_entropy_per_bit")), None)
+            _record(
+                "I02",
+                check_entropic_cost(
+                    payload["bits_resolved"],
+                    payload["claimed_delta_s"],
+                    payload.get("min_entropy_per_bit"),
+                ),
+                None,
+            )
         except EconomicInvariantError as e:
             _record("I02", None, e)
 
     # ── I03 ──
     if "bits_resolved" in payload and "actual_cost_joules" in payload:
         try:
-            _record("I03", check_landauer_asymmetry(payload["bits_resolved"], payload["actual_cost_joules"], payload.get("temperature_k", 300.0)), None)
+            _record(
+                "I03",
+                check_landauer_asymmetry(
+                    payload["bits_resolved"],
+                    payload["actual_cost_joules"],
+                    payload.get("temperature_k", 300.0),
+                ),
+                None,
+            )
         except EconomicInvariantError as e:
             _record("I03", None, e)
 
     # ── I04 ──
     try:
-        _record("I04", check_thermodynamic_budget(session_id, payload.get("projected_cost", 0.0)), None)
+        _record(
+            "I04", check_thermodynamic_budget(session_id, payload.get("projected_cost", 0.0)), None
+        )
     except EconomicInvariantError as e:
         _record("I04", None, e)
 
     # ── I05 ──
     if "abundance_score" in payload and "scarcity_score" in payload:
         try:
-            _record("I05", check_scarcity_abundance_orthogonality(payload["abundance_score"], payload["scarcity_score"], payload.get("h_bar_eff", 1e-3)), None)
+            _record(
+                "I05",
+                check_scarcity_abundance_orthogonality(
+                    payload["abundance_score"],
+                    payload["scarcity_score"],
+                    payload.get("h_bar_eff", 1e-3),
+                ),
+                None,
+            )
         except EconomicInvariantError as e:
             _record("I05", None, e)
 
     # ── I06 ──
     if "npv" in payload and "delta_s" in payload:
         try:
-            _record("I06", check_npv_entropy_gradient(payload["npv"], payload["delta_s"], strict), None)
+            _record(
+                "I06", check_npv_entropy_gradient(payload["npv"], payload["delta_s"], strict), None
+            )
         except EconomicInvariantError as e:
             _record("I06", None, e)
 
     # ── I07 ──
     if "participant_vectors" in payload:
         try:
-            _record("I07", check_mode_collapse_market(payload["participant_vectors"], payload.get("threshold", 0.95)), None)
+            _record(
+                "I07",
+                check_mode_collapse_market(
+                    payload["participant_vectors"], payload.get("threshold", 0.95)
+                ),
+                None,
+            )
         except EconomicInvariantError as e:
             _record("I07", None, e)
 
     # ── I08 ──
     if "is_irreversible" in payload:
         try:
-            _record("I08", check_irreversibility_commitment(payload["is_irreversible"], payload.get("ack_irreversible", False)), None)
+            _record(
+                "I08",
+                check_irreversibility_commitment(
+                    payload["is_irreversible"], payload.get("ack_irreversible", False)
+                ),
+                None,
+            )
         except EconomicInvariantError as e:
             _record("I08", None, e)
 
     # ── I09 ──
     if "genius_score" in payload:
         try:
-            _record("I09", check_genius_discipline(payload["genius_score"], payload.get("target_verdict", "SEAL"), payload.get("threshold", 0.80)), None)
+            _record(
+                "I09",
+                check_genius_discipline(
+                    payload["genius_score"],
+                    payload.get("target_verdict", "SEAL"),
+                    payload.get("threshold", 0.80),
+                ),
+                None,
+            )
         except EconomicInvariantError as e:
             _record("I09", None, e)
 
     # ── I10 ──
     if "has_path_history" in payload:
         try:
-            _record("I10", check_hysteresis_wealth(payload["has_path_history"], payload.get("hysteresis_parameter")), None)
+            _record(
+                "I10",
+                check_hysteresis_wealth(
+                    payload["has_path_history"], payload.get("hysteresis_parameter")
+                ),
+                None,
+            )
         except EconomicInvariantError as e:
             _record("I10", None, e)
 
     # ── I11 ──
-    if all(k in payload for k in ("computation_ms", "consensus_depth", "audit_trail_length", "claimed_settlement_ms")):
+    if all(
+        k in payload
+        for k in (
+            "computation_ms",
+            "consensus_depth",
+            "audit_trail_length",
+            "claimed_settlement_ms",
+        )
+    ):
         try:
-            _record("I11", check_speed_limit_value(payload["computation_ms"], payload["consensus_depth"], payload["audit_trail_length"], payload["claimed_settlement_ms"]), None)
+            _record(
+                "I11",
+                check_speed_limit_value(
+                    payload["computation_ms"],
+                    payload["consensus_depth"],
+                    payload["audit_trail_length"],
+                    payload["claimed_settlement_ms"],
+                ),
+                None,
+            )
         except EconomicInvariantError as e:
             _record("I11", None, e)
 
     # ── I12 ──
     if "payload_hash" in payload:
         try:
-            _record("I12", check_ledger_conservation(payload["payload_hash"], payload.get("prior_vault_hash"), payload.get("sealed_within_timeout", True)), None)
+            _record(
+                "I12",
+                check_ledger_conservation(
+                    payload["payload_hash"],
+                    payload.get("prior_vault_hash"),
+                    payload.get("sealed_within_timeout", True),
+                ),
+                None,
+            )
         except EconomicInvariantError as e:
             _record("I12", None, e)
 
@@ -705,48 +787,63 @@ def run_all_invariants(
     # ═══════════════════════════════════════════════════════
     if include_emergence:
         # E_PSI
-        if all(k in payload for k in ("cognitive_bias_index", "affective_contagion", "cognitive_load_ratio")):
+        if all(
+            k in payload
+            for k in ("cognitive_bias_index", "affective_contagion", "cognitive_load_ratio")
+        ):
             try:
-                _record("E_PSI", check_psychological_distortion(
-                    payload["cognitive_bias_index"],
-                    payload["affective_contagion"],
-                    payload["cognitive_load_ratio"],
-                    payload.get("epistemic_confidence_without_evidence", 0.0),
-                    payload.get("bias_threshold", 0.35),
-                    payload.get("contagion_threshold", 0.60),
-                    payload.get("load_threshold", 0.85),
-                ), None)
+                _record(
+                    "E_PSI",
+                    check_psychological_distortion(
+                        payload["cognitive_bias_index"],
+                        payload["affective_contagion"],
+                        payload["cognitive_load_ratio"],
+                        payload.get("epistemic_confidence_without_evidence", 0.0),
+                        payload.get("bias_threshold", 0.35),
+                        payload.get("contagion_threshold", 0.60),
+                        payload.get("load_threshold", 0.85),
+                    ),
+                    None,
+                )
             except EconomicInvariantError as e:
                 _record("E_PSI", None, e)
 
         # E_PWR
         if all(k in payload for k in ("pareto_ratio", "exit_barrier", "consent_ratio")):
             try:
-                _record("E_PWR", check_power_consolidation(
-                    payload["pareto_ratio"],
-                    payload["exit_barrier"],
-                    payload["consent_ratio"],
-                    payload.get("authority_drift", 0.0),
-                    payload.get("capture_index", 0.0),
-                    payload.get("pareto_threshold", 0.80),
-                    payload.get("exit_threshold", 0.70),
-                    payload.get("consent_threshold", 0.30),
-                ), None)
+                _record(
+                    "E_PWR",
+                    check_power_consolidation(
+                        payload["pareto_ratio"],
+                        payload["exit_barrier"],
+                        payload["consent_ratio"],
+                        payload.get("authority_drift", 0.0),
+                        payload.get("capture_index", 0.0),
+                        payload.get("pareto_threshold", 0.80),
+                        payload.get("exit_threshold", 0.70),
+                        payload.get("consent_threshold", 0.30),
+                    ),
+                    None,
+                )
             except EconomicInvariantError as e:
                 _record("E_PWR", None, e)
 
         # E_INT
         if "order_parameter" in payload:
             try:
-                _record("E_INT", check_intelligence_emergence(
-                    payload["order_parameter"],
-                    payload.get("component_capability_hash"),
-                    payload.get("system_behavior_hash"),
-                    payload.get("telos_drift", 0.0),
-                    payload.get("collective_orthogonality", 1.0),
-                    payload.get("critical_threshold", 0.75),
-                    payload.get("orthogonality_threshold", 0.95),
-                ), None)
+                _record(
+                    "E_INT",
+                    check_intelligence_emergence(
+                        payload["order_parameter"],
+                        payload.get("component_capability_hash"),
+                        payload.get("system_behavior_hash"),
+                        payload.get("telos_drift", 0.0),
+                        payload.get("collective_orthogonality", 1.0),
+                        payload.get("critical_threshold", 0.75),
+                        payload.get("orthogonality_threshold", 0.95),
+                    ),
+                    None,
+                )
             except EconomicInvariantError as e:
                 _record("E_INT", None, e)
 
@@ -783,40 +880,55 @@ def run_emergence_layer(
             checks.append(result)
 
     # E_PSI
-    if all(k in payload for k in ("cognitive_bias_index", "affective_contagion", "cognitive_load_ratio")):
+    if all(
+        k in payload
+        for k in ("cognitive_bias_index", "affective_contagion", "cognitive_load_ratio")
+    ):
         try:
-            _record("E_PSI", check_psychological_distortion(
-                payload["cognitive_bias_index"],
-                payload["affective_contagion"],
-                payload["cognitive_load_ratio"],
-                payload.get("epistemic_confidence_without_evidence", 0.0),
-            ), None)
+            _record(
+                "E_PSI",
+                check_psychological_distortion(
+                    payload["cognitive_bias_index"],
+                    payload["affective_contagion"],
+                    payload["cognitive_load_ratio"],
+                    payload.get("epistemic_confidence_without_evidence", 0.0),
+                ),
+                None,
+            )
         except EconomicInvariantError as e:
             _record("E_PSI", None, e)
 
     # E_PWR
     if all(k in payload for k in ("pareto_ratio", "exit_barrier", "consent_ratio")):
         try:
-            _record("E_PWR", check_power_consolidation(
-                payload["pareto_ratio"],
-                payload["exit_barrier"],
-                payload["consent_ratio"],
-                payload.get("authority_drift", 0.0),
-                payload.get("capture_index", 0.0),
-            ), None)
+            _record(
+                "E_PWR",
+                check_power_consolidation(
+                    payload["pareto_ratio"],
+                    payload["exit_barrier"],
+                    payload["consent_ratio"],
+                    payload.get("authority_drift", 0.0),
+                    payload.get("capture_index", 0.0),
+                ),
+                None,
+            )
         except EconomicInvariantError as e:
             _record("E_PWR", None, e)
 
     # E_INT
     if "order_parameter" in payload:
         try:
-            _record("E_INT", check_intelligence_emergence(
-                payload["order_parameter"],
-                payload.get("component_capability_hash"),
-                payload.get("system_behavior_hash"),
-                payload.get("telos_drift", 0.0),
-                payload.get("collective_orthogonality", 1.0),
-            ), None)
+            _record(
+                "E_INT",
+                check_intelligence_emergence(
+                    payload["order_parameter"],
+                    payload.get("component_capability_hash"),
+                    payload.get("system_behavior_hash"),
+                    payload.get("telos_drift", 0.0),
+                    payload.get("collective_orthogonality", 1.0),
+                ),
+                None,
+            )
         except EconomicInvariantError as e:
             _record("E_INT", None, e)
 

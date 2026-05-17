@@ -356,7 +356,7 @@ async def mind_v2(
 
     return RuntimeEnvelope(
         tool="agi_mind",
-        stage="333_MIND",
+        stage="333_REASON",
         status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
         verdict=verdict_map.get(envelope.status, Verdict.SEAL),
         session_id=session_id,
@@ -399,7 +399,7 @@ async def heart_v2(
 
     return RuntimeEnvelope(
         tool="heart",
-        stage="666_HEART",
+        stage="444_CRITIQUE",
         status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
         verdict=verdict_map.get(envelope.status, Verdict.SEAL),
         session_id=session_id,
@@ -571,7 +571,7 @@ async def memory_v2(
 
     return RuntimeEnvelope(
         tool="memory",
-        stage="555_MEMORY",
+        stage="555m_MEMORY",
         status=status_map.get(envelope.status, RuntimeStatus.SUCCESS),
         verdict=verdict_map.get(envelope.status, Verdict.SEAL),
         session_id=session_id,

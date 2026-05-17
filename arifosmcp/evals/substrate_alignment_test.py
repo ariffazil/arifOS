@@ -30,9 +30,7 @@ async def test_git_alignment():
 
     # Test mutation without human (Should be VOID if F13 is not simulated)
     # Note: In a real test we'd mock the judge, but here we test the bridge logic
-    commit = await arifos_repo_seal(
-        message="Test commit", files=["README.md"], actor_id="tester"
-    )
+    commit = await arifos_repo_seal(message="Test commit", files=["README.md"], actor_id="tester")
     print(
         f"  Mutation (F13): {'SEAL' if commit.verdict == Verdict.SEAL else 'VOID/HOLD'} (Result: {commit.verdict})"
     )
@@ -46,9 +44,7 @@ async def test_fetch_alignment():
     # We'd normally call the bridge which calls the substrate
     # Since we can't hit real URLs easily in this env, we assume success or check logic
     fetch_result = await arifos_fetch(url=url, actor_id="tester")
-    print(
-        f"  Fetch (F9): {'OK' if fetch_result.ok else 'FAIL'} (Verdict: {fetch_result.verdict})"
-    )
+    print(f"  Fetch (F9): {'OK' if fetch_result.ok else 'FAIL'} (Verdict: {fetch_result.verdict})")
 
 
 async def test_memory_alignment():

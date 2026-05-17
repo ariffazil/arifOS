@@ -103,9 +103,7 @@ class ConstitutionalVerdict(BaseModel):
     floors: FloorResult
     authority: AuthorityProof
     irreversibility: IrreversibilityLevel
-    timestamp: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     state_hash: str = Field(default="")
 
     def model_post_init(self, __context: Any) -> None:
@@ -519,10 +517,7 @@ class SchemaContractValidator:
         errors: list[str] = []
         for name, field_info in model.model_fields.items():
             annotation = field_info.annotation
-            if (
-                hasattr(annotation, "__origin__")
-                and annotation.__origin__ is type[None] | str
-            ):
+            if hasattr(annotation, "__origin__") and annotation.__origin__ is type[None] | str:
                 errors.append(f"Field '{name}' has Union type with None")
         return errors
 
@@ -536,9 +531,7 @@ class SchemaContractValidator:
         missing = documented_modes - implemented_modes
         extra = implemented_modes - documented_modes
         if missing:
-            errors.append(
-                f"{tool_name}: documented modes missing in implementation: {missing}"
-            )
+            errors.append(f"{tool_name}: documented modes missing in implementation: {missing}")
         if extra:
             errors.append(f"{tool_name}: implemented modes not documented: {extra}")
         return errors

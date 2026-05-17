@@ -398,9 +398,7 @@ THINKING_TEMPLATES: dict[str, ThinkingTemplate] = {
 def get_template(name: str) -> ThinkingTemplate:
     """Get a thinking template by name"""
     if name not in THINKING_TEMPLATES:
-        raise ValueError(
-            f"Unknown template: {name}. Available: {list(THINKING_TEMPLATES.keys())}"
-        )
+        raise ValueError(f"Unknown template: {name}. Available: {list(THINKING_TEMPLATES.keys())}")
     return THINKING_TEMPLATES[name]
 
 
@@ -422,37 +420,23 @@ def auto_select_template(problem: str) -> str:
     problem_lower = problem.lower()
 
     # Algorithm/design problems
-    if any(
-        kw in problem_lower
-        for kw in ["algorithm", "design", "complexity", "performance"]
-    ):
+    if any(kw in problem_lower for kw in ["algorithm", "design", "complexity", "performance"]):
         return "algorithm-design"
 
     # Root cause / debugging
-    if any(
-        kw in problem_lower
-        for kw in ["why", "cause", "defect", "bug", "incident", "error"]
-    ):
+    if any(kw in problem_lower for kw in ["why", "cause", "defect", "bug", "incident", "error"]):
         return "five-whys"
 
     # Decision making
-    if any(
-        kw in problem_lower
-        for kw in ["choose", "decide", "select", "vs", "between", "which"]
-    ):
+    if any(kw in problem_lower for kw in ["choose", "decide", "select", "vs", "between", "which"]):
         return "decision-matrix"
 
     # Ethical concerns
-    if any(
-        kw in problem_lower for kw in ["ethics", "should we", "morally", "fair", "bias"]
-    ):
+    if any(kw in problem_lower for kw in ["ethics", "should we", "morally", "fair", "bias"]):
         return "ethical-analysis"
 
     # Risk/safety
-    if any(
-        kw in problem_lower
-        for kw in ["risk", "safety", "downtime", "failure", "migration"]
-    ):
+    if any(kw in problem_lower for kw in ["risk", "safety", "downtime", "failure", "migration"]):
         return "risk-assessment"
 
     # Strategy/planning

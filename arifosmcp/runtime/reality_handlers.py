@@ -32,6 +32,17 @@ except ImportError:
         pass
 
 
+# ── Phase 4A: QueryPlanner ───────────────────────────────────────────────
+QUERY_PLANNER_ENABLED = os.getenv("QUERY_PLANNER_ENABLED", "false").lower() in ("true", "1", "yes")
+
+try:
+    from .query_planner import QueryMode, QueryPlanner, get_planner  # noqa: F401
+
+    QUERY_PLANNER_AVAILABLE = True
+except ImportError:
+    QUERY_PLANNER_AVAILABLE = False
+
+
 logger = logging.getLogger(__name__)
 
 # Constants from server.py / tools.py
@@ -41,7 +52,7 @@ JINA_API_KEY = os.getenv("JINA_API_KEY", "")
 PPLX_API_KEY = os.getenv("PPLX_API_KEY", "")
 
 try:
-    from ddgs import DDGS
+    from ddgs import DDGS  # noqa: F401
 
     DDGS_AVAILABLE = True
 except ImportError:
@@ -108,9 +119,7 @@ class RealityHandler:
         except Exception:
             return False
 
-    async def fetch_url(
-        self, url: str, render: str = "auto", policy: Any = None
-    ) -> FetchResult:
+    async def fetch_url(self, url: str, render: str = "auto", policy: Any = None) -> FetchResult:
         timings = {"dns": 0.0, "connect": 0.0, "ttfb": 0.0, "total": 0.0}
 
         res = FetchResult(url=url)
@@ -126,9 +135,7 @@ class RealityHandler:
 
         try:
             if render != "always":
-                async with httpx.AsyncClient(
-                    timeout=15.0, follow_redirects=True
-                ) as client:
+                async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
                     h_start = time.time()
                     try:
                         # Use stream to enforce MAX_CONTENT_LENGTH before reading everything
@@ -136,7 +143,7 @@ class RealityHandler:
                             "GET",
                             url,
                             headers={
-                                "User-Agent": "Mozilla/5.0 arifOS/2026.03.13 (RealityCompass/v2-hardened)",
+                                "User-Agent": "Mozilla/5.0 arifOS/2026.03.13 (RealityCompass/v2-hardened)",  # noqa: E501
                                 "Accept": (
                                     "text/html,application/xhtml+xml,"
                                     "application/xml;q=0.9,*/*;q=0.8"
@@ -164,12 +171,11 @@ class RealityHandler:
                             res.redirects = len(response.history)
 
                             if response.status_code >= 400:
-                                if (
-                                    response.status_code in [403, 429]
-                                    and render == "auto"
-                                ):
+                                if response.status_code in [403, 429] and render == "auto":
                                     use_render = True
-                                    res.error_message = f"HTTP {response.status_code} -> triggering render fallback"
+                                    res.error_message = (
+                                        f"HTTP {response.status_code} -> triggering render fallback"
+                                    )
                                 else:
                                     # Still want to read some error body
                                     chunks = []
@@ -179,15 +185,15 @@ class RealityHandler:
                                         count += len(chunk)
                                         if count > 200:
                                             break
-                                    res.error_message = f"HTTP {response.status_code}: {''.join(chunks)[:200]}"
+                                    res.error_message = (
+                                        f"HTTP {response.status_code}: {''.join(chunks)[:200]}"
+                                    )
                                     res.status_code = response.status_code
                             else:
                                 # Check content-length header if present
                                 cl = response.headers.get("content-length")
                                 if cl and int(cl) > max_size:
-                                    res.error_message = (
-                                        f"Content length {cl} exceeds limit"
-                                    )
+                                    res.error_message = f"Content length {cl} exceeds limit"
                                     res.status_code = 413
                                     return res
 
@@ -240,7 +246,9 @@ class RealityHandler:
                                 res.error_message = None
                             timings["total"] = (time.time() - r_start) * 1000
                         else:
-                            res.error_message = f"Browserless Fail {b_res.status_code}: {b_res.text[:200]}"
+                            res.error_message = (
+                                f"Browserless Fail {b_res.status_code}: {b_res.text[:200]}"
+                            )
                             res.status_code = b_res.status_code
                     except Exception as b_e:
                         res.error_message = f"Browserless Exception: {str(b_e)}"
@@ -302,19 +310,13 @@ class RealityHandler:
                         logger.info("Brave returned no results, trying DDGS fallback")
                         return await self.search_ddgs(query, top_k)
                 elif DDGS_AVAILABLE:
-                    logger.warning(
-                        f"Brave error {response.status_code}, trying DDGS fallback"
-                    )
+                    logger.warning(f"Brave error {response.status_code}, trying DDGS fallback")
                     return await self.search_ddgs(query, top_k)
                 else:
-                    res.error = (
-                        f"Brave API Error {response.status_code}: {response.text[:500]}"
-                    )
+                    res.error = f"Brave API Error {response.status_code}: {response.text[:500]}"
         except Exception as e:
             if DDGS_AVAILABLE:
-                logger.warning(
-                    f"Brave exception ({type(e).__name__}), trying DDGS fallback"
-                )
+                logger.warning(f"Brave exception ({type(e).__name__}), trying DDGS fallback")
                 return await self.search_ddgs(query, top_k)
             res.error = f"{e.__class__.__name__}: {str(e)}"
             res.status_code = 0
@@ -331,7 +333,7 @@ class RealityHandler:
             return res
 
         try:
-            from ddgs import DDGS
+            from ddgs import DDGS  # noqa: F401
 
             with DDGS() as ddgs:
                 results = list(ddgs.text(query, max_results=top_k))
@@ -351,9 +353,251 @@ class RealityHandler:
         res.latency_ms = (time.time() - start_time) * 1000
         return res
 
+    # ── Phase 4A: QueryPlanner-backed handler ──────────────────────────────
+    async def handle_compass_qp(
+        self, bundle_input: BundleInput, auth_context: dict[str, Any]
+    ) -> EvidenceBundle:
+        """
+        QueryPlanner-backed reality acquisition.
+        Routes queries to the best available provider based on query classification,
+        normalizes results, and returns an EvidenceBundle.
+
+        This method is only called when QUERY_PLANNER_ENABLED=true.
+        """
+        # Imports here to avoid circular deps at module level
+        from .query_planner import get_planner
+
+        planner = get_planner()
+        if planner is None:
+            # Fall back to legacy path
+            return await self.handle_compass_legacy(bundle_input, auth_context)
+
+        actor = Actor(
+            actor_id=auth_context.get("actor_id", "anonymous"),
+            authority_level=auth_context.get("authority_level", "anonymous"),
+            token_fingerprint=auth_context.get("token_fingerprint"),
+        )
+
+        bundle = EvidenceBundle(
+            status=BundleStatus(
+                state="PARTIAL",
+                stage="111_OBSERVE",
+                verdict="SABAR",
+                message="QueryPlanner acquisition initiated.",
+            ),
+            input=bundle_input,
+            actor=actor,
+        )
+
+        is_url = bundle_input.value.startswith(("http://", "https://"))
+        mode = bundle_input.mode
+        if mode == "auto":
+            mode = "fetch" if is_url else "search"
+
+        try:
+            if mode == "fetch":
+                # Single URL fetch — use existing fetch_url
+                f_res = await self.fetch_url(bundle_input.value, render=bundle_input.render)
+                bundle.results.append(f_res)
+                if f_res.status_code == 200 and f_res.content_length > 0:
+                    bundle.status.state = "SUCCESS"
+                    bundle.status.verdict = "SEAL"
+                    bundle.status.message = "Successfully fetched evidence via QueryPlanner."
+                else:
+                    bundle.status.state = "SABAR"
+                    bundle.status.errors.append(
+                        StatusError(
+                            code=self._map_exception(Exception(f_res.error_message or "")),
+                            detail=f_res.error_message or "Empty content",
+                        )
+                    )
+
+            elif mode == "search":
+                # Multi-provider search via QueryPlanner
+                qp_result = await planner.plan_and_execute(
+                    query=bundle_input.value,
+                    mode=None,  # Auto-detect
+                    top_k=bundle_input.top_k,
+                )
+
+                # Convert QueryPlanResult → FetchResult for bundle compatibility
+                if qp_result.is_success:
+                    bundle.status.state = "SUCCESS"
+                    bundle.status.verdict = "SEAL"
+                    bundle.status.message = (
+                        f"QueryPlanner found {len(qp_result.results)} results "
+                        f"in {qp_result.latency_ms:.0f}ms using {qp_result.provider_used}."
+                    )
+
+                    # Build synthetic SearchResult for bundle.results
+                    search_result = self._qp_results_to_search_result(qp_result)
+                    bundle.results.append(search_result)
+
+                    # Optional: fetch top results
+                    if bundle_input.fetch_top_k > 0:
+                        top_urls = [r.url for r in qp_result.results[: bundle_input.fetch_top_k]]
+                        fetch_tasks = [
+                            self.fetch_url(url, render=bundle_input.render) for url in top_urls
+                        ]
+                        f_results = await asyncio.gather(*fetch_tasks)
+                        bundle.results.extend(f_results)
+                else:
+                    bundle.status.state = "SABAR"
+                    bundle.status.errors.append(
+                        StatusError(
+                            code="NO_RESULTS",
+                            detail=qp_result.error or "QueryPlanner search failed.",
+                            hint=f"Provider={qp_result.provider_used}, latency={qp_result.latency_ms:.0f}ms",  # noqa: E501
+                        )
+                    )
+            else:
+                bundle.status.state = "SABAR"
+                bundle.status.errors.append(
+                    StatusError(code="ENGINE_422", detail=f"Unknown mode: {mode}")
+                )
+        except Exception as e:
+            bundle.status.state = "ERROR"
+            bundle.status.message = f"QueryPlanner handler failure: {str(e)}"
+            bundle.status.errors.append(StatusError(code="SCHEMA_FAIL", detail=str(e)))
+
+        # SEALTRIWITNESS Phase 2: Auto-sync
+        if VECTOR_SYNC_AVAILABLE and bundle.status.state == "SUCCESS":
+            try:
+                asyncio.create_task(
+                    auto_sync_bundle(
+                        bundle=bundle,
+                        session_id=auth_context.get("session_id", "global"),
+                        actor_id=auth_context.get("actor_id", "anonymous"),
+                    )
+                )
+            except Exception as sync_e:
+                logger.warning(f"Vector auto-sync failed (non-blocking): {sync_e}")
+
+        return bundle
+
+    def _qp_results_to_search_result(self, qp_result) -> SearchResult:
+        """Convert QueryPlanResult to SearchResult for bundle compatibility."""
+        from .reality_models import SearchResult
+
+        sr = SearchResult(
+            engine=qp_result.provider_used,
+            query=qp_result.plan.query,
+        )
+        sr.status_code = qp_result.status_code
+        sr.latency_ms = qp_result.latency_ms
+        sr.error = qp_result.error
+        sr.results = [
+            {
+                "title": r.title,
+                "url": r.url,
+                "description": r.description,
+                "final_score": r.final_score,
+                "evidence_level": r.evidence_level.value,
+                "relevance_score": r.relevance_score,
+                "authority_score": r.authority_score,
+                "freshness_score": r.freshness_score,
+                "provider_trust": r.provider_trust,
+                "content_depth_score": r.content_depth_score,
+                "age_days": r.age_days,
+            }
+            for r in qp_result.results
+        ]
+        return sr
+
+    # Alias for legacy path (used as fallback)
+    async def handle_compass_legacy(
+        self, bundle_input: BundleInput, auth_context: dict[str, Any]
+    ) -> EvidenceBundle:
+        """Legacy handle_compass — preserved for fallback."""
+        actor = Actor(
+            actor_id=auth_context.get("actor_id", "anonymous"),
+            authority_level=auth_context.get("authority_level", "anonymous"),
+            token_fingerprint=auth_context.get("token_fingerprint"),
+        )
+
+        bundle = EvidenceBundle(
+            status=BundleStatus(
+                state="PARTIAL",
+                stage="111_OBSERVE",
+                verdict="SABAR",
+                message="Reality acquisition initiated (legacy path).",
+            ),
+            input=bundle_input,
+            actor=actor,
+        )
+
+        is_url = bundle_input.value.startswith(("http://", "https://"))
+        mode = bundle_input.mode
+        if mode == "auto":
+            mode = "fetch" if is_url else "search"
+
+        try:
+            if mode == "fetch":
+                f_res = await self.fetch_url(bundle_input.value, render=bundle_input.render)
+                bundle.results.append(f_res)
+                if f_res.status_code == 200 and f_res.content_length > 0:
+                    bundle.status.state = "SUCCESS"
+                    bundle.status.verdict = "SEAL"
+                    bundle.status.message = "Successfully fetched evidence."
+                else:
+                    bundle.status.state = "SABAR"
+                    bundle.status.errors.append(
+                        StatusError(
+                            code=self._map_exception(Exception(f_res.error_message or "")),
+                            detail=f_res.error_message or "Empty content",
+                        )
+                    )
+            elif mode == "search":
+                s_res = await self.search_brave(bundle_input.value, top_k=bundle_input.top_k)
+                bundle.results.append(s_res)
+                if s_res.status_code == 200 and s_res.results:
+                    bundle.status.state = "SUCCESS"
+                    bundle.status.verdict = "SEAL"
+                    bundle.status.message = f"Found {len(s_res.results)} search candidates."
+                    if bundle_input.fetch_top_k > 0:
+                        fetch_tasks = [
+                            self.fetch_url(r["url"], render=bundle_input.render)
+                            for r in s_res.results[: bundle_input.fetch_top_k]
+                        ]
+                        f_results = await asyncio.gather(*fetch_tasks)
+                        bundle.results.extend(f_results)
+                else:
+                    bundle.status.state = "SABAR"
+                    bundle.status.errors.append(
+                        StatusError(
+                            code="ENGINE_422" if s_res.status_code == 422 else "NO_RESULTS",
+                            detail=s_res.error or "No results found.",
+                        )
+                    )
+        except Exception as e:
+            bundle.status.state = "ERROR"
+            bundle.status.message = f"Legacy handler failure: {str(e)}"
+            bundle.status.errors.append(StatusError(code="SCHEMA_FAIL", detail=str(e)))
+
+        if VECTOR_SYNC_AVAILABLE and bundle.status.state == "SUCCESS":
+            try:
+                asyncio.create_task(
+                    auto_sync_bundle(
+                        bundle=bundle,
+                        session_id=auth_context.get("session_id", "global"),
+                        actor_id=auth_context.get("actor_id", "anonymous"),
+                    )
+                )
+            except Exception as sync_e:
+                logger.warning(f"Vector auto-sync failed (non-blocking): {sync_e}")
+
+        return bundle
+
     async def handle_compass(
         self, bundle_input: BundleInput, auth_context: dict[str, Any]
     ) -> EvidenceBundle:
+        # ── Phase 4A: QueryPlanner dispatch ──────────────────────────────────
+        # Delegate to QueryPlanner-based handler when enabled.
+        # This preserves the legacy path when the flag is off.
+        if QUERY_PLANNER_ENABLED and QUERY_PLANNER_AVAILABLE:
+            return await self.handle_compass_qp(bundle_input, auth_context)
+
+        # ── Legacy path (default) ─────────────────────────────────────────
         # P0 Invariant: Never Blank
         actor = Actor(
             actor_id=auth_context.get("actor_id", "anonymous"),
@@ -379,9 +623,7 @@ class RealityHandler:
 
         try:
             if mode == "fetch":
-                f_res = await self.fetch_url(
-                    bundle_input.value, render=bundle_input.render
-                )
+                f_res = await self.fetch_url(bundle_input.value, render=bundle_input.render)
                 bundle.results.append(f_res)
                 if f_res.status_code == 200 and f_res.content_length > 0:
                     bundle.status.state = "SUCCESS"
@@ -403,17 +645,13 @@ class RealityHandler:
                     )
 
             elif mode == "search":
-                s_res = await self.search_brave(
-                    bundle_input.value, top_k=bundle_input.top_k
-                )
+                s_res = await self.search_brave(bundle_input.value, top_k=bundle_input.top_k)
                 bundle.results.append(s_res)
 
                 if s_res.status_code == 200 and s_res.results:
                     bundle.status.state = "SUCCESS"
                     bundle.status.verdict = "SEAL"
-                    bundle.status.message = (
-                        f"Found {len(s_res.results)} search candidates."
-                    )
+                    bundle.status.message = f"Found {len(s_res.results)} search candidates."
 
                     if bundle_input.fetch_top_k > 0:
                         bundle.status.message += (

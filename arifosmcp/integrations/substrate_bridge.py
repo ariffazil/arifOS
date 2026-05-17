@@ -77,9 +77,7 @@ class SubstrateClient:
             logger.warning(f"Health check failed for {self.service_name}: {e}")
             return {"status": "DOWN", "service": self.service_name, "error": str(e)}
 
-    async def call_tool(
-        self, tool_name: str, arguments: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def call_tool(self, tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         """Invoke a tool on the substrate server via MCP-over-HTTP/SSE."""
         if not MCP_SUBSTRATES_ENABLED:
             raise RuntimeError(f"MCP substrates disabled. Cannot call {tool_name}")
@@ -116,9 +114,7 @@ class SubstrateClient:
                 last_error = str(e)
                 continue
 
-        error_msg = (
-            f"Substrate call failed [{self.service_name}:{tool_name}]: {last_error}"
-        )
+        error_msg = f"Substrate call failed [{self.service_name}:{tool_name}]: {last_error}"
         logger.error(error_msg)
         raise RuntimeError(error_msg)
 

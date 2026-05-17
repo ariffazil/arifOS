@@ -1,6 +1,6 @@
 """Runtime layer — tools, prompts, resources, and REST routes."""
 
-from arifosmcp.runtime.context_compression import (
+from arifosmcp.runtime.compression import (
     CompressionMode,
     MemoryTier,
     auto_compress,

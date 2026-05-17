@@ -10,8 +10,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.prompts_v2 import V2_PROMPT_SPECS
-from arifosmcp.runtime.resources_v2 import SYSTEM_CAPABILITIES
+from arifosmcp.runtime.prompt_v2 import V2_PROMPT_SPECS
+from arifosmcp.runtime.resource_v2 import SYSTEM_CAPABILITIES
 from arifosmcp.runtime.tool_specs_v2 import V2_TOOLS
 
 

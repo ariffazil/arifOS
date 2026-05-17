@@ -28,9 +28,7 @@ class BaseRequest(BaseModel):
     risk_tier: Literal["low", "medium", "high", "critical"] = Field(
         default="low", description="Requested risk posture"
     )
-    dry_run: bool = Field(
-        default=True, description="If true, validate only without execution"
-    )
+    dry_run: bool = Field(default=True, description="If true, validate only without execution")
     allow_execution: bool = Field(
         default=False, description="If true, execution permitted if floors pass"
     )
@@ -98,9 +96,9 @@ class IdentityResolution(BaseModel):
 
     claimed_actor_id: str = Field(description="What the caller claimed")
     resolved_actor_id: str | None = Field(description="What the system accepted")
-    claim_status: Literal[
-        "anonymous", "claimed", "anchored", "verified", "rejected", "demoted"
-    ] = Field(description="Resolution status")
+    claim_status: Literal["anonymous", "claimed", "anchored", "verified", "rejected", "demoted"] = (
+        Field(description="Resolution status")
+    )
     reason: str | None = Field(default=None, description="Explanation if demoted")
 
 
@@ -128,9 +126,7 @@ class ArifOSKernelRequest(BaseRequest):
     intent: str | dict | None = Field(default=None, description="Structured intent")
     session_id: str | None = Field(default=None, description="Session ID")
     actor_id: str | None = Field(default=None, description="Actor ID")
-    context: dict[str, Any] | None = Field(
-        default=None, description="Additional context"
-    )
+    context: dict[str, Any] | None = Field(default=None, description="Additional context")
 
 
 class ArifOSKernelResponse(BaseResponse):
@@ -174,9 +170,7 @@ class VaultLedgerRequest(BaseRequest):
 
     operation: Literal["write", "read", "query", "verify"] = Field(default="query")
     entry: dict[str, Any] | None = Field(default=None, description="Entry to write")
-    query_filters: dict[str, Any] | None = Field(
-        default=None, description="Query filters"
-    )
+    query_filters: dict[str, Any] | None = Field(default=None, description="Query filters")
 
 
 class VaultLedgerResponse(BaseResponse):

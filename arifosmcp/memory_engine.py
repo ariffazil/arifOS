@@ -26,9 +26,7 @@ import logging
 from typing import Any
 
 logger = logging.getLogger("memory_engine")
-logger.warning(
-    "memory_engine.py is DEPRECATED. Use arifosmcp.runtime.memory_store instead."
-)
+logger.warning("memory_engine.py is DEPRECATED. Use arifosmcp.runtime.memory_store instead.")
 
 
 class MemoryEngine:
@@ -38,9 +36,7 @@ class MemoryEngine:
         logger.warning("MemoryEngine is deprecated. Use memory_store.store() instead.")
 
     async def store(self, *args, **kwargs) -> dict[str, Any]:
-        raise RuntimeError(
-            "MemoryEngine is deprecated. Use arifosmcp.runtime.memory_store.store()"
-        )
+        raise RuntimeError("MemoryEngine is deprecated. Use arifosmcp.runtime.memory_store.store()")
 
     async def recall(self, *args, **kwargs) -> dict[str, Any]:
         raise RuntimeError(

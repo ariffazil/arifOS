@@ -115,9 +115,7 @@ class SecurityAuditSkill:
                 "mode": "real",
                 "path": path,
                 "suspicious_files": (
-                    result.get("stdout", "").split("\n")
-                    if result.get("success")
-                    else []
+                    result.get("stdout", "").split("\n") if result.get("success") else []
                 ),
                 "checkpoint": checkpoint,
             }
@@ -138,9 +136,7 @@ async def execute(
 ) -> dict[str, Any]:
     """Main entry point."""
     skill = SecurityAuditSkill()
-    return await skill.execute(
-        action, params, session_id, dry_run, reality_bridge, checkpoint
-    )
+    return await skill.execute(action, params, session_id, dry_run, reality_bridge, checkpoint)
 
 
 metadata = {

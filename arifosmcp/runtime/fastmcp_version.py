@@ -73,9 +73,7 @@ except ImportError:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 HAS_STATELESS_HTTP = IS_FASTMCP_3  # 3.x: mcp.http_app(stateless_http=True)
-HAS_STREAMABLE_HTTP_APP = hasattr(
-    FastMCP, "streamable_http_app"
-)  # 2.x: mcp.streamable_http_app()
+HAS_STREAMABLE_HTTP_APP = hasattr(FastMCP, "streamable_http_app")  # 2.x: mcp.streamable_http_app()
 HAS_HTTP_APP = hasattr(FastMCP, "http_app")
 
 
@@ -105,9 +103,7 @@ HAS_CUSTOM_ROUTE = hasattr(FastMCP, "custom_route")
 HAS_ROUTE = hasattr(FastMCP, "route")
 
 
-def custom_route(
-    mcp_instance: FastMCP, path: str, methods: list[str], **kwargs
-) -> Callable:
+def custom_route(mcp_instance: FastMCP, path: str, methods: list[str], **kwargs) -> Callable:
     """Register custom HTTP route compatible with FastMCP 2.x and 3.x.
 
     Both versions support @mcp.custom_route() with the same signature:

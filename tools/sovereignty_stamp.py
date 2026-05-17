@@ -200,10 +200,7 @@ class SovereigntyStampGenerator:
                 try:
                     content = py_file.read_text()
                     for forbidden in forbidden_imports:
-                        if (
-                            f"import {forbidden}" in content
-                            or f"from {forbidden}" in content
-                        ):
+                        if f"import {forbidden}" in content or f"from {forbidden}" in content:
                             violations.append(f"{py_file}: {forbidden}")
                 except Exception:
                     continue
@@ -222,9 +219,7 @@ class SovereigntyStampGenerator:
 
         return result
 
-    def _test_constitutional_enforcement(
-        self, config: dict[str, Any]
-    ) -> dict[str, Any]:
+    def _test_constitutional_enforcement(self, config: dict[str, Any]) -> dict[str, Any]:
         """Test that F1-F13 enforcement is inline."""
         constitution = config.get("constitution", {})
         enforcement_mode = constitution.get("enforcement_mode", "permissive")

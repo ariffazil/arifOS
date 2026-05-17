@@ -55,9 +55,7 @@ def test_ghost_energy_violation():
         check_landauer_before_seal(
             session_id=session_id, compute_ms=0.001, tokens=1, delta_s=-2.0e16
         )
-    assert "Bound VIOLATED" in str(excinfo.value) or "Efficiency VIOLATED" in str(
-        excinfo.value
-    )
+    assert "Bound VIOLATED" in str(excinfo.value) or "Efficiency VIOLATED" in str(excinfo.value)
 
 
 def test_entropy_increase_rejection():
@@ -214,9 +212,7 @@ def test_contradiction_critical_forces_888_hold():
 
     # F12 injection risk=0.9 with SEAL candidate → critical contradiction
     fs = FloorScores(f12_injection=0.9)
-    result = asyncio.run(
-        judge(session_id="coh_test", verdict_candidate="SEAL", floor_scores=fs)
-    )
+    result = asyncio.run(judge(session_id="coh_test", verdict_candidate="SEAL", floor_scores=fs))
     assert result.verdict in (Verdict.HOLD_888, Verdict.VOID, Verdict.PARTIAL)
     # Metrics must expose coherence counts
     assert "coherence_contradictions" in result.metrics
@@ -252,9 +248,7 @@ def test_landauer_energy_proportional_to_bits():
     snap = budget.record_step("l3_energy", tokens=100)
     expected_bits = 100 * 32
     assert snap.bits_erased == expected_bits
-    assert snap.min_energy_joules == pytest.approx(
-        expected_bits * LANDAUER_LIMIT_JOULES
-    )
+    assert snap.min_energy_joules == pytest.approx(expected_bits * LANDAUER_LIMIT_JOULES)
 
 
 def test_landauer_is_within_budget_large_session():
@@ -500,9 +494,7 @@ def test_outcome_ledger_resolve_failure():
 
     ledger = OutcomeLedger()
     ledger.record_outcome("D003", "sess-3", "SEAL", "expected safe")
-    resolved = ledger.resolve_outcome(
-        "D003", actual_outcome="leaked metadata", harm_detected=True
-    )
+    resolved = ledger.resolve_outcome("D003", actual_outcome="leaked metadata", harm_detected=True)
     assert resolved.outcome_status == OutcomeStatus.FAILURE
     assert resolved.harm_detected is True
 

@@ -157,9 +157,7 @@ def count_sign_changes(values: list[float]) -> int:
     return changes
 
 
-def build_cashflow_series(
-    initial: float, flows: list[float], terminal: float = 0
-) -> list[float]:
+def build_cashflow_series(initial: float, flows: list[float], terminal: float = 0) -> list[float]:
     series = [-abs(initial), *flows]
     if terminal and len(series) > 1:
         series[-1] += terminal
@@ -183,16 +181,12 @@ def derive_verdict(flags: list[str]) -> str:
     return "SEAL"
 
 
-def derive_allocation_signal(
-    tool: str, primary: dict[str, Any], flags: list[str]
-) -> str:
+def derive_allocation_signal(tool: str, primary: dict[str, Any], flags: list[str]) -> str:
     if any(f in INVALID_FLAGS for f in flags):
         return "INSUFFICIENT_DATA"
     if tool == "wealth_npv_reward":
         val = primary.get("npv")
-        return (
-            "ACCEPT" if val and val > 0 else "REJECT" if val and val < 0 else "MARGINAL"
-        )
+        return "ACCEPT" if val and val > 0 else "REJECT" if val and val < 0 else "MARGINAL"
     return "MARGINAL"
 
 
@@ -270,20 +264,14 @@ def wealth_npv_reward(
     )
 
 
-def wealth_irr_yield(
-    initial_investment: float, cash_flows: list[float]
-) -> EconomicEnvelope:
+def wealth_irr_yield(initial_investment: float, cash_flows: list[float]) -> EconomicEnvelope:
     m = calculate_irr(initial_investment, cash_flows)
-    return create_envelope(
-        "wealth_irr_yield", "Energy", {"irr": m["irr"]}, {}, m["flags"]
-    )
+    return create_envelope("wealth_irr_yield", "Energy", {"irr": m["irr"]}, {}, m["flags"])
 
 
 def wealth_dscr_leverage(ebitda: float, debt_service: float) -> EconomicEnvelope:
     m = calculate_dscr(ebitda, debt_service)
-    return create_envelope(
-        "wealth_dscr_leverage", "Survival", {"dscr": m["dscr"]}, {}, m["flags"]
-    )
+    return create_envelope("wealth_dscr_leverage", "Survival", {"dscr": m["dscr"]}, {}, m["flags"])
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

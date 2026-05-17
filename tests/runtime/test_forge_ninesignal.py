@@ -13,6 +13,13 @@ os.environ["ARIFOS_DEV_MODE"] = "1"
 from arifosmcp.runtime.tools import _arif_forge_execute
 
 
+def _overall_state(nine_signal: dict) -> str | None:
+    overall = nine_signal.get("overall")
+    if isinstance(overall, dict):
+        return overall.get("state")
+    return overall
+
+
 class TestForgeNineSignalContract:
     """Regression: all forge modes must emit nine_signal, and read-only modes must not F11-fail."""
 
@@ -29,27 +36,21 @@ class TestForgeNineSignalContract:
             mode=mode, query="status check", session_id=None, actor_id=None
         )
 
-        assert (
-            result.get("status") == "OK"
-        ), f"Expected OK for {mode}, got {result.get('status')}"
+        assert result.get("status") == "OK", f"Expected OK for {mode}, got {result.get('status')}"
 
         failed = result.get("meta", {}).get("failed_floors", [])
-        assert (
-            "F11" not in failed
-        ), f"F11 breach on {mode} despite being read-only: {failed}"
+        assert "F11" not in failed, f"F11 breach on {mode} despite being read-only: {failed}"
 
         nine = result.get("nine_signal", {})
         assert (
-            nine.get("overall") == "SELAMAT"
+            _overall_state(nine) == "SELAMAT"
         ), f"Expected SELAMAT nine_signal on {mode}, got {nine.get('overall')}"
 
     def test_nine_signal_present_on_query_ok(self):
         """Query mode must emit nine_signal on success path."""
-        result = _arif_forge_execute(
-            mode="query", query="status", session_id=None, actor_id=None
-        )
+        result = _arif_forge_execute(mode="query", query="status", session_id=None, actor_id=None)
         assert "nine_signal" in result, "nine_signal missing from query OK response"
-        assert result["nine_signal"].get("overall") == "SELAMAT"
+        assert _overall_state(result["nine_signal"]) == "SELAMAT"
 
     def test_nine_signal_present_on_recall_ok(self):
         """Recall mode must emit nine_signal on success path."""
@@ -57,13 +58,13 @@ class TestForgeNineSignalContract:
             mode="recall", artifact_id="test-artifact", session_id=None, actor_id=None
         )
         assert "nine_signal" in result, "nine_signal missing from recall OK response"
-        assert result["nine_signal"].get("overall") == "SELAMAT"
+        assert _overall_state(result["nine_signal"]) == "SELAMAT"
 
     def test_nine_signal_present_on_dry_run_ok(self):
         """Dry-run mode must emit nine_signal on success path."""
         result = _arif_forge_execute(mode="dry_run", session_id=None, actor_id=None)
         assert "nine_signal" in result, "nine_signal missing from dry_run OK response"
-        assert result["nine_signal"].get("overall") == "SELAMAT"
+        assert _overall_state(result["nine_signal"]) == "SELAMAT"
 
     def test_nine_signal_present_on_engineer_hold(self):
         """
@@ -76,10 +77,8 @@ class TestForgeNineSignalContract:
         assert (
             result.get("status") == "HOLD"
         ), f"Expected HOLD for engineer without plan_id, got {result.get('status')}"
-        assert (
-            "nine_signal" in result
-        ), "nine_signal missing from engineer HOLD response"
-        assert result["nine_signal"].get("overall") in (
+        assert "nine_signal" in result, "nine_signal missing from engineer HOLD response"
+        assert _overall_state(result["nine_signal"]) in (
             "RETAK",
             "SABAR",
             "GANTUNG",

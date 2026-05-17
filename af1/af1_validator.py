@@ -106,9 +106,7 @@ class AF1Validator:
 
     def validate(self, af1: Dict[str, Any]) -> AF1ValidationResult:
         # Field completeness
-        missing = [
-            f for f in self.REQUIRED_FIELDS if not af1.get(f) and af1.get(f) != 0
-        ]
+        missing = [f for f in self.REQUIRED_FIELDS if not af1.get(f) and af1.get(f) != 0]
         if missing:
             return AF1ValidationResult(
                 status="BLOCK", reason=f"Missing fields: {', '.join(missing)}"
@@ -140,9 +138,7 @@ class AF1Validator:
         for field, enum in BOUNDED_ENUMS.items():
             if field in af1["inputs"]:
                 val = af1["inputs"][field]
-                if isinstance(val, str) and val.upper() not in [
-                    e.upper() for e in enum
-                ]:
+                if isinstance(val, str) and val.upper() not in [e.upper() for e in enum]:
                     return AF1ValidationResult(
                         status="BLOCK",
                         reason=f"Bounded field '{field}' = '{val}' — must be one of: {enum}",
@@ -184,9 +180,7 @@ class AF1Validator:
 
         # Confirmation check
         requires_conf = af1.get("requires_human_confirmation", False)
-        conf_satisfied = self.confirmed_operators.get(
-            af1.get("evidence_ref", ""), False
-        )
+        conf_satisfied = self.confirmed_operators.get(af1.get("evidence_ref", ""), False)
         if requires_conf and not conf_satisfied:
             return AF1ValidationResult(
                 status="BLOCK",
@@ -299,9 +293,7 @@ if __name__ == "__main__":
         ),
         (
             "Fabricated tool",
-            build_af1(
-                "Deploy agent", "arifos_fake_tool", {}, "state_change", "test block"
-            ),
+            build_af1("Deploy agent", "arifos_fake_tool", {}, "state_change", "test block"),
         ),
         (
             "Null vault",

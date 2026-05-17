@@ -159,9 +159,7 @@ class ThreatEngine:
         reasoning: list[str] = []
 
         # 1. Python AST analysis
-        payload = (
-            context.payload_text() if hasattr(context, "payload_text") else str(context)
-        )
+        payload = context.payload_text() if hasattr(context, "payload_text") else str(context)
         py_threats, py_reason = cls._analyze_python(payload)
         threats |= py_threats
         reasoning.extend(py_reason)
@@ -220,9 +218,7 @@ class ThreatEngine:
                     call_path = cls._get_call_path(node.func)
                     if call_path in cls.PYTHON_DESTRUCTIVE_CALLS:
                         threats.add(ThreatCategory.FILESYSTEM_DESTRUCTIVE)
-                        reasoning.append(
-                            f"Destructive Python call: {'.'.join(call_path)}"
-                        )
+                        reasoning.append(f"Destructive Python call: {'.'.join(call_path)}")
         except SyntaxError:
             if "shutil.rmtree" in code:
                 threats.add(ThreatCategory.FILESYSTEM_DESTRUCTIVE)

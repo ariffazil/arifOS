@@ -49,7 +49,7 @@ from arifosmcp.schemas.embodied_tool import (
     RiskTier,
     build_embodied_envelope,
 )
-from arifosmcp.tools.embodied_tool import (
+from arifosmcp.tools.embodied import (
     ARIFOS_TOOL_CHARTERS,
     EmbodiedTool,
     register_all_arifos_tools,
@@ -128,6 +128,25 @@ def test_permission_gap_detection(fresh_self_model):
     assert "admin" in entry.permission_gap
     assert "session_init" not in entry.permission_gap
     assert not entry.is_safe_to_execute
+
+
+def test_self_model_accepts_structured_confidence(fresh_self_model):
+    """Postflight learning must tolerate structured confidence payloads."""
+    manifest = ToolManifest(
+        tool_id="test_tool",
+        tool_name="Test Tool",
+        domain="AOS",
+        risk_tier="T1",
+    )
+    fresh_self_model.register(manifest)
+
+    outcome = fresh_self_model.update_from_outcome(
+        tool_id="test_tool",
+        result={"status": "OK", "confidence": {"overall_confidence": 0.72}},
+    )
+
+    assert outcome["delta_surprise"] == 0.0
+    assert fresh_self_model.get("test_tool").use_count == 1
 
 
 def test_composition_safety(fresh_self_model):
@@ -532,9 +551,7 @@ def test_build_embodied_envelope_defaults():
     )
     assert envelope.status == "SEAL"
     assert envelope.witness.execution_status == ExecutionStatus.EXECUTED
-    assert (
-        envelope.next_safe_action == "Proceed to 888_JUDGE if action is consequential."
-    )
+    assert envelope.next_safe_action == "Proceed to 888_JUDGE if action is consequential."
 
 
 def test_build_embodied_envelope_hold():

@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
+from arifosmcp.runtime.continuity import seal_runtime_envelope
 
 # RuntimeEnvelope is a dict type for tool outputs
 RuntimeEnvelope = dict[str, Any]
@@ -267,7 +267,7 @@ async def arifos_sense(
             ok=ok,
             tool="arifos.sense",
             canonical_tool_name="arifos.sense",
-            stage="111_SENSE",
+            stage="111_OBSERVE",
             status=status,
             verdict=verdict,
             session_id=session_id,

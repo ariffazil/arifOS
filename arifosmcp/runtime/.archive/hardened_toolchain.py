@@ -105,7 +105,7 @@ class HardenedToolchain:
         # STAGE 111: REALITY_COMPASS — Fact ingestion into typed evidence
         # ═══════════════════════════════════════════════════════════════════
         if "read" in granted_scope or "query" in granted_scope:
-            trace_111 = generate_trace_context("111_SENSE", session_id)
+            trace_111 = generate_trace_context("111_OBSERVE", session_id)
 
             compass_result = await self.reality_compass.search(
                 query=query,
@@ -116,7 +116,7 @@ class HardenedToolchain:
             )
 
             if compass_result.status != ToolStatus.OK:
-                return self._wrap_failure(compass_result, "111_SENSE")
+                return self._wrap_failure(compass_result, "111_OBSERVE")
 
             evidence_bundle = compass_result.payload.get("evidence_bundle")
         else:
@@ -148,7 +148,7 @@ class HardenedToolchain:
         # ═══════════════════════════════════════════════════════════════════
         # STAGE 333: AGI_REASON — Constrained multi-lane reasoning
         # ═══════════════════════════════════════════════════════════════════
-        trace_333 = generate_trace_context("333_MIND", session_id)
+        trace_333 = generate_trace_context("333_REASON", session_id)
 
         reason_result = await self.agi_reason.reason(
             query=query,
@@ -160,7 +160,7 @@ class HardenedToolchain:
         )
 
         if reason_result.status != ToolStatus.OK:
-            return self._wrap_failure(reason_result, "333_MIND")
+            return self._wrap_failure(reason_result, "333_REASON")
 
         # ═══════════════════════════════════════════════════════════════════
         # STAGE 666A: ASI_CRITIQUE — Enforceable red-team veto
@@ -238,7 +238,7 @@ class HardenedToolchain:
         # ═══════════════════════════════════════════════════════════════════
         # STAGE 999: VAULT_SEAL — Hash-complete decision ledger
         # ═══════════════════════════════════════════════════════════════════
-        trace_999 = generate_trace_context("999_VAULT", session_id)
+        trace_999 = generate_trace_context("999_SEAL", session_id)
 
         seal_result = await self.vault_seal.seal(
             decision={
@@ -246,7 +246,13 @@ class HardenedToolchain:
                 "decision_text": query,
                 "rationale": judge_result.payload.get("rationale"),
                 "approver_id": declared_name,
-                "tool_chain": ["000_INIT", "111_SENSE", "333_MIND", "666_CRITIQUE", "888_JUDGE"],
+                "tool_chain": [
+                    "000_INIT",
+                    "111_OBSERVE",
+                    "333_REASON",
+                    "666_CRITIQUE",
+                    "888_JUDGE",
+                ],
             },
             seal_class="operational",
             auth_context=auth_context,
@@ -270,12 +276,12 @@ class HardenedToolchain:
                 "pipeline_complete": True,
                 "stages_executed": [
                     "000_INIT",
-                    "111_SENSE",
+                    "111_OBSERVE",
                     "222_ATLAS",
-                    "333_MIND",
+                    "333_REASON",
                     "666_CRITIQUE",
                     "888_JUDGE",
-                    "999_VAULT",
+                    "999_SEAL",
                 ],
                 "init": {
                     "scope_granted": granted_scope,

@@ -394,9 +394,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         "outputs": {
             "content": {"meaning": "Retrieved evidence text or structured data."},
             "confidence": {"meaning": "Evidence reliability score (0.0–1.0)."},
-            "thinking_sequence": {
-                "meaning": "Sequential reasoning trace if thinking_depth > 0."
-            },
+            "thinking_sequence": {"meaning": "Sequential reasoning trace if thinking_depth > 0."},
         },
         "risk": {"tier": "medium", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": False, "recommended_session_id": True},
@@ -532,15 +530,9 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             },
         },
         "outputs": {
-            "conclusion": {
-                "meaning": "Reasoning classification or structured conclusion."
-            },
-            "confidence": {
-                "meaning": "Calibrated confidence (0.0–1.0), not certainty."
-            },
-            "axioms_used": {
-                "meaning": "List of constitutional axioms invoked in the reasoning."
-            },
+            "conclusion": {"meaning": "Reasoning classification or structured conclusion."},
+            "confidence": {"meaning": "Calibrated confidence (0.0–1.0), not certainty."},
+            "axioms_used": {"meaning": "List of constitutional axioms invoked in the reasoning."},
             "reasoning_trace": {
                 "meaning": "Step-by-step derivation with premise and conclusion per step."
             },
@@ -634,13 +626,9 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             },
         },
         "outputs": {
-            "path": {
-                "meaning": "Suggested tool sequence from current state to target."
-            },
+            "path": {"meaning": "Suggested tool sequence from current state to target."},
             "hops": {"meaning": "Number of stage transitions required."},
-            "allowed_tools": {
-                "meaning": "Tools permitted in the current session state."
-            },
+            "allowed_tools": {"meaning": "Tools permitted in the current session state."},
         },
         "risk": {"tier": "low", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": True, "recommended_session_id": True},
@@ -767,9 +755,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "tone": {
                 "meaning": "Applied tone tag (neutral, empathetic, terse, formal, technical)."
             },
-            "delta_S": {
-                "meaning": "Entropy change from composition (negative = clarity added)."
-            },
+            "delta_S": {"meaning": "Entropy change from composition (negative = clarity added)."},
             "f02_score": {"meaning": "F02 Truth score (0.0–1.0)."},
             "f04_score": {"meaning": "F04 Clarity score (0.0–1.0)."},
             "f07_score": {"meaning": "F07 Humility score (0.0–1.0)."},
@@ -1011,9 +997,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "human_decision_required": {
                 "meaning": "True if risk_tier is high/critical/irreversible."
             },
-            "empathy_score": {
-                "meaning": "Human impact load κᵣ (0.0–1.0, ≥0.70 preferred)."
-            },
+            "empathy_score": {"meaning": "Human impact load κᵣ (0.0–1.0, ≥0.70 preferred)."},
         },
         "risk": {"tier": "high", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": True, "recommended_session_id": True},
@@ -1550,13 +1534,9 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             },
         },
         "outputs": {
-            "status": {
-                "meaning": "Execution status: SUCCESS, FAILURE, DRY_RUN, or DEGRADED."
-            },
+            "status": {"meaning": "Execution status: SUCCESS, FAILURE, DRY_RUN, or DEGRADED."},
             "execution_trace": {"meaning": "Step-by-step log of the operation."},
-            "artifact_id": {
-                "meaning": "Identifier for the generated or modified artifact."
-            },
+            "artifact_id": {"meaning": "Identifier for the generated or modified artifact."},
             "irreversibility_level": {"meaning": "low | medium | high | irreversible"},
         },
         "risk": {

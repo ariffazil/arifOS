@@ -49,9 +49,7 @@ class MachineLayer(BaseModel):
         default_factory=lambda: str(uuid.uuid4()),
         description="Unique session identifier (UUIDv4)",
     )
-    governance_token: str = Field(
-        ..., description="Cryptographic token for this operation"
-    )
+    governance_token: str = Field(..., description="Cryptographic token for this operation")
     token_type: TokenType = Field(
         default=TokenType.ANCHOR, description="Classification of the governance token"
     )
@@ -62,9 +60,7 @@ class MachineLayer(BaseModel):
     continuity_status: ContinuityStatus = Field(
         default=ContinuityStatus.FRESH, description="Session continuity state"
     )
-    parent_token: str | None = Field(
-        default=None, description="Reference to parent token in chain"
-    )
+    parent_token: str | None = Field(default=None, description="Reference to parent token in chain")
     merkle_leaf: str | None = Field(
         default=None, description="Merkle tree leaf hash for this operation"
     )
@@ -134,12 +130,8 @@ class GovernanceLayer(BaseModel):
     violations: list[str] = Field(
         default_factory=list, description="List of constitutional violations if any"
     )
-    judge_override: bool = Field(
-        default=False, description="Whether 888 Judge override is active"
-    )
-    hold_state_id: str | None = Field(
-        default=None, description="Active 888_HOLD state identifier"
-    )
+    judge_override: bool = Field(default=False, description="Whether 888 Judge override is active")
+    hold_state_id: str | None = Field(default=None, description="Active 888_HOLD state identifier")
     floor_metrics: dict[str, float] = Field(
         default_factory=dict, description="Per-floor execution metrics"
     )
@@ -185,9 +177,7 @@ class IntelligenceLayer(BaseModel):
     reasoning_chain: list[str] = Field(
         default_factory=list, description="Step-by-step reasoning trace"
     )
-    synthesis_hash: str | None = Field(
-        default=None, description="Hash of synthesis result"
-    )
+    synthesis_hash: str | None = Field(default=None, description="Hash of synthesis result")
     confidence_score: float = Field(
         default=0.0, ge=0.0, le=1.0, description="Overall confidence in result (0-1)"
     )
@@ -221,9 +211,7 @@ class MGIEnvelope(BaseModel):
     """
 
     version: str = Field(default="1.0.0", description="MGI envelope version")
-    machine: MachineLayer = Field(
-        ..., description="Machine layer: session, tokens, continuity"
-    )
+    machine: MachineLayer = Field(..., description="Machine layer: session, tokens, continuity")
     governance: GovernanceLayer = Field(
         ..., description="Governance layer: constitution, floors, validation"
     )
@@ -237,9 +225,7 @@ class MGIEnvelope(BaseModel):
     def compute_hash(self) -> str:
         """Compute cryptographic hash of this envelope."""
         data = self.model_dump(exclude={"envelope_hash"})
-        return hashlib.sha256(
-            json.dumps(data, sort_keys=True, default=str).encode()
-        ).hexdigest()
+        return hashlib.sha256(json.dumps(data, sort_keys=True, default=str).encode()).hexdigest()
 
     def seal(self) -> "MGIEnvelope":
         """Seal the envelope by computing and setting its hash."""

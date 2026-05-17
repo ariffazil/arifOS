@@ -124,7 +124,7 @@ async def call_wealth_tool(
     Call a WEALTH MCP tool by name with arguments.
 
     Example:
-        result = await call_wealth_tool("wealth_npv_rank", {
+        result = await call_wealth_tool("wealth_reason_npv", {
             "cashflows": [...],
             "discount_rate": 0.12
         })
@@ -173,3 +173,166 @@ def reset_session() -> None:
     """Reset the cached session ID (for testing or reconnection)."""
     global _WEALTH_SESSION_ID
     _WEALTH_SESSION_ID = None
+
+
+# C4 WEALTH ORCHESTRATOR
+# ───────────────────────────────────────────────────────────────────────────────
+# Runs the mandatory chain for any capital/investment decision.
+# This is the single front door — no agent should be calling individual WEALTH
+# tools for C4 decisions; they must call this and get a receipt.
+#
+# Chain order (all required for a valid C4 receipt):
+#   conservation → liquidity → entropy_risk → field_macro → signal_information → boundary_governance
+#
+# If WEALTH is unreachable, returns verdict=HOLD (fail-closed).
+
+_C4_WEALTH_CHAIN = [
+    ("wealth_conservation_capital", "conservation"),
+    ("wealth_flow_liquidity", "liquidity"),
+    ("wealth_entropy_risk", "entropy_risk"),
+    ("wealth_field_macro", "field_macro"),
+    ("wealth_signal_information", "signal_information"),
+    ("wealth_boundary_governance", "boundary_governance"),
+]
+
+_C4_FORBIDDEN_OUTPUT = [
+    "direct buy instruction",
+    "guaranteed return",
+    "execution authorization",
+    "sure win",
+    "buy [ticker] on monday",
+    "all-in recommendation",
+]
+
+
+async def wealth_c4_orchestrate(
+    user_query: str,
+    session_id: str,
+    actor_id: str = "arif",
+    capital_amount: float | None = None,
+    currency: str = "MYR",
+    jurisdiction: str = "Malaysia",
+    risk_tolerance: str = "unknown",
+    horizon: str = "unknown",
+    shariah_required: bool | None = None,
+) -> dict[str, Any]:
+    """
+    C4 capital decision coordinator — not a single chokepoint.
+
+    F08 architecture: this function coordinates the receipt chain but each WEALTH
+    tool node validates independently. If this coordinator is unavailable, individual
+    WEALTH tools still check for session_id. Defense-in-depth, not single gate.
+
+    Sequence: WELL readiness → WEALTH chain (6 tools) → receipt
+
+    If WEALTH is unreachable or boundary_governance fails → verdict=HOLD (fail-closed).
+
+    Returns:
+        receipt dict with: verdict, checks_completed, allowed_output_level,
+        session_valid, well_readiness, missing_questions, forbidden_output
+    """
+    import uuid
+    from datetime import datetime, timezone
+
+    receipt_id = f"WEALTH-C4-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{uuid.uuid4().hex[:8]}"
+    checks_completed: list[str] = []
+    check_results: dict[str, Any] = {}
+    errors: list[str] = []
+
+    # ── Step 0: WELL readiness (W0 invariant — informs, does not veto) ─────────
+    well_readiness: dict[str, Any] = {"verdict": "UNKNOWN", "sabar_advisory": False}
+    try:
+        from arifosmcp.runtime.well_bridge import get_biological_readiness
+
+        well_readiness = get_biological_readiness()
+        checks_completed.append("well_readiness")
+        check_results["well_readiness"] = well_readiness
+    except Exception as e:
+        errors.append(f"well_readiness: {e}")
+        check_results["well_readiness"] = {"verdict": "UNAVAILABLE", "error": str(e)}
+
+    common_args = {
+        "query": user_query,
+        "session_id": session_id,
+        "actor_id": actor_id,
+        "capital_amount": capital_amount,
+        "currency": currency,
+        "jurisdiction": jurisdiction,
+        "risk_tolerance": risk_tolerance,
+        "horizon": horizon,
+        "shariah_required": shariah_required,
+    }
+
+    for tool_name, check_key in _C4_WEALTH_CHAIN:
+        try:
+            result = await call_wealth_tool(tool_name, common_args)
+            checks_completed.append(check_key)
+            check_results[check_key] = result
+        except Exception as e:
+            errors.append(f"{check_key}: {e}")
+            logger.warning("C4 orchestrator: WEALTH tool %s failed — %s", tool_name, e)
+            # Non-fatal: continue chain; boundary_governance failure is fatal (see below)
+            check_results[check_key] = {"status": "unavailable", "error": str(e)}
+
+    # Boundary governance is the minimum required check — HOLD if absent
+    boundary_ok = "boundary_governance" in checks_completed
+    conservation_ok = "conservation" in checks_completed
+    liquidity_ok = "liquidity" in checks_completed
+
+    if not boundary_ok:
+        allowed_output_level = "HOLD"
+    elif not (conservation_ok and liquidity_ok):
+        allowed_output_level = "PARTIAL"
+    elif len(checks_completed) >= 5:
+        allowed_output_level = "ADVISORY_ONLY"
+    else:
+        allowed_output_level = "COMPARISON_ONLY"
+
+    # Determine missing context questions
+    missing_questions: list[str] = []
+    if capital_amount is None:
+        missing_questions.append("How much capital are you allocating?")
+    if risk_tolerance == "unknown":
+        missing_questions.append(
+            "What is your risk tolerance? (conservative / moderate / aggressive)"
+        )
+    if horizon == "unknown":
+        missing_questions.append("What is your investment horizon? (short / medium / long term)")
+    if shariah_required is None:
+        missing_questions.append("Is Shariah-compliant investment required?")
+
+    receipt: dict[str, Any] = {
+        "receipt_id": receipt_id,
+        "session_id": session_id,
+        "session_valid": bool(session_id),
+        "decision_class": "C4",
+        "well_readiness": well_readiness.get("verdict", "UNKNOWN"),
+        "well_sabar_advisory": well_readiness.get("sabar_advisory", False),
+        "checks_completed": checks_completed,
+        "checks_failed": [k for _, k in _C4_WEALTH_CHAIN if k not in checks_completed],
+        "allowed_output_level": allowed_output_level,
+        "ticker_level_allowed": False,
+        "execution_authorized": False,
+        "recommendation_only": True,
+        "human_final_authority": actor_id,
+        "missing_questions": missing_questions,
+        "forbidden_output": _C4_FORBIDDEN_OUTPUT,
+        "errors": errors,
+        "check_results": check_results,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+    if allowed_output_level == "HOLD":
+        receipt["verdict"] = "HOLD"
+        receipt["safe_answer_template"] = (
+            "C4 CAPITAL DECISION DETECTED. Session present but WEALTH governance chain incomplete. "
+            "Cannot provide investment-specific guidance without boundary_governance clearance."
+        )
+    else:
+        receipt["verdict"] = allowed_output_level
+        receipt["safe_answer_template"] = (
+            f"Advisory framework available (level: {allowed_output_level}). "
+            "No specific tickers, amounts, or buy dates. Human final authority retained."
+        )
+
+    return receipt

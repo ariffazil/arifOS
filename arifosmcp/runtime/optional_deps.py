@@ -19,9 +19,7 @@ try:
 except ImportError:
 
     class _AsyncFileWrapper:
-        def __init__(
-            self, path: str | Path, mode: str, *args: Any, **kwargs: Any
-        ) -> None:
+        def __init__(self, path: str | Path, mode: str, *args: Any, **kwargs: Any) -> None:
             self._path = path
             self._mode = mode
             self._args = args
@@ -46,9 +44,7 @@ except ImportError:
 
     class _AiofilesModule:
         @staticmethod
-        def open(
-            path: str | Path, mode: str = "r", *args: Any, **kwargs: Any
-        ) -> _AsyncFileWrapper:
+        def open(path: str | Path, mode: str = "r", *args: Any, **kwargs: Any) -> _AsyncFileWrapper:
             return _AsyncFileWrapper(path, mode, *args, **kwargs)
 
     aiofiles = _AiofilesModule()
@@ -80,11 +76,7 @@ except ImportError:
                 yield message
 
         def _accepts(self, channel: str) -> list[str]:
-            return [
-                pattern
-                for pattern in self._patterns
-                if fnmatch.fnmatch(channel, pattern)
-            ]
+            return [pattern for pattern in self._patterns if fnmatch.fnmatch(channel, pattern)]
 
         async def _push(self, channel: str, data: Any) -> None:
             for pattern in self._accepts(channel):
@@ -150,11 +142,7 @@ except ImportError:
             return 1 if existed else 0
 
         async def keys(self, pattern: str) -> list[str]:
-            keys = (
-                list(self._kv.keys())
-                + list(self._sets.keys())
-                + list(self._lists.keys())
-            )
+            keys = list(self._kv.keys()) + list(self._sets.keys()) + list(self._lists.keys())
             return [key for key in keys if fnmatch.fnmatch(key, pattern)]
 
         async def ttl(self, key: str) -> int:

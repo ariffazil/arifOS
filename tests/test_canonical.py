@@ -23,7 +23,7 @@ from arifosmcp.resources import (
     EVIDENCE_RESOURCES,
     register_resources,
 )
-from arifosmcp.runtime.floors import get_floor_status
+from arifosmcp.runtime.floor import get_floor_status
 from arifosmcp.runtime.tools import (
     IrreversibleConfirmation,
     JudgeCandidateInput,
@@ -32,7 +32,7 @@ from arifosmcp.runtime.tools import (
     register_tools,
 )
 from arifosmcp.tools.session import arif_session_init
-from arifosmcp.tools.sense_observe import arif_sense_observe
+from arifosmcp.tools.sense import arif_sense_observe
 from arifosmcp.tools.vault import arif_vault_seal
 from arifosmcp.tools.forge import arif_forge_execute
 from arifosmcp.tools.judge import arif_judge_deliberate
@@ -87,10 +87,7 @@ def test_register_resources_matches_canonical_resource_surface():
     mcp = FastMCP("test-arifos-resources")
     registered = register_resources(mcp)
     registered_tuple = tuple(registered)
-    assert (
-        registered_tuple
-        == CANONICAL_RESOURCES + EVIDENCE_RESOURCES + EMBODIED_RESOURCES
-    )
+    assert registered_tuple == CANONICAL_RESOURCES + EVIDENCE_RESOURCES + EMBODIED_RESOURCES
 
 
 def test_init_creates_session():
@@ -117,10 +114,7 @@ def test_vault_seals_with_ack():
         judge_state_hash=judge.judge_contract.state_hash,
     )
     assert r.status == "HOLD"
-    assert (
-        "judge irreversibility level is below vault seal requirement"
-        in r.meta["reason"]
-    )
+    assert "judge irreversibility level is below vault seal requirement" in r.meta["reason"]
     assert r.judge_contract is not None
     assert r.judge_contract.state_hash == judge.judge_contract.state_hash
 
@@ -139,12 +133,36 @@ def test_injection_guard_blocks():
     assert "F12" not in floors or floors.index("F11") < floors.index("F12")
 
 
-def test_judge_emits_seal():
+def test_judge_without_evidence_returns_sabar():
+    """F2 Evidence Gate: Without evidence_receipt, SEAL is downgraded to SABAR."""
     r = arif_judge_deliberate(mode="judge", candidate="deploy", actor_id="arif")
-    assert r.status == "OK"
-    assert r.result["verdict"] == "SEAL"
-    assert r.judge_contract is not None
-    assert r.judge_contract.state_hash
+    assert r.status == "SABAR"
+    assert r.result["verdict"] == "SABAR"
+    assert "evidence" in r.result["reason"].lower()
+
+
+def test_judge_emits_seal_with_evidence():
+    """SEAL is granted only when evidence_receipt is provided (F2 Evidence Gate)."""
+    # Import the runtime function which accepts evidence_receipt
+    from arifosmcp.runtime.tools import _arif_judge_deliberate
+
+    minimal_receipt = {
+        "query_sent": "deploy evidence check",
+        "results_returned": 1,
+        "urls_ingested": 1,
+        "provider": "test",
+        "bridge": "unit_test",
+    }
+    r = _arif_judge_deliberate(
+        mode="judge",
+        candidate="deploy",
+        actor_id="arif",
+        evidence_receipt=minimal_receipt,
+    )
+    assert r["status"] == "OK"
+    assert r["result"]["verdict"] == "SEAL"
+    assert r["judge_contract"] is not None
+    assert r["judge_contract"]["state_hash"]
 
 
 def test_vault_requires_judge_contract_even_with_ack():
@@ -166,9 +184,7 @@ def test_forge_commit_requires_vault_lineage():
 
 
 def test_forge_commit_accepts_vault_lineage():
-    judge = arif_judge_deliberate(
-        mode="judge", candidate="commit deploy", actor_id="arif"
-    )
+    judge = arif_judge_deliberate(mode="judge", candidate="commit deploy", actor_id="arif")
     seal = arif_vault_seal(
         mode="seal",
         payload="test",
@@ -214,9 +230,7 @@ class _FakeContext:
 
 @pytest.mark.asyncio
 async def test_elicitation_accepts_irreversible_ack():
-    ctx = _FakeContext(
-        AcceptedElicitation(data=IrreversibleConfirmation(ack_irreversible=True))
-    )
+    ctx = _FakeContext(AcceptedElicitation(data=IrreversibleConfirmation(ack_irreversible=True)))
 
     ack, hold = await _elicit_irreversible_ack(
         ctx,

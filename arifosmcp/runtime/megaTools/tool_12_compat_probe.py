@@ -26,7 +26,7 @@ async def compat_probe(
     - Authority ladder alignment (Identity vs Class)
     - Protocol signature parity
     """
-    from arifosmcp.runtime.sessions import get_session_identity
+    from arifosmcp.runtime.session import get_session_identity
 
     # 1. Check Identity
     identity = get_session_identity(session_id) if session_id else None
@@ -72,9 +72,7 @@ async def compat_probe(
     elif raw_level.lower() in low_trust_levels:
         recommendation = "Anonymous/declared identity — use init_anchor with verified credentials for full access."
     else:
-        recommendation = (
-            "Identity recognized — init_anchor required to escalate privileges."
-        )
+        recommendation = "Identity recognized — init_anchor required to escalate privileges."
 
     # 3. Build Result
     payload = {

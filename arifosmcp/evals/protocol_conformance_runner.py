@@ -168,9 +168,7 @@ class ProtocolConformanceRunner:
             duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
 
             status = (
-                ConformanceStatus.PASS
-                if health.get("status") == "OK"
-                else ConformanceStatus.FAIL
+                ConformanceStatus.PASS if health.get("status") == "OK" else ConformanceStatus.FAIL
             )
             self.results.append(
                 ProtocolTestResult(
@@ -210,9 +208,7 @@ class ProtocolConformanceRunner:
                 ProtocolTestResult(
                     test_name="tool_discovery",
                     substrate=name,
-                    status=(
-                        ConformanceStatus.PASS if has_tools else ConformanceStatus.FAIL
-                    ),
+                    status=(ConformanceStatus.PASS if has_tools else ConformanceStatus.FAIL),
                     expected=">0 tools",
                     actual=f"{len(tool_list)} tools",
                     duration_ms=duration,

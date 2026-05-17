@@ -88,7 +88,7 @@ def test_budget_turn_hold_has_nine_signal():
     assert isinstance(ns, dict), "nine_signal must be a dict"
     # delta=GANTUNG, overall=RETAK for HOLD status
     assert (
-        ns.get("overall") == "RETAK"
+        ns.get("overall", {}).get("state") == "RETAK"
     ), f"nine_signal overall must be RETAK for HOLD, got {ns}"
 
 

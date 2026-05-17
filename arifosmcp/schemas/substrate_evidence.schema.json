@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/substrate_evidence.schema.json",
+  "title": "SubstrateEvidence",
+  "description": "WELL substrate evidence packet — arifOS constitutional input for 888_JUDGE adjudication. W0: WELL informs, arifOS judges, Arif decides. schema_version: 2026.05.15",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["available", "unavailable", "degraded"],
+      "description": "Whether WELL substrate data was successfully read"
+    },
+    "well_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Composite operator vitality score (0–100)"
+    },
+    "human_ready": {
+      "type": "string",
+      "enum": ["OPTIMAL", "FUNCTIONAL", "DEGRADED", "LOW_CAPACITY", "UNKNOWN"],
+      "description": "Operator biological readiness tier"
+    },
+    "coupled_verdict": {
+      "type": "string",
+      "enum": ["PROCEED", "CAUTION", "HOLD"],
+      "description": "Coupled human+machine advisory verdict — NOT a gate"
+    },
+    "has_telemetry": {
+      "type": "boolean",
+      "description": "Whether verified domain telemetry (sleep, stress, cognitive etc.) is present"
+    },
+    "truth_status": {
+      "type": "string",
+      "description": "Evidence quality: VERIFIED | OPERATOR_REPORTED | UNVERIFIED | TEST | VOID"
+    },
+    "active_violations": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "W-floor violations currently active (e.g. W5_COGNITIVE_ENTROPY)"
+    },
+    "source": {
+      "type": "string",
+      "description": "Where substrate data was read from: live_state_file | http_health | all_paths_failed"
+    },
+    "w0": {
+      "type": "string",
+      "const": "OPERATOR_VETO_INTACT / HIERARCHY_INVARIANT",
+      "description": "W0 sovereignty invariant — always present as proof this is advisory-only"
+    },
+    "clarity": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 10,
+      "description": "Operator cognitive clarity score (0–10). SOVEREIGN gate threshold: 4.0"
+    },
+    "g_well_verdict": {
+      "type": "string",
+      "enum": ["COHERENT", "FRAGMENTED", "INCOHERENT", "UNKNOWN"],
+      "description": "G-WELL machine governance verdict — present in governance packets"
+    },
+    "governance_flags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Active machine governance flags (e.g. vault_disconnected, machine_substrate_critical)"
+    },
+    "vault_status": {
+      "type": "string",
+      "description": "VAULT999 connectivity status — ok | healthy | disconnected"
+    },
+    "model_reliability": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Machine model reliability coefficient"
+    },
+    "tool_availability": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Fraction of constitutional tools currently available"
+    }
+  },
+  "required": ["status", "w0"],
+  "additionalProperties": true,
+  "x-arifos": {
+    "schema_version": "2026.05.15",
+    "origin": "WELL MCP / arifOS judge.py _read_well_substrate()",
+    "floors": ["W0", "W5", "F2"],
+    "gate": "W5_COGNITIVE_ENTROPY: SOVEREIGN blocked when clarity < 4.0",
+    "doctrine": "DITEMPA BUKAN DIBERI — Forged, Not Given"
+  }
+}

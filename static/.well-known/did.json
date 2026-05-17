@@ -1,0 +1,55 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/v1"
+  ],
+  "id": "did:web:arif-fazil.com",
+  "service": [
+    {
+      "id": "did:web:arif-fazil.com#constitution",
+      "type": "LinkedDomains",
+      "serviceEndpoint": "https://arif-fazil.com/proof/geologist-credential.json.sig",
+      "proof": "https://arif-fazil.com/arifos/AGENTS.md.sig"
+    },
+    {
+      "id": "#arif-fazil",
+      "type": "Entity",
+      "serviceEndpoint": "https://arif-fazil.com"
+    },
+    {
+      "id": "#proof-human",
+      "type": "VerificationService",
+      "serviceEndpoint": "https://arif-fazil.com/proof/human"
+    },
+    {
+      "id": "#proof-authorship",
+      "type": "VerificationService",
+      "serviceEndpoint": "https://arif-fazil.com/proof/authorship"
+    },
+    {
+      "id": "#proof-runtime",
+      "type": "VerificationService",
+      "serviceEndpoint": "https://arif-fazil.com/proof/runtime"
+    },
+    {
+      "id": "#vault",
+      "type": "SecuredMessage",
+      "serviceEndpoint": "https://arif-fazil.com/999"
+    }
+  ],
+  "verificationMethod": [
+    {
+      "id": "did:web:arif-fazil.com#arif-fazil",
+      "controller": "did:web:arif-fazil.com",
+      "type": "Ed25519VerificationKey2020",
+      "publicKeyMultibase": "z6Mkg6CUa6FHsFRSZDUM7Cz4uFWvihWoywcE4TeoAG2iPjR6"
+    }
+  ],
+  "authentication": ["did:web:arif-fazil.com#arif-fazil"],
+  "assertionMethod": ["did:web:arif-fazil.com#arif-fazil"],
+  "created": "2026-01-01T00:00:00Z",
+  "updated": "2026-04-15T00:00:00Z",
+  "relinkMetadata": {
+    "comment": "This DID document is published at the domain it identifies. Control of this domain provides a reasonable chain of custody for the DID. Cryptographic keys pending setup."
+  }
+}

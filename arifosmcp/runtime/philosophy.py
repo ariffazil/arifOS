@@ -117,9 +117,7 @@ def euclidean_distance_3d(
 ) -> float:
     """Compute 3D Euclidean distance."""
     return math.sqrt(
-        (coord1[0] - coord2[0]) ** 2
-        + (coord1[1] - coord2[1]) ** 2
-        + (coord1[2] - coord2[2]) ** 2
+        (coord1[0] - coord2[0]) ** 2 + (coord1[1] - coord2[1]) ** 2 + (coord1[2] - coord2[2]) ** 2
     )
 
 
@@ -178,11 +176,33 @@ def deterministic_select_from_zone(
 
 def _format_quote(quote: dict[str, Any], zone: dict[str, Any]) -> dict[str, Any]:
     """Format a quote for output."""
+    author = quote.get("author", "Unknown")
+    source = quote.get("source", "")
+    # Infer source_status based on author and source provenance
+    if author in ("arifOS Foundry", "arifOS Atlas", "arifOS") or "arifOS" in source:
+        source_status = "SYNTHETIC"
+    elif source in (
+        "Meditations",
+        "Tao Te Ching",
+        "Nicomachean Ethics",
+        "Platonic Dialogues",
+        "Analects",
+        "Man's Search for Meaning",
+        "Letters",
+        "Speeches",
+        "Citizenship Day Speech",
+        "Leaders Eat Last",
+    ):
+        source_status = "VERIFIED"
+    elif source and quote.get("year"):
+        source_status = "VERIFIED"
+    else:
+        source_status = "CANDIDATE"
     return {
         "quote_id": quote.get("id", "UNKNOWN"),
         "quote": quote.get("text", ""),
-        "author": quote.get("author", "Unknown"),
-        "source": quote.get("source", ""),
+        "author": author,
+        "source": source,
         "year": quote.get("year", ""),
         "category": zone.get("name", "Unknown"),
         "zone_id": zone.get("id", "Z??"),
@@ -192,6 +212,7 @@ def _format_quote(quote: dict[str, Any], zone: dict[str, Any]) -> dict[str, Any]
         "Omega": zone.get("Omega", 0),
         "character": zone.get("character", ""),
         "source_type": "atlas_27",
+        "source_status": source_status,
     }
 
 
@@ -218,10 +239,7 @@ def select_atlas_philosophy(
     atlas = _load_atlas()
 
     # Special handling: INIT and SEAL sessions get motto
-    if (
-        scores.get("session_stage") in ("INIT", "SEAL")
-        or scores.get("verdict") == "SEAL"
-    ):
+    if scores.get("session_stage") in ("INIT", "SEAL") or scores.get("verdict") == "SEAL":
         motto = atlas.get("motto", {})
         if motto:
             # Return motto as primary, plus a zone quote
@@ -412,15 +430,9 @@ def select_governed_philosophy(
             "atlas_zones": [z["id"] for z in _load_atlas().get("zones", [])],
             "legacy_33": ["wisdom", "power", "paradox", "void", "seal"],
         },
-        "agi": (
-            primary if result.get("zone", {}).get("id", "").startswith("Z1") else None
-        ),
-        "asi": (
-            primary if result.get("zone", {}).get("id", "").startswith("Z2") else None
-        ),
-        "apex": (
-            primary if result.get("zone", {}).get("id", "").startswith("Z3") else None
-        ),
+        "agi": (primary if result.get("zone", {}).get("id", "").startswith("Z1") else None),
+        "asi": (primary if result.get("zone", {}).get("id", "").startswith("Z2") else None),
+        "apex": (primary if result.get("zone", {}).get("id", "").startswith("Z3") else None),
         "atlas_result": result,  # Full atlas result for debugging
     }
 
@@ -497,9 +509,7 @@ def get_wisdom_for_context(
     failed_floors: list[str] | None = None,
 ) -> Quote:
     """Legacy API - use select_governed_philosophy instead."""
-    anchor = get_philosophical_anchor(
-        stage, g_score, failed_floors or [], context=context
-    )
+    anchor = get_philosophical_anchor(stage, g_score, failed_floors or [], context=context)
     return anchor
 
 

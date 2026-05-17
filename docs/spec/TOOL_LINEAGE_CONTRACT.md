@@ -74,10 +74,10 @@ def compute_schema_hash(tool_schema: dict) -> str:
 
 ```json
 {
-  "wealth_evoi_compute": {
+  "wealth_mind_evoi": {
     "version": "1.0.0",
     "schema_hash": "a3f7c2d9e8b1d4f5",  # pragma: allowlist secret
-    "last_updated": "2026-04-26",
+    "last_updated": "2026-05-11",
     "schema": { ... }
   }
 }

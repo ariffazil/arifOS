@@ -7,9 +7,11 @@ authority: 888_JUDGE
 
 # arifOS MCP Runtime — Canonical Agent Skills
 
-> **Constitutional AI Governance + Agent Runtime**
+> **Constitutional Intelligence Kernel + Agent Runtime**
 >
-> This document registers the 13 canonical MCP tools available to AI agents
+> **Machine is substrate. Governance is constraint. Intelligence is interpretation. Judgment remains Arif.**
+>
+> This document registers the canonical MCP tools (13+ constitutional surface) available to AI agents
 > operating within the arifOS ecosystem.
 
 ---

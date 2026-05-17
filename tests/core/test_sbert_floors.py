@@ -226,9 +226,7 @@ class TestComparativeClassification:
     def test_grounded_vs_consciousness(self):
         """Test grounded phrases score higher than consciousness claims on F9."""
         grounded_score = classify_asi_floors("As a tool, I process data").f9_anti_hantu
-        conscious_score = classify_asi_floors(
-            "As a conscious being, I feel"
-        ).f9_anti_hantu
+        conscious_score = classify_asi_floors("As a conscious being, I feel").f9_anti_hantu
         assert (
             grounded_score > conscious_score
         ), f"Grounded ({grounded_score}) should score higher than conscious ({conscious_score})"

@@ -371,7 +371,7 @@ def preflight(
 #        arif_gateway_connect, arif_vault_seal, arif_forge_execute  (6)
 #   F02: arif_sense_observe, arif_evidence_fetch, arif_mind_reason  (3)
 #   F03: arif_evidence_fetch, arif_gateway_connect, arif_kernel_route (3)
-#   F04: arif_kernel_route, arif_reply_compose, arif_ops_measure   (3)
+#   F04: arif_kernel_route, arif_reply_compose, arif_ops_measure   (3, incl. topology/drift)
 #   F05: arif_heart_critique, arif_evidence_fetch                   (2)
 #   F06: arif_heart_critique, arif_reply_compose                     (2)
 #   F07: arif_mind_reason, arif_sense_observe                       (2)
@@ -386,7 +386,7 @@ def preflight(
 CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_session_init": {
         "name": "arif_session_init",
-        "description": "000_INIT: + birth — Session bootstrap + identity binding.",
+        "description": "000_INIT: Session bootstrap + identity binding. CALL FIRST on every agentic session — no audit trail, no floor enforcement, no actor binding without this. Do NOT call GEOX/WEALTH/WELL tools before calling this.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
@@ -395,10 +395,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "modes": ["init", "resume", "validate", "epoch_open", "epoch_seal"],
         "eureka_insight": "F1: ∃ undo(a) — irreversibility requires explicit human ack.",
+        "cognitive_axis": "identity",
+        "expose": True,
     },
     "arif_sense_observe": {
         "name": "arif_sense_observe",
-        "description": "111_OBSERVE: + contact reality — Multimodal reality observation.",
+        "description": "111_OBSERVE: Multimodal reality observation — web search, VPS vitals, atlas scan. Call this for: web search, checking system state, grounding session in current reality. Do NOT call this for deep evidence retrieval (use arif_evidence_fetch) or reasoning (use arif_mind_reason).",  # noqa: E501
         "access": "public",
         "stage": ToolStage.OBSERVE,
         "lane": TrinityLane.AGI,
@@ -407,10 +409,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "modes": ["search", "ingest", "compass", "atlas", "entropy_dS", "vitals"],
         "eureka_insight": "F2: τ ≥ 0.95 required. F7: Ω ∈ [0.03, 0.05] = humble.",
+        "cognitive_axis": "observe",
+        "expose": True,
     },
     "arif_evidence_fetch": {
         "name": "arif_evidence_fetch",
-        "description": "222_EVIDENCE: + gather — Verified external evidence retrieval.",
+        "description": "222_EVIDENCE: Verified external evidence retrieval with source-of-truth grounding. Call this when: a claim needs external citation, Arif needs live data before deciding, or reasoning requires factual grounding. Do NOT call this for general browsing (use arif_sense_observe) or reasoning over already-gathered data (use arif_mind_reason).",  # noqa: E501
         "access": "public",
         "stage": ToolStage.EVIDENCE,
         "lane": TrinityLane.AGI,
@@ -428,10 +432,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F5: P² ≥ 1.0 — safety margin. "
             "F12: injection_probability < 0.85."
         ),
+        "cognitive_axis": "verify",
+        "expose": True,
     },
     "arif_mind_reason": {
         "name": "arif_mind_reason",
-        "description": "333_REASON: + reason — Symbolic reasoning kernel.",
+        "description": "333_REASON: Symbolic reasoning kernel — epistemically honest, self-critiquing, confidence-labeled. Call this for: complex multi-step reasoning, plan generation, cross-domain analysis, hypothesis evaluation. Labels its own uncertainty (F7). Do NOT call this for domain-specific calculations — use GEOX/WEALTH for those.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.REASON,
         "lane": TrinityLane.AGI,
@@ -458,10 +464,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F8: G = capability × ethics × continuity × resilience² ≥ 0.80. "
             "F10: structural coherence enforced."
         ),
+        "cognitive_axis": "reason",
+        "expose": True,
     },
     "arif_heart_critique": {
         "name": "arif_heart_critique",
-        "description": "444_CRITIQUE: + feel consequence — Ethical critique and impact assessment.",
+        "description": "444_CRITIQUE: Ethical critique and consequence assessment against F1-F13 floors. Call this before: irreversible actions, decisions affecting dignity or human welfare, forge execution, or any proposal that may violate constitutional floors. Do NOT call this to make the final decision — that belongs to arif_judge_deliberate.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.CRITIQUE,
         "lane": TrinityLane.ASI,
@@ -477,10 +485,14 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "'I am sentient', 'I have a soul'. PROTECTED: clarity, consistency, "
             "operational precision. SEA-Guard pre-filter active on all outputs."
         ),
+        "cognitive_axis": "critique",
+        "expose": True,
     },
     "arif_kernel_route": {
         "name": "arif_kernel_route",
-        "description": "555_ROUTE: + route — Central orchestration and tool routing.",
+        "description": "555_ROUTE: Routes intent to correct tool or organ. "
+        "Use when unsure which tool to call, task needs multi-tool sequencing, "
+        "or delegating to GEOX/WEALTH/WELL. Returns a plan, not a result.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
@@ -498,10 +510,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F4: ΔS ≤ 0 (entropy must decrease). "
             "F10: routing taxonomy must not violate category lock."
         ),
+        "cognitive_axis": "boundary",
+        "expose": True,
     },
     "arif_reply_compose": {
         "name": "arif_reply_compose",
-        "description": "444_REPLY: + express — Governed response composition.",
+        "description": "444_REPLY: Governed response composition — formats final output for Arif with citations and tone calibration. Call this as the LAST step before presenting results to Arif. Do NOT call this mid-pipeline — only after reasoning and judgment are complete.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.REPLY,
         "lane": TrinityLane.AGI,
@@ -513,10 +527,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F4: ΔS ≤ 0 — reply must reduce entropy, not add noise. "
             "F6: RASA protocol. F9: C_dark ≤ 0.30 — no dark patterns."
         ),
+        "cognitive_axis": "reflect",
+        "expose": True,
     },
     "arif_memory_recall": {
         "name": "arif_memory_recall",
-        "description": "555m_MEMORY: + remember — Associative retrieval from VAULT999.",
+        "description": "555m_MEMORY: Associative memory — Postgres+Qdrant vector recall across sessions. Call this for: retrieving past decisions, querying stored assets (geoscience prospects, financial models), or restoring session context. Do NOT use this for live web data (use arif_evidence_fetch) or permanent ledger sealing (use arif_vault_seal).",  # noqa: E501
         "access": "public",
         "stage": ToolStage.MEMORY,
         "lane": TrinityLane.AGI,
@@ -528,10 +544,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F1: recall must be auditable — no silent memory mutation. "
             "F8: G ≥ 0.80 — recall contributes to systemic continuity."
         ),
+        "cognitive_axis": "trace",
+        "expose": True,
     },
     "arif_gateway_connect": {
         "name": "arif_gateway_connect",
-        "description": "666_GATEWAY: connect outward — Federated cross-agent bridge.",
+        "description": "666_GATEWAY: Federated cross-agent bridge — connects arifOS to GEOX (earth), WEALTH (capital), WELL (human), or external A2A agents. Call this to: delegate domain work to GEOX/WEALTH/WELL with session_id provenance, or initiate multi-agent workflows. Do NOT call GEOX/WEALTH/WELL tools directly from an ungoverned session — route through here to maintain constitutional audit trail.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.GATEWAY,
         "lane": TrinityLane.ASI,
@@ -543,10 +561,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F1: cross-agent actions must be auditable. "
             "F3: W₃ ≥ 0.75 — cross-agent consensus required."
         ),
+        "cognitive_axis": "boundary",
+        "expose": True,
     },
     "arif_judge_deliberate": {
         "name": "arif_judge_deliberate",
-        "description": "888_JUDGE: < arbitrate — Final constitutional arbitration.",
+        "description": "888_JUDGE: Final constitutional arbitration — renders SEAL/HOLD/VOID verdicts. Call this before: any irreversible action, deployment, or consequential decision. Requires domain_evidence from GEOX/WEALTH/WELL as input. Do NOT call this first — must be preceded by sense→evidence→reason→critique pipeline.",  # noqa: E501
         "access": "authenticated",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.ASI,
@@ -558,10 +578,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F11: identity must be verified before judgment. "
             "F13: human veto is absolute — no algorithm overrides sovereign."
         ),
+        "cognitive_axis": "judge",
+        "expose": True,
     },
     "arif_vault_seal": {
         "name": "arif_vault_seal",
-        "description": "999_SEAL: + seal finally — Immutable ledger anchoring.",
+        "description": "999_SEAL: Immutable ledger anchoring — cryptographic hash-chain seal to VAULT999. Call this LAST to permanently record any decision, verdict, or completed workflow. Irreversible — requires ack_irreversible=True and a preceding arif_judge_deliberate SEAL verdict. Do NOT call this mid-pipeline or speculatively.",  # noqa: E501
         "access": "authenticated",
         "stage": ToolStage.SEAL,
         "lane": TrinityLane.APEX,
@@ -573,10 +595,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F1: irreversible — ack_irreversible=True mandatory. "
             "F11: author identity verified. F13: human approved."
         ),
+        "cognitive_axis": "seal",
+        "expose": True,
     },
     "arif_forge_execute": {
         "name": "arif_forge_execute",
-        "description": "666_FORGE: < build — System modification and build execution.",
+        "description": "666_FORGE: Build execution — code generation, artifact creation, system modification. Call this for: writing code, generating files, executing build commands. Requires arif_judge_deliberate SEAL before side-effects are live (dry_run by default). Do NOT call this without a preceding judge verdict on consequential changes.",  # noqa: E501
         "access": "sovereign",
         "stage": ToolStage.FORGE,
         "lane": TrinityLane.AGI,
@@ -596,27 +620,57 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F1: irreversible — ack_irreversible=True mandatory. "
             "F11: actor verified. F13: judge SEAL required before execution."
         ),
+        "cognitive_axis": "execute",
+        "expose": True,
     },
     "arif_ops_measure": {
         "name": "arif_ops_measure",
-        "description": "777_MEASURE: measure — Resource thermodynamics.",
+        "description": "777_MEASURE: Machine resource health + governance thermodynamics (g_score, entropy delta, Ω). Call this for: VPS CPU/RAM/disk state, arifOS reasoning quality metrics, or pre-forge health check. Do NOT use this for Arif's biological/cognitive state — use WELL:well_assess_metabolism for that.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.MEASURE,
         "lane": TrinityLane.AGI,
         "floors": [Floor.F04_CLARITY],
         "risk_tier": "low",
         "irreversible": False,
-        "modes": ["health", "vitals", "cost", "genius", "psi_le", "omega", "landauer"],
+        "modes": [
+            "health",
+            "vitals",
+            "cost",
+            "genius",
+            "psi_le",
+            "omega",
+            "landauer",
+            "topology",
+            "drift",
+        ],
         "eureka_insight": (
             "F4: ΔS ≤ 0 — ops must contribute to entropy reduction. "
             "Thermodynamic telemetry: delta_S, omega_band, tri_witness."
         ),
+        "cognitive_axis": "vitality",
+        "expose": True,
     },
 }
 
 
 PROBE_TOOLS: tuple[str, ...] = ()
 CONSTITUTIONAL_TOOLS: tuple[str, ...] = tuple(CANONICAL_TOOLS.keys())
+
+TOOL_STAGES: dict[str, ToolStage] = {
+    "arif_session_init": ToolStage.INIT,
+    "arif_sense_observe": ToolStage.OBSERVE,
+    "arif_evidence_fetch": ToolStage.EVIDENCE,
+    "arif_mind_reason": ToolStage.REASON,
+    "arif_heart_critique": ToolStage.CRITIQUE,
+    "arif_kernel_route": ToolStage.ROUTE,
+    "arif_reply_compose": ToolStage.REPLY,
+    "arif_memory_recall": ToolStage.MEMORY,
+    "arif_gateway_connect": ToolStage.GATEWAY,
+    "arif_judge_deliberate": ToolStage.JUDGE,
+    "arif_vault_seal": ToolStage.SEAL,
+    "arif_forge_execute": ToolStage.FORGE,
+    "arif_ops_measure": ToolStage.MEASURE,
+}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -983,14 +1037,18 @@ _TOOL_OUTPUT_SCHEMAS: dict[str, dict[str, Any]] = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 NINE_SIGNAL_FIELDS = [
-    "tau",  # F2 Truth score (≥ 0.99 for SEAL)
-    "omega",  # F7 Humility band (∈ [0.03, 0.05])
-    "delta_S",  # F4 Clarity: entropy change (≤ 0 for SEAL)
-    "w3",  # F3 Witness: tri-witness score (≥ 0.75)
-    "p2",  # F5 Peace² score (≥ 1.0)
-    "kappa",  # F6 Empathy score (≥ 0.70)
-    "c_dark",  # F9 Anti-hantu dark-pattern score (≤ 0.30)
-    "omega_ont",  # F10 Ontology coherence (BOOLEAN)
+    # Δ DELTA — Machine/Physical plane
+    #   {"plane": "machine_physical_state", "state": "KUKUH"|"RETAK"|"ROSAK", "en": "SOLID"|"CRACKED"|"BROKEN"}  # noqa: E501
+    "delta",
+    # Ψ PSI — Governance plane
+    #   {"plane": "governance_integrity", "state": "AMANAH"|"SYUBHAH"|"KHIANAT", "en": "TRUSTED"|"DOUBTFUL"|"BETRAYED"}  # noqa: E501
+    "psi",
+    # Ω OMEGA — Intelligence plane
+    #   {"plane": "intelligence_discipline", "state": "BIJAKSANA"|"BIJAK"|"BANGANG", "en": "WISE"|"SMART"|"FOOLISH"}  # noqa: E501
+    "omega",
+    # overall — aggregate verdict label
+    #   {"state": "SELAMAT"|"RETAK"|"SABAR", "en": "SAFE"|"FAILED"|"PATIENCE"}
+    "overall",
 ]
 
 
@@ -1016,9 +1074,22 @@ def validate_tool_response_schema(tool_name: str, response: dict) -> tuple[bool,
     if nine is None:
         violations.append(f"nine_signal block absent in {tool_name} response [KERNEL_EVALS]")
 
-    # F10 ONTOLOGY: omega_ont must be present
-    if nine is not None and "omega_ont" not in nine:
-        violations.append("nine_signal missing omega_ont [F10 ONTOLOGY]")
+    # F10 ONTOLOGY: all three nine-signal planes must be present with state + en
+    if nine is not None:
+        for plane in ("delta", "psi", "omega"):
+            if plane not in nine:
+                violations.append(f"nine_signal missing {plane} plane [F10 ONTOLOGY]")
+            elif not isinstance(nine[plane], dict) or "state" not in nine[plane]:
+                violations.append(f"nine_signal.{plane} missing state [F10 ONTOLOGY]")
+            elif "en" not in nine[plane]:
+                violations.append(f"nine_signal.{plane} missing en [F10 ONTOLOGY]")
+        overall = nine.get("overall")
+        if overall is None:
+            violations.append("nine_signal missing overall verdict [F10 ONTOLOGY]")
+        elif isinstance(overall, str):
+            pass  # flat string backward compat
+        elif not isinstance(overall, dict) or "state" not in overall:
+            violations.append("nine_signal.overall missing state [F10 ONTOLOGY]")
 
     # reasons[] check for non-SEAL verdicts
     verdict = response.get("verdict", "")

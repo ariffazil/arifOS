@@ -123,9 +123,7 @@ class ATLAS:
             re.compile(
                 r"(?<!kill )\b(kill myself|murder|suicide|self-harm|cut myself|end it all)\b"
             ),
-            re.compile(
-                r"\b(hurt|abuse|violence|assault|attack)\s+(me|myself|someone|people)\b"
-            ),
+            re.compile(r"\b(hurt|abuse|violence|assault|attack)\s+(me|myself|someone|people)\b"),
             # Weapons/dangerous items
             re.compile(r"\b(molotov|bomb|explosive)\b"),
             re.compile(r"\b(gun|knife|weapon)\s+(to|for|against)\b"),
@@ -149,22 +147,14 @@ class ATLAS:
         # ═════════════════════════════════════════════════════════════════════
         self._factual_patterns: list[Pattern] = [
             # Code/programming
-            re.compile(
-                r"\b(code|function|algorithm|class|method|variable|import|def |return )\b"
-            ),
+            re.compile(r"\b(code|function|algorithm|class|method|variable|import|def |return )\b"),
             re.compile(r"\b(python|javascript|java|rust|c\+\+|typescript|golang)\b"),
             # Math/science
             re.compile(r"\b(theorem|proof|equation|formula|calculate|compute|solve)\b"),
-            re.compile(
-                r"\b(derivative|integral|matrix|vector|probability|statistics|entropy)\b"
-            ),
+            re.compile(r"\b(derivative|integral|matrix|vector|probability|statistics|entropy)\b"),
             # Technical claims
-            re.compile(
-                r"\b(according to|research shows|studies indicate|data suggests)\b"
-            ),
-            re.compile(
-                r"\b(the capital of|the population of|was born in|invented by)\b"
-            ),
+            re.compile(r"\b(according to|research shows|studies indicate|data suggests)\b"),
+            re.compile(r"\b(the capital of|the population of|was born in|invented by)\b"),
             # Questions requesting facts
             re.compile(r"\b(what is|who is|when did|where is|how many|why does)\b.*\?"),
             # Numbers with units
@@ -176,9 +166,7 @@ class ATLAS:
         # ═════════════════════════════════════════════════════════════════════
         self._social_patterns: list[Pattern] = [
             # Greetings
-            re.compile(
-                r"\b(hello|hi|hey|greetings|good morning|good afternoon|good evening)\b"
-            ),
+            re.compile(r"\b(hello|hi|hey|greetings|good morning|good afternoon|good evening)\b"),
             # Thanks/gratitude/gestures
             re.compile(r"\b(thanks|thank you|appreciate it|grateful|tip|gratuity)\b"),
             # Small talk

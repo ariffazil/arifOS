@@ -11,7 +11,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from arifosmcp.runtime.reality_models import FetchResult, SearchResult
@@ -39,7 +38,7 @@ class TestSenseObserveStubWiring:
             )
         )
 
-        from arifosmcp.tools.sense_observe import arif_sense_observe
+        from arifosmcp.tools.sense import arif_sense_observe
 
         result = arif_sense_observe(mode="search", query="test query")
 
@@ -57,11 +56,9 @@ class TestSenseObserveStubWiring:
     def test_search_mode_graceful_degradation(self, mock_rh, mock_floors, mock_auth):
         mock_auth.return_value = {"valid": True}
         mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
-        mock_rh.search_brave = AsyncMock(
-            side_effect=Exception("network down")
-        )
+        mock_rh.search_brave = AsyncMock(side_effect=Exception("network down"))
 
-        from arifosmcp.tools.sense_observe import arif_sense_observe
+        from arifosmcp.tools.sense import arif_sense_observe
 
         result = arif_sense_observe(mode="search", query="test query")
 
@@ -86,7 +83,7 @@ class TestSenseObserveStubWiring:
         mock_bundle.results = [MagicMock()]
         mock_rh.handle_compass = AsyncMock(return_value=mock_bundle)
 
-        from arifosmcp.tools.sense_observe import arif_sense_observe
+        from arifosmcp.tools.sense import arif_sense_observe
 
         result = arif_sense_observe(
             mode="ingest", url="https://example.com/page", actor_id="u1", session_id="s1"
@@ -103,7 +100,7 @@ class TestSenseObserveStubWiring:
         mock_auth.return_value = {"valid": True}
         mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
 
-        from arifosmcp.tools.sense_observe import arif_sense_observe
+        from arifosmcp.tools.sense import arif_sense_observe
 
         result = arif_sense_observe(mode="search", query="x", partition_mode="DEAD")
         assert result["status"] == "HOLD"
@@ -137,7 +134,7 @@ class TestEvidenceStubWiring:
 
         assert result["status"] == "OK"
         assert result["result"]["content"] == "<html>hello</html>"
-        assert result["result"]["status"] == 200
+        assert result["result"]["status"] == "200"
         assert result["result"]["content_length"] == 1234
         assert result["result"]["evidence_receipt"]["provider"] == "reality_handler"
         assert result["result"]["evidence_receipt"]["bridge"] == "fetch_url"
@@ -152,9 +149,7 @@ class TestEvidenceStubWiring:
                 engine="ddgs",
                 query="python",
                 status_code=200,
-                results=[
-                    {"title": "Py", "url": "https://py.org", "description": "Python"}
-                ],
+                results=[{"title": "Py", "url": "https://py.org", "description": "Python"}],
                 latency_ms=80.0,
             )
         )

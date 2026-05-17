@@ -170,9 +170,7 @@ class Verdict:
 class ArifOSClient(Protocol):
     """Protocol for arifOS MCP client."""
 
-    async def evaluate_action(
-        self, action: dict[str, Any], floors: list[str]
-    ) -> Verdict:
+    async def evaluate_action(self, action: dict[str, Any], floors: list[str]) -> Verdict:
         """Evaluate action against constitutional floors."""
         ...
 
@@ -251,9 +249,7 @@ class ConstitutionalAgent(ABC):
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        logger.info(
-            f"[{execution_id}] {self.agent_id} eval task: {task.get('type', 'unknown')}"
-        )
+        logger.info(f"[{execution_id}] {self.agent_id} eval task: {task.get('type', 'unknown')}")
 
         try:
             # === PRE-EXECUTION: Constitutional evaluation ===
@@ -312,9 +308,7 @@ class ConstitutionalAgent(ABC):
         """Log execution to VAULT999 immutable ledger."""
         return await self.arifos.seal_to_vault(verdict)
 
-    async def _handle_hold_state(
-        self, verdict: Verdict, action: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def _handle_hold_state(self, verdict: Verdict, action: dict[str, Any]) -> dict[str, Any]:
         """
         Handle 888_HOLD escalation.
 
@@ -334,9 +328,7 @@ class ConstitutionalAgent(ABC):
             new_verdict = await self._evaluate_constitutionality(action)
 
             if new_verdict.status != VerdictStatus.VOID:
-                result = await self._execute_impl(
-                    action["task"], verdict.execution_id, new_verdict
-                )
+                result = await self._execute_impl(action["task"], verdict.execution_id, new_verdict)
                 return {
                     "status": "success",
                     "execution_id": verdict.execution_id,
@@ -409,9 +401,7 @@ class ConstitutionalAgent(ABC):
 
         receipt = sealer.seal_handoff(
             source_agent_id=self.agent_id,
-            source_role=(
-                self.role.name if hasattr(self.role, "name") else str(self.role)
-            ),
+            source_role=(self.role.name if hasattr(self.role, "name") else str(self.role)),
             target_agent_id=target_agent_id,
             target_role="UNKNOWN",  # Target role resolved by registry
             action_payload=action_payload,
@@ -473,9 +463,7 @@ class ConstitutionalAgent(ABC):
         """Check if agent can spawn subagents (depth limit)."""
         return self.current_depth < self.max_subagent_depth
 
-    async def spawn_subagent(
-        self, task: dict[str, Any], agent_class: type
-    ) -> dict[str, Any]:
+    async def spawn_subagent(self, task: dict[str, Any], agent_class: type) -> dict[str, Any]:
         """
         Spawn a subagent with inherited constitutional constraints.
 

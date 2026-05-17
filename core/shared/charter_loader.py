@@ -55,16 +55,12 @@ class CharterLoader:
                     # Match Threshold (e.g., Threshold: 0.95 or Threshold: ≥ 0.99)
                     # We look for words like 'Threshold:' followed by optional symbols
                     # and then the number
-                    threshold_match = re.search(
-                        r"Threshold:\s*(?:[≥≤\s]*)\s*([\d\.]+)", content
-                    )
+                    threshold_match = re.search(r"Threshold:\s*(?:[≥≤\s]*)\s*([\d\.]+)", content)
                     if threshold_match:
                         thresholds[f_id] = float(threshold_match.group(1))
                     else:
                         # Try range match (e.g., F7 Humility [0.03, 0.05])
-                        range_match = re.search(
-                            r"Threshold:\s*\[([\d\.]+),\s*([\d\.]+)\]", content
-                        )
+                        range_match = re.search(r"Threshold:\s*\[([\d\.]+),\s*([\d\.]+)\]", content)
                         if range_match:
                             thresholds[f_id] = float(range_match.group(2))
 
@@ -86,9 +82,7 @@ def sync_runtime_floors():
             if spec_key and spec_key in THRESHOLDS:
                 old_val = THRESHOLDS[spec_key].get("threshold")
                 if old_val != val:
-                    sys.stderr.write(
-                        f"[arifOS] Updating {f_id} ({spec_key}): {old_val} -> {val}\n"
-                    )
+                    sys.stderr.write(f"[arifOS] Updating {f_id} ({spec_key}): {old_val} -> {val}\n")
                     THRESHOLDS[spec_key]["threshold"] = val
 
         return True

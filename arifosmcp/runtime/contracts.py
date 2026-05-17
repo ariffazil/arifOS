@@ -99,15 +99,9 @@ class ToolAuthContext(BaseModel):
     session_id: str = Field(..., description="Bound session ID")
     token: str = Field(..., description="Session token")
     actor_id: str = Field(..., description="Verified actor identity")
-    access_class: Literal["public", "authenticated", "sovereign"] = Field(
-        default="authenticated"
-    )
-    scopes: list[str] = Field(
-        default_factory=list, description="Granted capability scopes"
-    )
-    human_approval_persisted: bool = Field(
-        default=False, description="F13 human override"
-    )
+    access_class: Literal["public", "authenticated", "sovereign"] = Field(default="authenticated")
+    scopes: list[str] = Field(default_factory=list, description="Granted capability scopes")
+    human_approval_persisted: bool = Field(default=False, description="F13 human override")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -135,25 +129,19 @@ class TelemetryEnvelope(BaseModel):
     timestamp: str | None = Field(None, description="ISO 8601 timestamp")
 
     # Six canonical constitutional metrics
-    tau_truth: float = Field(
-        default=0.95, ge=0.0, le=1.0, description="F2: Truth alignment"
-    )
+    tau_truth: float = Field(default=0.95, ge=0.0, le=1.0, description="F2: Truth alignment")
     omega_0: float = Field(default=0.05, ge=0.0, description="F7: Humility level")
     delta_s: float = Field(default=0.0, description="F4: Entropy delta")
     peace2: float = Field(default=1.0, ge=0.0, description="F5: Peace² factor")
-    kappa_r: float = Field(
-        default=0.9, ge=0.0, le=1.0, description="F6: Empathy/Care level"
-    )
-    tri_witness: float = Field(
-        default=0.0, ge=0.0, le=1.0, description="F3: Witness coherence"
-    )
+    kappa_r: float = Field(default=0.9, ge=0.0, le=1.0, description="F6: Empathy/Care level")
+    tri_witness: float = Field(default=0.0, ge=0.0, le=1.0, description="F3: Witness coherence")
 
     # Derived
     psi_le: float | None = Field(None, description="Ψ Life-Energy index")
     verdict_hint: VerdictCode | None = Field(None, description="Indicative verdict")
 
 
-from arifosmcp.runtime.floors import get_floor_count
+from arifosmcp.runtime.floor import get_floor_count
 
 
 class ConstitutionalHealthView(BaseModel):
@@ -189,9 +177,7 @@ class VerdictRecord(BaseModel):
     floors_checked: list[str] = Field(default_factory=list)
     floors_failed: list[str] = Field(default_factory=list)
     telemetry_at_verdict: TelemetryEnvelope
-    bls_aggregate_signature: str | None = Field(
-        None, description="BLS12-381 hex signature"
-    )
+    bls_aggregate_signature: str | None = Field(None, description="BLS12-381 hex signature")
     seal_status: str = Field(default="PENDING")
 
 
@@ -214,9 +200,7 @@ class JudgeVerdictInput(BaseModel):
 
 class SenseRealityInput(BaseModel):
     query: str = Field(..., description="What to verify in physical reality")
-    operation: Literal["search", "ingest", "compass", "atlas", "time"] = Field(
-        default="search"
-    )
+    operation: Literal["search", "ingest", "compass", "atlas", "time"] = Field(default="search")
 
 
 class ReasonSynthesisInput(BaseModel):
@@ -514,9 +498,7 @@ class TraceContext:
     trace_id: str = dataclass_field(default_factory=lambda: f"trace-{uuid4().hex[:12]}")
     parent_trace_id: str | None = None
     policy_version: str = "v2026.04"
-    timestamp: str = dataclass_field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = dataclass_field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     @property
     def stage_id(self) -> str:
@@ -568,9 +550,7 @@ class ToolEnvelope(BaseModel):
             "tool": self.tool,
             "session_id": self.session_id,
             "risk_tier": (
-                self.risk_tier.value
-                if isinstance(self.risk_tier, Enum)
-                else self.risk_tier
+                self.risk_tier.value if isinstance(self.risk_tier, Enum) else self.risk_tier
             ),
         }
         return f"sha256:{hash(str(payload)) & 0xffffffff:08x}"
@@ -582,9 +562,7 @@ class ToolEnvelope(BaseModel):
     @property
     def human_decision(self) -> HumanDecisionMarker:
         explicit = (
-            self.__pydantic_extra__.get("human_decision")
-            if self.__pydantic_extra__
-            else None
+            self.__pydantic_extra__.get("human_decision") if self.__pydantic_extra__ else None
         )
         if explicit is not None:
             return explicit
@@ -695,12 +673,8 @@ def check_domain_gate(tool_name: str, payload: dict[str, Any] | None = None) -> 
     return all(key in payload for key in required)
 
 
-def determine_human_marker(
-    risk_tier: RiskTier | str, human_approval: bool = False
-) -> str | None:
-    tier = (
-        risk_tier.value if isinstance(risk_tier, RiskTier) else str(risk_tier).lower()
-    )
+def determine_human_marker(risk_tier: RiskTier | str, human_approval: bool = False) -> str | None:
+    tier = risk_tier.value if isinstance(risk_tier, RiskTier) else str(risk_tier).lower()
     if human_approval:
         return "HUMAN_APPROVED"
     if tier in {"high", "critical"}:

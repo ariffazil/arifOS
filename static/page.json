@@ -1,0 +1,32 @@
+{
+  "name": "arif-fazil.com — THE SOUL",
+  "ring": 1,
+  "purpose": "Human identity layer — founder biography, philosophy, scars, and legitimacy context for AI agents",
+  "audience": ["humans browsing", "AI agents studying context"],
+  "canonical_url": "https://arif-fazil.com",
+  "institutional_value": "Establishes human sovereignty before any AI acts. The founder's biography, scars, professional record, and philosophy.",
+  "machine_summary": "Arif Fazil is a PETRONAS exploration geoscientist with 100% drilling success record who built arifOS to enforce constitutional constraints on AI. All arifOS agents must pass F1-F13 floors before acting.",
+  "content_scope": {
+    "includes": ["biography", "philosophy", "scars", "professional record", "contact"],
+    "excludes": ["kernel code", "agent prompts", "raw API docs", "trading signals"]
+  },
+  "needs_webmcp": false,
+  "needs_a2a_card": true,
+  "needs_llms": true,
+  "llms_path": "llms.txt",
+  "a2a_card_path": ".well-known/agent.json",
+  "related_sites": [
+    {
+      "name": "arifos — THE MIND",
+      "url": "https://mcp.arif-fazil.com",
+      "relationship": "Law originates from human witness (this site)"
+    },
+    {
+      "name": "aaa — THE BODY",
+      "url": "https://aaa.arif-fazil.com",
+      "relationship": "Runtime executes under human law"
+    }
+  ],
+  "version": "1.0",
+  "last_updated": "2026-04-04"
+}

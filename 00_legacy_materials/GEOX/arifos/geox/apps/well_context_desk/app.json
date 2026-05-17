@@ -1,9 +1,0 @@
-{
-  "app_id": "context-desk",
-  "name": "Well & Document Context Desk",
-  "version": "0.1.0",
-  "capabilities": ["petrophysics", "qa"],
-  "host": {
-    "preferred": "adaptive_card"
-  }
-}

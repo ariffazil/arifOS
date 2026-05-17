@@ -41,9 +41,7 @@ def test_no_legacy_surface():
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
     legacy = [n for n in CANONICAL_TOOLS if n.startswith("arifos_")]
-    assert not legacy, (
-        f"Legacy surface detected: {legacy}. " "arifos_ prefix is deprecated. VOID."
-    )
+    assert not legacy, f"Legacy surface detected: {legacy}. " "arifos_ prefix is deprecated. VOID."
 
 
 def test_canonical_prompts_count():

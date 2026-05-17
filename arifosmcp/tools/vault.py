@@ -7,6 +7,7 @@ Immutable ledger and audit engine.
 
 from __future__ import annotations
 
+import hashlib
 from typing import Literal
 
 from arifosmcp.runtime.tools import _arif_vault_seal
@@ -14,9 +15,7 @@ from arifosmcp.schemas.verdict import SealOutput
 
 
 def arif_vault_seal(
-    mode: Literal[
-        "seal", "verify", "chain", "list", "dry_run", "seal_card", "render"
-    ] = "seal",
+    mode: Literal["seal", "verify", "chain", "list", "dry_run", "seal_card", "render"] = "seal",
     payload: str = "",
     session_id: str | None = None,
     ack_irreversible: bool = False,
@@ -30,7 +29,57 @@ def arif_vault_seal(
     witness: dict | None = None,
     trace_root: str | None = None,
     policy_digest: str | None = None,
+    cooldown_entry_id: str | None = None,
 ) -> SealOutput:
+    """
+    999_VAULT: Immutable ledger anchoring.
+
+    Args:
+        cooldown_entry_id: If provided, the seal is gated on SABAR cooldown completion.
+            Without it, cooldown is logged as bypassed (legacy compat path).
+            Internal hardening — no new tool surface.
+    """
+    # ── SABAR cooldown gate (internal hardening) ──
+    cooldown_meta: dict = {}
+    if mode == "seal" and payload:
+        try:
+            from arifosmcp.core.cooldown_engine import get_cooldown_engine
+
+            engine = get_cooldown_engine()
+            if cooldown_entry_id:
+                entry = engine.check(cooldown_entry_id)
+                if entry and entry.verdict == "SEAL":
+                    cooldown_meta["cooldown"] = "verified"
+                    cooldown_meta["cooldown_entry_id"] = cooldown_entry_id
+                elif entry:
+                    cooldown_meta["cooldown"] = "pending"
+                    cooldown_meta["cooldown_entry_id"] = cooldown_entry_id
+                    cooldown_meta["cooldown_remaining_hours"] = entry.remaining_hours
+                    cooldown_meta["cooldown_verdict"] = entry.verdict
+                else:
+                    cooldown_meta["cooldown"] = "not_found"
+            else:
+                # Legacy path — no cooldown entry, log bypass + increment counter
+                auto_entry = engine.propose(
+                    artifact_ref=(
+                        f"vault:{session_id or 'anon'}:"
+                        f"{hashlib.md5(payload.encode()).hexdigest()[:8]}"  # nosec
+                    ),
+                    description="auto-registered from vault seal (legacy compat)",
+                    risk_tier="low",
+                    session_id=session_id,
+                )
+                bypass_n = engine.record_bypass()
+                cooldown_meta["cooldown"] = "bypassed"
+                cooldown_meta["cooldown_entry_id"] = auto_entry.entry_id
+                cooldown_meta["cooldown_bypass_count"] = bypass_n
+                cooldown_meta["cooldown_note"] = (
+                    f"legacy compat — cooldown bypassed (bypass #{bypass_n}). "
+                    f"Will hard-enforce in Stage 2C."
+                )
+        except Exception:
+            cooldown_meta["cooldown"] = "unavailable"
+
     if mode in ("seal_card", "render"):
         return _build_seal_card(
             verdict=verdict,
@@ -41,19 +90,21 @@ def arif_vault_seal(
             mode=mode,
         )
 
-    return SealOutput(
-        **_arif_vault_seal(
-            mode=mode,
-            payload=payload,
-            session_id=session_id,
-            ack_irreversible=ack_irreversible,
-            actor_id=actor_id,
-            constitutional_chain_id=constitutional_chain_id,
-            judge_state_hash=judge_state_hash,
-            witness_type=witness_type,
-            drift_events=drift_events,
-        )
+    result = _arif_vault_seal(
+        mode=mode,
+        payload=payload,
+        session_id=session_id,
+        ack_irreversible=ack_irreversible,
+        actor_id=actor_id,
+        constitutional_chain_id=constitutional_chain_id,
+        judge_state_hash=judge_state_hash,
+        witness_type=witness_type,
+        drift_events=drift_events,
     )
+    if cooldown_meta:
+        result["meta"] = result.get("meta", {})
+        result["meta"]["sabar_cooldown"] = cooldown_meta
+    return SealOutput(**result)
 
 
 def _build_seal_card(

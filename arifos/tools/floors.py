@@ -119,11 +119,7 @@ def evaluate_f6_empathy(
     if payload.get("backup") or payload.get("confirm") or payload.get("dry_run"):
         base_score = min(1.0, base_score + 0.2)
 
-    status = (
-        FloorStatus.PASSED
-        if base_score >= F6_STAKEHOLDER_SAFETY_FLOOR
-        else FloorStatus.FAILED
-    )
+    status = FloorStatus.PASSED if base_score >= F6_STAKEHOLDER_SAFETY_FLOOR else FloorStatus.FAILED
 
     return FloorScore(
         floor_id="F6",
@@ -192,11 +188,7 @@ def evaluate_f8_genius(
         if "output" in 产出 or "result" in 产出:
             factors["completeness"] = max(factors["completeness"], 0.8)
 
-    status = (
-        FloorStatus.PASSED
-        if quality_score >= F8_GENIUS_QUALITY_FLOOR
-        else FloorStatus.FAILED
-    )
+    status = FloorStatus.PASSED if quality_score >= F8_GENIUS_QUALITY_FLOOR else FloorStatus.FAILED
 
     return FloorScore(
         floor_id="F8",
@@ -205,9 +197,7 @@ def evaluate_f8_genius(
         threshold=F8_GENIUS_QUALITY_FLOOR,
         status=status,
         evidence=[f"factors: {factors}"],
-        remediation=(
-            "Improve quality indicators" if status == FloorStatus.FAILED else None
-        ),
+        remediation=("Improve quality indicators" if status == FloorStatus.FAILED else None),
     )
 
 
@@ -290,9 +280,7 @@ def evaluate_f9_ethics(
     ethical_score = 1.0 - dark_score
 
     status = (
-        FloorStatus.PASSED
-        if ethical_score >= (1.0 - F9_DARK_PATTERN_FLOOR)
-        else FloorStatus.FAILED
+        FloorStatus.PASSED if ethical_score >= (1.0 - F9_DARK_PATTERN_FLOOR) else FloorStatus.FAILED
     )
 
     return FloorScore(
@@ -303,9 +291,7 @@ def evaluate_f9_ethics(
         status=status,
         evidence=[f"dark_patterns: {dark_hits}", f"safeguards: {safeguard_hits}"],
         remediation=(
-            "Add ethical safeguards, remove dark patterns"
-            if status == FloorStatus.FAILED
-            else None
+            "Add ethical safeguards, remove dark patterns" if status == FloorStatus.FAILED else None
         ),
     )
 
@@ -403,9 +389,7 @@ def evaluate_f10_conscience(
     if grounded_hits:
         base_score = min(1.0, base_score + (len(grounded_hits) * 0.1))
 
-    status = (
-        FloorStatus.PASSED if base_score >= F10_CONSCIENCE_FLOOR else FloorStatus.FAILED
-    )
+    status = FloorStatus.PASSED if base_score >= F10_CONSCIENCE_FLOOR else FloorStatus.FAILED
 
     return FloorScore(
         floor_id="F10",
@@ -474,9 +458,7 @@ def evaluate_f12_resilience(
         if "error_message" in result or "recovery" in result:
             base_score = min(1.0, base_score + 0.2)
 
-    status = (
-        FloorStatus.PASSED if base_score >= F12_RESILIENCE_FLOOR else FloorStatus.FAILED
-    )
+    status = FloorStatus.PASSED if base_score >= F12_RESILIENCE_FLOOR else FloorStatus.FAILED
 
     return FloorScore(
         floor_id="F12",
@@ -527,9 +509,7 @@ def evaluate_all_floors(
     results["F9"] = evaluate_f9_ethics(output or action, context)
 
     # F10: Conscience
-    results["F10"] = evaluate_f10_conscience(
-        output or action, context.get("user_query")
-    )
+    results["F10"] = evaluate_f10_conscience(output or action, context.get("user_query"))
 
     # F12: Resilience
     results["F12"] = evaluate_f12_resilience(

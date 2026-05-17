@@ -74,9 +74,7 @@ class TestVisibility:
             "arif_session_init",
             "arif_vault_seal",
         }
-        assert canonical_13.issubset(
-            names
-        ), f"Missing canonical tools: {canonical_13 - names}"
+        assert canonical_13.issubset(names), f"Missing canonical tools: {canonical_13 - names}"
         # Backend/internal tools must NOT leak to model scope
         backend_tools = {
             "session_status",
@@ -87,9 +85,7 @@ class TestVisibility:
             "vault_list",
             "vault_dry_seal",
         }
-        assert backend_tools.isdisjoint(
-            names
-        ), f"Backend tools leaked: {backend_tools & names}"
+        assert backend_tools.isdisjoint(names), f"Backend tools leaked: {backend_tools & names}"
 
     @pytest.mark.asyncio
     async def test_backend_tools_are_app_visible(self) -> None:
@@ -139,9 +135,7 @@ class TestJsonFallback:
     def test_forge_dry_run_json_and_text(self) -> None:
         result = forge_dry_run("echo hello")
         self._assert_json_roundtrip(result)
-        assert (
-            "dry-run" in result["text"].lower() or "dry_run" in result["text"].lower()
-        )
+        assert "dry-run" in result["text"].lower() or "dry_run" in result["text"].lower()
 
     def test_gateway_handshake_json_and_text(self) -> None:
         result = gateway_handshake("geox-mcp")
@@ -156,9 +150,7 @@ class TestJsonFallback:
     def test_vault_dry_seal_json_and_text(self) -> None:
         result = vault_dry_seal("test payload")
         self._assert_json_roundtrip(result)
-        assert (
-            "dry-seal" in result["text"].lower() or "dry_seal" in result["text"].lower()
-        )
+        assert "dry-seal" in result["text"].lower() or "dry_seal" in result["text"].lower()
 
 
 # ---------------------------------------------------------------------------
@@ -336,9 +328,7 @@ class TestJudgeCandidate:
         assert result["verdict"] == "HOLD"
         assert result["risk_tier"] == "high"
         assert result["human_decision_required"] is True
-        assert (
-            "empty" in result["reason"].lower() or "invalid" in result["reason"].lower()
-        )
+        assert "empty" in result["reason"].lower() or "invalid" in result["reason"].lower()
 
     def test_low_risk_can_return_seal(self) -> None:
         result = judge_candidate("list files in directory")
@@ -532,9 +522,7 @@ class TestNoSideEffects:
             "echo hello",
         ]:
             result = forge_dry_run(manifest)
-            assert (
-                result["would_execute"] is False
-            ), f"Forge would_execute for: {manifest}"
+            assert result["would_execute"] is False, f"Forge would_execute for: {manifest}"
             assert result["mode"] == "dry_run"
 
     def test_vault_never_writes(self) -> None:
@@ -547,7 +535,5 @@ class TestNoSideEffects:
     def test_gateway_never_networks(self) -> None:
         for target in ["evil.com", "localhost:9999", "geox-mcp", ""]:
             result = gateway_handshake(target)
-            assert (
-                result["handshake"] == "simulated"
-            ), f"Gateway handshake for: {target}"
+            assert result["handshake"] == "simulated", f"Gateway handshake for: {target}"
             assert result["status"] == "pending_trust_verification"

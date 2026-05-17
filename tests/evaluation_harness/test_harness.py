@@ -6,11 +6,11 @@ and scenario-based evaluation of new kernel primitives.
 """
 
 import unittest
-from core.kernel.pattern_registry import PatternRegistry
-from core.kernel.pattern_selector import PatternSelector
-from core.kernel.planner import Planner
-from core.kernel.tool_registry import ToolContractRegistry
-from core.kernel.role_registry import AgentRoleRegistry
+from arifosmcp.core.kernel.pattern_registry import PatternRegistry
+from arifosmcp.core.kernel.pattern_selector import PatternSelector
+from arifosmcp.core.kernel.planner import Planner
+from arifosmcp.core.kernel.tool_registry import ToolContractRegistry
+from arifosmcp.core.kernel.role_registry import AgentRoleRegistry
 
 
 class TestKernelPrimitives(unittest.TestCase):
@@ -81,9 +81,7 @@ class TestKernelPrimitives(unittest.TestCase):
                 "required": ["expression"],
             },
         }
-        self.tool_registry.register_tool(
-            "calculate", "Evaluate math expression", schema
-        )
+        self.tool_registry.register_tool("calculate", "Evaluate math expression", schema)
 
         # Valid call
         is_valid = self.tool_registry.validate_call("calculate", {"expression": "2+2"})

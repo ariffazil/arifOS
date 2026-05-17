@@ -1,0 +1,422 @@
+{
+  "timestamp": "2026-05-12T15:23:09Z",
+  "actor_id": "arif",
+  "results": [
+    {
+      "interface": "codebase_local",
+      "tool": "arif_session_init",
+      "passed": true,
+      "latency_ms": 57.42790700060141,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "codebase_local",
+      "tool": "arif_sense_observe",
+      "passed": true,
+      "latency_ms": 2017.4747010005376,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "codebase_local",
+      "tool": "arif_evidence_fetch",
+      "passed": true,
+      "latency_ms": 0.502247999975225,
+      "verdict": "HOLD",
+      "error": ""
+    },
+    {
+      "interface": "codebase_local",
+      "tool": "arif_mind_reason",
+      "passed": true,
+      "latency_ms": 42.833497999708925,
+      "verdict": "LLM_UNAVAILABLE",
+      "error": ""
+    },
+    {
+      "interface": "codebase_local",
+      "tool": "arif_heart_critique",
+      "passed": true,
+      "latency_ms": 9.233558000232733,
+      "verdict": "LLM_UNAVAILABLE",
+      "error": ""
+    },
+    {
+      "interface": "codebase_local",
+      "tool": "arif_kernel_route",
+      "passed": true,
+      "latency_ms": 1.4377079996847897,
+      "verdict": "HOLD",
+      "error": ""
+    },
+    {
+      "interface": "codebase_local",
+      "tool": "arif_reply_compose",
+      "passed": true,
+      "latency_ms": 1.0934480005744263,
+      "verdict": "HOLD",
+      "error": ""
+    },
+    {
+      "interface": "codebase_local",
+      "tool": "arif_memory_recall",
+      "passed": true,
+      "latency_ms": 0.5362179999792716,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "codebase_local",
+      "tool": "arif_gateway_connect",
+      "passed": true,
+      "latency_ms": 0.37075999989610864,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "codebase_local",
+      "tool": "arif_judge_deliberate",
+      "passed": true,
+      "latency_ms": 0.5191519994696137,
+      "verdict": "SEAL",
+      "error": ""
+    },
+    {
+      "interface": "codebase_local",
+      "tool": "arif_vault_seal",
+      "passed": true,
+      "latency_ms": 0.06847400072729215,
+      "verdict": "SEAL",
+      "error": ""
+    },
+    {
+      "interface": "codebase_local",
+      "tool": "arif_forge_execute",
+      "passed": true,
+      "latency_ms": 0.17939999997906853,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "codebase_local",
+      "tool": "arif_ops_measure",
+      "passed": true,
+      "latency_ms": 0.3316789998280001,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "local_http",
+      "tool": "arif_session_init",
+      "passed": true,
+      "latency_ms": 68.28275099996972,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "local_http",
+      "tool": "arif_sense_observe",
+      "passed": true,
+      "latency_ms": 5161.920362000274,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "local_http",
+      "tool": "arif_evidence_fetch",
+      "passed": true,
+      "latency_ms": 30.160734000673983,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "local_http",
+      "tool": "arif_mind_reason",
+      "passed": true,
+      "latency_ms": 2048.332978999497,
+      "verdict": "VOID",
+      "error": ""
+    },
+    {
+      "interface": "local_http",
+      "tool": "arif_heart_critique",
+      "passed": true,
+      "latency_ms": 2026.971807999871,
+      "verdict": "VOID",
+      "error": ""
+    },
+    {
+      "interface": "local_http",
+      "tool": "arif_kernel_route",
+      "passed": true,
+      "latency_ms": 24.48037199974351,
+      "verdict": "HOLD",
+      "error": ""
+    },
+    {
+      "interface": "local_http",
+      "tool": "arif_reply_compose",
+      "passed": true,
+      "latency_ms": 1212.4628589999702,
+      "verdict": "HOLD",
+      "error": ""
+    },
+    {
+      "interface": "local_http",
+      "tool": "arif_memory_recall",
+      "passed": true,
+      "latency_ms": 19.74402299947542,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "local_http",
+      "tool": "arif_gateway_connect",
+      "passed": true,
+      "latency_ms": 22.700229000292893,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "local_http",
+      "tool": "arif_judge_deliberate",
+      "passed": true,
+      "latency_ms": 17.603966999558907,
+      "verdict": "SEAL",
+      "error": ""
+    },
+    {
+      "interface": "local_http",
+      "tool": "arif_vault_seal",
+      "passed": true,
+      "latency_ms": 16.475084999910905,
+      "verdict": "SEAL",
+      "error": ""
+    },
+    {
+      "interface": "local_http",
+      "tool": "arif_forge_execute",
+      "passed": true,
+      "latency_ms": 18.770245000268915,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "local_http",
+      "tool": "arif_ops_measure",
+      "passed": true,
+      "latency_ms": 30.721221000021615,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "remote_https",
+      "tool": "arif_session_init",
+      "passed": true,
+      "latency_ms": 356.25728699960746,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "remote_https",
+      "tool": "arif_sense_observe",
+      "passed": true,
+      "latency_ms": 362.2984419998829,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "remote_https",
+      "tool": "arif_evidence_fetch",
+      "passed": true,
+      "latency_ms": 349.32361299979675,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "remote_https",
+      "tool": "arif_mind_reason",
+      "passed": true,
+      "latency_ms": 2924.1751330000625,
+      "verdict": "VOID",
+      "error": ""
+    },
+    {
+      "interface": "remote_https",
+      "tool": "arif_heart_critique",
+      "passed": true,
+      "latency_ms": 2325.855928999772,
+      "verdict": "VOID",
+      "error": ""
+    },
+    {
+      "interface": "remote_https",
+      "tool": "arif_kernel_route",
+      "passed": true,
+      "latency_ms": 354.4999169998846,
+      "verdict": "HOLD",
+      "error": ""
+    },
+    {
+      "interface": "remote_https",
+      "tool": "arif_reply_compose",
+      "passed": true,
+      "latency_ms": 1311.9625159997668,
+      "verdict": "HOLD",
+      "error": ""
+    },
+    {
+      "interface": "remote_https",
+      "tool": "arif_memory_recall",
+      "passed": true,
+      "latency_ms": 371.73912300022494,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "remote_https",
+      "tool": "arif_gateway_connect",
+      "passed": true,
+      "latency_ms": 381.34321100005764,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "remote_https",
+      "tool": "arif_judge_deliberate",
+      "passed": true,
+      "latency_ms": 338.0430399993202,
+      "verdict": "SEAL",
+      "error": ""
+    },
+    {
+      "interface": "remote_https",
+      "tool": "arif_vault_seal",
+      "passed": true,
+      "latency_ms": 358.7185149999641,
+      "verdict": "SEAL",
+      "error": ""
+    },
+    {
+      "interface": "remote_https",
+      "tool": "arif_forge_execute",
+      "passed": true,
+      "latency_ms": 329.0297630001078,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "remote_https",
+      "tool": "arif_ops_measure",
+      "passed": true,
+      "latency_ms": 329.5741530000669,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "mcp_stdio",
+      "tool": "arif_session_init",
+      "passed": true,
+      "latency_ms": 7.086043000526843,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "mcp_stdio",
+      "tool": "arif_sense_observe",
+      "passed": true,
+      "latency_ms": 602.882271999988,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "mcp_stdio",
+      "tool": "arif_evidence_fetch",
+      "passed": true,
+      "latency_ms": 1.180700000077195,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "mcp_stdio",
+      "tool": "arif_mind_reason",
+      "passed": true,
+      "latency_ms": 1032.8427889999148,
+      "verdict": "LLM_UNAVAILABLE",
+      "error": ""
+    },
+    {
+      "interface": "mcp_stdio",
+      "tool": "arif_heart_critique",
+      "passed": true,
+      "latency_ms": 981.6475070001616,
+      "verdict": "LLM_UNAVAILABLE",
+      "error": ""
+    },
+    {
+      "interface": "mcp_stdio",
+      "tool": "arif_kernel_route",
+      "passed": true,
+      "latency_ms": 2.1601660000669654,
+      "verdict": "HOLD",
+      "error": ""
+    },
+    {
+      "interface": "mcp_stdio",
+      "tool": "arif_reply_compose",
+      "passed": true,
+      "latency_ms": 977.8150480005934,
+      "verdict": "HOLD",
+      "error": ""
+    },
+    {
+      "interface": "mcp_stdio",
+      "tool": "arif_memory_recall",
+      "passed": true,
+      "latency_ms": 1.1279909995209891,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "mcp_stdio",
+      "tool": "arif_gateway_connect",
+      "passed": true,
+      "latency_ms": 0.7573720004074858,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "mcp_stdio",
+      "tool": "arif_judge_deliberate",
+      "passed": true,
+      "latency_ms": 0.9936779997588019,
+      "verdict": "SEAL",
+      "error": ""
+    },
+    {
+      "interface": "mcp_stdio",
+      "tool": "arif_vault_seal",
+      "passed": true,
+      "latency_ms": 0.3824559998975019,
+      "verdict": "SEAL",
+      "error": ""
+    },
+    {
+      "interface": "mcp_stdio",
+      "tool": "arif_forge_execute",
+      "passed": true,
+      "latency_ms": 0.5227270003160811,
+      "verdict": "OK",
+      "error": ""
+    },
+    {
+      "interface": "mcp_stdio",
+      "tool": "arif_ops_measure",
+      "passed": true,
+      "latency_ms": 0.6546059994434472,
+      "verdict": "OK",
+      "error": ""
+    }
+  ]
+}

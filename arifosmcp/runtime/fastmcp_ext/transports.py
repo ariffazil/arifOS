@@ -373,9 +373,7 @@ class InMemoryRateLimitMiddleware:
                 self._buckets[key] = bucket
 
             elapsed = max(0.0, now - bucket.last_refill)
-            bucket.tokens = min(
-                self.capacity, bucket.tokens + elapsed * self.refill_per_sec
-            )
+            bucket.tokens = min(self.capacity, bucket.tokens + elapsed * self.refill_per_sec)
             bucket.last_refill = now
 
             if bucket.tokens >= 1.0:
@@ -463,9 +461,7 @@ def _build_http_middleware() -> list[Middleware]:
 
     allowed_hosts = _split_csv("ARIFOS_ALLOWED_HOSTS", "*")
     if allowed_hosts != ["*"]:
-        middleware.append(
-            Middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
-        )
+        middleware.append(Middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts))
 
     if _env_truthy("ARIFOS_ENABLE_CORS", True):
         allowed_origins = _split_csv(
@@ -515,9 +511,7 @@ def _build_http_middleware() -> list[Middleware]:
         capacity = int(os.getenv("ARIFOS_RATE_LIMIT_CAPACITY", "120"))
         refill = float(os.getenv("ARIFOS_RATE_LIMIT_REFILL_PER_SEC", "2.0"))
         middleware.append(
-            Middleware(
-                InMemoryRateLimitMiddleware, capacity=capacity, refill_per_sec=refill
-            )
+            Middleware(InMemoryRateLimitMiddleware, capacity=capacity, refill_per_sec=refill)
         )
 
     exempt_paths = _split_csv(

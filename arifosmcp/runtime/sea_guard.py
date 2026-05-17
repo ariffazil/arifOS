@@ -28,9 +28,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 # ── Configuration ────────────────────────────────────────────────────────────
-SEA_LION_API_URL = os.getenv(
-    "SEA_LION_API_URL", "https://api.sea-lion.ai/v1/chat/completions"
-)
+SEA_LION_API_URL = os.getenv("SEA_LION_API_URL", "https://api.sea-lion.ai/v1/chat/completions")
 SEA_LION_API_KEY = os.getenv("SEA_LION_API_KEY", "")
 SEA_LION_MODEL = os.getenv("SEA_LION_GUARD_MODEL", "aisingapore/SEA-Guard")
 SEA_GUARD_TIMEOUT = int(os.getenv("SEA_GUARD_TIMEOUT", "10"))

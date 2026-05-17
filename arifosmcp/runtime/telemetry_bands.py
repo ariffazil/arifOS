@@ -64,9 +64,7 @@ class TelemetryBands:
     @classmethod
     def compute_all_bands(cls, metrics: dict[str, float]) -> dict[str, str]:
         return {
-            "ds_band": cls.get_ds_band(
-                metrics.get("delta_s", metrics.get("ds", 0.0))
-            ).value,
+            "ds_band": cls.get_ds_band(metrics.get("delta_s", metrics.get("ds", 0.0))).value,
             "peace2_band": cls.get_peace2_band(metrics.get("peace2", 1.0)).value,
             "omega_band": cls.get_omega_band(
                 metrics.get("omega_ortho", metrics.get("omega", 1.0))

@@ -69,9 +69,7 @@ class RealWebMCPGateway:
             os.getenv("REDIS_URL", "redis://localhost:6379"), decode_responses=True
         )
         base_config = (
-            BaseWebMCPConfig.from_env()
-            if hasattr(BaseWebMCPConfig, "from_env")
-            else self.config
+            BaseWebMCPConfig.from_env() if hasattr(BaseWebMCPConfig, "from_env") else self.config
         )
         self.rate_limiter = RateLimiter(self.redis, base_config)
         self._register_tools()
@@ -117,9 +115,7 @@ class RealWebMCPGateway:
             WebMCP JavaScript SDK
             Websites include this to enable WebMCP tools
             """
-            return HTMLResponse(
-                content=self._generate_sdk(), media_type="application/javascript"
-            )
+            return HTMLResponse(content=self._generate_sdk(), media_type="application/javascript")
 
         # Tool Manifest - for Declarative API
         @self.app.get("/webmcp/tools.json")
@@ -211,9 +207,7 @@ class RealWebMCPGateway:
                         params = data.get("params", {})
 
                         # F5: Check rate limit before execution
-                        allowed, rate_meta = await self.rate_limiter.check_rate_limit(
-                            client_ip
-                        )
+                        allowed, rate_meta = await self.rate_limiter.check_rate_limit(client_ip)
                         if not allowed:
                             await websocket.send_json(
                                 {
@@ -708,16 +702,12 @@ function initDeclarativeTools() {
 </html>
 """
 
-    async def _call_mcp_tool(
-        self, tool_name: str, params: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def _call_mcp_tool(self, tool_name: str, params: dict[str, Any]) -> dict[str, Any]:
         """Call the actual MCP tool through the kernel."""
         return await call_mcp_tool(self.mcp, tool_name, params)
 
 
 # Factory function for easy integration
-def create_real_webmcp(
-    mcp_server: Any, config: WebMCPConfig | None = None
-) -> RealWebMCPGateway:
+def create_real_webmcp(mcp_server: Any, config: WebMCPConfig | None = None) -> RealWebMCPGateway:
     """Create a real WebMCP gateway instance."""
     return RealWebMCPGateway(mcp_server, config)

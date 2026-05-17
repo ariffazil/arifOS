@@ -29,7 +29,7 @@ from arifosmcp.runtime.contracts import (
     TraceContext,
 )
 from arifosmcp.runtime.models import AuthorityLevel, CanonicalAuthority, ClaimStatus
-from arifosmcp.runtime.sessions import (
+from arifosmcp.runtime.session import (
     bind_session_identity,
     clear_session_identity,
     get_session_identity,

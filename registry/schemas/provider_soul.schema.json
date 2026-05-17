@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ProviderSoul",
+  "description": "v2 provider soul archetype — behavioral fingerprint for model_governance_card construction",
+  "type": "object",
+  "required": [
+    "provider_key",
+    "family_key",
+    "soul_label",
+    "in_one_sentence",
+    "shadow_profile"
+  ],
+  "properties": {
+    "provider_key": { "type": "string" },
+    "family_key": { "type": "string" },
+    "soul_label": { "type": "string" },
+    "in_one_sentence": {
+      "type": "string",
+      "description": "One-line governance summary read by init_anchor_hardened.py for model_governance_card construction"
+    },
+    "origin": { "type": "string" },
+    "governance": { "type": "string" },
+    "character_summary": { "type": "string" },
+    "communication_style": { "type": "array", "items": { "type": "string" } },
+    "reasoning_style": { "type": "array", "items": { "type": "string" } },
+    "best_fit_roles": { "type": "array", "items": { "type": "string" } },
+    "worst_fit_roles": { "type": "array", "items": { "type": "string" } },
+    "shadow_profiles": { "type": "object", "description": "v1 shadow dict — retained for backward compatibility" },
+    "shadow_profile": {
+      "type": "object",
+      "description": "v2 shadow object — read by reply.py, mind_reason.py, tools.py, forge.py, registry.py",
+      "required": ["angel", "shadow", "paradox", "control_laws", "tripwires"],
+      "properties": {
+        "angel": { "type": "string" },
+        "shadow": { "type": "string" },
+        "paradox": { "type": "string" },
+        "control_laws": { "type": "array", "items": { "type": "string" } },
+        "tripwires": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "control_laws": { "type": "object", "description": "v1 control laws dict — retained for backward compatibility" }
+  },
+  "additionalProperties": true
+}

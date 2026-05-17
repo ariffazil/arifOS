@@ -35,7 +35,7 @@ async def vault_ledger(
     raw_input: str | None = None,
     ctx: Any | None = None,
 ) -> RuntimeEnvelope:
-    from arifosmcp.runtime.tools_hardened_dispatch import HARDENED_DISPATCH_MAP
+    from arifosmcp.runtime.dispatcher import HARDENED_DISPATCH_MAP
 
     payload = dict(payload or {})
     if raw_input:
@@ -58,9 +58,7 @@ async def vault_ledger(
     if "vault_ledger" in HARDENED_DISPATCH_MAP:
         if mode is None:
             mode = "seal"
-        res_dict = await HARDENED_DISPATCH_MAP["vault_ledger"](
-            mode=mode, payload=payload
-        )
+        res_dict = await HARDENED_DISPATCH_MAP["vault_ledger"](mode=mode, payload=payload)
 
         # ─── V1.0 VERDICT FORGING ───
         from arifosmcp.runtime.model import CanonicalMetrics

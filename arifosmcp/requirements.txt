@@ -1,12 +1,13 @@
 fastmcp==3.2.4
 fastapi>=0.136.1
 uvicorn>=0.22.0
-pydantic>=2.13.3
+pydantic>=2.13.4
 jsonschema>=4.0.0
 prometheus-client>=0.25.0
 redis>=7.4.0
 itsdangerous>=2.1.0
 httpx>=0.24.0
+aiohttp>=3.9.0
 blake3==1.0.8
 
 asyncpg>=0.31.0
@@ -18,3 +19,4 @@ scikit-learn==1.5.2
 torch==2.5.1
 transformers==4.46.3
 sentence-transformers==3.3.1
+qdrant-client>=1.17.0

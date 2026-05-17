@@ -27,25 +27,29 @@ class TestJudgeReversibilityNoContradiction:
         A pure status/introspection candidate with no external effect
         must have irreversibility_level=reversible and state=REVERSIBLE.
         """
+        minimal_receipt = {
+            "query_sent": "status report check",
+            "results_returned": 1,
+            "urls_ingested": 1,
+            "provider": "test",
+            "bridge": "unit_test",
+        }
         result = _arif_judge_deliberate(
             candidate="status report: internal introspection only, no side effects",
             session_id=session_id,
             actor_id="test-agent",
+            evidence_receipt=minimal_receipt,
         )
         jc = result.get("judge_contract", {})
         rs = result.get("reversibility_state", {})
 
-        assert (
-            result.get("verdict") == "SEAL"
-        ), f"Expected SEAL, got {result.get('verdict')}"
+        assert result.get("verdict") == "SEAL", f"Expected SEAL, got {result.get('verdict')}"
         assert jc.get("irreversibility_level") in (
             "reversible",
             "none",
             "None",
         ), f"Expected reversible/none, got {jc.get('irreversibility_level')}"
-        assert (
-            rs.get("state") == "REVERSIBLE"
-        ), f"Expected REVERSIBLE, got {rs.get('state')}"
+        assert rs.get("state") == "REVERSIBLE", f"Expected REVERSIBLE, got {rs.get('state')}"
         assert rs.get("external_effect") is False
         assert rs.get("vault_committed") is False
 
@@ -54,32 +58,50 @@ class TestJudgeReversibilityNoContradiction:
         Assert no path exists where judge_contract says 'irreversible'
         but reversibility_state says 'REVERSIBLE'.
         """
+        minimal_receipt = {
+            "query_sent": "status report check",
+            "results_returned": 1,
+            "urls_ingested": 1,
+            "provider": "test",
+            "bridge": "unit_test",
+        }
         result = _arif_judge_deliberate(
             candidate="status report: internal introspection only",
             session_id=session_id,
             actor_id="test-agent",
+            evidence_receipt=minimal_receipt,
         )
         jc = result.get("judge_contract", {})
         rs = result.get("reversibility_state", {})
-
         lvl = jc.get("irreversibility_level", "")
         state = rs.get("state", "")
-
         assert not (
             lvl == "irreversible" and state == "REVERSIBLE"
         ), f"CONTRADICTION: judge_contract.irreversibility_level={lvl} but reversibility_state.state={state}"
 
     def test_nine_signal_present_on_seal(self, session_id):
         """Every SEAL verdict must carry a nine_signal block."""
+        minimal_receipt = {
+            "query_sent": "status report check",
+            "results_returned": 1,
+            "urls_ingested": 1,
+            "provider": "test",
+            "bridge": "unit_test",
+        }
         result = _arif_judge_deliberate(
             candidate="status report: internal introspection",
             session_id=session_id,
             actor_id="test-agent",
+            evidence_receipt=minimal_receipt,
         )
         nine = result.get("nine_signal", {})
-        assert (
-            nine.get("overall") == "SELAMAT"
-        ), f"Expected SELAMAT, got {nine.get('overall')}"
+        # overall is now a dict {"state": "SELAMAT", "en": "SAFE"}
+        overall = nine.get("overall", {})
+        if isinstance(overall, dict):
+            overall_state = overall.get("state", "")
+        else:
+            overall_state = overall
+        assert overall_state == "SELAMAT", f"Expected SELAMAT, got {nine.get('overall')}"
 
     def test_reversibility_state_actively_populated(self, session_id):
         """

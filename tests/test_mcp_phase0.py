@@ -214,9 +214,7 @@ async def test_phase0_hardening():
         )
         content = _extract_content_payload(result)
         if isinstance(content, dict):
-            print(
-                f"   ✅ Vitals mode works: {content.get('verdict', content.get('status', 'ok'))}"
-            )
+            print(f"   ✅ Vitals mode works: {content.get('verdict', content.get('status', 'ok'))}")
         else:
             print(f"   ❌ Vitals failed: {content}")
             return False
@@ -227,9 +225,7 @@ async def test_phase0_hardening():
         )
         content = _extract_content_payload(result)
         if isinstance(content, dict):
-            print(
-                f"   ✅ Health mode works: {content.get('verdict', content.get('status', 'ok'))}"
-            )
+            print(f"   ✅ Health mode works: {content.get('verdict', content.get('status', 'ok'))}")
         else:
             print(f"   ❌ Health failed: {content}")
             return False

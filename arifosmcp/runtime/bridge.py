@@ -216,9 +216,7 @@ def _auth_failure_envelope(
     }
 
 
-def _can_auto_anchor_declared_identity(
-    payload: dict[str, Any], claimed_actor_id: str
-) -> bool:
+def _can_auto_anchor_declared_identity(payload: dict[str, Any], claimed_actor_id: str) -> bool:
     risk_tier = str(payload.get("risk_tier", "medium") or "medium").strip().lower()
     allow_execution = bool(payload.get("allow_execution", False))
     human_approval = payload.get("human_approval")
@@ -262,9 +260,7 @@ def _mint_auto_anchor_auth_context(session_id: str, actor_id: str) -> dict[str, 
     )
 
 
-def _normalize_auth_context(
-    payload: dict[str, Any], auth_context: Any
-) -> dict[str, Any] | None:
+def _normalize_auth_context(payload: dict[str, Any], auth_context: Any) -> dict[str, Any] | None:
     if not isinstance(auth_context, dict):
         return None
 
@@ -279,9 +275,7 @@ def _normalize_auth_context(
     if isinstance(identity_claim, dict):
         if not normalized.get("actor_id") and identity_claim.get("actor_id"):
             normalized["actor_id"] = identity_claim["actor_id"]
-        if not normalized.get("authority_level") and identity_claim.get(
-            "authority_level"
-        ):
+        if not normalized.get("authority_level") and identity_claim.get("authority_level"):
             normalized["authority_level"] = identity_claim["authority_level"]
 
     if not normalized.get("actor_id"):
@@ -291,9 +285,7 @@ def _normalize_auth_context(
             or payload.get("claimed_actor_id")
         )
         if fallback_actor_id:
-            normalized["actor_id"] = (
-                str(fallback_actor_id).lower().strip().replace(" ", "-")
-            )
+            normalized["actor_id"] = str(fallback_actor_id).lower().strip().replace(" ", "-")
             if normalized["actor_id"] == "arif":
                 normalized["actor_id"] = "ariffazil"
 
@@ -357,11 +349,7 @@ def _trace_replay_envelope(
     ok = replay_status not in {"ERROR", "TAMPERED"}
     errors = []
     if error:
-        code = (
-            "TRACE_REPLAY_TAMPER"
-            if replay_status == "TAMPERED"
-            else "TRACE_REPLAY_ERROR"
-        )
+        code = "TRACE_REPLAY_TAMPER" if replay_status == "TAMPERED" else "TRACE_REPLAY_ERROR"
         errors.append(
             {
                 "code": code,
@@ -510,7 +498,7 @@ def _build_vitals_report(session_id: str) -> dict[str, Any]:
     Build the system vitals report for check_vital tool.
     Returns health status, thermodynamic budget, and capability map.
     """
-    from arifosmcp.runtime.sessions import get_session_identity
+    from arifosmcp.runtime.session import get_session_identity
     from core.shared.floors import THRESHOLDS
 
     try:
@@ -531,9 +519,7 @@ def _build_vitals_report(session_id: str) -> dict[str, Any]:
         identity = get_session_identity(session_id)
         if identity:
             current_state = (
-                identity.get("caller_state")
-                or identity.get("authority_level")
-                or "claimed"
+                identity.get("caller_state") or identity.get("authority_level") or "claimed"
             )
             session_active = True
     except Exception:
@@ -637,7 +623,7 @@ async def call_kernel(
     valid_until = now_utc + timedelta(minutes=15)
     dry_run = bool(payload.get("dry_run", False))
 
-    from arifosmcp.runtime.sessions import get_session_identity
+    from arifosmcp.runtime.session import get_session_identity
 
     auth_ctx = _normalize_auth_context(payload, payload.get("auth_context"))
 
@@ -647,9 +633,7 @@ async def call_kernel(
         if stored and stored.get("auth_context"):
             auth_ctx = stored["auth_context"]
             # Inject human_approval from session if available
-            if stored.get("human_approval") and "human_approval" not in (
-                auth_ctx or {}
-            ):
+            if stored.get("human_approval") and "human_approval" not in (auth_ctx or {}):
                 auth_ctx = dict(auth_ctx or {})
                 auth_ctx["human_approval"] = True
 
@@ -660,9 +644,7 @@ async def call_kernel(
             # Check if we can auto-anchor this specific call
             can_auto = _can_auto_anchor_declared_identity(payload, claimed_actor_id)
             req_auth = _requires_explicit_kernel_auth(payload, canonical_name)
-            print(
-                f"DEBUG: metabolic_loop auth check - can_auto={can_auto}, req_auth={req_auth}"
-            )
+            print(f"DEBUG: metabolic_loop auth check - can_auto={can_auto}, req_auth={req_auth}")
 
             if can_auto:
                 auth_ctx = _mint_auto_anchor_auth_context(session_id, claimed_actor_id)
@@ -720,9 +702,7 @@ async def call_kernel(
             required_scope_limited = "arifos_kernel:execute_limited"
 
             has_full_scope = required_scope in approval_scope or "*" in approval_scope
-            has_limited_scope = (
-                required_scope_limited in approval_scope or "*" in approval_scope
-            )
+            has_limited_scope = required_scope_limited in approval_scope or "*" in approval_scope
 
             if not (has_full_scope or has_limited_scope):
                 return _auth_failure_envelope(
@@ -737,9 +717,7 @@ async def call_kernel(
                     dry_run=dry_run,
                 )
 
-    elif (
-        canonical_name in REQUIRES_SESSION and canonical_name not in BOOTSTRAP_WHITELIST
-    ):
+    elif canonical_name in REQUIRES_SESSION and canonical_name not in BOOTSTRAP_WHITELIST:
         if not auth_ctx:
             return _auth_failure_envelope(
                 tool=canonical_name,
@@ -802,9 +780,7 @@ async def call_kernel(
                 replay_entries = await vault_store.get_session_entries(session_id)
 
                 if not replay_entries:
-                    return _trace_replay_envelope(
-                        session_id, "NO_DATA", [], dry_run=dry_run
-                    )
+                    return _trace_replay_envelope(session_id, "NO_DATA", [], dry_run=dry_run)
 
                 integrity_ok, integrity_reason = await vault_store.verify_chain()
                 if not integrity_ok:
@@ -848,9 +824,7 @@ async def call_kernel(
                     if parsed.get("session_id") == session_id:
                         replay_entries.append(parsed)
         except Exception as exc:
-            return _trace_replay_envelope(
-                session_id, "ERROR", [], error=str(exc), dry_run=dry_run
-            )
+            return _trace_replay_envelope(session_id, "ERROR", [], error=str(exc), dry_run=dry_run)
 
         return _trace_replay_envelope(
             session_id, "SUCCESS", replay_entries[-max_entries:], dry_run=dry_run
@@ -875,9 +849,7 @@ async def call_kernel(
                 caller_ctx_obj = None
 
         if canonical_name == "init_anchor":
-            ha_value = bool(
-                payload.get("human_approval", payload.get("human_approved", False))
-            )
+            ha_value = bool(payload.get("human_approval", payload.get("human_approved", False)))
             intent_raw = payload.get("intent")
             if intent_raw is None:
                 intent_raw = payload.get("query", "INIT")
@@ -890,11 +862,7 @@ async def call_kernel(
             else:
                 intent = Intent(query=str(intent_raw))
 
-            math = (
-                MathDials(**payload.get("math", {}))
-                if payload.get("math")
-                else MathDials()
-            )
+            math = MathDials(**payload.get("math", {})) if payload.get("math") else MathDials()
             gov = (
                 GovernanceMetadata(**payload.get("governance", {}))
                 if payload.get("governance")
@@ -921,9 +889,7 @@ async def call_kernel(
             result["authority"] = {
                 "actor_id": res.governance.actor_id,
                 "level": auth_level,
-                "auth_state": (
-                    "verified" if res.verdict != Verdict.VOID else "unverified"
-                ),
+                "auth_state": ("verified" if res.verdict != Verdict.VOID else "unverified"),
                 "human_approval_persisted": ha_value,
                 "claim_status": (
                     ClaimStatus.ANCHORED.value
@@ -959,9 +925,7 @@ async def call_kernel(
                 max_tokens=payload.get("max_tokens", 1000),
             )
             if isinstance(result, dict):
-                result.setdefault(
-                    "evidence", ["Grounding confirmed via internal AGI analysis."]
-                )
+                result.setdefault("evidence", ["Grounding confirmed via internal AGI analysis."])
 
         elif canonical_name in ("vector_memory", "session_memory"):
             result = await vault(
@@ -1059,20 +1023,18 @@ async def call_kernel(
                 telemetry=payload.get("telemetry"),
                 seal_mode=payload.get("seal_mode", "final"),
                 auth_context=auth_ctx,
-                expected_prev_hash=(
-                    auth_ctx.get("prev_vault_hash") if auth_ctx else None
-                ),
+                expected_prev_hash=(auth_ctx.get("prev_vault_hash") if auth_ctx else None),
             )
 
         elif canonical_name == "agentzero_engineer":
-            from arifosmcp.tools.agentzero_tools import agentzero_engineer
+            from arifosmcp.tools.agentzero import agentzero_engineer
 
             result = await agentzero_engineer(
                 task=payload.get("task") or query_input, session_id=session_id
             )
 
         elif canonical_name == "agentzero_validate":
-            from arifosmcp.tools.agentzero_tools import agentzero_validate
+            from arifosmcp.tools.agentzero import agentzero_validate
 
             result = await agentzero_validate(
                 input_to_validate=payload.get("input_to_validate") or query_input,
@@ -1098,8 +1060,7 @@ async def call_kernel(
                     result = {
                         "ok": ok,
                         "status": "INTACT" if ok else "BROKEN",
-                        "message": reason
-                        or "Chain Integrity: VERIFIED (Redis + SHA-256 Merkle)",
+                        "message": reason or "Chain Integrity: VERIFIED (Redis + SHA-256 Merkle)",
                         "backend": "redis",
                         "host": "redis:6379",
                     }
@@ -1110,8 +1071,7 @@ async def call_kernel(
                     result = {
                         "ok": ok,
                         "status": "INTACT" if ok else "BROKEN",
-                        "message": reason
-                        or "Chain Integrity: VERIFIED (File Fallback)",
+                        "message": reason or "Chain Integrity: VERIFIED (File Fallback)",
                         "path": str(DEFAULT_VAULT_PATH),
                         "backend": "file",
                     }
@@ -1126,9 +1086,7 @@ async def call_kernel(
                 }
 
         elif canonical_name == "office_forge_audit":
-            result = await audit_markdown(
-                markdown=payload.get("markdown") or query_input
-            )
+            result = await audit_markdown(markdown=payload.get("markdown") or query_input)
 
         elif canonical_name == "office_forge":
             result = await render_office_document(
@@ -1179,14 +1137,10 @@ async def call_kernel(
             if isinstance(result, dict) and result.get("verdict") != "VOID":
                 # F11: Ensure continuity even if we auto-bootstrapped this call
                 effective_actor = (
-                    auth_ctx.get("actor_id", claimed_actor_id)
-                    if auth_ctx
-                    else claimed_actor_id
+                    auth_ctx.get("actor_id", claimed_actor_id) if auth_ctx else claimed_actor_id
                 )
                 effective_level = (
-                    auth_ctx.get("authority_level", "declared")
-                    if auth_ctx
-                    else "declared"
+                    auth_ctx.get("authority_level", "declared") if auth_ctx else "declared"
                 )
                 public_level = _normalize_public_authority_level(effective_level)
 
@@ -1252,11 +1206,7 @@ async def call_kernel(
         if caller_ctx_data and "caller_context" not in envelope:
             envelope["caller_context"] = caller_ctx_data
 
-        if (
-            envelope.get("verdict") != "VOID"
-            and canonical_name != "init_anchor"
-            and auth_ctx
-        ):
+        if envelope.get("verdict") != "VOID" and canonical_name != "init_anchor" and auth_ctx:
             envelope["auth_context"] = mint_auth_context(
                 session_id=session_id,
                 actor_id=auth_ctx.get("actor_id", "anonymous"),
@@ -1302,9 +1252,7 @@ async def call_kernel(
         if "vitals" in envelope:
             vitals = envelope["vitals"]
             # budget_meta was extracted at the top of call_kernel
-            vitals["requested_max_tokens"] = budget_meta.get(
-                "requested_max_tokens", 1000
-            )
+            vitals["requested_max_tokens"] = budget_meta.get("requested_max_tokens", 1000)
             vitals["budget_tier"] = budget_meta.get("budget_tier", "medium")
             vitals["overflow_policy"] = budget_meta.get("overflow_policy", "truncate")
 
@@ -1321,9 +1269,7 @@ async def call_kernel(
 
     except Exception as e:
         logger.error(f"Bridge failure on {tool_name}: {e}", exc_info=True)
-        print(
-            f"DEBUG: Bridge failure on {tool_name}: {e}"
-        )  # Direct visibility for tests
+        print(f"DEBUG: Bridge failure on {tool_name}: {e}")  # Direct visibility for tests
         from core.enforcement.governance_engine import wrap_tool_output
 
         return wrap_tool_output(

@@ -58,12 +58,8 @@ def append_vault_record(record: dict) -> dict:
     record["prev_hash"] = prev_hash
 
     # Compute content hash (stable — excludes entry_id and self hash)
-    content_for_hash = {
-        k: v for k, v in record.items() if k not in ("entry_id", "payload_hash")
-    }
-    payload_hash = _compute_hash(
-        json.dumps(content_for_hash, sort_keys=True, default=str)
-    )
+    content_for_hash = {k: v for k, v in record.items() if k not in ("entry_id", "payload_hash")}
+    payload_hash = _compute_hash(json.dumps(content_for_hash, sort_keys=True, default=str))
     record["payload_hash"] = payload_hash
 
     # Ensure vault directory exists

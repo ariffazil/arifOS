@@ -26,3 +26,5 @@ async def test_register_tools_registers_only_canonical13() -> None:
 
     assert set(registered) == CANONICAL_PUBLIC_TOOLS
     assert {tool.name for tool in listed} == CANONICAL_PUBLIC_TOOLS
+    assert all(tool.parameters and "properties" in tool.parameters for tool in listed)
+    assert all(tool.output_schema and "properties" in tool.output_schema for tool in listed)

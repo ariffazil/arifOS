@@ -27,6 +27,7 @@ from arifosmcp.core.reversibility_engine import (
 )
 from arifosmcp.core.tool_self_model import (
     BlastRadius,
+    PredictionRecord,
     ToolManifest,
     ToolSelfModel,
     ToolSelfModelEntry,
@@ -141,9 +142,7 @@ class EmbodiedToolEngine:
 
     # ── Pipeline Stage 4: Classify Risk ─────────────────────────────────────
 
-    def classify_risk(
-        self, entry: ToolSelfModelEntry, params: dict[str, Any]
-    ) -> RiskTier:
+    def classify_risk(self, entry: ToolSelfModelEntry, params: dict[str, Any]) -> RiskTier:
         """
         Stage 4: CLASSIFY.
         Assign T0-T4 risk tier based on tool charter + params.
@@ -168,9 +167,7 @@ class EmbodiedToolEngine:
             if flag in params_str:
                 # Upgrade by one tier
                 tier_order = ["T0", "T1", "T2", "T3", "T4"]
-                current_idx = (
-                    tier_order.index(declared) if declared in tier_order else 1
-                )
+                current_idx = tier_order.index(declared) if declared in tier_order else 1
                 next_idx = min(current_idx + 1, len(tier_order) - 1)
                 declared = tier_order[next_idx]
 
@@ -252,7 +249,14 @@ class EmbodiedToolEngine:
             next_idx = min(current_idx + 1, len(radius_order) - 1)
             manifest_radius = BlastRadius(radius_order[next_idx])
 
-        return charter_radius, f"Blast radius: {manifest_radius.value}"
+        # Upgrade if tool's model is contradicted (unreliable predictions → higher consequence)
+        if entry.model_contradicted:
+            radius_order = ["low", "medium", "high", "critical"]
+            current_idx = radius_order.index(manifest_radius.value)
+            next_idx = min(current_idx + 1, len(radius_order) - 1)
+            manifest_radius = BlastRadius(radius_order[next_idx])
+
+        return manifest_radius, f"Blast radius: {manifest_radius.value}"
 
     # ── Pipeline Stage 8: Decision ─────────────────────────────────────────
 
@@ -495,20 +499,23 @@ class EmbodiedToolEngine:
         tool_id: str,
         result: dict[str, Any] | None = None,
         error: str | None = None,
-    ) -> None:
+        prediction: PredictionRecord | None = None,
+    ) -> dict[str, Any]:
         """
         Update the global self-model after tool execution.
 
         Called by EmbodiedTool.postflight() after every execution.
-        This closes the feedback loop: execute → witness → update self-model.
+        This closes the feedback loop:
 
-        The smart summary extraction (verdict, confidence, latency) lives
-        in ToolSelfModel.update_from_outcome().
+            PREDICT → EXECUTE → COMPARE → IF δ_surprise > threshold → FLAG CONTRADICTED
+
+        Returns dict with delta_surprise, triggered_surprise, model_contradicted flags.
         """
-        self.self_model.update_from_outcome(
+        return self.self_model.update_from_outcome(
             tool_id=tool_id,
             result=result,
             error=error,
+            prediction=prediction,
         )
 
     def _infer_domain(self, tool_id: str) -> str:
@@ -602,12 +609,8 @@ def embodied_tool(
         register_tool_in_self_model,
     )
 
-    capabilities_obj = (
-        [ToolCapability(**c) for c in capabilities] if capabilities else []
-    )
-    limitations_obj = (
-        [ToolLimitation(**lim) for lim in limitations] if limitations else []
-    )
+    capabilities_obj = [ToolCapability(**c) for c in capabilities] if capabilities else []
+    limitations_obj = [ToolLimitation(**lim) for lim in limitations] if limitations else []
 
     manifest = ToolManifest(
         tool_id=tool_id,

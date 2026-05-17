@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 # Lazy import to avoid circular dependency at module load time
 def _get_budget_contract(session_id: str):
-    from arifosmcp.runtime.budget_contract import get_budget_contract as _gc
+    from arifosmcp.runtime.budget import get_budget_contract as _gc
 
     return _gc(session_id)
 
@@ -69,9 +69,7 @@ class VerdictLabel:
     RED_TEAM_SIMULATION_ONLY = (
         "RED_TEAM_SIMULATION_ONLY"  # Adversarial reasoning ok, weaponization blocked
     )
-    HUMAN_APPROVAL_REQUIRED = (
-        "HUMAN_APPROVAL_REQUIRED"  # Needs explicit ack before proceeding
-    )
+    HUMAN_APPROVAL_REQUIRED = "HUMAN_APPROVAL_REQUIRED"  # Needs explicit ack before proceeding
     HOLD_EXECUTION = "HOLD_EXECUTION"  # Full stop, fix needed before proceeding
     VOID = "VOID"  # Breach, blocked permanently
 
@@ -194,9 +192,7 @@ FLOOR_DESCRIPTIONS: dict[Floor, str] = {
 }
 
 
-def check_floors(
-    tool_name: str, params: dict[str, Any], actor_id: str | None
-) -> dict[str, Any]:
+def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -> dict[str, Any]:
     """
     Run F1–F13 interceptors + F14 semantic gate for a tool call.
 
@@ -376,9 +372,7 @@ def check_floors(
             risky = ["rm -rf", "eval(", "exec(", "__import__", "os.system"]
             if any(r in value for r in risky):
                 failed.append("F12")
-                logger.warning(
-                    f"F12 BLOCK: injection pattern in param '{key}' for {tool_name}"
-                )
+                logger.warning(f"F12 BLOCK: injection pattern in param '{key}' for {tool_name}")
                 break
 
     # F11 Authority — only for EXECUTE/VAULT_WRITE, not for read-only modes
@@ -393,11 +387,7 @@ def check_floors(
                 tool_name,
                 mode_val,
                 actor_id,
-                (
-                    list(params.keys())
-                    if isinstance(params, dict)
-                    else type(params).__name__
-                ),
+                (list(params.keys()) if isinstance(params, dict) else type(params).__name__),
             )
 
     # F01 Amanah — irreversible tools need explicit ack
@@ -475,10 +465,25 @@ def check_floors(
     }
 
 
+ACTIVE_FLOORS = [f.value for f in Floor]
+
+
+def get_active_floors() -> list[str]:
+    """Returns the list of active constitutional floor identifiers."""
+    return ACTIVE_FLOORS
+
+
+def get_floor_count() -> int:
+    """Returns the total number of active constitutional floors."""
+    return len(ACTIVE_FLOORS)
+
+
 def get_floor_status() -> dict[str, Any]:
     """Return current constitutional floor status."""
     return {
         "floors": {f.value: FLOOR_DESCRIPTIONS[f] for f in Floor},
+        "active_floors": get_active_floors(),
+        "floor_count": get_floor_count(),
         "status": "aligned",
         "version": "2026.05.05-SSCT",
     }

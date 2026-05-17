@@ -3,1190 +3,1176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>arifOS APEX Sovereign | Realized Intelligence Dashboard</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
-    <script src="/static-sites/trinity-nav.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <title>arifOS Observatory · ΔΩΨ Federation Governance Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=Instrument+Serif:opsz@36&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #050505;
-            --card: #0a0a0a;
-            --card-hover: #111;
-            --accent: #00ffcc;
-            --accent-dim: rgba(0, 255, 204, 0.1);
-            --accent-glow: rgba(0, 255, 204, 0.4);
-            --text: #e8e8e8;
-            --text-secondary: #888;
-            --dim: #444;
-            --border: #1a1a1a;
-            --font-mono: 'JetBrains Mono', monospace;
-            --font-sans: 'Inter', sans-serif;
-            --danger: #ff4444;
-            --danger-dim: rgba(255, 68, 68, 0.1);
-            --warning: #ffaa00;
-            --success: #00ff88;
-            --success-dim: rgba(0, 255, 136, 0.1);
-            --info: #4488ff;
+            --black: #0a0a0b;
+            --near-black: #111113;
+            --card-bg: #151517;
+            --card-border: #1e1e22;
+            --card-hover: #1a1a1e;
+            --text: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --text-dim: #52525b;
+            --accent: #6ee7b7;
+            --accent-dim: rgba(110, 231, 183, 0.08);
+            --accent-glow: rgba(110, 231, 183, 0.15);
+            --danger: #f87171;
+            --danger-dim: rgba(248, 113, 113, 0.08);
+            --warning: #fbbf24;
+            --warning-dim: rgba(251, 191, 36, 0.08);
+            --info: #60a5fa;
+            --info-dim: rgba(96, 165, 250, 0.08);
+            --purple: #a78bfa;
+            --purple-dim: rgba(167, 139, 250, 0.08);
+            --font-sans: 'Instrument Sans', system-ui, sans-serif;
+            --font-mono: 'DM Mono', 'JetBrains Mono', monospace;
+            --font-serif: 'Instrument Serif', serif;
         }
-
-        * { box-sizing: border-box; }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 15px; }
         body {
-            background: var(--bg);
+            background: var(--black);
             color: var(--text);
             font-family: var(--font-sans);
-            margin: 0;
-            padding: 0;
             min-height: 100vh;
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
+        ::selection { background: var(--accent); color: var(--black); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--near-black); }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 3px; }
 
-        .app {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 24px;
-        }
+        /* ── Layout ── */
+        .app { max-width: 1320px; margin: 0 auto; padding: 0 24px; }
 
-        /* Header */
+        /* ── Header ── */
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 0;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 24px 0; border-bottom: 1px solid var(--card-border);
+            margin-bottom: 28px;
         }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 16px;
+        .brand { display: flex; align-items: center; gap: 16px; }
+        .brand-icon {
+            width: 36px; height: 36px; border-radius: 8px;
+            background: var(--accent-dim); border: 1px solid var(--accent);
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent);
         }
-
-        .brand-motto {
-            font-family: var(--font-mono);
-            font-size: 0.65rem;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            padding: 4px 8px;
-            border: 1px solid var(--accent-dim);
-            border-radius: 4px;
-        }
-
+        .brand-text { display: flex; flex-direction: column; }
         .brand-title {
-            margin: 0;
-            font-size: 1.4rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 1.1rem; font-weight: 600; letter-spacing: -0.3px;
+            color: var(--text); line-height: 1.3;
+        }
+        .brand-sub {
+            font-family: var(--font-mono); font-size: 0.6rem;
+            color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px;
+        }
+        .brand-motto {
+            font-family: var(--font-mono); font-size: 0.55rem;
+            color: var(--accent); text-transform: uppercase; letter-spacing: 2.5px;
+            padding: 3px 10px; border: 1px solid var(--accent-dim);
+            border-radius: 100px; background: var(--accent-dim);
         }
 
-        .status-bar {
-            display: flex;
-            align-items: center;
-            gap: 20px;
+        .nav { display: flex; align-items: center; gap: 6px; }
+        .nav-btn {
+            padding: 6px 14px; border-radius: 100px; border: 1px solid var(--card-border);
+            background: transparent; color: var(--text-secondary); cursor: pointer;
+            font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase;
+            letter-spacing: 1px; transition: all 0.15s;
         }
-
-        .status-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
+        .nav-btn:hover { border-color: var(--text-dim); color: var(--text); }
+        .nav-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+        .nav-badge {
+            padding: 4px 10px; border-radius: 100px; font-family: var(--font-mono);
+            font-size: 0.6rem; background: var(--accent-dim); color: var(--accent);
+            border: 1px solid var(--accent-dim); letter-spacing: 0.5px;
         }
+        .nav-badge.danger { background: var(--danger-dim); color: var(--danger); border-color: var(--danger-dim); }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--success);
-            box-shadow: 0 0 8px var(--success);
-        }
-
-        .status-dot.pulse {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Grid Layout */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 20px;
-        }
-
+        /* ── Cards ── */
+        .dashboard-grid { display: grid; gap: 20px; }
         .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            transition: all 0.2s ease;
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 12px; padding: 24px; transition: all 0.2s;
         }
-
-        .card:hover {
-            background: var(--card-hover);
-            border-color: var(--dim);
-        }
-
-        .card-full { grid-column: span 12; }
-        .card-8 { grid-column: span 8; }
-        .card-6 { grid-column: span 6; }
-        .card-4 { grid-column: span 4; }
-        .card-3 { grid-column: span 3; }
-
-        @media (max-width: 1200px) {
-            .card-8, .card-6, .card-4, .card-3 { grid-column: span 6; }
-        }
-
-        @media (max-width: 768px) {
-            .card-8, .card-6, .card-4, .card-3 { grid-column: span 12; }
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-        }
-
+        .card:hover { border-color: #2a2a30; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .card-title {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--text-secondary);
-            margin: 0;
+            font-size: 0.6rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 1.5px; color: var(--text-dim);
         }
-
         .card-badge {
-            font-family: var(--font-mono);
-            font-size: 0.65rem;
-            padding: 2px 8px;
-            border-radius: 4px;
-            background: var(--accent-dim);
-            color: var(--accent);
+            font-family: var(--font-mono); font-size: 0.55rem; padding: 2px 10px;
+            border-radius: 100px; background: var(--accent-dim); color: var(--accent);
             border: 1px solid var(--accent-dim);
         }
-
-        .card-badge.success { background: var(--success-dim); color: var(--success); border-color: var(--success-dim); }
-        .card-badge.warning { background: rgba(255, 170, 0, 0.1); color: var(--warning); }
         .card-badge.danger { background: var(--danger-dim); color: var(--danger); border-color: var(--danger-dim); }
+        .card-badge.warning { background: var(--warning-dim); color: var(--warning); border-color: var(--warning-dim); }
 
-        /* Metric Cards */
-        .metric-primary {
-            text-align: center;
-            padding: 40px 20px;
+        /* ── Mode Toggle Bar (compact) ── */
+        .mode-bar {
+            display: flex; gap: 6px; margin-bottom: 24px;
+            background: var(--near-black); border: 1px solid var(--card-border);
+            border-radius: 100px; padding: 4px; width: fit-content;
+        }
+        .mode-btn {
+            padding: 6px 18px; border-radius: 100px; border: none; background: transparent;
+            color: var(--text-dim); cursor: pointer; font-family: var(--font-mono);
+            font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px;
+            transition: all 0.15s;
+        }
+        .mode-btn:hover { color: var(--text-secondary); }
+        .mode-btn.active { background: var(--card-bg); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
+        /* ── Hero Section (Public Mode) ── */
+        .hero {
+            text-align: center; padding: 48px 0 32px; position: relative;
+        }
+        .hero::after {
+            content: ''; position: absolute; bottom: 0; left: 10%; right: 10%;
+            height: 1px; background: linear-gradient(90deg, transparent, var(--card-border), transparent);
+        }
+        .hero-verdict {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 8px 20px 8px 16px; border-radius: 100px;
+            font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px;
+        }
+        .hero-verdict.seal { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
+        .hero-verdict.hold { background: var(--info-dim); color: var(--info); border: 1px solid var(--info); }
+        .hero-verdict.void { background: var(--danger-dim); color: var(--danger); border: 1px solid var(--danger); }
+        .hero-verdict-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+        .hero-verdict.seal .hero-verdict-dot { background: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+        .hero-title {
+            font-family: var(--font-serif); font-size: 2.8rem; line-height: 1.15;
+            letter-spacing: -1px; margin-bottom: 16px; font-weight: 400;
+        }
+        .hero-title em { font-style: italic; color: var(--accent); }
+        .hero-sub {
+            font-size: 0.95rem; color: var(--text-secondary);
+            max-width: 640px; margin: 0 auto; line-height: 1.7;
         }
 
-        .metric-value-large {
-            font-family: var(--font-mono);
-            font-size: 4rem;
-            font-weight: 700;
-            color: var(--accent);
-            text-shadow: 0 0 30px var(--accent-glow);
-            margin: 10px 0;
-            line-height: 1;
+        /* ── Metric Tiles ── */
+        .tile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 28px 0; }
+        @media (max-width: 768px) { .tile-grid { grid-template-columns: 1fr; } }
+        .tile {
+            background: var(--near-black); border: 1px solid var(--card-border);
+            border-radius: 10px; padding: 20px; text-align: center;
+        }
+        .tile-label {
+            font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--text-dim); margin-bottom: 8px;
+        }
+        .tile-value {
+            font-family: var(--font-mono); font-size: 2rem; font-weight: 700;
+            line-height: 1.1; margin-bottom: 4px;
+        }
+        .tile-value.accent { color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); }
+        .tile-value.green { color: var(--accent); }
+        .tile-value.red { color: var(--danger); }
+        .tile-value.yellow { color: var(--warning); }
+        .tile-sub {
+            font-size: 0.7rem; color: var(--text-dim);
+        }
+        .tile-trend {
+            display: inline-block; margin-top: 8px; padding: 2px 8px;
+            border-radius: 100px; font-family: var(--font-mono); font-size: 0.55rem;
+        }
+        .tile-trend.ok { background: var(--accent-dim); color: var(--accent); }
+        .tile-trend.warn { background: var(--warning-dim); color: var(--warning); }
+        .tile-trend.bad { background: var(--danger-dim); color: var(--danger); }
+
+        /* ── Degraded Banner ── */
+        .degraded-banner {
+            background: var(--warning-dim); border: 1px solid var(--warning);
+            border-radius: 10px; padding: 14px 18px; margin-bottom: 24px;
+            display: flex; align-items: center; gap: 12px; display: none;
+        }
+        .degraded-banner.show { display: flex; }
+        .degraded-banner-icon { font-size: 1.2rem; flex-shrink: 0; }
+        .degraded-banner-text { font-size: 0.8rem; color: var(--warning); }
+        .degraded-banner-list { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+        .degraded-badge {
+            padding: 2px 10px; border-radius: 100px; font-family: var(--font-mono);
+            font-size: 0.55rem; border: 1px solid currentColor;
         }
 
-        .metric-label-large {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
+        /* ── Sections (hide/show per mode) ── */
+        .section { display: none; }
+        .section.show { display: block; }
+
+        /* ── Organ Status Grid ── */
+        .organ-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 20px; }
+        @media (max-width: 900px) { .organ-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .organ-grid { grid-template-columns: 1fr; } }
+        .organ-card {
+            background: var(--near-black); border: 1px solid var(--card-border);
+            border-radius: 10px; padding: 16px; display: flex;
+            justify-content: space-between; align-items: flex-start;
         }
-
-        .metric-formula {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            color: var(--dim);
+        .organ-info { flex: 1; }
+        .organ-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 2px; }
+        .organ-role { font-size: 0.65rem; color: var(--text-dim); }
+        .organ-status {
+            font-family: var(--font-mono); font-size: 0.55rem; padding: 2px 10px;
+            border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px;
+            flex-shrink: 0;
         }
+        .organ-status.healthy { background: var(--accent-dim); color: var(--accent); }
+        .organ-status.degraded { background: var(--warning-dim); color: var(--warning); }
+        .organ-status.unknown { background: var(--card-border); color: var(--text-dim); }
 
-        .metric-insight {
-            margin-top: 20px;
-            padding: 12px 16px;
-            background: var(--accent-dim);
-            border-left: 3px solid var(--accent);
-            border-radius: 0 6px 6px 0;
-            font-size: 0.85rem;
-            line-height: 1.5;
-            color: var(--text);
-        }
-
-        .metric-grid-5 {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 16px;
-        }
-
-        @media (max-width: 1200px) {
-            .metric-grid-5 { grid-template-columns: repeat(3, 1fr); }
-        }
-
-        @media (max-width: 768px) {
-            .metric-grid-5 { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        .metric-box {
-            background: #111;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 16px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .metric-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--accent);
-            opacity: 0.5;
-        }
-
-        .metric-box.warning::before { background: var(--warning); }
-        .metric-box.danger::before { background: var(--danger); }
-
-        .metric-box-label {
-            font-size: 0.65rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-
-        .metric-box-value {
-            font-family: var(--font-mono);
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 4px;
-        }
-
-        .metric-box-trend {
-            font-size: 0.75rem;
-            color: var(--dim);
-        }
-
-        .trend-up { color: var(--success); }
-        .trend-down { color: var(--danger); }
-        .trend-stable { color: var(--text-secondary); }
-
-        /* Witness Section */
-        .witness-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-top: 20px;
-        }
-
-        .witness-item {
-            text-align: center;
-            padding: 20px;
-            background: #111;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-
-        .witness-name {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-
-        .witness-score {
-            font-family: var(--font-mono);
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--accent);
-            margin-bottom: 4px;
-        }
-
-        .witness-bar {
-            height: 4px;
-            background: var(--border);
-            border-radius: 2px;
-            margin-top: 8px;
-            overflow: hidden;
-        }
-
-        .witness-bar-fill {
-            height: 100%;
-            background: var(--accent);
-            border-radius: 2px;
-            transition: width 0.5s ease;
-        }
-
-        /* Floor Status */
+        /* ── Floor Grid ── */
         .floor-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px; margin-top: 16px;
         }
-
-        @media (max-width: 1200px) {
-            .floor-grid { grid-template-columns: repeat(4, 1fr); }
-        }
-
-        @media (max-width: 768px) {
-            .floor-grid { grid-template-columns: repeat(3, 1fr); }
-        }
-
         .floor-item {
-            background: #111;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 10px 8px;
-            text-align: center;
-            font-size: 0.7rem;
+            background: var(--near-black); border: 1px solid var(--card-border);
+            border-radius: 8px; padding: 12px 8px; text-align: center;
+            position: relative; overflow: hidden;
         }
-
-        .floor-item.pass { border-color: var(--success); background: var(--success-dim); }
-        .floor-item.band { border-color: var(--warning); background: rgba(255, 170, 0, 0.05); }
-        .floor-item.lock { border-color: var(--accent); background: var(--accent-dim); }
-        .floor-item.human { border-color: var(--info); background: rgba(68, 136, 255, 0.1); }
-
-        .floor-name {
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: var(--text);
+        .floor-item::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
         }
+        .floor-item.pass::before { background: var(--accent); }
+        .floor-item.band::before { background: var(--warning); }
+        .floor-item.fail::before { background: var(--danger); }
+        .floor-id { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600; margin-bottom: 2px; }
+        .floor-name { font-size: 0.55rem; color: var(--text-dim); margin-bottom: 6px; }
+        .floor-score { font-family: var(--font-mono); font-size: 0.9rem; }
+        .floor-score.pass { color: var(--accent); }
+        .floor-score.band { color: var(--warning); }
+        .floor-score.fail { color: var(--danger); }
 
-        .floor-status {
-            font-size: 0.6rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            opacity: 0.8;
+        /* ── Delta Category (loaded/enforced/passing) ── */
+        .floor-delta {
+            display: flex; gap: 24px; margin-top: 16px; padding: 16px 20px;
+            background: var(--near-black); border-radius: 10px;
+            border: 1px solid var(--card-border);
         }
-
-        /* Machine Health */
-        .health-bar {
-            margin-bottom: 16px;
+        .floor-delta-item { text-align: center; flex: 1; }
+        .floor-delta-label {
+            font-size: 0.55rem; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--text-dim); margin-bottom: 4px;
         }
-
-        .health-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            margin-bottom: 6px;
-            color: var(--text-secondary);
+        .floor-delta-count {
+            font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700;
         }
+        .floor-delta-count.accent { color: var(--accent); }
+        .floor-delta-count.warn { color: var(--warning); }
+        .floor-delta-count.danger { color: var(--danger); }
 
-        .health-track {
-            height: 6px;
-            background: var(--border);
-            border-radius: 3px;
-            overflow: hidden;
+        /* ── Known Gaps Cards ── */
+        .gaps-list { margin-top: 12px; }
+        .gap-item {
+            padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;
+            border: 1px solid var(--card-border);
+            display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
         }
-
-        .health-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.3s ease;
-        }
-
-        .health-fill.good { background: var(--success); }
-        .health-fill.warn { background: var(--warning); }
-        .health-fill.crit { background: var(--danger); }
-
-        /* Chart Containers */
-        .chart-container {
-            height: 280px;
-        }
-
-        /* Session History */
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-        }
-
-        .history-table th {
-            text-align: left;
-            padding: 12px 8px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            font-size: 0.7rem;
-            letter-spacing: 1px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .history-table td {
-            padding: 12px 8px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text);
-        }
-
-        .history-table tr:hover td {
-            background: var(--card-hover);
-        }
-
-        .verdict-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .verdict-seal { background: var(--success-dim); color: var(--success); }
-        .verdict-partial { background: rgba(255, 170, 0, 0.1); color: var(--warning); }
-        .verdict-hold { background: rgba(68, 136, 255, 0.1); color: var(--info); }
-        .verdict-void { background: var(--danger-dim); color: var(--danger); }
-
-        /* Insights */
-        .insights-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .insights-list li {
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.9rem;
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-        }
-
-        .insights-list li:last-child {
-            border-bottom: none;
-        }
-
-        .insight-icon {
-            font-size: 1.2rem;
+        .gap-item.info { background: var(--info-dim); border-color: var(--info); }
+        .gap-item.warning { background: var(--warning-dim); border-color: var(--warning); }
+        .gap-item.danger { background: var(--danger-dim); border-color: var(--danger); }
+        .gap-title { font-size: 0.8rem; font-weight: 500; margin-bottom: 4px; }
+        .gap-detail { font-size: 0.7rem; color: var(--text-secondary); }
+        .gap-severity {
+            font-family: var(--font-mono); font-size: 0.5rem; padding: 2px 8px;
+            border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px;
             flex-shrink: 0;
         }
 
-        .insight-text {
-            color: var(--text);
-            line-height: 1.5;
+        /* ── Trinity Matrix ── */
+        .trinity-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+        .trinity-card {
+            text-align: center; padding: 20px; background: var(--near-black);
+            border-radius: 10px; border: 1px solid var(--card-border);
+        }
+        .trinity-label {
+            font-size: 0.55rem; text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--text-dim); margin-bottom: 8px;
+        }
+        .trinity-value {
+            font-family: var(--font-serif); font-size: 1.8rem; line-height: 1;
+            margin-bottom: 4px;
+        }
+        .trinity-evidence {
+            font-size: 0.6rem; color: var(--text-dim); margin-top: 8px;
+        }
+        .trinity-bar {
+            height: 3px; background: var(--card-border); border-radius: 2px;
+            margin-top: 10px; overflow: hidden;
+        }
+        .trinity-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+
+        /* ── Container Table ── */
+        .container-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 12px; }
+        .container-table th {
+            text-align: left; padding: 10px 8px; font-weight: 600;
+            color: var(--text-dim); text-transform: uppercase; font-size: 0.55rem;
+            letter-spacing: 1px; border-bottom: 1px solid var(--card-border);
+        }
+        .container-table td { padding: 10px 8px; border-bottom: 1px solid var(--card-border); color: var(--text); }
+        .container-table tr:hover td { background: var(--near-black); }
+        .status-tag {
+            display: inline-block; padding: 1px 8px; border-radius: 100px;
+            font-family: var(--font-mono); font-size: 0.55rem;
+        }
+        .status-tag.up { background: var(--accent-dim); color: var(--accent); }
+        .status-tag.down { background: var(--danger-dim); color: var(--danger); }
+
+        /* ── Operator Now Bar ── */
+        .now-bar {
+            display: flex; align-items: center; gap: 16px;
+            padding: 14px 20px; background: var(--near-black);
+            border: 1px solid var(--card-border); border-radius: 10px;
+            margin-bottom: 24px;
+        }
+        .now-dot {
+            width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+        }
+        .now-dot.healthy { background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+        .now-dot.degraded { background: var(--warning); box-shadow: 0 0 12px rgba(251,191,36,0.3); }
+        .now-dot.critical { background: var(--danger); box-shadow: 0 0 12px rgba(248,113,113,0.3); }
+        .now-status { font-weight: 600; font-size: 0.85rem; }
+        .now-issues { font-size: 0.75rem; color: var(--text-secondary); flex: 1; }
+        .now-timestamp {
+            font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-dim);
+            flex-shrink: 0;
         }
 
-        .insight-recommendation {
-            margin-top: 8px;
-            padding: 8px 12px;
-            background: var(--accent-dim);
-            border-radius: 6px;
-            font-size: 0.8rem;
-            color: var(--accent);
+        /* ── Tab Panels (Operator) ── */
+        .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+        .tab {
+            padding: 8px 18px; border-radius: 8px; border: none; background: transparent;
+            color: var(--text-dim); cursor: pointer; font-family: var(--font-mono);
+            font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px;
+            transition: all 0.15s;
         }
+        .tab:hover { color: var(--text-secondary); background: var(--near-black); }
+        .tab.active { background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border); }
+        .tab-panel { display: none; }
+        .tab-panel.show { display: block; }
 
-        /* Quick Actions */
-        .actions-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
+        /* ── Capability Map ── */
+        .cap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-top: 12px; }
+        .cap-item {
+            background: var(--near-black); border: 1px solid var(--card-border);
+            border-radius: 6px; padding: 10px 12px; display: flex;
+            justify-content: space-between; align-items: center;
         }
+        .cap-name { font-size: 0.7rem; color: var(--text-secondary); }
+        .cap-status { font-family: var(--font-mono); font-size: 0.5rem; padding: 1px 8px; border-radius: 100px; }
+        .cap-status.on { background: var(--accent-dim); color: var(--accent); }
+        .cap-status.off { background: var(--danger-dim); color: var(--danger); }
 
-        .btn {
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid var(--border);
-            background: var(--card);
-            color: var(--text);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+        /* ── Provider Grid ── */
+        .prov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; margin-top: 12px; }
+        .prov-item {
+            padding: 8px 10px; background: var(--near-black); border-radius: 6px;
+            border: 1px solid var(--card-border); text-align: center;
         }
+        .prov-name { font-size: 0.65rem; color: var(--text-secondary); }
+        .prov-status { font-size: 0.5rem; margin-top: 2px; }
+        .prov-status.yes { color: var(--accent); }
+        .prov-status.no { color: var(--text-dim); }
 
-        .btn:hover {
-            border-color: var(--accent);
-            background: var(--card-hover);
+        /* ── MCP Connect Card ── */
+        .connect-card {
+            background: linear-gradient(135deg, var(--near-black) 0%, var(--card-bg) 100%);
+            border: 1px solid var(--accent-dim); border-radius: 12px;
+            padding: 28px; text-align: center; margin-bottom: 20px;
         }
-
-        .btn-primary {
-            background: var(--accent-dim);
-            border-color: var(--accent);
-            color: var(--accent);
+        .connect-url {
+            font-family: var(--font-mono); font-size: 1.1rem; color: var(--accent);
+            padding: 12px 24px; background: var(--black); border-radius: 8px;
+            border: 1px solid var(--accent-dim); display: inline-block;
+            margin: 12px 0; word-break: break-all;
         }
-
-        .btn-danger {
-            background: var(--danger-dim);
-            border-color: var(--danger);
-            color: var(--danger);
+        .connect-steps {
+            text-align: left; max-width: 480px; margin: 16px auto 0;
+            counter-reset: step;
         }
+        .connect-step {
+            padding: 10px 0; border-bottom: 1px solid var(--card-border);
+            display: flex; gap: 12px; align-items: flex-start;
+            counter-increment: step;
+        }
+        .connect-step::before {
+            content: counter(step); font-family: var(--font-mono);
+            font-size: 0.7rem; width: 22px; height: 22px; border-radius: 50%;
+            background: var(--accent-dim); color: var(--accent);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; margin-top: 1px;
+        }
+        .connect-step-text { font-size: 0.8rem; color: var(--text-secondary); }
 
-        /* Footer */
+        /* ── Dev Tool Registry ── */
+        .tool-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin-top: 12px; }
+        .tool-table th {
+            text-align: left; padding: 8px 6px; font-weight: 600;
+            color: var(--text-dim); text-transform: uppercase; font-size: 0.5rem;
+            letter-spacing: 1px; border-bottom: 1px solid var(--card-border);
+        }
+        .tool-table td { padding: 8px 6px; border-bottom: 1px solid var(--card-border); color: var(--text); }
+        .tool-table code { font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent); }
+
+        /* ── Footer ── */
         .footer {
-            margin-top: 40px;
-            padding: 20px 0;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.7rem;
-            color: var(--dim);
+            margin-top: 48px; padding: 24px 0; border-top: 1px solid var(--card-border);
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.6rem; color: var(--text-dim);
         }
+        .footer-links { display: flex; gap: 20px; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; }
+        .footer-links a:hover { color: var(--accent); }
 
-        .footer-links {
-            display: flex;
-            gap: 20px;
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
-
-        .footer-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-        }
-
-        .footer-links a:hover {
-            color: var(--accent);
-        }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .spinner {
+            width: 32px; height: 32px; border: 2px solid var(--card-border);
+            border-top: 2px solid var(--accent); border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 40px auto;
+        }
+        .loading-text { text-align: center; color: var(--text-dim); font-size: 0.8rem; padding: 40px 0; }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: 12px; }
+            .hero-title { font-size: 2rem; }
+            .nav { flex-wrap: wrap; justify-content: center; }
+            .footer { flex-direction: column; gap: 12px; text-align: center; }
+        }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+<div id="root">
+    <div class="app">
+        <div class="loading-text"><div class="spinner"></div><p>Connecting to arifOS live metrics...</p></div>
+    </div>
+</div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
-        const { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, LineChart, Line } = Recharts;
+<script>
+// ── arifOS Observatory v3 — 3-Mode Constitutional Dashboard ────────
+//  DITEMPA BUKAN DIBERI — Forged, Not Given
 
-        // Default data structure (shown while loading)
-        const DEFAULT_DATA = {
-            system: {
-                status: "INITIALIZING",
-                version: "2026.03.14-VALIDATED",
-                floors_active: "13/13",
-                uptime: "-"
-            },
-            vitals: {
-                G_star: 0.00,
-                dS: 0.00,
-                peace2: 0.00,
-                kappa_r: 0.00,
-                psi_le: 0.00
-            },
-            witness: {
-                human: 0.00,
-                ai: 0.00,
-                earth: 0.00
-            },
-            floors: [],
-            machine: {
-                cpu: 0,
-                ram: 0,
-                latency: 0,
-                energy_budget: 100
-            },
-            history: [],
-            insights: [
-                { type: "info", icon: "⏳", text: "Connecting to arifOS live metrics...", recommendation: null }
-            ]
-        };
+(function() {
 
-        function Dashboard() {
-            const [data, setData] = useState(DEFAULT_DATA);
-            const [loading, setLoading] = useState(true);
-            const [lastUpdate, setLastUpdate] = useState(null);
-            const [error, setError] = useState(null);
+const STATE = {
+    status: null,           // /api/status JSON
+    live: null,             // /api/live/all JSON
+    mode: 'public',         // public | developer | operator
+    tab: 'infra',           // operator sub-tab
+    error: null,
+    loading: true,
+    organHealth: { geox: null, wealth: null, well: null },
+    lastUpdate: null,
+};
 
-            // Transform live API data to dashboard format
-            const transformLiveData = (liveData) => {
-                const machine = liveData.machine || {};
-                const governance = liveData.governance || {};
-                const intelligence = liveData.intelligence || {};
+// ── Fetch organ health in parallel ──
+async function fetchOrganHealth() {
+    const orgs = {
+        geox: 'https://geox.arif-fazil.com/health',
+        wealth: 'https://wealth.arif-fazil.com/health',
+        well: 'https://well.arif-fazil.com/health',
+    };
+    const results = {};
+    for (const [key, url] of Object.entries(orgs)) {
+        try {
+            const r = await fetch(url, { signal: AbortSignal.timeout(5000) });
+            if (r.ok) results[key] = { status: 'healthy', data: await r.json() };
+            else results[key] = { status: 'degraded', data: null };
+        } catch { results[key] = { status: 'unknown', data: null }; }
+    }
+    return results;
+}
 
-                // Build floors array from governance data
-                const floors = Object.entries(governance.floors || {}).map(([id, floorData]) => ({
-                    id,
-                    name: floorData.name || id,
-                    status: floorData.status || "unknown",
-                    score: floorData.score || 0
-                }));
+// ── Fetch all data ──
+async function fetchAll() {
+    try {
+        const base = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : '';
+        const [statusRes, liveRes] = await Promise.all([
+            fetch(`${base}/api/status`, { signal: AbortSignal.timeout(8000) }),
+            fetch(`${base}/api/live/all`, { signal: AbortSignal.timeout(8000) }),
+        ]);
+        if (!statusRes.ok) throw new Error(`Status API error: ${statusRes.status}`);
+        if (!liveRes.ok) throw new Error(`Live API error: ${liveRes.status}`);
 
-                // Sort floors by ID
-                floors.sort((a, b) => {
-                    const numA = parseInt(a.id.replace('F', ''));
-                    const numB = parseInt(b.id.replace('F', ''));
-                    return numA - numB;
-                });
+        STATE.status = await statusRes.json();
+        STATE.live = await liveRes.json();
+        STATE.error = null;
 
-                return {
-                    system: {
-                        status: governance.system_status || "HEALTHY",
-                        version: governance.version || "2026.03.14-VALIDATED",
-                        floors_active: `${governance.floors_passing || 0}/${governance.floors_active || 13}`,
-                        uptime: formatUptime(machine.uptime_seconds || 0)
-                    },
-                    vitals: {
-                        G_star: governance.G_star || 0,
-                        dS: governance.dS || 0,
-                        peace2: governance.peace2 || 0,
-                        kappa_r: governance.kappa_r || 0,
-                        psi_le: governance.psi_le || 0
-                    },
-                    witness: {
-                        human: governance.witness_human || 0,
-                        ai: governance.witness_ai || 0,
-                        earth: governance.witness_earth || 0
-                    },
-                    floors: floors,
-                    machine: {
-                        cpu: machine.cpu_percent || 0,
-                        ram: machine.ram_percent || 0,
-                        latency: governance.avg_latency_ms || 45,
-                        energy_budget: 100 - (machine.ram_percent || 0) // Approximation
-                    },
-                    history: [], // Will be populated by VAULT endpoint
-                    insights: generateInsights(governance, machine)
-                };
-            };
+        // Organ health (background, non-blocking)
+        fetchOrganHealth().then(h => { STATE.organHealth = h; render(); });
 
-            // Format uptime from seconds
-            const formatUptime = (seconds) => {
-                const days = Math.floor(seconds / 86400);
-                const hours = Math.floor((seconds % 86400) / 3600);
-                const mins = Math.floor((seconds % 3600) / 60);
-                if (days > 0) return `${days}d ${hours}h ${mins}m`;
-                if (hours > 0) return `${hours}h ${mins}m`;
-                return `${mins}m`;
-            };
+        STATE.lastUpdate = new Date();
+    } catch (e) {
+        STATE.error = e.message;
+    } finally {
+        STATE.loading = false;
+        render();
+    }
+}
 
-            // Generate insights based on live data
-            const generateInsights = (governance, machine) => {
-                const insights = [];
+// ── Parse floor scores from status ──
+function parseFloors() {
+    const floors = STATE.status?.runtime_floors || STATE.status?.governance?.floors || {};
+    if (!floors || typeof floors !== 'object') return { items: [], loaded: 0, enforced: 0, passing: 0 };
+    const items = Object.entries(floors).map(([id, val]) => {
+        const score = typeof val === 'number' ? val : (val.score ?? 0);
+        const name = typeof val === 'object' ? (val.name || id) : id;
+        const hard = ['F1','F2','F9','F10','F11','F13'];
+        const threshold = hard.includes(id) ? 0.8 : 0.5;
+        const status = score >= threshold ? 'pass' : score >= threshold * 0.6 ? 'band' : 'fail';
+        return { id, name, score, hard: hard.includes(id), status };
+    });
+    items.sort((a,b) => parseInt(a.id.slice(1)) - parseInt(b.id.slice(1)));
+    const loaded = items.length;
+    const enforced = items.filter(f => f.hard).length;
+    const passing = items.filter(f => f.status === 'pass').length;
+    return { items, loaded, enforced, passing };
+}
 
-                // Check floors
-                if (governance.floors_failing > 0) {
-                    insights.push({
-                        type: "danger",
-                        icon: "⚠",
-                        text: `${governance.floors_failing} constitutional floor(s) failing`,
-                        recommendation: "Check /governance/floors for details"
-                    });
-                }
+// ── Parse known gaps ──
+function parseGaps() {
+    return STATE.status?.known_gaps || STATE.live?.known_gaps || [];
+}
 
-                // Check thermodynamics
-                if (governance.dS > 0) {
-                    insights.push({
-                        type: "warning",
-                        icon: "⚡",
-                        text: `F4 Clarity violated: ΔS = ${governance.dS}`,
-                        recommendation: "System generating entropy — review reasoning pipeline"
-                    });
-                }
+// ── Parse containers ──
+function parseContainers() {
+    return STATE.status?.containers || [];
+}
 
-                // Check machine resources
-                if (machine.cpu_percent > 80) {
-                    insights.push({
-                        type: "warning",
-                        icon: "🔥",
-                        text: `High CPU load: ${machine.cpu_percent.toFixed(1)}%`,
-                        recommendation: "Monitor for thermal throttling"
-                    });
-                }
+// ── Parse trinity ──
+function parseTrinity() {
+    const t = STATE.status?.trinity_matrix;
+    if (!t) return null;
+    return t;
+}
 
-                if (machine.ram_percent > 85) {
-                    insights.push({
-                        type: "warning",
-                        icon: "💾",
-                        text: `High memory usage: ${machine.ram_percent.toFixed(1)}%`,
-                        recommendation: "Consider session cleanup"
-                    });
-                }
+// ── Parse thermodynamic ──
+function parseThermo() {
+    const t = STATE.status?.thermodynamic || STATE.live?.thermodynamic || {};
+    return {
+        verdict: t.verdict || STATE.live?.verdict || 'INIT',
+        entropy: t.entropy_delta ?? STATE.live?.vitals?.dS ?? 0,
+        vitality: t.vitality_index ?? STATE.live?.vitals?.G_star ?? 0,
+        peace: t.peace_squared ?? STATE.live?.vitals?.peace2 ?? 0,
+        confidence: t.confidence ?? STATE.live?.governance?.tau_confidence_system ?? 0,
+        witness: t.witness || null,
+        stage: t.metabolic_stage || 0,
+    };
+}
 
-                // Success message if all good
-                if (insights.length === 0) {
-                    insights.push({
-                        type: "success",
-                        icon: "✓",
-                        text: "All systems operating within constitutional bounds",
-                        recommendation: null
-                    });
-                }
+// ── Parse governance ──
+function parseGovernance() {
+    const g = STATE.status?.governance || STATE.live?.governance || {};
+    return {
+        tau: g.tau_confidence_system ?? STATE.live?.governance?.tau_confidence_system ?? 0,
+        psi: g.psi_vitality ?? STATE.live?.governance?.psi_vitality ?? 0,
+        drift: STATE.status?.runtime_drift ?? false,
+        seal_ready: STATE.status?.seal_readiness || {},
+        vault: STATE.status?.vault999_health || g.vault999 || 'unknown',
+    };
+}
 
-                return insights;
-            };
+// ── Parse version ──
+function parseVersion() {
+    const s = STATE.status;
+    return {
+        version: s?.release_name || s?.version || 'unknown',
+        commit: s?.git_commit || 'unknown',
+        image: s?.image || 'unknown',
+        tools: s?.manifest?.tools_count || s?.tools_loaded || 0,
+        build_time: s?.build_time || 'unknown',
+        langfuse: s?.langfuse_tracing?.status || 'unknown',
+    };
+}
 
-            // Fetch live metrics
-            const fetchLiveData = async () => {
-                try {
-                    // Determine API endpoint based on current host
-                    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                    const API_BASE = isLocalhost
-                        ? '' // local dev points to same origin (arifOS 8080)
-                        : '';
+// ── Parse capability map ──
+function parseCapabilities() {
+    return STATE.status?.capability_map || STATE.live?.capability_map || null;
+}
 
-                    // Fetch all metrics in parallel
-                    const [metricsRes, vaultRes] = await Promise.all([
-                        fetch(`${API_BASE}/api/live/all`),
-                        fetch(`${API_BASE}/api/live/vault?limit=10`)
-                    ]);
+// ── Top-level degradations (for now-bar) ──
+function findDegradations() {
+    const d = [];
+    const gaps = parseGaps();
+    for (const g of gaps) {
+        if (g.severity !== 'info') d.push(g);
+    }
+    const langfuse = STATE.status?.langfuse_tracing?.status;
+    if (langfuse && langfuse.includes('DEGRADED')) {
+        d.push({ title: 'Langfuse trace ingest degraded', severity: 'warning' });
+    }
+    const v = parseVersion();
+    if (v.langfuse && v.langfuse.includes('DEGRADED')) {
+        // already caught
+    }
+    return d;
+}
 
-                    if (!metricsRes.ok) throw new Error(`Metrics API error: ${metricsRes.status}`);
+// ── Safe format helpers ──
+function fmtNum(n, d = 2) { return (typeof n === 'number' ? n : 0).toFixed(d); }
+function fmtPct(n) { return (typeof n === 'number' ? Math.round(n * 100) : 0) + '%'; }
+function fmtTime(d) {
+    if (!d) return '--';
+    const s = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (s < 60) return s + 's ago';
+    if (s < 3600) return Math.floor(s/60) + 'm ago';
+    return Math.floor(s/3600) + 'h ago';
+}
 
-                    const metricsData = await metricsRes.json();
-                    const vaultData = vaultRes.ok ? await vaultRes.json() : { entries: [] };
+// ── Render ──
+function render() {
+    const root = document.getElementById('root');
+    if (!root) return;
 
-                    // Always update with live data — even HOLD/VOID reflect truth
-                        const transformed = transformLiveData(metricsData);
+    const thermo = parseThermo();
+    const floors = parseFloors();
+    const gaps = parseGaps();
+    const containers = parseContainers();
+    const trinity = parseTrinity();
+    const gov = parseGovernance();
+    const ver = parseVersion();
+    const caps = parseCapabilities();
+    const degs = findDegradations();
+    const orgHealth = STATE.organHealth;
 
-                        // Merge VAULT history
-                        if (vaultData.entries) {
-                            transformed.history = vaultData.entries.map(entry => ({
-                                time: new Date(entry.timestamp).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-                                action: entry.action,
-                                verdict: entry.verdict,
-                                G_star: 0.85, // These would come from actual entry data
-                                dS: -0.1,
-                                note: `Session: ${entry.session_id.slice(0, 8)}...`
-                            }));
-                        }
+    // Determine overall health
+    const hasDegradation = degs.length > 0;
+    const overallClass = STATE.error ? 'critical' : hasDegradation ? 'degraded' : 'healthy';
+    const overallLabel = STATE.error ? 'ERROR' : hasDegradation ? 'DEGRADED' : 'HEALTHY';
 
-                        setData(transformed);
-                        setLastUpdate(new Date());
-                        setError(null);
-                } catch (err) {
-                    console.error('Failed to fetch live metrics:', err);
-                    setError(err.message);
-                } finally {
-                    setLoading(false);
-                }
-            };
+    root.innerHTML = `
+    <div class="app">
 
-            // Initial fetch and polling setup
-            useEffect(() => {
-                fetchLiveData(); // Initial fetch
+      <!-- Header -->
+      <header class="header">
+        <div class="brand">
+          <div class="brand-icon">Ψ</div>
+          <div class="brand-text">
+            <div class="brand-title">arifOS Observatory</div>
+            <span class="brand-sub">ΔΩΨ · Federation Governance Hub</span>
+          </div>
+        </div>
+        <div class="nav">
+          <span class="brand-motto">Ditempa Bukan Diberi</span>
+          <span class="nav-badge">${ver.tools} tools</span>
+          <span class="nav-badge">v${ver.version}</span>
+          ${STATE.error ? `<span class="nav-badge danger">ERR</span>` : ''}
+        </div>
+      </header>
 
-                // Poll every 5 seconds
-                const interval = setInterval(fetchLiveData, 5000);
+      <!-- Mode Bar -->
+      <div class="mode-bar">
+        <button class="mode-btn ${STATE.mode === 'public' ? 'active' : ''}" data-mode="public">Public</button>
+        <button class="mode-btn ${STATE.mode === 'developer' ? 'active' : ''}" data-mode="developer">Developer</button>
+        <button class="mode-btn ${STATE.mode === 'operator' ? 'active' : ''}" data-mode="operator">Operator</button>
+      </div>
 
-                return () => clearInterval(interval);
-            }, []);
+      ${STATE.loading ? `<div class="loading-text"><div class="spinner"></div><p>Connecting to arifOS live metrics...</p></div>` : ''}
+      ${STATE.error ? `<div style="background:var(--danger-dim);border:1px solid var(--danger);border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;"><span style="font-size:1.2rem">⚠</span><span style="font-size:0.85rem;color:var(--danger)">${STATE.error}</span></div>` : ''}
 
-            // Calculate verdict from vitals
-            const getVerdict = () => {
-                const { G_star, dS, peace2 } = data.vitals;
-                if (peace2 < 1.0) return "Paused";
-                if (G_star < 0.80) return "Degraded";
-                return "Alive";
-            };
+      <!-- ── PUBLIC MODE ── -->
+      ${!STATE.loading ? `
+      <div class="section ${STATE.mode === 'public' ? 'show' : ''}">
 
-            const verdict = getVerdict();
+        <div class="hero">
+          <div class="hero-verdict ${thermo.verdict.toLowerCase()}">
+            <span class="hero-verdict-dot"></span>
+            ${thermo.verdict === 'SEAL' ? 'Governance Active' : thermo.verdict}
+          </div>
+          <h1 class="hero-title">Constitutional Infrastructure<br>for <em>Governed Intelligence</em></h1>
+          <p class="hero-sub">
+            AI capability without constitutional governance creates instability.
+            arifOS exists to make intelligence observable, constrained, auditable, and human-sovereign.
+            <strong style="color:var(--text)">No irreversible action without human veto (F13).</strong>
+          </p>
+        </div>
 
-            // Witness chart data
-            const witnessData = useMemo(() => [
-                { subject: 'Human', A: data.witness.human, fullMark: 1 },
-                { subject: 'AI', A: data.witness.ai, fullMark: 1 },
-                { subject: 'Earth', A: data.witness.earth, fullMark: 1 },
-            ], [data]);
+        <!-- Degraded Banner -->
+        ${degs.length > 0 ? `
+        <div class="degraded-banner show">
+          <span class="degraded-banner-icon">⚠</span>
+          <div class="degraded-banner-text">
+            <strong>Degraded:</strong> ${degs.length} issue(s) affecting constitutional readiness
+            <div class="degraded-banner-list">
+              ${degs.map(d => `<span class="degraded-badge" style="border-color:${d.severity === 'warning' ? 'var(--warning)' : 'var(--danger)'};color:${d.severity === 'warning' ? 'var(--warning)' : 'var(--danger)'}">${d.title}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+        ` : ''}
 
-            // Floor strength data for bar chart
-            const floorData = useMemo(() => {
-                return data.floors.map(f => ({
-                    name: f.id,
-                    value: f.score,
-                    status: f.status
-                }));
-            }, [data]);
+        <!-- Three Tiles -->
+        <div class="tile-grid">
+          <div class="tile">
+            <div class="tile-label">Governance</div>
+            <div class="tile-value accent">${floors.passing}/${floors.loaded}</div>
+            <div class="tile-sub">floors passing</div>
+            <div class="tile-trend ${floors.passing === floors.loaded ? 'ok' : 'warn'}">${floors.passing === floors.loaded ? '✓ All passing' : '⚠ ' + (floors.loaded - floors.passing) + ' below threshold'}</div>
+          </div>
+          <div class="tile">
+            <div class="tile-label">Ledger</div>
+            <div class="tile-value ${gov.vault === 'healthy' ? 'green' : 'yellow'}">${gov.vault === 'healthy' ? '✓' : '⚠'}</div>
+            <div class="tile-sub">VAULT999 ${gov.vault}</div>
+            <div class="tile-trend ${gov.vault === 'healthy' ? 'ok' : 'warn'}">${gov.vault === 'healthy' ? 'Write path OK' : 'Degraded'}</div>
+          </div>
+          <div class="tile">
+            <div class="tile-label">Runtime</div>
+            <div class="tile-value ${overallClass === 'healthy' ? 'green' : overallClass === 'degraded' ? 'yellow' : 'red'}">${overallClass === 'healthy' ? '✓' : overallClass === 'degraded' ? '◐' : '✗'}</div>
+            <div class="tile-sub">MCP gateway · ${ver.tools} tools · ${ver.version}</div>
+            <div class="tile-trend ok">${STATE.lastUpdate ? fmtTime(STATE.lastUpdate) : '--'}</div>
+          </div>
+        </div>
 
-            return (
-                <div className="app">
-                    {/* Header */}
-                    <header className="header">
-                        <div className="brand">
-                            <span className="brand-motto">Ditempa Bukan Diberi</span>
-                            <h1 className="brand-title">APEX Sovereign Dashboard</h1>
-                        </div>
-                        <div className="status-bar">
-                            <div className="status-item">
-                                <span className={`status-dot ${loading ? 'pulse' : error ? '' : 'pulse'}`} style={{
-                                    background: error ? 'var(--danger)' : loading ? 'var(--warning)' : 'var(--success)',
-                                    boxShadow: error ? '0 0 8px var(--danger)' : loading ? '0 0 8px var(--warning)' : '0 0 8px var(--success)'
-                                }}></span>
-                                <span>{error ? 'Error' : loading ? 'Connecting...' : data.system.status}</span>
-                            </div>
-                            <div className="status-item" title={lastUpdate ? lastUpdate.toLocaleString() : 'Not yet updated'}>
-                                <span style={{fontSize: '0.75rem', color: 'var(--dim)'}}>
-                                    {lastUpdate ? `Updated ${Math.floor((Date.now() - lastUpdate.getTime()) / 1000)}s ago` : 'Connecting...'}
-                                </span>
-                            </div>
-                            <div className="status-item">
-                                <span>v{data.system.version}</span>
-                            </div>
-                            <div className="status-item">
-                                <span>{data.system.floors_active} Floors</span>
-                            </div>
-                        </div>
-                    </header>
-
-                    {/* Error Banner */}
-                    {error && (
-                        <div style={{
-                            background: 'var(--danger-dim)',
-                            border: '1px solid var(--danger)',
-                            borderRadius: '8px',
-                            padding: '12px 16px',
-                            marginBottom: '20px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px'
-                        }}>
-                            <span style={{color: 'var(--danger)', fontSize: '1.2rem'}}>⚠</span>
-                            <span style={{color: 'var(--danger)'}}>{error}</span>
-                            <button
-                                onClick={fetchLiveData}
-                                style={{
-                                    marginLeft: 'auto',
-                                    padding: '4px 12px',
-                                    background: 'var(--danger)',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.8rem'
-                                }}
-                            >
-                                Retry
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Loading Overlay */}
-                    {loading && !data.history.length && (
-                        <div style={{
-                            textAlign: 'center',
-                            padding: '60px 20px',
-                            color: 'var(--text-secondary)'
-                        }}>
-                            <div style={{
-                                width: '40px',
-                                height: '40px',
-                                border: '3px solid var(--border)',
-                                borderTop: '3px solid var(--accent)',
-                                borderRadius: '50%',
-                                animation: 'spin 1s linear infinite',
-                                margin: '0 auto 20px'
-                            }}></div>
-                            <p>Connecting to arifOS live metrics...</p>
-                            <p style={{fontSize: '0.8rem', color: 'var(--dim)'}}>
-                                If this persists, check that the WebMCP server is running
-                            </p>
-                        </div>
-                    )}
-
-                    {/* Main Grid */}
-                    <div className="dashboard-grid">
-
-                        {/* Primary Metric: G★ */}
-                        <div className="card card-4 metric-primary">
-                            <div className="card-header">
-                                <h2 className="card-title">Governed Intelligence</h2>
-                                <span className="card-badge">Real-time</span>
-                            </div>
-                            <div className="metric-value-large">{data.vitals.G_star.toFixed(2)}</div>
-                            <div className="metric-formula">G★ = (A × P × X × E²) × (1 − h)</div>
-                            <div className="metric-insight">
-                                Operating at constitutional threshold. F8 Genius floor met. System is reasoning well and governing itself.
-                            </div>
-                        </div>
-
-                        {/* Verdict Status */}
-                        <div className="card card-4">
-                            <div className="card-header">
-                                <h2 className="card-title">System Verdict</h2>
-                                <span className={`card-badge ${verdict === 'Alive' ? 'success' : verdict === 'Degraded' ? 'warning' : 'danger'}`}>
-                                    {verdict}
-                                </span>
-                            </div>
-                            <div style={{ padding: '30px 0', textAlign: 'center' }}>
-                                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>
-                                    {verdict === 'Alive' ? '●' : verdict === 'Degraded' ? '◐' : '○'}
-                                </div>
-                                <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                                    {verdict === 'Alive'
-                                        ? "All systems operational. Constitutional governance active."
-                                        : verdict === 'Degraded'
-                                        ? "Performance reduced but functional. Monitor closely."
-                                        : "Critical state. Human intervention required."
-                                    }
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Five Vitals */}
-                        <div className="card card-4">
-                            <div className="card-header">
-                                <h2 className="card-title">Five Vital Signs</h2>
-                            </div>
-                            <div className="witness-grid">
-                                <div className="witness-item">
-                                    <div className="witness-name">ΔS Entropy</div>
-                                    <div className="witness-score" style={{color: data.vitals.dS < 0 ? 'var(--success)' : 'var(--danger)'}}>
-                                        {data.vitals.dS > 0 ? '+' : ''}{data.vitals.dS.toFixed(1)}
-                                    </div>
-                                    <div style={{fontSize: '0.7rem', color: 'var(--dim)'}}>Clarity</div>
-                                    <div className="witness-bar">
-                                        <div className="witness-bar-fill" style={{width: `${Math.min(100, Math.abs(data.vitals.dS) * 100)}%`, background: data.vitals.dS < 0 ? 'var(--success)' : 'var(--danger)'}}></div>
-                                    </div>
-                                </div>
-                                <div className="witness-item">
-                                    <div className="witness-name">Peace²</div>
-                                    <div className="witness-score">{data.vitals.peace2.toFixed(2)}</div>
-                                    <div style={{fontSize: '0.7rem', color: 'var(--dim)'}}>Stability</div>
-                                    <div className="witness-bar">
-                                        <div className="witness-bar-fill" style={{width: `${Math.min(100, (data.vitals.peace2 / 1.5) * 100)}%`}}></div>
-                                    </div>
-                                </div>
-                                <div className="witness-item">
-                                    <div className="witness-name">κᵣ Maruah</div>
-                                    <div className="witness-score">{data.vitals.kappa_r.toFixed(2)}</div>
-                                    <div style={{fontSize: '0.7rem', color: 'var(--dim)'}}>Dignity</div>
-                                    <div className="witness-bar">
-                                        <div className="witness-bar-fill" style={{width: `${data.vitals.kappa_r * 100}%`}}></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Five Vitals Detail */}
-                        <div className="card card-full">
-                            <div className="card-header">
-                                <h2 className="card-title">Constitutional Vitals — What They Mean</h2>
-                            </div>
-                            <div className="metric-grid-5">
-                                <div className="metric-box">
-                                    <div className="metric-box-label">G★ Genius Score</div>
-                                    <div className="metric-box-value">{data.vitals.G_star.toFixed(2)}</div>
-                                    <div className="metric-box-trend trend-stable">→ Operating normally</div>
-                                </div>
-                                <div className="metric-box">
-                                    <div className="metric-box-label">ΔS Entropy Delta</div>
-                                    <div className="metric-box-value" style={{color: 'var(--success)'}}>{data.vitals.dS.toFixed(1)}</div>
-                                    <div className="metric-box-trend trend-down">↓ Reducing confusion</div>
-                                </div>
-                                <div className="metric-box">
-                                    <div className="metric-box-label">Peace² Stability</div>
-                                    <div className="metric-box-value">{data.vitals.peace2.toFixed(2)}</div>
-                                    <div className="metric-box-trend trend-up">↑ System stable</div>
-                                </div>
-                                <div className="metric-box">
-                                    <div className="metric-box-label">κᵣ Maruah</div>
-                                    <div className="metric-box-value">{data.vitals.kappa_r.toFixed(2)}</div>
-                                    <div className="metric-box-trend trend-stable">→ Dignity respected</div>
-                                </div>
-                                <div className="metric-box">
-                                    <div className="metric-box-label">Ψ_LE AGI Pressure</div>
-                                    <div className="metric-box-value">{data.vitals.psi_le.toFixed(2)}</div>
-                                    <div className="metric-box-trend trend-stable">→ Agent-grade</div>
-                                </div>
-                            </div>
-                            <div className="metric-insight" style={{marginTop: '20px'}}>
-                                <strong>What this means:</strong> The system is governing itself correctly. Every reply reduces confusion (ΔS {'<'} 0)
-                                and respects regional context (κᵣ {'>'} 0.95). Ψ_LE at 1.09 indicates agent-grade reasoning — below AGI horizon.
-                            </div>
-                        </div>
-
-                        {/* Tri-Witness */}
-                        <div className="card card-6">
-                            <div className="card-header">
-                                <h2 className="card-title">Tri-Witness Consensus (F3)</h2>
-                                <span className="card-badge success">Consensus 0.95+</span>
-                            </div>
-                            <div className="chart-container">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <RadarChart cx="50%" cy="50%" outerRadius="70%" data={witnessData}>
-                                        <PolarGrid stroke="#222" />
-                                        <PolarAngleAxis dataKey="subject" tick={{fill: '#888', fontSize: 12}} />
-                                        <PolarRadiusAxis angle={30} domain={[0, 1]} tick={false} axisLine={false} />
-                                        <Radar name="Witness" dataKey="A" stroke="#00ffcc" fill="#00ffcc" fillOpacity={0.2} />
-                                    </RadarChart>
-                                </ResponsiveContainer>
-                            </div>
-                            <div className="metric-insight">
-                                <strong>Consensus achieved.</strong> All three witnesses agree (Human 1.0, AI 0.97, Earth 0.91).
-                                Safe to SEAL decisions without human override.
-                            </div>
-                        </div>
-
-                        {/* Floor Status */}
-                        <div className="card card-6">
-                            <div className="card-header">
-                                <h2 className="card-title">13 Constitutional Floors</h2>
-                                <span className="card-badge success">All Active</span>
-                            </div>
-                            <div className="floor-grid">
-                                {data.floors.map(floor => (
-                                    <div key={floor.id} className={`floor-item ${floor.status}`}>
-                                        <div className="floor-name">{floor.id}</div>
-                                        <div className="floor-status">{floor.status}</div>
-                                    </div>
-                                ))}
-                            </div>
-                            <div style={{marginTop: '16px', fontSize: '0.8rem', color: 'var(--text-secondary)'}}>
-                                <span style={{color: 'var(--success)'}}>● Pass</span> &nbsp;
-                                <span style={{color: 'var(--warning)'}}>● Band</span> &nbsp;
-                                <span style={{color: 'var(--accent)'}}>● Lock</span> &nbsp;
-                                <span style={{color: 'var(--info)'}}>● Human</span>
-                            </div>
-                        </div>
-
-                        {/* Machine Health */}
-                        <div className="card card-4">
-                            <div className="card-header">
-                                <h2 className="card-title">Machine Health</h2>
-                                <span className="card-badge success">Healthy</span>
-                            </div>
-                            <div style={{padding: '10px 0'}}>
-                                <div className="health-bar">
-                                    <div className="health-label">
-                                        <span>CPU Load</span>
-                                        <span>{data.machine.cpu}%</span>
-                                    </div>
-                                    <div className="health-track">
-                                        <div className="health-fill good" style={{width: `${data.machine.cpu}%`}}></div>
-                                    </div>
-                                </div>
-                                <div className="health-bar">
-                                    <div className="health-label">
-                                        <span>RAM Usage</span>
-                                        <span>{data.machine.ram}%</span>
-                                    </div>
-                                    <div className="health-track">
-                                        <div className="health-fill good" style={{width: `${data.machine.ram}%`}}></div>
-                                    </div>
-                                </div>
-                                <div className="health-bar">
-                                    <div className="health-label">
-                                        <span>Latency</span>
-                                        <span>{data.machine.latency}ms</span>
-                                    </div>
-                                    <div className="health-track">
-                                        <div className="health-fill good" style={{width: `${Math.min(100, (data.machine.latency / 100) * 100)}%`}}></div>
-                                    </div>
-                                </div>
-                                <div className="health-bar">
-                                    <div className="health-label">
-                                        <span>Energy Budget</span>
-                                        <span>{data.machine.energy_budget}%</span>
-                                    </div>
-                                    <div className="health-track">
-                                        <div className="health-fill good" style={{width: `${data.machine.energy_budget}%`}}></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="metric-insight">
-                                Machine is healthy. Low latency preserves "cheap truth" capability.
-                                94% energy budget remaining.
-                            </div>
-                        </div>
-
-                        {/* Session History */}
-                        <div className="card card-8">
-                            <div className="card-header">
-                                <h2 className="card-title">Session History — Last 5 Actions</h2>
-                            </div>
-                            <table className="history-table">
-                                <thead>
-                                    <tr>
-                                        <th>Time</th>
-                                        <th>Action</th>
-                                        <th>Verdict</th>
-                                        <th>G★</th>
-                                        <th>ΔS</th>
-                                        <th>Note</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.history.map((row, idx) => (
-                                        <tr key={idx}>
-                                            <td>{row.time}</td>
-                                            <td><code style={{fontFamily: 'var(--font-mono)', fontSize: '0.8rem'}}>{row.action}</code></td>
-                                            <td><span className={`verdict-badge verdict-${row.verdict.toLowerCase()}`}>{row.verdict}</span></td>
-                                            <td>{row.G_star.toFixed(2)}</td>
-                                            <td style={{color: row.dS < 0 ? 'var(--success)' : 'var(--danger)'}}>{row.dS > 0 ? '+' : ''}{row.dS.toFixed(1)}</td>
-                                            <td style={{color: 'var(--text-secondary)'}}>{row.note}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            <div className="metric-insight" style={{marginTop: '16px'}}>
-                                <strong>Trend:</strong> Consistent SEALs. G★ stable around 0.80-0.85.
-                                Entropy always reducing (ΔS {'<'} 0). Constitutional operation verified.
-                            </div>
-                        </div>
-
-                        {/* Insights & Recommendations */}
-                        <div className="card card-4">
-                            <div className="card-header">
-                                <h2 className="card-title">Insights</h2>
-                            </div>
-                            <ul className="insights-list">
-                                {data.insights.map((insight, idx) => (
-                                    <li key={idx}>
-                                        <span className="insight-icon">{insight.icon}</span>
-                                        <div>
-                                            <div className="insight-text">{insight.text}</div>
-                                            {insight.recommendation && (
-                                                <div className="insight-recommendation">
-                                                    <strong>Recommendation:</strong> {insight.recommendation}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {/* Quick Actions */}
-                        <div className="card card-full">
-                            <div className="card-header">
-                                <h2 className="card-title">Quick Actions</h2>
-                            </div>
-                            <div className="actions-row">
-                                <button className="btn btn-primary">Init New Session</button>
-                                <button className="btn">Run Forge</button>
-                                <button className="btn">View Ledger</button>
-                                <button className="btn btn-danger">Trigger 888_HOLD</button>
-                                <button className="btn">Export Report</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Footer */}
-                    <footer className="footer">
-                        <div>
-                            arifOS L0 KERNEL | VERSION {data.system.version} | APEX THEOREM GOVERNANCE ACTIVE
-                        </div>
-                        <div className="footer-links">
-                            <a href="/">Home</a>
-                            <a href="/docs">Documentation</a>
-                            <a href="/api">API</a>
-                            <a href="https://github.com/ariffazil/arifosmcp">GitHub</a>
-                        </div>
-                    </footer>
+        <!-- Organs -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Federation Organs</h2>
+            <span class="card-badge">Live</span>
+          </div>
+          <div class="organ-grid">
+            ${Object.entries({arifOS:'Constitutional Kernel',GEOX:'Earth Intelligence',WEALTH:'Capital Intelligence',WELL:'Biological Substrate',AAA:'Agent Control Plane','A-FORGE':'Metabolic Shell'}).map(([name, role]) => {
+              const oh = orgHealth[name.toLowerCase()];
+              const status = name === 'arifOS' ? overallClass : (oh ? oh.status : 'unknown');
+              return `<div class="organ-card">
+                <div class="organ-info">
+                  <div class="organ-name">${name}</div>
+                  <div class="organ-role">${role}</div>
                 </div>
-            );
-        }
+                <span class="organ-status ${status}">${status}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<Dashboard />);
-    </script>
+        <div style="margin-top:24px;text-align:center;font-family:var(--font-mono);font-size:0.55rem;color:var(--text-dim);letter-spacing:1.5px">
+          DITEMPA BUKAN DIBERI · v${ver.version}-${ver.commit.slice(0,7)} · ${ver.build_time ? new Date(ver.build_time).toISOString().replace('T',' ').slice(0,19)+' UTC' : ''}
+        </div>
+      </div>
+      ` : ''}
+
+      <!-- ── DEVELOPER MODE ── -->
+      ${!STATE.loading ? `
+      <div class="section ${STATE.mode === 'developer' ? 'show' : ''}">
+
+        <div class="connect-card">
+          <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px">MCP Endpoint</div>
+          <div class="connect-url">https://mcp.arif-fazil.com/mcp</div>
+          <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px">Streamable HTTP · SSE · Tool Discovery</div>
+          <div class="connect-steps">
+            <div class="connect-step">
+              <div class="connect-step-text"><strong>Initialize session</strong> — call <code style="font-family:var(--font-mono);color:var(--accent)">arif_session_init</code> with your <code style="font-family:var(--font-mono);color:var(--accent)">actor_id</code>. Every interaction binds to the constitution (F1–F13).</div>
+            </div>
+            <div class="connect-step">
+              <div class="connect-step-text"><strong>Discover tools</strong> — GET <code style="font-family:var(--font-mono);color:var(--accent)">/.well-known/mcp/server.json</code> for the full manifest, or call MCP <code style="font-family:var(--font-mono);color:var(--accent)">tools/list</code>.</div>
+            </div>
+            <div class="connect-step">
+              <div class="connect-step-text"><strong>Execute under governance</strong> — every tool call routes through F1–F13 floor enforcement. Verdicts: SEAL, SABAR, HOLD, VOID. Irreversible actions require explicit human ack.</div>
+            </div>
+            <div class="connect-step">
+              <div class="connect-step-text"><strong>Verify integrity</strong> — all tool responses have <code style="font-family:var(--font-mono);color:var(--accent)">outputSchema</code> enforced. Every SEAL is written to the VAULT999 immutable ledger.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header">
+            <h2 class="card-title">Contract Guarantees</h2>
+            <span class="card-badge">Enforced</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
+            ${[
+              {label:'Schema Validation',detail:'Every tool response validated against Pydantic outputSchema',ok:true},
+              {label:'Verdict Types',detail:'SEAL (pass) · SABAR (conditional) · HOLD (pause) · VOID (rejected)',ok:true},
+              {label:'Evidence Discipline',detail:'Facts vs interpretation vs unknown — F2 Truth enforced',ok:true},
+              {label:'Session Binding',detail:'All multi-step workflows bound to session_id + constitution hash',ok:true},
+              {label:'Vault Anchoring',detail:'Every SEAL written to VAULT999 — append-only, hash-chained',ok:true},
+              {label:'Trinity Witness',detail:'Human × AI × Earth witness consensus for SEAL',ok:true},
+            ].map(g => `
+              <div style="background:var(--near-black);border:1px solid var(--card-border);border-radius:8px;padding:14px;display:flex;gap:10px;align-items:flex-start">
+                <span style="color:${g.ok ? 'var(--accent)' : 'var(--danger)'};font-size:0.9rem;flex-shrink:0">${g.ok ? '✓' : '✗'}</span>
+                <div>
+                  <div style="font-size:0.7rem;font-weight:600;margin-bottom:4px">${g.label}</div>
+                  <div style="font-size:0.65rem;color:var(--text-dim)">${g.detail}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header">
+            <h2 class="card-title">Canonical Tool Registry (${ver.tools})</h2>
+            <span class="card-badge">F1–F13</span>
+          </div>
+          <table class="tool-table">
+            <thead><tr><th>Tool</th><th>Stage</th><th>Lane</th><th>Access</th><th>Floors</th></tr></thead>
+            <tbody>
+              ${[
+                {name:'arif_session_init',stage:'000_INIT',lane:'Ψ PSI',access:'public',floors:'F1,F11,F12'},
+                {name:'arif_sense_observe',stage:'111_OBSERVE',lane:'Δ DELTA',access:'public',floors:'F2,F7'},
+                {name:'arif_evidence_fetch',stage:'222',lane:'Δ DELTA',access:'public',floors:'F2,F3,F5,F12'},
+                {name:'arif_mind_reason',stage:'333_REASON',lane:'Δ DELTA',access:'public',floors:'F2,F7,F8,F10'},
+                {name:'arif_heart_critique',stage:'666',lane:'Ω OMEGA',access:'auth',floors:'F5,F6,F9'},
+                {name:'arif_kernel_route',stage:'444',lane:'Δ DELTA',access:'public',floors:'F1,F3,F4,F10'},
+                {name:'arif_reply_compose',stage:'444r',lane:'Ψ PSI',access:'public',floors:'F4,F6,F9'},
+                {name:'arif_memory_recall',stage:'555m',lane:'Δ DELTA',access:'public',floors:'F1,F8'},
+                {name:'arif_gateway_connect',stage:'666g',lane:'Ω OMEGA',access:'auth',floors:'F1,F3'},
+                {name:'arif_judge_deliberate',stage:'888_JUDGE',lane:'Ψ PSI',access:'auth',floors:'F11,F13'},
+                {name:'arif_vault_seal',stage:'999_SEAL',lane:'Ψ PSI',access:'auth',floors:'F1,F11,F13'},
+                {name:'arif_forge_execute',stage:'010',lane:'Δ DELTA',access:'sovereign',floors:'F1,F11,F13'},
+                {name:'arif_ops_measure',stage:'777',lane:'Δ DELTA',access:'public',floors:'F4'},
+              ].map(t => `
+                <tr>
+                  <td><code>${t.name}</code></td>
+                  <td style="font-family:var(--font-mono);font-size:0.6rem">${t.stage}</td>
+                  <td style="font-size:0.6rem">${t.lane}</td>
+                  <td style="font-size:0.6rem">${t.access}</td>
+                  <td style="font-family:var(--font-mono);font-size:0.55rem;color:var(--text-dim)">${t.floors}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Discovery Endpoints</h2>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;font-size:0.75rem">
+            ${[
+              {url:'/health',desc:'Kernel liveness + version'},
+              {url:'/api/status',desc:'Full governance state + containers'},
+              {url:'/api/live/all',desc:'Dashboard composite payload'},
+              {url:'/mcp-discovery.json',desc:'MCP discovery (Cloudflare-safe)'},
+              {url:'/.well-known/mcp/server.json',desc:'MCP discovery canonical'},
+              {url:'/tools',desc:'Canonical tool list'},
+              {url:'/resources',desc:'MCP context resources'},
+            ].map(e => `
+              <div style="background:var(--near-black);border:1px solid var(--card-border);border-radius:6px;padding:10px 12px">
+                <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--accent);margin-bottom:2px">${e.url}</div>
+                <div style="font-size:0.6rem;color:var(--text-dim)">${e.desc}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+      </div>
+      ` : ''}
+
+      <!-- ── OPERATOR MODE ── -->
+      ${!STATE.loading ? `
+      <div class="section ${STATE.mode === 'operator' ? 'show' : ''}">
+
+        <!-- Now Bar -->
+        <div class="now-bar">
+          <span class="now-dot ${overallClass}"></span>
+          <span class="now-status">${overallLabel}</span>
+          <span class="now-issues">
+            ${degs.length > 0
+              ? `<strong>${degs.length} issue(s):</strong> ${degs.slice(0,3).map(d => d.title).join(' · ')}`
+              : 'All systems operating within constitutional bounds'}
+          </span>
+          <span class="now-timestamp">${STATE.lastUpdate ? fmtTime(STATE.lastUpdate) : '--'}</span>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab ${STATE.tab === 'infra' ? 'active' : ''}" data-tab="infra">Infra</button>
+          <button class="tab ${STATE.tab === 'governance' ? 'active' : ''}" data-tab="governance">Governance</button>
+          <button class="tab ${STATE.tab === 'tracing' ? 'active' : ''}" data-tab="tracing">Tracing</button>
+          <button class="tab ${STATE.tab === 'gaps' ? 'active' : ''}" data-tab="gaps">Known Gaps</button>
+        </div>
+
+        <!-- Tab: Infra -->
+        <div class="tab-panel ${STATE.tab === 'infra' ? 'show' : ''}">
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px">
+            <div class="card">
+              <div class="card-header"><h2 class="card-title">Container Fleet</h2></div>
+              ${containers.length > 0 ? `
+              <table class="container-table">
+                <thead><tr><th>Container</th><th>Status</th><th>Essential</th></tr></thead>
+                <tbody>
+                  ${containers.map(c => `
+                    <tr>
+                      <td style="font-family:var(--font-mono);font-size:0.7rem">${c.name}</td>
+                      <td><span class="status-tag ${c.status?.includes('Up') ? 'up' : 'down'}">${c.status?.includes('Up') ? 'Up' : c.status || 'Unknown'}</span></td>
+                      <td style="font-size:0.65rem;color:var(--text-dim)">${c.is_essential ? 'Yes' : 'No'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+              ` : `<div style="color:var(--text-dim);font-size:0.8rem">No container data available</div>`}
+            </div>
+            <div class="card">
+              <div class="card-header"><h2 class="card-title">Runtime Identity</h2></div>
+              <div style="display:grid;gap:10px;font-size:0.8rem">
+                ${[
+                  {label:'Version',value:ver.version},
+                  {label:'Commit',value:ver.commit.slice(0,12)},
+                  {label:'Image',value:ver.image},
+                  {label:'Build Time',value:ver.build_time ? new Date(ver.build_time).toISOString().replace('T',' ').slice(0,19) : '--'},
+                  {label:'Tools Loaded',value:ver.tools},
+                  {label:'Vault999',value:gov.vault === 'healthy' ? '✓ Healthy' : '⚠ ' + gov.vault},
+                  {label:'Runtime Drift',value:gov.drift ? '⚠ DRIFT DETECTED' : '✓ None'},
+                ].map(i => `
+                  <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--card-border)">
+                    <span style="color:var(--text-dim)">${i.label}</span>
+                    <span style="font-family:var(--font-mono);font-size:0.7rem">${i.value}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:20px">
+            <div class="card-header"><h2 class="card-title">Capability Map</h2></div>
+            ${caps ? `
+            <div class="cap-grid">
+              ${Object.entries(caps.capabilities || {}).map(([k,v]) => `
+                <div class="cap-item">
+                  <span class="cap-name">${k.replace(/_/g,' ')}</span>
+                  <span class="cap-status ${v === 'enabled' || v === 'configured' ? 'on' : 'off'}">${v}</span>
+                </div>
+              `).join('')}
+            </div>
+            ` : `<div style="color:var(--text-dim);font-size:0.8rem">No capability map available</div>`}
+          </div>
+
+          ${caps?.providers ? `
+          <div class="card" style="margin-top:20px">
+            <div class="card-header"><h2 class="card-title">Model Providers</h2><span class="card-badge">${Object.values(caps.providers).filter(v => v === 'configured').length}/${Object.keys(caps.providers).length}</span></div>
+            <div class="prov-grid">
+              ${Object.entries(caps.providers).map(([k,v]) => `
+                <div class="prov-item">
+                  <div class="prov-name">${k.replace(/_/g,' ')}</div>
+                  <div class="prov-status ${v === 'configured' ? 'yes' : 'no'}">${v === 'configured' ? '✓' : '—'}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          ` : ''}
+        </div>
+
+        <!-- Tab: Governance -->
+        <div class="tab-panel ${STATE.tab === 'governance' ? 'show' : ''}">
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px">
+            <div class="card">
+              <div class="card-header"><h2 class="card-title">Thermodynamic State</h2></div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+                ${[
+                  {label:'Verdict',value:thermo.verdict,c:'accent'},
+                  {label:'ΔS Entropy',value:fmtNum(thermo.entropy),c:thermo.entropy <= 0 ? 'var(--accent)' : 'var(--danger)'},
+                  {label:'Ψ Vitality',value:fmtNum(thermo.vitality),c:'var(--accent)'},
+                  {label:'Peace²',value:fmtNum(thermo.peace),c:'var(--accent)'},
+                  {label:'τ Confidence',value:fmtPct(thermo.confidence),c:'var(--accent)'},
+                  {label:'Stage',value:'STAGE ' + thermo.stage,c:'var(--text-secondary)'},
+                ].map(i => `
+                  <div style="background:var(--near-black);border:1px solid var(--card-border);border-radius:8px;padding:14px;text-align:center">
+                    <div style="font-size:0.55rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:6px">${i.label}</div>
+                    <div style="font-family:var(--font-mono);font-size:1.3rem;font-weight:700;color:${i.c}">${i.value}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h2 class="card-title">Floor Health</h2></div>
+              <div class="floor-delta">
+                <div class="floor-delta-item">
+                  <div class="floor-delta-label">Loaded</div>
+                  <div class="floor-delta-count accent">${floors.loaded}</div>
+                </div>
+                <div class="floor-delta-item">
+                  <div class="floor-delta-label">Hard Enforced</div>
+                  <div class="floor-delta-count warn">${floors.enforced}</div>
+                </div>
+                <div class="floor-delta-item">
+                  <div class="floor-delta-label">Passing</div>
+                  <div class="floor-delta-count ${floors.passing === floors.loaded ? 'accent' : 'danger'}">${floors.passing}</div>
+                </div>
+              </div>
+              <div class="floor-grid">
+                ${floors.items.map(f => `
+                  <div class="floor-item ${f.status}">
+                    <div class="floor-id">${f.id}</div>
+                    <div class="floor-name">${f.name}</div>
+                    <div class="floor-score ${f.status}">${fmtNum(f.score, f.id === 'F7' || f.id === 'F3' || f.id === 'F12' ? 3 : 2)}</div>
+                    <div style="font-size:0.5rem;color:var(--text-dim);margin-top:2px">${f.hard ? 'HARD' : 'soft'}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          ${trinity ? `
+          <div class="card" style="margin-top:20px">
+            <div class="card-header"><h2 class="card-title">Trinity Matrix</h2><span class="card-badge ${trinity.overall_ok ? '' : 'danger'}">${trinity.overall_ok ? 'ALIGNED' : 'MISALIGNED'}</span></div>
+            <div class="trinity-grid">
+              ${['delta','psi','omega'].map(key => {
+                const t = trinity[key] || {};
+                const color = t.color === 'teal' ? 'var(--accent)' : t.color === 'red' ? 'var(--danger)' : 'var(--warning)';
+                return `<div class="trinity-card">
+                  <div class="trinity-label">${key === 'delta' ? 'Δ Evidence' : key === 'psi' ? 'Ψ Execution' : 'Ω Safety'}</div>
+                  <div class="trinity-value" style="color:${color}">${t.label_en || t.state || '—'}</div>
+                  <div class="trinity-evidence">${(t.evidence || []).join(' · ')}</div>
+                  <div class="trinity-bar"><div class="trinity-fill" style="width:${((t.metrics?.raw_val ?? 1) / (key === 'delta' ? 10 : 1)) * 100}%;background:${color}"></div></div>
+                </div>`;
+              }).join('')}
+            </div>
+            <div style="margin-top:12px;font-size:0.7rem;color:var(--text-dim);text-align:center">
+              Geometric mean witness: ${trinity.witness_geometric_mean?.toFixed(2) || '—'} · Threshold: ${trinity.witness_threshold || '—'}
+              · Verdict: <strong style="color:${trinity.overall_ok ? 'var(--accent)' : 'var(--danger)'}">${trinity.overall_ok ? 'SEAL' : 'HOLD'}</strong>
+            </div>
+          </div>
+          ` : ''}
+
+          ${caps?.substrates ? `
+          <div class="card" style="margin-top:20px">
+            <div class="card-header"><h2 class="card-title">Substrate Status</h2></div>
+            <div class="cap-grid">
+              ${Object.entries(caps.substrates).map(([k,v]) => `
+                <div class="cap-item">
+                  <span class="cap-name">${k} substrate</span>
+                  <span class="cap-status ${v === 'configured' || v === 'healthy' || v?.probe === 'configured' ? 'on' : 'off'}">${typeof v === 'string' ? v : v?.probe || 'unknown'}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          ` : ''}
+        </div>
+
+        <!-- Tab: Tracing -->
+        <div class="tab-panel ${STATE.tab === 'tracing' ? 'show' : ''}">
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px">
+            <div class="card">
+              <div class="card-header"><h2 class="card-title">Langfuse Telemetry</h2></div>
+              ${(() => {
+                const lf = STATE.status?.langfuse_tracing || {};
+                const lfStatus = lf.status || 'unknown';
+                const color = lfStatus.includes('DEGRADED') ? 'var(--danger)' : lfStatus.includes('HEALTHY') ? 'var(--accent)' : 'var(--text-dim)';
+                return `
+                <div style="text-align:center;padding:20px">
+                  <div style="font-family:var(--font-mono);font-size:2rem;font-weight:700;color:${color};margin-bottom:12px">${lfStatus}</div>
+                  <div style="font-size:0.75rem;color:var(--text-secondary)">${lf.reason ? 'Reason: ' + lf.reason : 'No additional info'}</div>
+                  ${lfStatus.includes('DEGRADED') ? `
+                  <div style="margin-top:16px;padding:12px 16px;background:var(--danger-dim);border-radius:8px;border:1px solid var(--danger);font-size:0.75rem;color:var(--danger);text-align:left">
+                    <strong>Impact:</strong> trace ingest degraded — audit visibility reduced.<br>
+                    <strong>Next:</strong> verify credential injection, check outbound connectivity to Langfuse host.
+                  </div>
+                  ` : ''}
+                </div>`;
+              })()}
+            </div>
+            <div class="card">
+              <div class="card-header"><h2 class="card-title">Seal Readiness</h2></div>
+              ${(() => {
+                const sr = STATE.status?.seal_readiness || STATE.live?.seal_readiness || {};
+                const checks = [
+                  {label:'Vault999',pass:sr.vault999_health === 'healthy',detail:sr.vault999_health},
+                  {label:'Ack Gate',pass:sr.ack_irreversible_gate?.includes('pass'),detail:sr.ack_irreversible_gate},
+                  {label:'Runtime Drift',pass:!sr.runtime_drift,detail:sr.runtime_drift ? 'DRIFT' : 'None'},
+                  {label:'Semantic Floor',pass:sr.semantic_floor === 'enabled',detail:sr.semantic_floor},
+                  {label:'Langfuse Traces',pass:sr.langfuse_traces === 'healthy',detail:sr.langfuse_traces},
+                ];
+                const allPass = checks.every(c => c.pass);
+                return `
+                <div style="display:grid;gap:8px">
+                  ${checks.map(c => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--near-black);border-radius:6px;border:1px solid ${c.pass ? 'var(--accent-dim)' : 'var(--danger-dim)'}">
+                      <span style="font-size:0.75rem">${c.label}</span>
+                      <span style="font-family:var(--font-mono);font-size:0.6rem;color:${c.pass ? 'var(--accent)' : 'var(--danger)'}">${c.pass ? '✓' : '✗'} ${c.detail || ''}</span>
+                    </div>
+                  `).join('')}
+                  <div style="margin-top:8px;text-align:center;font-family:var(--font-mono);font-size:0.7rem;color:${allPass ? 'var(--accent)' : 'var(--danger)'}">
+                    ${allPass ? 'READY TO SEAL' : 'SEAL BLOCKED — ' + checks.filter(c => !c.pass).length + ' check(s) failing'}
+                  </div>
+                </div>`;
+              })()}
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Known Gaps -->
+        <div class="tab-panel ${STATE.tab === 'gaps' ? 'show' : ''}">
+          <div class="card">
+            <div class="card-header"><h2 class="card-title">Known Gaps & Issues</h2><span class="card-badge ${gaps.filter(g => g.severity !== 'info').length > 0 ? 'warning' : ''}">${gaps.length} items</span></div>
+            ${gaps.length > 0 ? `
+            <div class="gaps-list">
+              ${gaps.map(g => `
+                <div class="gap-item ${g.severity}">
+                  <div>
+                    <div class="gap-title">${g.title}</div>
+                    <div class="gap-detail">${g.detail || ''}</div>
+                  </div>
+                  <span class="gap-severity" style="border:1px solid ${g.severity === 'warning' ? 'var(--warning)' : g.severity === 'info' ? 'var(--info)' : 'var(--danger)'};color:${g.severity === 'warning' ? 'var(--warning)' : g.severity === 'info' ? 'var(--info)' : 'var(--danger)'}">${g.severity}</span>
+                </div>
+              `).join('')}
+            </div>
+            ` : `<div style="color:var(--text-dim);font-size:0.8rem">No known gaps reported</div>`}
+          </div>
+          ${degs.filter(d => !d.title?.startsWith('Langfuse')).length > 0 ? `
+          <div class="card" style="margin-top:16px">
+            <div class="card-header"><h2 class="card-title">Degradations & Next Actions</h2></div>
+            ${degs.map(d => `
+              <div style="padding:12px 16px;background:var(--near-black);border-radius:8px;border:1px solid ${d.severity === 'warning' ? 'var(--warning-dim)' : 'var(--danger-dim)'};margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <div style="font-size:0.8rem;font-weight:500">${d.title}</div>
+                  ${d.detail ? `<div style="font-size:0.65rem;color:var(--text-dim);margin-top:4px">${d.detail}</div>` : ''}
+                </div>
+                <span style="font-family:var(--font-mono);font-size:0.55rem;padding:2px 10px;border-radius:100px;background:${d.severity === 'warning' ? 'var(--warning-dim)' : 'var(--danger-dim)'};color:${d.severity === 'warning' ? 'var(--warning)' : 'var(--danger)'};border:1px solid currentColor;text-transform:uppercase">${d.severity}</span>
+              </div>
+            `).join('')}
+          </div>
+          ` : ''}
+        </div>
+
+      </div>
+      ` : ''}
+
+      <!-- Footer -->
+      <footer class="footer">
+        <div>arifOS Observatory · ${ver.version} · KANON-${ver.commit?.slice(0,7) || '—'}</div>
+        <div class="footer-links">
+          <a href="https://arif-fazil.com">arif-fazil.com</a>
+          <a href="https://github.com/ariffazil/arifOS">GitHub</a>
+          <a href="https://arifos.arif-fazil.com">Kernel</a>
+          <a href="https://geox.arif-fazil.com">GEOX</a>
+          <a href="https://wealth.arif-fazil.com">WEALTH</a>
+        </div>
+      </footer>
+    </div>
+    `;
+
+    // ── Bind Event Delegation ──
+    root.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.onclick = () => { STATE.mode = btn.dataset.mode; render(); };
+    });
+    root.querySelectorAll('.tab').forEach(btn => {
+      btn.onclick = () => { STATE.tab = btn.dataset.tab; render(); };
+    });
+  }
+
+  // ── Init ──
+  fetchAll();
+  setInterval(fetchAll, 15000); // Poll every 15s
+})();
+</script>
 </body>
 </html>

@@ -8,9 +8,7 @@ Tests NPV, IRR, DSCR computations and EconomicEnvelope generation.
 from __future__ import annotations
 
 import math
-from typing import Any
 
-import pytest
 
 from core.organs._5_wealth import (
     EconomicEnvelope,
@@ -72,7 +70,7 @@ class TestBuildCashflowSeries:
 
 class TestCalculateNpv:
     def test_positive_npv(self) -> None:
-        result = calculate_npv(100, [50, 60], 0.1)
+        result = calculate_npv(100, [60, 60], 0.1)  # [60,60] at 10% → NPV ≈ +4.14
         assert result["npv"] is not None
         assert result["npv"] > 0
         assert "INVALID_NPV" not in result["flags"]
@@ -210,6 +208,6 @@ class TestWealthEdgeCases:
         assert env.primary_result["npv"] is not None
 
     def test_negative_initial_investment(self) -> None:
-        env = wealth_npv_reward(-100, [50, 50], 0.1)
+        wealth_npv_reward(-100, [50, 50], 0.1)
         series = build_cashflow_series(-100, [50, 50])
         assert series[0] == -100

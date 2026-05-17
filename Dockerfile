@@ -36,13 +36,13 @@ COPY . .
 # Install dependencies in build stage to keep runtime image clean.
 # The ML floor runtime is part of the image truth and must be reproducible.
 RUN python -m pip install --upgrade pip && \
-    if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi && \
-    pip install --no-cache-dir .
+    if [ -f requirements.txt ]; then pip install -r requirements.txt; fi && \
+    pip install .
 RUN python -c "import numpy, scipy, sklearn, torch, transformers, sentence_transformers"
 
 # Install WebMCP dependencies (F12/F11 constitutional web gateway)
-RUN pip install --no-cache-dir itsdangerous prefab-ui fastapi uvicorn redis python-multipart psutil playwright
-RUN pip install --no-cache-dir "fastapi>=0.100.0"
+RUN pip install itsdangerous prefab-ui fastapi uvicorn redis python-multipart psutil playwright
+RUN pip install "fastapi>=0.100.0"
 # NOTE: fastmcp >=3.2.4 function_parsing.py is fragile.
 # Do NOT patch it with sed — use a pinned version or upstream fix instead.
 # If you hit "invalid syntax", rebuild with: docker build --no-cache .

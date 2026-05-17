@@ -596,15 +596,11 @@ class EvidencePlan:
     Constrained retrieval: only fetch what meets the plan.
     """
 
-    retrieval_lane: str = (
-        "hold"  # offline_reason | web_search | url_ingest | mixed | hold
-    )
+    retrieval_lane: str = "hold"  # offline_reason | web_search | url_ingest | mixed | hold
     preferred_sources: list[str] = field(default_factory=list)
     banned_sources: list[str] = field(default_factory=list)
     min_rank_required: int = 5
-    freshness_requirement: FreshnessRequirement = field(
-        default_factory=FreshnessRequirement
-    )
+    freshness_requirement: FreshnessRequirement = field(default_factory=FreshnessRequirement)
     corroboration: CorroborationSpec = field(default_factory=CorroborationSpec)
     conflict_policy: ConflictPolicy = field(default_factory=ConflictPolicy)
 
@@ -800,9 +796,7 @@ class EvidenceItem:
     issuer: str | None = None
     author: str | None = None
     published_at: str | None = None
-    observed_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    observed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     jurisdiction: str | None = None
     version: str | None = None
     extracted_claims: list[ExtractedClaim] = field(default_factory=list)
@@ -972,9 +966,7 @@ class SensePacket:
     stage: str = "111_OBSERVE"
 
     input_summary: InputSummary = field(default_factory=InputSummary)
-    truth_classification: TruthClassification = field(
-        default_factory=TruthClassification
-    )
+    truth_classification: TruthClassification = field(default_factory=TruthClassification)
     temporal_grounding: TemporalGrounding = field(default_factory=TemporalGrounding)
     ambiguity: AmbiguityModel = field(default_factory=AmbiguityModel)
     conflict: ConflictModel = field(default_factory=ConflictModel)
@@ -1251,9 +1243,7 @@ class SubstrateFetchProvider:
 
         # If the query is a URL, use fetch_guarded directly
         if query.startswith(("http://", "https://")):
-            res = await fetch_bridge.fetch_guarded(
-                query, reason="Governed Sense Grounding"
-            )
+            res = await fetch_bridge.fetch_guarded(query, reason="Governed Sense Grounding")
             if res.get("ok"):
                 return [
                     {
@@ -1324,9 +1314,7 @@ def normalize_query(raw: str) -> SenseInput:
         task_type = TaskType.VERIFY
     elif re.search(r"\b(compare|vs|versus|better|worse|difference)\b", ql):
         task_type = TaskType.COMPARE
-    elif re.search(
-        r"\b(where|location|find|who is|current.*ceo|current.*president)\b", ql
-    ):
+    elif re.search(r"\b(where|location|find|who is|current.*ceo|current.*president)\b", ql):
         task_type = TaskType.LOCATE
     elif re.search(r"\b(monitor|track|watch|alert)\b", ql):
         task_type = TaskType.MONITOR
@@ -1491,9 +1479,7 @@ def classify_truth_class(si: SenseInput) -> TruthClassification:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def build_temporal_grounding(
-    si: SenseInput, tc: TruthClassification
-) -> TemporalGrounding:
+def build_temporal_grounding(si: SenseInput, tc: TruthClassification) -> TemporalGrounding:
     """Stage 3: Determine temporal validity constraints."""
     time_scope = si.query_frame.time_scope
     domain = si.query_frame.domain
@@ -1621,9 +1607,7 @@ def _infer_source_rank(url: str, title: str) -> int:
     if any(x in u for x in [".gov", ".gov.", "official", "parliament", "congress"]):
         return EvidenceRank.OFFICIAL_ISSUER.value
     # Rank 3: official issuer
-    if any(
-        x in u for x in ["github.com", "docs.", "pypi.org", "npmjs.com", "developer."]
-    ):
+    if any(x in u for x in ["github.com", "docs.", "pypi.org", "npmjs.com", "developer."]):
         return EvidenceRank.TECHNICAL_DOCUMENTATION.value
     # Rank 4: technical documentation
     if any(
@@ -1749,9 +1733,7 @@ def detect_ambiguity(si: SenseInput, tc: TruthClassification) -> AmbiguityModel:
 def detect_conflicts_from_items(items: list[EvidenceItem]) -> ConflictModel:
     """Detect source conflicts in evidence items."""
     if len(items) < 2:
-        return ConflictModel(
-            detected=False, resolution_status=ResolutionStatus.RESOLVED
-        )
+        return ConflictModel(detected=False, resolution_status=ResolutionStatus.RESOLVED)
 
     # Simple conflict detection: negation terms or rank mismatch
     conflict_types: list[ConflictType] = []
@@ -1760,9 +1742,7 @@ def detect_conflicts_from_items(items: list[EvidenceItem]) -> ConflictModel:
     # Check for negations in claims
     all_claims = [claim.claim_text for item in items for claim in item.extracted_claims]
     has_negation = any(
-        re.search(
-            r"\b(not|no longer|false|incorrect|denied|wrong|misleading)\b", c.lower()
-        )
+        re.search(r"\b(not|no longer|false|incorrect|denied|wrong|misleading)\b", c.lower())
         for c in all_claims
     )
     if has_negation:
@@ -1773,18 +1753,14 @@ def detect_conflicts_from_items(items: list[EvidenceItem]) -> ConflictModel:
     pub_dates = [i.published_at for i in items if i.published_at]
     if len(set(pub_dates)) > 2:
         conflict_types.append(ConflictType.TEMPORAL_MISMATCH)
-        conflict_notes.append(
-            f"Sources span multiple publication dates: {set(pub_dates)}"
-        )
+        conflict_notes.append(f"Sources span multiple publication dates: {set(pub_dates)}")
 
     detected = bool(conflict_types)
     return ConflictModel(
         detected=detected,
         conflict_type=conflict_types,
         conflict_summary="; ".join(conflict_notes) if conflict_notes else None,
-        resolution_status=(
-            ResolutionStatus.UNRESOLVED if detected else ResolutionStatus.RESOLVED
-        ),
+        resolution_status=(ResolutionStatus.UNRESOLVED if detected else ResolutionStatus.RESOLVED),
         resolution_method="prefer_higher_rank" if detected else None,
     )
 
@@ -1956,11 +1932,7 @@ def compute_intelligence_state(
         entropy = EntropyState.LOW
 
     # Eureka
-    if (
-        confidence > 0.80
-        and not packet.conflict.detected
-        and not packet.ambiguity.detected
-    ):
+    if confidence > 0.80 and not packet.conflict.detected and not packet.ambiguity.detected:
         eureka = EurekaState.STRONG
     elif confidence > 0.60:
         eureka = EurekaState.EMERGING
@@ -1978,9 +1950,7 @@ def compute_intelligence_state(
 
     decision_required: list[str] = []
     if packet.ambiguity.needs_human_narrowing:
-        decision_required.append(
-            "Query requires human clarification before proceeding."
-        )
+        decision_required.append("Query requires human clarification before proceeding.")
     if packet.conflict.resolution_status == ResolutionStatus.UNRESOLVED:
         decision_required.append("Unresolved source conflict requires human judgment.")
 
@@ -2214,9 +2184,7 @@ async def governed_sense(
     if tc.truth_class == TruthClass.ABSOLUTE_INVARIANT:
         grounded_facts = [f"This is an invariant claim: {si.input.value[:120]}"]
     elif evidence_items:
-        grounded_facts = [
-            item.snippets[0][:150] for item in evidence_items if item.snippets
-        ]
+        grounded_facts = [item.snippets[0][:150] for item in evidence_items if item.snippets]
     else:
         unresolved = ["No evidence retrieved — cannot verify claim at this time."]
 
@@ -2251,9 +2219,7 @@ async def governed_sense(
         stable_facts_delta=grounded_facts[:3],
         unknowns_delta=unresolved,
         conflicts_delta=(
-            [conflict.conflict_summary]
-            if conflict.detected and conflict.conflict_summary
-            else []
+            [conflict.conflict_summary] if conflict.detected and conflict.conflict_summary else []
         ),
         confidence_delta=round(1.0 - ub.sigma, 4),
         uncertainty_delta=round(ub.sigma, 4),
@@ -2287,18 +2253,14 @@ async def governed_sense(
     )
 
     # Compute IntelligenceState + Philosophy
-    intel, p_state = compute_intelligence_state(
-        si, packet, tc, ub, session_id=session_id
-    )
+    intel, p_state = compute_intelligence_state(si, packet, tc, ub, session_id=session_id)
 
     # Inject philosophy into handoff and routing
     state_update = StateUpdate(
         stable_facts_delta=grounded_facts[:3],
         unknowns_delta=unresolved,
         conflicts_delta=(
-            [conflict.conflict_summary]
-            if conflict.detected and conflict.conflict_summary
-            else []
+            [conflict.conflict_summary] if conflict.detected and conflict.conflict_summary else []
         ),
         confidence_delta=round(intel.confidence, 4),
         uncertainty_delta=round(ub.sigma, 4),

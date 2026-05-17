@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import inspect
 from functools import lru_cache
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, get_args, get_origin
 
 import tomllib
+from fastmcp.tools import FunctionTool
+from pydantic import TypeAdapter
+
+from arifosmcp.constitutional_map import _TOOL_OUTPUT_SCHEMAS
 
 from .prompts import V2_PROMPT_SPECS
 from .public_surface import (
@@ -50,7 +55,21 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_forge_execute": "666_FORGE: < build — System modification and build execution.",
     "arif_ops_measure": "777_MEASURE: measure — Resource thermodynamics.",
     "arif_mcp_health": "Lightweight service health check for the arifOS MCP gateway.",
-    "arif_selftest": "Constitutional integrity probe — verifies the floor stack is intact.",
+    "arif_anti_sink_check": (
+        "777_TOPOLOGY: Anti-sink runtime diagnostic. "
+        "Evaluates a system against anti-sink invariants (F05, F08, F10, F13). "
+        "Returns advisory estimates — not verdicts. Reversible. No state mutation."
+    ),
+    "institutional_drift_check": (
+        "777_TOPOLOGY: Institutional drift runtime diagnostic. "
+        "Evaluates extractive vs inclusive topology (Acemoglu frame). "
+        "Returns advisory estimates — not verdicts. Reversible. No state mutation."
+    ),
+    "arif_stack_health_probe": (
+        "777_OPS: Federation stack health and governance probe. "
+        "Checks arifOS MCP, organs, model registry, risk leash, tool registry, VAULT999. "
+        "Returns SELAMAT / AMANAH / VOID with per-component diagnostics."
+    ),
 }
 
 RUNTIME_ENVELOPE_SCHEMA = {
@@ -230,17 +249,139 @@ def _layer_for_name(name: str) -> str:
     return "INTELLIGENCE"
 
 
+_PLANE_STATE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "plane": {"type": "string"},
+        "state": {"type": "string"},
+        "en": {"type": "string"},
+    },
+    "required": ["state", "en"],
+}
+
+_NINE_SIGNAL_SCHEMA = {
+    "type": "object",
+    "additionalProperties": True,
+    "properties": {
+        "delta": _PLANE_STATE_SCHEMA,
+        "psi": _PLANE_STATE_SCHEMA,
+        "omega": _PLANE_STATE_SCHEMA,
+        "overall": {
+            "type": "object",
+            "properties": {
+                "state": {"type": "string"},
+                "en": {"type": "string"},
+            },
+            "required": ["state", "en"],
+        },
+    },
+}
+
+
+def _allows_none(annotation: Any) -> bool:
+    if annotation in (None, type(None)):
+        return True
+    origin = get_origin(annotation)
+    if origin is None:
+        return False
+    return any(_allows_none(arg) for arg in get_args(annotation))
+
+
+def _schema_for_annotation(annotation: Any) -> dict[str, Any]:
+    if annotation is Any:
+        return {"type": "object", "additionalProperties": True}
+    try:
+        schema = TypeAdapter(annotation).json_schema()
+    except Exception:
+        return {"type": "object", "additionalProperties": True}
+    schema.pop("title", None)
+    return schema
+
+
+def _tool_result_schema(name: str) -> dict[str, Any]:
+    spec = _TOOL_OUTPUT_SCHEMAS.get(name, {})
+    return {
+        "type": "object",
+        "additionalProperties": True,
+        "properties": {
+            field: _schema_for_annotation(annotation) for field, annotation in spec.items()
+        },
+    }
+
+
+def _tool_output_schema(name: str) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "additionalProperties": True,
+        "properties": {
+            "status": {"type": "string"},
+            "tool": {"const": name},
+            "result": _tool_result_schema(name),
+            "meta": {"type": "object", "additionalProperties": True},
+            "delta_S": {"type": "number"},
+            "timestamp": {"type": "string"},
+            "session_id": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+            "actor_id": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+            "output_policy": {"type": "string"},
+            "nine_signal": _NINE_SIGNAL_SCHEMA,
+            "reasons": {"type": "array", "items": {"type": "string"}},
+            "philosophical_anchor": {"type": "object", "additionalProperties": True},
+        },
+        "required": [
+            "status",
+            "tool",
+            "result",
+            "meta",
+            "timestamp",
+            "output_policy",
+            "nine_signal",
+            "reasons",
+        ],
+    }
+
+
+@lru_cache(maxsize=1)
+def _runtime_contracts() -> dict[str, dict[str, Any]]:
+    from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, _wrap_handler
+
+    contracts: dict[str, dict[str, Any]] = {}
+    for name, handler in _CANONICAL_HANDLERS.items():
+        wrapped = _wrap_handler(handler, name)
+        tool = FunctionTool.from_function(
+            wrapped,
+            name=name,
+            description=inspect.getdoc(handler)
+            or _TOOL_DESCRIPTIONS.get(name, "Governed arifOS MCP tool."),
+            output_schema=_tool_output_schema(name),
+        )
+        contracts[name] = {
+            "description": tool.description
+            or _TOOL_DESCRIPTIONS.get(name, "Governed arifOS MCP tool."),
+            "input_schema": tool.parameters
+            or {"type": "object", "properties": {}, "additionalProperties": False},
+            "output_schema": tool.output_schema or _tool_output_schema(name),
+        }
+    return contracts
+
+
 def _spec_for_name(name: str) -> Any:
     contract = _tool_registry_contracts().get(name, {})
+    runtime_contract = _runtime_contracts().get(name, {})
     return SimpleNamespace(
         name=name,
-        description=_TOOL_DESCRIPTIONS.get(name, "Governed arifOS MCP tool."),
+        description=runtime_contract.get(
+            "description", _TOOL_DESCRIPTIONS.get(name, "Governed arifOS MCP tool.")
+        ),
         role=_role_for_name(name),
         layer=_layer_for_name(name),
         stage=contract.get("stage", "000"),
         trinity=contract.get("lane", "AGI"),
         floors=tuple(contract.get("floors", [])),
-        input_schema={},
+        input_schema=runtime_contract.get(
+            "input_schema",
+            {"type": "object", "properties": {}, "additionalProperties": False},
+        ),
+        output_schema=runtime_contract.get("output_schema", _tool_output_schema(name)),
         visibility="public",
         access=contract.get("access", "public"),
     )
@@ -346,6 +487,7 @@ def build_server_json(
                 "name": spec.name,
                 "description": spec.description,
                 "inputSchema": spec.input_schema,
+                "outputSchema": spec.output_schema,
             }
             for spec in specs
         ],
@@ -417,6 +559,13 @@ def build_mcp_charter(
     return build_server_json(public_base_url=public_base_url, surface_mode=surface_mode)
 
 
+def build_mcp_manifest(
+    public_base_url: str = DEFAULT_PUBLIC_BASE_URL,
+    surface_mode: str | None = None,
+) -> dict[str, Any]:
+    return build_mcp_discovery_json(public_base_url=public_base_url, surface_mode=surface_mode)
+
+
 def verify_no_drift(mode: str | None = None) -> dict[str, Any]:
     expected = set(public_tool_names_for_mode(mode))
     actual = {spec.name for spec in public_tool_specs(mode)}
@@ -437,3 +586,29 @@ def public_resource_uris() -> list[str]:
 
 def public_tool_input_schemas(mode: str | None = None) -> dict[str, Any]:
     return {spec.name: spec.input_schema for spec in public_tool_specs(mode)}
+
+
+def public_tool_output_schemas(mode: str | None = None) -> dict[str, Any]:
+    return {spec.name: spec.output_schema for spec in public_tool_specs(mode)}
+
+
+def contract_status_summary(mode: str | None = None) -> dict[str, Any]:
+    specs = public_tool_specs(mode)
+    input_published = sum(
+        1 for spec in specs if spec.input_schema and "properties" in spec.input_schema
+    )
+    output_published = sum(
+        1 for spec in specs if spec.output_schema and "properties" in spec.output_schema
+    )
+    described = sum(1 for spec in specs if spec.description)
+    total = len(specs)
+    return {
+        "tool_count": total,
+        "input_schemas_published": input_published,
+        "output_schemas_published": output_published,
+        "descriptions_published": described,
+        "schemas_complete": input_published == total and output_published == total,
+        "contract_drift": not (
+            input_published == total and output_published == total and described == total
+        ),
+    }

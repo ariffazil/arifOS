@@ -4,7 +4,7 @@ import os
 from typing import Any
 
 from arifosmcp.constitutional_map import list_canonical_tools, list_constitutional_tools
-from arifosmcp.runtime.build_info import get_build_info
+from arifosmcp.runtime.build import get_build_info
 
 try:
     from arifosmcp.tools_canonical import TOOL_ALIAS_MAP
@@ -46,12 +46,19 @@ def _alias_public_name(alias_name: str) -> str:
     return f"{namespace}_{clean_name}"
 
 
+# EXPANDED_45 is a *registry listing* of tool names (canonical + aliases).
+# It does NOT imply all listed tools are registered as callable MCP handlers
+# in the current runtime. The live MCP server may expose fewer tools than
+# appear in this registry. Use MCP tools/list for the authoritative count.
 EXPANDED_45: tuple[str, ...] = tuple(
-    list(
-        dict.fromkeys(
-            [*CANONICAL_15, *(_alias_public_name(name) for name in TOOL_ALIAS_MAP)]
-        )
-    )
+    list(dict.fromkeys([*CANONICAL_15, *(_alias_public_name(name) for name in TOOL_ALIAS_MAP)]))
+)
+
+# Diagnostic tools — reversible governance inspectors, not canonical constitutional tools.
+DIAGNOSTIC_TOOLS: tuple[str, ...] = (
+    "arif_anti_sink_check",
+    "institutional_drift_check",
+    "arif_stack_health_probe",
 )
 
 
@@ -83,7 +90,7 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     if resolved == "canonical13":
         return CANONICAL_13
     if resolved == "expanded45":
-        return EXPANDED_45
+        return tuple([*EXPANDED_45, *DIAGNOSTIC_TOOLS])
     return CANONICAL_15
 
 
@@ -97,9 +104,7 @@ def public_boundary_allows(name: str, mode: str | None = None) -> bool:
 def public_surface_state(mode: str | None = None) -> dict[str, Any]:
     resolved = normalize_public_surface_mode(mode)
     tool_names = list(public_tool_names_for_mode(resolved))
-    diagnostic_tools = [
-        name for name in tool_names if name in {"arif_ping", "arif_selftest"}
-    ]
+    diagnostic_tools = [name for name in tool_names if name in {"arif_ping", "arif_selftest"}]
     return {
         "mode": resolved,
         "tools_registered": len(tool_names),

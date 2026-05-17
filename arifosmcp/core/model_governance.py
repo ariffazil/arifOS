@@ -47,9 +47,7 @@ def _load_governance() -> dict[str, Any]:
         with open(yaml_path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
         _GOVERNANCE_CACHE = data or {"models": {}, "global_constraints": {}}
-        log.debug(
-            "Loaded %d model governance cards", len(_GOVERNANCE_CACHE.get("models", {}))
-        )
+        log.debug("Loaded %d model governance cards", len(_GOVERNANCE_CACHE.get("models", {})))
         return _GOVERNANCE_CACHE
     except Exception as exc:
         log.error("Failed to load model_governance.yaml: %s", exc)
@@ -124,11 +122,20 @@ def get_evidence_levels() -> dict[str, str]:
 def model_is_allowed(model_id: str, tool_name: str) -> bool:
     """
     Check if a model is allowed to use a specific tool.
-    Returns True if tool is in allowed_tools, False otherwise.
+    Returns True if tool is in allowed_organs (risk_leash), False otherwise.
     Unknown models return False (conservative).
     """
     card = get_governance_card(model_id)
-    allowed = card.get("allowed_tools", [])
+    # Support both legacy dict and ModelGovernanceCard (Pydantic)
+    if hasattr(card, "risk_leash"):
+        leash = card.risk_leash
+        allowed = (
+            getattr(leash, "allowed_organs", [])
+            if hasattr(leash, "allowed_organs")
+            else leash.get("allowed_organs", [])
+        )
+    else:
+        allowed = card.get("allowed_tools", card.get("allowed_organs", []))
     # Wildcard check
     if "*" in allowed:
         return True
@@ -138,10 +145,19 @@ def model_is_allowed(model_id: str, tool_name: str) -> bool:
 def model_forbidden_as(model_id: str, role: str) -> bool:
     """
     Check if a model is forbidden from扮演 a specific role.
-    Returns True if the role is in forbidden_roles.
+    Returns True if the role is in forbidden_organs (risk_leash).
     """
     card = get_governance_card(model_id)
-    return role in card.get("forbidden_roles", [])
+    if hasattr(card, "risk_leash"):
+        leash = card.risk_leash
+        forbidden = (
+            getattr(leash, "forbidden_organs", [])
+            if hasattr(leash, "forbidden_organs")
+            else leash.get("forbidden_organs", [])
+        )
+    else:
+        forbidden = card.get("forbidden_roles", card.get("forbidden_organs", []))
+    return role in forbidden
 
 
 __all__ = [

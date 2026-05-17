@@ -34,7 +34,7 @@ except ImportError:
             await self.app(scope, receive, send)
 
 
-from arifosmcp.runtime.build_info import get_build_info
+from arifosmcp.runtime.build import get_build_info
 from arifosmcp.runtime.optional_deps import redis
 from arifosmcp.runtime.public_registry import PUBLIC_TOOL_SPECS
 
@@ -54,6 +54,35 @@ from .security import RateLimiter, WebInjectionGuard
 from .session import WebSessionManager
 
 logger = logging.getLogger(__name__)
+
+
+# ── No-op fallbacks for when Redis is unavailable ─────────────────────────────
+class _NoOpSessionManager:
+    """Fallback session manager when Redis is offline. Sessions are ephemeral."""
+
+    def __init__(self, config: Any):
+        self.config = config
+
+    async def mint_session(self, actor_id: str, **kwargs: Any) -> Any:
+        from .session import WebSession
+
+        return WebSession(session_id="NO_REDIS_EPHEMERAL", actor_id=actor_id)
+
+    async def get_session(self, session_id: str) -> Any | None:
+        return None
+
+    async def revoke_session(self, session_id: str) -> bool:
+        return True
+
+
+class _NoOpRateLimiter:
+    """Fallback rate limiter when Redis is offline. All requests allowed."""
+
+    def __init__(self, config: Any):
+        self.config = config
+
+    async def check_rate_limit(self, key: str) -> tuple[bool, dict[str, Any]]:
+        return True, {"allowed": True, "remaining": 9999, "window": 60, "limit": 100}
 
 
 def _utcnow() -> datetime:
@@ -98,13 +127,27 @@ class WebMCPGateway:
             description="AI-governed WebMCP environment with 13 Constitutional Floors",
         )
 
-        # Initialize components
-        self.redis = redis.from_url(
-            os.getenv("REDIS_URL", "redis://localhost:6379"), decode_responses=True
+        # Initialize components (resilient to Redis failure)
+        try:
+            redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+            if not redis_url or not redis_url.startswith(("redis://", "rediss://", "unix://")):
+                redis_url = "redis://localhost:6379"
+            self.redis = redis.from_url(redis_url, decode_responses=True)
+        except Exception as exc:
+            logger.warning(
+                f"Redis unavailable for WebMCP: {exc}. Sessions and rate limiting disabled."
+            )
+            self.redis = None
+
+        self.session_manager = (
+            WebSessionManager(self.redis, self.config)
+            if self.redis
+            else _NoOpSessionManager(self.config)
         )
-        self.session_manager = WebSessionManager(self.redis, self.config)
         self.injection_guard = WebInjectionGuard()
-        self.rate_limiter = RateLimiter(self.redis, self.config)
+        self.rate_limiter = (
+            RateLimiter(self.redis, self.config) if self.redis else _NoOpRateLimiter(self.config)
+        )
 
         # Setup
         self._setup_middleware()
@@ -254,9 +297,7 @@ class WebMCPGateway:
         @self.app.get("/webmcp/sdk.js")
         async def webmcp_sdk():
             """Minimal browser SDK for imperative WebMCP calls."""
-            return HTMLResponse(
-                content=self._build_sdk_js(), media_type="application/javascript"
-            )
+            return HTMLResponse(content=self._build_sdk_js(), media_type="application/javascript")
 
         @self.app.get("/webmcp/tools.json")
         async def tools_charter():
@@ -532,11 +573,8 @@ class WebMCPGateway:
                                 entries.append(
                                     {
                                         "timestamp": entry.get("timestamp", ""),
-                                        "session_id": entry.get("session_id", "")[:16]
-                                        + "...",
-                                        "action": entry.get(
-                                            "action", entry.get("tool", "unknown")
-                                        ),
+                                        "session_id": entry.get("session_id", "")[:16] + "...",
+                                        "action": entry.get("action", entry.get("tool", "unknown")),
                                         "verdict": entry.get("verdict", "UNKNOWN"),
                                         "seal_hash": (
                                             entry.get("seal_hash", "")[:16] + "..."
@@ -589,9 +627,7 @@ class WebMCPGateway:
                     "recommendations": [...]
                 }
             """
-            logger.info(
-                f"Governance evaluation requested for action: {request.action_id}"
-            )
+            logger.info(f"Governance evaluation requested for action: {request.action_id}")
 
             # Run through constitutional engine
             evaluation = await governance_engine.evaluate(request)
@@ -616,9 +652,7 @@ class WebMCPGateway:
                 "verified": True,
                 "trust_score": 0.85,
                 "policy_level": "general",
-                "governance_endpoints": [
-                    "https://arifosmcp.arif-fazil.com/governance/evaluate"
-                ],
+                "governance_endpoints": ["https://arifosmcp.arif-fazil.com/governance/evaluate"],
                 "verdict": "SEAL",
             }
 
@@ -794,9 +828,7 @@ class WebMCPGateway:
                             "risk_level": h.risk_level,
                             "floor_violations": h.floor_violations,
                             "created_at": h.created_at.isoformat(),
-                            "time_elapsed_seconds": (
-                                _utcnow() - h.created_at
-                            ).total_seconds(),
+                            "time_elapsed_seconds": (_utcnow() - h.created_at).total_seconds(),
                             "action_payload_preview": str(h.action_payload)[:200],
                         }
                         for h in pending

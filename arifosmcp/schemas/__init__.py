@@ -1,17 +1,21 @@
 """
 arifOS Canonical Output Schemas (v2026.04.26-KANON)
-════════════════════════════════════════════════════
+═══════════════════════════════════════════════════
 
 Phase 2 Civilization Intelligence:
-- 888_JUDGE: VerdictOutput with ToAC, ThermodynamicState, DecisionCollapse, GrowthParadox, AKAL, AmanahProof
-- 999_VAULT: SealOutput with IrreversibilityBond, EntropyDelta, EpistemicSnapshot
+- 888_JUDGE: VerdictOutput with ToAC, ThermodynamicState,
+  DecisionCollapse, GrowthParadox, AKAL, AmanahProof
+- 999_VAULT: SealOutput with IrreversibilityBond, EntropyDelta,
+  EpistemicSnapshot
 - 333_MIND: MindOutput with AxiomsUsed, Metrics, ReasoningTrace
 - 222_FETCH: Sequential thinking schemas
 - 010_FORGE: ForgeOutput with IrreversibilityFlag, DeltaSEvidence
 - 444_KERNEL: KernelMetrics with stage trajectory
 - 777_OPS: WEALTH metrics with Landauer, psi_le, omega
+- 114_INGEST: CanonicalEvidenceBundle + IngestResult + ClaimSchema
+  (Phase 1 SENSE-INGEST pipeline)
 
-DITEMPA BUKAN DIBERI — Forged, Not Given
+DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 
 from __future__ import annotations
@@ -54,6 +58,16 @@ from arifosmcp.schemas.lineage import JudgeSealContract
 # Memory (555_MEMORY)
 from arifosmcp.schemas.memory import MemoryBlock
 
+# ModelCard (F3 TRI_WITNESS — identity binding)
+from arifosmcp.schemas.model_card import (
+    ModelAnchor,
+    ModelGovernanceCard,
+    RiskLeash,
+    RuntimeTruth,
+    SelfClaimBoundary,
+    ShadowProfile,
+)
+
 # Session (000_INIT)
 from arifosmcp.schemas.session import SessionManifest, SessionState
 
@@ -76,6 +90,25 @@ from arifosmcp.schemas.synthesis import (
 
 # Telemetry (777_OPS, 111_SENSE)
 from arifosmcp.schemas.telemetry import TelemetryBlock, VitalsBlock
+
+# Topology (777_OPS — Anti-Sink / Inclusive Topology diagnostics)
+from arifosmcp.schemas.topology import (
+    AntiSinkCheck,
+    AppealPath,
+    Confidence,
+    Delta,
+    InnovationRights,
+    InstitutionalDrift,
+    InstitutionalVerdict,
+    ParticipationWidth,
+    Presence,
+    RiskBand,
+    SovereigntyIntegrity,
+    Strength,
+)
+from arifosmcp.schemas.topology import (
+    Verdict as TopologyVerdict,
+)
 from arifosmcp.schemas.verdict import (
     AkalState,
     AmanahProof,
@@ -100,6 +133,20 @@ from arifosmcp.schemas.verdict import (
 )
 
 __all__ = [
+    # Topology (777_OPS — Anti-Sink / Inclusive Topology diagnostics)
+    "AntiSinkCheck",
+    "InstitutionalDrift",
+    "TopologyVerdict",
+    "Delta",
+    "Strength",
+    "RiskBand",
+    "Confidence",
+    "Presence",
+    "ParticipationWidth",
+    "InnovationRights",
+    "AppealPath",
+    "SovereigntyIntegrity",
+    "InstitutionalVerdict",
     # Session (000_INIT)
     "SessionManifest",
     "SessionState",
@@ -167,4 +214,20 @@ __all__ = [
     "UncertaintyGeometry",
     "EvidenceCivilizationContext",
     "EpistemicHumility",
+    # EvidenceBundle (111_SENSE → 114_INGEST pipeline)
+    "CanonicalEvidenceBundle",
+    "IngestResult",
+    "ClaimSchema",
+    "EntitySchema",
+    "RelationSchema",
+    "ReceiptSchema",
+    "EvidenceLevel",
+    "IngestStatus",
+    # ModelCard (F3 TRI_WITNESS — identity binding)
+    "ModelGovernanceCard",
+    "ModelAnchor",
+    "RuntimeTruth",
+    "SelfClaimBoundary",
+    "ShadowProfile",
+    "RiskLeash",
 ]

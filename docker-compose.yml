@@ -12,7 +12,7 @@ services:
 
   # ── PLANE 1: GOVERNANCE ─────────────────────────────────────────────
   arifosmcp:
-    image: ghcr.io/ariffazil/arifos:9b25c84c-mlruntime
+    image: ghcr.io/ariffazil/arifos:5b7de86d
     container_name: arifosmcp
     init: true
     restart: unless-stopped
@@ -26,6 +26,9 @@ services:
       ARIFOS_GOVERNANCE_OPEN_MODE: "false"
       ARIFOS_GOVERNANCE_SECRET_FILE: /run/sekrits/arifos_governance_sekrit
       ARIFOS_SESSION_SECRET_FILE: /run/sekrits/arifos_session_sekrit
+      ARIFOS_SOVEREIGN_PUBKEY_FILE: /run/sekrits/arifos_sovereign.pub
+      ARIFOS_MEMORY_POSTGRES_URL: "postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999"  # pragma: allowlist secret
+      ARIFOS_MEMORY_DIR: /app/memory
       PYTHONPATH: /app
       DOTENV: disabled
       AAA_MCP_TRANSPORT: http
@@ -45,6 +48,9 @@ services:
       ARIFOS_ML_SELFTEST_TEXT: seal confirmed
       ARIFOS_STATE_MACHINE_ENFORCE: "true"
       ARIFOS_ONTOLOGY_VALIDATE: "true"
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+      FIRECRAWL_API_KEY: ${FIRECRAWL_API_KEY}
+      EXA_API_KEY: ${EXA_API_KEY}
     volumes:
       - /root/arifOS/arifosmcp/server.py:/app/arifosmcp/server.py:ro
       - /root/arifos-model-registry:/app/arifos-model-registry:ro
@@ -63,6 +69,8 @@ services:
       - /root/arifOS/arifosmcp:/app/arifosmcp:ro
       - /root/compose/sekrits/arifos_governance_sekrit:/run/sekrits/arifos_governance_sekrit:ro
       - /root/compose/sekrits/arifos_session_sekrit:/run/sekrits/arifos_session_sekrit:ro
+      - /root/compose/sekrits/arifos_sovereign.pub:/run/sekrits/arifos_sovereign.pub:ro
+      - /root/volumes/arifos_memory:/app/memory:rw
       - /root/volumes/vault999:/var/lib/arifos/vault:rw
       - /root/WELL/state.json:/root/WELL/state.json:ro
       - telemetry-data:/app/telemetry
@@ -111,6 +119,10 @@ services:
     command: ["python", "internal/monolith.py"]
     volumes:
       - /root/wealth/internal/monolith.py:/app/internal/monolith.py:ro
+      - /root/wealth:/opt/wealth-src:ro
+    environment:
+      WEALTH_REPO_HEAD: cad82c5
+      WEALTH_REPO_DIR: /opt/wealth-src
     ports:
       - "127.0.0.1:8082:8082"
     networks: [arifos_core]
@@ -335,15 +347,15 @@ services:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8083/health')\""]
       interval: 60s
       start_period: 10s
-# ── HERMES AGENT: ASI Deliberative Server ─────────────────────────────────
-  hermes-agent:
-    image: hermes-agent:v1.0.3
-    container_name: hermes-agent
+# ── APEX PRIME: ASI Deliberative Server (internal only) ─────────────────────
+  apex-prime:
+    image: apex-prime:v1.0.5
+    container_name: apex-prime
     init: true
     restart: unless-stopped
     command: ["node", "src/server.js"]
     env_file:
-      - /root/AAA/.hermes/.env
+      - /root/AAA/.apex/.env
     environment:
       - PORT=3002
       - A2A_TOKEN=***-dev

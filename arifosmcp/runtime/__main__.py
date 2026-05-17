@@ -16,9 +16,7 @@ from .fastmcp_ext.transports import run_server
 def _bootstrap_environment() -> None:
     try:
         mode = (
-            sys.argv[1]
-            if len(sys.argv) > 1
-            else os.getenv("AAA_MCP_TRANSPORT", "stdio")
+            sys.argv[1] if len(sys.argv) > 1 else os.getenv("AAA_MCP_TRANSPORT", "stdio")
         ).lower()
         if mode == "stdio":
             os.environ.setdefault("ARIFOS_MINIMAL_STDIO", "1")
@@ -112,7 +110,7 @@ def _stdio_constitutional_floors() -> list[dict[str, str]]:
 async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[str, Any]:
     handler_name = getattr(handler, "__name__", "")
 
-    from arifosmcp.runtime.sessions import get_session_identity
+    from arifosmcp.runtime.session import get_session_identity
 
     if not arguments.get("actor_id"):
         sid = arguments.get("session_id")
@@ -164,6 +162,16 @@ def _run_minimal_stdio_server() -> None:
     # Build spec lookup from canonical TOOLS tuple
     _spec_by_name = {spec.name: spec for spec in TOOLS}
 
+    # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
+    try:
+        from .workers.memory_janitor import MemoryJanitor
+
+        # Using the same loop if possible, or start it in background
+        _async_loop.create_task(MemoryJanitor(interval_seconds=3600).run_loop())
+        logging.getLogger("arifosmcp").info("Phoenix-72 Memory Janitor: ACTIVE (stdio)")
+    except Exception as e:
+        logging.getLogger("arifosmcp").warning(f"Failed to start Memory Janitor in stdio: {e}")
+
     def tool_descriptor(name: str) -> dict[str, Any]:
         spec = _spec_by_name.get(name)
         if spec is not None:
@@ -209,8 +217,7 @@ def _run_minimal_stdio_server() -> None:
                     contents.append(
                         {
                             "uri": str(c.uri),
-                            "mimeType": getattr(c, "mime_type", "text/plain")
-                            or "text/plain",
+                            "mimeType": getattr(c, "mime_type", "text/plain") or "text/plain",
                             "text": c.text,
                         }
                     )
@@ -258,9 +265,7 @@ def _run_minimal_stdio_server() -> None:
                     content = content.text
                 elif hasattr(content, "texts"):
                     content = "".join(getattr(t, "text", str(t)) for t in content.texts)
-                messages.append(
-                    {"role": role, "content": {"type": "text", "text": content}}
-                )
+                messages.append({"role": role, "content": {"type": "text", "text": content}})
         return {
             "description": getattr(prompt, "description", "") or "",
             "messages": messages,
@@ -359,9 +364,7 @@ def _run_minimal_stdio_server() -> None:
         if method == "prompts/list":
             try:
                 prompts = _async_loop.run_until_complete(_list_prompts())
-                send(
-                    {"jsonrpc": "2.0", "id": request_id, "result": {"prompts": prompts}}
-                )
+                send({"jsonrpc": "2.0", "id": request_id, "result": {"prompts": prompts}})
             except Exception as exc:
                 send(
                     {
@@ -404,9 +407,7 @@ def _run_minimal_stdio_server() -> None:
                 {
                     "jsonrpc": "2.0",
                     "id": request_id,
-                    "result": {
-                        "tools": [tool_descriptor(name) for name in tool_handlers]
-                    },
+                    "result": {"tools": [tool_descriptor(name) for name in tool_handlers]},
                 }
             )
             continue

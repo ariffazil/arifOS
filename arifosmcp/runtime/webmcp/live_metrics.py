@@ -21,7 +21,7 @@ from typing import Any
 
 import httpx
 
-from arifosmcp.runtime.floors import get_floor_count
+from arifosmcp.runtime.floor import get_floor_count
 
 try:
     import psutil
@@ -162,9 +162,7 @@ class LiveMetricsCollector:
     async def get_machine_metrics(self) -> MachineMetrics:
         """Collect VPS machine metrics."""
         if not PSUTIL_AVAILABLE:
-            return MachineMetrics(
-                cpu_percent=0.0, system_status="DEGRADED: psutil unavailable"
-            )
+            return MachineMetrics(cpu_percent=0.0, system_status="DEGRADED: psutil unavailable")
 
         try:
             # CPU metrics
@@ -174,11 +172,7 @@ class LiveMetricsCollector:
 
             # Load average (Unix only)
             try:
-                load_avg = (
-                    list(os.getloadavg())
-                    if hasattr(os, "getloadavg")
-                    else [0.0, 0.0, 0.0]
-                )
+                load_avg = list(os.getloadavg()) if hasattr(os, "getloadavg") else [0.0, 0.0, 0.0]
             except Exception:
                 load_avg = [0.0, 0.0, 0.0]
 
@@ -235,9 +229,7 @@ class LiveMetricsCollector:
             )
         except Exception as e:
             # Return degraded metrics on error
-            return MachineMetrics(
-                cpu_percent=0.0, system_status=f"ERROR: {str(e)[:50]}"
-            )
+            return MachineMetrics(cpu_percent=0.0, system_status=f"ERROR: {str(e)[:50]}")
 
     async def get_governance_metrics(self) -> GovernanceMetrics:
         """Collect arifOS governance metrics."""
@@ -313,9 +305,7 @@ class LiveMetricsCollector:
                         "FROM arifosmcp_vault_seals"
                     )
                     vault_entries = row["n"] if row and row["n"] is not None else 0
-                    vault_last = (
-                        row["last_timestamp"] if row and row["last_timestamp"] else ""
-                    )
+                    vault_last = row["last_timestamp"] if row and row["last_timestamp"] else ""
                     await conn.close()
                 else:
                     vault_path = Path("VAULT999/vault999.jsonl")
@@ -356,9 +346,7 @@ class LiveMetricsCollector:
         except Exception as e:
             return GovernanceMetrics(
                 system_status=f"DEGRADED: {str(e)[:50]}",
-                floors={
-                    f"F{i}": {"status": "unknown", "score": 0} for i in range(1, 14)
-                },
+                floors={f"F{i}": {"status": "unknown", "score": 0} for i in range(1, 14)},
             )
 
     async def get_intelligence_metrics(self) -> IntelligenceMetrics:
@@ -386,9 +374,7 @@ class LiveMetricsCollector:
                 from arifosmcp.runtime.metrics import live_metrics
 
                 global_status = live_metrics.get_global_status()
-                metrics.tool_calls = global_status.get(
-                    "total_recorded_errors", 0
-                )  # Placeholder
+                metrics.tool_calls = global_status.get("total_recorded_errors", 0)  # Placeholder
             except Exception:
                 pass
 

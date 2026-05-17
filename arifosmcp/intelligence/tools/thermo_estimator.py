@@ -10,9 +10,7 @@ def shannon_entropy(text: str) -> dict[str, float]:
     for char in text:
         counts[char] = counts.get(char, 0) + 1
     total = len(text)
-    entropy = -sum(
-        (count / total) * math.log2(count / total) for count in counts.values()
-    )
+    entropy = -sum((count / total) * math.log2(count / total) for count in counts.values())
     max_entropy = math.log2(len(counts)) if len(counts) > 1 else 1.0
     return {"entropy": entropy, "normalized_entropy": min(1.0, entropy / max_entropy)}
 

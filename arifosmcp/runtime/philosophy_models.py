@@ -109,13 +109,9 @@ class PhilosophyRegistryStats(BaseModel):
 
     unique_civilizations: int = Field(..., description="Number of unique civilizations")
 
-    civilization_distribution: dict[str, int] = Field(
-        ..., description="Quotes per civilization"
-    )
+    civilization_distribution: dict[str, int] = Field(..., description="Quotes per civilization")
 
-    category_distribution: dict[str, int] = Field(
-        ..., description="Quotes per category"
-    )
+    category_distribution: dict[str, int] = Field(..., description="Quotes per category")
 
     era_distribution: dict[str, int] = Field(..., description="Quotes per era")
 
@@ -187,9 +183,7 @@ class PhilosophyRegistry(BaseModel):
         ]
         for cat in required_categories:
             if cat_counts.get(cat, 0) < 8:
-                errors.append(
-                    f"Category '{cat}' underrepresented: {cat_counts.get(cat, 0)} < 8"
-                )
+                errors.append(f"Category '{cat}' underrepresented: {cat_counts.get(cat, 0)} < 8")
 
         # Check era minimum (10 per era)
         for era, count in era_counts.items():

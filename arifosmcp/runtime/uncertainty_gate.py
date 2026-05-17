@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any
 
 DEFAULT_CONFIDENCE_THRESHOLD = 0.75
 MANDATORY_UNCERTAINTY_KEYS = (
@@ -37,7 +38,9 @@ def validate_uncertainty(
             if key not in uncertainty:
                 violations.append(f"missing_uncertainty_key:{key}")
 
-        if isinstance(uncertainty.get("missing_inputs"), list) and not uncertainty.get("missing_inputs"):
+        if isinstance(uncertainty.get("missing_inputs"), list) and not uncertainty.get(
+            "missing_inputs"
+        ):
             violations.append("missing_inputs_must_not_be_empty_below_threshold")
         if isinstance(uncertainty.get("alternative_hypotheses"), list) and not uncertainty.get(
             "alternative_hypotheses"

@@ -35,9 +35,7 @@ class TestH3EpochLifecycle:
     def test_epoch_open_creates_epoch(self):
         init = _arif_session_init(mode="init", actor_id="test_actor")
         sid = init["result"]["session"]["session_id"]
-        result = _arif_session_init(
-            mode="epoch_open", session_id=sid, actor_id="test_actor"
-        )
+        result = _arif_session_init(mode="epoch_open", session_id=sid, actor_id="test_actor")
         assert result["status"] == "OK"
         eid = result["result"]["epoch_id"]
         assert eid.startswith("EPOCH-")
@@ -53,9 +51,7 @@ class TestH3EpochLifecycle:
         init = _arif_session_init(mode="init", actor_id="test_actor")
         sid = init["result"]["session"]["session_id"]
         _arif_session_init(mode="epoch_open", session_id=sid, actor_id="test_actor")
-        result = _arif_session_init(
-            mode="epoch_seal", session_id=sid, actor_id="test_actor"
-        )
+        result = _arif_session_init(mode="epoch_seal", session_id=sid, actor_id="test_actor")
         assert result["status"] == "OK"
         assert result["result"]["status"] == "sealed"
         assert "vault_entry_id" in result["result"]
@@ -128,14 +124,10 @@ class TestH2PlanningOrgan:
         assert any(v is False for v in receipt["reversibility_map"].values())
 
     def test_plan_stored_in_registry_and_vault(self):
-        result = _arif_mind_reason(
-            mode="plan", query="Test plan", actor_id="test_actor"
-        )
+        result = _arif_mind_reason(mode="plan", query="Test plan", actor_id="test_actor")
         pid = result["result"]["plan_receipt"]["plan_id"]
         assert pid in _PLAN_REGISTRY
-        assert any(
-            e.get("type") == "plan" and e.get("plan_id") == pid for e in _VAULT_LEDGER
-        )
+        assert any(e.get("type") == "plan" and e.get("plan_id") == pid for e in _VAULT_LEDGER)
 
     def test_plan_review_retrieves_plan(self):
         plan = _arif_mind_reason(mode="plan", query="Test", actor_id="test_actor")
@@ -286,9 +278,7 @@ class TestH3EpochSealGuard:
         _arif_session_init(mode="epoch_open", session_id=sid, actor_id="test_actor")
         eid = _SESSIONS[sid]["epoch_id"]
         _EPOCH_REGISTRY[eid]["verdict"] = "VOID"
-        result = _arif_session_init(
-            mode="epoch_seal", session_id=sid, actor_id="test_actor"
-        )
+        result = _arif_session_init(mode="epoch_seal", session_id=sid, actor_id="test_actor")
         assert result["status"] == "HOLD"
         assert "sovereign review" in result["meta"]["reason"]
 
@@ -298,8 +288,6 @@ class TestH3EpochSealGuard:
         _arif_session_init(mode="epoch_open", session_id=sid, actor_id="test_actor")
         eid = _SESSIONS[sid]["epoch_id"]
         _EPOCH_REGISTRY[eid]["peace2"] = 0.8
-        result = _arif_session_init(
-            mode="epoch_seal", session_id=sid, actor_id="test_actor"
-        )
+        result = _arif_session_init(mode="epoch_seal", session_id=sid, actor_id="test_actor")
         assert result["status"] == "HOLD"
         assert "sovereign review" in result["meta"]["reason"]
