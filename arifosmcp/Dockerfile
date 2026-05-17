@@ -34,8 +34,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN --mount=type=cache,target=/root/.cache/pip pip install uv
 
 COPY arifosmcp/requirements.txt requirements.txt
-RUN --mount=type=cache,target=/root/.cache/pip uv pip install --system -r requirements.txt
-RUN python -c "import numpy, scipy, sklearn, torch, transformers, sentence_transformers"
+
+# ── torch CPU-only: saves ~1.5–2 GB vs CUDA build ─────────────────────
+# The --extra-index-url with CPU wheels means pip picks CPU builds when available.
+# transformers is kept as a dep of sentence_transformers (needed for SBERT loading).
+RUN --mount=type=cache,target=/root/.cache/pip \
+    uv pip install --system -r requirements.txt \
+    --index-url https://download.pytorch.org/whl/cpu \
+    --extra-index-url https://pypi.org/simple
 
 
 # ── Stage 2: runtime image ────────────────────────────────────────────────
