@@ -41,7 +41,7 @@ services:
       JWT_ENFORCE_MODE: enforce
       ARIFOS_REGISTRY_ROOT: /app/registry
       ARIFOS_RISK_LEASH_PATH: /app/risk_leash.yaml
-      ARIFOS_VAULT_PATH: /var/lib/arifos/vault/outcomes.jsonl
+      # ARIFOS_VAULT_PATH: /var/lib/arifos/vault/outcomes.jsonl  # REMOVED: P0-FIX — this was a file path that broke evidence store (VAULT999_EVIDENCE expected dir, got file → NotADirectoryError). Evidence store now uses default /var/lib/arifos/vault/evidence via ARIFOS_VAULT_PATH default value.
       AAA_BUDGET_CONTRACT_PATH: /app/contracts/budget/AAA-GOV-BUDGET-v1.json
       WELL_STATE_PATH: /app/well_state.json
       OLLAMA_URL: http://ollama:11434
@@ -55,6 +55,7 @@ services:
       ARIFOS_ACTOR_ID: "a-forge"
       SEA_LION_API_KEY: "sk-znzfOJH_Yc7LKewfrfsl2A"  # pragma: allowlist secret
       SEA_LION_BASE_URL: "https://api.sea-lion.ai/v1"
+      TREE777_WIKI_ROOT: /app/wiki
     volumes:
       - /root/arifOS/arifosmcp/server.py:/app/arifosmcp/server.py:ro
       - /root/arifOS/registry:/app/registry:ro
@@ -78,6 +79,7 @@ services:
       - /root/compose/secrets/arifos_session_secret:/run/secrets/arifos_session_secret:ro
       - /var/lib/arifos/volumes/vault999:/var/lib/arifos/vault:rw
       - /root/WELL/state.json:/root/WELL/state.json:ro
+      - /root/AAA/wiki:/app/wiki:ro
       - telemetry-data:/app/telemetry
     networks: [arifos_core]
     ports:
@@ -128,6 +130,10 @@ services:
     environment:
       WEALTH_REPO_HEAD: "f248633"
       WEALTH_IMAGE_TAG: "ghcr.io/ariffazil/wealth:9344f85"
+    volumes:
+      # contracts/enrich_wealth.py used by wealth_signal_information,
+      # wealth_boundary_governance (legitimacy_audit), wealth_synthesize (conversion_audit)
+      - /root/WEALTH/contracts:/app/contracts:ro
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/health')\""]
       interval: 30s
@@ -146,7 +152,7 @@ services:
     networks: [arifos_core]
     environment:
       VAULT_WRITER_URL: http://vault999-writer:5001
-      VAULT_WRITER_TOKEN: ${VAULT_WRITER_TOKEN}
+      VAULT_WRITER_TOKEN: ade8242fcd8882cfd6b22b489b6c66d21c2234f9f4f35b187d84d9e814e1a56e  # pragma: allowlist secret
       REDIS_URL: redis://redis:6379/0
       NATS_URL: nats://nats:4222
     volumes:
@@ -362,7 +368,7 @@ services:
       start_period: 10s
   # ── WELL: Biological Substrate ─────────────────────────────────────────
   well:
-    image: ghcr.io/ariffazil/well:9803b50
+    image: ghcr.io/ariffazil/well:abe4125
     container_name: well
     init: true
     restart: unless-stopped

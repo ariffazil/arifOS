@@ -15,6 +15,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from arifosmcp.schemas.metabolic import ClaimState, DecodedEntity, Witness
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # SEQUENTIAL THINKING ENUMS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -81,7 +83,7 @@ class ThinkingStep(BaseModel):
     next_step_direction: str = Field(description="'continue' | 'terminate' | 'pivot'")
 
     # Landauer cost
-    landauer_cost_eV: float | None = Field(
+    landauer_cost_ev: float | None = Field(  # N815: snake_case for Landauer cost
         default=None, description="Thermodynamic cost in electron volts (kT * ln 2)"
     )
 
@@ -107,7 +109,7 @@ class ThinkingSequence(BaseModel):
     )
 
     # Thermodynamic cost (Landauer principle)
-    total_thermodynamic_cost_eV: float = Field(
+    total_thermodynamic_cost_ev: float = Field(  # N815: snake_case for thermodynamic cost
         default=0.0, description="Total energy cost in electron volts"
     )
     landauer_cost_effective: float = Field(description="Efficiency: confidence gained per eV")
@@ -159,10 +161,12 @@ class ResourceMetrics(BaseModel):
     tokens_per_step: list[float] = Field(default_factory=list, description="Tokens per step")
 
     # Energy (Landauer principle)
-    landauer_cost_per_step_eV: list[float] = Field(
+    landauer_cost_per_step_ev: list[float] = Field(  # N815: snake_case
         default_factory=list, description="Thermodynamic cost per step in eV"
     )
-    total_thermodynamic_cost_eV: float = Field(default=0.0, description="Total energy cost")
+    total_thermodynamic_cost_ev: float = Field(  # N815: snake_case
+        default=0.0, description="Total energy cost"
+    )
 
     # Efficiency metrics
     reasoning_efficiency: float = Field(
@@ -210,7 +214,10 @@ class RealityAnchor(BaseModel):
     )
     thermodynamic_footprint: str | None = Field(
         default=None,
-        description="Physical cost classification: 'negligible' | 'moderate' | 'significant' | 'civilizational'",
+        description=(
+            "Physical cost classification: "
+            "'negligible' | 'moderate' | 'significant' | 'civilizational'"
+        ),
     )
 
 
@@ -239,6 +246,30 @@ class EvidenceOutput(BaseModel):
     # Reality grounding
     reality_anchor: RealityAnchor | None = Field(
         default=None, description="Physical constraints that ground this evidence"
+    )
+
+    # ── Metabolic Loop Fields (Eureka 8 — witness ingestion stage) ──────────────────
+    # WitnessIngest: raw evidence received — maps to metabolic loop step 1
+    # VisualDecode: entities extracted from witness — maps to metabolic loop step 2
+    witnesses_ingested: list[Witness] = Field(
+        default_factory=list,
+        description="Raw evidence items received during this fetch. "
+        "Maps to metabolic loop: witness_ingest stage.",
+    )
+    decoded_entities: list[DecodedEntity] = Field(
+        default_factory=list,
+        description=(
+            "Discrete objects extracted from witnesses "
+            "(horizons, faults, filings, ratios...). "
+            "Maps to metabolic loop: visual_decode stage."
+        ),
+    )
+    claim_state: ClaimState = Field(
+        default=ClaimState.OBSERVED,
+        description=(
+            "Evidence lifecycle stage: OBSERVED | HYPOTHESIS | QUALIFIED | "
+            "VERIFIED | SEALED | HOLD. Defaults to OBSERVED at fetch stage."
+        ),
     )
 
     # Result

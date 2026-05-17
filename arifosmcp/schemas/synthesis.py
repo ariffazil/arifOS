@@ -21,6 +21,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from arifosmcp.schemas.metabolic import CandidateMeaning, ConstraintCheck
 from arifosmcp.schemas.verdict import ThermodynamicState
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -119,7 +120,7 @@ class ReasoningStep(BaseModel):
     axiom_used: str | None = Field(
         default=None, description="Axiom ID that grounded this step (None if heuristic)"
     )
-    landauer_cost_eV: float | None = Field(
+    landauer_cost_ev: float | None = Field(  # N815: snake_case
         default=None, description="Thermodynamic cost in electron volts"
     )
 
@@ -151,7 +152,9 @@ class ReasoningTrace(BaseModel):
     coherence_score: float = Field(
         ge=0.0, le=1.0, description="Internal consistency of the reasoning"
     )
-    total_landauer_cost_eV: float = Field(default=0.0, description="Total thermodynamic cost")
+    total_landauer_cost_ev: float = Field(  # N815: snake_case
+        default=0.0, description="Total thermodynamic cost"
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -229,7 +232,10 @@ class MindOutput(BaseModel):
         ...,
         ge=0.03,
         le=0.15,
-        description="F7 Humility: Mandatory epistemic uncertainty band. Cannot be < 0.03 or > 0.15 without mathematical proof.",
+        description=(
+            "F7 Humility: Mandatory epistemic uncertainty band. "
+            "Cannot be < 0.03 or > 0.15 without mathematical proof."
+        ),
     )
 
     @field_validator("omega_0")
@@ -268,9 +274,26 @@ class MindOutput(BaseModel):
         default=None, description="If contrast detected: what correction was applied?"
     )
 
+    # ── Metabolic Loop Fields (Eureka 8 — meaning + constraint stages) ─────────────
+    # MeaningGenerate: differential interpretations of decoded entities
+    # Maps to: arif_mind_reason (333) stage — metabolic loop step 3
+    candidate_meanings: list[CandidateMeaning] = Field(
+        default_factory=list,
+        description="Differential interpretations — never a single claim. "
+        "Maps to metabolic loop: meaning_generate stage.",
+    )
+
+    # ConstraintVerify: rules, physics, law, ethics verified against candidate meanings
+    # Maps to: arif_heart_critique (444) stage — metabolic loop step 4
+    constraints_checked: list[ConstraintCheck] = Field(
+        default_factory=list,
+        description="Constraint checks applied: physics, law, ethics, financial, constitutional. "
+        "Maps to metabolic loop: constraint_verify stage.",
+    )
+
     # Metadata
     meta: dict[str, Any] = Field(default_factory=dict)
-    delta_S: float = Field(default=0.0)
+    delta_s: float = Field(default=0.0)  # N815: snake_case
     timestamp: str | None = None
 
 

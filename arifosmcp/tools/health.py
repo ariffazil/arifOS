@@ -61,7 +61,7 @@ _SERVICE_ENDPOINTS: dict[str, dict[str, Any]] = {
     },
     "a_forge": {
         "url": "http://localhost:7071/health",
-        "docker_host": "af-bridge:7071",
+        "docker_host": "af-bridge-prod:7071",
         "timeout": 5.0,
     },
     "vault999": {
@@ -540,23 +540,43 @@ async def federation_audit(
     server_liveness_score = min(10, (live_count / len(live_names)) * 10)
 
     # ── 2. Session binding (arif_session_init → must return SEAL) ───────────
+    # W3 FIX: If caller provides session_id, validate it exists in the session store.
+    # Only create a new session if no session_id was provided or it wasn't found.
     session_ok = False
-    session_sid = None
+    session_sid = session_id  # Default to caller's session; overridden below if invalid
     sess = {}  # Always defined for verdict check below
-    try:
-        from arifosmcp.runtime.tools import _new_session
+    caller_session_valid = False
 
-        sess = _new_session(
-            actor_id=actor_id or "audit-agent",
-            declared_model_key="minimax/m27",
-        )
-        card = sess.get("model_governance_card")
-        if card is not None:
-            # Card must be dict (model_dump'd), not raw Pydantic object
-            session_ok = isinstance(card, dict) and card.get("is_bound", False)
-        session_sid = sess.get("session_id")
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Session binding test failed: %s", exc)
+    if session_id:
+        # Validate caller's session exists in the persistent session store
+        try:
+            store_path = Path("/root/arifOS/.arifos/runtime_sessions.json")
+            if store_path.exists():
+                store_data = json.loads(store_path.read_text())
+                stored_sessions = store_data.get("sessions", {})
+                if session_id in stored_sessions:
+                    caller_session_valid = True
+                    session_ok = True  # Caller's session is bound and valid
+                    session_sid = session_id
+        except Exception as exc:
+            logger.warning("Session store validation failed for %s: %s", session_id, exc)
+
+    if not caller_session_valid:
+        # Fall back: create a new internal session only when caller has no session_id
+        try:
+            from arifosmcp.runtime.tools import _new_session
+
+            sess = _new_session(
+                actor_id=actor_id or "audit-agent",
+                declared_model_key="minimax/m27",
+            )
+            card = sess.get("model_governance_card")
+            if card is not None:
+                # Card must be dict (model_dump'd), not raw Pydantic object
+                session_ok = isinstance(card, dict) and card.get("is_bound", False)
+            session_sid = sess.get("session_id")
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Session binding test failed: %s", exc)
 
     # Score: 15 if fully bound (is_bound=True), 10 if constitutional floor check
     # returns SEAL (proves constitutional init path works), 5 otherwise.

@@ -118,7 +118,7 @@ class ThermodynamicState(BaseModel):
     )
 
     # Entropy change
-    delta_S: float = Field(
+    delta_s: float = Field(  # N815: snake_case
         default=0.0, description="Entropy change from this action (positive = disorder)"
     )
 
@@ -140,7 +140,7 @@ class ThermodynamicState(BaseModel):
     )
 
     # Landauer compliance
-    landauer_cost_eV: float | None = Field(
+    landauer_cost_ev: float | None = Field(  # N815: snake_case
         default=None,
         description="Minimum thermodynamic cost (kT * ln 2) in electron volts",
     )
@@ -638,7 +638,31 @@ class VerdictOutput(BaseModel):
     )
     invariants_checked: list[str] = Field(
         default_factory=list,
-        description="List of constitutional invariants tested during this verdict (e.g., F01_reversibility, F11_identity, F13_sovereign). Proves WHY the verdict was reached, not just WHAT.",
+        description=(
+            "List of constitutional invariants tested during this verdict "
+            "(e.g., F01_reversibility, F11_identity, F13_sovereign). "
+            "Proves WHY the verdict was reached, not just WHAT."
+        ),
+    )
+
+    # ── Sovereignty Boundary (Eureka 8 — from metabolize internal) ──────────────────
+    # AI proposes. Tools compute. Memory records. Constraints guard. Arif judges.
+    # These flags are set TRUE only when Arif has ratified the action.
+    recommendation_only: bool = Field(
+        default=True,
+        description="AI proposes only. Has not been ratified by human. True until F13 sign-off.",
+    )
+    execution_authorized: bool = Field(
+        default=False,
+        description="Has a human authorized execution? False until F13 SOVEREIGN sign-off.",
+    )
+    human_final_authority: str = Field(
+        default="Arif",
+        description="Who has final say on this verdict? Always 'Arif' — F13 veto is absolute.",
+    )
+    requires_888_judge: bool = Field(
+        default=False,
+        description="Does this candidate require 888_JUDGE re-review before action?",
     )
 
     timestamp: str | None = None
@@ -687,7 +711,7 @@ class VerdictReport(Verdict):
 class EntropyDelta(BaseModel):
     """Thermodynamic entropy change from this seal."""
 
-    delta_S: float = Field(default=0.0, description="Entropy change in J/K")
+    delta_s: float = Field(default=0.0, description="Entropy change in J/K")  # N815
     entropy_direction: str = Field(
         default="stable", description="'increasing' | 'stable' | 'decreasing'"
     )
@@ -779,11 +803,15 @@ class SealOutput(BaseModel):
     # Captured at decision time, stored in ledger for drift analysis / post-mortems
     delta_m: float | None = Field(
         default=None,
-        description="Measurability Gap: share of tasks AI can execute minus share humans can verify",
+        description=(
+            "Measurability Gap: share of tasks AI can execute minus share humans can verify"
+        ),
     )
     svs: float | None = Field(
         default=None,
-        description="Safe Verifiable Share: fraction of AI output safely underwritable at acceptable cost",
+        description=(
+            "Safe Verifiable Share: fraction of AI output safely underwritable at acceptable cost"
+        ),
     )
     entropy_band: str | None = Field(
         default=None,
