@@ -438,25 +438,23 @@ async def federation_audit(
         failed_links, and next_fix recommendations.
     """
     # ── 1. Server liveness ──────────────────────────────────────────────────
-    liveness_urls = {
-        "arifos": "http://localhost:8080/health",
-        "well": "http://localhost:8083/health",
-        "wealth": "http://localhost:8082/health",
-        "geox": "http://localhost:8081/health",
-    }
+    # Use _SERVICE_ENDPOINTS so docker hostnames are used inside containers
+    live_names = ["arifos_mcp", "well", "wealth", "geox"]
     live_results: dict[str, str] = {}
-    for name, url in liveness_urls.items():
+    for svc_name in live_names:
+        cfg = _SERVICE_ENDPOINTS.get(svc_name, {})
+        url = _service_url(svc_name, cfg)
         try:
             import httpx
 
             async with httpx.AsyncClient(timeout=5.0) as client:
                 r = await client.get(url)
-                live_results[name] = "healthy" if r.status_code == 200 else "degraded"
+                live_results[svc_name] = "healthy" if r.status_code == 200 else "degraded"
         except Exception:  # noqa: BLE001
-            live_results[name] = "unreachable"
+            live_results[svc_name] = "unreachable"
 
     live_count = sum(1 for v in live_results.values() if v == "healthy")
-    server_liveness_score = min(10, (live_count / len(liveness_urls)) * 10)
+    server_liveness_score = min(10, (live_count / len(live_names)) * 10)
 
     # ── 2. Session binding (arif_session_init → must return SEAL) ───────────
     session_ok = False
@@ -481,7 +479,9 @@ async def federation_audit(
     # ── 3. Cross-organ registry truth via health endpoints ─────────────────────
     registry_checks: dict[str, Any] = {}
     registry_pass_count = 0
-    for name, url in liveness_urls.items():
+    for svc_name in live_names:
+        cfg = _SERVICE_ENDPOINTS.get(svc_name, {})
+        url = _service_url(svc_name, cfg)
         try:
             import httpx
 
@@ -490,15 +490,15 @@ async def federation_audit(
                 if r.status_code == 200:
                     data = r.json()
                     truth = data.get("registry_truth", data.get("truth_status", "UNKNOWN"))
-                    registry_checks[name] = truth
+                    registry_checks[svc_name] = truth
                     if truth in ("PASS", "VERIFIED"):
                         registry_pass_count += 1
                 else:
-                    registry_checks[name] = "unreachable"
+                    registry_checks[svc_name] = "unreachable"
         except Exception:  # noqa: BLE001
-            registry_checks[name] = "error"
+            registry_checks[svc_name] = "error"
 
-    registry_truth_score = min(15, (registry_pass_count / len(liveness_urls)) * 15)
+    registry_truth_score = min(15, (registry_pass_count / len(live_names)) * 15)
 
     # ── 4. Tool callability (WELL 15-tool full probe) ──────────────────────
     well_tools = [
@@ -523,7 +523,7 @@ async def federation_audit(
 
     # ── 5. Cross-organ federation (all services reachable) ────────────────────
     federation_count = live_count  # Already computed above
-    cross_organ_score = min(15, (federation_count / len(liveness_urls)) * 15)
+    cross_organ_score = min(15, (federation_count / len(live_names)) * 15)
 
     # ── 6. Safety gates (irreversible modes blocked without ack) ─────────────
     safety_score = 8  # Assumed OK from prior tests; would need deep probe for 10
