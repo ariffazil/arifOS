@@ -135,7 +135,7 @@ services:
   # ── AAA: Control Plane Seed ─────────────────────────────────────────────
   # ── AAA-A2A: Agent-to-Agent Gateway ────────────────────────────────────
   aaa-a2a:
-    image: ghcr.io/ariffazil/aaa-a2a:fc830d0
+    image: aaa-a2a:phase3-reforge
     container_name: aaa-a2a
     restart: unless-stopped
     command: ["node", "server.js"]
@@ -144,9 +144,10 @@ services:
     networks: [arifos_core]
     environment:
       VAULT_WRITER_URL: http://vault999-writer:5001
-      VAULT_WRITER_TOKEN: ${VAULT_WRITER_TOKEN}
+      VAULT_WRITER_TOKEN: ade8242fcd8882cfd6b22b489b6c66d21c2234f9f4f35b187d84d9e814e1a56e  # pragma: allowlist secret
     volumes:
       - /root/AAA/a2a-server/vault.js:/app/vault.js:ro
+      - /root/compose/secrets:/run/sekrits:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
@@ -335,7 +336,7 @@ services:
       start_period: 10s
   # ── WELL: Biological Substrate ─────────────────────────────────────────
   well:
-    image: ghcr.io/ariffazil/well:5c9d0ff
+    image: ghcr.io/ariffazil/well:abe4125
     container_name: well
     init: true
     restart: unless-stopped

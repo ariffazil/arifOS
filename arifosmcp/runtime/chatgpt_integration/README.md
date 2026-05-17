@@ -23,11 +23,11 @@ OpenAI/ChatGPT kini menyokong **Remote MCP Servers** melalui HTTP! Ini membolehk
 ### 1. Deploy arifOS (HTTP Transport)
 
 ```bash
-# Via Prefect Horizon (Auto-deploy)
-https://arifos.fastmcp.app/mcp
+# Via VPS (Sovereign — own domain)
+https://arifos.arif-fazil.com/mcp
 
-# Via VPS (Sovereign)
-https://arifosmcp.arif-fazil.com/mcp
+# Via mcp alias
+https://mcp.arif-fazil.com/mcp
 ```
 
 ### 2. Connect in ChatGPT
@@ -36,7 +36,7 @@ https://arifosmcp.arif-fazil.com/mcp
 1. ChatGPT → Settings → Connectors → Developer Mode: **ON**
 2. Create Connector:
    - **Name**: arifOS Sovereign
-   - **URL**: `https://arifos.fastmcp.app/mcp`
+   - **URL**: `https://arifos.arif-fazil.com/mcp`
    - Check "I trust this provider"
 3. Save & Enable in chat
 
@@ -165,8 +165,8 @@ All ChatGPT interactions melalui arifOS **tetap governed**:
 
 | Environment | URL | Status |
 |-------------|-----|--------|
-| **Horizon** | `https://arifos.fastmcp.app/mcp` | ☁️ Public |
-| **VPS** | `https://arifosmcp.arif-fazil.com/mcp` | 🔒 Sovereign |
+| **VPS (Primary)** | `https://arifos.arif-fazil.com/mcp` | 🔒 Sovereign |
+| **mcp alias** | `https://mcp.arif-fazil.com/mcp` | 🔒 Sovereign |
 
 ---
 

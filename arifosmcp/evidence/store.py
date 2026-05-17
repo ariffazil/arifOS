@@ -21,12 +21,13 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# P0-FIX-2: Use ARIFOS_VAULT_PATH env var for container-safe path.
-# Inside the container, /root/VAULT999/ is NOT accessible (host mode 700).
-# The container-writable path is /var/lib/arifos/vault/evidence.
+# P0-FIX-2 (rev2): VAULT999_EVIDENCE uses dedicated ARIFOS_EVIDENCE_ROOT env var.
+# ARIFOS_VAULT_PATH is for the outcomes.jsonl vault ledger file (a FILE).
+# ARIFOS_EVIDENCE_ROOT is for the evidence store directory.
+# They must be different paths — never conflate a file path with a directory path.
 VAULT999_EVIDENCE = Path(
     os.environ.get(
-        "ARIFOS_VAULT_PATH",
+        "ARIFOS_EVIDENCE_ROOT",
         "/var/lib/arifos/vault/evidence",
     )
 )

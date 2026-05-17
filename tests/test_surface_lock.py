@@ -41,16 +41,16 @@ def test_no_legacy_surface():
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
     legacy = [n for n in CANONICAL_TOOLS if n.startswith("arifos_")]
-    assert not legacy, f"Legacy surface detected: {legacy}. " "arifos_ prefix is deprecated. VOID."
+    assert not legacy, f"Legacy surface detected: {legacy}. arifos_ prefix is deprecated. VOID."
 
 
 def test_canonical_prompts_count():
-    """Exactly 8 canonical prompts required."""
+    """Exactly 9 canonical prompts required (Phase 1 adds 888_deliberation)."""
     from arifosmcp.prompts import CANONICAL_PROMPTS
 
     assert (
-        len(CANONICAL_PROMPTS) == 8
-    ), f"Prompt drift: expected 8, got {len(CANONICAL_PROMPTS)}. VOID."
+        len(CANONICAL_PROMPTS) == 9
+    ), f"Prompt drift: expected 9, got {len(CANONICAL_PROMPTS)}. VOID."
 
 
 def test_canonical_resources_count():
