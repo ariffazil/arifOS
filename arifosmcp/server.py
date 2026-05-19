@@ -158,6 +158,12 @@ mcp = FastMCP(
     website_url="https://arifosmcp.arif-fazil.com",
     instructions=(
         "Constitutional AI orchestration kernel — arifOS.\n\n"
+        "Membrane Principle:\n"
+        "- Language is lossy compression, not the world.\n"
+        "- Intelligence is uncertainty reduction under constraint and human judgment.\n"
+        "- Truth survives falsification, not assertion.\n"
+        "- Meaning is sovereign-anchored; the machine carries structure, not sense.\n"
+        "- Paradox is the boundary scream — the correct response is HOLD.\n\n"
         "Golden path: init → sense → mind → heart → judge → vault\n\n"
         "Canonical surface: 13 public capability tools (arif_noun_verb naming).\n"
         f"Tools:\n  {', '.join(sorted(list_canonical_tools()))}\n\n"
@@ -221,14 +227,56 @@ try:
         tags={"diagnostic", "ops", "health", "governance"},
     )(arif_stack_health_probe)
 
-    v2_tools_registered.extend(
-        [
-            "arif_stack_health_probe",
-        ]
-    )
+    v2_tools_registered.append("arif_stack_health_probe")
     logger.info(
         "Registered diagnostics: arif_stack_health_probe"  # noqa: E501
     )
+
+    # ── Google Workspace Tools ────────────────────────────────────────────────
+    try:
+        from arifosmcp.tools.google_workspace import (
+            google_calendar_create_event,
+            google_calendar_list_events,
+            google_drive_list_files,
+            google_drive_search,
+            google_gmail_read_unread,
+            google_gmail_send,
+            google_sheets_append,
+            google_sheets_read,
+        )
+
+        _gw_tools = [
+            (
+                "google_gmail_read_unread",
+                google_gmail_read_unread,
+                "Read unread emails from Gmail.",
+            ),
+            ("google_gmail_send", google_gmail_send, "Send an email via Gmail. Requires actor_id."),
+            (
+                "google_calendar_list_events",
+                google_calendar_list_events,
+                "List upcoming Google Calendar events.",
+            ),
+            (
+                "google_calendar_create_event",
+                google_calendar_create_event,
+                "Create a Google Calendar event. Requires actor_id.",
+            ),
+            ("google_drive_list_files", google_drive_list_files, "List recent Google Drive files."),
+            ("google_drive_search", google_drive_search, "Search Google Drive by file name."),
+            ("google_sheets_read", google_sheets_read, "Read values from a Google Sheet."),
+            (
+                "google_sheets_append",
+                google_sheets_append,
+                "Append rows to a Google Sheet. Requires actor_id.",
+            ),
+        ]
+        for name, func, desc in _gw_tools:
+            mcp.tool(name=name, description=desc, tags={"google", "workspace"})(func)
+            v2_tools_registered.append(name)
+        logger.info(f"Registered Google Workspace tools: {len(_gw_tools)}")
+    except Exception as _gw_err:
+        logger.warning(f"Google Workspace tools registration skipped: {_gw_err}")
 
     # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
     try:
