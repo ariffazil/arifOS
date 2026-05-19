@@ -134,7 +134,7 @@ LABEL io.modelcontextprotocol.server.name="io.github.ariffazil/arifosmcp" \
       org.opencontainers.image.revision="${DEPLOY_GIT_COMMIT}" \
       org.opencontainers.image.created="${DEPLOY_BUILD_TIME}" \
       org.opencontainers.image.source="https://github.com/ariffazil/arifOS" \
-      org.opencontainers.image.licenses="MIT"
+      org.opencontainers.image.licenses="AGPL-3.0"
 
 # Execute consolidated entrypoint
 CMD ["uvicorn", "arifosmcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8080"]
