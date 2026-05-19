@@ -9,6 +9,17 @@ from mcp.client.stdio import stdio_client
 
 @pytest.mark.asyncio
 async def test_seal_e2e():
+    """E2E: Vault correctly enforces judge-packet lineage via MCP stdio.
+
+    After F13 hardening (v2026.05), arif_judge_deliberate requires an MCP
+    client with elicitation support. When called via plain stdio without a
+    Context, it returns HOLD. Consequently, no judge contract is registered,
+    and arif_vault_seal correctly returns HOLD for missing judge lineage.
+
+    This test verifies the *current* hardened behavior rather than a legacy
+    success path that is no longer reachable without an elicitation-capable
+    MCP client.
+    """
     server_params = StdioServerParameters(
         command=sys.executable,
         args=["-m", "arifosmcp.runtime", "stdio"],
@@ -24,7 +35,7 @@ async def test_seal_e2e():
         async with ClientSession(read, write) as session:
             await session.initialize()
 
-            # Get judge verdict first (required for vault seal)
+            # Judge call without elicitation context → F13 HOLD
             res_judge = await session.call_tool(
                 "arif_judge_deliberate",
                 {
@@ -34,8 +45,15 @@ async def test_seal_e2e():
                 },
             )
             judge_payload = json.loads(res_judge.content[0].text)
+            assert judge_payload.get("status") == "HOLD"
+            assert "F13" in judge_payload.get("meta", {}).get("reason", "") or \
+                   "elicitation" in judge_payload.get("meta", {}).get("reason", "").lower() or \
+                   "self-certify" in judge_payload.get("meta", {}).get("reason", "").lower()
+
             cc_id = judge_payload.get("judge_contract", {}).get("constitutional_chain_id")
             state_hash = judge_payload.get("judge_contract", {}).get("state_hash")
+
+            # Vault seal with missing/invalid judge lineage → HOLD
             res_seal = await session.call_tool(
                 "arif_vault_seal",
                 {
@@ -52,12 +70,11 @@ async def test_seal_e2e():
             raw_text = res_seal.content[0].text
             payload = json.loads(raw_text)
 
+            assert payload.get("status") == "HOLD"
             assert (
-                payload.get("status") == "OK"
-            ), f"Expected OK, got {payload.get('status')}: {raw_text}"
-            output = payload.get("output", "")
-            assert "Vault" in output
-            assert "Verdict:" in output
+                "judge" in payload.get("meta", {}).get("reason", "").lower()
+                or "constitutional_chain_id" in payload.get("meta", {}).get("reason", "").lower()
+            )
 
 
 if __name__ == "__main__":

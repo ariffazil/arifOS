@@ -326,20 +326,20 @@ class TestSkillToolMapping:
 
     def test_all_40_skills_listed_in_index(self):
         idx = _build_index()
-        # 40 skills in manifest v60
-        assert idx["total_skills"] == 40, f"Expected 40, got {idx['total_skills']}"
+        # 50 skills in manifest v2026.05
+        assert idx["total_skills"] == 50, f"Expected 50, got {idx['total_skills']}"
 
     def test_arifos_skills_count(self):
         idx = _build_index()
-        assert idx["categories"]["arifos"]["count"] == 10
+        assert idx["categories"]["arifos"]["count"] == 12
 
     def test_infrastructure_skills_count(self):
         idx = _build_index()
-        assert idx["categories"]["infrastructure"]["count"] == 23
+        assert idx["categories"]["infrastructure"]["count"] == 28
 
     def test_federation_skills_count(self):
         idx = _build_index()
-        assert idx["categories"]["federation"]["count"] == 5
+        assert idx["categories"]["federation"]["count"] == 8
 
     def test_constitutional_reasoning_cites_key_floors(self):
         r = get_tree777_skill_resource("arifos", "constitutional-reasoning")

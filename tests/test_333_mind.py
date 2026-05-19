@@ -317,8 +317,8 @@ class TestMultimodalHelpers:
 
     @pytest.mark.asyncio
     async def test_understand_image_returns_structure(self):
-        result = await _mind_mod._understand_image("http://example.com/img.png", "what is this?")
-        assert result["capability"] == "image_understanding"
+        result = await _mind_mod._interpret_image_signals("http://example.com/img.png", "what is this?")
+        assert result["capability"] == "visual_signal_interpretation"
         assert result["image_url"] == "http://example.com/img.png"
         assert result["question"] == "what is this?"
 

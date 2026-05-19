@@ -164,6 +164,7 @@ class TestT4QueryPlannerRouting:
         assert providers[0].provider_type == ProviderType.EXA
 
     def test_no_live_providers_returns_empty(self, monkeypatch):
+        """When no API-key providers are configured, Meyhem fallback is still live."""
         monkeypatch.setenv("BRAVE_API_KEY", "")
         monkeypatch.setenv("EXA_API_KEY", "")
         monkeypatch.setenv("TAVILY_API_KEY", "")
@@ -173,7 +174,9 @@ class TestT4QueryPlannerRouting:
 
         planner = QueryPlanner()
         providers = planner._select_providers("test", QueryMode.REALTIME)
-        assert providers == []
+        # Meyhem requires no API key — always live as fallback
+        assert len(providers) >= 1
+        assert any(p.provider_type.value == "meyhem" for p in providers)
 
 
 class TestT5RuntimeCompatibility:

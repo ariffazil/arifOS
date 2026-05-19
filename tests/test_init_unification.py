@@ -49,7 +49,7 @@ class TestLegacyToolRemoval:
     def test_init_anchor_state_impl_is_removed(self):
         """Internal legacy implementations are physically deleted."""
         try:
-            from arifosmcp.runtime.tools_internal import init_anchor_impl
+            from arifosmcp.runtime.tools_internal import init_anchor_impl  # noqa: F401
 
             pytest.fail("init_anchor_impl still exists in tools_internal.py")
         except ImportError:
@@ -102,7 +102,7 @@ class TestImplementationStructure:
 
     def test_init_anchor_dispatch_handles_all_modes(self):
         """hardened_init_anchor_dispatch has logic for all 5 modes."""
-        from arifosmcp.runtime.tools_hardened_dispatch import (
+        from arifosmcp.runtime.dispatcher import (
             hardened_init_anchor_dispatch,
         )
         import inspect
