@@ -7,8 +7,8 @@ fastapi>=0.100.0
 psycopg2-binary>=2.9.9
 httpx-sse>=0.4.3
 numpy==2.1.3
-scipy==1.17.1
-scikit-learn==1.8.0
-torch==2.11.0
+scipy==1.14.1
+scikit-learn==1.5.2
+torch==2.5.1
 transformers==4.46.3
-sentence-transformers==5.4.1
+sentence-transformers==3.3.1
