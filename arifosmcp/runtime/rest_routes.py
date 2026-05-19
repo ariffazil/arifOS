@@ -2327,6 +2327,8 @@ def register_rest_routes(
                 "deployment_source": "ghcr",
                 "transport": "streamable-http",
                 "tools_loaded": getattr(mcp, "_tool_count", len(tool_registry)),
+                "floors_active": get_floor_count(),
+                "floors_enforcement": "active",
                 "tool_registry_hash": _compute_tool_registry_hash(tool_registry),
                 "registry_truth": "VERIFIED",  # Tool registry is intact; hash confirms no drift
                 "schema_hash": _compute_schema_hash(mcp, tool_registry),

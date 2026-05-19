@@ -246,11 +246,16 @@ def arif_memory_recall(
 
         while iterations < _max_rag_iterations:
             iterations += 1
-            results = memory_search(
+            search_result = memory_search(
                 query=current_query,
                 tags=tags,
                 session_id=session_id,
                 limit=limit,
+            )
+            results = (
+                search_result.get("results", [])
+                if isinstance(search_result, dict)
+                else (search_result or [])
             )
 
             if results:
@@ -327,7 +332,12 @@ def arif_memory_recall(
 
     # ── Recall by query (semantic search without memory_id) ─────────────────
     if mode == "recall" and not memory_id and query:
-        results = memory_search(query=query, session_id=session_id, limit=limit)
+        search_result = memory_search(query=query, session_id=session_id, limit=limit)
+        results = (
+            search_result.get("results", [])
+            if isinstance(search_result, dict)
+            else (search_result or [])
+        )
         hits = [
             {
                 "memory_id": r.get("memory_id", ""),

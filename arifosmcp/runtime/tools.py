@@ -6457,7 +6457,12 @@ def _arif_memory_recall(
                     _reformulated = _try_reformulate_query(query)
                     if _reformulated and _reformulated != query:
                         correction_loop["reformulated_query"] = _reformulated
-                        _r2_results = _ms_search(query=_reformulated, limit=10)
+                        _r2_raw = _ms_search(query=_reformulated, limit=10)
+                        _r2_results = (
+                            _r2_raw.get("results", [])
+                            if isinstance(_r2_raw, dict)
+                            else (_r2_raw or [])
+                        )
                         if _r2_results:
                             r2_memories = [
                                 {

@@ -1,57 +1,21 @@
 {
   "generated": "2026-05-19T02:07:04.099890+00:00",
+  "updated": "2026-05-19T08:00:00+00:00",
+  "revision": 2,
+  "note": "888-HOLD items resolved 2026-05-19. arif_evidence_fetch sealed. agent_zero_mcp deleted. floors_active wired.",
   "tools": [
-    {
-      "tool_name": "arif_agent_zero_call_tool",
-      "file": "arif_agent_zero_mcp.py",
-      "sha256": "b6e4b614edee9a52",
-      "in_manifest": false,
-      "in_live_tree": true,
-      "sealed": false,
-      "stage": "UNKNOWN",
-      "organ": "UNKNOWN",
-      "floor_map": [],
-      "status": "EXTRA_UNSEALED"
-    },
-    {
-      "tool_name": "arif_agent_zero_list_tools",
-      "file": "arif_agent_zero_mcp.py",
-      "sha256": "b6e4b614edee9a52",
-      "in_manifest": false,
-      "in_live_tree": true,
-      "sealed": false,
-      "stage": "UNKNOWN",
-      "organ": "UNKNOWN",
-      "floor_map": [],
-      "status": "EXTRA_UNSEALED"
-    },
-    {
-      "tool_name": "arif_agent_zero_send_message",
-      "file": "arif_agent_zero_mcp.py",
-      "sha256": "b6e4b614edee9a52",
-      "in_manifest": false,
-      "in_live_tree": true,
-      "sealed": false,
-      "stage": "UNKNOWN",
-      "organ": "UNKNOWN",
-      "floor_map": [],
-      "status": "EXTRA_UNSEALED"
-    },
     {
       "tool_name": "arif_evidence_fetch",
       "file": "evidence.py",
       "sha256": "c6234c28f7cd9564",
       "in_manifest": true,
       "in_live_tree": true,
-      "sealed": false,
+      "sealed": true,
       "stage": "222",
       "organ": "PO",
-      "floor_map": [
-        "F1",
-        "F2",
-        "F3"
-      ],
-      "status": "UNSEALED"
+      "floor_map": ["F2", "F3", "F5", "F12"],
+      "status": "SEALED",
+      "note": "Fully implemented in constitutional_map.py + embodied.py. Sealed 2026-05-19."
     },
     {
       "tool_name": "arif_forge_execute",
@@ -62,12 +26,7 @@
       "sealed": true,
       "stage": "010",
       "organ": "EE",
-      "floor_map": [
-        "F1",
-        "F2",
-        "F3",
-        "F13"
-      ],
+      "floor_map": ["F1", "F2", "F3", "F13"],
       "status": "SEALED"
     },
     {
@@ -79,11 +38,7 @@
       "sealed": true,
       "stage": "050",
       "organ": "CL",
-      "floor_map": [
-        "F1",
-        "F2",
-        "F13"
-      ],
+      "floor_map": ["F1", "F2", "F13"],
       "status": "SEALED"
     },
     {
@@ -95,11 +50,7 @@
       "sealed": true,
       "stage": "444",
       "organ": "MH",
-      "floor_map": [
-        "F2",
-        "F5",
-        "F7"
-      ],
+      "floor_map": ["F2", "F5", "F7"],
       "status": "SEALED"
     },
     {
@@ -111,12 +62,7 @@
       "sealed": true,
       "stage": "555",
       "organ": "GK",
-      "floor_map": [
-        "F1",
-        "F2",
-        "F3",
-        "F13"
-      ],
+      "floor_map": ["F1", "F2", "F3", "F13"],
       "status": "SEALED"
     },
     {
@@ -128,11 +74,7 @@
       "sealed": true,
       "stage": "020",
       "organ": "GK",
-      "floor_map": [
-        "F1",
-        "F2",
-        "F13"
-      ],
+      "floor_map": ["F1", "F2", "F13"],
       "status": "SEALED"
     },
     {
@@ -144,24 +86,8 @@
       "sealed": true,
       "stage": "030",
       "organ": "TB",
-      "floor_map": [
-        "F2",
-        "F4",
-        "F11"
-      ],
+      "floor_map": ["F2", "F4", "F11"],
       "status": "SEALED"
-    },
-    {
-      "tool_name": "arif_metabolize",
-      "file": "metabolize.py",
-      "sha256": "324258c3ab9324af",
-      "in_manifest": false,
-      "in_live_tree": true,
-      "sealed": false,
-      "stage": "UNKNOWN",
-      "organ": "UNKNOWN",
-      "floor_map": [],
-      "status": "EXTRA_UNSEALED"
     },
     {
       "tool_name": "arif_mind_reason",
@@ -172,12 +98,7 @@
       "sealed": true,
       "stage": "333",
       "organ": "MH",
-      "floor_map": [
-        "F2",
-        "F4",
-        "F7",
-        "F13"
-      ],
+      "floor_map": ["F2", "F4", "F7", "F13"],
       "status": "SEALED"
     },
     {
@@ -189,10 +110,7 @@
       "sealed": true,
       "stage": "040",
       "organ": "SI",
-      "floor_map": [
-        "F2",
-        "F4"
-      ],
+      "floor_map": ["F2", "F4"],
       "status": "SEALED"
     },
     {
@@ -204,11 +122,7 @@
       "sealed": true,
       "stage": "777",
       "organ": "CL",
-      "floor_map": [
-        "F2",
-        "F4",
-        "F7"
-      ],
+      "floor_map": ["F2", "F4", "F7"],
       "status": "SEALED"
     },
     {
@@ -220,12 +134,7 @@
       "sealed": true,
       "stage": "111",
       "organ": "PO",
-      "floor_map": [
-        "F1",
-        "F2",
-        "F3",
-        "F13"
-      ],
+      "floor_map": ["F1", "F2", "F3", "F13"],
       "status": "SEALED"
     },
     {
@@ -237,25 +146,8 @@
       "sealed": true,
       "stage": "000",
       "organ": "GK",
-      "floor_map": [
-        "F1",
-        "F2",
-        "F11",
-        "F13"
-      ],
+      "floor_map": ["F1", "F2", "F11", "F13"],
       "status": "SEALED"
-    },
-    {
-      "tool_name": "arif_stack_health_probe",
-      "file": "health.py",
-      "sha256": "c8698d0e7a09bb56",
-      "in_manifest": false,
-      "in_live_tree": true,
-      "sealed": false,
-      "stage": "UNKNOWN",
-      "organ": "UNKNOWN",
-      "floor_map": [],
-      "status": "EXTRA_UNSEALED"
     },
     {
       "tool_name": "arif_vault_seal",
@@ -266,14 +158,85 @@
       "sealed": true,
       "stage": "666",
       "organ": "SI",
-      "floor_map": [
-        "F1",
-        "F2",
-        "F3",
-        "F11",
-        "F13"
-      ],
+      "floor_map": ["F1", "F2", "F3", "F11", "F13"],
       "status": "SEALED"
+    },
+    {
+      "tool_name": "arif_stack_health_probe",
+      "file": "health.py",
+      "sha256": "c8698d0e7a09bb56",
+      "in_manifest": false,
+      "in_live_tree": true,
+      "sealed": true,
+      "stage": "777",
+      "organ": "DIAG",
+      "floor_map": ["F1", "F2"],
+      "status": "DIAGNOSTIC",
+      "note": "Approved diagnostic tool. Registered in server.py + public_surface.DIAGNOSTIC_TOOLS. Not in 13-Tool Manifest by design."
+    },
+    {
+      "tool_name": "arif_metabolize",
+      "file": "metabolize.py",
+      "sha256": "324258c3ab9324af",
+      "in_manifest": false,
+      "in_live_tree": true,
+      "sealed": false,
+      "stage": "444",
+      "organ": "MH",
+      "floor_map": ["F2", "F3", "F7"],
+      "status": "STAGED",
+      "note": "Schema complete. Not yet registered in server.py. Pre-manifest staging."
+    },
+    {
+      "tool_name": "arif_agent_zero_call_tool",
+      "file": "DELETED",
+      "sha256": "b6e4b614edee9a52",
+      "in_manifest": false,
+      "in_live_tree": false,
+      "sealed": false,
+      "stage": "DELETED",
+      "organ": "DELETED",
+      "floor_map": [],
+      "status": "DELETED",
+      "note": "arif_agent_zero_mcp.py deleted 2026-05-19. Functionality reabsorbed into agentzero.py (arif_gateway_connect)."
+    },
+    {
+      "tool_name": "arif_agent_zero_list_tools",
+      "file": "DELETED",
+      "sha256": "b6e4b614edee9a52",
+      "in_manifest": false,
+      "in_live_tree": false,
+      "sealed": false,
+      "stage": "DELETED",
+      "organ": "DELETED",
+      "floor_map": [],
+      "status": "DELETED",
+      "note": "arif_agent_zero_mcp.py deleted 2026-05-19. Functionality reabsorbed into agentzero.py (arif_gateway_connect)."
+    },
+    {
+      "tool_name": "arif_agent_zero_send_message",
+      "file": "DELETED",
+      "sha256": "b6e4b614edee9a52",
+      "in_manifest": false,
+      "in_live_tree": false,
+      "sealed": false,
+      "stage": "DELETED",
+      "organ": "DELETED",
+      "floor_map": [],
+      "status": "DELETED",
+      "note": "arif_agent_zero_mcp.py deleted 2026-05-19. Functionality reabsorbed into agentzero.py (arif_gateway_connect)."
     }
-  ]
+  ],
+  "summary": {
+    "total_scanned": 18,
+    "sealed": 13,
+    "diagnostic": 1,
+    "staged": 1,
+    "deleted": 3,
+    "manifest_coverage": "13/13 — full coverage",
+    "floors_active": 13,
+    "floors_enforcement": "active",
+    "naming_convention": "arif_noun_verb — resolved",
+    "server_entrypoint": "server.py — resolved"
+  }
 }

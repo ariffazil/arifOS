@@ -19,6 +19,7 @@ URI scheme:
   tree777://concepts/*          — knowledge concept pages
   tree777://scars/*             — scar/incident records
   tree777://schemas/*           — schema pages
+  tree777://registry/tools       — live tool registry (13 sealed + diagnostics)
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -39,6 +40,13 @@ WIKI_ROOT = Path(os.environ.get("TREE777_WIKI_ROOT", "/root/AAA/wiki"))
 SKILLS_DIR = WIKI_ROOT / "skills"
 CONCEPTS_DIR = WIKI_ROOT / "concepts"
 SCARS_DIR = WIKI_ROOT / "scars"
+
+TOOL_REGISTRY_PATH = Path(
+    os.environ.get(
+        "TOOL_REGISTRY_PATH",
+        "/root/arifOS/core/vault999/layer4_survivability/tool-registry-2026-05-19.json",
+    )
+)
 
 
 # ── Skill Index ────────────────────────────────────────────────────────────────
@@ -435,7 +443,22 @@ def register_tree777_resources(mcp: FastMCP) -> list[str]:
 
 RESOURCE_HANDLERS = {
     "tree777://index": lambda: get_tree777_index_resource()["body"],
+    "tree777://registry/tools": lambda: get_tree777_registry_resource("tools")["body"],
 }
+
+
+def get_tree777_registry_resource(name: str) -> dict[str, Any]:
+    """Return a tool registry resource by name. Currently supports 'tools'."""
+    uri = f"tree777://registry/{name}"
+    if name != "tools":
+        return {"uri": uri, "error": f"Unknown registry resource: {name}. Available: tools"}
+    if not TOOL_REGISTRY_PATH.exists():
+        return {"uri": uri, "error": "Tool registry not found", "path": str(TOOL_REGISTRY_PATH)}
+    try:
+        data = json.loads(TOOL_REGISTRY_PATH.read_text())
+        return {"uri": uri, "metadata": {"name": "tool-registry", "type": "registry"}, "body": data}
+    except Exception as e:
+        return {"uri": uri, "error": str(e)}
 
 
 def handle_resource(uri: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -466,6 +489,9 @@ def handle_resource(uri: str, params: dict[str, Any] | None = None) -> dict[str,
     if len(parts) == 2 and parts[0] == "scars":
         return get_tree777_scar_resource(parts[1])
 
+    if len(parts) == 2 and parts[0] == "registry":
+        return get_tree777_registry_resource(parts[1])
+
     return {
         "uri": uri,
         "error": f"Unknown TREE777 resource URI: {uri}",
@@ -475,6 +501,7 @@ def handle_resource(uri: str, params: dict[str, Any] | None = None) -> dict[str,
             "tree777://skills/{category}/{name}",
             "tree777://concepts/{name}",
             "tree777://scars/{name}",
+            "tree777://registry/tools",
         ],
     }
 
@@ -486,6 +513,7 @@ __all__ = [
     "get_tree777_concept_resource",
     "get_tree777_scar_resource",
     "get_tree777_search_resource",
+    "get_tree777_registry_resource",
     "RESOURCE_HANDLERS",
     "handle_resource",
 ]
