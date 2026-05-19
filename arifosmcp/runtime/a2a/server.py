@@ -23,8 +23,8 @@ from typing import Any
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-from arifosmcp.runtime.build_info import get_build_info
-from arifosmcp.runtime.mcp_utils import call_mcp_tool
+from arifosmcp.runtime.build import get_build_info
+from arifosmcp.runtime.mcp_util import call_mcp_tool
 from arifosmcp.runtime.optional_deps import aiofiles
 from arifosmcp.server import mcp as _FAST_MCP_
 
@@ -637,7 +637,7 @@ class A2AServer:
         @self.app.get("/meta/omega/violations")
         async def orthogonality_violations():
             """Get detailed Ω_ortho violations."""
-            from arifosmcp.runtime.m01_correlation_auditor import get_auditor
+            from arifosmcp.runtime.auditor import get_auditor
 
             auditor = get_auditor()
             report = auditor.compute_orthogonality()

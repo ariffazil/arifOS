@@ -130,7 +130,8 @@ aaa.arif-fazil.com {
 	encode zstd gzip
 	root * /var/www/html/aaa
 
-	handle /a2a {
+	@a2a_exact expression {path} == "/a2a" || {path} == "/a2a/"
+	handle @a2a_exact {
 		reverse_proxy aaa-a2a:3001
 	}
 	handle /a2a/* {

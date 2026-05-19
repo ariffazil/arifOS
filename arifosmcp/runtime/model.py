@@ -258,6 +258,10 @@ class TelemetryMetrics(BaseModel):
     peace2: float = 1.0
     omega_ortho: float = 1.0
     shadow: float = 0.0
+    kappa_r: float | None = None
+    echo_debt: float = 0.1
+    psi_le: float = 0.0
+    verdict: str = "ALIVE"
 
 
 class TelemetryBasis(BaseModel):

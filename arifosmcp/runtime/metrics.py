@@ -73,7 +73,7 @@ except ImportError:
 from arifosmcp.runtime.model import (
     CanonicalMetrics,
     TelemetryBasis,
-    TelemetryVitals,
+    TelemetryMetrics,
     TripleWitness,
 )
 
@@ -525,7 +525,7 @@ def compute_integrity_telemetry(
         verdict = "ALIVE"
 
     return CanonicalMetrics(
-        telemetry=TelemetryVitals(
+        telemetry=TelemetryMetrics(
             ds=ds,
             peace2=peace2,
             kappa_r=kappa_r,

@@ -24,7 +24,7 @@ from core.enforcement.auth_continuity import (
 from core.organs import agi, apex, asi, init, vault
 from core.organs._4_vault import verify_vault_ledger
 
-from .models import ClaimStatus, Verdict
+from .model import ClaimStatus, Verdict
 
 logger = logging.getLogger(__name__)
 
