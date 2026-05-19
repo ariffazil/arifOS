@@ -18,6 +18,32 @@
 -- DITEMPA BUKAN DIBERI — Forged, Not Given
 
 -- ============================================================================
+-- 0. memory_store bootstrap (idempotent — fixes missing base table on fresh deploy)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS memory_store (
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tier                    TEXT NOT NULL DEFAULT 'canonical',
+    text                    TEXT NOT NULL,
+    metadata                JSONB DEFAULT '{}',
+    qdrant_id               UUID,
+    session_id              TEXT NOT NULL DEFAULT '',
+    entity_tags             TEXT[] DEFAULT NULL,
+    temporal_marker         VARCHAR(20) DEFAULT 'unknown',
+    superseded_by           UUID DEFAULT NULL,
+    superseded_at           TIMESTAMPTZ DEFAULT NULL,
+    distillation_status     VARCHAR(20) DEFAULT NULL,
+    distillation_metadata   JSONB DEFAULT NULL,
+    valid_at                TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    recorded_at             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at              TIMESTAMPTZ DEFAULT NULL,
+    created_at              TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_memory_store_session ON memory_store(session_id);
+CREATE INDEX IF NOT EXISTS idx_memory_store_deleted ON memory_store(deleted_at) WHERE deleted_at IS NULL;
+
+-- ============================================================================
 -- 1. memory_store: new columns for F4 + contradiction handling
 -- ============================================================================
 
