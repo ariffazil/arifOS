@@ -36,7 +36,8 @@ COPY . .
 # Install dependencies in build stage to keep runtime image clean.
 # The ML floor runtime is part of the image truth and must be reproducible.
 RUN python -m pip install --upgrade pip && \
-    if [ -f requirements.txt ]; then pip install -r requirements.txt; fi && \
+    # requirements.txt removed — pyproject.toml is sole source of truth
+    
     pip install .
 RUN python -c "import numpy, scipy, sklearn, torch, transformers, sentence_transformers"
 
