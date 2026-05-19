@@ -50,6 +50,15 @@ Complete mapping of all 43 pages to their tiers, strands, and metadata.
 | [[Reference_MCP_Servers]] | 20_RUNTIME | integration | engineers | intermediate | [Tool_Surface_Architecture] |
 | [[arifos_forge]] | 20_RUNTIME | tools | engineers | intermediate | [MCP_Tools] |
 | [[arifos_vps_monitor]] | 20_RUNTIME | tools | engineers | intermediate | [MCP_Tools] |
+| [[Skill_Docker_Management]] | 20_RUNTIME | tools, devops | engineers, operators | intermediate | [MCP_Tools, Concept_Deployment_Architecture] |
+| [[Skill_Inference_CLI]] | 20_RUNTIME | tools, ai-ops | engineers, operators, creators | beginner | [MCP_Tools] |
+| [[Skill_MCP_Mcporter]] | 20_RUNTIME | tools, mcp, integrations | engineers, operators | intermediate | [MCP_Tools, Tool_Surface_Architecture] |
+| [[Skill_Chroma_Vector_DB]] | 20_RUNTIME | tools, mlops, memory | engineers, researchers, operators | intermediate | [MCP_Tools, Concept_LLM_Wiki_Pattern] |
+| [[Skill_Qdrant_Vector_DB]] | 20_RUNTIME | tools, mlops, memory | engineers, researchers, operators | intermediate | [MCP_Tools, Concept_LLM_Wiki_Pattern, Skill_Chroma_Vector_DB] |
+| [[Skill_Whisper_ASR]] | 20_RUNTIME | tools, mlops, multimodal | engineers, researchers, operators | intermediate | [MCP_Tools] |
+| [[Skill_Parallel_CLI]] | 20_RUNTIME | tools, research, web | researchers, operators, analysts | intermediate | [MCP_Tools, Skill_MCP_Mcporter] |
+| [[Skill_SearXNG_Search]] | 20_RUNTIME | tools, research, web | engineers, researchers, operators | beginner | [MCP_Tools, Skill_MCP_Mcporter] |
+| [[Skill_GitHub_Suite]] | 20_RUNTIME | tools, devops, git | engineers, operators, researchers | intermediate | [MCP_Tools, Skill_Docker_Management] |
 | [[Concept_Decision_Velocity]] | 20_RUNTIME | paradox | researchers | advanced | [Concept_Metabolic_Pipeline] |
 
 **Rationale**: Runtime pages answer "how do I build with arifOS?" They require foundation knowledge but precede governance nuance.

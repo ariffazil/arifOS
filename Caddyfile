@@ -456,3 +456,22 @@ metrics.arif-fazil.com {
 	encode zstd gzip
 	reverse_proxy 127.0.0.1:19999
 }
+
+# ═══════════════════════════════════════════════════════════════════════
+# OPENCLAW GATEWAY
+# Telegram webhook: /telegram-webhook → port 8787 (monitor-webhook process)
+# UI + everything else → port 18789 (gateway)
+# ═══════════════════════════════════════════════════════════════════════
+openclaw.arif-fazil.com {
+	import tls_origin
+	encode zstd gzip
+	handle /telegram-webhook {
+		reverse_proxy 127.0.0.1:8787
+	}
+	handle /.well-known/agent-card.json {
+		reverse_proxy 127.0.0.1:18795
+	}
+	handle {
+		reverse_proxy 127.0.0.1:18789
+	}
+}

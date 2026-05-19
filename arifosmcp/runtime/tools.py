@@ -6396,11 +6396,12 @@ def _arif_memory_recall(
         try:
             from arifosmcp.runtime.memory_store import search as _ms_search
 
-            _results = _ms_search(query=query or "", limit=10)
+            _raw = _ms_search(query=query or "", limit=10)
+            _results = _raw.get("results", []) if isinstance(_raw, dict) else (_raw or [])
             memories = []
             for r in _results:
-                memories.append(
-                    {
+                    memories.append(
+                        {
                         "id": r.get("memory_id") or str(r.get("point_id", "")),
                         "text": r.get("summary", ""),
                         "content": r.get("content"),
@@ -6563,7 +6564,8 @@ def _arif_memory_recall(
             if session_id:
                 entries = _ms_ctx(session_id, limit=50)
             else:
-                entries = _ms_search(limit=50)
+                _raw = _ms_search(limit=50)
+                entries = _raw.get("results", []) if isinstance(_raw, dict) else (_raw or [])
         except Exception as exc:
             logger.warning("memory_store list failed: %s", exc)
             return _ok(

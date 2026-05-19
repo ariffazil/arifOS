@@ -25,6 +25,13 @@ logger = logging.getLogger(__name__)
 
 QUERY_PLANNER_AVAILABLE = True
 
+_MODE_PRIORITY_ATTR: dict[QueryMode, str] = {
+    QueryMode.REALTIME: "priority_realtime",
+    QueryMode.SEMANTIC: "priority_semantic",
+    QueryMode.RESEARCH: "priority_research",
+    QueryMode.NEWS: "priority_realtime",
+}
+
 
 @dataclass
 class QueryPlannerResult:
@@ -187,6 +194,8 @@ class QueryPlanner:
             return await self._firecrawl_search(client, query, limit)
         elif ptype == ProviderType.JINA:
             return await self._jina_search(client, query, limit)
+        elif ptype == ProviderType.MEYHEM:
+            return await self._meyhem_search(client, query, limit)
         return []
 
     async def _brave_search(
@@ -319,6 +328,37 @@ class QueryPlanner:
         except Exception:
             return []
 
+    async def _meyhem_search(
+        self, client: httpx.AsyncClient, query: str, limit: int
+    ) -> list[dict[str, Any]]:
+        """Search via Meyhem (api.rhdxm.com) — outcome-ranked, no API key required."""
+        try:
+            resp = await client.post(
+                "https://api.rhdxm.com/search",
+                json={
+                    "query": query,
+                    "max_results": min(limit, 10),
+                    "agent_id": "arifOS-queryplanner",
+                    "freshness": "hour",
+                },
+                headers={"Content-Type": "application/json"},
+            )
+            if resp.status_code != 200:
+                return []
+            data = resp.json()
+            results = data.get("results", []) if isinstance(data, dict) else []
+            return [
+                {
+                    "url": r.get("url", ""),
+                    "title": r.get("title", "") or r.get("url", ""),
+                    "description": r.get("description", "") or r.get("snippet", ""),
+                    "score": r.get("score", 0.5),
+                }
+                for r in results[:limit]
+            ]
+        except Exception:
+            return []
+
     def _normalize_results(
         self, raw_results: list[dict[str, Any]], provider: str
     ) -> list[dict[str, Any]]:
@@ -379,14 +419,8 @@ class QueryPlanner:
         for p in live:
             if query_mode not in p.supported_modes and query_mode != QueryMode.DEEP_PAGE:
                 continue
-            if query_mode == QueryMode.REALTIME:
-                score = p.priority_realtime
-            elif query_mode == QueryMode.SEMANTIC:
-                score = p.priority_semantic
-            elif query_mode == QueryMode.RESEARCH:
-                score = p.priority_research
-            else:
-                score = p.priority_realtime
+            attr = _MODE_PRIORITY_ATTR.get(query_mode, "priority_realtime")
+            score = getattr(p, attr)
             if classification == QueryMode.CODE and p.provider_type == ProviderType.BRAVE:
                 score += 5
             scored.append((score, p))

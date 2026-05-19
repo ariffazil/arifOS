@@ -17,7 +17,7 @@ class ProviderType(str, Enum):
     TAVILY = "tavily"
     FIRECRAWL = "firecrawl"
     JINA = "jina"
-    DDGS = "ddgs"
+    MEYHEM = "meyhem"
 
 
 class QueryMode(str, Enum):
@@ -46,6 +46,9 @@ class ProviderConfig:
 
     @property
     def is_live(self) -> bool:
+        # Meyhem (api_key_env="") requires no API key — always live
+        if not self.api_key_env:
+            return True
         return bool(os.getenv(self.api_key_env))
 
     @property
@@ -134,26 +137,28 @@ PROVIDER_CONFIGS: dict[ProviderType, ProviderConfig] = {
         priority_research=3,
         timeout_secs=30.0,
     ),
+    ProviderType.MEYHEM: ProviderConfig(
+        name="Meyhem",
+        provider_type=ProviderType.MEYHEM,
+        api_key_env="",  # No API key required
+        base_url="https://api.rhdxm.com",
+        monthly_quota=999_999_999,  # No rate limits documented
+        rate_limit_rpm=9999,
+        is_default=False,
+        supported_modes=[QueryMode.REALTIME, QueryMode.SEMANTIC, QueryMode.RESEARCH],
+        priority_realtime=3,
+        priority_semantic=4,
+        priority_research=4,
+        timeout_secs=20.0,
+    ),
 }
-
-
-_registry: dict[ProviderType, ProviderConfig] = {}
-
-
-def _init_registry() -> None:
-    _registry.clear()
-    for ptype, config in PROVIDER_CONFIGS.items():
-        _registry[ptype] = config
-
-
-_init_registry()
 
 
 class ProviderRegistry:
     __slots__ = ("_providers",)
 
     def __init__(self) -> None:
-        self._providers: dict[ProviderType, ProviderConfig] = dict(_registry)
+        self._providers: dict[ProviderType, ProviderConfig] = dict(PROVIDER_CONFIGS)
 
     def get(self, provider_type: ProviderType) -> ProviderConfig | None:
         return self._providers.get(provider_type)
@@ -177,8 +182,8 @@ def get_registry() -> ProviderRegistry:
 
 
 def get_live_providers() -> list[ProviderConfig]:
-    return [p for p in _registry.values() if p.is_live]
+    return [p for p in PROVIDER_CONFIGS.values() if p.is_live]
 
 
 def get_provider(provider_type: ProviderType) -> ProviderConfig | None:
-    return _registry.get(provider_type)
+    return PROVIDER_CONFIGS.get(provider_type)

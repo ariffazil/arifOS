@@ -52,6 +52,41 @@ def _sha256(text: str) -> str:
     return f"sha256:{hashlib.sha256(text.encode()).hexdigest()[:16]}"
 
 
+def _extract_confidence(parsed: dict[str, Any]) -> float:
+    val = parsed.get("confidence") if isinstance(parsed, dict) else None
+    if isinstance(val, dict):
+        val = val.get("overall_confidence") or val.get("confidence", 0.5)
+    return val if isinstance(val, (int, float)) else 0.5
+
+
+def _make_envelope(
+    raw_output: str,
+    parsed: dict[str, Any],
+    provider: str,
+    model: str,
+    tool_origin: str,
+    mode: str,
+    combined_prompt: str,
+    latency_ms: float,
+    response_schema: dict[str, Any] | None,
+) -> LLMOutputEnvelope:
+    envelope = wrap_llm_output(
+        raw_output=raw_output,
+        parsed_output=parsed,
+        provider=provider,
+        model=model,
+        tool_origin=tool_origin,
+        mode=mode,
+        prompt=combined_prompt,
+        schema_valid=True,
+        confidence=_extract_confidence(parsed),
+        latency_ms=latency_ms,
+    )
+    if response_schema:
+        _validate_schema(envelope.parsed_output, set(response_schema.get("properties", {}).keys()))
+    return envelope
+
+
 def _strip_markdown(content: str) -> str:
     """Strip markdown code fences from LLM output."""
     content = content.strip()
@@ -101,7 +136,7 @@ async def _call_sea_lion(
     }
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=20.0) as client:
             response = await client.post(
                 f"{SEA_LION_BASE_URL}/chat/completions",
                 headers={
@@ -132,8 +167,8 @@ async def _call_sea_lion(
     try:
         parsed = json.loads(raw_output)
     except json.JSONDecodeError as exc:
-        logger.warning("SEA-LION returned invalid JSON: %s", raw_output[:200])
-        raise LLMUnavailableError(f"SEA-LION returned invalid JSON: {exc}") from exc
+        logger.warning("SEA-LION returned invalid JSON, wrapping plain text: %s", raw_output[:200])
+        parsed = {"reasoning": raw_output, "answer": raw_output}
 
     if not isinstance(parsed, dict):
         raise LLMUnavailableError(
@@ -175,7 +210,7 @@ async def _call_ollama(
         # F13 TIMEOUT_SAFE: CPU inference on 7B model is ~2 tok/s.
         # 10s allows ~20 tokens — enough for structured JSON stub.
         # Longer prompts should use SEA-LION (GPU-accelerated API).
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=50.0) as client:
             response = await client.post(
                 f"{OLLAMA_BASE_URL}/api/generate",
                 json=payload,
@@ -193,7 +228,17 @@ async def _call_ollama(
             parsed = json.loads(parsed)
         if isinstance(parsed, dict) and "response" in parsed:
             raw_output = _strip_markdown(parsed["response"])
-            parsed = json.loads(raw_output)
+            try:
+                parsed = json.loads(raw_output)
+            except json.JSONDecodeError:
+                parsed = {"reasoning": raw_output, "answer": raw_output}
+        elif isinstance(parsed, dict) and "message" in parsed:
+            content = parsed["message"].get("content", "")
+            raw_output = _strip_markdown(content)
+            try:
+                parsed = json.loads(raw_output)
+            except json.JSONDecodeError:
+                parsed = {"reasoning": raw_output, "answer": raw_output}
         else:
             raw_output = _strip_markdown(json.dumps(parsed))
     except Exception as exc:
@@ -244,32 +289,11 @@ async def call_llm(
         raw_output, parsed = await _call_sea_lion(
             system, user, response_schema, temperature, max_tokens
         )
-        latency_ms = (time.monotonic() - t0) * 1000
-        confidence_val = parsed.get("confidence") if isinstance(parsed, dict) else None
-        if isinstance(confidence_val, dict):
-            confidence_val = confidence_val.get("overall_confidence") or confidence_val.get(
-                "confidence", 0.5
-            )
-        if not isinstance(confidence_val, int | float):
-            confidence_val = 0.5
-        envelope = wrap_llm_output(
-            raw_output=raw_output,
-            parsed_output=parsed,
-            provider="sea_lion",
-            model=SEA_LION_MODEL,
-            tool_origin=tool_origin,
-            mode=mode,
-            prompt=combined_prompt,
-            schema_valid=True,
-            confidence=confidence_val,
-            latency_ms=latency_ms,
+        return _make_envelope(
+            raw_output, parsed, "sea_lion", SEA_LION_MODEL,
+            tool_origin, mode, combined_prompt,
+            (time.monotonic() - t0) * 1000, response_schema,
         )
-        if response_schema:
-            _validate_schema(
-                envelope.parsed_output,
-                set(response_schema.get("properties", {}).keys()),
-            )
-        return envelope
     except LLMUnavailableError:
         pass
 
@@ -279,32 +303,11 @@ async def call_llm(
         raw_output, parsed = await _call_ollama(
             system, user, response_schema, temperature, max_tokens
         )
-        latency_ms = (time.monotonic() - t0) * 1000
-        confidence_val = parsed.get("confidence") if isinstance(parsed, dict) else None
-        if isinstance(confidence_val, dict):
-            confidence_val = confidence_val.get("overall_confidence") or confidence_val.get(
-                "confidence", 0.5
-            )
-        if not isinstance(confidence_val, int | float):
-            confidence_val = 0.5
-        envelope = wrap_llm_output(
-            raw_output=raw_output,
-            parsed_output=parsed,
-            provider="ollama",
-            model=OLLAMA_MODEL,
-            tool_origin=tool_origin,
-            mode=mode,
-            prompt=combined_prompt,
-            schema_valid=True,
-            confidence=confidence_val,
-            latency_ms=latency_ms,
+        return _make_envelope(
+            raw_output, parsed, "ollama", OLLAMA_MODEL,
+            tool_origin, mode, combined_prompt,
+            (time.monotonic() - t0) * 1000, response_schema,
         )
-        if response_schema:
-            _validate_schema(
-                envelope.parsed_output,
-                set(response_schema.get("properties", {}).keys()),
-            )
-        return envelope
     except LLMUnavailableError:
         pass
 

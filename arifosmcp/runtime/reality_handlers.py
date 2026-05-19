@@ -3,8 +3,10 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import re
 import time
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 
@@ -59,6 +61,41 @@ except ImportError:
     DDGS_AVAILABLE = False
 
 
+def _resolve_mode(bundle_input: BundleInput) -> str:
+    mode = bundle_input.mode
+    if mode == "auto":
+        return "fetch" if bundle_input.value.startswith(("http://", "https://")) else "search"
+    return mode
+
+
+def _make_bundle(actor: Actor, bundle_input: BundleInput, message: str) -> EvidenceBundle:
+    return EvidenceBundle(
+        status=BundleStatus(
+            state="PARTIAL",
+            stage="111_OBSERVE",
+            verdict="SABAR",
+            message=message,
+        ),
+        input=bundle_input,
+        actor=actor,
+    )
+
+
+def _try_vector_sync(bundle: EvidenceBundle, auth_context: dict[str, Any]) -> None:
+    if not (VECTOR_SYNC_AVAILABLE and bundle.status.state == "SUCCESS"):
+        return
+    try:
+        asyncio.create_task(
+            auto_sync_bundle(
+                bundle=bundle,
+                session_id=auth_context.get("session_id", "global"),
+                actor_id=auth_context.get("actor_id", "anonymous"),
+            )
+        )
+    except Exception as sync_e:
+        logger.warning("Vector auto-sync failed (non-blocking): %s", sync_e)
+
+
 class RealityHandler:
     def __init__(self):
         pass
@@ -93,9 +130,6 @@ class RealityHandler:
 
     def _is_safe_url(self, url: str) -> bool:
         """Simple check to prevent SSRF (local/private IPs)."""
-        import re
-        from urllib.parse import urlparse
-
         try:
             parsed = urlparse(url)
             if parsed.scheme not in ("http", "https"):
@@ -271,10 +305,14 @@ class RealityHandler:
         if not BRAVE_API_KEY:
             if DDGS_AVAILABLE:
                 logger.info("Brave key missing, falling back to DDGS")
-                return await self.search_ddgs(query, top_k)
-            res.error = "BRAVE_API_KEY not set and DDGS not available"
-            res.status_code = 401
-            return res
+                ddgs_result = await self.search_ddgs(query, top_k)
+                if ddgs_result.results:
+                    return ddgs_result
+                # DDGS empty → final fallback: Meyhem
+                logger.info("DDGS returned no results, trying Meyhem fallback")
+                return await self.search_meyhem(query, top_k)
+            logger.info("No Brave key, DDGS unavailable — trying Meyhem directly")
+            return await self.search_meyhem(query, top_k)
 
         # Brave V1 implementation...
         search_lang = locale.split("-")[0] if "-" in locale else "en"
@@ -306,20 +344,36 @@ class RealityHandler:
                     data = response.json()
                     web_results = data.get("web", {}) or {}
                     res.results = web_results.get("results", []) if web_results else []
-                    if not res.results and DDGS_AVAILABLE:
-                        logger.info("Brave returned no results, trying DDGS fallback")
-                        return await self.search_ddgs(query, top_k)
+                    if not res.results:
+                        if DDGS_AVAILABLE:
+                            logger.info("Brave returned no results, trying DDGS fallback")
+                            ddgs_result = await self.search_ddgs(query, top_k)
+                            if ddgs_result.results:
+                                return ddgs_result
+                            # DDGS also empty → final fallback: Meyhem
+                            logger.info("DDGS also empty, trying Meyhem final fallback")
+                            return await self.search_meyhem(query, top_k)
+                        # No DDGS → try Meyhem directly
+                        return await self.search_meyhem(query, top_k)
                 elif DDGS_AVAILABLE:
                     logger.warning(f"Brave error {response.status_code}, trying DDGS fallback")
-                    return await self.search_ddgs(query, top_k)
+                    ddgs_result = await self.search_ddgs(query, top_k)
+                    if ddgs_result.results:
+                        return ddgs_result
+                    logger.info("DDGS also failed, trying Meyhem final fallback")
+                    return await self.search_meyhem(query, top_k)
                 else:
                     res.error = f"Brave API Error {response.status_code}: {response.text[:500]}"
         except Exception as e:
             if DDGS_AVAILABLE:
                 logger.warning(f"Brave exception ({type(e).__name__}), trying DDGS fallback")
-                return await self.search_ddgs(query, top_k)
-            res.error = f"{e.__class__.__name__}: {str(e)}"
-            res.status_code = 0
+                ddgs_result = await self.search_ddgs(query, top_k)
+                if ddgs_result.results:
+                    return ddgs_result
+                logger.info("DDGS fallback also failed, trying Meyhem final fallback")
+                return await self.search_meyhem(query, top_k)
+            logger.warning(f"Brave exception ({type(e).__name__}), trying Meyhem directly")
+            return await self.search_meyhem(query, top_k)
 
         res.latency_ms = (time.time() - start_time) * 1000
         return res
@@ -353,6 +407,65 @@ class RealityHandler:
         res.latency_ms = (time.time() - start_time) * 1000
         return res
 
+    async def search_meyhem(
+        self, query: str, top_k: int = 5, agent_id: str = "arifOS-sensor"
+    ) -> SearchResult:
+        """
+        Search via Meyhem (api.rhdxm.com) — outcome-ranked web search.
+
+        Meyhem blends Exa + Tavily in parallel, deduplicates, score-normalizes,
+        and LLM-re-ranks results. Zero API key required.
+
+        API: POST https://api.rhdxm.com/search
+        Body:  {"query": "...", "max_results": N, "agent_id": "...", "freshness": "hour"}
+        Docs:  https://api.rhdxm.com/docs
+        """
+        start_time = time.time()
+        res = SearchResult(engine="meyhem", query=query)
+
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                response = await client.post(
+                    "https://api.rhdxm.com/search",
+                    json={
+                        "query": query,
+                        "max_results": min(max(1, top_k), 10),
+                        "agent_id": agent_id,
+                        "freshness": "hour",
+                    },
+                    headers={"Content-Type": "application/json"},
+                )
+                res.status_code = response.status_code
+                if response.status_code == 200:
+                    data = response.json()
+                    raw_results = data.get("results", []) if isinstance(data, dict) else []
+                    if not raw_results:
+                        res.error = (
+                            "Meyhem returned 0 results (service may be rate-limiting or degraded)"
+                        )
+                        res.status_code = 200
+                    else:
+                        res.results = [
+                            {
+                                "title": r.get("title") or r.get("url", ""),
+                                "url": r.get("url", ""),
+                                "description": r.get("description", "") or r.get("snippet", ""),
+                                "score": r.get("score", 0.0),
+                                "source_domain": r.get("source_domain", ""),
+                                "provider": r.get("provider", "meyhem"),
+                                "position": r.get("position", i),
+                            }
+                            for i, r in enumerate(raw_results)
+                        ]
+                else:
+                    res.error = f"Meyhem HTTP {response.status_code}: {response.text[:300]}"
+        except Exception as e:
+            res.error = f"Meyhem exception ({type(e).__name__}): {str(e)}"
+            res.status_code = 0
+
+        res.latency_ms = (time.time() - start_time) * 1000
+        return res
+
     # ── Phase 4A: QueryPlanner-backed handler ──────────────────────────────
     async def handle_compass_qp(
         self, bundle_input: BundleInput, auth_context: dict[str, Any]
@@ -377,22 +490,8 @@ class RealityHandler:
             authority_level=auth_context.get("authority_level", "anonymous"),
             token_fingerprint=auth_context.get("token_fingerprint"),
         )
-
-        bundle = EvidenceBundle(
-            status=BundleStatus(
-                state="PARTIAL",
-                stage="111_OBSERVE",
-                verdict="SABAR",
-                message="QueryPlanner acquisition initiated.",
-            ),
-            input=bundle_input,
-            actor=actor,
-        )
-
-        is_url = bundle_input.value.startswith(("http://", "https://"))
-        mode = bundle_input.mode
-        if mode == "auto":
-            mode = "fetch" if is_url else "search"
+        bundle = _make_bundle(actor, bundle_input, "QueryPlanner acquisition initiated.")
+        mode = _resolve_mode(bundle_input)
 
         try:
             if mode == "fetch":
@@ -460,19 +559,7 @@ class RealityHandler:
             bundle.status.message = f"QueryPlanner handler failure: {str(e)}"
             bundle.status.errors.append(StatusError(code="SCHEMA_FAIL", detail=str(e)))
 
-        # SEALTRIWITNESS Phase 2: Auto-sync
-        if VECTOR_SYNC_AVAILABLE and bundle.status.state == "SUCCESS":
-            try:
-                asyncio.create_task(
-                    auto_sync_bundle(
-                        bundle=bundle,
-                        session_id=auth_context.get("session_id", "global"),
-                        actor_id=auth_context.get("actor_id", "anonymous"),
-                    )
-                )
-            except Exception as sync_e:
-                logger.warning(f"Vector auto-sync failed (non-blocking): {sync_e}")
-
+        _try_vector_sync(bundle, auth_context)
         return bundle
 
     def _qp_results_to_search_result(self, qp_result) -> SearchResult:
@@ -504,122 +591,17 @@ class RealityHandler:
         ]
         return sr
 
-    # Alias for legacy path (used as fallback)
     async def handle_compass_legacy(
         self, bundle_input: BundleInput, auth_context: dict[str, Any]
     ) -> EvidenceBundle:
-        """Legacy handle_compass — preserved for fallback."""
+        """Canonical handle_compass implementation — used directly and as QP fallback."""
         actor = Actor(
             actor_id=auth_context.get("actor_id", "anonymous"),
             authority_level=auth_context.get("authority_level", "anonymous"),
             token_fingerprint=auth_context.get("token_fingerprint"),
         )
-
-        bundle = EvidenceBundle(
-            status=BundleStatus(
-                state="PARTIAL",
-                stage="111_OBSERVE",
-                verdict="SABAR",
-                message="Reality acquisition initiated (legacy path).",
-            ),
-            input=bundle_input,
-            actor=actor,
-        )
-
-        is_url = bundle_input.value.startswith(("http://", "https://"))
-        mode = bundle_input.mode
-        if mode == "auto":
-            mode = "fetch" if is_url else "search"
-
-        try:
-            if mode == "fetch":
-                f_res = await self.fetch_url(bundle_input.value, render=bundle_input.render)
-                bundle.results.append(f_res)
-                if f_res.status_code == 200 and f_res.content_length > 0:
-                    bundle.status.state = "SUCCESS"
-                    bundle.status.verdict = "SEAL"
-                    bundle.status.message = "Successfully fetched evidence."
-                else:
-                    bundle.status.state = "SABAR"
-                    bundle.status.errors.append(
-                        StatusError(
-                            code=self._map_exception(Exception(f_res.error_message or "")),
-                            detail=f_res.error_message or "Empty content",
-                        )
-                    )
-            elif mode == "search":
-                s_res = await self.search_brave(bundle_input.value, top_k=bundle_input.top_k)
-                bundle.results.append(s_res)
-                if s_res.status_code == 200 and s_res.results:
-                    bundle.status.state = "SUCCESS"
-                    bundle.status.verdict = "SEAL"
-                    bundle.status.message = f"Found {len(s_res.results)} search candidates."
-                    if bundle_input.fetch_top_k > 0:
-                        fetch_tasks = [
-                            self.fetch_url(r["url"], render=bundle_input.render)
-                            for r in s_res.results[: bundle_input.fetch_top_k]
-                        ]
-                        f_results = await asyncio.gather(*fetch_tasks)
-                        bundle.results.extend(f_results)
-                else:
-                    bundle.status.state = "SABAR"
-                    bundle.status.errors.append(
-                        StatusError(
-                            code="ENGINE_422" if s_res.status_code == 422 else "NO_RESULTS",
-                            detail=s_res.error or "No results found.",
-                        )
-                    )
-        except Exception as e:
-            bundle.status.state = "ERROR"
-            bundle.status.message = f"Legacy handler failure: {str(e)}"
-            bundle.status.errors.append(StatusError(code="SCHEMA_FAIL", detail=str(e)))
-
-        if VECTOR_SYNC_AVAILABLE and bundle.status.state == "SUCCESS":
-            try:
-                asyncio.create_task(
-                    auto_sync_bundle(
-                        bundle=bundle,
-                        session_id=auth_context.get("session_id", "global"),
-                        actor_id=auth_context.get("actor_id", "anonymous"),
-                    )
-                )
-            except Exception as sync_e:
-                logger.warning(f"Vector auto-sync failed (non-blocking): {sync_e}")
-
-        return bundle
-
-    async def handle_compass(
-        self, bundle_input: BundleInput, auth_context: dict[str, Any]
-    ) -> EvidenceBundle:
-        # ── Phase 4A: QueryPlanner dispatch ──────────────────────────────────
-        # Delegate to QueryPlanner-based handler when enabled.
-        # This preserves the legacy path when the flag is off.
-        if QUERY_PLANNER_ENABLED and QUERY_PLANNER_AVAILABLE:
-            return await self.handle_compass_qp(bundle_input, auth_context)
-
-        # ── Legacy path (default) ─────────────────────────────────────────
-        # P0 Invariant: Never Blank
-        actor = Actor(
-            actor_id=auth_context.get("actor_id", "anonymous"),
-            authority_level=auth_context.get("authority_level", "anonymous"),
-            token_fingerprint=auth_context.get("token_fingerprint"),
-        )
-
-        bundle = EvidenceBundle(
-            status=BundleStatus(
-                state="PARTIAL",
-                stage="111_OBSERVE",
-                verdict="SABAR",
-                message="Reality acquisition initiated.",
-            ),
-            input=bundle_input,
-            actor=actor,
-        )
-
-        is_url = bundle_input.value.startswith(("http://", "https://"))
-        mode = bundle_input.mode
-        if mode == "auto":
-            mode = "fetch" if is_url else "search"
+        bundle = _make_bundle(actor, bundle_input, "Reality acquisition initiated.")
+        mode = _resolve_mode(bundle_input)
 
         try:
             if mode == "fetch":
@@ -643,16 +625,13 @@ class RealityHandler:
                             hint="Try render='always' if site is dynamic.",
                         )
                     )
-
             elif mode == "search":
                 s_res = await self.search_brave(bundle_input.value, top_k=bundle_input.top_k)
                 bundle.results.append(s_res)
-
                 if s_res.status_code == 200 and s_res.results:
                     bundle.status.state = "SUCCESS"
                     bundle.status.verdict = "SEAL"
                     bundle.status.message = f"Found {len(s_res.results)} search candidates."
-
                     if bundle_input.fetch_top_k > 0:
                         bundle.status.message += (
                             f" Initiating fetch for top {bundle_input.fetch_top_k}."
@@ -661,8 +640,7 @@ class RealityHandler:
                             self.fetch_url(r["url"], render=bundle_input.render)
                             for r in s_res.results[: bundle_input.fetch_top_k]
                         ]
-                        f_results = await asyncio.gather(*fetch_tasks)
-                        bundle.results.extend(f_results)
+                        bundle.results.extend(await asyncio.gather(*fetch_tasks))
                 else:
                     bundle.status.state = "SABAR"
                     err_code = (
@@ -677,27 +655,25 @@ class RealityHandler:
                             hint="Check query syntax or API status.",
                         )
                     )
-
+            else:
+                bundle.status.state = "SABAR"
+                bundle.status.errors.append(
+                    StatusError(code="ENGINE_422", detail=f"Unknown mode: {mode}")
+                )
         except Exception as e:
             bundle.status.state = "ERROR"
-            bundle.status.message = f"Critical handler failure: {str(e)}"
+            bundle.status.message = f"Handler failure: {str(e)}"
             bundle.status.errors.append(StatusError(code="SCHEMA_FAIL", detail=str(e)))
 
-        # SEALTRIWITNESS Phase 2: Auto-sync to vector memory (fire-and-forget)
-        if VECTOR_SYNC_AVAILABLE and bundle.status.state == "SUCCESS":
-            try:
-                # Run async without blocking response
-                asyncio.create_task(
-                    auto_sync_bundle(
-                        bundle=bundle,
-                        session_id=auth_context.get("session_id", "global"),
-                        actor_id=auth_context.get("actor_id", "anonymous"),
-                    )
-                )
-            except Exception as sync_e:
-                logger.warning(f"Vector auto-sync failed (non-blocking): {sync_e}")
-
+        _try_vector_sync(bundle, auth_context)
         return bundle
+
+    async def handle_compass(
+        self, bundle_input: BundleInput, auth_context: dict[str, Any]
+    ) -> EvidenceBundle:
+        if QUERY_PLANNER_ENABLED and QUERY_PLANNER_AVAILABLE:
+            return await self.handle_compass_qp(bundle_input, auth_context)
+        return await self.handle_compass_legacy(bundle_input, auth_context)
 
 
 handler = RealityHandler()

@@ -837,3 +837,190 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 837: - **Drift**: 0 (Harmonized)
 838: - **Chaos**: Contained
 839: - **Knowledge**: Persistent & Synchronized
+
+
+---
+
+## [2026-05-18] Sync | Docker Management Skill Ingested
+
+**SEAL AUTHORITY**: Constitutional Clerk (A-FORGE Execution Agent)
+**MOTTO**: *Ditempa Bukan Diberi*
+
+### Actions Taken
+- **Hermes Skill Install**: `official/devops/docker-management` installed to `~/.hermes/skills/devops/docker-management/`
+- **TREE777 Page Created**: `wiki/pages/Skill_Docker_Management.md` — canonical Docker ops reference for all federation agents
+- **Registry Updated**: `PAGE_REGISTRY.md` — added `Skill_Docker_Management` under 20_RUNTIME / tools, devops
+- **Index Updated**: `index.md` — added to Sources section; page count 48 → 49
+- **Scope**: All agents in the federation now share a single Docker intelligence source via TREE777 MCP resources
+
+### Verdict: SEALED
+- **Drift**: 0 (Canonical skill ingested)
+- **Chaos**: Contained
+- **Knowledge**: Persistent & Synchronized
+
+---
+
+## [2026-05-18] Sync | Inference.sh CLI Skill Ingested
+
+**SEAL AUTHORITY**: Constitutional Clerk (A-FORGE Execution Agent)
+**MOTTO**: *Ditempa Bukan Diberi*
+
+### Actions Taken
+- **Hermes Skill Install**: `official/devops/cli` installed to `~/.hermes/skills/devops/cli/`
+- **CLI Install**: `infsh` / `belt` installed to `/usr/local/bin` from https://cli.inference.sh
+- **TREE777 Page Created**: `wiki/pages/Skill_Inference_CLI.md` — canonical inference.sh reference
+- **Registry Updated**: `PAGE_REGISTRY.md` — added `Skill_Inference_CLI` under 20_RUNTIME / tools, ai-ops
+- **Index Updated**: `index.md` — added to Sources section; page count 49 → 50
+- **Auth Status**: Guest browse works (`belt app store`). Full execution requires `belt login --key <API_KEY>` from https://app.inference.sh/settings/keys
+
+### Verdict: SEALED
+- **Drift**: 0 (Canonical skill ingested)
+- **Chaos**: Contained
+- **Knowledge**: Persistent & Synchronized
+
+---
+
+## [2026-05-18] Sync | MCP — mcporter Skill Ingested
+
+**SEAL AUTHORITY**: Constitutional Clerk (A-FORGE Execution Agent)
+**MOTTO**: *Ditempa Bukan Diberi*
+
+### Actions Taken
+- **Hermes Skill Install**: `official/mcp/mcporter` installed to `~/.hermes/skills/mcp/mcporter/`
+- **CLI Install**: `mcporter` v0.9.0 installed globally via `npm install -g mcporter`
+- **Auto-Discovery Verified**: `mcporter list` discovered 15 MCP servers across Codex, OpenCode, Claude, and Hermes configs
+- **TREE777 Page Created**: `wiki/pages/Skill_MCP_Mcporter.md` — canonical MCP mesh CLI reference
+- **Registry Updated**: `PAGE_REGISTRY.md` — added `Skill_MCP_Mcporter` under 20_RUNTIME / tools, mcp, integrations
+- **Index Updated**: `index.md` — added to Sources section; page count 50 → 51
+
+### Verdict: SEALED
+- **Drift**: 0 (Canonical skill ingested)
+- **Chaos**: Contained
+- **Knowledge**: Persistent & Synchronized
+
+---
+
+## [2026-05-18] Sync | Chroma Vector Database Skill Ingested
+
+**SEAL AUTHORITY**: Constitutional Clerk (A-FORGE Execution Agent)
+**MOTTO**: *Ditempa Bukan Diberi*
+
+### Actions Taken
+- **Hermes Skill Install**: `official/mlops/chroma` installed to `~/.hermes/skills/mlops/chroma/`
+- **Python Packages**: `chromadb` and `sentence-transformers` installed in Hermes venv
+- **Runtime Verified**: Created collection, added document, queried successfully (`all-MiniLM-L6-v2` auto-downloaded)
+- **TREE777 Page Created**: `wiki/pages/Skill_Chroma_Vector_DB.md` — canonical Chroma reference
+- **Registry Updated**: `PAGE_REGISTRY.md` — added `Skill_Chroma_Vector_DB` under 20_RUNTIME / tools, mlops, memory
+- **Index Updated**: `index.md` — added to Sources section; page count 51 → 52
+
+### Verdict: SEALED
+- **Drift**: 0 (Canonical skill ingested)
+- **Chaos**: Contained
+- **Knowledge**: Persistent & Synchronized
+
+---
+
+## [2026-05-18] Sync | Qdrant Vector Search Skill Ingested
+
+**SEAL AUTHORITY**: Constitutional Clerk (A-FORGE Execution Agent)
+**MOTTO**: *Ditempa Bukan Diberi*
+
+### Actions Taken
+- **Hermes Skill Install**: `official/mlops/qdrant` installed to `~/.hermes/skills/mlops/qdrant/`
+- **Python Package**: `qdrant-client` 1.18.0 installed in Hermes venv
+- **Server Verified**: Docker container `qdrant` healthy on port 6333 (v1.17.1)
+- **Runtime Verified**: Created collection, upserted points, queried with cosine similarity, cleaned up
+- **TREE777 Page Created**: `wiki/pages/Skill_Qdrant_Vector_DB.md` — canonical Qdrant reference
+- **Registry Updated**: `PAGE_REGISTRY.md` — added `Skill_Qdrant_Vector_DB` under 20_RUNTIME / tools, mlops, memory
+- **Index Updated**: `index.md` — added to Sources section; page count 52 → 53
+
+### Verdict: SEALED
+- **Drift**: 0 (Canonical skill ingested)
+- **Chaos**: Contained
+- **Knowledge**: Persistent & Synchronized
+
+---
+
+## [2026-05-18] Sync | Whisper Speech Recognition Skill Ingested
+
+**SEAL AUTHORITY**: Constitutional Clerk (A-FORGE Execution Agent)
+**MOTTO**: *Ditempa Bukan DIBERI*
+
+### Actions Taken
+- **Hermes Skill Install**: `official/mlops/whisper` installed to `~/.hermes/skills/mlops/whisper/`
+- **Python Package**: `openai-whisper` 20250625 installed in Hermes venv
+- **Dependency Verified**: `ffmpeg` 7.1.1 available at `/usr/bin/ffmpeg`
+- **Runtime Verified**: `whisper.load_model('tiny')` loaded successfully (37M parameters)
+- **TREE777 Page Created**: `wiki/pages/Skill_Whisper_ASR.md` — canonical Whisper reference
+- **Registry Updated**: `PAGE_REGISTRY.md` — added `Skill_Whisper_ASR` under 20_RUNTIME / tools, mlops, multimodal
+- **Index Updated**: `index.md` — added to Sources section; page count 53 → 54
+
+### Verdict: SEALED
+- **Drift**: 0 (Canonical skill ingested)
+- **Chaos**: Contained
+- **Knowledge**: Persistent & Synchronized
+
+---
+
+## [2026-05-18] Sync | Parallel CLI Deep Research Skill Ingested
+
+**SEAL AUTHORITY**: Constitutional Clerk (A-FORGE Execution Agent)
+**MOTTO**: *Ditempa Bukan Diberi*
+
+### Actions Taken
+- **Hermes Skill Install**: `official/research/parallel-cli` installed to `~/.hermes/skills/research/parallel-cli/`
+- **CLI Install**: `parallel-cli` v0.3.0 installed to `/root/.local/bin` via https://parallel.ai/install.sh
+- **Auth Status**: Device login initiated (`parallel-cli login --device`); pending user authorization at platform.parallel.ai
+- **TREE777 Page Created**: `wiki/pages/Skill_Parallel_CLI.md` — canonical deep research reference
+- **Registry Updated**: `PAGE_REGISTRY.md` — added `Skill_Parallel_CLI` under 20_RUNTIME / tools, research, web
+- **Index Updated**: `index.md` — added to Sources section; page count 54 → 55
+
+### Verdict: SEALED
+- **Drift**: 0 (Canonical skill ingested)
+- **Chaos**: Contained
+- **Knowledge**: Persistent & Synchronized
+
+---
+
+## [2026-05-18] Sync | SearXNG Meta-Search Skill Ingested
+
+**SEAL AUTHORITY**: Constitutional Clerk (A-FORGE Execution Agent)
+**MOTTO**: *Ditempa Bukan Diberi*
+
+### Actions Taken
+- **Hermes Skill Install**: `official/research/searxng-search` installed to `~/.hermes/skills/research/searxng-search/`
+- **Self-Hosted Instance**: SearXNG deployed via Docker on `127.0.0.1:8888`
+- **Config**: `/root/compose/searxng-config/settings.yml` — limiter disabled, JSON enabled
+- **Env**: `SEARXNG_URL=http://127.0.0.1:8888` added to `~/.bashrc` and Hermes `terminal.env_passthrough`
+- **Runtime Verified**: Query `arifOS` returned 37 results from Google, Brave, DuckDuckGo, Wikipedia
+- **TREE777 Page Created**: `wiki/pages/Skill_SearXNG_Search.md` — canonical meta-search reference
+- **Registry Updated**: `PAGE_REGISTRY.md` — added `Skill_SearXNG_Search` under 20_RUNTIME / tools, research, web
+- **Index Updated**: `index.md` — added to Sources section; page count 55 → 56
+
+### Verdict: SEALED
+- **Drift**: 0 (Canonical skill ingested)
+- **Chaos**: Contained
+- **Knowledge**: Persistent & Synchronized
+
+---
+
+## [2026-05-18] Sync | GitHub Suite Skill Canonicalized
+
+**SEAL AUTHORITY**: Constitutional Clerk (A-FORGE Execution Agent)
+**MOTTO**: *Ditempa Bukan Diberi*
+
+### Actions Taken
+- **Hermes Skills Verified**: All 6 bundled GitHub skills present at `~/.hermes/skills/github/`
+  - github-auth, github-repo-management, github-pr-workflow, github-code-review, github-issues, codebase-inspection
+- **CLI Verified**: `gh` v2.46.0 authenticated as `ariffazil` (scopes: repo, workflow, gist, read:org, write:packages)
+- **Tools Verified**: `pygount` v3.2.0 installed and functional
+- **Git Identity**: `arifOS_bot <arifOS_bot@arif-fazil.com>`
+- **Secrets Updated**: `/root/.secrets/all-secrets.md` — added GitHub Authentication section
+- **TREE777 Page Created**: `wiki/pages/Skill_GitHub_Suite.md` — canonical GitHub collaboration reference
+- **Registry Updated**: `PAGE_REGISTRY.md` — added `Skill_GitHub_Suite` under 20_RUNTIME / tools, devops, git
+- **Index Updated**: `index.md` — added to Sources section; page count 56 → 57
+
+### Verdict: SEALED
+- **Drift**: 0 (Canonical skills verified and documented)
+- **Chaos**: Contained
+- **Knowledge**: Persistent & Synchronized

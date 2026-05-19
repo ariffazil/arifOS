@@ -1,7 +1,7 @@
 # Ω-Wiki Index
 
 > **Last Updated**: 2026-04-12 (Session sealed — anti-chaos restructure complete)
-> **Total Pages**: 48
+> **Total Pages**: 57
 > **System Status**: ✅ **999_SEAL CONFIRMED** — All systems operational
 
 > **Current State**:
@@ -101,6 +101,15 @@ python arifosmcp/evals/mcp_inspector_test.py --all
 - [[arifos_judge]] (Sovereign Verdict — Ψ Soul)
 - [[arifos_forge]] (Execution Bridge — Δ Mind)
 - [[arifos_vps_monitor]] (Hardware Telemetry — Δ Mind)
+- [[Skill_Docker_Management]] (Container Lifecycle Ops — Δ Mind)
+- [[Skill_Inference_CLI]] (AI App Gateway — Δ Mind)
+- [[Skill_MCP_Mcporter]] (MCP Mesh CLI — Δ Mind)
+- [[Skill_Chroma_Vector_DB]] (Vector Memory — Ω Heart)
+- [[Skill_Qdrant_Vector_DB]] (Production Vector Search — Ω Heart)
+- [[Skill_Whisper_ASR]] (Speech-to-Text — Δ Mind)
+- [[Skill_Parallel_CLI]] (Deep Research — Δ Mind)
+- [[Skill_SearXNG_Search]] (Meta-Search — Δ Mind)
+- [[Skill_GitHub_Suite]] (Code Collaboration — Δ Mind)
 
 ## 🛠️ Tool Specifications
 - [[ToolSpec_arifos_judge]] (Constitutional verdict engine — 888_JUDGE, sole SEAL authority)

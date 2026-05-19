@@ -72,14 +72,14 @@ def _build_delta_bundle(
         "floor_scores": {
             "F02_TRUTH": confidence.get("evidence_confidence", 0) >= 0.9,
             "F04_CLARITY": True,
-            "F07_HUMILITY": omega_0 in [0.03, 0.05],
+            "F07_HUMILITY": 0.03 <= omega_0 <= 0.05,
             "F13_SOVEREIGN": True,
         },
         "reasoning_trace": reasoning_trace,
     }
 
 
-def _run_reasoning_sync(coro: Any, timeout: float = 15.0) -> dict[str, Any]:
+def _run_reasoning_sync(coro: Any, timeout: float = 70.0) -> dict[str, Any]:
     """Run coroutine in sync context, including when caller already has an active event loop.
 
     F13 TIMEOUT_SAFE: Hard timeout prevents indefinite hangs when LLM backends stall.

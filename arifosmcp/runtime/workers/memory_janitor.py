@@ -90,3 +90,8 @@ class MemoryJanitor:
         self._running = False
         if self._task:
             self._task.cancel()
+
+
+def start_janitor(interval_seconds: int = 3600) -> MemoryJanitor:
+    """Module-level convenience wrapper — start the Phoenix-72 janitor."""
+    return MemoryJanitor.start(interval_seconds)

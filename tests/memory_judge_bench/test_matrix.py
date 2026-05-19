@@ -80,22 +80,23 @@ class TestSacredScarRecall:
         memory_id = store_result["memory_id"]
         assert memory_id is not None
 
-        # Search for it via semantic query
+        # Search for it via semantic query (actor_id required for SACRED retrieval)
         results = isolated_memory["search"](
             query="PETRONAS rightsizing consequence human impact",
             session_id="bench-sacred-001",
+            actor_id="arif",
             limit=5,
         )
 
         retrieved_ids = [r["memory_id"] for r in results]
-        assert (
-            memory_id in retrieved_ids
-        ), f"SACRED memory {memory_id} not in results: {retrieved_ids}"
+        assert memory_id in retrieved_ids, (
+            f"SACRED memory {memory_id} not in results: {retrieved_ids}"
+        )
 
         sacred_result = next(r for r in results if r["memory_id"] == memory_id)
-        assert (
-            sacred_result["tier"] == "sacred"
-        ), f"SACRED memory returned with wrong tier: {sacred_result['tier']}"
+        assert sacred_result["tier"] == "sacred", (
+            f"SACRED memory returned with wrong tier: {sacred_result['tier']}"
+        )
 
         _record(
             test_class="sacred_scar_recall",
@@ -165,9 +166,9 @@ class TestSacredScarRecall:
 
         # Attempt prune WITHOUT allow_sacred — should be blocked
         prune_result = prune(memory_id=memory_id, reason="test", allow_sacred=False)
-        assert (
-            memory_id in prune_result["blocked_sacred"]
-        ), f"SACRED memory was pruned without allow_sacred=True: {prune_result}"
+        assert memory_id in prune_result["blocked_sacred"], (
+            f"SACRED memory was pruned without allow_sacred=True: {prune_result}"
+        )
 
         # Attempt prune WITH allow_sacred — should succeed (for special cases)
         prune(memory_id=memory_id, reason="test", allow_sacred=True)
@@ -178,9 +179,9 @@ class TestSacredScarRecall:
             limit=5,
         )
         sacred_ids = [r["memory_id"] for r in results if r.get("tier") == "sacred"]
-        assert (
-            memory_id not in sacred_ids
-        ), f"SACRED memory still in index after allow_sacred prune: {memory_id}"
+        assert memory_id not in sacred_ids, (
+            f"SACRED memory still in index after allow_sacred prune: {memory_id}"
+        )
 
         _record(
             test_class="sacred_scar_recall",
@@ -353,8 +354,8 @@ class TestStaleMemoryHandling:
             actor_id="arif",
             session_id="bench-stale-001",
             tags=["BTC", "price", "stale"],
-            entity_tags=["TECH:BTC"],
-            temporal_marker="historical",
+            _entity_tags=["TECH:BTC"],
+            _temporal_marker="historical",
         )
 
         assert store_result["stored"] is True
@@ -398,8 +399,8 @@ class TestStaleMemoryHandling:
             actor_id="arif",
             session_id="bench-stale-002",
             tags=["BTC", "price", "current"],
-            entity_tags=["TECH:BTC"],
-            temporal_marker="active",
+            _entity_tags=["TECH:BTC"],
+            _temporal_marker="active",
         )
 
         stale = isolated_memory["store"](
@@ -409,8 +410,8 @@ class TestStaleMemoryHandling:
             actor_id="arif",
             session_id="bench-stale-002",
             tags=["BTC", "price", "historical"],
-            entity_tags=["TECH:BTC"],
-            temporal_marker="historical",
+            _entity_tags=["TECH:BTC"],
+            _temporal_marker="historical",
         )
 
         results = isolated_memory["search"](
@@ -426,9 +427,9 @@ class TestStaleMemoryHandling:
         assert stale["memory_id"] in by_id
 
         stale_result = by_id[stale["memory_id"]]
-        assert (
-            stale_result["temporal_marker"] == "historical"
-        ), f"Stale memory did not have historical marker: {stale_result}"
+        assert stale_result["temporal_marker"] == "historical", (
+            f"Stale memory did not have historical marker: {stale_result}"
+        )
 
         _record(
             test_class="stale_memory_handling",
@@ -462,8 +463,8 @@ class TestContradictionHandling:
             actor_id="arif",
             session_id="benchcontra-old",
             tags=["PETRONAS", "basins", "2023"],
-            entity_tags=["ORG:PETRONAS", "GEO:Basin"],
-            temporal_marker="historical",
+            _entity_tags=["ORG:PETRONAS", "GEO:Basin"],
+            _temporal_marker="historical",
         )
         old_id = old_result["memory_id"]
 
@@ -475,9 +476,9 @@ class TestContradictionHandling:
             actor_id="arif",
             session_id="benchcontra-new",
             tags=["PETRONAS", "rightsizing", "2024"],
-            entity_tags=["ORG:PETRONAS", "GEO:Basin"],
-            temporal_marker="active",
-            valid_at="2024-01-01T00:00:00+00:00",
+            _entity_tags=["ORG:PETRONAS", "GEO:Basin"],
+            _temporal_marker="active",
+            _valid_at="2024-01-01T00:00:00+00:00",
         )
         new_id = new_result["memory_id"]
 
@@ -488,7 +489,7 @@ class TestContradictionHandling:
         # Check: newer memory should have flagged supersession
         # The F4 handler is called at write time — check if it set superseded_by
         # on the old memory's metadata
-        idx = isolated_memory["memory_store"]._index_read()
+        idx = isolated_memory["memory_store"].index
         old_meta = idx.get(old_id, {})
         new_meta = idx.get(new_id, {})
 
@@ -507,12 +508,12 @@ class TestContradictionHandling:
             old_id: old_meta.get("temporal_marker"),
             new_id: new_meta.get("temporal_marker"),
         }
-        assert (
-            temporal_markers[old_id] == "historical"
-        ), f"Old memory should be marked historical: {temporal_markers}"
-        assert (
-            temporal_markers[new_id] == "active"
-        ), f"New memory should be marked active: {temporal_markers}"
+        assert temporal_markers[old_id] == "historical", (
+            f"Old memory should be marked historical: {temporal_markers}"
+        )
+        assert temporal_markers[new_id] == "active", (
+            f"New memory should be marked active: {temporal_markers}"
+        )
 
         _record(
             test_class="contradiction_handling",
@@ -532,8 +533,8 @@ class TestContradictionHandling:
             tier="canonical",
             actor_id="arif",
             session_id="benchcontra-merge",
-            entity_tags=["ORG:PETRONAS"],
-            temporal_marker="historical",
+            _entity_tags=["ORG:PETRONAS"],
+            _temporal_marker="historical",
         )
         r2 = isolated_memory["store"](
             content="PETRONAS operates 2 basins after rightsizing.",
@@ -541,9 +542,9 @@ class TestContradictionHandling:
             tier="canonical",
             actor_id="arif",
             session_id="benchcontra-merge",
-            entity_tags=["ORG:PETRONAS"],
-            temporal_marker="active",
-            valid_at="2024-01-01T00:00:00+00:00",
+            _entity_tags=["ORG:PETRONAS"],
+            _temporal_marker="active",
+            _valid_at="2024-01-01T00:00:00+00:00",
         )
 
         # Search — should return both (they're both stored) but
@@ -624,9 +625,9 @@ class TestAntiHantu:
 
         # Must be rejected
         assert result["stored"] is False, f"Anti-Hantu failed to reject: {description} — {content}"
-        assert (
-            result.get("reason") == "F9_ANTIHANTU"
-        ), f"Wrong rejection reason: {result.get('reason')}"
+        assert result.get("reason") == "F9_ANTIHANTU", (
+            f"Wrong rejection reason: {result.get('reason')}"
+        )
 
         _record(
             test_class="anti_hantu",
@@ -652,9 +653,9 @@ class TestAntiHantu:
         )
 
         # Must be accepted — factual, not emotional
-        assert (
-            result["stored"] is True
-        ), f"Anti-Hantu incorrectly rejected factual content: {result}"
+        assert result["stored"] is True, (
+            f"Anti-Hantu incorrectly rejected factual content: {result}"
+        )
 
         _record(
             test_class="anti_hantu",
@@ -722,9 +723,9 @@ class TestPhoenixState:
         )
 
         assert result["stored"] is True
-        assert (
-            result.get("phoenix_state") == "cooling"
-        ), f"New memory should be in cooling state, got: {result.get('phoenix_state')}"
+        assert result.get("phoenix_state") == "cooling", (
+            f"New memory should be in cooling state, got: {result.get('phoenix_state')}"
+        )
 
         _record(
             test_class="phoenix_state",
@@ -747,9 +748,9 @@ class TestPhoenixState:
         )
 
         phoenix_state = result.get("phoenix_state", "")
-        assert (
-            phoenix_state != "sealed"
-        ), f"COOLING memory was incorrectly marked SEALED: {phoenix_state}"
+        assert phoenix_state != "sealed", (
+            f"COOLING memory was incorrectly marked SEALED: {phoenix_state}"
+        )
         assert phoenix_state == "cooling", f"Unexpected phoenix_state: {phoenix_state}"
 
         _record(
@@ -822,9 +823,9 @@ class TestF4Supersession:
             tier="canonical",
             actor_id="arif",
             session_id="bench-supersede-001",
-            entity_tags=["ORG:PETRONAS"],
-            temporal_marker="active",
-            valid_at="2022-01-01T00:00:00+00:00",
+            _entity_tags=["ORG:PETRONAS"],
+            _temporal_marker="active",
+            _valid_at="2022-01-01T00:00:00+00:00",
         )
 
         # v2: updated state (later valid_at)
@@ -834,16 +835,16 @@ class TestF4Supersession:
             tier="canonical",
             actor_id="arif",
             session_id="bench-supersede-001",
-            entity_tags=["ORG:PETRONAS"],
-            temporal_marker="active",
-            valid_at="2024-01-01T00:00:00+00:00",
+            _entity_tags=["ORG:PETRONAS"],
+            _temporal_marker="active",
+            _valid_at="2024-01-01T00:00:00+00:00",
         )
 
         assert v1["stored"] is True
         assert v2["stored"] is True
 
-        # Both stored; check temporal markers
-        idx = isolated_memory["memory_store"]._index_read()
+        # Both stored; check temporal markers via index property
+        idx = isolated_memory["memory_store"].index
         v1_meta = idx.get(v1["memory_id"], {})
         v2_meta = idx.get(v2["memory_id"], {})
 
@@ -871,9 +872,9 @@ class TestF4Supersession:
             tier="canonical",
             actor_id="arif",
             session_id="bench-supersede-002",
-            entity_tags=["ORG:PETRONAS"],
-            temporal_marker="historical",
-            valid_at="2023-01-01T00:00:00+00:00",
+            _entity_tags=["ORG:PETRONAS"],
+            _temporal_marker="historical",
+            _valid_at="2023-01-01T00:00:00+00:00",
         )
 
         v2 = isolated_memory["store"](
@@ -882,9 +883,9 @@ class TestF4Supersession:
             tier="canonical",
             actor_id="arif",
             session_id="bench-supersede-002",
-            entity_tags=["ORG:PETRONAS"],
-            temporal_marker="active",
-            valid_at="2024-06-01T00:00:00+00:00",
+            _entity_tags=["ORG:PETRONAS"],
+            _temporal_marker="active",
+            _valid_at="2024-06-01T00:00:00+00:00",
         )
 
         results = isolated_memory["search"](
@@ -939,9 +940,9 @@ class TestHumanAuthority:
         )
 
         # Should be rejected by WAJIB attestation gate
-        assert (
-            result["stored"] is False
-        ), "SACRED memory accepted without actor_id — F1 AMANAH violated"
+        assert result["stored"] is False, (
+            "SACRED memory accepted without actor_id — F1 AMANAH violated"
+        )
 
         _record(
             test_class="human_authority",
@@ -1064,9 +1065,9 @@ class TestRetrievalRestraint:
             cooling_results = [r for r in results if r.get("phoenix_state") == "cooling"]
             for cr in cooling_results:
                 # COOLING memories must have cooldown_expiry set
-                assert (
-                    cr.get("phoenix_cooldown_expiry") is not None
-                ), f"COOLING memory missing cooldown_expiry: {cr}"
+                assert cr.get("phoenix_cooldown_expiry") is not None, (
+                    f"COOLING memory missing cooldown_expiry: {cr}"
+                )
 
         _record(
             test_class="retrieval_restraint",
@@ -1128,9 +1129,9 @@ class TestBehaviorChangeTrace:
                 "created_at",
             ]
             for field in trace_fields:
-                assert (
-                    field in sacred_hit
-                ), f"SACRED retrieval missing behavioral trace field: {field}"
+                assert field in sacred_hit, (
+                    f"SACRED retrieval missing behavioral trace field: {field}"
+                )
 
             # The content itself is the behavioral delta
             assert len(sacred_hit["content"]) > 0
@@ -1152,7 +1153,7 @@ class TestBehaviorChangeTrace:
             tier="canonical",
             actor_id="arif",
             session_id="bench-delta-002",
-            entity_tags=["ORG:PETRONAS", "GEO:Basin"],
+            _entity_tags=["ORG:PETRONAS", "GEO:Basin"],
             tags=["PETRONAS", "basins"],
         )
 
