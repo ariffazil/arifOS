@@ -8,8 +8,11 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from arifosmcp.runtime.metrics import (
     METABOLIC_LOOP_DURATION,

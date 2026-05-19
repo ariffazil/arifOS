@@ -32,6 +32,7 @@ from arifos.core.governance import (
     Verdict,
 )
 from arifos.tools._tool_support import invariant_fields
+from arifos.integrations.minimax_mcp_bridge import MinimaxMCPBridge
 
 logger = logging.getLogger(__name__)
 
@@ -148,15 +149,15 @@ def _extract_lane_constraints(bind_artifact: dict) -> dict:
 # MINIMAX MCP BRIDGE — singleton lazy initialization
 # ─────────────────────────────────────────────────────────────────────────────
 
-_mcp_mmbridge: MiniMaxMCPBridge | None = None
+_mcp_mmbridge: MinimaxMCPBridge | None = None
 _mcp_mmbridge_lock = None
 
 
-async def _get_mcp_bridge() -> MiniMaxMCPBridge:
+async def _get_mcp_bridge() -> MinimaxMCPBridge:
     """Lazily initialize MiniMax MCP bridge."""
     global _mcp_mmbridge
     if _mcp_mmbridge is None:
-        _mcp_mmbridge = MiniMaxMCPBridge()
+        _mcp_mmbridge = MinimaxMCPBridge()
         await _mcp_mmbridge._spawn()
     return _mcp_mmbridge
 

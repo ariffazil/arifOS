@@ -25,7 +25,7 @@ import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TypedDict
+from typing import Any, TypedDict
 
 
 class WisdomQuote(TypedDict):

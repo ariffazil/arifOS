@@ -440,7 +440,7 @@ Organ: {organ.value}
 WITNESSES:
 {_format_witnesses(witness_summaries)}
 
-{f"ADDITIONAL CONTEXT:\n{context}" if context else ""}
+{"\nADDITIONAL CONTEXT: " + context if context else ""}
 
 Process through all 6 steps and return the complete MetabolicOutput JSON.
 """

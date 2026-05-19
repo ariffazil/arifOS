@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -310,9 +311,9 @@ class SovereignVault999:
             report["layers"]["mirrors"] = await self.mirror_sync.verify_mirror_integrity()
 
         # Phenomenological
-        report["phenomenological"][
-            "identity_continuity"
-        ] = self.autonoetic_system.assess_identity_continuity()
+        report["phenomenological"]["identity_continuity"] = (
+            self.autonoetic_system.assess_identity_continuity()
+        )
 
         return report
 

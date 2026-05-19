@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
+import os
 import secrets
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -339,7 +341,8 @@ class ExecutionAttestor:
                 "No KMS endpoint configured and ARIFOS_KMS_SECRET not set. "
                 "Cannot sign execution envelope."
             )
-        logger.warning(
+        _logger = logging.getLogger(__name__)
+        _logger.warning(
             "_kms_sign using HMAC dev fallback — "
             "private key is derived from environment, not a secure enclave"
         )
