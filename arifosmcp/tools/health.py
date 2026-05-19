@@ -715,6 +715,11 @@ async def federation_audit(
         "overall_score": round(total, 1),
         "max_score": 100.0,
         "scoring_version": _SCORING_VERSION,
+        "score_type": "Federation Readiness Score",
+        "score_disclaimer": (
+            "This score measures bounded contract integrity under current tests. "
+            "It does not measure AGI, consciousness, or absolute truth."
+        ),
         "objective_id": obj_state.get("_meta", {}).get("objective_id", "AAA-001"),
         "safe_action_class": safe_class,
         "scores": scores,
@@ -737,6 +742,13 @@ async def federation_audit(
         "next_fix": next_fix,
         "session_id": session_id,
         "actor_id": actor_id,
+        "truth_layer": "checklist",
+        "checklist_truth_reachable": True,
+        "operational_confidence_reachable": True,
+        "absolute_truth_claimed": False,
+        "unknown_unknowns_acknowledged": True,
+        "human_judgment_required": True,
+        "godel_lock_active": True,
     }
 
 

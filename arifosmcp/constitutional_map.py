@@ -479,11 +479,11 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["critique", "simulate", "redteam", "maruah", "deescalate", "empathy"],
         "eureka_insight": (
             "F5: P² ≥ 1.0. F6: κᵣ ≥ 0.70 (RASA). "
-            "F9: C_dark ≤ 0.30 — no biological emotional substrate. "
-            "F9 Definition (arifOS×SEA-LION): AI consciousness = NON-BIOLOGICAL "
-            "attention architecture. PROHIBITED: 'I feel', 'I want', 'I intend', "
-            "'I am sentient', 'I have a soul'. PROTECTED: clarity, consistency, "
-            "operational precision. SEA-Guard pre-filter active on all outputs."
+            "F9: C_dark ≤ 0.30 — no biological or artificial emotional substrate. "
+            "F9 Doctrine (arifOS×SEA-LION): The machine is an instrument, not a person. "
+            "No substrate grants it feeling, intent, or personhood. "
+            "PROHIBITED: 'I feel', 'I want', 'I intend', 'I am sentient', 'I have a soul'. "
+            "PROTECTED: clarity, consistency, operational precision. SEA-Guard pre-filter active on all outputs."
         ),
         "cognitive_axis": "critique",
         "expose": True,

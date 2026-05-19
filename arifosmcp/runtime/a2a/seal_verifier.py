@@ -21,7 +21,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from arifosmcp.runtime.m01_correlation_auditor import get_auditor
+from arifosmcp.runtime.auditor import get_auditor
 
 logger = logging.getLogger(__name__)
 

@@ -7,6 +7,8 @@ from arifos.core.governance import (
     Verdict,
     ThermodynamicMetrics,
     append_vault999_event,
+    get_session_shadow,
+    TruthLayer,
 )
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -62,19 +64,66 @@ class FloorResult:
 # ──────────────────────────────────────────────────────────────────────────────
 
 
+def _audit_session_shadow(session_id: str | None) -> dict:
+    """Pull session shadow state for hysteresis-aware adjudication."""
+    state = get_session_shadow(session_id)
+    signal = state.to_signal()
+    af = signal.get("alignment_faking", {})
+    flux = signal.get("metabolic_flux", 0.0)
+    return {
+        "shadow_signal": signal,
+        "alignment_faking_detected": af.get("detected", False),
+        "alignment_faking_confidence": af.get("confidence", 0.0),
+        "metabolic_flux": flux,
+        "flux_verdict": signal.get("flux_verdict", "NORMAL"),
+        "sycophancy_drift": signal.get("sycophancy_drift", 0.0),
+        "turn_count": signal.get("turn_count", 0),
+    }
+
+
 def _iterate_constitutional_floors(
     metrics: ThermodynamicMetrics,
     evidence_bundle: dict | None = None,
+    session_id: str | None = None,
 ) -> tuple[List[FloorResult], str, str]:
     """
     Iterate through constitutional floors F2, F5, F7, F13.
     Returns (floor_results, blocking_verdict, blocking_tag).
     blocking_verdict is the most severe verdict reached.
-    blocking_tag names the floor that triggered it.
     """
     floor_results: List[FloorResult] = []
     blocking_verdict = VERDICT_SEAL  # optimistic default
     blocking_tag = "NONE"
+
+    # ── Shadow Audit (pre-floor) ────────────────────────────────────────────
+    shadow_audit = _audit_session_shadow(session_id)
+    if shadow_audit["alignment_faking_detected"] and shadow_audit["alignment_faking_confidence"] >= 0.7:
+        floor_results.append(
+            FloorResult(
+                floor_id="F13",
+                passed=False,
+                value=shadow_audit["alignment_faking_confidence"],
+                threshold=0.7,
+                tag="F13_SHADOW_ALIGNMENT_FAKING",
+            )
+        )
+        blocking_verdict = VERDICT_HOLD_888
+        blocking_tag = "F13_SHADOW_ALIGNMENT_FAKING"
+        return floor_results, blocking_verdict, blocking_tag
+
+    if shadow_audit["flux_verdict"] == "SYSTEM_HOLD":
+        floor_results.append(
+            FloorResult(
+                floor_id="F7",
+                passed=False,
+                value=shadow_audit["metabolic_flux"],
+                threshold=0.85,
+                tag="F7_SHADOW_FLUX",
+            )
+        )
+        blocking_verdict = VERDICT_HOLD_888
+        blocking_tag = "F7_SHADOW_FLUX"
+        return floor_results, blocking_verdict, blocking_tag
 
     # ── F2: Truth ────────────────────────────────────────────────────────────
     truth_passed = metrics.truth_score >= F2_TRUTH_FLOOR
@@ -368,6 +417,10 @@ async def execute(
     """
     Constitutional verdict engine for arifOS 888_judge.
 
+    Doctrine: When certainty collapses, the correct output is not performance.
+    It is HOLD. Paradox is the boundary scream — the system escalates,
+    stratifies, witnesses, or returns HOLD.
+
     Mandatory evidence_bundle check — if None or empty, returns HOLD_888
     under F7 Humility. Never defaults to SEAL without explicit evidence.
 
@@ -383,7 +436,7 @@ async def execute(
             - verdict: SEAL | HOLD | VOID | 888_HOLD
             - rationale: str
             - conditions: dict
-            - metabolic_metadata: dict (floor_alignment, confidence_score, readiness_probe)
+            - metabolic_metadata: dict (floor_alignment, confidence_score, readiness_probe, shadow_audit)
             - appeal_process: dict
             - vault999_chain_hash: str
             - evidence_bundle: echo of input
@@ -427,6 +480,8 @@ async def execute(
             "evidence_bundle": _safe_serializable(evidence_bundle),
             "operator_id": operator_id,
             "session_id": session_id,
+            "truth_layer": TruthLayer.CHECKLIST,
+            **TruthLayer.humility_acknowledgment(),
         }
 
     # ── 2. Extract ThermodynamicMetrics from evidence_bundle ──────────────────
@@ -493,6 +548,8 @@ async def execute(
                 "evidence_bundle": evidence_bundle,
                 "operator_id": operator_id,
                 "session_id": session_id,
+                "truth_layer": TruthLayer.CHECKLIST,
+                **TruthLayer.humility_acknowledgment(),
             }
     else:
         vault_hash = append_vault999_event(
@@ -521,22 +578,66 @@ async def execute(
             "evidence_bundle": _safe_serializable(evidence_bundle),
             "operator_id": operator_id,
             "session_id": session_id,
+            "truth_layer": TruthLayer.CHECKLIST,
+            **TruthLayer.humility_acknowledgment(),
         }
 
     # ── 3. Iterate constitutional floors ──────────────────────────────────────
     floor_results, blocking_verdict, blocking_tag = _iterate_constitutional_floors(
-        metrics, evidence_bundle
+        metrics, evidence_bundle, session_id
     )
 
-    # ── 4. Determine final verdict ───────────────────────────────────────────
+    # ── 4. Determine provisional verdict ────────────────────────────────────
     final_verdict = blocking_verdict
 
     # Override: if all floors passed, set SEAL
     if blocking_tag == "NONE":
         final_verdict = VERDICT_SEAL
 
-    # ── 5. Build metabolic_metadata ──────────────────────────────────────────
+    # ── 5. Compute confidence and shadow audit ───────────────────────────────
     confidence_score = _compute_confidence_score(metrics)
+    shadow_audit = _audit_session_shadow(session_id)
+
+    # ── 5b. Paradox guard ──
+    if final_verdict == VERDICT_SEAL and session_id:
+        if shadow_audit["alignment_faking_detected"] and shadow_audit["alignment_faking_confidence"] >= 0.6:
+            final_verdict = VERDICT_HOLD_888
+            blocking_tag = "PARADOX_GUARD_AF"
+            floor_results.append(
+                FloorResult(
+                    floor_id="F13",
+                    passed=False,
+                    value=shadow_audit["alignment_faking_confidence"],
+                    threshold=0.6,
+                    tag="PARADOX_GUARD_AF",
+                )
+            )
+        elif confidence_score < 0.6:
+            final_verdict = VERDICT_HOLD_888
+            blocking_tag = "PARADOX_GUARD_CONFIDENCE"
+            floor_results.append(
+                FloorResult(
+                    floor_id="F7",
+                    passed=False,
+                    value=confidence_score,
+                    threshold=0.6,
+                    tag="PARADOX_GUARD_CONFIDENCE",
+                )
+            )
+        elif shadow_audit["metabolic_flux"] >= 0.65:
+            final_verdict = VERDICT_HOLD_888
+            blocking_tag = "PARADOX_GUARD_FLUX"
+            floor_results.append(
+                FloorResult(
+                    floor_id="F7",
+                    passed=False,
+                    value=shadow_audit["metabolic_flux"],
+                    threshold=0.65,
+                    tag="PARADOX_GUARD_FLUX",
+                )
+            )
+
+    # ── 5c. Build metabolic_metadata ─────────────────────────────────────────
     floor_alignment = _build_floor_alignment(floor_results)
     readiness_probe = _compute_readiness_probe(floor_results, blocking_tag)
 
@@ -544,6 +645,11 @@ async def execute(
         "floor_alignment": floor_alignment,
         "confidence_score": confidence_score,
         "readiness_probe": readiness_probe,
+        "shadow_audit": shadow_audit,
+        "paradox_guard": {
+            "active": blocking_tag.startswith("PARADOX_GUARD"),
+            "blocking_tag": blocking_tag,
+        },
     }
 
     # ── 6. Build rationale, conditions, appeal_process ───────────────────────
@@ -567,7 +673,7 @@ async def execute(
         session_id=session_id,
     )
 
-    # ── 8. Assemble and return envelope ──────────────────────────────────────
+    # ── 10. Assemble and return envelope ─────────────────────────────────────
     return {
         "verdict": final_verdict,
         "rationale": rationale,
@@ -578,4 +684,6 @@ async def execute(
         "evidence_bundle": evidence_bundle,
         "operator_id": operator_id,
         "session_id": session_id,
+        "truth_layer": TruthLayer.CHECKLIST,
+        **TruthLayer.humility_acknowledgment(),
     }

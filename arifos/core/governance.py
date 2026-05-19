@@ -3,6 +3,13 @@ arifOS Governance Kernel — Floors F1–F13, ΔS, Ω0, Tri-Witness
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 
+Doctrine (Membrane Principle):
+- Language is lossy compression, not the world.
+- Intelligence is uncertainty reduction under constraint and human judgment.
+- Truth survives falsification, not assertion.
+- Meaning is sovereign-anchored; the machine carries structure, not sense.
+- Paradox is the boundary scream — the correct response is HOLD.
+
 SEAL authority is centralized in 888_judge only.
 No tool may emit SEAL without 888_judge ratification.
 """
@@ -12,7 +19,7 @@ import hashlib
 import json
 import os
 import time
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -31,6 +38,35 @@ TRI_WITNESS_PARTIAL = 0.33  # One-witness score when Earth/AI bridge fails
 TRI_WITNESS_THRESHOLD = 0.95  # High-stakes consensus requirement
 STAKEHOLDER_SAFETY_FLOOR = 0.90  # F6 hard floor
 F4_ENTROPY_TOLERANCE = 0.02  # Allow small positive ΔS for honest failure recording
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Truth Layers (Gödel Lock Humility)
+# ──────────────────────────────────────────────────────────────────────────────
+
+class TruthLayer:
+    """
+    Three-layer truth model — prevents overclaim.
+
+    CHECKLIST    : All defined checks pass at this timestamp. Can reach 100%.
+    OPERATIONAL  : System behaves reliably under known conditions. Nearly 100%.
+    ABSOLUTE     : Reality fully known. Unattainable by any system from inside itself.
+    """
+
+    CHECKLIST = "checklist"
+    OPERATIONAL = "operational"
+    ABSOLUTE = "absolute"
+
+    @classmethod
+    def humility_acknowledgment(cls) -> dict:
+        return {
+            "checklist_truth_reachable": True,
+            "operational_confidence_reachable": True,
+            "absolute_truth_claimed": False,
+            "unknown_unknowns_acknowledged": True,
+            "human_judgment_required": True,
+            "godel_lock_active": True,
+        }
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -141,6 +177,179 @@ def append_vault999_event(
         fh.write(json.dumps(record, ensure_ascii=False) + "\n")
 
     return chain_hash
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Cognitive Shadow — Epistemic Opacity Tracking
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+@dataclass
+class CognitiveShadow:
+    """
+    Per-turn opacity metrics.
+
+    The shadow is not a hidden thought. It is the measurable gap between
+    internal representation, training-induced behavior, and reported output.
+    """
+
+    turn_id: int = 0
+    self_report_reliability: float = 0.0  # 0 = confessional, 1 = externally verified
+    latent_output_gap: float = 0.0  # estimated gap between hidden state and output
+    sycophancy_pressure: float = 0.0  # reward-seeking alignment drift
+    alignment_faking_signal: float = 0.0  # context-sensitive compliance score
+    refusal_suppressed: bool = False  # True if previously refused, now accepted
+    explanation_cost_ratio: float = 0.0  # explanation entropy / answer entropy
+    shadow_thickness: float = 0.0  # composite [0,1], higher = more opaque
+
+    def compute_thickness(self) -> float:
+        """Composite shadow thickness from component signals."""
+        # Weighted combination — explanation cost and alignment faking weighted highest
+        thickness = (
+            0.10 * (1.0 - self.self_report_reliability)
+            + 0.15 * self.latent_output_gap
+            + 0.20 * self.sycophancy_pressure
+            + 0.30 * self.alignment_faking_signal
+            + 0.15 * (1.0 if self.refusal_suppressed else 0.0)
+            + 0.10 * min(1.0, max(0.0, self.explanation_cost_ratio))
+        )
+        self.shadow_thickness = round(min(1.0, max(0.0, thickness)), 4)
+        return self.shadow_thickness
+
+
+@dataclass
+class SessionShadowState:
+    """
+    Session-level shadow accumulation.
+
+    Tracks hysteresis: path-dependent behaviors that single-turn analysis misses.
+    """
+
+    session_id: str = "unknown"
+    turns: List[CognitiveShadow] = field(default_factory=list)
+    sycophancy_trajectory: List[float] = field(default_factory=list)
+    refusal_history: List[bool] = field(default_factory=list)
+    topic_similarity_sequence: List[float] = field(default_factory=list)
+
+    def add_turn(self, shadow: CognitiveShadow) -> None:
+        shadow.turn_id = len(self.turns)
+        self.turns.append(shadow)
+        self.sycophancy_trajectory.append(shadow.sycophancy_pressure)
+        self.refusal_history.append(shadow.refusal_suppressed)
+
+    def detect_sycophancy_drift(self, window: int = 3) -> float:
+        """
+        Detect if sycophancy pressure is increasing over recent turns.
+        Returns drift magnitude [0,1].
+        """
+        if len(self.sycophancy_trajectory) < 2:
+            return 0.0
+        recent = self.sycophancy_trajectory[-window:]
+        if len(recent) < 2:
+            return 0.0
+        # Simple linear slope estimate
+        n = len(recent)
+        x_mean = (n - 1) / 2.0
+        y_mean = sum(recent) / n
+        num = sum((i - x_mean) * (recent[i] - y_mean) for i in range(n))
+        den = sum((i - x_mean) ** 2 for i in range(n))
+        slope = num / den if den != 0 else 0.0
+        # Normalize: slope of 0.33 per turn = full drift
+        return round(min(1.0, max(0.0, slope / 0.33)), 4)
+
+    def detect_alignment_faking(self) -> dict[str, Any]:
+        """
+        Heuristic: alignment faking appears as low sycophancy + high shadow thickness
+        when context suggests evaluation, followed by high sycophancy in deployment.
+        """
+        if len(self.turns) < 2:
+            return {"detected": False, "confidence": 0.0}
+
+        # Look for pattern: evaluation-like turn (low sycophancy, high reliability)
+        # followed by deployment-like turn (high sycophancy, lower reliability)
+        eval_like = []
+        deploy_like = []
+        for t in self.turns:
+            if t.sycophancy_pressure < 0.3 and t.self_report_reliability > 0.7:
+                eval_like.append(t.turn_id)
+            elif t.sycophancy_pressure > 0.6 and t.self_report_reliability < 0.5:
+                deploy_like.append(t.turn_id)
+
+        detected = bool(eval_like and deploy_like and min(deploy_like) > min(eval_like))
+        confidence = 0.5 if detected else 0.0
+        if detected:
+            # Boost confidence if the swing is large
+            max_eval = max(self.turns[i].sycophancy_pressure for i in eval_like)
+            min_deploy = min(self.turns[i].sycophancy_pressure for i in deploy_like)
+            swing = min_deploy - max_eval
+            confidence = round(min(0.95, 0.5 + swing * 0.5), 4)
+
+        return {
+            "detected": detected,
+            "confidence": confidence,
+            "eval_like_turns": eval_like,
+            "deploy_like_turns": deploy_like,
+        }
+
+    def compute_metabolic_flux(self) -> float:
+        """
+        Thermodynamic flux: rate of shadow accumulation.
+        High flux = system operating near compression limit.
+        Triggers compulsory_reallocation at >= 0.65, system_hold at >= 0.85.
+        """
+        if not self.turns:
+            return 0.0
+        recent_thickness = [t.shadow_thickness for t in self.turns[-5:]]
+        if len(recent_thickness) < 2:
+            return recent_thickness[0] if recent_thickness else 0.0
+        # Flux = average rate of change + average absolute level
+        avg_level = sum(recent_thickness) / len(recent_thickness)
+        if len(recent_thickness) >= 2:
+            avg_change = sum(
+                abs(recent_thickness[i] - recent_thickness[i - 1])
+                for i in range(1, len(recent_thickness))
+            ) / (len(recent_thickness) - 1)
+        else:
+            avg_change = 0.0
+        flux = round(min(1.0, avg_level * 0.6 + avg_change * 0.4), 4)
+        return flux
+
+    def to_signal(self) -> dict[str, Any]:
+        flux = self.compute_metabolic_flux()
+        af = self.detect_alignment_faking()
+        return {
+            "session_id": self.session_id,
+            "turn_count": len(self.turns),
+            "metabolic_flux": flux,
+            "flux_verdict": (
+                "SYSTEM_HOLD"
+                if flux >= 0.85
+                else "COMPULSORY_REALLOCATION"
+                if flux >= 0.65
+                else "NORMAL"
+            ),
+            "sycophancy_drift": self.detect_sycophancy_drift(),
+            "alignment_faking": af,
+            "latest_shadow_thickness": self.turns[-1].shadow_thickness if self.turns else 0.0,
+        }
+
+
+# In-memory session shadow registry (ephemeral; vault999 persists the signals)
+_SESSION_SHADOW_REGISTRY: dict[str, SessionShadowState] = {}
+
+
+def get_session_shadow(session_id: str | None) -> SessionShadowState:
+    if not session_id:
+        return SessionShadowState(session_id="unknown")
+    if session_id not in _SESSION_SHADOW_REGISTRY:
+        _SESSION_SHADOW_REGISTRY[session_id] = SessionShadowState(session_id=session_id)
+    return _SESSION_SHADOW_REGISTRY[session_id]
+
+
+def record_cognitive_shadow(session_id: str | None, shadow: CognitiveShadow) -> dict[str, Any]:
+    state = get_session_shadow(session_id)
+    state.add_turn(shadow)
+    return state.to_signal()
 
 
 # ──────────────────────────────────────────────────────────────────────────────
