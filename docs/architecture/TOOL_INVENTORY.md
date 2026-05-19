@@ -1,10 +1,10 @@
 # arifOS MCP Tool Inventory
 ## Architectural Reference Document
 
-**Version:** 2026.03.14-FORGED
+**Version:** 2026.05.19-FORGED
 **Status:** ✅ 39/39 Tools Operational
 **Coverage:** 100% Working
-**Last Updated:** 2026-03-14
+**Last Updated:** 2026-05-19
 
 ---
 
@@ -895,11 +895,22 @@ Advanced tools for development, administration, and low-level operations. These 
 | Security | 2 | 80 | 94% | ✅ EXCELLENT |
 | Runtime | 39 | 38 | ~68% | ✅ GOOD |
 | Constitutional | Core | 29 | 85% | ✅ GOOD |
-| Total | 39 | ~147 | 52% | ✅ OPERATIONAL |
+| Shadow Infrastructure | — | 18 | — | ✅ NEW |
+| F3/F11 Floors | — | 17 | — | ✅ NEW |
+| Paradox Guard | — | 7 | — | ✅ NEW |
+| Total | 39 | ~189 | 52% | ✅ OPERATIONAL |
 
 ---
 
 ## 6. Changelog
+
+### 2026.05.19 - Shadow & Paradox Guard Release
+- ✅ 444_KERNEL: Shadow-aware routing with flux-based veto for irreversible targets
+- ✅ 111_SENSE: F-WEB external instruction injection scan on all bridge results
+- ✅ 999_VAULT: Truth layer humility fields embedded in every ledger entry
+- ✅ 888_JUDGE: Post-floor paradox guard (confidence/flux/AF) + pre-floor shadow blocks
+- ✅ 42 new tests: shadow infrastructure (18), F3/F11 floors (17), paradox guard (7)
+- ✅ All 42 new tests passing; zero regressions in 133 related existing tests
 
 ### 2026.03.14 - FORGED Release
 - ✅ All 39 tools verified operational (100%)

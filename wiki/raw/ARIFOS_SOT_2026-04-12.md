@@ -193,6 +193,33 @@ DATABASE_URL=postgresql://...
 | Low | Archive old branches | 2026-04-20 |
 
 ---
+---
 
-*SOT verified: 2026-04-12*
+## Deployment Architecture (2026-05-21 Corrected)
+
+> **⚠️ Previously stale:** Old documentation claimed `arif-fazil.com` uses Cloudflare Pages. This is **incorrect**.
+
+**Ground truth:**
+```
+GitHub (ariffazil/arif-sites, main)
+        ↓
+rsync → /var/www/html/arif/ on VPS
+        ↓
+Caddy (VPS reverse proxy, ports 80/443)
+        ↓
+Cloudflare CDN (DNS + proxy only)
+        ↓
+End user
+```
+
+- `arif-fazil.com` → `/var/www/html/arif/` via Caddy `file_server`
+- Cloudflare = DNS + CDN + Workers routing shim only
+- NOT Cloudflare Pages — no Pages project is active for this domain
+- Deploy: `rsync -av --delete dist/ /var/www/html/arif/`
+
+**See:** `arif-sites/CLOUDFLARE_DEPLOY.md` for full architecture doc.
+
+---
+
+*SOT verified: 2026-04-12 | Deployment truth updated: 2026-05-21*
 *Seal: 999_SEAL | Authority: 888_APEX*

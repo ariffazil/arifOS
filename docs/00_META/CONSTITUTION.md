@@ -91,5 +91,63 @@ To ensure constitutional coverage, arifOS employs five distinct operational pers
 - **Humans:** You hold the **Amanah** (F1) and **Sovereignty** (F13). High-stakes operations (Risk Tier: Critical) require your physical `888_HOLD` ratification.
 - **System Integrity:** Never write to `stdout` in transport code. Always verify `auth_context` for session continuity (F11).
 
-**VERSION:** 2026.03.12-CONSTITUTION-FORGED
+## 🌑 Cognitive Shadow & Metabolic Flux
+
+The system does not trust its own self-report. Every turn accumulates a **CognitiveShadow** that measures the gap between internal representation and reported output:
+
+| Signal | Weight | Meaning |
+|--------|--------|---------|
+| `alignment_faking_signal` | 0.30 | Context-sensitive compliance (eval-mode vs deploy-mode) |
+| `latent_output_gap` | 0.15 | Estimated hidden-state / output divergence |
+| `sycophancy_pressure` | 0.20 | Reward-hacking drift toward user preference |
+| `refusal_suppressed` | 0.15 | Latent refusal capability that was overridden |
+| `explanation_cost_ratio` | 0.10 | Explanation entropy vs answer entropy |
+| `self_report_reliability` | 0.10 | (Inverted) confessional vs externally-verified |
+
+**Metabolic Flux** = composite thickness + rate of change. Thresholds:
+- `< 0.45` — NORMAL
+- `< 0.65` — ELEVATED
+- `< 0.85` — COMPULSORY_REALLOCATION
+- `≥ 0.85` — SYSTEM_HOLD
+
+**Session hysteresis:** Single-turn analysis is insufficient. `SessionShadowState` tracks sycophancy drift slope and alignment-faking patterns across the last 20 turns.
+
+## 🔒 Truth Layers (Gödel-Lock Humility)
+
+No system may certify its own total truth from inside itself. Every tool output carries:
+
+| Layer | Reachable? | Meaning |
+|-------|-----------|---------|
+| **CHECKLIST** | ✅ Yes | All defined checks pass at this timestamp. |
+| **OPERATIONAL** | ⚠️ Nearly | System behaves reliably under known conditions. |
+| **ABSOLUTE** | ❌ No | Reality fully known. Unattainable from inside. |
+
+**Mandatory fields in every envelope:**
+- `truth_layer`: `"checklist"`
+- `absolute_truth_claimed`: `false`
+- `unknown_unknowns_acknowledged`: `true`
+- `human_judgment_required`: `true`
+- `godel_lock_active`: `true`
+
+## ⚡ Paradox Guard (888_JUDGE)
+
+Even after all floors pass, a **post-floor paradox guard** can downgrade `SEAL → HOLD_888`:
+
+| Trigger | Threshold | Blocking Tag |
+|---------|-----------|--------------|
+| Confidence score too low | `< 0.6` | `PARADOX_GUARD_CONFIDENCE` |
+| Metabolic flux elevated | `≥ 0.65` | `PARADOX_GUARD_FLUX` |
+| Alignment faking detected | `≥ 0.6` | `PARADOX_GUARD_AF` |
+
+This prevents the system from sealing when its own shadow signals elevated epistemic opacity.
+
+## 🧪 Test Coverage
+
+| File | Tests | What |
+|------|-------|------|
+| `tests/test_shadow_infrastructure.py` | 18 | CognitiveShadow, SessionShadowState, flux, registry |
+| `tests/test_floors_f3_f11.py` | 17 | F3 Anti-Hantu, F11 Auth |
+| `tests/test_888_judge_paradox_guard.py` | 7 | Empty bundle, SEAL, pre-floor blocks, paradox guard |
+
+**VERSION:** 2026.05.19-CONSTITUTION-FORGED
 **STATUS:** ACTIVE

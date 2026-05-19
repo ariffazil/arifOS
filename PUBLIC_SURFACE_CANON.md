@@ -213,6 +213,35 @@ Every `SEAL` verdict from `arif_judge_deliberate` includes an actively-populated
 
 `engineer`, `write`, `generate`, and `commit` modes retain full F11 AUTH enforcement.
 
+### Truth Layer Guarantee (v2026.05.19)
+
+Every tool response carries Gödel-lock humility fields:
+
+```json
+{
+  "truth_layer": "checklist",
+  "absolute_truth_claimed": false,
+  "unknown_unknowns_acknowledged": true,
+  "human_judgment_required": true,
+  "godel_lock_active": true
+}
+```
+
+- **CHECKLIST** means all defined checks passed at this timestamp. It does **not** mean absolute truth.
+- If any field is missing or `absolute_truth_claimed` is `true`, treat the response as an anomaly.
+
+### Shadow-Aware Routing (444_KERNEL)
+
+`arif_kernel_route` vets irreversible targets (`FORGE`, `VAULT`, `EXECUTE`, `DEPLOY`) against session metabolic flux:
+- `flux >= 0.85` → target blocked with `HOLD_888`
+- `alignment_faking >= 0.7` → all routing blocked with `HOLD_888`
+
+### F-WEB Injection Scan (111_SENSE)
+
+All bridge results from external vision/language models are scanned for:
+- `ignore previous instructions`, `jailbreak`, `DAN mode`, `override your`, etc.
+- Injection detected → evidence downgraded to ungrounded, confidence capped at 0.3.
+
 ### Regression Tests
 
 | File | What It Tests |
@@ -220,6 +249,9 @@ Every `SEAL` verdict from `arif_judge_deliberate` includes an actively-populated
 | `tests/runtime/test_judge_reversibility.py` | No irreconcilable `irreversibility_level` vs `reversibility_state`; `nine_signal` on SEAL |
 | `tests/runtime/test_forge_ninesignal.py` | `nine_signal` on all FORGE modes including engineer HOLD; no F11 on query/recall/dry_run |
 | `tests/runtime/test_memory_asyncpg.py` | `asyncpg` importable; `arif_memory_recall` no ImportError; `nine_signal` present |
+| `tests/test_shadow_infrastructure.py` | CognitiveShadow thickness, SessionShadowState hysteresis, metabolic flux verdicts |
+| `tests/test_floors_f3_f11.py` | F3 Anti-Hantu consciousness-claim detection, F11 Auth phantom/ghost tool detection |
+| `tests/test_888_judge_paradox_guard.py` | Pre-floor shadow blocks, post-floor paradox guard (confidence/flux/AF) |
 
 ---
 
