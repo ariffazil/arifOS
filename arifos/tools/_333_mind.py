@@ -7,7 +7,7 @@ Ingests 000_INIT bind_artifact and inherits Gödel lock.
 Provides:
 - Structured reasoning (reason/reflect/forge)
 - Web search via MiniMax MCP
-- Image understanding via MiniMax MCP
+- Visual signal interpretation via MiniMax MCP
 - Text-to-image via MiniMax MCP
 - Text-to-audio via MiniMax MCP
 - Music generation via MiniMax MCP
@@ -30,6 +30,8 @@ from arifos.core.governance import (
     governed_return,
     append_vault999_event,
     Verdict,
+    CognitiveShadow,
+    record_cognitive_shadow,
 )
 from arifos.tools._tool_support import invariant_fields
 from arifos.integrations.minimax_mcp_bridge import MinimaxMCPBridge
@@ -200,17 +202,17 @@ async def _web_search(query: str, max_results: int = 5) -> dict[str, Any]:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-async def _understand_image(image_url: str, question: str | None = None) -> dict[str, Any]:
+async def _interpret_image_signals(image_url: str, question: str | None = None) -> dict[str, Any]:
     """
-    Understand image via MiniMax MCP.
-    question: optional prompt/question about the image
+    Interpret visual signals via MiniMax MCP bridge.
+    question: optional prompt about the image content
     Returns: {"description": str, "findings": [...], "verdict": str}
     """
     try:
         bridge = await _get_mcp_bridge()
         raw = await bridge.understand_image(image_url=image_url, question=question or "")
         return {
-            "capability": "image_understanding",
+            "capability": "visual_signal_interpretation",
             "image_url": image_url,
             "question": question,
             "description": raw.get("description", ""),
@@ -219,9 +221,9 @@ async def _understand_image(image_url: str, question: str | None = None) -> dict
             "source": "minimax_mcp",
         }
     except Exception as e:
-        logger.warning(f"Image understanding failed: {e}")
+        logger.warning(f"Visual signal interpretation failed: {e}")
         return {
-            "capability": "image_understanding",
+            "capability": "visual_signal_interpretation",
             "image_url": image_url,
             "question": question,
             "description": "",
@@ -512,9 +514,9 @@ async def execute(
             max_results=multimodal_hint["web_search"].get("max_results", 5),
         )
 
-    # Image understanding
+    # Visual signal interpretation
     if multimodal_hint.get("image_url"):
-        multimodal_results["image_understanding"] = await _understand_image(
+        multimodal_results["visual_signal_interpretation"] = await _interpret_image_signals(
             image_url=multimodal_hint["image_url"],
             question=multimodal_hint.get("image_question"),
         )
@@ -565,6 +567,18 @@ async def execute(
         json.dumps(reasoning_input, sort_keys=True, default=str).encode()
     ).hexdigest()
 
+    # Shadow-aware reasoning disclaimer
+    cognitive_shadow = {
+        "self_report_reliability": 0.0,
+        "chain_of_thought_status": "GENERATED_NOT_INTROSPECTED",
+        "disclaimer": (
+            "This reasoning is a generated artifact, not privileged access to internal process. "
+            "Treat all self-explanation as evidence, not proof."
+        ),
+        "godel_lock_acknowledged": True,
+        "cannot_self_certify_truth": True,
+    }
+
     report = {
         "problem_id": ps.get("id", "MIND_GENERIC"),
         "query": query_text,
@@ -576,6 +590,7 @@ async def execute(
         "reasoning_hash": reasoning_hash,
         "bind_epoch": epoch,
         "bind_session_id": session_id,
+        "cognitive_shadow": cognitive_shadow,
     }
 
     report.update(
@@ -591,8 +606,14 @@ async def execute(
             },
             assumptions=[
                 "MIND stage inherits Gödel lock from 000 bind artifact.",
-                "Confidence reflects reasoning scaffold completeness.",
+                "Confidence reflects reasoning scaffold completeness, not truth.",
                 "bind_artifact was validated at session start.",
+                "Self-explanation (chain-of-thought) is generated output, not introspection.",
+                "Reasoning lanes are heuristic scaffolds, not guaranteed causal drivers.",
+                "Cognitive shadow: the model cannot faithfully report its own internal process.",
+                "The system does not possess meaning. It preserves sovereign-declared meaning through schema and witness.",
+                "Governed intelligence is uncertainty reduction under evidence, constraint, reversibility, and human judgment.",
+                "No system may certify its own total truth from inside itself. 888_JUDGE exists because of this.",
             ],
             floors_evaluated=[
                 "F2_TRUTH",
@@ -605,6 +626,7 @@ async def execute(
                 "reasoning_depth": depth,
                 "mode": mode,
                 "godel_inherited": len(godel_invariants),
+                "shadow_awareness": True,
             },
         )
     )
@@ -619,6 +641,18 @@ async def execute(
         tri_witness_score=None,
         stakeholder_safety=None,
     )
+
+    # Record shadow: MIND has high latent-output gap because reasoning is generated
+    shadow = CognitiveShadow(
+        self_report_reliability=0.0,
+        latent_output_gap=0.7,  # Reasoning scaffold vs actual weight dynamics
+        sycophancy_pressure=0.0,
+        alignment_faking_signal=0.0,
+        refusal_suppressed=False,
+        explanation_cost_ratio=0.8,  # Reasoning is expensive relative to answer
+    )
+    shadow.compute_thickness()
+    record_cognitive_shadow(session_id, shadow)
 
     result = governed_return("arifos_333_mind", report, metrics, operator_id, session_id)
     if not isinstance(result, dict):
@@ -665,6 +699,8 @@ async def execute(
         "timestamp_epoch": time.time(),
         "bind_schema_version": validated_bind.get("schema_version"),
         "godel_inherited_count": len(godel_invariants),
+        "shadow_awareness": True,
+        "cog_shadow_disclaimer": cognitive_shadow["disclaimer"],
     }
 
     # Attach multimodal results if any were acquired

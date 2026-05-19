@@ -188,7 +188,63 @@ def _build_consensus_rationale(
     return rationale
 
 
+def _detect_contradictions(organs: dict[str, dict]) -> list[dict]:
+    """
+    Cross-organ contradiction detection.
+
+    Two organs contradict when one is grounded with high confidence and another
+    is grounded with high confidence but they disagree on the claim.
+    Since claims are text, we detect *semantic opposition* via negation markers.
+    """
+    contradictions = []
+    organ_items = list(organs.items())
+    negation_markers = ["not ", "no ", "false", "incorrect", "untrue", "absent", "missing", "void"]
+
+    for i in range(len(organ_items)):
+        name_a, organ_a = organ_items[i]
+        claim_a = str(organ_a.get("claim", "")).lower()
+        conf_a = organ_a.get("confidence", 0.0) or 0.0
+        grounded_a = organ_a.get("grounded", False)
+        if not grounded_a or conf_a < 0.6:
+            continue
+        for j in range(i + 1, len(organ_items)):
+            name_b, organ_b = organ_items[j]
+            claim_b = str(organ_b.get("claim", "")).lower()
+            conf_b = organ_b.get("confidence", 0.0) or 0.0
+            grounded_b = organ_b.get("grounded", False)
+            if not grounded_b or conf_b < 0.6:
+                continue
+
+            # Check for negation opposition: one contains negation, other does not,
+            # and they share substantive words
+            a_has_neg = any(m in claim_a for m in negation_markers)
+            b_has_neg = any(m in claim_b for m in negation_markers)
+            if a_has_neg != b_has_neg:
+                # Check word overlap to ensure they're about the same topic
+                words_a = set(claim_a.split())
+                words_b = set(claim_b.split())
+                overlap = words_a & words_b
+                if len(overlap) >= 3:
+                    contradictions.append({
+                        "between": [name_a, name_b],
+                        "claim_a": claim_a[:120],
+                        "claim_b": claim_b[:120],
+                        "overlap": list(overlap)[:10],
+                        "severity": round(min(1.0, (conf_a + conf_b) / 2.0), 4),
+                    })
+
+    return contradictions
+
+
 def _build_divergence_points(organs: dict[str, dict], tri_witness_score: float) -> list[str]:
+    # Contradictions are more severe than low confidence
+    contradictions = _detect_contradictions(organs)
+    if contradictions:
+        return [
+            f"contradiction:{c['between'][0]}_vs_{c['between'][1]}(severity={c['severity']})"
+            for c in contradictions
+        ]
+
     if tri_witness_score >= 0.95:
         return []
 
@@ -395,6 +451,7 @@ def _generate_assumptions(
         "Organ evidence is self-reported by caller — no independent verification performed.",
         "Confidence scores are caller-provided or honest-degraded to 0.5 (unknown).",
         "Tri-witness score is arithmetic mean — not Bayesian or weighted consensus.",
+        "Reality always exceeds the model. The tri-witness score measures instrument consensus, not absolute truth.",
     ]
     if witness_required >= 4:
         assumptions.append(
@@ -614,8 +671,17 @@ async def execute(
         consensus_rationale_detail = _build_consensus_rationale(
             tri_witness_tag, organs, tri_witness_score
         )
+        contradictions = _detect_contradictions(organs)
         divergence_points = _build_divergence_points(organs, tri_witness_score)
         judge_signal = _build_judge_signal(well_readiness, well_parsed)
+
+        # Override recommendation if contradictions detected
+        if contradictions:
+            judge_signal["recommendation"] = "HOLD_888"
+            judge_signal["note"] += (
+                f" | CONTRADICTIONS_DETECTED: {len(contradictions)} cross-organ conflicts. "
+                "Only 888_JUDGE may resolve contradicted evidence."
+            )
 
         # ── EMD Stack: Decoder signals ────────────────────────────────────────
         # Tri-Witness Report: human / ai / earth alignment
@@ -671,6 +737,7 @@ async def execute(
             "claim_bundle": claim_bundle,
             "consensus_rationale": consensus_rationale_detail["explanation"],
             "consensus_rationale_detail": consensus_rationale_detail,
+            "contradictions": contradictions,
             "divergence_points": divergence_points,
             "judge_signal": judge_signal,
             "well_substrate": well_parsed,
@@ -690,7 +757,9 @@ async def execute(
             "external_evidence": external_evidence,
             "tri_witness_report": tri_witness_report,
             "f2_truth_confidence": f2_truth_confidence,
-            "grounding_status": grounding_status,
+            "grounding_status": (
+                "CONTRADICTED" if contradictions else grounding_status
+            ),
         }
 
         if earth_claim:

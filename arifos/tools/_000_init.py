@@ -339,8 +339,8 @@ def _resolve_tool_scope(requested: list[str]) -> dict:
 def _build_theory_of_mind(declared_intent: str, context: dict | None) -> dict:
     ctx = context or {}
     return {
-        "what_I_think_human_wants": declared_intent,
-        "what_I_assume_is_true": ctx.get(
+        "declared_intent_received": declared_intent,
+        "assumptions_adopted": ctx.get(
             "assumptions",
             [
                 "Operator identity is as claimed.",
@@ -348,8 +348,8 @@ def _build_theory_of_mind(declared_intent: str, context: dict | None) -> dict:
                 "Context provided is accurate.",
             ],
         ),
-        "what_alternatives_may_be_true": ctx.get("alternative_intents", []),
-        "what_I_am_uncertain_about": ctx.get(
+        "alternative_intents_considered": ctx.get("alternative_intents", []),
+        "uncertainty_items": ctx.get(
             "uncertainty_items",
             [
                 "Completeness of context",
@@ -357,7 +357,7 @@ def _build_theory_of_mind(declared_intent: str, context: dict | None) -> dict:
                 "Scope boundary of this session",
             ],
         ),
-        "what_would_invalidate_my_framing": ctx.get(
+        "invalidation_conditions": ctx.get(
             "invalidation_conditions",
             [
                 "Context contradicts declared intent",
@@ -366,7 +366,7 @@ def _build_theory_of_mind(declared_intent: str, context: dict | None) -> dict:
                 "F13 sovereign veto triggered",
             ],
         ),
-        "confidence_self_estimate": None,  # filled after confidence derive
+        "confidence_estimate": None,  # filled after confidence derive
         "uncertainty_acknowledged": True,
         "epistemic_posture": "governed_machine_instrument",
     }
@@ -842,6 +842,9 @@ async def _build_status_response(
             "psi": None,
             "kappa_r": None,
             "floor_drift_baseline": 0,
+            "truth_layer": "checklist",
+            "absolute_truth_claimed": False,
+            "unknown_unknowns_acknowledged": True,
         },
         "confidence": derived_confidence,
         "verdict": "CLAIM_ONLY",
@@ -893,7 +896,7 @@ async def _build_bind_response(
 
     # Extract validated blocks
     tom = vl["epistemic_tom"]
-    tom["confidence_self_estimate"] = vl.get("confidence", 0.5)
+    tom["confidence_estimate"] = vl.get("confidence", 0.5)
 
     lane = vl["role_scope"].get("lane", "general")
     cognitive_load = _estimate_cognitive_load(context)
@@ -968,6 +971,9 @@ async def _build_bind_response(
             "psi": None,
             "kappa_r": None,
             "floor_drift_baseline": 0,
+            "truth_layer": "checklist",
+            "absolute_truth_claimed": False,
+            "unknown_unknowns_acknowledged": True,
         },
         # Traceability
         "confidence": derived_confidence,

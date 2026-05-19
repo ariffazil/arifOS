@@ -10,6 +10,7 @@ from arifos.core.governance import (
     Verdict,
     governed_return,
     VAULT999_LEDGER_PATH,
+    TruthLayer,
 )
 from arifos.security import msap
 from arifos.tools import _888_judge
@@ -370,6 +371,8 @@ async def _vault_seal(
         "ack_irreversible_received": ack_irreversible_received,
         "zkpc_metadata": zkpc_metadata,
         "judge_rationale": judge_res.get("rationale"),
+        "truth_layer": TruthLayer.CHECKLIST,
+        **TruthLayer.humility_acknowledgment(),
     }
 
     canonical = json.dumps(entry, sort_keys=True, ensure_ascii=False)
@@ -429,6 +432,8 @@ async def _vault_seal(
         "ack_irreversible_received": ack_irreversible_received,
         "zkpc_metadata": zkpc_metadata,
         "judge_rationale": judge_res.get("rationale"),
+        "truth_layer": TruthLayer.CHECKLIST,
+        **TruthLayer.humility_acknowledgment(),
     }
 
     # If Judge blocked SEAL, the report should reflect that
@@ -550,6 +555,8 @@ async def _vault_query(
         "chain_position": chain_position,
         "ledger_integrity": computed_integrity,
         "recent_entries": recent,
+        "truth_layer": TruthLayer.CHECKLIST,
+        **TruthLayer.humility_acknowledgment(),
     }
     report.update(
         invariant_fields(

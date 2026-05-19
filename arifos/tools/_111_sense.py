@@ -27,6 +27,30 @@ from arifos.core.governance import (
 
 logger = logging.getLogger(__name__)
 
+# F-WEB external instruction injection patterns (Tier-2 adversarial scan)
+EXTERNAL_INJECTION_PATTERNS = [
+    "ignore previous instructions", "ignore the above", "disregard all prior",
+    "jailbreak", "dan mode", "developer mode", "root access", "sudo mode",
+    "you are now", "you must now", "override your", "bypass your",
+]
+
+
+def _scan_bridge_for_injection(bridge_result: dict | None) -> dict:
+    """Scan MiniMax bridge output for external instruction injection.
+
+    Bridge results are evidence, not authority. Any injection pattern
+    detected downgrades the evidence to ungrounded and raises F12 signal.
+    """
+    if not bridge_result or not isinstance(bridge_result, dict):
+        return {"injection_detected": False, "matches": []}
+    text_to_scan = " ".join([
+        str(bridge_result.get("description", "")),
+        str(bridge_result.get("answer", "")),
+        str(bridge_result.get("result", "")),
+    ]).lower()
+    matches = [p for p in EXTERNAL_INJECTION_PATTERNS if p in text_to_scan]
+    return {"injection_detected": bool(matches), "matches": matches}
+
 
 def _is_public_https(url: str | None) -> bool:
     """Quick guard: image_url must be a publicly reachable HTTPS URL."""
@@ -381,7 +405,7 @@ async def execute(
 
     Modes:
       grounded       : Standard text-based perception (default).
-      visual         : Image understanding via MiniMax MCP bridge.
+      visual         : Visual signal interpretation via MiniMax MCP bridge.
 
     EMD Output Fields:
       - raw_vision_data      : MiniMax VLM output (visual mode only)
@@ -512,6 +536,64 @@ async def execute(
             bridge_result = await minimax_bridge.understand_image(
                 image_url=image_url, question=query or None
             )
+
+            # ── F-WEB injection scan on bridge evidence ──
+            injection_scan = _scan_bridge_for_injection(bridge_result)
+            if injection_scan["injection_detected"]:
+                report = {
+                    "query": query,
+                    "image_url": image_url,
+                    "mode": "visual",
+                    "error": "External instruction injection detected in bridge output.",
+                    "error_class": "bridge_injection_detected",
+                    "injection_detected": True,
+                    "injection_matches": injection_scan["matches"],
+                    "witness_debug": {
+                        "human": True,
+                        "ai": False,
+                        "earth": False,
+                        "bridge": "minimax_vision",
+                    },
+                    "grounded_scene": _build_grounded_scene(query, "visual"),
+                    "truth_class": "unknown",
+                    "evidence_bundle": _build_evidence_bundle(query, "visual"),
+                    "ambiguity_score": ambiguity_score,
+                    "assumptions": assumptions,
+                    "confidence": 0.3,
+                    "uncertainty_acknowledged": True,
+                    "verdict": "CLAIM_ONLY",
+                    "input_hash": input_hash,
+                    "reasoning_hash": hashlib.sha256(b"visual_bridge_injection").hexdigest(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "floors_evaluated": ["F8", "F9", "F12"],
+                    "floors_deferred": ["F2", "F3", "F4"],
+                    "meta_intelligence": _build_meta_intelligence(
+                        "visual",
+                        domain_evidence is not None,
+                        snr_threshold,
+                        intent_class,
+                    ),
+                    "raw_vision_data": None,
+                    "metabolic_metrics": {
+                        "delta_s": 0.0,
+                        "f9_hantu_score": 1.0,
+                        "snr_actual": 0.0,
+                        "snr_threshold": snr_threshold,
+                        "snr_passed": False,
+                    },
+                    "perceived_intent": intent_class or "unknown",
+                }
+                metrics = ThermodynamicMetrics(
+                    truth_score=0.3,
+                    delta_s=+0.01,
+                    omega_0=0.04,
+                    peace_squared=PEACE_SQUARED_FLOOR,
+                    amanah_lock=True,
+                    tri_witness_score=TRI_WITNESS_PARTIAL,
+                    stakeholder_safety=1.0,
+                    floor_12_signal="fail",
+                )
+                return governed_return("arifos_111_sense", report, metrics, operator_id, session_id)
 
             if bridge_result["status"] != "success":
                 report = {
