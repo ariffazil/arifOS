@@ -141,6 +141,10 @@ aaa.arif-fazil.com {
 		root * /var/www/html/aaa
 		file_server
 	}
+	handle /a2a {
+		rewrite * /a2a/
+		reverse_proxy 127.0.0.1:3001
+	}
 	handle /a2a/* {
 		reverse_proxy 127.0.0.1:3001
 	}
@@ -317,7 +321,6 @@ well.arif-fazil.com {
 	}
 	handle /ready {
 		import cors_public
-		rewrite * /health
 		reverse_proxy 127.0.0.1:8083
 	}
 	handle /sse* {
@@ -325,15 +328,14 @@ well.arif-fazil.com {
 	}
 	handle /.well-known/* {
 		import cors_public
-		root * /var/www/html/well
-		file_server
+		reverse_proxy 127.0.0.1:8083
 	}
 	handle /tools {
 		import cors_public
 		reverse_proxy 127.0.0.1:8083
 	}
 	handle {
-		redir https://arifos.arif-fazil.com permanent
+		reverse_proxy 127.0.0.1:8083
 	}
 }
 
@@ -371,6 +373,14 @@ copilot.arif-fazil.com {
 	handle {
 		respond "Copilot Governance Gateway — use /copilot/ingest or /health" 200
 	}
+}
+
+# ═══════════════════════════════════════════════════════════════════════
+# TRAVEL SITE — travel.arif-fazil.com (placeholder; points to main site)
+# ═══════════════════════════════════════════════════════════════════════
+travel.arif-fazil.com {
+	import tls_origin
+	redir https://arif-fazil.com/travel permanent
 }
 
 # ═══════════════════════════════════════════════════════════════════════
