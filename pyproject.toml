@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "2026.05.20"
+version = "2026.05.21"
 description = "arifOS Constitutional AI Kernel — 13 canonical MCP tools, VAULT999 ledger, F1–F13 floor enforcement"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -47,6 +47,9 @@ dependencies = [
     "torch==2.5.1",
     "transformers==4.46.3",
     "sentence-transformers==3.3.1",
+    "google-api-python-client>=2.160.0",
+    "google-auth-httplib2>=0.2.0",
+    "google-auth-oauthlib>=1.2.1",
 ]
 
 [project.optional-dependencies]
