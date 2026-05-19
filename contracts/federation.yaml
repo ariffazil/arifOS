@@ -1,0 +1,164 @@
+schema_version: 1
+kind: arifos.federation.contract
+owner: Arif
+last_verified: "2026-05-19"
+epistemic_status: CONTRACT
+authority_ceiling_for_agents: "777_FORGE"
+seal_authority:
+  human: Arif
+  kernel: arifOS
+  agents_may_self_seal: false
+
+principles:
+  - one_repo_one_authority
+  - evidence_before_verdict
+  - reversible_before_irreversible
+  - domain_truth_stays_in_domain_organs
+  - final_judgment_stays_with_arif_or_arifos
+
+repos:
+  arifOS:
+    path: /root/arifOS
+    remote: https://github.com/ariffazil/arifos.git
+    authority: constitutional_kernel
+    owns:
+      - floors_f1_f13
+      - judge_and_seal_contracts
+      - vault999_audit
+      - memory_governance
+      - federation_contracts
+      - canonical_arif_mcp_surface
+    must_not_own:
+      - geology_calculation
+      - capital_allocation_logic
+      - cockpit_ui
+      - deployment_substrate
+    exports:
+      - verdict_context
+      - floor_policy
+      - audit_receipts
+      - federation_authority_map
+    imports:
+      - geox_earth_evidence
+      - wealth_capital_evidence
+      - well_readiness_evidence
+      - aaa_session_identity
+      - a_forge_release_provenance
+
+  AAA:
+    path: /root/AAA
+    remote: git@github.com:ariffazil/AAA.git
+    authority: control_plane
+    owns:
+      - cockpit_ui
+      - a2a_gateway
+      - session_anchoring
+      - operator_visibility
+      - identity_and_agent_cards
+    must_not_own:
+      - constitutional_judgment
+      - deployment_substrate
+      - geology_calculation
+      - capital_allocation_logic
+    exports:
+      - operator_intent
+      - approval_context
+      - a2a_events
+      - cockpit_status
+    imports:
+      - arifos_verdict_context
+      - a_forge_deploy_status
+      - geox_domain_health
+      - wealth_domain_health
+      - well_domain_health
+
+  A-FORGE:
+    path: /root/A-FORGE
+    remote: https://github.com/ariffazil/A-FORGE.git
+    authority: execution_substrate
+    owns:
+      - build_and_release
+      - docker_compose_and_ingress
+      - systemd_and_observability
+      - deployment_receipts
+      - rollback_contracts
+    must_not_own:
+      - final_verdict
+      - constitutional_law
+      - domain_truth
+      - operator_cockpit_ui
+    exports:
+      - execution_plan
+      - ops_cost
+      - release_provenance
+      - rollback_evidence
+    imports:
+      - arifos_execution_gates
+      - aaa_operator_intent
+      - domain_service_health
+
+  GEOX:
+    path: /root/geox
+    remote: https://github.com/ariffazil/geox.git
+    authority: earth_evidence
+    owns:
+      - earth_evidence_ingestion
+      - petrophysics
+      - seismic_and_maps
+      - prospect_risk
+      - geox_artifacts
+    must_not_own:
+      - constitutional_judgment
+      - capital_decision
+      - deployment_substrate
+      - cockpit_identity
+    exports:
+      - earth_evidence_envelope
+      - prospect_risk_ranges
+      - contradiction_scans
+      - geology_artifacts
+    imports:
+      - arifos_governance_envelope
+      - a_forge_runtime_status
+      - aaa_session_context
+      - wealth_economic_constraints
+
+  WEALTH:
+    path: /root/WEALTH
+    remote: https://github.com/ariffazil/wealth.git
+    authority: capital_evidence
+    owns:
+      - capital_viability
+      - emv_npv_irr_dscr
+      - portfolio_risk
+      - decision_memos
+      - wealth_artifacts
+    must_not_own:
+      - constitutional_judgment
+      - geological_truth
+      - deployment_substrate
+      - cockpit_identity
+    exports:
+      - capital_evidence_envelope
+      - risk_scores
+      - hold_triggers
+      - investment_memos
+    imports:
+      - arifos_governance_envelope
+      - geox_physical_constraints
+      - well_readiness_signals
+      - aaa_session_context
+
+cross_repo_rules:
+  - id: no_self_seal
+    text: Agents may prepare seal packets but may not issue 999_SEAL.
+  - id: domain_before_kernel
+    text: Domain organs emit evidence; arifOS adjudicates claim survival.
+  - id: forge_after_gate
+    text: A-FORGE executes only after governance gate and rollback path exist.
+  - id: cockpit_is_visible_not_law
+    text: AAA displays and routes operator state but must not become hidden governance.
+  - id: secrets_are_hold
+    text: Secret rotation, env mutation, and history rewrite require explicit Arif approval.
+  - id: cross_repo_architecture_is_hold
+    text: Architectural changes affecting more than one authority boundary require 888_HOLD.

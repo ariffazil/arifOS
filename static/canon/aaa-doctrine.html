@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AAA Doctrine · arifOS Observatory</title>
+<meta name="description" content="AAA Doctrine — Agent Authentication and Authorization protocol for the arifOS Federation.">
+<link rel="canonical" href="https://arifos.arif-fazil.com/canon/aaa-doctrine">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=cabinet-grotesk@400,700,800&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme="dark"]{
+  --color-bg:#0d0c0b;
+  --color-surface:#121110;
+  --color-surface-2:#181614;
+  --color-surface-offset:#1e1c1a;
+  --color-divider:#2a2826;
+  --color-border:#333130;
+  --color-text:#d4d2ce;
+  --color-text-muted:#706e6b;
+  --color-text-faint:#484644;
+  --color-text-inverse:#0d0c0b;
+  --color-primary:#3a9ea8;
+  --color-primary-hover:#1e8a96;
+  --color-success:#5a9e38;
+  --color-warning:#c46a1a;
+  --color-error:#b83060;
+  --color-gold:#d4a853;
+  --radius-sm:0.25rem;
+  --radius-md:0.5rem;
+  --radius-lg:0.75rem;
+  --font-display:'Cabinet Grotesk','Helvetica Neue',sans-serif;
+  --font-body:'Satoshi','Inter',sans-serif;
+  --font-mono:'JetBrains Mono','Fira Code',monospace;
+  --text-xs:clamp(0.65rem,0.6rem + 0.2vw,0.75rem);
+  --text-sm:clamp(0.75rem,0.7rem + 0.25vw,0.875rem);
+  --text-base:clamp(0.875rem,0.85rem + 0.2vw,1rem);
+  --text-lg:clamp(1rem,0.9rem + 0.5vw,1.25rem);
+  --text-xl:clamp(1.25rem,1rem + 1vw,1.75rem);
+  --text-2xl:clamp(1.75rem,1.2rem + 2vw,2.5rem);
+  --space-1:0.25rem;--space-2:0.5rem;--space-3:0.75rem;--space-4:1rem;--space-6:1.5rem;--space-8:2rem;--space-12:3rem;--space-16:4rem;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{font-family:var(--font-body);font-size:var(--text-base);color:var(--color-text);background:var(--color-bg);min-height:100dvh;line-height:1.6}
+.nav{position:sticky;top:0;z-index:100;background:rgba(13,12,11,0.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--color-divider);padding:var(--space-3) var(--space-6)}
+.nav-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--font-mono);font-size:var(--text-sm);font-weight:700;color:var(--color-primary);text-decoration:none}
+.nav-links{display:flex;gap:var(--space-3)}
+.nav-links a{color:var(--color-text-muted);text-decoration:none;font-size:var(--text-sm);transition:color 0.2s}
+.nav-links a:hover{color:var(--color-text)}
+.nav-links a.active{color:var(--color-primary)}
+.breadcrumb{color:var(--color-text-muted);font-size:var(--text-sm);padding:var(--space-2) var(--space-6)}
+.breadcrumb a{color:var(--color-text-muted);text-decoration:none}
+.breadcrumb a:hover{color:var(--color-primary)}
+.breadcrumb span{margin:0 var(--space-2)}
+.container{max-width:900px;margin:0 auto;padding:var(--space-8) var(--space-6)}
+.page-header{margin-bottom:var(--space-8)}
+.page-header .label{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-primary);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:var(--space-2)}
+.page-header h1{font-family:var(--font-display);font-size:var(--text-2xl);font-weight:800;line-height:1.1;margin-bottom:var(--space-3)}
+.page-header .meta{color:var(--color-text-muted);font-size:var(--text-sm)}
+.card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-6);margin-bottom:var(--space-4)}
+.card h2{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;margin-bottom:var(--space-4);padding-bottom:var(--space-3);border-bottom:1px solid var(--color-divider)}
+.card h3{font-size:var(--text-base);font-weight:600;margin-bottom:var(--space-3);color:var(--color-text)}
+.card p{color:var(--color-text-muted);margin-bottom:var(--space-3);line-height:1.7}
+.card ul{margin-left:var(--space-6);margin-bottom:var(--space-3)}
+.card li{color:var(--color-text-muted);margin-bottom:var(--space-2);line-height:1.6}
+.card li strong{color:var(--color-text)}
+code{font-family:var(--font-mono);font-size:0.9em;background:var(--color-surface-2);padding:0.15em 0.4em;border-radius:4px;color:var(--color-gold)}
+pre{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);overflow-x:auto;margin-bottom:var(--space-4)}
+pre code{background:none;padding:0;font-size:var(--text-sm)}
+.flow{display:flex;flex-direction:column;gap:var(--space-3);margin:var(--space-4) 0}
+.flow-item{display:flex;gap:var(--space-3);align-items:flex-start}
+.flow-num{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-primary);background:var(--color-surface-offset);border:1px solid var(--color-border);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.flow-content{flex:1}
+.flow-content .step{font-weight:600;color:var(--color-text);font-size:var(--text-sm)}
+.flow-content .desc{color:var(--color-text-muted);font-size:var(--text-sm);margin-top:2px}
+.principle{display:flex;gap:var(--space-3);padding:var(--space-4) 0;border-bottom:1px solid var(--color-divider)}
+.principle:last-child{border-bottom:none}
+.principle-id{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-primary);width:48px;flex-shrink:0}
+.principle-text{font-size:var(--text-sm);color:var(--color-text-muted)}
+.principle-text strong{color:var(--color-text)}
+.badge{display:inline-block;padding:0.2em 0.6em;border-radius:999px;font-size:var(--text-xs);font-weight:600}
+.badge-ok{background:rgba(90,158,56,0.15);color:#5a9e38}
+.badge-warn{background:rgba(196,106,26,0.15);color:#c46a1a}
+.badge-info{background:rgba(58,158,168,0.15);color:#3a9ea8}
+.footer{padding:var(--space-8) var(--space-6);border-top:1px solid var(--color-divider);margin-top:var(--space-8)}
+.footer-inner{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+.footer-links{display:flex;gap:var(--space-4)}
+.footer-links a{color:var(--color-text-muted);text-decoration:none;font-size:var(--text-sm)}
+.footer-links a:hover{color:var(--color-primary)}
+.footer-copy{color:var(--color-text-faint);font-size:var(--text-xs);font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="https://arifos.arif-fazil.com/" class="logo">arifOS Observatory</a>
+    <div class="nav-links">
+      <a href="/">Observatory</a>
+      <a href="/canon/aaa-doctrine" class="active">AAA Doctrine</a>
+      <a href="/canon/mcp-boundary">MCP Boundary</a>
+    </div>
+  </div>
+</nav>
+
+<div class="breadcrumb">
+  <a href="/">Observatory</a>
+  <span>›</span>
+  <span>Canonical Doctrine</span>
+  <span>›</span>
+  <span style="color:var(--color-text)">AAA Doctrine</span>
+</div>
+
+<main class="container">
+
+<div class="page-header">
+  <div class="label">Canonical Doctrine · AAA-2026</div>
+  <h1>AAA Doctrine</h1>
+  <div class="meta">Agent Authentication &amp; Authorization Protocol · arifOS Federation · v1.0 · 2026-05-19</div>
+</div>
+
+<div class="card">
+  <h2>What AAA Is</h2>
+  <p>AAA (Agent Authentication &amp; Authorization) is the protocol layer that governs how agents identify themselves, prove their authority, and execute actions within the arifOS Federation.</p>
+  <p>AAA is not a authentication system in the traditional sense. It is a <strong>constitutional trust layer</strong> — it answers the question: <em>"Is this agent permitted to do this thing, by whom, under what constraints?"</em></p>
+  <div style="margin-top:var(--space-4);display:flex;gap:var(--space-3);flex-wrap:wrap">
+    <span class="badge badge-ok">Authenticate — who are you?</span>
+    <span class="badge badge-info">Authorize — what can you do?</span>
+    <span class="badge badge-warn">Account — what did you do?</span>
+  </div>
+</div>
+
+<div class="card">
+  <h2>The Three Layers</h2>
+
+  <div class="principle">
+    <div class="principle-id">A.1</div>
+    <div class="principle-text"><strong>Identity Binding</strong> — Every agent session must be anchored to a sovereign actor. Sessions are not anonymous. A session without an <code>actor_id</code> is not a governed session.</div>
+  </div>
+  <div class="principle">
+    <div class="principle-id">A.2</div>
+    <div class="principle-text"><strong>Constitutional Fingerprint</strong> — Each session receives a <code>constitution_hash</code> + <code>invariants_hash</code> at boot. This proves the agent is running under F1–F13 floors, not a stripped-down variant.</div>
+  </div>
+  <div class="principle">
+    <div class="principle-id">A.3</div>
+    <div class="principle-text"><strong>Tool Surface Declaration</strong> — Every agent must declare its tool surface before execution begins. The tool surface is what the agent <em>can call</em>, not what it <em>will call</em>.</div>
+  </div>
+  <div class="principle">
+    <div class="principle-id">A.4</div>
+    <div class="principle-text"><strong>Auditable Execution Trace</strong> — Every action that touches the filesystem, network, or secrets must be logged to VAULT999 with actor_id, session_id, and a constitutional chain reference.</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Authorization Model</h2>
+
+  <div class="flow">
+    <div class="flow-item">
+      <div class="flow-num">1</div>
+      <div class="flow-content">
+        <div class="step">Session Init</div>
+        <div class="desc">Agent calls <code>arif_session_init</code> with actor_id. Receives constitution_hash, session_id, and next_allowed_tools.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">2</div>
+      <div class="flow-content">
+        <div class="step">Tool Request</div>
+        <div class="desc">Agent requests a tool. arifOS kernel checks: is this tool in next_allowed_tools? Has the session been compromised?</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">3</div>
+      <div class="flow-content">
+        <div class="step">Constitutional Floor Check</div>
+        <div class="desc">Tool call passes through F1–F13. F1 (Amanah) and F11 (Command) are hard gates. Others are soft warnings unless F13 Sovereign overrides.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">4</div>
+      <div class="flow-content">
+        <div class="step">Verdict</div>
+        <div class="desc">APEX 888_JUDGE returns SEAL (approved), SABAR (conditional), HOLD (paused for human), or VOID (rejected).</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">5</div>
+      <div class="flow-content">
+        <div class="step">Seal to Vault</div>
+        <div class="desc">SEAL verdicts are anchored to VAULT999. Irreversible actions require explicit human ack via ctx elicitation.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Federation Agent Roles</h2>
+  <p>Within the arifOS Federation, agents have distinct roles with bounded authority:</p>
+  <ul>
+    <li><strong>OPENCLAW (AGI)</strong> — Executor. Manages infra, Docker, config, secrets, VPS ops. Cannot claim constitutional verdicts; routes to APEX.</li>
+    <li><strong>Hermes (ASI)</strong> — Deliberative relay. Synthesizes architecture, briefings, world events. Cannot edit config files without OpenClaw present.</li>
+    <li><strong>Domain Organs (GEOX, WEALTH, WELL)</strong> — Domain intelligence. Each has a public MCP surface. Cross-organ actions require arifOS gateway routing.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Failover Protocol</h2>
+  <p>If OpenClaw goes dark: Hermes becomes active executor for infra tasks, with 15-minute timeout before Arif is notified.</p>
+  <p>If Hermes goes dark: OpenClaw becomes active executor for human-life tasks, attempts revival sequence.</p>
+  <p>If both go dark: Neither agent acts unilaterally. VAULT999 is written with failure state. Arif is notified.</p>
+</div>
+
+<div class="card">
+  <h2>Key Principles</h2>
+  <div class="principle">
+    <div class="principle-id">F1</div>
+    <div class="principle-text"><strong>Amanah</strong> — Trust is earned through verified action, not claimed identity. An agent without a VAULT999 trace has no authority.</div>
+  </div>
+  <div class="principle">
+    <div class="principle-id">F13</div>
+    <div class="principle-text"><strong>Sovereign</strong> — Arif holds final veto. No algorithm, no agent, no institutional authority supersedes Arif's veto on irreversible actions.</div>
+  </div>
+</div>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="/">Observatory</a>
+      <a href="/canon/aaa-doctrine">AAA Doctrine</a>
+      <a href="/canon/mcp-boundary">MCP Boundary</a>
+      <a href="https://github.com/ariffazil/arifOS">GitHub</a>
+    </div>
+    <div class="footer-copy">Ditempa Bukan Diberi · arifOS Federation</div>
+  </div>
+</footer>
+
+</body>
+</html>

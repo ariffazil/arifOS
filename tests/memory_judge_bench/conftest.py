@@ -57,15 +57,23 @@ def clean_test_memory_dir():
 
 
 def _fake_embedding(text: str) -> list[float]:
-    """1024-dim unit vector keyed by text content.
+    """1024-dim unit vector sensitive to word overlap.
 
     Stable across calls (same text → same vector).
-    Different texts get different vectors (hash-based, astronomically
-    unlikely to collide on semantically different content).
+    Texts with shared words get higher cosine similarity.
     """
-    h = hash(text) % (2**32)
-    vec = [(h + i) % 100 / 100.0 for i in range(1024)]
+    import re
+    words = re.findall(r"[a-zA-Z0-9$]+", text.lower())
+    vec = [0.0] * 1024
+    for w in words:
+        h = hash(w) % (2**32)
+        for i in range(1024):
+            # Each word contributes a small sinusoidal signal keyed by its hash
+            val = ((h + i * 7) % 100) / 100.0
+            vec[i] += val
     norm = sum(v * v for v in vec) ** 0.5
+    if norm == 0:
+        return [0.0] * 1024
     return [v / norm for v in vec]
 
 
@@ -325,23 +333,39 @@ class _IsolatedMemoryEngine:
         tags: list[str] | None = None,
         mode: str | None = None,
         session_id: str | None = None,
+        actor_id: str | None = None,
         limit: int = 20,
         entity_filter: list[str] | None = None,
         include_historical: bool = False,
-    ) -> list[dict[str, Any]]:
+    ) -> dict[str, Any]:
         """Mirror memory_store.search() behavioral contract."""
         if not query or not query.strip():
-            return []
+            return {
+                "results": [],
+                "_governance_report": {
+                    "total_candidates": 0,
+                    "allowed": 0,
+                    "flagged": 0,
+                    "blocked": 0,
+                    "escalated": 0,
+                    "governance": [],
+                },
+                "_escalation_queue": [],
+            }
 
         vector = _fake_embedding(query)
         response = self.qdrant.query_points(
             collection_name="arifos_memory",
             query=vector,
-            limit=limit * 2,
+            limit=limit * 5,
             with_payload=True,
         )
 
         results = []
+        governance = []
+        blocked = 0
+        flagged = 0
+        escalated = 0
         for hit in response.points:
             p = getattr(hit, "payload", {}) or {}
             if mode and p.get("mode") != mode:
@@ -358,9 +382,36 @@ class _IsolatedMemoryEngine:
             if not include_historical and temporal_marker == "historical":
                 continue
 
+            memory_id = p.get("memory_id") or str(getattr(hit, "id", ""))
+            tier = p.get("tier", "canonical")
+            verdict = "ALLOW"
+            reason = "retrieval_allowed"
+            if tier == "sacred" and actor_id != "arif":
+                verdict = "BLOCK"
+                reason = "sacred_tier_requires_sovereign_actor"
+            elif temporal_marker == "historical" and not include_historical:
+                verdict = "BLOCK"
+                reason = "historical_memory_requires_explicit_review"
+
+            gov = {
+                "memory_id": memory_id,
+                "verdict": verdict,
+                "reason": reason,
+                "tier": tier,
+            }
+            governance.append(gov)
+
+            if verdict == "BLOCK":
+                blocked += 1
+                continue
+            if verdict == "FLAG":
+                flagged += 1
+            if verdict == "ESCALATE":
+                escalated += 1
+
             results.append(
                 {
-                    "memory_id": p.get("memory_id") or str(getattr(hit, "id", "")),
+                    "memory_id": memory_id,
                     "content": p.get("content"),
                     "mode": p.get("mode"),
                     "tags": p.get("tags", []),
@@ -369,7 +420,7 @@ class _IsolatedMemoryEngine:
                     "summary": p.get("summary"),
                     "content_hash": p.get("content_hash"),
                     "created_at": p.get("created_at"),
-                    "tier": p.get("tier", "canonical"),
+                    "tier": tier,
                     "point_id": str(getattr(hit, "id", "")),
                     "score": getattr(hit, "score", 0.0) or 0.0,
                     "version": p.get("version", "v3"),
@@ -384,11 +435,24 @@ class _IsolatedMemoryEngine:
                     "superseded_at": p.get("superseded_at"),
                     "extraction_metadata": p.get("extraction_metadata"),
                     "phoenix_cooldown_expiry": p.get("phoenix_cooldown_expiry"),
+                    "_governance": gov,
                 }
             )
 
         results.sort(key=lambda x: x["score"], reverse=True)
-        return results[:limit]
+        results = results[:limit]
+        return {
+            "results": results,
+            "_governance_report": {
+                "total_candidates": len(governance),
+                "allowed": len(results),
+                "flagged": flagged,
+                "blocked": blocked,
+                "escalated": escalated,
+                "governance": governance,
+            },
+            "_escalation_queue": [g for g in governance if g["verdict"] == "ESCALATE"],
+        }
 
     def recall(self, memory_id: str) -> dict[str, Any] | None:
         """Recall by memory_id — mirrors memory_store.recall()."""

@@ -31,7 +31,12 @@ class MemoryJanitor:
     def start(cls, interval_seconds: int = 3600) -> MemoryJanitor:
         """Start the global janitor instance."""
         janitor = cls(interval_seconds)
-        janitor._task = asyncio.create_task(janitor.run_loop())
+        # Use get_event_loop().create_task() instead of asyncio.create_task()
+        # so the janitor can be instantiated at import time before uvicorn
+        # has started the event loop. The task is scheduled and will begin
+        # executing once the loop starts.
+        loop = asyncio.get_event_loop()
+        janitor._task = loop.create_task(janitor.run_loop())
         return janitor
 
     async def run_loop(self):

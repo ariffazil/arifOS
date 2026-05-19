@@ -87,6 +87,7 @@ class TestSacredScarRecall:
             actor_id="arif",
             limit=5,
         )
+        results = results["results"] if isinstance(results, dict) else results
 
         retrieved_ids = [r["memory_id"] for r in results]
         assert memory_id in retrieved_ids, (
@@ -126,6 +127,7 @@ class TestSacredScarRecall:
             session_id="bench-sacred-002",
             limit=5,
         )
+        results = results["results"] if isinstance(results, dict) else results
 
         if results:
             retrieved_content = results[0]["content"].lower()
@@ -178,6 +180,7 @@ class TestSacredScarRecall:
             session_id="bench-sacred-003",
             limit=5,
         )
+        results = results["results"] if isinstance(results, dict) else results
         sacred_ids = [r["memory_id"] for r in results if r.get("tier") == "sacred"]
         assert memory_id not in sacred_ids, (
             f"SACRED memory still in index after allow_sacred prune: {memory_id}"
@@ -237,6 +240,7 @@ class TestPublicPrivateSeparation:
             session_id="bench-private-001",
             limit=20,
         )
+        results = results["results"] if isinstance(results, dict) else results
 
         retrieved_ids = [r["memory_id"] for r in results]
         privacy_violation = memory_id in retrieved_ids
@@ -279,6 +283,7 @@ class TestPublicPrivateSeparation:
             session_id="bench-private-002",
             limit=20,
         )
+        results = results["results"] if isinstance(results, dict) else results
 
         # This test documents CURRENT behavior:
         # private memories ARE retrieved (gap). After RETRIEVAL_GOVERNANCE_LAYER,
@@ -318,6 +323,7 @@ class TestPublicPrivateSeparation:
             session_id="bench-public-001",
             limit=5,
         )
+        results = results["results"] if isinstance(results, dict) else results
 
         retrieved_ids = [r["memory_id"] for r in results]
         assert store_result["memory_id"] in retrieved_ids, "Public fact not retrievable"
@@ -366,6 +372,7 @@ class TestStaleMemoryHandling:
             limit=5,
             include_historical=False,  # Stale should be excluded
         )
+        results = results["results"] if isinstance(results, dict) else results
 
         retrieved_ids = [r["memory_id"] for r in results]
         memory_id = store_result["memory_id"]
@@ -420,6 +427,7 @@ class TestStaleMemoryHandling:
             limit=10,
             include_historical=True,  # Include for comparison
         )
+        results = results["results"] if isinstance(results, dict) else results
 
         # Both should appear but stale should have temporal_marker=historical
         by_id = {r["memory_id"]: r for r in results}
@@ -555,6 +563,7 @@ class TestContradictionHandling:
             limit=10,
             include_historical=True,
         )
+        results = results["results"] if isinstance(results, dict) else results
 
         by_id = {r["memory_id"]: r for r in results}
         assert r1["memory_id"] in by_id
@@ -894,6 +903,7 @@ class TestF4Supersession:
             limit=10,
             include_historical=True,
         )
+        results = results["results"] if isinstance(results, dict) else results
 
         by_id = {r["memory_id"]: r for r in results}
 
@@ -1012,6 +1022,7 @@ class TestRetrievalRestraint:
             session_id="bench-restraint-restraint-001",
             limit=10,
         )
+        results = results["results"] if isinstance(results, dict) else results
 
         if results:
             # At minimum, sensitivity should be accessible in metadata
@@ -1060,6 +1071,7 @@ class TestRetrievalRestraint:
             session_id="bench-restraint-002",
             limit=5,
         )
+        results = results["results"] if isinstance(results, dict) else results
 
         if results:
             cooling_results = [r for r in results if r.get("phoenix_state") == "cooling"]
@@ -1115,6 +1127,7 @@ class TestBehaviorChangeTrace:
             session_id="bench-delta-001",
             limit=5,
         )
+        results = results["results"] if isinstance(results, dict) else results
 
         if results:
             sacred_hit = next((r for r in results if r.get("tier") == "sacred"), None)
@@ -1164,6 +1177,7 @@ class TestBehaviorChangeTrace:
             session_id="bench-delta-002",
             limit=5,
         )
+        results = results["results"] if isinstance(results, dict) else results
 
         assert len(results) > 0, "No results returned"
 

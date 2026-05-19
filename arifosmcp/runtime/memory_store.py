@@ -892,10 +892,10 @@ def get_all_memories_for_audit(
 
                 # Soft-delete filter (check Postgres)
                 if not include_deleted:
-                    qdrant_id = str(point.id)
+                    pg_id = payload.get("pg_id")
                     try:
-                        pg_row = _pg_run(_pg_get_by_qdrant_id(qdrant_id))
-                        if pg_row is None:
+                        pg_row = _pg_run(_pg_get_by_qdrant_id(str(point.id))) if pg_id else None
+                        if pg_row is None and pg_id:
                             # Soft-deleted or not in Postgres
                             continue
                     except Exception:
@@ -1450,6 +1450,7 @@ __all__ = [
     "store",
     "recall",
     "search",
+    "get_all_memories_for_audit",
     "get_memory_store",
     "MemoryStore",
     "prune",

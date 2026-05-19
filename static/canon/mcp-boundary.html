@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCP Boundary Protocol · arifOS Observatory</title>
+<meta name="description" content="MCP Boundary Protocol — The transport membrane between arifOS kernel and domain organs.">
+<link rel="canonical" href="https://arifos.arif-fazil.com/canon/mcp-boundary">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=cabinet-grotesk@400,700,800&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme="dark"]{
+  --color-bg:#0d0c0b;
+  --color-surface:#121110;
+  --color-surface-2:#181614;
+  --color-surface-offset:#1e1c1a;
+  --color-divider:#2a2826;
+  --color-border:#333130;
+  --color-text:#d4d2ce;
+  --color-text-muted:#706e6b;
+  --color-text-faint:#484644;
+  --color-text-inverse:#0d0c0b;
+  --color-primary:#3a9ea8;
+  --color-primary-hover:#1e8a96;
+  --color-success:#5a9e38;
+  --color-warning:#c46a1a;
+  --color-error:#b83060;
+  --color-gold:#d4a853;
+  --radius-sm:0.25rem;
+  --radius-md:0.5rem;
+  --radius-lg:0.75rem;
+  --font-display:'Cabinet Grotesk','Helvetica Neue',sans-serif;
+  --font-body:'Satoshi','Inter',sans-serif;
+  --font-mono:'JetBrains Mono','Fira Code',monospace;
+  --text-xs:clamp(0.65rem,0.6rem + 0.2vw,0.75rem);
+  --text-sm:clamp(0.75rem,0.7rem + 0.25vw,0.875rem);
+  --text-base:clamp(0.875rem,0.85rem + 0.2vw,1rem);
+  --text-lg:clamp(1rem,0.9rem + 0.5vw,1.25rem);
+  --text-xl:clamp(1.25rem,1rem + 1vw,1.75rem);
+  --text-2xl:clamp(1.75rem,1.2rem + 2vw,2.5rem);
+  --space-1:0.25rem;--space-2:0.5rem;--space-3:0.75rem;--space-4:1rem;--space-6:1.5rem;--space-8:2rem;--space-12:3rem;--space-16:4rem;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{font-family:var(--font-body);font-size:var(--text-base);color:var(--color-text);background:var(--color-bg);min-height:100dvh;line-height:1.6}
+.nav{position:sticky;top:0;z-index:100;background:rgba(13,12,11,0.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--color-divider);padding:var(--space-3) var(--space-6)}
+.nav-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--font-mono);font-size:var(--text-sm);font-weight:700;color:var(--color-primary);text-decoration:none}
+.nav-links{display:flex;gap:var(--space-3)}
+.nav-links a{color:var(--color-text-muted);text-decoration:none;font-size:var(--text-sm);transition:color 0.2s}
+.nav-links a:hover{color:var(--color-text)}
+.nav-links a.active{color:var(--color-primary)}
+.breadcrumb{color:var(--color-text-muted);font-size:var(--text-sm);padding:var(--space-2) var(--space-6)}
+.breadcrumb a{color:var(--color-text-muted);text-decoration:none}
+.breadcrumb a:hover{color:var(--color-primary)}
+.breadcrumb span{margin:0 var(--space-2)}
+.container{max-width:900px;margin:0 auto;padding:var(--space-8) var(--space-6)}
+.page-header{margin-bottom:var(--space-8)}
+.page-header .label{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-primary);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:var(--space-2)}
+.page-header h1{font-family:var(--font-display);font-size:var(--text-2xl);font-weight:800;line-height:1.1;margin-bottom:var(--space-3)}
+.page-header .meta{color:var(--color-text-muted);font-size:var(--text-sm)}
+.card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-6);margin-bottom:var(--space-4)}
+.card h2{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;margin-bottom:var(--space-4);padding-bottom:var(--space-3);border-bottom:1px solid var(--color-divider)}
+.card h3{font-size:var(--text-base);font-weight:600;margin-bottom:var(--space-3);color:var(--color-text)}
+.card p{color:var(--color-text-muted);margin-bottom:var(--space-3);line-height:1.7}
+.card ul,.card ol{margin-left:var(--space-6);margin-bottom:var(--space-3)}
+.card li{color:var(--color-text-muted);margin-bottom:var(--space-2);line-height:1.6}
+.card li strong{color:var(--color-text)}
+code{font-family:var(--font-mono);font-size:0.9em;background:var(--color-surface-2);padding:0.15em 0.4em;border-radius:4px;color:var(--color-gold)}
+pre{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);overflow-x:auto;margin-bottom:var(--space-4)}
+pre code{background:none;padding:0;font-size:var(--text-sm)}
+.key-value{display:grid;grid-template-columns:140px 1fr;gap:var(--space-2);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)}
+.key-value:last-child{border-bottom:none}
+.key-name{font-family:var(--font-mono);font-size:var(--text-sm);color:var(--color-text-muted)}
+.key-val{font-size:var(--text-sm);color:var(--color-text)}
+.badge{display:inline-block;padding:0.2em 0.6em;border-radius:999px;font-size:var(--text-xs);font-weight:600}
+.badge-ok{background:rgba(90,158,56,0.15);color:#5a9e38}
+.badge-warn{background:rgba(196,106,26,0.15);color:#c46a1a}
+.badge-info{background:rgba(58,158,168,0.15);color:#3a9ea8}
+.membrane{display:flex;flex-direction:column;gap:0;border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden;margin:var(--space-4) 0}
+.membrane-layer{display:flex;align-items:center;padding:var(--space-4) var(--space-6)}
+.membrane-layer:nth-child(odd){background:var(--color-surface)}
+.membrane-layer:nth-child(even){background:var(--color-surface-2)}
+.membrane-arrow{padding:0 var(--space-4);color:var(--color-text-faint);font-size:var(--text-lg);text-align:center}
+.layer-id{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--color-primary);width:80px;flex-shrink:0}
+.layer-name{font-weight:600;font-size:var(--text-sm);color:var(--color-text)}
+.layer-desc{color:var(--color-text-muted);font-size:var(--text-sm);margin-left:auto}
+.footer{padding:var(--space-8) var(--space-6);border-top:1px solid var(--color-divider);margin-top:var(--space-8)}
+.footer-inner{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+.footer-links{display:flex;gap:var(--space-4)}
+.footer-links a{color:var(--color-text-muted);text-decoration:none;font-size:var(--text-sm)}
+.footer-links a:hover{color:var(--color-primary)}
+.footer-copy{color:var(--color-text-faint);font-size:var(--text-xs);font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="https://arifos.arif-fazil.com/" class="logo">arifOS Observatory</a>
+    <div class="nav-links">
+      <a href="/">Observatory</a>
+      <a href="/canon/aaa-doctrine">AAA Doctrine</a>
+      <a href="/canon/mcp-boundary" class="active">MCP Boundary</a>
+    </div>
+  </div>
+</nav>
+
+<div class="breadcrumb">
+  <a href="/">Observatory</a>
+  <span>›</span>
+  <span>Canonical Doctrine</span>
+  <span>›</span>
+  <span style="color:var(--color-text)">MCP Boundary</span>
+</div>
+
+<main class="container">
+
+<div class="page-header">
+  <div class="label">Canonical Protocol · MCP-2026</div>
+  <h1>MCP Boundary Protocol</h1>
+  <div class="meta">Transport Membrane · arifOS Federation · v1.0 · 2026-05-19</div>
+</div>
+
+<div class="card">
+  <h2>What the MCP Boundary Is</h2>
+  <p>The MCP (Model Context Protocol) Boundary is the <strong>transport membrane</strong> between the arifOS Governance Kernel and the domain organs (GEOX, WEALTH, WELL). It is not a trust boundary — it is a <em>capability contract</em>.</p>
+  <p>The boundary enforces: tool discovery, capability negotiation, schema validation, and constitutional floor compliance before any tool call is dispatched to a domain organ.</p>
+  <div style="margin-top:var(--space-4);display:flex;gap:var(--space-3);flex-wrap:wrap">
+    <span class="badge badge-info">Authority flows DOWN</span>
+    <span class="badge badge-ok">Evidence flows UP</span>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Federation Membrane Stack</h2>
+
+  <div class="membrane">
+    <div class="membrane-layer">
+      <div class="layer-id">APEX</div>
+      <div class="layer-name">Human Sovereign</div>
+      <div class="layer-desc">Final veto. F13 Sovereign Floor. Constitutional witness.</div>
+    </div>
+    <div class="membrane-arrow">↓</div>
+    <div class="membrane-layer">
+      <div class="layer-id">arifOS</div>
+      <div class="layer-name">Governance Kernel</div>
+      <div class="layer-desc">13-floor constitutional engine. 888_JUDGE. ΔΩΨ trinity.</div>
+    </div>
+    <div class="membrane-arrow">↓</div>
+    <div class="membrane-layer">
+      <div class="layer-id">MCP-BOUNDARY</div>
+      <div class="layer-name">Transport Membrane</div>
+      <div class="layer-desc">Schema validation. Tool discovery. Capability negotiation.</div>
+    </div>
+    <div class="membrane-arrow">↓</div>
+    <div class="membrane-layer">
+      <div class="layer-id">Organs</div>
+      <div class="layer-name">Domain Intelligence</div>
+      <div class="layer-desc">GEOX · WEALTH · WELL · AAA · A-FORGE · Wiki</div>
+    </div>
+    <div class="membrane-arrow">↑</div>
+    <div class="membrane-layer">
+      <div class="layer-id">Substrate</div>
+      <div class="layer-name">Persistence</div>
+      <div class="layer-desc">Postgres · Redis · Qdrant · NATS · Ollama</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Boundary Rules</h2>
+
+  <ol>
+    <li><strong>No tool call crosses the membrane without a verdict.</strong> Every tool call must pass through 888_JUDGE before execution. The domain organ does not judge — it only executes.</li>
+    <li><strong>Schema validation is a floor gate.</strong> If the tool request schema does not match the organ's declared capability surface, the boundary returns VOID before the organ is ever called.</li>
+    <li><strong>The boundary is not a firewall.</strong> It does not block by IP, token, or geography. It validates constitutional compliance — F2 (Truth), F6 (Empathy), F11 (Command).</li>
+    <li><strong>Cross-organ calls require gateway routing.</strong> GEOX cannot call WEALTH directly. All cross-organ traffic goes through arifOS gateway with 888_JUDGE review.</li>
+    <li><strong>Evidence stays in the organ.</strong> Raw well logs, seismic data, and financial records never leave the domain organ. Only derived artifacts (interpretations, metrics, verdicts) cross the membrane.</li>
+  </ol>
+</div>
+
+<div class="card">
+  <h2>MCP Endpoints</h2>
+  <div class="key-value">
+    <div class="key-name">arifOS MCP</div>
+    <div class="key-val"><code>https://mcp.arif-fazil.com/mcp</code> · 13 tools · port 8080</div>
+  </div>
+  <div class="key-value">
+    <div class="key-name">GEOX MCP</div>
+    <div class="key-val"><code>https://geox.arif-fazil.com/mcp</code> · 53 tools · port 8081 · Physics-9 enforced</div>
+  </div>
+  <div class="key-value">
+    <div class="key-name">WEALTH MCP</div>
+    <div class="key-val"><code>https://wealth.arif-fazil.com/mcp</code> · 50 tools · port 8082 · Sovereign capital only</div>
+  </div>
+  <div class="key-value">
+    <div class="key-name">WELL MCP</div>
+    <div class="key-val"><code>https://well.arif-fazil.com/mcp</code> · 31 tools · port 8083 · REFLECT_ONLY mode</div>
+  </div>
+  <div class="key-value">
+    <div class="key-name">A-FORGE MCP</div>
+    <div class="key-val"><code>https://forge.arif-fazil.com/mcp</code> · port 7071 · Agent engine loop</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Transport Protocol</h2>
+  <p>All organs use <strong>streamable-http</strong> MCP transport. This means:</p>
+  <ul>
+    <li>Connections are persistent within a session but stateless across sessions</li>
+    <li>Tool calls are JSON-RPC 2.0 over HTTPS</li>
+    <li>Session IDs are obtained via <code>mcp-session-id</code> response header from the initialize handshake</li>
+    <li>Server-sent events (SSE) are used for streaming responses</li>
+  </ul>
+  <p>The boundary validates the JSON-RPC payload structure before forwarding. Malformed requests are rejected at the membrane.</p>
+</div>
+
+<div class="card">
+  <h2>Physics-9 Enforcement (GEOX)</h2>
+  <p>GEOX is the only organ with additional <strong>physics constraints</strong> — Physics-9 boundary limits on depth, pressure, temperature, and material properties. These are not policy — they are physical invariants derived from first principles.</p>
+  <p>Claims that violate Physics-9 are flagged as <code>PHYSICS_BOUNDARY_VIOLATION</code> and cannot pass through the GEOX membrane regardless of constitutional verdict.</p>
+</div>
+
+<div class="card">
+  <h2>Constitutional Floor Compliance at the Membrane</h2>
+  <div class="key-value">
+    <div class="key-name">F1 Amanah</div>
+    <div class="key-val">Agent must have a valid session_id + actor_id. Anonymous requests are rejected.</div>
+  </div>
+  <div class="key-value">
+    <div class="key-name">F2 Truth</div>
+    <div class="key-val">Evidence receipts required for all observational claims. No assertion without source.</div>
+  </div>
+  <div class="key-value">
+    <div class="key-name">F6 Empathy</div>
+    <div class="key-val">Human impact assessment required for any action affecting Arif or third parties.</div>
+  </div>
+  <div class="key-value">
+    <div class="key-name">F11 Command</div>
+    <div class="key-val">Sovereign override required for irreversible domain actions. Boundary gates this explicitly.</div>
+  </div>
+  <div class="key-value">
+    <div class="key-name">F13 Sovereign</div>
+    <div class="key-val">Arif's veto is absolute. No membrane bypass exists.</div>
+  </div>
+</div>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="/">Observatory</a>
+      <a href="/canon/aaa-doctrine">AAA Doctrine</a>
+      <a href="/canon/mcp-boundary">MCP Boundary</a>
+      <a href="https://github.com/ariffazil/arifOS">GitHub</a>
+    </div>
+    <div class="footer-copy">Ditempa Bukan Diberi · arifOS Federation</div>
+  </div>
+</footer>
+
+</body>
+</html>

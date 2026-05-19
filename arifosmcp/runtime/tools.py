@@ -4068,7 +4068,7 @@ def _arif_evidence_fetch(
             "arif_evidence_fetch",
             {
                 "url": url,
-                "content": "",
+                "content": sanitized,
                 "content_hash": source_hash,
                 "source_url": f"source://{source_hash}",
                 "receipt_url": f"receipt://web/{receipt_id.split('/')[-1]}",

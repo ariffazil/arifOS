@@ -10,14 +10,14 @@ class TestSessionNormalization:
 
     def test_normalize_with_valid_session(self):
         """Test normalizing a valid session ID."""
-        from arifosmcp.runtime.sessions import _normalize_session_id
+        from arifosmcp.runtime.session import _normalize_session_id
 
         result = _normalize_session_id("test-session-123")
         assert result == "test-session-123"
 
     def test_normalize_with_none_creates_new(self):
         """Test that None creates a new session ID."""
-        from arifosmcp.runtime.sessions import _normalize_session_id
+        from arifosmcp.runtime.session import _normalize_session_id
 
         result = _normalize_session_id(None)
         assert result.startswith("session-")
@@ -25,7 +25,7 @@ class TestSessionNormalization:
 
     def test_normalize_with_empty_string_creates_new(self):
         """Test that empty string creates a new session ID."""
-        from arifosmcp.runtime.sessions import _normalize_session_id
+        from arifosmcp.runtime.session import _normalize_session_id
 
         result = _normalize_session_id("")
         assert result.startswith("session-")
@@ -36,7 +36,7 @@ class TestSessionIdentityBinding:
 
     def test_bind_and_get_identity(self):
         """Test binding and retrieving session identity."""
-        from arifosmcp.runtime.sessions import (
+        from arifosmcp.runtime.session import (
             bind_session_identity,
             get_session_identity,
         )
@@ -59,14 +59,14 @@ class TestSessionIdentityBinding:
 
     def test_get_identity_nonexistent(self):
         """Test getting identity for non-existent session."""
-        from arifosmcp.runtime.sessions import get_session_identity
+        from arifosmcp.runtime.session import get_session_identity
 
         identity = get_session_identity("nonexistent-session-xyz")
         assert identity is None
 
     def test_clear_session_identity(self):
         """Test clearing session identity."""
-        from arifosmcp.runtime.sessions import (
+        from arifosmcp.runtime.session import (
             bind_session_identity,
             get_session_identity,
             clear_session_identity,
@@ -91,7 +91,7 @@ class TestActiveSession:
 
     def test_set_and_resolve_active_session(self):
         """Test setting and resolving active session."""
-        from arifosmcp.runtime.sessions import set_active_session, _resolve_session_id
+        from arifosmcp.runtime.session import set_active_session, _resolve_session_id
 
         # Set active session
         set_active_session("active-session-001")
@@ -102,7 +102,7 @@ class TestActiveSession:
 
     def test_resolve_session_with_provided_id(self):
         """Test resolving with provided ID takes precedence."""
-        from arifosmcp.runtime.sessions import set_active_session, _resolve_session_id
+        from arifosmcp.runtime.session import set_active_session, _resolve_session_id
 
         set_active_session("active-session")
         result = _resolve_session_id("provided-session")
@@ -116,7 +116,7 @@ class TestRuntimeContext:
 
     def test_resolve_runtime_context_anonymous(self):
         """Test context resolution for anonymous user."""
-        from arifosmcp.runtime.sessions import resolve_runtime_context
+        from arifosmcp.runtime.session import resolve_runtime_context
 
         context = resolve_runtime_context(
             incoming_session_id=None,
@@ -130,7 +130,7 @@ class TestRuntimeContext:
 
     def test_resolve_runtime_context_with_actor(self):
         """Test context resolution with verified actor ID."""
-        from arifosmcp.runtime.sessions import resolve_runtime_context
+        from arifosmcp.runtime.session import resolve_runtime_context
 
         context = resolve_runtime_context(
             incoming_session_id="session-123",
@@ -145,7 +145,7 @@ class TestRuntimeContext:
 
     def test_resolve_runtime_context_invalid_actor(self):
         """Test context resolution with invalid/malformed actor_id is rejected."""
-        from arifosmcp.runtime.sessions import resolve_runtime_context
+        from arifosmcp.runtime.session import resolve_runtime_context
 
         # Malformed actor_id (contains special chars) should be rejected
         context = resolve_runtime_context(
@@ -164,7 +164,7 @@ class TestSessionCounting:
 
     def test_list_active_sessions_count(self):
         """Test counting active sessions."""
-        from arifosmcp.runtime.sessions import (
+        from arifosmcp.runtime.session import (
             bind_session_identity,
             list_active_sessions_count,
             clear_session_identity,
@@ -194,7 +194,7 @@ class TestIdentityMismatchCases:
 
     def test_resolve_canonical_actor_guessable_alias_rejected(self):
         """Test that guessable alias 'arif' is NOT promoted to ariffazil."""
-        from arifosmcp.runtime.sessions import _resolve_canonical_actor
+        from arifosmcp.runtime.session import _resolve_canonical_actor
 
         # "arif" is NOT in the sovereign identity map and should not be promoted
         result = _resolve_canonical_actor("arif", None)
@@ -202,14 +202,14 @@ class TestIdentityMismatchCases:
 
     def test_resolve_canonical_actor_explicit_verified(self):
         """Test that explicit verified ariffazil is recognized."""
-        from arifosmcp.runtime.sessions import _resolve_canonical_actor
+        from arifosmcp.runtime.session import _resolve_canonical_actor
 
         result = _resolve_canonical_actor("ariffazil", None)
         assert result == "ariffazil"
 
     def test_resolve_canonical_actor_malformed_rejected(self):
         """Test that malformed actor_id is rejected."""
-        from arifosmcp.runtime.sessions import _resolve_canonical_actor
+        from arifosmcp.runtime.session import _resolve_canonical_actor
 
         # Script injection attempt should be rejected
         result = _resolve_canonical_actor("<script>alert(1)</script>", None)
@@ -221,7 +221,7 @@ class TestIdentityMismatchCases:
 
     def test_resolve_runtime_context_token_overrides_transport(self):
         """Test that verified token identity outranks transport-provided actor."""
-        from arifosmcp.runtime.sessions import resolve_runtime_context
+        from arifosmcp.runtime.session import resolve_runtime_context
 
         # auth_context has verified session, transport has different actor
         context = resolve_runtime_context(
@@ -237,7 +237,7 @@ class TestIdentityMismatchCases:
 
     def test_resolve_runtime_context_stale_session_with_valid_token(self):
         """Test stale session_id + valid token uses token."""
-        from arifosmcp.runtime.sessions import resolve_runtime_context
+        from arifosmcp.runtime.session import resolve_runtime_context
 
         context = resolve_runtime_context(
             incoming_session_id="stale-session-xyz",
@@ -252,7 +252,7 @@ class TestIdentityMismatchCases:
 
     def test_resolve_runtime_context_anonymous_transport_no_session(self):
         """Test anonymous transport without session gets anonymous identity."""
-        from arifosmcp.runtime.sessions import resolve_runtime_context
+        from arifosmcp.runtime.session import resolve_runtime_context
 
         context = resolve_runtime_context(
             incoming_session_id=None,

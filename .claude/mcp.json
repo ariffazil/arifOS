@@ -8,6 +8,11 @@
         "ARIFOS_DEPLOYMENT": "local",
         "ARIFOS_MINIMAL_STDIO": "1"
       }
+    },
+    "meyhem": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://api.rhdxm.com/mcp/"],
+      "description": "Meyhem — MCP server discovery (6,700+) + outcome-ranked web search. No API key."
     }
   }
 }

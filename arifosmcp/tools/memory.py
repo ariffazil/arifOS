@@ -24,6 +24,7 @@ from typing import Any
 from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.memory_store import (
     context_for_session,
+    get_all_memories_for_audit,
     recall,
     stats,
     store,
@@ -250,7 +251,18 @@ def arif_memory_recall(
                 query=current_query,
                 tags=tags,
                 session_id=session_id,
+                actor_id=actor_id,
                 limit=limit,
+            )
+            governance_report = (
+                search_result.get("_governance_report", {})
+                if isinstance(search_result, dict)
+                else {}
+            )
+            escalation_queue = (
+                search_result.get("_escalation_queue", [])
+                if isinstance(search_result, dict)
+                else []
             )
             results = (
                 search_result.get("results", [])
@@ -299,6 +311,8 @@ def arif_memory_recall(
                     "count": 0,
                     "confidence": 0.0,
                     "Ω_0": True,
+                    "_governance_report": {},
+                    "_escalation_queue": [],
                 },
             )
 
@@ -310,6 +324,7 @@ def arif_memory_recall(
                 "mode": r.get("mode"),
                 "created_at": r.get("created_at"),
                 "score": r.get("score", 0.0),
+                "_governance": r.get("_governance"),
             }
             for r in all_results
         ]
@@ -322,6 +337,8 @@ def arif_memory_recall(
                     "count": len(hits),
                     "iterations": iterations,
                     "delta_s": round(delta_s, 4),
+                    "_governance_report": governance_report,
+                    "_escalation_queue": escalation_queue,
                     "searched_at": __import__("datetime")
                     .datetime.now(__import__("datetime").timezone.utc)
                     .isoformat(),
@@ -332,7 +349,12 @@ def arif_memory_recall(
 
     # ── Recall by query (semantic search without memory_id) ─────────────────
     if mode == "recall" and not memory_id and query:
-        search_result = memory_search(query=query, session_id=session_id, limit=limit)
+        search_result = memory_search(
+            query=query,
+            session_id=session_id,
+            actor_id=actor_id,
+            limit=limit,
+        )
         results = (
             search_result.get("results", [])
             if isinstance(search_result, dict)
@@ -347,10 +369,29 @@ def arif_memory_recall(
                 "tier": r.get("tier"),
                 "created_at": r.get("created_at"),
                 "score": r.get("score", 0.0),
+                "_governance": r.get("_governance"),
             }
             for r in results
         ]
         return _ok("arif_memory_recall", {"query": query, "results": hits, "count": len(hits)})
+
+    # ── Audit / escalation queue ────────────────────────────────────────────
+    if mode == "audit":
+        memories = get_all_memories_for_audit(limit=limit)
+        escalation_queue = [
+            m
+            for m in memories
+            if (m.get("_governance") or {}).get("verdict") == "ESCALATE"
+            or m.get("phoenix_state") == "contradiction_hold"
+        ]
+        return _ok(
+            "arif_memory_recall",
+            {
+                "mode": "audit",
+                "count": len(memories),
+                "escalation_queue": escalation_queue,
+            },
+        )
 
     # ── Prune ────────────────────────────────────────────────────────────────
     if mode == "prune":

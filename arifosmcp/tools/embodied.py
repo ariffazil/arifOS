@@ -358,6 +358,10 @@ class EmbodiedTool:
             falsification_condition=f"!{decision.status}",
         )
 
+        # Initialize result and error for all code paths
+        result: dict[str, Any] = {}
+        error: str | None = None
+
         if not decision.can_proceed:
             # Update prediction with the HOLD outcome (prediction resolved)
             self.resolve_prediction(
@@ -368,12 +372,10 @@ class EmbodiedTool:
 
             # Tool is held or void — build envelope without execution
             latency_ms = (time.time() - start_time) * 1000
-            result = {}
         else:
             # Stage 2: Execute
             try:
                 result = await self.execute(params, ctx)
-                error = None
             except Exception as e:
                 result = {}
                 error = str(e)
@@ -396,7 +398,7 @@ class EmbodiedTool:
             decision=decision,
             result=result,
             latency_ms=latency_ms,
-            error=error if not decision.can_proceed else (error if "error" in dir() else None),
+            error=error,
             confidence=0.5,
             reasoning_summary=(
                 decision.reason
