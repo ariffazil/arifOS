@@ -51,7 +51,7 @@ This file is the single source of truth for AI coding agents working on the arif
 | File | Purpose |
 |------|---------|
 | `pyproject.toml` (root) | Minimal canonical package charter (`name: arifos`, `version: 2026.5.11`). Used for root-level `pip install .`. |
-| `arifosmcp/pyproject.toml` | Comprehensive package manifest (`version: 2026.05.04`). Used for **PyPI publishing** (`make publish-pypi` runs `uv build --project arifosmcp`). Also contains detailed Ruff, MyPy, Black, Bandit, and coverage configuration. |
+| `arifosmcp/pyproject.toml` | Comprehensive package manifest (`version: 2026.05.20`). Used for **PyPI publishing** (`make publish-pypi` runs `uv build --project arifosmcp`). Also contains detailed Ruff, MyPy, Black, Bandit, and coverage configuration. |
 | `uv.lock` | Locked dependency tree for the entire repo. |
 | `arifosmcp/requirements.txt` | Runtime deps for the lean Docker build (`fastmcp`, `fastapi`, `blake3`, `asyncpg`, pinned ML stack, etc.). |
 | `arifosmcp/tool_registry.json` | **Sole source of truth** for the 13 canonical tools. Generated from `constitutional_map.py`; do not hand-edit. |
@@ -107,7 +107,7 @@ arifOS/
 │   └── adapters/                   # MCP adapters
 │
 ├── core/                           # ROOT-LEVEL constitutional core
-│   ├── floors.py                   # F1–F13 enforcement logic (~27K lines)
+│   ├── floors.py                   # F1–F13 enforcement logic (~924 lines)
 │   ├── governance_kernel.py        # Kernel orchestration
 │   ├── judgment.py                 # Verdict engine
 │   ├── vault999/                   # Ledger implementation (layer1–layer4, phenomenological, seals)
@@ -121,7 +121,7 @@ arifOS/
 │
 ├── tests/                          # Comprehensive test suite (~110 test_*.py files)
 │   ├── conftest.py                 # Global fixtures (disable physics, legacy spec bypass, SyncASGIClient, mock WELL)
-│   ├── test_*.py                   # ~80+ top-level test files
+│   ├── test_*.py                   # ~128 test files, 153 total .py in tests/
 │   ├── runtime/                    # Runtime-specific tests (ZKPC, memory, judge, OAuth, sessions, …)
 │   ├── adversarial/                # Injection / jailbreak tests
 │   ├── integration/                # E2E flow tests

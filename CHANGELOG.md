@@ -1,5 +1,17 @@
 # CHANGELOG — arifOS
 
+## [v2026.05.19] — 2026-05-19
+
+### 🌑 Shadow Infrastructure & Paradox Guard
+
+- **444_KERNEL Shadow-Aware Routing:** Added flux-based veto for irreversible targets (`FORGE`, `VAULT`, `EXECUTE`, `DEPLOY`). Metabolic flux ≥ 0.85 or alignment-faking ≥ 0.7 blocks routing with `HOLD_888`. Metrics computed from live session shadow state instead of nulls.
+- **111_SENSE F-WEB Injection Scan:** All MiniMax bridge results scanned for external instruction injection (`ignore previous instructions`, `jailbreak`, `DAN mode`, etc.). Injection detected → evidence downgraded, confidence capped at 0.3, `floor_12_signal="fail"`.
+- **999_VAULT Truth Layer Sealing:** Every ledger entry and return envelope now embeds `truth_layer: "checklist"`, `absolute_truth_claimed: false`, `unknown_unknowns_acknowledged: true`, `human_judgment_required: true`, `godel_lock_active: true`.
+- **888_JUDGE Paradox Guard:** Post-floor downgrade `SEAL → HOLD_888` triggers on confidence < 0.6, metabolic flux ≥ 0.65, or alignment-faking ≥ 0.6 after all floors pass. Early-return paths (empty bundle, malformed metrics) also carry truth-layer fields.
+- **Tests:** Added 42 tests across `test_shadow_infrastructure.py` (18), `test_floors_f3_f11.py` (17), and `test_888_judge_paradox_guard.py` (7). All passing; zero regressions in 133 related existing tests.
+
+---
+
 ## [v2026.05.20] — 2026-05-17
 
 ### 🛠️ Audit & Governance Alignment

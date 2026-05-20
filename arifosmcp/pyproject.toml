@@ -312,9 +312,8 @@ select = ["E", "F", "I", "UP", "N", "B"]
 ignore = []
 
 [tool.ruff.lint.per-file-ignores]
-"tests/test_runtime_manifest.py" = ["F401"]
-"tests/test_session_dependency_guard.py" = ["F821", "F841"]
-"tests/test_sovereignty_all_providers.py" = ["F401", "F841"]
+# No stale per-file ignores — all referenced test files must exist.
+# Add entries here only for real test files with known lint exceptions.
 "tests/test_v35_features.py" = ["F401"]
 "tests/test_waw_organs.py" = ["F401", "F811"]
 # tools.py is the 5000-line canonical runtime; pre-existing naming and import

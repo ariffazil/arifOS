@@ -1,0 +1,185 @@
+# arifOS Canonical Tool Registry
+# SOT: ariffazil/arifos — Constitutional Intelligence Kernel
+# Last verified: 2026-05-19
+
+schema_version: "2026.05.19"
+organ: arifOS
+authority: ariffazil/arifos
+mcp_transport: streamable-http
+mcp_endpoint: http://localhost:8080/mcp
+health_endpoint: http://localhost:8080/health
+
+floor_enforcement: active
+floors_active: 13
+
+ tools:
+  arif_session_init:
+    stage: "000"
+    lane: AGI
+    access: public
+    owner_repo: ariffazil/arifos
+    runtime_surface: arifosmcp/tools/session.py
+    floor_risk: F11_AUTH
+    tests_present: true
+    status: sealed
+    description: Constitutional session bootstrap and identity binding
+
+  arif_sense_observe:
+    stage: "111"
+    lane: AGI
+    access: public
+    owner_repo: ariffazil/arifos
+    runtime_surface: arifosmcp/tools/sense.py
+    floor_risk: F4_CLARITY
+    tests_present: true
+    status: sealed
+    description: Reality-grounded observation and telemetry
+    # NOTE: Implementation delegates to reality_handlers.py (scope bleed — should move to A-FORGE)
+
+  arif_evidence_fetch:
+    stage: "222"
+    lane: AGI
+    access: public
+    owner_repo: ariffazil/arifos
+    runtime_surface: arifosmcp/tools/evidence.py
+    floor_risk: F2_TRUTH
+    tests_present: true
+    status: sealed
+    description: Evidence-preserving web ingestion with sequential thinking
+    # NOTE: Implementation delegates to runtime/tools.py _arif_evidence_fetch (scope bleed)
+
+  arif_mind_reason:
+    stage: "333"
+    lane: AGI
+    access: public
+    owner_repo: ariffazil/arifos
+    runtime_surface: arifosmcp/tools/embodied.py
+    floor_risk: F7_HUMILITY
+    tests_present: true
+    status: sealed
+    description: Symbolic reasoning kernel with SEA-LION / Ollama fallback
+
+  arif_heart_critique:
+    stage: "666"
+    lane: AGI
+    access: public
+    owner_repo: ariffazil/arifos
+    runtime_surface: arifosmcp/tools/embodied.py
+    floor_risk: F5_PEACE
+    tests_present: true
+    status: sealed
+    description: Ethical critique, risk assessment, empathy scan
+
+  arif_kernel_route:
+    stage: "444"
+    lane: AGI
+    access: public
+    owner_repo: ariffazil/arifos
+    runtime_surface: arifosmcp/tools/kernel.py
+    floor_risk: F3_SAFETY
+    tests_present: true
+    status: sealed
+    description: Central orchestration, intent routing, stage dispatch
+
+  arif_reply_compose:
+    stage: "444r"
+    lane: AGI
+    access: public
+    owner_repo: ariffazil/arifos
+    runtime_surface: arifosmcp/tools/reply.py
+    floor_risk: F6_JUSTICE
+    tests_present: true
+    status: sealed
+    description: LLM-aware reply composition with citation support
+
+  arif_memory_recall:
+    stage: "555"
+    lane: AGI
+    access: public
+    owner_repo: ariffazil/arifos
+    runtime_surface: arifosmcp/tools/memory.py
+    floor_risk: F9_ANTI_HANTU
+    tests_present: true
+    status: sealed
+    description: Multi-mode memory tool (store/recall/search/prune/context/stats/audit)
+
+  arif_gateway_connect:
+    stage: "666_GATEWAY"
+    lane: AGI
+    access: public
+    owner_repo: ariffazil/arifos
+    runtime_surface: arifosmcp/tools/gateway.py
+    floor_risk: F11_AUTH
+    tests_present: true
+    status: sealed
+    description: Federated cross-agent bridge and A2A mesh protocol
+
+  arif_judge_deliberate:
+    stage: "888"
+    lane: APEX
+    access: restricted
+    owner_repo: ariffazil/arifos
+    runtime_surface: arifosmcp/tools/judge.py
+    floor_risk: F13_SOVEREIGN
+    tests_present: true
+    status: sealed
+    description: Final constitutional arbitration and verdict sealing
+
+  arif_vault_seal:
+    stage: "999"
+    lane: APEX
+    access: restricted
+    owner_repo: ariffazil/arifos
+    runtime_surface: arifosmcp/tools/vault.py
+    floor_risk: F1_AMANAH
+    tests_present: true
+    status: sealed
+    description: Immutable ledger anchoring and cryptographic seal
+
+  arif_forge_execute:
+    stage: "010"
+    lane: AGI
+    access: public
+    owner_repo: ariffazil/arifos
+    runtime_surface: arifosmcp/tools/forge.py
+    floor_risk: F3_SAFETY
+    tests_present: true
+    status: sealed
+    description: Metabolic execution, build orchestration, artifact forging
+
+  arif_ops_measure:
+    stage: "777"
+    lane: AGI
+    access: public
+    owner_repo: ariffazil/arifos
+    runtime_surface: arifosmcp/tools/ops.py
+    floor_risk: F8_STABILITY
+    tests_present: true
+    status: sealed
+    description: Resource thermodynamics, health telemetry, metabolic monitoring
+
+  arif_stack_health_probe:
+    stage: "777_OPS"
+    lane: AGI
+    access: public
+    owner_repo: ariffazil/arifos
+    runtime_surface: arifosmcp/tools/ops.py
+    floor_risk: F8_STABILITY
+    tests_present: true
+    status: sealed
+    description: Federation stack health and governance probe
+
+# Future tools (planned, not yet exposed)
+planned:
+  - name: arif_memory_promote
+    stage: "555"
+    description: Promote memory tier (cooling → canonical → sacred)
+  - name: arif_memory_demote
+    stage: "555"
+    description: Demote memory tier (sacred → canonical → void)
+  - name: arif_memory_compress
+    stage: "555"
+    description: Compress memory content while preserving semantic core
+  - name: arif_memory_link_evidence
+    stage: "555"
+    description: Link memory entry to evidence artifact receipt

@@ -1,0 +1,489 @@
+# arifOS Federation — Unified Manifest
+# DITEMPA BUKAN DIBERI
+#
+# Single source of truth for the entire federation.
+# Every organ, port, role, authority, tool count, and routing rule
+# is declared here. No ghost tools. No ambiguous authority.
+#
+# Source-of-truth hierarchy (highest to lowest):
+#   1. live callable surface (curl /tools on each port)
+#   2. canonical tool_registry.json (arifOS only)
+#   3. THIS FILE — federation.manifest.yaml
+#   4. smithery.yaml (public marketplace manifests)
+#   5. AGENTS.md / README docs
+#   6. agent memory
+#
+# To update: edit this file, then run validation:
+#   python scripts/validate_federation_manifest.py
+#
+# Last verified: 2026-05-19
+# Verified by: Ω-FORGE audit
+
+schema_version: "1"
+kind: arifos.federation_manifest
+version: "2026.05.19"
+status: contract
+
+# ─── SOVEREIGN ───────────────────────────────────────────────────────────────
+
+sovereign:
+  human: Muhammad Arif bin Fazil
+  alias: Arif, 888_Judge
+  role: Final sovereign judge — all irreversible actions require explicit ack
+  self_approval_forbidden: true
+  irreversible_requires_ack: true
+  veto_absolute_at: [F01, F02, F03, F04, F05, F06, F07, F08, F09, F10, F11, F12, F13]
+
+assistant_role: instrument
+assistant_motto: DITEMPA BUKAN DIBERI — Forged Not Given
+
+# ─── ORGANS ──────────────────────────────────────────────────────────────────
+
+organs:
+
+  # ── arifOS: Constitutional Kernel ─────────────────────────────────────
+  - id: arifos
+    organ_name: arifOS MCP Server
+    repo: ariffazil/arifos
+    role: constitutional_kernel
+    lane: AGI / ASI / APEX
+    authority: judge
+    port: 8080
+    transport: streamable_http
+    public_domain: https://arifos.arif-fazil.com
+    mcp_endpoint: https://mcp.arif-fazil.com/mcp
+
+    tool_counts:
+      canonical_public: 13
+      deprecated_aliases: 0
+      hidden_internal: 0
+      callable_verified: 13
+      phantom: 0
+
+    tool_registry_source: arifosmcp/tool_registry.json
+    canonical_tools:
+      - arif_session_init          # 000 — Session anchor
+      - arif_sense_observe        # 111 — Reality grounding
+      - arif_evidence_fetch       # 222 — Evidence preservation
+      - arif_mind_reason          # 333 — Reasoning
+      - arif_heart_critique       # 444 — Ethical scan (ASI)
+      - arif_kernel_route         # 555 — Orchestration
+      - arif_reply_compose        # 444r — Reply synthesis
+      - arif_memory_recall        # 555m — Governed memory
+      - arif_gateway_connect      # 666g — A2A mesh
+      - arif_judge_deliberate    # 888 — Constitutional verdict (ASI)
+      - arif_vault_seal           # 999 — Immutable ledger (APEX)
+      - arif_forge_execute        # 010 — Execution bridge
+      - arif_ops_measure         # 777 — Thermodynamic telemetry
+
+    authority_exclusions:
+      - domain_geology_logic
+      - capital_allocation_logic
+      - cockpit_ui
+      - deployment_substrate
+
+    floors_active: [F01, F02, F03, F04, F05, F06, F07, F08, F09, F10, F11, F12, F13]
+    registry_truth: VERIFIED
+    health_endpoint: http://localhost:8080/health
+    tools_endpoint: http://localhost:8080/tools
+    resources_endpoint: http://localhost:8080/resources
+    contract_hash: sha256:canonical-v2026.05.19
+
+  # ── GEOX: Earth Evidence ────────────────────────────────────────────────
+  - id: geox
+    organ_name: GEOX Earth Intelligence
+    repo: ariffazil/geox
+    role: earth_evidence
+    lane: AGI
+    authority: evidence_only
+    port: 8081
+    transport: streamable_http
+    public_domain: https://geox.arif-fazil.com
+
+    tool_counts:
+      canonical_public: 15
+      deprecated_aliases: 0
+      hidden_internal: 0
+      callable_verified: 15
+      phantom: 0
+
+    authority_exclusions:
+      - constitutional_judgment
+      - capital_allocation_decision
+      - deployment_substrate
+      - final_seal
+
+    primary_tools:
+      - geox_data_ingest_bundle
+      - geox_data_qc_bundle
+      - geox_subsurface_generate_candidates
+      - geox_subsurface_verify_integrity
+      - geox_seismic_analyze_volume
+      - geox_section_interpret_correlation
+      - geox_map_context_scene
+      - geox_time4d_analyze_system
+      - geox_prospect_evaluate
+      - geox_prospect_judge_preview
+      - geox_prospect_judge_seal
+      - geox_dst_ingest_test
+      - geox_evidence_summarize_cross
+      - geox_system_registry_status
+      - geox_history_audit
+
+    registry_truth: VERIFIED
+    health_endpoint: http://localhost:8081/health
+    tools_endpoint: http://localhost:8081/tools
+    contract_hash: sha256:geox-v2026.05.19
+
+  # ── WEALTH: Capital Thermodynamics ──────────────────────────────────────
+  - id: wealth
+    organ_name: WEALTH Capital Engine
+    repo: ariffazil/wealth
+    role: capital_thermodynamics
+    lane: AGI
+    authority: computation_only
+    port: 8082
+    transport: streamable_http
+    public_domain: https://wealth.arif-fazil.com
+
+    tool_counts:
+      canonical_public: 17
+      deprecated_aliases: 0
+      hidden_internal: 34
+      callable_verified: 17
+      phantom: 0
+
+    authority_exclusions:
+      - constitutional_judgment
+      - geological_truth
+      - deployment_substrate
+      - final_capital_commitment
+
+    primary_tools:
+      - wealth_conservation_capital
+      - wealth_flow_liquidity
+      - wealth_gradient_price
+      - wealth_entropy_risk
+      - wealth_energy_productivity
+      - wealth_time_discount
+      - wealth_inertia_leverage
+      - wealth_field_macro
+      - wealth_signal_information
+      - wealth_game_coordination
+      - wealth_boundary_governance
+      - wealth_hysteresis_ledger
+      - wealth_system_registry_status
+      - wealth_synthesize
+      - wealth_role_scarcity_risk
+      - wealth_inequality_kernel
+
+    registry_truth: PASS
+    health_endpoint: http://localhost:8082/health
+    tools_endpoint: http://localhost:8082/tools
+    contract_hash: sha256:wealth-v2026.05.19
+
+  # ── WELL: Biological Substrate ────────────────────────────────────────
+  - id: well
+    organ_name: WELL Vitality Engine
+    repo: ariffazil/well
+    role: biological_readiness
+    lane: AGI / ASI
+    authority: reflection_only
+    port: 8083
+    transport: streamable_http
+    public_domain: https://well.arif-fazil.com
+
+    tool_counts:
+      canonical_public: 15
+      deprecated_aliases: 0
+      hidden_internal: 0
+      callable_verified: 15
+      phantom: 0
+
+    authority_exclusions:
+      - constitutional_judgment
+      - geological_truth
+      - capital_allocation
+      - deployment_substrate
+      - final_seal
+
+    truth_status: EXPIRED  # ⚠️ State not refreshed since 2026-05-14 (~20 days stale)
+    state_refresh_needed: true
+
+    primary_tools:
+      - well_classify_substrate
+      - well_trace_lineage
+      - well_detect_boundary
+      - well_measure_gradient
+      - well_assess_metabolism
+      - well_assess_homeostasis
+      - well_check_repair
+      - well_validate_vitality
+      - well_assess_livelihood
+      - well_assess_reliability
+      - well_compute_mind_state
+      - well_detect_cascade_risk
+      - well_measure_continuity
+      - well_sense_gradient
+      - well_trace_memories
+
+    health_endpoint: http://localhost:8083/health
+    tools_endpoint: http://localhost:8083/tools
+    contract_hash: sha256:well-v2026.05.19
+
+  # ── A-FORGE: Execution Substrate ───────────────────────────────────────
+  - id: a_forge
+    organ_name: A-FORGE Execution Engine
+    repo: ariffazil/A-FORGE
+    role: execution_substrate
+    lane: AGI
+    authority: execution_only
+    port: 7071
+    transport: stdio + http_bridge
+    public_domain: https://forge.arif-fazil.com
+
+    tool_counts:
+      canonical_public: 11
+      deprecated_aliases: 0
+      hidden_internal: 0
+      callable_verified: 11
+      phantom: 0
+
+    authority_exclusions:
+      - constitutional_judgment
+      - domain_truth
+      - geological_evidence
+      - capital_allocation
+      - biological_diagnosis
+      - final_seal
+
+    primary_tools:
+      - forge_check_governance
+      - forge_health
+      - forge_run
+      - forge_hold
+      - forge_approve
+      - forge_route_approval
+      - forge_apply_patches
+      - forge_remember
+      - forge_recall
+      - forge_ticket_status
+      - forge_seal_service
+
+    contract_endpoint: http://localhost:7071/contract
+    health_endpoint: http://localhost:7071/health
+    dangerous_tools_enabled: false
+
+  # ── AAA A2A: Control Plane ────────────────────────────────────────────
+  - id: aaa_a2a
+    organ_name: AAA A2A Gateway
+    repo: ariffazil/AAA
+    role: control_plane
+    lane: AGI
+    authority: routing_visibility_only
+    port: 3001
+    transport: http
+    public_domain: https://aaa.arif-fazil.com
+
+    tool_counts:
+      canonical_public: 6  # A2A gateway tools
+      deprecated_aliases: 0
+      hidden_internal: 0
+      callable_verified: 6
+      phantom: 0
+
+    authority_exclusions:
+      - constitutional_judgment
+      - domain_calculation
+      - deployment_substrate
+      - final_seal
+
+    primary_tools:
+      - a2a_agent_card
+      - a2a_task_submit
+      - a2a_task_status
+      - cockpit_status
+      - operator_hold_queue
+
+    a2a_version: "1.0.0"
+    vault_connection: CONNECTED
+    health_endpoint: http://localhost:3001/health
+    a2a_endpoint: http://localhost:3001/a2a
+
+# ─── ROUTING TOPOLOGY ───────────────────────────────────────────────────────────
+
+routing_topology:
+  # All organs route final judgment to arifOS
+  geox:          arifos
+  wealth:        arifos
+  well:          arifos
+  a_forge:       arifos
+  aaa_a2a:       arifos
+
+  # A2A mesh: organs can route to each other for evidence/computation
+  aaa_a2a:
+    - a_forge      # approval routing
+    - arifos       # verdict request
+  a_forge:
+    - arifos       # judgment request
+    - geox         # evidence request
+
+  # Execution chain: arifOS SEAL → A-FORGE execute
+  execution_chain:
+    - arif_judge_deliberate  # 888 returns SEAL
+    - arif_forge_execute     # 010 executes after SEAL
+
+# ─── FINAL VERDICT AUTHORITY ────────────────────────────────────────────────────
+
+final_verdict_authority:
+  only: arifos.888_JUDGE
+  human_final_judge: Arif
+  human_veto_absolute: true
+  hold_conditions:
+    - secret_rotation
+    - public_deploy_without_build_test_health
+    - cross_repo_architecture_change
+    - destructive_or_irreversible_action
+
+# ─── A2A HANDSHAKE CONTRACT ──────────────────────────────────────────────────
+
+a2a_handshake:
+  required_fields:
+    - organ_id
+    - schema_version
+    - contract_hash
+    - tool_registry_hash
+    - authority_exclusions
+    - last_verified
+    - callable_surface_count
+  reject_if:
+    phantom_tools: true
+    contract_hash_missing: true
+    authority_overlap: true
+    last_verified_stale: true  # > 30 days
+    advertised_not_callable: true
+
+# ─── DEGRADATION STATES ──────────────────────────────────────────────────────
+
+degradation_states:
+  SELAMAT:
+    description: Healthy — all organs reachable, all tools callable
+    action: normal_operation
+  AMANAH:
+    description: Usable with warning — minor degradation, no sovereign impact
+    action: proceed_with_monitoring
+  SABAR:
+    description: Degraded — reduced functionality, awaiting recovery
+    action: await_conditions_normalize
+  HOLD:
+    description: Cannot proceed safely — requires human judgment
+    action: escalate_to_Arif
+  VOID:
+    description: Invalid or unsafe — do not proceed
+    action: block_and_alert
+
+# ─── NAMING LAW ────────────────────────────────────────────────────────────────
+
+naming_convention:
+  arif_*:
+    owner: arifOS
+    meaning: Constitutional kernel tools
+  geox_*:
+    owner: GEOX
+    meaning: Earth evidence tools
+  wealth_*:
+    owner: WEALTH
+    meaning: Capital computation tools
+  well_*:
+    owner: WELL
+    meaning: Biological readiness tools
+  forge_*:
+    owner: A-FORGE
+    meaning: Execution substrate tools
+  a2a_*:
+    owner: AAA A2A
+    meaning: Control plane routing
+  arifos_*:
+    owner: arifOS
+    meaning: Federation/kernel meta-diagnostics
+
+# ─── PROMPT BOUNDARIES ────────────────────────────────────────────────────────
+
+prompt_contracts:
+  arifos:
+    must_do: [verify_evidence, check_floors, declare_uncertainty, cite_source]
+    must_not_do: [final_geological_claim, capital_allocation, execute_without_seal]
+
+  geox:
+    must_do: [preserve_uncertainty, cite_evidence, distinguish_observed_from_interpreted]
+    must_not_do: [allocate_capital, approve_drilling, issue_final_seal]
+
+  wealth:
+    must_do: [compute_consequence, expose_assumptions, declare_model_uncertainty]
+    must_not_do: [declare_geological_truth, execute_transaction, override_judgment]
+
+  well:
+    must_do: [reflect_human_condition, preserve_dignity, assess_readiness]
+    must_not_do: [diagnose_without_consent, claim_causation, override_sovereign]
+
+  a_forge:
+    must_do: [require_seal_before_execute, prepare_rollback, measure_ops_cost]
+    must_not_do: [self_authorize, skip_judgment_gate, execute_phantom_tool]
+
+  aaa_a2a:
+    must_do: [route_transparently, expose_queue_state, maintain_audit_trail]
+    must_not_do: [adjudicate, execute_domain_logic, claim_final_authority]
+
+# ─── SOURCE-OF-TRUTH HIERARCHY ────────────────────────────────────────────────
+
+source_of_truth:
+  tier_1:
+    name: live_callable_surface
+    description: "curl /tools on each port — the actual runtime surface"
+    priority: 1
+  tier_2:
+    name: canonical_tool_registry
+    description: "arifosmcp/tool_registry.json for arifOS 13 tools"
+    priority: 2
+  tier_3:
+    name: federation_manifest
+    description: "THIS FILE — unified federation manifest"
+    priority: 3
+  tier_4:
+    name: smithery_yaml
+    description: "Public marketplace manifests (arifOS, GEOX, A-FORGE)"
+    priority: 4
+  tier_5:
+    name: agents_md_readme
+    description: "AGENTS.md and README documentation"
+    priority: 5
+  tier_6:
+    name: agent_memory
+    description: "Workspace memory files"
+    priority: 6
+
+# ─── VALIDATION RULES ─────────────────────────────────────────────────────────
+
+validation:
+  ci_tests:
+    - name: advertised_callable_match
+      description: Every tool in smithery.yaml must be in live callable surface
+      severity: F2_VIOLATION
+    - name: organ_name_matches_repo
+      description: Every organ's manifest name must match its repo identity
+      severity: F2_VIOLATION
+    - name: authority_exclusions_valid
+      description: No organ may claim authority it does not own
+      severity: F13_VIOLATION
+    - name: no_phantom_tools
+      description: No tool may be callable that is not documented
+      severity: F2_VIOLATION
+    - name: contract_hash_current
+      description: Every organ must expose a current contract hash
+      severity: F2_WARNING
+    - name: state_freshness
+      description: WELL truth_status must be refreshed within 7 days
+      severity: F4_WARNING
+    - name: irreversible_has_rollback
+      description: Every deploy tool must have a rollback path documented
+      severity: F1_CRITICAL

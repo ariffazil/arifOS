@@ -41,39 +41,6 @@ RUNTIME_ENVELOPE_SCHEMA = {
 _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_ping": "Lightweight liveness probe — confirms kernel reachability.",
     "arif_selftest": "Constitutional integrity probe — verifies the floor stack is intact.",
-    "arif_session_init": "000_INIT: + birth — Session bootstrap + identity binding.",
-    "arif_sense_observe": "111_OBSERVE: + contact reality — Multimodal reality observation.",
-    "arif_evidence_fetch": "222_EVIDENCE: + gather — Verified external evidence retrieval.",
-    "arif_mind_reason": "333_REASON: + reason — Symbolic reasoning kernel.",
-    "arif_kernel_route": "555_ROUTE: + route — Central orchestration and tool routing.",
-    "arif_heart_critique": "444_CRITIQUE: + feel consequence — Ethical critique and impact assessment.",
-    "arif_reply_compose": "444_REPLY: + express — Governed response composition.",
-    "arif_memory_recall": "555m_MEMORY: + remember — Associative retrieval from VAULT999.",
-    "arif_gateway_connect": "666_GATEWAY: connect outward — Federated cross-agent bridge.",
-    "arif_judge_deliberate": "888_JUDGE: < arbitrate — Final constitutional arbitration.",
-    "arif_vault_seal": "999_SEAL: + seal finally — Immutable ledger anchoring.",
-    "arif_forge_execute": "666_FORGE: < build — System modification and build execution.",
-    "arif_ops_measure": "777_MEASURE: measure — Resource thermodynamics.",
-    "arif_mcp_health": "Lightweight service health check for the arifOS MCP gateway.",
-    "arif_stack_health_probe": (
-        "777_OPS: Federation stack health and governance probe. "
-        "Checks arifOS MCP, organs, model registry, risk leash, tool registry, VAULT999. "
-        "Returns SELAMAT / AMANAH / VOID with per-component diagnostics."
-    ),
-}
-
-RUNTIME_ENVELOPE_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "ok": {"type": "boolean"},
-        "verdict": {"type": "string"},
-        "payload": {"type": "object"},
-    },
-}
-
-_TOOL_DESCRIPTIONS: dict[str, str] = {
-    "arif_ping": "Lightweight liveness probe — confirms kernel reachability.",
-    "arif_selftest": "Constitutional integrity probe — verifies the floor stack is intact.",
     "arif_session_init": (
         "000_INIT: Constitutional session bootstrap and identity binding. "
         "Initializes a governed session anchored to the 13-floor constitution. "

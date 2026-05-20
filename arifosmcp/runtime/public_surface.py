@@ -13,7 +13,7 @@ except Exception:  # pragma: no cover - defensive fallback
 
 
 CANONICAL_13: tuple[str, ...] = tuple(list_constitutional_tools())
-CANONICAL_15: tuple[str, ...] = tuple(list_canonical_tools())
+# CANONICAL_13 is the single canonical set (was previously duplicated as CANONICAL_15)
 
 BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
     "arifos_",
@@ -26,7 +26,6 @@ BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
 
 VALID_PUBLIC_SURFACE_MODES: tuple[str, ...] = (
     "canonical13",
-    "canonical15",
     "expanded45",
 )
 
@@ -51,7 +50,7 @@ def _alias_public_name(alias_name: str) -> str:
 # in the current runtime. The live MCP server may expose fewer tools than
 # appear in this registry. Use MCP tools/list for the authoritative count.
 EXPANDED_45: tuple[str, ...] = tuple(
-    list(dict.fromkeys([*CANONICAL_15, *(_alias_public_name(name) for name in TOOL_ALIAS_MAP)]))
+    list(dict.fromkeys([*CANONICAL_13, *(_alias_public_name(name) for name in TOOL_ALIAS_MAP)]))
 )
 
 # Diagnostic tools — reversible governance inspectors, not canonical constitutional tools.
@@ -70,7 +69,7 @@ def normalize_public_surface_mode(mode: str | None = None) -> str:
         "chatgpt": "canonical13",
         "agnostic_public": "canonical13",
         "canonical13": "canonical13",
-        "canonical15": "canonical15",
+        "canonical15": "canonical13",  # deprecated alias — canonical count is 13
         "internal": "expanded45",
         "expanded45": "expanded45",
     }
@@ -83,11 +82,9 @@ def current_public_surface_mode() -> str:
 
 def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     resolved = normalize_public_surface_mode(mode)
-    if resolved == "canonical13":
-        return CANONICAL_13
     if resolved == "expanded45":
         return tuple([*EXPANDED_45, *DIAGNOSTIC_TOOLS])
-    return CANONICAL_15
+    return CANONICAL_13
 
 
 def public_boundary_allows(name: str, mode: str | None = None) -> bool:
@@ -108,7 +105,6 @@ def public_surface_state(mode: str | None = None) -> dict[str, Any]:
         "diagnostic_tools": diagnostic_tools,
         "tool_names": tool_names,
         "canonical13_count": len(CANONICAL_13),
-        "canonical15_count": len(CANONICAL_15),
         "blocked_public_prefixes": list(BLOCKED_PUBLIC_PREFIXES),
     }
 

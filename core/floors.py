@@ -73,6 +73,29 @@ THRESHOLDS = {
     "F13_SOVEREIGN": 1.00,
 }
 
+# Canonical short-id -> THRESHOLDS key mapping (bridge for key mismatch)
+FLOOR_SPEC_KEYS: dict[str, str] = {
+    "F1": "F1_AMANAH",
+    "F2": "F2_TRUTH",
+    "F3": "F3_QUAD_WITNESS",
+    "F4": "F4_CLARITY",
+    "F5": "F5_PEACE",
+    "F6": "F6_EMPATHY",
+    "F7": "F7_HUMILITY",
+    "F8": "F8_GENIUS",
+    "F9": "F9_ANTI_HANTU",
+    "F10": "F10_ONTOLOGY",
+    "F11": "F11_COMMAND_AUTH",
+    "F12": "F12_INJECTION",
+    "F13": "F13_SOVEREIGN",
+}
+
+def get_floor_threshold(floor_id: str) -> float | tuple[float, float] | None:
+    """Return threshold value for a short floor id (e.g., 'F1') or None if not found."""
+    spec_key = FLOOR_SPEC_KEYS.get(floor_id)
+    return THRESHOLDS.get(spec_key) if spec_key else None
+
+
 FLOOR_LEVELS: dict[str, FloorLevel] = {
     "F1": FloorLevel.HARD,
     "F2": FloorLevel.HARD,
@@ -257,7 +280,7 @@ class ConstitutionalFloors:
         risk_tier = self._assess_risk_tier(action, tool_name, parameters)
 
         all_evaluated = {r.floor_id for r in self.results}
-        all_declared = set(THRESHOLDS.keys())
+        all_declared = set(FLOOR_LEVELS.keys())
         missing_evaluators = all_declared - all_evaluated
         if missing_evaluators:
             for missing in missing_evaluators:
@@ -268,8 +291,8 @@ class ConstitutionalFloors:
                         name="MissingEvaluator",
                         passed=False,
                         score=0.0,
-                        threshold=THRESHOLDS.get(missing, 0.5),
-                        details="Floor declared in THRESHOLDS but has no evaluator in evaluate()",
+                        threshold=THRESHOLDS.get(missing, THRESHOLDS.get(f"{missing}_SOVEREIGN", THRESHOLDS.get(f"{missing}_AMANAH", 0.5))),
+                        details="Floor declared in FLOOR_LEVELS but has no evaluator in evaluate()",
                     )
                 )
 
