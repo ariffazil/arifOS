@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "2026.05.20"
+version = "2026.05.21"
 
 # 2026.05.20 — Audit & Governance Alignment
 #   Audit Truth: Added registry_truth: PASS to health payload.

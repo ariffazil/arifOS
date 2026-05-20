@@ -505,7 +505,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         ],
         "risk_tier": "medium",
         "irreversible": False,
-        "modes": ["route", "kernel", "triage", "delegate", "status"],
+        "modes": ["route", "kernel", "triage", "delegate", "status", "metabolize"],
         "eureka_insight": (
             "F1: Amanah — routing decisions must be auditable. "
             "F4: ΔS ≤ 0 (entropy must decrease). "

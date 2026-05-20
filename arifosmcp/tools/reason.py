@@ -132,6 +132,32 @@ def arif_mind_reason(
 
     reason_result = _run_reasoning_sync(run_reasoning(query or "", mode, session_id, actor_id))
 
+    # If v2 metabolic mode, handle the nested mind_packet structure
+    if mode == "metabolize" and "mind_packet" in reason_result:
+        packet = reason_result["mind_packet"]
+        synthesis_v2 = packet.get("synthesis", {})
+        
+        bundle = _build_delta_bundle(
+            query=query,
+            status=reason_result.get("status", "OK"),
+            claim_state=packet.get("claim_state", "supported"),
+            synthesis=synthesis_v2.get("bounded_answer", ""),
+            reasoning={
+                "metabolized_context": packet.get("metabolized_context"),
+                "abstractions": packet.get("abstractions"),
+                "attestations": packet.get("attestations"),
+                "abductions": packet.get("abductions"),
+                "sequential_layers": packet.get("sequential_layers"),
+            },
+            confidence=synthesis_v2.get("confidence", {}),
+            uncertainty=reason_result.get("uncertainty", []),
+            reasoning_mode=packet.get("reasoning_mode", "deliberate"),
+            axioms_used=reason_result.get("governance", {}).get("axioms_used", []),
+            next_safe_action=[a.get("tool") for a in packet.get("next_actions", [])],
+            context=context,
+        )
+        return Synthesis(**_ok("arif_mind_reason", bundle))
+
     # Floor check (Manual override check)
     floor_check = check_floors("arif_mind_reason", {"query": query or ""}, actor_id)
     floor_verdict = floor_check.get("verdict", "HOLD")

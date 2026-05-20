@@ -1,5 +1,15 @@
 # CHANGELOG — arifOS
 
+## [v2026.05.21] — 2026-05-20
+
+### ⚡ Metabolize Mode — Cognitive Delegation Wiring
+
+- **Kernel Route metabolize mode:** `_arif_kernel_route` now handles `mode=metabolize`, delegating to `arif_mind_reason_v2` with `MindRequest` construction and async execution.
+- **Mind Reason metabolize handler:** `arif_mind_reason` handles `mind_packet` nested structure from v2 metabolic synthesis, building delta bundle with `metabolized_context`, `abstractions`, `attestations`, `abductions`, `sequential_layers`, and `next_safe_action` extraction.
+- **Constitutional Map:** `metabolize` mode registered in both `arif_kernel_route` (kernel tools) and `eureka_insight` tool modes.
+
+---
+
 ## [v2026.05.19] — 2026-05-19
 
 ### 🌑 Shadow Infrastructure & Paradox Guard

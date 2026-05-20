@@ -5937,6 +5937,24 @@ def _arif_kernel_route(
     if mode == "triage":
         return _ok("arif_kernel_route", {"priority": "normal", "queue": 0}, delta_S=0.0)
 
+    if mode == "metabolize":
+        from arifosmcp.runtime.mind_reason import arif_mind_reason_v2
+        from arifosmcp.schemas.mind_metabolism import MindRequest
+
+        # Construct v2 request
+        request = MindRequest(
+            query=task or query or "",
+            mode=mode,
+            session_id=session_id,
+            actor_id=actor_id,
+        )
+        result = _run_async(arif_mind_reason_v2(request))
+        return _ok(
+            "arif_kernel_route",
+            result.model_dump() if hasattr(result, "model_dump") else result,
+            delta_S=-0.01,
+        )
+
     if mode == "delegate":
         return _ok(
             "arif_kernel_route",
