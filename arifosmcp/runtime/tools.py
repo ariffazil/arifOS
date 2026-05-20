@@ -5300,6 +5300,7 @@ async def _arif_mind_reason_tool(
             "critique",
             "debate",
             "socratic",
+            "metabolize",
         ):
             result = _arif_mind_reason(
                 mode=mode,
