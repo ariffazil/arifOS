@@ -36,8 +36,8 @@ This file is the single source of truth for AI coding agents working on the arif
 | Vector DB | `qdrant-client`, `chromadb`, `lancedb` | Primary: Qdrant; legacy/local: Chroma/Lance |
 | Postgres | `asyncpg`, `psycopg2-binary` | For Vault999 persistence |
 | Redis | `redis>=5.0.0` | Session persistence + VAULT999 storage |
-| ML / Embeddings | `torch==2.5.1`, `transformers==4.46.3`, `sentence-transformers==3.3.1` | ASI floor enforcement (F5, F6, F9) |
-| NumPy/SciPy | `numpy==2.1.3`, `scipy==1.14.1`, `scikit-learn==1.5.2` | Pinned for reproducibility |
+| ML / Embeddings | `torch==2.11.0`, `transformers==4.46.3`, `sentence-transformers==5.4.1` | ASI floor enforcement (F5, F6, F9) |
+| NumPy/SciPy | `numpy==2.4.4`, `scipy==1.17.1`, `scikit-learn==1.8.0` | Pinned for reproducibility |
 | Observability | `prometheus-client`, `rich` | Metrics + CLI output |
 | Testing | `pytest`, `pytest-asyncio`, `pytest-cov` | asyncio_mode = auto |
 | Linting | `ruff`, `black`, `mypy` | Line length 100, target py312 |

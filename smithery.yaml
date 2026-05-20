@@ -69,7 +69,7 @@ tools:
       properties:
         mode:
           type: string
-          enum: [search, ingest, compass, atlas, entropy_dS, vitals]
+          enum: [search, ingest, compass, atlas, entropy_dS, vitals, classify, extract_claims, contrast]
         query:
           type: string
         url:
@@ -110,7 +110,7 @@ tools:
       properties:
         mode:
           type: string
-          enum: [reason, reflect, verify, critique, axioms, plan, plan_review, plan_approve]
+          enum: [reason, reflect, verify, critique, debate, socratic, axioms, plan, plan_review, plan_approve]
         query:
           type: string
         session_id:
@@ -146,7 +146,7 @@ tools:
       properties:
         mode:
           type: string
-          enum: [route, stage, lane, list, status, depth_select, risk_gate, budget_gate, authority_gate, reversibility_gate, workflow_select]
+          enum: [route, stage, lane, list, status, kernel, federation_health, triage, depth_select, risk_gate, budget_gate, authority_gate, reversibility_gate, workflow_select, delegate]
         target:
           type: string
         task:
@@ -167,7 +167,7 @@ tools:
       properties:
         mode:
           type: string
-          enum: [compose, summarize, cite, tone_shift]
+          enum: [compose, summary, cite, format, style, nudge]
         message:
           type: string
         style:
@@ -187,7 +187,7 @@ tools:
       properties:
         mode:
           type: string
-          enum: [recall, store, get, list, prune, search, context, dry_run]
+          enum: [recall, store, get, list, prune, search, context, dry_run, stats]
         query:
           type: string
         memory_id:
@@ -249,7 +249,7 @@ tools:
       properties:
         mode:
           type: string
-          enum: [seal, verify, chain, list]
+          enum: [seal, verify, chain, list, dry_run, audit, ledger, retrieve_audit]
         payload:
           type: string
         ack_irreversible:
@@ -294,7 +294,7 @@ tools:
       properties:
         mode:
           type: string
-          enum: [health, vitals, cost, predict, topology, drift]
+          enum: [health, vitals, cost, predict, topology, drift, genius, omega, psi_le, landauer, entropy_delta]
         estimate:
           type: number
       required: [mode]

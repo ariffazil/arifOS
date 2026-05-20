@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "A_RIF_EvidenceReceipt",
+  "type": "object",
+  "properties": {
+    "receipt_id": { "type": "string" },
+    "query": { "type": "string" },
+    "max_evidence_level": { "type": "string" },
+    "entropy_delta": { "type": "number" },
+    "claim_state": { "type": "string" },
+    "risk_flags": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["receipt_id", "max_evidence_level", "claim_state"]
+}

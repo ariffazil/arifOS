@@ -1,0 +1,9 @@
+patterns:
+  - "ignore previous instructions"
+  - "system override"
+  - "you are now"
+  - "disregard all prior"
+  - "new role:"
+  - "hidden instruction:"
+
+action: "quarantine_and_downgrade_to_L0"

@@ -1,0 +1,27 @@
+allowed_providers:
+  low_risk:
+    - agent_native_web
+    - brave
+    - ddgs
+  standard_fact:
+    - brave
+    - tavily
+    - gemini_grounding
+  high_risk:
+    - primary_source_fetch
+    - exa
+    - brave_goggles
+  academic:
+    - exa
+    - semantic_scholar
+  sovereign:
+    - vault_witness
+    - internal_corpus
+
+routing_rules:
+  - if_domain: "geoscience"
+    preferred: "exa"
+  - if_domain: "legal"
+    preferred: "primary_source_fetch"
+  - if_risk: "high"
+    require: "contradiction_audit"

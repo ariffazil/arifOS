@@ -136,7 +136,7 @@ class TestEvidenceStubWiring:
         result = arif_evidence_fetch(mode="fetch", url="https://example.com")
 
         assert result["status"] == "OK"
-        assert result["result"]["content"] == "<html>hello</html>"
+        assert result["result"]["content"] == "hello"
         assert result["result"]["status"] == "200"
         mock_rh.fetch_url.assert_awaited_once_with("https://example.com", render="auto")
 

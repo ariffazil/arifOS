@@ -1,0 +1,6 @@
+audit_rules:
+  - "Identify primary claims from each source."
+  - "Compare numerical values (dates, prices, measurements)."
+  - "Check for authority hierarchy (Regulator > News)."
+  - "Detect echo chambers (identical text across domains)."
+  - "Calculate consensus vs deviation."

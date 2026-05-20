@@ -1,0 +1,12 @@
+levels:
+  L0: "No evidence"
+  L1: "Search snippets / agent summary"
+  L2: "One source fetched / inspected"
+  L3: "Multiple independent sources agree"
+  L4: "Primary / official source inspected"
+  L5: "Primary + Corroborated + Archived"
+  L6: "Reproducible data / direct measurement"
+
+invariants:
+  - "claim_strength <= evidence_level"
+  - "high_risk_requires >= L4"

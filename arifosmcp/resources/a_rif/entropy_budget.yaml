@@ -1,0 +1,8 @@
+budget:
+  max_tokens_per_sensing: 100000
+  max_search_queries: 5
+  entropy_threshold:
+    green: 0.1
+    amber: 0.3
+    red: 0.6
+  cost_limit_usd: 0.50

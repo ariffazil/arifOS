@@ -1,0 +1,11 @@
+ladder:
+  unknown: 0.0
+  suggestive: 0.2
+  single_source: 0.4
+  corroborated: 0.6
+  primary_source: 0.8
+  verified: 1.0
+
+enforcement:
+  - "If strength > 0.6, require evidence_level >= L3"
+  - "If strength > 0.8, require evidence_level >= L4"

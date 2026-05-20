@@ -1,0 +1,13 @@
+blocked_hosts:
+  - "127.0.0.1"
+  - "localhost"
+  - "0.0.0.0"
+  - "10.0.0.0/8"
+  - "172.16.0.0/12"
+  - "192.168.0.0/16"
+  - "metadata.google.internal"
+  - "169.254.169.254"
+
+allowed_schemes:
+  - "http"
+  - "https"

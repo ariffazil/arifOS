@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "A_RIF_SourceCard",
+  "type": "object",
+  "properties": {
+    "url": { "type": "string" },
+    "hash": { "type": "string" },
+    "retrieved_at": { "type": "string" },
+    "status": { "type": "integer" },
+    "content_type": { "type": "string" },
+    "risk_flags": { "type": "array", "items": { "type": "string" } },
+    "evidence_level": { "type": "string" }
+  },
+  "required": ["url", "hash", "retrieved_at", "evidence_level"]
+}

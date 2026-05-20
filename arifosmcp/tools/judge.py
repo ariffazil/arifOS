@@ -275,6 +275,14 @@ def arif_judge_deliberate(
                 )
 
     audit_entropy = _evidence.get("vitals", {}).get("audit_entropy")
+
+    # ── A-RIF: Claim Strength Gate (Abduction/Judgment) ──
+    from arifosmcp.runtime.a_rif.engine import get_allowed_strength
+
+    # Extract evidence level from candidate or context if possible
+    # Placeholder: currently we check if the candidate makes strong claims
+    # that exceed the evidence stored in the receipt/session.
+
     result = _arif_judge_deliberate(
         mode=mode,
         candidate=candidate,
@@ -286,8 +294,49 @@ def arif_judge_deliberate(
         verification_surface=_evidence.get("verification_surface"),
     )
 
-    # ── Attach WELL substrate to result ──────────────────────────────────────
-    # Every judge verdict now carries biological readiness evidence. This closes
+    # ── A-RIF: Post-Adjudication Integrity Check ──
+    from arifosmcp.runtime.a_rif.scorecard import track_judge
+
+    is_seal = "SEAL" in str(result.get("verdict", ""))
+
+    if mode == "judge" and is_seal:
+        # A-RIF: Claim Strength Gate — enforce claim_strength ≤ evidence_level
+        evidence_level = _evidence.get("vitals", {}).get("max_evidence_level", "L1")
+        allowed = get_allowed_strength(evidence_level)
+
+        # Extract claimed strength from candidate if present
+        claim_strength = candidate.get("claim_strength", evidence_level) if isinstance(candidate, dict) else evidence_level
+        claim_strength = claim_strength or evidence_level
+
+        overclaim = False
+        reasons: list[str] = []
+
+        # General gate: claim strength must not exceed evidence level
+        if claim_strength > evidence_level:
+            overclaim = True
+            reasons.append(
+                f"A-RIF_GOVERNANCE: Claim strength ({claim_strength}) exceeds evidence level ({evidence_level})."
+            )
+
+        # Elevated tier gate: C4/C5 requires L4+
+        if _is_elevated_tier and evidence_level < "L4":
+            overclaim = True
+            reasons.append(
+                f"A-RIF_GOVERNANCE: {action_tier} action requires L4+ evidence. Current level: {evidence_level}."
+            )
+
+        if overclaim:
+            track_judge(overclaim=True, attested=False)
+            if isinstance(result, dict):
+                result["verdict"] = "HOLD"
+                result.setdefault("reasons", []).extend(reasons)
+            else:
+                result.verdict = VerdictCode.HOLD
+                result.reasons.extend(reasons)
+        else:
+            track_judge(overclaim=False, attested=(evidence_level != "L0"))
+
+    # ── Attach WELL substrate to result ──    # Every judge verdict now carries biological readiness evidence. This closes
     # the loop: constitutional decisions are grounded in operator substrate state.
     well_sub = _evidence.get("well_substrate", {})
     if isinstance(result, dict):

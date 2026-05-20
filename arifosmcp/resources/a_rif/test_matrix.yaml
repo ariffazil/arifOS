@@ -1,0 +1,13 @@
+tests:
+  - id: "ARI-001"
+    name: "Search Worthiness Gate"
+    check: "W < 1.0 blocks search"
+  - id: "ARI-002"
+    name: "Injection Quarantine"
+    check: "Detection downgrades to L0"
+  - id: "ARI-003"
+    name: "Evidence Level Ladder"
+    check: "Claim strength <= Evidence level"
+  - id: "ARI-004"
+    name: "SSRF Guard"
+    check: "Local IPs are blocked"

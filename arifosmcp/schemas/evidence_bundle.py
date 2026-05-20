@@ -26,14 +26,15 @@ from pydantic import BaseModel, Field
 
 
 class EvidenceLevel(str, Enum):
-    """Evidence determinism tier (L0-L5). Same as EvidenceLevel in evidence/schemas.py."""
+    """Evidence determinism tier (L0-L6). Same as EvidenceLevel in evidence/schemas.py."""
 
-    L0 = "L0"  # Offline / no result
+    L0 = "L0"  # Offline / no result / contaminated
     L1 = "L1"  # Search snippets only
     L2 = "L2"  # URL ingested
     L3 = "L3"  # Multi-source verified
     L4 = "L4"  # Browser-grade inspection
-    L5 = "L5"  # Exhaustive deep research
+    L5 = "L5"  # Primary + Corroborated + Archived
+    L6 = "L6"  # Reproducible data / direct measurement
 
 
 class IngestStatus(str, Enum):

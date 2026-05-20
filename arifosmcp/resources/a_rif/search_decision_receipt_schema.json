@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "A_RIF_SearchDecisionReceipt",
+  "type": "object",
+  "properties": {
+    "query": { "type": "string" },
+    "intent": { "type": "string" },
+    "risk_tier": { "type": "string" },
+    "w_score": { "type": "number" },
+    "should_search": { "type": "boolean" },
+    "reason": { "type": "string" }
+  },
+  "required": ["query", "w_score", "should_search"]
+}

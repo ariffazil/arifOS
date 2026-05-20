@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "A_RIF_ClaimCard",
+  "type": "object",
+  "properties": {
+    "claim": { "type": "string" },
+    "claim_type": { "type": "string" },
+    "source_ids": { "type": "array", "items": { "type": "string" } },
+    "evidence_level": { "type": "string" },
+    "confidence": { "type": "number" },
+    "requires_human_judge": { "type": "boolean" }
+  },
+  "required": ["claim", "evidence_level", "confidence"]
+}
