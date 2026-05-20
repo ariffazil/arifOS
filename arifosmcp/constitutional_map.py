@@ -458,6 +458,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "plan",
             "plan_review",
             "plan_approve",
+            "metabolize",
         ],
         "eureka_insight": (
             "F2: τ ≥ 0.99. F7: Ω ∈ [0.03, 0.05]. "
