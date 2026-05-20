@@ -1,0 +1,24 @@
+# MCP Substrate Wrapper Docker Image
+# Provides HTTP endpoints for arifOS substrate_bridge.py
+
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# Install minimal dependencies
+RUN pip install --no-cache-dir \
+    httpx>=0.27.0
+
+# Copy substrate wrapper
+COPY substrate_wrapper.py /app/substrate_wrapper.py
+
+# Environment
+ENV PYTHONUNBUFFERED=1
+ENV MCP_FS_DATA_DIR=/data
+
+# Expose all substrate ports
+EXPOSE 8001 8002 8003 8004 8005 8006
+
+# Run substrate based on SUBSTRATE_NAME env var
+ENTRYPOINT ["python", "/app/substrate_wrapper.py"]
+CMD ["${SUBSTRATE_NAME}"]

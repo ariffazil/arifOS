@@ -1,0 +1,103 @@
+# arifOS Horizon Deployment Configuration
+# For Horizon Edge/Secondary Server
+#
+# Deploy with:
+#   docker-compose -f docker-compose.yml -f deployments/horizon-deploy.yml up -d
+
+version: "3.8"
+
+services:
+  # Override arifosmcp for Horizon
+  arifosmcp:
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    environment:
+      - HORIZON_MODE=1
+      - ARIFOS_DEPLOYMENT=horizon
+      - LOG_LEVEL=WARN
+      - MCP_SUBSTRATES_ENABLED=true
+      - HORIZON_PARENT_URL=https://arifosmcp.arif-fazil.com
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.arifosmcp-horizon.rule=Host(`horizon.arif-fazil.com`)"
+      - "traefik.http.routers.arifosmcp-horizon.entrypoints=websecure"
+      - "traefik.http.routers.arifosmcp-horizon.tls.certresolver=letsencrypt"
+      - "traefik.http.services.arifosmcp-horizon.loadbalancer.server.port=8080"
+
+  # Lightweight MCP substrates for Horizon
+  mcp_time:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 32M
+    restart: unless-stopped
+
+  mcp_filesystem:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
+    restart: unless-stopped
+    volumes:
+      - horizon_data:/usr/src/project:rw
+
+  mcp_git:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
+    restart: unless-stopped
+    volumes:
+      - horizon_data:/usr/src/project:ro
+
+  mcp_memory:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    restart: unless-stopped
+
+  mcp_fetch:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    restart: unless-stopped
+
+  # Horizon sync agent - syncs with parent VPS
+  horizon_sync:
+    image: arifos/arifosmcp:latest
+    container_name: horizon_sync
+    command: ["python", "-m", "arifosmcp.horizon.sync_agent"]
+    environment:
+      - PARENT_URL=https://arifosmcp.arif-fazil.com
+      - SYNC_INTERVAL=300
+      - HORIZON_ID=horizon-001
+    volumes:
+      - horizon_data:/usr/src/project:rw
+      - horizon_vault:/usr/src/project/arifosmcp/VAULT999:rw
+    networks:
+      - arifos_core_network
+    restart: unless-stopped
+    profiles:
+      - sync
+
+volumes:
+  horizon_data:
+  horizon_vault:
