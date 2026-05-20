@@ -10,10 +10,9 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
 
-from arifosmcp.runtime.a_rif.models import SourceCard, EvidenceReceipt, EvidenceLevel
+from arifosmcp.runtime.a_rif.models import EvidenceLevel, EvidenceReceipt, SourceCard
 
 __all__ = ["build_source_card", "build_evidence_receipt"]
 
@@ -35,7 +34,7 @@ def build_source_card(
     return SourceCard(
         url=url,
         hash=content_hash,
-        retrieved_at=datetime.now(timezone.utc).isoformat(),
+        retrieved_at=datetime.now(UTC).isoformat(),
         status=fetch_status,
         content_type="text/html",
         risk_flags=risk_flags or [],

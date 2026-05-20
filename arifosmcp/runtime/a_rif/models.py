@@ -11,16 +11,15 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import hashlib
 import uuid
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
 
-class EvidenceLevel(str, Enum):
+class EvidenceLevel(StrEnum):
     """Evidence determinism tier (L0-L6)."""
 
     L0 = "L0"  # Offline / no result / contaminated
@@ -32,7 +31,7 @@ class EvidenceLevel(str, Enum):
     L6 = "L6"  # Reproducible data / direct measurement
 
 
-class ClaimState(str, Enum):
+class ClaimState(StrEnum):
     """Epistemic state of a claim."""
 
     HYPOTHESIS = "hypothesis"
@@ -47,7 +46,7 @@ class SourceCard(BaseModel):
     url: str
     hash: str = ""
     retrieved_at: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+        default_factory=lambda: datetime.now(UTC).isoformat()
     )
     status: int = 0
     content_type: str = "text/html"
@@ -77,7 +76,7 @@ class EvidenceReceipt(BaseModel):
     provider: str = "unknown"
     bridge: str = "mcp_http_sse"
     timestamp_utc: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+        default_factory=lambda: datetime.now(UTC).isoformat()
     )
     urls_returned: int = 0
     urls_ingested: int = 0
@@ -98,7 +97,7 @@ class AttestationPacket(BaseModel):
     source_ids: list[str] = Field(default_factory=list)
     content_hash: str = ""
     retrieved_at: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+        default_factory=lambda: datetime.now(UTC).isoformat()
     )
     provider: str = "unknown"
     evidence_level: EvidenceLevel = EvidenceLevel.L0
@@ -136,7 +135,7 @@ class SearchDecisionReceipt(BaseModel):
     w_score: float = 0.0
     reason: str = ""
     timestamp_utc: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+        default_factory=lambda: datetime.now(UTC).isoformat()
     )
 
 

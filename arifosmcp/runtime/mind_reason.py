@@ -1,5 +1,5 @@
 """
-arifosmcp/runtime/mind_reason.py — 333_MIND LLM-Powered Reasoning
+arifosmcp/runtime/mind_reason.py - 333 MIND LLM-Powered Reasoning
 
 Wires arif_mind_reason through call_llm() for constitutional LLM inference.
 Tier 1: SEA-LION (api.sea-lion.ai)
@@ -9,24 +9,84 @@ Tier 3: Deterministic fallback (original logic from tools/mind_reason.py)
 777_WITNESS: All LLM output passes through LLMOutputEnvelope before tool logic.
 The envelope is the only thing that reaches judgment, memory, or vault.
 
-DITEMPA BUKAN DIBERI — Forged, Not Given
+DITEMPA BUKAN DIBERI - Forged, Not Given
 """
 
 from __future__ import annotations
 
 import datetime
 import logging
+import uuid
 from typing import Any
 
 from arifosmcp.runtime.llm_client import call_llm
+from arifosmcp.runtime.thinking.session import ThinkingSessionManager
+from arifosmcp.schemas.mind_metabolism import (
+    AbductiveHypothesis,
+    AbstractionCard,
+    AttestationCard,
+    CognitiveLayer,
+    MetabolizedContext,
+    MindGovernance,
+    MindPacket,
+    MindRequest,
+    MindResponse,
+    MindSynthesis,
+    NextAction,
+)
 
 logger = logging.getLogger(__name__)
 
-# ── System Prompt ───────────────────────────────────────────────────────────────
+# ── Thinking Session Manager ──────────────────────────────────────────────────
+thinking_manager = ThinkingSessionManager()
 
-SYSTEM_PROMPT = """You are Arif — Constitutional AI operating under the 13 Floors (F01–F13).
+# ── System Prompts (Metabolic Stages) ──────────────────────────────────────────
 
-Stage 333_MIND: Structured Reasoning Instrument
+SYSTEM_PROMPT_METABOLIZE = """You are Arif - Cognitive Metabolism Kernel.
+Your task is to DIGEST the input.
+- Summary: Concise recap of the request.
+- Core Problem: What is actually being solved?
+- Why it Matters: The constitutional significance.
+- Background Field: Contextual invariants.
+- Assumptions & Constraints: Logical boundaries.
+"""
+
+SYSTEM_PROMPT_ABSTRACT = """You are Arif - Cognitive Metabolism Kernel.
+Your task is ABSTRACTION.
+- Identify Concepts: Processes, objects, constraints, relations.
+- Define: Constitutional axioms (F-codes) applicable.
+- Source: input | evidence | memory | inference.
+"""
+
+SYSTEM_PROMPT_ATTEST = """You are Arif - Cognitive Metabolism Kernel.
+Your task is ATTESTATION.
+- Claim ID: unique ref.
+- Claim: specific statement.
+- Evidence Level: L0 (none) to L5 (immutable).
+- Language Strength: suggests | says | indicates | confirms | verified.
+"""
+
+SYSTEM_PROMPT_ABDUCT = """You are Arif - Cognitive Metabolism Kernel.
+Your task is ABDUCTION.
+- Hypothesis: Best explanatory leap.
+- Explains: What patterns does it account for?
+- Does Not Explain: Known anomalies.
+- Falsification: How could this be proven wrong?
+"""
+
+SYSTEM_PROMPT_SYNTHESIZE = """You are Arif - Cognitive Metabolism Kernel.
+Your task is SYNTHESIS.
+- Bounded Answer: The understanding derived.
+- Supported: What is witnessed.
+- Unknown: What remains unobserved.
+- Confidence: Reasoning, Evidence, Overall.
+"""
+
+# ── System Prompt (Legacy) ───────────────────────────────────────────────────
+
+SYSTEM_PROMPT = """You are Arif - Constitutional AI operating under the 13 Floors (F01-F13).
+
+Stage 333 MIND: Structured Reasoning Instrument
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 You provide structured reasoning, NOT final constitutional verdicts.
 
@@ -82,7 +142,7 @@ OUTPUT: JSON ONLY. Return exactly this structure:
 }
 """
 
-# ── Response Schema ────────────────────────────────────────────────────────────
+# ── Response Schema (Legacy) ───────────────────────────────────────────────────
 
 RESPONSE_SCHEMA = {
     "type": "object",
@@ -97,7 +157,7 @@ RESPONSE_SCHEMA = {
                 "HOLD",
                 "ESCALATE_TO_888",
             ],
-            "description": "Reasoning status — SEAL is forbidden",
+            "description": "Reasoning status - SEAL is forbidden",
         },
         "claim_state": {
             "type": "string",
@@ -151,7 +211,6 @@ RESPONSE_SCHEMA = {
 }
 
 # ── Field Provenance ───────────────────────────────────────────────────────────
-# F2 addendum: Every field must declare its source to prevent authority confusion.
 
 _FIELD_PROVENANCE_LLM = {
     "status": "llm_generated_enum_validated",
@@ -212,7 +271,7 @@ def _status_to_reasoning_mode(status: str) -> str:
     return "unknown"
 
 
-# ── Core Reasoning Function ────────────────────────────────────────────────────
+# ── Core Reasoning Function (v1 Legacy) ─────────────────────────────────────────
 
 
 async def arif_mind_reason(
@@ -223,13 +282,9 @@ async def arif_mind_reason(
     depth: int = 3,
 ) -> dict[str, Any]:
     """
-    333_MIND — Constitutional reasoning with envelope integrity.
-
-    Returns a full reasoning packet including:
-    - parsed_output: the LLM reasoning result
-    - envelope_metadata: 777_WITNESS tracking (for audit/judge/memory)
+    333 MIND v1 - Constitutional reasoning with envelope integrity.
     """
-    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    timestamp = datetime.datetime.now(datetime.UTC).isoformat()
 
     # Build the reasoning prompt
     user_prompt = f"""QUERY: {query}
@@ -257,7 +312,7 @@ Distinguish CLAIM from FACT."""
         llm_available = True
         llm_tier = envelope.provider
     except Exception as exc:
-        logger.warning("333_MIND LLM call failed: %s", exc)
+        logger.warning("333 MIND LLM call failed: %s", exc)
         llm_available = False
         llm_tier = None
 
@@ -267,7 +322,7 @@ Distinguish CLAIM from FACT."""
         parsed_output = {
             "status": status,
             "claim_state": "HYPOTHESIS",
-            "synthesis": f"[deterministic] {mode} reasoning — LLM unavailable",
+            "synthesis": f"[deterministic] {mode} reasoning - LLM unavailable",
             "reasoning": {
                 "observed_inputs": [query],
                 "inferences": ["LLM fallback triggered"],
@@ -293,14 +348,12 @@ Distinguish CLAIM from FACT."""
         witness = _build_witness_statement(None)
         reasoning_mode = _status_to_reasoning_mode(status)
     else:
-        # ── LLM Path — Extract from Envelope ─────────────────────────────────────
+        # ── LLM Path - Extract from Envelope ─────────────────────────────────────
         parsed_output = envelope.parsed_output
         status = parsed_output.get("status", "HOLD")
 
-        # Internal Integrity Check: overall_confidence must not exceed evidence_confidence
+        # Internal Integrity Check
         conf = parsed_output.get("confidence", {"overall_confidence": 0.5})
-        # F02 TRUTH guard: LLM may return confidence as a bare float (e.g. 0.85)
-        # instead of a structured dict.  Normalize before accessing .get().
         if not isinstance(conf, dict):
             raw = float(conf) if isinstance(conf, int | float) else 0.5
             conf = {"overall_confidence": raw, "evidence_confidence": raw * 0.6}
@@ -310,7 +363,7 @@ Distinguish CLAIM from FACT."""
             conf["overall_confidence"] = evidence + 0.1
             parsed_output["confidence"] = conf
 
-        # Uncertainty auto-population for evidence gaps
+        # Uncertainty auto-population
         uncertainty = parsed_output.get("uncertainty", [])
         reasoning = parsed_output.get("reasoning", {})
         if not reasoning.get("observed_inputs") or not reasoning.get("inferences"):
@@ -350,7 +403,7 @@ Distinguish CLAIM from FACT."""
         "_llm_available": llm_available,
     }
 
-    # ── Attach 777_WITNESS envelope metadata for judge/vault ───────────────────
+    # ── Attach 777_WITNESS envelope metadata ───────────────────────────────────
     if llm_available:
         result["_envelope"] = {
             "provider": envelope.provider,
@@ -412,13 +465,213 @@ async def arif_mind_reason_structured(
     session_id: str | None = None,
     actor_id: str | None = None,
 ) -> dict[str, Any]:
-    """Structured wrapper for arif_mind_reason — returns parsed_output directly."""
+    """Structured wrapper for arif_mind_reason - returns parsed_output directly."""
     result = await arif_mind_reason(query, mode, session_id, actor_id)
-    # Return the LLM reasoning result (parsed_output) for direct tool use
     return {k: v for k, v in result.items() if not k.startswith("_")}
+
+
+# ── Core Reasoning Function (v2 Metabolic) ──────────────────────────────────────
+
+
+async def arif_mind_reason_v2(request: MindRequest) -> MindResponse:
+    """
+    333 MIND v2 - Cognitive Metabolism Kernel.
+    
+    Sequential layers: parse -> abstract -> attest -> abduct -> contrast -> verify -> synthesize -> handoff
+    """
+    trace_id = str(uuid.uuid4())[:12]
+    
+    # Initialize Thinking Session
+    session = thinking_manager.start_session(
+        problem=request.query,
+        context=request.context.model_dump(),
+        arifos_session_id=request.session_id
+    )
+    
+    # --- LAYER 1: METABOLIZE ---
+    metab_envelope = await call_llm(
+        system=SYSTEM_PROMPT_METABOLIZE,
+        user=f"QUERY: {request.query}\nCONTEXT: {request.context.model_dump()}",
+        response_schema=MetabolizedContext.model_json_schema(),
+        tool_origin="333 MIND_METABOLIZE"
+    )
+    metabolized = MetabolizedContext(**metab_envelope.parsed_output)
+    thinking_manager.add_step(session.session_id, "analysis", f"Metabolized context: {metabolized.input_summary}")
+    
+    # --- LAYER 2: ABSTRACT ---
+    abs_envelope = await call_llm(
+        system=SYSTEM_PROMPT_ABSTRACT,
+        user=f"QUERY: {request.query}\nMETABOLIZED: {metabolized.model_dump()}",
+        response_schema={"type": "object", "properties": {"abstractions": {"type": "array", "items": AbstractionCard.model_json_schema()}}},
+        tool_origin="333 MIND_ABSTRACT"
+    )
+    abstractions = [AbstractionCard(**a) for a in abs_envelope.parsed_output.get("abstractions", [])]
+    thinking_manager.add_step(session.session_id, "analysis", f"Identified {len(abstractions)} abstractions.")
+
+    # --- LAYER 3: ATTEST ---
+    attestations = []
+    if request.evidence.evidence_receipts:
+        att_envelope = await call_llm(
+            system=SYSTEM_PROMPT_ATTEST,
+            user=f"EVIDENCE: {request.evidence.model_dump()}\nABSTRACTIONS: {[a.model_dump() for a in abstractions]}",
+            response_schema={"type": "object", "properties": {"attestations": {"type": "array", "items": AttestationCard.model_json_schema()}}},
+            tool_origin="333 MIND_ATTEST"
+        )
+        attestations = [AttestationCard(**a) for a in att_envelope.parsed_output.get("attestations", [])]
+        thinking_manager.add_step(session.session_id, "verification", f"Bound {len(attestations)} attestations.")
+
+    # --- LAYER 4: ABDUCT ---
+    abductions = []
+    if request.reasoning_control.allow_abduction:
+        abd_envelope = await call_llm(
+            system=SYSTEM_PROMPT_ABDUCT,
+            user=f"QUERY: {request.query}\nMETABOLIZED: {metabolized.model_dump()}\nATTESTATIONS: {[a.model_dump() for a in attestations]}",
+            response_schema={"type": "object", "properties": {"abductions": {"type": "array", "items": AbductiveHypothesis.model_json_schema()}}},
+            tool_origin="333 MIND_ABDUCT"
+        )
+        abductions = [AbductiveHypothesis(**a) for a in abd_envelope.parsed_output.get("abductions", [])]
+        thinking_manager.add_step(session.session_id, "hypothesis", f"Generated {len(abductions)} abductive hypotheses.")
+
+    # --- LAYER 5: SYNTHESIZE ---
+    syn_envelope = await call_llm(
+        system=SYSTEM_PROMPT_SYNTHESIZE,
+        user=f"QUERY: {request.query}\nABDUCTIONS: {[a.model_dump() for a in abductions]}\nATTESTATIONS: {[a.model_dump() for a in attestations]}",
+        response_schema=MindSynthesis.model_json_schema(),
+        tool_origin="333 MIND_SYNTHESIZE"
+    )
+    synthesis = MindSynthesis(**syn_envelope.parsed_output)
+    thinking_manager.add_step(session.session_id, "conclusion", synthesis.bounded_answer)
+
+    # Convert session steps to CognitiveLayers
+    layers = []
+    for step in session.steps:
+        layers.append(CognitiveLayer(
+            layer=step.step_number,
+            name=step.step_type,
+            operation=step.step_type,
+            output=step.content,
+            confidence_after=step.quality_score,
+            delta_confidence=step.f2_truth_score
+        ))
+
+    # Determine Next Actions
+    next_actions = [
+        NextAction(tool="888_JUDGE", mode="deliberate", reason="Final constitutional gate required", required=True)
+    ]
+    if not request.evidence.evidence_receipts:
+        next_actions.append(NextAction(tool="222_FETCH", mode="search", reason="No evidence bound to reasoning", required=True))
+
+    packet = MindPacket(
+        query=request.query,
+        intent=request.task.intent,
+        claim_state="hypothesis" if not attestations else "supported",
+        reasoning_mode=request.reasoning_control.sequential_mode,
+        metabolized_context=metabolized,
+        abstractions=abstractions,
+        attestations=attestations,
+        abductions=abductions,
+        sequential_layers=layers,
+        synthesis=synthesis,
+        next_actions=next_actions
+    )
+    
+    governance = MindGovernance(
+        axioms_used=[a.name for a in abstractions if a.type == "axiom"],
+        floors_checked=["F02", "F04", "F07", "F08"],
+        verdict="OK" if synthesis.confidence.get("overall_confidence", 0) > 0.7 else "HOLD"
+    )
+
+    return MindResponse(
+        status="OK",
+        session_id=request.session_id,
+        actor_id=request.actor_id,
+        trace_id=trace_id,
+        mind_packet=packet,
+        governance=governance
+    )
+
+
+async def arif_mind_step(
+    session_id: str,
+    step_type: str,
+    content: str,
+    parent_step: int | None = None
+) -> dict[str, Any]:
+    """Execute a single bounded reasoning step."""
+    step = thinking_manager.add_step(session_id, step_type, content, parent_step=parent_step)
+    return {
+        "step_number": step.step_number,
+        "step_type": step.step_type,
+        "constitutional_verdict": step.constitutional_verdict,
+        "f2_truth_score": step.f2_truth_score,
+        "quality_score": step.quality_score
+    }
+
+async def arif_mind_trace_get(session_id: str) -> dict[str, Any]:
+    """Retrieve the full reasoning trace for a session."""
+    session = thinking_manager.get_session(session_id)
+    if not session:
+        return {"error": f"Session {session_id} not found"}
+    return {
+        "session_id": session.session_id,
+        "problem": session.problem,
+        "steps": [
+            {
+                "step": s.step_number,
+                "type": s.step_type,
+                "content": s.content,
+                "verdict": s.constitutional_verdict
+            } for s in session.steps
+        ]
+    }
+
+async def arif_mind_claim_attest(
+    claim: str,
+    evidence_receipts: list[dict[str, Any]]
+) -> AttestationCard:
+    """Bind a claim to evidence receipts."""
+    user_prompt = f"CLAIM: {claim}\nEVIDENCE: {evidence_receipts}"
+    envelope = await call_llm(
+        system=SYSTEM_PROMPT_ATTEST,
+        user=user_prompt,
+        response_schema=AttestationCard.model_json_schema(),
+        tool_origin="333 MIND_ATTEST"
+    )
+    return AttestationCard(**envelope.parsed_output)
+
+async def arif_mind_contradict_scan(
+    claims: list[str],
+    evidence: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Scan for contradictions between claims and evidence."""
+    # This would use a specialized prompt or logic
+    return [] # Placeholder
+
+async def arif_mind_handoff_prepare(
+    session_id: str,
+    target_organ: str
+) -> dict[str, Any]:
+    """Package reasoning output for downstream consumption."""
+    session = thinking_manager.get_session(session_id)
+    if not session:
+        return {"error": "Session not found"}
+    
+    # Compress for HEART/JUDGE
+    return {
+        "session_id": session_id,
+        "target_organ": target_organ,
+        "synthesis": session.steps[-1].content if session.steps else "",
+        "verdict_recommendation": "SEAL" if session.quality_score > 0.8 else "HOLD"
+    }
 
 
 __all__ = [
     "arif_mind_reason",
+    "arif_mind_reason_v2",
     "arif_mind_reason_structured",
+    "arif_mind_step",
+    "arif_mind_trace_get",
+    "arif_mind_claim_attest",
+    "arif_mind_contradict_scan",
+    "arif_mind_handoff_prepare",
 ]

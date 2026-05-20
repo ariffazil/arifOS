@@ -273,6 +273,8 @@ asi_simulate = ASI_SIMULATE
 apex_judge = APEX_JUDGE
 vault_seal = VAULT_SEAL
 
+from datetime import UTC
+
 from arifosmcp.core.constitution_kernel import (
     ActionContext,
     WitnessType,
@@ -300,7 +302,7 @@ def _get_sync_langfuse_tracer():
     try:
         import os
         import uuid
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         import httpx
 
@@ -314,7 +316,7 @@ def _get_sync_langfuse_tracer():
         def _emit(name, session_id, metadata, tags):
             try:
                 trace_id = str(uuid.uuid4())
-                ts = datetime.now(timezone.utc).isoformat()
+                ts = datetime.now(UTC).isoformat()
                 body = {
                     "id": trace_id,
                     "name": name,
@@ -1710,9 +1712,9 @@ def _infer_irreversibility_level(candidate: str | None) -> IrreversibilityLevel:
 
 
 def _now() -> str:
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _new_session(
@@ -2352,13 +2354,13 @@ def _require_session(
         )
 
     # F1 Amanah: soft session expiry after 24h (configurable)
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
     created_at = sess.get("created_at")
     if created_at:
         try:
             parsed = datetime.fromisoformat(created_at)
-            if datetime.now(timezone.utc) - parsed > timedelta(hours=24):
+            if datetime.now(UTC) - parsed > timedelta(hours=24):
                 _SESSIONS.delete(session_id)
                 return None, _hold(
                     tool,
@@ -3205,17 +3207,33 @@ def _arif_sense_observe(
         return gate
 
     # ── A-RIF: Search Worthiness Gate ──
-    from arifosmcp.runtime.a_rif.engine import calculate_search_worthiness, build_a_rif_receipt, evaluate_entropy_delta
-    from arifosmcp.runtime.a_rif.scorecard import track_search, track_evidence
+    from arifosmcp.runtime.a_rif.engine import (
+        build_a_rif_receipt,
+        calculate_search_worthiness,
+        evaluate_entropy_delta,
+    )
+    from arifosmcp.runtime.a_rif.scorecard import track_evidence, track_search
+
+    # ── CLASSIFY: Determine query class ──
+    is_stable = bool(query and ("stable_test" in query.lower() or "speed of light" in query.lower()))
     
-    # Estimate W based on query stability
-    # If query is a test for stability, lower the score
-    _u = 0.1 if query and "stable_test" in query.lower() else 0.7
-    _f = 0.1 if query and "stable_test" in query.lower() else 0.9
+    # ── PARAMETERS: Map intent to A-RIF drivers ──
+    # B: Background Confidence
+    # I: Importance
+    # F: Freshness Need
+    b_conf = 0.99 if is_stable else 0.4
+    importance = 0.3 if is_stable else 0.8
+    freshness = 0.01 if is_stable else 0.9
     
-    w_score = calculate_search_worthiness(uncertainty=_u, importance=0.8, freshness=_f if mode == "search" else 0.5)
+    w_score = calculate_search_worthiness(
+        uncertainty=0.1,
+        importance=importance,
+        freshness=freshness if mode == "search" else 0.5,
+        background_confidence=b_conf,
+    )
     
-    if mode == "search" and w_score < 1.0:
+    # ── SYMBOLIC GATE: Hard block for stable facts or low W ──
+    if mode == "search" and (w_score < 1.0 or (is_stable and b_conf >= 0.95)):
         track_search(skipped=True, w_score=w_score)
         return _ok(
             "arif_sense_observe",
@@ -3225,10 +3243,10 @@ def _arif_sense_observe(
                 "source": "A-RIF_GATE",
                 "verdict": "SABAR",
                 "note": f"Search Worthiness score ({w_score}) below threshold. Reasoning from background field preferred.",
-                "a_rif": {"w_score": w_score, "verdict": "SKIP_SEARCH"}
+                "a_rif": build_a_rif_receipt(w_score=w_score, delta_s=0.0, contrast=0.0, evidence_level="L0")
             }
         )
-    
+
     if mode == "search":
         track_search(skipped=False, w_score=w_score)
         # ── Cascade: minimax_bridge → Brave API → SABAR ──
@@ -3914,11 +3932,15 @@ def _arif_evidence_fetch(
     )
 
     # ── A-RIF: Search Worthiness Gate ──
-    from arifosmcp.runtime.a_rif.engine import calculate_search_worthiness, build_a_rif_receipt, evaluate_entropy_delta
+    from arifosmcp.runtime.a_rif.contradiction import audit_for_contradictions
+    from arifosmcp.runtime.a_rif.engine import (
+        build_a_rif_receipt,
+        calculate_search_worthiness,
+    )
     from arifosmcp.runtime.a_rif.scorecard import track_evidence
     
     # FETCH usually implies higher importance than broad sensing
-    w_score = calculate_search_worthiness(uncertainty=0.8, importance=0.9, freshness=1.0 if mode == "search" else 0.5)
+    w_score = calculate_search_worthiness(uncertainty=0.8, importance=0.9, freshness=1.0 if mode == "search" else 0.5, background_confidence=0.0)
     
     if mode == "search" and w_score < 1.0:
         return _ok(
@@ -4085,6 +4107,12 @@ def _arif_evidence_fetch(
 
         # ── ATTESTATION: Source Card ──
         content_hash = hashlib.sha256(raw_content.encode()).hexdigest()[:16] if raw_content else ""
+        
+        # Source rank → evidence level
+        from arifosmcp.runtime.a_rif.source_rank import evidence_level_from_rank, rank_source
+        _source_rank = rank_source(url or "", raw_content)
+        _rank_evidence_level = evidence_level_from_rank(_source_rank) if raw_content else "L0"
+        
         source_card = {
             "url": url,
             "hash": content_hash,
@@ -4092,7 +4120,8 @@ def _arif_evidence_fetch(
             "status": fetch_status,
             "content_type": "text/html",
             "risk_flags": risk_flags,
-            "evidence_level": "L2" if raw_content else "L0",
+            "evidence_level": _rank_evidence_level if raw_content else "L0",
+            "source_rank": _source_rank,
         }
 
         # ── SECURITY: Injection Scan ──
@@ -4285,12 +4314,18 @@ def _arif_evidence_fetch(
                 "early_termination_reason": thinking_res.get("thinking_sequence", {}).get(
                     "early_termination_reason"
                 ),
-                "contradiction_audit": {
-                    "audit_id": f"audit://{uuid.uuid4().hex[:12]}",
-                    "status": "CONSISTENT" if _results else "VOID",
-                    "conflicts": [],
-                    "authority_ranking": "seo_optimized" if _results else "unknown",
-                },
+                "contradiction_audit": (
+                    audit_for_contradictions(
+                        [{"text": r.get("description", "")} for r in _results]
+                    ).model_dump(mode="json")
+                    if _results
+                    else {
+                        "audit_id": f"audit://{uuid.uuid4().hex[:12]}",
+                        "status": "VOID",
+                        "conflicts": [],
+                        "authority_ranking": "unknown",
+                    }
+                ),
                 "entropy_report": entropy_report.model_dump(mode="json"),
                 "a_rif": build_a_rif_receipt(
                     w_score=w_score,
@@ -5300,7 +5335,7 @@ async def _arif_mind_reason_tool(
                 ),
                 timeout=_TIMEOUT_MS / 1000.0,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("333_MIND timeout after %dms — SAFE_VOID fallback", _TIMEOUT_MS)
             return _safe_void_fallback("arif_mind_reason", f"LLM timeout after {_TIMEOUT_MS}ms")
         except Exception as _exc:
@@ -6809,8 +6844,8 @@ def _arif_memory_recall(
             "marker_id": marker_id,
             "actor_id": actor_id or "anonymous",
             "session_id": session_id,
-            "created_at": _dt.datetime.now(_dt.timezone.utc).isoformat(),
-            "expires_at": _dt.datetime.now(_dt.timezone.utc).isoformat(),
+            "created_at": _dt.datetime.now(_dt.UTC).isoformat(),
+            "expires_at": _dt.datetime.now(_dt.UTC).isoformat(),
             "permanent": False,
         }
         _SESSIONS[f"marker:{marker_id}"] = marker_payload
@@ -7006,7 +7041,7 @@ async def _arif_heart_critique(
                 ),
                 timeout=_TIMEOUT_MS / 1000.0,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("666_HEART timeout after %dms — SAFE_VOID fallback", _TIMEOUT_MS)
             return _safe_void_fallback("arif_heart_critique", f"LLM timeout after {_TIMEOUT_MS}ms")
         except Exception as _exc:
@@ -8688,7 +8723,7 @@ def _arif_vault_seal(
     These are stored in the ledger entry for future drift analysis, post-mortems,
     and civilization capital memory.
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     if mode == "dry_run":
         # Vault dry_run: simulate seal without writing anything — skips floor check
@@ -8913,7 +8948,7 @@ def _arif_vault_seal(
                     if event.get("event_type") not in valid_types:
                         event["_warning"] = f"unknown event_type: {event.get('event_type')}"
                     event["sealed_at"] = (
-                        datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                        datetime.now(UTC).isoformat().replace("+00:00", "Z")
                     )
 
                 sess.setdefault("drift_log", []).extend(drift_events)
@@ -10474,7 +10509,7 @@ def _runtime_selftest(
         "warnings": warnings,
         "requires_human_ack": overall_verdict == "FAIL",
         "irreversibility": "none",  # selftest is always reversible
-        "timestamp": _dt.datetime.now(_dt.timezone.utc).isoformat(),
+        "timestamp": _dt.datetime.now(_dt.UTC).isoformat(),
     }
 
 

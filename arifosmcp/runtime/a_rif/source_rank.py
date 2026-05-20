@@ -11,7 +11,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import os
-from typing import Any
 
 import yaml
 
@@ -54,7 +53,6 @@ def _load_ranking() -> dict[int, str]:
 
 def rank_source(url: str, content: str = "") -> int:
     """Return authority rank (1-9, lower is better)."""
-    ranking = _load_ranking()
     url_lower = url.lower()
 
     # Heuristic fast path

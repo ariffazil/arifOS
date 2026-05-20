@@ -13,6 +13,14 @@ class EvidenceLevel(str, Enum):
     L3 = "L3"
     L4 = "L4"
     L5 = "L5"
+    L6 = "L6"
+
+
+@dataclass(frozen=True)
+class ValidationResult:
+    valid: bool
+    reason: str | None = None
+    error: str | None = None
 
 
 @dataclass(frozen=True)
@@ -92,6 +100,16 @@ def validate_sufficiency(
         proven_rank - claimed_rank,
         False,
     )
+
+
+def classify_void(receipt: dict[str, Any] | None) -> str:
+    """Classify a receipt's void status."""
+    if not receipt:
+        return "VOID"
+    risk_flags = receipt.get("risk_flags", [])
+    if risk_flags:
+        return "VOID"
+    return "VALID"
 
 
 def build_void_report(receipts: list[dict[str, Any]]) -> dict[str, Any]:

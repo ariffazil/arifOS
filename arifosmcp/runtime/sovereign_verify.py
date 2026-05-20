@@ -25,9 +25,13 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-_PUBKEY_PATH = Path(
-    os.environ.get("ARIFOS_SOVEREIGN_PUBKEY_FILE", "/run/sekrits/arifos_sovereign.pub")
-)
+_PUBKEY_CANDIDATES = [
+    Path(os.environ.get("ARIFOS_SOVEREIGN_PUBKEY_FILE", "")) if os.environ.get("ARIFOS_SOVEREIGN_PUBKEY_FILE") else None,
+    Path("/run/sekrits/arifos_sovereign.pub"),
+    Path("/run/secrets/arifos_sovereign.pub"),
+    Path("/root/compose/sekrits/arifos_sovereign.pub"),
+    Path("/root/.ssh/operator_did_ed25519.pub"),
+]
 
 # Authority level constants
 AUTHORITY_SOVEREIGN = "SOVEREIGN"
@@ -42,12 +46,20 @@ def _load_public_key():
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
         from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
-        pem_bytes = _PUBKEY_PATH.read_bytes()
+        pubkey_path = next((path for path in _PUBKEY_CANDIDATES if path and path.exists()), None)
+        if pubkey_path is None:
+            logger.warning(
+                "Sovereign public key not found in any candidate path: %s",
+                ", ".join(str(path) for path in _PUBKEY_CANDIDATES if path),
+            )
+            return None
+
+        pem_bytes = pubkey_path.read_bytes()
         pubkey = load_pem_public_key(pem_bytes)
         if not isinstance(pubkey, Ed25519PublicKey):
             logger.error("Sovereign key is not Ed25519 (got %s)", type(pubkey).__name__)
             return None
-        logger.info("Sovereign public key loaded from %s", _PUBKEY_PATH)
+        logger.info("Sovereign public key loaded from %s", pubkey_path)
         return pubkey
     except FileNotFoundError:
         logger.warning(
@@ -133,9 +145,10 @@ def purge_expired_nonces(nonce_store: dict[str, float], ttl_seconds: int = 300) 
 def pubkey_status() -> dict:
     """Return public key availability status for health checks."""
     pubkey = _load_public_key()
+    pubkey_path = next((path for path in _PUBKEY_CANDIDATES if path and path.exists()), None)
     return {
         "sovereign_pubkey_loaded": pubkey is not None,
-        "sovereign_pubkey_path": str(_PUBKEY_PATH),
-        "sovereign_pubkey_exists": _PUBKEY_PATH.exists(),
+        "sovereign_pubkey_path": str(pubkey_path) if pubkey_path else None,
+        "sovereign_pubkey_exists": pubkey_path is not None,
         "ed25519_verification": "enabled" if pubkey is not None else "disabled",
     }

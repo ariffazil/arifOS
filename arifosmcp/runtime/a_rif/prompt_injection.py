@@ -9,7 +9,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from arifosmcp.runtime.a_rif.models import QuarantineResult, EvidenceLevel
+from arifosmcp.runtime.a_rif.models import EvidenceLevel, QuarantineResult
 
 __all__ = ["scan_for_injection"]
 

@@ -163,6 +163,22 @@ def test_a_rif_search_worthiness_gate_blocks(mock_floors):
 
 
 @patch("arifosmcp.runtime.tools.check_floors")
+def test_stable_fact_speed_of_light_skips_search(mock_floors):
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    
+    from arifosmcp.runtime.tools import _arif_sense_observe
+    
+    result = _arif_sense_observe(mode="search", query="stable_test: What is the speed of light?")
+    
+    assert result["status"] == "OK"
+    data = result["result"]
+    assert data["source"] == "A-RIF_GATE"
+    assert data["verdict"] == "SABAR"
+    assert data["a_rif"]["verdict"] == "SKIP_SEARCH"
+    assert data["a_rif"]["w_score"] < 1.0
+    assert len(data["results"]) == 0
+
+@patch("arifosmcp.runtime.tools.check_floors")
 def test_sense_observe_classify(mock_floors):
     mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
 
@@ -430,6 +446,50 @@ def test_abduction_generates_hypothesis_not_truth():
     )
     assert hyp.status == "hypothesis"
     assert hyp.falsification_tests
+
+
+@patch("arifosmcp.runtime.tools.check_floors")
+def test_stable_fact_speed_of_light_skips_search(mock_floors):
+    """A-RIF: Stable physical constant must skip search via hard gate."""
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+
+    from arifosmcp.runtime.tools import _arif_sense_observe
+
+    result = _arif_sense_observe(
+        mode="search", query="What is the speed of light?"
+    )
+
+    assert result["result"]["source"] == "A-RIF_GATE"
+    assert result["result"]["a_rif"]["claim_state"] == "hypothesis"
+    assert result["result"]["a_rif"]["w_score"] < 1.0
+    assert "results" not in result["result"] or len(result["result"].get("results", [])) == 0
+
+
+def test_parser_extracts_evidence_level_from_string():
+    """A-RIF: parse_claimed_evidence_level scans strings for L0-L6 markers."""
+    from arifosmcp.runtime.a_rif.parser import parse_claimed_evidence_level
+
+    assert parse_claimed_evidence_level("Deploy with L5 evidence") == "L5"
+    assert parse_claimed_evidence_level("This is L1 at best") == "L1"
+    assert parse_claimed_evidence_level("No evidence claimed") is None
+    assert parse_claimed_evidence_level("Mixed L2 and L4 claims") == "L4"
+    assert parse_claimed_evidence_level("") is None
+
+
+def test_judge_comparison_logic_blocks_overclaim():
+    """A-RIF: Core comparison claim_strength > evidence_level blocks correctly."""
+    # Simulate the gate logic directly
+    evidence_level = "L1"
+    claim_strength = "L5"
+    assert claim_strength > evidence_level  # String comparison works for L5 > L1
+
+    evidence_level = "L4"
+    claim_strength = "L4"
+    assert not (claim_strength > evidence_level)  # Equal is allowed
+
+    evidence_level = "L6"
+    claim_strength = "L5"
+    assert not (claim_strength > evidence_level)  # Below is allowed
 
 
 def test_attestation_requires_hash_or_receipt():

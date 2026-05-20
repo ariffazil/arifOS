@@ -69,36 +69,52 @@ class ArifMindReasonEmbodied(EmbodiedTool):
 
         Args:
             params: {
-                "mode": str,       # reason | reflect | socratic | forge | debate
+                "mode": str,       # reason | reflect | metabolize | ...
                 "query": str | None,
                 "session_id": str | None,
                 "actor_id": str | None,
-                "context": dict | None,  # Optional session context
+                "task": dict | None,
+                "context": dict | None,
+                "evidence": dict | None,
+                "reasoning_control": dict | None,
             }
 
         Returns:
-            Synthesis dict with delta_bundle fields:
-            - verdict, synthesis, confidence, omega_0
-            - scars, floor_scores, entropy
-            - facts, axioms_used, reasoning_trace
+            Synthesis dict or MindResponse dict.
         """
         mode = params.get("mode", "reason")
         query = params.get("query")
         session_id = params.get("session_id")
         actor_id = params.get("actor_id")
-        context = params.get("context")
 
-        if context is None:
-            context = {}
-        if session_id:
-            context["session_id"] = session_id
-
-        result = _mind_reason_kernel(
-            mode=mode,
-            query=query,
-            actor_id=actor_id,
-            context=context,
-        )
+        if mode == "metabolize":
+            from arifosmcp.runtime.mind_reason import arif_mind_reason_v2
+            from arifosmcp.schemas.mind_metabolism import MindRequest
+            
+            # Construct v2 request
+            request = MindRequest(
+                query=query or "",
+                mode=mode,
+                session_id=session_id,
+                actor_id=actor_id,
+                task=params.get("task", {}),
+                context=params.get("context", {}),
+                evidence=params.get("evidence", {}),
+                reasoning_control=params.get("reasoning_control", {})
+            )
+            result = await arif_mind_reason_v2(request)
+        else:
+            # Legacy v1 path
+            context = params.get("context", {})
+            if session_id:
+                context["session_id"] = session_id
+                
+            result = _mind_reason_kernel(
+                mode=mode,
+                query=query,
+                actor_id=actor_id,
+                context=context,
+            )
 
         if hasattr(result, "model_dump"):
             return result.model_dump()
