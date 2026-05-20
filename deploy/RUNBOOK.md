@@ -1,177 +1,385 @@
-# arifOS VPS RUNBOOK - Sovereign Operating Manual
-
-<!--
-SOT-MANIFEST
+<!-- SOT-MANIFEST
 owner: Arif
 last_verified: 2026-05-19
 valid_from: 2026-05-19
 valid_until: 2026-06-19
-confidence: high
+confidence: medium
 scope: /root
-epistemic_status: CLAIM
 -->
 
-> **Authority:** F13 SOVEREIGN — human veto absolute
->
-> **DITEMPA BUKAN DIBERI** — Intelligence is forged, not given.
+# Runbook — arifOS Federation
 
-This machine is the arifOS federation VPS. `/root` is not a monorepo. Every
-agent must resolve the target repo or service before editing, deploying, or
-claiming success.
+> **Purpose**: Restart, verify, rollback, and **deploy** per organ without guesswork.
+> **Last updated**: 2026-05-12 by OpenCode.
+> **Sovereign law**: `F1–F13` active at `/root` — all agents are governed.
 
-## Landing Sequence
+---
 
-1. Read `/root/AGENTS.md`.
-2. Read `/root/CONTEXT.md`.
-3. Read this runbook.
-4. Resolve the target repo or service.
-5. Inspect live state before touching files:
-   - `df -h /`
-   - `free -h`
-   - `uptime`
-   - `docker ps --format '{{.Names}}\t{{.Status}}\t{{.Ports}}'`
-   - `systemctl is-active docker caddy arif-agent-worker hermes-a2a hermes-asi-gateway openclaw-gateway`
+---
 
-## Agent Usage Doctrine
+## DEPLOY CONSTITUTION — F1–F13
 
-| Role | Primary Agent | Use | Boundary |
-|---|---|---|---|
-| Machine operator | Codex | Surgical patches, tests, Docker/systemd checks, git diff discipline | Must verify before reporting done |
-| Auditor | Gemini | Claim tagging, 888_HOLD risk review, governance checks | Read/audit first, execute only when bounded |
-| Background orchestrator | OpenClaw | A2A, long-running research, delegated tool orchestration | Not final authority for host changes |
-| Relay | Hermes | Telegram/human gateway, briefings, lightweight routing | Not direct root machine manager |
-| Fast executor | Claude/Kimi | Bounded refactors or generated patches | No broad root/autopilot execution |
-| GitHub interface | Copilot CLI | PRs, issues, GitHub-side automation | Not primary VPS operator |
-| Experiment lab | OpenCode | Prototypes and model/tool experiments | No production path writes without Codex/Gemini review |
+This is **binding law** for the arifOS Federation deployment. Every agent, human, or automation that deploys a container to this VPS **must** follow this flow. Any deviation is a floor breach.
 
-## Non-Negotiable Rules
+### The Flow
 
-1. No agent may declare `999_SEAL`. Only Arif or arifOS constitutional tooling can seal.
-2. Every real change must produce:
-   - exact changed files
-   - `git diff --stat` or config diff summary
-   - relevant tests or syntax checks
-   - live health check when a service is affected
-3. No destructive action without explicit approval:
-   - `rm -rf`
-   - `docker system prune -a`
-   - database `DROP`, `TRUNCATE`, broad `DELETE`
-   - branch deletion, force-push, history rewrite
-   - volume removal
-4. No plaintext secrets in agent configs. Use environment references or protected secret stores.
-5. Production deploys require build/test pass, health probe, and rollback note.
-6. Public ingress, auth, users/groups, firewall, `.env`, and secret rotation are `888_HOLD` unless Arif explicitly authorizes the exact action.
-
-## Current Agent Hardening Baseline
-
-Claude:
-- No blanket auto-permission prompt skipping.
-- Avoid `Bash(*)`, `Write(*)`, and `KillShell(*)` unless a session explicitly opts in.
-
-Kimi:
-- `default_yolo = false`.
-- The global wrapper must not auto-inject `--afk`; AFK must be explicit via `KIMI_FORCE_AFK=1`.
-
-OpenCode:
-- MCP filesystem must be scoped to federation work roots, not all `/root`.
-- Tokens in headers must come from environment variables.
-- Experimental models and plugins are allowed only outside production paths unless Codex/Gemini review is complete.
-
-Copilot:
-- GitHub-side and PR work only by default.
-- Use `~/.copilot/mcp-config.json` for federation MCP config.
-
-Hermes:
-- Relay and Telegram gateway.
-- May route to OpenClaw or summarize state.
-- Must not be treated as final deploy/seal authority.
-
-OpenClaw:
-- Background orchestrator and A2A gateway.
-- Good for long-running research, delegated tool orchestration, and agent cards.
-- Must not be sole authority for public deploys, secrets, or host mutation.
-
-## Emergency Procedure
-
-Prefer graceful service control over process-name killing.
-
-Inspect:
-
-```bash
-systemctl is-active hermes-a2a hermes-asi-gateway openclaw-gateway arif-agent-worker
-ps -eo pid,ppid,cmd --sort=cmd | rg -i 'codex|claude|gemini|opencode|copilot|kimi|openclaw|hermes'
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         DEPLOY CYCLE                           │
+│                                                                 │
+│  1. CODE   → commit to local git                                │
+│  2. PUSH   → git push origin main                               │
+│  3. BUILD  → make deploy-local                                  │
+│  4. PULL   → (handled by deploy-local via docker compose up)    │
+│  5. VERIFY → curl health + git SHA assertion                    │
+│  6. SEAL   → git tag vYYYY.MM.DD (optional, for release)        │
+│                                                                 │
+│  ⚠️ make deploy-local ENFORCES:                                  │
+│     - HOLD if local HEAD ≠ origin/main (forces push first)      │
+│     - Builds + tags GHCR image with current SHA                 │
+│     - Restarts compose container                                │
+│     - Verifies git_commit matches expected SHA                  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-Pause gateways, if needed:
+### Law 1: Canonical Source of Truth
+
+`/root/arifOS/deploy/docker-compose.yml` is the **single canonical deploy manifest**. The running compose at `/root/compose/docker-compose.yml` **must** match its image tags and configuration. Any gap is a drift signal that requires reconciliation within one deploy cycle.
+
+### Law 2: No Deploy Without Push
+
+No container is deployed unless its git commit **exists on `origin/main`**. `make deploy-local` enforces this: it fetches origin and holds if local HEAD diverges.
+
+### Law 3: Tag Is Commit
+
+Every Docker image tag pushed to GHCR **must be a valid git commit SHA** (short, 7 chars). `:latest` is a convenience alias for the most recent deploy, not a deployment target.
+
+### Law 4: Deployer Is Sealer
+
+The agent or human who deploys is responsible for:
+  (a) pushing the code first
+  (b) running the deploy
+  (c) verifying the health endpoint returns the correct SHA
+  (d) logging the deploy in the organ's `CHANGELOG.md`
+
+### Law 5: Rollback Is a Git Revert
+
+If a deploy fails health check, rollback is:
+  1. `git revert HEAD --no-edit`
+  2. `git push origin main`
+  3. `make deploy-local`
+
+No hot-patching containers by copying files. No `docker exec` edits. If it's not in git, it doesn't exist.
+
+### Law 6: Stale Image Tags Are Forbidden
+
+The canonical `deploy/docker-compose.yml` **must** reference the same tag that the runtime `/root/compose/docker-compose.yml` references. If someone pushes code but does not update the tag in the deploy manifest, the next deploy cycle **must** reconcile it. This is not optional.
+
+### Enforcement
+
+| Check | Where | What triggers |
+|-------|-------|---------------|
+| Local HEAD = origin/main | `make deploy-local` | HOLD + exit 1 |
+| Health SHA matches | `make deploy-local` | HOLD + exit 1 |
+| SOT drift detector | `/inspector/sot` endpoint | Dashboard warning |
+| Deploy manifest vs runtime | Manual `diff` audit | Weekly in `CONTEXT.md` |
+
+### Violation Protocol
+
+If a container is running a commit NOT on `origin/main`:
+1. **Immediate**: Log the incident with commit SHA + deployer identity.
+2. **Within 1 hour**: Either push the missing commit, or roll back to a known-good tag.
+3. **Seal**: Write the incident to `VAULT999/outcomes.jsonl` with severity `DEPLOY_DRIFT`.
+
+---
+
+## Global Commands
 
 ```bash
-systemctl stop hermes-a2a.service hermes-asi-gateway.service openclaw-gateway.service
+# All commands assume you are at /root
+cd /root/compose
+
+# View all service status
+docker compose ps
+
+# View logs for a service
+docker compose logs -f <service>
+
+# Full stack restart (USE WITH CAUTION)
+docker compose restart
+
+# Full stack down/up
+docker compose down && docker compose up -d
 ```
 
-Restart gateways:
+---
+
+## 1. arifOS Kernel
+
+| Field | Value |
+|-------|-------|
+| Repo | `/root/arifOS` |
+| Compose service | `arifosmcp` |
+| Container | `arifosmcp` |
+
+### Restart
+```bash
+cd /root/compose && docker compose restart arifosmcp
+```
+
+### Verify (do all)
+```bash
+# 1. Health
+curl -s https://arifos.arif-fazil.com/health | python3 -m json.tool
+
+# 2. Tool registry
+curl -s https://arifos.arif-fazil.com/tools | python3 -m json.tool
+
+# 3. Build info (SHA anchor)
+curl -s https://arifos.arif-fazil.com/api/build-info | python3 -m json.tool
+
+# 4. SOT drift detector
+curl -s https://arifos.arif-fazil.com/inspector/sot | python3 -m json.tool
+# Expected: {"verdict":"SEAL","live_count":13,"main_count":13}
+
+# 5. MCP discovery
+curl -s https://arifos.arif-fazil.com/.well-known/mcp/server.json | python3 -m json.tool
+
+# 6. Inspector console (HTML)
+curl -s https://arifos.arif-fazil.com/webmcp | grep -c "sot-bar"
+# Expected: 1 or more
+
+# 7. Observatory (frontend)
+curl -s https://arifos.arif-fazil.com/ | grep -c "arifOS Observatory"
+# Expected: 1
+```
+
+### Rollback (backend code)
+If new `rest_routes.py` causes failure:
+```bash
+# Restore from backup
+cp /root/arifOS/arifosmcp/runtime/rest_routes.py.bak.20260503114925 \
+   /root/arifOS/arifosmcp/runtime/rest_routes.py
+
+# Also copy into container runtime path
+docker cp /root/arifOS/arifosmcp/runtime/rest_routes.py \
+          arifosmcp:/app/arifosmcp/runtime/rest_routes.py
+
+# Restart
+cd /root/compose && docker compose restart arifosmcp
+```
+
+### Rollback (frontend)
+```bash
+cp /var/www/html/arifos/index.html.bak.20260503114925 \
+   /var/www/html/arifos/index.html
+# OR
+cp /root/sites/arifos/index.html.bak.20260503114925 \
+   /root/sites/arifos/index.html
+```
+
+---
+
+## 2. GEOX
+
+| Field | Value |
+|-------|-------|
+| Repo | `/root/geox` |
+| Compose service | `geox` |
+| Container | `geox_eic` |
+
+### Restart
+```bash
+cd /root/compose && docker compose restart geox
+```
+
+### Verify
+```bash
+# Health
+curl -s https://geox.arif-fazil.com/health
+
+# MCP discovery
+curl -s https://geox.arif-fazil.com/.well-known/mcp/server.json | python3 -m json.tool
+```
+
+---
+
+## 3. WEALTH
+
+| Field | Value |
+|-------|-------|
+| Repo | `/root/WEALTH` |
+| Compose service | `wealth-organ` |
+| Container | `wealth-organ` |
+
+### Restart
+```bash
+cd /root/compose && docker compose restart wealth-organ
+```
+
+### Verify
+```bash
+# Health
+curl -s https://wealth.arif-fazil.com/health
+
+# Ready
+curl -s https://wealth.arif-fazil.com/ready
+
+# MCP discovery
+curl -s https://wealth.arif-fazil.com/.well-known/mcp/server.json | python3 -m json.tool
+```
+
+---
+
+> ⚠️ TEMPORAL NOTE: `well` service was removed as of 2026-04-26.
+> Any step referencing `well` is tombstoned below and must not be executed.
+
+## 4. WELL
+
+| Field | Value |
+|-------|-------|
+
+### Restart
+```bash
+```
+
+### Verify
+```bash
+# Health
+
+# MCP discovery
+curl -s https://well.arif-fazil.com/.well-known/mcp/server.json | python3 -m json.tool
+```
+
+---
+
+## 5. AAA
+
+| Field | Value |
+|-------|-------|
+| Repo | `/root/AAA` |
+| Compose services | `aaa`, `aaa-a2a` |
+| Containers | `aaa-a2a`, `apex-prime` |
+
+### Restart
+```bash
+cd /root/compose && docker compose restart aaa-a2a
+# Note: 'aaa' service may not be running; check with docker compose ps
+```
+
+### Verify
+```bash
+# A2A endpoint
+curl -s https://aaa.arif-fazil.com/a2a
+
+# Health (if exposed)
+curl -s https://aaa.arif-fazil.com/health
+```
+
+---
+
+## 6. A-FORGE Bridge
+
+| Field | Value |
+|-------|-------|
+| Repo | `/root/A-FORGE` |
+| Container | `af-bridge-prod` |
+
+### Restart
+```bash
+docker restart af-bridge-prod
+# Note: Not in main compose services list. May be from separate stack.
+```
+
+### Verify
+```bash
+# Internal health (port 7071, not exposed publicly by default)
+curl -s http://localhost:7071/health
+```
+
+---
+
+## 7. Infrastructure Services
+
+### Caddy (Reverse Proxy)
+```bash
+# Restart
+cd /root/compose && docker compose restart caddy
+
+# Verify
+curl -s -o /dev/null -w "%{http_code}" https://arifos.arif-fazil.com/health
+# Expected: 200
+```
+
+### Postgres
+```bash
+# Restart
+cd /root/compose && docker compose restart postgres
+
+# Verify
+cd /root/compose && docker compose exec postgres pg_isready -U arifos_admin
+```
+
+### Redis
+```bash
+# Restart
+cd /root/compose && docker compose restart redis
+
+# Verify
+cd /root/compose && docker compose exec redis redis-cli ping
+# Expected: PONG
+```
+
+### Qdrant
+```bash
+# Restart
+cd /root/compose && docker compose restart qdrant
+
+# Verify
+curl -s http://localhost:6333/healthz
+```
+
+---
+
+## 8. Quick Diagnostic Script
+
+Save this as `/root/diag.sh` and run after any restart:
 
 ```bash
-systemctl restart hermes-a2a.service hermes-asi-gateway.service openclaw-gateway.service
+#!/bin/bash
+set -e
+
+echo "=== arifOS ==="
+curl -s https://arifos.arif-fazil.com/health | jq -r '.status' || echo "FAIL"
+curl -s https://arifos.arif-fazil.com/api/build-info | jq -r '.short_sha' || echo "FAIL"
+curl -s https://arifos.arif-fazil.com/inspector/sot | jq -r '.verdict' || echo "FAIL"
+
+echo "=== GEOX ==="
+curl -s -o /dev/null -w "%{http_code}" https://geox.arif-fazil.com/health || echo "FAIL"
+
+echo "=== WEALTH ==="
+curl -s -o /dev/null -w "%{http_code}" https://wealth.arif-fazil.com/health || echo "FAIL"
+
+echo "=== WELL ==="
+# [TEMPORAL-GHOST — well removed 2026-04-26 per AGENTS.md]
+# curl -s -o /dev/null -w "%{http_code}" https://well.arif-fazil.com/health || echo "FAIL"
+
+echo "=== Done ==="
 ```
 
-Avoid broad `pkill`. If a single process must be stopped, identify the PID and use `kill <PID>`.
-
-## Health Checks
-
-Core host:
-
+Make executable:
 ```bash
-df -h /
-free -h
-uptime
-systemctl --failed --no-pager
+chmod +x /root/diag.sh
 ```
 
-Docker federation:
+---
 
-```bash
-docker ps --format '{{.Names}}\t{{.Status}}\t{{.Ports}}'
-curl -fsS http://127.0.0.1:8080/health
-curl -fsS http://127.0.0.1:8081/health
-curl -fsS http://127.0.0.1:8082/health
-curl -fsS http://127.0.0.1:8083/health
-curl -fsS http://127.0.0.1:3001/health || true
-curl -fsS http://127.0.0.1:18789/health
-```
+## 9. Emergency Contacts / References
 
-Hermes/OpenClaw:
-
-```bash
-systemctl --no-pager --full status hermes-a2a.service hermes-asi-gateway.service openclaw-gateway.service
-curl -fsS http://127.0.0.1:18789/health
-curl -fsS http://127.0.0.1:18795/.well-known/agent-card.json
-```
-
-Note: Hermes A2A currently listens on `18001` but does not expose `/health`.
-
-## Repo Status Sweep
-
-```bash
-for repo in arifOS A-FORGE AAA geox WEALTH WELL HERMES arif-sites; do
-  if [ -d "/root/$repo/.git" ]; then
-    echo "=== $repo ==="
-    git -C "/root/$repo" status --short
-    git -C "/root/$repo" log --oneline -1
-  fi
-done
-```
-
-## Seal Procedure
-
-Agents may prepare a seal packet. They may not self-seal.
-
-Seal packet must include:
-- objective
-- files changed
-- commands run
-- test/health evidence
-- dirty workspace status
-- remaining `888_HOLD` items
-- rollback path
-
-Arif or arifOS decides whether the packet becomes `999_SEAL`.
+| Doc | Path |
+|-----|------|
+| VPS Map | `/root/VPS_MAP.md` |
+| Docker Volume Audit | `/root/DOCKER_VOLUME_AUDIT.md` |
+| Federation Manifest | `https://arifos.arif-fazil.com/federation-manifest.json` |
+| AGENTS.md (workspace rules) | `/root/AGENTS.md` |
+| arifOS AGENTS.md | `/root/arifOS/AGENTS.md` |

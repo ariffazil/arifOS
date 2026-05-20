@@ -74,29 +74,113 @@ class ThinkingSession:
     floors_triggered: list[str] = field(default_factory=list)
 
 
+import json
+import os
+import threading
+from typing import Any, Dict
+
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
+
 class ThinkingSessionManager:
     """
     Manages constitutionally-governed thinking sessions.
-
-    Replaces Sequential Thinking MCP with F1-F13 enforcement:
-    - F1 Amanah: Irreversibility checking
-    - F2 Truth: Evidence grounding (τ ≥ 0.99)
-    - F4 Clarity: Entropy reduction (ΔS ≤ 0)
-    - F5 Peace: Weakest stakeholder protection
-    - F7 Humility: Uncertainty bounds (Ω₀ ∈ [0.03,0.05])
-    - F8 Genius: Quality thresholds (G ≥ 0.80)
-    - F9 Anti-Hantu: No anthropomorphization
-    - F11 Command: Authority verification
-    - F13 Sovereign: Human override ready
+    PERSISTENT: Now stores to /var/lib/arifos/mind/sessions.json.
     """
 
     _instance = None
-    sessions: dict[str, ThinkingSession] = {}
+    _lock = threading.Lock()
+    _path = os.getenv("ARIFOS_MIND_SESSIONS_PATH", "/var/lib/arifos/mind/sessions.json")
 
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance.sessions = {}
+                    cls._instance._ensure_path()
+                    cls._instance._load_sessions()
         return cls._instance
+
+    def _ensure_path(self):
+        os.makedirs(os.path.dirname(self._path), exist_ok=True)
+
+    def _load_sessions(self):
+        """Load sessions from disk with shared lock."""
+        if not os.path.exists(self._path):
+            return
+        try:
+            with open(self._path, "r", encoding="utf-8") as f:
+                if fcntl: fcntl.flock(f, fcntl.LOCK_SH)
+                try:
+                    data = json.load(f)
+                    # Convert dicts back to ThinkingSession objects
+                    # (Simplified for now - using raw dicts for persistence compatibility)
+                    self.sessions = {k: self._dict_to_session(v) for k, v in data.items()}
+                finally:
+                    if fcntl: fcntl.flock(f, fcntl.LOCK_UN)
+        except Exception as e:
+            print(f"Error loading mind sessions: {e}")
+
+    def _save_sessions(self):
+        """Save sessions to disk with exclusive lock."""
+        try:
+            data = {k: self._session_to_dict(v) for k, v in self.sessions.items()}
+            with open(self._path, "w", encoding="utf-8") as f:
+                if fcntl: fcntl.flock(f, fcntl.LOCK_EX)
+                try:
+                    json.dump(data, f, default=str)
+                finally:
+                    if fcntl: fcntl.flock(f, fcntl.LOCK_UN)
+        except Exception as e:
+            print(f"Error saving mind sessions: {e}")
+
+    def _session_to_dict(self, session: ThinkingSession) -> dict:
+        # Use Pydantic or manual conversion
+        return {
+            "session_id": session.session_id,
+            "problem": session.problem,
+            "context": session.context,
+            "tags": session.tags,
+            "template": session.template,
+            "steps": [vars(s) for s in session.steps],
+            "branches": session.branches,
+            "status": session.status.value,
+            "quality_score": session.quality_score,
+            "created_at": session.created_at.isoformat(),
+            "updated_at": session.updated_at.isoformat(),
+            "arifos_session_id": session.arifos_session_id,
+            "final_verdict": session.final_verdict,
+            "floors_triggered": session.floors_triggered
+        }
+
+    def _dict_to_session(self, d: dict) -> ThinkingSession:
+        from datetime import datetime
+        steps = []
+        for s_dict in d.get("steps", []):
+            # Parse timestamp
+            if isinstance(s_dict.get("timestamp"), str):
+                s_dict["timestamp"] = datetime.fromisoformat(s_dict["timestamp"])
+            steps.append(ThinkingStep(**s_dict))
+        
+        return ThinkingSession(
+            session_id=d["session_id"],
+            problem=d["problem"],
+            context=d.get("context"),
+            tags=d.get("tags", []),
+            template=d.get("template"),
+            steps=steps,
+            branches=d.get("branches", {}),
+            status=SessionStatus(d["status"]),
+            quality_score=d.get("quality_score", 0.0),
+            created_at=datetime.fromisoformat(d["created_at"]),
+            updated_at=datetime.fromisoformat(d["updated_at"]),
+            arifos_session_id=d.get("arifos_session_id"),
+            final_verdict=d.get("final_verdict"),
+            floors_triggered=d.get("floors_triggered", [])
+        )
 
     def start_session(
         self,
@@ -116,6 +200,7 @@ class ThinkingSessionManager:
             arifos_session_id=arifos_session_id,
         )
         self.sessions[session.session_id] = session
+        self._save_sessions()
         return session
 
     def get_session(self, session_id: str) -> ThinkingSession | None:
@@ -184,6 +269,7 @@ class ThinkingSessionManager:
         if step.constitutional_verdict in ["VOID", "HOLD"]:
             session.floors_triggered.append(f"{step.step_number}:{step.constitutional_verdict}")
 
+        self._save_sessions()
         return step
 
     def branch_session(self, session_id: str, from_step: int, alternative_reasoning: str) -> str:

@@ -266,6 +266,17 @@ def create_meta_mcp() -> FastMCP:
 
 
 # =============================================================================
+# COGNITIVE AGENT — Mind (metabolism, reasoning, abstraction)
+# =============================================================================
+
+
+def create_mind_mcp() -> FastMCP:
+    """Cognitive Agent MCP — arif_mind_reason v2 metabolic surface."""
+    from arifosmcp.runtime.mind_mcp import mcp
+    return mcp
+
+
+# =============================================================================
 # UNIFIED MCP SERVER
 # =============================================================================
 
@@ -273,7 +284,7 @@ def create_meta_mcp() -> FastMCP:
 def create_unified_mcp(agents: list[str] | None = None, visibility: str = "public_only") -> FastMCP:
     """Create unified MCP server with all or selected agents."""
     mcp = FastMCP("arifOS-Unified")
-    agents = agents or ["P", "T", "V", "G", "E", "M"]
+    agents = agents or ["P", "T", "V", "G", "E", "M", "C"]
 
     def _get_tools(fastmcp_instance):
         try:
@@ -305,6 +316,10 @@ def create_unified_mcp(agents: list[str] | None = None, visibility: str = "publi
     if "M" in agents:
         meta = create_meta_mcp()
         for _key, tool in _get_tools(meta).items():
+            mcp.add_tool(tool)
+    if "C" in agents:
+        cognitive = create_mind_mcp()
+        for _key, tool in _get_tools(cognitive).items():
             mcp.add_tool(tool)
 
     return mcp
