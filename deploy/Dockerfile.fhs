@@ -1,0 +1,158 @@
+# ============================================================
+# arifOS — FHS-Aligned Container Build
+# Architect: Arif Fazil — Seri Kembangan, MY
+# Version: v2026.04.19-FHS
+# Constitutional Law: F1-F13 | DITEMPA BUKAN DIBERI
+#
+# Docker IS the FHS compiler.
+# Source tree → FHS paths → Governed runtime.
+# Git tracks source. Container enforces law.
+# ============================================================
+
+FROM python:3.12-slim AS base
+
+# ── System packages ─────────────────────────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── FHS directory skeleton ──────────────────────────────────
+# These are constitutional declarations, not just mkdir.
+# Every path has exactly one semantic role — no overlap.
+RUN mkdir -p \
+    /etc/arifos/constitution \
+    /etc/arifos/manifests \
+    /usr/lib/arifos/kernel \
+    /usr/lib/arifos/tools \
+    /usr/lib/arifos/memory \
+    /usr/lib/arifos/intelligence \
+    /usr/lib/arifos/transport \
+    /usr/lib/arifos/vault \
+    /usr/lib/arifos/agents \
+    /usr/bin \
+    /var/lib/arifos/vault \
+    /var/log/arifos \
+    /run/arifos \
+    /tmp/arifos
+
+# ── Non-root runtime user ───────────────────────────────────
+RUN groupadd -r arifos && useradd -r -g arifos -s /sbin/nologin arifos
+
+# ── Volume declarations ─────────────────────────────────────
+# VAULT999 is runtime state. NEVER baked into image layer.
+# /var/lib/arifos/vault → bind mount to Supabase-synced host dir
+# /var/log/arifos      → bind mount to host log aggregator
+VOLUME ["/var/lib/arifos/vault", "/var/log/arifos"]
+
+
+# ============================================================
+# BUILD STAGE — install dependencies
+# ============================================================
+FROM base AS builder
+
+WORKDIR /build
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+
+# ============================================================
+# CONSTITUTION STAGE — bake F1-F13 manifests
+# Source: runtime/constitutional_map.py → /etc/arifos/
+# These are read-only at runtime. No process writes here.
+# ============================================================
+FROM base AS constitution
+
+COPY runtime/constitutional_map.py   /etc/arifos/constitution/constitutional_map.py
+COPY runtime/floors.py               /etc/arifos/constitution/floors.py
+
+# Tool and organ manifests (caller-facing contracts, not source)
+COPY runtime/manifests/              /etc/arifos/manifests/
+
+# Make constitution read-only — F12 (Resilience)
+RUN chmod -R 444 /etc/arifos/
+
+
+# ============================================================
+# FINAL STAGE — assemble governed runtime
+# ============================================================
+FROM base AS runtime
+
+# ── Install Python packages from builder ────────────────────
+COPY --from=builder /install /usr/local
+
+# ── /etc/arifos/ — Constitution (read-only) ─────────────────
+# F1-F13 floor definitions and tool manifests
+COPY --from=constitution /etc/arifos/ /etc/arifos/
+
+# ── /usr/lib/arifos/ — Installed source (read-only) ─────────
+# Organ decomposition: one directory = one organ = one concern
+
+# Kernel: F1-F13 engine, session management, routing
+COPY runtime/kernel/                 /usr/lib/arifos/kernel/
+
+# Tools: 13 public MCP tool implementations only
+# agentzero_tools.py → tools/agent.py (renamed, internal prefix stripped)
+# architect_tools.py → tools/forge.py (role → function)
+# benchmark_tools.py → /usr/lib/arifos/evals/ (not a public tool)
+COPY runtime/tools/                  /usr/lib/arifos/tools/
+
+# Memory: WELL organ, vector store, autonoetic, belief registry
+COPY runtime/memory/                 /usr/lib/arifos/memory/
+
+# Intelligence: GEOX + WEALTH reasoning organs
+COPY runtime/intelligence/           /usr/lib/arifos/intelligence/
+
+# Transport: A2A — single file from three (a2a_aligned + a2a_server + arifos_a2a → a2a.py)
+# 888 HOLD: merge the three A2A files before this COPY resolves
+COPY runtime/transport/a2a.py        /usr/lib/arifos/transport/a2a.py
+
+# Vault client (code only — data stays in /var/lib/arifos/vault/)
+COPY runtime/vault/                  /usr/lib/arifos/vault/
+
+# Agents: dispatch and registry (not agents_66, not agents_9)
+COPY runtime/agents/                 /usr/lib/arifos/agents/
+
+# Evals: benchmark and scoring (internal, not exposed as public tools)
+COPY runtime/evals/                  /usr/lib/arifos/evals/
+
+# Lock all source — no process modifies installed code at runtime (F12)
+RUN chmod -R 555 /usr/lib/arifos/
+
+# ── /usr/bin/ — Entry points ─────────────────────────────────
+COPY runtime/unified_server.py       /usr/bin/arifos-mcp
+COPY runtime/run.py                  /usr/bin/arifos-run
+RUN chmod 755 /usr/bin/arifos-mcp /usr/bin/arifos-run
+
+# ── /var/lib/arifos/ — Runtime mutable state ─────────────────
+# VAULT999 data lives here — mounted from host, never baked in
+# Directory created in base stage. Ownership to arifos user.
+RUN chown -R arifos:arifos /var/lib/arifos/ /var/log/arifos/ /run/arifos/ /tmp/arifos/
+
+# ── VAULT999 guard — F1 Amanah enforcement ───────────────────
+# If VAULT999/ accidentally exists in source, refuse to bake it
+# This makes the AMANAH violation a build failure, not a runtime surprise
+RUN test ! -d /usr/lib/arifos/vault/VAULT999 || \
+    (echo "AMANAH VIOLATION: VAULT999 data must not be in source layer" && exit 1)
+
+# ── Runtime environment ──────────────────────────────────────
+ENV ARIFOS_CONSTITUTION=/etc/arifos/constitution \
+    ARIFOS_MANIFESTS=/etc/arifos/manifests \
+    ARIFOS_LIB=/usr/lib/arifos \
+    ARIFOS_VAULT=/var/lib/arifos/vault \
+    ARIFOS_LOG=/var/log/arifos \
+    ARIFOS_RUN=/run/arifos \
+    PYTHONPATH=/usr/lib/arifos \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# ── Drop to non-root ─────────────────────────────────────────
+USER arifos
+
+# ── Health check ─────────────────────────────────────────────
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+EXPOSE 8000
+
+ENTRYPOINT ["/usr/bin/arifos-mcp"]
