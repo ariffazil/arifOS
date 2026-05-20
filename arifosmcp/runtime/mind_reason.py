@@ -282,9 +282,23 @@ async def arif_mind_reason(
     depth: int = 3,
 ) -> dict[str, Any]:
     """
-    333 MIND v1 - Constitutional reasoning with envelope integrity.
+    333_MIND v1 — Constitutional reasoning with envelope integrity.
+    Updated to delegate to v2 for 'metabolize' mode.
     """
-    timestamp = datetime.datetime.now(datetime.UTC).isoformat()
+    if mode == "metabolize":
+        from arifosmcp.schemas.mind_metabolism import MindRequest
+        request = MindRequest(
+            query=query,
+            mode=mode,
+            session_id=session_id,
+            actor_id=actor_id,
+            reasoning_control={"depth": depth}
+        )
+        v2_resp = await arif_mind_reason_v2(request)
+        return v2_resp.model_dump()
+
+    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
 
     # Build the reasoning prompt
     user_prompt = f"""QUERY: {query}
