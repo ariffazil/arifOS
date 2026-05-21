@@ -188,18 +188,30 @@ def verify_sovereign_ack(
     challenge.used = True
 
     # Calculate ZKPC Level
+    # Phase 0: Respect circuit quarantine. If toy circuit is quarantined,
+    # NEVER promote to level 2 regardless of dev override.
+    zkpc_quarantined = os.getenv("ARIFOS_ZKPC_CIRCUIT_MODE", "TOY_QUARANTINED").upper() in (
+        "TOY_QUARANTINED",
+        "DISABLED",
+    )
     zkpc_level = 1
     dev_override = os.getenv("ARIFOS_DEV_ALLOW_MSAP_LEVEL2", "false").lower() == "true"
 
-    if dev_override:
+    if dev_override and not zkpc_quarantined:
         zkpc_level = 2
-        # Future: emit warning to logs/telemetry if possible
+    elif dev_override and zkpc_quarantined:
+        # Dev override requested but circuit is quarantined — stay at 1
+        pass
+
+    reason = "ACK_OK"
+    if zkpc_quarantined:
+        reason = "ACK_OK_BUT_ZKPC_QUARANTINED_TOY_CIRCUIT_NO_AUTHORITY"
+    elif dev_override:
+        reason = "DEV_ONLY_MSAP_PROMOTED_TO_LEVEL2_NOT_TRUE_PERSONHOOD"
 
     return SovereignAckVerificationResult(
         signed_ack_valid=True,
-        reason=(
-            "ACK_OK" if not dev_override else "DEV_ONLY_MSAP_PROMOTED_TO_LEVEL2_NOT_TRUE_PERSONHOOD"
-        ),
+        reason=reason,
         zkpc_level=zkpc_level,
         ack_id=f"ACK-{packet.nonce[:12]}",
         payload_hash=packet.payload_hash,

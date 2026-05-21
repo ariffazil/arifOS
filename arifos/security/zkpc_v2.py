@@ -38,6 +38,23 @@ _CIRCUIT_DIR = "/usr/lib/node_modules/snarkjs/node_modules/circom_runtime/test/c
 _WASM_PATH = os.path.join(_CIRCUIT_DIR, "circuit_js", "circuit.wasm")
 _ZKEY_PATH = os.path.join(_ZKPC_ARTIFACTS, "circuit_final.zkey")
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# Phase 0: Toy circuit quarantine
+# ═══════════════════════════════════════════════════════════════════════════════
+_ZKPC_CIRCUIT_MODE = os.getenv("ARIFOS_ZKPC_CIRCUIT_MODE", "TOY_QUARANTINED").upper()
+_ZKPC_QUARANTINED = _ZKPC_CIRCUIT_MODE in ("TOY_QUARANTINED", "DISABLED")
+
+if _ZKPC_QUARANTINED:
+    import warnings
+
+    warnings.warn(
+        "ZKPC v2: Toy circuit is QUARANTINED. "
+        "Proofs may verify cryptographically but carry ZERO constitutional authority. "
+        "Set ARIFOS_ZKPC_CIRCUIT_MODE=PRODUCTION only after deploying a real Poseidon/SHA circuit.",
+        RuntimeWarning,
+        stacklevel=2,
+    )
+
 # Required public input keys
 _REQUIRED_INPUTS = [
     "identity_commitment",
@@ -277,10 +294,14 @@ def verify_zkpc_v2_epoch(
       - verification key missing
       - proof format invalid
       - snarkjs verify does NOT return OK
+      - circuit is in TOY_QUARANTINED mode (Phase 0)
 
     NEVER trusts structure alone. Proof is verified or nothing.
 
     Returns fail-closed bundle if proof cannot be cryptographically verified.
+    When the circuit is quarantined, proofs may still verify cryptographically
+    (for workflow testing) but zkpc_level is DOWNGRADED to 1 and authority
+    is explicitly denied.
     """
     # ── 1. Pre-flight checks ────────────────────────────────────────────────
     if not proof or not public_inputs:
@@ -352,6 +373,39 @@ def verify_zkpc_v2_epoch(
         }
 
     # ── 7. Proof verified — return full evidence bundle ───────────────────
+    # Phase 0: If circuit is quarantined, downgrade authority even if proof
+    # cryptographically verifies. This prevents a toy circuit from being
+    # treated as constitutional authority.
+    if _ZKPC_QUARANTINED:
+        return {
+            "is_irreversible": is_irreversible,
+            "zkpc_level": 1,
+            "zkpc_mode": "ZKPC_V2_TOY_QUARANTINED",
+            "proof_verification_mode": "GROTH16_REAL",
+            "proof_verified": True,
+            "continuity_proven": False,
+            "epoch_chain_valid": False,
+            "signal_binding_valid": False,
+            "nonce_valid": False,
+            "identity_commitment": identity_commitment,
+            "previous_epoch_hash": previous_epoch_hash,
+            "current_epoch_hash": current_epoch_hash,
+            "proof_hash": proof_hash,
+            "payload_hash": payload_hash,
+            "judge_state_hash": judge_state_hash,
+            "session_id": session_id,
+            "nonce": nonce,
+            "zkpc_authority_weight": 0,
+            "zk_claim_state": "TOY_CIRCUIT_QUARANTINED_NO_AUTHORITY",
+            "error_reason": "TOY_CIRCUIT_QUARANTINED: Proof verified cryptographically but circuit carries no constitutional authority. Deploy production Poseidon/SHA circuit and set ARIFOS_ZKPC_CIRCUIT_MODE=PRODUCTION to lift quarantine.",
+            "proof_scope": {
+                "proves_continuity_of_control": False,
+                "proves_full_personhood": False,
+                "proves_liveness": False,
+                "proves_biometric_identity": False,
+            },
+        }
+
     return {
         "is_irreversible": is_irreversible,
         "zkpc_level": 2,
@@ -370,6 +424,8 @@ def verify_zkpc_v2_epoch(
         "judge_state_hash": judge_state_hash,
         "session_id": session_id,
         "nonce": nonce,
+        "zkpc_authority_weight": 1,
+        "zk_claim_state": "PRODUCTION_AUTHORITY",
         # Honest scope declaration
         "proof_scope": {
             "proves_continuity_of_control": True,
