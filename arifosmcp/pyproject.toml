@@ -1,7 +1,14 @@
 [project]
 name = "arifos"
-version = "2026.05.21"
+version = "2026.05.24"
 
+# 2026.05.24 — Birthday Release: Phases 1-4 Agentic Safety
+#   Phase 1: Capability membrane (F01 AMANAH) in forge.py + google_workspace.py
+#   Phase 2: NIAT scar vocabulary gate (F05/F06) with expanded TIER1/TIER2 patterns
+#   Phase 3: Medium-shift auto-detection (private→formal context inference)
+#   Phase 4: get_ml_floor_runtime() health fix (ml_floors_enabled, ml_mode, heuristic_fallback_active)
+#   New: niat_gate.py, constitution_lock.py, federation_quarantine.py, metabolic_receipt.py
+#   New: test_niat_gate.py (NIAT gate test suite)
 # 2026.05.20 — Audit & Governance Alignment
 #   Audit Truth: Added registry_truth: PASS to health payload.
 #   Session Integrity: Prioritize caller-provided session_id.

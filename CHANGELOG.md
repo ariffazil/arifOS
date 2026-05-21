@@ -1,5 +1,43 @@
 # CHANGELOG — arifOS
 
+## [v2026.05.24] — 2026-05-21
+
+### ⚡ Birthday Release: Phases 1-4 Agentic Safety
+
+**Phase 1 — Capability Membrane (F01 AMANAH):**
+- `enforce_capability_membrane()` wired into `arif_forge_execute` (permitted_scope param)
+- `enforce_capability_membrane()` wired into `google_gmail_send` (permitted_scope + SHA256 body/subject hash matching)
+- gmail_send returns HOLD when recipient doesn't match permitted_scope (no API call made)
+
+**Phase 2 — NIAT Gate (F05 PEACE, F06 EMPATHY):**
+- New `niat_gate.py`: expanded SCAR vocabulary — TIER1 (single-word) + TIER2 (multi-word) patterns
+- `scar_weight` scoring 0.0–1.0 with context amplifiers
+- NIAT gate fires on `mode=="formalize"` OR `action_tier in (c3, c4, c5, sovereign)`
+- CONFLICTED verdict → `VerdictOutput(verdict=HOLD, amanah_proof=AmanahProof(...))`
+- Wired into `judge.py` at correct location (line 296+, outside docstring)
+- Added `niat_params` and `context_source` params to `arif_judge_deliberate`
+
+**Phase 3 — Medium-Shift Auto-Detection:**
+- `niat_gate.py` detects private→formal transitions from `context_source`
+- Infers from: private, p&c, chat, whatsapp, verbal, friend, informal, personal, confidential
+- Does NOT infer from formal contexts (email, formal, letter, official)
+
+**Phase 4 — ML Runtime Health Fix:**
+- `get_ml_floor_runtime()` now returns `ml_floors_enabled`, `ml_runtime_ready`, `ml_mode`, `heuristic_fallback_active`
+- Resolves KeyError on /health endpoint (ml_runtime[ml_floors_enabled] was missing)
+- Lean Docker container correctly reports heuristic-only; host machine reports full-ml
+
+**New files:**
+- `niat_gate.py`: SCAR vocabulary + NIAT scoring + medium-shift inference
+- `constitution_lock.py`: formalization lock mechanism
+- `federation_quarantine.py`: federation boundary enforcement
+- `metabolic_receipt.py`: metabolic output envelope builder
+- `test_niat_gate.py`: NIAT gate test suite
+
+**Docs:**
+- `docs/agentic-gap-metrics-2026-05-21.md`: agentic paradox forge map session artifact
+- EMERGENCE DOCTRINE (AAA): 13 Forged Laws of Substrate Governance
+
 ## [v2026.05.23] — 2026-05-21
 
 ### Ruff E722 + B904 Bugfix (6 files)
