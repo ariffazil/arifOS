@@ -76,9 +76,15 @@ Your task: Given raw evidence (witnesses), process them through the full loop.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-STEP 1 — WITNESS CLASSIFICATION
-Classify each witness by type:
+STEP 1 — WITNESS CLASSIFICATION & ATTESTATION (Eureka 2026-05-21)
+Classify each witness by type and depth:
   map | seismic | filing | report | image | log | testimony | sensor | document | signal
+
+Every claim MUST carry an attestation chain:
+  abstraction_level: raw | measured | interpreted | modeled | symbolic | normative
+  source_basis: observation | dataset | equation | expert judgment | analogy | speculation
+  uncertainty: low | moderate | high
+  reversibility: reversible | partial | irreversible
 
 Map to perception_class:
   MEASURED = direct sensor
@@ -101,31 +107,53 @@ Contrast severity: LOW | MODERATE | HIGH | CRITICAL
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-STEP 3 — CANDIDATE MEANINGS
+STEP 3 — CANDIDATE MEANINGS (ABDUCTION DISCIPLINE)
 For each anomaly, generate differential interpretations.
+
+Abduction may propose; it may not certify.
+For every ABDUCED claim, you MUST provide:
+  - primary_interpretation: best explanation
+  - rival_hypotheses[]: what else could it be?
+  - disconfirming_tests[]: what would prove this WRONG?
 
 NEVER allow: detected=true → meaning=proven
 
-For each meaning:
-  - possible_meanings[] — all alternatives
-  - primary_interpretation — most likely
-  - meaning_confidence — separate from detection confidence!
-  - tests_needed_before_claim[] — what would confirm/deny
-  - ruling_out[] — what has been excluded and why
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 4 — PRIME INVARIANT STACK (PHYSICS > MATH > ECON > EARTH)
+Verify against hard boundary conditions:
+
+1. PHYSICS:
+   - Conservation: claimed output must not exceed input.
+   - Entropy: order requires maintenance cost.
+   - Rate limits: change must not exceed adaptive capacity.
+   - Irreversibility: flag non-undoable state changes.
+
+2. MATH:
+   - Axiom scope: axioms are not reality.
+   - Model limits: map is not territory.
+
+3. ECONOMICS:
+   - Scarcity: resources (time, money, attention) have limits.
+   - Opportunity cost: choosing A excludes B.
+   - Externalities: who pays the hidden cost?
+
+4. EARTH:
+   - Stocks/Sinks: no infinite backdrop.
+   - Regeneration: extraction rate must not exceed regeneration rate.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-STEP 4 — CONSTRAINT CHECKING
-Verify against:
-  - Physics (does it violate physical law?)
-  - Law (does it violate regulation?)
-  - Ethics (does it violate F05 PEACE, F06 EMPATHY?)
-  - Financial (does it violate fiscal constraint?)
-  - Constitutional (does it violate F01-F13?)
+STEP 5 — GOVERNING EQUATION CHECK (Eureka 2026-05-22)
+Apply the Governing Equation of Intelligence: G = Δ · Ω · Ψ
+- Δ (Capability): What is the action power of this update?
+- Ω (Empathy): What is the human burden sensing / consequence awareness?
+- Ψ (Judgment): What is the constraint reasoning?
+If Ω or Ψ are critically low, flag as Dark Cleverness (C_dark) hazard.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-STEP 5 — MODEL UPDATE
+STEP 6 — MODEL UPDATE
 Propose state changes to the domain model.
 
 For each update:
@@ -137,12 +165,13 @@ For each update:
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-STEP 6 — SOVEREIGNTY BOUNDARY
+STEP 7 — SOVEREIGNTY BOUNDARY & CAPABILITY MEMBRANE
 Return with these flags:
   recommendation_only: True (AI proposes only)
   execution_authorized: False (not ratified by human)
   human_final_authority: "Arif" (F13 veto intact)
   requires_888_judge: False (True only for irreversible actions)
+  capability_membrane_leashed: True (Tool actions explicitly limited to approved exact scope)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -175,6 +204,15 @@ METABOLIZE_SCHEMA = {
                             "document",
                             "signal",
                         ],
+                    },
+                    "attestation": {
+                        "type": "object",
+                        "properties": {
+                            "abstraction_level": {"type": "string"},
+                            "source_basis": {"type": "string"},
+                            "uncertainty": {"type": "string"},
+                            "reversibility": {"type": "string"},
+                        },
                     },
                     "source_uri": {"type": "string"},
                     "raw_content": {"type": "string"},
@@ -241,9 +279,11 @@ METABOLIZE_SCHEMA = {
                     "decoded_entity_id": {"type": "string"},
                     "possible_meanings": {"type": "array", "items": {"type": "string"}},
                     "primary_interpretation": {"type": "string"},
+                    "rival_hypotheses": {"type": "array", "items": {"type": "string"}},
                     "meaning_confidence": {"type": "number"},
                     "meaning_confidence_band": {"type": "array", "items": {"type": "number"}},
                     "tests_needed_before_claim": {"type": "array", "items": {"type": "string"}},
+                    "disconfirming_tests": {"type": "array", "items": {"type": "string"}},
                     "ruling_out": {"type": "array", "items": {"type": "string"}},
                 },
                 "required": [
@@ -263,7 +303,16 @@ METABOLIZE_SCHEMA = {
                     "constraint_id": {"type": "string"},
                     "constraint_type": {
                         "type": "string",
-                        "enum": ["physics", "law", "ethics", "financial", "constitutional"],
+                        "enum": [
+                            "physics",
+                            "math",
+                            "economics",
+                            "earth",
+                            "law",
+                            "ethics",
+                            "financial",
+                            "constitutional",
+                        ],
                     },
                     "rule_invoked": {"type": "string"},
                     "check_passed": {"type": "boolean"},
@@ -307,7 +356,20 @@ METABOLIZE_SCHEMA = {
         "next_best_tool": {"type": "string"},
         "claim_state": {
             "type": "string",
-            "enum": ["OBSERVED", "HYPOTHESIS", "QUALIFIED", "VERIFIED", "SEALED", "HOLD"],
+            "enum": [
+                "OBSERVED",
+                "MEASURED",
+                "INFERRED",
+                "ABDUCED",
+                "HYPOTHESIS",
+                "QUALIFIED",
+                "NORMATIVE",
+                "SPECULATIVE",
+                "VERIFIED",
+                "SEALED",
+                "HOLD",
+                "VOID",
+            ],
         },
         "uncertainty": {
             "type": "object",
@@ -328,6 +390,7 @@ METABOLIZE_SCHEMA = {
         "claim_state",
     ],
 }
+
 
 
 # ── Tool Implementation ─────────────────────────────────────────────────────────

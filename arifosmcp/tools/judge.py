@@ -20,7 +20,10 @@ from pathlib import Path
 from typing import Any
 
 from arifosmcp.runtime.tools import _arif_judge_deliberate
+from arifosmcp.runtime.niat_gate import check_niat_gate
+from arifosmcp.runtime.metabolic_receipt import get_cumulative_metrics
 from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
+
 
 # WELL state file candidates — covers docker-compose path, manual-start path, env override
 _WELL_STATE_CANDIDATES = [
@@ -192,22 +195,38 @@ def arif_judge_deliberate(
     vault_entry_id: str | None = None,
     cooldown_entry_id: str | None = None,
     action_tier: str = "standard",
+    heart_critique: dict[str, Any] | None = None,
+    niat_params: dict[str, Any] | None = None,
+    context_source: str | None = None,
 ) -> VerdictOutput:
     """
-    888_JUDGE: Constitutional adjudication and verdict emission.
+        888_JUDGE: Constitutional adjudication and verdict emission.
 
-    Args:
-        action_tier: "standard" | "sovereign" | "c4" | "c5".
-            SOVEREIGN gate (W-2): if action_tier is "sovereign"/"c4"/"c5" and
-            operator cognitive clarity is below 4/10, verdict is hard-blocked
-            to HOLD (W5 → F2 constitutional floor). W0 preserved — WELL informs,
-            judge decides, operator holds veto.
-        vault_entry_id: If provided and verdict is SEAL, the output is
-            automatically routed to arif_vault_seal for immutable anchoring
-            (post-SEAL auto-hook per P3).
-        cooldown_entry_id: Optional SABAR cooldown entry to validate before SEAL.
-            Stage 2A: advisory only — returns SABAR with remaining hours if cooling
-            incomplete, but does not hard-block the verdict.
+        Args:
+            heart_critique: Optional 666_HEART critique. Red Team Finding #1:
+                If heart_critique.verdict is VOID or status is HOLD, the judge
+                must escalate to HOLD unless explicit Sovereign override.
+            action_tier: "standard" | "sovereign" | "c4" | "c5".
+    ...
+        # ── 666_HEART: Ethical Gate (Red Team Finding #1) ────────────────────────
+        # Hard-wire the heart's verdict into the judge loop.
+        if mode == "judge" and heart_critique:
+            heart_verdict = heart_critique.get("action_risk_verdict") or heart_critique.get("verdict")
+            if heart_verdict in ("VOID", "HOLD"):
+                return VerdictOutput(
+                    verdict=VerdictCode.HOLD,
+                    reasons=[
+                        f"666_HEART_GATE: Critique returned {heart_verdict}.",
+                        heart_critique.get("reason", "Ethical risks or uncertainty detected by Heart."),
+                    ],
+                    next_safe_action="Review 666_HEART risks and provide mitigations before re-judging.",
+                    meta={
+                        "heart_gate": "HEART_BLOCKED",
+                        "heart_verdict": heart_verdict,
+                        "heart_payload": heart_critique,
+                    },
+                )
+
     """
     from arifosmcp.tools.ops import arif_ops_measure
 
@@ -276,6 +295,78 @@ def arif_judge_deliberate(
 
     audit_entropy = _evidence.get("vitals", {}).get("audit_entropy")
 
+    # ── NIAT GATE: Human Purpose under Constraint ─────────────────────────────────
+    # Phase 2: Full NIAT gate implementation.
+    # Fires on: formalize mode OR elevated action tiers (c3/c4/c5/sovereign).
+    # Uses explicit niat_params if provided; otherwise infers from candidate.
+    if mode == "formalize" or action_tier.lower() in ("c3", "c4", "c5", "sovereign"):
+        if niat_params:
+            _ni = niat_params.get("user_instruction", candidate or "")
+            _nc = niat_params.get("context_source", context_source or "unknown")
+            _na = niat_params.get("requested_action", mode)
+            _nm = niat_params.get("medium_shift", "none")
+            _ns = niat_params.get("negative_signals", [])
+            _nr = niat_params.get("reversibility", "reversible")
+            _nh = niat_params.get("affected_humans", [])
+        else:
+            _ni = candidate or ""
+            _nc = context_source or "unknown"
+            _na = mode
+            _nm = "none"
+            _ns = []
+            _nr = "reversible"
+            _nh = []
+
+        _gate = check_niat_gate(
+            user_instruction=_ni,
+            context_source=_nc,
+            requested_action=_na,
+            medium_shift=_nm,
+            negative_signals=_ns,
+            reversibility=_nr,
+            affected_humans=_nh,
+        )
+
+        if _gate["niat_state"] == "CONFLICTED":
+            from arifosmcp.schemas.verdict import AmanahProof
+
+            return VerdictOutput(
+                verdict=VerdictCode.HOLD,
+                reasons=[
+                    "NIAT_GATE: niat_state=CONFLICTED — consent boundary unclear or violated.",
+                    f"Formalization blocked: {_gate['formalization_allowed']}.",
+                    f"Detected scars: {_gate['detected_scars']} (weight={_gate['scar_weight']:.2f}).",
+                ],
+                next_safe_action="Obtain explicit consent or narrow the action scope before re-judging.",
+                amanah_proof=AmanahProof(
+                    genius_score=0.0,
+                    floors_checked=["F1", "F5", "F6"],
+                    floors_passed=["F1"],
+                    floors_failed=["F5", "F6"],
+                    violations=["NIAT_CONSENT_BOUNDARY_VIOLATED"],
+                    violation_mitigation=["Action blocked pending explicit consent"],
+                ),
+                meta={
+                    "niat_gate": "HOLD",
+                    "niat_state": _gate["niat_state"],
+                    "scar_weight": _gate["scar_weight"],
+                    "detected_scars": _gate["detected_scars"],
+                    "required_next_step": _gate["required_next_step"],
+                },
+            )
+
+        if _gate["niat_state"] == "UNCERTAIN" and _gate["execution_allowed"] is False:
+            # NIAT uncertain — downgrade verdict to SABAR (proceed with caution)
+            _niat_meta = {
+                "niat_gate": "WATCH",
+                "niat_state": _gate["niat_state"],
+                "scar_weight": _gate["scar_weight"],
+                "detected_scars": _gate["detected_scars"],
+                "required_next_step": _gate["required_next_step"],
+            }
+        else:
+            _niat_meta = None
+
     # ── A-RIF: Claim Strength Gate (Abduction/Judgment) ──
 
     # Extract evidence level from candidate or context if possible
@@ -306,6 +397,7 @@ def arif_judge_deliberate(
             claim_strength = candidate.get("claim_strength", evidence_level)
         elif isinstance(candidate, str):
             from arifosmcp.runtime.a_rif.parser import parse_claimed_evidence_level
+
             parsed = parse_claimed_evidence_level(candidate)
             claim_strength = parsed if parsed else evidence_level
         else:

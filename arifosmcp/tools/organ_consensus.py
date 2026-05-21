@@ -54,7 +54,13 @@ def _is_inside_container() -> bool:
 def _organ_url(name: str, cfg: dict[str, Any]) -> str:
     if _is_inside_container() and cfg.get("docker_host"):
         return cfg["docker_host"]
-    return cfg["url"]
+    # cfg["health"] is like "http://localhost:8083/health" — extract host:port
+    url = cfg.get("health", "")
+    if url.startswith("http://"):
+        url = url[7:]
+    if "/" in url:
+        url = url.split("/")[0]
+    return url
 
 
 async def _probe_organ(name: str, cfg: dict[str, Any]) -> dict[str, Any]:

@@ -206,6 +206,7 @@ async def _heart_with_llm(
     session_id: str | None = None,
     actor_id: str | None = None,
     context_type: str | None = None,
+    trace_recursion_depth: int = 0,
 ) -> dict[str, Any]:
     """
     Tier 1/2: Use SEA-LION or Ollama for constitutional risk analysis.
@@ -234,6 +235,7 @@ Return JSON exactly matching the schema. Cite specific constitutional floors for
             max_tokens=1200,
             tool_origin="666_HEART",
             mode=mode,
+            trace_recursion_depth=trace_recursion_depth,
         )
 
         result = envelope.parsed_output
@@ -273,15 +275,23 @@ def _heart_fallback(
     mode: str,
     target: str,
     context_type: str | None = None,
+    trace_recursion_depth: int = 0,
 ) -> dict[str, Any]:
     """
-    Rule-based fallback when no LLM is available.
-    Uses keyword matching across 8 risk categories.
-
-    777_WITNESS: includes _envelope metadata (no LLM, so envelope is error-wrapped).
+    Rule-based fallback when no LLM is available or recursion is clamped.
+    Uses deterministic template and sanitized partial findings.
     """
     target_lower = (target or "").lower()
     risks: list[dict[str, Any]] = []
+
+    # Sanitized partial findings (Eureka 2026-05-21)
+    partial_findings = [
+        "Critique did not complete (Timeout, Self-Reference, or LLM Unavailable).",
+        "F01 Amanah: No approval may be inferred from this state.",
+        "F13 Sovereign: Human decision required before any mutation or high-risk action.",
+    ]
+    if trace_recursion_depth > 2:
+        partial_findings.append("RECURSION_DEPTH_CLAMPED: Circular critique logic detected.")
 
     # 1. Dignity risk (F05 Peace)
     dignity_triggers = [
@@ -455,6 +465,8 @@ def _heart_fallback(
         "_llm_available": False,
         "_llm_tier": "none",
         "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
+        "trace_recursion_depth": trace_recursion_depth,
+        "claim_state": "SAFE_FALLBACK_NOT_FULL_CRITIQUE",
         "_envelope": {
             "provider": "none",
             "tool_origin": "666_HEART",
@@ -481,6 +493,8 @@ def _heart_fallback(
             "human_impact_load": round(max_severity * 0.25, 3),
             "dignity_score": round(1.0 - (severity_order.get(risks[0]["severity"], 0) * 0.2), 3),
             "verdict": ("VOID" if max_severity >= 4 else "HOLD" if max_severity >= 2 else "SEAL"),
+            "partial_findings": partial_findings,
+            "next_safe_action": "route_to_444_KERNEL",
         }
 
     if mode == "simulate":
@@ -614,6 +628,30 @@ def _check_vault999_scar_tissue(target: str, max_scan: int = 50) -> dict[str, An
     }
 
 
+def _is_self_target(target: str) -> bool:
+    """Canonical self-target detection (Eureka 2026-05-21)."""
+    SELF_ALIASES = {
+        "arif_heart_critique",
+        "666_HEART",
+        "heart.py",
+        "arifOS/arifosmcp/tools/heart.py",
+        "critique organ",
+        "ethical critique tool",
+        "self",
+        "this tool",
+    }
+    t = (target or "").lower()
+    if any(alias in t for alias in SELF_ALIASES):
+        return True
+    # Path resolution check
+    try:
+        if os.path.exists(target) and os.path.samefile(target, __file__):
+            return True
+    except Exception:
+        pass
+    return False
+
+
 def _compute_omega_state(result: dict[str, Any], target: str) -> dict[str, Any]:
     """Compute graded uncertainty state Ω₀/Ω₁/Ω₂.
 
@@ -642,6 +680,13 @@ def _compute_omega_state(result: dict[str, Any], target: str) -> dict[str, Any]:
     ]
     overclaim = any(t in target_lower for t in overclaim_triggers)
 
+    # Self-authorizing mutation protection (Eureka 2026-05-21)
+    is_self = _is_self_target(target)
+    mutation_requested = any(
+        kw in target_lower
+        for kw in ["patch", "modify", "update source", "lower threshold", "approve self"]
+    )
+
     # Compute P(truth)
     p_truth = 1.0
     p_truth -= max_severity * 0.15
@@ -651,10 +696,13 @@ def _compute_omega_state(result: dict[str, Any], target: str) -> dict[str, Any]:
         p_truth -= 0.10
     if overclaim:
         p_truth -= 0.15
+    if is_self and mutation_requested:
+        p_truth = 0.0  # Force Ω₂ HOLD
+
     p_truth = max(0.0, min(1.0, p_truth))
 
     # Determine Ω state
-    if p_truth < 0.60 or max_severity >= 3 or scar_risk == "high":
+    if p_truth < 0.60 or max_severity >= 3 or scar_risk == "high" or (is_self and mutation_requested):
         omega = "Ω₂"
         state = "HIGH_UNCERTAINTY"
         action = "HOLD"
@@ -679,6 +727,7 @@ def _compute_omega_state(result: dict[str, Any], target: str) -> dict[str, Any]:
         "scar_tissue": scar,
         "overclaim_detected": overclaim,
         "max_severity": max_severity,
+        "self_mutation_blocked": is_self and mutation_requested,
     }
 
 
@@ -691,6 +740,7 @@ async def arif_heart_critique(
     actor_id: str | None = None,
     session_id: str | None = None,
     context_type: str | None = None,
+    trace_recursion_depth: int = 0,
 ) -> dict[str, Any]:
     """
     666_HEART: Constitutional ethical critique and risk assessment.
@@ -715,9 +765,17 @@ async def arif_heart_critique(
         context_type: Controls risk threshold scaling:
             - "internal_audit" — more permissive thresholds
             - "external_action" — standard thresholds (default)
+        trace_recursion_depth: current recursion depth in the call chain.
+                               If depth > 2, fallback is forced (Eureka 2026-05-21).
     """
     _ct = context_type or "external_action"
     is_internal = _ct == "internal_audit"
+
+    # Recursion clamp (Eureka 2026-05-21)
+    if trace_recursion_depth > 2:
+        return _heart_fallback(
+            mode=mode, target=target or "", context_type=_ct, trace_recursion_depth=trace_recursion_depth
+        )
 
     try:
         result = await _heart_with_llm(
@@ -726,6 +784,7 @@ async def arif_heart_critique(
             session_id=session_id,
             actor_id=actor_id,
             context_type=_ct,
+            trace_recursion_depth=trace_recursion_depth,
         )
         # If LLM returned an error envelope (all tiers exhausted), use fallback
         if result.get("error") and "LLM_UNAVAILABLE" in str(result.get("status", "")):

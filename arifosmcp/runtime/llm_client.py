@@ -69,6 +69,7 @@ def _make_envelope(
     combined_prompt: str,
     latency_ms: float,
     response_schema: dict[str, Any] | None,
+    trace_recursion_depth: int = 0,
 ) -> LLMOutputEnvelope:
     envelope = wrap_llm_output(
         raw_output=raw_output,
@@ -81,6 +82,7 @@ def _make_envelope(
         schema_valid=True,
         confidence=_extract_confidence(parsed),
         latency_ms=latency_ms,
+        trace_recursion_depth=trace_recursion_depth,
     )
     if response_schema:
         _validate_schema(envelope.parsed_output, set(response_schema.get("properties", {}).keys()))
@@ -264,6 +266,7 @@ async def call_llm(
     max_tokens: int = 1200,
     tool_origin: str = "UNKNOWN",
     mode: str = "infer",
+    trace_recursion_depth: int = 0,
 ) -> LLMOutputEnvelope:
     """
     Call SEA-LION with Ollama fallback.
@@ -279,6 +282,7 @@ async def call_llm(
         max_tokens:   Maximum tokens in response
         tool_origin:  Canonical tool name calling this LLM (e.g. "333_REASON")
         mode:         Cognitive mode of the call (e.g. "reason", "critique")
+        trace_recursion_depth: current recursion depth in the call chain
     """
     # Build combined prompt string for audit trail
     combined_prompt = f"{system}\n\n{user}"
@@ -293,6 +297,7 @@ async def call_llm(
             raw_output, parsed, "sea_lion", SEA_LION_MODEL,
             tool_origin, mode, combined_prompt,
             (time.monotonic() - t0) * 1000, response_schema,
+            trace_recursion_depth,
         )
     except LLMUnavailableError:
         pass
@@ -307,6 +312,7 @@ async def call_llm(
             raw_output, parsed, "ollama", OLLAMA_MODEL,
             tool_origin, mode, combined_prompt,
             (time.monotonic() - t0) * 1000, response_schema,
+            trace_recursion_depth,
         )
     except LLMUnavailableError:
         pass

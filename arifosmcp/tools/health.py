@@ -560,24 +560,37 @@ async def federation_audit(
     registry_truth_score = 0
     for svc_name in live_names:
         cfg = _SERVICE_ENDPOINTS.get(svc_name, {})
-        url = _service_url(svc_name, cfg)
-        tools_url = url.rstrip("/") + "/tools"
-        try:
-            import httpx
-
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                r = await client.get(tools_url)
-                if r.status_code == 200:
-                    data = r.json()
-                    tools = data.get("tools", [])
-                    if tools:
-                        registry_checks[svc_name] = "PASS"
-                    else:
-                        registry_checks[svc_name] = "EMPTY_TOOLS"
-                else:
-                    registry_checks[svc_name] = f"HTTP_{r.status_code}"
-        except Exception:  # noqa: BLE001
-            registry_checks[svc_name] = "UNREACHABLE"
+        # FIX: _service_url returns the /health endpoint. 
+        # We need the base URL for /tools and /mcp/tools discovery.
+        base_url = cfg["url"].replace("/health", "")
+        if _is_inside_container() and cfg.get("docker_host"):
+            base_url = f"http://{cfg['docker_host']}".replace("/health", "")
+        
+        # Try /tools first, then /mcp/tools (FastMCP default)
+        tools_candidates = [
+            base_url.rstrip("/") + "/tools",
+            base_url.rstrip("/") + "/mcp/tools"
+        ]
+        
+        passed_candidate = False
+        for tools_url in tools_candidates:
+            try:
+                import httpx
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    r = await client.get(tools_url)
+                    if r.status_code == 200:
+                        data = r.json()
+                        # FastMCP returns tools in 'tools' key; some custom apps use 'tools' directly
+                        tools = data.get("tools", [])
+                        if tools:
+                            registry_checks[svc_name] = "PASS"
+                            passed_candidate = True
+                            break
+            except Exception:
+                continue
+        
+        if not passed_candidate:
+            registry_checks[svc_name] = "HTTP_404" if live_results.get(svc_name) == "healthy" else "UNREACHABLE"
     # Score: each service with PASS gets 15/num_services points (max 15)
     num_services = len(live_names)
     if num_services:

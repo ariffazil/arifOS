@@ -68,10 +68,12 @@ class LLMOutputEnvelope(BaseModel):
         schema_valid   — did parsed_output parse as valid JSON?
         confidence_claimed — LLM's self-reported confidence (NOT verified truth)
         evidence_level — claimed | cited | verified (F2 Truth calibration)
+        attestation    — chain of evidence to substrate (Eureka 2026-05-21)
         uncertainty    — list of known unknowables (F7 Humility)
         risk_flags     — detected risk categories (F6/F9/F13)
         prompt_hash    — SHA-256 of the prompt (audit trail)
         timestamp      — ISO-8601 UTC
+        trace_recursion_depth — recursion counter in request envelope (Eureka 2026-05-21)
         human_decision_required — True if evidence_level < cited
                                  or risk_flags contains HIGH/CRITICAL
         authority_level — instrument_only (LLM outputs always)
@@ -90,14 +92,17 @@ class LLMOutputEnvelope(BaseModel):
     schema_valid: bool = False
     confidence_claimed: float = Field(ge=0.0, le=1.0, default=0.5)
     evidence_level: EVIDENCE_LEVELS = "claimed"
+    attestation: dict[str, Any] = Field(default_factory=dict)
 
     uncertainty: list[str] = Field(default_factory=list)
     risk_flags: list[str] = Field(default_factory=list)
+    disconfirming_tests: list[str] = Field(default_factory=list)
     injection_detected: bool = False  # F12 INJECTION scan
     latency_ms: float = 0.0  # Round-trip cost in ms for thermodynamic tracking
 
     prompt_hash: str
     timestamp: str
+    trace_recursion_depth: int = 0
 
     human_decision_required: bool = False
     authority_level: Literal["instrument_only", "advisory", "governed", "sovereign"] = (
@@ -138,15 +143,16 @@ def _assess_uncertainty_and_risk(
     tool_origin: str,
     mode: str,
     injection_detected: bool = False,
-) -> tuple[list[str], list[str]]:
+) -> tuple[list[str], list[str], list[str]]:
     """
     F7 Humility: derive uncertainty signals from output shape.
     F6/F9/F13: flag risk categories.
 
-    Returns (uncertainty_list, risk_flags_list).
+    Returns (uncertainty_list, risk_flags_list, disconfirming_tests).
     """
     uncertainty: list[str] = []
     risk_flags: list[str] = []
+    disconfirming_tests: list[str] = parsed.get("disconfirming_tests", [])
 
     confidence = parsed.get("confidence")
     if confidence is None:
@@ -199,7 +205,11 @@ def _assess_uncertainty_and_risk(
     if tool_origin in ("333_REASON", "444_CRITIQUE", "444r_REPLY"):
         uncertainty.append(f"{tool_origin}_output_is_testimony_not_verdict")
 
-    return uncertainty, risk_flags
+    # Abduction discipline (Eureka 2026-05-21)
+    if parsed.get("claim_state") == "ABDUCED" and not disconfirming_tests:
+        uncertainty.append("ABDUCTION_WITHOUT_DISCONFIRMING_TESTS")
+
+    return uncertainty, risk_flags, disconfirming_tests
 
 
 def wrap_llm_output(
@@ -213,6 +223,7 @@ def wrap_llm_output(
     schema_valid: bool = True,
     confidence: float | None = None,
     latency_ms: float = 0.0,
+    trace_recursion_depth: int = 0,
 ) -> LLMOutputEnvelope:
     """
     Wrap raw LLM output in the constitutional envelope.
@@ -230,6 +241,7 @@ def wrap_llm_output(
         prompt         — the original prompt sent to LLM (for audit hash)
         schema_valid   — whether parsed_output is valid JSON
         confidence     — override for confidence_claimed (None = from parsed_output)
+        trace_recursion_depth — current recursion depth in the call chain
     """
     if confidence is None:
         confidence = (
@@ -244,15 +256,21 @@ def wrap_llm_output(
     # F12 INJECTION scan — detect prompt injection in LLM output before release
     injection_detected = _scan_injection(raw_output)
 
-    uncertainty, risk_flags = _assess_uncertainty_and_risk(
+    uncertainty, risk_flags, disconfirming_tests = _assess_uncertainty_and_risk(
         parsed_output, tool_origin, mode, injection_detected
     )
 
-    evidence_level: EVIDENCE_LEVELS = "claimed"
+    evidence_level: EVIDENCE_LEVELS = parsed_output.get("evidence_level", "claimed")
+    attestation = parsed_output.get("attestation", {})
+
     _is_claimed = evidence_level == "claimed"
     _low_confidence = confidence < 0.3
     _needs_human = bool(risk_flags) or bool(injection_detected)
-    human_decision_required = _needs_human or _low_confidence or _is_claimed
+    _high_recursion = trace_recursion_depth > 2
+    human_decision_required = _needs_human or _low_confidence or _is_claimed or _high_recursion
+
+    if _high_recursion:
+        uncertainty.append("RECURSION_DEPTH_CLAMPED_F13")
 
     return LLMOutputEnvelope(
         provider=provider,
@@ -265,15 +283,19 @@ def wrap_llm_output(
         schema_valid=schema_valid,
         confidence_claimed=confidence,
         evidence_level=evidence_level,
+        attestation=attestation,
         uncertainty=uncertainty,
         risk_flags=risk_flags,
+        disconfirming_tests=disconfirming_tests,
         injection_detected=injection_detected,
         prompt_hash=_sha256(prompt),
         latency_ms=latency_ms,
         timestamp=datetime.now(UTC).isoformat(),
+        trace_recursion_depth=trace_recursion_depth,
         human_decision_required=human_decision_required,
         authority_level=_governance_of(model),  # F11: looked up from model_governance.yaml
     )
+
 
 
 def _governance_of(model: str) -> str:

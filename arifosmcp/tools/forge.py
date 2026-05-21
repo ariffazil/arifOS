@@ -46,6 +46,7 @@ def arif_forge_execute(
     vault_entry_id: str | None = None,
     witness_type: str = "ai",
     action_tier: str = "standard",
+    permitted_scope: dict | None = None,
 ) -> ForgeOutput:
     # ── W-2: SOVEREIGN clarity gate for elevated-tier FORGE actions ───────────
     _is_elevated = action_tier.lower() in ("sovereign", "c4", "c5")
@@ -145,6 +146,50 @@ def arif_forge_execute(
         injected = _inject_nine_signal(raw, "HOLD")
         injected["reasons"] = [floor_check["reason"]] if floor_check.get("reason") else []
         return ForgeOutput(**injected)
+
+    # ── CAPABILITY MEMBRANE: Enforce exact permitted scope before execution ─────────
+    # Phase 1: If a permitted_scope is provided, validate the action strictly matches.
+    # This prevents capability drift: agent cannot broaden recipients, modify bodies,
+    # or extend expiry after human has granted a one-time scope.
+    if permitted_scope is not None:
+        from arifosmcp.runtime.niat_gate import enforce_capability_membrane
+
+        # Derive the tool name from mode — forge is a meta-tool dispatcher.
+        _tool_for_membrane = {
+            "write": "file.write",
+            "generate": "code.generate",
+            "commit": "git.commit",
+            "deploy": "docker.deploy",
+            "engineer": "forge.engineer",
+        }.get(mode, f"forge.{mode}")
+
+        _membrane_passed = enforce_capability_membrane(
+            _tool_for_membrane,
+            {"mode": mode, "manifest": manifest, "query": query},
+            permitted_scope,
+        )
+        if not _membrane_passed:
+            return ForgeOutput(
+                status="HOLD",
+                result={},
+                manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                meta={
+                    "reason": (
+                        "888 HOLD — CAPABILITY_MEMBRANE: Action parameters exceed "
+                        "the explicitly permitted scope. Human grant was limited to "
+                        f"{permitted_scope.get('tool', 'unknown')}, but the requested "
+                        "action did not match. Narrow the grant or obtain a new one."
+                    ),
+                    "capability_membrane": "HOLD",
+                    "permitted_scope": {
+                        k: v
+                        for k, v in permitted_scope.items()
+                        if k not in ("tool", "subject_hash", "body_hash")
+                    },
+                },
+                timestamp=datetime.now(UTC).isoformat(),
+            )
+
     result = ForgeOutput(
         **_arif_forge_execute(
             mode=mode,

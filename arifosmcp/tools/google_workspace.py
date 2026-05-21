@@ -15,6 +15,7 @@ Mount point (host):       /root/AAA/.apex/token.json
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 import base64
@@ -74,6 +75,7 @@ def _result(status: str, data: dict[str, Any], error: str | None = None) -> dict
 # Gmail
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def google_gmail_read_unread(
     max_results: int = 10,
     query: str = "is:unread",
@@ -129,6 +131,7 @@ def google_gmail_send(
     subject: str,
     body: str,
     actor_id: str | None = None,
+    permitted_scope: dict | None = None,
 ) -> dict[str, Any]:
     """
     Send an email via Gmail.
@@ -138,9 +141,40 @@ def google_gmail_send(
         subject: Email subject.
         body: Plain text body.
         actor_id: Sovereign actor identifier (required for audit).
+        permitted_scope: Optional capability membrane scope. If provided, the send
+            is validated against the exact permitted parameters (recipient, subject
+            hash, body hash, expiry, one-time use). This enforces the principle:
+            "Rich context for understanding. Narrow capability for action."
     """
     if not actor_id:
         return _result("HOLD", {}, error="actor_id is required for send operations (F11 AUTH)")
+
+    # ── CAPABILITY MEMBRANE: Exact scope enforcement ─────────────────────────────
+    # Phase 1: If a permitted_scope is provided, validate exact recipient,
+    # subject hash, body hash, and one-time use before any mutation.
+    if permitted_scope is not None:
+        import hashlib
+
+        from arifosmcp.runtime.niat_gate import enforce_capability_membrane
+
+        subject_hash = hashlib.sha256(subject.encode()).hexdigest()[:16]
+        body_hash = hashlib.sha256(body.encode()).hexdigest()[:16]
+        _membrane_passed = enforce_capability_membrane(
+            "email.send",
+            {"to": to, "subject": subject, "subject_hash": subject_hash, "body_hash": body_hash},
+            permitted_scope,
+        )
+        if not _membrane_passed:
+            return _result(
+                "HOLD",
+                {},
+                error=(
+                    "CAPABILITY_MEMBRANE: Send parameters exceed permitted scope. "
+                    "Recipient, subject, or body does not match the exact grant. "
+                    "Obtain a new one-time grant for this specific email."
+                ),
+            )
+
     try:
         svc = _service("gmail", "v1")
         msg = MIMEText(body)
@@ -165,6 +199,7 @@ def google_gmail_send(
 # ═══════════════════════════════════════════════════════════════════════════════
 # Calendar
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def google_calendar_list_events(
     max_results: int = 10,
@@ -264,6 +299,7 @@ def google_calendar_create_event(
 # Drive
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def google_drive_list_files(
     page_size: int = 15,
     actor_id: str | None = None,
@@ -331,7 +367,9 @@ def google_drive_search(
             "SEAL",
             {
                 "count": len(files),
-                "files": [{"id": f["id"], "name": f["name"], "link": f.get("webViewLink")} for f in files],
+                "files": [
+                    {"id": f["id"], "name": f["name"], "link": f.get("webViewLink")} for f in files
+                ],
                 "actor_id": actor_id,
             },
         )
@@ -343,6 +381,7 @@ def google_drive_search(
 # ═══════════════════════════════════════════════════════════════════════════════
 # Sheets
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def google_sheets_read(
     spreadsheet_id: str,
@@ -359,7 +398,12 @@ def google_sheets_read(
     """
     try:
         svc = _service("sheets", "v4")
-        result = svc.spreadsheets().values().get(spreadsheetId=spreadsheet_id, range=range_name).execute()
+        result = (
+            svc.spreadsheets()
+            .values()
+            .get(spreadsheetId=spreadsheet_id, range=range_name)
+            .execute()
+        )
         rows = result.get("values", [])
         return _result(
             "SEAL",
