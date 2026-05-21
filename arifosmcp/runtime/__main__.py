@@ -12,10 +12,6 @@ from typing import TYPE_CHECKING, Any
 
 from .fastmcp_ext.transports import run_server
 
-# Module-level imports (lazy-loaded at runtime for heavy deps; LSP can't resolve due to path)
-from arifosmcp.runtime.session import get_session_identity  # noqa: E501,F401
-from arifosmcp.runtime.tools import arifos_vault  # noqa: E501,F401
-
 if TYPE_CHECKING:
     from fastmcp.server import FastMCP as FastMCPT
 
@@ -151,7 +147,7 @@ def _run_minimal_stdio_server() -> None:
     from .server import create_aaa_mcp_server
     from .tool_spec import LEGACY_NAME_MAP, TOOLS, normalize_tool_name
     from .tools import CANONICAL_TOOL_HANDLERS
-    from .tools_hardened_dispatch import get_tool_handler
+    from .tools_hardened_dispatch import get_tool_handler  # type: ignore[import]
 
     # FastMCP instance for resources + prompts (all three surfaces)
     _mcp: FastMCPT = create_aaa_mcp_server()  # type: ignore[assignment]
@@ -508,7 +504,7 @@ def main() -> None:
     if mode in ("http", "streamable-http"):
         import uvicorn
 
-        from .server import app
+        from .server import app  # type: ignore[import]
 
         uvicorn.run(app, host=host, port=port, log_level="info")
         return
