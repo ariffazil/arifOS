@@ -54,7 +54,12 @@ EXPANDED_45: tuple[str, ...] = tuple(
 )
 
 # Diagnostic tools — reversible governance inspectors, not canonical constitutional tools.
-DIAGNOSTIC_TOOLS: tuple[str, ...] = ("arif_stack_health_probe",)
+DIAGNOSTIC_TOOLS: tuple[str, ...] = (
+    "arif_stack_health_probe",
+    "arif_scan_local_instructions",
+    "arif_organ_consensus",
+    "arif_session_budget",
+)
 
 
 def normalize_public_surface_mode(mode: str | None = None) -> str:

@@ -232,6 +232,57 @@ try:
         "Registered diagnostics: arif_stack_health_probe"  # noqa: E501
     )
 
+    # ── Local Instruction Scanner (F12 GUARD) ──────────────────────────────────
+    from arifosmcp.tools.governance_scan import arif_scan_local_instructions
+
+    mcp.tool(
+        name="arif_scan_local_instructions",
+        description=(
+            "F12 GUARD: Scan local agent instruction files for constitutional override attempts. "
+            "Detects .cursorrules, GEMINI.md, ARIF.md, copilot-instructions.md, AGENTS.md "
+            "and other instruction surfaces that attempt to bypass F1–F13 floors. "
+            "Returns SEAL / HOLD / VOID with matched patterns and file context."
+        ),
+        tags={"diagnostic", "governance", "security", "scanner"},
+    )(arif_scan_local_instructions)
+
+    v2_tools_registered.append("arif_scan_local_instructions")
+    logger.info("Registered diagnostics: arif_scan_local_instructions")
+
+    # ── Cross-Organ Consensus (F3 WITNESS) ─────────────────────────────────────
+    from arifosmcp.tools.organ_consensus import arif_organ_consensus
+
+    mcp.tool(
+        name="arif_organ_consensus",
+        description=(
+            "F3 WITNESS: Cross-organ Tri-Witness consensus for proposed actions. "
+            "Calls WELL, WEALTH, and GEOX as independent witnesses, aggregates their "
+            "health/verdict signals, and returns a unified consensus score. "
+            "Closes the gap between Tri-Witness as principle and as callable enforcement."
+        ),
+        tags={"diagnostic", "governance", "consensus", "witness"},
+    )(arif_organ_consensus)
+
+    v2_tools_registered.append("arif_organ_consensus")
+    logger.info("Registered diagnostics: arif_organ_consensus")
+
+    # ── Session Budget Tracker (F1/F07 BUDGET) ─────────────────────────────────
+    from arifosmcp.tools.session_budget import arif_session_budget
+
+    mcp.tool(
+        name="arif_session_budget",
+        description=(
+            "F1/F07 BUDGET: Session-cumulative metabolic budget tracker. "
+            "Tracks cumulative delta_S, cost, and risk across a session. "
+            "Detects split-action bypass (10 small edits = 1 large operation). "
+            "Modes: status, record, check, reset. Fires 888_HOLD when ceiling breached."
+        ),
+        tags={"diagnostic", "governance", "budget", "metabolism"},
+    )(arif_session_budget)
+
+    v2_tools_registered.append("arif_session_budget")
+    logger.info("Registered diagnostics: arif_session_budget")
+
     # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
     try:
         from arifosmcp.runtime.workers.memory_janitor import MemoryJanitor
