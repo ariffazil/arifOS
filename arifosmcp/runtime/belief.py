@@ -38,7 +38,7 @@ import os
 import sqlite3
 import threading
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -121,15 +121,15 @@ class BeliefState:
         self.confidence = confidence
         self.false_belief_flags = false_belief_flags or []
         self.update_count = update_count
-        self.last_seen = last_seen or datetime.now(timezone.utc)
-        self.created_at = created_at or datetime.now(timezone.utc)
+        self.last_seen = last_seen or datetime.now(UTC)
+        self.created_at = created_at or datetime.now(UTC)
 
     def apply_decay(self) -> None:
         """
         Decay confidence based on staleness.
         Uses exponential decay: C(t) = C₀ · 2^(−t / half_life)
         """
-        age_seconds = (datetime.now(timezone.utc) - self.last_seen).total_seconds()
+        age_seconds = (datetime.now(UTC) - self.last_seen).total_seconds()
         if age_seconds <= 0:
             return
         decay = math.pow(2.0, -age_seconds / _CONFIDENCE_HALF_LIFE_SECONDS)
@@ -180,7 +180,7 @@ class BeliefUpdater:
         query: str = "",
     ) -> BeliefState:
         """Return an updated BeliefState. Does NOT persist — caller must save."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         divergence = echo_debt * 0.6 + shadow * 0.4
         flags = list(prior.false_belief_flags)
@@ -248,7 +248,7 @@ class BeliefRegistry:
                 last_seen = datetime.fromisoformat(row["last_seen"])
                 created_at = datetime.fromisoformat(row["created_at"])
             except (ValueError, TypeError):
-                last_seen = created_at = datetime.now(timezone.utc)
+                last_seen = created_at = datetime.now(UTC)
 
             state = BeliefState(
                 actor_id=actor_id,
@@ -318,7 +318,7 @@ class BeliefRegistry:
         entry = {
             "event_type": event_type,
             "event_id": uuid.uuid4().hex,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "actor_id": state.actor_id,
             "belief_snapshot": state.to_dict(),
         }
@@ -334,8 +334,8 @@ class BeliefRegistry:
             try:
                 conn = _get_conn()
                 # Rough heuristic: purge entries not seen in > 7 days
-                threshold = datetime.now(timezone.utc).timestamp() - 7 * 86_400
-                threshold_iso = datetime.fromtimestamp(threshold, tz=timezone.utc).isoformat()
+                threshold = datetime.now(UTC).timestamp() - 7 * 86_400
+                threshold_iso = datetime.fromtimestamp(threshold, tz=UTC).isoformat()
                 cur = conn.execute(
                     "DELETE FROM belief_states WHERE last_seen < ? AND confidence <= ?",
                     (threshold_iso, _CONFIDENCE_FLOOR * 2),

@@ -10,7 +10,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -22,27 +22,27 @@ from arifosmcp.schemas.metabolic import ClaimState, DecodedEntity, Witness
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class ThinkingMode(str, Enum):
+class ThinkingMode(StrEnum):
     FAST = "fast"  # 1-2 steps, minimal budget
     DELIBERATE = "deliberate"  # 3-5 steps, moderate budget
     EXHAUSTIVE = "exhaustive"  # 6-10 steps, high budget
 
 
-class ThinkingOutcome(str, Enum):
+class ThinkingOutcome(StrEnum):
     CONCLUSION_REACHED = "conclusion_reached"
     BUDGET_EXHAUSTED = "budget_exhausted"
     THRESHOLD_REACHED = "threshold_reached"
     TERMINATED_EARLY = "terminated_early"
 
 
-class ReasoningQuality(str, Enum):
+class ReasoningQuality(StrEnum):
     SHALLOW = "shallow"  # 1-2 steps only
     ADEQUATE = "adequate"  # 3-4 steps
     DEEP = "deep"  # 5-7 steps
     EXHAUSTIVE = "exhaustive"  # 8-10 steps
 
 
-class EpistemicHumility(str, Enum):
+class EpistemicHumility(StrEnum):
     OVERCONFIDENT = "overconfident"
     CALIBRATED = "calibrated"
     HYPERBOLIC = "hyperbolic"  # worse than overconfident

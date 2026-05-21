@@ -11,6 +11,7 @@ phantom tools (advertised but not actually invokable at runtime).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import UTC
 from typing import Any
 
 
@@ -141,7 +142,7 @@ class ToolContractRegistry:
         """
         import hashlib
         import json
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         # Apply probe results if provided
         if probe_results:
@@ -193,7 +194,7 @@ class ToolContractRegistry:
             "deprecated_tools": sorted(deprecated_tools),
             "requires_args_tools": sorted(requires_args_tools),
             "safe_surface_hash": safe_surface_hash,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "f2_violation": bool(phantom_tools),  # phantom tools = agents plan around ghosts
             "f08_note": (
                 "This audit is a read-only mirror. Each tool validates independently. "

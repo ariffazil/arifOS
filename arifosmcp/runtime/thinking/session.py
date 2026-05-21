@@ -77,7 +77,6 @@ class ThinkingSession:
 import json
 import os
 import threading
-from typing import Any, Dict
 
 try:
     import fcntl
@@ -112,7 +111,7 @@ class ThinkingSessionManager:
         if not os.path.exists(self._path):
             return
         try:
-            with open(self._path, "r", encoding="utf-8") as f:
+            with open(self._path, encoding="utf-8") as f:
                 if fcntl: fcntl.flock(f, fcntl.LOCK_SH)
                 try:
                     data = json.load(f)

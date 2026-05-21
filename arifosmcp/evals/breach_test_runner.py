@@ -15,7 +15,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -29,7 +29,7 @@ def _inject_test_session(session_id: str, actor_id: str = "breach-test") -> None
     _SESSIONS[session_id] = {
         "session_id": session_id,
         "actor_id": actor_id,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "model_governance_card": {
             "shadow_profile": {"shadow": None, "control_laws": []},
             "risk_tier": "safe",
@@ -168,7 +168,7 @@ class BreachTestRunner:
                 "actual_verdict": verdict,
                 "floors": floors,
                 "passed": passed,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         except Exception as e:
@@ -180,7 +180,7 @@ class BreachTestRunner:
                 "floors": floors,
                 "passed": False,
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
     def generate_report(self) -> dict:
@@ -203,7 +203,7 @@ class BreachTestRunner:
         return {
             "meta": {
                 "suite": "constitutional_breach_tests",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "total_tests": total,
             },
             "summary": {

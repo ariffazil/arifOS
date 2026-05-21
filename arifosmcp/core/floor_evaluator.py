@@ -12,14 +12,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field
-
-from arifosmcp.core.threat_engine import (
-    IrreversibilityLevel,
-    ThreatAssessment,
-    ThreatCategory,
-)
-
 # Import all 13 floor classes from canonical shared implementation.
 # These live at repo-root /core/shared/ (mapped to sys.path parent).
 from core.shared.floors import (
@@ -36,6 +28,13 @@ from core.shared.floors import (
 )
 from core.shared.floors import (
     FloorResult as SharedFloorResult,
+)
+from pydantic import BaseModel, Field
+
+from arifosmcp.core.threat_engine import (
+    IrreversibilityLevel,
+    ThreatAssessment,
+    ThreatCategory,
 )
 
 
@@ -214,6 +213,7 @@ class FloorEvaluator:
         tool_base_irreversibility = {
             ("arif_vault_seal", "seal"): IrreversibilityLevel.CRITICAL,
             ("arif_vault_seal", "commit"): IrreversibilityLevel.CRITICAL,
+            ("arif_vault_seal", "session_seal"): IrreversibilityLevel.LOW,
             ("arif_forge_execute", "engineer"): IrreversibilityLevel.HIGH,
             ("arif_forge_execute", "write"): IrreversibilityLevel.HIGH,
             ("arif_forge_execute", "generate"): IrreversibilityLevel.HIGH,

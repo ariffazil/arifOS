@@ -23,8 +23,8 @@ import hashlib
 import json
 import logging
 from collections import deque
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -32,7 +32,7 @@ from pydantic import BaseModel, Field
 logger = logging.getLogger(__name__)
 
 
-class CognitiveAxis(str, Enum):
+class CognitiveAxis(StrEnum):
     """
     11 orthogonal cognitive vectors + 2 lifecycle verbs.
     Enables intent-based routing prior to domain resolution.
@@ -70,7 +70,7 @@ COGNITIVE_AXIS_VECTORS: dict[CognitiveAxis, tuple[float, float]] = {
 }
 
 
-class BlastRadius(str, Enum):
+class BlastRadius(StrEnum):
     """How widely effects propagate from this tool."""
 
     LOW = "low"  # Isolated, contained
@@ -218,7 +218,7 @@ class PredictionRecord(BaseModel):
     triggered_surprise: bool = Field(
         default=False, description="Did δ_surprise exceed critical threshold?"
     )
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def compute_delta_surprise(
         self,
@@ -362,7 +362,7 @@ class ToolSelfModelEntry(BaseModel):
 
     def mark_used(self, result_summary: str, error: str | None = None) -> None:
         """Update runtime state after tool execution."""
-        self.last_used = datetime.now(timezone.utc).isoformat()
+        self.last_used = datetime.now(UTC).isoformat()
         self.last_result_summary = result_summary
         self.use_count += 1
         if error:

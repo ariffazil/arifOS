@@ -18,8 +18,8 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from threading import RLock
 from typing import Any
 
@@ -28,7 +28,7 @@ from typing import Any
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-class LifecycleStage(str, Enum):
+class LifecycleStage(StrEnum):
     DRAFT = "draft"
     PLANNED = "planned"
     RISK_REVIEWED = "risk_reviewed"
@@ -102,7 +102,7 @@ class SessionLifecycle:
     _lock: RLock = field(default_factory=RLock)
 
     def _now(self) -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
     def create_plan(self, intent: str) -> PlanRecord:
         """Create a new plan in DRAFT state."""

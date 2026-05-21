@@ -41,7 +41,7 @@ import logging
 import subprocess
 import sys
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -159,7 +159,7 @@ class MCPInspectorRunner:
             await self._test_substrate(substrate_name)
 
         return MCPInspectorReport(
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             git_sha=self.git_sha,
             transport=self.transport,
             results=self.results,
@@ -175,7 +175,7 @@ class MCPInspectorRunner:
         await self._test_substrate(name)
 
         return MCPInspectorReport(
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             git_sha=self.git_sha,
             transport=self.transport,
             results=self.results,
@@ -221,11 +221,11 @@ class MCPInspectorRunner:
 
     async def _run_test(self, substrate: str, test_name: str, test_func, *args):
         """Execute a single test and record result"""
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
 
         try:
             success, actual, details = await test_func(*args)
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
 
             status = TestStatus.PASS if success else TestStatus.FAIL
 
@@ -245,7 +245,7 @@ class MCPInspectorRunner:
             logger.info(f"  {icon} {test_name}: {status.value}")
 
         except Exception as e:
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
             self.results.append(
                 MCPTestResult(
                     substrate=substrate,

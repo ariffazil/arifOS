@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
@@ -103,7 +103,7 @@ class ConstitutionalVerdict(BaseModel):
     floors: FloorResult
     authority: AuthorityProof
     irreversibility: IrreversibilityLevel
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     state_hash: str = Field(default="")
 
     def model_post_init(self, __context: Any) -> None:
@@ -301,6 +301,40 @@ class ConstitutionKernel:
         }
 
     def evaluate(self, context: ActionContext) -> ConstitutionalVerdict:
+        # ── session_seal bypass: F11S/F13S lightweight gate ──────────────
+        # session_seal uses its own guards in _arif_vault_seal (tools.py).
+        # It bypasses F13 WELL-gate, WEALTH pre-flight, and F11/F13 full floor.
+        if context.tool_name == "arif_vault_seal" and context.mode == "session_seal":
+            from arifosmcp.core.threat_engine import IrreversibilityLevel, ThreatAssessment
+
+            threat = ThreatAssessment(
+                threats=[],
+                overall_confidence=1.0,
+                irreversibility=IrreversibilityLevel.LOW,
+                category=None,
+            )
+            from arifosmcp.core.floor_evaluator import FloorResult
+
+            floors = FloorResult(
+                verdict="PASS",
+                failed_floors=[],
+                floor_reasons={
+                    "F11S": "session_seal: OPERATOR_CLAIMED sufficient",
+                    "F13S": "session_seal: lightweight lifecycle gate",
+                },
+            )
+            from arifosmcp.core.authority_gate import AuthorityProof
+
+            authority = AuthorityProof(authorized=True, level="OPERATOR_CLAIMED")
+            return ConstitutionalVerdict(
+                status="OK",
+                verdict="SEAL",
+                threat=threat,
+                floors=floors,
+                authority=authority,
+                irreversibility=IrreversibilityLevel.LOW,
+            )
+
         # ── Step -1: Biological Readiness Gate (WELL Mirror) ──────────────
         # F13 SOVEREIGN: Mandatory physiological gate before any SEAL.
         # This prevents autonomous action when the operator is degraded.

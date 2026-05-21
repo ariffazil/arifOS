@@ -6,7 +6,7 @@ Live G-score, ΔS, system metrics, and readiness state.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastmcp import FastMCP
 from fastmcp.resources.types import TextResource
@@ -33,7 +33,7 @@ Check /health endpoint for real-time telemetry.
 def register_vitals(mcp: FastMCP) -> list[str]:
     """Register arifos://vitals — Living Pulse (Ω)."""
     text = VITALS_TEXT.format(
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
     )
     resource = TextResource(
         uri="arifos://vitals",

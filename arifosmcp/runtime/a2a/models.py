@@ -8,7 +8,7 @@ Pydantic models for Google's A2A protocol specification.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -18,7 +18,7 @@ def _utcnow() -> datetime:
     return datetime.now(UTC)
 
 
-class TaskState(str, Enum):
+class TaskState(StrEnum):
     """A2A Task lifecycle states."""
 
     SUBMITTED = "submitted"

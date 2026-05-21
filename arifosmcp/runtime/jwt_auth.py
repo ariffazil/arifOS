@@ -20,7 +20,7 @@ import json
 import logging
 import os
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import jwt as pyjwt
@@ -438,7 +438,7 @@ def log_violation_durable(
     Returns True if durable write succeeded, False if it failed.
     """
     entry = {
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "timestamp_utc": datetime.now(UTC).isoformat(),
         "error_code": error,
         "reason": f"{error} | path={path}",
         "actor_id": actor_id,
@@ -481,7 +481,7 @@ def log_violation(
     global _jwt_violation_log
 
     entry = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "token_preview": token_preview,
         "error": error,
         "path": path,
@@ -550,9 +550,9 @@ def query_violations(
     durable = False
 
     if window_start is None:
-        window_start = datetime.min.replace(tzinfo=timezone.utc)
+        window_start = datetime.min.replace(tzinfo=UTC)
     if window_end is None:
-        window_end = datetime.now(timezone.utc)
+        window_end = datetime.now(UTC)
 
     # Determine durability based on directory writability, not file existence.
     # An empty telemetry dir (no violations yet) is still durable if writable.

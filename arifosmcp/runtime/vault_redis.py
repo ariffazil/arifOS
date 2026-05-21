@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cryptography.fernet import Fernet
@@ -61,7 +61,7 @@ class RedisVaultStore:
         else:
             entry["prev_hash"] = "0x" + "0" * 64
 
-        entry["timestamp"] = datetime.now(timezone.utc).isoformat()
+        entry["timestamp"] = datetime.now(UTC).isoformat()
 
         # Store in Redis list (chronological)
         entry_json = json.dumps(entry, default=str)

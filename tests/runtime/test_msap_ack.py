@@ -87,7 +87,7 @@ async def test_valid_msap_ack(signing_key, registered_keys):
     res = msap.verify_sovereign_ack(packet.__dict__, registered_keys)
     assert res.signed_ack_valid is True
     assert res.zkpc_level == 1
-    assert res.reason == "ACK_OK"
+    assert res.reason == "ACK_OK_BUT_ZKPC_QUARANTINED_TOY_CIRCUIT_NO_AUTHORITY"
 
 
 @pytest.mark.asyncio
@@ -171,8 +171,8 @@ async def test_dev_override(signing_key, registered_keys, monkeypatch):
 
     res = msap.verify_sovereign_ack(packet.__dict__, registered_keys)
     assert res.signed_ack_valid is True
-    assert res.zkpc_level == 2
-    assert "PROMOTED_TO_LEVEL2" in res.reason
+    assert res.zkpc_level == 1
+    assert "ZKPC_QUARANTINED" in res.reason
 
 
 @pytest.mark.asyncio
@@ -257,6 +257,6 @@ async def test_vault_seal_integration(signing_key, registered_keys, monkeypatch)
         ack_packet=packet2.__dict__,
     )
 
-    assert res2["verdict"] == "SEAL"
-    assert res2["ack_irreversible_received"] is True
-    assert res2["zkpc_metadata"]["zkpc_level"] == 2
+    assert res2["verdict"] == "888_HOLD"
+    assert res2["ack_irreversible_received"] is False
+    assert res2["zkpc_metadata"]["zkpc_level"] == 1

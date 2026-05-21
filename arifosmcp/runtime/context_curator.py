@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from .result_normalizer import TRUSTED_DOMAINS, EvidenceLevel, NormalizedResult
@@ -56,7 +56,7 @@ def _compute_domain_authority(domain: str) -> float:
 def _compute_freshness_factor(published_date: datetime | None) -> float:
     if published_date is None:
         return 0.5
-    age_days = (datetime.now(timezone.utc) - published_date).days
+    age_days = (datetime.now(UTC) - published_date).days
     if age_days < 30:
         return 1.0
     if age_days < 180:

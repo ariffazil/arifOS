@@ -1,12 +1,12 @@
 import os
 import shlex
 import subprocess
-from datetime import datetime, timezone
-
-from arifosmcp.agentzero.escalation.hold_state import anchor_hold_registry
+from datetime import UTC, datetime
 
 # arifOS Governance Imports
 from core.shared.physics import delta_S
+
+from arifosmcp.agentzero.escalation.hold_state import anchor_hold_registry
 
 
 class HardenedShellForge:
@@ -81,7 +81,7 @@ class HardenedShellForge:
 
         # 5. Execution
         args = shlex.split(command)
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         try:
             result = subprocess.run(

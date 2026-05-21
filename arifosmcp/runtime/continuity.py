@@ -11,7 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from arifosmcp.runtime.model import ClaimStatus, RuntimeEnvelope
@@ -122,7 +122,7 @@ def seal_runtime_envelope(
     state_hash = _hash_dict(state)
     transitions = _compute_transitions(previous_state.get("state"), state)
     state_origin = {
-        "produced_at": datetime.now(timezone.utc).isoformat(),
+        "produced_at": datetime.now(UTC).isoformat(),
         "produced_by": tool_id,
         "source_of_truth": "canonical_runtime_state",
     }
@@ -132,7 +132,7 @@ def seal_runtime_envelope(
         "consumable_by": list(envelope.allowed_next_tools or []),
         "state_hash": f"sha256:{state_hash}",
         "issued_at": state_origin["produced_at"],
-        "expires_at": (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat(),
+        "expires_at": (datetime.now(UTC) + timedelta(hours=1)).isoformat(),
         "trace_id": envelope.trace_id,
         "parent_trace_id": _parent_trace_id(envelope),
     }

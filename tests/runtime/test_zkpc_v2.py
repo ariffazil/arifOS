@@ -221,10 +221,11 @@ async def test_vault_zkpc_v2_success(monkeypatch):
     # deterministic contract here is simply "real proof is accepted", while the
     # fake-proof tests below ensure non-proof paths never seal.
     assert res["verdict"] in (
+        "888_HOLD",
         "CLAIM_ONLY",
         "PARTIAL",
         "SEAL",
-    ), f"Real proof should produce an accepted verdict. Got: {res.get('verdict')}"
+    ), f"Real proof should produce a governed verdict. Got: {res.get('verdict')}"
 
     # ack_irreversible_received is set only when ack_irreversible:True is in payload
     # (not set in THIS test because we didn't pass it — vault still works correctly)
@@ -264,7 +265,7 @@ class TestRealGroth16Verification:
         assert _snarkjs_available(), "snarkjs not installed — cannot run real ZKPC verification"
 
     def test_real_proof_passes(self):
-        """T1: Generate real proof + verify → proof_verified=True, zkpc_level=2."""
+        """T1: Generate real proof + verify under toy-circuit quarantine."""
         gen = generate_zkpc_proof(
             identity_commitment="999",
             previous_epoch_hash="888",
@@ -289,14 +290,15 @@ class TestRealGroth16Verification:
         assert (
             result["proof_verified"] is True
         ), f"Real proof must verify! error_reason={result.get('error_reason')}"
-        assert result["zkpc_level"] == 2
-        assert result["continuity_proven"] is True
-        assert result["epoch_chain_valid"] is True
-        assert result["signal_binding_valid"] is True
-        assert result["nonce_valid"] is True
+        assert result["zkpc_level"] == 1
+        assert result["zkpc_mode"] == "ZKPC_V2_TOY_QUARANTINED"
+        assert result["continuity_proven"] is False
+        assert result["epoch_chain_valid"] is False
+        assert result["signal_binding_valid"] is False
+        assert result["nonce_valid"] is False
         assert result["proof_verification_mode"] == "GROTH16_REAL"
         scope = result.get("proof_scope", {})
-        assert scope.get("proves_continuity_of_control") is True
+        assert scope.get("proves_continuity_of_control") is False
         assert scope.get("proves_full_personhood") is False  # Honest claim
 
     def test_fake_proof_fails(self):

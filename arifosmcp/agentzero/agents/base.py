@@ -16,7 +16,7 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum, auto
 from typing import Any, Protocol
 from uuid import uuid4
@@ -70,7 +70,7 @@ class Verdict:
     violations: list[str] = field(default_factory=list)
     recommendations: list[str] = field(default_factory=list)
     human_approval_required: bool = False
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     vault_hash: str | None = None
 
     # For HOLD state
@@ -246,7 +246,7 @@ class ConstitutionalAgent(ABC):
             "agent_type": self.agent_type,
             "trinity_role": self.role.name,
             "task": task,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         logger.info(f"[{execution_id}] {self.agent_id} eval task: {task.get('type', 'unknown')}")

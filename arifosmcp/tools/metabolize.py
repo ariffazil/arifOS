@@ -35,7 +35,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from arifosmcp.runtime.floor import check_floors
@@ -366,7 +366,7 @@ async def arif_metabolize(
         - human_final_authority: "Arif" (F13 veto intact)
         - requires_888_judge: False (True only for irreversible actions)
     """
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     # ── Auth ──────────────────────────────────────────────────────────────────
     auth = validate_session(session_id, actor_id)
@@ -515,7 +515,7 @@ def _fallback_metabolic_processing(user_prompt: str) -> dict[str, Any]:
     Processes witnesses through rule-based anomaly detection.
     """
 
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     # Extract witness content from prompt
     witness_lines = []

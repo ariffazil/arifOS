@@ -10,7 +10,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Literal, Union
 
 from pydantic import BaseModel, Field
@@ -251,7 +251,7 @@ class CleanError(BaseModel):
 class DebugForensics(BaseModel):
     """Full forensic state — only when options.debug = true."""
 
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     caller_state: str | None = None
     allowed_next_tools: list[str] = Field(default_factory=list)
     blocked_tools: list[dict] = Field(default_factory=list)
@@ -525,7 +525,7 @@ class AgiReplySeal(BaseModel):
     floors_passed: list[str] = Field(default_factory=list, description="F1-F13 floors that passed")
     floors_triggered: list[str] = Field(default_factory=list, description="Floors that flagged")
     audit_hash: str = Field(description="sha256(TITLE + timestamp + forged_by + judge_verdict)")
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     vault_ref: str | None = Field(
         default=None,
         description="arifos.vault ledger reference if sealed",

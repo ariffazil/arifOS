@@ -14,7 +14,7 @@ import math
 import os
 import sqlite3
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -93,7 +93,7 @@ _EVENT_WEIGHTS: dict[str, float] = {
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _vault_dir() -> Path:

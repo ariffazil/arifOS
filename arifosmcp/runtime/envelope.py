@@ -18,7 +18,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given [ΔΩΨ | ARIF]
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum as _Enum
 from typing import Any, Literal
 
@@ -112,7 +112,7 @@ class MindState(BaseModel):
     provenance: Provenance = Field(default_factory=Provenance)
     # Audit trail
     session_id: str = Field(default_factory=lambda: f"ms_{uuid.uuid4().hex[:12]}")
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     pipeline_trace: list[str] = Field(default_factory=list)
 
 
@@ -459,7 +459,7 @@ def build_audit_packet(
     return {
         "raw_input": raw_input,
         "session_id": session_id,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "hypotheses": ([h.model_dump() for h in mind.hypotheses] if mind else []),
         "violations": runtime_state.judge_violations,
         "chaos_score": runtime_state.chaos_score,
@@ -564,7 +564,7 @@ class GovernanceReceipt(BaseModel):
     human_final_authority: str = "Arif"
     forbidden_output: list[str] = Field(default_factory=list)
     missing_questions: list[str] = Field(default_factory=list)
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def is_valid_for_advisory(self) -> bool:
         """Check minimum validity for ADVISORY_ONLY output."""

@@ -18,14 +18,14 @@ from __future__ import annotations
 
 import hashlib
 import uuid
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 
-class EvidenceLevel(str, Enum):
+class EvidenceLevel(StrEnum):
     """Evidence determinism tier (L0-L6). Same as EvidenceLevel in evidence/schemas.py."""
 
     L0 = "L0"  # Offline / no result / contaminated
@@ -37,7 +37,7 @@ class EvidenceLevel(str, Enum):
     L6 = "L6"  # Reproducible data / direct measurement
 
 
-class IngestStatus(str, Enum):
+class IngestStatus(StrEnum):
     """Result of an ingest operation."""
 
     SUCCESS = "success"  # Both backends wrote
@@ -85,7 +85,7 @@ class ReceiptSchema(BaseModel):
     receipt_id: str = Field(default_factory=lambda: f"receipt://bundle/{uuid.uuid4().hex[:12]}")
     provider: str  # minimax, brave, exa, tavily, firecrawl, ddgs
     bridge: str = "mcp_http_sse"  # how it was retrieved
-    timestamp_utc: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp_utc: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     urls_returned: int = 0
     urls_ingested: int = 0  # 0 = snippets only (L1)
     independent_sources_compared: int = 0
@@ -117,7 +117,7 @@ class CanonicalEvidenceBundle(BaseModel):
     query: str = ""
     mode: str = "search"  # search | fetch | ingest | compass
     provider: str = "unknown"  # minimax | brave | exa | tavily | ddgs | firecrawl
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     # ── Evidence content ─────────────────────────────────────────────────
     claims: list[ClaimSchema] = Field(default_factory=list)
@@ -231,7 +231,7 @@ class IngestResult(BaseModel):
     error: str | None = None
     backend_errors: dict[str, str] = Field(default_factory=dict)
     recall_verified: bool = False  # Phase 2: bundle was recalled after write
-    timestamp_utc: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp_utc: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     model_config = {"extra": "forbid", "str_strip_whitespace": True}
 

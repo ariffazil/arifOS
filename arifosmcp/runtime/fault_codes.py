@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────────────────────────────────────
 # FAULT CLASS ENUM
 # ─────────────────────────────────────────────────────────────────────────────
-class FaultClass(str, Enum):
+class FaultClass(StrEnum):
     MECHANICAL = "MECHANICAL"  # Infrastructure fault → 888_HOLD
     EPISTEMIC = "EPISTEMIC"  # Insufficient evidence → SABAR
     CONSTITUTIONAL = "CONSTITUTIONAL"  # Hard floor breach → VOID (terminal)
@@ -44,7 +44,7 @@ class FaultClass(str, Enum):
 # ─────────────────────────────────────────────────────────────────────────────
 # FAULT CODES
 # ─────────────────────────────────────────────────────────────────────────────
-class MechanicalFaultCode(str, Enum):
+class MechanicalFaultCode(StrEnum):
     """Infrastructure faults. ALWAYS → 888_HOLD, NEVER → VOID."""
 
     TOOL_NOT_EXPOSED = "TOOL_NOT_EXPOSED"  # 404 / endpoint not registered
@@ -60,7 +60,7 @@ class MechanicalFaultCode(str, Enum):
     NO_RESULTS = "NO_RESULTS"  # Search returned empty (→ SABAR not VOID)
 
 
-class ConstitutionalFaultCode(str, Enum):
+class ConstitutionalFaultCode(StrEnum):
     """Constitutional violations. ALWAYS → VOID (terminal). Cannot be retried."""
 
     F1_AMANAH_BREACH = "F1_AMANAH_BREACH"  # Integrity violation

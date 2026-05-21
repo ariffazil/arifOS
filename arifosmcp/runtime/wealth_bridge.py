@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import UTC
 from typing import Any
 
 import httpx
@@ -232,9 +233,9 @@ async def wealth_c4_orchestrate(
         session_valid, well_readiness, missing_questions, forbidden_output
     """
     import uuid
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    receipt_id = f"WEALTH-C4-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{uuid.uuid4().hex[:8]}"
+    receipt_id = f"WEALTH-C4-{datetime.now(UTC).strftime('%Y%m%d')}-{uuid.uuid4().hex[:8]}"
     checks_completed: list[str] = []
     check_results: dict[str, Any] = {}
     errors: list[str] = []
@@ -319,7 +320,7 @@ async def wealth_c4_orchestrate(
         "forbidden_output": _C4_FORBIDDEN_OUTPUT,
         "errors": errors,
         "check_results": check_results,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
     if allowed_output_level == "HOLD":

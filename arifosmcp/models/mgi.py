@@ -12,13 +12,13 @@ import hashlib
 import json
 import uuid
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
 
-class TokenType(str, Enum):
+class TokenType(StrEnum):
     """Types of governance tokens in the Canon-13 regime."""
 
     ANCHOR = "ANCHOR"  # Session establishment token
@@ -28,7 +28,7 @@ class TokenType(str, Enum):
     VAULT = "VAULT"  # Merkle chain verification token
 
 
-class ContinuityStatus(str, Enum):
+class ContinuityStatus(StrEnum):
     """Session continuity states."""
 
     FRESH = "FRESH"  # New session
@@ -78,7 +78,7 @@ class MachineLayer(BaseModel):
         return hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
 
 
-class ConstitutionalArticle(str, Enum):
+class ConstitutionalArticle(StrEnum):
     """Articles of the Canon-13 Constitution."""
 
     A1_STEEL = "A1_STEEL"  # Default to transparency
@@ -96,7 +96,7 @@ class ConstitutionalArticle(str, Enum):
     A13_G = "A13_G"  # Efficiency coefficient
 
 
-class ValidationResult(str, Enum):
+class ValidationResult(StrEnum):
     """Constitutional validation outcomes."""
 
     VALID = "VALID"  # All articles satisfied
@@ -146,7 +146,7 @@ class GovernanceLayer(BaseModel):
         return v
 
 
-class EvidenceGrade(str, Enum):
+class EvidenceGrade(StrEnum):
     """Grades of evidence quality."""
 
     PRIMARY = "PRIMARY"  # Direct observation, authoritative source

@@ -7,7 +7,6 @@ Minimal runtime probes to verify A-RIF behavior after every forge.
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
-import pytest
 from unittest.mock import patch
 
 from arifosmcp.runtime.reality_models import FetchResult, SearchResult

@@ -65,7 +65,7 @@ async def events_stream(request: Request) -> StreamingResponse:
                 try:
                     event = await asyncio.wait_for(queue.get(), timeout=_SSE_HEARTBEAT_INTERVAL)
                     yield _sse_line(event="webhook_intake", data=event)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     yield _sse_line(event="heartbeat", data={"ping": True})
         except asyncio.CancelledError:
             logger.info("SSE client disconnected")

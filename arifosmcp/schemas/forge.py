@@ -10,7 +10,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -22,7 +22,7 @@ from arifosmcp.schemas.lineage import JudgeSealContract
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class IrreversibilityLevel(str, Enum):
+class IrreversibilityLevel(StrEnum):
     """How irreversible is this forge action?"""
 
     REVERSIBLE = "reversible"
@@ -31,7 +31,7 @@ class IrreversibilityLevel(str, Enum):
     CATASTROPHIC = "catastrophic"
 
 
-class ManifestStatus(str, Enum):
+class ManifestStatus(StrEnum):
     """What happened to the manifest?"""
 
     PENDING = "pending"

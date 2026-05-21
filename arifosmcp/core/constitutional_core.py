@@ -21,7 +21,7 @@ import ipaddress
 import json
 import re
 import urllib.parse
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum, auto
 from typing import Any
 
@@ -422,6 +422,7 @@ class FloorEvaluator:
         tool_base_irreversibility = {
             ("arif_vault_seal", "seal"): IrreversibilityLevel.CRITICAL,
             ("arif_vault_seal", "commit"): IrreversibilityLevel.CRITICAL,
+            ("arif_vault_seal", "session_seal"): IrreversibilityLevel.LOW,
             ("arif_forge_execute", "engineer"): IrreversibilityLevel.HIGH,
             ("arif_forge_execute", "write"): IrreversibilityLevel.HIGH,
             ("arif_forge_execute", "generate"): IrreversibilityLevel.HIGH,
@@ -649,7 +650,7 @@ class ConstitutionalVerdict(BaseModel):
     floors: FloorResult
     authority: AuthorityProof
     irreversibility: IrreversibilityLevel
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     state_hash: str = Field(default="")
 
     def model_post_init(self, __context: Any) -> None:
@@ -706,6 +707,7 @@ class ConstitutionKernel:
         tool_base_irreversibility = {
             ("arif_vault_seal", "seal"): IrreversibilityLevel.CRITICAL,
             ("arif_vault_seal", "commit"): IrreversibilityLevel.CRITICAL,
+            ("arif_vault_seal", "session_seal"): IrreversibilityLevel.LOW,
             ("arif_forge_execute", "engineer"): IrreversibilityLevel.HIGH,
             ("arif_forge_execute", "write"): IrreversibilityLevel.HIGH,
             ("arif_forge_execute", "generate"): IrreversibilityLevel.HIGH,

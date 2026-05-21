@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, TypedDict
 
@@ -1042,7 +1042,7 @@ def audit_quote_injection(
     try:
         _ensure_audit_dir()
         entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "quote_id": quote_id,
             "surface": surface,
             "verdict": verdict,

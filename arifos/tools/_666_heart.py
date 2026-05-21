@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from arifos.core.governance import (
     ThermodynamicMetrics,

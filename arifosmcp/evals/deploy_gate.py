@@ -31,7 +31,7 @@ import logging
 import subprocess
 import sys
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -168,7 +168,7 @@ class DeployGateRunner:
         print("=" * 80)
         print("DEPLOYMENT GATE ORCHESTRATOR")
         print("=" * 80)
-        print(f"Timestamp: {datetime.now(timezone.utc).isoformat()}")
+        print(f"Timestamp: {datetime.now(UTC).isoformat()}")
         print(f"Git SHA: {self.git_sha or 'unknown'}")
         print(f"Branch: {self.branch or 'unknown'}")
         print(f"Transport: {self.transport_mode}")
@@ -200,7 +200,7 @@ class DeployGateRunner:
         self._gate_h_human()
 
         return DeployGateReport(
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             git_sha=self.git_sha,
             branch=self.branch,
             transport_mode=self.transport_mode,

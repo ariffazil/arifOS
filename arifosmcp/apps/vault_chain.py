@@ -12,7 +12,7 @@ import hashlib
 import json
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 VAULT_PATH = Path(os.environ.get("VAULT999_PATH", "/root/VAULT999/outcomes.jsonl"))
@@ -53,7 +53,7 @@ def append_vault_record(record: dict) -> dict:
     prev_hash = get_last_hash()
 
     # Timestamped payload
-    record["timestamp"] = datetime.now(timezone.utc).isoformat()
+    record["timestamp"] = datetime.now(UTC).isoformat()
     record["entry_id"] = entry_id
     record["prev_hash"] = prev_hash
 

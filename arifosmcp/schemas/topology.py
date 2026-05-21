@@ -14,7 +14,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
@@ -23,76 +23,76 @@ from pydantic import BaseModel, Field
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class Delta(str, Enum):
+class Delta(StrEnum):
     POSITIVE = "positive"
     NEUTRAL = "neutral"
     NEGATIVE = "negative"
     UNKNOWN = "unknown"
 
 
-class Strength(str, Enum):
+class Strength(StrEnum):
     STRONG = "strong"
     PARTIAL = "partial"
     WEAK = "weak"
     ABSENT = "absent"
 
 
-class RiskBand(str, Enum):
+class RiskBand(StrEnum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
 
 
-class Verdict(str, Enum):
+class Verdict(StrEnum):
     PASS = "pass"
     REVISE = "revise"
     HOLD = "hold"
     VOID = "void"
 
 
-class Confidence(str, Enum):
+class Confidence(StrEnum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
 
 
-class Presence(str, Enum):
+class Presence(StrEnum):
     PRESENT = "present"
     WEAK = "weak"
     ABSENT = "absent"
 
 
-class AccessLevel(str, Enum):
+class AccessLevel(StrEnum):
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
 
 
-class ParticipationWidth(str, Enum):
+class ParticipationWidth(StrEnum):
     BROAD = "broad"
     NARROW = "narrow"
     SYMBOLIC = "symbolic"
 
 
-class InnovationRights(str, Enum):
+class InnovationRights(StrEnum):
     DISTRIBUTED = "distributed"
     GATED = "gated"
     CAPTURED = "captured"
 
 
-class AppealPath(str, Enum):
+class AppealPath(StrEnum):
     PRESENT = "present"
     WEAK = "weak"
     ABSENT = "absent"
 
 
-class SovereigntyIntegrity(str, Enum):
+class SovereigntyIntegrity(StrEnum):
     STRONG = "strong"
     DEGRADED = "degraded"
     SYMBOLIC = "symbolic"
 
 
-class InstitutionalVerdict(str, Enum):
+class InstitutionalVerdict(StrEnum):
     INCLUSIVE = "inclusive"
     MIXED = "mixed"
     EXTRACTIVE_DRIFT = "extractive_drift"

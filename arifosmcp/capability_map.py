@@ -10,10 +10,10 @@ The canonical capability definitions live in constitutional_map.py.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 
-class InitAnchorMode(str, Enum):
+class InitAnchorMode(StrEnum):
     """Modes supported by the 000_INIT arif_session_init tool."""
 
     INIT = "init"

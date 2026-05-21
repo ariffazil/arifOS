@@ -16,7 +16,7 @@ import logging
 import os
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -57,7 +57,7 @@ class VaultEvent:
     merkle_leaf: str = ""
     prev_hash: str = ""
     chain_hash: str = ""
-    sealed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    sealed_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     auth_lineage: dict[str, Any] | None = None  # Phase 1: JWT auth snapshot
 
@@ -194,7 +194,7 @@ class PostgresVaultStore:
     ) -> str:
         """Initialize session in Postgres."""
         session_id = (
-            f"SESSION_{agent_id.upper()}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}"
+            f"SESSION_{agent_id.upper()}_{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}"
         )
         # For now, we return the generated ID; actual session table persistence can be added here
         return session_id
@@ -392,7 +392,7 @@ class SupabaseStateStore:
                     "agent_id": agent_id,
                     "state_key": state_key,
                     "state_value": value,
-                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(UTC).isoformat(),
                 }
             ).execute()
         except Exception:
@@ -443,7 +443,7 @@ async def seal_vault(
         "action": action,
         "payload": payload,
         "verdict": verdict,
-        "epoch": datetime.now(timezone.utc).isoformat(),
+        "epoch": datetime.now(UTC).isoformat(),
     }
 
 
@@ -461,7 +461,7 @@ async def open_session(
     if not sb:
         return f"LOCAL_{uuid.uuid4()}"
     session_id = (
-        f"SESSION_{agent_id.upper()}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}"
+        f"SESSION_{agent_id.upper()}_{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}"
     )
     insert_row = {
         "session_id": session_id,
@@ -612,7 +612,7 @@ async def init_anchor_session(agent_id: str) -> dict:
 
     # 4. Init seal
     anchor_seal = await seal_vault(
-        seal_id=f"SESSION_INIT_{agent_id.upper()}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}",
+        seal_id=f"SESSION_INIT_{agent_id.upper()}_{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}",
         agent_id=agent_id,
         action="SESSION_ANCHOR",
         confidence=1.0,

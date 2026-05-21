@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from arifosmcp.apps.interceptor import intercept
 from arifosmcp.apps.vault_chain import append_vault_record
@@ -51,7 +51,7 @@ def arif_forge_execute(
             "message": f"Cannot execute — verdict is {verdict}, not SEAL",
             "vault_receipt": "FORGE_BLOCKED_GATE1",
             "gates_passed": [],
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     # ── Gate 2: Human approval token ────────────────────────────────────────
@@ -65,7 +65,7 @@ def arif_forge_execute(
             "requires_human": True,
             "vault_receipt": "FORGE_HOLD_GATE2",
             "gates_passed": ["GATE1_SEAL"],
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     # ── Execute (v0.1 dry-run with real vault linkage) ─────────────────────
@@ -81,7 +81,7 @@ def arif_forge_execute(
         "gates": ["GATE1_SEAL", "GATE2_HUMAN_APPROVED"],
         "verdict": verdict,
         "human_approval": human_approval,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "permanent": True,
     }
     vault_result = append_vault_record(vault_entry)
@@ -95,7 +95,7 @@ def arif_forge_execute(
         "manifest_hash": manifest_hash,
         "gates_passed": ["GATE1_SEAL", "GATE2_HUMAN_APPROVED"],
         "message": "Action executed and logged to VAULT999",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -110,7 +110,7 @@ def forge_dry_run(manifest: str, session_id: str = None) -> dict:
         "status": "simulated",
         "note": "Dry-run only — no gates checked, no vault written",
         "session_id": session_id or "anonymous",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 

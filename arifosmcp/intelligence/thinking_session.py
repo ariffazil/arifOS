@@ -16,7 +16,7 @@ import logging
 import time
 import uuid
 from dataclasses import asdict, dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class StepType(str, Enum):
+class StepType(StrEnum):
     ANALYSIS = "analysis"  # Initial problem decomposition
     HYPOTHESIS = "hypothesis"  # Proposed explanations/solutions
     VERIFICATION = "verification"  # Validation of hypotheses
@@ -43,7 +43,7 @@ class StepType(str, Enum):
             return cls.ANALYSIS
 
 
-class SessionStatus(str, Enum):
+class SessionStatus(StrEnum):
     ACTIVE = "active"
     COMPLETED = "completed"
     ARCHIVED = "archived"

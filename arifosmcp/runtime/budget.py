@@ -17,7 +17,7 @@ import logging
 import os
 import threading
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -247,7 +247,7 @@ class BudgetContract:
             audit_dir.mkdir(parents=True, exist_ok=True)
             audit_file = audit_dir / "budget_violations.jsonl"
             entry = {
-                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                "timestamp_utc": datetime.now(UTC).isoformat(),
                 "policy_id": self._policy_id,
                 "session_id": self.session_id,
                 "event": "888_HOLD",

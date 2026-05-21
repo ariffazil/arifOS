@@ -16,7 +16,7 @@ import secrets
 import time
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from arifosmcp.runtime.model import (
@@ -483,7 +483,7 @@ async def init_anchor(
                 "arif_source": arif_source or "unknown",
                 "arif_hash": arif_hash or None,
                 "clerk_id": _dn,
-                "epoch": datetime.now(timezone.utc).isoformat(),
+                "epoch": datetime.now(UTC).isoformat(),
             }
             if arif_read or arif_source
             else None

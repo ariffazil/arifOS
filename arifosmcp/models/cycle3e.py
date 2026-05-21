@@ -9,11 +9,11 @@ The 3E cycle represents the cognitive metabolism of the arifOS system:
 
 import hashlib
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class MetabolicPhase(str, Enum):
+class MetabolicPhase(StrEnum):
     EXPLORATION = "EXPLORATION"
     ENTROPY = "ENTROPY"
     EUREKA = "EUREKA"
@@ -22,7 +22,7 @@ class MetabolicPhase(str, Enum):
 from pydantic import BaseModel, Field
 
 
-class SearchEngine(str, Enum):
+class SearchEngine(StrEnum):
     """Available search engines for Exploration phase."""
 
     WEB = "WEB"  # General web search
@@ -34,7 +34,7 @@ class SearchEngine(str, Enum):
     CODE = "CODE"  # Code repository search
 
 
-class FetchMethod(str, Enum):
+class FetchMethod(StrEnum):
     """Methods for fetching data during Exploration."""
 
     HTTP_GET = "HTTP_GET"
@@ -125,7 +125,7 @@ class EvidenceBundle(BaseModel):
         return self
 
 
-class ContradictionType(str, Enum):
+class ContradictionType(StrEnum):
     """Types of contradictions detected during Entropy."""
 
     DIRECT = "DIRECT"  # Direct factual contradiction
@@ -261,7 +261,7 @@ class EntropyPhase(BaseModel):
         return self
 
 
-class WitnessType(str, Enum):
+class WitnessType(StrEnum):
     """Types of witnesses in Tri-Witness synthesis."""
 
     EARTH = "EARTH"  # External/ground truth evidence

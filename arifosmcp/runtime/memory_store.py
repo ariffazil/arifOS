@@ -25,7 +25,7 @@ import logging
 import os
 import re
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from pathlib import Path
 from typing import Any
 
@@ -528,7 +528,7 @@ def store(
     pg_memory_id = str(uuid.uuid4())  # separate proper UUID for Postgres
     text = _summarize(content)
     normalised_tier = _normalise_tier(tier)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     # --- F4 ENTITY EXTRACTION + CONTRADICTION HANDLING (Phase 1b) ---
     # Called after HARAM scan passes, before dual-write.
@@ -719,7 +719,7 @@ def recall(memory_id: str) -> dict[str, Any] | None:
             return None
         try:
             exp = datetime.fromisoformat(cooldown_expiry_str.replace("Z", "+00:00"))
-            remaining = (exp - datetime.now(timezone.utc)).total_seconds() / 3600
+            remaining = (exp - datetime.now(UTC)).total_seconds() / 3600
             return round(max(0, remaining), 1)
         except (ValueError, TypeError):
             return None

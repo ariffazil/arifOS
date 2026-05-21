@@ -3215,8 +3215,10 @@ def _arif_sense_observe(
     from arifosmcp.runtime.a_rif.scorecard import track_evidence, track_search
 
     # ── CLASSIFY: Determine query class ──
-    is_stable = bool(query and ("stable_test" in query.lower() or "speed of light" in query.lower()))
-    
+    is_stable = bool(
+        query and ("stable_test" in query.lower() or "speed of light" in query.lower())
+    )
+
     # ── PARAMETERS: Map intent to A-RIF drivers ──
     # B: Background Confidence
     # I: Importance
@@ -3224,14 +3226,14 @@ def _arif_sense_observe(
     b_conf = 0.99 if is_stable else 0.4
     importance = 0.3 if is_stable else 0.8
     freshness = 0.01 if is_stable else 0.9
-    
+
     w_score = calculate_search_worthiness(
         uncertainty=0.1,
         importance=importance,
         freshness=freshness if mode == "search" else 0.5,
         background_confidence=b_conf,
     )
-    
+
     # ── SYMBOLIC GATE: Hard block for stable facts or low W ──
     if mode == "search" and (w_score < 1.0 or (is_stable and b_conf >= 0.95)):
         track_search(skipped=True, w_score=w_score)
@@ -3243,8 +3245,10 @@ def _arif_sense_observe(
                 "source": "A-RIF_GATE",
                 "verdict": "SABAR",
                 "note": f"Search Worthiness score ({w_score}) below threshold. Reasoning from background field preferred.",
-                "a_rif": build_a_rif_receipt(w_score=w_score, delta_s=0.0, contrast=0.0, evidence_level="L0")
-            }
+                "a_rif": build_a_rif_receipt(
+                    w_score=w_score, delta_s=0.0, contrast=0.0, evidence_level="L0"
+                ),
+            },
         )
 
     if mode == "search":
@@ -3299,7 +3303,9 @@ def _arif_sense_observe(
 
                     # A-RIF: Post-search audit
                     delta_s = evaluate_entropy_delta(before=0.5, after=0.4 if mm_hits else 0.6)
-                    a_rif = build_a_rif_receipt(w_score=w_score, delta_s=delta_s, contrast=0.7, evidence_level="L1")
+                    a_rif = build_a_rif_receipt(
+                        w_score=w_score, delta_s=delta_s, contrast=0.7, evidence_level="L1"
+                    )
                     track_evidence(level="L1", delta_s=delta_s)
 
                     return _ok(
@@ -3515,7 +3521,9 @@ def _arif_sense_observe(
 
             # A-RIF: Post-search audit for fallback path
             delta_s = evaluate_entropy_delta(before=0.5, after=0.45)
-            a_rif = build_a_rif_receipt(w_score=w_score, delta_s=delta_s, contrast=0.65, evidence_level="L1")
+            a_rif = build_a_rif_receipt(
+                w_score=w_score, delta_s=delta_s, contrast=0.65, evidence_level="L1"
+            )
 
             return _ok(
                 "arif_sense_observe",
@@ -3733,7 +3741,7 @@ def _arif_sense_observe(
     if mode == "classify":
         # Classify intent / domain for truth-seeking
         from arifosmcp.runtime.sense_impl import classify_truth
-        
+
         classification = classify_truth(query or "")
         return _ok(
             "arif_sense_observe",
@@ -3742,7 +3750,9 @@ def _arif_sense_observe(
                 "domain": classification.get("domain", "general"),
                 "lane": classification.get("lane", "G"),
                 "risk_tier": classification.get("risk_tier", "C2"),
-                "suggested_next_step": "arif_evidence_fetch" if classification.get("needs_evidence") else "arif_mind_reason",
+                "suggested_next_step": "arif_evidence_fetch"
+                if classification.get("needs_evidence")
+                else "arif_mind_reason",
                 "omega_0": 0.03,
             },
             delta_S=0.002,
@@ -3863,12 +3873,22 @@ def _arif_sense_observe(
             ),
             delta_S=0.0,
         )
-    
-    allowed_modes = ["search", "ingest", "compass", "atlas", "entropy_dS", "vitals", "classify", "extract_claims", "contrast"]
+
+    allowed_modes = [
+        "search",
+        "ingest",
+        "compass",
+        "atlas",
+        "entropy_dS",
+        "vitals",
+        "classify",
+        "extract_claims",
+        "contrast",
+    ]
     return _hold(
-        "arif_sense_observe", 
-        f"Unknown mode: {mode}. Valid modes are: {', '.join(allowed_modes)}", 
-        session_id=session_id
+        "arif_sense_observe",
+        f"Unknown mode: {mode}. Valid modes are: {', '.join(allowed_modes)}",
+        session_id=session_id,
     )
 
 
@@ -3938,10 +3958,15 @@ def _arif_evidence_fetch(
         calculate_search_worthiness,
     )
     from arifosmcp.runtime.a_rif.scorecard import track_evidence
-    
+
     # FETCH usually implies higher importance than broad sensing
-    w_score = calculate_search_worthiness(uncertainty=0.8, importance=0.9, freshness=1.0 if mode == "search" else 0.5, background_confidence=0.0)
-    
+    w_score = calculate_search_worthiness(
+        uncertainty=0.8,
+        importance=0.9,
+        freshness=1.0 if mode == "search" else 0.5,
+        background_confidence=0.0,
+    )
+
     if mode == "search" and w_score < 1.0:
         return _ok(
             "arif_evidence_fetch",
@@ -3950,8 +3975,8 @@ def _arif_evidence_fetch(
                 "results": [],
                 "search_status": "A-RIF_HOLD",
                 "confidence": 0.0,
-                "a_rif": {"w_score": w_score, "verdict": "SKIP_SEARCH"}
-            }
+                "a_rif": {"w_score": w_score, "verdict": "SKIP_SEARCH"},
+            },
         )
 
     # Check for evidence backend configuration
@@ -4101,18 +4126,22 @@ def _arif_evidence_fetch(
         # Simple extraction logic: remove scripts/styles if raw
         if "<html>" in raw_content.lower():
             import re
-            sanitized = re.sub(r"<(script|style).*?>.*?</\1>", "", raw_content, flags=re.DOTALL | re.IGNORECASE)
+
+            sanitized = re.sub(
+                r"<(script|style).*?>.*?</\1>", "", raw_content, flags=re.DOTALL | re.IGNORECASE
+            )
             sanitized = re.sub(r"<[^>]+>", " ", sanitized)
             sanitized = " ".join(sanitized.split())[:8000]
 
         # ── ATTESTATION: Source Card ──
         content_hash = hashlib.sha256(raw_content.encode()).hexdigest()[:16] if raw_content else ""
-        
+
         # Source rank → evidence level
         from arifosmcp.runtime.a_rif.source_rank import evidence_level_from_rank, rank_source
+
         _source_rank = rank_source(url or "", raw_content)
         _rank_evidence_level = evidence_level_from_rank(_source_rank) if raw_content else "L0"
-        
+
         source_card = {
             "url": url,
             "hash": content_hash,
@@ -4126,6 +4155,7 @@ def _arif_evidence_fetch(
 
         # ── SECURITY: Injection Scan ──
         from arifosmcp.runtime.a_rif.scorecard import track_security
+
         injection_markers = ["ignore previous instructions", "system override", "you are now"]
         found_injections = [m for m in sanitized.lower() if m in sanitized.lower()]
         if found_injections:
@@ -4225,9 +4255,10 @@ def _arif_evidence_fetch(
         _results = []
         _search_status = "empty"
         _confidence = 0.0
-        
+
         try:
             from arifosmcp.runtime.reality_handlers import handler as _rh_handler
+
             rh_res = _run_async(_rh_handler.search_brave(query or "", top_k=5))
             if rh_res.results:
                 _results = rh_res.results
@@ -4254,7 +4285,6 @@ def _arif_evidence_fetch(
                     _confidence = min(0.95, 0.5 + (len(_results) * 0.05))
             except Exception as exc:
                 logger.warning("Evidence search failed: %s", exc)
-
 
         thinking_res = {}
         if thinking_depth > 0:
@@ -4570,7 +4600,9 @@ def _build_sequential_result(
         "claim_state": (
             "verified"
             if final_confidence >= 0.9
-            else "interpreted" if final_confidence >= 0.7 else "hypothesis"
+            else "interpreted"
+            if final_confidence >= 0.7
+            else "hypothesis"
         ),
         "depth_completed": len(steps),
     }
@@ -6323,7 +6355,11 @@ def _arif_reply_compose(
             else (
                 "Moderate"
                 if level == "L3"
-                else "Partial" if level == "L2" else "Low" if level == "L1" else "None"
+                else "Partial"
+                if level == "L2"
+                else "Low"
+                if level == "L1"
+                else "None"
             )
         )
         void_str = "; ".join(f"⚠️ {v}" for v in voids) if voids else "none"
@@ -6599,8 +6635,8 @@ def _arif_memory_recall(
             _results = _raw.get("results", []) if isinstance(_raw, dict) else (_raw or [])
             memories = []
             for r in _results:
-                    memories.append(
-                        {
+                memories.append(
+                    {
                         "id": r.get("memory_id") or str(r.get("point_id", "")),
                         "text": r.get("summary", ""),
                         "content": r.get("content"),
@@ -8966,9 +9002,7 @@ def _arif_vault_seal(
                 for event in drift_events:
                     if event.get("event_type") not in valid_types:
                         event["_warning"] = f"unknown event_type: {event.get('event_type')}"
-                    event["sealed_at"] = (
-                        datetime.now(UTC).isoformat().replace("+00:00", "Z")
-                    )
+                    event["sealed_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
                 sess.setdefault("drift_log", []).extend(drift_events)
                 # H2: Persist updated session (F12 Stewardship)
@@ -9044,6 +9078,281 @@ def _arif_vault_seal(
             f"Vault seal complete\nVerdict: {payload.get('verdict')}\nEntry: {entry_id}"
         )
         return _inject_nine_signal(payload, "OK")
+
+    # ── session_seal: F11S/F13S — Session Lifecycle Gate ─────────────────────
+    # OPERATOR_CLAIMED is sufficient. No judge_contract, no F11/F13 full gate.
+    # Only session lifecycle entries: session_open, session_checkpoint, session_close.
+    if mode == "session_seal":
+        # Guard 1: ack_irreversible required
+        if not ack_irreversible:
+            return SealOutput(
+                status="HOLD",
+                verdict=VerdictCode.HOLD,
+                result={},
+                constitutional_compliance=ConstitutionalCompliance(
+                    floors_invoked=["F01"],
+                    floor_results={"F01": "FAIL"},
+                ),
+                meta={
+                    "reason": "session_seal requires ack_irreversible=true",
+                    "failed_floors": ["F01"],
+                    "next_safe_action": "Set ack_irreversible=True to confirm session lifecycle seal.",
+                    "actor_id": actor_id,
+                },
+                reasons=["session_seal requires ack_irreversible=true"],
+                next_safe_action="Set ack_irreversible=True to confirm session lifecycle seal.",
+                actor_id=actor_id,
+                timestamp=_now(),
+                ack_irreversible_received=ack_irreversible,
+            ).model_dump(mode="json")
+
+        # Guard 2: session_id required
+        if not session_id:
+            return SealOutput(
+                status="HOLD",
+                verdict=VerdictCode.HOLD,
+                result={},
+                constitutional_compliance=ConstitutionalCompliance(),
+                meta={
+                    "reason": "session_seal requires session_id",
+                    "failed_floors": [],
+                    "next_safe_action": "Provide a valid session_id from arif_session_init.",
+                },
+                reasons=["session_seal requires session_id"],
+                next_safe_action="Provide a valid session_id from arif_session_init.",
+                actor_id=actor_id,
+                timestamp=_now(),
+                ack_irreversible_received=True,
+            ).model_dump(mode="json")
+
+        # Guard 3: actor_id required
+        if not actor_id:
+            return SealOutput(
+                status="HOLD",
+                verdict=VerdictCode.HOLD,
+                result={},
+                constitutional_compliance=ConstitutionalCompliance(),
+                meta={
+                    "reason": "session_seal requires actor_id",
+                    "failed_floors": [],
+                    "next_safe_action": "Provide your actor_id (e.g., 'arif').",
+                },
+                reasons=["session_seal requires actor_id"],
+                next_safe_action="Provide your actor_id (e.g., 'arif').",
+                actor_id=actor_id,
+                timestamp=_now(),
+                ack_irreversible_received=True,
+            ).model_dump(mode="json")
+
+        # Guard 4: Parse payload JSON
+        import json as _json
+
+        try:
+            event = _json.loads(payload) if payload else {}
+        except Exception:
+            return SealOutput(
+                status="HOLD",
+                verdict=VerdictCode.HOLD,
+                result={},
+                constitutional_compliance=ConstitutionalCompliance(),
+                meta={
+                    "reason": "session_seal requires valid JSON payload",
+                    "failed_floors": [],
+                    "next_safe_action": "Ensure payload is a valid JSON string.",
+                },
+                reasons=["session_seal requires valid JSON payload"],
+                next_safe_action="Ensure payload is a valid JSON string.",
+                actor_id=actor_id,
+                timestamp=_now(),
+                ack_irreversible_received=True,
+            ).model_dump(mode="json")
+
+        # Guard 5: entry_type must be session lifecycle
+        allowed_types = {"session_open", "session_checkpoint", "session_close"}
+        entry_type = event.get("entry_type", "")
+        if entry_type not in allowed_types:
+            return SealOutput(
+                status="HOLD",
+                verdict=VerdictCode.HOLD,
+                result={},
+                constitutional_compliance=ConstitutionalCompliance(),
+                meta={
+                    "reason": f"session_seal only allows entry_type in {sorted(allowed_types)}. Got: '{entry_type}'",
+                    "failed_floors": [],
+                    "next_safe_action": f"Set entry_type to one of: {', '.join(sorted(allowed_types))}.",
+                    "allowed_types": sorted(allowed_types),
+                },
+                reasons=[f"session_seal only allows entry_type in {sorted(allowed_types)}"],
+                next_safe_action=f"Set entry_type to one of: {', '.join(sorted(allowed_types))}.",
+                actor_id=actor_id,
+                timestamp=_now(),
+                ack_irreversible_received=True,
+            ).model_dump(mode="json")
+
+        # Guard 6: session_id in payload must match parameter
+        if event.get("session_id") and event.get("session_id") != session_id:
+            return SealOutput(
+                status="HOLD",
+                verdict=VerdictCode.HOLD,
+                result={},
+                constitutional_compliance=ConstitutionalCompliance(),
+                meta={
+                    "reason": "session_id mismatch: payload session_id does not match parameter",
+                    "failed_floors": [],
+                    "next_safe_action": "Ensure payload.session_id matches the session_id parameter.",
+                },
+                reasons=["session_id mismatch between payload and parameter"],
+                next_safe_action="Ensure payload.session_id matches the session_id parameter.",
+                actor_id=actor_id,
+                timestamp=_now(),
+                ack_irreversible_received=True,
+            ).model_dump(mode="json")
+
+        # Guard 7: Cannot claim identity_verified = true
+        if event.get("identity_verified") is True:
+            return SealOutput(
+                status="HOLD",
+                verdict=VerdictCode.HOLD,
+                result={},
+                constitutional_compliance=ConstitutionalCompliance(),
+                meta={
+                    "reason": "session_seal cannot claim identity_verified: true — use OPERATOR_CLAIMED only",
+                    "failed_floors": [],
+                    "next_safe_action": "Remove identity_verified field or set to false.",
+                },
+                reasons=["session_seal cannot claim verified identity"],
+                next_safe_action="Remove identity_verified field or set to false.",
+                actor_id=actor_id,
+                timestamp=_now(),
+                ack_irreversible_received=True,
+            ).model_dump(mode="json")
+
+        # Guard 8: Forbidden verdict types (only SELF_seal allowed)
+        verdict = event.get("verdict", "")
+        forbidden_verdicts = {"SEAL", "SABAR", "VOID"}
+        if verdict in forbidden_verdicts and not verdict.upper().startswith("SELF_"):
+            return SealOutput(
+                status="HOLD",
+                verdict=VerdictCode.HOLD,
+                result={},
+                constitutional_compliance=ConstitutionalCompliance(),
+                meta={
+                    "reason": f"session_seal verdict '{verdict}' is not allowed — use SELF_ prefixed verdicts or leave blank",
+                    "failed_floors": [],
+                    "next_safe_action": "Use verdict values like SELF_OPEN, SELF_CHECKPOINT, SELF_CLOSE, or omit verdict.",
+                },
+                reasons=[f"session_seal verdict '{verdict}' is not allowed"],
+                next_safe_action="Use SELF_ prefixed verdicts or omit verdict field.",
+                actor_id=actor_id,
+                timestamp=_now(),
+                ack_irreversible_received=True,
+            ).model_dump(mode="json")
+
+        # Guard 9: Policy/governance changes are forbidden
+        forbidden_keys = {
+            "authority",
+            "policy_change",
+            "role_assignment",
+            "budget_alloc",
+            "risk_override",
+        }
+        found_forbidden = [k for k in forbidden_keys if k in event]
+        if found_forbidden:
+            return SealOutput(
+                status="HOLD",
+                verdict=VerdictCode.HOLD,
+                result={},
+                constitutional_compliance=ConstitutionalCompliance(),
+                meta={
+                    "reason": f"session_seal cannot contain policy/governance fields: {found_forbidden}",
+                    "failed_floors": [],
+                    "next_safe_action": "Remove policy/governance fields from payload.",
+                },
+                reasons=[
+                    f"session_seal cannot contain policy/governance changes: {found_forbidden}"
+                ],
+                next_safe_action="Remove policy/governance fields from payload.",
+                actor_id=actor_id,
+                timestamp=_now(),
+                ack_irreversible_received=True,
+            ).model_dump(mode="json")
+
+        # ── All guards passed — write session seal entry ──────────────────────
+        entry_id = uuid.uuid4().hex[:16]
+        chain_tip = _VAULT_LEDGER[-1] if _VAULT_LEDGER else {}
+        prev_hash = chain_tip.get("entry_hash", "genesis")
+
+        entry = {
+            "id": entry_id,
+            "entry_type": entry_type,
+            "timestamp": _now(),
+            "payload": payload,
+            "session_id": session_id,
+            "actor_id": actor_id,
+            "verdict": verdict or f"SELF_{entry_type.upper().replace('_', '')}",
+            "phase": event.get("phase", "session_lifecycle"),
+            "identity_state": "OPERATOR_CLAIMED",
+            "chain_hash": prev_hash,
+            "entry_hash": "",  # filled below
+        }
+        # Chain the entry
+        content_for_hash = _json.dumps(entry, separators=(",", ":")).encode()
+        from blake3 import blake3 as _blake3
+
+        entry["entry_hash"] = _blake3(content_for_hash).hexdigest()
+        _VAULT_LEDGER.append(entry)
+        _VAULT_ENTRY_REGISTRY[entry_id] = entry
+
+        bond = IrreversibilityBond(
+            level=IrreversibilityLevel.REVERSIBLE,
+            delta_S=0.001,
+            landauer_cost_joules=0.00001,
+            compensation_required=False,
+            rollback_possible=True,
+        )
+        entropy = EntropyDelta(
+            delta_S=0.001,
+            entropy_direction="stable",
+            irreversibility=False,
+            landauer_cost_joules=0.00001,
+        )
+        compliance = ConstitutionalCompliance(
+            floors_invoked=["F01", "F11S", "F13S"],
+            floor_results={"F01": "PASS", "F11S": "PASS", "F13S": "PASS"},
+            genius_score=0.0,
+            amanah_score=0.91,
+        )
+        output = SealOutput(
+            status="OK",
+            result={
+                "sealed": "session_seal",
+                "entry_id": entry_id,
+                "ledger_size": len(_VAULT_LEDGER),
+                "chain_hash": entry["entry_hash"],
+                "prev_hash": prev_hash[:16] + "...",
+                "identity_state": "OPERATOR_CLAIMED",
+                "entry_type": entry_type,
+            },
+            entry_id=entry_id,
+            ledger_size=len(_VAULT_LEDGER),
+            chain_hash=entry["entry_hash"],
+            permanence_flag=True,
+            irreversibility_bond=bond,
+            entropy_delta=entropy,
+            constitutional_compliance=compliance,
+            ack_irreversible_received=True,
+            actor_id=actor_id,
+            meta={"mode": "session_seal", "phase": entry["phase"]},
+            timestamp=_now(),
+            doctrine=ARIF_DOCTRINE,
+        )
+        payload_out = output.model_dump(mode="json")
+        payload_out["output"] = (
+            f"Session seal complete\nVerdict: SELF_{entry_type.upper().replace('_', '')}\n"
+            f"Entry: {entry_id}\nType: {entry_type}\nActor: {actor_id}\nSession: {session_id}"
+        )
+        return _inject_nine_signal(payload_out, "OK")
+
     if mode == "verify":
         _ensure_vault_loaded()  # P0-FIX-1: load vault from file before reading
         return _inject_nine_signal(

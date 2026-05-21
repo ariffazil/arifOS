@@ -27,7 +27,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -270,7 +270,7 @@ def wrap_llm_output(
         injection_detected=injection_detected,
         prompt_hash=_sha256(prompt),
         latency_ms=latency_ms,
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         human_decision_required=human_decision_required,
         authority_level=_governance_of(model),  # F11: looked up from model_governance.yaml
     )
@@ -319,7 +319,7 @@ def wrap_llm_error(
         uncertainty=["LLM_unavailable_F07_Humility_acknowledged"],
         risk_flags=["LLM_FAILURE_INSTRUMENT"],
         prompt_hash=_sha256(prompt),
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         human_decision_required=True,
         authority_level="instrument_only",
     )

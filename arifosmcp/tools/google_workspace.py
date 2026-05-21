@@ -18,9 +18,8 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import base64
-import json
 import logging
-import os
+from datetime import UTC
 from email.mime.text import MIMEText
 from pathlib import Path
 from typing import Any
@@ -181,10 +180,10 @@ def google_calendar_list_events(
         actor_id: Sovereign actor identifier for audit.
     """
     try:
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         svc = _service("calendar", "v3")
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         events = (
             svc.events()
             .list(

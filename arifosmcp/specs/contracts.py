@@ -14,7 +14,8 @@ Contract categories:
 
 from __future__ import annotations
 
-from enum import Enum
+from datetime import UTC
+from enum import StrEnum
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -24,7 +25,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class VerdictCode(str, Enum):
+class VerdictCode(StrEnum):
     """Canonical constitutional verdict codes."""
 
     SEAL = "SEAL"  # Approved, attested
@@ -34,7 +35,7 @@ class VerdictCode(str, Enum):
     HOLD = "888_HOLD"  # High-risk, requires human
 
 
-class RiskTier(str, Enum):
+class RiskTier(StrEnum):
     """Risk classification tiers."""
 
     LOW = "low"
@@ -43,7 +44,7 @@ class RiskTier(str, Enum):
     CRITICAL = "critical"
 
 
-class SessionState(str, Enum):
+class SessionState(StrEnum):
     """Session lifecycle states."""
 
     ANONYMOUS = "anonymous"
@@ -54,7 +55,7 @@ class SessionState(str, Enum):
     APPROVED = "approved"
 
 
-class TrinityAspect(str, Enum):
+class TrinityAspect(StrEnum):
     """The three governing principles."""
 
     PSI = "PSI"  # Will, identity, sovereignty
@@ -395,11 +396,11 @@ class RouteExecutionInput(BaseModel):
 
 def make_telemetry_seed(session_id: str) -> TelemetryEnvelope:
     """Generate a fresh telemetry seed for a new session."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     return TelemetryEnvelope(
         session_id=session_id,
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         tau_truth=1.0,
         omega_0=0.05,
         delta_s=0.0,

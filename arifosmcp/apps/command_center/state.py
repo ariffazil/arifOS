@@ -13,7 +13,7 @@ import json
 import os
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from threading import RLock
 from typing import Any
 
@@ -114,7 +114,7 @@ class RuntimeState:
                     )
 
             session_id = f"sess_{uuid.uuid4().hex[:16]}"
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             expires = now + timedelta(seconds=_SESSION_TTL_SECONDS)
 
             anchor = SessionAnchor(
@@ -167,7 +167,7 @@ class RuntimeState:
 
             payload = json.loads(base64.urlsafe_b64decode(b64_payload).decode())
             exp = datetime.fromisoformat(payload["exp"])
-            if datetime.now(timezone.utc) > exp:
+            if datetime.now(UTC) > exp:
                 return None
             return payload
         except Exception:

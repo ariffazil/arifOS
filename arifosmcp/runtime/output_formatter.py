@@ -17,6 +17,7 @@ Usage:
 from __future__ import annotations
 
 import hashlib
+from datetime import UTC
 from typing import Any
 
 from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
@@ -233,7 +234,7 @@ def _format_agi_reply(envelope: RuntimeEnvelope) -> dict[str, Any]:
       - AgiReplySeal    (cryptographic + governance signoff)
       - Full envelope   (human or agent)
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     p = envelope.payload if isinstance(envelope.payload, dict) else {}
     recipient = p.get("recipient", "auto")
@@ -285,7 +286,7 @@ def _format_agi_reply(envelope: RuntimeEnvelope) -> dict[str, Any]:
     title = f"{verdict_token} τ={tau:.2f} — {verdict_statement}"
 
     # ── SEAL signoff ──────────────────────────────────────────────────────────
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
     forged_by = p.get("forged_by", envelope.tool or "arifos.mind")
     judge_verdict_raw = p.get("judge_verdict", raw_verdict)
     judge_verdict_seal: Any = (

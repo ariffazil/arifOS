@@ -18,7 +18,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -28,7 +28,7 @@ def _utcnow() -> datetime:
     return datetime.now(UTC)
 
 
-class Axis(str, Enum):
+class Axis(StrEnum):
     """The 6 irreducible cognitive axes."""
 
     P = "P"  # Perception — reality acquisition

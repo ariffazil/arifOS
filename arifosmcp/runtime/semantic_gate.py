@@ -25,7 +25,7 @@ import json
 import logging
 import os
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -226,7 +226,7 @@ def _log_gate_decision(
     """Append a semantic gate decision to the audit log."""
     try:
         entry = {
-            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "timestamp_utc": datetime.now(UTC).isoformat(),
             "text_fingerprint": hash(text) & 0xFFFFFFFF,
             "category": category,
             "confidence": confidence,

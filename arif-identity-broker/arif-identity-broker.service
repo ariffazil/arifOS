@@ -1,0 +1,35 @@
+[Unit]
+Description=arifOS Identity Broker (Stage 1)
+Documentation=https://github.com/ariffazil/arifos/wiki/identity-broker
+After=network.target arifosmcp.service
+Wants=arifosmcp.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/arifOS/arif-identity-broker
+ExecStart=/usr/bin/python3 /root/arifOS/arif-identity-broker/broker.py --port 8088
+Restart=on-failure
+RestartSec=5s
+Environment=PYTHONUNBUFFERED=1
+Environment=ARIF_KERNEL_URL=http://localhost:8080/mcp
+Environment=ARIF_IDENTITY_FILE=/root/.arif/identity.json
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/root/.arif
+PrivateTmp=true
+
+# Resource limits
+MemoryMax=256M
+CPUQuota=50%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=arif-identity-broker
+
+[Install]
+WantedBy=multi-user.target

@@ -8,7 +8,7 @@ DITEMPA BUKAN DIBERI.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -18,7 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class ExecutionState(str, Enum):
+class ExecutionState(StrEnum):
     """Canonical execution pipeline states (formal state machine)."""
 
     OBSERVE = "OBSERVE"
@@ -30,14 +30,14 @@ class ExecutionState(str, Enum):
     SEAL = "SEAL"
 
 
-class ClaimStatus(str, Enum):
+class ClaimStatus(StrEnum):
     ANONYMOUS = "anonymous"
     CLAIMED = "claimed"
     VERIFIED = "verified"
     DENIED = "denied"
 
 
-class AuthorityLevel(str, Enum):
+class AuthorityLevel(StrEnum):
     ANONYMOUS = "anonymous"
     OPERATOR = "operator"
     SOVEREIGN = "sovereign"
@@ -46,7 +46,7 @@ class AuthorityLevel(str, Enum):
     ARIF = "arif"
 
 
-class RuntimeStatus(str, Enum):
+class RuntimeStatus(StrEnum):
     SUCCESS = "SUCCESS"
     ERROR = "ERROR"
     TIMEOUT = "TIMEOUT"
@@ -57,7 +57,7 @@ class RuntimeStatus(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class Stage(str, Enum):
+class Stage(StrEnum):
     INIT = "000"
     INIT_000 = "000"
     SENSE = "111"
@@ -84,7 +84,7 @@ class Stage(str, Enum):
     VAULT_999 = "999"
 
 
-class ExecutionStatus(str, Enum):
+class ExecutionStatus(StrEnum):
     SUCCESS = "SUCCESS"
     FAILURE = "FAILURE"
     TIMEOUT = "TIMEOUT"
@@ -92,20 +92,20 @@ class ExecutionStatus(str, Enum):
     DEGRADED = "DEGRADED"
 
 
-class GovernanceStatus(str, Enum):
+class GovernanceStatus(StrEnum):
     PAUSE = "PAUSE"
     ACTIVE = "ACTIVE"
     SEALED = "SEALED"
     OVERRIDE = "OVERRIDE"
 
 
-class ContinuationStatus(str, Enum):
+class ContinuationStatus(StrEnum):
     READY = "READY"
     WAITING = "WAITING"
     TERMINATED = "TERMINATED"
 
 
-class ArtifactStatus(str, Enum):
+class ArtifactStatus(StrEnum):
     NONE = "NONE"
     PENDING = "PENDING"
     READY = "READY"
@@ -113,7 +113,7 @@ class ArtifactStatus(str, Enum):
     FAILED = "FAILED"
 
 
-class VerdictScope(str, Enum):
+class VerdictScope(StrEnum):
     """Scope of verdict authority."""
 
     SELF = "self"  # Self-judgment only
@@ -164,7 +164,7 @@ class Verdict(BaseModel):
     VOID: ClassVar[str] = "VOID"
 
 
-class SacredStage(str, Enum):
+class SacredStage(StrEnum):
     INIT_ANCHOR = "init_anchor"
     AGI_REASON = "agi_reason"
     AGI_REFLECT = "agi_reflect"
@@ -337,7 +337,7 @@ class RuntimeEnvelope(BaseModel):
         return data
 
 
-class VerdictCode(str, Enum):
+class VerdictCode(StrEnum):
     SEAL = "SEAL"
     SABAR = "SABAR"
     PARTIAL = "PARTIAL"

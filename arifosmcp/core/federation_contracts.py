@@ -18,13 +18,13 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 
-class AuthorityLevel(str, Enum):
+class AuthorityLevel(StrEnum):
     """Authority levels in descending order of power."""
 
     SOVEREIGN = "sovereign"  # Arif only
@@ -33,7 +33,7 @@ class AuthorityLevel(str, Enum):
     INSTRUMENT = "instrument"  # Sensors — raw data only
 
 
-class OutputType(str, Enum):
+class OutputType(StrEnum):
     """Allowed output types for non-arifOS organs."""
 
     OBSERVATION = "observation"
@@ -45,7 +45,7 @@ class OutputType(str, Enum):
     UNCERTAINTY = "uncertainty"
 
 
-class VerdictType(str, Enum):
+class VerdictType(StrEnum):
     """Verdict types — ONLY arifOS may emit these."""
 
     SEAL = "SEAL"

@@ -297,7 +297,7 @@ async def arif_mind_reason(
         v2_resp = await arif_mind_reason_v2(request)
         return v2_resp.model_dump()
 
-    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    timestamp = datetime.datetime.now(datetime.UTC).isoformat()
 
 
     # Build the reasoning prompt

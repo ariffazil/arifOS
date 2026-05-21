@@ -5,12 +5,12 @@ Rule 4: One tool = one contract.
 Rule 7: Enforce stage boundaries in code.
 """
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class KernelState(str, Enum):
+class KernelState(StrEnum):
     """The three canonical kernel states (Audit Fix 3)."""
 
     READY = "READY"  # System ready to accept work
@@ -18,7 +18,7 @@ class KernelState(str, Enum):
     BLOCKED = "BLOCKED"  # Cannot proceed, requires intervention
 
 
-class Stage(str, Enum):
+class Stage(StrEnum):
     """Canonical arifOS stages."""
 
     INIT = "000_INIT"

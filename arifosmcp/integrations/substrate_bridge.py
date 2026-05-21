@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -227,7 +227,7 @@ class SubstrateBridge:
         if not MCP_SUBSTRATES_ENABLED:
             return {
                 "status": "DISABLED",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "substrate": {},
                 "note": "MCP substrates disabled via environment",
             }
@@ -247,7 +247,7 @@ class SubstrateBridge:
 
         return {
             "status": status,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "substrate": results,
             "summary": {
                 "healthy": healthy_count,

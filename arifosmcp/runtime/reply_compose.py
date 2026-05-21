@@ -178,7 +178,7 @@ async def _compose_with_llm(
             # Metadata
             "_llm_tier": envelope.provider,
             "_llm_available": True,
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
             # 777_WITNESS envelope metadata (for judge/vault)
             "_envelope": {
                 "provider": envelope.provider,
@@ -230,7 +230,7 @@ def _compose_fallback(
             "caveats": caveats,
             "_llm_tier": "none",
             "_llm_available": False,
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
             "_envelope": {
                 "provider": "none",
                 "tool_origin": "444r_REPLY",
@@ -266,7 +266,7 @@ def _compose_fallback(
             "caveats": [],
             "_llm_tier": "none",
             "_llm_available": False,
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
         }
 
     if mode == "cite":
@@ -283,7 +283,7 @@ def _compose_fallback(
             "caveats": [],
             "_llm_tier": "none",
             "_llm_available": False,
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
         }
 
     if mode == "summary":
@@ -300,7 +300,7 @@ def _compose_fallback(
             "caveats": ["Summary may omit context — consult original for full detail"],
             "_llm_tier": "none",
             "_llm_available": False,
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
         }
 
     if mode == "format":
@@ -315,7 +315,7 @@ def _compose_fallback(
             "caveats": [],
             "_llm_tier": "none",
             "_llm_available": False,
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
         }
 
     if mode == "nudge":
@@ -331,7 +331,7 @@ def _compose_fallback(
             "caveats": [],
             "_llm_tier": "none",
             "_llm_available": False,
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
         }
 
     return {
@@ -345,7 +345,7 @@ def _compose_fallback(
         "caveats": [f"Unknown mode: {mode}"],
         "_llm_tier": "none",
         "_llm_available": False,
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
     }
 
 

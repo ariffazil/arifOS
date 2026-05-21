@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -97,7 +97,7 @@ def envelope_error(
         "stage": stage,
         "detail": detail,
         "session_id": session_id,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         **extra,
     }
 
@@ -124,6 +124,6 @@ def envelope_pause(
         "stage": stage,
         "detail": detail,
         "session_id": session_id,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         **extra,
     }

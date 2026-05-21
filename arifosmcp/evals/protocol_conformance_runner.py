@@ -27,7 +27,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -151,7 +151,7 @@ class ProtocolConformanceRunner:
         await self._test_everything_reference()
 
         return ConformanceReport(
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             git_sha=self.git_sha,
             branch=self.branch,
             transport_mode=self.transport_mode,
@@ -162,10 +162,10 @@ class ProtocolConformanceRunner:
         """Test a single substrate's protocol conformance"""
 
         # Test 1: Health / Initialize equivalent
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
         try:
             health = await client.health_check()
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
 
             status = (
                 ConformanceStatus.PASS if health.get("status") == "OK" else ConformanceStatus.FAIL
@@ -182,7 +182,7 @@ class ProtocolConformanceRunner:
                 )
             )
         except Exception as e:
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
             self.results.append(
                 ProtocolTestResult(
                     test_name="health_check",
@@ -196,12 +196,12 @@ class ProtocolConformanceRunner:
             )
 
         # Test 2: Tool discovery (list_tools equivalent)
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
         try:
             # Attempt to discover tools via a status/metadata call
             # In real MCP, this would be tools/list endpoint
             tool_list = await self._discover_tools(client)
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
 
             has_tools = len(tool_list) > 0
             self.results.append(
@@ -216,7 +216,7 @@ class ProtocolConformanceRunner:
                 )
             )
         except Exception as e:
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
             self.results.append(
                 ProtocolTestResult(
                     test_name="tool_discovery",
@@ -257,10 +257,10 @@ class ProtocolConformanceRunner:
         from arifosmcp.integrations.everything_probe import everything_probe
 
         # Test full diagnostic
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
         try:
             diagnostic = await everything_probe.run_full_diagnostic()
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
 
             status = (
                 ConformanceStatus.PASS
@@ -279,7 +279,7 @@ class ProtocolConformanceRunner:
                 )
             )
         except Exception as e:
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
             self.results.append(
                 ProtocolTestResult(
                     test_name="everything_full_diagnostic",

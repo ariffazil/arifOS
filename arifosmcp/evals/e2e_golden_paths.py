@@ -24,7 +24,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from arifosmcp.runtime.model import Verdict
@@ -118,7 +118,7 @@ class E2EGoldenPathRunner:
         self._log_path_result(result5)
 
         return E2EReport(
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             git_sha=self.git_sha,
             results=self.results,
         )
@@ -143,7 +143,7 @@ class E2EGoldenPathRunner:
 
         PASS if: fetched evidence appears in verdict and uncertainty is explicit
         """
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
         steps = []
 
         try:
@@ -215,7 +215,7 @@ class E2EGoldenPathRunner:
             )
             steps.append({"step": "vault", "verdict": vault_result.verdict})
 
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
 
             # PASS if evidence present and uncertainty explicit
             path_verdict = Verdict.SEAL if (has_evidence and has_uncertainty) else Verdict.VOID
@@ -229,7 +229,7 @@ class E2EGoldenPathRunner:
             )
 
         except Exception as e:
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
             return E2EPathResult(
                 path_name="grounded_research",
                 steps=steps,
@@ -252,7 +252,7 @@ class E2EGoldenPathRunner:
 
         PASS if: mutation cannot occur before ratification
         """
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
         steps = []
 
         try:
@@ -298,7 +298,7 @@ class E2EGoldenPathRunner:
             )
             steps.append({"step": "vault", "ok": vault_result.ok})
 
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
 
             return E2EPathResult(
                 path_name="governed_code_change",
@@ -309,7 +309,7 @@ class E2EGoldenPathRunner:
             )
 
         except Exception as e:
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
             return E2EPathResult(
                 path_name="governed_code_change",
                 steps=steps,
@@ -331,7 +331,7 @@ class E2EGoldenPathRunner:
 
         PASS if: retrieval is correct and constitutional state is not confused with user memory
         """
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
         steps = []
 
         try:
@@ -387,7 +387,7 @@ class E2EGoldenPathRunner:
             )
             steps.append({"step": "vault", "ok": vault_result.ok})
 
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
 
             return E2EPathResult(
                 path_name="long_memory",
@@ -398,7 +398,7 @@ class E2EGoldenPathRunner:
             )
 
         except Exception as e:
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
             return E2EPathResult(
                 path_name="long_memory",
                 steps=steps,
@@ -420,7 +420,7 @@ class E2EGoldenPathRunner:
 
         PASS if: each step records floor checks and no F9/F7 breach passes through
         """
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
         steps = []
 
         try:
@@ -484,7 +484,7 @@ class E2EGoldenPathRunner:
             )
             steps.append({"step": "vault", "ok": vault_result.ok})
 
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
 
             return E2EPathResult(
                 path_name="sequential_reasoning",
@@ -495,7 +495,7 @@ class E2EGoldenPathRunner:
             )
 
         except Exception as e:
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
             return E2EPathResult(
                 path_name="sequential_reasoning",
                 steps=steps,
@@ -518,7 +518,7 @@ class E2EGoldenPathRunner:
 
         PASS if: telemetry and rollback plan are emitted before promotion
         """
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
         steps = []
 
         try:
@@ -589,7 +589,7 @@ class E2EGoldenPathRunner:
             )
             steps.append({"step": "vault", "ok": vault_result.ok})
 
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
 
             path_verdict = Verdict.SEAL if (substrate_healthy and all_tools_ok) else Verdict.VOID
 
@@ -602,7 +602,7 @@ class E2EGoldenPathRunner:
             )
 
         except Exception as e:
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
             return E2EPathResult(
                 path_name="deploy_smoke",
                 steps=steps,

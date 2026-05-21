@@ -1,5 +1,17 @@
 # CHANGELOG — arifOS
 
+## [v2026.05.22-pre] — 2026-05-22
+
+### Birthday Pre-release — Repo Hygiene + ZKPC Honesty
+
+- Added birthday pre-release notes for the 2026-05-22 repo-hygiene branch.
+- Repaired the shared federation layout contract.
+- Added a 2026-05-21 repo hygiene audit ledger.
+- Kept future Hermes session briefings ignored by default.
+- Updated MSAP/ZKPC tests to assert the current toy-circuit quarantine contract instead of overstating constitutional proof authority.
+- Verified `pytest tests/runtime/test_msap_ack.py tests/runtime/test_zkpc_v2.py -q`: 31 passed.
+- Verified `python -m pytest tests/ -q --tb=short`: 1939 passed, 18 skipped.
+
 ## [v2026.05.21] — 2026-05-20
 
 ### ⚡ Metabolize Mode — Cognitive Delegation Wiring

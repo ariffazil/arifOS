@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from arifosmcp.constitutional_map import list_canonical_tools, list_constitutional_tools
+from arifosmcp.constitutional_map import list_constitutional_tools
 from arifosmcp.runtime.build import get_build_info
 
 try:

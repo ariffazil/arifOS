@@ -893,7 +893,7 @@ def arifos_oracle_bio(
             else:
                 metrics[key] = value
         state["metrics"] = metrics
-        state["timestamp"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        state["timestamp"] = datetime.datetime.now(datetime.UTC).isoformat()
         with open(well_state, "w") as f:
             json.dump(state, f, indent=2)
         return {

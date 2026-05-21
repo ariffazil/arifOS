@@ -21,7 +21,7 @@ import os
 import re
 import tempfile
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from threading import RLock
 from typing import Any
@@ -141,7 +141,7 @@ _SESSION_IDENTITY: dict[str, dict[str, Any]] = {}
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _parse_iso8601(value: str | None) -> datetime | None:
@@ -269,7 +269,7 @@ def _ensure_active_record(session_id: str) -> dict[str, Any] | None:
                         "verified": recovered.get("v", False),
                         "recovered_from_token": True,
                         "expires_at": (
-                            datetime.now(timezone.utc) + timedelta(minutes=30)
+                            datetime.now(UTC) + timedelta(minutes=30)
                         ).isoformat(),
                     }
                     # Cache it locally
