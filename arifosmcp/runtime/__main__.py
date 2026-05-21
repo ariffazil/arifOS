@@ -8,9 +8,16 @@ import json
 import logging
 import os
 import sys
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from .fastmcp_ext.transports import run_server
+
+# Module-level imports (lazy-loaded at runtime for heavy deps; LSP can't resolve due to path)
+from arifosmcp.runtime.session import get_session_identity  # noqa: E501,F401
+from arifosmcp.runtime.tools import arifos_vault  # noqa: E501,F401
+
+if TYPE_CHECKING:
+    from fastmcp.server import FastMCP as FastMCPT
 
 
 def _bootstrap_environment() -> None:
@@ -110,8 +117,6 @@ def _stdio_constitutional_floors() -> list[dict[str, str]]:
 async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[str, Any]:
     handler_name = getattr(handler, "__name__", "")
 
-    from arifosmcp.runtime.session import get_session_identity
-
     if not arguments.get("actor_id"):
         sid = arguments.get("session_id")
         if sid:
@@ -120,8 +125,6 @@ async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[st
                 arguments["actor_id"] = session_info.get("actor_id")
 
     if handler_name == "vault_seal":
-        from arifosmcp.runtime.tools import arifos_vault
-
         return await arifos_vault(**arguments)
 
     result = handler(**arguments)
@@ -151,7 +154,7 @@ def _run_minimal_stdio_server() -> None:
     from .tools_hardened_dispatch import get_tool_handler
 
     # FastMCP instance for resources + prompts (all three surfaces)
-    _mcp = create_aaa_mcp_server()
+    _mcp: FastMCPT = create_aaa_mcp_server()  # type: ignore[assignment]
 
     # Persistent event loop — shared across all async bridge calls (resources/prompts)
     _async_loop = asyncio.new_event_loop()
@@ -216,17 +219,17 @@ def _run_minimal_stdio_server() -> None:
                 if hasattr(c, "text"):
                     contents.append(
                         {
-                            "uri": str(c.uri),
+                            "uri": str(c.uri),  # type: ignore[attr-defined]
                             "mimeType": getattr(c, "mime_type", "text/plain") or "text/plain",
-                            "text": c.text,
+                            "text": c.text,  # type: ignore[attr-defined]
                         }
                     )
                 elif hasattr(c, "data"):
                     contents.append(
                         {
-                            "uri": str(c.uri),
+                            "uri": str(c.uri),  # type: ignore[attr-defined]
                             "mimeType": "application/octet-stream",
-                            "data": c.data,
+                            "data": c.data,  # type: ignore[attr-defined]
                         }
                     )
         return {"contents": contents}
@@ -251,24 +254,24 @@ def _run_minimal_stdio_server() -> None:
 
     async def _get_prompt(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         """Fetch a prompt by name. Raises LookupError if not found (MCP code -32602)."""
-        prompt = await _mcp.get_prompt(name, arguments or {})
+        prompt = await _mcp.get_prompt(name, arguments or {})  # type: ignore[arg-type]
         # FastMCP returns None when prompt not found
         if prompt is None:
             raise LookupError(f"Unknown prompt: '{name}'")
         messages = []
-        if hasattr(prompt, "messages"):
-            for m in prompt.messages:
+        if hasattr(prompt, "messages"):  # type: ignore[attr-defined]
+            for m in prompt.messages:  # type: ignore[attr-defined]
                 if hasattr(m, "role"):
                     role = m.role
                 elif hasattr(m, "_role"):
                     role = m._role
                 else:
                     role = "system"
-                content = getattr(m, "content", "")
+                content: object = getattr(m, "content", "")
                 if hasattr(content, "text"):
-                    content = content.text
+                    content = (content).text  # type: ignore[union-attr]
                 elif hasattr(content, "texts"):
-                    content = "".join(getattr(t, "text", str(t)) for t in content.texts)
+                    content = "".join(getattr(t, "text", str(t)) for t in (content).texts)  # type: ignore[union-attr]
                 messages.append({"role": role, "content": {"type": "text", "text": content}})
         return {
             "description": getattr(prompt, "description", "") or "",
@@ -443,7 +446,7 @@ def _run_minimal_stdio_server() -> None:
 
             try:
                 envelope = asyncio.run(_invoke_stdio_tool(handler, arguments))
-                result_payload = {
+                result_payload: dict[str, object] = {
                     "content": [{"type": "text", "text": json.dumps(envelope)}],
                 }
                 # MCP spec: isError only present when true (omitted on success)
