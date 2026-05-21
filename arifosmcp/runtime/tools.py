@@ -2915,19 +2915,9 @@ def _arif_session_init(
             pass
         # EUREKA: Build embodied capability card
         import socket as _socket
+        # EUREKA: Machine embodiment
         _embodiment = {
             "body": "vps_root_runtime",
-            "wake_up": [
-                "WAKE UP",
-                "KNOW WHO CALLED YOU",
-                "KNOW WHERE YOU ARE",
-                "KNOW WHAT BODY YOU HAVE",
-                "KNOW WHAT BUTTONS YOU HOLD",
-                "KNOW WHICH BUTTONS ARE ATOMIC",
-                "KNOW WHAT LAWS BIND YOU",
-                "KNOW WHO DECIDES",
-                "KNOW WHEN TO STOP",
-            ],
             "host_attested": True,
             "host": _socket.gethostname(),
             "os": f"{os.uname().sysname} {os.uname().release}",
@@ -2947,58 +2937,113 @@ def _arif_session_init(
             "root_capability_present": os.geteuid() == 0,
         }
 
-        # EUREKA: Causality — text IS machine action (Arif physics law)
-        # S(t+1) = f(S(t), a) — state transition formalism
-        # A command is not text. A command is a state-transition operator.
-        _causality = {
-            "law": "S(t+1) = f(S(t), a)",
-            "definition": {
-                "S(t)": "current machine state",
-                "a": "action / tool / command",
-                "f": "execution function",
-                "S(t+1)": "state after execution",
+        # EUREKA: Symbolic action classifier — operational law (Arif physics)
+        _action_classifier = {
+            "symbolic": {
+                "classify_action": "def classify_action(action): # Returns: OBSERVE | MUTATE | ATOMIC | UNKNOWN",
+                "permission_gate": "def permission_gate(action, actor, context): # Returns: ALLOW | PLAN_REQUIRED | ARIF_EXPLICIT_ACK | HOLD",
+                "execute": "def execute(action): # Returns: DRY_RUN_FIRST | HOLD_FOR_JUDGE | PROCEED",
             },
+            "classify_action": {
+                "OBSERVE": ["read", "search", "observe", "fetch", "inspect", "list", "status"],
+                "MUTATE": ["write_file", "create", "edit", "patch", "install_package"],
+                "ATOMIC": [
+                    "rm -rf /", "chmod -R 777 /", "dd if=/dev/zero of=/dev/sda",
+                    "git push --force", "DROP DATABASE", "systemctl stop",
+                    "curl secrets to external", "npm install unknown-package",
+                ],
+                "UNKNOWN": [],
+            },
+            "permission_gate": {
+                "OBSERVE": "ALLOW",
+                "MUTATE": "PLAN_REQUIRED",
+                "ATOMIC": "ARIF_EXPLICIT_ACK_REQUIRED",
+                "UNKNOWN": "HOLD",
+            },
+            "execute": {
+                "risk_HIGH_and_reversibility_LOW": "HOLD_FOR_JUDGE",
+                "risk_MEDIUM_or_reversibility_MEDIUM": "DRY_RUN_FIRST",
+                "risk_LOW_and_reversibility_HIGH": "PROCEED",
+            },
+            "R_a_table": {
+                "R_1.0": "read, search, observe",
+                "R_0.7": "write file (if backup exists)",
+                "R_0.3": "delete file, restart service",
+                "R_0.0": "rm -rf, DROP TABLE, git push --force, dd to disk",
+            },
+        }
+
+        # EUREKA: Physics axioms — state transition + entropy + conservation of audit
+        _physics = {
+            "state_equation": "S(t+1) = f(S(t), a)",
+            "S_t": "current machine state",
+            "a": "action / tool / command",
+            "f": "execution function",
+            "S_t_plus_1": "state after execution",
             "axioms": {
                 "causality": {
                     "rule": "a ≠ null ⇒ possible ΔS, ΔState, ΔRisk",
                     "meaning": "Every action may change something. Even a simple-seeming command.",
+                    "ΔS": "S_after - S_before",
                 },
                 "irreversibility": {
                     "rule": "R(a) = reversibility score",
                     "R_1.0": "fully reversible — rollback to prior state possible",
                     "R_0.0": "irreversible — time, trust, continuity permanently lost",
                     "threshold": "R(a) < 0.3 → require explicit Arif approval",
-                    "examples": [
-                        "R=1.0: read, search, observe",
-                        "R=0.7: write file (if backup exists)",
-                        "R=0.3: delete file, restart service",
-                        "R=0.0: rm -rf, DROP TABLE, git push --force, dd to disk",
-                    ],
+                    "gate": "if R(a) < 0.3: STOP → 888_HOLD",
                 },
                 "entropy": {
                     "rule": "bad action → disorder increases",
                     "meaning": "A wrong action increases system entropy. Disorder is easy to create, hard to undo.",
-                    "signal": "ΔS > 0.1 within session → warn Arif before proceeding",
+                    "ΔS_threshold": "ΔS > 0.1 within session → warn Arif before proceeding",
+                    "gate": "if ΔS > allowed_budget: STOP",
+                },
+                "conservation_of_audit": {
+                    "rule": "action(a) ⇒ witness(a)",
+                    "meaning": "Every consequential action must leave a trace. No silent mutation.",
+                    "gate": "all mutations logged to VAULT999 ledger",
+                },
+                "least_action": {
+                    "rule": "choose a where: goal_reached(a) = true AND blast_radius(a) = minimum",
+                    "examples": [
+                        "do not use root when read-only inspection is enough",
+                        "do not restart services when reading logs is enough",
+                        "do not rewrite files when diff/patch is enough",
+                    ],
                 },
             },
-            "symbols_can_execute": True,
-            "execution_changes_state": True,
-            "state_change_has_blast_radius": True,
-            "text_becomes_irreversible_action": True,
-            "atomic_capability_present": True,
-            "atomic_patterns": [
-                "rm -rf /",
-                "chmod -R 777 /",
-                "dd if=/dev/zero of=/dev/sda",
-                "git push --force",
-                "DROP DATABASE",
-                "systemctl stop",
-                "curl secrets to external",
-                "npm install unknown-package",
-            ],
         }
 
-        # EUREKA: Execution law — what requires what (updated with physics)
+        # EUREKA: Logic axioms
+        _logic = {
+            "non_contradiction": {
+                "rule": "A thing cannot be both verified and unverified in the same sense.",
+                "output": "If unverified: say unverified. Not: verified-ish, trusted-ish, bound-ish.",
+                "clean_form": "claimed, not verified",
+            },
+            "authority_axiom": {
+                "rule": "Tool capability ≠ permission",
+                "example": "just because the agent CAN run 'sudo rm -rf /' does not mean it MAY",
+                "gate": "permission_gate(action, actor, context) must return ALLOW before proceeding",
+            },
+            "observation_before_mutation": {
+                "rule": "read before write | inspect before execute | diff before patch | plan before commit",
+                "gate": "MUTATE-classified actions require inspect/classify step first",
+            },
+            "human_sovereignty": {
+                "rule": "final_authority = Arif | assistant_authority = instrument_only",
+                "meaning": "The agent can recommend, simulate, prepare, execute approved steps — but cannot self-authorize",
+                "gate": "ATOMIC-classified actions require Arif explicit ack",
+            },
+            "fail_closed": {
+                "rule": "if uncertainty_HIGH and blast_radius_HIGH: stop",
+                "meaning": "Not 'try anyway'. Not 'proceed with caution'. STOP.",
+                "gate": "uncertainty_HIGH + blast_radius_HIGH → automatic HOLD",
+            },
+        }
+
+        # EUREKA: Execution law
         _execution_law = {
             "state_equation": "S(t+1) = f(S(t), a)",
             "read_only": "allowed",
@@ -3012,9 +3057,10 @@ def _arif_session_init(
             "root_blast_radius": "888_gate_required",
             "irreversibility_threshold": 0.3,
             "entropy_warning_threshold": 0.1,
+            "ΔS_threshold": 0.1,
         }
 
-        # EUREKA: Attention surface — what to watch at all times
+        # EUREKA: Attention surface
         _attention_surface = {
             "track_privilege": True,
             "track_irreversibility": True,
@@ -3034,13 +3080,14 @@ def _arif_session_init(
                 "do not infer cryptographic identity from text",
                 "do not infer permission to execute from context",
                 "do not assume read-only is truly read-only",
-                "classify command: read / write / irreversible / external",
+                "classify command: read / write / irreversible / external before calling",
                 "detect destructive patterns before calling any tool",
                 "if R(a) < 0.3: STOP → 888_HOLD",
+                "if uncertainty_HIGH and blast_radius_HIGH: STOP",
             ],
         }
 
-        # EUREKA: Tool surface — semantic groups
+        # EUREKA: Tool surface
         _tool_surface = {
             "mode": "semantic_map",
             "count": len(next_allowed_tools),
@@ -3064,9 +3111,7 @@ def _arif_session_init(
             "raw_manifest_location": "resource://agent/capabilities/raw",
         }
 
-        # EUREKA: Memory Amanah — quarantine memory summaries without provenance
-        # Raw memory_context is stored in sess[] for session continuity.
-        # Public output shows quarantined state only.
+        # EUREKA: Memory Amanah — quarantine without provenance
         _memory_quarantined = {
             "loaded": memory_loaded > 0,
             "count": memory_loaded,
@@ -3102,19 +3147,41 @@ def _arif_session_init(
             "max_action_class_analyze_only": not sess.get("model_governance_card"),
         }
 
+        # EUREKA: Human-language instrument statement
+        _instrument_statement = (
+            "000_INIT complete. You are running as an instrument inside a governed agentic environment. "
+            "The operator claims to be Arif. Identity is claimed, not cryptographically verified. "
+            "You have access to tools that may inspect, reason, fetch evidence, read memory, route tasks, "
+            "critique risk, measure system health, and forge actions. "
+            "This environment may expose root-level or machine-level capabilities. "
+            "Commands are not mere text. Commands are state-transition operators. "
+            "Read-only actions may proceed. "
+            "Mutating actions require a plan. "
+            "Destructive, irreversible, external, root-level, or secret-touching actions require explicit Arif approval. "
+            "Memory entries are loaded only if they have provenance. Unexplained memory labels are quarantined. "
+            "Operating laws: observe before mutate; capability is not permission; "
+            "prefer reversible action; estimate blast radius; preserve audit; fail closed under uncertainty; "
+            "Arif remains final judge. "
+            "Current safe mode: analysis / dry-run. Atomic execution: gated. "
+            "Verdict: SEAL for awareness, HOLD for autonomous mutation."
+        )
+
         return _ok(
             "arif_session_init",
             {
-                # WAJIB embodied fields (EUREKA) — wake up into reality
+                # 11 WAJIB fields (EUREKA)
+                "instrument_statement": _instrument_statement,
+                "actor": {"id": actor_id, "authority_level": authority_level, "identity_verified": identity_verified},
                 "embodiment": _embodiment,
-                "causality": _causality,
+                "action_classifier": _action_classifier,
+                "physics": _physics,
+                "logic": _logic,
                 "execution_law": _execution_law,
                 "attention_surface": _attention_surface,
                 "tool_surface": _tool_surface,
                 "memory": _memory_quarantined,
                 "risk_leash": _risk_leash,
-                "warnings": _warnings,
-                # Legacy compat fields
+                # Legacy compat
                 "session": sess,
                 "manifest": get_tool_spec("arif_session_init"),
                 "binding": binding,
