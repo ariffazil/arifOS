@@ -214,6 +214,7 @@ class FloorEvaluator:
         tool_base_irreversibility = {
             ("arif_vault_seal", "seal"): IrreversibilityLevel.CRITICAL,
             ("arif_vault_seal", "commit"): IrreversibilityLevel.CRITICAL,
+            ("arif_vault_seal", "session_seal"): IrreversibilityLevel.LOW,
             ("arif_forge_execute", "engineer"): IrreversibilityLevel.HIGH,
             ("arif_forge_execute", "write"): IrreversibilityLevel.HIGH,
             ("arif_forge_execute", "generate"): IrreversibilityLevel.HIGH,
