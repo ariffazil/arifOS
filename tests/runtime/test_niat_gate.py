@@ -26,9 +26,9 @@ def test_check_niat_gate_scar_detected():
         negative_signals=["jangan"],
         reversibility="irreversible"
     )
-    assert res["niat_state"] == "UNCERTAIN"
+    assert res["niat_state"] == "CONFLICTED"
     assert res["execution_allowed"] is False
-    assert res["required_next_step"] == "HOLD"
+    assert res["required_next_step"] == "JUDGE"
     assert "jangan" in res["detected_scars"]
 
 def test_formalization_lock():
@@ -52,7 +52,7 @@ def test_enforce_capability_membrane():
     }
     
     # Valid
-    assert enforce_capability_membrane("send_email", {"to": "izzudin@example.com"}, permitted) is True
+    assert enforce_capability_membrane("send_email", {"to": ["izzudin@example.com"]}, permitted) is True
     
     # Invalid recipient
     assert enforce_capability_membrane("send_email", {"to": "kpj@example.com", "cc": "mak"}, permitted) is False

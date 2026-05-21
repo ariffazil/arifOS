@@ -22,6 +22,8 @@ from typing import Any
 from arifosmcp.runtime.tools import _arif_judge_deliberate
 from arifosmcp.runtime.niat_gate import check_niat_gate
 from arifosmcp.runtime.metabolic_receipt import get_cumulative_metrics
+from arifosmcp.runtime.self_mod_lock import is_self_modification_attempt
+from arifosmcp.runtime.claim_compiler import compile_claim_state
 from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
 
 
@@ -372,6 +374,39 @@ def arif_judge_deliberate(
     # Extract evidence level from candidate or context if possible
     # Placeholder: currently we check if the candidate makes strong claims
     # that exceed the evidence stored in the receipt/session.
+
+    # ── METABOLIC BYPASS CHECK (Gap 3.4 Invariant) ──────────────────────────
+    if session_id:
+        cumulative = get_cumulative_metrics(session_id)
+        if cumulative.get("is_bypass_attempt"):
+            return VerdictOutput(
+                verdict=VerdictCode.HOLD,
+                reasons=[
+                    "METABOLIC_BYPASS_DETECTED: Cumulative risk or file changes exceeded safe window threshold.",
+                    f"Cumulative Risk: {cumulative.get('cumulative_risk')}, Total Files: {cumulative.get('total_files_touched')}",
+                ],
+                next_safe_action="Aggregate small actions into a single atomic plan for human review.",
+                meta={"cumulative_metrics": cumulative},
+            )
+
+    # ── SELF-MODIFICATION LOCK (Gap 5) ──────────────────────────────────────
+    if isinstance(candidate, str) or isinstance(candidate, dict):
+        _target = ""
+        _action = ""
+        if isinstance(candidate, str):
+            _target = candidate
+        elif isinstance(candidate, dict):
+            _target = candidate.get("target_path", "")
+            _action = candidate.get("action_type", "")
+            
+        self_mod = is_self_modification_attempt(_target, _action, [])
+        if self_mod.get("is_blocked"):
+            return VerdictOutput(
+                verdict=VerdictCode.HOLD,
+                reasons=[self_mod.get("reason")],
+                next_safe_action="Draft the modification as a proposal only. Final approval requires Sovereign Arif.",
+                meta={"self_mod_lock": self_mod},
+            )
 
     result = _arif_judge_deliberate(
         mode=mode,
