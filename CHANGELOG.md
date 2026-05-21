@@ -1,5 +1,18 @@
 # CHANGELOG — arifOS
 
+## [v2026.05.23] — 2026-05-21
+
+### Ruff E722 + B904 Bugfix (6 files)
+
+- **interpreter.py**: `raise ... from exc` added to all 5 exception handlers (SEA-LION transport/parse, JSON decode, Ollama unavailable/parse).
+- **quote_ledger.py**: `raise ... from exc` added to JSON decode and entry validation handlers.
+- **real_webmcp.py**: bare `except:` → `except Exception:` (JSON body parsing fallback).
+- **server.py**: bare `except:` → `except Exception:` (verdict loop skip).
+- **cli.py**: bare `except:` → `except Exception:` (payload print fallback).
+- **mcp_inspector_test.py**: bare `except:` → `except Exception:` (tool availability probe).
+
+Remaining 408 ruff errors are cosmetic (E501 line-length in embedded HTML strings; F405 star-imports in scripts/optimize_agents.py).
+
 ## [v2026.05.21-1] — 2026-05-21
 
 ### LSP Import Resolution + MCP Protocol Compliance
