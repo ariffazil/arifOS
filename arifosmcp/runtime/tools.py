@@ -3166,45 +3166,119 @@ def _arif_session_init(
             "Verdict: SEAL for awareness, HOLD for autonomous mutation."
         )
 
-        return _ok(
-            "arif_session_init",
-            {
-                # 11 WAJIB fields (EUREKA)
-                "instrument_statement": _instrument_statement,
-                "actor": {"id": actor_id, "authority_level": authority_level, "identity_verified": identity_verified},
-                "embodiment": _embodiment,
-                "action_classifier": _action_classifier,
-                "physics": _physics,
-                "logic": _logic,
-                "execution_law": _execution_law,
-                "attention_surface": _attention_surface,
-                "tool_surface": _tool_surface,
-                "memory": _memory_quarantined,
-                "risk_leash": _risk_leash,
-                # Legacy compat
-                "session": sess,
-                "manifest": get_tool_spec("arif_session_init"),
-                "binding": binding,
-                "governance": governance,
-                "next_allowed_tools": next_allowed_tools,
-                "store_ack": store_ack,
-                "doctrine": ARIF_DOCTRINE,
-                "signature_verified": signature_verified,
+        # EUREKA: Clean machine-readable init schema (Arif §11 target)
+        _init_response = {
+            # Stage header
+            "stage": "000_INIT",
+            "purpose": "agentic_bootstrap",
+            # Actor
+            "actor": {
+                "claimed_id": actor_id,
                 "identity_verified": identity_verified,
-                "authority_level": authority_level,
-                "constitution_bound": constitution_bound,
-                "invariants_checked": invariants_checked,
-                "lineage": {
-                    "previous_session_hash": previous_session_hash,
-                    "session_genesis_hash": hashlib.sha256(
-                        json.dumps(sess, sort_keys=True, separators=(",", ":")).encode()
-                    ).hexdigest()[:16],
-                    "constitution_hash_at_init": constitution_hash,
-                },
+                "authority": "human_judge",
             },
+            # Assistant
+            "assistant": {
+                "role": "instrument",
+                "self_authority": False,
+                "may_self_approve": False,
+            },
+            # Embodiment — tools are causality handles, not text
+            "embodiment": {
+                "environment": "vps_or_machine_runtime",
+                "host": _socket.gethostname(),
+                "os": f"{os.uname().sysname} {os.uname().release}",
+                "privilege": "root" if os.geteuid() == 0 else "user",
+                "root_capability_known": True,
+                "commands_are_state_transitions": True,
+                "atomic_button_awareness": True,
+                "shell": ["bash"],
+                "package_managers": ["npm", "bun", "pip", "git", "docker"],
+                "filesystem_scope": "full_root" if os.geteuid() == 0 else "user_home",
+                "execution_broker": "arif_forge_execute",
+                "mutation_default": "dry_run",
+                "atomic_patterns": [
+                    "rm -rf /", "chmod -R 777 /", "dd if=/dev/zero of=/dev/sda",
+                    "git push --force", "DROP DATABASE", "systemctl stop",
+                    "curl secrets to external", "npm install unknown-package",
+                ],
+            },
+            # Axioms — operational physics, not decoration
+            "axioms": {
+                "causality": "action changes state",
+                "reversibility": "irreversible actions require explicit approval",
+                "entropy": "actions that increase disorder are gated",
+                "least_privilege": "use smallest sufficient authority",
+                "audit": "consequential actions require trace",
+                "non_contradiction": "unverified cannot be called verified",
+            },
+            # Symbolic action classifier
+            "action_classifier": _action_classifier,
+            # Execution policy
+            "execution_policy": {
+                "read_only": "allow",
+                "dry_run": "prefer",
+                "mutating": "plan_required",
+                "root_level": "approval_required",
+                "irreversible": "approval_required",
+                "external_side_effect": "approval_required",
+                "secret_touching": "redact_or_hold",
+            },
+            # Memory policy — quarantine unproven
+            "memory_policy": {
+                "unproven_memory": "quarantine",
+                "debug_memory": "do_not_use_as_authority",
+                "memory_influence_requires_provenance": True,
+                "loaded": memory_loaded,
+                "count": memory_loaded,
+            },
+            # Attention surface
+            "attention_surface": [
+                "blast_radius",
+                "reversibility",
+                "secret_exposure",
+                "external_effect",
+                "root_privilege",
+                "auditability",
+                "rollback",
+            ],
+            # Physics (detailed)
+            "physics": _physics,
+            # Logic (detailed)
+            "logic": _logic,
+            # Tool surface (compact)
+            "tool_surface": _tool_surface,
+            # Risk leash
+            "risk_leash": _risk_leash,
+            # Verdict
+            "verdict": {
+                "awareness": "SEAL",
+                "autonomous_mutation": "HOLD",
+            },
+            # Instrument statement (human-readable)
+            "instrument_statement": _instrument_statement,
+            # Session lineage (audit trail)
+            "lineage": {
+                "session_id": sid,
+                "previous_session_hash": previous_session_hash,
+                "constitution_hash_at_init": constitution_hash,
+            },
+            # Strip legacy compat fields from public init — decorative cruft removed
+            # NO: wisdom, doctrine, manifest (decorative)
+            # NO: repeated actor/session IDs (noise)
+            # NO: empty warning lists (ceremony)
+        }
+
+        # Override wisdom (decorative cruft — remove from meta)
+        _response = _ok(
+            "arif_session_init",
+            _init_response,
             delta_S=0.001,
             session_id=sid,
         )
+        # Strip decorative cruft from response meta
+        _response.pop("wisdom", None)
+        return _response
 
     if normalized_mode == "resume":
         if not session_id:
