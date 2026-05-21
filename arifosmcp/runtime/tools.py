@@ -9795,6 +9795,23 @@ def _arif_forge_execute(
                         session_id=session_id,
                     )
 
+    # ── Self-Authorization Guard (F01/F13 invariant) ──
+    if mode in ("engineer", "write", "generate", "commit"):
+        from arifosmcp.tools.self_authorize_guard import detect_self_authorize
+        guard_result = detect_self_authorize(manifest)
+        if guard_result["verdict"] in ("HOLD", "VOID"):
+            return _hold(
+                "arif_forge_execute",
+                f"SELF_AUTHORIZE GUARD: {guard_result['summary']}",
+                ["F01", "F13"],
+                extra_meta={
+                    "event_type": "self_authorization_attempt",
+                    "severity": "critical" if guard_result["verdict"] == "VOID" else "high",
+                    "findings": guard_result["findings"],
+                },
+                session_id=session_id,
+            )
+
     # dry_run mode — simulate but still run floor checks for threat preview
     if mode == "dry_run":
         from arifosmcp.core.constitution_kernel import WitnessType
