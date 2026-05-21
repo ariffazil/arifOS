@@ -250,7 +250,11 @@ def _run_minimal_stdio_server() -> None:
         ]
 
     async def _get_prompt(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        """Fetch a prompt by name. Raises LookupError if not found (MCP code -32602)."""
         prompt = await _mcp.get_prompt(name, arguments or {})
+        # FastMCP returns None when prompt not found
+        if prompt is None:
+            raise LookupError(f"Unknown prompt: '{name}'")
         messages = []
         if hasattr(prompt, "messages"):
             for m in prompt.messages:
@@ -391,6 +395,15 @@ def _run_minimal_stdio_server() -> None:
                 arguments = params.get("arguments") or {}
                 result = _async_loop.run_until_complete(_get_prompt(name, arguments))
                 send({"jsonrpc": "2.0", "id": request_id, "result": result})
+            except LookupError as exc:
+                # MCP code -32602: Invalid params / Unknown resource
+                send(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "error": {"code": -32602, "message": str(exc)},
+                    }
+                )
             except Exception as exc:
                 send(
                     {
@@ -430,14 +443,17 @@ def _run_minimal_stdio_server() -> None:
 
             try:
                 envelope = asyncio.run(_invoke_stdio_tool(handler, arguments))
+                result_payload = {
+                    "content": [{"type": "text", "text": json.dumps(envelope)}],
+                }
+                # MCP spec: isError only present when true (omitted on success)
+                if not envelope.get("ok", True):
+                    result_payload["isError"] = True
                 send(
                     {
                         "jsonrpc": "2.0",
                         "id": request_id,
-                        "result": {
-                            "content": [{"type": "text", "text": json.dumps(envelope)}],
-                            "isError": not envelope.get("ok", True),
-                        },
+                        "result": result_payload,
                     }
                 )
             except Exception as exc:

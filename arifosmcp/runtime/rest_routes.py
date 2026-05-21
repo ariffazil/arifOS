@@ -4884,52 +4884,36 @@ def register_rest_routes(
     # ── Prompts ───────────────────────────────────────────────────────────────
     @route("/prompts", methods=["GET"])
     async def list_prompts(request: Request) -> Response:
-        """List MCP prompts — constitutional task templates."""
+        """List MCP prompts — constitutional task templates.
+
+        MCP compliance fix: delegate to actual MCP registry with correct
+        arguments[] schema per MCP spec §Prompts.
+        """
         try:
-            prompts_list = [
-                {
-                    "name": "constitutional.analysis",
-                    "description": "Analyze claims against 13 constitutional floors",
-                    "params": ["query", "risk_tier", "context"],
-                },
-                {
-                    "name": "governance.audit",
-                    "description": "Audit content against governance standards",
-                    "params": ["content", "standard"],
-                },
-                {
-                    "name": "execution.planning",
-                    "description": "Plan task execution with constitutional constraints",
-                    "params": ["task", "constraints"],
-                },
-                {
-                    "name": "minimal.response",
-                    "description": "Generate minimal response with token budget",
-                    "params": ["query", "max_tokens"],
-                },
-                {
-                    "name": "reply_protocol_v3",
-                    "description": "AGI Reply Protocol v3 orchestration",
-                    "params": [
-                        "query",
-                        "recipient",
-                        "depth",
-                        "compression",
-                        "risk_tier",
-                        "prior_state",
-                    ],
-                },
-                {
-                    "name": "a-forge.govern",
-                    "description": "A-FORGE governance check prompt",
-                    "params": ["task", "mode"],
-                },
-                {
-                    "name": "a-forge.deploy",
-                    "description": "A-FORGE deployment prompt",
-                    "params": ["target"],
-                },
-            ]
+            mcp_prompts = await mcp.list_prompts()
+            prompts_list = []
+            for p in mcp_prompts:
+                raw_args = getattr(p, "arguments", []) or []
+                # Normalise to MCP spec arguments[]: {name, description, required}
+                if raw_args and isinstance(raw_args[0], str):
+                    # Backward-compat: older MCP servers return param name strings
+                    args = [{"name": a, "required": False, "description": ""} for a in raw_args]
+                else:
+                    args = [
+                        {
+                            "name": getattr(a, "name", str(a)) or "",
+                            "required": getattr(a, "required", False),
+                            "description": getattr(a, "description", "") or "",
+                        }
+                        for a in raw_args
+                    ]
+                prompts_list.append(
+                    {
+                        "name": p.name,
+                        "description": getattr(p, "description", "") or "",
+                        "arguments": args,
+                    }
+                )
             return JSONResponse(
                 {
                     "prompts": prompts_list,
@@ -5862,9 +5846,7 @@ setInterval(refreshSot, 30000);
         try:
             import urllib.request
 
-            with urllib.request.urlopen(
-                "https://arifos.arif-fazil.com/health", timeout=5
-            ) as r:  # nosec B310
+            with urllib.request.urlopen("https://arifos.arif-fazil.com/health", timeout=5) as r:  # nosec B310
                 results["health"] = {
                     "status": "ok",
                     "http": r.status,
@@ -5876,9 +5858,7 @@ setInterval(refreshSot, 30000);
         try:
             import urllib.request
 
-            with urllib.request.urlopen(
-                "https://arifos.arif-fazil.com/tools", timeout=5
-            ) as r:  # nosec B310
+            with urllib.request.urlopen("https://arifos.arif-fazil.com/tools", timeout=5) as r:  # nosec B310
                 body = json.loads(r.read())
                 results["tools"] = {
                     "status": "ok",
@@ -5891,9 +5871,7 @@ setInterval(refreshSot, 30000);
         try:
             import urllib.request
 
-            with urllib.request.urlopen(
-                "https://arifos.arif-fazil.com/tools.json", timeout=5
-            ) as r:  # nosec B310
+            with urllib.request.urlopen("https://arifos.arif-fazil.com/tools.json", timeout=5) as r:  # nosec B310
                 body = json.loads(r.read())
                 results["tools_json"] = {
                     "status": "ok",
