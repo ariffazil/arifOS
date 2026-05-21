@@ -9235,8 +9235,14 @@ def _arif_vault_seal(
             if dev_mode_bypass
             else _KERNEL.evaluate_intent(
                 tool_name="arif_vault_seal",
-                params={"mode": mode, "ack_irreversible": ack_irreversible},
+                params={
+                    "mode": mode,
+                    "ack_irreversible": ack_irreversible,
+                    "actor_signature": actor_signature,
+                    "nonce": nonce,
+                },
                 session_id=session_id,
+                actor_id=actor_id,
                 witness_type=wt,
             )
         )
