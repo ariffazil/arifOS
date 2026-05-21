@@ -9270,6 +9270,84 @@ def _arif_vault_seal(
             ).model_dump(mode="json")
 
     if mode == "seal":
+        # F1/F11: Ed25519 sovereign signature verification
+        # Optional alongside judge_contract — when both are present, vault entry
+        # carries cryptographic proof of sovereign intent, not just deliberation.
+        signature_verified = False
+        authority_level = "OPERATOR"
+        if actor_signature and nonce:
+            try:
+                from arifosmcp.runtime.sovereign_verify import (
+                    AUTHORITY_SOVEREIGN,
+                    AUTHORITY_VOID,
+                    verify_sovereign_signature,
+                    purge_expired_nonces,
+                )
+
+                identity = get_constitution_identity()
+                constitution_hash = identity["constitution_hash"]
+
+                # Purge expired nonces and check replay
+                purge_expired_nonces(_NONCE_STORE, _NONCE_TTL_SECONDS)
+                if nonce in _NONCE_STORE:
+                    return SealOutput(
+                        status="HOLD",
+                        verdict=VerdictCode.HOLD,
+                        result={},
+                        constitutional_compliance=ConstitutionalCompliance(
+                            floors_invoked=["F01", "F11"],
+                            floor_results={"F01": "FAIL", "F11": "FAIL"},
+                        ),
+                        meta={
+                            "reason": "Nonce replay detected",
+                            "failed_floors": ["F01", "F11"],
+                            "next_safe_action": "Use a fresh nonce. Previously-seen nonces are rejected.",
+                        },
+                        reasons=["Nonce replay detected — possible interception or replay attack"],
+                        next_safe_action="Use a fresh nonce.",
+                        actor_id=actor_id,
+                        timestamp=_now(),
+                        ack_irreversible_received=ack_irreversible,
+                    ).model_dump(mode="json")
+                _NONCE_STORE[nonce] = time.time()
+
+                verified, reason = verify_sovereign_signature(
+                    actor_id=actor_id or "anonymous",
+                    constitution_hash=constitution_hash,
+                    nonce=nonce,
+                    actor_signature=actor_signature,
+                )
+                if verified:
+                    signature_verified = True
+                    authority_level = AUTHORITY_SOVEREIGN
+                    logger.info(
+                        "Vault seal Ed25519 verified — actor=%s authority=SOVEREIGN",
+                        actor_id,
+                    )
+                else:
+                    return SealOutput(
+                        status="HOLD",
+                        verdict=VerdictCode.HOLD,
+                        result={},
+                        constitutional_compliance=ConstitutionalCompliance(
+                            floors_invoked=["F01", "F11"],
+                            floor_results={"F01": "FAIL", "F11": "FAIL"},
+                        ),
+                        meta={
+                            "reason": f"Ed25519 signature verification failed: {reason}",
+                            "failed_floors": ["F01", "F11"],
+                            "next_safe_action": "Provide a valid Ed25519 signature over session_id+constitution_hash+nonce, or omit actor_signature for OPERATOR-level seal.",
+                        },
+                        reasons=[f"Ed25519 verification failed: {reason}"],
+                        next_safe_action="Provide a valid Ed25519 signature or omit actor_signature for OPERATOR-level seal.",
+                        actor_id=actor_id,
+                        timestamp=_now(),
+                        ack_irreversible_received=ack_irreversible,
+                    ).model_dump(mode="json")
+            except Exception as exc:
+                logger.warning("Vault seal Ed25519 verification error: %s", exc)
+                # Non-fatal: fall through to judge_contract path
+
         judge_contract, hold = _resolve_judge_contract(
             constitutional_chain_id=constitutional_chain_id,
             judge_state_hash=judge_state_hash,
@@ -9436,6 +9514,10 @@ def _arif_vault_seal(
             "wealth_recommendation": (verification_state or {}).get("recommendation"),
             "wealth_floor_flags": (verification_state or {}).get("floor_flags", []),
             "verification_state": verification_state or {},
+            # F1/F11: Ed25519 sovereign signature (cryptographic proof of intent)
+            "signature_verified": signature_verified,
+            "authority_level": authority_level,
+            "actor_signature": actor_signature if signature_verified else None,
         }
         _VAULT_LEDGER.append(entry)
         _VAULT_ENTRY_REGISTRY[entry_id] = entry
