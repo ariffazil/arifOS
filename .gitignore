@@ -161,3 +161,8 @@ arifos.egg-info/
 # Existing tracked files remain tracked until explicitly moved.
 arifosmcp/sessions/hermes-briefings/*
 !arifosmcp/sessions/hermes-briefings/README.md
+
+# Agent workspace scraps — archived
+.archive/
+*.bak/
+.*.bak
