@@ -2745,8 +2745,37 @@ def _arif_session_init(
             _NONCE_STORE[nonce] = time.time()
             invariants_checked.append("nonce_fresh")
 
-        # F1/F11: Ed25519 signature verification (replaces SHA-256 stub)
+        # F1/F11: HMAC-rootkey verification (Telegram-native path — ARIF_ROOTKEY)
+        # This path is tried FIRST because Telegram agents hold ARIF_ROOTKEY,
+        # not the Ed25519 private key (which only the root process has).
         if actor_signature and nonce:
+            try:
+                from arifosmcp.runtime.sovereign_verify import (
+                    AUTHORITY_HMAC,
+                    verify_hmac_signature,
+                )
+
+                hmac_ok, hmac_reason = verify_hmac_signature(
+                    actor_id=actor_id or "ariffazil",
+                    challenge=nonce,  # nonce IS the challenge in HMAC path
+                    sig=actor_signature,
+                )
+                if hmac_ok:
+                    signature_verified = True
+                    identity_verified = True
+                    authority_level = AUTHORITY_HMAC
+                    invariants_checked.append(hmac_reason)
+                    invariants_checked.append("telegram_identity_confirmed")
+                    logger.info(
+                        "HMAC-rootkey verified — actor=%s authority=HMAC_VERIFIED",
+                        actor_id,
+                    )
+            except Exception as exc:
+                logger.warning("HMAC verification error: %s", exc)
+                # Fall through to Ed25519 path
+
+        # F1/F11: Ed25519 signature verification (replaces SHA-256 stub)
+        if actor_signature and nonce and authority_level != AUTHORITY_HMAC:
             try:
                 from arifosmcp.runtime.sovereign_verify import (
                     AUTHORITY_SOVEREIGN,

@@ -21,9 +21,11 @@ services:
       POSTGRES_URL: postgresql://${POSTGRES_USER:-arifos_admin}:${POSTGRES_PASSWORD}@postgres:5432/vault999
       REDIS_URL: redis://redis:6379
       QDRANT_URL: http://qdrant:6333
+      ARIFOS_SOVEREIGN_PUBKEY_FILE: /run/sekrits/arifos_sovereign.pub
     volumes:
       - /var/lib/arifos/vault:/var/lib/arifos/vault:rw
       - /var/log/arifos/telemetry:/usr/src/app/arifosmcp/telemetry:rw
+      - /root/compose/sekrits/arifos_sovereign.pub:/run/sekrits/arifos_sovereign.pub:ro
     networks:
       - arifos_core
     healthcheck:

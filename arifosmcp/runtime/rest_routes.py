@@ -2045,14 +2045,9 @@ def _probe_graphiti_enabled() -> bool:
 def _probe_langfuse_tracing() -> dict[str, Any]:
     """Probe Langfuse cloud tracing status and return structured state."""
     try:
-        # Load .env so environment variables are available before Langfuse init
-        try:
-            from dotenv import load_dotenv
-
-            load_dotenv("/app/.env", override=True)
-        except Exception:
-            pass
-
+        # Env vars are set at container start from the real (decrypted) values.
+        # load_dotenv is NOT called here — the .env file is SOPS-encrypted
+        # and would overwrite real env vars with ENC[...] strings if loaded.
         public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
         secret_key = os.getenv("LANGFUSE_SECRET_KEY")
         host = os.getenv("LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com")

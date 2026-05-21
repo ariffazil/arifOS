@@ -74,6 +74,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=deps /usr/local/lib/python3.12 /usr/local/lib/python3.12
 COPY --from=deps /usr/local/bin /usr/local/bin
 
+# Verify aiohttp is installed (uv --system may skip if already present but version differs)
+# Use pip as fallback since uv may not own all packages in --system mode
+RUN uv pip install --system aiohttp 2>/dev/null || pip install --break-system-packages aiohttp 2>/dev/null || true
+
 # Copy package source as /app/arifosmcp (not nested under a subfolder)
 COPY arifosmcp /app/arifosmcp
 COPY core /app/core

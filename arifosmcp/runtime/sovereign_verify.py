@@ -17,6 +17,8 @@ Authority levels:
 from __future__ import annotations
 
 import base64
+import hashlib
+import hmac
 import logging
 import os
 import time
@@ -37,6 +39,58 @@ _PUBKEY_CANDIDATES = [
 AUTHORITY_SOVEREIGN = "SOVEREIGN"
 AUTHORITY_OBSERVER = "OBSERVER"
 AUTHORITY_VOID = "VOID"
+AUTHORITY_HMAC = "HMAC_VERIFIED"
+
+# HMAC-rootkey verification (for Telegram-native identity)
+def verify_hmac_signature(
+    actor_id: str,
+    challenge: str,
+    sig: str,
+) -> tuple[bool, str]:
+    """
+    F11 AUTH via HMAC-rootkey (Telegram-native path).
+
+    Args:
+        actor_id: Must be "ariffazil"
+        challenge: "timestamp:op_id" format (same as nonce)
+        sig: HMAC-SHA256(rootkey, challenge) hex digest
+
+    Returns:
+        (verified: bool, reason: str)
+    """
+    import os
+
+    if actor_id != "ariffazil":
+        return False, "hmac_actor_id_mismatch"
+
+    rootkey = os.getenv("ARIF_ROOTKEY", "")
+    if not rootkey:
+        return False, "hmac_rootkey_not_configured"
+
+    if not is_challenge_fresh(challenge):
+        return False, "hmac_challenge_stale"
+
+    expected = hmac.new(
+        rootkey.encode(),
+        challenge.encode(),
+        hashlib.sha256,
+    ).hexdigest()
+
+    if hmac.compare_digest(expected, sig):
+        return True, "hmac_signature_verified"
+    return False, "hmac_signature_invalid"
+
+
+def is_challenge_fresh(challenge: str, window_sec: int = 300) -> bool:
+    """
+    Reject replayed challenges older than window_sec.
+    Default 300s (5 min) for HMAC path — longer than Ed25519's 60s.
+    """
+    try:
+        ts = int(challenge.split(":")[0])
+        return abs(time.time() - ts) <= window_sec
+    except (ValueError, IndexError):
+        return False
 
 
 @lru_cache(maxsize=1)
