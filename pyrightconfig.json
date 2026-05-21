@@ -1,13 +1,9 @@
 {
   "include": ["arifosmcp", "core"],
-  "exclude": ["**/__pycache__", "**/node_modules"],
+  "exclude": ["**/__pycache__", "**/node_modules", "**/.archive"],
   "pythonVersion": "3.12",
   "typeCheckingMode": "basic",
-  "reportMissingImports": true,
-  "reportMissingTypeStubs": false,
-  "pythonPath": ".",
-  "extraPaths": ["."],
-  "siteLibs": ["."],
+  "reportMissingImports": false,
   "reportUnknownMemberType": false,
   "reportUnknownVariableType": false,
   "reportUnknownParameterType": false

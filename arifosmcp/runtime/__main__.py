@@ -14,6 +14,7 @@ from .fastmcp_ext.transports import run_server
 
 if TYPE_CHECKING:
     from fastmcp.server import FastMCP as FastMCPT
+    from arifosmcp.runtime.session import get_session_identity as _gsi
 
 
 def _bootstrap_environment() -> None:
@@ -114,20 +115,21 @@ async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[st
     handler_name = getattr(handler, "__name__", "")
 
     # Lazy imports — placed here to avoid loading heavy deps at module init.
-    # LSP cannot resolve these due to runtime sys.path setup; type ignores below.
-    from arifosmcp.runtime.session import get_session_identity  # type: ignore[import]
+    # TYPE_CHECKING stubs (_gsi, _av) give the LSP name resolution;
+    # the actual imports provide the runtime callable.
+    from arifosmcp.runtime.session import get_session_identity as _gsi  # type: ignore[import]
 
     if not arguments.get("actor_id"):
         sid = arguments.get("session_id")
         if sid:
-            session_info = get_session_identity(sid)
+            session_info = _gsi(sid)
             if session_info:
                 arguments["actor_id"] = session_info.get("actor_id")
 
     if handler_name == "vault_seal":
-        from arifosmcp.runtime.tools import arifos_vault  # type: ignore[import]
-
-        return await arifos_vault(**arguments)
+        # vault_seal maps to arif_vault_seal (handler_name would be _arif_vault_seal_tool).
+        # The legacy "vault_seal" branch is unreachable — kept for traceability only.
+        return await handler(**arguments)
 
     result = handler(**arguments)
     if inspect.isawaitable(result):
