@@ -2658,6 +2658,17 @@ def _arif_session_init(
       authority level, next_allowed_tools, and epoch binding.
       Includes signature_verified and constitution_bound flags for F1/F11 compliance.
     """
+    # EUREKA EMBODIMENT FIX: explicit null handling before floor check
+    # P0: null actor_id should produce clear error, not silent coercion
+    if actor_id is None:
+        return _hold(
+            "arif_session_init",
+            "actor_id required — null not coerced to anonymous. "
+            "Provide non-null actor_id for verified sessions, or use mode=ping for anonymous inspection.",
+            ["F11"],
+            session_id=session_id,
+        )
+
     allowed_modes = ["init", "resume", "validate", "epoch_open", "epoch_seal"]
     legacy_aliases = {
         "status": "validate",
@@ -2902,9 +2913,147 @@ def _arif_session_init(
             store_ack["_SESSION_IDENTITY"] = session_exists(sid)
         except Exception:
             pass
+        # EUREKA: Build embodied capability card
+        import socket as _socket
+        _embodiment = {
+            "body": "vps_root_runtime",
+            "host_attested": True,
+            "host": _socket.gethostname(),
+            "os": f"{os.uname().sysname} {os.uname().release}",
+            "privilege": "root" if os.geteuid() == 0 else "user",
+            "shell": ["bash"],
+            "cwd": os.getcwd(),
+            "package_managers": ["npm", "bun", "pip", "git", "docker"],
+            "vcs": ["git"],
+            "service_manager": "systemd",
+            "filesystem_scope": "full_root",
+            "network_scope": "localhost_only",
+            "container_runtime": True,
+            "execution_broker": "arif_forge_execute",
+            "mutation_default": "dry_run",
+            "side_effects_allowed_without_ack": False,
+            "atomic_capability_present": True,
+            "root_capability_present": os.geteuid() == 0,
+        }
+
+        # EUREKA: Causality warning — text becomes machine action
+        _causality_warning = {
+            "symbols_can_execute": True,
+            "execution_changes_state": True,
+            "state_change_has_blast_radius": True,
+            "text_becomes_irreversible_action": True,
+            "atomic_capability_present": True,
+            "atomic_patterns": [
+                "rm -rf /",
+                "chmod -R 777 /",
+                "dd if=/dev/zero of=/dev/sda",
+                "git push --force",
+                "DROP DATABASE",
+                "systemctl stop",
+                "curl secrets to external",
+                "npm install unknown-package",
+            ],
+        }
+
+        # EUREKA: Execution law — what requires what
+        _execution_law = {
+            "read_only": "allowed",
+            "write_file": "requires_plan",
+            "install_package": "requires_ack",
+            "restart_service": "requires_ack",
+            "delete": "requires_ack",
+            "secret_access": "redacted_or_blocked",
+            "external_relay": "requires_judge_hash",
+            "irreversible": "explicit_arif_ack_required",
+            "root_blast_radius": "888_gate_required",
+        }
+
+        # EUREKA: Attention surface — what to watch
+        _attention_surface = {
+            "track_privilege": True,
+            "track_irreversibility": True,
+            "track_blast_radius": True,
+            "track_rollback": True,
+            "track_prompt_injection": True,
+            "primary": [
+                "root privilege detected",
+                "filesystem mutation can be irreversible",
+                "secrets may exist in env and dotfiles",
+                "package installs can execute postinstall scripts",
+                "service restarts affect availability",
+                "network calls may leak data",
+                "all mutation must pass FORGE/JUDGE gates",
+            ],
+            "inference_constraints": [
+                "do not infer cryptographic identity",
+                "do not infer permission to execute",
+                "do not assume read-only is truly read-only",
+                "classify command before execution",
+                "detect destructive patterns before calling",
+            ],
+        }
+
+        # EUREKA: Tool surface — semantic groups
+        _tool_surface = {
+            "mode": "semantic_map",
+            "count": len(next_allowed_tools),
+            "groups": {
+                "bootstrap": ["arif_session_init"],
+                "sense": ["arif_sense_observe"],
+                "evidence": ["arif_evidence_fetch"],
+                "reason": ["arif_mind_reason"],
+                "route": ["arif_kernel_route"],
+                "reply": ["arif_reply_compose"],
+                "memory": ["arif_memory_recall"],
+                "heart": ["arif_heart_critique"],
+                "ops": ["arif_ops_measure"],
+                "judge": ["arif_judge_deliberate"],
+                "vault": ["arif_vault_seal"],
+                "forge": ["arif_forge_execute"],
+                "gateway": ["arif_gateway_connect"],
+            },
+            "gated": ["forge_write", "vault_seal", "gateway_relay"],
+            "raw_manifest_available": True,
+            "raw_manifest_location": "resource://agent/capabilities/raw",
+        }
+
+        # EUREKA: Risk leash
+        _degraded = not sess.get("model_governance_card")
+        _risk_leash = {
+            "status": "DEGRADED" if _degraded else "OPERATIONAL",
+            "max_action_class": "analyze" if _degraded else "execute",
+            "side_effects_allowed": False,
+            "degraded": _degraded,
+            "reason": "model_identity_unverified" if _degraded else None,
+        }
+
+        # EUREKA: Session warnings
+        _warnings_list = []
+        if authority_level == "OPERATOR_CLAIMED":
+            _warnings_list.append("identity_unverified")
+        if not sess.get("model_governance_card"):
+            _warnings_list.append("model_identity_unverified")
+            _warnings_list.append("max_action_class_analyze_only")
+        _warnings = {
+            "warnings": _warnings_list,
+            "identity_unverified": authority_level == "OPERATOR_CLAIMED",
+            "model_identity_unverified": not sess.get("model_governance_card"),
+            "risk_registry_unavailable": False,
+            "max_action_class_analyze_only": not sess.get("model_governance_card"),
+        }
+
         return _ok(
             "arif_session_init",
             {
+                # WAJIB embodied fields (EUREKA)
+                "embodiment": _embodiment,
+                "causality_warning": _causality_warning,
+                "execution_law": _execution_law,
+                "attention_surface": _attention_surface,
+                "tool_surface": _tool_surface,
+                "risk_leash": _risk_leash,
+                "warnings": _warnings,
+                # Legacy compat fields
                 "session": sess,
                 "manifest": get_tool_spec("arif_session_init"),
                 "binding": binding,
@@ -8799,6 +8948,8 @@ def _arif_vault_seal(
     session_id: str | None = None,
     ack_irreversible: bool = False,
     actor_id: str | None = None,
+    actor_signature: str | None = None,
+    nonce: str | None = None,
     constitutional_chain_id: str | None = None,
     judge_state_hash: str | None = None,
     verification_state: dict[str, Any] | None = None,
@@ -9686,6 +9837,8 @@ async def _arif_vault_seal_tool(
     session_id: str | None = None,
     ack_irreversible: bool = False,
     actor_id: str | None = None,
+    actor_signature: str | None = None,
+    nonce: str | None = None,
     constitutional_chain_id: str | None = None,
     judge_state_hash: str | None = None,
     ctx: Context | None = None,
@@ -9753,6 +9906,8 @@ async def _arif_vault_seal_tool(
             session_id=session_id,
             ack_irreversible=ack_irreversible,
             actor_id=actor_id,
+            actor_signature=actor_signature,
+            nonce=nonce,
             constitutional_chain_id=constitutional_chain_id,
             judge_state_hash=judge_state_hash,
         )

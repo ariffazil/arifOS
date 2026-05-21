@@ -33,15 +33,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN --mount=type=cache,target=/root/.cache/pip pip install uv
 
-COPY arifosmcp/requirements.txt requirements.txt
+COPY arifosmcp/requirements-lean.txt requirements-lean.txt
 
-# ── torch CPU-only: saves ~1.5–2 GB vs CUDA build ─────────────────────
-# The --extra-index-url with CPU wheels means pip picks CPU builds when available.
-# transformers is kept as a dep of sentence_transformers (needed for SBERT loading).
+# ── Lean runtime: heuristic-only, no ML packages ─────────────────────────
+# Semantic floors use fast heuristic fallback. Full ML (torch, SBERT) can be
+# installed at runtime if needed. numpy>=2.0 for generic compatibility.
 RUN --mount=type=cache,target=/root/.cache/pip \
-    uv pip install --system -r requirements.txt \
-    --index-url https://download.pytorch.org/whl/cpu \
-    --extra-index-url https://pypi.org/simple
+    uv pip install --system -r requirements-lean.txt
 
 
 # ── Stage 2: runtime image ────────────────────────────────────────────────
@@ -83,7 +81,9 @@ COPY arifosmcp /app/arifosmcp
 COPY core /app/core
 COPY pyproject.toml /app/
 
-# Install runtime-only deps not in requirements.txt
+# Install runtime-only deps — heuristic-only build (no torch/sentence-transformers).
+# ML semantic floors use fast heuristic fallback. Full ML packages (torch, SBERT)
+# can be installed at runtime if needed. langfuse SDK goes to system Python.
 RUN --mount=type=cache,target=/root/.cache/pip pip install blake3==1.0.8 "fastapi>=0.100.0" "langfuse>=2.0.0"
 
 # Non-root user
