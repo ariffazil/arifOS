@@ -70,12 +70,16 @@ def verify_hmac_signature(
     if not is_challenge_fresh(challenge):
         return False, "hmac_challenge_stale"
 
+    import logging
+    logger = logging.getLogger("arifosmcp.sovereign")
     expected = hmac.new(
         rootkey.encode(),
         challenge.encode(),
         hashlib.sha256,
     ).hexdigest()
 
+    logger.warning("DEBUG-HMAC: actor=%s challenge=%s sig=%s expected=%s",
+                   actor_id, challenge[:30], sig[:16] if sig else "None", expected[:16])
     if hmac.compare_digest(expected, sig):
         return True, "hmac_signature_verified"
     return False, "hmac_signature_invalid"

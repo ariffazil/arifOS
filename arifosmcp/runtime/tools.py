@@ -2770,6 +2770,12 @@ def _arif_session_init(
                         "HMAC-rootkey verified — actor=%s authority=HMAC_VERIFIED",
                         actor_id,
                     )
+                    logger.warning(
+                        "DEBUG-AUTH: hmac_ok=%s authority_level=%s sig=%s nonce=%s",
+                        hmac_ok, authority_level,
+                        actor_signature[:16] if actor_signature else "None",
+                        nonce,
+                    )
             except Exception as exc:
                 logger.warning("HMAC verification error: %s", exc)
                 # Fall through to Ed25519 path
