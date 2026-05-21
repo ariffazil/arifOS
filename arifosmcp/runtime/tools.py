@@ -3251,10 +3251,7 @@ def _arif_session_init(
             # Risk leash
             "risk_leash": _risk_leash,
             # Verdict
-            "verdict": {
-                "awareness": "SEAL",
-                "autonomous_mutation": "HOLD",
-            },
+            "verdict": "awareness=SEAL, autonomous_mutation=HOLD",
             # Instrument statement (human-readable)
             "instrument_statement": _instrument_statement,
             # Session lineage (audit trail)
