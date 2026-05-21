@@ -156,3 +156,8 @@ zkp_artifacts/
 arifos.egg-info/
 .archive/
 .env.decrypted
+
+# Session briefings are runtime/workspace material by default.
+# Existing tracked files remain tracked until explicitly moved.
+arifosmcp/sessions/hermes-briefings/*
+!arifosmcp/sessions/hermes-briefings/README.md
