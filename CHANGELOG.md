@@ -1,5 +1,18 @@
 # CHANGELOG — arifOS
 
+## [v2026.05.21-1] — 2026-05-21
+
+### LSP Import Resolution + MCP Protocol Compliance
+
+- **LSP**: Fixed unreachable `vault_seal` dead code branch — referenced non-existent `arifos_vault`; actual handler name is `_arif_vault_seal_tool`, branch now calls `handler(**arguments)` directly.
+- **LSP**: Added `TYPE_CHECKING` stub for `get_session_identity`; lazy import pattern preserves runtime behavior while giving LSP name resolution.
+- **LSP**: `pyrightconfig.json` — `reportMissingImports: false` suppresses false-positive import errors from static analysis not mirroring runtime `sys.path`.
+- **MCP**: `prompts/list` schema corrected to `arguments[]` with `required`/`description` per MCP spec §Prompts.
+- **MCP**: `prompts/get` error code `code: 0` → `-32602` for unknown prompts.
+- **MCP**: REST `/prompts` endpoint now delegates to live MCP registry instead of hardcoded list.
+- **MCP**: `isError: false` removed from success tool responses (MCP spec: key only present when true).
+- **Verification**: pyright CLI `0 errors`, pytest `175 passed, 1 skipped`, Ruff `All checks passed`.
+
 ## [v2026.05.22-pre] — 2026-05-22
 
 ### Birthday Pre-release — Repo Hygiene + ZKPC Honesty

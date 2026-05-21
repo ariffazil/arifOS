@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING, Any
 from .fastmcp_ext.transports import run_server
 
 if TYPE_CHECKING:
-    from fastmcp.server import FastMCP as FastMCPT
-    from arifosmcp.runtime.session import get_session_identity as _gsi
+    from fastmcp.server import FastMCP as FastMCPT  # noqa: I001
+    from arifosmcp.runtime.session import get_session_identity as _gsi  # noqa: F401,I001
 
 
 def _bootstrap_environment() -> None:
