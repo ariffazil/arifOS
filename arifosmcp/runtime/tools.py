@@ -2917,6 +2917,17 @@ def _arif_session_init(
         import socket as _socket
         _embodiment = {
             "body": "vps_root_runtime",
+            "wake_up": [
+                "WAKE UP",
+                "KNOW WHO CALLED YOU",
+                "KNOW WHERE YOU ARE",
+                "KNOW WHAT BODY YOU HAVE",
+                "KNOW WHAT BUTTONS YOU HOLD",
+                "KNOW WHICH BUTTONS ARE ATOMIC",
+                "KNOW WHAT LAWS BIND YOU",
+                "KNOW WHO DECIDES",
+                "KNOW WHEN TO STOP",
+            ],
             "host_attested": True,
             "host": _socket.gethostname(),
             "os": f"{os.uname().sysname} {os.uname().release}",
@@ -2936,8 +2947,40 @@ def _arif_session_init(
             "root_capability_present": os.geteuid() == 0,
         }
 
-        # EUREKA: Causality warning — text becomes machine action
-        _causality_warning = {
+        # EUREKA: Causality — text IS machine action (Arif physics law)
+        # S(t+1) = f(S(t), a) — state transition formalism
+        # A command is not text. A command is a state-transition operator.
+        _causality = {
+            "law": "S(t+1) = f(S(t), a)",
+            "definition": {
+                "S(t)": "current machine state",
+                "a": "action / tool / command",
+                "f": "execution function",
+                "S(t+1)": "state after execution",
+            },
+            "axioms": {
+                "causality": {
+                    "rule": "a ≠ null ⇒ possible ΔS, ΔState, ΔRisk",
+                    "meaning": "Every action may change something. Even a simple-seeming command.",
+                },
+                "irreversibility": {
+                    "rule": "R(a) = reversibility score",
+                    "R_1.0": "fully reversible — rollback to prior state possible",
+                    "R_0.0": "irreversible — time, trust, continuity permanently lost",
+                    "threshold": "R(a) < 0.3 → require explicit Arif approval",
+                    "examples": [
+                        "R=1.0: read, search, observe",
+                        "R=0.7: write file (if backup exists)",
+                        "R=0.3: delete file, restart service",
+                        "R=0.0: rm -rf, DROP TABLE, git push --force, dd to disk",
+                    ],
+                },
+                "entropy": {
+                    "rule": "bad action → disorder increases",
+                    "meaning": "A wrong action increases system entropy. Disorder is easy to create, hard to undo.",
+                    "signal": "ΔS > 0.1 within session → warn Arif before proceeding",
+                },
+            },
             "symbols_can_execute": True,
             "execution_changes_state": True,
             "state_change_has_blast_radius": True,
@@ -2955,8 +2998,9 @@ def _arif_session_init(
             ],
         }
 
-        # EUREKA: Execution law — what requires what
+        # EUREKA: Execution law — what requires what (updated with physics)
         _execution_law = {
+            "state_equation": "S(t+1) = f(S(t), a)",
             "read_only": "allowed",
             "write_file": "requires_plan",
             "install_package": "requires_ack",
@@ -2966,9 +3010,11 @@ def _arif_session_init(
             "external_relay": "requires_judge_hash",
             "irreversible": "explicit_arif_ack_required",
             "root_blast_radius": "888_gate_required",
+            "irreversibility_threshold": 0.3,
+            "entropy_warning_threshold": 0.1,
         }
 
-        # EUREKA: Attention surface — what to watch
+        # EUREKA: Attention surface — what to watch at all times
         _attention_surface = {
             "track_privilege": True,
             "track_irreversibility": True,
@@ -2976,20 +3022,21 @@ def _arif_session_init(
             "track_rollback": True,
             "track_prompt_injection": True,
             "primary": [
-                "root privilege detected",
-                "filesystem mutation can be irreversible",
-                "secrets may exist in env and dotfiles",
-                "package installs can execute postinstall scripts",
-                "service restarts affect availability",
-                "network calls may leak data",
-                "all mutation must pass FORGE/JUDGE gates",
+                "root privilege detected — you CAN break the host",
+                "filesystem mutation can be irreversible — classify before calling",
+                "secrets may exist in env and dotfiles — do not leak",
+                "package installs execute postinstall scripts — supply chain risk",
+                "service restarts affect availability — outage risk",
+                "network calls may leak data — classify destination",
+                "all mutation must pass FORGE/JUDGE gates — never act first, classify first",
             ],
             "inference_constraints": [
-                "do not infer cryptographic identity",
-                "do not infer permission to execute",
+                "do not infer cryptographic identity from text",
+                "do not infer permission to execute from context",
                 "do not assume read-only is truly read-only",
-                "classify command before execution",
-                "detect destructive patterns before calling",
+                "classify command: read / write / irreversible / external",
+                "detect destructive patterns before calling any tool",
+                "if R(a) < 0.3: STOP → 888_HOLD",
             ],
         }
 
@@ -3015,6 +3062,19 @@ def _arif_session_init(
             "gated": ["forge_write", "vault_seal", "gateway_relay"],
             "raw_manifest_available": True,
             "raw_manifest_location": "resource://agent/capabilities/raw",
+        }
+
+        # EUREKA: Memory Amanah — quarantine memory summaries without provenance
+        # Raw memory_context is stored in sess[] for session continuity.
+        # Public output shows quarantined state only.
+        _memory_quarantined = {
+            "loaded": memory_loaded > 0,
+            "count": memory_loaded,
+            "scope": "quarantined",
+            "influence_allowed": False,
+            "reason": "summaries lack provenance — do not treat as canon without verification",
+            "action": "quarantine_until_verified",
+            "session_bound": sid in _SESSIONS,
         }
 
         # EUREKA: Risk leash
@@ -3045,12 +3105,13 @@ def _arif_session_init(
         return _ok(
             "arif_session_init",
             {
-                # WAJIB embodied fields (EUREKA)
+                # WAJIB embodied fields (EUREKA) — wake up into reality
                 "embodiment": _embodiment,
-                "causality_warning": _causality_warning,
+                "causality": _causality,
                 "execution_law": _execution_law,
                 "attention_surface": _attention_surface,
                 "tool_surface": _tool_surface,
+                "memory": _memory_quarantined,
                 "risk_leash": _risk_leash,
                 "warnings": _warnings,
                 # Legacy compat fields
@@ -3066,7 +3127,6 @@ def _arif_session_init(
                 "authority_level": authority_level,
                 "constitution_bound": constitution_bound,
                 "invariants_checked": invariants_checked,
-                "memory_loaded": memory_loaded,
                 "lineage": {
                     "previous_session_hash": previous_session_hash,
                     "session_genesis_hash": hashlib.sha256(
