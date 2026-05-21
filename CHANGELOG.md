@@ -13,17 +13,62 @@
 - **MCP**: `isError: false` removed from success tool responses (MCP spec: key only present when true).
 - **Verification**: pyright CLI `0 errors`, pytest `175 passed, 1 skipped`, Ruff `All checks passed`.
 
-## [v2026.05.22-pre] — 2026-05-22
+## [v2026.05.22] — 2026-05-22
 
-### Birthday Pre-release — Repo Hygiene + ZKPC Honesty
+### ⚡ A-RIF Framework + Kernel Purity + Vault999 Two-Lane Architecture
 
-- Added birthday pre-release notes for the 2026-05-22 repo-hygiene branch.
-- Repaired the shared federation layout contract.
-- Added a 2026-05-21 repo hygiene audit ledger.
-- Kept future Hermes session briefings ignored by default.
-- Updated MSAP/ZKPC tests to assert the current toy-circuit quarantine contract instead of overstating constitutional proof authority.
-- Verified `pytest tests/runtime/test_msap_ack.py tests/runtime/test_zkpc_v2.py -q`: 31 passed.
-- Verified `python -m pytest tests/ -q --tb=short`: 1939 passed, 18 skipped.
+**A-RIF Discovery Forge:**
+- Added `forge/program.md` (+187) — autonomous experiment framework (karpathy/autoresearch-inspired).
+- Added `scripts/optimize_agents.py` (+86) — agent optimization script.
+- A-RIF ordinal evidence levels, Jaccard contrast, search worthiness scoring. 488 tests pass.
+- Added `skills/forge-program/SKILL.md` (+125) — forge program skill.
+
+**Vault999 Two-Lane Architecture:**
+- `vault999-writer`: two-lane architecture + ZKPC quarantine + Ed25519 opt-in.
+- `1cb30ce9 vault999-writer: two-lane architecture + ZKPC quarantine + Ed25519 opt-in`.
+
+**Metabolize Mode:**
+- `arif_kernel_route` `mode=metabolize` delegates to `arif_mind_reason_v2`.
+- `arif_mind_reason` handles `mind_packet` nested structure from v2 metabolic synthesis.
+- `metabolize` mode registered in kernel_route and eureka_insight tool modes.
+- Fix: datetime compatibility in mind_reason.
+
+**Session Lifecycle (F11S/F13S):**
+- Lightweight F11S/F13S session lifecycle gate (`f5da7ab2`).
+- Session sealing with provenance tracking.
+
+**Kernel Purity:**
+- Finalized kernel purity and secure workspace isolation.
+- Align `arifOS` repo hygiene and ZKPC tests.
+
+**Deploy Absorptions:**
+- Absorbed remaining A-FORGE deploy artifacts (`e4dd8bbd`).
+- `deploy/`: finalized kernel purity and secure workspace isolation.
+- `arifOS-supabase` integration absorbed.
+
+**Shadow Infrastructure (tests):**
+- `test_shadow_infrastructure.py` (+184 lines).
+- `test_888_judge_paradox_guard.py` (+187 lines).
+- `test_floors_f3_f11.py` (+146 lines).
+- `test_truth_substrate.py` (+509 lines).
+- Paradox Guard + TruthLayer + Cognitive Shadow wired into floor enforcement.
+
+**F9/F4 Compliance:**
+- Removed anthropomorphic self-labels from codebase.
+
+**Google Workspace MCP:**
+- Added Google Workspace MCP tool with OAuth2 integration.
+
+**Repo Hygiene:**
+- Align `pyproject.toml` with system reality; delete `requirements.txt`.
+- Add `pyrightconfig.json` for LSP import resolution.
+- Fix CI: tmpdir for WELL state, remove broken absolute symlink `arifos/well`.
+- Repair shared federation layout contract.
+- Hermes session briefings ignored by default.
+
+**Verification:**
+- `pytest tests/runtime/test_msap_ack.py tests/runtime/test_zkpc_v2.py -q`: 31 passed.
+- `python -m pytest tests/ -q --tb=short`: 1939 passed, 18 skipped.
 
 ## [v2026.05.21] — 2026-05-20
 
