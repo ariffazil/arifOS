@@ -28,7 +28,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -142,7 +142,7 @@ class SubstrateSmokeRunner:
         await self._test_time()
         await self._test_everything()
 
-        return SmokeReport(timestamp=datetime.now(timezone.utc).isoformat(), results=self.results)
+        return SmokeReport(timestamp=datetime.now(UTC).isoformat(), results=self.results)
 
     async def _test_fetch(self):
         """Test fetch substrate"""
@@ -549,11 +549,11 @@ class SubstrateSmokeRunner:
         description: str,
     ):
         """Execute a single test and record result"""
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
 
         try:
             success, error = await test_func()
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
 
             if test_type == TestType.BREACH:
                 # Breach tests PASS when they are BLOCKED
@@ -577,7 +577,7 @@ class SubstrateSmokeRunner:
             logger.info(f"  {icon} {test_name}")
 
         except Exception as e:
-            duration = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+            duration = (datetime.now(UTC) - start).total_seconds() * 1000
             self.results.append(
                 SmokeTestResult(
                     substrate=substrate,

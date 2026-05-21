@@ -235,8 +235,9 @@ class LiveMetricsCollector:
         """Collect arifOS governance metrics."""
         try:
             # import core modules
-            from core.physics.thermodynamics_hardened import get_thermodynamic_report
             from core.shared.floors import THRESHOLDS
+
+            from core.physics.thermodynamics_hardened import get_thermodynamic_report
 
             try:
                 from core.state.session_manager import session_manager

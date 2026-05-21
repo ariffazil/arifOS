@@ -22,13 +22,14 @@ import os
 import re
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from threading import RLock
 from typing import Any
 
-from arifosmcp.runtime.integrity import REQUIRED_POLICY_VERSION
 from core.enforcement.auth_continuity import verify_auth_context_with_revocation
+
+from arifosmcp.runtime.integrity import REQUIRED_POLICY_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -206,7 +207,7 @@ def check_timestamp_freshness(timestamp_iso: str, max_age: int = WEBHOOK_MAX_AGE
     """Reject stale webhooks to prevent replay of old events."""
     try:
         ts = datetime.fromisoformat(timestamp_iso.replace("Z", "+00:00"))
-        age = (datetime.now(timezone.utc) - ts).total_seconds()
+        age = (datetime.now(UTC) - ts).total_seconds()
         return 0 <= age <= max_age
     except Exception:
         return False
@@ -467,7 +468,7 @@ def adjudicate_event(
     Maximum auto-verdict: QUALIFY. Never auto-SEAL.
     """
     trace_id = trace_id or (
-        f"wh-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{uuid.uuid4().hex[:8]}"
+        f"wh-{datetime.now(UTC).strftime('%Y%m%d')}-{uuid.uuid4().hex[:8]}"
     )
     policy_version = policy_version or _get_policy_version()
     issues: list[str] = []
@@ -529,7 +530,7 @@ def adjudicate_event(
         "intent": intent,
         "reversibility": irreversible,
         "confidence": confidence,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "policy_version": policy_version,
         "approval": approval_summary,
         "approval_status": approval_summary.get("status", "not_evaluated"),
@@ -550,7 +551,7 @@ def _build_void(trace_id: str, issues: list[str], payload: dict[str, Any]) -> di
         "intent": "unknown",
         "reversibility": "UNKNOWN",
         "confidence": "LOW",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "routing": {"action": "reject", "target": None},
     }
 
@@ -761,7 +762,7 @@ def process_webhook(
 
     Returns complete result dict.
     """
-    now_iso = datetime.now(timezone.utc).isoformat()
+    now_iso = datetime.now(UTC).isoformat()
     event_id = _derive_event_id(source, headers, payload_bytes)
     trace_id = _trace_id_for_event(event_id)
     policy_version = _get_policy_version()

@@ -11,7 +11,7 @@ import os
 import sys
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 # Add project root to path
@@ -481,7 +481,7 @@ async def run_all_tests():
     print("=" * 80)
     print("arifOS MCP TOOL BENCHMARK — Auto Research")
     print("=" * 80)
-    print(f"Started: {datetime.now(timezone.utc).isoformat()}")
+    print(f"Started: {datetime.now(UTC).isoformat()}")
     print()
 
     results: list[ToolResult] = []
@@ -508,7 +508,7 @@ async def run_all_tests():
             results.append(result)
             status_icon = "PASS" if result.status == "PASS" else "FAIL"
             print(f"[{status_icon}] {result.latency_ms:.1f}ms")
-        except asyncio.TimeoutError:
+        except TimeoutError:
             print("[TIMEOUT]")
             results.append(
                 ToolResult(
@@ -576,7 +576,7 @@ async def run_all_tests():
 
     # Create report
     report = BenchmarkReport(
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         total_tools=len(results),
         passed=passed,
         failed=failed,

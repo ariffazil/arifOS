@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 import pathlib
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from fastmcp import FastMCP
@@ -63,7 +63,7 @@ def _build_vault_seal_structured_content(
     trust_vote = _clamp_score(resolved_floors.get("F3"), 0.95)
     amanah_lock = bool(resolved_floors.get("F1", 1.0))
 
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
 
     # Phase A: Real BLS12-381 signature aggregation (3-of-5 supermajority)
     bls_data: dict[str, Any] = {

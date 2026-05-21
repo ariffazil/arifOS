@@ -8,12 +8,12 @@ import time
 from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 
-class PipelineStage(str, Enum):
+class PipelineStage(StrEnum):
     QUERY_PLANNING = "query_planning"
     PROVIDER_SEARCH = "provider_search"
     NORMALIZATION = "normalization"
@@ -56,7 +56,7 @@ class PipelineMetrics:
     query: str
     query_mode: str
     stages: list[StageMetrics] = field(default_factory=list)
-    started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     finished_at: datetime | None = None
     final_result_count: int = 0
     final_trusted_count: int = 0
@@ -84,7 +84,7 @@ class PipelineMetrics:
         return self.final_result_count / first.input_count
 
     def finish(self, final_result_count: int = 0, final_trusted_count: int = 0) -> PipelineMetrics:
-        self.finished_at = datetime.now(timezone.utc)
+        self.finished_at = datetime.now(UTC)
         self.final_result_count = final_result_count
         self.final_trusted_count = final_trusted_count
         return self

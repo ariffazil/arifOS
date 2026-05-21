@@ -7,11 +7,10 @@ This module provides runtime traceability back to that canonical repo.
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
+import tomllib
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-
-import tomllib
 
 from arifosmcp.runtime.DNA import VERSION as DNA_VERSION
 
@@ -80,7 +79,7 @@ def _build_time() -> str:
         val = os.environ.get(key, "").strip()
         if val and val not in ("unknown", "", "not-injected"):
             return val
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _pyproject_version() -> str:

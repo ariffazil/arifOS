@@ -18,6 +18,7 @@ from __future__ import annotations
 import logging
 import os
 import uuid
+from datetime import UTC
 from typing import Any
 
 from fastmcp import Context
@@ -104,7 +105,7 @@ def delegate_to_agent_zero(
 
     Requires AGENT_ZERO_URL and AGENT_ZERO_API_KEY environment variables.
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     try:
         import httpx
@@ -136,13 +137,13 @@ def delegate_to_agent_zero(
             },
             "meta": {"reason": "Task delegated to Agent Zero"},
             "output_policy": "DOMAIN_SEAL",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "nine_signal": _nine_signal("OK"),
             "reasons": ["Agent Zero task completed successfully"],
         }
 
     except Exception as e:
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         return {
             "status": "HOLD",
@@ -150,7 +151,7 @@ def delegate_to_agent_zero(
             "result": {"error": str(e)},
             "meta": {"reason": f"Agent Zero unreachable: {e}"},
             "output_policy": "DOMAIN_HOLD",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "nine_signal": _nine_signal("HOLD"),
             "reasons": [f"Agent Zero unreachable: {e}"],
         }

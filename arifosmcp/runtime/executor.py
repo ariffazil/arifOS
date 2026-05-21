@@ -13,7 +13,7 @@ DITEMPA BUKAN DIBERI.
 from __future__ import annotations
 
 import os
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
@@ -31,7 +31,7 @@ _STATE_MACHINE_ENFORCE = os.getenv("ARIFOS_STATE_MACHINE_ENFORCE", "false").lowe
 # ═══════════════════════════════════════════════════════════════════════════════════════
 
 
-class ExecutionState(str, Enum):
+class ExecutionState(StrEnum):
     """Canonical execution pipeline states."""
 
     OBSERVE = "OBSERVE"

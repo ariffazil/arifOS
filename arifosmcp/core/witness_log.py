@@ -17,7 +17,7 @@ import json
 import logging
 import os
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -187,14 +187,14 @@ class WitnessLog:
         """
         if record_id is None:
             record_id = hashlib.sha256(
-                f"{tool_id}:{datetime.now(timezone.utc).isoformat()}:{input_hash}".encode()
+                f"{tool_id}:{datetime.now(UTC).isoformat()}:{input_hash}".encode()
             ).hexdigest()[:16]
 
         with self._lock:
             record = WitnessRecord(
                 record_id=record_id,
                 chain_id=self._chain_tip,
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
                 tool_id=tool_id,
                 actor_id=actor_id,
                 session_id=session_id,

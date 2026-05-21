@@ -42,8 +42,8 @@ import logging
 import re
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import Enum, StrEnum
 from typing import Any, Protocol, runtime_checkable
 
 from arifosmcp.runtime.philosophy_registry import select_philosophy_state
@@ -70,7 +70,7 @@ _PARSER_TIMEOUT_SECONDS = 5.0  # Max time for any parsing operation
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class ExplorationState(str, Enum):
+class ExplorationState(StrEnum):
     """Cognitive exploration posture."""
 
     NARROW = "NARROW"
@@ -78,7 +78,7 @@ class ExplorationState(str, Enum):
     FOCUSED = "FOCUSED"
 
 
-class EntropyState(str, Enum):
+class EntropyState(StrEnum):
     """Information entropy assessment."""
 
     LOW = "LOW"
@@ -86,7 +86,7 @@ class EntropyState(str, Enum):
     HIGH = "HIGH"
 
 
-class EurekaState(str, Enum):
+class EurekaState(StrEnum):
     """Insight emergence detection."""
 
     NONE = "NONE"
@@ -94,7 +94,7 @@ class EurekaState(str, Enum):
     STRONG = "STRONG"
 
 
-class TruthClass(str, Enum):
+class TruthClass(StrEnum):
     """Seven truth classification lanes."""
 
     ABSOLUTE_INVARIANT = "absolute_invariant"  # Lane A: Logic, math, physics
@@ -106,7 +106,7 @@ class TruthClass(str, Enum):
     UNKNOWN = "unknown"  # Lane H: Insufficient basis
 
 
-class TaskType(str, Enum):
+class TaskType(StrEnum):
     """User intent classification."""
 
     DEFINE = "define"
@@ -119,7 +119,7 @@ class TaskType(str, Enum):
     UNKNOWN = "unknown"
 
 
-class DecisionProximity(str, Enum):
+class DecisionProximity(StrEnum):
     """Consequence proximity of the query."""
 
     INFORMATIONAL = "informational"
@@ -127,7 +127,7 @@ class DecisionProximity(str, Enum):
     DECISION_CRITICAL = "decision_critical"
 
 
-class TimeScope(str, Enum):
+class TimeScope(StrEnum):
     """Temporal classification."""
 
     TIMELESS = "timeless"
@@ -137,7 +137,7 @@ class TimeScope(str, Enum):
     FORECAST = "forecast"
 
 
-class InputType(str, Enum):
+class InputType(StrEnum):
     """Input modality."""
 
     QUERY = "query"
@@ -147,7 +147,7 @@ class InputType(str, Enum):
     TIME = "time"
 
 
-class SensingMode(str, Enum):
+class SensingMode(StrEnum):
     """Sensing execution modes."""
 
     SEARCH = "search"
@@ -170,7 +170,7 @@ class EvidenceRank(int, Enum):
     SOCIAL_OR_UNVERIFIED = 7  # Social media, unvetted claims
 
 
-class AmbiguityType(str, Enum):
+class AmbiguityType(StrEnum):
     """Seven ambiguity categories."""
 
     ENTITY = "entity"
@@ -182,7 +182,7 @@ class AmbiguityType(str, Enum):
     INTENT = "intent"
 
 
-class ConflictType(str, Enum):
+class ConflictType(StrEnum):
     """Six conflict categories."""
 
     SOURCE_DISAGREEMENT = "source_disagreement"
@@ -193,7 +193,7 @@ class ConflictType(str, Enum):
     VERSION_MISMATCH = "version_mismatch"
 
 
-class UncertaintyLevel(str, Enum):
+class UncertaintyLevel(StrEnum):
     """Epistemic uncertainty bands."""
 
     LOW = "low"
@@ -202,7 +202,7 @@ class UncertaintyLevel(str, Enum):
     EXTREME = "extreme"
 
 
-class StalenessRisk(str, Enum):
+class StalenessRisk(StrEnum):
     """Temporal staleness assessment."""
 
     NONE = "none"
@@ -211,7 +211,7 @@ class StalenessRisk(str, Enum):
     HIGH = "high"
 
 
-class ClaimType(str, Enum):
+class ClaimType(StrEnum):
     """Claim categorization."""
 
     DEFINITION = "definition"
@@ -224,7 +224,7 @@ class ClaimType(str, Enum):
     UNKNOWN = "unknown"
 
 
-class Polarity(str, Enum):
+class Polarity(StrEnum):
     """Claim polarity."""
 
     AFFIRM = "affirm"
@@ -234,7 +234,7 @@ class Polarity(str, Enum):
     ESTIMATE = "estimate"
 
 
-class EntityType(str, Enum):
+class EntityType(StrEnum):
     """Entity categorization."""
 
     PERSON = "person"
@@ -247,7 +247,7 @@ class EntityType(str, Enum):
     UNKNOWN = "unknown"
 
 
-class ResolutionStatus(str, Enum):
+class ResolutionStatus(StrEnum):
     """Conflict resolution state."""
 
     RESOLVED = "resolved"
@@ -255,7 +255,7 @@ class ResolutionStatus(str, Enum):
     PARTIALLY_RESOLVED = "partially_resolved"
 
 
-class QualityFlag(str, Enum):
+class QualityFlag(StrEnum):
     """Evidence quality markers."""
 
     PRIMARY = "primary"
@@ -267,7 +267,7 @@ class QualityFlag(str, Enum):
     MIRRORED = "mirrored"
 
 
-class RoutingTarget(str, Enum):
+class RoutingTarget(StrEnum):
     """Downstream routing destinations."""
 
     MIND = "arifos.mind"
@@ -640,7 +640,7 @@ class TemporalGrounding:
     query_time_class: TimeScope = TimeScope.TIMELESS
     detected_dates: list[str] = field(default_factory=list)
     effective_reference_time: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+        default_factory=lambda: datetime.now(UTC).isoformat()
     )
     freshness_required: bool = False
     staleness_risk: StalenessRisk = StalenessRisk.NONE
@@ -796,7 +796,7 @@ class EvidenceItem:
     issuer: str | None = None
     author: str | None = None
     published_at: str | None = None
-    observed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    observed_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     jurisdiction: str | None = None
     version: str | None = None
     extracted_claims: list[ExtractedClaim] = field(default_factory=list)
@@ -1483,7 +1483,7 @@ def build_temporal_grounding(si: SenseInput, tc: TruthClassification) -> Tempora
     """Stage 3: Determine temporal validity constraints."""
     time_scope = si.query_frame.time_scope
     domain = si.query_frame.domain
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     freshness_required = tc.temporal_dependency or time_scope in (
         TimeScope.LIVE,
@@ -1577,7 +1577,7 @@ def build_evidence_plan(si: SenseInput, tc: TruthClassification) -> EvidencePlan
         freshness_requirement=FreshnessRequirement(
             required=freshness_days is not None,
             max_age_days=freshness_days,
-            reference_time=datetime.now(timezone.utc).isoformat(),
+            reference_time=datetime.now(UTC).isoformat(),
         ),
         corroboration=CorroborationSpec(
             min_distinct_sources=2,
@@ -1672,7 +1672,7 @@ def normalize_results_to_items(raw_results: list[dict[str, Any]]) -> list[Eviden
                 url=url if url else None,
                 title=title if title else None,
                 published_at=str(pub_date) if pub_date else None,
-                observed_at=datetime.now(timezone.utc).isoformat(),
+                observed_at=datetime.now(UTC).isoformat(),
                 extracted_claims=extracted,
                 snippets=[description[:300]] if description else [],
                 provenance_hash=provenance_hash,

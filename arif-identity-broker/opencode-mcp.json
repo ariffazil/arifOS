@@ -1,0 +1,13 @@
+{
+  "$schema": "https://opencode.ai/schema/mcp-config.json",
+  "comment": "arifOS Identity Broker — OpenCode MCP Configuration",
+  "mcp_servers": {
+    "arifOS": {
+      "transport": "streamable-http",
+      "url": "http://localhost:8088/mcp",
+      "description": "arifOS MCP via identity broker (OPERATOR_CLAIMED)",
+      "enabled": true,
+      "note": "actor_id=arif is injected by the broker sidecar. No manual token needed."
+    }
+  }
+}

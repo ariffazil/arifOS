@@ -9,10 +9,11 @@ DITEMPA BUKAN DIBERI — 999 SEAL
 
 import logging
 
+from core.floors import evaluate_tool_call
+
 from arifosmcp.integrations.substrate_bridge import bridge
 from arifosmcp.runtime.model import RiskClass
 from arifosmcp.runtime.model import RuntimeEnvelope as _RE
-from core.floors import evaluate_tool_call
 
 logger = logging.getLogger(__name__)
 

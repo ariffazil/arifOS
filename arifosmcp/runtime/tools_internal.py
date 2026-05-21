@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from core.shared.mottos import (
@@ -118,7 +118,7 @@ def _log_jwt_violation(violation_type: str, detail: str, context: dict) -> None:
         "detail": detail,
         "context": context,
         "mode": JWT_ENFORCE_MODE,
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "timestamp_utc": datetime.now(UTC).isoformat(),
     }
     if violation_type in ("MISSING_TOKEN", "ACTOR_ID_MISMATCH", "INVALID_TOKEN"):
         logger.error(f"JWT_VIOLATION [{violation_type}]: {detail} context={context}")
@@ -892,9 +892,9 @@ async def vault_ledger_dispatch_impl(
         evidence = payload.get("evidence", "")
         agent_id = "arifOS_bot"
         human_signature = payload.get("human_signature", "") or ""
-        from datetime import datetime, timezone
+        from datetime import datetime
 
-        now_iso = datetime.now(timezone.utc).isoformat()
+        now_iso = datetime.now(UTC).isoformat()
         try:
             import httpx
 

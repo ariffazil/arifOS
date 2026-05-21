@@ -30,8 +30,8 @@ import logging
 import re
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-class GovernanceVerdict(str, Enum):
+class GovernanceVerdict(StrEnum):
     """Outcome of a data governance decision."""
 
     SEAL = "SEAL"  # Approved — asset may proceed
@@ -50,7 +50,7 @@ class GovernanceVerdict(str, Enum):
     VOID = "VOID"  # Rejected — floor breach
 
 
-class DataClassification(str, Enum):
+class DataClassification(StrEnum):
     """Sensitivity classification for data assets."""
 
     PUBLIC = "public"
@@ -59,7 +59,7 @@ class DataClassification(str, Enum):
     RESTRICTED = "restricted"
 
 
-class AccessRole(str, Enum):
+class AccessRole(StrEnum):
     """Role-based access roles."""
 
     VIEWER = "viewer"
@@ -120,7 +120,7 @@ class IngestionContract:
     required_fields: list[str] = field(default_factory=list)
     nullable_fields: list[str] = field(default_factory=list)
     data_type_constraints: dict[str, str] = field(default_factory=dict)  # field -> type name
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     version: str = "1.0"
 
 
@@ -205,7 +205,7 @@ class HumanVetoRecord:
     decision_id: str
     asset_id: str
     proposed_verdict: GovernanceVerdict
-    requested_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    requested_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     vetoed_by: str | None = None
     veto_reason: str = ""
     override_reason: str = ""  # If human OVERRIDES a HOLD/VOID
@@ -231,7 +231,7 @@ class DataGovernanceDecision:
     taxonomy: TaxonomyValidator | None = None
     veto_record: HumanVetoRecord | None = None
     sanitized_input: dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -709,7 +709,7 @@ class DataGovernanceEnforcer:
         import json
 
         log_id = str(uuid.uuid4())
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
         content = json.dumps(
             {
                 "log_id": log_id,

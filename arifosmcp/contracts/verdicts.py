@@ -5,12 +5,12 @@ Rule 2: One state name = one meaning.
 Rule 5: Symbolic philosophy compiles into plain structs.
 """
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class ExecutionStatus(str, Enum):
+class ExecutionStatus(StrEnum):
     """Mechanical status of the tool execution (Fix 2)."""
 
     SUCCESS = "SUCCESS"  # Tool ran to completion
@@ -20,7 +20,7 @@ class ExecutionStatus(str, Enum):
     PARTIAL = "PARTIAL"  # Partial execution
 
 
-class GovernanceStatus(str, Enum):
+class GovernanceStatus(StrEnum):
     """Constitutional verdict (Fix 2, Audit Critical Fix 3)."""
 
     APPROVED = "APPROVED"  # Maps from SEAL
@@ -31,7 +31,7 @@ class GovernanceStatus(str, Enum):
     PROVISIONAL = "PROVISIONAL"  # Preliminary approval
 
 
-class ArtifactStatus(str, Enum):
+class ArtifactStatus(StrEnum):
     """State of the output artifact (Audit Fix 4)."""
 
     NONE = "NONE"  # No state assigned
@@ -43,7 +43,7 @@ class ArtifactStatus(str, Enum):
     SEALED = "SEALED"  # Immutably committed
 
 
-class ContinuationStatus(str, Enum):
+class ContinuationStatus(StrEnum):
     """Orchestration direction (Fix 3)."""
 
     READY = "READY"

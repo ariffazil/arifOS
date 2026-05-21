@@ -12,14 +12,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field
-
-from arifosmcp.core.threat_engine import (
-    IrreversibilityLevel,
-    ThreatAssessment,
-    ThreatCategory,
-)
-
 # Import all 13 floor classes from canonical shared implementation.
 # These live at repo-root /core/shared/ (mapped to sys.path parent).
 from core.shared.floors import (
@@ -36,6 +28,13 @@ from core.shared.floors import (
 )
 from core.shared.floors import (
     FloorResult as SharedFloorResult,
+)
+from pydantic import BaseModel, Field
+
+from arifosmcp.core.threat_engine import (
+    IrreversibilityLevel,
+    ThreatAssessment,
+    ThreatCategory,
 )
 
 

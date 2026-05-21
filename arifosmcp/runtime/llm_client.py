@@ -166,7 +166,7 @@ async def _call_sea_lion(
 
     try:
         parsed = json.loads(raw_output)
-    except json.JSONDecodeError as exc:
+    except json.JSONDecodeError:
         logger.warning("SEA-LION returned invalid JSON, wrapping plain text: %s", raw_output[:200])
         parsed = {"reasoning": raw_output, "answer": raw_output}
 

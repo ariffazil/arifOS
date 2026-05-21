@@ -13,11 +13,11 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class Axis(str, Enum):
+class Axis(StrEnum):
     """The 6 irreducible cognitive axes."""
 
     P = "P"  # Perception — reality acquisition
@@ -28,14 +28,14 @@ class Axis(str, Enum):
     M = "M"  # Meta-Cognition — self-inspection
 
 
-class RiskTier(str, Enum):
+class RiskTier(StrEnum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
 
 
-class OperationClass(str, Enum):
+class OperationClass(StrEnum):
     READ = "READ"  # Perception only
     COMPUTE = "COMPUTE"  # Transformation only
     VALUE = "VALUE"  # Valuation only

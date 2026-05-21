@@ -17,7 +17,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import deque
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -136,6 +136,6 @@ def _sanitize_event(raw: dict[str, Any]) -> dict[str, Any]:
     safe: dict[str, Any] = {k: v for k, v in raw.items() if k in _SAFE_KEYS}
     safe["issue_count"] = len(raw.get("issues", []))
     safe["_event_kind"] = "webhook_intake"
-    safe["_emitted_at"] = datetime.now(timezone.utc).isoformat()
+    safe["_emitted_at"] = datetime.now(UTC).isoformat()
     safe["observation_only"] = True
     return safe

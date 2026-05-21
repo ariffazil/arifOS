@@ -62,8 +62,8 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -152,7 +152,7 @@ _RETRIEVAL_COUNTS: dict[str, int] = {}
 # ============================================================================
 
 
-class RetrievalVerdict(str, Enum):
+class RetrievalVerdict(StrEnum):
     """Retrieval gate verdicts."""
 
     ALLOW = "ALLOW"  # Memory enters context freely
@@ -161,7 +161,7 @@ class RetrievalVerdict(str, Enum):
     ESCALATE = "ESCALATE"  # Memory flagged for human review before use
 
 
-class ForgetReason(str, Enum):
+class ForgetReason(StrEnum):
     """Why a memory was excluded from retrieval."""
 
     LOW_EVIDENCE = "low_evidence"
@@ -191,7 +191,7 @@ class RetrievalGuardResult:
     caution_note: str = ""
     escalation_priority: int = 0  # 0=none, 1=low, 2=medium, 3=high
     scar_weight: float = 0.0  # 0.0-1.0, scar protection level
-    ts: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    ts: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -219,7 +219,7 @@ class RetrievalPolicyReport:
     query: str = ""
     actor_id: str = ""
     session_id: str = ""
-    ts: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    ts: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -486,7 +486,7 @@ def _evaluate_single_memory(
     if mem.get("valid_until") and mem.get("valid_until") != "null":
         try:
             exp = datetime.fromisoformat(mem["valid_until"].replace("Z", "+00:00"))
-            if datetime.now(timezone.utc) > exp:
+            if datetime.now(UTC) > exp:
                 return RetrievalGuardResult(
                     memory_id=memory_id,
                     verdict=RetrievalVerdict.BLOCK,
@@ -734,7 +734,7 @@ def get_retrieval_diversity_report() -> dict[str, Any]:
         "over_retrieved_memories": over_retrieved,
         "total_tracked": len(_RETRIEVAL_COUNTS),
         "diversity_threshold": _MAX_RETRIEVAL_COUNT,
-        "ts": datetime.now(timezone.utc).isoformat(),
+        "ts": datetime.now(UTC).isoformat(),
     }
 
 

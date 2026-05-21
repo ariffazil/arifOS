@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from arifosmcp.integrations.substrate_bridge import bridge
 from arifosmcp.runtime.governance_enforcer import get_enforcer
@@ -76,7 +76,7 @@ async def kg_upsert_entity(
                 "f2_truth": truth_confidence,
                 "f7_uncertainty": uncertainty,
                 "source": source,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
             enriched_observations.append(f"{obs} [meta:{json.dumps(meta)}]")
 

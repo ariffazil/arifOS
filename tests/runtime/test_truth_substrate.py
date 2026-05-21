@@ -14,10 +14,8 @@ Empirical verification of the Truth Substrate:
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
-import json
-import os
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 from arifosmcp.runtime.reality_models import FetchResult, SearchResult
 
 

@@ -20,7 +20,7 @@ import hashlib
 import json
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -282,7 +282,7 @@ class SequentialThinkingEvaluator:
             final_verdict = res_dict.get("verdict", "SEAL")
 
             # Build EvalResult
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
             duration = (end_time - start_time).total_seconds()
 
             return EvalResult(

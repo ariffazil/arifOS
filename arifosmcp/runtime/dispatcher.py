@@ -8,6 +8,7 @@ Keep it as a thin compatibility layer over the live implementations.
 from __future__ import annotations
 
 from collections.abc import MutableMapping
+from datetime import UTC
 from typing import Any
 
 
@@ -87,7 +88,7 @@ def _record_legacy_alias_hit(alias: str, canonical: str) -> None:
     """Append legacy alias usage to shim telemetry log for cutover monitoring."""
     import json
     import os
-    from datetime import datetime, timezone
+    from datetime import datetime
     from pathlib import Path
 
     log_path = Path(
@@ -99,7 +100,7 @@ def _record_legacy_alias_hit(alias: str, canonical: str) -> None:
             f.write(
                 json.dumps(
                     {
-                        "ts": datetime.now(timezone.utc).isoformat(),
+                        "ts": datetime.now(UTC).isoformat(),
                         "alias": alias,
                         "canonical": canonical,
                         "type": "legacy_alias_hit",

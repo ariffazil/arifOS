@@ -13,7 +13,7 @@ import hashlib
 import json
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from threading import RLock
 from typing import Any
@@ -89,7 +89,7 @@ def append_vault_record(
         chain_hash = hashlib.sha256(chain_input.encode()).hexdigest()[:16]
 
         entry_id = f"VAULT-{uuid.uuid4().hex[:12]}"
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         record: dict[str, Any] = {
             "entry_id": entry_id,

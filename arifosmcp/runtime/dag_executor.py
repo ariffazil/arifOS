@@ -13,13 +13,13 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-class NodeStatus(str, Enum):
+class NodeStatus(StrEnum):
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -28,7 +28,7 @@ class NodeStatus(str, Enum):
     HELD = "held"  # 888_HOLD — awaiting human ratification
 
 
-class VerdictStatus(str, Enum):
+class VerdictStatus(StrEnum):
     SEAL = "SEAL"
     SABAR = "SABAR"
     HOLD_888 = "HOLD_888"

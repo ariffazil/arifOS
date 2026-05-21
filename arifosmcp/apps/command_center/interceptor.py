@@ -30,11 +30,11 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class InterceptorResult(str, Enum):
+class InterceptorResult(StrEnum):
     ALLOWED = "allowed"
     BLOCKED = "blocked"
     HOLD = "hold"

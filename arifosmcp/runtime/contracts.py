@@ -12,8 +12,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import Enum, StrEnum
 from typing import Any, Literal
 from uuid import uuid4
 
@@ -24,7 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class VerdictCode(str, Enum):
+class VerdictCode(StrEnum):
     """Canonical constitutional verdict codes."""
 
     SEAL = "SEAL"  # Approved, attested
@@ -34,7 +34,7 @@ class VerdictCode(str, Enum):
     HOLD = "888_HOLD"  # High-risk, requires human
 
 
-class RiskTier(str, Enum):
+class RiskTier(StrEnum):
     """Risk classification tiers."""
 
     LOW = "low"
@@ -49,7 +49,7 @@ class RiskTier(str, Enum):
         return None
 
 
-class SessionState(str, Enum):
+class SessionState(StrEnum):
     """Session lifecycle states."""
 
     ANONYMOUS = "anonymous"
@@ -60,7 +60,7 @@ class SessionState(str, Enum):
     APPROVED = "approved"
 
 
-class TrinityAspect(str, Enum):
+class TrinityAspect(StrEnum):
     """The three governing principles."""
 
     PSI = "PSI"  # Will, identity, sovereignty
@@ -461,7 +461,7 @@ TOOL_MODES = {
 
 
 # Runtime helper contracts
-class ToolStatus(str, Enum):
+class ToolStatus(StrEnum):
     OK = "OK"
     WARNING = "WARNING"
     HOLD = "HOLD"
@@ -474,7 +474,7 @@ OutputPolicy = Literal["redact", "mask", "raw"]
 VerdictScope = Literal["session", "global", "resource"]
 
 
-class HumanDecisionMarker(str, Enum):
+class HumanDecisionMarker(StrEnum):
     MACHINE_RECOMMENDATION_ONLY = "machine_recommendation_only"
     HUMAN_APPROVAL_BOUND = "human_approval_bound"
     HUMAN_CONFIRMATION_REQUIRED = "human_confirmation_required"
@@ -482,7 +482,7 @@ class HumanDecisionMarker(str, Enum):
     SEALED = "sealed"
 
 
-class SessionClass(str, Enum):
+class SessionClass(StrEnum):
     OBSERVE = "observe"
     ADVISE = "advise"
     EXECUTE = "execute"
@@ -498,7 +498,7 @@ class TraceContext:
     trace_id: str = dataclass_field(default_factory=lambda: f"trace-{uuid4().hex[:12]}")
     parent_trace_id: str | None = None
     policy_version: str = "v2026.04"
-    timestamp: str = dataclass_field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = dataclass_field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     @property
     def stage_id(self) -> str:
@@ -606,11 +606,11 @@ class ValidationResult:
 # Utils
 def make_telemetry_seed(session_id: str) -> TelemetryEnvelope:
     """Generate a fresh telemetry seed."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     return TelemetryEnvelope(
         session_id=session_id,
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         tau_truth=1.0,
         omega_0=0.05,
         delta_s=0.0,

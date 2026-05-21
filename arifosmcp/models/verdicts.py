@@ -7,12 +7,12 @@ constitutional floors, and the metabolic telemetry schemas.
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 """
 
-from enum import Enum
+from enum import Enum, StrEnum
 
 from pydantic import BaseModel, Field, field_validator
 
 
-class SealType(str, Enum):
+class SealType(StrEnum):
     """
     The four canonical seals of arifOS v2.0.
     Only SEAL allows progression to Tier 05 (Execution).
@@ -24,7 +24,7 @@ class SealType(str, Enum):
     VOID = "VOID"  # Hard Floor violation — blocked permanently
 
 
-class VerdictState(str, Enum):
+class VerdictState(StrEnum):
     """
     Detailed verdict states within the canonical seals.
     """
@@ -48,7 +48,7 @@ class VerdictState(str, Enum):
     SABAR_GEOPOLITICAL = "SABAR_GEOPOLITICAL"  # Waiting for external stability
 
 
-class FloorState(str, Enum):
+class FloorState(StrEnum):
     """
     Metabolic states for each of the 13 floors.
     """
@@ -60,7 +60,7 @@ class FloorState(str, Enum):
     VOID = "VOID"
 
 
-class FloorName(str, Enum):
+class FloorName(StrEnum):
     """
     The 13 canonical floors of arifOS v2.0.
     Ordered by the Gödel-Locked Cognitive Stack.

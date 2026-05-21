@@ -9,15 +9,14 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 from typing import Any
+
 from fastmcp import FastMCP
 
 from arifosmcp.runtime.mind_reason import (
+    arif_mind_claim_attest,
     arif_mind_reason_v2,
     arif_mind_step,
     arif_mind_trace_get,
-    arif_mind_claim_attest,
-    arif_mind_contradict_scan,
-    arif_mind_handoff_prepare
 )
 from arifosmcp.schemas.mind_metabolism import MindRequest
 

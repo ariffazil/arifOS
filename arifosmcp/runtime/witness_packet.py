@@ -38,7 +38,7 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 # ── Dataclass ────────────────────────────────────────────────────────────────
@@ -85,7 +85,7 @@ class WitnessPacket:
 
     def __post_init__(self) -> None:
         if not self.timestamp:
-            self.timestamp = datetime.now(timezone.utc).isoformat()
+            self.timestamp = datetime.now(UTC).isoformat()
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -535,7 +535,7 @@ def quarantine_release(packet: WitnessPacket) -> dict[str, Any]:
     return {
         "released": True,
         "packet": packet.to_dict(),
-        "release_timestamp": datetime.now(timezone.utc).isoformat(),
+        "release_timestamp": datetime.now(UTC).isoformat(),
         "next_tool": next_tool,
         "authority_level": packet.authority_level,
         "human_decision_required": packet.human_decision_required,

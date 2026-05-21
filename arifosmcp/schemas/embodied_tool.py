@@ -28,8 +28,8 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -39,7 +39,7 @@ from pydantic import BaseModel, ConfigDict, Field
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class ClaimState(str, Enum):
+class ClaimState(StrEnum):
     """Truth claim level of the tool output."""
 
     VERIFIED = "verified"  # Evidence-confirmed, fit for sovereign action
@@ -49,7 +49,7 @@ class ClaimState(str, Enum):
     UNKNOWN = "unknown"  # Cannot determine
 
 
-class ArtifactStatus(str, Enum):
+class ArtifactStatus(StrEnum):
     """What was actually produced by the tool."""
 
     CREATED = "created"  # New artifact produced
@@ -64,7 +64,7 @@ class ArtifactStatus(str, Enum):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class NextBestActionMode(str, Enum):
+class NextBestActionMode(StrEnum):
     """Mode of the recovery action."""
 
     HYPOTHESIS_ONLY = "hypothesis_only"
@@ -125,7 +125,7 @@ class EvidenceReceipt(BaseModel):
         description="L0–L5 evidence level (runtime_observed is L3)",
     )
     timestamp_utc: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
+        default_factory=lambda: datetime.now(UTC).isoformat(),
         description="When the evidence was produced",
     )
     session_id: str | None = Field(default=None, description="Governing session")
@@ -186,7 +186,7 @@ class AgenticContract(BaseModel):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class RiskTier(str, Enum):
+class RiskTier(StrEnum):
     """Shared risk ladder across all MCPs."""
 
     T0 = "T0"  # Harmless — auto-allowed
@@ -196,7 +196,7 @@ class RiskTier(str, Enum):
     T4 = "T4"  # Irreversible / dangerous / legal-medical-financial — HOLD or escalate
 
 
-class Reversibility(str, Enum):
+class Reversibility(StrEnum):
     """Reversibility classification for tool actions."""
 
     REVERSIBLE = "reversible"  # Can be undone trivially
@@ -204,7 +204,7 @@ class Reversibility(str, Enum):
     IRREVERSIBLE = "irreversible"  # Cannot be undone
 
 
-class ExecutionStatus(str, Enum):
+class ExecutionStatus(StrEnum):
     """Tool execution status.
 
     RECOVERABLE_ERROR is the key agentic upgrade: instead of dead-end FAILED,
@@ -219,7 +219,7 @@ class ExecutionStatus(str, Enum):
     RECOVERABLE_ERROR = "recoverable_error"  # Failed but recovery path available
 
 
-class Domain(str, Enum):
+class Domain(StrEnum):
     """MCP domain classification."""
 
     AOS = "arifOS"  # Governance body
@@ -268,7 +268,7 @@ class WitnessEntry(BaseModel):
     tool_id: str = Field(description="Canonical tool identifier")
     tool_name: str = Field(description="Human-readable tool name")
     timestamp: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
+        default_factory=lambda: datetime.now(UTC).isoformat(),
         description="When the tool was invoked",
     )
     actor_id: str | None = Field(default=None, description="Who invoked it")
@@ -501,7 +501,7 @@ def build_embodied_envelope(
     This is the standard way to wrap any tool result.
     All new agentic fields have sensible defaults for backward compatibility.
     """
-    _now = datetime.now(timezone.utc).isoformat()
+    _now = datetime.now(UTC).isoformat()
 
     # Auto-generate trace_id if not provided
     if trace_id is None:

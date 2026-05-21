@@ -131,7 +131,6 @@ class ExecutionEnvelope:
 
     def _load_authority_key(self, authority: str) -> nacl.signing.VerifyKey:
         """Load public key for authority from environment or registry file."""
-        import os
 
         env_var = f"ARIFOS_{authority.upper()}_PUBLIC_KEY"
         key_hex = os.getenv(env_var)
@@ -319,7 +318,6 @@ class ExecutionAttestor:
         """Request signature from KMS or fall back to HMAC with explicit dev warning."""
         import hashlib
         import hmac
-        import os
 
         if self.kms_endpoint:
             import aiohttp

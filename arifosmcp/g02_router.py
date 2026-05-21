@@ -17,7 +17,7 @@ Philosophy:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Annotated, Any
 
 from fastmcp import FastMCP
@@ -28,7 +28,7 @@ from pydantic import BaseModel, Field
 # =============================================================================
 
 
-class Axis(str, Enum):
+class Axis(StrEnum):
     PERCEPTION = "P"
     TRANSFORMATION = "T"
     VALUATION = "V"

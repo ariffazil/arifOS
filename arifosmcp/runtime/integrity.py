@@ -22,6 +22,7 @@ from __future__ import annotations
 import logging
 import sys
 from dataclasses import dataclass, field
+from datetime import UTC
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -446,10 +447,10 @@ def perform_boot_integrity_check(
     Returns:
         IntegrityReport with boot_state = SEALED | VOID
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     if not timestamp:
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
 
     failed: list[str] = []
 
@@ -620,7 +621,7 @@ def create_integrity_endpoints(app: Any) -> None:
         app = FastAPI()
         create_integrity_endpoints(app)
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     @app.get("/kernel/health/integrity")
     async def kernel_health_integrity() -> dict:
@@ -631,7 +632,7 @@ def create_integrity_endpoints(app: Any) -> None:
                 "boot_state": "VOID",
                 "error_code": "BOOT_CHECK_NOT_RUN",
                 "error_message": "Boot integrity check was not performed",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         return report.to_dict()
 
@@ -644,7 +645,7 @@ def create_integrity_endpoints(app: Any) -> None:
                 "status": "unhealthy",
                 "boot_state": "VOID",
                 "serve_traffic": False,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         return {
@@ -653,7 +654,7 @@ def create_integrity_endpoints(app: Any) -> None:
             "policy_version": report.policy_version,
             "protocol_version": report.protocol_version,
             "serve_traffic": report.serve_traffic,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
 

@@ -366,7 +366,7 @@ async def run_stage(
                     )
                     search_res = PNSSignal(source="PNS_SEARCH", payload=search_env.payload)
                     pns_trace["PNS_SEARCH"] = search_res.model_dump(mode="json")
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     # Continue without search results if timeout
                     pns_trace["PNS_SEARCH"] = {
                         "error": "timeout",

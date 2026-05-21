@@ -8,39 +8,39 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
 
-class UncertaintyClass(str, Enum):
+class UncertaintyClass(StrEnum):
     FACT = "FACT"
     ESTIMATE = "ESTIMATE"
     SPECULATION = "SPECULATION"
 
 
-class RiskPotential(str, Enum):
+class RiskPotential(StrEnum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
 
 
-class DomainWitness(str, Enum):
+class DomainWitness(StrEnum):
     GEOX = "GEOX"
     WEALTH = "WEALTH"
     WELL = "WELL"
     ARIFOS = "arifOS"
 
 
-class ClaimPolarity(str, Enum):
+class ClaimPolarity(StrEnum):
     SUPPORTS = "supports"
     CONTRADICTS = "contradicts"
     UNCERTAIN = "uncertain"
 
 
-class EpistemicEventType(str, Enum):
+class EpistemicEventType(StrEnum):
     ASSERTION = "assertion"
     VERIFICATION = "verification"
     WITNESS = "witness"
@@ -50,7 +50,7 @@ class EpistemicEventType(str, Enum):
     SEAL = "seal"
 
 
-class AuthorityClass(str, Enum):
+class AuthorityClass(StrEnum):
     GROUND_EVIDENCE = "ground_evidence"
     CAPITAL_ANALYSIS = "capital_analysis"
     DELIBERATIVE_JUDGMENT = "deliberative_judgment"
@@ -113,7 +113,7 @@ class FederationEpistemicEvent(BaseModel):
     witness_required: bool = False
     claim_status: str = "proposed"
     seal_level: str | None = None
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     metadata: dict[str, str | int | float | bool | None] = Field(default_factory=dict)
 
 

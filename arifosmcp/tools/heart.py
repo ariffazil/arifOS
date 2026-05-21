@@ -241,7 +241,7 @@ Return JSON exactly matching the schema. Cite specific constitutional floors for
         # Attach 777_WITNESS envelope metadata
         result["_llm_tier"] = envelope.provider
         result["_llm_available"] = True
-        result["timestamp"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        result["timestamp"] = datetime.datetime.now(datetime.UTC).isoformat()
         result["_envelope"] = {
             "provider": envelope.provider,
             "model": envelope.model,
@@ -454,7 +454,7 @@ def _heart_fallback(
     base_result: dict[str, Any] = {
         "_llm_available": False,
         "_llm_tier": "none",
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
         "_envelope": {
             "provider": "none",
             "tool_origin": "666_HEART",

@@ -19,7 +19,7 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from arifosmcp.runtime.irreversibility import AmanahIrreversibilityScorer
@@ -29,7 +29,7 @@ from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 _AMANAH_SCORER = AmanahIrreversibilityScorer()
 
 
-class QueryClass(str, Enum):
+class QueryClass(StrEnum):
     """Query classification for governance routing."""
 
     INFORMATIONAL = "informational"  # Class A: No state change, model can respond directly
@@ -109,7 +109,7 @@ BLOCKED_INVESTMENT_PHRASES = [
 ]
 
 
-class PropagationDecision(str, Enum):
+class PropagationDecision(StrEnum):
     """Propagation decision for audit trail."""
 
     ALLOWED = "ALLOWED"

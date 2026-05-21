@@ -19,7 +19,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -33,7 +33,7 @@ from arifosmcp.schemas.lineage import JudgeSealContract
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class VerdictCode(str, Enum):
+class VerdictCode(StrEnum):
     SEAL = "SEAL"  # Approved — proceed
     SABAR = "SABAR"  # Wait — under review
     VOID = "VOID"  # Rejected — constitutional breach

@@ -21,10 +21,10 @@ This supersedes the legacy `capability_map.py`.
 Ditempa Bukan Diberi.
 """
 
-from enum import Enum
+from enum import StrEnum
 
 
-class Void000Mode(str, Enum):
+class Void000Mode(StrEnum):
     init = "init"
     epoch = "epoch"
     session_id = "session_id"
@@ -42,7 +42,7 @@ class Void000Mode(str, Enum):
     status = "status"
 
 
-class Anchor111Mode(str, Enum):
+class Anchor111Mode(StrEnum):
     search = "search"
     ingest = "ingest"
     compass = "compass"
@@ -52,7 +52,7 @@ class Anchor111Mode(str, Enum):
     w3_earth = "w3_earth"
 
 
-class Explore222Mode(str, Enum):
+class Explore222Mode(StrEnum):
     diverge = "diverge"
     stress_test = "stress_test"
     path_map = "path_map"
@@ -60,7 +60,7 @@ class Explore222Mode(str, Enum):
     eureka = "eureka"
 
 
-class Agi333Mode(str, Enum):
+class Agi333Mode(StrEnum):
     reason = "reason"
     reflect = "reflect"
     forge = "forge"
@@ -68,7 +68,7 @@ class Agi333Mode(str, Enum):
     socratic = "socratic"
 
 
-class Kernel444Mode(str, Enum):
+class Kernel444Mode(StrEnum):
     route = "route"
     kernel = "kernel"
     triage = "triage"
@@ -76,7 +76,7 @@ class Kernel444Mode(str, Enum):
     status = "status"
 
 
-class Forge555Mode(str, Enum):
+class Forge555Mode(StrEnum):
     engineer = "engineer"
     query = "query"
     recall = "recall"
@@ -85,7 +85,7 @@ class Forge555Mode(str, Enum):
     commit = "commit"
 
 
-class Rasa666Mode(str, Enum):
+class Rasa666Mode(StrEnum):
     critique = "critique"
     simulate = "simulate"
     redteam = "redteam"
@@ -94,7 +94,7 @@ class Rasa666Mode(str, Enum):
     empathy = "empathy"
 
 
-class Math777Mode(str, Enum):
+class Math777Mode(StrEnum):
     health = "health"
     vitals = "vitals"
     cost = "cost"
@@ -104,7 +104,7 @@ class Math777Mode(str, Enum):
     landauer = "landauer"
 
 
-class Apex888Mode(str, Enum):
+class Apex888Mode(StrEnum):
     judge = "judge"
     validate = "validate"
     hold = "hold"
@@ -114,7 +114,7 @@ class Apex888Mode(str, Enum):
     notify = "notify"
 
 
-class Seal999Mode(str, Enum):
+class Seal999Mode(StrEnum):
     seal = "seal"
     verify = "verify"
     ledger = "ledger"

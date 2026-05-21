@@ -7,10 +7,10 @@ constitutional metrics.
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 """
 
-from enum import Enum
+from enum import StrEnum
 
 
-class HealthCategory(str, Enum):
+class HealthCategory(StrEnum):
     HEALTHY = "HEALTHY"
     WARNING = "WARNING"
     CRITICAL = "CRITICAL"

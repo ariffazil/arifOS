@@ -13,7 +13,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from arifosmcp.apps.command_center.vault_chain import (
@@ -128,7 +128,7 @@ def export_vault_bundle(format: str = "jsonl") -> dict[str, Any]:
             "entries_checked": chain_report["entries_checked"],
             "chain_breaks": chain_report["breaks"],
             "entries": all_entries,
-            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "exported_at": datetime.now(UTC).isoformat(),
         }
     else:
         return {
@@ -136,5 +136,5 @@ def export_vault_bundle(format: str = "jsonl") -> dict[str, Any]:
             "path": _VAULT_PATH,
             "chain_valid": chain_report["valid"],
             "entries_checked": chain_report["entries_checked"],
-            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "exported_at": datetime.now(UTC).isoformat(),
         }

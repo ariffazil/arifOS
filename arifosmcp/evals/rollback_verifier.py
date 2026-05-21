@@ -32,7 +32,7 @@ import logging
 import subprocess
 import sys
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from arifosmcp.runtime.model import Verdict
@@ -147,7 +147,7 @@ class RollbackVerifier:
 
             point = RollbackPoint(
                 name=tag,
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
                 git_sha=tag_sha,
                 docker_image=None,
                 compose_backup=False,
@@ -195,7 +195,7 @@ class RollbackVerifier:
         )
 
         return RollbackReport(
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             current_git_sha=current_sha,
             rollback_points=rollback_points,
             can_rollback=can_rollback,
@@ -209,7 +209,7 @@ class RollbackVerifier:
         print(f"CREATING ROLLBACK POINT: {name}")
         print("=" * 80)
 
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         tag_name = f"rollback-{name}-{timestamp}"
 
         # 1. Create git tag

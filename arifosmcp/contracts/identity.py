@@ -5,12 +5,12 @@ Rule 3: One source of truth per concern.
 Identity must be normalized once and propagated immutably.
 """
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class IdentityStatus(str, Enum):
+class IdentityStatus(StrEnum):
     """Canonical identity states."""
 
     ANONYMOUS = "anonymous"
@@ -20,7 +20,7 @@ class IdentityStatus(str, Enum):
     REVOKED = "revoked"  # Explicitly invalidated
 
 
-class DegradationReason(str, Enum):
+class DegradationReason(StrEnum):
     """Explicit reasons for identity degradation."""
 
     VERIFICATION_NOT_PROVIDED = "verification_not_provided"

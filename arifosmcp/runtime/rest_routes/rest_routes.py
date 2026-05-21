@@ -29,7 +29,7 @@ import subprocess  # nosec B404
 import time
 import uuid
 from collections.abc import Callable
-from datetime import date, datetime, timezone
+from datetime import date, datetime, UTC
 from pathlib import Path
 from typing import Any
 
@@ -855,7 +855,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
         "floors": resolved_floors,
         "machine_vitals": machine_vitals,
         "session_id": session_id or f"sess_{uuid.uuid4().hex[:8]}",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "metabolic_stage": metabolic_stage or _DEFAULT_METABOLIC_STAGE,
     }
 
@@ -2459,7 +2459,7 @@ def register_rest_routes(
                     runtime_drift=_compute_runtime_drift().get("runtime_drift", False),
                 ),
                 "capability_map": build_runtime_capability_map(),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 # SoT linkage — enables drift detection between repo / docs / runtime
                 "source_commit": BUILD_INFO["build"]["commit"],
                 "source_repo": BUILD_INFO.get("source_repo", "https://github.com/ariffazil/arifOS"),
@@ -2632,7 +2632,7 @@ def register_rest_routes(
                 "tool_count": len(tool_registry),
                 "mcp_endpoint": "/mcp",
                 "source_of_truth": "https://github.com/ariffazil/arifOS",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
             headers={"Access-Control-Allow-Origin": "*"},
         )
@@ -2676,7 +2676,7 @@ def register_rest_routes(
                     "GET /operator/approvals": "list pending human authorizations",
                 },
                 "source_of_truth": "https://github.com/ariffazil/arifOS",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
             headers={"Access-Control-Allow-Origin": "*"},
         )
@@ -2685,7 +2685,7 @@ def register_rest_routes(
     async def capability(request: Request) -> Response:
         """Capability map — what is wired and configured in this kernel instance."""
         payload = build_runtime_capability_map()
-        payload["timestamp"] = datetime.now(timezone.utc).isoformat()
+        payload["timestamp"] = datetime.now(UTC).isoformat()
         payload["version"] = BUILD_INFO["version"]
         return JSONResponse(payload, headers={"Access-Control-Allow-Origin": "*"})
 
@@ -2752,7 +2752,7 @@ def register_rest_routes(
                 "telemetry_source": (
                     "live" if telemetry.get("confidence") is not None else "unavailable"
                 ),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
             headers={"Access-Control-Allow-Origin": "*"},
         )
@@ -2760,7 +2760,7 @@ def register_rest_routes(
     @route("/version", methods=["GET"])
     async def version(request: Request) -> Response:
         payload = dict(BUILD_INFO)
-        payload["timestamp"] = datetime.now(timezone.utc).isoformat()
+        payload["timestamp"] = datetime.now(UTC).isoformat()
         payload["build_time"] = BUILD_INFO.get("build", {}).get("built_at")
         return JSONResponse(payload)
 
@@ -2999,7 +2999,7 @@ def register_rest_routes(
             {
                 "service": "arifOS Component Map",
                 "version": BUILD_INFO["version"],
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "summary": summary,
                 "ollama_models": ollama_models,
                 "layers": layers,
@@ -3028,7 +3028,7 @@ def register_rest_routes(
             "image_digest": image_digest,
             "build_time": os.getenv("DEPLOY_BUILD_TIME", "unknown"),
             "registry_hash": registry_hash,
-            "started_at": os.getenv("START_TIME", datetime.now(timezone.utc).isoformat()),
+            "started_at": os.getenv("START_TIME", datetime.now(UTC).isoformat()),
             "runtime_drift": git_sha == "unknown" or image_digest == "unknown",
         }
         return JSONResponse(fingerprint)
@@ -3100,13 +3100,13 @@ def register_rest_routes(
                 "git_commit": os.getenv("DEPLOY_GIT_COMMIT", "unknown"),
                 "build_time": os.getenv("DEPLOY_BUILD_TIME", "unknown"),
                 "image": os.getenv("DEPLOY_IMAGE", "unknown"),
-                "started_at": os.getenv("START_TIME", datetime.now(timezone.utc).isoformat()),
+                "started_at": os.getenv("START_TIME", datetime.now(UTC).isoformat()),
             },
             "sessions": {
                 "active_count": active_sessions,
                 "ttl_seconds": int(os.getenv("ARIFOS_SESSION_TTL_SECONDS", "86400")),
             },
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         return JSONResponse(payload, headers={"Access-Control-Allow-Origin": "*"})
 
@@ -3965,7 +3965,7 @@ def register_rest_routes(
             matrix["overall_ok"] = matrix["overall_ok"] and geo_mean > 0.95
 
             payload = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "health": health_payload,
                 "runtime_identity": runtime_identity,
                 "git": _collect_git_snapshot(),
@@ -4129,7 +4129,7 @@ def register_rest_routes(
 
             return JSONResponse(
                 {
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "probed": results,
                 },
                 headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
@@ -4151,7 +4151,7 @@ def register_rest_routes(
                 "branch": BUILD_INFO["build"].get("branch", "main"),
                 "version": BUILD_INFO["version"],
                 "tool_count": len(tool_registry),
-                "epoch": datetime.now(timezone.utc).isoformat(),
+                "epoch": datetime.now(UTC).isoformat(),
                 "source_repo": BUILD_INFO.get("source_repo"),
             }
         )
@@ -4194,7 +4194,7 @@ def register_rest_routes(
                 "missing_on_live": missing,
                 "extra_on_live": extra,
                 "sot_source": sot_source,
-                "checked_at": datetime.now(timezone.utc).isoformat(),
+                "checked_at": datetime.now(UTC).isoformat(),
             }
         )
 
@@ -4483,7 +4483,7 @@ def register_rest_routes(
             system_status = "HEALTHY" if verdict == "SEAL" else "DEGRADED"
 
             payload = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "vitals": {
                     "G_star": vitals.get("vitality_index", 0.0),
                     "dS": vitals.get("entropy_delta", 0.0),
@@ -4696,7 +4696,7 @@ def register_rest_routes(
 
             return JSONResponse(
                 {
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "floors": FLOORS,
                     "tools": tools_list,
                     "pipeline": pipeline_stages,
@@ -5715,7 +5715,7 @@ setInterval(refreshSot, 30000);
           wealth  → /health
           geox    → TCP port check + MCP initialize (since /health is 404)
         """
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         from arifosmcp.runtime.public_surface import public_surface
 
@@ -5976,7 +5976,7 @@ setInterval(refreshSot, 30000);
         payload = {
             "system": ps["system"],
             "status": _overall_status,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "canonical": ps["canonical"],
             "version": ps["version"],
             "commit": ps["commit"],

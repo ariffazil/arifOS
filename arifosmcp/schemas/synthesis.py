@@ -16,7 +16,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
@@ -29,7 +29,7 @@ from arifosmcp.schemas.verdict import ThermodynamicState
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class ReasoningMode(str, Enum):
+class ReasoningMode(StrEnum):
     """How is the mind reasoning?"""
 
     INDUCTIVE = "inductive"  # Specific → General
@@ -40,7 +40,7 @@ class ReasoningMode(str, Enum):
     COUNTERFACTUAL = "counterfactual"  # What if not?
 
 
-class AxiomSource(str, Enum):
+class AxiomSource(StrEnum):
     """Where did the axiom come from?"""
 
     CONSTITUTION = "constitution"  # F1-F13
@@ -50,7 +50,7 @@ class AxiomSource(str, Enum):
     AUTHORITY = "authority"  # Trusted external source
 
 
-class ContrastType(str, Enum):
+class ContrastType(StrEnum):
     """Type of anomalous contrast detected."""
 
     EXPECTED_V_OBSERVED = "expected_vs_observed"

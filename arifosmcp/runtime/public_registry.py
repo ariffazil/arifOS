@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import inspect
+import tomllib
 from functools import lru_cache
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, get_args, get_origin
 
-import tomllib
 from fastmcp.tools import FunctionTool
 from pydantic import TypeAdapter
 

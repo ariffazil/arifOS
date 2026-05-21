@@ -17,7 +17,6 @@ import logging
 from typing import Optional
 
 from supabase import create_client, Client
-from supabase.client import SupabaseClient
 
 logger = logging.getLogger(__name__)
 

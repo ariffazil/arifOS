@@ -13,13 +13,13 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
 
-class Verdict(str, Enum):
+class Verdict(StrEnum):
     """Constitutional verdicts."""
 
     SEAL = "SEAL"  # Approved - action is constitutional

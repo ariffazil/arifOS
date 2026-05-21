@@ -24,7 +24,7 @@ Ditempa Bukan Diberi.
 """
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -32,7 +32,7 @@ from typing import Any
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class Floor(str, Enum):
+class Floor(StrEnum):
     """
     F01–F13. Each Floor is a physics equation, not a policy rule.
     Eureka wired: thresholds derived from EUREKA_INSIGHTS_SEAL_v2026.04.07.
@@ -53,13 +53,13 @@ class Floor(str, Enum):
     F13_SOVEREIGN = "F13"  # Human veto absolute (final authority)
 
 
-class TrinityLane(str, Enum):
+class TrinityLane(StrEnum):
     AGI = "AGI"  # Tactical execution (000–777)
     ASI = "ASI"  # Strategic judgment (888)
     APEX = "APEX"  # Authority resolution (999)
 
 
-class ToolStage(str, Enum):
+class ToolStage(StrEnum):
     INIT = "000"
     OBSERVE = "111"
     EVIDENCE = "222"
@@ -93,7 +93,7 @@ class ToolStage(str, Enum):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class RiskClass(str, Enum):
+class RiskClass(StrEnum):
     """
     Risk consequence tier — governs HOW MUCH friction the kernel applies.
 

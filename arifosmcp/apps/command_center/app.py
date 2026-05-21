@@ -41,8 +41,8 @@ from arifosmcp.apps.command_center.models import (
     VaultList,
 )
 from arifosmcp.apps.command_center.state import get_state
-from arifosmcp.apps.command_center.vault_chain import append_vault_record
 from arifosmcp.apps.command_center.vault_audit import get_vault_audit
+from arifosmcp.apps.command_center.vault_chain import append_vault_record
 from arifosmcp.runtime.tools import (
     _CANONICAL_HANDLERS,
     _SESSION_STORE,

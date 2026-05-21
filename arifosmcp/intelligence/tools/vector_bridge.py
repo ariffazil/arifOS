@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from arifosmcp.schemas.evidence_bundle import (
     CanonicalEvidenceBundle,
@@ -138,7 +138,7 @@ async def ingest_evidence_bundle(
         session_verified=session_verified,
         sovereign_ack=sovereign_ack,
         idempotency_key=bundle.idempotency_key,
-        timestamp_utc=datetime.now(timezone.utc).isoformat(),
+        timestamp_utc=datetime.now(UTC).isoformat(),
     )
 
     # ── Authorization gate check ────────────────────────────────────────

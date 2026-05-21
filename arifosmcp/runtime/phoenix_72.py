@@ -38,7 +38,7 @@ from __future__ import annotations
 import logging
 import re
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -98,7 +98,7 @@ def is_cooldown_complete(cooldown_expiry: datetime | str) -> bool:
     """Return True if 72h cooling window has elapsed."""
     if isinstance(cooldown_expiry, str):
         cooldown_expiry = datetime.fromisoformat(cooldown_expiry.replace("Z", "+00:00"))
-    return datetime.now(timezone.utc) >= cooldown_expiry
+    return datetime.now(UTC) >= cooldown_expiry
 
 
 def should_seal(
@@ -162,7 +162,7 @@ def should_void(
 
     # After cooldown: if not SEALed, must be VOIDed
     sealable, _ = should_seal(
-        created_at=datetime.now(timezone.utc),  # not used after cooldown check
+        created_at=datetime.now(UTC),  # not used after cooldown check
         cooldown_expiry=cooldown_expiry,
         psi_utility=psi_utility,
         tri_witness=tri_witness,
@@ -199,7 +199,7 @@ def phoenix_entry(
     Called by memory_store.store() at ingest time.
     All entries enter in STATE_CANDIDATE with anti_hantu_flag pre-checked.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     cooldown_expiry = now + timedelta(hours=COOLING_HOURS)
 
     # Pre-check Anti-Hantu at ingest (F9 gate — same as memory_store triage)
@@ -281,7 +281,7 @@ def phoenix_entry(
 
 def psi_hit(entry: dict[str, Any]) -> dict[str, Any]:
     """Called when this memory contributed to a successful query (reduced entropy)."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     entry = dict(entry)  # immutable copy
     entry["psi_hits"] = entry.get("psi_hits", 0) + 1
     entry["psi_utility"] = entry.get("psi_utility", 0) + PSI_HIT_BONUS
@@ -304,7 +304,7 @@ def psi_hit(entry: dict[str, Any]) -> dict[str, Any]:
 
 def psi_miss(entry: dict[str, Any]) -> dict[str, Any]:
     """Called when this memory caused conflict or required correction."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     entry = dict(entry)
     entry["psi_misses"] = entry.get("psi_misses", 0) + 1
     entry["psi_utility"] = entry.get("psi_utility", 0) + PSI_MISS_PENALTY
@@ -327,7 +327,7 @@ def psi_miss(entry: dict[str, Any]) -> dict[str, Any]:
 
 def psi_decay(entry: dict[str, Any]) -> dict[str, Any]:
     """Apply half-life decay if not accessed within PSI_DECAY_HOURS."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     entry = dict(entry)
     last_access = entry.get("last_access_at") or entry.get("created_at")
     if last_access is None:
@@ -382,7 +382,7 @@ def attest_witness(
     entry["psi_log"] = list(entry.get("psi_log", []))
     entry["psi_log"].append(
         {
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "ts": datetime.now(UTC).isoformat(),
             "event": f"witness_{witness_type}",
             "attested": attested,
         }
@@ -406,7 +406,7 @@ def evaluate_promotion(entry: dict[str, Any]) -> tuple[str, str]:
 
     Returns (new_state: str, reason: str).
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     state = entry.get("state", STATE_CANDIDATE)
     cooldown_expiry_str = entry.get("cooldown_expiry")
     psi_utility = entry.get("psi_utility", 0)
@@ -474,7 +474,7 @@ def phoenix_summary(entry: dict[str, Any]) -> dict[str, Any]:
             cooldown_expiry_dt = datetime.fromisoformat(cooldown_expiry.replace("Z", "+00:00"))
         else:
             cooldown_expiry_dt = cooldown_expiry
-        remaining = (cooldown_expiry_dt - datetime.now(timezone.utc)).total_seconds() / 3600
+        remaining = (cooldown_expiry_dt - datetime.now(UTC)).total_seconds() / 3600
         remaining_hours = round(max(0, remaining), 1)
 
     return {

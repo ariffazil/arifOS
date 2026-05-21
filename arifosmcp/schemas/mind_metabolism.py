@@ -13,18 +13,16 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
-
-from arifosmcp.schemas.metabolic import ClaimState, OrganType, ConfidenceLevel
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # INPUT SCHEMA (v2)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class MindIntent(str, Enum):
+class MindIntent(StrEnum):
     EXPLAIN = "explain"
     VERIFY = "verify"
     PLAN = "plan"
@@ -35,7 +33,7 @@ class MindIntent(str, Enum):
     DECIDE_NEXT = "decide_next_observation"
     METABOLIZE = "metabolize"
 
-class DecisionClass(str, Enum):
+class DecisionClass(StrEnum):
     C0 = "C0"
     C1 = "C1"
     C2 = "C2"
@@ -43,7 +41,7 @@ class DecisionClass(str, Enum):
     C4 = "C4"
     C5 = "C5"
 
-class RiskTier(str, Enum):
+class RiskTier(StrEnum):
     GREEN = "green"
     AMBER = "amber"
     RED = "red"

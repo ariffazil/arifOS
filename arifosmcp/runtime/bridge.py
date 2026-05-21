@@ -10,19 +10,19 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 import json
 import logging
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from pydantic import ValidationError
-
-from arifosmcp.runtime.contracts import REQUIRES_SESSION
 from core.enforcement.auth_continuity import (
     mint_auth_context,
     verify_auth_context_cached,
 )
 from core.organs import agi, apex, asi, init, vault
 from core.organs._4_vault import verify_vault_ledger
+from pydantic import ValidationError
+
+from arifosmcp.runtime.contracts import REQUIRES_SESSION
 
 from .model import ClaimStatus, Verdict
 
@@ -56,7 +56,7 @@ def _ensure_vault_exists():
                     json.dumps(
                         {
                             "type": "seed",
-                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "timestamp": datetime.now(UTC).isoformat(),
                             "hash": "0x" + "0" * 64,
                         }
                     )
@@ -208,7 +208,7 @@ def _auth_failure_envelope(
         ],
         "meta": {
             "schema_version": "1.0.0",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "debug": False,
             "dry_run": dry_run,
         },
@@ -498,8 +498,9 @@ def _build_vitals_report(session_id: str) -> dict[str, Any]:
     Build the system vitals report for check_vital tool.
     Returns health status, thermodynamic budget, and capability map.
     """
-    from arifosmcp.runtime.session import get_session_identity
     from core.shared.floors import THRESHOLDS
+
+    from arifosmcp.runtime.session import get_session_identity
 
     try:
         from core.state.session_manager import session_manager
@@ -606,8 +607,6 @@ async def call_kernel(
     session_id: str,
     payload: dict[str, Any],
 ) -> dict[str, Any]:
-    from arifosmcp.runtime.model import CallerContext as _CallerContext
-    from core.governance_kernel import get_governance_kernel
     from core.shared.types import (
         GovernanceMetadata,
         Intent,
@@ -615,11 +614,14 @@ async def call_kernel(
         TemporalContract,
     )
 
+    from arifosmcp.runtime.model import CallerContext as _CallerContext
+    from core.governance_kernel import get_governance_kernel
+
     canonical_name = tool_name or "unknown"
     claimed_actor_id = _resolve_claimed_actor_id(payload)
 
     t_start = time.perf_counter()
-    now_utc = datetime.now(timezone.utc)
+    now_utc = datetime.now(UTC)
     valid_until = now_utc + timedelta(minutes=15)
     dry_run = bool(payload.get("dry_run", False))
 

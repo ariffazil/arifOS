@@ -10,13 +10,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
 
-class EvidenceStrength(str, Enum):
+class EvidenceStrength(StrEnum):
     """F02 TRUTH banding for behavioural observations."""
 
     SINGLE = "single"
@@ -24,7 +24,7 @@ class EvidenceStrength(str, Enum):
     CORROBORATED = "corroborated"
 
 
-class EvidenceClass(str, Enum):
+class EvidenceClass(StrEnum):
     """DS-222 Evidence Quality Gate — granular confidence class.
 
     E0 = feeling only
@@ -43,7 +43,7 @@ class EvidenceClass(str, Enum):
     E5_CONFIRMED = "E5"
 
 
-class InferenceMode(str, Enum):
+class InferenceMode(StrEnum):
     """DS prompt engine mode — who is being mapped."""
 
     MIRROR = "mirror"  # Arif's own shadow
@@ -51,7 +51,7 @@ class InferenceMode(str, Enum):
     TEAM = "team"  # Organizational / team pattern
 
 
-class DignityStatus(str, Enum):
+class DignityStatus(StrEnum):
     """F05 PEACE / F06 EMPATHY enforcement state."""
 
     SAFE = "safe"
@@ -59,7 +59,7 @@ class DignityStatus(str, Enum):
     HOLD = "hold"
 
 
-class EmotionalCharge(str, Enum):
+class EmotionalCharge(StrEnum):
     """DS-777: raw charge before metabolism."""
 
     ANGER = "anger"

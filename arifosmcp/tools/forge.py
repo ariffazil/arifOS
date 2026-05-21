@@ -9,7 +9,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.tools import _arif_forge_execute
@@ -76,7 +76,7 @@ def arif_forge_execute(
                         "clarity": _forge_clarity,
                         "well_substrate": _forge_sub,
                     },
-                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    timestamp=datetime.now(UTC).isoformat(),
                 )
         except Exception:
             pass  # WELL offline is non-fatal — W0 sovereignty invariant
@@ -114,7 +114,7 @@ def arif_forge_execute(
                         f"Shadow: {shadow_val}. "
                         f"Required: human_ack before proceeding."
                     },
-                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    timestamp=datetime.now(UTC).isoformat(),
                 )
 
     floor_check = check_floors(
@@ -140,7 +140,7 @@ def arif_forge_execute(
                 "reason": floor_check["reason"],
                 "failed_floors": floor_check["failed_floors"],
             },
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
         ).model_dump(mode="json")
         injected = _inject_nine_signal(raw, "HOLD")
         injected["reasons"] = [floor_check["reason"]] if floor_check.get("reason") else []

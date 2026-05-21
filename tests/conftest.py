@@ -83,18 +83,14 @@ def allow_legacy_spec_for_tests():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def mock_well_state_for_tests():
+def mock_well_state_for_tests(tmp_path_factory):
     """Provide a healthy WELL mirror state so biological readiness gate passes.
 
-    The WELL state at /root/WELL/state.json may be DEGRADED or null in
-    production. Unit tests must not fail because of external biological
-    telemetry. We snapshot the real file, inject a healthy stub, and restore
-    on teardown.
+    Uses WELL_STATE_PATH env var if set (production/VPS), otherwise creates a
+    temporary file so CI runners (which lack /root/WELL) can run tests cleanly.
     """
     import json
 
-    well_path = Path("/root/WELL/state.json")
-    original: str | None = None
     healthy = {
         "timestamp": "2026-04-30T00:00:00+00:00",
         "operator_id": "arif",
@@ -118,6 +114,21 @@ def mock_well_state_for_tests():
         "w0": "OPERATOR_VETO_INTACT / HIERARCHY_INVARIANT",
     }
 
+    # Resolve the well state path: env var > VPS default > tmpdir for CI
+    env_path = os.environ.get("WELL_STATE_PATH")
+    vps_path = Path("/root/WELL/state.json")
+
+    if env_path:
+        well_path = Path(env_path)
+    elif vps_path.parent.exists():
+        well_path = vps_path
+    else:
+        # CI runner: create temp file and point WELL_STATE_PATH at it
+        tmp_dir = tmp_path_factory.mktemp("well_state")
+        well_path = tmp_dir / "state.json"
+        os.environ["WELL_STATE_PATH"] = str(well_path)
+
+    original: str | None = None
     if well_path.exists():
         original = well_path.read_text(encoding="utf-8")
 

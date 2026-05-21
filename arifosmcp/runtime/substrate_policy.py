@@ -6,10 +6,10 @@ Floors for every mode in the M-11 Mega-Tool surface.
 """
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
-class SubstrateClass(str, Enum):
+class SubstrateClass(StrEnum):
     INSPECT = "inspect"
     READ = "read"
     RECALL = "recall"
@@ -21,7 +21,7 @@ class SubstrateClass(str, Enum):
     COMMUNICATE = "communicate"
 
 
-class RiskTier(str, Enum):
+class RiskTier(StrEnum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"

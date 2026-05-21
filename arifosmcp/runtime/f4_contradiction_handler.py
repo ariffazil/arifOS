@@ -38,7 +38,7 @@ import os
 import re
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -734,7 +734,7 @@ def f4_write_path_hook(
     - supersession metadata for new entry
     - contradiction audit count
     """
-    now = recorded_at or datetime.now(timezone.utc)
+    now = recorded_at or datetime.now(UTC)
 
     # Step 1: F4 Entity Extraction
     if isinstance(content, str):
@@ -809,7 +809,7 @@ def f4_write_path_hook(
 
 
 def _iso_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 _JSON_RE = re.compile(r"\{[\s\S]*\}", re.IGNORECASE)

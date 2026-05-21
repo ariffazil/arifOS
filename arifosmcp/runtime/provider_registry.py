@@ -7,11 +7,11 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class ProviderType(str, Enum):
+class ProviderType(StrEnum):
     BRAVE = "brave"
     EXA = "exa"
     TAVILY = "tavily"
@@ -20,7 +20,7 @@ class ProviderType(str, Enum):
     MEYHEM = "meyhem"
 
 
-class QueryMode(str, Enum):
+class QueryMode(StrEnum):
     REALTIME = "realtime"
     SEMANTIC = "semantic"
     RESEARCH = "research"
