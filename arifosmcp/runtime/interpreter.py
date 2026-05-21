@@ -149,7 +149,7 @@ async def interpret_with_sea_lion(
             )
     except Exception as exc:
         logger.error("SEA-LION API transport error: %s", exc)
-        raise InterpretationError(f"SEA-LION API transport error: {exc}")
+        raise InterpretationError(f"SEA-LION API transport error: {exc}") from exc
 
     if response.status_code != 200:
         logger.error("SEA-LION API HTTP %s: %s", response.status_code, response.text)
@@ -160,7 +160,7 @@ async def interpret_with_sea_lion(
         content = payload["choices"][0]["message"]["content"]
     except Exception as exc:
         logger.error("SEA-LION API response parse error: %s", exc)
-        raise InterpretationError(f"SEA-LION response parse error: {exc}")
+        raise InterpretationError(f"SEA-LION response parse error: {exc}") from exc
 
     # Strip markdown fences if present
     content = content.strip()
@@ -176,7 +176,7 @@ async def interpret_with_sea_lion(
         parsed = json.loads(content)
     except json.JSONDecodeError as exc:
         logger.error("SEA-LION returned invalid JSON: %s", content[:500])
-        raise InterpretationError(f"SEA-LION returned invalid JSON: {exc}")
+        raise InterpretationError(f"SEA-LION returned invalid JSON: {exc}") from exc
 
     # Minimal schema check
     required_top = {
@@ -276,7 +276,7 @@ OUTPUT SCHEMA (strict JSON):
                 },
             )
     except Exception as exc:
-        raise InterpretationError(f"Ollama unavailable: {exc}")
+        raise InterpretationError(f"Ollama unavailable: {exc}") from exc
 
     if response.status_code != 200:
         raise InterpretationError(f"Ollama HTTP {response.status_code}")
@@ -286,7 +286,7 @@ OUTPUT SCHEMA (strict JSON):
         if isinstance(parsed, str):
             parsed = json.loads(parsed)
     except Exception as exc:
-        raise InterpretationError(f"Ollama parse error: {exc}")
+        raise InterpretationError(f"Ollama parse error: {exc}") from exc
 
     required_top = {
         "selected_quote_id",

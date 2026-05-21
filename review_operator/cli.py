@@ -67,13 +67,13 @@ async def cmd_list_pending(conn):
         return
 
     total = rows[0]["pending_total"]
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  888_HOLD PENDING — {total} items")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     for i, r in enumerate(rows, 1):
         age = (datetime.now(timezone.utc) - r["created_at"]).total_seconds()
-        age_str = f"{int(age//60)}m ago" if age < 3600 else f"{int(age//3600)}h ago"
+        age_str = f"{int(age // 60)}m ago" if age < 3600 else f"{int(age // 3600)}h ago"
 
         risk_emoji = {"CRITICAL": "🔴", "HIGH": "🟠", "MEDIUM": "🟡", "LOW": "🟢"}.get(
             r["risk_class"], "⚪"
@@ -103,9 +103,9 @@ async def cmd_inspect(conn, cooling_id: str):
         print(f"❌ cooling_id not found: {cooling_id}")
         return
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  INSPECT: {cooling_id}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"  action_type:    {row['action_type']}")
     print(f"  agent_id:       {row['agent_id']}")
     print(f"  prospect_id:    {row['prospect_id'] or 'n/a'}")
@@ -129,7 +129,7 @@ async def cmd_inspect(conn, cooling_id: str):
         for k, v in payload.items():
             vstr = str(v)[:200]
             print(f"    {k}: {vstr}")
-    except:
+    except Exception:
         print(f"    {row['payload_raw'][:500]}")
     print()
 

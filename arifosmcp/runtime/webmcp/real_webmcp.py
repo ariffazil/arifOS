@@ -155,7 +155,7 @@ class RealWebMCPGateway:
 
             try:
                 body = await request.json()
-            except:
+            except Exception:
                 body = {}
 
             # F13: Human confirmation for critical operations
@@ -676,7 +676,7 @@ function initDeclarativeTools() {
         <div class="metric">
             <div class="label">Disk</div>
             <div class="value">{machine.get("disk_percent", 0.0):.1f}%</div>
-            <div class="label">Load avg: {', '.join(f'{v:.2f}' for v in machine.get('load_avg', [])[:3]) or 'n/a'}</div>
+            <div class="label">Load avg: {", ".join(f"{v:.2f}" for v in machine.get("load_avg", [])[:3]) or "n/a"}</div>
         </div>
         <div class="metric">
             <div class="label">Governance Verdict</div>
@@ -690,8 +690,8 @@ function initDeclarativeTools() {
         </div>
         <div class="metric">
             <div class="label">System</div>
-            <div class="value">{governance.get('system_status', 'UNKNOWN')}</div>
-            <div class="label">G={governance.get('G_star', 0.0):.2f} · dS={governance.get('dS', 0.0):.2f}</div>
+            <div class="value">{governance.get("system_status", "UNKNOWN")}</div>
+            <div class="label">G={governance.get("G_star", 0.0):.2f} · dS={governance.get("dS", 0.0):.2f}</div>
         </div>
     </div>
     <pre>{json.dumps(metrics, indent=2)}</pre>

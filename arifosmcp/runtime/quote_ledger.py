@@ -105,7 +105,7 @@ def load_quote_ledger(
         with ledger_path.open("r", encoding="utf-8") as fh:
             raw = json.load(fh)
     except json.JSONDecodeError as exc:
-        raise QuoteSchemaError(f"Ledger JSON decode error: {exc}")
+        raise QuoteSchemaError(f"Ledger JSON decode error: {exc}") from exc
 
     if not isinstance(raw, list):
         raise QuoteSchemaError("Ledger root must be a JSON list.")
@@ -115,7 +115,9 @@ def load_quote_ledger(
         try:
             validate_quote_schema(entry)
         except QuoteSchemaError as exc:
-            raise QuoteSchemaError(f"Entry {idx} (id={entry.get('id', '?')}) invalid: {exc}")
+            raise QuoteSchemaError(
+                f"Entry {idx} (id={entry.get('id', '?')}) invalid: {exc}"
+            ) from exc
         validated.append(entry)
 
     _loaded_ledger = validated

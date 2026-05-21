@@ -295,7 +295,7 @@ class MCPInspectorRunner:
                                 f"{len(tools)} tools found",
                                 {"tools": [t.get("name", str(t)) for t in tools[:5]]},
                             )
-                    except:
+                    except Exception:
                         continue
 
                 # Fallback: assume it's working if health passed

@@ -583,7 +583,7 @@ class WebMCPGateway:
                                         ),
                                     }
                                 )
-                            except:
+                            except Exception:
                                 continue
 
                 return {
