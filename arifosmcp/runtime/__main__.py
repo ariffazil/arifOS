@@ -113,6 +113,10 @@ def _stdio_constitutional_floors() -> list[dict[str, str]]:
 async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[str, Any]:
     handler_name = getattr(handler, "__name__", "")
 
+    # Lazy imports — placed here to avoid loading heavy deps at module init.
+    # LSP cannot resolve these due to runtime sys.path setup; type ignores below.
+    from arifosmcp.runtime.session import get_session_identity  # type: ignore[import]
+
     if not arguments.get("actor_id"):
         sid = arguments.get("session_id")
         if sid:
@@ -121,6 +125,8 @@ async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[st
                 arguments["actor_id"] = session_info.get("actor_id")
 
     if handler_name == "vault_seal":
+        from arifosmcp.runtime.tools import arifos_vault  # type: ignore[import]
+
         return await arifos_vault(**arguments)
 
     result = handler(**arguments)
