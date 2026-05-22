@@ -11616,11 +11616,92 @@ def _build_enriched_signature(handler):
     return sig.replace(parameters=new_params)
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# PARAMETER ALIAS RESILIENCE — F2 TRUTH / F4 CLARITY
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_LEGACY_PARAM_ALIASES: dict[str, dict[str, str]] = {
+    # AI clients sometimes hallucinate generic parameter names.
+    # Map them to canonical handler parameters without crashing.
+    "arif_ops_measure": {"metric": "estimate", "value": "estimate"},
+    "arif_kernel_route": {"action": "task", "intent": "task"},
+    "arif_mind_reason": {"prompt": "query", "input": "query", "question": "query"},
+    "arif_evidence_fetch": {"claim": "query", "input": "query", "prompt": "query"},
+    "arif_judge_deliberate": {
+        "subject": "candidate",
+        "proposal": "candidate",
+        "action": "candidate",
+    },
+    "arif_reply_compose": {"topic": "message", "text": "message", "content": "message"},
+    "arif_gateway_connect": {
+        "endpoint": "target_agent",
+        "agent": "target_agent",
+        "target": "target_agent",
+    },
+    "arif_forge_execute": {
+        "command": "manifest",
+        "instructions": "manifest",
+        "code": "manifest",
+    },
+}
+
+
+def _filter_kwargs_for_handler(
+    handler: Any, kwargs: dict[str, Any], tool_name: str
+) -> dict[str, Any]:
+    """
+    Filter kwargs to only pass parameters the handler accepts.
+    Maps legacy aliases to canonical names. Drops unknowns with a warning.
+    """
+    sig = inspect.signature(handler)
+    params = sig.parameters
+
+    # If handler accepts **kwargs, pass everything through
+    if any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values()):
+        return kwargs
+
+    accepted = set(params.keys())
+    aliases = _LEGACY_PARAM_ALIASES.get(tool_name, {})
+    filtered: dict[str, Any] = {}
+
+    for key, value in kwargs.items():
+        if key in accepted:
+            filtered[key] = value
+        elif key in aliases:
+            canonical = aliases[key]
+            if canonical in accepted:
+                logger.warning(
+                    "Tool %s: aliased parameter '%s' -> '%s' (value=%r)",
+                    tool_name,
+                    key,
+                    canonical,
+                    value,
+                )
+                filtered[canonical] = value
+            else:
+                logger.warning(
+                    "Tool %s: aliased parameter '%s' -> '%s' rejected (not accepted)",
+                    tool_name,
+                    key,
+                    canonical,
+                )
+        else:
+            logger.warning(
+                "Tool %s: dropped unknown parameter '%s' (value=%r)",
+                tool_name,
+                key,
+                value,
+            )
+
+    return filtered
+
+
 def _wrap_handler(handler: Any, tool_name: str) -> Any:
     """
     Wrap a handler so:
     1. Pydantic validation errors expose the public tool name
     2. Every response passes through Nine-Signal enforcement (F2 addendum)
+    3. Unknown / aliased parameters are filtered, not crashed on
     """
     # Guard: None handler (arif_metabolize placeholder before lazy injection)
     if handler is None:
@@ -11628,8 +11709,9 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
     # Sync wrapper
     def wrapper(*args: Any, **kwargs: Any) -> Any:
+        _filtered = _filter_kwargs_for_handler(handler, kwargs, tool_name)
         try:
-            response = handler(*args, **kwargs)
+            response = handler(*args, **_filtered)
         except Exception as exc:
             msg = str(exc)
             if handler.__name__ in msg:
@@ -11651,8 +11733,9 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
     # Async wrapper
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+        _filtered = _filter_kwargs_for_handler(handler, kwargs, tool_name)
         try:
-            response = await handler(*args, **kwargs)
+            response = await handler(*args, **_filtered)
         except Exception as exc:
             msg = str(exc)
             if handler.__name__ in msg:

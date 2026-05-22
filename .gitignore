@@ -166,3 +166,7 @@ arifosmcp/sessions/hermes-briefings/*
 .archive/
 *.bak/
 .*.bak
+
+# ruff cache
+.ruff_cache/
+

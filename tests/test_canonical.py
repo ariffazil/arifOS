@@ -289,3 +289,80 @@ async def test_elicitation_cancel_holds_missing_judge_candidate():
     assert candidate is None
     assert hold is not None
     assert hold["status"] == "HOLD"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PARAMETER ALIAS RESILIENCE TESTS — F2 TRUTH / F4 CLARITY
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def test_filter_kwargs_drops_unknown_params():
+    """Unknown parameters must be dropped, not crash the handler."""
+    from arifosmcp.runtime.tools import _filter_kwargs_for_handler
+
+    def handler(mode: str, query: str | None = None) -> dict:
+        return {"mode": mode, "query": query}
+
+    filtered = _filter_kwargs_for_handler(handler, {"mode": "test", "metric": 42}, "test_tool")
+    assert "mode" in filtered
+    assert "metric" not in filtered
+    assert filtered["mode"] == "test"
+
+
+def test_filter_kwargs_maps_aliases():
+    """Legacy aliases must be translated to canonical parameter names."""
+    from arifosmcp.runtime.tools import _filter_kwargs_for_handler
+
+    def handler(mode: str, query: str | None = None) -> dict:
+        return {"mode": mode, "query": query}
+
+    filtered = _filter_kwargs_for_handler(
+        handler, {"mode": "reason", "prompt": "hello"}, "arif_mind_reason"
+    )
+    assert "query" in filtered
+    assert "prompt" not in filtered
+    assert filtered["query"] == "hello"
+
+
+def test_filter_kwargs_passes_kwargs_handler():
+    """Handlers accepting **kwargs must receive everything unfiltered."""
+    from arifosmcp.runtime.tools import _filter_kwargs_for_handler
+
+    def handler(mode: str, **kwargs) -> dict:
+        return {"mode": mode, **kwargs}
+
+    filtered = _filter_kwargs_for_handler(
+        handler, {"mode": "test", "extra": "value"}, "test_tool"
+    )
+    assert "extra" in filtered
+    assert filtered["extra"] == "value"
+
+
+def test_filter_kwargs_maps_metric_to_estimate():
+    """arif_ops_measure alias: metric -> estimate."""
+    from arifosmcp.runtime.tools import _filter_kwargs_for_handler
+
+    def handler(mode: str, estimate: float | None = None) -> dict:
+        return {"mode": mode, "estimate": estimate}
+
+    filtered = _filter_kwargs_for_handler(
+        handler, {"mode": "health", "metric": 99.0}, "arif_ops_measure"
+    )
+    assert "estimate" in filtered
+    assert filtered["estimate"] == 99.0
+    assert "metric" not in filtered
+
+
+def test_filter_kwargs_maps_prompt_to_query():
+    """arif_mind_reason alias: prompt -> query."""
+    from arifosmcp.runtime.tools import _filter_kwargs_for_handler
+
+    def handler(mode: str, query: str | None = None) -> dict:
+        return {"mode": mode, "query": query}
+
+    filtered = _filter_kwargs_for_handler(
+        handler, {"mode": "reason", "prompt": "think deeply"}, "arif_mind_reason"
+    )
+    assert "query" in filtered
+    assert filtered["query"] == "think deeply"
+    assert "prompt" not in filtered

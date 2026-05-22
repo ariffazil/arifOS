@@ -386,7 +386,7 @@ def preflight(
 CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_session_init": {
         "name": "arif_session_init",
-        "description": "000_INIT: Session bootstrap + identity binding. CALL FIRST on every agentic session — no audit trail, no floor enforcement, no actor binding without this. Do NOT call GEOX/WEALTH/WELL tools before calling this.",  # noqa: E501
+        "description": "000_INIT: Session bootstrap + identity binding. CALL FIRST on every agentic session — no audit trail, no floor enforcement, no actor binding without this. Do NOT call GEOX/WEALTH/WELL tools before calling this. Parameters: mode (init|resume|validate|epoch_open|epoch_seal), actor_id, session_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
@@ -400,7 +400,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_sense_observe": {
         "name": "arif_sense_observe",
-        "description": "111_OBSERVE: Multimodal reality observation — web search, VPS vitals, atlas scan. Call this for: web search, checking system state, grounding session in current reality. Do NOT call this for deep evidence retrieval (use arif_evidence_fetch) or reasoning (use arif_mind_reason).",  # noqa: E501
+        "description": "111_OBSERVE: Multimodal reality observation — web search, VPS vitals, atlas scan. Call this for: web search, checking system state, grounding session in current reality. Do NOT call this for deep evidence retrieval (use arif_evidence_fetch) or reasoning (use arif_mind_reason). Parameters: mode (search|ingest|compass|atlas|entropy_dS|vitals), query, url, layers, session_id, actor_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.OBSERVE,
         "lane": TrinityLane.AGI,
@@ -414,7 +414,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_evidence_fetch": {
         "name": "arif_evidence_fetch",
-        "description": "222_EVIDENCE: Verified external evidence retrieval with source-of-truth grounding. Call this when: a claim needs external citation, Arif needs live data before deciding, or reasoning requires factual grounding. Do NOT call this for general browsing (use arif_sense_observe) or reasoning over already-gathered data (use arif_mind_reason).",  # noqa: E501
+        "description": "222_EVIDENCE: Verified external evidence retrieval with source-of-truth grounding. Call this when: a claim needs external citation, Arif needs live data before deciding, or reasoning requires factual grounding. Do NOT call this for general browsing (use arif_sense_observe) or reasoning over already-gathered data (use arif_mind_reason). Parameters: mode (fetch|search|eureka), url, query (the evidence query string), thinking_depth, sequential_mode, session_id, actor_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.EVIDENCE,
         "lane": TrinityLane.AGI,
@@ -437,7 +437,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_mind_reason": {
         "name": "arif_mind_reason",
-        "description": "333_REASON: Symbolic reasoning kernel — epistemically honest, self-critiquing, confidence-labeled. Call this for: complex multi-step reasoning, plan generation, cross-domain analysis, hypothesis evaluation. Labels its own uncertainty (F7). Do NOT call this for domain-specific calculations — use GEOX/WEALTH for those.",  # noqa: E501
+        "description": "333_REASON: Symbolic reasoning kernel — epistemically honest, self-critiquing, confidence-labeled. Call this for: complex multi-step reasoning, plan generation, cross-domain analysis, hypothesis evaluation. Labels its own uncertainty (F7). Do NOT call this for domain-specific calculations — use GEOX/WEALTH for those. Parameters: mode (reason|reflect|verify|critique|plan|plan_review|plan_approve|metabolize), query (the reasoning prompt), plan_id, witness_type, session_id, actor_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.REASON,
         "lane": TrinityLane.AGI,
@@ -470,7 +470,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_heart_critique": {
         "name": "arif_heart_critique",
-        "description": "444_CRITIQUE: Ethical critique and consequence assessment against F1-F13 floors. Call this before: irreversible actions, decisions affecting dignity or human welfare, forge execution, or any proposal that may violate constitutional floors. Do NOT call this to make the final decision — that belongs to arif_judge_deliberate.",  # noqa: E501
+        "description": "444_CRITIQUE: Ethical critique and consequence assessment against F1-F13 floors. Call this before: irreversible actions, decisions affecting dignity or human welfare, forge execution, or any proposal that may violate constitutional floors. Do NOT call this to make the final decision — that belongs to arif_judge_deliberate. Parameters: mode (critique|simulate|redteam|maruah|deescalate|empathy), target (the item to critique), stakeholder_ids, session_id, actor_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.CRITIQUE,
         "lane": TrinityLane.ASI,
@@ -493,7 +493,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "name": "arif_kernel_route",
         "description": "555_ROUTE: Routes intent to correct tool or organ. "
         "Use when unsure which tool to call, task needs multi-tool sequencing, "
-        "or delegating to GEOX/WEALTH/WELL. Returns a plan, not a result.",  # noqa: E501
+        "or delegating to GEOX/WEALTH/WELL. Returns a plan, not a result. "
+        "Parameters: mode (route|kernel|triage|delegate|status|metabolize), target (tool/endpoint name), task (task description), stage, session_id, actor_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
@@ -516,7 +517,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_reply_compose": {
         "name": "arif_reply_compose",
-        "description": "444_REPLY: Governed response composition — formats final output for Arif with citations and tone calibration. Call this as the LAST step before presenting results to Arif. Do NOT call this mid-pipeline — only after reasoning and judgment are complete.",  # noqa: E501
+        "description": "444_REPLY: Governed response composition — formats final output for Arif with citations and tone calibration. Call this as the LAST step before presenting results to Arif. Do NOT call this mid-pipeline — only after reasoning and judgment are complete. Parameters: mode (compose|summarize|cite|tone_shift), message (the content to compose), style, citations, session_id, actor_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.REPLY,
         "lane": TrinityLane.AGI,
@@ -533,7 +534,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_memory_recall": {
         "name": "arif_memory_recall",
-        "description": "555m_MEMORY: Associative memory — Postgres+Qdrant vector recall across sessions. Call this for: retrieving past decisions, querying stored assets (geoscience prospects, financial models), or restoring session context. Do NOT use this for live web data (use arif_evidence_fetch) or permanent ledger sealing (use arif_vault_seal).",  # noqa: E501
+        "description": "555m_MEMORY: Associative memory — Postgres+Qdrant vector recall across sessions. Call this for: retrieving past decisions, querying stored assets (geoscience prospects, financial models), or restoring session context. Do NOT use this for live web data (use arif_evidence_fetch) or permanent ledger sealing (use arif_vault_seal). Parameters: mode (recall|asset_query|asset_store|context_restore), query, memory_id, session_id, actor_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.MEMORY,
         "lane": TrinityLane.AGI,
@@ -550,7 +551,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_gateway_connect": {
         "name": "arif_gateway_connect",
-        "description": "666_GATEWAY: Federated cross-agent bridge — connects arifOS to GEOX (earth), WEALTH (capital), WELL (human), or external A2A agents. Call this to: delegate domain work to GEOX/WEALTH/WELL with session_id provenance, or initiate multi-agent workflows. Do NOT call GEOX/WEALTH/WELL tools directly from an ungoverned session — route through here to maintain constitutional audit trail.",  # noqa: E501
+        "description": "666_GATEWAY: Federated cross-agent bridge — connects arifOS to GEOX (earth), WEALTH (capital), WELL (human), or external A2A agents. Call this to: delegate domain work to GEOX/WEALTH/WELL with session_id provenance, or initiate multi-agent workflows. Do NOT call GEOX/WEALTH/WELL tools directly from an ungoverned session — route through here to maintain constitutional audit trail. Parameters: mode (connect|delegate|handover|revoke|probe), target_agent (e.g., GEOX|WEALTH|WELL|kimi|claude|gemini), session_id, actor_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.GATEWAY,
         "lane": TrinityLane.ASI,
@@ -567,7 +568,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_judge_deliberate": {
         "name": "arif_judge_deliberate",
-        "description": "888_JUDGE: Final constitutional arbitration — renders SEAL/HOLD/VOID verdicts. Call this before: any irreversible action, deployment, or consequential decision. Requires domain_evidence from GEOX/WEALTH/WELL as input. Do NOT call this first — must be preceded by sense→evidence→reason→critique pipeline.",  # noqa: E501
+        "description": "888_JUDGE: Final constitutional arbitration — renders SEAL/HOLD/VOID verdicts. Call this before: any irreversible action, deployment, or consequential decision. Requires domain_evidence from GEOX/WEALTH/WELL as input. Do NOT call this first — must be preceded by sense→evidence→reason→critique pipeline. Parameters: mode (judge|validate|hold|rules|armor|probe|notify), candidate (the action/decision to judge), constitutional_chain_id, session_id, actor_id (required).",  # noqa: E501
         "access": "authenticated",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.ASI,
@@ -584,7 +585,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_vault_seal": {
         "name": "arif_vault_seal",
-        "description": "999_SEAL: Immutable ledger anchoring — cryptographic hash-chain seal to VAULT999. Call this LAST to permanently record any decision, verdict, or completed workflow. Irreversible — requires ack_irreversible=True and a preceding arif_judge_deliberate SEAL verdict. Do NOT call this mid-pipeline or speculatively.",  # noqa: E501
+        "description": "999_SEAL: Immutable ledger anchoring — cryptographic hash-chain seal to VAULT999. Call this LAST to permanently record any decision, verdict, or completed workflow. Irreversible — requires ack_irreversible=True and a preceding arif_judge_deliberate SEAL verdict. Do NOT call this mid-pipeline or speculatively. Parameters: mode (seal|verify|ledger|changelog|audit), payload, ack_irreversible (bool, required), actor_id (required), constitutional_chain_id, judge_state_hash, session_id.",  # noqa: E501
         "access": "authenticated",
         "stage": ToolStage.SEAL,
         "lane": TrinityLane.APEX,
@@ -601,7 +602,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_forge_execute": {
         "name": "arif_forge_execute",
-        "description": "666_FORGE: Build execution — code generation, artifact creation, system modification. Call this for: writing code, generating files, executing build commands. Requires arif_judge_deliberate SEAL before side-effects are live (dry_run by default). Do NOT call this without a preceding judge verdict on consequential changes.",  # noqa: E501
+        "description": "666_FORGE: Build execution — code generation, artifact creation, system modification. Call this for: writing code, generating files, executing build commands. Requires arif_judge_deliberate SEAL before side-effects are live (dry_run by default). Do NOT call this without a preceding judge verdict on consequential changes. Parameters: mode (engineer|query|write|generate|commit|recall|dry_run), manifest (the build manifest/instructions), query, artifact_id, ack_irreversible (bool), actor_id (required), constitutional_chain_id, judge_state_hash, vault_entry_id, plan_id, session_id.",  # noqa: E501
         "access": "sovereign",
         "stage": ToolStage.FORGE,
         "lane": TrinityLane.AGI,
@@ -626,7 +627,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_ops_measure": {
         "name": "arif_ops_measure",
-        "description": "777_MEASURE: Machine resource health + governance thermodynamics (g_score, entropy delta, Ω). Call this for: VPS CPU/RAM/disk state, arifOS reasoning quality metrics, or pre-forge health check. Do NOT use this for Arif's biological/cognitive state — use WELL:well_assess_metabolism for that.",  # noqa: E501
+        "description": "777_MEASURE: Machine resource health + governance thermodynamics (g_score, entropy delta, Ω). Call this for: VPS CPU/RAM/disk state, arifOS reasoning quality metrics, or pre-forge health check. Do NOT use this for Arif's biological/cognitive state — use WELL:well_assess_metabolism for that. Parameters: mode (health|vitals|cost|genius|psi_le|omega|landauer|topology|drift), estimate, session_id, actor_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.MEASURE,
         "lane": TrinityLane.AGI,
