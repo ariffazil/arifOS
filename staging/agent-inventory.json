@@ -1,5 +1,5 @@
 {
-  "epoch": "2026-05-22T11:40:00Z",
+  "epoch": "2026-05-22T12:01:00+08:00",
   "system": "arifOS Federation",
   "in_scope_agents": {
     "apex": {
@@ -99,6 +99,19 @@
       "transport": "stdio MCP",
       "permissions_level": "L3 Control Plane",
       "current_governance_gaps": "MCP version drift; resolved by arifos stdio server dynamic negotiation."
+    },
+    "antigravity": {
+      "host": "local",
+      "repo_path": "C:/ariffazil/AAA/agents/antigravity",
+      "launch_method": "Gemini CLI / Antigravity IDE extension (Windows cockpit)",
+      "config_files": [
+        "C:/ariffazil/AAA/agents/antigravity/agent-card.json",
+        "C:/ariffazil/AAA/agents/antigravity/IDENTITY.md"
+      ],
+      "role": "L4 IDE-Pair / Constitutional Scribe — local cockpit pair-programming clerk",
+      "transport": "stdio/IDE-extension",
+      "permissions_level": "L3 Clerk — 777 FORGE max (Proposes only, no self-approval)",
+      "current_governance_gaps": "None — formally inducted via R1 Induct pathway. Registered in AAA agents/antigravity/ on 2026-05-22."
     }
   },
   "excluded_agents": {

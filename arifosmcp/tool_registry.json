@@ -1,7 +1,7 @@
 {
   "_schema": "arifos-ssct-v2026.05.05-kanon-ssct",
   "_source": "arifosmcp.constitutional_map.CANONICAL_TOOLS",
-  "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS dict. Do not hand-edit \u2014 edit CANONICAL_TOOLS and regenerate.",
+  "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS dict. Do not hand-edit — edit CANONICAL_TOOLS and regenerate. Diagnostic capabilities folded: arif_ops_measure[stack_health,budget], arif_gateway_connect[consensus], arif_judge_deliberate[scan_instructions].",
   "canonical_count": 13,
   "probe_count": 0,
   "total_surface": 13,
@@ -241,13 +241,7 @@
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
-      "modes": [
-        "connect",
-        "delegate",
-        "handover",
-        "revoke",
-        "probe"
-      ],
+      "modes": ["connect", "delegate", "handover", "revoke", "probe", "consensus"],
       "eureka_insight": "F1: cross-agent actions must be auditable. F3: W\u2083 \u2265 0.75 \u2014 cross-agent consensus required.",
       "tags": [
         "canonical"
@@ -264,15 +258,7 @@
       "irreversible": false,
       "access": "authenticated",
       "requires_auth": true,
-      "modes": [
-        "judge",
-        "validate",
-        "hold",
-        "rules",
-        "armor",
-        "probe",
-        "notify"
-      ],
+      "modes": ["judge", "validate", "hold", "rules", "armor", "probe", "notify", "scan_instructions", "formalize"],
       "eureka_insight": "F11: identity must be verified before judgment. F13: human veto is absolute \u2014 no algorithm overrides sovereign.",
       "tags": [
         "canonical"
@@ -338,17 +324,7 @@
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
-      "modes": [
-        "health",
-        "vitals",
-        "cost",
-        "genius",
-        "psi_le",
-        "omega",
-        "landauer",
-        "topology",
-        "drift"
-      ],
+      "modes": ["health", "vitals", "cost", "genius", "psi_le", "omega", "landauer", "topology", "drift", "stack_health", "budget"],
       "eureka_insight": "F4: \u0394S \u2264 0 \u2014 ops must contribute to entropy reduction. Thermodynamic telemetry: delta_S, omega_band, tri_witness.",
       "tags": [
         "canonical"

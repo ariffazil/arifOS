@@ -7,6 +7,8 @@ Operations and economic thermodynamics telemetry.
 
 from __future__ import annotations
 
+import asyncio
+
 from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.session_auth import validate_session
 from arifosmcp.runtime.tools import _hold, _ok, _sabar
@@ -269,6 +271,73 @@ def arif_ops_measure(
                 session_id=session_id,
             )
         )
+
+    if mode == "stack_health":
+        # F3 WITNESS / 777_OPS: Full federation stack health probe.
+        # Delegates to tools/health.py for per-component diagnostics.
+        # Returns SELAMAT / AMANAH / VOID with per-component breakdown.
+        try:
+            from arifosmcp.tools.health import arif_stack_health_probe
+
+            raw = arif_stack_health_probe(session_id=session_id, actor_id=actor_id)
+            return TelemetryBlock(
+                **_ok(
+                    "arif_ops_measure",
+                    raw if isinstance(raw, dict) else (raw.__dict__ if hasattr(raw, "__dict__") else {"result": str(raw)}),
+                    meta={**drift_metrics, "source": "arif_stack_health_probe", "mode": "stack_health"},
+                    session_id=session_id,
+                )
+            )
+        except Exception as exc:
+            return TelemetryBlock(
+                **_hold(
+                    "arif_ops_measure",
+                    f"stack_health probe failed: {exc}",
+                    ["F03"],
+                    session_id=session_id,
+                )
+            )
+
+    if mode == "budget":
+        # F1/F07 BUDGET: Session-cumulative metabolic budget tracking.
+        # Delegates to tools/session_budget.py.
+        # Modes: status | record | check | reset (passed via sub_mode param).
+        try:
+            import inspect
+
+            from arifosmcp.tools.session_budget import arif_session_budget
+
+            sig = inspect.signature(arif_session_budget)
+            call_kwargs: dict = {"session_id": session_id, "actor_id": actor_id}
+            raw_result = (
+                arif_session_budget(**call_kwargs)
+                if asyncio.iscoroutinefunction(arif_session_budget)
+                else arif_session_budget(**call_kwargs)
+            )
+            if asyncio.iscoroutine(raw_result):
+                # If running in an async context, schedule; otherwise get the sync path
+                try:
+                    loop = asyncio.get_event_loop()
+                    raw_result = loop.run_until_complete(raw_result)
+                except RuntimeError:
+                    raw_result = {"status": "async_context_required"}
+            payload = raw_result if isinstance(raw_result, dict) else {"result": str(raw_result)}
+            return TelemetryBlock(
+                **_ok(
+                    "arif_ops_measure",
+                    payload,
+                    meta={**drift_metrics, "source": "arif_session_budget", "mode": "budget"},
+                    session_id=session_id,
+                )
+            )
+        except Exception as exc:
+            return TelemetryBlock(
+                **_hold(
+                    "arif_ops_measure",
+                    f"budget mode failed: {exc}",
+                    session_id=session_id,
+                )
+            )
 
     return TelemetryBlock(
         **_hold("arif_ops_measure", f"Unknown mode: {mode}", session_id=session_id)

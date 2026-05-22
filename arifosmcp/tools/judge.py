@@ -408,6 +408,51 @@ def arif_judge_deliberate(
                 meta={"self_mod_lock": self_mod},
             )
 
+    # ── scan_instructions mode (F12 GUARD — absorbed from arif_scan_local_instructions) ──
+    if mode == "scan_instructions":
+        try:
+            import asyncio
+
+            from arifosmcp.tools.governance_scan import arif_scan_local_instructions
+
+            root_dir = candidate if isinstance(candidate, str) else None
+            raw = arif_scan_local_instructions(
+                root_dir=root_dir,
+                session_id=session_id,
+                actor_id=actor_id,
+            )
+            if asyncio.iscoroutine(raw):
+                try:
+                    loop = asyncio.get_event_loop()
+                    raw = loop.run_until_complete(raw)
+                except RuntimeError:
+                    raw = {"status": "async_context_required", "verdict": "HOLD"}
+            scan_verdict = raw.get("verdict", "SEAL") if isinstance(raw, dict) else "HOLD"
+            verdict_code = VerdictCode.SEAL if scan_verdict == "SEAL" else (
+                VerdictCode.VOID if scan_verdict == "VOID" else VerdictCode.HOLD
+            )
+            return VerdictOutput(
+                verdict=verdict_code,
+                reasons=[raw.get("summary", "Scan complete.")] if isinstance(raw, dict) else ["Scan complete."],
+                next_safe_action=(
+                    "Review findings and remediate override patterns before continuing."
+                    if scan_verdict in ("HOLD", "VOID")
+                    else "No override patterns detected — proceed."
+                ),
+                meta={
+                    "scan_instructions": raw if isinstance(raw, dict) else {"raw": str(raw)},
+                    "floor": "F12",
+                    "guard": "INJECTION_SCANNER",
+                },
+            )
+        except Exception as exc:
+            return VerdictOutput(
+                verdict=VerdictCode.HOLD,
+                reasons=[f"scan_instructions failed: {exc}"],
+                next_safe_action="Check governance_scan module availability.",
+                meta={"error": str(exc)},
+            )
+
     result = _arif_judge_deliberate(
         mode=mode,
         candidate=candidate,

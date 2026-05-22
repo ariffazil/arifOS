@@ -2,7 +2,7 @@
   "server_info": {
     "name": "arifOS MCP",
     "version": "2026.04.16",
-    "description": "Constitutional 13-floor MCP gateway. Trinity: arifOS (governance), GEOX (earth grounding), WEALTH (capital intelligence). Public surface: 11 canonical tools."
+    "description": "Constitutional 13-floor MCP gateway. Trinity: arifOS (governance), GEOX (earth grounding), WEALTH (capital intelligence). Public surface: 13 canonical tools (arif_noun_verb naming). Diagnostic capabilities folded into canonical modes: stack_health→arif_ops_measure, budget→arif_ops_measure, consensus→arif_gateway_connect, scan_instructions→arif_judge_deliberate."
   },
   "protocolVersion": "2025-03-26",
   "mcp_version": "2025-03-26",
@@ -447,7 +447,7 @@
       }
     }
   ],
-  "public_tool_count": 11,
+  "public_tool_count": 13,
   "resources": [
     {
       "uri": "arifos://vitals",

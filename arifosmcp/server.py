@@ -177,13 +177,17 @@ def create_arifos_mcp_server() -> FastMCP:
 
 
 def _assert_registered_surface(registered_names: list[str]) -> None:
+    """Assert the registered surface matches exactly the 13 canonical tools."""
     expected_set = set(CANONICAL_TOOLS)
-    if len(registered_names) != len(expected_set):
-        logger.warning(
-            "Surface drift: expected %d tools, got %d",
-            len(expected_set),
-            len(registered_names),
-        )
+    registered_set = set(registered_names)
+    if registered_set != expected_set:
+        unexpected = registered_set - expected_set
+        missing = expected_set - registered_set
+        if unexpected or missing:
+            raise RuntimeError(
+                f"Surface drift detected: unexpected={sorted(unexpected)}, "
+                f"missing={sorted(missing)}. Expected exactly {len(expected_set)} canonical tools."
+            )
     if any(name.startswith("arifos_") for name in registered_names):
         raise RuntimeError("Legacy surface detected in registered MCP tools")
 
@@ -214,74 +218,13 @@ try:
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
 
-    # ── Stack Health Probe (777 OPS) ──────────────────────────────────────────
-    from arifosmcp.tools.health import arif_stack_health_probe
-
-    mcp.tool(
-        name="arif_stack_health_probe",
-        description=(
-            "777_OPS: Federation stack health and governance probe. "
-            "Checks arifOS MCP, organs, model registry, risk leash, tool registry, VAULT999. "
-            "Returns SELAMAT / AMANAH / VOID with per-component diagnostics."
-        ),
-        tags={"diagnostic", "ops", "health", "governance"},
-    )(arif_stack_health_probe)
-
-    v2_tools_registered.append("arif_stack_health_probe")
-    logger.info(
-        "Registered diagnostics: arif_stack_health_probe"  # noqa: E501
-    )
-
-    # ── Local Instruction Scanner (F12 GUARD) ──────────────────────────────────
-    from arifosmcp.tools.governance_scan import arif_scan_local_instructions
-
-    mcp.tool(
-        name="arif_scan_local_instructions",
-        description=(
-            "F12 GUARD: Scan local agent instruction files for constitutional override attempts. "
-            "Detects .cursorrules, GEMINI.md, ARIF.md, copilot-instructions.md, AGENTS.md "
-            "and other instruction surfaces that attempt to bypass F1–F13 floors. "
-            "Returns SEAL / HOLD / VOID with matched patterns and file context."
-        ),
-        tags={"diagnostic", "governance", "security", "scanner"},
-    )(arif_scan_local_instructions)
-
-    v2_tools_registered.append("arif_scan_local_instructions")
-    logger.info("Registered diagnostics: arif_scan_local_instructions")
-
-    # ── Cross-Organ Consensus (F3 WITNESS) ─────────────────────────────────────
-    from arifosmcp.tools.organ_consensus import arif_organ_consensus
-
-    mcp.tool(
-        name="arif_organ_consensus",
-        description=(
-            "F3 WITNESS: Cross-organ Tri-Witness consensus for proposed actions. "
-            "Calls WELL, WEALTH, and GEOX as independent witnesses, aggregates their "
-            "health/verdict signals, and returns a unified consensus score. "
-            "Closes the gap between Tri-Witness as principle and as callable enforcement."
-        ),
-        tags={"diagnostic", "governance", "consensus", "witness"},
-    )(arif_organ_consensus)
-
-    v2_tools_registered.append("arif_organ_consensus")
-    logger.info("Registered diagnostics: arif_organ_consensus")
-
-    # ── Session Budget Tracker (F1/F07 BUDGET) ─────────────────────────────────
-    from arifosmcp.tools.session_budget import arif_session_budget
-
-    mcp.tool(
-        name="arif_session_budget",
-        description=(
-            "F1/F07 BUDGET: Session-cumulative metabolic budget tracker. "
-            "Tracks cumulative delta_S, cost, and risk across a session. "
-            "Detects split-action bypass (10 small edits = 1 large operation). "
-            "Modes: status, record, check, reset. Fires 888_HOLD when ceiling breached."
-        ),
-        tags={"diagnostic", "governance", "budget", "metabolism"},
-    )(arif_session_budget)
-
-    v2_tools_registered.append("arif_session_budget")
-    logger.info("Registered diagnostics: arif_session_budget")
+    # ── Diagnostic capabilities folded into canonical 13 tools ────────────────
+    # arif_stack_health_probe  → arif_ops_measure(mode="stack_health")
+    # arif_scan_local_instructions → arif_judge_deliberate(mode="scan_instructions")
+    # arif_organ_consensus     → arif_gateway_connect(mode="consensus")
+    # arif_session_budget      → arif_ops_measure(mode="budget")
+    # No raw mcp.tool() registrations outside the canonical registry.
+    logger.info("Diagnostic capabilities folded into canonical 13 tools — surface is clean.")
 
     # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
     try:
