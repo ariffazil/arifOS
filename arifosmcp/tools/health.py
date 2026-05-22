@@ -115,6 +115,7 @@ def _check_model_registry() -> dict[str, Any]:
         registry_roots.append(Path(env_root))
     registry_roots.extend(
         [
+            Path("/app/registry"),  # canonical Docker mount point
             Path("/root/arifos-model-registry"),
             Path(__file__).resolve().parents[3] / "arifos-model-registry",
         ]
