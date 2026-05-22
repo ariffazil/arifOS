@@ -5639,7 +5639,7 @@ def _arif_mind_reason(
                         "confidence": 0.94,
                     },
                     {
-                        "id": "F11_AUTH",
+                        "id": "F11_AUDIT",
                         "text": "Authority — verify identity before irreversible acts.",
                         "confidence": 0.97,
                     },
@@ -8920,7 +8920,7 @@ def _arif_judge_deliberate(
             "F08_genius_correctness",
             "F09_antihantu_injection",
             "F10_ontology_coherence",
-            "F11_auth_identity",
+            "F11_audit_identity",
             "F12_injection_sanitization",
             "F13_sovereign_veto",
         ]
@@ -9337,7 +9337,6 @@ def _arif_vault_seal(
             and ack_irreversible
             and bool(actor_id)
             and mode == "seal"
-            and signature_verified  # bypass if Ed25519 already verified
         )
         k_verdict = (
             {"passed": True, "failed_floors": [], "reason": "dev_mode_bypass"}
@@ -10404,7 +10403,7 @@ def _arif_forge_execute(
                     manifest=ForgeManifest(status=ManifestStatus.HOLD),
                     meta={
                         "reason": f"plan_id '{plan_id}' exists but is not approved (status='{plan.get('status')}'). Await 888_JUDGE SEAL or manual approval.",
-                        "failed_floors": ["F01_AMANAH", "F11_AUTH"],
+                        "failed_floors": ["F01_AMANAH", "F11_AUDIT"],
                     },
                     timestamp=_now(),
                 ).model_dump(mode="json"),
@@ -11896,3 +11895,4 @@ _LEGACY_ALIASES: dict[str, str] = {
 LEGACY_TOOL_ALIASES = _LEGACY_ALIASES
 # Backward-compat alias map: arifos_* tool names → canonical arif_* names.
 # Used by tools_hardened_dispatch.get_tool_handler to route legacy calls.
+

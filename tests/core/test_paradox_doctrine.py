@@ -189,14 +189,14 @@ class TestFloorTensionsAndTax:
 
     def test_p1_evidence_vs_intent(self):
         floors = ConstitutionalFloors()
-        # Non-empty query → F2 passes (score=1.0).
+        # Non-empty query with evidence signals → F2 passes (score=1.0).
         # Action lacks witness keywords → F3 weak (< 2 lanes).
         # Strong intent + weak evidence → P1 triggers, downgrades HOLD → SABAR.
         # Use "query" action (reversible) so F1 passes; "deploy" triggers F1 VOID.
         result = floors.evaluate(
             action="query app config",
             tool_name="arif_forge_execute",
-            parameters={"query": "show config"},
+            parameters={"query": "measured source: http://example.com"},
             actor_id="test",
             session_id="sess-001",
             human_intent=0.9,

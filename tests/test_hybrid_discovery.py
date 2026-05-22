@@ -1,15 +1,8 @@
 """tests/test_hybrid_discovery.py — Smoke tests for arif_sense_observe hybrid_discovery."""
 
-import sys
-from pathlib import Path
-root_dir = Path(__file__).parents[1].resolve()
-if str(root_dir) not in sys.path:
-    sys.path.insert(0, str(root_dir))
-if str(root_dir / "core") not in sys.path:
-    sys.path.insert(0, str(root_dir / "core"))
-
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+from pathlib import Path
 
 from arifosmcp.tools.sense import arif_sense_observe
 

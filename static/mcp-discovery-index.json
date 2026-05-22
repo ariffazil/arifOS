@@ -1,0 +1,301 @@
+{
+  "schema": "arifos.mcp_discovery_index.v1",
+  "updated": "2026-05-22T12:10:00Z",
+  "status": "current",
+  "doctrine": "Governed Discovery Kernel",
+  "operating_loop": "Capability Manifest Loop",
+  "principle": "bounded awareness before bounded action",
+  "summary": "Machine-readable map for discovering federation MCP knowledge, capability, authority, risk, provenance, and next safe moves without exposing every tool to every agent upfront.",
+  "loop_definition": "tools declare clearly, agent chooses carefully",
+  "source_of_truth": {
+    "human": "/docs/MCP_SOURCE_OF_TRUTH.md",
+    "contract": "/contracts/mcp_surface.yaml",
+    "federation_manifest": "/federation-manifest.json",
+    "runtime_probe": "https://arifos.arif-fazil.com/api/federation-probe"
+  },
+  "discovery_layers": [
+    "knowledge",
+    "capabilities",
+    "authority",
+    "risk",
+    "relevance",
+    "provenance",
+    "next_possible_moves"
+  ],
+  "capability_manifest_required_fields": [
+    "can_do",
+    "cannot_do",
+    "required_inputs",
+    "outputs",
+    "permissions",
+    "risks",
+    "reversibility",
+    "audit",
+    "human_approval"
+  ],
+  "agent_entrypoint": {
+    "tool": "arif_sense_observe",
+    "mode": "compass",
+    "uses": "hybrid_discovery",
+    "boundary": "read_only_orientation",
+    "follow_with": [
+      "arif_mind_reason",
+      "arif_heart_critique",
+      "arif_judge_deliberate",
+      "arif_vault_seal"
+    ]
+  },
+  "organs": {
+    "arifos": {
+      "role": "Governed Action Gateway and constitutional kernel",
+      "capability_manifest": {
+        "can_do": [
+          "govern sessions",
+          "observe reality",
+          "fetch evidence",
+          "reason over claims",
+          "critique risk",
+          "route intent",
+          "recall governed memory",
+          "connect federation gateways",
+          "deliberate verdicts",
+          "seal audit records",
+          "execute bounded forge actions",
+          "measure ops"
+        ],
+        "cannot_do": [
+          "replace Arif's final judgment",
+          "make irreversible actions safe without approval",
+          "turn MCP transport into truth authority"
+        ],
+        "required_inputs": [
+          "mode",
+          "query or intent where relevant",
+          "session_id for governed non-public calls",
+          "actor_id for authority binding"
+        ],
+        "outputs": [
+          "structured JSON envelopes",
+          "verdict/status",
+          "evidence or telemetry",
+          "next_safe_action where available"
+        ],
+        "permissions": "public read/discovery modes; high-consequence modes require session, actor binding, and approval gates",
+        "risks": [
+          "irreversible execution",
+          "public communication",
+          "secret exposure",
+          "memory mutation",
+          "vault sealing"
+        ],
+        "reversibility": "read modes reversible; write/commit/seal modes require explicit governance",
+        "audit": "session, tool call, verdict, and vault receipts where applicable",
+        "human_approval": "required for irreversible, public, financial, secret, production, or authority-bearing action"
+      },
+      "public_base_url": "https://arifos.arif-fazil.com",
+      "mcp_url": "https://arifos.arif-fazil.com/mcp",
+      "tools_url": "https://arifos.arif-fazil.com/tools",
+      "server_manifest_url": "https://arifos.arif-fazil.com/.well-known/mcp/server.json",
+      "verified_mcp_tool_count": 13,
+      "rest_registry_tool_count": 13,
+      "authority": "canonical_13_surface",
+      "discovery_status": "listed",
+      "tools": [
+        "arif_session_init",
+        "arif_sense_observe",
+        "arif_evidence_fetch",
+        "arif_mind_reason",
+        "arif_heart_critique",
+        "arif_kernel_route",
+        "arif_reply_compose",
+        "arif_memory_recall",
+        "arif_gateway_connect",
+        "arif_judge_deliberate",
+        "arif_vault_seal",
+        "arif_forge_execute",
+        "arif_ops_measure"
+      ]
+    },
+    "geox": {
+      "role": "Earth intelligence and governed world model",
+      "capability_manifest": {
+        "can_do": [
+          "ingest geoscience data",
+          "run QC bundles",
+          "generate subsurface candidates",
+          "analyze seismic and stratigraphy",
+          "evaluate prospects"
+        ],
+        "cannot_do": [
+          "issue final constitutional verdicts",
+          "allocate capital",
+          "override arifOS governance"
+        ],
+        "required_inputs": [
+          "domain data bundle",
+          "tool-specific schema",
+          "MCP session headers for full enumeration"
+        ],
+        "outputs": [
+          "geoscience evidence",
+          "QC results",
+          "candidate interpretations",
+          "prospect metrics"
+        ],
+        "permissions": "domain evidence surface; judgment remains in arifOS/APEX/Arif",
+        "risks": [
+          "bad data ingestion",
+          "scientific overclaim",
+          "domain artifact drift"
+        ],
+        "reversibility": "analysis is reversible; source data mutation must be separately governed",
+        "audit": "tool lineage and evidence provenance where exposed",
+        "human_approval": "required before public, investment, or operational reliance"
+      },
+      "public_base_url": "https://geox.arif-fazil.com",
+      "mcp_url": "https://geox.arif-fazil.com/mcp",
+      "tools_url": "https://geox.arif-fazil.com/tools",
+      "server_manifest_url": "https://geox.arif-fazil.com/.well-known/mcp/server.json",
+      "verified_mcp_tool_count": 22,
+      "rest_registry_tool_count": 19,
+      "authority": "domain_evidence_only_not_final_judgment",
+      "discovery_status": "listed_with_mcp_session_required_for_full_surface",
+      "tool_examples": [
+        "geox_system_registry_status",
+        "geox_data_ingest_bundle",
+        "geox_subsurface_generate_candidates",
+        "geox_seismic_analyze_volume",
+        "geox_prospect_evaluate"
+      ]
+    },
+    "wealth": {
+      "role": "Capital intelligence and resource thermodynamics",
+      "capability_manifest": {
+        "can_do": [
+          "calculate NPV/IRR/payback",
+          "estimate EMV",
+          "rank preferences",
+          "query and write governed ledgers where authorized",
+          "synthesize capital evidence"
+        ],
+        "cannot_do": [
+          "move money autonomously",
+          "be the final allocator",
+          "override human financial judgment"
+        ],
+        "required_inputs": [
+          "cashflow or capital scenario",
+          "probabilities or assumptions where needed",
+          "authorization for ledger writes"
+        ],
+        "outputs": [
+          "financial metrics",
+          "risk/entropy signals",
+          "governance verdict previews"
+        ],
+        "permissions": "read/calculation modes lower risk; ledger write and allocation-adjacent modes require governance",
+        "risks": [
+          "financial loss",
+          "bad assumptions",
+          "ledger mutation",
+          "overconfident allocation"
+        ],
+        "reversibility": "calculations reversible; ledger writes and capital actions are high-consequence",
+        "audit": "capital assumptions, tool call, and ledger trace where applicable",
+        "human_approval": "required for money movement, capital allocation, ledger mutation, or public financial claims"
+      },
+      "public_base_url": "https://wealth.arif-fazil.com",
+      "mcp_url": "https://wealth.arif-fazil.com/mcp",
+      "tools_url": "https://wealth.arif-fazil.com/tools",
+      "server_manifest_url": "https://wealth.arif-fazil.com/.well-known/mcp/server.json",
+      "verified_mcp_tool_count": 17,
+      "rest_registry_tool_count": 33,
+      "authority": "capital_evidence_only_not_unchecked_allocator",
+      "discovery_status": "listed_with_registry_mcp_count_difference",
+      "tool_examples": [
+        "wealth_value_npv",
+        "wealth_expectation_emv",
+        "wealth_signal_evoi",
+        "wealth_governance_verdict",
+        "wealth_system_registry_status"
+      ]
+    },
+    "well": {
+      "role": "Human readiness and biological substrate monitor",
+      "capability_manifest": {
+        "can_do": [
+          "observe substrate/readiness signals",
+          "reflect cognitive or biological state",
+          "report WELL status"
+        ],
+        "cannot_do": [
+          "diagnose medicine",
+          "force action",
+          "serve as sole judge of strategy"
+        ],
+        "required_inputs": [
+          "tool-specific WELL query",
+          "MCP session negotiation for tool calls"
+        ],
+        "outputs": [
+          "readiness reflections",
+          "substrate telemetry",
+          "risk hints"
+        ],
+        "permissions": "REFLECT_ONLY",
+        "risks": [
+          "medical overclaim",
+          "privacy exposure",
+          "mistaking reflection for command"
+        ],
+        "reversibility": "observation is reversible; no executive action authority",
+        "audit": "WELL call and returned status where runtime exposes it",
+        "human_approval": "required before medical, personal, or operational decisions"
+      },
+      "public_base_url": "https://well.arif-fazil.com",
+      "mcp_url": "https://well.arif-fazil.com/mcp",
+      "tools_url": null,
+      "server_manifest_url": "https://well.arif-fazil.com/.well-known/mcp/server.json",
+      "verified_mcp_tool_count": 15,
+      "rest_registry_tool_count": null,
+      "authority": "reflect_only_substrate_monitor",
+      "discovery_status": "mcp_only_no_rest_tools_endpoint"
+    },
+    "wiki": {
+      "role": "Static knowledge surface",
+      "public_base_url": "https://wiki.arif-fazil.com",
+      "mcp_url": null,
+      "tools_url": null,
+      "server_manifest_url": null,
+      "verified_mcp_tool_count": 0,
+      "rest_registry_tool_count": 0,
+      "authority": "knowledge_only_no_runtime_execution",
+      "discovery_status": "static"
+    }
+  },
+  "non_canonical_helper_surfaces": {
+    "arifos_wiki_tools": {
+      "boundary": "evidence_helpers_not_canonical_arifos_surface",
+      "tools": [
+        "arif_wiki_ingest",
+        "arif_wiki_map",
+        "arif_wiki_search",
+        "arif_wiki_ask"
+      ]
+    }
+  },
+  "risk_rules": {
+    "available_does_not_mean_allowed": true,
+    "relevant_does_not_mean_true": true,
+    "possible_does_not_mean_safe": true,
+    "automation_does_not_replace_judgment": true,
+    "access_does_not_create_authority": true
+  },
+  "next_safe_moves": [
+    "Use arif_sense_observe(mode=\"compass\") to orient before high-consequence work.",
+    "Use organ /tools endpoints for lightweight registry hints where available.",
+    "Use MCP tools/list after initialize/session negotiation for authoritative callable surfaces.",
+    "Pass discovered evidence to arif_mind_reason before execution.",
+    "Escalate irreversible, public, financial, secret, or authority-bearing actions to arif_judge_deliberate and human approval."
+  ]
+}
