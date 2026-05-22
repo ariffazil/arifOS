@@ -1,6 +1,6 @@
 # CHANGELOG — arifOS
 
-## [v2026.05.24] — 2026-05-21
+## [v2026.05.22] — 2026-05-22
 
 ### ⚡ Birthday Release: Phases 1-4 Agentic Safety
 
