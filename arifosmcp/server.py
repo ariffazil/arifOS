@@ -218,12 +218,25 @@ try:
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
 
+    # ── Cross-organ wiki search (non-canonical utility) ───────────────────────
+    try:
+        from arifosmcp.tools.wiki_search import arifos_wiki_search
+
+        mcp.tool(
+            name="arifos_wiki_search",
+            description="Cross-organ constitutional wiki + skills search. Read-only. Filesystem only.",
+            tags={"utility", "read-only"},
+        )(arifos_wiki_search)
+        logger.info("Registered utility tool: arifos_wiki_search")
+    except Exception as e:
+        logger.warning(f"Failed to register arifos_wiki_search: {e}")
+
     # ── Diagnostic capabilities folded into canonical 13 tools ────────────────
     # arif_stack_health_probe  → arif_ops_measure(mode="stack_health")
     # arif_scan_local_instructions → arif_judge_deliberate(mode="scan_instructions")
     # arif_organ_consensus     → arif_gateway_connect(mode="consensus")
     # arif_session_budget      → arif_ops_measure(mode="budget")
-    # No raw mcp.tool() registrations outside the canonical registry.
+    # Canonical 13 surface enforced above; utility tools registered separately.
     logger.info("Diagnostic capabilities folded into canonical 13 tools — surface is clean.")
 
     # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────

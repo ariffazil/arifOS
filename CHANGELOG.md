@@ -1,5 +1,17 @@
 # CHANGELOG — arifOS
 
+## [v2026.05.25] — 2026-05-22
+
+### feat(native): arifos_wiki_search — Cross-organ constitutional wiki + skills search
+
+- New utility tool `arifos_wiki_search`: grep-style, read-only, filesystem-only search across AAA, arifOS, GEOX, WEALTH, WELL wikis and skills.
+- Registered in `server.py` via `mcp.tool()` with tags `{"utility", "read-only"}`.
+- Exported from `arifosmcp.tools` `__init__.py` and added to `__all__`.
+- Search roots: `/root/AAA/wiki`, `/root/arifOS`, `/root/geox`, `/root/WEALTH/wiki`, `/root/WELL`.
+- Skips `.git`, `__pycache__`, `node_modules`, `.venv`, `.github`, `.agents`, `.claude`, `.gemini`, etc.
+- Max file size: 2 MB; returns excerpt with 80-char context window.
+- Failures are logged but non-fatal (graceful degradation).
+
 ## [v2026.05.22] — 2026-05-22
 
 ### ⚡ Birthday Release: Phases 1-4 Agentic Safety
