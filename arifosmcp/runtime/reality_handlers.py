@@ -52,6 +52,8 @@ BROWSERLESS_URL = os.getenv("BROWSERLESS_URL", "http://headless_browser:3000")
 BRAVE_API_KEY = os.getenv("BRAVE_API_KEY", "")
 JINA_API_KEY = os.getenv("JINA_API_KEY", "")
 PPLX_API_KEY = os.getenv("PPLX_API_KEY", "")
+EXA_API_KEY = os.getenv("EXA_API_KEY", "")
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "")
 
 try:
     from ddgs import DDGS  # noqa: F401
@@ -296,23 +298,97 @@ class RealityHandler:
         res.latency_ms = timings
         return res
 
+    async def search_exa(self, query: str, top_k: int = 5) -> SearchResult:
+        """Search via Exa.ai."""
+        start_time = time.time()
+        res = SearchResult(engine="exa", query=query)
+        if not EXA_API_KEY:
+            res.error = "EXA_API_KEY missing"
+            return res
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(
+                    "https://api.exa.ai/search",
+                    json={"query": query, "numResults": top_k, "useAutoprompt": True},
+                    headers={"x-api-key": EXA_API_KEY, "Content-Type": "application/json"},
+                )
+                res.status_code = response.status_code
+                if response.status_code == 200:
+                    data = response.json()
+                    res.results = [
+                        {
+                            "title": r.get("title", ""),
+                            "url": r.get("url", ""),
+                            "description": r.get("text", "") or r.get("highlights", [""])[0],
+                            "score": r.get("score", 0.0),
+                        }
+                        for r in data.get("results", [])
+                    ]
+                else:
+                    res.error = f"Exa Error {response.status_code}: {response.text[:200]}"
+        except Exception as e:
+            res.error = f"Exa Exception: {str(e)}"
+        res.latency_ms = (time.time() - start_time) * 1000
+        return res
+
+    async def search_tavily(self, query: str, top_k: int = 5) -> SearchResult:
+        """Search via Tavily."""
+        start_time = time.time()
+        res = SearchResult(engine="tavily", query=query)
+        if not TAVILY_API_KEY:
+            res.error = "TAVILY_API_KEY missing"
+            return res
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(
+                    "https://api.tavily.com/search",
+                    json={"query": query, "max_results": top_k, "api_key": TAVILY_API_KEY},
+                )
+                res.status_code = response.status_code
+                if response.status_code == 200:
+                    data = response.json()
+                    res.results = [
+                        {
+                            "title": r.get("title", ""),
+                            "url": r.get("url", ""),
+                            "description": r.get("content", ""),
+                            "score": r.get("score", 0.0),
+                        }
+                        for r in data.get("results", [])
+                    ]
+                else:
+                    res.error = f"Tavily Error {response.status_code}: {response.text[:200]}"
+        except Exception as e:
+            res.error = f"Tavily Exception: {str(e)}"
+        res.latency_ms = (time.time() - start_time) * 1000
+        return res
+
     async def search_brave(
         self, query: str, top_k: int = 5, region: str = "MY", locale: str = "en-MY"
     ) -> SearchResult:
         start_time = time.time()
         res = SearchResult(engine="brave", query=query)
 
-        if not BRAVE_API_KEY:
+        # ── Fallback Chain Orchestration ──────────────────────────────────────
+        async def _try_fallbacks():
+            # 1. Tavily (High quality)
+            if TAVILY_API_KEY:
+                t_res = await self.search_tavily(query, top_k)
+                if t_res.results: return t_res
+            # 2. Exa (Neural search)
+            if EXA_API_KEY:
+                e_res = await self.search_exa(query, top_k)
+                if e_res.results: return e_res
+            # 3. DDGS (Privacy-first)
             if DDGS_AVAILABLE:
-                logger.info("Brave key missing, falling back to DDGS")
-                ddgs_result = await self.search_ddgs(query, top_k)
-                if ddgs_result.results:
-                    return ddgs_result
-                # DDGS empty → final fallback: Meyhem
-                logger.info("DDGS returned no results, trying Meyhem fallback")
-                return await self.search_meyhem(query, top_k)
-            logger.info("No Brave key, DDGS unavailable — trying Meyhem directly")
+                d_res = await self.search_ddgs(query, top_k)
+                if d_res.results: return d_res
+            # 4. Meyhem (Meta-search)
             return await self.search_meyhem(query, top_k)
+
+        if not BRAVE_API_KEY:
+            logger.info("Brave key missing, entering fallback chain")
+            return await _try_fallbacks()
 
         # Brave V1 implementation...
         search_lang = locale.split("-")[0] if "-" in locale else "en"

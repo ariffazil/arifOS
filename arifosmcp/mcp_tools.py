@@ -278,6 +278,18 @@ def create_mind_mcp() -> FastMCP:
 
 
 # =============================================================================
+# WIKI AGENT — Repo comprehension (ingest, map, search, ask)
+# =============================================================================
+
+
+def create_wiki_mcp() -> FastMCP:
+    """Wiki Agent MCP — arifOS Wiki Tools: ingest, map, search, ask."""
+    from arifos_wiki_tools.server import build_server
+
+    return build_server()
+
+
+# =============================================================================
 # UNIFIED MCP SERVER
 # =============================================================================
 
@@ -322,6 +334,10 @@ def create_unified_mcp(agents: list[str] | None = None, visibility: str = "publi
         cognitive = create_mind_mcp()
         for _key, tool in _get_tools(cognitive).items():
             mcp.add_tool(tool)
+    if "W" in agents:
+        wiki = create_wiki_mcp()
+        for _key, tool in _get_tools(wiki).items():
+            mcp.add_tool(tool)
 
     return mcp
 
@@ -330,8 +346,8 @@ def create_unified_mcp(agents: list[str] | None = None, visibility: str = "publi
 # TOOL CATALOG
 # =============================================================================
 
-TOOL_CATALOG = """arifOS 13-Tool Canonical Surface — arif_<noun>_<verb> namespace (v1.1 patch 2026-05-12)
-=================================================================================================
+TOOL_CATALOG = """arifOS 13-Tool Canonical Surface — arif_<noun>_<verb> namespace (v1.1 patch 2026-05-22)
+================================================================================================
 
 GOVERNED LOOP (13):  [canonical arif_<noun>_<verb> surface — AGENTS.md SOT]
   000  arif_session_init       — Identity bootstrap, session anchor
@@ -348,6 +364,12 @@ GOVERNED LOOP (13):  [canonical arif_<noun>_<verb> surface — AGENTS.md SOT]
   999  arif_vault_seal         — Append-only VAULT999 ledger write
   010  arif_forge_execute      — A-FORGE dispatch (requires 888 SEAL)
 
+WIKI AGENT (4):      [repo comprehension via arifos_wiki_tools forge]
+  W    arif_wiki_ingest        — Index repo: scan, chunk, extract symbols, write index
+  W    arif_wiki_map           — Repo tree, language counts, symbol inventory
+  W    arif_wiki_search       — Lexical evidence retrieval from local wiki index
+  W    arif_wiki_ask          — Evidence-grounded Q&A draft with citations
+
 DEPRECATED (do not use):  arifos_<name> names retired 2026-04-19 hard cutover.
   Canonical surface lives in arifosmcp/constitutional_map.py
   Legacy constants frozen in arifosmcp/capability_map.py (backward compat only)
@@ -362,6 +384,7 @@ __all__ = [
     "create_governance_mcp",
     "create_execution_mcp",
     "create_meta_mcp",
+    "create_wiki_mcp",
     "create_unified_mcp",
     "TOOL_CATALOG",
 ]

@@ -218,18 +218,66 @@ try:
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
 
-    # ── Cross-organ wiki search (non-canonical utility) ───────────────────────
+    # ── arifOS Wiki Tools Forge (repo comprehension) ─────────────────────────
     try:
-        from arifosmcp.tools.wiki_search import arifos_wiki_search
+        from arifos_wiki_tools.indexer import ingest_repo as _ingest_repo
+        from arifos_wiki_tools.search import search_index as _search_index
+        from arifos_wiki_tools.synthesis import ask_repo as _ask_repo, map_repo as _map_repo
 
+        # arif_wiki_ingest — index a repo, produce wiki index + optional markdown pages
         mcp.tool(
-            name="arifos_wiki_search",
-            description="Cross-organ constitutional wiki + skills search. Read-only. Filesystem only.",
+            name="arif_wiki_ingest",
+            description=(
+                "Index a local repository: scan files, detect language, extract symbols, "
+                "chunk source, and write a local wiki index to <repo>/.arifos/. "
+                "Optionally generates markdown wiki pages at <repo>/wiki/generated/. "
+                "Safe: respects exclusions, skips binaries and files >1MB. "
+                "Run this first before map, search, or ask."
+            ),
+            tags={"utility", "write"},
+        )(_ingest_repo)
+
+        # arif_wiki_map — structural map of the repo
+        mcp.tool(
+            name="arif_wiki_map",
+            description=(
+                "Return a structural map of a repository from its local wiki index: "
+                "directory tree, language distribution, and symbol inventory for top files. "
+                "Run arif_wiki_ingest first."
+            ),
             tags={"utility", "read-only"},
-        )(arifos_wiki_search)
-        logger.info("Registered utility tool: arifos_wiki_search")
+        )(_map_repo)
+
+        # arif_wiki_search — lexical evidence retrieval
+        mcp.tool(
+            name="arif_wiki_search",
+            description=(
+                "Search the local wiki index and return scored evidence chunks: "
+                "file path, line range, detected symbols, and contextual excerpt. "
+                "Scoring weights term frequency, path hits, and symbol hits. "
+                "Run arif_wiki_ingest first."
+            ),
+            tags={"utility", "read-only"},
+        )(_search_index)
+
+        # arif_wiki_ask — evidence-grounded Q&A
+        mcp.tool(
+            name="arif_wiki_ask",
+            description=(
+                "Draft a cautious evidence-first answer to a natural-language question "
+                "about a repository, grounded in retrieved index chunks. "
+                "Always cites file paths and line ranges. "
+                "Confidence is 'medium' when >=3 chunks match, else 'low'. "
+                "Run arif_wiki_ingest first."
+            ),
+            tags={"utility", "read-only"},
+        )(_ask_repo)
+
+        logger.info(
+            "Registered arifOS Wiki Tools Forge: arif_wiki_ingest, arif_wiki_map, arif_wiki_search, arif_wiki_ask"
+        )
     except Exception as e:
-        logger.warning(f"Failed to register arifos_wiki_search: {e}")
+        logger.warning(f"Failed to register arifOS Wiki Tools: {e}")
 
     # ── Diagnostic capabilities folded into canonical 13 tools ────────────────
     # arif_stack_health_probe  → arif_ops_measure(mode="stack_health")

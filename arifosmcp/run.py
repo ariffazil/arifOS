@@ -26,6 +26,7 @@ from arifosmcp.mcp_tools import (
     create_transformation_mcp,
     create_unified_mcp,
     create_valuation_mcp,
+    create_wiki_mcp,
 )
 
 AGENT_FACTORIES = {
@@ -35,6 +36,7 @@ AGENT_FACTORIES = {
     "G": create_governance_mcp,
     "E": create_execution_mcp,
     "M": create_meta_mcp,
+    "W": create_wiki_mcp,
 }
 
 
