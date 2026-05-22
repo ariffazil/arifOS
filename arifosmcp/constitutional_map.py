@@ -49,7 +49,6 @@ class Floor(StrEnum):
     F09_ANTIHANTU = "F09"  # Pattern recognition of deception (C_dark ≤ 0.30)
     F10_ONTOLOGY = "F10"  # Structural coherence (category lock / immutability)
     F11_AUDIT = "F11"  # Verify identity + log provenance (HUMAN_APPROVAL gate)
-    F11_AUTH = "F11"  # Legacy compatibility alias
 
     F12_INJECTION = "F12"  # Sanitize inputs (injection_probability < 0.85)
     F13_SOVEREIGN = "F13"  # Human veto absolute (final authority)

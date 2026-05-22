@@ -116,7 +116,7 @@ class TestFloorEvaluator:
         assert "F01" not in floors.failed_floors
         assert floors.verdict == "SEAL"
 
-    def test_f11_auth_fake_session(self) -> None:
+    def test_f11_audit_fake_session(self) -> None:
         ctx = ActionContext(
             tool_name="arif_sense_observe",
             mode="search",
@@ -130,7 +130,7 @@ class TestFloorEvaluator:
         assert "F11" in floors.failed_floors
         assert floors.verdict == "HOLD"
 
-    def test_f11_auth_fake_agent(self) -> None:
+    def test_f11_audit_fake_agent(self) -> None:
         ctx = ActionContext(
             tool_name="arif_gateway_connect",
             mode="route",

@@ -28,7 +28,7 @@ FLOOR_DESCRIPTIONS: dict[Floor, str] = {
     Floor.F08_GENIUS: "Elegant correctness — simple, robust, and thermodynamically efficient.",
     Floor.F09_ANTIHANTU: "Reject manipulation — detect and neutralize deception vectors.",
     Floor.F10_ONTOLOGY: "Structural coherence — consistent taxonomy, no category drift.",
-    Floor.F11_AUTH: "Identity verification — bind actor to capability before execution.",
+    Floor.F11_AUDIT: "Identity verification — bind actor to capability before execution.",
     Floor.F12_INJECTION: "Input sanitization — treat all ingress as potentially hostile.",
     Floor.F13_SOVEREIGN: "Human veto absolute — the Sovereign (Arif) holds master override.",
 }

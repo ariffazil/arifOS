@@ -154,11 +154,11 @@ class EngineerAgent(ConstitutionalAgent):
 
         # === F11: Authorization Check ===
         is_dangerous = self._is_dangerous_code(code)
-        if is_dangerous and not await self._verify_f11_auth(task):
+        if is_dangerous and not await self._verify_f11_audit(task):
             self.blocked_operations += 1
             return {
                 "status": "BLOCKED",
-                "reason": "F11_AUTH_REQUIRED",
+                "reason": "F11_AUDIT_REQUIRED",
                 "message": "Dangerous code requires authorization",
             }
 
@@ -477,7 +477,7 @@ class EngineerAgent(ConstitutionalAgent):
         code_lower = code.lower()
         return not any(d in code_lower for d in destructive)
 
-    async def _verify_f11_auth(self, task: dict) -> bool:
+    async def _verify_f11_audit(self, task: dict) -> bool:
         """Verify F11 authorization for dangerous operations."""
         # In production: Call arifOS F11 verification
         # For MVP: Simplified check
@@ -556,3 +556,4 @@ class EngineerAgent(ConstitutionalAgent):
             "blocked_operations": self.blocked_operations,
             "sandbox_config": self.sandbox_config,
         }
+

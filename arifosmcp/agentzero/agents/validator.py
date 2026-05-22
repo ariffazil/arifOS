@@ -112,7 +112,7 @@ class ValidatorAgent(ConstitutionalAgent):
         logger.info(f"[{execution_id}] Validating action from {agent_id}: {action_type}")
 
         # === F11: Command Authorization Check ===
-        f11_passed = await self._check_f11_authorization(action, agent_id)
+        f11_passed = await self._check_f11_audit(action, agent_id)
 
         # === F10: Ontology Lock Check ===
         f10_passed = await self._check_f10_ontology(action)
@@ -224,7 +224,7 @@ class ValidatorAgent(ConstitutionalAgent):
             "reversibility_proof": reversibility_proof if f1_passed else None,
         }
 
-    async def _check_f11_authorization(self, action: dict, agent_id: str) -> bool:
+    async def _check_f11_audit(self, action: dict, agent_id: str) -> bool:
         """
         F11: Command Authentication
 

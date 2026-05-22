@@ -242,8 +242,8 @@ class TestF10_Ontology:
 # ─── F11 — Authority ─────────────────────────────────────────────────────
 
 
-class TestF11_Authority:
-    """F11: Git commits require authority verification."""
+class TestF11_Audit:
+    """F11: Git commits require authority/audit verification."""
 
     def test_repo_read_tool_exists(self):
         """arifos_repo_read must exist for authority checks."""
