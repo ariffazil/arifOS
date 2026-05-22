@@ -328,7 +328,7 @@ A-VALIDATOR:
     F2 (Truth): Deploy only what was validated.
     F3 (Tri-Witness): SEAL requires Human + Auditor + Validator.
     F6 (Empathy): Consider user impact during deploy.
-    F11 (Command): Verify identity at every step.
+    F11 (Audit): Verify identity and provenance at every step.
     F13 (Sovereign): Human has absolute veto at any time.
 
     RESPONSE FORMAT

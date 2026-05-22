@@ -42,6 +42,7 @@ services:
       JWT_AUDIENCE: arifOS
       JWT_ENFORCE_MODE: enforce
       ARIFOS_REGISTRY_ROOT: /app/arifos-model-registry
+      ARIF_ROOTKEY_FILE: /run/sekrits/arif_rootkey
       OLLAMA_URL: http://ollama:11434
       ARIFOS_ML_FLOORS: "true"
       ARIFOS_ML_MODEL_NAME: sentence-transformers/all-MiniLM-L6-v2
@@ -67,6 +68,7 @@ services:
       # H1 Core: Formal State Machine + Ontology Bridge (2026-05-10)
       # Mount entire arifosmcp package to ensure all new/modified files are available
       - /root/arifOS/arifosmcp:/app/arifosmcp:ro
+      - /root/compose/sekrits/arif_rootkey:/run/sekrits/arif_rootkey:ro
       - /root/compose/sekrits/arifos_governance_sekrit:/run/sekrits/arifos_governance_sekrit:ro
       - /root/compose/sekrits/arifos_session_sekrit:/run/sekrits/arifos_session_sekrit:ro
       - /root/compose/sekrits/arifos_sovereign.pub:/run/sekrits/arifos_sovereign.pub:ro

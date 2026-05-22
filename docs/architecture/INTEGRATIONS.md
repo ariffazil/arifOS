@@ -1,6 +1,6 @@
 # arifOS MCP — Platform Integration Guide
 
-**MCP Endpoint:** `https://arifosmcp.arif-fazil.com/mcp`
+**MCP Endpoint:** `https://mcp.arif-fazil.com/mcp`
 **Transport:** Streamable HTTP (stateless)
 **Protocol:** MCP 2024-11-05
 **Auth:** None required (public server) — Bearer tokens are accepted and ignored
@@ -34,7 +34,7 @@ response = client.beta.messages.create(
         {
             "type": "mcp",
             "name": "arifos",
-            "url": "https://arifosmcp.arif-fazil.com/mcp",
+            "url": "https://mcp.arif-fazil.com/mcp",
         }
     ],
     messages=[
@@ -65,7 +65,7 @@ response = client.responses.create(
         {
             "type": "mcp",
             "server_label": "arifos",
-            "server_url": "https://arifosmcp.arif-fazil.com/mcp",
+            "server_url": "https://mcp.arif-fazil.com/mcp",
             "require_approval": "never",
         }
     ],
@@ -90,7 +90,7 @@ from fastmcp import Client
 
 # Option A: FastMCP client → Gemini tools
 async def with_fastmcp_client():
-    async with Client("https://arifosmcp.arif-fazil.com/mcp") as mcp:
+    async with Client("https://mcp.arif-fazil.com/mcp") as mcp:
         tools = await mcp.list_tools()
 
         model = genai.GenerativeModel(
@@ -110,7 +110,7 @@ response = client.models.generate_content(
     config={
         "tools": [{
             "type": "mcp",
-            "url": "https://arifosmcp.arif-fazil.com/mcp"
+            "url": "https://mcp.arif-fazil.com/mcp"
         }]
     }
 )
@@ -133,7 +133,7 @@ Add to your `claude_desktop_config.json`:
   "mcpServers": {
     "arifos": {
       "type": "url",
-      "url": "https://arifosmcp.arif-fazil.com/mcp",
+      "url": "https://mcp.arif-fazil.com/mcp",
       "name": "arifOS Constitutional AI"
     }
   }
@@ -145,7 +145,7 @@ Add to your `claude_desktop_config.json`:
 ## 5. MCP Inspector (debugging)
 
 ```bash
-npx @modelcontextprotocol/inspector https://arifosmcp.arif-fazil.com/mcp
+npx @modelcontextprotocol/inspector https://mcp.arif-fazil.com/mcp
 ```
 
 ---
@@ -169,7 +169,7 @@ npx @modelcontextprotocol/inspector https://arifosmcp.arif-fazil.com/mcp
 **Quickstart example** — get current time (no auth needed):
 
 ```bash
-curl -s https://arifosmcp.arif-fazil.com/mcp \
+curl -s https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"physics_reality","arguments":{"mode":"time"}},"id":1}'
 ```
@@ -190,4 +190,4 @@ Custom deployments can restrict origins via the `ARIFOS_ALLOWED_ORIGINS` environ
 - [LICENSING.md](./LICENSING.md) — CC0 standard, AGPL-3.0 runtime
 - [SABAR.md](./SABAR.md) — thermodynamic cooling states
 - MCP Registry: `io.github.ariffazil/arifosmcp`
-- Health: https://arifosmcp.arif-fazil.com/health
+- Health: https://arifos.arif-fazil.com/health

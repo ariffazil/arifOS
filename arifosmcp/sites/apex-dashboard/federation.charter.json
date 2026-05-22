@@ -1,6 +1,6 @@
 {
   "_schema": "arifos-federation-manifest-v1",
-  "_updated": "2026-05-11T19:00:36Z",
+  "_updated": "2026-05-22T11:34:00Z",
   "_note": "Authored truth for the arifOS federation. Runtime truth (health, counts, version) is fetched live from organ endpoints.",
   "stack": {
     "name": "arifOS Federation",
@@ -139,8 +139,8 @@
         "mcp": "/mcp"
       },
       "discovery_status": "mcp-only",
-      "discovery_note": "No REST discovery. 53 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 4 dot-notation aliases.",
-      "tool_count": 53,
+      "discovery_note": "No REST discovery. 22 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 4 dot-notation aliases.",
+      "tool_count": 22,
       "stack": {
         "runtime": "Python 3.11+",
         "framework": "FastMCP, Pydantic v2, Uvicorn",
@@ -200,8 +200,8 @@
         "ready": "/ready"
       },
       "discovery_status": "mcp-only",
-      "discovery_note": "No REST discovery. 50 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 2 generic-name tools (vault_write, vault_query).",
-      "tool_count": 50,
+      "discovery_note": "No REST discovery. 17 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 2 generic-name tools (vault_write, vault_query).",
+      "tool_count": 17,
       "stack": {
         "runtime": "Python 3.12+",
         "framework": "FastMCP (single-file monolith)",
@@ -272,8 +272,8 @@
         "mcp": "/mcp"
       },
       "discovery_status": "mcp-only",
-      "discovery_note": "No REST discovery. 31 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 3 apparent alias pairs.",
-      "tool_count": 31,
+      "discovery_note": "No REST discovery. 15 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 3 apparent alias pairs.",
+      "tool_count": 15,
       "stack": {
         "runtime": "Python 3.12+",
         "framework": "FastMCP",

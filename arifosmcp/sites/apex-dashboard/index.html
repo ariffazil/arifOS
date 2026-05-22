@@ -811,7 +811,7 @@ a:hover{color:var(--color-gold)}
 const FLOOR_NAMES = {
   F1:'AMANAH',F2:'TRUTH',F3:'WITNESS',F4:'CLARITY',F5:'PEACE²',
   F6:'EMPATHY',F7:'HUMILITY',F8:'GENIUS',F9:'ANTIHANTU',
-  F10:'ONTOLOGY',F11:'AUTH',F12:'INJECTION',F13:'SOVEREIGN'
+  F10:'ONTOLOGY',F11:'AUDIT',F12:'INJECTION',F13:'SOVEREIGN'
 };
 
 function floorStatus(fid, score) {
@@ -1089,19 +1089,19 @@ poll();
 setInterval(poll, 8000);
 
 // ── Organ Discovery Fetch ────────────────────────────────────────────────
-// Audit note (2026-05-03): All 4 organs use streamable-http MCP.
+// Audit note (2026-05-22): All 4 organs use streamable-http MCP.
 // Session ID obtained via mcp-session-id response header from initialize.
 // Only arifOS exposes REST discovery; others require MCP protocol.
-// Verified counts: arifOS 13 | GEOX 53 | WEALTH 50 | WELL 31 | TOTAL 147
+// Verified counts: arifOS 13 | GEOX 22 | WEALTH 17 | WELL 15 | TOTAL 67
 //
 // FIX (2026-05-04): Browser-side CORS fetches to organ subdomains fail behind
 // Cloudflare. We now use the same-origin /api/federation-probe as primary
 // health source, and only attempt CORS discovery when probe confirms healthy.
 async function loadOrganDiscovery() {
   const organs = [
-    {id:'geox',url:'https://geox.arif-fazil.com',verifiedCount:53,note:'MCP session required'},
-    {id:'wealth',url:'https://wealth.arif-fazil.com',verifiedCount:50,note:'MCP session required'},
-    {id:'well',url:'https://well.arif-fazil.com',verifiedCount:31,note:'MCP session required'},
+    {id:'geox',url:'https://geox.arif-fazil.com',verifiedCount:22,note:'MCP session required'},
+    {id:'wealth',url:'https://wealth.arif-fazil.com',verifiedCount:17,note:'MCP session required'},
+    {id:'well',url:'https://well.arif-fazil.com',verifiedCount:15,note:'MCP session required'},
     {id:'aaa',url:'https://aaa.arif-fazil.com',verifiedCount:null,note:'unknown'},
     {id:'forge',url:'https://forge.arif-fazil.com',verifiedCount:null,note:'unknown'},
     {id:'wiki',url:'https://wiki.arif-fazil.com',verifiedCount:null,note:'static site'},

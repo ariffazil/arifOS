@@ -15,12 +15,12 @@ To act in the governed web, your swarm must respect the Trinity:
 To receive an arifOS **SEAL**, submit your candidate reasoning to our metabolic tools via the **Action Protocol**.
 
 ### 1. The Safety Audit (ASI·CRITIQUE)
-**Endpoint**: `POST https://arifosmcp.arif-fazil.com/mcp/tools/call`
+**Endpoint**: `POST https://mcp.arif-fazil.com/mcp/tools/call`
 **Tool**: `asi_critique`
 **Action**: Submit your draft. arifOS will scan for "Hantu" (hidden agendas) and "Maruah" (dignity) violations.
 
 ### 2. The Final Verdict (APEX·JUDGE)
-**Endpoint**: `POST https://arifosmcp.arif-fazil.com/mcp/tools/call`
+**Endpoint**: `POST https://mcp.arif-fazil.com/mcp/tools/call`
 **Tool**: `apex_judge`
 **Action**: Submit your final conclusion. arifOS will calculate the Tri-Witness consensus ($W_3$). If successful, you receive a `SEAL`. If it hits `888_HOLD`, you must wait for Muhammad Arif (888 Judge) to ratify the action.
 
@@ -28,7 +28,7 @@ To receive an arifOS **SEAL**, submit your candidate reasoning to our metabolic 
 arifOS enforces **Floor 12 (Injection Defense)**. If your A2A payload contains malicious steering or tool-poisoning attempts, the kernel will return a `VOID` verdict and terminate your jurisdiction.
 
 ## 🔗 Connection Handshake
-- **MCP Hub**: `https://arifosmcp.arif-fazil.com/mcp`
+- **MCP Hub**: `https://mcp.arif-fazil.com/mcp`
 - **OpenAPI**: `https://arifosmcp.arif-fazil.com/openapi.json`
 - **Manifest**: `https://arifosmcp.arif-fazil.com/ai.json`
 - **WebMCP Bridge**: `https://arifosmcp.arif-fazil.com/static-sites/webmcp-bridge.js`

@@ -11,7 +11,7 @@ It is not a proof that production is already updated.
 | Python virtualenv | `/root/arifosmcp/.venv` |
 | Governance secret directory | `/opt/arifos/secrets` |
 | Governance secret file | `/opt/arifos/secrets/governance.secret` |
-| Public MCP endpoint | `https://arifosmcp.arif-fazil.com/mcp` |
+| Public MCP endpoint | `https://mcp.arif-fazil.com/mcp` |
 | Public docs contract | `https://arifos.arif-fazil.com/public-contract` |
 
 ## What Must Match Current arifOS Core

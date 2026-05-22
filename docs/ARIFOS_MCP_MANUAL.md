@@ -1,5 +1,5 @@
 # arifOS MCP — Constitutional Kernel Manual
-## Version: 1.0.0-SNAPSHOT | Date: 2026-05-06
+## Version: 1.0.1-SNAPSHOT | Date: 2026-05-22
 ## Identity: DITEMPA BUKAN DIBERI (Forged, Not Given)
 
 ---
@@ -26,9 +26,10 @@ Every high-integrity operation MUST flow through this sequence:
 - **Note:** Artifact production requires an approved `plan_id` from `333_MIND`.
 
 ### [111] SENSE: `mcp_arifosmcp_arif_sense_observe`
-- **Purpose:** Multimodal reality observation.
-- **Modes:** `search`, `ingest`, `compass`, `atlas`, `entropy_dS`, `vitals`.
-- **Function:** Gathers raw environmental data and measures session entropy (ΔS).
+- **Purpose:** Multimodal reality observation and read-only hybrid discovery.
+- **Modes:** `search`, `hybrid_discovery`, `ingest`, `compass`, `atlas`, `entropy_dS`, `vitals`.
+- **Function:** Gathers raw environmental data, local wiki/repo evidence, optional web evidence, and entropy/uncertainty telemetry.
+- **Boundary:** `hybrid_discovery` is SENSE, not MEMORY or VAULT. It finds and reconciles evidence; it does not store, seal, or issue final truth.
 
 ### [222] FETCH: `mcp_arifosmcp_arif_evidence_fetch`
 - **Purpose:** Evidence-preserving web ingestion with sequential thinking.
@@ -53,6 +54,7 @@ Every high-integrity operation MUST flow through this sequence:
 - **Purpose:** Live associative memory (Postgres + Qdrant).
 - **Modes:** `recall`, `store`, `get`, `list`, `prune`, `context`.
 - **Function:** Semantic search across stored session memories.
+- **Boundary:** Read-only discovery belongs to `111_SENSE`; durable memory writes remain explicit and governed here.
 
 ### [666] HEART: `mcp_arifosmcp_arif_heart_critique`
 - **Purpose:** Ethical critique and empathy scan (κᵣ).
@@ -73,6 +75,7 @@ Every high-integrity operation MUST flow through this sequence:
 - **Purpose:** Final constitutional arbitration.
 - **Verdicts:** `SEAL` (Approved), `SABAR` (Conditional), `HOLD` (Paused), `VOID` (Rejected).
 - **F1 Amanah:** Irreversible actions require explicit human confirmation.
+- **F11 Audit:** Identity/provenance must be logged for high-consequence action. Legacy text may still say `F11_AUTH`; canonical wording is `F11_AUDIT`.
 
 ### [999] VAULT: `mcp_arifosmcp_arif_vault_seal`
 - **Purpose:** Immutable ledger anchoring (VAULT999).
@@ -105,6 +108,19 @@ Every high-integrity operation MUST flow through this sequence:
 - **`arifos://civilization`**: The civilizational ontology and intelligence map.
 - **`source://list`**: Registry of evidence sources tracked by `222_FETCH`.
 - **`receipt://list`**: Audit trail of evidence receipts for verification.
+
+---
+
+## 4.1 NON-CANONICAL WIKI UTILITY SURFACE
+
+The arifOS canonical public MCP surface remains 13 `arif_*` tools. Wiki utilities may exist as implementation helpers or non-canonical utility tools:
+
+- `arif_wiki_ingest`
+- `arif_wiki_map`
+- `arif_wiki_search`
+- `arif_wiki_ask`
+
+Agents should prefer `arif_sense_observe(mode="hybrid_discovery")` for governed discovery. The wiki utilities are evidence helpers, not memory authority and not a truth oracle.
 
 ---
 

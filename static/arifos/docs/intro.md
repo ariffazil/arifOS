@@ -58,9 +58,9 @@ HOST=0.0.0.0 PORT=8080 python -m arifosmcp.runtime http
 
 Live endpoints:
 
-- MCP HTTP: `https://arifosmcp.arif-fazil.com/mcp`
-- Dashboard: `https://arifosmcp.arif-fazil.com/dashboard/`
-- Health: `https://arifosmcp.arif-fazil.com/health`
+- MCP HTTP: `https://mcp.arif-fazil.com/mcp`
+- Dashboard: `https://arifos.arif-fazil.com//`
+- Health: `https://arifos.arif-fazil.com/health`
 
 ## Governance Verdicts
 

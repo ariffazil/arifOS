@@ -30,7 +30,7 @@
       "_comment": "RECOMMENDED — Zero install. Connects to live arifOS MCP over HTTPS. 13 tools, always latest.",
       "_use_when": "You want to use arifOS without installing anything. Just add this entry.",
       "transport": "streamable-http",
-      "url": "https://arifosmcp.arif-fazil.com/mcp",
+      "url": "https://mcp.arif-fazil.com/mcp",
       "timeout": 30000
     },
 
@@ -53,7 +53,7 @@
       "command": "npx",
       "args": ["-y", "@arifos/mcp"],
       "env": {
-        "ARIFOS_ENDPOINT": "https://arifosmcp.arif-fazil.com/mcp"
+        "ARIFOS_ENDPOINT": "https://mcp.arif-fazil.com/mcp"
       }
     },
 

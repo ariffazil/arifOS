@@ -101,9 +101,9 @@ docker network create coolify
 ### Verify arifOS endpoints
 
 ```bash
-curl -i https://arifosmcp.arif-fazil.com/health
+curl -i https://arifos.arif-fazil.com/health
 curl -N -H "Accept: text/event-stream" https://arifosmcp.arif-fazil.com/sse
-curl -sS https://arifosmcp.arif-fazil.com/mcp \
+curl -sS https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   --data '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
 ```

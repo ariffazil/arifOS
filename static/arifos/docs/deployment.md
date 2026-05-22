@@ -94,9 +94,9 @@ curl -fsS http://127.0.0.1:8080/.well-known/mcp/server.json
 Public through your domain:
 
 ```bash
-curl -i https://arifosmcp.arif-fazil.com/health
-curl -i https://arifosmcp.arif-fazil.com/.well-known/mcp/server.json
-curl -sS https://arifosmcp.arif-fazil.com/mcp \
+curl -i https://arifos.arif-fazil.com/health
+curl -i https://arifos.arif-fazil.com/.well-known/mcp/server.json
+curl -sS https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
   --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"deploy-check","version":"1.0"}}}'

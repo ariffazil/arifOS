@@ -1,11 +1,13 @@
 # MCP Endpoint Registry — Source of Truth
-# Updated: 2026-05-16
-# Author: ASI
+# Updated: 2026-05-22
+# Author: arifOS maintainers
 
 ## Purpose
 Single source of truth for all MCP endpoints in the arifOS Federation.
 All other references (openclaw.json, Caddyfile, docs) must match this registry.
 Any divergence = immediate fix.
+
+Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 
 ---
 
@@ -20,9 +22,9 @@ Any divergence = immediate fix.
 | Internal | `http://arifosmcp:8080/mcp` |
 | Container port | 8080 |
 | Caddy route | `arifos.arif-fazil.com/mcp*` → `arifosmcp:8080` |
-| Tools | 13 canonical (arif_session_init → arif_ops_measure) |
+| Tools | 13 canonical `arif_*` tools |
 | Auth | None (public) |
-| Status | ✅ HEALTHY |
+| Status | HEALTHY, verified by `/api/federation-probe` on 2026-05-22 |
 
 ### GEOX (Earth Intelligence)
 | Property | Value |
@@ -33,10 +35,10 @@ Any divergence = immediate fix.
 | Internal | `http://geox_eic:8081/mcp` AND `/mcp/stream` (both routes) |
 | Container port | 8081 |
 | Caddy route | `geox.arif-fazil.com/mcp/*` → `geox_eic:8081/mcp/stream` |
-| Tools | 13 canonical geoscience tools |
+| Tools | 22 verified MCP tools |
 | Auth | None (public) |
-| Status | ✅ HEALTHY |
-| Note | `/mcp` and `/mcp/stream` both work (same handler) |
+| Status | HEALTHY, verified by `/api/federation-probe` on 2026-05-22 |
+| Note | Enumeration requires MCP JSON-RPC session headers. 4 dot-notation aliases observed. |
 
 ### WEALTH (Capital Intelligence)
 | Property | Value |
@@ -47,9 +49,10 @@ Any divergence = immediate fix.
 | Internal | `http://wealth-organ:8082/mcp` |
 | Container port | 8082 |
 | Caddy route | `wealth.arif-fazil.com/mcp` → `wealth-organ:8082/mcp` |
-| Tools | 79 (13 sovereign + 66 legacy aliases) |
+| Tools | 17 verified MCP tools |
 | Auth | None (public) |
-| Status | ✅ HEALTHY |
+| Status | HEALTHY, verified by `/api/federation-probe` on 2026-05-22 |
+| Note | Enumeration requires MCP JSON-RPC session headers. 2 generic-name tools observed: `vault_write`, `vault_query`. |
 
 ### WELL (Biological Substrate)
 | Property | Value |
@@ -60,9 +63,10 @@ Any divergence = immediate fix.
 | Internal | `http://well:8083/mcp` |
 | Container port | 8083 |
 | Caddy route | `well.arif-fazil.com/mcp` → `well:8083/mcp` |
-| Tools | ~30 wellness/hardening tools |
+| Tools | 15 verified MCP tools |
 | Auth | None (public) |
-| Status | ✅ HEALTHY (compose stack re-added 2026-05-05) |
+| Status | HEALTHY, verified by `/api/federation-probe` on 2026-05-22 |
+| Note | REFLECT_ONLY substrate monitor. 3 apparent alias pairs observed. |
 
 ---
 
@@ -101,7 +105,11 @@ curl -s --max-time 5 https://well.arif-fazil.com/health
 # MCP tool discovery (after initialize)
 curl -s --max-time 5 -X POST https://arifos.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}'
+
+# Federation runtime probe used for current tool counts
+curl -fsS --max-time 20 https://arifos.arif-fazil.com/api/federation-probe | python3 -m json.tool
 ```
 
 ---

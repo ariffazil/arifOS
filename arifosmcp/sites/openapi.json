@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://arifosmcp.arif-fazil.com/mcp",
+      "url": "https://mcp.arif-fazil.com/mcp",
       "description": "Production MCP Hub"
     }
   ],

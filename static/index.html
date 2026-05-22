@@ -552,7 +552,7 @@ a:hover{color:var(--color-gold)}
       </thead>
       <tbody>
         <tr style="border-bottom:1px solid var(--color-divider)"><td style="padding:6px 4px">arifOS</td><td style="padding:6px 4px">8080</td><td style="padding:6px 4px"><span class="badge badge-ok">Healthy</span></td><td style="padding:6px 4px">v2026.05.01-KANON</td><td style="padding:6px 4px;color:var(--color-text-muted)">13/13 tools, outputSchema ENFORCED, Langfuse traced, vault999 healthy, build=5d8abe7</td></tr>
-        <tr style="border-bottom:1px solid var(--color-divider)"><td style="padding:6px 4px">GEOX</td><td style="padding:6px 4px">8081</td><td style="padding:6px 4px"><span class="badge badge-ok">Healthy</span></td><td style="padding:6px 4px">—</td><td style="padding:6px 4px;color:var(--color-text-muted)">HTTP 200, streamable-http, 15 tools</td></tr>
+        <tr style="border-bottom:1px solid var(--color-divider)"><td style="padding:6px 4px">GEOX</td><td style="padding:6px 4px">8081</td><td style="padding:6px 4px"><span class="badge badge-ok">Healthy</span></td><td style="padding:6px 4px">—</td><td style="padding:6px 4px;color:var(--color-text-muted)">HTTP 200, streamable-http, 22 tools</td></tr>
         <tr style="border-bottom:1px solid var(--color-divider)"><td style="padding:6px 4px">WEALTH</td><td style="padding:6px 4px">8082</td><td style="padding:6px 4px"><span class="badge badge-ok">Healthy</span></td><td style="padding:6px 4px">2026.05.02</td><td style="padding:6px 4px;color:var(--color-text-muted)">Capital engine up</td></tr>
         <tr style="border-bottom:1px solid var(--color-divider)"><td style="padding:6px 4px">WELL</td><td style="padding:6px 4px">8083</td><td style="padding:6px 4px"><span class="badge badge-ok">Healthy</span></td><td style="padding:6px 4px">2026.05.08-ΩWELL</td><td style="padding:6px 4px;color:var(--color-text-muted)">verdict=NOT_WELL by design — REFLECT_ONLY authority mode</td></tr>
         <tr style="border-bottom:1px solid var(--color-divider)"><td style="padding:6px 4px">AAA A2A</td><td style="padding:6px 4px">3001</td><td style="padding:6px 4px"><span class="badge badge-ok">Healthy</span></td><td style="padding:6px 4px">A2A v1.0.0</td><td style="padding:6px 4px;color:var(--color-text-muted)">vault=CONNECTED</td></tr>
@@ -826,9 +826,9 @@ a:hover{color:var(--color-gold)}
 
 <script>
 const FLOOR_NAMES = {
-  F1:'AMANAH',F2:'TRUTH',F3:'WITNESS',F4:'ΔS',F5:'PEACE²',
+  F1:'AMANAH',F2:'TRUTH',F3:'WITNESS',F4:'CLARITY',F5:'PEACE²',
   F6:'EMPATHY',F7:'HUMILITY',F8:'GENIUS',F9:'ANTIHANTU',
-  F10:'ONTOLOGY',F11:'AUTH',F12:'INJECTION',F13:'SOVEREIGN'
+  F10:'ONTOLOGY',F11:'AUDIT',F12:'INJECTION',F13:'SOVEREIGN'
 };
 
 function renderFloors(rf) {
@@ -1026,19 +1026,19 @@ poll();
 setInterval(poll, 8000);
 
 // ── Organ Discovery Fetch ────────────────────────────────────────────────
-// Audit note (2026-05-03): All 4 organs use streamable-http MCP.
+// Audit note (2026-05-22): All 4 organs use streamable-http MCP.
 // Session ID obtained via mcp-session-id response header from initialize.
 // Only arifOS exposes REST discovery; others require MCP protocol.
-// Verified counts: arifOS 13 | GEOX 53 | WEALTH 50 | WELL 31 | TOTAL 147
+// Verified counts: arifOS 13 | GEOX 22 | WEALTH 17 | WELL 15 | TOTAL 67
 //
 // FIX (2026-05-04): Browser-side CORS fetches to organ subdomains fail behind
 // Cloudflare. We now use the same-origin /api/federation-probe as primary
 // health source, and only attempt CORS discovery when probe confirms healthy.
 async function loadOrganDiscovery() {
   const organs = [
-    {id:'geox',url:'https://geox.arif-fazil.com',verifiedCount:53,note:'MCP session required'},
-    {id:'wealth',url:'https://wealth.arif-fazil.com',verifiedCount:50,note:'MCP session required'},
-    {id:'well',url:'https://well.arif-fazil.com',verifiedCount:31,note:'MCP session required'},
+    {id:'geox',url:'https://geox.arif-fazil.com',verifiedCount:22,note:'MCP session required'},
+    {id:'wealth',url:'https://wealth.arif-fazil.com',verifiedCount:17,note:'MCP session required'},
+    {id:'well',url:'https://well.arif-fazil.com',verifiedCount:15,note:'MCP session required'},
     {id:'aaa',url:'https://aaa.arif-fazil.com',verifiedCount:null,note:'unknown'},
     {id:'forge',url:'https://forge.arif-fazil.com',verifiedCount:null,note:'unknown'},
     {id:'wiki',url:'https://wiki.arif-fazil.com',verifiedCount:null,note:'static site'},
@@ -1092,7 +1092,7 @@ async function loadOrganDiscovery() {
       if (el2) el2.textContent = resources + ' resources';
       if (el3) el3.textContent = prompts + ' prompts';
     } else if (isHealthy && o.verifiedCount) {
-      if (el) el.textContent = o.verifiedCount + ' tools (MCP verified 2026-05-03)';
+      if (el) el.textContent = o.verifiedCount + ' tools (MCP verified 2026-05-22)';
       if (el2) el2.textContent = o.note;
       if (el3) el3.textContent = '';
     } else if (isHealthy) {

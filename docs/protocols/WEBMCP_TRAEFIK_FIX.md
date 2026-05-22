@@ -113,7 +113,7 @@ docker logs traefik 2>&1 | grep -E "(arifosmcp|webmcp)"
 
 ### Test 1: Health Check
 ```bash
-curl -s https://arifosmcp.arif-fazil.com/mcp/health
+curl -s https://mcp.arif-fazil.com/mcp/health
 curl -s https://arifosmcp.arif-fazil.com/webmcp/health
 ```
 
@@ -240,7 +240,7 @@ Once deployed, you'll have:
 
 | Protocol | URL | Purpose | Audience |
 |----------|-----|---------|----------|
-| **A2A MCP** | `https://arifosmcp.arif-fazil.com/mcp` | Agent-to-Agent SSE | AI Agents (Kimi, Claude, etc.) |
+| **A2A MCP** | `https://mcp.arif-fazil.com/mcp` | Agent-to-Agent SSE | AI Agents (Kimi, Claude, etc.) |
 | **WebMCP** | `https://arifosmcp.arif-fazil.com/webmcp` | Browser HTTP/WebSocket | Human Users |
 
 **Same domain. Same SSL. Same VAULT999. Dual-surface constitutional AI.**

@@ -22,9 +22,9 @@ arifOS now implements **all three major AI agent protocols**:
 
 ### MCP (Model Context Protocol)
 ```
-https://arifosmcp.arif-fazil.com/mcp         ← MCP endpoint (JSON-RPC)
-https://arifosmcp.arif-fazil.com/health      ← Health check
-https://arifosmcp.arif-fazil.com/tools       ← Tool listing
+https://mcp.arif-fazil.com/mcp         ← MCP endpoint (JSON-RPC)
+https://arifos.arif-fazil.com/health      ← Health check
+https://arifos.arif-fazil.com/tools       ← Tool listing
 ```
 
 ### A2A (Agent-to-Agent Protocol)
@@ -115,14 +115,14 @@ https://arifosmcp.arif-fazil.com/webmcp/tools.json       ← Tool charter
 ```bash
 # Connect to arifOS MCP
 claude mcp add arifos \
-  --url https://arifosmcp.arif-fazil.com/mcp
+  --url https://mcp.arif-fazil.com/mcp
 
 # Or use the config
 # kimi-mcp-config.json
 {
   "mcpServers": {
     "arifos": {
-      "url": "https://arifosmcp.arif-fazil.com/mcp"
+      "url": "https://mcp.arif-fazil.com/mcp"
     }
   }
 }
@@ -281,7 +281,7 @@ git pull origin main
 docker-compose up -d --build arifosmcp
 
 # Verify all endpoints
-curl https://arifosmcp.arif-fazil.com/health
+curl https://arifos.arif-fazil.com/health
 curl https://arifosmcp.arif-fazil.com/.well-known/agent.json
 curl https://arifosmcp.arif-fazil.com/.well-known/webmcp
 ```
@@ -290,7 +290,7 @@ curl https://arifosmcp.arif-fazil.com/.well-known/webmcp
 
 ```bash
 # MCP
-curl -X POST https://arifosmcp.arif-fazil.com/mcp \
+curl -X POST https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 

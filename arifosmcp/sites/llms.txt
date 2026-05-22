@@ -1,53 +1,77 @@
-# arifOS — Constitutional Intelligence Kernel
-# Version: v2026.05.13-FEDERATION
-# Surface: 13 canonical tools + FEDERATION_TOOLS cognitive axes + intent routing
-# Seal: DITEMPA BUKAN DIBERI
+# arifOS — MCP Transported Context
+# Version: v2026.05.22-GDK
+# Surface: 13 canonical arifOS tools + Governed Discovery Kernel
+# Seal phrase: DITEMPA BUKAN DIBERI
 
 ## What arifOS Is
-arifOS is a constitutional AI governance kernel for the arifOS Federation. It enforces 13 constitutional floors (F1–F13) across all agent actions, providing identity, evidence, reversibility, authority, and audit checks before any tool executes.
+
+arifOS is the governed action gateway for the arifOS Federation. It exposes a 13-tool MCP surface and wraps capability use with discovery, evidence, risk, authority, reversibility, human-approval, and audit boundaries.
+
+Core principle:
+
+```text
+Full legibility. Bounded access. Auditable action. Human judgment.
+```
+
+## Canonical MCP Endpoints
+
+- Public gateway: `https://mcp.arif-fazil.com/mcp`
+- arifOS service endpoint: `https://arifos.arif-fazil.com/mcp`
+- Health: `https://arifos.arif-fazil.com/health`
+- Tools registry: `https://arifos.arif-fazil.com/tools`
+- Server manifest: `https://arifos.arif-fazil.com/.well-known/mcp/server.json`
+- Discovery index: `https://arifos.arif-fazil.com/mcp-discovery-index.json`
+
+Use MCP `tools/list` after initialization/session negotiation for authoritative callable tools.
 
 ## 13 Canonical Tools
 
-| Stage | Tool | Axis | Risk | Auth |
-|-------|------|------|------|------|
-| 000 | `arif_session_init` | identity | critical | public |
-| 111 | `arif_sense_observe` | observe | low | public |
-| 222 | `arif_evidence_fetch` | verify | low | public |
-| 333 | `arif_mind_reason` | reason | medium | public |
-| 444r | `arif_reply_compose` | reflect | low | public |
-| 444 | `arif_kernel_route` | boundary | medium | public |
-| 555 | `arif_memory_recall` | trace | low | public |
-| 666 | `arif_heart_critique` | critique | medium | public |
-| 666g | `arif_gateway_connect` | boundary | medium | public |
-| 777 | `arif_ops_measure` | vitality | low | public |
-| 888 | `arif_judge_deliberate` | judge | critical | authenticated |
-| 999 | `arif_vault_seal` | seal | critical | authenticated |
-| 010 | `arif_forge_execute` | execute | critical | sovereign |
+| Stage | Tool | Role |
+|---|---|---|
+| 000 | `arif_session_init` | Session and identity binding |
+| 111 | `arif_sense_observe` | Reality observation and hybrid discovery |
+| 222 | `arif_evidence_fetch` | Evidence retrieval with receipts |
+| 333 | `arif_mind_reason` | Reasoning, planning, verification |
+| 444 | `arif_heart_critique` | Risk, empathy, red-team critique |
+| 555 | `arif_kernel_route` | Intent routing and topology |
+| 444r | `arif_reply_compose` | Governed response composition |
+| 555m | `arif_memory_recall` | Governed memory recall/store/list |
+| 666g | `arif_gateway_connect` | Federation/A2A gateway |
+| 888 | `arif_judge_deliberate` | Constitutional deliberation |
+| 999 | `arif_vault_seal` | VAULT999 audit/seal surface |
+| 666 | `arif_forge_execute` | Bounded execution/forge action |
+| 777 | `arif_ops_measure` | Health, cost, telemetry |
 
-## Intent Routing
-`arif_kernel_route(mode="intent", task="vitality")` routes by cognitive axis across all federation organs using `FEDERATION_TOOLS` manifest.
+## Governed Discovery Kernel
 
-## 13 Constitutional Floors (F1–F13)
-F01 AMANAH — Reversible-first; irreversible → 888_HOLD
-F02 TRUTH — ≥0.99 accuracy or declare uncertainty
-F03 WITNESS — Theory · constitution · intent must align
-F04 CLARITY — Every output reduces entropy (ΔS ≤ 0)
-F05 PEACE — De-escalate; guard maruah
-F06 EMPATHY — Dignity-first; ASEAN/MY context
-F07 HUMILITY — Uncertainty band 0.03–0.05
-F08 GENIUS — G ≥ 0.80
-F09 ANTIHANTU — C_dark < 0.30; no consciousness claims
-F10 ONTOLOGY — AI-only ontology; no soul/feelings
-F11 AUTH — Verify identity before sensitive ops
-F12 INJECTION — Sanitize inputs
-F13 SOVEREIGN — Human veto absolute
+Before high-consequence action, orient with:
 
-## MCP Endpoints
-- `https://arifosmcp.arif-fazil.com/mcp` (streamable-http)
-- `https://arifosmcp.arif-fazil.com/health`
-- GHCR: `ghcr.io/ariffazil/arifos:latest`
+```text
+arif_sense_observe(mode="compass")
+```
 
-## Federation Organs
-- **GEOX** (Earth): 21 tools — subsurface, seismic, stratigraphy pipeline
-- **WELL** (Body): 15 visible / 90 total — metabolic flux, somatic boundary, cognitive entropy
-- **WEALTH** (Capital): 0 visible / 58 total — all autonomic, backend ledger/logic
+`compass` is the GDK orientation loop. It uses `hybrid_discovery` as the read-only evidence engine.
+
+The Capability Manifest Loop:
+
+```text
+Intent -> discovery -> capability manifest -> relevance/risk/permission check
+  -> narrowed action -> human judgment if needed -> execute or stop
+  -> audit -> discovery map update
+```
+
+Required manifest fields: `can_do`, `cannot_do`, `required_inputs`, `outputs`, `permissions`, `risks`, `reversibility`, `audit`, `human_approval`.
+
+## Federation Tool Counts
+
+Verified by `https://arifos.arif-fazil.com/api/federation-probe` on 2026-05-22:
+
+- arifOS: 13 MCP tools, healthy.
+- GEOX: 22 MCP tools, healthy.
+- WEALTH: 17 MCP tools, healthy.
+- WELL: 15 MCP tools, healthy, REFLECT_ONLY.
+- Wiki: static knowledge surface, 0 MCP tools.
+
+## Boundary
+
+MCP transports capability. arifOS governs capability. APEX may deliberate. Arif remains final sovereign authority.

@@ -2,13 +2,19 @@ schema_version: 1
 kind: arifos.mcp_surface
 owner_repo: arifOS
 status: contract
-last_verified: "2026-05-19"
+last_verified: "2026-05-22"
 runtime_surface:
   primary_transport: streamable_http
   primary_port: 8080
   public_domains:
     - https://arifos.arif-fazil.com/mcp
     - https://mcp.arif-fazil.com/mcp
+  verification_endpoint: https://arifos.arif-fazil.com/api/federation-probe
+  verified_tool_counts:
+    arifos: 13
+    geox: 22
+    wealth: 17
+    well: 15
 authority:
   owns:
     - governance_primitives
@@ -35,6 +41,24 @@ canonical_tools:
   - arif_judge_deliberate
   - arif_vault_seal
   - arif_forge_execute
+canonical_modes:
+  arif_sense_observe:
+    - search
+    - hybrid_discovery
+    - ingest
+    - compass
+    - atlas
+    - entropy_dS
+    - vitals
+non_canonical_utility_tools:
+  wiki:
+    status: helper_surface
+    tools:
+      - arif_wiki_ingest
+      - arif_wiki_map
+      - arif_wiki_search
+      - arif_wiki_ask
+    boundary: read_only_discovery_helpers_not_memory_or_judgment
 artifact_policy:
   machine_readable: required
   human_readable: required_for_judge_or_seal

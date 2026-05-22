@@ -14,8 +14,8 @@
     "apps": "https://arifosmcp.arif-fazil.com/"
   },
   "endpoints": {
-    "mcp": "https://arifosmcp.arif-fazil.com/mcp",
-    "dashboard": "https://arifosmcp.arif-fazil.com/dashboard",
+    "mcp": "https://mcp.arif-fazil.com/mcp",
+    "dashboard": "https://arifos.arif-fazil.com/",
     "developer": "https://arifosmcp.arif-fazil.com/developer"
   },
   "capabilities": [

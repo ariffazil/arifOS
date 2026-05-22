@@ -210,7 +210,7 @@ If you want to connect to a remote arifOS server:
 from fastmcp.server import create_proxy
 
 proxy = create_proxy(
-    "https://arifosmcp.arif-fazil.com/mcp",
+    "https://mcp.arif-fazil.com/mcp",
     name="arifOS Remote"
 )
 

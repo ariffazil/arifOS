@@ -1,6 +1,6 @@
 # MCP Boundary Doctrine
 
-**Version:** 2026.05.19-KANON  
+**Version:** 2026.05.22-KANON  
 **Purpose:** Canonical explanation of where MCP ends and arifOS begins.
 
 ---
@@ -37,6 +37,8 @@ arifOS wraps the MCP boundary in **constitutional steel**:
 | Audit gap | None | VAULT999 append-only ledger, `judge_state_hash` |
 | Cross-organ contradiction | None | Contradiction scanners, evidence synthesis, tri-witness consensus |
 
+In plain operational language: **arifOS is the Governed Action Gateway around MCP**. MCP standardizes how tools and context are exposed. arifOS decides whether a requested action is permitted, reversible, witnessed, and auditable before consequence reaches the world.
+
 ---
 
 ## The Boundary Diagram
@@ -67,14 +69,14 @@ arifOS wraps the MCP boundary in **constitutional steel**:
 └─────────────────┬───────────────────────┘
                   │ Human Authority
 ┌─────────────────▼───────────────────────┐
-│  APEX — Arif (Human Sovereign)          │
-│  • Final veto (F13)                     │
-│  • Constitutional witness               │
-│  • Scar-weight authority                │
+│  APEX / Arif Authority Boundary         │
+│  • APEX: 888 deliberation engine        │
+│  • Arif: final veto (F13)               │
+│  • Human witness and ratification       │
 └─────────────────────────────────────────┘
 ```
 
-**MCP lives at the membrane between LLM host and federation organs. arifOS lives behind the membrane. APEX stands above it.**
+**MCP lives at the membrane between LLM host and federation organs. arifOS is the governed action gateway behind the membrane. APEX deliberates; Arif remains the final sovereign authority.**
 
 ---
 
@@ -87,6 +89,8 @@ arifOS wraps the MCP boundary in **constitutional steel**:
 | **Prompts** | Governance rituals: constitutional review patterns, few-shot floor workflows, operator checklists |
 
 MCP only requires that tools declare a `name`, `description`, and `inputSchema`. It does not care what happens inside `arif_judge_deliberate`. The 13-floor logic, entropy calculations, contradiction scans — **that is all arifOS.**
+
+`arif_sense_observe(mode="hybrid_discovery")` is a read-only SENSE operation. It can combine local wiki/repo evidence with web evidence, but it is not memory storage, VAULT sealing, or final judgment.
 
 ---
 
@@ -114,5 +118,5 @@ See `/root/AAA/AAA_DOCTRINE.md` for the full triad.
 
 ---
 
-**KANON LOCK: arifOS v2026.05.19**  
-**DITEMPA BUKAN DIBERI — Forged, not given.** 🔥
+**KANON LOCK: arifOS v2026.05.22**  
+**DITEMPA BUKAN DIBERI — Forged, not given.**

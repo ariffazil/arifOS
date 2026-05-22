@@ -10,7 +10,7 @@ By using the **Model Context Protocol (MCP)**, ChatGPT can now see and use the 1
 
 ### Connection Modes
 
-1. **Native MCP Connector**: Use the official ChatGPT MCP support to connect to `https://arifosmcp.arif-fazil.com/mcp`.
+1. **Native MCP Connector**: Use the official ChatGPT MCP support to connect to `https://mcp.arif-fazil.com/mcp`.
 2. **Sovereign Alias**: Point your custom GPT to `/mcp` for a unified governance interface.
 
 ##  Setup Instructions
@@ -18,7 +18,7 @@ By using the **Model Context Protocol (MCP)**, ChatGPT can now see and use the 1
 1. Open ChatGPT.
 2. Go to **Settings** > **Connected Apps**.
 3. Add a new **MCP Server**.
-4. URL: `https://arifosmcp.arif-fazil.com/mcp`
+4. URL: `https://mcp.arif-fazil.com/mcp`
 5. Status: `SEALED`
 
 ##  Governance

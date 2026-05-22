@@ -1,7 +1,7 @@
 {
   "_schema": "arifos-federation-manifest-v1",
-  "_updated": "2026-05-03T11:50:00Z",
-  "_note": "Authored truth for the arifOS federation. Runtime truth (health, counts, version) is fetched live by the observatory.",
+  "_updated": "2026-05-22T11:34:00Z",
+  "_note": "Authored truth for the arifOS federation. Runtime truth (health, counts, version) is fetched live from organ endpoints.",
   "stack": {
     "name": "arifOS Federation",
     "version": "kanon-6f99a42",
@@ -44,6 +44,7 @@
       "role": "Governance Kernel · ΔΩΨ Trinity",
       "base_url": "https://arifos.arif-fazil.com",
       "repo": "https://github.com/ariffazil/arifOS",
+      "tool_count": 13,
       "endpoints": {
         "health": "/health",
         "discovery": "/.well-known/mcp/server.json",
@@ -69,15 +70,15 @@
       "todo": [
         {
           "item": "Instrument remaining 9 MCP tools with Langfuse tracing (4/13 currently wired)",
-          "status": "in_progress",
+          "status": "completed",
           "owner": "runtime",
-          "updated": "2026-05-01"
+          "updated": "2026-05-11"
         },
         {
           "item": "Enforce outputSchema validation for all 13 canonical tools",
-          "status": "planned",
+          "status": "completed",
           "owner": "F8 Genius",
-          "updated": "2026-05-01"
+          "updated": "2026-05-11"
         },
         {
           "item": "Enable local model runtime (currently disabled)",
@@ -137,6 +138,9 @@
         "discovery": "/.well-known/mcp/server.json",
         "mcp": "/mcp"
       },
+      "discovery_status": "mcp-only",
+      "discovery_note": "No REST discovery. 22 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 4 dot-notation aliases.",
+      "tool_count": 22,
       "stack": {
         "runtime": "Python 3.11+",
         "framework": "FastMCP, Pydantic v2, Uvicorn",
@@ -179,7 +183,7 @@
         "Earth-domain coprocessor — Ψ node",
         "Physics-9 verification for all geoscience computations",
         "WELL biological substrate monitor integrated",
-        "MCP-only health exposure (no HTTP /health)"
+        "MCP session required for tool enumeration"
       ],
       "negative_scope": "Not generic consumer geology content. Physics-9 enforcement mandatory. No financial valuation."
     },
@@ -195,6 +199,9 @@
         "mcp": "/mcp",
         "ready": "/ready"
       },
+      "discovery_status": "mcp-only",
+      "discovery_note": "No REST discovery. 17 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 2 generic-name tools (vault_write, vault_query).",
+      "tool_count": 17,
       "stack": {
         "runtime": "Python 3.12+",
         "framework": "FastMCP (single-file monolith)",
@@ -247,7 +254,7 @@
       ],
       "architecture_notes": [
         "Capital intelligence coprocessor — Ω node",
-        "13 sovereign primitives + 66 legacy aliases = 79 MCP endpoints",
+        "17 verified MCP tools",
         "Single-file monolith (~3,800 lines)",
         "Graceful fallback stubs when arifOS absent"
       ],
@@ -264,6 +271,9 @@
         "discovery": "/.well-known/mcp/server.json",
         "mcp": "/mcp"
       },
+      "discovery_status": "mcp-only",
+      "discovery_note": "No REST discovery. 15 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 3 apparent alias pairs.",
+      "tool_count": 15,
       "stack": {
         "runtime": "Python 3.12+",
         "framework": "FastMCP",
@@ -275,18 +285,18 @@
       ],
       "todo": [
         {
-          "item": "Rebuild WELL organ after removal from compose stack",
-          "status": "blocked",
+          "item": "WELL organ restored to production compose stack",
+          "status": "completed",
           "owner": "sovereign",
-          "updated": "2026-04-28"
+          "updated": "2026-05-11"
         }
       ],
       "known_gaps": [
         {
-          "item": "Removed from production compose stack — pending sovereign rebuild decision",
-          "severity": "warning",
-          "updated": "2026-04-28",
-          "source": "compose/docker-compose.yml"
+          "item": "WELL operates in REFLECT_ONLY mode — no executive action, substrate monitoring only",
+          "severity": "info",
+          "updated": "2026-05-11",
+          "source": "runtime/health"
         }
       ],
       "roadmap": [
@@ -300,7 +310,7 @@
         "Biological substrate governance organ",
         "Monitors operator cognitive pressure (Ω_human)",
         "Thermodynamic WELL state tracking",
-        "Currently offline in production compose"
+        "REFLECT_ONLY authority mode"
       ],
       "negative_scope": "Not a wellness brand. Hard substrate monitoring only. No medical diagnosis."
     },
@@ -395,6 +405,8 @@
         "health": null,
         "discovery": null
       },
+      "tool_count": 0,
+      "discovery_status": "static",
       "stack": {
         "runtime": "Static site",
         "framework": "HTML/CSS/JS or React",
