@@ -15,6 +15,30 @@
       "_comment": "arifOS MCP kernel — internal Docker service on the OpenClaw network.",
       "url": "http://arifosmcp:8080/mcp",
       "transport": "streamable-http"
+    },
+    "geox": {
+      "_comment": "GEOX — Earth Intelligence (subsurface, seismic, well analysis). Governed by arifOS F1-F13. Risk tier: C2+ tools require arifOS SEAL.",
+      "url": "http://geox_eic:8081/mcp",
+      "transport": "streamable-http",
+      "organ": "GEOX",
+      "governance": "arifOS-F1-F13",
+      "risk_classification": "builtin:organ_governance.py"
+    },
+    "wealth-organ": {
+      "_comment": "WEALTH — Capital Intelligence (NPV, IRR, entropy, inequality). Governed by arifOS F1-F13. Risk tier: C2+ tools require arifOS SEAL.",
+      "url": "http://wealth-organ:8082/mcp",
+      "transport": "streamable-http",
+      "organ": "WEALTH",
+      "governance": "arifOS-F1-F13",
+      "risk_classification": "builtin:organ_governance.py"
+    },
+    "well": {
+      "_comment": "WELL — Biological Substrate (vitality, dignity, gradient). Governed by arifOS F1-F13. Risk tier: C1+ tools receive arifOS advisory.",
+      "url": "http://well:8083/mcp",
+      "transport": "streamable-http",
+      "organ": "WELL",
+      "governance": "arifOS-F1-F13",
+      "risk_classification": "builtin:organ_governance.py"
     }
   }
 }
