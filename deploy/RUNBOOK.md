@@ -231,21 +231,23 @@ curl -s https://wealth.arif-fazil.com/.well-known/mcp/server.json | python3 -m j
 
 ---
 
-> ⚠️ TEMPORAL NOTE: `well` service was removed as of 2026-04-26.
-> Any step referencing `well` is tombstoned below and must not be executed.
-
 ## 4. WELL
 
 | Field | Value |
 |-------|-------|
+| Repo | `/root/WELL` |
+| Compose service | `well` |
+| Container | `well` |
 
 ### Restart
 ```bash
+cd /root/compose && docker compose restart well
 ```
 
 ### Verify
 ```bash
 # Health
+curl -s https://well.arif-fazil.com/health | python3 -m json.tool
 
 # MCP discovery
 curl -s https://well.arif-fazil.com/.well-known/mcp/server.json | python3 -m json.tool
@@ -361,8 +363,7 @@ echo "=== WEALTH ==="
 curl -s -o /dev/null -w "%{http_code}" https://wealth.arif-fazil.com/health || echo "FAIL"
 
 echo "=== WELL ==="
-# [TEMPORAL-GHOST — well removed 2026-04-26 per AGENTS.md]
-# curl -s -o /dev/null -w "%{http_code}" https://well.arif-fazil.com/health || echo "FAIL"
+curl -s -o /dev/null -w "%{http_code}" https://well.arif-fazil.com/health || echo "FAIL"
 
 echo "=== Done ==="
 ```

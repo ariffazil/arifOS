@@ -109,7 +109,7 @@ def _compute_consensus(
         verdict = r.get("verdict", "").lower()
         if status in ("healthy", "verified", "pass") or verdict in ("seal", "pass", "well_pass"):
             scores.append(1.0)
-        elif status in ("degraded", "hold", "warning") or verdict in ("hold", "sabar"):
+        elif status in ("degraded", "hold", "warning") or verdict in ("hold", "sabar", "well_hold"):
             scores.append(0.5)
         else:
             scores.append(0.0)

@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "1!2026.5.22"
+version = "2026.05.22"
 description = "arifOS Constitutional AI Kernel — 13 canonical MCP tools, VAULT999 ledger, F1–F13 floor enforcement"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -87,6 +87,12 @@ dev = [
     "ruff>=0.15.13",
     "mypy>=2.1.0",
 ]
+
+[project.urls]
+Homepage = "https://arifos.arif-fazil.com"
+Documentation = "https://arifos.arif-fazil.com"
+Repository = "https://github.com/ariffazil/arifos"
+Issues = "https://github.com/ariffazil/arifos/issues"
 
 [project.scripts]
 arifos-mcp = "arifosmcp.server:main"

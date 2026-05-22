@@ -170,7 +170,8 @@ arifosmcp/sessions/hermes-briefings/*
 # ruff cache
 .ruff_cache/
 
-
 # antigravity CLI state
 .antigravitycli/
 
+package-lock.json
+/node_modules

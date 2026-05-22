@@ -1,0 +1,19 @@
+{
+  "name": "@arifos/monorepo",
+  "private": true,
+  "workspaces": [
+    "arifosmcp/packages/npm/*",
+    "packages/*",
+    "static/arifos/docs"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
