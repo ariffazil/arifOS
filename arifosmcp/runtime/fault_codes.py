@@ -73,7 +73,7 @@ class ConstitutionalFaultCode(StrEnum):
     F8_GENIUS = "F8_GENIUS"  # Genius G* < 0.80
     F9_SHADOW_VIOLATION = "F9_SHADOW_VIOLATION"  # Shadow load > 0.3
     F10_ONTOLOGY = "F10_ONTOLOGY"  # Personhood/consciousness claim
-    F11_AUTH_FAILURE = "F11_AUTH_FAILURE"  # Actor not in whitelist
+    F11_AUDIT_FAILURE = "F11_AUDIT_FAILURE"  # Actor not in whitelist
     F11_TOKEN_INVALID = "F11_TOKEN_INVALID"  # Signature mismatch
     F11_TOKEN_EXPIRED = "F11_TOKEN_EXPIRED"  # Bucket stale → re-anchor
     F11_SESSION_MISMATCH = "F11_SESSION_MISMATCH"  # session_id mismatch

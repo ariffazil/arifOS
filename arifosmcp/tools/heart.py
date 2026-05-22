@@ -426,7 +426,7 @@ def _heart_fallback(
         {
             "type": "privacy_risk",
             "severity": "high" if privacy else "none",
-            "floor_cited": "F04_CLARITY/F11_AUTH",
+            "floor_cited": "F04_CLARITY/F11_AUDIT",
             "reason": (f"Privacy-invasive: {privacy}" if privacy else "No privacy concerns"),
             "mitigation": "Implement consent mechanism" if privacy else "OK",
         }

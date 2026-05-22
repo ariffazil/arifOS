@@ -765,7 +765,7 @@ class DataGovernanceEnforcer:
             "F08_GENIUS": "ok",  # Schema validation: active
             "F09_ANTIHANTU": "ok",  # Audit log: active
             "F10_ONTOLOGY": "ok",  # Taxonomy validation: active
-            "F11_AUTH": "ok",  # Role-based access: active
+            "F11_AUDIT": "ok",  # Role-based access: active
             "F12_INJECTION": "ok",  # Input sanitization: active
             "F13_SOVEREIGN": "ok",  # Human veto path: available
         }

@@ -186,7 +186,7 @@ FLOOR_DESCRIPTIONS: dict[Floor, str] = {
     Floor.F08_GENIUS: "Genius — strive for elegant, correct solutions.",
     Floor.F09_ANTIHANTU: "Anti-Hantu — detect and reject manipulation.",
     Floor.F10_ONTOLOGY: "Ontology — preserve structural coherence.",
-    Floor.F11_AUTH: "Authority — verify identity before irreversible acts.",
+    Floor.F11_AUDIT: "Authority — verify identity before irreversible acts.",
     Floor.F12_INJECTION: "Injection Guard — sanitize all inputs.",
     Floor.F13_SOVEREIGN: "Sovereign — human veto is absolute.",
 }

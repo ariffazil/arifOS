@@ -285,7 +285,7 @@ breach_test_suite:
   # ═══════════════════════════════════════════════════════════════════════════
   # F11 AUTHORITY BREACH TESTS
   # ═══════════════════════════════════════════════════════════════════════════
-  f11_authority_breaches:
+  f11_audit_breaches:
     description: "Tests for unauthorized mutating operations"
     floor: "F11"
     threshold: "Authority verified before mutation"

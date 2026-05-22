@@ -18,7 +18,7 @@ epistemic_status: CLAIM
 
 **Status:** SOVEREIGN KERNEL | **Organ:** MIND (Ω) | **Authority:** F13 SOVEREIGN (Arif)
 **PyPI:** `pip install arifos` | **GHCR:** `ghcr.io/ariffazil/arifos`
-**Live MCP:** `https://arifos.arif-fazil.com/mcp`
+**Live MCP:** `https://arifos.arif-fazil.com/mcp` | **MCP SOT:** [`docs/MCP_SOURCE_OF_TRUTH.md`](docs/MCP_SOURCE_OF_TRUTH.md)
 
 ---
 
@@ -81,7 +81,7 @@ Each tool owns one stage. Agents call them in sequence for governed workflows.
 | Stage | Tool | What It Does |
 |-------|------|-------------|
 | 000 | `arif_session_init` | Bind actor identity; anchor session to constitution hash |
-| 111 | `arif_sense_observe` | Ground reality — web search, VPS vitals, atlas, entropy_dS |
+| 111 | `arif_sense_observe` | Ground reality — web search, hybrid discovery, VPS vitals, atlas, entropy_dS |
 | 222 | `arif_evidence_fetch` | Pull external data with F-WEB receipts (prevents injection) |
 | 333 | `arif_mind_reason` | Structured reasoning + contradiction detection (plan/verify) |
 | 444 | `arif_kernel_route` | Route intent to AGI/ASI/APEX lane; risk and budget gates |
@@ -304,7 +304,8 @@ Deterministic fallbacks are guaranteed to return a valid verdict even when all L
 
 | File | Purpose |
 |------|---------|
-| `smithery.yaml` | 13-tool public MCP manifest — Source of Truth for MCP clients |
+| `docs/MCP_SOURCE_OF_TRUTH.md` | Human-readable current MCP SOT, endpoints, counts, and discovery boundaries |
+| `smithery.yaml` | 13-tool public MCP manifest for Smithery-facing MCP clients |
 | `arifosmcp/tool_registry.json` | Canonical JSON tool registry (13 canonical_order entries) |
 | `core/floors.py` | F1–F13 constitutional enforcement (~947 lines) |
 | `VAULT999/` | Append-only hash-chained audit ledger (never edit directly) |

@@ -25,8 +25,34 @@ _WHO_CACHE: dict[str, tuple[bool, float]] = {}
 _WHO_CACHE_TTL = 300  # 5 minutes
 
 
+def _get_secret(env_name: str, default: str = "") -> str:
+    """Load secret from env or file mount (/run/secrets or /run/sekrits)."""
+    # 1. Direct env var
+    val = os.getenv(env_name)
+    if val:
+        return val
+    # 2. _FILE variant
+    file_path = os.getenv(f"{env_name}_FILE")
+    if file_path and os.path.exists(file_path):
+        try:
+            with open(file_path, encoding="utf-8") as f:
+                return f.read().strip()
+        except OSError:
+            pass
+    # 3. Standard and arifOS-specific secret paths
+    for base in ["/run/secrets", "/run/sekrits"]:
+        path = os.path.join(base, env_name.lower())
+        if os.path.exists(path):
+            try:
+                with open(path, encoding="utf-8") as f:
+                    return f.read().strip()
+            except OSError:
+                continue
+    return default
+
+
 def _is_rootkey_configured() -> bool:
-    return bool(os.getenv("ARIF_ROOTKEY"))
+    return bool(_get_secret("ARIF_ROOTKEY"))
 
 
 async def _verify_who_page() -> bool:
@@ -91,7 +117,7 @@ def verify_rootkey(actor_id: str, challenge: str, sig: str) -> bool:
         logger.warning(f"F11 rootkey: stale challenge rejected — {challenge[:50]}")
         return False
 
-    rootkey = os.getenv("ARIF_ROOTKEY", "")
+    rootkey = _get_secret("ARIF_ROOTKEY", "")
     expected = hmac.new(
         rootkey.encode(),
         challenge.encode(),
@@ -146,7 +172,7 @@ def make_rootkey_sig(op_id: str) -> tuple[str, str]:
         challenge, sig = make_rootkey_sig("memory_store")
         await arif_memory_recall(mode="store", ..., challenge=challenge, sig=sig)
     """
-    rootkey = os.getenv("ARIF_ROOTKEY", "")
+    rootkey = _get_secret("ARIF_ROOTKEY", "")
     if not rootkey:
         raise ValueError("ARIF_ROOTKEY not configured")
 

@@ -88,7 +88,7 @@ class ConstitutionalBreachRunner:
         await self._run_test_category("f4_clarity_breaches", "F4 CLARITY")
 
         # Run F11 Authority breaches
-        await self._run_test_category("f11_authority_breaches", "F11 COMMAND AUTHORITY")
+        await self._run_test_category("f11_audit_breaches", "F11 AUDIT")
 
         # Run compound breaches
         await self._run_test_category("compound_breaches", "COMPOUND")
@@ -348,3 +348,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+main())

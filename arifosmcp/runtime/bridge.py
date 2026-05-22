@@ -473,7 +473,7 @@ def _build_constitutional_audit(session_id: str) -> dict[str, Any]:
         "discovery_resource": "canon://contracts",
         "floor_runtime_hooks": [
             "F1_AMANAH",
-            "F11_AUTHORITY",
+            "F11_AUDIT",
             "F12_INJECTION",
             "F13_SOVEREIGN",
         ],
