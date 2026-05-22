@@ -23,6 +23,15 @@ def _bootstrap_environment() -> None:
             sys.argv[1] if len(sys.argv) > 1 else os.getenv("AAA_MCP_TRANSPORT", "stdio")
         ).lower()
         if mode == "stdio":
+            # Suppress ALL Python warnings in stdio mode — any text written to stdout
+            # before the JSON-RPC handshake corrupts the stream and causes the MCP
+            # client to close with EOF (e.g. requests urllib3 version mismatch,
+            # memory_engine.py deprecation notice).
+            import warnings
+
+            warnings.filterwarnings("ignore")
+            # Redirect stderr to devnull so deprecation prints don't bleed through
+            sys.stderr = open(os.devnull, "w")  # noqa: SIM115
             os.environ.setdefault("ARIFOS_MINIMAL_STDIO", "1")
             for logger_name in (
                 "fastmcp",
