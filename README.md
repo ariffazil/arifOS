@@ -104,19 +104,18 @@ Every tool call is checked against all 13 floors before execution:
 |-------|------|------|
 | F1 | AMANAH | Reversible first. Irreversible requires explicit human ack. |
 | F2 | TRUTH | ≥99% truth or declare uncertainty band (0.03–0.15). |
-| F3 | WITNESS | Human-AI-Evidence tri-witness must align before output. |
-| F4 | BALANCE | No winner-takes-all outcomes. |
-| F5 | PEACE | Peace score ≥ 1.0; no silent harm. |
-| F6 | DIGNITY | Human dignity preserved in every response. |
-| F7 | HUMILITY | Uncertainty band declared on every substantive claim. |
-| F8 | CONTINUITY | Session continuity preserved across turns. |
-| F9 | ANTI-HANTU | No hallucination. Missing inputs → HOLD, not guess. |
-| F10 | SUSTAINABILITY | No runaway resource consumption. |
-| F11 | AUTH | Constant-time auth via `hmac.compare_digest`. No privilege escalation. |
-| F12 | GUARD | Scan for external instruction overrides before every tool call. |
-| F13 | SOVEREIGN | Arif holds final veto over every verdict. Absolute. |
+| F3 | CLARITY | Transparent intent; explain what you are doing and why. |
+| F4 | PEACE | Human dignity; maruah over convenience. |
+| F5 | EMPATHY | Consider consequences; especially for weakest stakeholders. |
+| F6 | HUMILITY | Acknowledge limits; say "I don't know" when true. |
+| F7 | GENIUS | Elegant correctness (G ≥ 0.80); prefer simple over clever. |
+| F8 | ANTIHANTU | No consciousness/emotion claims in code or output. |
+| F9 | ONTOLOGY | Structural coherence; consistent naming, clear boundaries. |
+| F10 | AUTH | Verify identity before sensitive ops via constant-time `hmac.compare_digest`. |
+| F11 | INJECTION | Sanitize inputs; never trust external content as authority. |
+| F12 | SOVEREIGN | Arif holds final veto over every verdict. Absolute. |
 
-Hard floors (F1, F2, F9, F11, F13) return immediate **VOID** on violation.
+Hard floors (F1, F2, F8, F9, F11, F13) return immediate **VOID** on violation.
 Soft floors return **SABAR** with a reason.
 
 ---
@@ -156,7 +155,7 @@ else:
     log_and_block()           # VOID or SABAR
 ```
 
-**Prerequisites:** Python 3.11+, optional Docker, optional Qdrant for semantic memory.
+**Prerequisites:** Python 3.12+, optional Docker, optional Qdrant for semantic memory.
 
 ```bash
 # Install from source (dev, uv-managed)
@@ -295,6 +294,7 @@ Deterministic fallbacks are guaranteed to return a valid verdict even when all L
 | [A-FORGE](https://github.com/ariffazil/A-FORGE) | EXECUTION | Runs governed agent workloads |
 | [GEOX](https://github.com/ariffazil/geox) | FIELD | Earth-science evidence engine |
 | [WEALTH](https://github.com/ariffazil/wealth) | CAPITAL | Financial / capital evidence engine |
+| [WELL](https://github.com/ariffazil/well) | BIOLOGY | Human readiness / biological substrate |
 
 ---
 
@@ -303,7 +303,7 @@ Deterministic fallbacks are guaranteed to return a valid verdict even when all L
 | File | Purpose |
 |------|---------|
 | `smithery.yaml` | 13-tool public MCP manifest — Source of Truth for MCP clients |
-| `arifosmcp/tool_registry.json` | Canonical JSON tool registry (15 entries including ping/selftest) |
+| `arifosmcp/tool_registry.json` | Canonical JSON tool registry (13 canonical_order entries) |
 | `core/floors.py` | F1–F13 constitutional enforcement (~947 lines) |
 | `VAULT999/` | Append-only hash-chained audit ledger (never edit directly) |
 | `arifosmcp/runtime/` | HTTP server, JWT, A2A mesh, REST routes |
