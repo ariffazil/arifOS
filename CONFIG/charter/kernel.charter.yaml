@@ -1,0 +1,73 @@
+version: 1.0.0
+release_date: "2026-04-19"
+status: SEALED
+
+# ── AXIS 1: CONSTITUTIONAL PRIMORDIALS (5) ───────────────────────────
+tools:
+  - name: arifos_init
+    stage: 000_INIT
+    role: session_bootstrap
+    modes: ["init", "refresh", "state", "status", "probe"]
+
+  - name: arifos_sense
+    stage: 111_SENSE
+    role: reality_grounding
+    modes: ["governed", "search", "ingest", "compass", "atlas", "time"]
+
+  - name: arifos_mind
+    stage: 333_MIND
+    role: structured_reasoning
+    modes: ["reason", "sequential", "step", "branch", "merge", "review", "reflect"]
+
+  - name: arifos_heart
+    stage: 666_HEART
+    role: red_team
+    modes: ["critique", "simulate"]
+
+  - name: arifos_judge
+    stage: 888_JUDGE
+    role: final_verdict
+    modes: ["render", "audit", "override"]
+
+# ── AXIS 2: INFRASTRUCTURE ORGANS (3) ──────────────────────────────────
+  - name: arifos_kernel
+    stage: 444_KERNEL
+    role: router_orthogonality_cost
+    modes: ["route", "orthogonality_check", "ops_cost", "status", "reconcile", "audit"]
+
+  - name: arifos_memory
+    stage: 444_KERNEL
+    role: governed_memory_skill_registry
+    modes: ["store", "retrieve", "search_skills", "get_skill_metadata", "asset_store", "asset_query"]
+
+  - name: arifos_vault
+    stage: 444_KERNEL
+    role: immutable_ledger_audit
+    modes: ["append_verdict", "read_ledger", "anchor_well_state", "read_metabolic_state", "build_seal_card"]
+
+# ── AXIS 3: COMPUTATION ENGINES (3) ──────────────────────────────────
+  - name: arifos_compute_physics
+    stage: 777_FORGE
+    role: physics_numerical_computation
+    modes: ["petrophysics", "stratigraphy_correlate", "geometry_build", "monte_carlo", "entropy_audit"]
+
+  - name: arifos_compute_finance
+    stage: 777_FORGE
+    role: financial_valuation_allocation
+    modes: ["npv", "irr", "mirr", "emv", "dscr", "payback", "profitability_index", "allocation_rank", "growth_runway", "budget_optimize", "personal_decision_rank"]
+
+  - name: arifos_compute_civilization
+    stage: 777_FORGE
+    role: civilizational_macro_equilibrium
+    modes: ["sustainability_path", "macro_energy_carbon", "scenario_compare", "game_theory", "cross_evidence_synthesize"]
+
+# ── AXIS 4: REALITY ORACLES (2) ──────────────────────────────────────
+  - name: arifos_oracle_bio
+    stage: 111_SENSE
+    role: biology_telemetry
+    modes: ["snapshot_read", "readiness_check", "floor_scan", "log_update"]
+
+  - name: arifos_oracle_world
+    stage: 111_SENSE
+    role: world_data_macro_geox
+    modes: ["geox_scene_load", "geox_skills_query", "macro_snapshot", "series_fetch", "series_vintage_fetch"]

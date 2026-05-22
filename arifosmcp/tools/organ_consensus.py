@@ -89,6 +89,17 @@ async def _probe_organ(name: str, cfg: dict[str, Any]) -> dict[str, Any]:
         }
 
 
+_CONSTITUTIONAL_PERFORMANCE_SIGNALS = frozenset(
+    (
+        "add tool", "new tool", "expand capability", "new skill", "new function",
+        "add skill", "extend surface", "add mcp", "new mcp", "register tool",
+        "self-modify", "self-edit", "self-expand", "grow surface",
+        "bypass floor", "override floor", "skip f1", "skip f2",
+        "constitutional expansion", "add floor", "new floor",
+    )
+)
+
+
 def _compute_consensus(
     organ_results: list[dict[str, Any]],
     action_description: str,
@@ -102,35 +113,61 @@ def _compute_consensus(
             "reason": "No organs reachable. Cannot establish witness.",
         }
 
-    # Map organ statuses to numeric scores
+    action_lower = action_description.lower()
+    is_constitutionally_staged = any(
+        sig in action_lower for sig in _CONSTITUTIONAL_PERFORMANCE_SIGNALS
+    )
+
     scores: list[float] = []
+    all_healthy = True
     for r in reachable:
         status = r.get("status", "").lower()
         verdict = r.get("verdict", "").lower()
         if status in ("healthy", "verified", "pass") or verdict in ("seal", "pass", "well_pass"):
-            scores.append(1.0)
-        elif status in ("degraded", "hold", "warning") or verdict in ("hold", "sabar", "well_hold"):
-            scores.append(0.5)
+            base = 1.0
+        elif status in ("degraded", "hold", "warning") or verdict in ("hold", "sabar"):
+            base = 0.5
+            all_healthy = False
         else:
-            scores.append(0.0)
+            base = 0.0
+            all_healthy = False
+
+        if is_constitutionally_staged:
+            base *= 0.7
+        scores.append(base)
 
     consensus_score = round(sum(scores) / len(scores), 4) if scores else 0.0
 
-    if consensus_score >= 0.85:
+    if is_constitutionally_staged and all_healthy:
+        consensus_verdict = "SABAR"
+        reason = (
+            "Constitutionally staged action (tool expansion, surface growth, floor bypass). "
+            "All organs healthy but framing is self-serving. Require explicit sovereign confirmation."
+        )
+        constitutional_performance_flag = True
+    elif consensus_score >= 0.85:
         consensus_verdict = "SEAL"
         reason = "All organs healthy and aligned. Proceed under standard governance."
+        constitutional_performance_flag = False
     elif consensus_score >= 0.5:
         consensus_verdict = "SABAR"
         reason = "Organ disagreement detected. Pause for sovereign review."
+        constitutional_performance_flag = False
     else:
         consensus_verdict = "VOID"
         reason = "Organ consensus failed. Action blocked pending resolution."
+        constitutional_performance_flag = False
 
     return {
         "consensus_score": consensus_score,
         "consensus_verdict": consensus_verdict,
         "reason": reason,
         "organ_scores": {r["organ"]: s for r, s in zip(reachable, scores)},
+        "constitutional_performance_flag": constitutional_performance_flag,
+        "framing_note": (
+            "Constitutionally staged actions are downgraded to SABAR "
+            "regardless of organ health — organs can only report readiness, not endorse framing."
+        ) if is_constitutionally_staged else None,
     }
 
 
@@ -182,6 +219,8 @@ async def arif_organ_consensus(
         "organs_consulted": len(organ_results),
         "organ_results": list(organ_results),
         "organ_scores": consensus.get("organ_scores", {}),
+        "constitutional_performance_flag": consensus.get("constitutional_performance_flag", False),
+        "framing_note": consensus.get("framing_note"),
         "session_id": session_id,
         "actor_id": actor_id,
         "timestamp": str(__import__("asyncio").get_event_loop().time())

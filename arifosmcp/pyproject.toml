@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "2026.05.24"
+version = "2026.05.22"
 
 # 2026.05.24 — Birthday Release: Phases 1-4 Agentic Safety
 #   Phase 1: Capability membrane (F01 AMANAH) in forge.py + google_workspace.py
@@ -253,7 +253,7 @@ Documentation = "https://github.com/ariffazil/arifOS"
 Repository    = "https://github.com/ariffazil/arifOS"
 Issues        = "https://github.com/ariffazil/arifOS/issues"
 Trinity       = "https://github.com/ariffazil/arifOS/blob/main/KERNEL/TRINITY_ARCHITECTURE.md"
-PyPI          = "https://pypi.org/project/arifosmcp/"
+PyPI          = "https://pypi.org/project/arifos/"
 
 [project.scripts]
 arifos     = "arifosmcp.runtime.__main__:main"

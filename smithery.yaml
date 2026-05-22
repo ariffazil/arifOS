@@ -13,7 +13,7 @@
 # Homepage: https://arif-fazil.com
 
 name: arifos
-version: "2026.05.19"
+version: "2026.05.22"
 display_name: "arifOS — Constitutional Intelligence Kernel"
 description: |
   arifOS is the constitutional governance kernel for the arifOS federation.

@@ -1,6 +1,6 @@
 {
   "name": "@arifos/types",
-  "version": "0.1.0",
+  "version": "2026.05.22",
   "description": "Shared TypeScript types for arifOS ecosystem — constitutional governance OS",
   "main": "dist/index.js",
   "type": "module",
@@ -25,6 +25,11 @@
     "geoscience",
     "wealth"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ariffazil/arifos.git",
+    "directory": "packages/arifos-types"
+  },
   "author": "Muhammad Arif bin Fazil",
   "license": "AGPL-3.0-only",
   "devDependencies": {
