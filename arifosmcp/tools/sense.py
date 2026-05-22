@@ -162,7 +162,7 @@ def arif_sense_observe(
     Modes:
       search   → Brave API search (DDGS fallback)
       ingest   → Fetch + ingest URL via RealityHandler compass
-      compass  → Auto-detect fetch vs search via handle_compass
+      compass  → Governed Discovery Kernel: Orientation before action
       atlas    → Structural layer map (stub — pending vector atlas)
       entropy_dS → Random entropy delta (physics stub)
       vitals   → System vitals stub
@@ -172,7 +172,7 @@ def arif_sense_observe(
     if not auth["valid"]:
         # If it's a read-only SENSE operation and we have an actor_id,
         # allow a temporary "ephemeral" session for discovery if configured.
-        if mode in ("hybrid_discovery", "vitals") and actor_id:
+        if mode in ("hybrid_discovery", "vitals", "compass", "search") and actor_id:
             logger.debug(f"F11 AUTH: session_id missing for {mode}, using ephemeral context.")
             auth = {
                 "valid": True,
@@ -183,6 +183,94 @@ def arif_sense_observe(
             if auth.get("expired"):
                 return _sabar("arif_sense_observe", auth["reason"], session_id=session_id)
             return _hold("arif_sense_observe", auth["reason"], ["F11"], session_id=session_id)
+
+    q = query or url or ""
+
+    if mode == "compass":
+        from arifosmcp.constitutional_map import CANONICAL_TOOLS
+        from arifosmcp.core.authority_gate import AuthorityGate, WitnessType
+        from arifosmcp.core.threat_engine import ThreatEngine
+
+        # 1. Knowledge Discovery (Hybrid)
+        hd_res = arif_sense_observe(
+            mode="hybrid_discovery",
+            query=q,
+            session_id=session_id,
+            actor_id=actor_id,
+            top_k=3,
+        )
+        data = hd_res.get("result", {})
+        knowledge = data.get("knowledge_layers", {})
+
+        # 2. Capability Discovery
+        allowed_tools = []
+        restricted_tools = []
+        for tool_name, spec in CANONICAL_TOOLS.items():
+            if spec.get("access") == "public":
+                allowed_tools.append(tool_name)
+            else:
+                restricted_tools.append(tool_name)
+
+        # 3. Authority Discovery
+        # ThreatEngine scan for risk map
+        scan_res = ThreatEngine.scan(q)
+        assessment = scan_res.assessment
+
+        # Build minimal ActionContext for AuthorityGate
+        class _ActionContext:
+            def __init__(self, t_name, m, q_str, a_id):
+                self.tool_name = t_name
+                self.mode = m
+                self.query = q_str
+                self.actor_id = a_id
+                self.witness_type = WitnessType.AI
+
+            def payload_text(self):
+                return self.query
+
+        act_ctx = _ActionContext("arif_sense_observe", "compass", q, actor_id)
+        auth_proof = AuthorityGate.verify(act_ctx, assessment)
+
+        # 4. Next Safe Moves
+        next_moves = ["Use arif_mind_reason to analyze the discovered evidence."]
+        if assessment.irreversibility.value > 0:
+            next_moves.append(
+                "WARNING: Intent detected as high-risk; submit formal plan before action."
+            )
+        if not knowledge.get("local_wiki", {}).get("matches"):
+            next_moves.append("Knowledge gap detected: Ingest relevant docs via arif_wiki_ingest.")
+
+        return _ok(
+            "arif_sense_observe",
+            {
+                "status": "OK",
+                "tool": "arif_sense_observe",
+                "mode": "compass",
+                "query": q,
+                "orientation": {
+                    "knowledge": knowledge,
+                    "capabilities": {
+                        "allowed": allowed_tools,
+                        "restricted": restricted_tools,
+                    },
+                    "authority": {
+                        "actor": actor_id or "anonymous",
+                        "authorized": auth_proof.authorized,
+                        "requires_human": auth_proof.requires_human,
+                        "reason": auth_proof.reason,
+                    },
+                    "risk_map": {
+                        "tier": scan_res.tier.value,
+                        "threats": (
+                            [t.name for t in assessment.threats] if assessment.threats else []
+                        ),
+                        "irreversible": assessment.irreversibility.value > 1,
+                    },
+                    "next_safe_moves": next_moves,
+                },
+                "physics": data.get("physics_kernel", {}),
+            },
+        )
 
     floor_check = check_floors("arif_sense_observe", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
@@ -422,6 +510,18 @@ def arif_sense_observe(
         )
 
     if mode == "search":
+        # F12 INJECTION guard: scan query for destructive patterns before executing search
+        from arifosmcp.core.threat_engine import ThreatEngine
+
+        scan_res = ThreatEngine.scan(query or "")
+        if scan_res.assessment.irreversibility.value > 1:
+            threat_names = [t.name for t in (scan_res.assessment.threats or [])]
+            return _hold(
+                "arif_sense_observe",
+                f"F12 INJECTION: Destructive pattern detected — {', '.join(threat_names) or 'CRITICAL'}",
+                ["F12"],
+                session_id=session_id,
+            )
         try:
             s_res = asyncio.run(reality_handler.search_brave(query or "", top_k=top_k))
             results = s_res.results if s_res.results else []

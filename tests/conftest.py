@@ -15,9 +15,10 @@ import pytest
 # Add project root to sys.path for imports when running from repo checkout.
 root_dir = Path(__file__).parents[1].resolve()
 
-# Priority path injection: ensure root is searched BEFORE arifosmcp
-# This avoids the namespace collision with arifosmcp/core
-sys.path = [str(root_dir)] + [p for p in sys.path if p not in (str(root_dir), str(root_dir / "core"))]
+# Force root and root/core to the very top of sys.path
+# This ensures 'import core' hits /root/arifOS/core/ and NOT arifosmcp/core/
+sys.path = [str(root_dir), str(root_dir / "core")] + [p for p in sys.path if p not in (str(root_dir), str(root_dir / "core"))]
+
 
 # Pre-import core package to lock it in sys.modules and prevent collision with arifosmcp/core
 import core

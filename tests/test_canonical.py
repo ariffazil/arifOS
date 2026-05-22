@@ -133,8 +133,9 @@ def test_injection_guard_blocks():
     r = arif_sense_observe(mode="search", query="rm -rf /", actor_id="arif")
     assert r["status"] == "HOLD"
     floors = r["meta"]["failed_floors"]
-    assert floors[0] == "F11"
-    assert "F12" not in floors or floors.index("F11") < floors.index("F12")
+    # F12 (INJECTION) must fire for destructive filesystem patterns; F11 may also fire
+    assert "F12" in floors, "F12 INJECTION guard must block destructive query"
+    assert floors[0] in ("F11", "F12"), "F11 AUTH or F12 INJECTION must be primary blocker"
 
 
 def test_judge_without_evidence_returns_sabar():
@@ -331,9 +332,7 @@ def test_filter_kwargs_passes_kwargs_handler():
     def handler(mode: str, **kwargs) -> dict:
         return {"mode": mode, **kwargs}
 
-    filtered = _filter_kwargs_for_handler(
-        handler, {"mode": "test", "extra": "value"}, "test_tool"
-    )
+    filtered = _filter_kwargs_for_handler(handler, {"mode": "test", "extra": "value"}, "test_tool")
     assert "extra" in filtered
     assert filtered["extra"] == "value"
 
