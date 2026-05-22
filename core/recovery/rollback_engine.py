@@ -329,7 +329,9 @@ class OutcomeLedger:
             status = (
                 OutcomeStatus.OVERRIDDEN
                 if operator_override
-                else OutcomeStatus.FAILURE if harm_detected else OutcomeStatus.SUCCESS
+                else OutcomeStatus.FAILURE
+                if harm_detected
+                else OutcomeStatus.SUCCESS
             )
         else:
             status = OutcomeStatus.PENDING

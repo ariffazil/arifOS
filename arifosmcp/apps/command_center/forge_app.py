@@ -177,7 +177,7 @@ def forge_enforcement_matrix(
 
     if plan_state != "approved":
         blocked_reason = (
-            f"Plan state is '{plan_state}', not 'approved'. " f"Route through 888_JUDGE first."
+            f"Plan state is '{plan_state}', not 'approved'. Route through 888_JUDGE first."
         )
         required_gates.append("plan_approval")
 
@@ -185,8 +185,7 @@ def forge_enforcement_matrix(
         required_gates.append("judge_seal")
         if not blocked_reason:
             blocked_reason = (
-                f"Verdict is {judge_verdict or 'none'}. "
-                f"SEAL required from 888_JUDGE before Forge."
+                f"Verdict is {judge_verdict or 'none'}. SEAL required from 888_JUDGE before Forge."
             )
 
     is_irreversible = mode in ("write", "commit", "engineer", "generate")
@@ -194,8 +193,7 @@ def forge_enforcement_matrix(
         required_gates.append("human_ack")
         if not blocked_reason:
             blocked_reason = (
-                f"Mode '{mode}' is irreversible. "
-                f"Set ack_irreversible=true for human confirmation."
+                f"Mode '{mode}' is irreversible. Set ack_irreversible=true for human confirmation."
             )
 
     return {

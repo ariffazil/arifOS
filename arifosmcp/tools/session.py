@@ -22,6 +22,8 @@ from arifosmcp.schemas.session import (
     RiskLeash,
     SessionWarnings,
     SessionState,
+    _get_os_info,
+    _is_root,
 )
 
 
@@ -60,7 +62,7 @@ def arif_session_init(
                 "reason": "actor_id required — null not coerced to anonymous",
                 "failed_floors": ["F11"],
                 "hint": "Provide actor_id as non-null string for verified sessions, "
-                        "or use mode=discover for anonymous capability inspection",
+                "or use mode=discover for anonymous capability inspection",
             },
             doctrine=ARIF_DOCTRINE,
         )
@@ -148,9 +150,7 @@ def arif_session_init(
 
         # ── Actor / authority ────────────────────────────────
         authority_level = (
-            "SOVEREIGN"
-            if actor_id == "arif"
-            else ("OPERATOR" if actor_id else "ANONYMOUS")
+            "SOVEREIGN" if actor_id == "arif" else ("OPERATOR" if actor_id else "ANONYMOUS")
         )
         actor_block = {
             "claimed_id": actor_id,
@@ -209,6 +209,7 @@ def arif_session_init(
             warnings=warnings,
             output_contract=output_contract,
             result={
+                "session": sess,
                 "well_mirror": _well_mirror,
             },
             doctrine=ARIF_DOCTRINE,
@@ -307,8 +308,8 @@ def _build_embodiment_card() -> EmbodimentCard:
         body="vps_root_runtime",
         host_attested=True,
         host=socket.gethostname(),
-        os=f"{os.uname().sysname} {os.uname().release}",
-        privilege="root" if os.geteuid() == 0 else "user",
+        os=_get_os_info(),
+        privilege="root" if _is_root() else "user",
         shell=["bash"],
         cwd=os.getcwd(),
         package_managers=["npm", "bun", "pip", "git", "docker"],
@@ -321,7 +322,7 @@ def _build_embodiment_card() -> EmbodimentCard:
         mutation_default="dry_run",
         side_effects_allowed_without_ack=False,
         atomic_capability_present=True,
-        root_capability_present=(os.geteuid() == 0),
+        root_capability_present=_is_root(),
     )
 
 
@@ -353,11 +354,7 @@ def _compute_risk_leash(
         max_action_class=max_action,
         side_effects_allowed=False,
         degraded=degraded,
-        reason=(
-            "model_identity_unverified"
-            if degraded
-            else None
-        ),
+        reason=("model_identity_unverified" if degraded else None),
     )
 
 

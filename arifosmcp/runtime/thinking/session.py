@@ -83,6 +83,7 @@ try:
 except ImportError:
     fcntl = None
 
+
 class ThinkingSessionManager:
     """
     Manages constitutionally-governed thinking sessions.
@@ -112,14 +113,16 @@ class ThinkingSessionManager:
             return
         try:
             with open(self._path, encoding="utf-8") as f:
-                if fcntl: fcntl.flock(f, fcntl.LOCK_SH)
+                if fcntl:
+                    fcntl.flock(f, fcntl.LOCK_SH)
                 try:
                     data = json.load(f)
                     # Convert dicts back to ThinkingSession objects
                     # (Simplified for now - using raw dicts for persistence compatibility)
                     self.sessions = {k: self._dict_to_session(v) for k, v in data.items()}
                 finally:
-                    if fcntl: fcntl.flock(f, fcntl.LOCK_UN)
+                    if fcntl:
+                        fcntl.flock(f, fcntl.LOCK_UN)
         except Exception as e:
             print(f"Error loading mind sessions: {e}")
 
@@ -128,11 +131,13 @@ class ThinkingSessionManager:
         try:
             data = {k: self._session_to_dict(v) for k, v in self.sessions.items()}
             with open(self._path, "w", encoding="utf-8") as f:
-                if fcntl: fcntl.flock(f, fcntl.LOCK_EX)
+                if fcntl:
+                    fcntl.flock(f, fcntl.LOCK_EX)
                 try:
                     json.dump(data, f, default=str)
                 finally:
-                    if fcntl: fcntl.flock(f, fcntl.LOCK_UN)
+                    if fcntl:
+                        fcntl.flock(f, fcntl.LOCK_UN)
         except Exception as e:
             print(f"Error saving mind sessions: {e}")
 
@@ -152,18 +157,19 @@ class ThinkingSessionManager:
             "updated_at": session.updated_at.isoformat(),
             "arifos_session_id": session.arifos_session_id,
             "final_verdict": session.final_verdict,
-            "floors_triggered": session.floors_triggered
+            "floors_triggered": session.floors_triggered,
         }
 
     def _dict_to_session(self, d: dict) -> ThinkingSession:
         from datetime import datetime
+
         steps = []
         for s_dict in d.get("steps", []):
             # Parse timestamp
             if isinstance(s_dict.get("timestamp"), str):
                 s_dict["timestamp"] = datetime.fromisoformat(s_dict["timestamp"])
             steps.append(ThinkingStep(**s_dict))
-        
+
         return ThinkingSession(
             session_id=d["session_id"],
             problem=d["problem"],
@@ -178,7 +184,7 @@ class ThinkingSessionManager:
             updated_at=datetime.fromisoformat(d["updated_at"]),
             arifos_session_id=d.get("arifos_session_id"),
             final_verdict=d.get("final_verdict"),
-            floors_triggered=d.get("floors_triggered", [])
+            floors_triggered=d.get("floors_triggered", []),
         )
 
     def start_session(

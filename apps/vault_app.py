@@ -276,7 +276,6 @@ def vault_ledger_surface() -> PrefabApp:
     )
 
     with Column(gap=5, css_class="p-5 max-w-3xl") as view:
-
         # ── Operator Interpretation Banner (CHANGE-01) ────────────────────
         with Card(css_class="border-2 border-primary/20"):
             with CardContent(css_class="py-4 px-6"):
@@ -411,7 +410,7 @@ def vault_ledger_surface() -> PrefabApp:
         )
 
         Muted(
-            f"Entries shown: latest {_MAX_ROWS} " "· Full ledger at VAULT999/",
+            f"Entries shown: latest {_MAX_ROWS} · Full ledger at VAULT999/",
             css_class="text-xs",
         )
 

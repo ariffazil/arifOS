@@ -138,7 +138,7 @@ def main():
     if down_sites:
         print(f"\nDOWN: {len(down_sites)}/{len(results)}")
         for r in down_sites:
-            print(f"  ✗ {r['name']} ({r['url']}) - {r['error'] or f'HTTP {r['code']}'}")
+            print(f"  ✗ {r['name']} ({r['url']}) - {r['error'] or f'HTTP {r["code"]}'}")
 
     # Return data for caller
     output = {

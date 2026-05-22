@@ -96,10 +96,7 @@ class SafetyResult:
     def __repr__(self) -> str:
         if self.api_error:
             return f"SafetyResult(verdict=ERROR, error={self.api_error})"
-        return (
-            f"SafetyResult(verdict={self.verdict}, "
-            f"passed={self.passed}, blocked={self.blocked})"
-        )
+        return f"SafetyResult(verdict={self.verdict}, passed={self.passed}, blocked={self.blocked})"
 
 
 # ── Core filter function ─────────────────────────────────────────────────────

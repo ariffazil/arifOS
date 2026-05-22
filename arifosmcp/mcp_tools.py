@@ -273,6 +273,7 @@ def create_meta_mcp() -> FastMCP:
 def create_mind_mcp() -> FastMCP:
     """Cognitive Agent MCP — arif_mind_reason v2 metabolic surface."""
     from arifosmcp.runtime.mind_mcp import mcp
+
     return mcp
 
 

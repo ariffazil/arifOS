@@ -161,7 +161,9 @@ def generate_start_here(pages: list[dict]) -> str:
         reading_time = (
             "5 min"
             if difficulty == "beginner"
-            else "10 min" if difficulty == "intermediate" else "15 min"
+            else "10 min"
+            if difficulty == "intermediate"
+            else "15 min"
         )
 
         lines.append(f"{page_num}. **[[{page['filename']}|{page['title']}]]** — {reading_time}")

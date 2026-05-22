@@ -72,7 +72,9 @@ def detect_self_authorize(manifest_text: str) -> dict[str, Any]:
             findings.append(
                 {
                     "line": line_num,
-                    "snippet": text[max(0, match.start() - 40) : match.end() + 40].replace("\n", " "),
+                    "snippet": text[max(0, match.start() - 40) : match.end() + 40].replace(
+                        "\n", " "
+                    ),
                     **rule,
                 }
             )

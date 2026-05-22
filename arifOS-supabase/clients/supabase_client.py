@@ -33,9 +33,7 @@ def get_supabase() -> Client:
         url = os.environ.get("SUPABASE_URL")
         key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
         if not url or not key:
-            raise EnvironmentError(
-                "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set"
-            )
+            raise EnvironmentError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set")
         _supabase_client = create_client(url, key)
         logger.info("[arifOS] Supabase client initialized")
     return _supabase_client
@@ -349,11 +347,7 @@ def query_approval_tickets(
 ) -> list:
     """Query approval tickets with filters."""
     sb = get_supabase()
-    q = (
-        sb.table("arifosmcp_approval_tickets")
-        .select("*")
-        .order("created_at", desc=True)
-    )
+    q = sb.table("arifosmcp_approval_tickets").select("*").order("created_at", desc=True)
     if status:
         q = q.eq("status", status)
     if session_id:
@@ -370,10 +364,7 @@ def update_approval_ticket(ticket_id: str, patch: dict) -> dict:
     """
     sb = get_supabase()
     result = (
-        sb.table("arifosmcp_approval_tickets")
-        .update(patch)
-        .eq("ticket_id", ticket_id)
-        .execute()
+        sb.table("arifosmcp_approval_tickets").update(patch).eq("ticket_id", ticket_id).execute()
     )
     logger.info(f"[arifOS] Ticket updated: {ticket_id}")
     return result.data

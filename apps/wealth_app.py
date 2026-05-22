@@ -572,7 +572,6 @@ def wealth_dashboard_surface() -> PrefabApp:
     )
 
     with Column(gap=5, css_class="p-5 max-w-2xl") as view:
-
         with Row(gap=3, align="center"):
             Heading("@WEALTH Economist")
             Badge(

@@ -182,7 +182,7 @@ class DriftDetector:
             )
             if delta > DRIFT_THRESHOLD:
                 flags.append(
-                    f"HARD_LATENCY_DRIFT:+{round(delta*100,1)}% (baseline={baseline.hard_median_latency_hours}h, current={current['hard_latency_hours']}h)"
+                    f"HARD_LATENCY_DRIFT:+{round(delta * 100, 1)}% (baseline={baseline.hard_median_latency_hours}h, current={current['hard_latency_hours']}h)"
                 )
 
         if current["soft_latency_hours"] and baseline.soft_median_latency_hours:
@@ -190,13 +190,13 @@ class DriftDetector:
                 baseline.soft_median_latency_hours, 0.01
             )
             if delta > DRIFT_THRESHOLD:
-                flags.append(f"SOFT_LATENCY_DRIFT:+{round(delta*100,1)}%")
+                flags.append(f"SOFT_LATENCY_DRIFT:+{round(delta * 100, 1)}%")
 
         # Ack rate collapse
         if current["hard_ack_rate"] and baseline.hard_ack_rate:
             erosion = baseline.hard_ack_rate - current["hard_ack_rate"]
             if erosion > DRIFT_THRESHOLD:
-                flags.append(f"HARD_ACK_RATE_EROSION:-{round(erosion*100,1)}%")
+                flags.append(f"HARD_ACK_RATE_EROSION:-{round(erosion * 100, 1)}%")
 
         # Variance collapse (too little variance = ritualized)
         if (

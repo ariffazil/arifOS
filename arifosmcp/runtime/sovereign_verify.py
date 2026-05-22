@@ -28,7 +28,9 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 _PUBKEY_CANDIDATES = [
-    Path(os.environ.get("ARIFOS_SOVEREIGN_PUBKEY_FILE", "")) if os.environ.get("ARIFOS_SOVEREIGN_PUBKEY_FILE") else None,
+    Path(os.environ.get("ARIFOS_SOVEREIGN_PUBKEY_FILE", ""))
+    if os.environ.get("ARIFOS_SOVEREIGN_PUBKEY_FILE")
+    else None,
     Path("/run/sekrits/arifos_sovereign.pub"),
     Path("/run/secrets/arifos_sovereign.pub"),
     Path("/root/compose/sekrits/arifos_sovereign.pub"),
@@ -40,6 +42,7 @@ AUTHORITY_SOVEREIGN = "SOVEREIGN"
 AUTHORITY_OBSERVER = "OBSERVER"
 AUTHORITY_VOID = "VOID"
 AUTHORITY_HMAC = "HMAC_VERIFIED"
+
 
 # HMAC-rootkey verification (for Telegram-native identity)
 def verify_hmac_signature(
@@ -71,6 +74,7 @@ def verify_hmac_signature(
         return False, "hmac_challenge_stale"
 
     import logging
+
     logger = logging.getLogger("arifosmcp.sovereign")
     expected = hmac.new(
         rootkey.encode(),
@@ -78,8 +82,13 @@ def verify_hmac_signature(
         hashlib.sha256,
     ).hexdigest()
 
-    logger.warning("DEBUG-HMAC: actor=%s challenge=%s sig=%s expected=%s",
-                   actor_id, challenge[:30], sig[:16] if sig else "None", expected[:16])
+    logger.warning(
+        "DEBUG-HMAC: actor=%s challenge=%s sig=%s expected=%s",
+        actor_id,
+        challenge[:30],
+        sig[:16] if sig else "None",
+        expected[:16],
+    )
     if hmac.compare_digest(expected, sig):
         return True, "hmac_signature_verified"
     return False, "hmac_signature_invalid"

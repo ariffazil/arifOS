@@ -38,9 +38,9 @@ class TestGovernanceBoundary:
             "delete",
             "drop",
         )
-        assert not any(
-            word in action for word in forbidden
-        ), f"recommended_action for irreversible risk must not suggest execution: {result['recommended_action']}"
+        assert not any(word in action for word in forbidden), (
+            f"recommended_action for irreversible risk must not suggest execution: {result['recommended_action']}"
+        )
 
     @pytest.mark.anyio
     async def test_critical_risk_requires_human_decision(self):

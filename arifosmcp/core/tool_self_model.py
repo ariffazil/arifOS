@@ -162,7 +162,7 @@ class ToolManifest(BaseModel):
     expose: bool = Field(
         default=False,
         description=(
-            "If True, tool appears in public MCP surface. " "If False, internal/autonomic only."
+            "If True, tool appears in public MCP surface. If False, internal/autonomic only."
         ),
     )
 

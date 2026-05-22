@@ -44,6 +44,7 @@ F4_ENTROPY_TOLERANCE = 0.02  # Allow small positive ΔS for honest failure recor
 # Truth Layers (Gödel Lock Humility)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TruthLayer:
     """
     Three-layer truth model — prevents overclaim.

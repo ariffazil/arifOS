@@ -44,9 +44,9 @@ def test_env_precedence_docker_compose_wins_over_dotenv_file(tmp_path: Path) -> 
 
                 from arifosmcp.runtime.llm_client import SEA_LION_API_KEY as loaded_key
 
-                assert (
-                    loaded_key == runtime_key
-                ), f"Expected runtime key from docker-compose, got: {loaded_key}"
+                assert loaded_key == runtime_key, (
+                    f"Expected runtime key from docker-compose, got: {loaded_key}"
+                )
 
         finally:
             if env_backup is not None:

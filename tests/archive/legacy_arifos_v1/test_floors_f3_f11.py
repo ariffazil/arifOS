@@ -9,7 +9,7 @@ Verifies:
 
 from __future__ import annotations
 
-from arifos.tools.floors import (
+from arifosmcp.tools.floors import (
     evaluate_f3_antihantu,
     evaluate_f11_auth,
     FloorStatus,
@@ -131,9 +131,7 @@ class TestF11Auth:
         assert result.score == 0.5  # honest unknown
 
     def test_remediation_present_on_failure(self):
-        result = evaluate_f11_auth(
-            ["a"], ["a", "b"], ["a"]
-        )
+        result = evaluate_f11_auth(["a"], ["a", "b"], ["a"])
         assert result.remediation is not None
         assert "reconcile" in result.remediation.lower()
 

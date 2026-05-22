@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field
 # INPUT SCHEMA (v2)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class MindIntent(StrEnum):
     EXPLAIN = "explain"
     VERIFY = "verify"
@@ -33,6 +34,7 @@ class MindIntent(StrEnum):
     DECIDE_NEXT = "decide_next_observation"
     METABOLIZE = "metabolize"
 
+
 class DecisionClass(StrEnum):
     C0 = "C0"
     C1 = "C1"
@@ -41,11 +43,13 @@ class DecisionClass(StrEnum):
     C4 = "C4"
     C5 = "C5"
 
+
 class RiskTier(StrEnum):
     GREEN = "green"
     AMBER = "amber"
     RED = "red"
     CRITICAL = "critical"
+
 
 class TaskConfig(BaseModel):
     intent: MindIntent = Field(default=MindIntent.METABOLIZE)
@@ -54,12 +58,14 @@ class TaskConfig(BaseModel):
     domain: str = Field(default="general")
     freshness_need: str = Field(default="medium")
 
+
 class MindContext(BaseModel):
     user_context: str | None = None
     memory_context: list[str] = Field(default_factory=list)
     background_field: list[str] = Field(default_factory=list)
     constraints: list[str] = Field(default_factory=list)
     known_unknowns: list[str] = Field(default_factory=list)
+
 
 class MindEvidence(BaseModel):
     search_decision_receipts: list[str] = Field(default_factory=list)
@@ -68,16 +74,18 @@ class MindEvidence(BaseModel):
     claim_cards: list[dict[str, Any]] = Field(default_factory=list)
     contradiction_reports: list[dict[str, Any]] = Field(default_factory=list)
 
+
 class ReasoningControl(BaseModel):
     depth: int = Field(default=3, ge=1, le=10)
     max_layers: int = Field(default=7, ge=1, le=15)
-    sequential_mode: str = Field(default="deliberate") # fast | deliberate | exhaustive
+    sequential_mode: str = Field(default="deliberate")  # fast | deliberate | exhaustive
     allow_abduction: bool = True
     allow_counterfactuals: bool = False
     require_attestation: bool = True
     require_contradiction_scan: bool = True
     confidence_threshold: float = 0.75
     stop_on_sufficient_clarity: bool = True
+
 
 class OutputContract(BaseModel):
     format: str = "mind_packet_v2"
@@ -87,8 +95,10 @@ class OutputContract(BaseModel):
     include_attestations: bool = True
     include_next_actions: bool = True
 
+
 class MindRequest(BaseModel):
     """v2 Input Schema for arif_mind_reason"""
+
     query: str
     mode: str = "metabolize"
     session_id: str | None = None
@@ -99,9 +109,11 @@ class MindRequest(BaseModel):
     reasoning_control: ReasoningControl = Field(default_factory=ReasoningControl)
     output_contract: OutputContract = Field(default_factory=OutputContract)
 
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # OUTPUT SCHEMA (v2)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class MetabolizedContext(BaseModel):
     input_summary: str
@@ -114,22 +126,25 @@ class MetabolizedContext(BaseModel):
     constraints: list[str] = Field(default_factory=list)
     risk_notes: list[str] = Field(default_factory=list)
 
+
 class AbstractionCard(BaseModel):
     name: str
-    type: str # concept | object | process | constraint | metric | relation
+    type: str  # concept | object | process | constraint | metric | relation
     definition: str
-    source: str # input | evidence | memory | inference
+    source: str  # input | evidence | memory | inference
     confidence: float = 0.0
+
 
 class AttestationCard(BaseModel):
     claim_id: str
     claim: str
-    evidence_level: str # L0-L5
+    evidence_level: str  # L0-L5
     source_ids: list[str] = Field(default_factory=list)
     receipt_ids: list[str] = Field(default_factory=list)
     content_hashes: list[str] = Field(default_factory=list)
     attestation_status: str = "unattested"
     allowed_language_strength: str = "unknown"
+
 
 class AbductiveHypothesis(BaseModel):
     hypothesis: str
@@ -141,6 +156,7 @@ class AbductiveHypothesis(BaseModel):
     next_observation: str | None = None
     confidence: float = 0.0
     status: str = "hypothesis"
+
 
 class CognitiveLayer(BaseModel):
     layer: int
@@ -154,6 +170,7 @@ class CognitiveLayer(BaseModel):
     delta_entropy: float = 0.0
     risk_flags: list[str] = Field(default_factory=list)
 
+
 class ContradictionReport(BaseModel):
     claim_a: str
     claim_b: str
@@ -164,18 +181,27 @@ class ContradictionReport(BaseModel):
     preferred_source: str | None = None
     reason: str | None = None
 
+
 class MindSynthesis(BaseModel):
     bounded_answer: str
     what_is_supported: list[str] = Field(default_factory=list)
     what_is_not_supported: list[str] = Field(default_factory=list)
     what_remains_unknown: list[str] = Field(default_factory=list)
-    confidence: dict[str, float] = Field(default_factory=lambda: {"reasoning_confidence": 0.0, "evidence_confidence": 0.0, "overall_confidence": 0.0})
+    confidence: dict[str, float] = Field(
+        default_factory=lambda: {
+            "reasoning_confidence": 0.0,
+            "evidence_confidence": 0.0,
+            "overall_confidence": 0.0,
+        }
+    )
+
 
 class NextAction(BaseModel):
     tool: str
     mode: str
     reason: str
     required: bool = True
+
 
 class MindPacket(BaseModel):
     query: str
@@ -191,6 +217,7 @@ class MindPacket(BaseModel):
     synthesis: MindSynthesis | None = None
     next_actions: list[NextAction] = Field(default_factory=list)
 
+
 class MindGovernance(BaseModel):
     axioms_used: list[str] = Field(default_factory=list)
     floors_checked: list[str] = Field(default_factory=list)
@@ -198,8 +225,10 @@ class MindGovernance(BaseModel):
     human_judgment_required: bool = False
     verdict: str = "HOLD"
 
+
 class MindResponse(BaseModel):
     """v2 Output Schema for arif_mind_reason"""
+
     status: Literal["OK", "HOLD", "VOID"] = "OK"
     tool: str = "arif_mind_reason"
     mode: str = "metabolize"

@@ -45,9 +45,7 @@ class SourceCard(BaseModel):
 
     url: str
     hash: str = ""
-    retrieved_at: str = Field(
-        default_factory=lambda: datetime.now(UTC).isoformat()
-    )
+    retrieved_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     status: int = 0
     content_type: str = "text/html"
     risk_flags: list[str] = Field(default_factory=list)
@@ -70,14 +68,10 @@ class ClaimCard(BaseModel):
 class EvidenceReceipt(BaseModel):
     """Proof that an observation was made and stored."""
 
-    receipt_id: str = Field(
-        default_factory=lambda: f"receipt://bundle/{uuid.uuid4().hex[:12]}"
-    )
+    receipt_id: str = Field(default_factory=lambda: f"receipt://bundle/{uuid.uuid4().hex[:12]}")
     provider: str = "unknown"
     bridge: str = "mcp_http_sse"
-    timestamp_utc: str = Field(
-        default_factory=lambda: datetime.now(UTC).isoformat()
-    )
+    timestamp_utc: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     urls_returned: int = 0
     urls_ingested: int = 0
     independent_sources_compared: int = 0
@@ -90,15 +84,11 @@ class EvidenceReceipt(BaseModel):
 class AttestationPacket(BaseModel):
     """Proof of custody for a claim."""
 
-    claim_id: str = Field(
-        default_factory=lambda: f"claim://{uuid.uuid4().hex[:12]}"
-    )
+    claim_id: str = Field(default_factory=lambda: f"claim://{uuid.uuid4().hex[:12]}")
     receipt_id: str = ""
     source_ids: list[str] = Field(default_factory=list)
     content_hash: str = ""
-    retrieved_at: str = Field(
-        default_factory=lambda: datetime.now(UTC).isoformat()
-    )
+    retrieved_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     provider: str = "unknown"
     evidence_level: EvidenceLevel = EvidenceLevel.L0
     trace_id: str = ""
@@ -127,24 +117,18 @@ class AbductiveHypothesis(BaseModel):
 class SearchDecisionReceipt(BaseModel):
     """Record of whether a search was executed or skipped."""
 
-    decision_id: str = Field(
-        default_factory=lambda: f"decision://{uuid.uuid4().hex[:12]}"
-    )
+    decision_id: str = Field(default_factory=lambda: f"decision://{uuid.uuid4().hex[:12]}")
     query: str = ""
     decision: Literal["search", "skip", "hold"] = "hold"
     w_score: float = 0.0
     reason: str = ""
-    timestamp_utc: str = Field(
-        default_factory=lambda: datetime.now(UTC).isoformat()
-    )
+    timestamp_utc: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 class ContradictionReport(BaseModel):
     """Output of a contradiction audit."""
 
-    audit_id: str = Field(
-        default_factory=lambda: f"audit://{uuid.uuid4().hex[:12]}"
-    )
+    audit_id: str = Field(default_factory=lambda: f"audit://{uuid.uuid4().hex[:12]}")
     status: Literal["CONSISTENT", "CONFLICT", "VOID"] = "VOID"
     conflicts: list[dict[str, Any]] = Field(default_factory=list)
     authority_ranking: str = "unknown"

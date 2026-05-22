@@ -60,9 +60,9 @@ def test_budget_hold_includes_reasons():
     assert "reasons" in result, "HOLD response MUST include 'reasons' field"
     assert isinstance(result["reasons"], list), "'reasons' must be a list"
     assert len(result["reasons"]) > 0, "'reasons' must be non-empty"
-    assert any(
-        "max_turns" in r for r in result["reasons"]
-    ), f"reasons[] must mention 'max_turns': {result['reasons']}"
+    assert any("max_turns" in r for r in result["reasons"]), (
+        f"reasons[] must mention 'max_turns': {result['reasons']}"
+    )
     assert "reason" not in result or result.get("reason") is None
 
 
@@ -84,9 +84,9 @@ def test_budget_hold_includes_domain_void():
 
     assert result["verdict"] == "HOLD"
     assert "output_policy" in result, "HOLD response MUST include 'output_policy'"
-    assert (
-        result["output_policy"] == "DOMAIN_VOID"
-    ), f"output_policy must be DOMAIN_VOID, got {result.get('output_policy')}"
+    assert result["output_policy"] == "DOMAIN_VOID", (
+        f"output_policy must be DOMAIN_VOID, got {result.get('output_policy')}"
+    )
 
 
 def test_budget_hold_includes_nine_signal():
@@ -109,9 +109,9 @@ def test_budget_hold_includes_nine_signal():
     assert "nine_signal" in result, "HOLD response MUST include 'nine_signal'"
     ns = result["nine_signal"]
     assert "overall" in ns, "nine_signal must have 'overall' field"
-    assert (
-        ns["overall"]["state"] == "RETAK"
-    ), f"nine_signal.overall must be RETAK, got {ns['overall']}"
+    assert ns["overall"]["state"] == "RETAK", (
+        f"nine_signal.overall must be RETAK, got {ns['overall']}"
+    )
     assert "delta" in ns and "psi" in ns and "omega" in ns, "nine_signal must have delta/psi/omega"
 
 
@@ -135,9 +135,9 @@ def test_budget_tool_call_hold_includes_reasons():
     assert result["verdict"] == "HOLD"
     assert "reasons" in result
     assert len(result["reasons"]) > 0
-    assert any(
-        "max_tool_calls" in r for r in result["reasons"]
-    ), f"reasons[] must mention 'max_tool_calls': {result['reasons']}"
+    assert any("max_tool_calls" in r for r in result["reasons"]), (
+        f"reasons[] must mention 'max_tool_calls': {result['reasons']}"
+    )
 
 
 def test_budget_tool_call_hold_includes_domain_void():
@@ -197,9 +197,9 @@ def test_budget_clear_allows_seal():
         )
 
     # With NIAT free-pass, REASON mode returns SEAL directly — no budget HOLD
-    assert result["verdict"] != "HOLD" or result.get("failed_floors", []) != [
-        "BUDGET"
-    ], "Budget-clear session should not produce BUDGET HOLD"
+    assert result["verdict"] != "HOLD" or result.get("failed_floors", []) != ["BUDGET"], (
+        "Budget-clear session should not produce BUDGET HOLD"
+    )
 
 
 def test_budget_exception_is_non_blocking():
@@ -218,9 +218,9 @@ def test_budget_exception_is_non_blocking():
 
     # Must not raise; verdict should still be returned (NIAT free-pass SEAL)
     assert "verdict" in result
-    assert result.get("failed_floors", []) != [
-        "BUDGET"
-    ], "Budget exception should not cause BUDGET floor to appear"
+    assert result.get("failed_floors", []) != ["BUDGET"], (
+        "Budget exception should not cause BUDGET floor to appear"
+    )
 
 
 # ─── C4 Capital Governance Regression Tests ─────────────────────────────────
@@ -497,6 +497,6 @@ def test_registry_truth_audit_surface_hash_changes_on_mutation():
     reg.mark_phantom("tool_b")
     receipt2 = reg.audit_surface_truth()
 
-    assert (
-        receipt1["safe_surface_hash"] != receipt2["safe_surface_hash"]
-    ), "Hash must change when callable surface changes"
+    assert receipt1["safe_surface_hash"] != receipt2["safe_surface_hash"], (
+        "Hash must change when callable surface changes"
+    )

@@ -12,7 +12,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 # ─────────────────────────────────────────────────────────────────────────────
-# SHIM — mock external arifos.core.governance dependencies
+# SHIM — mock external arifosmcp.core.governance dependencies
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -51,14 +51,14 @@ class _MockGovernedReturn:
 _mock_vault_events = _MockAppendVault999Event()
 
 # Inject mocks BEFORE importing the module
-import arifos.core.governance as _mock_gov
+import arifosmcp.core.governance as _mock_gov
 
 _mock_gov.ThermodynamicMetrics = _MockThermodynamicMetrics
 _mock_gov.append_vault999_event = _mock_vault_events
 _mock_gov.governed_return = _MockGovernedReturn()
 
 # Now import the module under test
-from arifos.tools._000_init import (
+from arifosmcp.tools._000_init import (
     execute,
     _validate_ontology_lock,
     _validate_role_scope,

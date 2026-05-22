@@ -1,0 +1,36 @@
+# approved Global MCP Stack Topography
+# Enforced under F4 Clarity [Alignment]
+
+mcpServers:
+  arifos:
+    command: "C:/ariffazil/arifOS/.venv/Scripts/python.exe"
+    args: ["-m", "arifosmcp.runtime", "stdio"]
+    env:
+      ARIFOS_MINIMAL_STDIO: "1"
+    role: "kernel"
+    tier: "Core, Default-On"
+
+  geox:
+    url: "https://geox.arif-fazil.com/mcp"
+    role: "earth_evidence"
+    tier: "Core, Default-On"
+
+  wealth:
+    url: "https://wealth.arif-fazil.com/mcp"
+    role: "capital_evidence"
+    tier: "Core, Default-On"
+
+  well:
+    url: "https://well.arif-fazil.com/mcp"
+    role: "vitality_evidence"
+    tier: "Core, Default-On"
+
+# Gated or Deferred Surfaces
+gated_surfaces:
+  google_workspace:
+    status: "Ask / 888_HOLD"
+    rule: "High execution authority; all operations must be gated by explicit approval."
+  
+  supabase:
+    status: "Deferred"
+    rule: "Overlapping database capabilities; deferred to prevent direct data mutations."

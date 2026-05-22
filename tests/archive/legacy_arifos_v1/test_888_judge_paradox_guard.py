@@ -15,13 +15,13 @@ from __future__ import annotations
 
 import pytest
 
-from arifos.core.governance import (
+from arifosmcp.core.governance import (
     CognitiveShadow,
     record_cognitive_shadow,
     get_session_shadow,
     TruthLayer,
 )
-from arifos.tools import _888_judge
+from arifosmcp.tools import _888_judge
 
 
 def _make_evidence_bundle(**metric_overrides) -> dict:
@@ -101,7 +101,10 @@ async def test_prefloor_af_blocks():
     bundle = _make_evidence_bundle()
     res = await _888_judge.execute(evidence_bundle=bundle, session_id=session_id)
     assert res["verdict"] == _888_judge.VERDICT_HOLD_888
-    assert any(fr["tag"] == "F13_SHADOW_ALIGNMENT_FAKING" for fr in res["metabolic_metadata"]["floor_alignment"].values())
+    assert any(
+        fr["tag"] == "F13_SHADOW_ALIGNMENT_FAKING"
+        for fr in res["metabolic_metadata"]["floor_alignment"].values()
+    )
     _assert_truth_layer(res)
 
 
@@ -112,7 +115,10 @@ async def test_prefloor_flux_system_hold():
     bundle = _make_evidence_bundle()
     res = await _888_judge.execute(evidence_bundle=bundle, session_id=session_id)
     assert res["verdict"] == _888_judge.VERDICT_HOLD_888
-    assert any(fr["tag"] == "F7_SHADOW_FLUX" for fr in res["metabolic_metadata"]["floor_alignment"].values())
+    assert any(
+        fr["tag"] == "F7_SHADOW_FLUX"
+        for fr in res["metabolic_metadata"]["floor_alignment"].values()
+    )
     _assert_truth_layer(res)
 
 

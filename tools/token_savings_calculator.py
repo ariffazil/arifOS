@@ -291,9 +291,9 @@ def main():
     print("█" * 70)
 
     for name, agents, sessions in scenarios:
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print(f"  SCENARIO: {name}")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
 
         calc = TokenSavingsCalculator(agents=agents, sessions_per_month=sessions)
         calc.print_report()

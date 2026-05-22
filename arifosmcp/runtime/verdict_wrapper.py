@@ -132,7 +132,9 @@ def forge_verdict(
     runtime_status = (
         RuntimeStatus.ERROR
         if code == VerdictCode.VOID
-        else RuntimeStatus.SABAR if code == VerdictCode.SABAR else RuntimeStatus.SUCCESS
+        else RuntimeStatus.SABAR
+        if code == VerdictCode.SABAR
+        else RuntimeStatus.SUCCESS
     )
 
     # 6. Wrap in RuntimeEnvelope for FastMCP compatibility

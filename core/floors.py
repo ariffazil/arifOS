@@ -90,6 +90,7 @@ FLOOR_SPEC_KEYS: dict[str, str] = {
     "F13": "F13_SOVEREIGN",
 }
 
+
 def get_floor_threshold(floor_id: str) -> float | tuple[float, float] | None:
     """Return threshold value for a short floor id (e.g., 'F1') or None if not found."""
     spec_key = FLOOR_SPEC_KEYS.get(floor_id)
@@ -274,7 +275,9 @@ class ConstitutionalFloors:
         # Note: third param was accidentally passing tool_name (str) instead of agent_capability (float)
         # This caused: TypeError: can't multiply sequence by non-int of type 'float'
         tri_witness = self._calculate_tri_witness(
-            human_intent, 0.5, environment_safety  # 0.5 = neutral agent_capability
+            human_intent,
+            0.5,
+            environment_safety,  # 0.5 = neutral agent_capability
         )
 
         risk_tier = self._assess_risk_tier(action, tool_name, parameters)
@@ -291,7 +294,12 @@ class ConstitutionalFloors:
                         name="MissingEvaluator",
                         passed=False,
                         score=0.0,
-                        threshold=THRESHOLDS.get(missing, THRESHOLDS.get(f"{missing}_SOVEREIGN", THRESHOLDS.get(f"{missing}_AMANAH", 0.5))),
+                        threshold=THRESHOLDS.get(
+                            missing,
+                            THRESHOLDS.get(
+                                f"{missing}_SOVEREIGN", THRESHOLDS.get(f"{missing}_AMANAH", 0.5)
+                            ),
+                        ),
                         details="Floor declared in FLOOR_LEVELS but has no evaluator in evaluate()",
                     )
                 )

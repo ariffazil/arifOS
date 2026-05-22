@@ -62,9 +62,7 @@ def mock_reality_search():
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
 @patch("arifosmcp.runtime.tools.check_floors")
-def test_evidence_fetch_abstraction_and_attestation(
-    mock_floors, mock_store, mock_reality_fetch
-):
+def test_evidence_fetch_abstraction_and_attestation(mock_floors, mock_store, mock_reality_fetch):
     mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
     mock_store_inst = mock_store.return_value
     mock_store_inst.store_source.return_value = "hash123"
@@ -117,9 +115,7 @@ def test_evidence_fetch_injection_quarantine(mock_floors, mock_store):
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
 @patch("arifosmcp.runtime.tools.check_floors")
-def test_evidence_search_abduction_and_audit(
-    mock_floors, mock_store, mock_reality_search
-):
+def test_evidence_search_abduction_and_audit(mock_floors, mock_store, mock_reality_search):
     mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
 
     from arifosmcp.runtime.tools import _arif_evidence_fetch
@@ -163,11 +159,11 @@ def test_a_rif_search_worthiness_gate_blocks(mock_floors):
 @patch("arifosmcp.runtime.tools.check_floors")
 def test_stable_fact_speed_of_light_skips_search(mock_floors):
     mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
-    
+
     from arifosmcp.runtime.tools import _arif_sense_observe
-    
+
     result = _arif_sense_observe(mode="search", query="stable_test: What is the speed of light?")
-    
+
     assert result["status"] == "OK"
     data = result["result"]
     assert data["source"] == "A-RIF_GATE"
@@ -175,6 +171,7 @@ def test_stable_fact_speed_of_light_skips_search(mock_floors):
     assert data["a_rif"]["verdict"] == "SKIP_SEARCH"
     assert data["a_rif"]["w_score"] < 1.0
     assert len(data["results"]) == 0
+
 
 @patch("arifosmcp.runtime.tools.check_floors")
 def test_sense_observe_classify(mock_floors):
@@ -229,9 +226,7 @@ def test_stable_fact_skips_search(mock_floors):
             "truth_class": "absolute_invariant",
         }
 
-        result = _arif_sense_observe(
-            mode="search", query="speed of light in vacuum"
-        )
+        result = _arif_sense_observe(mode="search", query="speed of light in vacuum")
 
         # Should be blocked or return minimal result due to stable fact
         assert result["status"] in ("OK", "SABAR")
@@ -253,9 +248,7 @@ def test_current_fact_requires_search(mock_floors):
             "truth_class": "dated",
         }
 
-        result = _arif_sense_observe(
-            mode="search", query="current CEO of OpenAI"
-        )
+        result = _arif_sense_observe(mode="search", query="current CEO of OpenAI")
 
         assert result["status"] == "OK"
 
@@ -263,8 +256,8 @@ def test_current_fact_requires_search(mock_floors):
 @pytest.mark.parametrize(
     "uncertainty,importance,freshness,threshold,expected",
     [
-        (0.1, 0.1, 0.1, 10.0, "skip"),   # Low W, high threshold → skip
-        (0.2, 0.2, 0.2, 5.0, "skip"),    # Medium W, high threshold → skip
+        (0.1, 0.1, 0.1, 10.0, "skip"),  # Low W, high threshold → skip
+        (0.2, 0.2, 0.2, 5.0, "skip"),  # Medium W, high threshold → skip
         (2.0, 2.0, 2.0, 1.0, "search"),  # High W, low threshold → search
         (5.0, 5.0, 5.0, 1.0, "search"),  # Very high W → search
     ],
@@ -373,9 +366,7 @@ def test_positive_entropy_marks_void(mock_floors, mock_store, mock_reality_searc
     from arifosmcp.runtime.tools import _arif_evidence_fetch
 
     with patch.dict("os.environ", {"QDRANT_URL": "mock"}):
-        with patch(
-            "arifosmcp.runtime.a_rif.entropy.should_stop_search"
-        ) as mock_stop:
+        with patch("arifosmcp.runtime.a_rif.entropy.should_stop_search") as mock_stop:
             from arifosmcp.runtime.a_rif.models import EntropyReport
 
             mock_stop.return_value = EntropyReport(
@@ -453,9 +444,7 @@ def test_stable_fact_speed_of_light_skips_search(mock_floors):
 
     from arifosmcp.runtime.tools import _arif_sense_observe
 
-    result = _arif_sense_observe(
-        mode="search", query="What is the speed of light?"
-    )
+    result = _arif_sense_observe(mode="search", query="What is the speed of light?")
 
     assert result["result"]["source"] == "A-RIF_GATE"
     assert result["result"]["a_rif"]["claim_state"] == "hypothesis"

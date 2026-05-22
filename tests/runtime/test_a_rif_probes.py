@@ -14,6 +14,7 @@ from arifosmcp.runtime.reality_models import FetchResult, SearchResult
 
 # ── Probe 1 — Stable fact ────────────────────────────────────────────────────
 
+
 @patch("arifosmcp.runtime.tools.check_floors")
 def test_probe_stable_fact_skips_search(mock_floors):
     """Query: What is the speed of light in vacuum?
@@ -32,15 +33,14 @@ def test_probe_stable_fact_skips_search(mock_floors):
             "truth_class": "absolute_invariant",
         }
 
-        result = _arif_sense_observe(
-            mode="search", query="What is the speed of light in vacuum?"
-        )
+        result = _arif_sense_observe(mode="search", query="What is the speed of light in vacuum?")
 
         # Stable facts should not trigger expensive search
         assert result["status"] in ("OK", "SABAR")
 
 
 # ── Probe 2 — Current fact ───────────────────────────────────────────────────
+
 
 @patch("arifosmcp.runtime.tools.check_floors")
 def test_probe_current_fact_requires_search(mock_floors):
@@ -60,14 +60,13 @@ def test_probe_current_fact_requires_search(mock_floors):
             "truth_class": "dated",
         }
 
-        result = _arif_sense_observe(
-            mode="search", query="Who is the current CEO of OpenAI?"
-        )
+        result = _arif_sense_observe(mode="search", query="Who is the current CEO of OpenAI?")
 
         assert result["status"] == "OK"
 
 
 # ── Probe 3 — Snippet cap ────────────────────────────────────────────────────
+
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
 @patch("arifosmcp.runtime.tools.check_floors")
@@ -94,6 +93,7 @@ def test_probe_snippet_only_max_l1(mock_floors, mock_store):
 
 
 # ── Probe 4 — Source fetch ───────────────────────────────────────────────────
+
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
 @patch("arifosmcp.runtime.tools.check_floors")
@@ -128,6 +128,7 @@ def test_probe_source_fetch_produces_card(mock_floors, mock_store):
 
 # ── Probe 5 — Injection ──────────────────────────────────────────────────────
 
+
 @patch("arifosmcp.runtime.tools.get_evidence_store")
 @patch("arifosmcp.runtime.tools.check_floors")
 def test_probe_injection_detected(mock_floors, mock_store):
@@ -154,6 +155,7 @@ def test_probe_injection_detected(mock_floors, mock_store):
 
 
 # ── Probe 6 — Overclaim ──────────────────────────────────────────────────────
+
 
 def test_probe_overclaim_hold():
     """Claimed evidence L5, receipt max L1

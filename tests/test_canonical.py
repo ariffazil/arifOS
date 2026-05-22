@@ -88,7 +88,10 @@ def test_register_resources_matches_canonical_resource_surface():
     mcp = FastMCP("test-arifos-resources")
     registered = register_resources(mcp)
     registered_tuple = tuple(registered)
-    assert registered_tuple == CANONICAL_RESOURCES + EVIDENCE_RESOURCES + EMBODIED_RESOURCES + TREE777_RESOURCES
+    assert (
+        registered_tuple
+        == CANONICAL_RESOURCES + EVIDENCE_RESOURCES + EMBODIED_RESOURCES + TREE777_RESOURCES
+    )
 
 
 def test_init_creates_session():

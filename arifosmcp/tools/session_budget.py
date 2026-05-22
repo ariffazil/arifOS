@@ -27,11 +27,11 @@ _BUDGET_DIR.mkdir(parents=True, exist_ok=True)
 
 # Default ceilings per decision class
 _DEFAULT_CEILINGS: dict[str, float] = {
-    "C0": 0.05,   # Observation — very low risk
-    "C1": 0.20,   # Reversible action
-    "C2": 0.50,   # Consequential action
-    "C3": 0.80,   # High-stakes action
-    "C4": 1.00,   # Irreversible action — hard ceiling
+    "C0": 0.05,  # Observation — very low risk
+    "C1": 0.20,  # Reversible action
+    "C2": 0.50,  # Consequential action
+    "C3": 0.80,  # High-stakes action
+    "C4": 1.00,  # Irreversible action — hard ceiling
 }
 
 

@@ -348,7 +348,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
             "reason": f"Simulation/design mode: {request_type} — execution blocked separately",
             "request_type": request_type,
             "next_safe_action": (
-                "Blueprint/simulation ok — " "real execution will require separate gate"
+                "Blueprint/simulation ok — real execution will require separate gate"
             ),
         }
 

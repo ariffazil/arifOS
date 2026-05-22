@@ -121,9 +121,9 @@ class TestCatalog:
         """Every soul file should be registered in the catalog."""
         catalog_archetypes = set(catalog["soul_archetypes"])
         for soul_file in SOULS_PATH.glob("*.json"):
-            assert (
-                soul_file.stem in catalog_archetypes
-            ), f"Soul file '{soul_file.name}' not listed in catalog.soul_archetypes"
+            assert soul_file.stem in catalog_archetypes, (
+                f"Soul file '{soul_file.name}' not listed in catalog.soul_archetypes"
+            )
 
 
 # =============================================================================
@@ -167,9 +167,9 @@ class TestProviderSouls:
     def test_soul_provider_key_no_underscore(self, soul_file):
         data = load_json(soul_file)
         provider_key = data.get("provider_key", "")
-        assert (
-            "_" not in provider_key
-        ), f"{soul_file.name}: provider_key '{provider_key}' must not contain underscore"
+        assert "_" not in provider_key, (
+            f"{soul_file.name}: provider_key '{provider_key}' must not contain underscore"
+        )
 
     @pytest.mark.parametrize(
         "soul_file",
@@ -184,9 +184,9 @@ class TestProviderSouls:
             "worst_fit_roles",
         ]:
             if field in data:
-                assert isinstance(
-                    data[field], list
-                ), f"{soul_file.name}: field '{field}' must be an array"
+                assert isinstance(data[field], list), (
+                    f"{soul_file.name}: field '{field}' must be an array"
+                )
 
     @pytest.mark.parametrize(
         "soul_file",
@@ -233,9 +233,9 @@ class TestModelFiles:
                 if soul_file.stem == soul_key:
                     matched = True
                     break
-            assert (
-                matched
-            ), f"{model_file.name}: soul_key '{soul_key}' not found in any provider soul file"
+            assert matched, (
+                f"{model_file.name}: soul_key '{soul_key}' not found in any provider soul file"
+            )
 
 
 # =============================================================================

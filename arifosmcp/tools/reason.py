@@ -136,7 +136,7 @@ def arif_mind_reason(
     if mode == "metabolize" and "mind_packet" in reason_result:
         packet = reason_result["mind_packet"]
         synthesis_v2 = packet.get("synthesis", {})
-        
+
         bundle = _build_delta_bundle(
             query=query,
             status=reason_result.get("status", "OK"),

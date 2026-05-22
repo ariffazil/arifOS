@@ -184,7 +184,9 @@ async def arif_organ_consensus(
         "organ_scores": consensus.get("organ_scores", {}),
         "session_id": session_id,
         "actor_id": actor_id,
-        "timestamp": str(__import__("asyncio").get_event_loop().time()) if __import__("asyncio").get_event_loop().is_running() else str(__import__("time").time()),
+        "timestamp": str(__import__("asyncio").get_event_loop().time())
+        if __import__("asyncio").get_event_loop().is_running()
+        else str(__import__("time").time()),
     }
 
 

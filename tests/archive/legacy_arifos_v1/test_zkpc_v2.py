@@ -1,7 +1,7 @@
 import pytest
 import os
 import json
-from arifos.tools import _888_judge, _999_vault
+from arifosmcp.tools import _888_judge, _999_vault
 
 
 # Verify No F14 exists in judge or vault code
@@ -170,9 +170,9 @@ async def test_vault_rejects_natural_language_and_actor_id(monkeypatch):
         action="seal", payload=payload, operator_id="ARIF", session_id="SESS-1"
     )
     # Vault envelope verdict is PARTIAL or CLAIM_ONLY (never SEAL for invalid auth)
-    assert (
-        res["verdict"] != "SEAL"
-    ), f"Natural language should not produce SEAL verdict. Got: {res.get('verdict')}"
+    assert res["verdict"] != "SEAL", (
+        f"Natural language should not produce SEAL verdict. Got: {res.get('verdict')}"
+    )
 
 
 @pytest.mark.asyncio
@@ -182,7 +182,7 @@ async def test_vault_zkpc_v2_success(monkeypatch):
     import sys
 
     sys.path.insert(0, "/root/arifOS")
-    from arifos.security.zkpc_v2 import generate_zkpc_proof
+    from arifosmcp.security.zkpc_v2 import generate_zkpc_proof
 
     monkeypatch.setenv("ARIFOS_DEV_MODE", "0")
     monkeypatch.setenv("ARIFOS_DEV_ALLOW_MSAP_LEVEL2", "false")
@@ -250,7 +250,7 @@ import sys
 
 sys.path.insert(0, "/root/arifOS")
 
-from arifos.security.zkpc_v2 import (
+from arifosmcp.security.zkpc_v2 import (
     verify_zkpc_v2_epoch,
     generate_zkpc_proof,
     _snarkjs_available,
@@ -287,9 +287,9 @@ class TestRealGroth16Verification:
 
         result = verify_zkpc_v2_epoch(proof, public_inputs, "SESS-REAL", is_irreversible=True)
 
-        assert (
-            result["proof_verified"] is True
-        ), f"Real proof must verify! error_reason={result.get('error_reason')}"
+        assert result["proof_verified"] is True, (
+            f"Real proof must verify! error_reason={result.get('error_reason')}"
+        )
         assert result["zkpc_level"] == 1
         assert result["zkpc_mode"] == "ZKPC_V2_TOY_QUARANTINED"
         assert result["continuity_proven"] is False
@@ -548,12 +548,12 @@ class TestVaultZKPCIntegration:
         )
 
         # Vault must not seal with fake proof — PARTIAL or HOLD are both acceptable non-seal verdicts
-        assert (
-            res["verdict"] != "SEAL"
-        ), f"Fake proof should not seal! Got verdict={res.get('verdict')}"
-        assert (
-            res.get("zkpc_metadata", {}).get("zkpc_level", 0) < 2
-        ), "zkpc_level must be < 2 when proof fails"
+        assert res["verdict"] != "SEAL", (
+            f"Fake proof should not seal! Got verdict={res.get('verdict')}"
+        )
+        assert res.get("zkpc_metadata", {}).get("zkpc_level", 0) < 2, (
+            "zkpc_level must be < 2 when proof fails"
+        )
 
     @pytest.mark.asyncio
     async def test_vault_actor_id_only_fails(self, monkeypatch):
@@ -569,9 +569,9 @@ class TestVaultZKPCIntegration:
         )
         # Without any crypto proof, Vault cannot seal irreversible action
         # PARTIAL or HOLD are both acceptable — only SEAL is forbidden
-        assert (
-            res["verdict"] != "SEAL"
-        ), f"actor_id-only without proof should not seal. Got: {res.get('verdict')}"
+        assert res["verdict"] != "SEAL", (
+            f"actor_id-only without proof should not seal. Got: {res.get('verdict')}"
+        )
 
     @pytest.mark.asyncio
     async def test_vault_natural_language_approval_fails(self, monkeypatch):
@@ -586,6 +586,6 @@ class TestVaultZKPCIntegration:
         )
         # Natural language approval cannot seal irreversible action
         # PARTIAL or HOLD are both acceptable — only SEAL is forbidden
-        assert (
-            res["verdict"] != "SEAL"
-        ), f"Natural language approval should not seal. Got: {res.get('verdict')}"
+        assert res["verdict"] != "SEAL", (
+            f"Natural language approval should not seal. Got: {res.get('verdict')}"
+        )

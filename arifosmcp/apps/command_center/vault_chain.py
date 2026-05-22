@@ -168,7 +168,7 @@ def verify_chain() -> dict[str, Any]:
         actual_prev = entry.get("prev_hash", "")
         if actual_prev != expected_prev:
             breaks.append(
-                f"Entry {entry.get('entry_id','?')}: prev_hash={actual_prev[:16]} "
+                f"Entry {entry.get('entry_id', '?')}: prev_hash={actual_prev[:16]} "
                 f"!= expected={expected_prev[:16]}"
             )
 
@@ -176,7 +176,7 @@ def verify_chain() -> dict[str, Any]:
         chain_input = f"{entry['payload_hash']}:{actual_prev}"
         expected_chain = hashlib.sha256(chain_input.encode()).hexdigest()[:16]
         if entry.get("chain_hash", "") != expected_chain:
-            breaks.append(f"Entry {entry.get('entry_id','?')}: chain_hash mismatch")
+            breaks.append(f"Entry {entry.get('entry_id', '?')}: chain_hash mismatch")
 
     return {
         "valid": len(breaks) == 0,

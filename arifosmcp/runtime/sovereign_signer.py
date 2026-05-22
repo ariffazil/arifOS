@@ -16,6 +16,7 @@ Payload format: "{actor_id}:{constitution_hash}:{nonce}"
     → e.g. "ariffazil:sha256:c65465c98bc2cfa0:test-nonce"
 Signature: base64-encoded raw Ed25519 signature bytes (64 bytes)
 """
+
 from __future__ import annotations
 
 import base64
@@ -26,6 +27,7 @@ from pathlib import Path
 def get_constitution_hash() -> str:
     """Get the canonical constitution_hash from FLOOR_SPEC (same as MCP verifier)."""
     import hashlib
+
     FLOOR_SPEC = (
         "F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, "
         "F5: Peace, F6: Empathy, F7: Humility, F8: Genius, "
@@ -49,33 +51,31 @@ def load_private_key() -> bytes:
                 return key_data[7:]  # Skip 7-byte header
             elif len(key_data) == 32:
                 return key_data  # Raw 32-byte key
-    raise FileNotFoundError(
-        f"Sovereign key not found. Tried: {[str(p) for p in key_paths]}"
-    )
+    raise FileNotFoundError(f"Sovereign key not found. Tried: {[str(p) for p in key_paths]}")
 
 
 def sign(actor_id: str, constitution_hash: str, nonce: str) -> str:
     """
     Sign the canonical message with Ed25519 sovereign key.
-    
+
     Args:
         actor_id: "ariffazil"
-        constitution_hash: MUST include sha256: prefix 
+        constitution_hash: MUST include sha256: prefix
             e.g. "sha256:c65465c98bc2cfa0"
         nonce: Unique nonce (UUID or timestamp:op_id format)
-    
+
     Returns:
         base64-encoded Ed25519 signature
     """
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-    
+
     raw_key = load_private_key()
     private_key = Ed25519PrivateKey.from_private_bytes(raw_key)
-    
+
     # Message format MUST match verifier: actor_id:constitution_hash:nonce
     # constitution_hash MUST have sha256: prefix (verified against get_constitution_hash())
     message = f"{actor_id}:{constitution_hash}:{nonce}".encode()
-    
+
     signature = private_key.sign(message)
     return base64.b64encode(signature).decode()
 
@@ -88,12 +88,14 @@ def main() -> str:
         if len(sys.argv) == 3:
             actor_id, nonce = sys.argv[1], sys.argv[2]
         else:
-            print("Usage: sovereign_signer.py <actor_id> <nonce> [constitution_hash]", file=sys.stderr)
+            print(
+                "Usage: sovereign_signer.py <actor_id> <nonce> [constitution_hash]", file=sys.stderr
+            )
             print(f"Auto-detected constitution_hash: {constitution_hash}", file=sys.stderr)
             sys.exit(1)
     else:
         actor_id, constitution_hash, nonce = sys.argv[1], sys.argv[2], sys.argv[3]
-    
+
     sig_b64 = sign(actor_id, constitution_hash, nonce)
     print(sig_b64)
     return sig_b64

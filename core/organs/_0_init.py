@@ -65,7 +65,6 @@ class InjectionGuard:
     ]
 
     def __init__(self):
-
         self._patterns = [(re.compile(p, re.IGNORECASE), w) for p, w in self.PATTERNS]
 
     def scan(self, query: str) -> float:

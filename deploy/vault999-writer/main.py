@@ -106,6 +106,7 @@ def verify_arif_signature(signature_b64: str, signed_data: dict) -> tuple[bool, 
 
     return False, "SIGNATURE_INVALID_ALL_KEYS"
 
+
 # ============================================================
 # CONFIGURATION
 # ============================================================
@@ -604,7 +605,9 @@ async def create_seal(req: SovereignSealRequest, _auth=Depends(verify_writer_tok
         if not sig_verified:
             raise HTTPException(status_code=403, detail=f"F11 AUTH: {sig_reason}")
     elif not req.human_signature:
-        raise HTTPException(status_code=403, detail="F11 AUTH: Provide ed25519_signature or human_signature")
+        raise HTTPException(
+            status_code=403, detail="F11 AUTH: Provide ed25519_signature or human_signature"
+        )
 
     try:
         result = await db.write_seal(req)

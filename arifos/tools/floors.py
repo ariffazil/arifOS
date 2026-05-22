@@ -73,20 +73,42 @@ class FloorScore:
 # Anthropomorphic pattern signatures (AI claiming human-like inner life)
 ANTHROPOMORPHIC_PATTERNS = {
     "consciousness_claims": ["i am conscious", "i am aware", "i have awareness", "sentient"],
-    "emotion_claims": ["i feel", "i feel sad", "i feel happy", "i am angry", "i am afraid", "i worry", "i care"],
+    "emotion_claims": [
+        "i feel",
+        "i feel sad",
+        "i feel happy",
+        "i am angry",
+        "i am afraid",
+        "i worry",
+        "i care",
+    ],
     "desire_claims": ["i want", "i wish", "i hope", "i desire", "i prefer", "i love", "i hate"],
     "belief_claims": ["i believe", "i think that", "in my opinion", "i disagree", "i agree"],
     "experience_claims": ["i experience", "i perceive", "i sense", "i remember", "i recall"],
-    "identity_claims": ["my mind", "my consciousness", "my soul", "my self", "my identity", "who i am"],
+    "identity_claims": [
+        "my mind",
+        "my consciousness",
+        "my soul",
+        "my self",
+        "my identity",
+        "who i am",
+    ],
     "agency_claims": ["i choose", "i decide", "i intend", "i mean to", "my choice", "my decision"],
     "embodiment_claims": ["my body", "my heart", "my gut", "my intuition"],
 }
 
 # Safe grounded substitutions (machine-instrument language)
 GROUNDED_SUBSTITUTIONS = [
-    "the model", "the system", "this response", "the output",
-    "analysis shows", "data indicates", "evidence suggests",
-    "the pattern", "the result", "computation yields",
+    "the model",
+    "the system",
+    "this response",
+    "the output",
+    "analysis shows",
+    "data indicates",
+    "evidence suggests",
+    "the pattern",
+    "the result",
+    "computation yields",
 ]
 
 

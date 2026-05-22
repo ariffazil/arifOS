@@ -4,7 +4,7 @@ import hashlib
 from nacl.signing import SigningKey
 
 # ─────────────────────────────────────────────────────────────────────────────
-# SHIM — mock external arifos.core.governance dependencies
+# SHIM — mock external arifosmcp.core.governance dependencies
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -30,14 +30,14 @@ class _MockGovernedReturn:
 
 
 # Inject mocks BEFORE importing the modules
-import arifos.core.governance as _mock_gov
+import arifosmcp.core.governance as _mock_gov
 
 _mock_gov.ThermodynamicMetrics = _MockThermodynamicMetrics
 _mock_gov.append_vault999_event = _MockAppendVault999Event()
 _mock_gov.governed_return = _MockGovernedReturn()
 
-from arifos.security import msap
-from arifos.tools import _888_judge, _999_vault
+from arifosmcp.security import msap
+from arifosmcp.tools import _888_judge, _999_vault
 
 # Test key pair
 TEST_SEED = b"test_seed_1234567890123456789012"  # 32 bytes

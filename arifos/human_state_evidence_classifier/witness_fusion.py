@@ -178,7 +178,7 @@ def _build_safe_statement(domain: StateDomain, status: TruthStatus, textual: lis
 
     domain_descriptions = {
         StateDomain.BODY: (
-            "Body state evidence cannot be determined from text. " "Biological data required."
+            "Body state evidence cannot be determined from text. Biological data required."
         ),
         StateDomain.PEACE: (
             f"Expression patterns related to non-reactive review detected ({signal_count} signals). "

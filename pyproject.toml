@@ -102,6 +102,11 @@ exclude = ["tests*"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
+markers = [
+    "e3e: end-to-end tests (deselect with '-m not e3e')",
+    "slow: slow tests (deselect with '-m not slow')",
+    "integration: integration tests requiring live services",
+]
 
 [tool.ruff]
 line-length = 100

@@ -104,7 +104,9 @@ def wrap_tool_output(
     payload = (
         payload
         if isinstance(payload, dict)
-        else result if isinstance(result, dict) else {"result": result}
+        else result
+        if isinstance(result, dict)
+        else {"result": result}
     )
     verdict = str(payload.get("verdict", "SEAL"))
     if verdict not in {"SEAL", "SABAR", "PARTIAL", "VOID", "HOLD", "888_HOLD"}:

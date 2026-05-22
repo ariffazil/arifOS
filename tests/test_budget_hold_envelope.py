@@ -87,9 +87,9 @@ def test_budget_turn_hold_has_nine_signal():
     ns = result["nine_signal"]
     assert isinstance(ns, dict), "nine_signal must be a dict"
     # delta=GANTUNG, overall=RETAK for HOLD status
-    assert (
-        ns.get("overall", {}).get("state") == "RETAK"
-    ), f"nine_signal overall must be RETAK for HOLD, got {ns}"
+    assert ns.get("overall", {}).get("state") == "RETAK", (
+        f"nine_signal overall must be RETAK for HOLD, got {ns}"
+    )
 
 
 def test_budget_turn_hold_has_next_safe_action():
@@ -117,9 +117,9 @@ def test_budget_turn_hold_no_singular_reason():
     )
     assert result["verdict"] == "HOLD"
     # Singular 'reason' should not exist (replaced by 'reasons')
-    assert (
-        "reason" not in result or result.get("reason") is None
-    ), "Budget HOLD should not use singular 'reason' — use 'reasons' instead"
+    assert "reason" not in result or result.get("reason") is None, (
+        "Budget HOLD should not use singular 'reason' — use 'reasons' instead"
+    )
 
 
 if __name__ == "__main__":

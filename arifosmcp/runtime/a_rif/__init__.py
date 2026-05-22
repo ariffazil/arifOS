@@ -46,5 +46,6 @@ __all__ = [
 def __getattr__(name: str):
     if name == "get_current_scorecard":
         from arifosmcp.runtime.a_rif.scorecard import get_current_scorecard
+
         return get_current_scorecard
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

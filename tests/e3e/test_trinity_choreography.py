@@ -100,9 +100,9 @@ class TestTrinityDiscovery:
         assert "arif_ops_measure" in tool_names
         assert "arif_forge_execute" in tool_names
         assert "arif_gateway_connect" in tool_names
-        assert (
-            len(tool_names) == 13
-        ), f"Expected canonical 13 tools, got {len(tool_names)}: {tool_names}"
+        assert len(tool_names) == 13, (
+            f"Expected canonical 13 tools, got {len(tool_names)}: {tool_names}"
+        )
 
         print(f"[E3E] MCP tools discovered: {data['count']} tools")
 

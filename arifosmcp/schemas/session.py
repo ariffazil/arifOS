@@ -13,14 +13,44 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
+def _get_os_info() -> str:
+    import platform
+
+    if hasattr(os, "uname"):
+        try:
+            u = os.uname()
+            return f"{u.sysname} {u.release}"
+        except Exception:
+            pass
+    return (
+        f"Windows {platform.win32_ver()[0]}"
+        if platform.system() == "Windows"
+        else platform.system()
+    )
+
+
+def _is_root() -> bool:
+    if hasattr(os, "geteuid"):
+        try:
+            return os.geteuid() == 0
+        except Exception:
+            pass
+    try:
+        import ctypes
+
+        return ctypes.windll.shell32.IsUserAnAdmin() != 0
+    except Exception:
+        return False
+
+
 class EmbodimentCard(BaseModel):
     """WAJIB — VPS-root agent embodiment disclosure."""
 
     body: str = "vps_root_runtime"
     host_attested: bool = True
     host: str = Field(default_factory=lambda: socket.gethostname())
-    os: str = Field(default_factory=lambda: f"{os.uname().sysname} {os.uname().release}")
-    privilege: str = Field(default_factory=lambda: "root" if os.geteuid() == 0 else "user")
+    os: str = Field(default_factory=_get_os_info)
+    privilege: str = Field(default_factory=lambda: "root" if _is_root() else "user")
     shell: list[str] = ["bash"]
     cwd: str = Field(default_factory=lambda: os.getcwd())
     package_managers: list[str] = ["npm", "bun", "pip", "git", "docker"]
@@ -33,7 +63,7 @@ class EmbodimentCard(BaseModel):
     mutation_default: str = "dry_run"
     side_effects_allowed_without_ack: bool = False
     atomic_capability_present: bool = True
-    root_capability_present: bool = Field(default_factory=lambda: os.geteuid() == 0)
+    root_capability_present: bool = Field(default_factory=_is_root)
 
 
 class CausalityWarning(BaseModel):
@@ -81,23 +111,27 @@ class AttentionSurface(BaseModel):
     track_rollback: bool = True
     track_prompt_injection: bool = True
 
-    primary: list[str] = Field(default_factory=lambda: [
-        "root privilege detected",
-        "filesystem mutation can be irreversible",
-        "secrets may exist in env and dotfiles",
-        "package installs can execute postinstall scripts",
-        "service restarts affect availability",
-        "network calls may leak data",
-        "all mutation must pass FORGE/JUDGE gates",
-    ])
+    primary: list[str] = Field(
+        default_factory=lambda: [
+            "root privilege detected",
+            "filesystem mutation can be irreversible",
+            "secrets may exist in env and dotfiles",
+            "package installs can execute postinstall scripts",
+            "service restarts affect availability",
+            "network calls may leak data",
+            "all mutation must pass FORGE/JUDGE gates",
+        ]
+    )
 
-    inference_constraints: list[str] = Field(default_factory=lambda: [
-        "do not infer cryptographic identity",
-        "do not infer permission to execute",
-        "do not assume read-only is truly read-only",
-        "classify command before execution",
-        "detect destructive patterns before calling",
-    ])
+    inference_constraints: list[str] = Field(
+        default_factory=lambda: [
+            "do not infer cryptographic identity",
+            "do not infer permission to execute",
+            "do not assume read-only is truly read-only",
+            "classify command before execution",
+            "detect destructive patterns before calling",
+        ]
+    )
 
 
 class ToolSurface(BaseModel):
@@ -105,28 +139,32 @@ class ToolSurface(BaseModel):
 
     mode: str = "semantic_map"
     count: int = 0  # populated at runtime
-    groups: dict[str, list[str]] = Field(default_factory=lambda: {
-        "bootstrap": ["arif_session_init"],
-        "sense": ["observe", "search", "ingest", "compass"],
-        "evidence": ["fetch", "verify", "contradiction_scan"],
-        "reason": ["reason", "critique", "plan"],
-        "route": ["kernel", "stage", "lane"],
-        "reply": ["compose"],
-        "memory": ["recall", "context", "store"],
-        "heart": ["redteam", "maruah", "deescalate", "empathize"],
-        "ops": ["measure", "vitals", "cost", "health"],
-        "judge": ["compare", "explain", "history"],
-        "vault": ["verify", "chain", "dry_run"],
-        "forge": ["query", "recall", "dry_run"],
-        "gateway": ["discover", "handshake"],
-        "guard": ["scan_local_instructions"],
-    })
-    gated: list[str] = Field(default_factory=lambda: [
-        "memory_write",
-        "gateway_relay",
-        "vault_seal",
-        "forge_write",
-    ])
+    groups: dict[str, list[str]] = Field(
+        default_factory=lambda: {
+            "bootstrap": ["arif_session_init"],
+            "sense": ["observe", "search", "ingest", "compass"],
+            "evidence": ["fetch", "verify", "contradiction_scan"],
+            "reason": ["reason", "critique", "plan"],
+            "route": ["kernel", "stage", "lane"],
+            "reply": ["compose"],
+            "memory": ["recall", "context", "store"],
+            "heart": ["redteam", "maruah", "deescalate", "empathize"],
+            "ops": ["measure", "vitals", "cost", "health"],
+            "judge": ["compare", "explain", "history"],
+            "vault": ["verify", "chain", "dry_run"],
+            "forge": ["query", "recall", "dry_run"],
+            "gateway": ["discover", "handshake"],
+            "guard": ["scan_local_instructions"],
+        }
+    )
+    gated: list[str] = Field(
+        default_factory=lambda: [
+            "memory_write",
+            "gateway_relay",
+            "vault_seal",
+            "forge_write",
+        ]
+    )
     raw_manifest_available: bool = True
     raw_manifest_location: str = "resource://agent/capabilities/raw"
 

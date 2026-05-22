@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from arifos.core.governance import (
+from arifosmcp.core.governance import (
     CognitiveShadow,
     SessionShadowState,
     record_cognitive_shadow,

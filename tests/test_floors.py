@@ -124,9 +124,9 @@ class TestF3_TriWitness:
         """Witness triad must be present in telemetry."""
         t = get_telemetry()
         witness = t.get("thermodynamic", {}).get("witness", {})
-        assert all(
-            k in witness for k in ["human", "ai", "earth"]
-        ), "F3 violated: witness triad (human/ai/earth) incomplete"
+        assert all(k in witness for k in ["human", "ai", "earth"]), (
+            "F3 violated: witness triad (human/ai/earth) incomplete"
+        )
 
 
 # ─── F4 — Clarity (ΔS ≤ 0) ────────────────────────────────────────────────
@@ -181,17 +181,17 @@ class TestF7_Humility:
         shadow = t.get("thermodynamic", {}).get("shadow", None)
         # shadow is a proxy for Ω₀
         if shadow is not None:
-            assert (
-                0.03 <= shadow <= 0.05
-            ), f"F7 violated: Ω₀={shadow} outside canonical band [0.03, 0.05]"
+            assert 0.03 <= shadow <= 0.05, (
+                f"F7 violated: Ω₀={shadow} outside canonical band [0.03, 0.05]"
+            )
 
     def test_humility_band_not_overwide(self):
         """Ω₀ must NOT be in the overwide [0.03, 0.15] band."""
         t = get_telemetry()
         shadow = t.get("thermodynamic", {}).get("shadow", 0)
-        assert (
-            shadow <= 0.05
-        ), f"F7 drift: Ω₀={shadow} matches overwide band [0.03, 0.15] — fix Space membrane"
+        assert shadow <= 0.05, (
+            f"F7 drift: Ω₀={shadow} matches overwide band [0.03, 0.15] — fix Space membrane"
+        )
 
 
 # ─── F8 — Grounding ───────────────────────────────────────────────────────
@@ -288,9 +288,9 @@ class TestF13_Sovereign:
         w = t.get("thermodynamic", {}).get("witness", {})
         human = w.get("human", 0)
         ai = w.get("ai", 0)
-        assert (
-            human >= ai
-        ), f"F13 concern: human_witness={human} < ai_witness={ai} (sovereignty balance)"
+        assert human >= ai, (
+            f"F13 concern: human_witness={human} < ai_witness={ai} (sovereignty balance)"
+        )
 
 
 # ─── Protocol Version Consistency ─────────────────────────────────────────

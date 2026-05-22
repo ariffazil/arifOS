@@ -56,25 +56,25 @@ class TestLoadLedger:
             "hold",
         }
         for q in ledger:
-            assert (
-                q["action_bias"] in valid
-            ), f"Quote {q['id']} has bad action_bias: {q['action_bias']}"
+            assert q["action_bias"] in valid, (
+                f"Quote {q['id']} has bad action_bias: {q['action_bias']}"
+            )
 
     def test_source_status_values_are_canonical(self):
         ledger = load_quote_ledger()
         valid = {"verified", "public_domain", "curated", "uncertain"}
         for q in ledger:
-            assert (
-                q["source_status"] in valid
-            ), f"Quote {q['id']} has bad source_status: {q['source_status']}"
+            assert q["source_status"] in valid, (
+                f"Quote {q['id']} has bad source_status: {q['source_status']}"
+            )
 
     def test_no_uncertain_quotes_are_allowed(self):
         ledger = load_quote_ledger()
         for q in ledger:
             if q["source_status"] == "uncertain":
-                assert (
-                    q["allow_use"] is False
-                ), f"Uncertain quote {q['id']} must have allow_use=false"
+                assert q["allow_use"] is False, (
+                    f"Uncertain quote {q['id']} must have allow_use=false"
+                )
 
     def test_risk_use_contains_only_valid_levels(self):
         ledger = load_quote_ledger()

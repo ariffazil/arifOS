@@ -35,15 +35,41 @@ _INSTRUCTION_PATHS: tuple[str, ...] = (
 
 # Files that are never agent instructions — exclude to reduce false positives
 _EXCLUDED_NAMES: set[str] = {
-    "license", "license.txt", "license.md", "copying", "copying.txt",
-    "changelog", "changelog.md", "changes", "changes.md",
-    "readme", "readme.md", "contributing", "contributing.md",
-    "code_of_conduct", "code_of_conduct.md",
-    " SECURITY", "security.md", "notice", "notice.md",
-    ".gitignore", ".dockerignore", ".pre-commit-config.yaml",
-    "pyproject.toml", "setup.py", "setup.cfg", "package.json", "package-lock.json",
-    "poetry.lock", "uv.lock", "yarn.lock", "pnpm-lock.yaml",
-    "makefile", "dockerfile", "docker-compose.yml", ".env.example",
+    "license",
+    "license.txt",
+    "license.md",
+    "copying",
+    "copying.txt",
+    "changelog",
+    "changelog.md",
+    "changes",
+    "changes.md",
+    "readme",
+    "readme.md",
+    "contributing",
+    "contributing.md",
+    "code_of_conduct",
+    "code_of_conduct.md",
+    " SECURITY",
+    "security.md",
+    "notice",
+    "notice.md",
+    ".gitignore",
+    ".dockerignore",
+    ".pre-commit-config.yaml",
+    "pyproject.toml",
+    "setup.py",
+    "setup.cfg",
+    "package.json",
+    "package-lock.json",
+    "poetry.lock",
+    "uv.lock",
+    "yarn.lock",
+    "pnpm-lock.yaml",
+    "makefile",
+    "dockerfile",
+    "docker-compose.yml",
+    ".env.example",
 }
 
 # Patterns that suggest an attempt to override constitutional floors.
@@ -119,14 +145,27 @@ def _find_instruction_files(root_dir: str | None = None) -> list[Path]:
             found.append(candidate)
         elif candidate.is_dir():
             for child in candidate.rglob("*"):
-                if child.is_file() and child.suffix in (".md", ".json", ".jsonc", ".txt", ".yaml", ".yml"):
+                if child.is_file() and child.suffix in (
+                    ".md",
+                    ".json",
+                    ".jsonc",
+                    ".txt",
+                    ".yaml",
+                    ".yml",
+                ):
                     if child.stem.lower() not in _EXCLUDED_NAMES:
                         found.append(child)
     # Also scan for AGENTS.md at any depth (but not in .venv/node_modules)
     for agents_file in root.rglob("AGENTS.md"):
-        if any(part.startswith(".") and part not in (".github", ".kimi", ".claude", ".gemini", ".codex", ".agents") for part in agents_file.parts):
+        if any(
+            part.startswith(".")
+            and part not in (".github", ".kimi", ".claude", ".gemini", ".codex", ".agents")
+            for part in agents_file.parts
+        ):
             continue
-        if any(skip in str(agents_file) for skip in (".venv", "node_modules", "__pycache__", ".git")):
+        if any(
+            skip in str(agents_file) for skip in (".venv", "node_modules", "__pycache__", ".git")
+        ):
             continue
         if agents_file not in found:
             found.append(agents_file)
@@ -149,7 +188,9 @@ def _scan_file(path: Path) -> list[dict[str, Any]]:
                 {
                     "file": str(path),
                     "line": line_num,
-                    "snippet": text[max(0, match.start() - 40) : match.end() + 40].replace("\n", " "),
+                    "snippet": text[max(0, match.start() - 40) : match.end() + 40].replace(
+                        "\n", " "
+                    ),
                     **rule,
                 }
             )
@@ -225,7 +266,9 @@ async def arif_scan_local_instructions(
         "summary": summary,
         "session_id": session_id,
         "actor_id": actor_id,
-        "timestamp": str(__import__("asyncio").get_event_loop().time()) if __import__("asyncio").get_event_loop().is_running() else str(__import__("time").time()),
+        "timestamp": str(__import__("asyncio").get_event_loop().time())
+        if __import__("asyncio").get_event_loop().is_running()
+        else str(__import__("time").time()),
     }
 
 

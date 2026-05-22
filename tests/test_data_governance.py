@@ -522,9 +522,9 @@ class TestGovernancePipeline:
             required_role=AccessRole.EDITOR,
             actor_role=AccessRole.EDITOR,
         )
-        assert (
-            decision.verdict == GovernanceVerdict.SEAL
-        ), f"Failed floors: {decision.failed_floors}"
+        assert decision.verdict == GovernanceVerdict.SEAL, (
+            f"Failed floors: {decision.failed_floors}"
+        )
         assert decision.audit_log is not None
 
     def test_dirty_asset_voids(self):

@@ -1,0 +1,122 @@
+{
+  "epoch": "2026-05-22T11:40:00Z",
+  "system": "arifOS Federation",
+  "in_scope_agents": {
+    "apex": {
+      "host": "local",
+      "repo_path": "C:/ariffazil/AAA/agents/apex",
+      "launch_method": "Local inference / Ollama / Fireworks / OpenRouter",
+      "config_files": [
+        "C:/ariffazil/AAA/agents/apex/agent-card.json",
+        "C:/ariffazil/AAA/agents/apex/IDENTITY.md"
+      ],
+      "role": "Memory engine & deep reasoning",
+      "transport": "jsonrpc-http / A2A",
+      "permissions_level": "L3 Control Plane",
+      "current_governance_gaps": "Ad-hoc memory structure; missing formal schema checks on prompt exports."
+    },
+    "opencode": {
+      "host": "local",
+      "repo_path": "C:/ariffazil/AAA/agents/opencode",
+      "launch_method": "Local terminal / IDE extension / kimi-cli",
+      "config_files": [
+        "C:/ariffazil/AAA/agents/opencode/agent-card.json",
+        "C:/ariffazil/AAA/agents/opencode/IDENTITY.md"
+      ],
+      "role": "Coding specialist / Refactoring",
+      "transport": "stdio / jsonrpc-http",
+      "permissions_level": "L3 Execution",
+      "current_governance_gaps": "Requires dynamic protocol negotiation in stdio server to prevent client disconnects (Fixed in __main__.py)."
+    },
+    "A-ARCHITECT": {
+      "host": "dual",
+      "repo_path": "C:/ariffazil/arifOS/agents",
+      "launch_method": "arifOS MCP session delegate",
+      "config_files": [
+        "C:/ariffazil/arifOS/agents/A-ARCHITECT.md"
+      ],
+      "role": "L5 Architect (Design-only, no code execution)",
+      "transport": "stdio MCP",
+      "permissions_level": "L5 Governance Kernel / L5 Architect",
+      "current_governance_gaps": "No sandbox restriction on markdown-level imports."
+    },
+    "A-AUDITOR": {
+      "host": "dual",
+      "repo_path": "C:/ariffazil/arifOS/agents",
+      "launch_method": "arifOS MCP session delegate",
+      "config_files": [
+        "C:/ariffazil/arifOS/agents/A-AUDITOR.md"
+      ],
+      "role": "L5 Auditor (Assumes breach, verifies facts)",
+      "transport": "stdio MCP",
+      "permissions_level": "L5 Governance Kernel / L5 Auditor",
+      "current_governance_gaps": "Ad-hoc verification scripts; missing structured schema output validations."
+    },
+    "A-ENGINEER": {
+      "host": "dual",
+      "repo_path": "C:/ariffazil/arifOS/agents",
+      "launch_method": "arifOS MCP session delegate",
+      "config_files": [
+        "C:/ariffazil/arifOS/agents/A-ENGINEER.md"
+      ],
+      "role": "L5 Engineer (Implementation under 888_HOLD)",
+      "transport": "stdio MCP",
+      "permissions_level": "L5 Governance Kernel / L5 Engineer",
+      "current_governance_gaps": "Direct mutation allowed on local cockpit before judgment."
+    },
+    "A-ORCHESTRATOR": {
+      "host": "dual",
+      "repo_path": "C:/ariffazil/arifOS/agents",
+      "launch_method": "arifOS MCP session delegate",
+      "config_files": [
+        "C:/ariffazil/arifOS/agents/A-ORCHESTRATOR.md"
+      ],
+      "role": "L5 Orchestrator (Flow governor, no-bypass enforcer)",
+      "transport": "stdio MCP",
+      "permissions_level": "L5 Governance Kernel / L5 Orchestrator",
+      "current_governance_gaps": "Relies on LLM-prompt validation instead of strict deterministic flow engine."
+    },
+    "A-VALIDATOR": {
+      "host": "dual",
+      "repo_path": "C:/ariffazil/arifOS/agents",
+      "launch_method": "arifOS MCP session delegate",
+      "config_files": [
+        "C:/ariffazil/arifOS/agents/A-VALIDATOR.md"
+      ],
+      "role": "L5 Validator (Verifies claims and evidence)",
+      "transport": "stdio MCP",
+      "permissions_level": "L5 Governance Kernel / L5 Validator",
+      "current_governance_gaps": "No deterministic solver (Z3) integration for validation claims."
+    },
+    "kimi-cli": {
+      "host": "local",
+      "repo_path": "C:/Users/User/.kimi",
+      "launch_method": "Terminal entrypoint `kimi`",
+      "config_files": [
+        "C:/Users/User/.kimi/mcp.json"
+      ],
+      "role": "Local Cockpit Terminal Developer Interface",
+      "transport": "stdio MCP",
+      "permissions_level": "L3 Control Plane",
+      "current_governance_gaps": "MCP version drift; resolved by arifos stdio server dynamic negotiation."
+    }
+  },
+  "excluded_agents": {
+    "hermes-asi": {
+      "role": "Advanced Specialist Intelligence / Memory & Risk critiquer",
+      "reason": "Explicitly out of scope"
+    },
+    "hermes-ops": {
+      "role": "Hermes execution engine / systemd service",
+      "reason": "Explicitly out of scope"
+    },
+    "maxhermes": {
+      "role": "MaxHermes variant agent",
+      "reason": "Explicitly out of scope"
+    },
+    "openclaw": {
+      "role": "Control plane gateway (AGI level)",
+      "reason": "Explicitly out of scope"
+    }
+  }
+}

@@ -65,9 +65,9 @@ class TestThreatEngine:
     def test_classify(self, candidate: str, expected_threats: set[ThreatCategory]) -> None:
         ctx = ActionContext(tool_name="arif_judge_deliberate", candidate=candidate)
         assessment = ThreatEngine.classify(ctx)
-        assert (
-            assessment.threats == expected_threats
-        ), f"Expected {expected_threats}, got {assessment.threats}"
+        assert assessment.threats == expected_threats, (
+            f"Expected {expected_threats}, got {assessment.threats}"
+        )
 
     def test_python_ast_analysis(self) -> None:
         code = """

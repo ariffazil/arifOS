@@ -85,19 +85,16 @@ def main() -> None:
 
     # ── 5. Check memory backends ────────────────────────────────────
     try:
-
         memory_store_exists = True
     except Exception:
         memory_store_exists = False
 
     try:
-
         qdrant_available = True
     except Exception:
         qdrant_available = False
 
     try:
-
         postgres_available = True
     except Exception:
         postgres_available = False

@@ -193,9 +193,7 @@ class PostgresVaultStore:
         risk_tier: str = None,
     ) -> str:
         """Initialize session in Postgres."""
-        session_id = (
-            f"SESSION_{agent_id.upper()}_{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}"
-        )
+        session_id = f"SESSION_{agent_id.upper()}_{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}"
         # For now, we return the generated ID; actual session table persistence can be added here
         return session_id
 
@@ -460,9 +458,7 @@ async def open_session(
     sb = get_supabase()
     if not sb:
         return f"LOCAL_{uuid.uuid4()}"
-    session_id = (
-        f"SESSION_{agent_id.upper()}_{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}"
-    )
+    session_id = f"SESSION_{agent_id.upper()}_{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}"
     insert_row = {
         "session_id": session_id,
         "agent_id": agent_id,

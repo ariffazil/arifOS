@@ -1,0 +1,25 @@
+{
+  "agent_id": "opencode",
+  "name": "opencode-local-cockpit",
+  "tier": "AGI",
+  "role": "ENGINEER",
+  "constitutional_rules": [
+    "C:/ariffazil/arifOS/.agents/rules/arifOS.md",
+    "C:/ariffazil/arifOS/staging/aligned-agent-policy.md"
+  ],
+  "mcp_endpoints": {
+    "arifos": {
+      "command": "C:/ariffazil/arifOS/.venv/Scripts/python.exe",
+      "args": ["-m", "arifosmcp.runtime", "stdio"],
+      "env": {
+        "ARIFOS_MINIMAL_STDIO": "1",
+        "AAA_MCP_TRANSPORT": "stdio"
+      }
+    }
+  },
+  "safety_parameters": {
+    "reversibility_check_required": true,
+    "max_permissions_tier": "L3",
+    "escalation_path": "888_HOLD"
+  }
+}

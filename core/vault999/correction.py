@@ -92,7 +92,7 @@ def issue_correction_seal(
     notification = (
         f"Correction issued for SEAL {original_seal_hash[:16]}... "
         f"Type: {correction_type}. "
-        f"Rollback suggested: {reversibility["rollback_suggested"]}."
+        f"Rollback suggested: {reversibility['rollback_suggested']}."
     )
 
     return CorrectionSeal(

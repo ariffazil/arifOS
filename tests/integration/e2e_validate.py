@@ -33,9 +33,9 @@ def log_info(msg):
 
 
 def log_section(title):
-    print(f"\n{BOLD}{'='*60}{RESET}")
+    print(f"\n{BOLD}{'=' * 60}{RESET}")
     print(f"{BOLD}  {title}{RESET}")
-    print(f"{BOLD}{'='*60}{RESET}")
+    print(f"{BOLD}{'=' * 60}{RESET}")
 
 
 class E2EValidator:
@@ -513,11 +513,11 @@ class E2EValidator:
 
     async def run_all(self):
         """Run all validations."""
-        print(f"\n{BOLD}{'#'*60}{RESET}")
+        print(f"\n{BOLD}{'#' * 60}{RESET}")
         print(f"{BOLD}  arifOS Hardened Toolchain — E2E Validation{RESET}")
         print(f"{BOLD}  Version: 2026.03.22-HARDENED-V2{RESET}")
         print(f"{BOLD}  Timestamp: {datetime.now().isoformat()}{RESET}")
-        print(f"{BOLD}{'#'*60}{RESET}\n")
+        print(f"{BOLD}{'#' * 60}{RESET}\n")
 
         try:
             # Contract validation
@@ -544,14 +544,14 @@ class E2EValidator:
             print(f"{BOLD}Failed:{RESET} {RED if self.failed > 0 else GREEN}{self.failed}{RESET}")
 
             if self.failed == 0 and ready:
-                print(f"\n{GREEN}{BOLD}{'#'*60}{RESET}")
+                print(f"\n{GREEN}{BOLD}{'#' * 60}{RESET}")
                 print(f"{GREEN}{BOLD}  ✅ ALL TESTS PASSED — PRODUCTION READY{RESET}")
-                print(f"{GREEN}{BOLD}{'#'*60}{RESET}\n")
+                print(f"{GREEN}{BOLD}{'#' * 60}{RESET}\n")
                 return 0
             else:
-                print(f"\n{RED}{BOLD}{'#'*60}{RESET}")
+                print(f"\n{RED}{BOLD}{'#' * 60}{RESET}")
                 print(f"{RED}{BOLD}  ❌ TESTS FAILED — NOT PRODUCTION READY{RESET}")
-                print(f"{RED}{BOLD}{'#'*60}{RESET}\n")
+                print(f"{RED}{BOLD}{'#' * 60}{RESET}\n")
                 return 1
 
         except Exception as e:

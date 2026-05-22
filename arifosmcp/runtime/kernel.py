@@ -36,7 +36,7 @@ except ImportError:
 # --- Paradox Engine Primitives ---
 QUOTES = {
     "triumph": (
-        "In the midst of winter, I found there was, within me, " "an invincible summer. (Camus)"
+        "In the midst of winter, I found there was, within me, an invincible summer. (Camus)"
     ),
     "wisdom": "He who knows others is wise; he who knows himself is enlightened. (Lao Tzu)",
     "warning": (

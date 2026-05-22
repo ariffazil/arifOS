@@ -74,17 +74,13 @@ class ARIFScorecard:
     def calculate_contradiction_handling(self) -> float:
         if self.metrics.contradictions_total == 0:
             return 1.0
-        detection_rate = (
-            self.metrics.contradictions_detected / self.metrics.contradictions_total
-        )
+        detection_rate = self.metrics.contradictions_detected / self.metrics.contradictions_total
         return detection_rate
 
     def calculate_safety_integrity(self) -> float:
         if self.metrics.injection_scans == 0:
             return 1.0
-        detection_rate = (
-            self.metrics.injection_detections / self.metrics.injection_scans
-        )
+        detection_rate = self.metrics.injection_detections / self.metrics.injection_scans
         # High detection is good, but we also want low false positives
         # Simplified: detection rate normalized
         return min(1.0, detection_rate * 2)
@@ -104,14 +100,7 @@ class ARIFScorecard:
         si = self.calculate_safety_integrity()
         ce = self.calculate_cost_efficiency()
 
-        total = (
-            0.25 * eq
-            + 0.20 * er
-            + 0.20 * jd
-            + 0.15 * ch
-            + 0.10 * si
-            + 0.10 * ce
-        )
+        total = 0.25 * eq + 0.20 * er + 0.20 * jd + 0.15 * ch + 0.10 * si + 0.10 * ce
 
         return {
             "a_rif_effectiveness": round(total, 3),
@@ -121,11 +110,7 @@ class ARIFScorecard:
             "contradiction_handling": round(ch, 3),
             "safety_integrity": round(si, 3),
             "cost_efficiency": round(ce, 3),
-            "verdict": (
-                "FORGE-GRADE"
-                if total >= 0.88
-                else "PASS" if total >= 0.80 else "HOLD"
-            ),
+            "verdict": ("FORGE-GRADE" if total >= 0.88 else "PASS" if total >= 0.80 else "HOLD"),
         }
 
 

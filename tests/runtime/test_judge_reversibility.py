@@ -75,9 +75,9 @@ class TestJudgeReversibilityNoContradiction:
         rs = result.get("reversibility_state", {})
         lvl = jc.get("irreversibility_level", "")
         state = rs.get("state", "")
-        assert not (
-            lvl == "irreversible" and state == "REVERSIBLE"
-        ), f"CONTRADICTION: judge_contract.irreversibility_level={lvl} but reversibility_state.state={state}"
+        assert not (lvl == "irreversible" and state == "REVERSIBLE"), (
+            f"CONTRADICTION: judge_contract.irreversibility_level={lvl} but reversibility_state.state={state}"
+        )
 
     def test_nine_signal_present_on_seal(self, session_id):
         """Every SEAL verdict must carry a nine_signal block."""
@@ -120,9 +120,9 @@ class TestJudgeReversibilityNoContradiction:
             "external_effect",
             "vault_committed",
         }
-        assert required_keys.issubset(
-            rs.keys()
-        ), f"Missing keys in reversibility_state: {required_keys - rs.keys()}"
+        assert required_keys.issubset(rs.keys()), (
+            f"Missing keys in reversibility_state: {required_keys - rs.keys()}"
+        )
         assert isinstance(rs["state"], str)
         assert isinstance(rs["requires_human_seal"], bool)
         assert isinstance(rs["external_effect"], bool)

@@ -553,11 +553,11 @@ class ToolEnvelope(BaseModel):
                 self.risk_tier.value if isinstance(self.risk_tier, Enum) else self.risk_tier
             ),
         }
-        return f"sha256:{hash(str(payload)) & 0xffffffff:08x}"
+        return f"sha256:{hash(str(payload)) & 0xFFFFFFFF:08x}"
 
     @property
     def outputs_hash(self) -> str:
-        return f"sha256:{hash(str(self.payload)) & 0xffffffff:08x}"
+        return f"sha256:{hash(str(self.payload)) & 0xFFFFFFFF:08x}"
 
     @property
     def human_decision(self) -> HumanDecisionMarker:

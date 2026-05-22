@@ -58,7 +58,7 @@ def format_hard_sla_alert(verdict_entry: dict, age_hours: float) -> str:
 
 def format_drift_alert(flags: list[str]) -> str:
     lines = "\n".join(f"  • {f}" for f in flags)
-    return f"🚨 SLA NORM DRIFT DETECTED\n" f"{lines}\n" f"Sovereign re-baselining required."
+    return f"🚨 SLA NORM DRIFT DETECTED\n{lines}\nSovereign re-baselining required."
 
 
 def format_flood_attack_alert(density: float, soft_count: int, hard_count: int) -> str:

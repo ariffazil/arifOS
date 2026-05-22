@@ -316,7 +316,9 @@ class ProtocolConformanceRunner:
                 icon = (
                     "✅"
                     if t.status == ConformanceStatus.PASS
-                    else "❌" if t.status == ConformanceStatus.FAIL else "⏭️"
+                    else "❌"
+                    if t.status == ConformanceStatus.FAIL
+                    else "⏭️"
                 )
                 print(f"  {icon} {t.test_name}: {t.actual} (expected: {t.expected})")
                 if t.error:

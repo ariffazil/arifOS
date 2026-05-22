@@ -42,9 +42,9 @@ class TestForgeNineSignalContract:
         assert "F11" not in failed, f"F11 breach on {mode} despite being read-only: {failed}"
 
         nine = result.get("nine_signal", {})
-        assert (
-            _overall_state(nine) == "SELAMAT"
-        ), f"Expected SELAMAT nine_signal on {mode}, got {nine.get('overall')}"
+        assert _overall_state(nine) == "SELAMAT", (
+            f"Expected SELAMAT nine_signal on {mode}, got {nine.get('overall')}"
+        )
 
     def test_nine_signal_present_on_query_ok(self):
         """Query mode must emit nine_signal on success path."""
@@ -74,9 +74,9 @@ class TestForgeNineSignalContract:
         result = _arif_forge_execute(
             mode="engineer", manifest="some code", session_id=None, actor_id=None
         )
-        assert (
-            result.get("status") == "HOLD"
-        ), f"Expected HOLD for engineer without plan_id, got {result.get('status')}"
+        assert result.get("status") == "HOLD", (
+            f"Expected HOLD for engineer without plan_id, got {result.get('status')}"
+        )
         assert "nine_signal" in result, "nine_signal missing from engineer HOLD response"
         assert _overall_state(result["nine_signal"]) in (
             "RETAK",

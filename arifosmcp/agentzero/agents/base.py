@@ -492,8 +492,7 @@ class ConstitutionalAgent(ABC):
         subagent.current_depth = self.current_depth + 1
 
         logger.info(
-            f"[{self.agent_id}] Spawned subagent {subagent_id} "
-            f"at depth {subagent.current_depth}"
+            f"[{self.agent_id}] Spawned subagent {subagent_id} at depth {subagent.current_depth}"
         )
 
         # Execute task in subagent

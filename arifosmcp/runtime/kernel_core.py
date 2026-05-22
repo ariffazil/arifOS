@@ -549,7 +549,6 @@ class KernelCore:
         platform: str = "unknown",
         **kwargs: Any,
     ) -> dict[str, Any]:
-
         context = await self.input_stage(
             query=query,
             session_id=session_id,

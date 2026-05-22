@@ -23,9 +23,9 @@ class TestSessionTruthInvariant:
         )
 
         # CRITICAL INVARIANT: Unified truth
-        assert (
-            result["session_id"] == result["resolved_session_id"]
-        ), "F2 Truth Violation: session_id != resolved_session_id"
+        assert result["session_id"] == result["resolved_session_id"], (
+            "F2 Truth Violation: session_id != resolved_session_id"
+        )
 
         # Both should be the canonical resolved value
         assert result["session_id"] == "test-session-123"
@@ -122,6 +122,6 @@ class TestSessionIdentityContinuity:
                 actor_id=alias,
                 declared_name=None,
             )
-            assert (
-                result["canonical_actor_id"] == "ariffazil"
-            ), f"Alias '{alias}' should normalize to 'ariffazil'"
+            assert result["canonical_actor_id"] == "ariffazil", (
+                f"Alias '{alias}' should normalize to 'ariffazil'"
+            )

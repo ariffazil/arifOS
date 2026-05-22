@@ -398,7 +398,7 @@ def arif_judge_deliberate(
         elif isinstance(candidate, dict):
             _target = candidate.get("target_path", "")
             _action = candidate.get("action_type", "")
-            
+
         self_mod = is_self_modification_attempt(_target, _action, [])
         if self_mod.get("is_blocked"):
             return VerdictOutput(

@@ -1,7 +1,7 @@
 """
 Tests for arifos/tools/_333_mind.py — mode: reason/reflect/forge + multimodal.
 
-conftest.py installs arifos.core.governance mocks at collection time.
+conftest.py installs arifosmcp.core.governance mocks at collection time.
 All mocks: Verdict, ThermodynamicMetrics, append_vault999_event, governed_return.
 
 Envelope shape (governed_return wrap):
@@ -18,7 +18,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-import arifos.tools._333_mind as _mind_mod
+import arifosmcp.tools._333_mind as _mind_mod
 
 # ─────────────────────────────────────────────────────────────────────────────
 # HELPERS — valid bind artifact
@@ -317,7 +317,9 @@ class TestMultimodalHelpers:
 
     @pytest.mark.asyncio
     async def test_understand_image_returns_structure(self):
-        result = await _mind_mod._interpret_image_signals("http://example.com/img.png", "what is this?")
+        result = await _mind_mod._interpret_image_signals(
+            "http://example.com/img.png", "what is this?"
+        )
         assert result["capability"] == "visual_signal_interpretation"
         assert result["image_url"] == "http://example.com/img.png"
         assert result["question"] == "what is this?"

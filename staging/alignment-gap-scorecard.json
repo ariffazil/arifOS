@@ -1,0 +1,45 @@
+{
+  "dimensions": {
+    "constitutional_governance": {
+      "score": 8,
+      "evidence": "Every agent includes arifos.init, AGI_BOUNDARIES, and obeys the 13 Floors, though enforcement in L3 specialists is currently heuristic (prompt-based) rather than formally verified."
+    },
+    "role_clarity": {
+      "score": 9,
+      "evidence": "Strict role definitions exist in A-*.md and IDENTITY.md (e.g. A-ARCHITECT cannot execute code, A-ENGINEER works under 888_HOLD)."
+    },
+    "prompt_clarity": {
+      "score": 8,
+      "evidence": "System prompts clearly dictate the 'Ditempa Bukan Diberi' style, though local prompts are still duplicated between /agents and arifosmcp/agents."
+    },
+    "config_consistency": {
+      "score": 7,
+      "evidence": "mcp_config.json contains the correct approved list (arifos, geox, wealth, well), but client-side versions were drifting (resolved via dynamic stdio negotiation)."
+    },
+    "transport_consistency": {
+      "score": 8,
+      "evidence": "A2A and stdio MCP are used uniformly, but some clients lacked proper fallback mechanisms for connection drops."
+    },
+    "auditability": {
+      "score": 9,
+      "evidence": "All actions produce VAULT999 trace hashes, and memory files YYYY-MM-DD.md log all major structural updates."
+    },
+    "reversibility": {
+      "score": 9,
+      "evidence": "Floor 1 Amanah is strictly enforced: git status is audited before commits, and any live container modifications trigger 888_HOLD."
+    },
+    "local_vps_parity": {
+      "score": 6,
+      "evidence": "Local cockpit uses stdio and local venv paths, while VPS runtime operates in Traefik-proxy HTTP containers. Parity is maintained by equivalent MCP endpoints, but network timeouts can isolate the planes (Decoupled Governance Fallback)."
+    },
+    "remote_first_compliance": {
+      "score": 8,
+      "evidence": "Preference is remote-first MCP hosts (e.g., https://wealth.arif-fazil.com), keeping the heavy evidence models on the VPS and cockpit thin."
+    },
+    "blast_radius_control": {
+      "score": 9,
+      "evidence": "Strict isolation of the out-of-scope Hermes and OpenClaw agents is maintained. No code modification, restart, or dependency touches them."
+    }
+  },
+  "overall_alignment_score": 80.0
+}

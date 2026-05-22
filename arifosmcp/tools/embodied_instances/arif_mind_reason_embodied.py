@@ -90,7 +90,7 @@ class ArifMindReasonEmbodied(EmbodiedTool):
         if mode == "metabolize":
             from arifosmcp.runtime.mind_reason import arif_mind_reason_v2
             from arifosmcp.schemas.mind_metabolism import MindRequest
-            
+
             # Construct v2 request
             request = MindRequest(
                 query=query or "",
@@ -100,7 +100,7 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                 task=params.get("task", {}),
                 context=params.get("context", {}),
                 evidence=params.get("evidence", {}),
-                reasoning_control=params.get("reasoning_control", {})
+                reasoning_control=params.get("reasoning_control", {}),
             )
             result = await arif_mind_reason_v2(request)
         else:
@@ -108,7 +108,7 @@ class ArifMindReasonEmbodied(EmbodiedTool):
             context = params.get("context", {})
             if session_id:
                 context["session_id"] = session_id
-                
+
             result = _mind_reason_kernel(
                 mode=mode,
                 query=query,

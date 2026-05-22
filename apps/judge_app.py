@@ -486,7 +486,6 @@ def judge_surface(
     judged_rx = STATE["judged"]
 
     with Column(gap=5, css_class="p-5 max-w-2xl") as view:
-
         # ── Operator Interpretation Banner (CHANGE-01) ────────────────────────
         with Card(css_class="border-2 border-primary/20"):
             with CardContent(css_class="py-4 px-6"):

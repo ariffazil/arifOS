@@ -37,5 +37,15 @@
 - **LOWERCASE**: All kernel manifests in `arifosmcp/tools/charters/governance/` must be lowercase.
 - **NORMALIZATION**: If case mismatch occurs, use `git mv` to normalize, not delete/add.
 
+## ANTIGRAVITY TERMINAL & AUTOMATION RULES
+
+- **ENVIRONMENT**: Windows + Antigravity IDE
+- **MODE**: Agentic, arifOS-governed, Always Proceed for safe commands only.
+- **SHELL EXECUTION**: Always use `cmd /c` for shell commands unless explicitly requested to use a persistent shell.
+- **DESTRUCTIVE BLOCK**: Never run destructive commands (`rm -rf`, `format`, `docker system prune`, `git push -f`, `shutdown`).
+- **SANDBOXING**: Prefer project-local virtualenvs and `node_modules`; never use administrative rights (`sudo` / elevated commands).
+- **INSPECTION FIRST**: Always prioritize read-only inspection commands first (`ls`, `git status`, `git diff`, `docker ps`, `curl GET`).
+- **888_HOLD GATING**: For any irreversible or high-blast-radius action, propose the command but STOP and wait for Arif's explicit review and copy-paste (888_HOLD).
+
 ---
 *Ditempa Bukan Diberi — arifOS Law v2026.04.26*

@@ -34,7 +34,9 @@ def generate_html(health, build):
     status_class = (
         "status-healthy"
         if status == "ok"
-        else "status-degraded" if status == "degraded" else "status-error"
+        else "status-degraded"
+        if status == "degraded"
+        else "status-error"
     )
 
     version = build.get("version", "unknown")
@@ -157,7 +159,7 @@ def generate_html(health, build):
 
         <footer>
             <p>arifOS v{version} — Constitutional AI Governance</p>
-            <p>Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
+            <p>Last updated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")}</p>
             <p><a href="https://github.com/ariffazil/arifOS" style="color: #3498db;">GitHub</a></p>
         </footer>
     </div>

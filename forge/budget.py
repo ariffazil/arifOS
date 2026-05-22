@@ -60,17 +60,23 @@ class ForgeBudget:
 
         if check_wallclock and self.elapsed_seconds > self.max_wallclock_seconds:
             self.reverted = True
-            self.revert_reason = f"wallclock exceeded: {self.elapsed_seconds:.1f}s > {self.max_wallclock_seconds}s"
+            self.revert_reason = (
+                f"wallclock exceeded: {self.elapsed_seconds:.1f}s > {self.max_wallclock_seconds}s"
+            )
             return False, self.revert_reason
 
         if self.measured_delta_S is not None and self.measured_delta_S > self.max_delta_S:
             self.reverted = True
-            self.revert_reason = f"delta_S exceeded: {self.measured_delta_S:.4f} > {self.max_delta_S}"
+            self.revert_reason = (
+                f"delta_S exceeded: {self.measured_delta_S:.4f} > {self.max_delta_S}"
+            )
             return False, self.revert_reason
 
         if self.measured_delta_Ω is not None and self.measured_delta_Ω > self.max_delta_Ω:
             self.reverted = True
-            self.revert_reason = f"delta_Ω exceeded: {self.measured_delta_Ω:.4f} > {self.max_delta_Ω}"
+            self.revert_reason = (
+                f"delta_Ω exceeded: {self.measured_delta_Ω:.4f} > {self.max_delta_Ω}"
+            )
             return False, self.revert_reason
 
         if self.measured_psi is not None and self.measured_psi < self.min_psi:
@@ -152,7 +158,13 @@ def enforce_budget(
 
 if __name__ == "__main__":
     # Quick sanity check — pass without wallclock check
-    budget = ForgeBudget(forge_id="test", measured_delta_S=0.032, measured_delta_Ω=0.08, measured_psi=1.12, files_modified=1)
+    budget = ForgeBudget(
+        forge_id="test",
+        measured_delta_S=0.032,
+        measured_delta_Ω=0.08,
+        measured_psi=1.12,
+        files_modified=1,
+    )
     budget.start()
     result = enforce_budget(delta_S=0.032, delta_Ω=0.08, psi=1.12, files_modified=1)
     print(result)

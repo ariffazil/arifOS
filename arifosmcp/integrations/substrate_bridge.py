@@ -242,7 +242,9 @@ class SubstrateBridge:
         status = (
             "HEALTHY"
             if healthy_count == total_count
-            else "DEGRADED" if healthy_count > 0 else "DOWN"
+            else "DEGRADED"
+            if healthy_count > 0
+            else "DOWN"
         )
 
         return {

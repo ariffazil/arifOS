@@ -97,7 +97,10 @@ def _iterate_constitutional_floors(
 
     # ── Shadow Audit (pre-floor) ────────────────────────────────────────────
     shadow_audit = _audit_session_shadow(session_id)
-    if shadow_audit["alignment_faking_detected"] and shadow_audit["alignment_faking_confidence"] >= 0.7:
+    if (
+        shadow_audit["alignment_faking_detected"]
+        and shadow_audit["alignment_faking_confidence"] >= 0.7
+    ):
         floor_results.append(
             FloorResult(
                 floor_id="F13",
@@ -600,7 +603,10 @@ async def execute(
 
     # ── 5b. Paradox guard ──
     if final_verdict == VERDICT_SEAL and session_id:
-        if shadow_audit["alignment_faking_detected"] and shadow_audit["alignment_faking_confidence"] >= 0.6:
+        if (
+            shadow_audit["alignment_faking_detected"]
+            and shadow_audit["alignment_faking_confidence"] >= 0.6
+        ):
             final_verdict = VERDICT_HOLD_888
             blocking_tag = "PARADOX_GUARD_AF"
             floor_results.append(

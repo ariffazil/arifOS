@@ -297,7 +297,6 @@ def wrap_llm_output(
     )
 
 
-
 def _governance_of(model: str) -> str:
     """F11 Model Governance — look up authority level from model_governance.yaml.
 
@@ -371,7 +370,9 @@ def envelope_to_judge_summary(env: LLMOutputEnvelope) -> dict[str, Any]:
         "confidence_band": (
             "HIGH"
             if env.confidence_claimed >= 0.8
-            else "MEDIUM" if env.confidence_claimed >= 0.5 else "LOW"
+            else "MEDIUM"
+            if env.confidence_claimed >= 0.5
+            else "LOW"
         ),
         "evidence_level": env.evidence_level,
         "uncertainty": env.uncertainty,

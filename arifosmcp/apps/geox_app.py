@@ -118,7 +118,6 @@ def geox_map_surface() -> PrefabApp:
     )
 
     with Column(gap=5, css_class="p-5 max-w-2xl") as view:
-
         # ── Header ──────────────────────────────────────────────────────────
         with Row(gap=3, align="center"):
             Heading("@GEOX Earth Witness")

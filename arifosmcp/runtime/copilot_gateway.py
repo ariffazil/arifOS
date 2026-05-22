@@ -461,6 +461,4 @@ async def arifos_judge_alias(request: Request, body: CopilotIngestRequest):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(
-        app, host="0.0.0.0", port=8090, log_level="info"
-    )  # nosec: required for Docker container
+    uvicorn.run(app, host="0.0.0.0", port=8090, log_level="info")  # nosec: required for Docker container

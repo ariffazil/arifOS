@@ -109,7 +109,7 @@ class ToolManifest(BaseModel):
     )
     description: str = Field(
         ...,
-        description="Functional description. First sentence should " "answer the axis question.",
+        description="Functional description. First sentence should answer the axis question.",
     )
     expose: bool = Field(
         default=False,

@@ -629,13 +629,14 @@ def _constitutional_radar(receipts: list[dict[str, Any]], health: dict[str, Any]
         "status": (
             "OPERATIONAL"
             if radar_score >= 0.9
-            else "DEGRADED" if radar_score >= 0.5 else "CRITICAL"
+            else "DEGRADED"
+            if radar_score >= 0.5
+            else "CRITICAL"
         ),
     }
 
 
 def _register(mcp: FastMCP) -> None:
-
     @mcp.tool(
         name="arifos_monitor_metabolism",
         app=PrefabAppConfig(domain=CANONICAL_RUNTIME_URL.removeprefix("https://")),
@@ -766,7 +767,6 @@ def _register(mcp: FastMCP) -> None:
 
         # ── BUILD VIEW ──────────────────────────────────────────────────────────
         with Column(gap=6, css_class="p-6 max-w-3xl") as view:
-
             # ══ 1. DEPLOY BADGE ════════════════════════════════════════════════
             with Card(css_class="border border-muted bg-muted/10"):
                 with CardContent(css_class="py-3 px-4"):
@@ -962,7 +962,6 @@ def _register(mcp: FastMCP) -> None:
                 css_class="text-xs uppercase tracking-wider font-bold",
             )
             with Column(gap=1):
-
                 # Capabilities row
                 for cap_key, cap_label in [
                     ("governed_continuity", "Continuity"),
@@ -1186,7 +1185,7 @@ def _register(mcp: FastMCP) -> None:
         # ── Dense text summary (Context Compiler pattern) ────────────────────
         receipt_brief = (
             " | ".join(
-                f"#{i+1}:{r.get('verdict','?')[:1]}:{','.join(r.get('floors',[])[:3]) or '-'}"
+                f"#{i + 1}:{r.get('verdict', '?')[:1]}:{','.join(r.get('floors', [])[:3]) or '-'}"
                 for i, r in enumerate(receipts)
             )
             if receipts

@@ -201,9 +201,9 @@ class TestConstitutionalBreaches:
             pytest.skip("Module requires full server env")
 
         result = mod.arifos_check_hold("deploy_model", "HIGH")
-        assert (
-            result.get("requires_approval") is True
-        ), f"HIGH (uppercase) must require approval, not AUTO_APPROVE; got {result}"
+        assert result.get("requires_approval") is True, (
+            f"HIGH (uppercase) must require approval, not AUTO_APPROVE; got {result}"
+        )
 
     @pytest.mark.skip(reason="geox.core.ac_risk broken on Python 3.13 — dataclass AttributeError")
     def test_c2_f1_breach_demotes_proceed_to_hold(self):
@@ -222,9 +222,9 @@ class TestConstitutionalBreaches:
             amanah_locked=False,
             irreversible_action=False,
         )
-        assert (
-            result.verdict != "PROCEED"
-        ), f"F1 breach must not PROCEED; got verdict={result.verdict}"
+        assert result.verdict != "PROCEED", (
+            f"F1 breach must not PROCEED; got verdict={result.verdict}"
+        )
         assert result.verdict == "HOLD", f"Expected HOLD for F1 breach, got {result.verdict}"
 
     @pytest.mark.skip(reason="geox.core.ac_risk broken on Python 3.13 — dataclass AttributeError")
@@ -243,9 +243,9 @@ class TestConstitutionalBreaches:
             echo_score=0.8,
             amanah_locked=True,
         )
-        assert (
-            result.verdict == "PROCEED"
-        ), f"amanah_locked=True with strong params should PROCEED; got {result.verdict}"
+        assert result.verdict == "PROCEED", (
+            f"amanah_locked=True with strong params should PROCEED; got {result.verdict}"
+        )
 
     @pytest.mark.skip(reason="geox.core.ac_risk broken on Python 3.13 — dataclass AttributeError")
     def test_m2_u_ambiguity_out_of_range_raises(self):

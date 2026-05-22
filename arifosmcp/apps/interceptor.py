@@ -53,7 +53,7 @@ def intercept(tool_name: str, payload: dict, session_id: str | None = None) -> d
                 stage="INTERCEPTOR",
                 verdict="HOLD",
                 detail=(
-                    "Anonymous sessions cannot call dangerous tools. " "Provide a valid session_id."
+                    "Anonymous sessions cannot call dangerous tools. Provide a valid session_id."
                 ),
             )
         # Non-dangerous tools are fine without a session

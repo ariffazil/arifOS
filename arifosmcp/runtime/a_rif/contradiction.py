@@ -41,9 +41,7 @@ def audit_for_contradictions(claims: list[dict[str, Any]]) -> ContradictionRepor
             text_b = claim_b.get("text", "").lower()
             # Detect direct negation heuristics
             negation_words = ("not", "no", "never", "false", "contradicts")
-            if any(w in text_a for w in negation_words) or any(
-                w in text_b for w in negation_words
-            ):
+            if any(w in text_a for w in negation_words) or any(w in text_b for w in negation_words):
                 conflicts.append(
                     {
                         "claim_a": claim_a.get("text", ""),

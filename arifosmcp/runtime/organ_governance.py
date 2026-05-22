@@ -11,15 +11,15 @@ Every organ (GEOX, WEALTH, WELL) imports this module to:
 
 Risk Tier Classification:
   READONLY  → Execute directly, log to VAULT999
-  C1        → arifOS pre-check advisory, execute anyway, log result  
+  C1        → arifOS pre-check advisory, execute anyway, log result
   C2        → arifOS SEAL required before execution
   IRREVERSIBLE → arifOS SEAL + explicit human ack required
 
 Usage in organ server:
   from arifosmcp.runtime.organ_governance import OrganGovernance, RiskTier
-  
+
   governance = OrganGovernance(organ_name="GEOX", organ_version="v2.0.0")
-  
+
   # At start of each tool handler:
   result = governance.check_governance("geox_prospect_judge_seal", arguments)
   if result["verdict"] == "HOLD":
@@ -43,9 +43,9 @@ logger = logging.getLogger("organ_governance")
 
 
 class RiskTier(StrEnum):
-    READONLY = "readonly"      # No governance needed, log only
-    C1_ADVISORY = "c1"        # Pre-check with arifOS, execute anyway
-    C2_EXECUTE = "c2"         # SEAL required before execution
+    READONLY = "readonly"  # No governance needed, log only
+    C1_ADVISORY = "c1"  # Pre-check with arifOS, execute anyway
+    C2_EXECUTE = "c2"  # SEAL required before execution
     IRREVERSIBLE = "irreversible"  # SEAL + human ack required
 
 
@@ -153,15 +153,17 @@ def _call_arif_kernel_sync(tool_name: str, params: dict[str, Any]) -> dict[str, 
     """
     import urllib.request
 
-    payload = json.dumps({
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "tools/call",
-        "params": {
-            "name": tool_name,
-            "arguments": params,
-        },
-    }).encode()
+    payload = json.dumps(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": tool_name,
+                "arguments": params,
+            },
+        }
+    ).encode()
 
     req = urllib.request.Request(
         f"{ARIFOS_KERNEL_URL}/mcp",
@@ -192,9 +194,10 @@ def _call_arif_kernel_sync(tool_name: str, params: dict[str, Any]) -> dict[str, 
 
 # ─── Governance Check Result ──────────────────────────────────────────────────
 
+
 @dataclass
 class GovernanceResult:
-    verdict: str          # SEAL | HOLD | VOID | SABAR | ADVISORY
+    verdict: str  # SEAL | HOLD | VOID | SABAR | ADVISORY
     tool: str
     risk_tier: RiskTier
     reason: str
@@ -206,10 +209,11 @@ class GovernanceResult:
 
 # ─── Main OrganGovernance Class ───────────────────────────────────────────────
 
+
 class OrganGovernance:
     """
     Shared governance client for ArifOS organs.
-    
+
     Each organ (GEOX, WEALTH, WELL) instantiates one of these
     at startup and calls check_governance() at the start of
     every tool handler.
@@ -227,7 +231,7 @@ class OrganGovernance:
         self._session_id: Optional[str] = None
         self._constitution_hash: Optional[str] = None
         self._logged_tools: list[str] = []
-        
+
         logger.info(
             f"OrganGovernance initialized for {organ_name} v{organ_version} "
             f"with {len(self.risk_map)} tool risk classifications"
@@ -242,8 +246,7 @@ class OrganGovernance:
         self._session_id = session_id
         self._constitution_hash = constitution_hash
         logger.info(
-            f"OrganGovernance session bound: {session_id} "
-            f"(constitution={constitution_hash[:8]}...)"
+            f"OrganGovernance session bound: {session_id} (constitution={constitution_hash[:8]}...)"
         )
 
     def get_risk_tier(self, tool_name: str) -> RiskTier:
@@ -259,12 +262,12 @@ class OrganGovernance:
     ) -> GovernanceResult:
         """
         Main governance check. Call this at the start of every tool handler.
-        
+
         Returns a GovernanceResult with:
           - verdict: SEAL (proceed) | HOLD (wait) | VOID (reject) | ADVISORY (noted)
           - reason: human-readable explanation
           - requires_ack: True if irreversible tool needs explicit ack
-        
+
         For READONLY: returns SEAL immediately (log only)
         For C1: calls arifOS pre-check, executes anyway
         For C2: calls arifOS, waits for SEAL before proceeding
@@ -302,8 +305,7 @@ class OrganGovernance:
         candidate = {
             "action": f"{self.organ_name}_ORGAN:{tool_name}",
             "description": (
-                f"{self.organ_name} organ tool '{tool_name}' "
-                f"with risk tier {risk_tier.value}"
+                f"{self.organ_name} organ tool '{tool_name}' with risk tier {risk_tier.value}"
             ),
             "actor_id": actor_id,
             "organ": self.organ_name,
@@ -320,12 +322,10 @@ class OrganGovernance:
             "actor_id": actor_id,
         }
 
-        logger.info(
-            f"GOVERNANCE CHECK: {tool_name} [{risk_tier.value}] → calling arifOS kernel"
-        )
+        logger.info(f"GOVERNANCE CHECK: {tool_name} [{risk_tier.value}] → calling arifOS kernel")
 
         kernel_result = _call_arif_kernel_sync("arif_judge_deliberate", judge_params)
-        
+
         # Parse verdict from kernel response
         verdict = "HOLD"  # fail-closed default
         reason = "arifOS kernel unreachable — fail-closed"
@@ -334,7 +334,7 @@ class OrganGovernance:
             verdict = kernel_result.get("verdict", "HOLD")
             judgment = kernel_result.get("judgment", {})
             reason = judgment.get("reason", kernel_result.get("reason", "No reason provided"))
-            
+
             # Extract constitution hash if returned
             if "constitution_hash" in kernel_result:
                 self._constitution_hash = kernel_result["constitution_hash"]
@@ -372,26 +372,32 @@ class OrganGovernance:
             "session_id": self._session_id,
         }
         self._logged_tools.append(entry)
-        
+
         # Also log to arifOS kernel for VAULT999
         if verdict in ("SEAL", "HOLD", "VOID"):
             try:
-                _call_arif_kernel_sync("arif_judge_deliberate", {
-                    "mode": "judge",
-                    "candidate": json.dumps({
-                        "action": f"ORGAN_LOG:{self.organ_name}:{tool_name}",
-                        "description": f"Organ tool call logged for {self.organ_name}",
+                _call_arif_kernel_sync(
+                    "arif_judge_deliberate",
+                    {
+                        "mode": "judge",
+                        "candidate": json.dumps(
+                            {
+                                "action": f"ORGAN_LOG:{self.organ_name}:{tool_name}",
+                                "description": f"Organ tool call logged for {self.organ_name}",
+                                "actor_id": "organ-governance-logger",
+                                "verdict": verdict,
+                            }
+                        ),
+                        "session_id": self._session_id,
                         "actor_id": "organ-governance-logger",
-                        "verdict": verdict,
-                    }),
-                    "session_id": self._session_id,
-                    "actor_id": "organ-governance-logger",
-                })
+                    },
+                )
             except Exception:
                 pass  # Non-fatal — logging failure doesn't block tool execution
 
 
 # ─── Convenience Decorator ─────────────────────────────────────────────────────
+
 
 def governed(
     tool_name: str,
@@ -401,13 +407,14 @@ def governed(
 ):
     """
     Decorator that wraps a tool handler with governance checks.
-    
+
     Usage:
         @governed("geox_prospect_judge_seal", governance=geox_gov)
         def geox_prospect_judge_seal(tool_name, arguments, ...):
             # Tool execution — only reached if governance returns SEAL
             ...
     """
+
     def decorator(func):
         def wrapper(arguments: dict[str, Any], **kwargs):
             result = governance.check_governance(
@@ -433,7 +440,9 @@ def governed(
                 }
             # SEAL or ADVISORY — proceed with execution
             return func(arguments=arguments, **kwargs)
+
         return wrapper
+
     return decorator
 
 

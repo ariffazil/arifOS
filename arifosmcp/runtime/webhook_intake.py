@@ -467,9 +467,7 @@ def adjudicate_event(
     Returns adjudication result with verdict, trace_id, issues, and routing.
     Maximum auto-verdict: QUALIFY. Never auto-SEAL.
     """
-    trace_id = trace_id or (
-        f"wh-{datetime.now(UTC).strftime('%Y%m%d')}-{uuid.uuid4().hex[:8]}"
-    )
+    trace_id = trace_id or (f"wh-{datetime.now(UTC).strftime('%Y%m%d')}-{uuid.uuid4().hex[:8]}")
     policy_version = policy_version or _get_policy_version()
     issues: list[str] = []
     approval_summary = approval or _approval_summary("not_evaluated")

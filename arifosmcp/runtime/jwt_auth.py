@@ -91,11 +91,14 @@ def _get_boot_id() -> str:
 
 
 def _ensure_telemetry_dir() -> bool:
-    """
+    (
+        """
     Ensure telemetry directory and log file are writable.
 
     Returns True if durable writes are possible.
-    """ ""
+    """
+        ""
+    )
     try:
         os.makedirs(TELEMETRY_PATH, exist_ok=True)
         # Test directory writability

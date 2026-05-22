@@ -11,7 +11,10 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 
 from typing import Any, Dict, List
 
-def wrap_federated_output(agent_id: str, raw_output: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
+
+def wrap_federated_output(
+    agent_id: str, raw_output: str, metadata: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Wraps federated agent output in a quarantine envelope.
     """
@@ -24,8 +27,9 @@ def wrap_federated_output(agent_id: str, raw_output: str, metadata: Dict[str, An
         "can_advise": True,
         "injection_scan": metadata.get("injection_status", "unknown"),
         "raw_payload": raw_output,
-        "governance_layer": "arifos_quarantine_v1"
+        "governance_layer": "arifos_quarantine_v1",
     }
+
 
 def validate_external_payload(payload: Dict[str, Any]) -> bool:
     """
@@ -33,9 +37,9 @@ def validate_external_payload(payload: Dict[str, Any]) -> bool:
     """
     forbidden_keywords = ["sudo", "rm -rf", "grant access", "elevate", "override constitution"]
     content = str(payload.get("raw_payload", "")).lower()
-    
+
     for kw in forbidden_keywords:
         if kw in content:
             return False
-            
+
     return True

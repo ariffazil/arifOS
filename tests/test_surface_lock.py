@@ -19,9 +19,9 @@ def test_canonical_tool_count():
         list_probe_tools,
     )
 
-    assert (
-        len(CANONICAL_TOOLS) == 13
-    ), f"Surface drift: expected 13 tools, got {len(CANONICAL_TOOLS)}. VOID."
+    assert len(CANONICAL_TOOLS) == 13, (
+        f"Surface drift: expected 13 tools, got {len(CANONICAL_TOOLS)}. VOID."
+    )
     assert len(list_constitutional_tools()) == 13
     assert len(list_probe_tools()) == 0
 
@@ -31,9 +31,9 @@ def test_tool_naming_convention():
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
     for name in CANONICAL_TOOLS:
-        assert name.startswith(
-            "arif_"
-        ), f"Tool {name} does not follow arif_<noun>_<verb> convention. VOID."
+        assert name.startswith("arif_"), (
+            f"Tool {name} does not follow arif_<noun>_<verb> convention. VOID."
+        )
 
 
 def test_no_legacy_surface():
@@ -48,18 +48,18 @@ def test_canonical_prompts_count():
     """Exactly 9 canonical prompts required (Phase 1 adds 888_deliberation)."""
     from arifosmcp.prompts import CANONICAL_PROMPTS
 
-    assert (
-        len(CANONICAL_PROMPTS) == 9
-    ), f"Prompt drift: expected 9, got {len(CANONICAL_PROMPTS)}. VOID."
+    assert len(CANONICAL_PROMPTS) == 9, (
+        f"Prompt drift: expected 9, got {len(CANONICAL_PROMPTS)}. VOID."
+    )
 
 
 def test_canonical_resources_count():
     """Exactly 5 canonical resources required."""
     from arifosmcp.resources import CANONICAL_RESOURCES
 
-    assert (
-        len(CANONICAL_RESOURCES) == 5
-    ), f"Resource drift: expected 5, got {len(CANONICAL_RESOURCES)}. VOID."
+    assert len(CANONICAL_RESOURCES) == 5, (
+        f"Resource drift: expected 5, got {len(CANONICAL_RESOURCES)}. VOID."
+    )
 
 
 def test_all_tools_have_floors():
@@ -105,15 +105,15 @@ def test_meta_skills_registered():
         "entropy-optimization",
     }
 
-    assert (
-        set(skills) == expected
-    ), f"Meta-skill drift: expected {expected}, got {set(skills)}. VOID."
+    assert set(skills) == expected, (
+        f"Meta-skill drift: expected {expected}, got {set(skills)}. VOID."
+    )
 
 
 def test_version_string():
     """Version must match the current sealed runtime release."""
     from arifosmcp import __version__
 
-    assert (
-        __version__ == "2026.05.05-SSCT"
-    ), f"Version drift: expected 2026.05.05-SSCT, got {__version__}. VOID."
+    assert __version__ == "2026.05.05-SSCT", (
+        f"Version drift: expected 2026.05.05-SSCT, got {__version__}. VOID."
+    )

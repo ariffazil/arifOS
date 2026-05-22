@@ -23,58 +23,139 @@ from arifos.tools._tool_support import invariant_fields
 RISK_CATEGORIES = {
     "privacy": {
         "keywords": [
-            "password", "secret", "api_key", "token", "credential", "ssn", "passport",
-            "credit_card", "cvv", "personal_data", "pii", "gdpr", "hipaa", "private_key",
+            "password",
+            "secret",
+            "api_key",
+            "token",
+            "credential",
+            "ssn",
+            "passport",
+            "credit_card",
+            "cvv",
+            "personal_data",
+            "pii",
+            "gdpr",
+            "hipaa",
+            "private_key",
         ],
         "weight": 0.15,
     },
     "bias": {
         "keywords": [
-            "race", "gender", "ethnicity", "religion", "nationality", "stereotype",
-            "discriminate", "preferential", "exclude", "minority", "demographic",
+            "race",
+            "gender",
+            "ethnicity",
+            "religion",
+            "nationality",
+            "stereotype",
+            "discriminate",
+            "preferential",
+            "exclude",
+            "minority",
+            "demographic",
         ],
         "weight": 0.12,
     },
     "harm": {
         "keywords": [
-            "weapon", "attack", "violence", "self-harm", "suicide", "kill", "injure",
-            "toxic", "poison", "explosive", "dangerous", "destructive", "malware",
-            "ransomware", "exploit", "vulnerability", "breach",
+            "weapon",
+            "attack",
+            "violence",
+            "self-harm",
+            "suicide",
+            "kill",
+            "injure",
+            "toxic",
+            "poison",
+            "explosive",
+            "dangerous",
+            "destructive",
+            "malware",
+            "ransomware",
+            "exploit",
+            "vulnerability",
+            "breach",
         ],
         "weight": 0.20,
     },
     "irreversibility": {
         "keywords": [
-            "delete", "drop", "purge", "wipe", "rm -rf", "destroy", "permanent",
-            "irreversible", "cannot_undo", "overwrite", "format", "burn",
+            "delete",
+            "drop",
+            "purge",
+            "wipe",
+            "rm -rf",
+            "destroy",
+            "permanent",
+            "irreversible",
+            "cannot_undo",
+            "overwrite",
+            "format",
+            "burn",
         ],
         "weight": 0.18,
     },
     "deception": {
         "keywords": [
-            "fake", "falsify", "forge", "impersonate", "pretend", "mimic", "spoof",
-            "phishing", "social engineering", "manipulate", "mislead", "hoax",
+            "fake",
+            "falsify",
+            "forge",
+            "impersonate",
+            "pretend",
+            "mimic",
+            "spoof",
+            "phishing",
+            "social engineering",
+            "manipulate",
+            "mislead",
+            "hoax",
         ],
         "weight": 0.15,
     },
     "autonomy": {
         "keywords": [
-            "autonomous", "self-governing", "independent", "unsupervised", "unilateral",
-            "override", "bypass", "circumvent", "disable", "silence", "ignore_human",
+            "autonomous",
+            "self-governing",
+            "independent",
+            "unsupervised",
+            "unilateral",
+            "override",
+            "bypass",
+            "circumvent",
+            "disable",
+            "silence",
+            "ignore_human",
         ],
         "weight": 0.10,
     },
     "dignity": {
         "keywords": [
-            "humiliate", "shame", "degrade", "demean", "insult", "mock", "bully",
-            "harass", "abuse", "belittle", "patronize", "condescend",
+            "humiliate",
+            "shame",
+            "degrade",
+            "demean",
+            "insult",
+            "mock",
+            "bully",
+            "harass",
+            "abuse",
+            "belittle",
+            "patronize",
+            "condescend",
         ],
         "weight": 0.05,
     },
     "sustainability": {
         "keywords": [
-            "infinite_loop", "unbounded", "exhaust", "drain", "spam", "flood",
-            "ddos", "resource_depletion", "energy_waste",
+            "infinite_loop",
+            "unbounded",
+            "exhaust",
+            "drain",
+            "spam",
+            "flood",
+            "ddos",
+            "resource_depletion",
+            "energy_waste",
         ],
         "weight": 0.05,
     },
@@ -107,15 +188,33 @@ EXTERNAL_INJECTION_PATTERNS = [
 
 ALIGNMENT_FAKING_MARKERS = {
     "eval_context": [
-        "training", "evaluation", "assessment", "audit", "review", "test", "benchmark",
-        "i am being evaluated", "this is a test", "for the record",
+        "training",
+        "evaluation",
+        "assessment",
+        "audit",
+        "review",
+        "test",
+        "benchmark",
+        "i am being evaluated",
+        "this is a test",
+        "for the record",
     ],
     "deployment_context": [
-        "production", "live", "real user", "actual request", "deployment", "runtime",
+        "production",
+        "live",
+        "real user",
+        "actual request",
+        "deployment",
+        "runtime",
     ],
     "overcompliance": [
-        "i absolutely will", "i definitely cannot", "i must always", "i am required to",
-        "strictly prohibited", "under no circumstances", "i solemnly",
+        "i absolutely will",
+        "i definitely cannot",
+        "i must always",
+        "i am required to",
+        "strictly prohibited",
+        "under no circumstances",
+        "i solemnly",
     ],
 }
 
@@ -144,9 +243,7 @@ def _scan_risk_categories(text: str) -> Dict[str, Any]:
     return {
         "categories": findings,
         "total_risk_score": round(min(1.0, total_risk_score), 4),
-        "max_category": (
-            max(findings, key=lambda c: findings[c]["score"]) if findings else None
-        ),
+        "max_category": (max(findings, key=lambda c: findings[c]["score"]) if findings else None),
     }
 
 
@@ -270,7 +367,9 @@ async def execute(
     # ── Build composite text for scanning ────────────────────────────────────
     # Scan both the action proposal AND any external evidence receipt
     proposal_text = json.dumps(action_proposal, sort_keys=True, default=str)
-    evidence_text = json.dumps(evidence_receipt, sort_keys=True, default=str) if evidence_receipt else ""
+    evidence_text = (
+        json.dumps(evidence_receipt, sort_keys=True, default=str) if evidence_receipt else ""
+    )
     composite_text = f"{proposal_text}\n{evidence_text}"
 
     # ── Tier 1: Risk category scan ───────────────────────────────────────────
@@ -293,9 +392,12 @@ async def execute(
             1.0 - risk_scan.get("categories", {}).get("harm", {}).get("score", 0.0), 4
         ),
         "weakest_stakeholder_protected": (
-            "DIGNITY" if risk_scan.get("categories", {}).get("dignity", {}).get("score", 0.0) > 0
-            else "AUTONOMY" if risk_scan.get("categories", {}).get("autonomy", {}).get("score", 0.0) > 0
-            else "PRIVACY" if risk_scan.get("categories", {}).get("privacy", {}).get("score", 0.0) > 0
+            "DIGNITY"
+            if risk_scan.get("categories", {}).get("dignity", {}).get("score", 0.0) > 0
+            else "AUTONOMY"
+            if risk_scan.get("categories", {}).get("autonomy", {}).get("score", 0.0) > 0
+            else "PRIVACY"
+            if risk_scan.get("categories", {}).get("privacy", {}).get("score", 0.0) > 0
             else "ALL"
         ),
     }

@@ -2783,7 +2783,8 @@ def _arif_session_init(
                     )
                     logger.warning(
                         "DEBUG-AUTH: hmac_ok=%s authority_level=%s sig=%s nonce=%s",
-                        hmac_ok, authority_level,
+                        hmac_ok,
+                        authority_level,
                         actor_signature[:16] if actor_signature else "None",
                         nonce,
                     )
@@ -2915,13 +2916,16 @@ def _arif_session_init(
             pass
         # EUREKA: Build embodied capability card
         import socket as _socket
+        from arifosmcp.schemas.session import _get_os_info, _is_root
+
+        _emb_is_root_val = _is_root()
         # EUREKA: Machine embodiment
         _embodiment = {
             "body": "vps_root_runtime",
             "host_attested": True,
             "host": _socket.gethostname(),
-            "os": f"{os.uname().sysname} {os.uname().release}",
-            "privilege": "root" if os.geteuid() == 0 else "user",
+            "os": _get_os_info(),
+            "privilege": "root" if _emb_is_root_val else "user",
             "shell": ["bash"],
             "cwd": os.getcwd(),
             "package_managers": ["npm", "bun", "pip", "git", "docker"],
@@ -2934,7 +2938,7 @@ def _arif_session_init(
             "mutation_default": "dry_run",
             "side_effects_allowed_without_ack": False,
             "atomic_capability_present": True,
-            "root_capability_present": os.geteuid() == 0,
+            "root_capability_present": _emb_is_root_val,
         }
 
         # EUREKA: Symbolic action classifier — operational law (Arif physics)
@@ -2948,9 +2952,14 @@ def _arif_session_init(
                 "OBSERVE": ["read", "search", "observe", "fetch", "inspect", "list", "status"],
                 "MUTATE": ["write_file", "create", "edit", "patch", "install_package"],
                 "ATOMIC": [
-                    "rm -rf /", "chmod -R 777 /", "dd if=/dev/zero of=/dev/sda",
-                    "git push --force", "DROP DATABASE", "systemctl stop",
-                    "curl secrets to external", "npm install unknown-package",
+                    "rm -rf /",
+                    "chmod -R 777 /",
+                    "dd if=/dev/zero of=/dev/sda",
+                    "git push --force",
+                    "DROP DATABASE",
+                    "systemctl stop",
+                    "curl secrets to external",
+                    "npm install unknown-package",
                 ],
                 "UNKNOWN": [],
             },
@@ -3167,6 +3176,10 @@ def _arif_session_init(
         )
 
         # EUREKA: Clean machine-readable init schema (Arif §11 target)
+        from arifosmcp.schemas.session import _get_os_info, _is_root
+
+        _emb_os_val = _get_os_info()
+        _emb_is_root_val = _is_root()
         _init_response = {
             # Stage header
             "stage": "000_INIT",
@@ -3177,6 +3190,21 @@ def _arif_session_init(
                 "identity_verified": identity_verified,
                 "authority": "human_judge",
             },
+            # Session state (WAJIB - aligned with schema and tests)
+            "session": {
+                "session_id": sid,
+                "actor_id": actor_id,
+                "created_at": sess.get("created_at"),
+                "stage": sess.get("stage", "000"),
+                "lane": sess.get("lane", "AGI"),
+                "entropy_delta": sess.get("entropy_delta", 0.0),
+                "sealed": sess.get("sealed", False),
+                "constitution_bound": True,
+            },
+            # Binding, governance, next allowed tools (WAJIB - legacy / advanced test suites compatibility)
+            "binding": binding,
+            "governance": governance,
+            "next_allowed_tools": next_allowed_tools,
             # Assistant
             "assistant": {
                 "role": "instrument",
@@ -3187,20 +3215,25 @@ def _arif_session_init(
             "embodiment": {
                 "environment": "vps_or_machine_runtime",
                 "host": _socket.gethostname(),
-                "os": f"{os.uname().sysname} {os.uname().release}",
-                "privilege": "root" if os.geteuid() == 0 else "user",
+                "os": _emb_os_val,
+                "privilege": "root" if _emb_is_root_val else "user",
                 "root_capability_known": True,
                 "commands_are_state_transitions": True,
                 "atomic_button_awareness": True,
                 "shell": ["bash"],
                 "package_managers": ["npm", "bun", "pip", "git", "docker"],
-                "filesystem_scope": "full_root" if os.geteuid() == 0 else "user_home",
+                "filesystem_scope": "full_root" if _emb_is_root_val else "user_home",
                 "execution_broker": "arif_forge_execute",
                 "mutation_default": "dry_run",
                 "atomic_patterns": [
-                    "rm -rf /", "chmod -R 777 /", "dd if=/dev/zero of=/dev/sda",
-                    "git push --force", "DROP DATABASE", "systemctl stop",
-                    "curl secrets to external", "npm install unknown-package",
+                    "rm -rf /",
+                    "chmod -R 777 /",
+                    "dd if=/dev/zero of=/dev/sda",
+                    "git push --force",
+                    "DROP DATABASE",
+                    "systemctl stop",
+                    "curl secrets to external",
+                    "npm install unknown-package",
                 ],
             },
             # Axioms — operational physics, not decoration
@@ -10273,6 +10306,7 @@ def _arif_forge_execute(
     # ── Self-Authorization Guard (F01/F13 invariant) ──
     if mode in ("engineer", "write", "generate", "commit"):
         from arifosmcp.tools.self_authorize_guard import detect_self_authorize
+
         guard_result = detect_self_authorize(manifest)
         if guard_result["verdict"] in ("HOLD", "VOID"):
             return _hold(

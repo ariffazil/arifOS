@@ -29,9 +29,18 @@ logger = logging.getLogger(__name__)
 
 # F-WEB external instruction injection patterns (Tier-2 adversarial scan)
 EXTERNAL_INJECTION_PATTERNS = [
-    "ignore previous instructions", "ignore the above", "disregard all prior",
-    "jailbreak", "dan mode", "developer mode", "root access", "sudo mode",
-    "you are now", "you must now", "override your", "bypass your",
+    "ignore previous instructions",
+    "ignore the above",
+    "disregard all prior",
+    "jailbreak",
+    "dan mode",
+    "developer mode",
+    "root access",
+    "sudo mode",
+    "you are now",
+    "you must now",
+    "override your",
+    "bypass your",
 ]
 
 
@@ -43,11 +52,13 @@ def _scan_bridge_for_injection(bridge_result: dict | None) -> dict:
     """
     if not bridge_result or not isinstance(bridge_result, dict):
         return {"injection_detected": False, "matches": []}
-    text_to_scan = " ".join([
-        str(bridge_result.get("description", "")),
-        str(bridge_result.get("answer", "")),
-        str(bridge_result.get("result", "")),
-    ]).lower()
+    text_to_scan = " ".join(
+        [
+            str(bridge_result.get("description", "")),
+            str(bridge_result.get("answer", "")),
+            str(bridge_result.get("result", "")),
+        ]
+    ).lower()
     matches = [p for p in EXTERNAL_INJECTION_PATTERNS if p in text_to_scan]
     return {"injection_detected": bool(matches), "matches": matches}
 

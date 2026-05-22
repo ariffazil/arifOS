@@ -294,9 +294,15 @@ async def call_llm(
             system, user, response_schema, temperature, max_tokens
         )
         return _make_envelope(
-            raw_output, parsed, "sea_lion", SEA_LION_MODEL,
-            tool_origin, mode, combined_prompt,
-            (time.monotonic() - t0) * 1000, response_schema,
+            raw_output,
+            parsed,
+            "sea_lion",
+            SEA_LION_MODEL,
+            tool_origin,
+            mode,
+            combined_prompt,
+            (time.monotonic() - t0) * 1000,
+            response_schema,
             trace_recursion_depth,
         )
     except LLMUnavailableError:
@@ -309,9 +315,15 @@ async def call_llm(
             system, user, response_schema, temperature, max_tokens
         )
         return _make_envelope(
-            raw_output, parsed, "ollama", OLLAMA_MODEL,
-            tool_origin, mode, combined_prompt,
-            (time.monotonic() - t0) * 1000, response_schema,
+            raw_output,
+            parsed,
+            "ollama",
+            OLLAMA_MODEL,
+            tool_origin,
+            mode,
+            combined_prompt,
+            (time.monotonic() - t0) * 1000,
+            response_schema,
             trace_recursion_depth,
         )
     except LLMUnavailableError:

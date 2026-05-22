@@ -308,13 +308,17 @@ class DossierEngine:
             state=(
                 "SUCCESS"
                 if eureka_data["level"] == "FORGED"
-                else "PARTIAL" if eureka_data["level"] == "PARTIAL" else "SABAR"
+                else "PARTIAL"
+                if eureka_data["level"] == "PARTIAL"
+                else "SABAR"
             ),
             stage="222_REALITY",
             verdict=(
                 "SEAL"
                 if eureka_data["level"] == "FORGED"
-                else "PARTIAL" if total_claims > 0 else "SABAR"
+                else "PARTIAL"
+                if total_claims > 0
+                else "SABAR"
             ),
             message=eureka_data["insight"],
             errors=[],

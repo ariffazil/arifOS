@@ -255,7 +255,7 @@ async def main():
     print(f"\nTotal: {total_tests}")
     print(f"Passed: {summary['passed']} ✅")
     print(f"Failed: {summary['failed']} ❌")
-    print(f"Pass Rate: {summary['pass_rate']*100:.1f}%")
+    print(f"Pass Rate: {summary['pass_rate'] * 100:.1f}%")
 
     print("\nBy Floor:")
     for floor, data in summary["by_floor"].items():

@@ -311,7 +311,7 @@ difficulty: {difficulty}
 prerequisites: {prerequisites}
 tags: {tags}
 sources: {sources}
-last_sync: {datetime.now().strftime('%Y-%m-%d')}
+last_sync: {datetime.now().strftime("%Y-%m-%d")}
 confidence: {confidence}
 ---
 """

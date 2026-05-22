@@ -583,9 +583,7 @@ class CorroborationSpec:
 class ConflictPolicy:
     """Conflict resolution policy."""
 
-    mode: str = (
-        "prefer_higher_rank"  # or: prefer_newer_if_same_rank, hold_on_conflict, summarize_disagreement
-    )
+    mode: str = "prefer_higher_rank"  # or: prefer_newer_if_same_rank, hold_on_conflict, summarize_disagreement
 
 
 @dataclass
@@ -639,9 +637,7 @@ class TemporalGrounding:
 
     query_time_class: TimeScope = TimeScope.TIMELESS
     detected_dates: list[str] = field(default_factory=list)
-    effective_reference_time: str = field(
-        default_factory=lambda: datetime.now(UTC).isoformat()
-    )
+    effective_reference_time: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     freshness_required: bool = False
     staleness_risk: StalenessRisk = StalenessRisk.NONE
     temporal_notes: list[str] = field(default_factory=list)

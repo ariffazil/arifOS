@@ -63,6 +63,7 @@ def _fake_embedding(text: str) -> list[float]:
     Texts with shared words get higher cosine similarity.
     """
     import re
+
     words = re.findall(r"[a-zA-Z0-9$]+", text.lower())
     vec = [0.0] * 1024
     for w in words:

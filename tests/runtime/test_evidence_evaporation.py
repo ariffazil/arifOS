@@ -43,9 +43,9 @@ class TestVectorBridgeExists:
         )
         file_on_disk = real_path.exists()
         sys.stderr.write(f"[BRIDGE_PROBE] vector_bridge.py exists={file_on_disk}\n")
-        assert (
-            file_on_disk
-        ), "vector_bridge.py should exist after Phase 1 — this test proves the bridge was created"
+        assert file_on_disk, (
+            "vector_bridge.py should exist after Phase 1 — this test proves the bridge was created"
+        )
 
     def test_vector_bridge_is_importable(self):
         """PROVE: vector_bridge module imports and exposes auto_sync_bundle."""
@@ -54,9 +54,9 @@ class TestVectorBridgeExists:
         sys.stderr.write(
             f"[BRIDGE_PROBE] VECTOR_SYNC_AVAILABLE={reality_handlers.VECTOR_SYNC_AVAILABLE}\n"
         )
-        assert (
-            reality_handlers.VECTOR_SYNC_AVAILABLE is True
-        ), "VECTOR_SYNC_AVAILABLE should be True after Phase 1"
+        assert reality_handlers.VECTOR_SYNC_AVAILABLE is True, (
+            "VECTOR_SYNC_AVAILABLE should be True after Phase 1"
+        )
 
         # auto_sync_bundle must be a real function, not the no-op stub
         assert callable(reality_handlers.auto_sync_bundle)
@@ -68,9 +68,9 @@ class TestVectorBridgeExists:
 
         import inspect
 
-        assert inspect.iscoroutinefunction(
-            reality_handlers.auto_sync_bundle
-        ), "auto_sync_bundle must be async"
+        assert inspect.iscoroutinefunction(reality_handlers.auto_sync_bundle), (
+            "auto_sync_bundle must be async"
+        )
 
         # Verify it runs without error in dry_run mode
         from arifosmcp.schemas.evidence_bundle import CanonicalEvidenceBundle
@@ -382,9 +382,9 @@ class TestPhase2AuthorizationGates:
             bundle_id="test",
         )
         status = r.compute_status()
-        assert (
-            status == IngestStatus.BLOCKED_AUTH_REQUIRED
-        ), f"Expected BLOCKED_AUTH_REQUIRED when authorized=False, got {status}"
+        assert status == IngestStatus.BLOCKED_AUTH_REQUIRED, (
+            f"Expected BLOCKED_AUTH_REQUIRED when authorized=False, got {status}"
+        )
         sys.stderr.write("[PHASE2] test_dry_run_false_authorized_false_returns_blocked PASSED\n")
 
     def test_session_verified_false_returns_blocked(self):

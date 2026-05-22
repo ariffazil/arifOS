@@ -268,9 +268,7 @@ def _ensure_active_record(session_id: str) -> dict[str, Any] | None:
                         "authority_level": recovered.get("lvl", "low"),
                         "verified": recovered.get("v", False),
                         "recovered_from_token": True,
-                        "expires_at": (
-                            datetime.now(UTC) + timedelta(minutes=30)
-                        ).isoformat(),
+                        "expires_at": (datetime.now(UTC) + timedelta(minutes=30)).isoformat(),
                     }
                     # Cache it locally
                     with _STORE_LOCK:

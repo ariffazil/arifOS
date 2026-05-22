@@ -148,7 +148,9 @@ def _build_claim_bundle(
     consensus_claim = (
         claims[0]
         if len(claims) == 1
-        else "; ".join(claims[:3]) if claims else f"No grounded claims for: {query}"
+        else "; ".join(claims[:3])
+        if claims
+        else f"No grounded claims for: {query}"
     )
     return {
         "query": query,
@@ -225,13 +227,15 @@ def _detect_contradictions(organs: dict[str, dict]) -> list[dict]:
                 words_b = set(claim_b.split())
                 overlap = words_a & words_b
                 if len(overlap) >= 3:
-                    contradictions.append({
-                        "between": [name_a, name_b],
-                        "claim_a": claim_a[:120],
-                        "claim_b": claim_b[:120],
-                        "overlap": list(overlap)[:10],
-                        "severity": round(min(1.0, (conf_a + conf_b) / 2.0), 4),
-                    })
+                    contradictions.append(
+                        {
+                            "between": [name_a, name_b],
+                            "claim_a": claim_a[:120],
+                            "claim_b": claim_b[:120],
+                            "overlap": list(overlap)[:10],
+                            "severity": round(min(1.0, (conf_a + conf_b) / 2.0), 4),
+                        }
+                    )
 
     return contradictions
 
@@ -757,9 +761,7 @@ async def execute(
             "external_evidence": external_evidence,
             "tri_witness_report": tri_witness_report,
             "f2_truth_confidence": f2_truth_confidence,
-            "grounding_status": (
-                "CONTRADICTED" if contradictions else grounding_status
-            ),
+            "grounding_status": ("CONTRADICTED" if contradictions else grounding_status),
         }
 
         if earth_claim:

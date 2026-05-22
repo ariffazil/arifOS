@@ -84,9 +84,9 @@ class TestRG01SearchReturnsGovernanceDict:
         assert len(results) > 0, "Expected at least one result"
 
         for item in results:
-            assert (
-                "_governance" in item
-            ), f"Result item missing _governance: {item.get('memory_id')}"
+            assert "_governance" in item, (
+                f"Result item missing _governance: {item.get('memory_id')}"
+            )
             gov = item["_governance"]
             assert "verdict" in gov, f"Missing verdict in _governance: {gov}"
             assert gov["verdict"] in (
@@ -184,9 +184,9 @@ class TestRG01SacredMemoryBlocked:
             None,
         )
         if sacred_entry:
-            assert (
-                sacred_entry["verdict"] == "BLOCK"
-            ), f"Sacred should be BLOCKED, got: {sacred_entry['verdict']}"
+            assert sacred_entry["verdict"] == "BLOCK", (
+                f"Sacred should be BLOCKED, got: {sacred_entry['verdict']}"
+            )
 
     def test_sacred_allowed_for_arif(self):
         """Sacred memory must appear for Arif (authorized actor)."""
@@ -234,12 +234,12 @@ class TestRG01GovernanceReportSurfaces:
         # Response is wrapped: result["result"] holds the inner memory result
         inner = result.get("result", {})
         assert "results" in inner, "search must return results inside result"
-        assert (
-            "_governance_report" in inner or "governance" in inner
-        ), "arif_memory_recall(search) must surface governance report"
-        assert (
-            "_escalation_queue" in inner or "escalation_queue" in inner
-        ), "arif_memory_recall(search) must surface escalation queue"
+        assert "_governance_report" in inner or "governance" in inner, (
+            "arif_memory_recall(search) must surface governance report"
+        )
+        assert "_escalation_queue" in inner or "escalation_queue" in inner, (
+            "arif_memory_recall(search) must surface escalation queue"
+        )
 
     def test_arif_memory_recall_recall_mode(self):
         """arif_memory_recall(mode='recall') must return _governance verdict."""
@@ -254,9 +254,9 @@ class TestRG01GovernanceReportSurfaces:
 
         assert result["tool"] == "arif_memory_recall"
         inner = result.get("result", {})
-        assert (
-            "_governance" in inner or "verdict" in inner or "found" in inner
-        ), "arif_memory_recall(recall) must surface governance verdict"
+        assert "_governance" in inner or "verdict" in inner or "found" in inner, (
+            "arif_memory_recall(recall) must surface governance verdict"
+        )
 
     def test_arif_memory_recall_audit_mode(self):
         """arif_memory_recall(mode='audit') must return escalation queue."""
@@ -271,9 +271,9 @@ class TestRG01GovernanceReportSurfaces:
         assert result["tool"] == "arif_memory_recall"
         inner = result.get("result", {})
         assert inner.get("mode") == "audit", "audit mode must set mode=audit in result"
-        assert (
-            "escalation_queue" in inner or "escalation" in inner
-        ), "audit mode must return escalation_queue"
+        assert "escalation_queue" in inner or "escalation" in inner, (
+            "audit mode must return escalation_queue"
+        )
 
 
 class TestRG01EscalationQueueSurfaces:

@@ -676,8 +676,7 @@ class AgiReplyEnvelopeAgent(BaseModel):
     action_output: dict[str, Any] | None = Field(
         default=None,
         description=(
-            "Structured action: {action, params, confidence, reversible, "
-            "escalate_if, next_agent}"
+            "Structured action: {action, params, confidence, reversible, escalate_if, next_agent}"
         ),
     )
 

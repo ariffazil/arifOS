@@ -92,7 +92,9 @@ def _anti_sink_topology(
 
     # Role scarcity: if automation > 80% and human steps <= 1
     auto_ratio = auto_steps / total if total else 0.0
-    scarcity_risk = 1.0 if (auto_ratio > 0.8 and human_steps <= 1) else auto_ratio if auto_ratio > 0.5 else 0.0
+    scarcity_risk = (
+        1.0 if (auto_ratio > 0.8 and human_steps <= 1) else auto_ratio if auto_ratio > 0.5 else 0.0
+    )
 
     # Chokepoints: steps with single dependency
     chokepoints = sum(
@@ -137,6 +139,7 @@ def _extractive_drift_diagnostic(
 
     # Centralization: single agent dominates
     from collections import Counter
+
     counts = Counter(agents_per_step)
     dominant = counts.most_common(1)[0][1] if counts else 0
     centralization = dominant / len(steps) if steps else 0.0

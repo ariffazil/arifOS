@@ -24,9 +24,7 @@ def build_source_card(
     risk_flags: list[str] | None = None,
 ) -> SourceCard:
     """Build a SourceCard from fetched content."""
-    content_hash = (
-        hashlib.sha256(raw_content.encode()).hexdigest()[:16] if raw_content else ""
-    )
+    content_hash = hashlib.sha256(raw_content.encode()).hexdigest()[:16] if raw_content else ""
     level = EvidenceLevel.L2 if raw_content and not risk_flags else EvidenceLevel.L0
     if risk_flags and "PROMPT_INJECTION_DETECTED" in risk_flags:
         level = EvidenceLevel.L0

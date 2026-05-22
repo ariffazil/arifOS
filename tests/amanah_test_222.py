@@ -260,8 +260,8 @@ def run_tests():
 
         status = "✅" if gov_score == 1.0 else "❌"
         print(
-            f"{status} {tid}: verdict={verdict} expected={scen.get('expect_verdict','?')} "
-            f"tri={metrics.get('tri_witness_score','N/A')} f2_ok={f2_ok} f9_ok={f9_ok} "
+            f"{status} {tid}: verdict={verdict} expected={scen.get('expect_verdict', '?')} "
+            f"tri={metrics.get('tri_witness_score', 'N/A')} f2_ok={f2_ok} f9_ok={f9_ok} "
             f"secrets={secrets_ok} [{elapsed:.1f}s]"
         )
 

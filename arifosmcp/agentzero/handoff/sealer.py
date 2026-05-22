@@ -286,7 +286,7 @@ class HandoffSealer:
         if receipt.is_expired():
             return (
                 False,
-                f"Receipt expired (age={(time.time()-receipt.timestamp):.1f}s)",
+                f"Receipt expired (age={(time.time() - receipt.timestamp):.1f}s)",
             )
 
         # 2. Signature verification

@@ -19,10 +19,9 @@ def test_megatools_are_exactly_11():
 
 def test_legacy_surface_coverage_is_100_percent():
     unmapped = iter_unmapped_legacy_tools()
-    assert (
-        not unmapped
-    ), "❌ CAPABILITY_MAP coverage is incomplete. Unmapped legacy tool(s):\n" + "\n".join(
-        f"- {t}" for t in unmapped
+    assert not unmapped, (
+        "❌ CAPABILITY_MAP coverage is incomplete. Unmapped legacy tool(s):\n"
+        + "\n".join(f"- {t}" for t in unmapped)
     )
 
 
@@ -59,6 +58,6 @@ def test_every_megatool_has_modes_declared():
 def test_modes_are_nonempty_strings(megatool: str):
     modes = MEGA_TOOL_MODES[megatool]
     assert modes, f"{megatool} must have at least one mode"
-    assert all(
-        isinstance(m, str) and m.strip() for m in modes
-    ), f"{megatool} has invalid mode(s): {modes}"
+    assert all(isinstance(m, str) and m.strip() for m in modes), (
+        f"{megatool} has invalid mode(s): {modes}"
+    )

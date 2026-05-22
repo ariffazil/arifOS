@@ -106,8 +106,7 @@ def resolve_verdict_conflict(
         trust_consequences={
             "dissenter_trust_adjustment": 0.0,
             "note": (
-                "Disagreement is healthy. "
-                "Only pattern of repeated dissent-when-wrong is penalized."
+                "Disagreement is healthy. Only pattern of repeated dissent-when-wrong is penalized."
             ),
         },
         escalation_required=escalation,

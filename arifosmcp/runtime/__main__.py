@@ -305,12 +305,21 @@ def _run_minimal_stdio_server() -> None:
 
         # ── initialize — declare ALL THREE surfaces ───────────────────────────
         if method == "initialize":
+            client_version = params.get("protocolVersion")
+            supported_versions = ["2024-11-05", "2025-11-25"]
+
+            # Dynamic negotiation: use client's version if supported, otherwise fallback to "2024-11-05"
+            if client_version in supported_versions:
+                negotiated_version = client_version
+            else:
+                negotiated_version = "2024-11-05"
+
             send(
                 {
                     "jsonrpc": "2.0",
                     "id": request_id,
                     "result": {
-                        "protocolVersion": mcp_types.LATEST_PROTOCOL_VERSION,
+                        "protocolVersion": negotiated_version,
                         "capabilities": {
                             "tools": {"listChanged": True},
                             "resources": {"subscribe": True, "listChanged": True},

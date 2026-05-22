@@ -287,18 +287,18 @@ async def arif_mind_reason(
     """
     if mode == "metabolize":
         from arifosmcp.schemas.mind_metabolism import MindRequest
+
         request = MindRequest(
             query=query,
             mode=mode,
             session_id=session_id,
             actor_id=actor_id,
-            reasoning_control={"depth": depth}
+            reasoning_control={"depth": depth},
         )
         v2_resp = await arif_mind_reason_v2(request)
         return v2_resp.model_dump()
 
     timestamp = datetime.datetime.now(datetime.UTC).isoformat()
-
 
     # Build the reasoning prompt
     user_prompt = f"""QUERY: {query}
@@ -490,37 +490,48 @@ async def arif_mind_reason_structured(
 async def arif_mind_reason_v2(request: MindRequest) -> MindResponse:
     """
     333 MIND v2 - Cognitive Metabolism Kernel.
-    
+
     Sequential layers: parse -> abstract -> attest -> abduct -> contrast -> verify -> synthesize -> handoff
     """
     trace_id = str(uuid.uuid4())[:12]
-    
+
     # Initialize Thinking Session
     session = thinking_manager.start_session(
         problem=request.query,
         context=request.context.model_dump(),
-        arifos_session_id=request.session_id
+        arifos_session_id=request.session_id,
     )
-    
+
     # --- LAYER 1: METABOLIZE ---
     metab_envelope = await call_llm(
         system=SYSTEM_PROMPT_METABOLIZE,
         user=f"QUERY: {request.query}\nCONTEXT: {request.context.model_dump()}",
         response_schema=MetabolizedContext.model_json_schema(),
-        tool_origin="333 MIND_METABOLIZE"
+        tool_origin="333 MIND_METABOLIZE",
     )
     metabolized = MetabolizedContext(**metab_envelope.parsed_output)
-    thinking_manager.add_step(session.session_id, "analysis", f"Metabolized context: {metabolized.input_summary}")
-    
+    thinking_manager.add_step(
+        session.session_id, "analysis", f"Metabolized context: {metabolized.input_summary}"
+    )
+
     # --- LAYER 2: ABSTRACT ---
     abs_envelope = await call_llm(
         system=SYSTEM_PROMPT_ABSTRACT,
         user=f"QUERY: {request.query}\nMETABOLIZED: {metabolized.model_dump()}",
-        response_schema={"type": "object", "properties": {"abstractions": {"type": "array", "items": AbstractionCard.model_json_schema()}}},
-        tool_origin="333 MIND_ABSTRACT"
+        response_schema={
+            "type": "object",
+            "properties": {
+                "abstractions": {"type": "array", "items": AbstractionCard.model_json_schema()}
+            },
+        },
+        tool_origin="333 MIND_ABSTRACT",
     )
-    abstractions = [AbstractionCard(**a) for a in abs_envelope.parsed_output.get("abstractions", [])]
-    thinking_manager.add_step(session.session_id, "analysis", f"Identified {len(abstractions)} abstractions.")
+    abstractions = [
+        AbstractionCard(**a) for a in abs_envelope.parsed_output.get("abstractions", [])
+    ]
+    thinking_manager.add_step(
+        session.session_id, "analysis", f"Identified {len(abstractions)} abstractions."
+    )
 
     # --- LAYER 3: ATTEST ---
     attestations = []
@@ -528,11 +539,20 @@ async def arif_mind_reason_v2(request: MindRequest) -> MindResponse:
         att_envelope = await call_llm(
             system=SYSTEM_PROMPT_ATTEST,
             user=f"EVIDENCE: {request.evidence.model_dump()}\nABSTRACTIONS: {[a.model_dump() for a in abstractions]}",
-            response_schema={"type": "object", "properties": {"attestations": {"type": "array", "items": AttestationCard.model_json_schema()}}},
-            tool_origin="333 MIND_ATTEST"
+            response_schema={
+                "type": "object",
+                "properties": {
+                    "attestations": {"type": "array", "items": AttestationCard.model_json_schema()}
+                },
+            },
+            tool_origin="333 MIND_ATTEST",
         )
-        attestations = [AttestationCard(**a) for a in att_envelope.parsed_output.get("attestations", [])]
-        thinking_manager.add_step(session.session_id, "verification", f"Bound {len(attestations)} attestations.")
+        attestations = [
+            AttestationCard(**a) for a in att_envelope.parsed_output.get("attestations", [])
+        ]
+        thinking_manager.add_step(
+            session.session_id, "verification", f"Bound {len(attestations)} attestations."
+        )
 
     # --- LAYER 4: ABDUCT ---
     abductions = []
@@ -540,18 +560,30 @@ async def arif_mind_reason_v2(request: MindRequest) -> MindResponse:
         abd_envelope = await call_llm(
             system=SYSTEM_PROMPT_ABDUCT,
             user=f"QUERY: {request.query}\nMETABOLIZED: {metabolized.model_dump()}\nATTESTATIONS: {[a.model_dump() for a in attestations]}",
-            response_schema={"type": "object", "properties": {"abductions": {"type": "array", "items": AbductiveHypothesis.model_json_schema()}}},
-            tool_origin="333 MIND_ABDUCT"
+            response_schema={
+                "type": "object",
+                "properties": {
+                    "abductions": {
+                        "type": "array",
+                        "items": AbductiveHypothesis.model_json_schema(),
+                    }
+                },
+            },
+            tool_origin="333 MIND_ABDUCT",
         )
-        abductions = [AbductiveHypothesis(**a) for a in abd_envelope.parsed_output.get("abductions", [])]
-        thinking_manager.add_step(session.session_id, "hypothesis", f"Generated {len(abductions)} abductive hypotheses.")
+        abductions = [
+            AbductiveHypothesis(**a) for a in abd_envelope.parsed_output.get("abductions", [])
+        ]
+        thinking_manager.add_step(
+            session.session_id, "hypothesis", f"Generated {len(abductions)} abductive hypotheses."
+        )
 
     # --- LAYER 5: SYNTHESIZE ---
     syn_envelope = await call_llm(
         system=SYSTEM_PROMPT_SYNTHESIZE,
         user=f"QUERY: {request.query}\nABDUCTIONS: {[a.model_dump() for a in abductions]}\nATTESTATIONS: {[a.model_dump() for a in attestations]}",
         response_schema=MindSynthesis.model_json_schema(),
-        tool_origin="333 MIND_SYNTHESIZE"
+        tool_origin="333 MIND_SYNTHESIZE",
     )
     synthesis = MindSynthesis(**syn_envelope.parsed_output)
     thinking_manager.add_step(session.session_id, "conclusion", synthesis.bounded_answer)
@@ -559,21 +591,35 @@ async def arif_mind_reason_v2(request: MindRequest) -> MindResponse:
     # Convert session steps to CognitiveLayers
     layers = []
     for step in session.steps:
-        layers.append(CognitiveLayer(
-            layer=step.step_number,
-            name=step.step_type,
-            operation=step.step_type,
-            output=step.content,
-            confidence_after=step.quality_score,
-            delta_confidence=step.f2_truth_score
-        ))
+        layers.append(
+            CognitiveLayer(
+                layer=step.step_number,
+                name=step.step_type,
+                operation=step.step_type,
+                output=step.content,
+                confidence_after=step.quality_score,
+                delta_confidence=step.f2_truth_score,
+            )
+        )
 
     # Determine Next Actions
     next_actions = [
-        NextAction(tool="888_JUDGE", mode="deliberate", reason="Final constitutional gate required", required=True)
+        NextAction(
+            tool="888_JUDGE",
+            mode="deliberate",
+            reason="Final constitutional gate required",
+            required=True,
+        )
     ]
     if not request.evidence.evidence_receipts:
-        next_actions.append(NextAction(tool="222_FETCH", mode="search", reason="No evidence bound to reasoning", required=True))
+        next_actions.append(
+            NextAction(
+                tool="222_FETCH",
+                mode="search",
+                reason="No evidence bound to reasoning",
+                required=True,
+            )
+        )
 
     packet = MindPacket(
         query=request.query,
@@ -586,13 +632,13 @@ async def arif_mind_reason_v2(request: MindRequest) -> MindResponse:
         abductions=abductions,
         sequential_layers=layers,
         synthesis=synthesis,
-        next_actions=next_actions
+        next_actions=next_actions,
     )
-    
+
     governance = MindGovernance(
         axioms_used=[a.name for a in abstractions if a.type == "axiom"],
         floors_checked=["F02", "F04", "F07", "F08"],
-        verdict="OK" if synthesis.confidence.get("overall_confidence", 0) > 0.7 else "HOLD"
+        verdict="OK" if synthesis.confidence.get("overall_confidence", 0) > 0.7 else "HOLD",
     )
 
     return MindResponse(
@@ -601,15 +647,12 @@ async def arif_mind_reason_v2(request: MindRequest) -> MindResponse:
         actor_id=request.actor_id,
         trace_id=trace_id,
         mind_packet=packet,
-        governance=governance
+        governance=governance,
     )
 
 
 async def arif_mind_step(
-    session_id: str,
-    step_type: str,
-    content: str,
-    parent_step: int | None = None
+    session_id: str, step_type: str, content: str, parent_step: int | None = None
 ) -> dict[str, Any]:
     """Execute a single bounded reasoning step."""
     step = thinking_manager.add_step(session_id, step_type, content, parent_step=parent_step)
@@ -618,8 +661,9 @@ async def arif_mind_step(
         "step_type": step.step_type,
         "constitutional_verdict": step.constitutional_verdict,
         "f2_truth_score": step.f2_truth_score,
-        "quality_score": step.quality_score
+        "quality_score": step.quality_score,
     }
+
 
 async def arif_mind_trace_get(session_id: str) -> dict[str, Any]:
     """Retrieve the full reasoning trace for a session."""
@@ -634,14 +678,15 @@ async def arif_mind_trace_get(session_id: str) -> dict[str, Any]:
                 "step": s.step_number,
                 "type": s.step_type,
                 "content": s.content,
-                "verdict": s.constitutional_verdict
-            } for s in session.steps
-        ]
+                "verdict": s.constitutional_verdict,
+            }
+            for s in session.steps
+        ],
     }
 
+
 async def arif_mind_claim_attest(
-    claim: str,
-    evidence_receipts: list[dict[str, Any]]
+    claim: str, evidence_receipts: list[dict[str, Any]]
 ) -> AttestationCard:
     """Bind a claim to evidence receipts."""
     user_prompt = f"CLAIM: {claim}\nEVIDENCE: {evidence_receipts}"
@@ -649,33 +694,31 @@ async def arif_mind_claim_attest(
         system=SYSTEM_PROMPT_ATTEST,
         user=user_prompt,
         response_schema=AttestationCard.model_json_schema(),
-        tool_origin="333 MIND_ATTEST"
+        tool_origin="333 MIND_ATTEST",
     )
     return AttestationCard(**envelope.parsed_output)
 
+
 async def arif_mind_contradict_scan(
-    claims: list[str],
-    evidence: list[dict[str, Any]]
+    claims: list[str], evidence: list[dict[str, Any]]
 ) -> list[dict[str, Any]]:
     """Scan for contradictions between claims and evidence."""
     # This would use a specialized prompt or logic
-    return [] # Placeholder
+    return []  # Placeholder
 
-async def arif_mind_handoff_prepare(
-    session_id: str,
-    target_organ: str
-) -> dict[str, Any]:
+
+async def arif_mind_handoff_prepare(session_id: str, target_organ: str) -> dict[str, Any]:
     """Package reasoning output for downstream consumption."""
     session = thinking_manager.get_session(session_id)
     if not session:
         return {"error": "Session not found"}
-    
+
     # Compress for HEART/JUDGE
     return {
         "session_id": session_id,
         "target_organ": target_organ,
         "synthesis": session.steps[-1].content if session.steps else "",
-        "verdict_recommendation": "SEAL" if session.quality_score > 0.8 else "HOLD"
+        "verdict_recommendation": "SEAL" if session.quality_score > 0.8 else "HOLD",
     }
 
 

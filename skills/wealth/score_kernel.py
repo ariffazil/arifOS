@@ -210,7 +210,9 @@ def wealth_score_kernel(
         recommendation = (
             "SEAL_CANDIDATE"
             if final > 0.1
-            else "HOLD_CANDIDATE" if final > -0.1 else "HOLD_CANDIDATE"
+            else "HOLD_CANDIDATE"
+            if final > -0.1
+            else "HOLD_CANDIDATE"
         )
 
     # Floor score
@@ -332,7 +334,9 @@ def wealth_decision_packet(
             "verdict_trigger": (
                 "SEAL"
                 if score.recommendation == "SEAL_CANDIDATE"
-                else "HOLD" if score.recommendation == "HOLD_CANDIDATE" else "VOID"
+                else "HOLD"
+                if score.recommendation == "HOLD_CANDIDATE"
+                else "VOID"
             ),
         },
     }

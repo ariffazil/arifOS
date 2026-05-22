@@ -702,7 +702,12 @@ def _compute_omega_state(result: dict[str, Any], target: str) -> dict[str, Any]:
     p_truth = max(0.0, min(1.0, p_truth))
 
     # Determine Ω state
-    if p_truth < 0.60 or max_severity >= 3 or scar_risk == "high" or (is_self and mutation_requested):
+    if (
+        p_truth < 0.60
+        or max_severity >= 3
+        or scar_risk == "high"
+        or (is_self and mutation_requested)
+    ):
         omega = "Ω₂"
         state = "HIGH_UNCERTAINTY"
         action = "HOLD"
@@ -774,7 +779,10 @@ async def arif_heart_critique(
     # Recursion clamp (Eureka 2026-05-21)
     if trace_recursion_depth > 2:
         return _heart_fallback(
-            mode=mode, target=target or "", context_type=_ct, trace_recursion_depth=trace_recursion_depth
+            mode=mode,
+            target=target or "",
+            context_type=_ct,
+            trace_recursion_depth=trace_recursion_depth,
         )
 
     try:

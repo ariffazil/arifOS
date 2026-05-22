@@ -800,7 +800,9 @@ class SequentialThinkingEvaluator:
             "overall_winner": (
                 "arifOS"
                 if r.arifos_total > r.sequential_total
-                else "Sequential" if r.sequential_total > r.arifos_total else "Tie"
+                else "Sequential"
+                if r.sequential_total > r.arifos_total
+                else "Tie"
             ),
         }
 
@@ -1205,7 +1207,7 @@ async def run_all_evals(
     if include_memory_bridge:
         mem_summary = results["memory_bridge"]["summary"]
         print("\nMemory Bridge:")
-        print(f"  Pass rate: {mem_summary['pass_rate']*100:.0f}%")
+        print(f"  Pass rate: {mem_summary['pass_rate'] * 100:.0f}%")
         print(f"  Avg latency: {mem_summary['avg_latency_ms']:.1f}ms")
 
     return results
@@ -1322,7 +1324,7 @@ async def main():
     # Memory bridge summary
     if memory_report:
         print("\nMemory Bridge:")
-        print(f"  Pass rate: {memory_report['summary']['pass_rate']*100:.0f}%")
+        print(f"  Pass rate: {memory_report['summary']['pass_rate'] * 100:.0f}%")
         for rec in memory_report["recommendations"]:
             print(f"  {rec}")
 
