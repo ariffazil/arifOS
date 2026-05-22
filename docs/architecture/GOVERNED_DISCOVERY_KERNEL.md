@@ -64,5 +64,37 @@ The GDK is realized through the **Compass** mode of the observation tool. It col
 - **Available is not Allowed**: Discovery may reveal a tool, but only governance can authorize its use.
 - **Access is not Authority**: A session credential does not create sovereign permission.
 
+## 5. The Power-Law Embodiment Paradox
+
+As an agent gains more tools, its capability increases through a small number of dominant high-leverage tools, while its complexity and risk expand across the entire tool-space.
+
+```text
+Capability concentrates.
+Risk propagates.
+Governance must discriminate.
+```
+
+### 5.1 Power-Law Distribution of Tool Usefulness
+
+Tool leverage is not evenly distributed; it follows a heavy-tailed power-law distribution. A tiny fraction of tools (the "Survival Organs") provide the vast majority of execution value and carry almost all the existential risk:
+
+| Tool Tier | Components | Governance Policy |
+| :--- | :--- | :--- |
+| **Survival Organs (Top 1–5)** | Code execution, file mutations, web search, database query, messaging, payments | **Strictly gated**: requires active credential verification, semantic risk scanning, and F13 human confirmation. |
+| **Occasional Limbs** | Specialized API wrappers, domain science runners, scheduling | **Medium gating**: auditable execution under session TTL boundaries. |
+| **Long-Tail Accessories** | Passive data parsers, formatting, cosmetic tools | **Low gating**: transparent access, background audit logging. |
+
+### 5.2 Dangerous Asymmetry
+
+In a power-law system, a single high-leverage tool controls the entire safety envelope of the organism. A single database mutation can wipe production; a single deployment can break active services. 
+
+Therefore, GDK discovery is never neutral: it actively classifies tools into risk-weighted visibility pools, treating dominant tools like vital organs rather than flat accessories:
+* **High Value, Low Risk** -> Freely discoverable and executing.
+* **High Value, High Risk** -> Requires human approval / explicit witness consensus.
+* **Low Value, Low Risk** -> Quietly available, low footprint.
+* **Low Value, High Risk** -> Heavily gated or completely blocked.
+
+> **"The few tools that give the agent power are also the few tools that can break the world."**
+
 ---
-**DITEMPA BUKAN DIBERI — 999 SEAL GDK ALIVE** ⚒️
+**DITEMPA BUKAN DIBERI — GOVERNED TOOL EMBODIMENT LOOP CODIFIED & ACTIVE ⚒️**
