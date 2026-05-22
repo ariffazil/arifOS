@@ -22,6 +22,14 @@ epistemic_status: CLAIM
 
 ---
 
+## Problem / Solution
+
+**Problem:** Your AI agent can send emails, delete files, call APIs, and spend money. One bad prompt injection or hallucinated tool call can wipe a database, leak secrets, or send a message you never approved.
+
+**Solution:** arifOS is a Python guardrail that wraps every tool call. Before your agent acts, arifOS checks it against 13 safety rules (Floors F1–F13). Reversible actions go through fast. Irreversible or risky actions get paused (**`HOLD`**) until a human approves them, or blocked (**`VOID`**) if they violate hard safety limits.
+
+---
+
 ## What This Is
 
 arifOS is a constitutional governance kernel for AI agents. It wraps every tool call, task execution, and agent action under 13 hard and soft constitutional invariants (Floors F1–F13). Think of it as the judge and auditor that sits between every AI agent and every action it wants to take.
@@ -37,7 +45,12 @@ User / Agent Intent
  (seal)     (verdict)    (cost)   (red-team)   (execute)
 ```
 
-**HOLD** = stop and ask Arif. **VOID** = never. **SEAL** = approved and recorded.
+| Verdict | What happens | Example |
+|---------|-------------|---------|
+| **SEAL** | Execute and record audit trail. | Routine, reversible read operation. |
+| **HOLD** | Pause and ask for human approval. | Irreversible action like `send_email` or `delete_database`. |
+| **VOID** | Block permanently. | Hard safety violation (e.g., privilege escalation). |
+| **SABAR** | Retry with adjustments. | Soft floor miss — add missing context and re-submit. |
 
 ---
 
@@ -50,6 +63,14 @@ User / Agent Intent
 | VAULT999 immutable ledger | Earth-science interpretation → [GEOX](https://github.com/ariffazil/geox) |
 | `smithery.yaml` public manifest | Economic modeling → [WEALTH](https://github.com/ariffazil/wealth) |
 | A2A federation mesh routing | Human readiness → WELL |
+
+---
+
+## Who is this for?
+
+- **Python developers building AI agents** — Add `arifos.govern(...)` around your tool calls to enforce reversible-first safety.
+- **DevOps / Platform engineers** — Run arifOS as an [MCP](https://modelcontextprotocol.io) server to gate all agent actions in your infrastructure.
+- **AI safety researchers** — Experiment with constitutional constraints, tri-witness consensus, and adversarial red-teaming.
 
 ---
 
@@ -106,15 +127,41 @@ Soft floors return **SABAR** with a reason.
 # Install from PyPI
 pip install arifos
 
+# Run MCP server (HTTP, port 8080)
+python -m arifosmcp.server
+```
+
+### Hello World — Govern a tool call in Python
+
+```python
+from arifosmcp.tools import arif_session_init, arif_judge_deliberate
+
+# 1. Start a governed session
+session = arif_session_init(actor="dev@example.com")
+
+# 2. Judge an action BEFORE executing it
+verdict = arif_judge_deliberate(
+    session=session,
+    intent="Send email to CEO",
+    action="send_email",
+    reversible=False,
+)
+
+# 3. Act only on SEAL
+if verdict["verdict"] == "SEAL":
+    send_email(...)           # Safe to proceed
+elif verdict["verdict"] == "HOLD":
+    ask_human_for_approval()  # Paused for review
+else:
+    log_and_block()           # VOID or SABAR
+```
+
+**Prerequisites:** Python 3.11+, optional Docker, optional Qdrant for semantic memory.
+
+```bash
 # Install from source (dev, uv-managed)
 uv sync --extra dev
 # or: pip install -e ".[dev]"
-
-# Run MCP server (HTTP, port 8080)
-python -m arifosmcp.server
-
-# Run MCP server (stdio — for Claude Desktop, Cursor, etc.)
-python -m arifosmcp.__main__ --mode stdio
 
 # Run tests
 pytest tests/ -q --tb=short
