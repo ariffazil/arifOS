@@ -1,6 +1,6 @@
 {
   "name": "@arifos/mcp",
-  "version": "2026.05.16",
+  "version": "2026.05.22",
   "description": "arifOS MCP Client v2026.05.01 — TypeScript adapter for 13 Canonical Tools (arif_verb_noun), 13 Constitutional Floors (F1-F13), ConstitutionKernel dynamic enforcement, Protocol Trinity (MCP + A2A + WebMCP), VAULT999 immutable ledger.",
   "keywords": [
     "mcp",
@@ -12,11 +12,11 @@
   "homepage": "https://arifos.arif-fazil.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ariffazil/arifosmcp.git",
+    "url": "https://github.com/ariffazil/arifos.git",
     "directory": "arifosmcp/packages/npm/arifos-mcp"
   },
   "bugs": {
-    "url": "https://github.com/ariffazil/arifosmcp/issues"
+    "url": "https://github.com/ariffazil/arifos/issues"
   },
   "license": "AGPL-3.0-only",
   "author": "Muhammad Arif bin Fazil <arifos@arif-fazil.com>",

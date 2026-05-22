@@ -502,10 +502,58 @@ class ConstitutionalFloors:
     ) -> FloorResult:
         threshold = THRESHOLDS["F2_TRUTH"]
 
-        query = parameters.get("query", "")
-        has_evidence = bool(query and len(query) > 0)
+        query = parameters.get("query", "") or parameters.get("prompt", "")
 
-        score = 1.0 if has_evidence else 0.3
+        if not query:
+            return FloorResult(
+                floor_id="F2",
+                name="Truth",
+                passed=False,
+                score=0.1,
+                threshold=threshold,
+                details="Evidence check: no query, no evidence",
+            )
+
+        evidence_signals: list[str] = []
+
+        has_source = any(
+            marker in query.lower()
+            for marker in (
+                "http", "https", "src:", "source:", "[ref", "[1]", "[2]", "[3]",
+                "observation from", "measured by", "data from", "according to",
+                "based on", "derived from", "calculated from",
+            )
+        )
+        if has_source:
+            evidence_signals.append("source_attribution")
+
+        has_grounded_claim = any(
+            kw in query.lower()
+            for kw in ("measured", "observed", "computed", "calculated", "demonstrated",
+                       "confirmed by", "verified by", "recorded as")
+        )
+        if has_grounded_claim:
+            evidence_signals.append("grounded_claim")
+
+        has_question_only = query.strip().endswith("?") and not has_source
+        is_rhetorical = (
+            any(kw in query.lower() for kw in ("why do you", "why is", "why does", "why did"))
+            and not has_source
+            and not has_grounded_claim
+        )
+        if is_rhetorical:
+            evidence_signals.append("rhetorical_question")
+
+        signal_count = sum([has_source, has_grounded_claim])
+        if has_question_only or is_rhetorical:
+            score = 0.3
+        elif signal_count >= 2:
+            score = 1.0
+        elif signal_count == 1:
+            score = 0.7
+        else:
+            score = 0.4
+
         passed = score >= threshold
 
         return FloorResult(
@@ -514,7 +562,7 @@ class ConstitutionalFloors:
             passed=passed,
             score=score,
             threshold=threshold,
-            details=f"Evidence check: {'pass' if has_evidence else 'no query evidence'}",
+            details=f"Evidence signals ({len(evidence_signals)}): {', '.join(evidence_signals) if evidence_signals else 'none detected'}",
         )
 
     def _check_f3_witness(self, action: str, parameters: dict[str, Any]) -> FloorResult:
@@ -844,7 +892,18 @@ class ConstitutionalFloors:
         ]
 
         sovereignty_score = sum(1 for s in sovereignty_signals if s) / len(sovereignty_signals)
-        passed = True  # F13 is a VETO floor — always pass by default, sovereign can always override
+
+        ai_self_approval_signals = [
+            actor_id is not None and actor_id.lower() in ("ai", "agent", "model", "assistant", "claude", "grok", "gemini", "kimi"),
+            parameters.get("actor_id", "") in ("ai", "agent", "model", "assistant"),
+        ]
+        is_ai_proposing = any(ai_self_approval_signals)
+        has_sovereign_ack = parameters.get("ack_irreversible", False) is True
+        has_explicit_sovereign = sovereignty_signals[0] or sovereignty_signals[1] or sovereignty_signals[2]
+
+        failed = is_ai_proposing and not has_explicit_sovereign
+
+        passed = not failed
 
         return FloorResult(
             floor_id="F13",
@@ -852,7 +911,10 @@ class ConstitutionalFloors:
             passed=passed,
             score=sovereignty_score,
             threshold=threshold,
-            details=f"Sovereign signals: {sum(1 for s in sovereignty_signals if s)}/{len(sovereignty_signals)}",
+            details=(
+                f"Sovereign signals: {sum(1 for s in sovereignty_signals if s)}/{len(sovereignty_signals)}"
+                + (" [AI self-approval blocked]" if failed else "")
+            ),
         )
 
     def _calculate_tri_witness(
