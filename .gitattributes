@@ -1,7 +1,34 @@
+# arifOS Line Ending Constitution
+# F2 TRUTH: Files must not lie about their line endings.
+# Enforces LF everywhere. Windows CRLF is VOID.
+
 * text=auto eol=lf
+
 *.sh text eol=lf
 *.py text eol=lf
-Makefile text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
 *.json text eol=lf
 *.yaml text eol=lf
 *.yml text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+Makefile text eol=lf
+Dockerfile text eol=lf
+
+# Binary files — never touch
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.parquet binary
