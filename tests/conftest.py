@@ -13,7 +13,30 @@ import httpx
 import pytest
 
 # Add project root to sys.path for imports when running from repo checkout.
-sys.path.insert(0, str(Path(__file__).parents[1]))
+root_dir = Path(__file__).parents[1].resolve()
+
+# Priority path injection: ensure root is searched BEFORE arifosmcp
+# This avoids the namespace collision with arifosmcp/core
+sys.path = [str(root_dir)] + [p for p in sys.path if p not in (str(root_dir), str(root_dir / "core"))]
+
+# Pre-import core package to lock it in sys.modules and prevent collision with arifosmcp/core
+import core
+
+
+
+# Load .env for tests if available
+env_path = root_dir / ".env"
+if env_path.exists():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(env_path)
+    except ImportError:
+        # Manual fallback if python-dotenv missing
+        with open(env_path, encoding="utf-8") as f:
+            for line in f:
+                if line.strip() and not line.startswith("#"):
+                    key, _, val = line.partition("=")
+                    os.environ[key.strip().replace("export ", "")] = val.strip().strip('"').strip("'")
 
 
 # Silence langsmith/pydantic v1 warning on Python 3.14 (benign in this env)

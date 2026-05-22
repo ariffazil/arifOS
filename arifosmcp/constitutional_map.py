@@ -48,7 +48,9 @@ class Floor(StrEnum):
     F08_GENIUS = "F08"  # Systemic health (G ≥ 0.80)
     F09_ANTIHANTU = "F09"  # Pattern recognition of deception (C_dark ≤ 0.30)
     F10_ONTOLOGY = "F10"  # Structural coherence (category lock / immutability)
-    F11_AUTH = "F11"  # Verify identity (HUMAN_APPROVAL gate)
+    F11_AUDIT = "F11"  # Verify identity + log provenance (HUMAN_APPROVAL gate)
+    F11_AUTH = "F11"  # Legacy compatibility alias
+
     F12_INJECTION = "F12"  # Sanitize inputs (injection_probability < 0.85)
     F13_SOVEREIGN = "F13"  # Human veto absolute (final authority)
 
@@ -390,7 +392,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F01_AMANAH, Floor.F11_AUTH, Floor.F12_INJECTION],
+        "floors": [Floor.F01_AMANAH, Floor.F11_AUDIT, Floor.F12_INJECTION],
         "risk_tier": "critical",
         "irreversible": False,
         "modes": ["init", "resume", "validate", "epoch_open", "epoch_seal"],
@@ -400,14 +402,22 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_sense_observe": {
         "name": "arif_sense_observe",
-        "description": "111_OBSERVE: Multimodal reality observation — web search, VPS vitals, atlas scan. Call this for: web search, checking system state, grounding session in current reality. Do NOT call this for deep evidence retrieval (use arif_evidence_fetch) or reasoning (use arif_mind_reason). Parameters: mode (search|ingest|compass|atlas|entropy_dS|vitals), query, url, layers, session_id, actor_id.",  # noqa: E501
+        "description": "111_OBSERVE: Multimodal reality observation and hybrid discovery. Call this for: web search, local wiki and repo index discovery (hybrid_discovery), checking system state, grounding session in current reality. Hybrid discovery is READ-ONLY evidence retrieval — it finds but does not store. Agents should pass findings to arif_mind_reason or arif_memory_recall as appropriate. Parameters: mode (search|hybrid_discovery|ingest|compass|atlas|entropy_dS|vitals), query, url, layers, session_id, actor_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.OBSERVE,
         "lane": TrinityLane.AGI,
         "floors": [Floor.F02_TRUTH, Floor.F07_HUMILITY],
         "risk_tier": "low",
         "irreversible": False,
-        "modes": ["search", "ingest", "compass", "atlas", "entropy_dS", "vitals"],
+        "modes": [
+            "search",
+            "hybrid_discovery",
+            "ingest",
+            "compass",
+            "atlas",
+            "entropy_dS",
+            "vitals",
+        ],
         "eureka_insight": "F2: τ ≥ 0.95 required. F7: Ω ∈ [0.03, 0.05] = humble.",
         "cognitive_axis": "observe",
         "expose": True,
@@ -572,7 +582,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "authenticated",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.ASI,
-        "floors": [Floor.F11_AUTH, Floor.F13_SOVEREIGN],
+        "floors": [Floor.F11_AUDIT, Floor.F13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": False,
         "modes": ["judge", "validate", "hold", "rules", "armor", "probe", "notify"],
@@ -589,7 +599,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "authenticated",
         "stage": ToolStage.SEAL,
         "lane": TrinityLane.APEX,
-        "floors": [Floor.F01_AMANAH, Floor.F11_AUTH, Floor.F13_SOVEREIGN],
+        "floors": [Floor.F01_AMANAH, Floor.F11_AUDIT, Floor.F13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": True,
         "modes": ["seal", "verify", "ledger", "changelog", "audit"],
@@ -606,7 +616,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "sovereign",
         "stage": ToolStage.FORGE,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F01_AMANAH, Floor.F11_AUTH, Floor.F13_SOVEREIGN],
+        "floors": [Floor.F01_AMANAH, Floor.F11_AUDIT, Floor.F13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": True,
         "modes": [
