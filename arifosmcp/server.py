@@ -279,13 +279,52 @@ try:
     except Exception as e:
         logger.warning(f"Failed to register arifOS Wiki Tools: {e}")
 
-    # ── Diagnostic capabilities folded into canonical 13 tools ────────────────
-    # arif_stack_health_probe  → arif_ops_measure(mode="stack_health")
-    # arif_scan_local_instructions → arif_judge_deliberate(mode="scan_instructions")
-    # arif_organ_consensus     → arif_gateway_connect(mode="consensus")
-    # arif_session_budget      → arif_ops_measure(mode="budget")
-    # Canonical 13 surface enforced above; utility tools registered separately.
-    logger.info("Diagnostic capabilities folded into canonical 13 tools — surface is clean.")
+    # ── Diagnostic tools registered as FastMCP tools ─────────────────────────
+    try:
+        from arifosmcp.tools.health import arif_stack_health_probe as _arif_stack_health_probe
+        mcp.tool(
+            name="arif_stack_health_probe",
+            description=(
+                "777_OPS: Federation stack health and governance probe.\n"
+                "Checks arifOS MCP, organ services, model registry, risk leash, tool registry, and VAULT999 ledger."
+            ),
+            tags={"diagnostic", "read-only"},
+        )(_arif_stack_health_probe)
+
+        from arifosmcp.tools.organ_consensus import arif_organ_consensus as _arif_organ_consensus
+        mcp.tool(
+            name="arif_organ_consensus",
+            description=(
+                "F3 WITNESS: Cross-organ Tri-Witness consensus for proposed actions.\n"
+                "Calls WELL, WEALTH, and GEOX as independent witnesses and aggregates their signals."
+            ),
+            tags={"diagnostic", "read-only"},
+        )(_arif_organ_consensus)
+
+        from arifosmcp.tools.governance_scan import arif_scan_local_instructions as _arif_scan_local_instructions
+        mcp.tool(
+            name="arif_scan_local_instructions",
+            description=(
+                "F12 GUARD: Scans files for local instruction directives and governance violations."
+            ),
+            tags={"diagnostic", "read-only"},
+        )(_arif_scan_local_instructions)
+
+        from arifosmcp.tools.session_budget import arif_session_budget as _arif_session_budget
+        mcp.tool(
+            name="arif_session_budget",
+            description=(
+                "777_OPS: Computes and monitors token, computation, and financial budget for the active session."
+            ),
+            tags={"diagnostic", "read-only"},
+        )(_arif_session_budget)
+
+        logger.info(
+            "Registered diagnostic tools: arif_stack_health_probe, arif_organ_consensus, "
+            "arif_scan_local_instructions, arif_session_budget"
+        )
+    except Exception as e:
+        logger.warning(f"Failed to register arifOS diagnostic tools: {e}")
 
     # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
     try:
