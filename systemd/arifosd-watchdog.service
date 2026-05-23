@@ -1,0 +1,21 @@
+[Unit]
+Description=arifOS watchdog checker (verifies arifosd process is alive)
+# This is the actual watchdog action — runs via timer
+# If arifosd is dead, triggers restart via arifos_watchdog_alert
+After=arifosd.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /workspace/arifOS/arifosd.py --mode watchdog-check
+User=root
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

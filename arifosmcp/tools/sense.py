@@ -472,6 +472,48 @@ def arif_sense_observe(
                 "Verify critical claims with primary sources before proceeding."
             )
 
+# ── STEP 1 KERNEL BRIDGE ────────────────────────────────────────────────
+        # arifOS core/ kernel call — wrapped in compatibility guard.
+        # If import or call fails, tool still returns normally (kernel_bridge = "MISS"/"ERROR").
+        kernel_bridge: str = "MISS"
+        kernel_metrics: dict | None = None
+        try:
+            import sys as _sys
+            from pathlib import Path as _Path
+            _WORK = _Path(__file__).resolve().parents[3]  # /workspace/arifOS
+            if str(_WORK) not in _sys.path:
+                _sys.path.insert(0, str(_WORK))
+            from core.governance_kernel import get_governance_kernel
+            _gk = get_governance_kernel(session_id or "global")
+            _gk.record_event("action", {
+                "tool": "arif_sense_observe",
+                "mode": "hybrid_discovery",
+                "query": q,
+                "actor_id": actor_id,
+            })
+            kernel_result = _gk.evaluate_floors(query=q, options={
+                "session_id": session_id,
+                "actor_id": actor_id,
+                "human_witness": 0.5,
+                "ai_witness": 0.5,
+                "earth_witness": 0.5,
+            })
+            kernel_bridge = "HIT"
+            # Log the kernel function invoked and payload shape
+            print(f"[KERNEL-BRIDGE] arif_sense_observe → core.governance_kernel.evaluate_floors")
+            print(f"[KERNEL-BRIDGE]   query={repr(q[:80])}, payload_keys={list(kernel_result.keys())}")
+            kernel_metrics = {
+                "qdf": kernel_result.get("qdf"),
+                "verdict": kernel_result.get("verdict"),
+                "floors_tau_truth": kernel_result.get("floors", {}).get("tau_truth"),
+                "floors_peace2": kernel_result.get("floors", {}).get("peace2"),
+                "floors_kappa_r": kernel_result.get("floors", {}).get("kappa_r"),
+                "floors_shadow": kernel_result.get("floors", {}).get("shadow"),
+            }
+        except Exception as _e:
+            kernel_bridge = "ERROR"
+            print(f"[KERNEL-BRIDGE-WARN] sense.py → core.governance_kernel: {_e}")
+
         return _ok(
             "arif_sense_observe",
             {
@@ -479,6 +521,8 @@ def arif_sense_observe(
                 "tool": "arif_sense_observe",
                 "mode": "hybrid_discovery",
                 "query": q,
+                "kernel_bridge": kernel_bridge,  # "HIT" | "MISS" | "ERROR"
+                "kernel_metrics": kernel_metrics,  # full metrics if HIT, None if MISS/ERROR
                 "evidence_state": evidence_state,
                 "verdict": verdict,
                 "facts": facts,
@@ -498,12 +542,12 @@ def arif_sense_observe(
                         "matches": web_matches,
                     },
                 },
+                "physics_kernel": physics,
                 "reconciliation": {
                     "state": "NOT_EVALUATED",
                     "contradictions": contradictions,
                     "unknowns": unknowns,
                 },
-                "physics_kernel": physics,
                 "confidence": confidence,
                 "next_safe_action": next_safe_action,
             },

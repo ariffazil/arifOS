@@ -1,0 +1,14 @@
+[Unit]
+Description=arifOS watchdog check every 5 minutes
+# Ensures arifosd stays alive between systemd ticks
+After=arifosd.service
+PartOf=arifosd.service
+
+[Timer]
+# Check every 5 minutes (300s) — arifosd's watchdog is 120s
+OnBootSec=30s
+OnUnitActiveSec=300s
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
