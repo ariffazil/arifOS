@@ -543,6 +543,7 @@ def arif_sense_observe(
                     },
                 },
                 "physics_kernel": physics,
+                "physics": physics,
                 "reconciliation": {
                     "state": "NOT_EVALUATED",
                     "contradictions": contradictions,
@@ -550,6 +551,8 @@ def arif_sense_observe(
                 },
                 "confidence": confidence,
                 "next_safe_action": next_safe_action,
+                "contradictions": contradictions,
+                "unknowns": unknowns,
             },
         )
 
