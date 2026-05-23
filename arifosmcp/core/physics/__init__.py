@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from arifosmcp.core.physics.thermodynamics_hardened import (
-    deduct_thermodynamic_budget,
     get_thermodynamic_budget,
     init_thermodynamic_budget,
 )
@@ -11,5 +10,4 @@ from arifosmcp.core.physics.thermodynamics_hardened import (
 __all__ = [
     "init_thermodynamic_budget",
     "get_thermodynamic_budget",
-    "deduct_thermodynamic_budget",
 ]
