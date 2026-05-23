@@ -1422,25 +1422,117 @@ def arifos_watchdog_alert(reason: str = "watchdog_timer") -> dict:
             "seal": seal.get("entry_id"), "vault_chain": seal.get("chain_hash")}
 
 
-# ── arifos_vps_tick (Phase 1 main loop) ──────────────────────────────────────
+# ── arifos_gate_eval & friends (Phase 2) ───────────────────────────────────────
+
+from collections import defaultdict
+import subprocess
+
+# In-memory tracker for consecutive DOWN ticks
+_ORGAN_DOWN_TRACKER = defaultdict(int)
+
+def arifos_gate_eval(action_intent: dict, context: dict | None = None) -> dict:
+    action_type = action_intent.get("type")
+    if action_type == "RESTART_SERVICE":
+        target = action_intent.get("target")
+        if target not in ARIFOS_ORGANS:
+            return {"verdict": "HOLD", "rationale": f"Unknown target organ: {target}"}
+        return {"verdict": "GO", "rationale": "Restart is a reversible operation (F1_AMANAH passed)."}
+    elif action_type == "ALERT_HERMES":
+        return {"verdict": "GO", "rationale": "Alerts are passive observability signals."}
+    return {"verdict": "HOLD", "rationale": f"Unrecognized action type: {action_type}"}
+
+def arifos_act_dispatch(action_intent: dict, context: dict | None = None) -> dict:
+    gate = arifos_gate_eval(action_intent, context)
+    if gate["verdict"] != "GO":
+        arifos_vault_append(
+            entry_type="act_dispatch_block", tool_name="arifos_act_dispatch",
+            result_status="BLOCKED", risk_class="SAFE",
+            notes=f"Action blocked by gate: {gate['rationale']}",
+            extra={"intent": action_intent, "gate": gate}
+        )
+        return {"status": "BLOCKED", "gate": gate}
+        
+    action_type = action_intent.get("type")
+    result_status = "UNKNOWN"
+    exec_notes = ""
+    
+    if action_type == "RESTART_SERVICE":
+        target = action_intent.get("target")
+        try:
+            subprocess.check_output(["docker", "compose", "restart", target], cwd="/root/compose", text=True, stderr=subprocess.STDOUT, timeout=30)
+            result_status = "OK"
+            exec_notes = f"Successfully restarted {target}"
+        except subprocess.CalledProcessError as e:
+            result_status = "ERROR"
+            exec_notes = f"Restart failed: {e.output}"
+        except FileNotFoundError:
+            result_status = "ERROR"
+            exec_notes = "Restart failed: docker compose not found."
+    elif action_type == "ALERT_HERMES":
+        result_status = "OK"
+        exec_notes = f"Alert generated: {action_intent.get('message')}"
+        
+    arifos_vault_append(
+        entry_type="act_dispatch_exec", tool_name="arifos_act_dispatch",
+        result_status=result_status, risk_class="MUTATION",
+        notes=exec_notes, extra={"intent": action_intent, "gate": gate}
+    )
+    return {"status": result_status, "notes": exec_notes, "gate": gate}
+
+def arifos_recover_escalate(organ: str, status: str) -> dict:
+    if status == "UP":
+        if _ORGAN_DOWN_TRACKER[organ] > 0:
+            _ORGAN_DOWN_TRACKER[organ] = 0
+            arifos_vault_append(
+                entry_type="recover_tracker", tool_name="arifos_recover_escalate",
+                result_status="RECOVERED", risk_class="SAFE",
+                notes=f"Organ {organ} recovered to UP state."
+            )
+        return {"action": "NONE", "down_ticks": 0}
+        
+    if status == "DOWN":
+        _ORGAN_DOWN_TRACKER[organ] += 1
+        down_ticks = _ORGAN_DOWN_TRACKER[organ]
+        
+        if down_ticks == 3:
+            arifos_vault_append(
+                entry_type="recover_escalate", tool_name="arifos_recover_escalate",
+                result_status="ESCALATE_L1", risk_class="SAFE",
+                notes=f"Organ {organ} DOWN for 3 ticks. Issuing RESTART_SERVICE intent."
+            )
+            dispatch_res = arifos_act_dispatch({"type": "RESTART_SERVICE", "target": organ})
+            return {"action": "RESTART_SERVICE", "down_ticks": down_ticks, "dispatch": dispatch_res}
+        elif down_ticks >= 4:
+            arifos_vault_append(
+                entry_type="recover_escalate", tool_name="arifos_recover_escalate",
+                result_status="ESCALATE_L2", risk_class="CRITICAL",
+                notes=f"Organ {organ} DOWN for {down_ticks} ticks (failed restart). Alerting Hermes."
+            )
+            dispatch_res = arifos_act_dispatch({"type": "ALERT_HERMES", "target": organ, "message": f"CRITICAL: {organ} failed to recover."})
+            return {"action": "ALERT_HERMES", "down_ticks": down_ticks, "dispatch": dispatch_res}
+        return {"action": "TRACKING", "down_ticks": down_ticks}
+    return {"action": "NONE", "down_ticks": _ORGAN_DOWN_TRACKER[organ]}
+
+# ── arifos_vps_tick (Phase 2 main loop) ──────────────────────────────────────
 
 def arifos_vps_tick(tick_id: str | None = None, tick_interval: int = DEFAULT_TICK_INTERVAL) -> dict:
     """
-    PHASE 1 TICK — One full observability cycle.
+    PHASE 2 TICK — Observability + Controlled Execution.
 
     Sequence:
       1. daemon self-check  (HEARTBEAT)
       2. machine sense       (SENSE)
       3. organ health pings  (HEARTBEAT)
-      4. observability log   (LOG)
-      5. vault seal          (LOG)
+      4. recovery escalation (RECOVER)
+      5. observability log   (LOG)
+      6. vault seal          (LOG)
 
-    NO autonomous mutations in Phase 1. Observe, log, report.
+    GATE + DISPATCH enabled for safe recovery execution.
     """
     tick_id = tick_id or f"tick-{int(time.time())}"
     epoch   = datetime.now(timezone.utc).isoformat()
     result  = {"tool": "arifos_vps_tick", "canonical": "arifos_vps_tick[DAEMON_LOOP]",
-               "tick_id": tick_id, "epoch": epoch, "phase": 1, "stages": {}}
+               "tick_id": tick_id, "epoch": epoch, "phase": 2, "stages": {}}
 
     _load_metrics()
 
@@ -1451,6 +1543,13 @@ def arifos_vps_tick(tick_id: str | None = None, tick_interval: int = DEFAULT_TIC
     result["stages"]["daemon_health"] = health
     result["stages"]["sense_state"]  = sense
     result["stages"]["organ_ping"]   = organ_ping
+
+    recovery_results = {}
+    for organ_name, organ_res in organ_ping["organs"].items():
+        organ_status = organ_res.get("status", "UNKNOWN")
+        rec_res = arifos_recover_escalate(organ_name, organ_status)
+        recovery_results[organ_name] = rec_res
+    result["stages"]["recovery"] = recovery_results
 
     _DAEMON_METRICS["ticks"]      += 1
     _DAEMON_METRICS["last_tick"]    = epoch
@@ -1474,7 +1573,7 @@ def arifos_vps_tick(tick_id: str | None = None, tick_interval: int = DEFAULT_TIC
     else:
         vault_notes = f"All organs UP. Ticks: {_DAEMON_METRICS['ticks']}"
 
-    disk_max = max((int(d.get("pct", 0)) for d in sense.get("disk", [])), default=0)
+    disk_max = max((int(str(d.get("pct", 0)).replace('%','')) for d in sense.get("disk", [])), default=0)
     mem_total = sense.get("memory_mb", {}).get("total", 0)
     mem_used  = sense.get("memory_mb", {}).get("used", 0)
     mem_pct   = round(mem_used / max(mem_total, 1) * 100, 1) if mem_total > 0 else 0
@@ -1483,7 +1582,8 @@ def arifos_vps_tick(tick_id: str | None = None, tick_interval: int = DEFAULT_TIC
         entry_type="tick", actor="arifOS-vps-daemon", tool_name="arifos_vps_tick",
         result_status="OK" if organ_summary["down"] == 0 else "ANOMALY",
         risk_class="SAFE", notes=vault_notes,
-        extra={"tick_id": tick_id, "phase": 1, "organ_summary": organ_summary,
+        extra={"tick_id": tick_id, "phase": 2, "organ_summary": organ_summary,
+               "recovery_activity": recovery_results,
                "disk_pct_max": disk_max, "memory_used_pct": mem_pct,
                "container_count": sense.get("container_count", 0),
                "vault_events": sense.get("vault", {}).get("events", 0)})
@@ -1505,7 +1605,7 @@ DAEMON_START = time.time()
 DAEMON_METRICS = {"judgments": 0, "holds": 0, "seals": 0, "cautions": 0}
 
 SOCK_PATH  = os.environ.get("ARIFOS_SOCK",  "/run/arifos.sock")
-HTTP_PORT  = int(os.environ.get("ARIFOS_HTTP_PORT", "8081"))
+HTTP_PORT  = int(os.environ.get("ARIFOS_HTTP_PORT", "18081"))
 VAULT_PATH = os.environ.get("ARIFOS_VAULT", "/var/lib/arifos/vault999")
 
 
@@ -1532,32 +1632,6 @@ def run_daemon():
     # Attach pipeline to handlers
     ArifHTTPHandler.pipeline = pipeline
     UnixSocketHandler.pipeline = pipeline
-
-    print("=" * 60)
-    print("arifOS Constitutional Kernel — arifosd v0.1.0")
-    print("SEAL    : seal-20260523T055200-DITEMPA-BUKAN-DIBERI")
-    print(f"EPOCH   : {datetime.now(timezone.utc).isoformat()}")
-    print(f"Socket  : {SOCK_PATH}")
-    print(f"HTTP    : localhost:{HTTP_PORT}")
-    print(f"Vault   : {VAULT_PATH}")
-    print("APEX    : ℐ[∫Ψ⊗ℭdτ]·Θ(κᵣ-0.95) s.t. ΔS_local<0")
-    print("DITEMPA BUKAN DIBERI — 999 SEAL ALIVE")
-    print("=" * 60)
-
-    # Start Unix socket server
-    if os.path.exists(SOCK_PATH):
-        os.unlink(SOCK_PATH)
-    sock_server = socketserver.UnixStreamServer(SOCK_PATH, UnixSocketHandler)
-    os.chmod(SOCK_PATH, 0o770)
-    sock_thread = threading.Thread(target=sock_server.serve_forever, daemon=True)
-    sock_thread.start()
-    print(f"Unix socket listening: {SOCK_PATH}")
-
-    # Start HTTP server
-    http_server = ThreadedHTTPServer(("127.0.0.1", HTTP_PORT), ArifHTTPHandler)
-    http_thread = threading.Thread(target=http_server.serve_forever, daemon=True)
-    http_thread.start()
-    print(f"HTTP health endpoint: http://127.0.0.1:{HTTP_PORT}/health")
 
     print("=" * 60)
     print("arifOS Constitutional Kernel — arifosd v0.2.0-PHASE1")

@@ -508,23 +508,154 @@ def _load_daemon_metrics():
 
 
 # =============================================================================
-# PHASE 1 MAIN LOOP — arifos_vps_tick()
-# This is the observability loop. Runs every tick interval.
-# Does NOT make autonomous mutations. Only observes, logs, and reports.
+# PHASE 2 MAIN LOOP — arifos_vps_tick()
+# Observability loop + Controlled Execution. Runs every tick interval.
 # =============================================================================
+
+# In-memory tracker for consecutive DOWN ticks
+_ORGAN_DOWN_TRACKER = defaultdict(int)
+
+def arifos_gate_eval(action_intent: dict, context: dict | None = None) -> dict:
+    """
+    GATE — Evaluates if a proposed action is safe and constitutional.
+    Phase 2 rules: RESTART_SERVICE is allowed (F1_AMANAH reversible).
+    ALERT_HERMES is allowed.
+    """
+    action_type = action_intent.get("type")
+    
+    if action_type == "RESTART_SERVICE":
+        target = action_intent.get("target")
+        if target not in ARIFOS_ORGANS:
+            return {"verdict": "HOLD", "rationale": f"Unknown target organ: {target}"}
+        # A restart is reversible, so it passes F1_AMANAH
+        return {"verdict": "GO", "rationale": "Restart is a reversible operation (F1_AMANAH passed)."}
+        
+    elif action_type == "ALERT_HERMES":
+        return {"verdict": "GO", "rationale": "Alerts are passive observability signals."}
+        
+    return {"verdict": "HOLD", "rationale": f"Unrecognized action type: {action_type}"}
+
+def arifos_act_dispatch(action_intent: dict, context: dict | None = None) -> dict:
+    """
+    ACT — Central dispatcher for autonomous daemon actions.
+    Must invoke arifos_gate_eval first. Only executes if verdict is GO.
+    """
+    gate = arifos_gate_eval(action_intent, context)
+    
+    if gate["verdict"] != "GO":
+        # Log the block
+        arifos_vault_append(
+            entry_type="act_dispatch_block",
+            tool_name="arifos_act_dispatch",
+            result_status="BLOCKED",
+            risk_class="SAFE",
+            notes=f"Action blocked by gate: {gate['rationale']}",
+            extra={"intent": action_intent, "gate": gate}
+        )
+        return {"status": "BLOCKED", "gate": gate}
+        
+    # Execute if GO
+    action_type = action_intent.get("type")
+    result_status = "UNKNOWN"
+    exec_notes = ""
+    
+    if action_type == "RESTART_SERVICE":
+        target = action_intent.get("target")
+        try:
+            out = subprocess.check_output(
+                ["docker", "compose", "restart", target],
+                cwd="/root/compose", text=True, stderr=subprocess.STDOUT, timeout=30
+            )
+            result_status = "OK"
+            exec_notes = f"Successfully restarted {target}"
+        except subprocess.CalledProcessError as e:
+            result_status = "ERROR"
+            exec_notes = f"Restart failed: {e.output}"
+        except FileNotFoundError:
+            result_status = "ERROR"
+            exec_notes = "Restart failed: docker compose command not found in /root/compose."
+            
+    elif action_type == "ALERT_HERMES":
+        # In phase 2, we just log the alert as a passive signal
+        result_status = "OK"
+        exec_notes = f"Alert generated: {action_intent.get('message')}"
+        
+    # Log the execution
+    arifos_vault_append(
+        entry_type="act_dispatch_exec",
+        tool_name="arifos_act_dispatch",
+        result_status=result_status,
+        risk_class="MUTATION",
+        notes=exec_notes,
+        extra={"intent": action_intent, "gate": gate}
+    )
+    
+    return {"status": result_status, "notes": exec_notes, "gate": gate}
+
+def arifos_recover_escalate(organ: str, status: str) -> dict:
+    """
+    RECOVER — Escalation logic for an organ based on its current status.
+    Called every tick for every organ.
+    """
+    if status == "UP":
+        if _ORGAN_DOWN_TRACKER[organ] > 0:
+            _ORGAN_DOWN_TRACKER[organ] = 0
+            arifos_vault_append(
+                entry_type="recover_tracker",
+                tool_name="arifos_recover_escalate",
+                result_status="RECOVERED",
+                risk_class="SAFE",
+                notes=f"Organ {organ} recovered to UP state."
+            )
+        return {"action": "NONE", "down_ticks": 0}
+        
+    if status == "DOWN":
+        _ORGAN_DOWN_TRACKER[organ] += 1
+        down_ticks = _ORGAN_DOWN_TRACKER[organ]
+        
+        if down_ticks == 3:
+            # Step A: Local restart
+            arifos_vault_append(
+                entry_type="recover_escalate",
+                tool_name="arifos_recover_escalate",
+                result_status="ESCALATE_L1",
+                risk_class="SAFE",
+                notes=f"Organ {organ} DOWN for 3 ticks. Issuing RESTART_SERVICE intent."
+            )
+            dispatch_res = arifos_act_dispatch({"type": "RESTART_SERVICE", "target": organ})
+            return {"action": "RESTART_SERVICE", "down_ticks": down_ticks, "dispatch": dispatch_res}
+            
+        elif down_ticks >= 4:
+            # Step B: Alert Hermes
+            arifos_vault_append(
+                entry_type="recover_escalate",
+                tool_name="arifos_recover_escalate",
+                result_status="ESCALATE_L2",
+                risk_class="CRITICAL",
+                notes=f"Organ {organ} DOWN for {down_ticks} ticks (failed restart). Alerting Hermes."
+            )
+            dispatch_res = arifos_act_dispatch({"type": "ALERT_HERMES", "target": organ, "message": f"CRITICAL: {organ} failed to recover."})
+            return {"action": "ALERT_HERMES", "down_ticks": down_ticks, "dispatch": dispatch_res}
+            
+        return {"action": "TRACKING", "down_ticks": down_ticks}
+        
+    return {"action": "NONE", "down_ticks": _ORGAN_DOWN_TRACKER[organ]}
+
+
 
 def arifos_vps_tick(tick_id: str | None = None, tick_interval: int = DEFAULT_TICK_INTERVAL) -> dict:
     """
-    PHASE 1 TICK LOOP — ONE tick of the VPS observability daemon.
+    PHASE 2 TICK LOOP — ONE tick of the VPS observability daemon.
 
     Sequence:
       1. HEARTBEAT → arifos_health_check (daemon self-check)
       2. SENSE     → arifos_sense_state (machine state)
       3. HEARTBEAT → arifos_ping_all_organs (4 organ health pings)
-      4. LOG       → arifos_observability_append (tick data)
-      5. LOG       → arifos_vault_append (structured vault event)
+      4. RECOVER   → arifos_recover_escalate (evaluate consecutive DOWN states)
+      5. LOG       → arifos_observability_append (tick data)
+      6. LOG       → arifos_vault_append (structured vault event)
 
-    Phase 1: NO gate, NO dispatch, NO autonomous action.
+    Phase 2: GATE + DISPATCH enabled for safe recovery execution.
     """
     tick_id = tick_id or f"tick-{int(time.time())}"
     epoch   = datetime.now(timezone.utc).isoformat()
@@ -549,6 +680,14 @@ def arifos_vps_tick(tick_id: str | None = None, tick_interval: int = DEFAULT_TIC
     # ── Stage 3: Organ health pings ─────────────────────────────────────────
     organ_ping = arifos_ping_all_organs()
     result["stages"]["organ_ping"] = organ_ping
+
+    # ── Stage 3.5: Recovery Escalation ──────────────────────────────────────
+    recovery_results = {}
+    for organ_name, organ_res in organ_ping["organs"].items():
+        organ_status = organ_res.get("status", "UNKNOWN")
+        rec_res = arifos_recover_escalate(organ_name, organ_status)
+        recovery_results[organ_name] = rec_res
+    result["stages"]["recovery"] = recovery_results
 
     # Update daemon metrics
     DAEMON_METRICS["ticks"]     += 1
@@ -591,10 +730,11 @@ def arifos_vps_tick(tick_id: str | None = None, tick_interval: int = DEFAULT_TIC
         notes=vault_notes,
         extra={
             "tick_id":      tick_id,
-            "phase":        1,
+            "phase":        2,
             "organ_summary": organ_summary,
+            "recovery_activity": recovery_results,
             "disk_pct_max": max(
-                (int(d.get("pct", 0)) for d in sense.get("disk", [])),
+                (int(d.get("pct", 0).replace('%','')) for d in sense.get("disk", [])),
                 default=0
             ),
             "memory_used_pct": round(
