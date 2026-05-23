@@ -175,3 +175,5 @@ arifosmcp/sessions/hermes-briefings/*
 
 package-lock.json
 /node_modules
+.claude/
+.gemini/
