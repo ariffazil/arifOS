@@ -1,0 +1,17 @@
+[Unit]
+Description=arifOS IPC Socket (arifosd socket activation)
+PartOf=arifos.service
+Before=arifos.service
+
+[Socket]
+ListenStream=/run/arifos.sock
+SocketMode=0770
+SocketUser=root
+SocketGroup=root
+DirectoryMode=0755
+
+# Optional: localhost TCP fallback for tools that can't use Unix sockets
+# ListenStream=127.0.0.1:8081
+
+[Install]
+WantedBy=sockets.target

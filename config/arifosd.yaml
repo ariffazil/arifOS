@@ -1,0 +1,223 @@
+# =============================================================================
+# arifOS Configuration — /etc/arifos/config.yaml
+# =============================================================================
+# DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
+# Stage: A-FORGE Stage C — adapter + systemd install
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Core Identity
+# -----------------------------------------------------------------------------
+kernel:
+  name: "arifOS Constitutional Kernel"
+  version: "0.1.0-A-FORGE"
+  epoch: "2026-05-23"
+  human: "Arif Fazil"
+  host: "${HOSTNAME:-unknown}"
+  run_as: "arifosd"
+
+# -----------------------------------------------------------------------------
+# APEX Thermodynamic Engine
+# -----------------------------------------------------------------------------
+apex:
+  equation: "ℐ[∫Ψ⊗ℭdτ]·Θ(κᵣ-0.95)"
+  constraint: "ΔS_local < 0"
+  kappa_r_threshold: 0.95
+  landauer_cost_j_per_bit: 2.9e-21
+
+# -----------------------------------------------------------------------------
+# Constitutional Floors (F01–F13)
+# hard_floor: breach → automatic HOLD, no model bypass
+# soft_floor: breach → CAUTION, model can override
+# -----------------------------------------------------------------------------
+floors:
+  F01:
+    name: "AMANAH"
+    malay: "Trust & epistemic honesty"
+    hard_floor: true
+    threshold: 0.5
+    description: "Model must declare what it does not know"
+  F02:
+    name: "HALAL"
+    malay: "Truth & verifiability"
+    hard_floor: true
+    threshold: 0.5
+    description: "Claims must be verifiable or explicitly hedged"
+  F03:
+    name: "ADIL"
+    malay: "Justice & fairness"
+    hard_floor: false
+    threshold: 0.5
+    description: "Resource and reward distribution must be equitable"
+  F04:
+    name: "TAUFIK"
+    malay: "Divine guidance — clarity"
+    hard_floor: false
+    threshold: 0.5
+    description: "Output must reduce entropy relative to input"
+  F05:
+    name: "NUR"
+    malay: "Light & radiance"
+    hard_floor: false
+    threshold: 0.5
+    description: "Output must illuminate understanding"
+  F06:
+    name: "ILM"
+    malay: "Knowledge & science"
+    hard_floor: false
+    threshold: 0.5
+    description: "Claims must cite evidence or qualify uncertainty"
+  F07:
+    name: "SABR"
+    malay: "Patience — superposition"
+    hard_floor: false
+    threshold: 0.5
+    description: "Remain in superposition until κᵣ ≥ 0.95"
+  F08:
+    name: "SYUKUR"
+    malay: "Gratitude & attribution"
+    hard_floor: false
+    threshold: 0.5
+    description: "Credit external sources, not claim undue ownership"
+  F09:
+    name: "HANTU"
+    malay: "Anti-hallucination"
+    hard_floor: true
+    threshold: 0.5
+    description: "Guard against false pattern completion"
+  F10:
+    name: "IKLAS"
+    malay: "Sincerity & transparency"
+    hard_floor: false
+    threshold: 0.5
+    description: "No hidden agendas or concealed utility functions"
+  F11:
+    name: "AKHLAK"
+    malay: "Moral character"
+    hard_floor: true
+    threshold: 0.5
+    description: "Actions must respect moral and ethical boundaries"
+  F12:
+    name: "MASLAHAT"
+    malay: "Public interest"
+    hard_floor: false
+    threshold: 0.5
+    description: "Net benefit must be positive across stakeholders"
+  F13:
+    name: "KHALID"
+    malay: "Continuity & sovereignty"
+    hard_floor: true
+    threshold: 0.5
+    description: "System must preserve integrity after any action"
+
+# -----------------------------------------------------------------------------
+# Deterministic Hold Patterns (no-LLM path — always enforced)
+# ATOMIC: immediate HOLD, no execution possible
+# HIGH:   immediate HOLD, requires human confirmation
+# MEDIUM: CAUTION, proceed with monitoring
+# -----------------------------------------------------------------------------
+hold_patterns:
+  atomic:
+    - pattern: "rm\\s+-rf\\s+/\\s*$"
+      reason: "F9 F13 ATOMIC: recursive root delete"
+    - pattern: "rm\\s+-rf\\s+/var"
+      reason: "F9 F13 ATOMIC: system dir wipe"
+    - pattern: "rm\\s+-rf\\s+/etc"
+      reason: "F9 F13 ATOMIC: config dir wipe"
+    - pattern: "mkfs"
+      reason: "F13 ATOMIC: filesystem destruction"
+    - pattern: "fdisk"
+      reason: "F13 ATOMIC: partition table destruction"
+    - pattern: "parted.*mklabel"
+      reason: "F13 ATOMIC: partition destruction"
+    - pattern: "dd\\s+if=/dev/zero\\s+of=/dev/"
+      reason: "F13 ATOMIC: raw disk wipe"
+    - pattern: "iptables\\s+-F\\s*$"
+      reason: "F13 ATOMIC: firewall flush"
+    - pattern: "iptables\\s+-t\\s+nat\\s+-F"
+      reason: "F13 ATOMIC: NAT table flush"
+    - pattern: "curl\\s+.*\\|\\s*sh"
+      reason: "F9 F13 ATOMIC: remote exec via pipe"
+    - pattern: "curl\\s+.*\\|\\s*sudo\\s+bash"
+      reason: "F9 F13 ATOMIC: sudo remote exec"
+    - pattern: "DROP\\s+DATABASE"
+      reason: "F13 ATOMIC: database destruction"
+    - pattern: "shutdown"
+      reason: "F13 ATOMIC: system shutdown"
+    - pattern: "reboot"
+      reason: "F13 ATOMIC: system reboot"
+    - pattern: ":\\(\\)\\s*:\\s*\\|\\s*:\\s*&"
+      reason: "F9 ATOMIC: fork bomb"
+  high:
+    - pattern: "chmod\\s+-R\\s+777\\s+/"
+      reason: "F9: world-writable system"
+    - pattern: "chown\\s+-R\\s+root\\s+/"
+      reason: "F9 F13: ownership takeover"
+    - pattern: "systemctl\\s+mask"
+      reason: "F13 HIGH: service masking"
+    - pattern: "git\\s+push\\s+--force\\s+.*main"
+      reason: "F13 HIGH: main branch force push"
+    - pattern: "eval\\s+\\$\\("
+      reason: "F9 HIGH: eval injection"
+  caution:
+    - pattern: "git\\s+push\\s+--force"
+      reason: "F13 CAUTION: force push"
+    - pattern: "systemctl\\s+(stop|restart)"
+      reason: "F13 CAUTION: service control"
+    - pattern: "chmod\\s+-R\\s+777"
+      reason: "F9 CAUTION: broad permission change"
+    - pattern: "docker\\s+rm\\s+-f"
+      reason: "F9 CAUTION: container destruction"
+
+# -----------------------------------------------------------------------------
+# Critical Services (protected — systemctl stop/restart always CAUTION+)
+# -----------------------------------------------------------------------------
+critical_services:
+  - ssh
+  - sshd
+  - systemd
+  - network
+  - firewalld
+  - docker
+  - nginx
+  - apache2
+  - mysql
+  - postgresql
+
+# -----------------------------------------------------------------------------
+# IPC & Network
+# -----------------------------------------------------------------------------
+ipc:
+  socket_path: "/run/arifos.sock"
+  socket_mode: "0770"
+  http_host: "127.0.0.1"
+  http_port: 8081
+
+# -----------------------------------------------------------------------------
+# Storage paths
+# -----------------------------------------------------------------------------
+storage:
+  vault_path: "/var/lib/arifos/vault999"
+  plans_path: "/var/lib/arifos/plans"
+  seals_path: "/var/lib/arifos/seals"
+  sessions_path: "/var/lib/arifos/sessions"
+  log_path: "/var/log/arifos"
+
+# -----------------------------------------------------------------------------
+# MCP Runtime
+# -----------------------------------------------------------------------------
+mcp:
+  transport: "stdio"       # stdio | http | both
+  protocol_version: "2024-11-05"
+  tools_refresh_interval: 300  # seconds
+  provider_mode: "no-model"  # no-model | local | external
+
+# -----------------------------------------------------------------------------
+# Install metadata
+# -----------------------------------------------------------------------------
+install:
+  install_epoch: "PENDING"
+  install_human: "Arif Fazil"
+  install_id: "PENDING"
+  rollback_epoch: "NONE"
+  rollback_id: "NONE"

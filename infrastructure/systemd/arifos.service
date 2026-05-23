@@ -1,0 +1,51 @@
+[Unit]
+Description=arifOS Constitutional Execution Kernel (arifosd)
+Documentation=https://github.com/ariffazil/arifOS
+After=network.target
+Requires=arifos.socket
+
+[Service]
+Type=notify
+ExecStart=/usr/local/bin/arifosd --config /etc/arifos/config.yaml
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+TimeoutStartSec=15s
+
+RuntimeDirectory=arifos
+LogsDirectory=arifos
+StateDirectory=arifos
+RuntimeDirectoryMode=0755
+LogsDirectoryMode=0755
+StateDirectoryMode=0750
+
+Environment=HOME=/root
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=ARIFOS_VAULT=/var/lib/arifos/vault999
+Environment=ARIFOS_SOCK=/run/arifos.sock
+Environment=ARIFOS_HTTP_PORT=8081
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=arifosd
+
+# Blast-radius guards — no privilege escalation
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/run/arifos /var/lib/arifos /var/log/arifos
+PrivateTmp=true
+# Disable specific dangerous capabilities if available
+CapabilityBoundingSet=
+
+# Resource limits
+MemoryMax=512M
+MemoryHigh=256M
+CPUQuota=50%
+TasksMax=32
+
+# Watchdog for daemon health
+WatchdogSec=30s
+
+[Install]
+WantedBy=multi-user.target
