@@ -88,11 +88,12 @@ preflight() {
         exit 1
     fi
 
-    # Check arifosd.py exists (root path from scripts/)
+    # Check arifosd.py exists (archived path)
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     SCRIPT_PARENT="$(dirname "$SCRIPT_DIR")"
-    if [[ ! -f "$SCRIPT_PARENT/arifosd.py" ]]; then
-        err "arifosd.py not found in $SCRIPT_PARENT"
+    REPO_ROOT="$(dirname "$SCRIPT_PARENT")"
+    if [[ ! -f "$REPO_ROOT/lib_ARCHIVE/arifosd.py" ]]; then
+        err "arifosd.py not found in $REPO_ROOT/lib_ARCHIVE"
         exit 1
     fi
 
@@ -159,13 +160,14 @@ install_daemon() {
 
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     SCRIPT_PARENT="$(dirname "$SCRIPT_DIR")"
+    REPO_ROOT="$(dirname "$SCRIPT_PARENT")"
 
-    # Copy daemon (root path) (daemon lives in daemon/ subdirectory)
-    cp -f "$SCRIPT_PARENT/arifosd.py" "$ARIFOS_BIN/arifosd"
+    # Copy daemon (archived path)
+    cp -f "$REPO_ROOT/lib_ARCHIVE/arifosd.py" "$ARIFOS_BIN/arifosd"
     chmod +x "$ARIFOS_BIN/arifosd"
 
-    # Copy adapters.py
-    [[ -f "$SCRIPT_DIR/adapters.py" ]] && cp -f "$SCRIPT_DIR/adapters.py" "$ARIFOS_ROOT/adapters.py"
+    # Copy adapters.py (archived path)
+    [[ -f "$REPO_ROOT/lib_ARCHIVE/adapters.py" ]] && cp -f "$REPO_ROOT/lib_ARCHIVE/adapters.py" "$ARIFOS_ROOT/adapters.py"
 
     # Copy config
     if [[ -f "$SCRIPT_DIR/config/arifosd.yaml" ]]; then

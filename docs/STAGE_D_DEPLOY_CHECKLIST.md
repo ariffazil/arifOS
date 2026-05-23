@@ -18,7 +18,7 @@
 ### Artifact Integrity
 ```bash
 # Verify checksums (Stage C deploy manifest)
-md5sum /workspace/arifOS/arifosd.py
+md5sum /workspace/arifOS/lib_ARCHIVE/arifosd.py
 md5sum /workspace/arifOS/lib_ARCHIVE/contract_schemas.py
 md5sum /workspace/arifOS/lib_ARCHIVE/adapters.py
 md5sum /workspace/arifOS/lib_ARCHIVE/arifOS_emulator.py
