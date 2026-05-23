@@ -1,8 +1,8 @@
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-05-22
-valid_from: 2026-05-22
-valid_until: 2026-06-22
+last_verified: 2026-05-23
+valid_from: 2026-05-23
+valid_until: 2026-06-23
 confidence: high
 scope: /root/arifOS
 epistemic_status: CLAIM
@@ -16,310 +16,70 @@ epistemic_status: CLAIM
 
 > **In one sentence:** arifOS is the law layer — every AI tool call in this federation passes through it for validation, judgment, and audit before it can execute.
 
-**Status:** SOVEREIGN KERNEL | **Organ:** MIND (Ω) | **Authority:** F13 SOVEREIGN (Arif)
+**Status:** SOVEREIGN KERNEL (Current L3 State) | **Organ:** MIND (Ω) | **Authority:** F13 SOVEREIGN (Arif)
 **PyPI:** `pip install arifos` | **GHCR:** `ghcr.io/ariffazil/arifos`
-**Live MCP:** `https://arifos.arif-fazil.com/mcp` | **MCP SOT:** [`docs/MCP_SOURCE_OF_TRUTH.md`](docs/MCP_SOURCE_OF_TRUTH.md)
+**Target State:** [AAA² Agent-Agnostic Substrate](../AAA/docs/architecture/AAA2_Kernel_UAA_PSP_v2026.05.md)
 
 ---
 
-## Problem / Solution
+## 🏛️ What this repo IS
+- The **Constitutional Law Kernel (F1-F13)**.
+- The **13-Tool Canonical Manifest** that gates agent workflows (000-999 Pipeline).
+- The **VAULT999** immutable audit trail definition.
+- The **Nine-Signal** intelligence hub.
 
-**Problem:** Your AI agent can send emails, delete files, call APIs, and spend money. One bad prompt injection or hallucinated tool call can wipe a database, leak secrets, or send a message you never approved.
+## 🚫 What this repo is NOT
+- **Execution Orchestration:** That is [A-FORGE](../A-FORGE).
+- **Cockpit / Identity Plane:** That is [AAA](../AAA).
+- **Earth / Finance Engines:** Those are [GEOX](../geox) and [WEALTH](../WEALTH).
 
-**Solution:** arifOS is a Python guardrail that wraps every tool call. Before your agent acts, arifOS checks it against 13 safety rules (Floors F1–F13). Reversible actions go through fast. Irreversible or risky actions get paused (**`HOLD`**) until a human approves them, or blocked (**`VOID`**) if they violate hard safety limits.
+*Important:* We evaluate before execution. We do not execute arbitrary workloads directly.
 
 ---
 
-## What This Is
+## ⚙️ The 13 Constitutional Tools (000-999 Pipeline)
 
-arifOS is a constitutional governance kernel for AI agents. It wraps every tool call, task execution, and agent action under 13 hard and soft constitutional invariants (Floors F1–F13). Think of it as the judge and auditor that sits between every AI agent and every action it wants to take.
-
-Every request flows through a 13-stage metabolic pipeline:
-
+```mermaid
+graph TD
+    A[Intent] -->|000 INIT| B[111 SENSE]
+    B --> C[333 MIND]
+    C --> D[444 KERNEL]
+    D --> E[555 MEMORY]
+    E --> F[666 HEART]
+    F --> G[777 OPS]
+    G -->|888 JUDGE| H{Verdict}
+    H -->|SEAL| I[010 FORGE Execute]
+    H -->|HOLD| J[Human 888 Auth]
+    H -->|VOID| K[Block]
+    H -->|SABAR| L[Retry / Correct]
+    I --> M[(999 VAULT)]
 ```
-User / Agent Intent
-        ↓
-000 INIT → 111 SENSE → 333 MIND → 444 KERNEL → 555 MEMORY
-                                                      ↓
-999 VAULT ← 888 JUDGE ← 777 OPS ← 666 HEART ← 010 FORGE
- (seal)     (verdict)    (cost)   (red-team)   (execute)
-```
-
-| Verdict | What happens | Example |
-|---------|-------------|---------|
-| **SEAL** | Execute and record audit trail. | Routine, reversible read operation. |
-| **HOLD** | Pause and ask for human approval. | Irreversible action like `send_email` or `delete_database`. |
-| **VOID** | Block permanently. | Hard safety violation (e.g., privilege escalation). |
-| **SABAR** | Retry with adjustments. | Soft floor miss — add missing context and re-submit. |
-
----
-
-## What It Owns vs. What It Doesn't
-
-| Owns | Does NOT Own |
-|------|--------------|
-| Constitutional Law (F1–F13) | Frontend cockpit → [AAA](https://github.com/ariffazil/AAA) |
-| 13 canonical MCP tools | Execution orchestration → [A-FORGE](https://github.com/ariffazil/A-FORGE) |
-| VAULT999 immutable ledger | Earth-science interpretation → [GEOX](https://github.com/ariffazil/geox) |
-| `smithery.yaml` public manifest | Economic modeling → [WEALTH](https://github.com/ariffazil/wealth) |
-| A2A federation mesh routing | Human readiness → WELL |
-
----
-
-## Who is this for?
-
-- **Python developers building AI agents** — Add `arifos.govern(...)` around your tool calls to enforce reversible-first safety.
-- **DevOps / Platform engineers** — Run arifOS as an [MCP](https://modelcontextprotocol.io) server to gate all agent actions in your infrastructure.
-- **AI safety researchers** — Experiment with constitutional constraints, tri-witness consensus, and adversarial red-teaming.
-
----
-
-## The 13 Constitutional Tools
-
-Each tool owns one stage. Agents call them in sequence for governed workflows.
 
 | Stage | Tool | What It Does |
 |-------|------|-------------|
-| 000 | `arif_session_init` | Bind actor identity; anchor session to constitution hash |
-| 111 | `arif_sense_observe` | Ground reality — web search, hybrid discovery, VPS vitals, atlas, entropy_dS |
-| 222 | `arif_evidence_fetch` | Pull external data with F-WEB receipts (prevents injection) |
-| 333 | `arif_mind_reason` | Structured reasoning + contradiction detection (plan/verify) |
-| 444 | `arif_kernel_route` | Route intent to AGI/ASI/APEX lane; risk and budget gates |
-| 444r | `arif_reply_compose` | Assemble governed response with LLM compose |
-| 555 | `arif_memory_recall` | Semantic memory via Qdrant + BGE-M3 embeddings |
-| 666 | `arif_heart_critique` | Adversarial F5/F6/F9 critique pass + F-WEB injection scan |
-| 666g | `arif_gateway_connect` | A2A agent mesh handshake under F1–F13 |
-| 777 | `arif_ops_measure` | Landauer cost + reversibility classification |
-| 888 | `arif_judge_deliberate` | Issue SEAL / HOLD / VOID / SABAR verdict |
-| 999 | `arif_vault_seal` | Anchor to immutable Merkle-V3 ledger (append-only) |
-| 010 | `arif_forge_execute` | Execute — only after 888_JUDGE SEAL; dry_run by default |
+| 000 | `arif_session_init` | Bind actor identity |
+| 111 | `arif_sense_observe` | Ground reality (VPS, Atlas, dS) |
+| 222 | `arif_evidence_fetch` | Pull external data with F-WEB receipts |
+| 333 | `arif_mind_reason` | Structured reasoning |
+| 444 | `arif_kernel_route` | Route intent to AGI/ASI lane |
+| 555 | `arif_memory_recall` | Semantic memory via Qdrant |
+| 666 | `arif_heart_critique` | Adversarial critique pass |
+| 777 | `arif_ops_measure` | Landauer cost calculation |
+| 888 | `arif_judge_deliberate` | Issue SEAL / HOLD / VOID / SABAR |
+| 999 | `arif_vault_seal` | Anchor to immutable ledger |
+| 010 | `arif_forge_execute` | Execute — only after 888_JUDGE SEAL |
 
 ---
 
-## The 13 Constitutional Floors (F1–F13)
+## 🗺️ Canonical Repo Contents
 
-Every tool call is checked against all 13 floors before execution:
+- **`arifosmcp/`**: Primary MCP runtime and 13-tool registry (`server.py`, `smithery.yaml`).
+- **`core/`**: Deepest constitutional enforcement (`floors.py`, `judgment.py`).
+- **`docs/`**: Official architectural canons and MCP SOT.
+- **`VAULT999/`**: Append-only hash-chained ledger.
 
-| Floor | Name | Rule |
-|-------|------|------|
-| F1 | AMANAH | Reversibility and audit mandate. Irreversible requires explicit human ack. |
-| F2 | TRUTH | Information fidelity — anti-hallucination. Declare uncertainty band [0.03, 0.05]. |
-| F3 | QUAD-WITNESS | Byzantine consensus: Human × Agent × Evidence triangulated. |
-| F4 | CLARITY | Entropy reduction — ΔS ≤ 0. Transparent intent; explain what you are doing and why. |
-| F5 | PEACE² | Non-destructive power. No silent harm; maruah preserved. |
-| F6 | EMPATHY | Stakeholder care (κᵣ). Consider consequences for weakest stakeholders. |
-| F7 | HUMILITY | Acknowledge limits. Say "I don't know" when true. Uncertainty band [0.03, 0.05]. |
-| F8 | GENIUS | G = (A × P × X × E²) × (1 - h). Elegant correctness; prefer simple over clever. |
-| F9 | ANTI-HANTU | No spiritual cosplay or consciousness claims. No metaphysics in output. |
-| F10 | ONTOLOGY | Category lock — AI ≠ human. Structural coherence; consistent naming. |
-| F11 | COMMANDAUTH | Verified identity and session required. Constant-time `hmac.compare_digest`. |
-| F12 | INJECTION | Block adversarial control. Sanitize inputs; external content is not authority. |
-| F13 | SOVEREIGN | Human final authority. Arif holds absolute veto. 888_HOLD gates irreversible. |
-
-Hard floors (F1, F2, F6, F7, F10, F11, F12) return immediate **VOID** on violation.
-Soft floors (F4, F5, F9) return **SABAR** with a reason.
-Derived floors (F3, F8) are calculated; VETO floor (F13) requires explicit human SEAL.
+### 📌 The AAA² Target State
+*arifOS is currently navigating the "Agent Trap" via hardcoded internal directories (`.claude/`, `.gemini/`). The target state architecture removes this in favor of a Universal Agent Adapter (UAA) and Portable State Protocol (PSP).*
 
 ---
-
-## Quick Start
-
-```bash
-# Install from PyPI
-pip install arifos
-
-# Run MCP server (HTTP, port 8080)
-python -m arifosmcp.server
-```
-
-### Hello World — Govern a tool call in Python
-
-```python
-from arifosmcp.tools import arif_session_init, arif_judge_deliberate
-
-# 1. Start a governed session
-session = arif_session_init(actor="dev@example.com")
-
-# 2. Judge an action BEFORE executing it
-verdict = arif_judge_deliberate(
-    session=session,
-    intent="Send email to CEO",
-    action="send_email",
-    reversible=False,
-)
-
-# 3. Act only on SEAL
-if verdict["verdict"] == "SEAL":
-    send_email(...)           # Safe to proceed
-elif verdict["verdict"] == "HOLD":
-    ask_human_for_approval()  # Paused for review
-else:
-    log_and_block()           # VOID or SABAR
-```
-
-**Prerequisites:** Python 3.12+, optional Docker, optional Qdrant for semantic memory.
-
-```bash
-# Install from source (dev, uv-managed)
-uv sync --extra dev
-# or: pip install -e ".[dev]"
-
-# Run tests
-pytest tests/ -q --tb=short
-
-# Docker
-docker run -p 8080:8080 ghcr.io/ariffazil/arifos:latest
-```
-
-### Connect via Claude Desktop
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "arifos": {
-      "type": "http",
-      "url": "https://arifos.arif-fazil.com/mcp"
-    }
-  }
-}
-```
-
-### Connect via Cursor / Windsurf / any MCP client (stdio)
-
-```json
-{
-  "mcpServers": {
-    "arifos": {
-      "command": "python",
-      "args": ["-m", "arifosmcp.__main__", "--mode", "stdio"]
-    }
-  }
-}
-```
-
----
-
-## Repository Structure
-
-```
-arifOS/
-├── arifosmcp/              # PRIMARY: pip-installable MCP runtime package
-│   ├── server.py           # FastMCP + FastAPI entrypoint (port 8080)
-│   ├── __main__.py         # CLI: stdio | http | streamable-http
-│   ├── tools/              # 13 canonical tool implementations
-│   ├── runtime/            # HTTP server, REST routes, JWT, A2A mesh, megaTools
-│   ├── schemas/            # Pydantic output schemas (VerdictOutput, SealOutput, etc.)
-│   ├── core/               # Floor enforcement shims
-│   ├── memory/             # Qdrant + BGE-M3 semantic memory
-│   ├── intelligence/       # 9-Sense federation hub, thinking sessions
-│   ├── providers/          # LLM aggregation (SEA-LION → Ollama → rule fallback)
-│   ├── smithery.yaml       # 13-tool public MCP manifest (Source of Truth)
-│   └── Dockerfile          # Production image (EXPOSE 8080)
-│
-├── core/                   # ROOT: constitutional kernel (deepest law)
-│   ├── floors.py           # F1–F13 enforcement (~947 lines)
-│   ├── judgment.py         # Verdict engine (SEAL/HOLD/VOID/SABAR)
-│   └── vault999/           # Append-only Merkle-V3 hash-chained ledger
-│
-├── VAULT999/               # Local vault ledger (append-only, never edit)
-│
-├── tests/                  # ~125 pytest modules (asyncio_mode=auto)
-│   ├── constitutional/     # Floor compliance tests
-│   ├── adversarial/        # Injection + jailbreak tests
-│   └── integration/        # Full federation E2E
-│
-├── smithery.yaml           # PUBLIC MCP manifest (use this for tool discovery)
-├── pyproject.toml          # Package charter (uv-managed, PyPI-publishable)
-└── Makefile                # build, test, deploy, publish, health targets
-```
-
----
-
-## For Agentic Coders: How to Extend
-
-### Add a new tool
-
-1. Create `arifosmcp/tools/arif_<noun>_<verb>.py`
-2. Define an `@mcp.tool` function that accepts a typed Pydantic model
-3. Register in `arifosmcp/tool_registry.json` under `canonical_order`
-4. Add entry to `smithery.yaml` under `tools`
-5. Declare floor dependencies in the function docstring: `floors: [F1, F2, F9]`
-6. Write tests in `tests/core/test_<toolname>.py`
-
-### Understand the output contract
-
-Every tool must return a dict matching:
-
-```python
-{
-    "verdict": "SEAL | SABAR | HOLD | VOID",
-    "payload": {},
-    "floor_compliance": {"F1": True, "F2": True, ...},
-    "epistemic_snapshot": {"confidence": 0.9, "uncertainty_band": 0.05},
-    "audit_trail": {}
-}
-```
-
-### Key invariant: floor enforcement
-
-Every tool passes through `core/floors.py → FloorEnforcer.check()`.
-Hard floors return immediate VOID. Soft floors return SABAR with `reason`.
-Never bypass the floor enforcer. `FloorEnforcer` is the law.
-
-### The 3-tier fallback for LLM reasoning
-
-All reasoning tools use: **SEA-LION (primary) → Ollama (local fallback) → deterministic rule fallback**.
-Deterministic fallbacks are guaranteed to return a valid verdict even when all LLMs are offline.
-
----
-
-## Health Endpoints
-
-| Endpoint | Purpose |
-|----------|---------|
-| `GET /health` | Full status: tools, floors, vault, graphiti, memory |
-| `GET /tools` | Live tool listing (MCP surface) |
-| `GET /.well-known/mcp/server.json` | MCP server manifest |
-| `GET /.well-known/agent.json` | A2A Agent Card (agent discovery) |
-| `GET /ping` | Liveness check |
-
----
-
-## Federation Map
-
-| Repo | Role | Plain Purpose |
-|------|------|---------------|
-| **arifOS** | LAW | Decides what's allowed, held, or void |
-| [AAA](https://github.com/ariffazil/AAA) | INTERFACE | Human cockpit + A2A agent gateway |
-| [A-FORGE](https://github.com/ariffazil/A-FORGE) | EXECUTION | Runs governed agent workloads |
-| [GEOX](https://github.com/ariffazil/geox) | FIELD | Earth-science evidence engine |
-| [WEALTH](https://github.com/ariffazil/wealth) | CAPITAL | Financial / capital evidence engine |
-| [WELL](https://github.com/ariffazil/well) | BIOLOGY | Human readiness / biological substrate |
-
----
-
-## Key Files Quick Reference
-
-| File | Purpose |
-|------|---------|
-| `docs/MCP_SOURCE_OF_TRUTH.md` | Human-readable current MCP SOT, endpoints, counts, and discovery boundaries |
-| `smithery.yaml` | 13-tool public MCP manifest for Smithery-facing MCP clients |
-| `arifosmcp/tool_registry.json` | Canonical JSON tool registry (13 canonical_order entries) |
-| `core/floors.py` | F1–F13 constitutional enforcement (~947 lines) |
-| `VAULT999/` | Append-only hash-chained audit ledger (never edit directly) |
-| `arifosmcp/runtime/` | HTTP server, JWT, A2A mesh, REST routes |
-| `pyproject.toml` | Package charter — version, deps, optional extras |
-
----
-
-## TREE777 Wiki
-
-The full federation knowledge base, architecture decisions, and agent documentation:
-→ **https://wiki.arif-fazil.com**
-
----
-
-*Last Verified: 2026-05-22 | 999 SEAL ALIVE*
-**DITEMPA BUKAN DIBERI — Intelligence is forged, not given.**
+*Last Verified: 2026-05-23 | 999 SEAL ALIVE*
