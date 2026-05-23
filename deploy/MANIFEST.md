@@ -12,3 +12,19 @@
 | arif_sudo.py | 138 | 034e07f71cb6d94ff01cb30dddc2bf1e |
 | arif-systemctl.py | 183 | 3bc0fd459c9cf2f8276b634ecb55a82a |
 | arifos_install.sh | 534 | 077c80c7c2bba8c29d0a20d40743065c |
+
+---
+
+## Consolidation Note (2026-05-23)
+
+**scripts/ → commands/:** Under 444 ROUT, the `scripts/` directory (41 files) 
+was consolidated into `commands/` as the canonical entrypoint layer.
+
+Command reference update:
+- `arif_run.py` → `/workspace/arifOS/commands/arif_run.py`
+- `arif_exec.py` → `/workspace/arifOS/commands/arif_exec.py`
+- `arif_sudo.py` → `/workspace/arifOS/commands/arif_sudo.py`
+- `arif-systemctl.py` → `/workspace/arifOS/commands/arif-systemctl.py`
+- All other scripts → `commands/scripts_deploy/` or `commands/scripts_archive/`
+
+deploy/MANIFEST.md SEAL remains valid.
