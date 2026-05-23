@@ -88,11 +88,11 @@ preflight() {
         exit 1
     fi
 
-    # Check arifosd.py exists (daemon lives one level up from scripts/)
+    # Check arifosd.py exists (root path from scripts/)
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     SCRIPT_PARENT="$(dirname "$SCRIPT_DIR")"
-    if [[ ! -f "$SCRIPT_PARENT/daemon/arifosd.py" ]]; then
-        err "daemon/arifosd.py not found in $SCRIPT_PARENT"
+    if [[ ! -f "$SCRIPT_PARENT/arifosd.py" ]]; then
+        err "arifosd.py not found in $SCRIPT_PARENT"
         exit 1
     fi
 
@@ -160,8 +160,8 @@ install_daemon() {
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     SCRIPT_PARENT="$(dirname "$SCRIPT_DIR")"
 
-    # Copy daemon (daemon lives in daemon/ subdirectory)
-    cp -f "$SCRIPT_PARENT/daemon/arifosd.py" "$ARIFOS_BIN/arifosd"
+    # Copy daemon (root path) (daemon lives in daemon/ subdirectory)
+    cp -f "$SCRIPT_PARENT/arifosd.py" "$ARIFOS_BIN/arifosd"
     chmod +x "$ARIFOS_BIN/arifosd"
 
     # Copy adapters.py
