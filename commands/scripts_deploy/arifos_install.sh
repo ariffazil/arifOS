@@ -156,25 +156,25 @@ install_directories() {
 # Install daemon binary
 # -----------------------------------------------------------------------------
 install_daemon() {
-    log "Installing arifosd daemon..."
+    log "Installing apexd daemon..."
 
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     SCRIPT_PARENT="$(dirname "$SCRIPT_DIR")"
     REPO_ROOT="$(dirname "$SCRIPT_PARENT")"
 
-    # Copy daemon (archived path)
-    cp -f "$REPO_ROOT/lib_ARCHIVE/arifosd.py" "$ARIFOS_BIN/arifosd"
-    chmod +x "$ARIFOS_BIN/arifosd"
+    # Copy daemon (from archived arifosd.py → installed as apexd)
+    cp -f "$REPO_ROOT/lib_ARCHIVE/arifosd.py" "$ARIFOS_BIN/apexd"
+    chmod +x "$ARIFOS_BIN/apexd"
 
     # Copy adapters.py (archived path)
     [[ -f "$REPO_ROOT/lib_ARCHIVE/adapters.py" ]] && cp -f "$REPO_ROOT/lib_ARCHIVE/adapters.py" "$ARIFOS_ROOT/adapters.py"
 
-    # Copy config
-    if [[ -f "$SCRIPT_DIR/config/arifosd.yaml" ]]; then
-        cp -f "$SCRIPT_DIR/config/arifosd.yaml" "$ARIFOS_ROOT/config.yaml"
+    # Copy config (from renamed apexd.yaml)
+    if [[ -f "$SCRIPT_DIR/config/apexd.yaml" ]]; then
+        cp -f "$SCRIPT_DIR/config/apexd.yaml" "$ARIFOS_ROOT/config.yaml"
     fi
 
-    log "Daemon installed to $ARIFOS_BIN/arifosd"
+    log "Daemon installed to $ARIFOS_BIN/apexd"
 }
 
 # -----------------------------------------------------------------------------
@@ -254,7 +254,7 @@ init_vault() {
   "version": "$ARIFOS_VERSION",
   "verdict": "SEAL",
   "rationale": "arifOS A-FORGE Stage C genesis — system born",
-  "components": ["arifosd", "arif_run", "arif_exec", "arif_sudo", "arif-systemctl"],
+  "components": ["apexd", "arif_run", "arif_exec", "arif_sudo", "arif-systemctl"],
   "thermo": {
     "ΔS_local": 0.0,
     "κ_r": 1.0,
@@ -287,7 +287,7 @@ EOF
 # Start daemon
 # -----------------------------------------------------------------------------
 start_daemon() {
-    log "Starting arifosd daemon..."
+    log "Starting apexd daemon..."
 
     systemctl enable arifos.socket
     systemctl enable arifos.service
@@ -425,7 +425,7 @@ uninstall() {
     rm -f /etc/systemd/system/arifos.socket
     systemctl daemon-reload
 
-    rm -f "$ARIFOS_BIN/arifosd"
+    rm -f "$ARIFOS_BIN/apexd"
     rm -f "$ARIFOS_BIN/arif_run" "$ARIFOS_BIN/arif_exec"
     rm -f "$ARIFOS_BIN/arif_sudo" "$ARIFOS_BIN/arif-systemctl"
 

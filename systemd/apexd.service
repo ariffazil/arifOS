@@ -1,0 +1,36 @@
+[Unit]
+Description=arifOS Constitutional Kernel Daemon (apexd)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/workspace/arifOS
+Environment="ARIFOS_SOCK=/run/apexd.sock"
+Environment="ARIFOS_HTTP_PORT=18081"
+Environment="ARIFOS_VAULT=/var/lib/arifos/vault999"
+ExecStartPre=/bin/mkdir -p /var/log/apexd /var/run/apexd /var/lib/arifos/vault999
+ExecStart=/usr/bin/python3 /workspace/arifOS/apexd.py --mode vps-daemon --tick 60
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=10s
+TimeoutStartSec=30s
+TimeoutStopSec=30s
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/log/apexd /var/run/apexd /var/lib/arifos/vault999 /workspace/arifOS
+PrivateTmp=yes
+# Rate limit restarts (matches apexd_syseye_alert cap of 5/hour)
+StartLimitBurst=5
+StartLimitIntervalSec=3600
+PIDFile=/var/run/apexd/daemon.pid
+
+# WatchdogSec: syseye monitors apexd via systemd WatchdogSec=120
+WatchdogSec=120
+
+[Install]
+WantedBy=multi-user.target

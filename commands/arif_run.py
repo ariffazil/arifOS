@@ -19,11 +19,11 @@ import sys, re, json, os, argparse
 from pathlib import Path
 
 SOCK_PATH = os.environ.get("ARIFOS_SOCK", "/run/arifos.sock")
-CONFIG_PATH = "/etc/arifos/arifosd.yaml"
+CONFIG_PATH = "/etc/arifos/apexd.yaml"
 
 # -------------------------------------------------------------------------
-# Deterministic classifier — same rules as arifosd.py M2
-# This is the LLM-free path. arif_run itself does NOT talk to arifosd.
+# Deterministic classifier — same rules as apexd.py M2
+# This is the LLM-free path. arif_run itself does NOT talk to apexd.
 # It intercepts before the daemon even gets involved.
 # -------------------------------------------------------------------------
 

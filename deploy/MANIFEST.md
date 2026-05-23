@@ -17,7 +17,7 @@
 
 ## Consolidation Note (2026-05-23)
 
-**scripts/ → commands/:** Under 444 ROUT, the `scripts/` directory (41 files) 
+**scripts/ → commands/:** Under 444 ROUT, the `scripts/` directory (41 files)
 was consolidated into `commands/` as the canonical entrypoint layer.
 
 Command reference update:
@@ -26,5 +26,19 @@ Command reference update:
 - `arif_sudo.py` → `/workspace/arifOS/commands/arif_sudo.py`
 - `arif-systemctl.py` → `/workspace/arifOS/commands/arif-systemctl.py`
 - All other scripts → `commands/scripts_deploy/` or `commands/scripts_archive/`
+
+## Lexicon Migration Note (2026-05-24)
+
+**arifosd → apexd | watchdog → syseye**
+
+| Old Name | New Name | Location Change |
+|----------|----------|----------------|
+| `arifosd.py` | `apexd.py` | Moved to daemon/ as `apexd_observability.py` |
+| `arifosd.yaml` | `apexd.yaml` | Moved to `CONFIG/apexd.yaml` |
+| `arifosd.service` | `apexd.service` | Moved to `systemd/apexd.service` |
+| `arifosd-watchdog.*` | `apexd-syseye.*` | Moved to `systemd/apexd-syseye.*` |
+
+The OS boundary is preserved: `WatchdogSec=120` in systemd is the physical syseye.
+It cannot be renamed — only our lexicon reference to it changes.
 
 deploy/MANIFEST.md SEAL remains valid.

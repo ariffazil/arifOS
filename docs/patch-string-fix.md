@@ -1,4 +1,4 @@
-# arifosd Patch String-Literal Bug Fix
+# apexd Patch String-Literal Bug Fix
 
 ## Problem
 When `write_file` or multi-line patches insert long strings containing `\n` or `\t` escape sequences, they can break across lines in the output. Python treats a literal newline inside a string literal as a syntax error. The bug appears as:
@@ -57,4 +57,4 @@ with open("file.py", "w") as f:
 - After any large patch, always run `python3 -m py_compile file.py` to check syntax before proceeding
 
 ## Affected Files (May 2025 session)
-- `/workspace/arifOS/arifosd.py` — 5 broken string literal pairs fixed manually
+- `/workspace/arifOS/apexd.py` — 5 broken string literal pairs fixed manually

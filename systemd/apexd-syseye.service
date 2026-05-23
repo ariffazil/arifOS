@@ -1,0 +1,21 @@
+[Unit]
+Description=arifOS syseye checker (verifies apexd process is alive)
+# This is the actual syseye action — runs via timer
+# If apexd is dead, triggers restart via apexd_syseye_alert
+After=apexd.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /workspace/arifOS/apexd.py --mode watchdog-check
+User=root
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

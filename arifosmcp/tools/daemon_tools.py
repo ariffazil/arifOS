@@ -6,11 +6,11 @@ EPOCH   : 2026-05-23T10:28:00+08:00
 PURPOSE : arifOS internal daemon tool surface — arifos_* prefix
 
 NAMING CONVENTION (hard rule):
-  arifos_ = internal daemon tools (arifosd, internal loops, organ comms)
+  arifos_ = internal daemon tools (apexd, internal loops, organ comms)
   arif_   = external MCP tools (human-facing, API-exposed)
 
 These 6 tools are the canonical internal daemon surface.
-They wrap arifosd.py internal methods as first-class callables.
+They wrap apexd.py internal methods as first-class callables.
 
 CLASS MAPPING:
   HEARTBEAT  — is daemon alive, organ status
@@ -35,7 +35,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Constants (match arifosd.py config/arifosd.yaml)
+# Constants (match apexd.py config/apexd.yaml)
 # ─────────────────────────────────────────────────────────────────────────────
 
 DEFAULT_VAULT_PATH = "/var/lib/arifos/vault999"
@@ -132,7 +132,7 @@ def arifos_health_check(
         "vault_accessible": vault_ok,
         "vault_events": vault_events,
         "http_health":  http_ok,
-        "sessions_active": 0,   # TODO: wire to arifosd session registry
+        "sessions_active": 0,   # TODO: wire to apexd session registry
         "uptime_seconds": round(time.time() - daemon_start, 1),
         "daemon_version": daemon_version,
         "epoch":         datetime.now(timezone.utc).isoformat(),
@@ -217,7 +217,7 @@ def arifos_sense_state(
     # Layer: constitution (F01-F13 floors)
     if "constitution" in layers:
         try:
-            from arifOS.arifosd import build_floor_registry  # type: ignore
+            from arifOS.apexd import build_floor_registry  # type: ignore
             floors = build_floor_registry()
             state["constitution"] = {
                 fid: f.to_dict() for fid, f in floors.items()

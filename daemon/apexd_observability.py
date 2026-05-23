@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # =============================================================================
-# arifOS Phase 1 — arifosd Observability Daemon
+# arifOS Phase 1 — apexd Observability Daemon
 # =============================================================================
 # SEAL    : seal-20260523T110000-DITEMPA-BUKAN-DIBERI
 # EPOCH   : 2026-05-23T11:00:00+08:00
 # PHASE   : 1-OBSERVABILITY
-# PURPOSE  : arifosd can see everything. Cannot yet act autonomously.
+# PURPOSE  : apexd can see everything. Cannot yet act autonomously.
 #
 # Organ endpoints (VPS localhost):
 #   arifOS  → localhost:8080   (arifOS MCP Kernel)
@@ -36,13 +36,33 @@ from pathlib import Path
 from typing import Optional
 
 # =============================================================================
+# syseye: sd_notify integration (WatchdogSec=120 in systemd)
+# No external deps — uses ctypes to call libsystemd.so.0 directly.
+# If systemd is not running, this silently degrades to no-op.
+# =============================================================================
+
+def _send_watchdog_pulse() -> bool:
+    """Send WATCHDOG=1 to systemd. Returns True if successful, False if not."""
+    try:
+        import ctypes
+        libc = ctypes.CDLL("libsystemd.so.0", use_errno=True)
+        sd_notify = libc.sd_notify
+        sd_notify.argtypes = [ctypes.c_int, ctypes.c_char_p]
+        sd_notify.restype = ctypes.c_int
+        result = sd_notify(0, b"WATCHDOG=1")
+        return result == 0
+    except (OSError, AttributeError):
+        return False
+
+
+# =============================================================================
 # CONFIGURATION
 # =============================================================================
 
-VAULT_PATH: str = os.environ.get("ARIFOSD_VAULT", "/var/log/arifosd/vault.jsonl")
-STATE_PATH: str = os.environ.get("ARIFOSD_STATE", "/var/run/arifosd/state.json")
-PID_PATH: str = os.environ.get("ARIFOSD_PID", "/var/run/arifosd/arifosd.pid")
-TICK_INTERVAL: int = int(os.environ.get("ARIFOSD_TICK", "60"))
+VAULT_PATH: str = os.environ.get("APEXD_VAULT", "/var/log/apexd/vault.jsonl")
+STATE_PATH: str = os.environ.get("APEXD_STATE", "/var/run/apexd/state.json")
+PID_PATH: str = os.environ.get("APEXD_PID", "/var/run/apexd/apexd.pid")
+TICK_INTERVAL: int = int(os.environ.get("APEXD_TICK", "60"))
 HOSTNAME: str = socket.gethostname()
 
 # Organ definitions (localhost ports on VPS compose stack)
@@ -392,7 +412,7 @@ def request_shutdown(signum, frame):
     global shutdown_requested
     shutdown_requested = True
     print(
-        f"\n[arifosd] SIGTERM received — graceful shutdown (tick {daemon_state.get('tick', '?')})"
+        f"\n[apexd] SIGTERM received — graceful shutdown (tick {daemon_state.get('tick', '?')})"
     )
 
 
@@ -442,7 +462,7 @@ def run_tick(tick: int, uptime_start: float) -> tuple[Optional[int], int]:
         notes = "All organs operational"
 
     arifos_vault_append(
-        actor="arifosd",
+        actor="apexd",
         tool_name="arifos_health_check",
         inputs={"organs": list(health_results.keys())},
         result=result_str,
@@ -453,7 +473,7 @@ def run_tick(tick: int, uptime_start: float) -> tuple[Optional[int], int]:
 
     # 4. Vault append — sense state summary
     arifos_vault_append(
-        actor="arifosd",
+        actor="apexd",
         tool_name="arifos_sense_state",
         inputs={
             "containers": f"{state.containers_running}/{state.containers_total}",
@@ -495,7 +515,7 @@ def main():
     write_pid()
 
     print("=" * 60)
-    print("arifOS Phase 1 — arifosd Observability Daemon")
+    print("arifOS Phase 1 — apexd Observability Daemon")
     print(f"SEAL    : seal-20260523T110000-DITEMPA-BUKAN-DIBERI")
     print(f"EPOCH   : {now_iso()}")
     print(f"Vault   : {VAULT_PATH}")
@@ -506,7 +526,7 @@ def main():
 
     # Log startup to vault
     arifos_vault_append(
-        actor="arifosd",
+        actor="apexd",
         tool_name="arifos_startup",
         inputs={
             "tick_interval": TICK_INTERVAL,
@@ -516,7 +536,7 @@ def main():
         },
         result="STARTED",
         risk_class="LOW",
-        notes=f"arifosd Phase 1 started — tick {tick}",
+        notes=f"apexd Phase 1 started — tick {tick}",
         tick=tick,
     )
 
@@ -532,15 +552,19 @@ def main():
             daemon_state["last_hold_tick"] = last_hold
             save_daemon_state(daemon_state)
 
+            # syseye: send WATCHDOG=1 to systemd (resets WatchdogSec=120 timer)
+            watchdog_ok = _send_watchdog_pulse()
+
             print(
                 f"[{now_iso()}] tick={tick} "
                 f"vault_entries={vault_count} "
-                f"uptime={int(time.time() - uptime_start)}s"
+                f"uptime={int(time.time() - uptime_start)}s "
+                f"syseye={'OK' if watchdog_ok else 'MISSING'}"
             )
 
         except Exception as exc:
             arifos_vault_append(
-                actor="arifosd",
+                actor="apexd",
                 tool_name="arifos_tick_error",
                 inputs={"tick": tick},
                 result="ERROR",
@@ -548,6 +572,8 @@ def main():
                 notes=f"Tick failed: {exc}",
                 tick=tick,
             )
+            # syseye: still send pulse — process is alive, tick failed is recoverable
+            _send_watchdog_pulse()
             print(f"[{now_iso()}] tick={tick} ERROR: {exc}")
 
         # Sleep for tick interval, accounting for tick duration
@@ -559,9 +585,9 @@ def main():
             break
 
     # Graceful shutdown
-    print(f"\n[arifosd] Shutdown complete after {daemon_state.get('tick', 0)} ticks.")
+    print(f"\n[apexd] Shutdown complete after {daemon_state.get('tick', 0)} ticks.")
     arifos_vault_append(
-        actor="arifosd",
+        actor="apexd",
         tool_name="arifos_shutdown",
         inputs={"total_ticks": daemon_state.get("tick", 0)},
         result="SHUTDOWN",

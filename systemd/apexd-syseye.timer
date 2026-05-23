@@ -1,0 +1,14 @@
+[Unit]
+Description=arifOS syseye check every 5 minutes
+# Ensures apexd stays alive between systemd ticks
+After=apexd.service
+PartOf=apexd.service
+
+[Timer]
+# Check every 5 minutes (300s) — apexd's syseye interval is 120s
+OnBootSec=30s
+OnUnitActiveSec=300s
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

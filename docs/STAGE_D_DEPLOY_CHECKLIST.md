@@ -24,7 +24,7 @@ md5sum /workspace/arifOS/lib_ARCHIVE/adapters.py
 md5sum /workspace/arifOS/lib_ARCHIVE/arifOS_emulator.py
 md5sum /workspace/arifOS/infrastructure/systemd/arifos.service
 md5sum /workspace/arifOS/infrastructure/systemd/arifos.socket
-md5sum /workspace/arifOS/config/arifosd.yaml
+md5sum /workspace/arifOS/CONFIG/apexd.yaml
 md5sum /workspace/arifOS/commands/arif_run.py
 md5sum /workspace/arifOS/commands/arif_exec.py
 md5sum /workspace/arifOS/commands/arif_sudo.py
@@ -89,7 +89,7 @@ curl http://localhost:8081/health
 ## Blast Radius & Rollback
 
 **Blast radius (worst case):**
-- arifosd misconfiguration → daemon won't start
+- apexd misconfiguration → daemon won't start
 - Wrapper false positives → safe commands blocked
 - systemd unit conflict → other services affected
 

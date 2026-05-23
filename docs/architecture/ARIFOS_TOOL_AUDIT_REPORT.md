@@ -2,37 +2,37 @@
 > **SEAL:** 999-SEAL-TOOL-AUDIT-20260523
 > **Timestamp:** 2026-05-23T10:28:43+08:00
 > **Auditor:** Hermes Agent (arifOS)
-> **Scope:** Full tool inventory — arifosd daemon, arifosmcp tools, command_center
+> **Scope:** Full tool inventory — apexd daemon, arifosmcp tools, command_center
 
 ---
 
 ## STEP 1 — TOOL INVENTORY
 
-### A. arifosd.py Internal Daemon (root/arifosd.py, 1222 lines)
+### A. apexd.py Internal Daemon (root/apexd.py, 1222 lines)
 
 | Tool Name | Prefix | Class | Source File | Status |
 |----------|--------|-------|-------------|--------|
-| ApexThermodynamicEngine | N/A | HEARTBEAT | arifosd.py:~30 | ACTIVE |
-| DeterministicHoldClassifier | N/A | GATE | arifosd.py:~440 | ACTIVE |
-| Vault999 | N/A | LOG | arifosd.py:~540 | ACTIVE |
-| MetabolicPipeline | N/A | ACT | arifosd.py:~660 | ACTIVE |
-| build_floor_registry() | N/A | HEARTBEAT | arifosd.py:~415 | ACTIVE |
-| arifosd._sense() | arifos_ | SENSE | arifosd.py:~760 | ACTIVE (private) |
-| arifosd._judge() | arifos_ | GATE | arifosd.py:~777 | ACTIVE (private) |
-| arifosd.metabolize() | arifos_ | ACT | arifosd.py:~660 | ACTIVE (public) |
-| Vault999.append() | arifos_ | LOG | arifosd.py:~560 | ACTIVE (private) |
-| Vault999.seal_judgment() | arifos_ | LOG | arifosd.py:~590 | ACTIVE (private) |
-| Vault999.verify_integrity() | arifos_ | LOG | arifosd.py:~615 | ACTIVE (private) |
+| ApexThermodynamicEngine | N/A | HEARTBEAT | apexd.py:~30 | ACTIVE |
+| DeterministicHoldClassifier | N/A | GATE | apexd.py:~440 | ACTIVE |
+| Vault999 | N/A | LOG | apexd.py:~540 | ACTIVE |
+| MetabolicPipeline | N/A | ACT | apexd.py:~660 | ACTIVE |
+| build_floor_registry() | N/A | HEARTBEAT | apexd.py:~415 | ACTIVE |
+| apexd._sense() | arifos_ | SENSE | apexd.py:~760 | ACTIVE (private) |
+| apexd._judge() | arifos_ | GATE | apexd.py:~777 | ACTIVE (private) |
+| apexd.metabolize() | arifos_ | ACT | apexd.py:~660 | ACTIVE (public) |
+| Vault999.append() | arifos_ | LOG | apexd.py:~560 | ACTIVE (private) |
+| Vault999.seal_judgment() | arifos_ | LOG | apexd.py:~590 | ACTIVE (private) |
+| Vault999.verify_integrity() | arifos_ | LOG | apexd.py:~615 | ACTIVE (private) |
 
-**MCP TOOLS registered in arifosd.py TOOLS[] (10 tools):**
+**MCP TOOLS registered in apexd.py TOOLS[] (10 tools):**
 
 | Tool Name | Prefix | Source | Status | Issue |
 |----------|--------|--------|--------|-------|
-| arif_session_init | arif_ | arifosd.py:1006 | ACTIVE | Correct prefix (MCP-exposed) |
-| arif_sense_observe | arif_ | arifosd.py:1007 | ACTIVE | Correct prefix |
-| arif_judge_deliberate | arif_ | arifosd.py:1008 | ACTIVE | Correct prefix |
-| arif_vault_seal | arif_ | arifosd.py:1009 | ACTIVE | Correct prefix |
-| arif_run | arif_ | arifosd.py:1010 | ACTIVE | Correct (commands/) |
+| arif_session_init | arif_ | apexd.py:1006 | ACTIVE | Correct prefix (MCP-exposed) |
+| arif_sense_observe | arif_ | apexd.py:1007 | ACTIVE | Correct prefix |
+| arif_judge_deliberate | arif_ | apexd.py:1008 | ACTIVE | Correct prefix |
+| arif_vault_seal | arif_ | apexd.py:1009 | ACTIVE | Correct prefix |
+| arif_run | arif_ | apexd.py:1010 | ACTIVE | Correct (commands/) |
 | arif_exec | arif_ | arif_ | ACTIVE | Correct (commands/) |
 | arif_sudo | arif_ | arif_ | ACTIVE | Correct (commands/) |
 | arif_systemctl | arif_ | arif_ | ACTIVE | Correct (commands/) |
@@ -98,13 +98,13 @@
 |-----------|--------|-------|--------|--------|
 | arifos_wisdom_stats | arifos_ | SENSE | runtime/wisdom_quotes.py:1258 | STALE (wisdom registry) |
 | arifos_wiki_search | arifos_ | SENSE | tools/wiki_search.py:18 | STALE (deprecated → arifos_wiki_tools) |
-| daemon/arifosd.py | N/A | HEARTBEAT | daemon/ | DELETED (moved to root/) |
+| daemon/apexd_observability.py | N/A | HEARTBEAT | daemon/ | ACTIVE (renamed from arifosd_observability.py) |
 
 ---
 
 ## STEP 2 — DAEMON LOOP CHECK
 
-**Current arifosd main loop (lines 1178–1179):**
+**Current apexd main loop (lines 1178–1179):**
 ```python
 while True:
     time.sleep(1)
@@ -145,9 +145,9 @@ tick
 | Required Tool | Class | EXISTS | Location | Status |
 |-------------|-------|--------|----------|--------|
 | arifos_health_check | HEARTBEAT | NO | — | **MISSING** |
-| arifos_sense_state | SENSE | NO | arifosd._sense() exists (private) | **MISSING (needs arifos_ wrapper)** |
-| arifos_gate_eval | GATE | NO | arifosd._judge() + classifier.classify() exist (private) | **MISSING (needs arifos_ wrapper)** |
-| arifos_act_dispatch | ACT | NO | arifosd.metabolize() exists (private) | **MISSING (needs arifos_ wrapper)** |
+| arifos_sense_state | SENSE | NO | apexd._sense() exists (private) | **MISSING (needs arifos_ wrapper)** |
+| arifos_gate_eval | GATE | NO | apexd._judge() + classifier.classify() exist (private) | **MISSING (needs arifos_ wrapper)** |
+| arifos_act_dispatch | ACT | NO | apexd.metabolize() exists (private) | **MISSING (needs arifos_ wrapper)** |
 | arifos_vault_append | LOG | NO | Vault999.append() + seal_judgment() exist (private) | **MISSING (needs arifos_ wrapper)** |
 | arifos_recover_escalate | RECOVER | NO | — | **MISSING** |
 
@@ -175,4 +175,4 @@ Forging into: `/workspace/arifOS/arifosmcp/tools/daemon_tools.py`
 5. `arifos_vault_append()` — LOG
 6. `arifos_recover_escalate()` — RECOVER
 
-Also forging daemon loop integration into arifosd.py (revising the passive standby loop).
+Also forging daemon loop integration into apexd.py (revising the passive standby loop).

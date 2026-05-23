@@ -142,9 +142,9 @@
         "commands/scripts_archive/**"
       ],
       "god_files": [
-        "arifosd.py (>75KB)",
+        "apexd.py (renamed from arifosd.py, archived in lib_ARCHIVE)",
         "arifOS_mcp_runtime.py (>26KB)",
-        "arifosd_module_8a.py (>30KB)"
+        "arifosd_module_8a.py (>30KB, archived)"
       ]
     },
     "forbidden": {
@@ -239,9 +239,9 @@
       "god_file_policy": {
         "description": "Large root Python files may be proposed for refactor but not auto-executed.",
         "files": [
-          "arifosd.py",
+          "apexd.py (archived, renamed from arifosd.py)",
           "arifOS_mcp_runtime.py",
-          "arifosd_module_8a.py",
+          "arifosd_module_8a.py (archived)",
           "contract_schemas.py"
         ],
         "proposal_required": true,
@@ -340,28 +340,11 @@
       ],
       "cwd": ".",
       "enabled": true,
-      "timeout": 15000,
+      "timeout": 20000,
       "environment": {
         "PYTHONPATH": ".",
         "ARIFOS_PHYSICS_DISABLED": "1",
         "AAA_MCP_OUTPUT_MODE": "debug",
-        "FASTMCP_SHOW_SERVER_BANNER": "false"
-      }
-    },
-    "arifOS-Intelligence": {
-      "type": "local",
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "arifosmcp.opencode_mcp",
-        "intelligence"
-      ],
-      "cwd": ".",
-      "enabled": false,
-      "timeout": 15000,
-      "environment": {
-        "PYTHONPATH": ".",
-        "ARIFOS_PHYSICS_DISABLED": "1",
         "FASTMCP_SHOW_SERVER_BANNER": "false"
       }
     },
@@ -370,75 +353,6 @@
       "url": "https://mcp.arif-fazil.com/mcp",
       "enabled": false,
       "timeout": 15000
-    },
-    "arifOS-WELL": {
-      "type": "local",
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "arifosmcp.opencode_mcp",
-        "well"
-      ],
-      "cwd": ".",
-      "enabled": false,
-      "timeout": 15000,
-      "environment": {
-        "PYTHONPATH": ".",
-        "ARIFOS_PHYSICS_DISABLED": "1",
-        "FASTMCP_SHOW_SERVER_BANNER": "false"
-      }
-    },
-    "arifOS-WEALTH": {
-      "type": "local",
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "arifosmcp.opencode_mcp",
-        "wealth"
-      ],
-      "cwd": ".",
-      "enabled": false,
-      "timeout": 15000,
-      "environment": {
-        "PYTHONPATH": ".",
-        "ARIFOS_PHYSICS_DISABLED": "1",
-        "FASTMCP_SHOW_SERVER_BANNER": "false"
-      }
-    },
-    "arifOS-GEOX": {
-      "type": "local",
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "arifosmcp.opencode_mcp",
-        "geox"
-      ],
-      "cwd": ".",
-      "enabled": false,
-      "timeout": 15000,
-      "environment": {
-        "PYTHONPATH": ".",
-        "ARIFOS_PHYSICS_DISABLED": "1",
-        "FASTMCP_SHOW_SERVER_BANNER": "false"
-      }
-    },
-    "arifOS-Sovereign": {
-      "type": "local",
-      "command": [
-        ".venv/bin/python",
-        "-m",
-        "arifosmcp.opencode_mcp",
-        "sovereign"
-      ],
-      "cwd": ".",
-      "enabled": true,
-      "timeout": 20000,
-      "environment": {
-        "PYTHONPATH": ".",
-        "ARIFOS_PHYSICS_DISABLED": "1",
-        "AAA_MCP_OUTPUT_MODE": "debug",
-        "FASTMCP_SHOW_SERVER_BANNER": "false"
-      }
     }
   }
 }

@@ -161,7 +161,7 @@ MANDATORY KERNEL COMPONENTS
 ┌─────────────────────────────────────────────────────────────┐
 │ COMPONENT            │ PURPOSE                              │
 ├─────────────────────────────────────────────────────────────┤
-│ arifosd daemon       │ Long-running constitutional runtime  │
+│ apexd daemon        │ Long-running constitutional runtime  │
 │ Local IPC socket    │ Fast local ingress (MUST HAVE)      │
 │ MCP endpoint        │ Standardized host/client protocol    │
 │ Policy engine       │ F1-F13 floor enforcement + verdict   │
@@ -202,7 +202,7 @@ FILESYSTEM LAYOUT (on the actual Linux host)
     manifest.json          ← latest VAULT999 state
 
 /var/log/arifos/
-  arifosd.log              ← daemon operational log
+  apexd.log              ← daemon operational log
   audit.log                ← every judgment event
   sessions.log             ← session lifecycle log
   errors.log               ← error log
@@ -218,7 +218,7 @@ FILESYSTEM LAYOUT (on the actual Linux host)
   arif-health              ← health check CLI
 
 /usr/local/lib/arifos/
-  arifosd                  ← daemon entry point
+  apexd                    ← daemon entry point
   contract_schemas.py      ← portable contract pack
   arifOS_mcp_runtime.py    ← MCP runtime (bundled)
   adapters.py              ← adapter pack
@@ -253,10 +253,10 @@ arifos.socket
 
 arifos.service
   → Type = notify (not forking)
-  → ExecStart = /usr/local/lib/arifos/arifosd
+  → ExecStart = /usr/local/lib/arifos/apexd
   → Socket = arifos.socket
   → WorkingDirectory = /var/lib/arifos
-  → EnvironmentFile = /etc/arifos/arifosd.env
+  → EnvironmentFile = /etc/arifos/apexd.env
   → User = arifos (dedicated user, NOT root)
   → Group = arifos
   → SupplementaryGroups = docker (if docker wrapper needed)
@@ -264,7 +264,7 @@ arifos.service
   → RestartSec = 5s
   → StandardOutput = journal
   → StandardError = journal
-  → SyslogIdentifier = arifosd
+  → SyslogIdentifier = apexd
 
 Dedicated user 'arifos' (non-root):
   → useradd -r -M -d /var/lib/arifos -s /usr/sbin/nologin arifos
@@ -344,7 +344,7 @@ Every kernel decision returns this portable envelope:
   },
   "witness": {
     "human": "Arif Fazil",
-    "ai": "arifosd-{hostname}",
+    "ai": "apexd-{hostname}",
     "earth": "host-context",
     "weights": {"human": 0.42, "ai": 0.32, "earth": 0.26}
   },
@@ -417,7 +417,7 @@ arif-systemctl
   → Blocks: stop/restart on critical services
 
 IDE MCP adapters
-  → Claude Desktop: MCP stdio config pointing to arifosd
+  → Claude Desktop: MCP stdio config pointing to apexd
   → Cursor: MCP HTTP config pointing to localhost:PORT
   → Replaces: raw tool access with governed access
 
@@ -495,7 +495,7 @@ must accomplish in order:
    → pip install -r requirements.txt
      (fastapi, uvicorn, pydantic, python-dotenv,
       aiofiles, httpx, ujson)
-   → Copy arifosd, contract_schemas.py, arifOS_mcp_runtime.py,
+   → Copy apexd, contract_schemas.py, arifOS_mcp_runtime.py,
          adapters.py, hermes_deliverable_mode.py
 
 5. WRITE SYSTEMD UNITS
@@ -508,7 +508,7 @@ must accomplish in order:
    → /etc/arifos/config.yaml
    → /etc/arifos/policy/floors.yaml (F1-F13)
    → /etc/arifos/policy/holds.yaml (HOLD patterns)
-   → /etc/arifos/arifosd.env
+   → /etc/arifos/apexd.env
 
 7. HEALTH VERIFICATION (before enabling wrappers)
    → systemctl start arifos.socket
@@ -584,14 +584,14 @@ CRITICAL: Rollback script MUST be saved before install:
   → Tested on sandbox before production
 
 ════════════════════════════════════════════════════════════════
-BUILD SEQUENCE (Hermes → arifosd daemon forge)
+BUILD SEQUENCE (Hermes → apexd daemon forge)
 ════════════════════════════════════════════════════════════════
 
 Stage A — SPEC LOCK
   → Freeze blueprints, schemas, envelope, directory layout
   → No changes after this without 888_JUDGE
 
-Stage B — DAEMON PROTOTYPE (arifosd)
+Stage B — DAEMON PROTOTYPE (apexd)
   → Persistent Python process (uvicorn + FastAPI)
   → Unix socket listener (/run/arifos.sock)
   → Health endpoint (/health, /ready, /tools, /metrics)

@@ -1,0 +1,39 @@
+name: aaa_guard
+version: 1.0.0
+description: AAA runtime enforcement gate — F1-F13 pre_tool_call blocker
+entry: aaa_guard:AAAGuardPlugin
+runtime: python3.11
+hooks:
+  pre_tool_call:
+    - check_floor_enforcement
+  pre_llm_call:
+    - inject_floor_context
+config:
+  enforce:
+    type: boolean
+    default: false
+    description: True = enforce (block), False = observe (warn only)
+  audit_path:
+    type: string
+    default: "/root/VAULT999/outcomes.jsonl"
+    description: Append-only audit trail
+  workspace_root:
+    type: string
+    default: "/root/AAA/ops/hermes"
+    description: AAA ops root for policy files
+  floor_policy_path:
+    type: string
+    default: "/root/arifOS/000/FLOORS"
+    description: Constitutional floors source
+  approval_token:
+    type: string
+    default: "888_HOLD"
+    description: Required token for destructive actions
+  blocked_tools:
+    type: array
+    default: ["rm", "delete", "destroy", "DROP", "truncate", "shutil.rmtree", "mkfs"]
+    description: Tools requiring explicit approval
+  terminal_dangerous_patterns:
+    type: array
+    default: ["rm -rf", "docker system prune", "dd if=", ":(){:|:&};:", "DROP TABLE", "DELETE FROM", "os.remove"]
+    description: Dangerous command patterns in terminal args

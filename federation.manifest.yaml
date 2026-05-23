@@ -313,22 +313,24 @@ organs:
 # ─── ROUTING TOPOLOGY ───────────────────────────────────────────────────────────
 
 routing_topology:
-  # All organs route final judgment to arifOS
+  primary_judgment: arifos
   geox:          arifos
   wealth:        arifos
   well:          arifos
   a_forge:       arifos
   aaa_a2a:       arifos
 
-  # A2A mesh: organs can route to each other for evidence/computation
-  aaa_a2a:
-    - a_forge      # approval routing
-    - arifos       # verdict request
-  a_forge:
-    - arifos       # judgment request
-    - geox         # evidence request
+  a2a_mesh:
+    aaa_a2a:
+      - a_forge      # approval routing
+      - arifos       # verdict request
+    a_forge:
+      - arifos       # judgment request
+      - geox         # evidence request
+    geox:
+      - wealth       # economic evidence
+      - well         # human readiness
 
-  # Execution chain: arifOS SEAL → A-FORGE execute
   execution_chain:
     - arif_judge_deliberate  # 888 returns SEAL
     - arif_forge_execute     # 010 executes after SEAL

@@ -14,7 +14,7 @@ kernel:
   epoch: "2026-05-23"
   human: "Arif Fazil"
   host: "${HOSTNAME:-unknown}"
-  run_as: "arifosd"
+  run_as: "apexd"
 
 # -----------------------------------------------------------------------------
 # APEX Thermodynamic Engine

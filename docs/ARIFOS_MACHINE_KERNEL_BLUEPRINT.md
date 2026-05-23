@@ -30,7 +30,7 @@ These are the 9 canonical insights that govern everything else in this blueprint
 
 > *"The correct forge point is a long-running host governance daemon in user space, with privileged adapters around all meaningful ingress paths."*
 
-The `.bashrc` is an **edge adapter** — one ingress point among many. It is not the kernel. The real kernel is `arifosd`: a persistent user-space process that every agent, shell, service, and automation path routes through.
+The `.bashrc` is an **edge adapter** — one ingress point among many. It is not the kernel. The real kernel is `apexd`: a persistent user-space process that every agent, shell, service, and automation path routes through.
 
 **Consequence:** Build the daemon first. Everything else is an adapter.
 
@@ -94,7 +94,7 @@ The constitutional kernel must preserve minimum safe judgment even when no advan
 
 > *"The daemon becomes real only when critical machine pathways route through these adapters by default. Presence of the daemon is not enough."*
 
-A kernel that exists but isn't routed to is not a kernel — it's a process. The test of a working kernel is not "is `arifosd` running?" The test is "do all meaningful machine actions pass through it by default?"
+A kernel that exists but isn't routed to is not a kernel — it's a process. The test of a working kernel is not "is `apexd` running?" The test is "do all meaningful machine actions pass through it by default?"
 
 **Consequence:** Adapters are not optional. They are the proof the kernel exists.
 
@@ -153,7 +153,7 @@ The kernel is not a tool. It is a **living constitutional organism** with:
 └────────────────────────┬────────────────────────────────────┘
                          │ MCP / A2A / IPC
 ┌────────────────────────▼────────────────────────────────────┐
-│              arifOS MACHINE KERNEL (arifosd)                 │
+│              arifOS MACHINE KERNEL (apexd)                 │
 │  ┌─────────────────────────────────────────────────────────┐ │
 │  │  Policy Engine (F1-F13 Floor Evaluator)                 │ │
 │  │  Verdict Engine (SEAL/HOLD/SABAR/VOID/CAUTION)         │ │
@@ -365,7 +365,7 @@ Threshold: W₄ ≥ 0.75 for F3 WITNESS compliance
 ---
 
 ## ═══════════════════════════════════════════════
-## PART V — DAEMON ARCHITECTURE (arifosd)
+## PART V — DAEMON ARCHITECTURE (apexd)
 ## ═══════════════════════════════════════════════
 
 ### Design Principles
@@ -379,7 +379,7 @@ Threshold: W₄ ≥ 0.75 for F3 WITNESS compliance
 ### Process Model
 
 ```
-arifosd (master process)
+apexd (master process)
 ├── Policy Engine (F1-F13 evaluator) — always online
 ├── Session Manager — per-connection, spawned as needed
 ├── Vault Writer — append-only, synchronous
@@ -454,13 +454,13 @@ arifosd (master process)
 └── memory/                      # Structured memory store
 
 /var/log/arifos/
-├── arifosd.log                  # Daemon operational log
+├── apexd.log                    # Daemon operational log
 ├── audit.log                    # Every action logged
 ├── judge.log                    # Verdict deliberation log
 └── heart.log                    # 666_HEART critique log
 
 /usr/local/bin/
-├── arifosd                      # The daemon binary
+├── apexd                        # The daemon binary
 ├── arif_run                     # Shell command wrapper
 ├── arif_exec                    # Script/program wrapper
 ├── arif_sudo                    # Privileged action wrapper
@@ -490,12 +490,12 @@ The daemon is real only when these adapters route through it by default.
 #### `arif_run` — General Shell Wrapper
 ```bash
 #!/usr/bin/env bash
-# Routes all shell commands through arifosd policy engine
+# Routes all shell commands through apexd policy engine
 # Replaces ad hoc command execution
 
 [[ -z "$1" ]] && echo "usage: arif_run '<command>'" && exit 2
 
-arifosd call execute \
+apexd call execute \
   --session "$ARIFOS_SESSION_ID" \
   --actor "$ARIFOS_ACTOR" \
   --intent "$*" \
@@ -508,7 +508,7 @@ arifosd call execute \
 ```bash
 #!/usr/bin/env bash
 # For scripts and automation — same governance as arif_run
-arifosd exec "$@"
+apexd exec "$@"
 ```
 
 **What it replaces:** Direct script invocation in cron, systemd units, CI/CD.
@@ -519,7 +519,7 @@ arifosd exec "$@"
 # High-impact ingress point — F1 AMANAH enforcement
 # Requires explicit human confirmation for irreversible privileged ops
 
-arifosd sudo "$@" --ack-irreversible
+apexd sudo "$@" --ack-irreversible
 ```
 
 **What it replaces:** `sudo <anything>` in agent workflows.
@@ -530,7 +530,7 @@ arifosd sudo "$@" --ack-irreversible
 # Captures service lifecycle mutations
 # Blocks stop/restart/disable on critical services without HOLD clearance
 
-arifosd systemctl "$@"
+apexd systemctl "$@"
 ```
 
 **What it replaces:** `systemctl stop/restart/disable` in maintenance scripts.
@@ -689,7 +689,7 @@ Before any real host installation:
 ### Stage B — Daemon Prototype
 
 ```
-1. Build arifosd as persistent process
+1. Build apexd as persistent process
 2. Implement Unix socket + localhost HTTP
 3. Implement plan/seal persistence
 4. Implement deterministic judge path (no LLM required)
@@ -768,7 +768,7 @@ The Hermes Agent (ASI-level) is tasked with forging the machine kernel in these 
 
 ### Phase 1 — Kernel Core (Weeks 1-2)
 
-- [ ] `arifosd` daemon with Unix socket IPC
+- [ ] `apexd` daemon with Unix socket IPC
 - [ ] Policy engine (F1-F13 deterministic evaluator)
 - [ ] Session manager
 - [ ] Vault append interface
