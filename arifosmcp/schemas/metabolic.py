@@ -24,7 +24,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # METABOLIC ENUMS
@@ -674,8 +674,8 @@ class MetabolicOutput(BaseModel):
         default="", description="Constitutional law version this output was generated under"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "description": (
                 "Governed Witness Metabolism Output — "
                 "Intelligence is not answer generation. "
@@ -683,6 +683,7 @@ class MetabolicOutput(BaseModel):
                 "DITEMPA BUKAN DIBERI"
             )
         }
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

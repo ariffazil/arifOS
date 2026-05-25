@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UncertaintyClass(StrEnum):
@@ -86,8 +86,7 @@ class GovernedClaim(BaseModel):
     authority: Authority
     next_safe_action: str
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class FederationEpistemicEvent(BaseModel):

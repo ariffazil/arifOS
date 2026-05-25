@@ -55,6 +55,7 @@ from core.shared.floors import (
 )
 
 from arifosmcp.runtime.build import get_build_info
+from arifosmcp.runtime.identity import get_identity
 from arifosmcp.runtime.capabilities import build_runtime_capability_map
 from arifosmcp.runtime.contracts import (
     AAA_TOOL_ALIASES,
@@ -1905,6 +1906,9 @@ def _compute_runtime_drift() -> dict[str, Any]:
     live_commit = "unknown"
     # Try mounted code paths
     for git_dir in ["/app/.git", "/usr/src/app/.git", "/root/arifOS/.git"]:
+        # Skip /app/.git if /app is a symlink (bare-metal: /app -> /root/WELL)
+        if git_dir == "/app/.git" and os.path.islink("/app"):
+            continue
         try:
             head_path = os.path.join(git_dir, "HEAD")
             if os.path.exists(head_path):
@@ -2332,6 +2336,11 @@ def register_rest_routes(
                 **_compute_runtime_drift(),
                 "graphiti_enabled": graphiti_enabled,
                 "vault999_health": _probe_vault999_health(),
+                # Identity from canonical identity.toml
+                "agent_id": "arifos",
+                "identity_marker": "arifos-sovereign-runtime",
+                "identity_source": "identity.toml",
+                "boot_attestation": True,
                 "langfuse_tracing": _probe_langfuse_tracing(),
                 "ml_floors": ml_runtime,
                 "federation_epistemology": federation_epistemology,
@@ -2442,6 +2451,20 @@ def register_rest_routes(
                 "X-Deployment-Hash": BUILD_INFO["build"]["commit_short"],
             },
         )
+
+    @route("/identity", methods=["GET"])
+    async def identity(request: Request) -> Response:
+        """Canonical identity endpoint — returns machine-readable identity from identity.toml.
+
+        This is the authoritative identity truth for AAA attestation gateway.
+        Derived from /opt/arifos/app/identity.toml — single source of truth.
+        """
+        runtime_drift = _compute_runtime_drift()
+        vault_health = _probe_vault999_health()
+        identity_data = get_identity(running_commit=BUILD_INFO["build"]["commit"])
+        identity_data["runtime_drift"] = runtime_drift.get("runtime_drift", False)
+        identity_data["vault999_health"] = vault_health
+        return JSONResponse(identity_data)
 
     @route("/000", methods=["GET"])
     async def genesis(request: Request) -> Response:

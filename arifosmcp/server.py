@@ -2,12 +2,18 @@
 arifOS MCP Server — Canonical Entry Point
 ═══════════════════════════════════════════
 
-13-canonical constitutional tools (arif_noun_verb) | streamable-http | F1–F13 | Trinity ΔΩΨ
 FastMCP 3.2.0 + MCP Apps + Streamable HTTP
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
+
+try:
+    import uvloop
+
+    uvloop.install()
+except ImportError:
+    pass  # Windows / dev fallback
 
 import logging
 import os
@@ -105,6 +111,46 @@ class GlobalPanicMiddleware(BaseHTTPMiddleware):
                 },
                 status_code=500,
             )
+
+
+class StatelessGetRejectMiddleware(BaseHTTPMiddleware):
+    """
+    PHOENIX-73C: Reject GET requests to /mcp in stateless HTTP mode.
+
+    Root cause: MCP SDK's StreamableHTTPSessionManager uses a singleton
+    GET_STREAM_KEY for SSE streams. When 2 clients connect simultaneously
+    with GET (SSE), the second gets 409 Conflict.
+
+    In stateless_http=True mode, GET requests should return JSON-RPC
+    responses directly, NOT establish SSE streams. This middleware rejects
+    GET at the gateway layer before it reaches the SDK's SSE handler,
+    forcing clients to use POST for JSON-RPC calls.
+
+    Clients receiving 405 will know to retry with POST.
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        # Only guard the /mcp endpoint
+        if request.url.path.rstrip("/") == "/mcp" and request.method == "GET":
+            return JSONResponse(
+                {
+                    "jsonrpc": "2.0",
+                    "error": {
+                        "code": -32005,
+                        "message": "Method not allowed in stateless mode. "
+                        "Use POST for JSON-RPC calls. "
+                        "SSE streams are not supported in stateless_http mode "
+                        "(PHOENIX-73C).",
+                        "data": {
+                            "hint": "Retry this request using POST with "
+                            '{"jsonrpc":"2.0","method":"...","params":{}}'
+                        },
+                    },
+                },
+                status_code=405,
+                headers={"Allow": "POST, DELETE"},
+            )
+        return await call_next(request)
 
 
 # ─── Deployment Identity ─────────────────────────────────────────────────────
@@ -282,6 +328,7 @@ try:
     # ── Diagnostic tools registered as FastMCP tools ─────────────────────────
     try:
         from arifosmcp.tools.health import arif_stack_health_probe as _arif_stack_health_probe
+
         mcp.tool(
             name="arif_stack_health_probe",
             description=(
@@ -292,6 +339,7 @@ try:
         )(_arif_stack_health_probe)
 
         from arifosmcp.tools.organ_consensus import arif_organ_consensus as _arif_organ_consensus
+
         mcp.tool(
             name="arif_organ_consensus",
             description=(
@@ -301,7 +349,10 @@ try:
             tags={"diagnostic", "read-only"},
         )(_arif_organ_consensus)
 
-        from arifosmcp.tools.governance_scan import arif_scan_local_instructions as _arif_scan_local_instructions
+        from arifosmcp.tools.governance_scan import (
+            arif_scan_local_instructions as _arif_scan_local_instructions,
+        )
+
         mcp.tool(
             name="arif_scan_local_instructions",
             description=(
@@ -311,6 +362,7 @@ try:
         )(_arif_scan_local_instructions)
 
         from arifosmcp.tools.session_budget import arif_session_budget as _arif_session_budget
+
         mcp.tool(
             name="arif_session_budget",
             description=(
@@ -348,6 +400,7 @@ try:
         # ── mcp_drift_check (PHOENIX-72 readiness) ──────────────────────────
         try:
             from arifosmcp.tools.drift_check import arif_mcp_drift_check as _arif_mcp_drift_check
+
             mcp.tool(
                 name="mcp_drift_check",
                 description=(
@@ -447,6 +500,9 @@ async def federation_status_json(request: Request) -> JSONResponse:
 
 app = mcp.http_app(transport="streamable-http", stateless_http=True, json_response=True)
 if app:
+    # PHOENIX-73C: StatelessGetRejectMiddleware MUST be first — it intercepts
+    # GET /mcp before the MCP SDK's singleton SSE stream handler is reached.
+    app.add_middleware(StatelessGetRejectMiddleware)
     app.add_middleware(GlobalPanicMiddleware)
     app.add_middleware(CORSMiddleware, allow_origins=["*"])
     # /health is registered by register_rest_routes() below with full thermodynamic schema
