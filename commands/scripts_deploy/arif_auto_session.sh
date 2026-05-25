@@ -5,7 +5,7 @@
 
 export ARIFOS_SESSION_ID="${1:-SEAL-cbc5d95eb9df4bad}"
 export ARIFOS_ACTOR_ID="${2:-a-forge}"
-export ARIFOS_MCP_URL="${ARIFOS_MCP_URL:-http://localhost:8080/mcp}"
+export ARIFOS_MCP_URL="${ARIFOS_MCP_URL:-http://localhost:8088/mcp}"  # override for local dev on 8080
 
 echo "✅ arifOS session binding active"
 echo "   session_id: $ARIFOS_SESSION_ID"

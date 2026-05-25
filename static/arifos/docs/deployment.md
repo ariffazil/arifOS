@@ -46,7 +46,7 @@ docker compose up -d --build
 
 ## Public Runtime Contract
 
-- Reverse proxy target: `http://127.0.0.1:8080`
+- Reverse proxy target: `http://127.0.0.1:8088` (live VPS; Docker internal default is 8080)
 - MCP endpoint: `/mcp`
 - Health endpoint: `/health`
 - Tools endpoint: `/tools`
@@ -86,9 +86,9 @@ ARIFOS_PUBLIC_TOOL_PROFILE=full
 Local on the VPS:
 
 ```bash
-curl -fsS http://127.0.0.1:8080/health
-curl -fsS http://127.0.0.1:8080/tools
-curl -fsS http://127.0.0.1:8080/.well-known/mcp/server.json
+curl -fsS http://127.0.0.1:8088/health
+curl -fsS http://127.0.0.1:8088/tools
+curl -fsS http://127.0.0.1:8088/.well-known/mcp/server.json
 ```
 
 Public through your domain:
@@ -107,5 +107,5 @@ curl -sS https://mcp.arif-fazil.com/mcp \
 Before production rollout, confirm:
 
 - The VPS has a real `.env.docker` with a strong `ARIFOS_GOVERNANCE_SECRET`
-- Traefik or Nginx points `/mcp` to `127.0.0.1:8080`
+- Traefik or Nginx points `/mcp` to `127.0.0.1:8088` (live VPS; Docker internal default is 8080)
 - The repo clone includes the `infrastructure/` helper files used by compose mounts

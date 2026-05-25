@@ -8,7 +8,7 @@ Verifies that the public HTTPS surface matches local/container truth.
 Prevents deployment drift from hiding real failures.
 
 Authority order checked:
-  1. Local app      (127.0.0.1:8080)
+  1. Local app      (127.0.0.1:8088)
   2. Host localhost (same as local — included for clarity)
   3. Caddy internal (arifosmcp container DNS)
   4. Public HTTPS   (https://mcp.arif-fazil.com)
@@ -30,8 +30,8 @@ from pathlib import Path
 
 # ─── Config ────────────────────────────────────────────────────────────────────
 
-LOCAL_BASE = "http://127.0.0.1:8080"
-CADDY_BASE = "http://arifosmcp:8080"
+LOCAL_BASE = "http://127.0.0.1:8088"
+CADDY_BASE = "http://127.0.0.1:8088"
 PUBLIC_BASE = "https://mcp.arif-fazil.com"
 REPORT_PATH = Path("tmp/verify_public_report.json")
 

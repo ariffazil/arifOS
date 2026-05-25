@@ -17,7 +17,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Any
 
-LOCAL_BASE = "http://127.0.0.1:8080"
+LOCAL_BASE = "http://127.0.0.1:8088"  # live VPS port; override for local Docker dev on 8080
 PUBLIC_BASE = "https://arifos.arif-fazil.com"
 AAA_BASE = "https://aaa.arif-fazil.com"
 REPORT_PATH = Path("tmp/verify_live_report.json")

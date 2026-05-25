@@ -197,8 +197,8 @@ cp .env.example .env.docker
 docker compose up -d
 docker compose ps
 
-# Health check
-curl http://localhost:8080/health
+# Health check (live VPS port is 8088; default Docker/dev port is 8080)
+curl http://localhost:8088/health
 ```
 
 ### Environment Variables
@@ -582,7 +582,7 @@ arifos sse        # Server-Sent Events (production)
 
 # Docker deployment
 docker compose up -d
-curl http://localhost:8080/health
+curl http://localhost:8080/health  # Docker internal port; live VPS is 8088
 
 # Constitutional checks
 python scripts/constitution_lint.py

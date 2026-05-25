@@ -8,10 +8,10 @@
 # PURPOSE  : apexd can see everything. Cannot yet act autonomously.
 #
 # Organ endpoints (VPS localhost):
-#   arifOS  → localhost:8080   (arifOS MCP Kernel)
-#   GEOX    → localhost:8081   (GEOX Earth Intelligence)
-#   WEALTH  → localhost:8082   (WEALTH Capital Thermodynamics)
-#   WELL    → localhost:8083   (WELL Human Readiness)
+#   arifOS  → localhost:8088   (arifOS MCP Kernel)
+#   GEOX    → localhost:18081  (GEOX Earth Intelligence)
+#   WEALTH  → localhost:18082  (WEALTH Capital Thermodynamics)
+#   WELL    → localhost:8083   (WELL Human Readiness — dead)
 #
 # Naming constraint:
 #   arifos_ = internal daemon tools only (this file)
