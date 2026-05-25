@@ -191,6 +191,8 @@ arifos_mcp/
 
 # Session artifacts (generated at runtime)
 arifosmcp/sessions/
+arifosmcp/ARIFOS_MCP_AGENT_SEED.json
+arifosmcp/ARIFOS_MCP_FINAL_SEAL.md
 
 # Temporary status docs
 docs/PHOENIX_*_STATUS.md
