@@ -113,6 +113,8 @@ fi
 docker compose up -d --no-deps "$COMPOSE_SERVICE"
 
 # ── 6. Health check ──────────────────────────────────────────────────────────
+# NOTE: localhost:8080 is the Docker Compose mapped port.
+# The live VPS systemd service runs on port 8088.
 log_info "Waiting for health check..."
 for i in {1..30}; do
     if curl -sf http://localhost:8080/health \
