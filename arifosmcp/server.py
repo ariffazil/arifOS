@@ -326,7 +326,7 @@ try:
             def _arif_floor_status(
                 session_id: str | None = None,
                 actor_id: str | None = None,
-            ) -> dict[str, Any]:
+            ):
                 """Report the current state of constitutional floor enforcement."""
                 result = _get_floor_status()
                 result["session_id"] = session_id
