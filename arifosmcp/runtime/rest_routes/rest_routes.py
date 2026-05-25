@@ -1904,8 +1904,15 @@ def _compute_runtime_drift() -> dict[str, Any]:
     """Compare build-time git commit to mounted code commit."""
     build_commit = BUILD_INFO.get("build", {}).get("commit", "unknown")
     live_commit = "unknown"
-    # Try mounted code paths
-    for git_dir in ["/app/.git", "/usr/src/app/.git", "/root/arifOS/.git"]:
+    # Try mounted code paths (same order as build.py _git_sha_short)
+    for git_dir in [
+        "/opt/arifos/app/.git",
+        "/root/arifOS/.git",
+        "/app/.git",
+        "/usr/src/app/.git",
+        "/usr/src/app/arifOS/.git",
+        "/usr/src/project/.git",
+    ]:
         # Skip /app/.git if /app is a symlink (bare-metal: /app -> /root/WELL)
         if git_dir == "/app/.git" and os.path.islink("/app"):
             continue
