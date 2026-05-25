@@ -7,14 +7,14 @@
 # Install
 pip install -e .
 
-# Start MCP server (HTTP + SSE — port 8080)
-PYTHONPATH=/root/arifos python3.12 -m arifOS.arifosmcp.server
+# Start MCP server (HTTP + SSE — port 8088)
+PYTHONPATH=/root/arifOS python3.12 -m arifOS.arifosmcp.server
 
 # Start MCP server (stdio)
-PYTHONPATH=/root/arifos python3.12 -m arifOS.arifosmcp.server --transport stdio
+PYTHONPATH=/root/arifOS python3.12 -m arifOS.arifosmcp.server --transport stdio
 
 # Health check
-curl http://localhost:8080/health
+curl http://localhost:8088/health
 ```
 
 ## Critical Files

@@ -28,9 +28,9 @@ LAYER 1 — CONSTITUTION PACKAGE
 LAYER 2 — MCP RUNTIME
   Runtime file: /workspace/arifOS/arifOS_mcp_runtime.py
   Modes:
-    - stdio     : python3 arifOS_mcp_runtime.py stdio
-    - http     : python3 arifOS_mcp_runtime.py http [--port 8080]
-    - remote   : python3 arifOS_mcp_runtime.py remote
+    - stdio     : python3 -m arifosmcp.server --transport stdio
+    - http      : python3 -m arifosmcp.server --transport streamable-http [--port 8088]
+    - remote    : python3 -m arifosmcp.server --transport streamable-http --host 0.0.0.0
   Protocol: JSON-RPC 2.0, MCP 2024-11-05
   Transport switch: ARIFOS_MCP_TRANSPORT env var
   Remote proxy: ARIFOS_MCP_REMOTE_ENDPOINT env var

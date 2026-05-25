@@ -1,9 +1,23 @@
 # arifOS — Constitutional Kernel
 > **SEAL:** 333_MIND-DITEMPA-BUKAN-DIBERI-20260523
 > **Repository:** https://github.com/ariffazil/arifOS
-> **Architecture:** Legacy Constitutional Engine + MCP Shell (Dual Core)
+> **Architecture:** Constitutional Kernel + MCP Shell (Dual Core)
+> **Live port:** `8088` (NOT `8080`)
 
 ---
+
+## Agent Start Here
+
+**FIRST:** Read `AGENT_KERNEL_START.md` before touching anything.
+
+Then read this README. For invariants, see `INVARIANTS.md`.
+For agent rules, see `AGENTS.md`.
+
+**Live routing (VERIFIED 2026-05-25):**
+- arifOS MCP → `127.0.0.1:8088` ✅
+- GEOX daemon → `127.0.0.1:18081` ✅
+- WEALTH organ → `127.0.0.1:18082` ✅
+- WELL → disabled ⛔
 
 ## What is arifOS?
 
@@ -19,7 +33,7 @@ The system runs across two architectural layers:
 ```
 ┌─────────────────────────────────────────────────┐
 │  arifOS/arifosmcp/       MCP Shell (interface)  │  ← Tool exposure layer
-│  (port 8080)                                    │
+│  (port 8088)                                    │
 ├─────────────────────────────────────────────────┤
 │  arifOS/ (root)          Legacy Constitutional  │  ← Kernel execution layer
 │  core/ + contracts/        Engine (original)     │
@@ -132,7 +146,7 @@ arifOS/
 | Layer | Status | Notes |
 |-------|--------|-------|
 | root core/ (Legacy Constitutional Engine) | ACTIVE | 339 non-arifosmcp files import from it |
-| arifosmcp/core/ (MCP Shell) | ACTIVE | Runs on port 8080, exposes tools via MCP |
+| arifosmcp/core/ (MCP Shell) | ACTIVE | Runs on port 8088, exposes tools via MCP |
 | root contracts/ | ACTIVE | Enum-based, 339 files import from it |
 | arifosmcp/contracts/ | ACTIVE | StrEnum-based (Python 3.11+) |
 | memory/ (human session + identity) | ACTIVE | Session logs + identity canon |
@@ -257,7 +271,7 @@ For agent architecture, see: **AAA/** (sibling repository)
 ## Deployment
 
 arifOS runs as:
-- **MCP Shell** on port 8080 (docker compose)
+- **MCP Shell** on port 8088 (native; previously docker compose)
 - **Constitutional Kernel** as root-level Python modules
 - **APEX PRIME** on port 3002 (backend judgment engine)
 - **OpenClaw** on port 18789 (reasoning engine)
@@ -292,4 +306,4 @@ This repository is a core organ of the **arifOS Federation**:
 *   **Biological Substrate (WELL):** [C:\ariffazil\well](file:///C:/Users/User/../ariffazil/well)
 *   **Informational Surfaces (arif-sites):** [C:\ariffazil\arif-sites](file:///C:/Users/User/../ariffazil/arif-sites)
 
-*Unified under the arifOS Sovereign Constitution (F1�F13).*
+*Unified under the arifOS Sovereign Constitution (F1�F13).*
