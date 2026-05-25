@@ -84,9 +84,9 @@ organs:
 
     floors_active: [F01, F02, F03, F04, F05, F06, F07, F08, F09, F10, F11, F12, F13]
     registry_truth: VERIFIED
-    health_endpoint: http://localhost:8080/health
-    tools_endpoint: http://localhost:8080/tools
-    resources_endpoint: http://localhost:8080/resources
+    health_endpoint: http://localhost:8088/health
+    tools_endpoint: http://localhost:8088/tools
+    resources_endpoint: http://localhost:8088/resources
     contract_hash: sha256:canonical-v2026.05.19
 
   # ── GEOX: Earth Evidence ────────────────────────────────────────────────
@@ -131,8 +131,8 @@ organs:
       - geox_history_audit
 
     registry_truth: VERIFIED
-    health_endpoint: http://localhost:8081/health
-    tools_endpoint: http://localhost:8081/tools
+    health_endpoint: http://localhost:18081/health
+    tools_endpoint: http://localhost:18081/tools
     contract_hash: sha256:geox-v2026.05.19
 
   # ── WEALTH: Capital Thermodynamics ──────────────────────────────────────
@@ -178,8 +178,8 @@ organs:
       - wealth_inequality_kernel
 
     registry_truth: PASS
-    health_endpoint: http://localhost:8082/health
-    tools_endpoint: http://localhost:8082/tools
+    health_endpoint: http://localhost:18082/health
+    tools_endpoint: http://localhost:18082/tools
     contract_hash: sha256:wealth-v2026.05.19
 
   # ── WELL: Biological Substrate ────────────────────────────────────────

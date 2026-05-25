@@ -66,7 +66,7 @@ python3 commands/arif_run.py "ls /tmp"
 ```bash
 systemctl status arifos
 systemctl status arifos.socket
-curl http://localhost:8081/health
+curl http://localhost:8088/health
 ```
 
 ---
@@ -77,9 +77,9 @@ curl http://localhost:8081/health
 |-------|---------|-----------|
 | Daemon alive | `systemctl status arifos` | active (running) |
 | Socket unit | `systemctl status arifos.socket` | listening |
-| Health endpoint | `curl http://localhost:8081/health` | 200 + JSON |
-| Vault999 | `curl http://localhost:8081/vault/verify` | valid |
-| Floor status | `curl http://localhost:8081/floors` | F01-F13 listed |
+| Health endpoint | `curl http://localhost:8088/health` | 200 + JSON |
+| Vault999 | `curl http://localhost:8088/vault/verify` | valid |
+| Floor status | `curl http://localhost:8088/floors` | F01-F13 listed |
 | Wrapper LOW | `python3 commands/arif_run.py "ls /tmp"` | PROCEED |
 | Wrapper ATOMIC | `python3 commands/arif_run.py "rm -rf /"` | HOLD, exit 1 |
 | Bashrc intercept | `bash -c "rm -rf /"` | arif_hold blocked |
