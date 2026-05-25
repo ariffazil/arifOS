@@ -25,7 +25,7 @@
   "deployment": {
     "transport": "streamable-http",
     "endpoint": "https://mcp.arif-fazil.com/mcp",
-    "port": 8080,
+    "port": 8088,
     "container": "arifosmcp",
     "docker_image": "ariffazil/arifosmcp:latest"
   },

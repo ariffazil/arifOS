@@ -265,7 +265,8 @@ geox.arif-fazil.com {
 # ═══════════════════════════════════════════════════════════════════════
 # FEDERATION MCP — WEALTH
 # Keep at wealth.arif-fazil.com — ChatGPT registered here
-# Note: wealth-organ internal port is 8082
+# Note: wealth-organ internal port is 18082 (organ-standard, aligns with GEOX 18081)
+# Governance: WEALTH governance wrapper active — arifOS F1-F13
 # ═══════════════════════════════════════════════════════════════════════
 wealth.arif-fazil.com {
 	import tls_origin
@@ -275,6 +276,37 @@ wealth.arif-fazil.com {
 
 	handle /mcp* {
 		import cors_public
+		reverse_proxy 127.0.0.1:18082
+	}
+	handle /health {
+		import cors_public
+		reverse_proxy 127.0.0.1:18082
+	}
+	handle /sse* {
+		reverse_proxy 127.0.0.1:18082
+	}
+	handle /.well-known/mcp/server.json {
+		import cors_public
+		reverse_proxy 127.0.0.1:18082
+	}
+	handle /tools {
+		import cors_public
+		reverse_proxy 127.0.0.1:18082
+	}
+	handle /ready {
+		import cors_public
+		reverse_proxy 127.0.0.1:18082
+	}
+# ═══════════════════════════════════════════════════════════════════════
+wealth.arif-fazil.com {
+	import tls_origin
+	import shared_assets
+	encode zstd gzip
+	root * /var/www/html/wealth
+
+	handle /mcp* {
+		import cors_public
+<<<<<<< Updated upstream
 		reverse_proxy 127.0.0.1:8082
 	}
 	handle /health {
@@ -295,6 +327,28 @@ wealth.arif-fazil.com {
 	handle /ready {
 		import cors_public
 		reverse_proxy 127.0.0.1:8082
+=======
+		reverse_proxy 127.0.0.1:18082
+	}
+	handle /health {
+		import cors_public
+		reverse_proxy 127.0.0.1:18082
+	}
+	handle /sse* {
+		reverse_proxy 127.0.0.1:18082
+	}
+	handle /.well-known/mcp/server.json {
+		import cors_public
+		reverse_proxy 127.0.0.1:18082
+	}
+	handle /tools {
+		import cors_public
+		reverse_proxy 127.0.0.1:18082
+	}
+	handle /ready {
+		import cors_public
+		reverse_proxy 127.0.0.1:18082
+>>>>>>> Stashed changes
 	}
 	handle {
 		try_files {path} /index.html
