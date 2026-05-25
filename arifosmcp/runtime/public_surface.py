@@ -59,6 +59,8 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arif_scan_local_instructions",
     "arif_organ_consensus",
     "arif_session_budget",
+    "arif_floor_status",
+    "mcp_drift_check",
 )
 
 
