@@ -80,45 +80,45 @@ arifos.arif-fazil.com {
 
 	@wk path /.well-known/mcp/server.json
 	handle @wk {
-		reverse_proxy 127.0.0.1:8080
+		reverse_proxy 127.0.0.1:8088
 	}
 
 	handle /mcp* {
-		reverse_proxy 127.0.0.1:8080 {
+		reverse_proxy 127.0.0.1:8088 {
 			header_up Accept "text/event-stream, application/json, application/json-rpc"
 		}
 	}
 	handle /health {
-		reverse_proxy 127.0.0.1:8080
+		reverse_proxy 127.0.0.1:8088
 	}
     handle /ready {
-        reverse_proxy 127.0.0.1:8080
+        reverse_proxy 127.0.0.1:8088
     }
     handle /dashboard* {
-        reverse_proxy 127.0.0.1:8080
+        reverse_proxy 127.0.0.1:8088
     }
     handle /dashboard/* {
-        reverse_proxy 127.0.0.1:8080
+        reverse_proxy 127.0.0.1:8088
     }
     handle /tools {
-		reverse_proxy 127.0.0.1:8080
+		reverse_proxy 127.0.0.1:8088
 	}
 	handle /tools/* {
-		reverse_proxy 127.0.0.1:8080
+		reverse_proxy 127.0.0.1:8088
 	}
 	handle /tools.json {
-		reverse_proxy 127.0.0.1:8080
+		reverse_proxy 127.0.0.1:8088
 	}
 	handle /sse* {
-		reverse_proxy 127.0.0.1:8080 {
+		reverse_proxy 127.0.0.1:8088 {
 			header_up Accept "text/event-stream, application/json, application/json-rpc"
 		}
 	}
 	handle /api/* {
-		reverse_proxy 127.0.0.1:8080
+		reverse_proxy 127.0.0.1:8088
 	}
 	handle /inspector/* {
-		reverse_proxy 127.0.0.1:8080
+		reverse_proxy 127.0.0.1:8088
 	}
 
 	handle {
@@ -211,48 +211,48 @@ geox.arif-fazil.com {
 
 	handle /mcp {
 		import cors_public
-		reverse_proxy 127.0.0.1:8081 {
+		reverse_proxy 127.0.0.1:18081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
 	handle /mcp/* {
 		import cors_public
-		reverse_proxy 127.0.0.1:8081 {
+		reverse_proxy 127.0.0.1:18081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
 	handle /health {
 		import cors_public
-		reverse_proxy 127.0.0.1:8081 {
+		reverse_proxy 127.0.0.1:18081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
 	handle /ready {
 		import cors_public
-		reverse_proxy 127.0.0.1:8081 {
+		reverse_proxy 127.0.0.1:18081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
 	handle /sse* {
-		reverse_proxy 127.0.0.1:8081 {
+		reverse_proxy 127.0.0.1:18081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
 	handle /status {
 		import cors_public
-		reverse_proxy 127.0.0.1:8081 {
+		reverse_proxy 127.0.0.1:18081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
 	handle /.well-known/mcp/server.json {
 		import cors_public
-		reverse_proxy 127.0.0.1:8081 {
+		reverse_proxy 127.0.0.1:18081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
 	handle /tools {
 		import cors_public
-		reverse_proxy 127.0.0.1:8081 {
+		reverse_proxy 127.0.0.1:18081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
@@ -296,59 +296,6 @@ wealth.arif-fazil.com {
 	handle /ready {
 		import cors_public
 		reverse_proxy 127.0.0.1:18082
-	}
-# ═══════════════════════════════════════════════════════════════════════
-wealth.arif-fazil.com {
-	import tls_origin
-	import shared_assets
-	encode zstd gzip
-	root * /var/www/html/wealth
-
-	handle /mcp* {
-		import cors_public
-<<<<<<< Updated upstream
-		reverse_proxy 127.0.0.1:8082
-	}
-	handle /health {
-		import cors_public
-		reverse_proxy 127.0.0.1:8082
-	}
-	handle /sse* {
-		reverse_proxy 127.0.0.1:8082
-	}
-	handle /.well-known/mcp/server.json {
-		import cors_public
-		reverse_proxy 127.0.0.1:8082
-	}
-	handle /tools {
-		import cors_public
-		reverse_proxy 127.0.0.1:8082
-	}
-	handle /ready {
-		import cors_public
-		reverse_proxy 127.0.0.1:8082
-=======
-		reverse_proxy 127.0.0.1:18082
-	}
-	handle /health {
-		import cors_public
-		reverse_proxy 127.0.0.1:18082
-	}
-	handle /sse* {
-		reverse_proxy 127.0.0.1:18082
-	}
-	handle /.well-known/mcp/server.json {
-		import cors_public
-		reverse_proxy 127.0.0.1:18082
-	}
-	handle /tools {
-		import cors_public
-		reverse_proxy 127.0.0.1:18082
-	}
-	handle /ready {
-		import cors_public
-		reverse_proxy 127.0.0.1:18082
->>>>>>> Stashed changes
 	}
 	handle {
 		try_files {path} /index.html
@@ -448,7 +395,7 @@ arifosmcp.arif-fazil.com {
 mcp.arif-fazil.com {
 	import tls_origin
 	handle /mcp* {
-		reverse_proxy 127.0.0.1:8080
+		reverse_proxy 127.0.0.1:8088
 	}
 	handle {
 		redir https://arifos.arif-fazil.com permanent
