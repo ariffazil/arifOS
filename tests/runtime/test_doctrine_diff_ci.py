@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from commands.scripts.doctrine_diff_ci import run_checks
+from commands.scripts_archive.doctrine_diff_ci import run_checks
 
 
 def test_k013_doctrine_runtime_parity() -> None:
