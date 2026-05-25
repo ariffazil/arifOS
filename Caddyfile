@@ -304,43 +304,6 @@ wealth.arif-fazil.com {
 }
 
 # ═══════════════════════════════════════════════════════════════════════
-# FEDERATION MCP — WELL
-# Add this — was completely missing from Caddyfile
-# ChatGPT registered at well.arif-fazil.com/mcp
-# ═══════════════════════════════════════════════════════════════════════
-well.arif-fazil.com {
-	import tls_origin
-	encode zstd gzip
-
-	handle /mcp* {
-		import cors_public
-		reverse_proxy 127.0.0.1:8083
-	}
-	handle /health {
-		import cors_public
-		reverse_proxy 127.0.0.1:8083
-	}
-	handle /ready {
-		import cors_public
-		reverse_proxy 127.0.0.1:8083
-	}
-	handle /sse* {
-		reverse_proxy 127.0.0.1:8083
-	}
-	handle /.well-known/* {
-		import cors_public
-		reverse_proxy 127.0.0.1:8083
-	}
-	handle /tools {
-		import cors_public
-		reverse_proxy 127.0.0.1:8083
-	}
-	handle {
-		reverse_proxy 127.0.0.1:8083
-	}
-}
-
-# ═══════════════════════════════════════════════════════════════════════
 # COPILOT GOVERNANCE BRIDGE — copilot.arif-fazil.com
 # Layer 2 (JUDGMENT) gateway: Copilot output → arifOS 888_JUDGE → VAULT999
 # ═══════════════════════════════════════════════════════════════════════
