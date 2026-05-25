@@ -311,7 +311,7 @@
   // Try to fetch vitality from current host or arifOS MCP
   var apiBase = window.ARIFOS_API || (window.location.protocol === 'https:'
     ? 'https://arifosmcp.arif-fazil.com'
-    : 'http://localhost:8080');
+    : 'http://localhost:8088');  // live VPS port; override window.ARIFOS_API for local dev
 
   fetch(apiBase + '/health')
     .then(function(r) { return r.json(); })
