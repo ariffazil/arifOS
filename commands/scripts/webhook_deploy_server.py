@@ -19,7 +19,7 @@ ARIFOS_WEBHOOK_SECRET = os.environ.get("ARIFOS_WEBHOOK_SECRET", "")
 ARIFOS_DEPLOY_SCRIPT = os.environ.get(
     "ARIFOS_DEPLOY_SCRIPT", "/root/arifOS/scripts/deploy_arifosmcp.sh"
 )
-ARIFOS_URL = os.environ.get("ARIFOS_URL", "http://127.0.0.1:8080")
+ARIFOS_URL = os.environ.get("ARIFOS_URL", "http://127.0.0.1:8088")
 VAULT999_URL = os.environ.get("VAULT999_URL", "http://127.0.0.1:8100")
 RATE_LIMIT = {}
 RATE_LIMIT_LOCK = threading.Lock()

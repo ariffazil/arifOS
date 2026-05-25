@@ -44,7 +44,7 @@ def main() -> int:
         "--live",
         default=None,
         metavar="URL",
-        help="Optional live health URL to compare, for example http://127.0.0.1:8080/health",
+        help="Optional live health URL to compare, for example http://127.0.0.1:8088/health",
     )
     args = parser.parse_args()
 
@@ -130,7 +130,7 @@ def main() -> int:
     check_contains("Dockerfile", dockerfile, f"ARIFOS_VERSION={runtime_version}", failures)
     check_contains("Dockerfile", dockerfile, f'server.version="{runtime_version}"', failures)
     check_contains("Dockerfile", dockerfile, "13 canonical MCP capability tools", failures)
-    check_contains("Makefile", makefile, "http://localhost:8080/health", failures)
+    check_contains("Makefile", makefile, "http://localhost:8088/health", failures)
     check_contains("Makefile", makefile, "python scripts/audit_sot.py", failures)
     check_contains("arifosmcp/server.py", server, "13 canonical MCP capability tools", failures)
 

@@ -24,7 +24,7 @@ seal:
 
 health:
 	@echo "Verifying 111_SENSE..."
-	@curl -s http://localhost:8080/health | jq .
+	@curl -s http://localhost:8088/health | jq .  # live VPS port; use PORT=8080 for local Docker dev
 
 deploy-local:
 	@echo "Deploying current arifOS HEAD to local VPS Docker Compose runtime..."
@@ -45,7 +45,7 @@ deploy-local:
 	cd /root/compose && DEPLOY_GIT_COMMIT=$$GIT_SHA docker compose up -d --no-deps --force-recreate arifosmcp; \
 	READY=0; \
 	for _ in $$(seq 1 45); do \
-		if curl -fsS --max-time 5 http://localhost:8080/health > /tmp/arifos-health.json 2>/tmp/arifos-health.err; then \
+		if curl -fsS --max-time 5 http://localhost:8080/health > /tmp/arifos-health.json 2>/tmp/arifos-health.err; then \  # Docker compose maps 8080:8080
 			if EXPECTED_SHA=$$GIT_SHA python -c 'import json, os, sys; d=json.load(sys.stdin); actual=d.get("git_commit"); expected=os.environ["EXPECTED_SHA"]; sys.exit(0 if actual == expected else 1)' < /tmp/arifos-health.json; then \
 				READY=1; \
 				break; \

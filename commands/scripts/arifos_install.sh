@@ -318,8 +318,8 @@ verify_health() {
             break
         fi
 
-        # Try HTTP directly
-        if curl -sf http://127.0.0.1:8081/health &>/dev/null; then
+        # Try HTTP directly (live VPS port is 8088)
+        if curl -sf http://127.0.0.1:8088/health &>/dev/null; then
             health_ok=true
             break
         fi
@@ -331,7 +331,7 @@ verify_health() {
     if $health_ok; then
         log "Health check: PASSED"
         curl -sf --unix-socket "$ARIFOS_SOCK" http://localhost/health | python3 -m json.tool 2>/dev/null || \
-        curl -sf http://127.0.0.1:8081/health | python3 -m json.tool 2>/dev/null || true
+        curl -sf http://127.0.0.1:8088/health | python3 -m json.tool 2>/dev/null || true
     else
         warn "Health check: daemon not responding yet — may need manual start"
         info "Run: systemctl status arifos.service"

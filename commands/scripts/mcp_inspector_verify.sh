@@ -11,7 +11,7 @@ echo "║  arifOS MCP Inspector Verification                         ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo ""
 
-SERVER_URL="${ARIFOS_SERVER:-http://localhost:8080}"
+SERVER_URL="${ARIFOS_SERVER:-http://localhost:8088}"  # override with ARIFOS_SERVER for local dev on 8080
 PASS=0
 FAIL=0
 

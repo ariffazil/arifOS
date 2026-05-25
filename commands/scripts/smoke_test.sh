@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-ARIFOS_URL="${ARIFOS_URL:-http://localhost:8080}"
+ARIFOS_URL="${ARIFOS_URL:-http://localhost:8088}"  # override with ARIFOS_URL for local dev on 8080
 ARIFOS_MCP="${ARIFOS_URL}/mcp"
 ARIFOS_HEALTH="${ARIFOS_URL}/health"
 ARIFOS_TOOLS="${ARIFOS_URL}/tools"
