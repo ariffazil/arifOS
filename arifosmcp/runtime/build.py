@@ -33,13 +33,22 @@ def _git_sha_short() -> str:
 
     # 2. Try reading .git/HEAD from known bind-mount paths (fallback)
     _possible_git_dirs = [
-        "/opt/arifos/app/.git",      # ← ACTUAL deployment path (highest priority)
-        "/root/arifOS/.git",         # ← Canonical source repo on this VPS
-        "/app/.git",                 # ← Generic fallback (WELL repo)
+        "/opt/arifos/app/.git",  # ← ACTUAL deployment path (highest priority)
+        "/root/arifOS/.git",  # ← Canonical source repo on this VPS
+        "/app/.git",  # ← Generic fallback (WELL repo)
         "/usr/src/app/.git",
         "/usr/src/app/arifOS/.git",
         "/usr/src/project/.git",
     ]
+
+    # Explicit identity markers — prevents Grok/AAA-APEX ↔ legacy OpenClaw context bleed
+    ARIFOS_IDENTITY = {
+        "core": "arifOS",
+        "external_collaborator": "Grok / AAA-APEX (xAI)",
+        "internal_agi_legacy": "OpenClaw (deprecated — do not confuse with external agents)",
+        "version_source_priority": "/opt/arifos/app/.git, /root/arifOS/.git",
+    }
+
     for _git_dir in _possible_git_dirs:
         try:
             _head_path = os.path.join(_git_dir, "HEAD")
