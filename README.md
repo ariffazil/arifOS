@@ -4,6 +4,12 @@
 > **Architecture:** Constitutional Kernel + MCP Shell (Dual Core)
 > **Live port:** `8088` (NOT `8080`)
 
+> ⚠️ **CANONICAL AUTHORITY NOTICE:**
+> This repo is the **constitutional kernel** of the arifOS Federation.
+> All 13 floors (F1–F13), 888_JUDGE verdicts, VAULT999 ledger, and memory
+> layers are defined HERE. No other repo is a constitutional authority.
+> For live organ status, see `FEDERATION_STATUS.md` and `REPO_ROLE_MAP.md`.
+
 ---
 
 ## Agent Start Here
@@ -12,12 +18,14 @@
 
 Then read this README. For invariants, see `INVARIANTS.md`.
 For agent rules, see `AGENTS.md`.
+For federation status, see `FEDERATION_STATUS.md`.
+For canonical repo roles, see `REPO_ROLE_MAP.md`.
 
-**Live routing (VERIFIED 2026-05-25):**
+**Live routing (see FEDERATION_STATUS.md for canonical status):**
 - arifOS MCP → `127.0.0.1:8088` ✅
 - GEOX daemon → `127.0.0.1:18081` ✅
 - WEALTH organ → `127.0.0.1:18082` ✅
-- WELL → disabled ⛔
+- WELL → see `FEDERATION_STATUS.md` (WELL is OPERATIONAL)
 
 ## What is arifOS?
 
@@ -277,6 +285,14 @@ arifOS runs as:
 - **OpenClaw** on port 18789 (reasoning engine)
 
 See `deploy/MANIFEST.md` for full deployment specification.
+
+> ⚠️ **MCP Multi-Client Concurrency (PHOENIX-73C):**
+> The MCP SDK `streamable-http` transport uses a singleton SSE stream key.
+> Only ONE SSE client can hold the `/mcp` GET stream at a time.
+> Simultaneous SSE connections (e.g., Kimi + OpenCode) → `409 Conflict`.
+> Clients should use POST-based JSON-RPC or implement reconnection with backoff.
+> This is a transport-layer constraint of the MCP SDK, not an arifOS bug.
+> See `REPO_ROLE_MAP.md` for full detail.
 
 ---
 
