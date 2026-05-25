@@ -232,6 +232,8 @@ async def _call_ollama(
             raw_output = _strip_markdown(parsed["response"])
             try:
                 parsed = json.loads(raw_output)
+                if not isinstance(parsed, dict):
+                    parsed = {"reasoning": raw_output, "answer": raw_output}
             except json.JSONDecodeError:
                 parsed = {"reasoning": raw_output, "answer": raw_output}
         elif isinstance(parsed, dict) and "message" in parsed:
@@ -239,6 +241,8 @@ async def _call_ollama(
             raw_output = _strip_markdown(content)
             try:
                 parsed = json.loads(raw_output)
+                if not isinstance(parsed, dict):
+                    parsed = {"reasoning": raw_output, "answer": raw_output}
             except json.JSONDecodeError:
                 parsed = {"reasoning": raw_output, "answer": raw_output}
         else:
