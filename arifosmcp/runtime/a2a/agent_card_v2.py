@@ -23,6 +23,11 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+try:
+    from arifosmcp.runtime.identity import get_identity
+except ImportError:
+    get_identity = None  # type: ignore
+
 
 def _utcnow() -> datetime:
     return datetime.now(UTC)
@@ -565,8 +570,24 @@ def _build_6axis_skills() -> list[AxisSkill]:
 
 
 def get_arifOS_agent_card() -> ArifOSAgentCard:
-    """Factory to get the canonical arifOS Agent Card."""
-    return ArifOSAgentCard.model_validate({}, strict=False)
+    """Factory to get the canonical arifOS Agent Card.
+
+    Derives core identity from identity.toml via get_identity().
+    """
+    identity = {}
+    if get_identity is not None:
+        try:
+            # Get identity with running commit (unknown at card build time)
+            identity = get_identity(running_commit="derived")
+        except Exception:
+            pass
+    return ArifOSAgentCard.model_validate(
+        {
+            "name": identity.get("display_name", "arifOS"),
+            "version": identity.get("canonical_commit", "341ccc6"),
+        },
+        strict=False,
+    )
 
 
 def get_axos_summary() -> dict[str, Any]:

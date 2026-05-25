@@ -1,0 +1,43 @@
+# Canonical identity source for arifOS
+# DITEMPA BUKAN DIBERI — Forged, Not Given
+# All identity surfaces derive from this file. No duplicate identity strings elsewhere.
+
+agent_id = "arifos"
+display_name = "arifOS"
+owner = "Muhammad Arif bin Fazil"
+domain = "aaa.arif-fazil.com"
+
+canonical_commit = "341ccc6"
+identity_marker = "arifos-sovereign-runtime"
+environment = "production"
+
+forbidden_self_names = [
+    "Grok",
+    "OpenClaw",
+    "Claude",
+    "Gemini",
+    "ChatGPT",
+]
+
+boot_attestation = true
+vault999_required = true
+runtime_drift_allowed = false
+
+[a2a]
+enabled = true
+public_agent_card = true
+agent_card_path = "/.well-known/agent-card.json"
+endpoint_path = "/a2a"
+
+[health]
+include_git_commit = true
+include_runtime_drift = true
+include_vault999_health = true
+include_identity_hash = false  # enable once hashing is stable
+include_identity_marker = true
+include_boot_attestation = true
+
+[vault999]
+api_url = "http://vault999:8100"
+writer_url = "http://localhost:5001"
+boot_event_type = "agent_identity_attested"
