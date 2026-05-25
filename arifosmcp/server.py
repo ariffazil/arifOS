@@ -319,6 +319,32 @@ try:
             tags={"diagnostic", "read-only"},
         )(_arif_session_budget)
 
+        # ── arif_floor_status (constitutional floor report) ───────────────────
+        try:
+            from arifosmcp.runtime.floor import get_floor_status as _get_floor_status
+
+            def _arif_floor_status(
+                session_id: str | None = None,
+                actor_id: str | None = None,
+            ) -> dict[str, Any]:
+                """Report the current state of constitutional floor enforcement."""
+                result = _get_floor_status()
+                result["session_id"] = session_id
+                result["actor_id"] = actor_id
+                return result
+
+            mcp.tool(
+                name="arif_floor_status",
+                description=(
+                    "F8 TABLIGH: Report the current state of constitutional floor enforcement. "
+                    "Returns all 13 floors (F01–F13), active floor list, floor count, and alignment status."
+                ),
+                tags={"diagnostic", "read-only", "perception"},
+            )(_arif_floor_status)
+            logger.info("Registered arif_floor_status")
+        except Exception as e:
+            logger.warning(f"Failed to register arif_floor_status: {e}")
+
         # ── mcp_drift_check (PHOENIX-72 readiness) ──────────────────────────
         try:
             from arifosmcp.tools.drift_check import arif_mcp_drift_check as _arif_mcp_drift_check
@@ -338,7 +364,7 @@ try:
 
         logger.info(
             "Registered diagnostic tools: arif_stack_health_probe, arif_organ_consensus, "
-            "arif_scan_local_instructions, arif_session_budget, mcp_drift_check"
+            "arif_scan_local_instructions, arif_session_budget, arif_floor_status, mcp_drift_check"
         )
     except Exception as e:
         logger.warning(f"Failed to register arifOS diagnostic tools: {e}")

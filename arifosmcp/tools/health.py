@@ -40,12 +40,12 @@ def _is_inside_container() -> bool:
 # does not resolve to the host machine but to the container's own namespace.
 _SERVICE_ENDPOINTS: dict[str, dict[str, Any]] = {
     "arifos_mcp": {
-        "url": "http://localhost:8080/health",
+        "url": "http://localhost:8088/health",
         "docker_host": None,
         "timeout": 5.0,
     },
     "well": {
-        "url": "http://localhost:8083/health",
+        "url": "http://localhost:18083/health",
         "docker_host": "well:8083",
         "timeout": 5.0,
     },
@@ -89,7 +89,7 @@ def _well_mcp_url() -> str:
     well_cfg = _SERVICE_ENDPOINTS.get("well", {})
     if _is_inside_container() and well_cfg.get("docker_host"):
         return f"http://{well_cfg['docker_host']}/mcp"
-    return "http://localhost:8083/mcp"
+    return "http://localhost:18083/mcp"
 
 
 async def _probe_http(url: str, timeout: float) -> dict[str, Any]:

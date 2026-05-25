@@ -48,7 +48,7 @@ organs:
     role: constitutional_kernel
     lane: AGI / ASI / APEX
     authority: judge
-    port: 8080
+    port: 8088
     transport: streamable_http
     public_domain: https://arifos.arif-fazil.com
     mcp_endpoint: https://mcp.arif-fazil.com/mcp
@@ -96,7 +96,7 @@ organs:
     role: earth_evidence
     lane: AGI
     authority: evidence_only
-    port: 8081
+    port: 18081
     transport: streamable_http
     public_domain: https://geox.arif-fazil.com
 
@@ -142,7 +142,7 @@ organs:
     role: capital_thermodynamics
     lane: AGI
     authority: computation_only
-    port: 8082
+    port: 18082
     transport: streamable_http
     public_domain: https://wealth.arif-fazil.com
 
@@ -189,7 +189,7 @@ organs:
     role: biological_readiness
     lane: AGI / ASI
     authority: reflection_only
-    port: 8083
+    port: 18083
     transport: streamable_http
     public_domain: https://well.arif-fazil.com
 

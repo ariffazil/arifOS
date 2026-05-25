@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 _ORGAN_ENDPOINTS: dict[str, dict[str, Any]] = {
     "well": {
-        "health": "http://localhost:8083/health",
+        "health": "http://localhost:18083/health",
         "docker_host": "well:8083",
         "timeout": 5.0,
     },
