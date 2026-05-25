@@ -449,3 +449,18 @@ openclaw.arif-fazil.com {
 		reverse_proxy 127.0.0.1:18789
 	}
 }
+
+# ═══════════════════════════════════════════════════════════════════════
+# WELL — intentionally inactive backend (no service on 8083)
+# 525 noise eliminated: this block returns a proper 404 instead of TLS alert
+# Decision: 2026-05-25 — retire public route until backend exists
+# ═══════════════════════════════════════════════════════════════════════
+well.arif-fazil.com {
+	import tls_origin
+	handle /health {
+		respond "{\"status\": \"inactive\", \"note\": \"WELL backend not yet active — 2026-05-25\"}" 200
+	}
+	handle {
+		respond "{\"error\": \"WELL not active\", \"note\": \"No backend on port 8083\"}" 404
+	}
+}
