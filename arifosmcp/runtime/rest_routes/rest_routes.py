@@ -2072,7 +2072,13 @@ def _compute_runtime_drift() -> dict[str, Any]:
     build_commit = BUILD_INFO.get("build", {}).get("commit", "unknown")
     live_commit = "unknown"
     # Try mounted code paths
-    for git_dir in ["/app/.git", "/usr/src/app/.git", "/root/arifOS/.git"]:
+    for git_dir in [
+        "/opt/arifos/app/.git",      # ← ACTUAL deployment path (highest priority)
+        "/root/arifOS/.git",         # ← Canonical source repo on this VPS
+        "/app/.git",                 # ← Generic fallback (WELL repo)
+        "/usr/src/app/.git",
+        "/usr/src/app/arifOS/.git",
+    ]:
         try:
             head_path = os.path.join(git_dir, "HEAD")
             if os.path.exists(head_path):
