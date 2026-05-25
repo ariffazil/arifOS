@@ -91,16 +91,16 @@ arifos.arif-fazil.com {
 	handle /health {
 		reverse_proxy 127.0.0.1:8088
 	}
-    handle /ready {
-        reverse_proxy 127.0.0.1:8088
-    }
-    handle /dashboard* {
-        reverse_proxy 127.0.0.1:8088
-    }
-    handle /dashboard/* {
-        reverse_proxy 127.0.0.1:8088
-    }
-    handle /tools {
+	handle /ready {
+		reverse_proxy 127.0.0.1:8088
+	}
+	handle /dashboard* {
+		reverse_proxy 127.0.0.1:8088
+	}
+	handle /dashboard/* {
+		reverse_proxy 127.0.0.1:8088
+	}
+	handle /tools {
 		reverse_proxy 127.0.0.1:8088
 	}
 	handle /tools/* {

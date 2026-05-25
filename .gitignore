@@ -177,3 +177,20 @@ package-lock.json
 /node_modules
 .claude/
 .gemini/
+
+# Backup files (any pattern)
+*.bak*
+*.backup*
+
+# Legacy / quarantine archives (preserved on disk, excluded from git)
+arifOS_LEGACY/
+arifOS_QUARANTINED_*/
+
+# Active migration workspace (preserved on disk, excluded from git until migration completes)
+arifos_mcp/
+
+# Session artifacts (generated at runtime)
+arifosmcp/sessions/
+
+# Temporary status docs
+docs/PHOENIX_*_STATUS.md
