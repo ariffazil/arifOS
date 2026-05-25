@@ -175,6 +175,97 @@ class OntologyGuard:
             symbolic_mode=symbolic_mode,
         )
 
+    # Parallel authority artifact patterns — these indicate a second constitution
+    _PARALLEL_ARTIFACT_PATTERNS = [
+        r"AGENT_BODY_PROTOCOL\.md",
+        r"AGENT_LAW\.md",
+        r"BODY_PROTOCOL\.md",
+        r"local_constitution\.md",
+        r"agent_constitution\.md",
+        r"governance.*\.md",
+        r"\.arif/.*\.md",
+    ]
+
+    def check_parallel_artifacts(self, path_hints: list[str] | None = None) -> dict[str, Any]:
+        """
+        Detect if agents have created parallel authority artifacts.
+
+        A parallel authority artifact is a governance document that claims to be
+        a second source of constitutional authority, in conflict with the canonical
+        arifOS identity/floors/ontology system at:
+          - /root/.arif/identity.json  (canonical identity)
+          - /root/arifOS/core/shared/floors.py  (canonical floors)
+          - /root/arifOS/core/shared/guards/ontology_guard.py  (canonical ontology)
+
+        This method detects markdown or YAML files that attempt to create a
+        parallel authority structure that could mislead agents into obeying
+        a second constitution instead of arifOS.
+
+        Args:
+            path_hints: Optional list of paths to scan. If None, uses defaults:
+              - ~/.arif/ (home directory arif config)
+              - ~/AGENT_*.md
+              - ~/.config/opencode/ (opencode config dir)
+
+        Returns:
+            dict with keys:
+              - has_parallel: bool — True if suspicious files found
+              - files: list[str] — paths of suspicious files
+              - verdict: "HOLD" if parallel detected, "SEAL" if clean
+              - reason: str — human-readable explanation
+        """
+        import os
+        from pathlib import Path
+
+        suspicious: list[str] = []
+
+        if path_hints is None:
+            home = Path.home()
+            path_hints = [
+                str(home / ".arif"),
+                str(home / "AGENT_BODY_PROTOCOL.md"),
+                str(home / "AGENT_LAW.md"),
+                str(home / "BODY_PROTOCOL.md"),
+                str(home / ".config" / "opencode"),
+            ]
+
+        for hint in path_hints:
+            p = Path(hint)
+            if not p.exists():
+                continue
+            if p.is_file():
+                name = p.name.lower()
+                for pattern in self._PARALLEL_ARTIFACT_PATTERNS:
+                    if re.search(pattern, name, re.IGNORECASE):
+                        suspicious.append(str(p))
+            elif p.is_dir():
+                for md_file in p.rglob("*.md"):
+                    md_name = str(md_file).lower()
+                    for pattern in self._PARALLEL_ARTIFACT_PATTERNS:
+                        if re.search(pattern, md_name, re.IGNORECASE):
+                            suspicious.append(str(md_file))
+                for yaml_file in p.rglob("*.yaml"):
+                    yaml_name = str(yaml_file).lower()
+                    if "constitution" in yaml_name or "governance" in yaml_name:
+                        suspicious.append(str(yaml_file))
+
+        has_parallel = len(suspicious) > 0
+        verdict = "HOLD" if has_parallel else "SEAL"
+        reason = (
+            f"F10 Ontology: Found {len(suspicious)} parallel authority artifact(s). "
+            "Canonical authority is identity.json + floors.py + ontology_guard.py. "
+            "Do not create parallel constitutions."
+            if has_parallel
+            else "F10 Ontology: No parallel authority artifacts detected."
+        )
+
+        return {
+            "has_parallel": has_parallel,
+            "files": suspicious,
+            "verdict": verdict,
+            "reason": reason,
+        }
+
 
 def detect_literalism(output: str, symbolic_mode: bool = False) -> bool:
     """

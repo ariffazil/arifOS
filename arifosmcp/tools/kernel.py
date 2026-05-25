@@ -76,6 +76,20 @@ def arif_kernel_route(
       organ:   "geox" | "wealth"
       tool:   the MCP tool name on the organ
       arguments: dict of tool arguments
+
+    Seven-Step Mandatory Lifecycle:
+
+        Step 1 OBSERVE   — arif_sense_observe    — Sense current state
+        Step 2 ROUTE     — arif_kernel_route     — Route to correct tool/agent
+        Step 3 PLAN      — arif_mind_reason       — Plan before mutation
+        Step 4 ACT       — arif_forge_execute    — Execute if SEAL'd
+        Step 5 VERIFY    — arif_stack_health_probe — Verify result
+        Step 6 SEAL     — arif_vault_seal       — Seal consequential actions
+        Step 7 REMEMBER  — arif_memory_recall    — Store to governed memory
+
+    Canonical self-model: /root/.arif/identity.json (version 2)
+    Parallel authority artifacts are detected by ontology_guard.check_parallel_artifacts().
+    Do NOT create separate constitution files or parallel governance documents.
     """
     floor_check = check_floors("arif_kernel_route", {"target": target or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":

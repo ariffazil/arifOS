@@ -53,6 +53,21 @@ _IRREVERSIBLE_PATTERNS = [
     r"\bkill\b",
     r"\bkill\s+-9\b",
     r"\bforce\s+quit\b",
+    # Git force/dangerous
+    r"\bgit\s+push\s+.*--force\b",
+    r"\bgit\s+push\s+-f\b",
+    r"\bgit\s+reset\s+--hard\b",
+    r"\bgit\s+rebase\s+-i\b",
+    r"\bgit\s+branch\s+-D\b",
+    r"\bgit\s+stash\s+drop\b",
+    # Docker dangerous
+    r"\bdocker\s+system\s+prune\b",
+    r"\bdocker\s+volume\s+rm\b",
+    r"\bdocker\s+network\s+rm\b",
+    r"\bdocker\s+container\s+rm\b",
+    r"\bdocker\s+rmi\b",
+    r"\bdocker\s+stop\b",
+    r"\bdocker\s+kill\b",
 ]
 
 _PARTIAL_PATTERNS = [
@@ -389,6 +404,42 @@ TOOL_BASE_CLASSES: dict[str, str] = {
     "run_command": "run",
     "execute_code": "execute",
     "run_tests": "execute",
+    # Shell / OS (native tool wrappers — TRIVIAL read-equivalents)
+    "ls": "list",
+    "ps": "list",
+    "whoami": "list",
+    "hostname": "list",
+    "pwd": "list",
+    "df": "list",
+    "free": "list",
+    "uptime": "list",
+    "curl": "fetch",
+    "wget": "fetch",
+    "docker ps": "list",
+    "docker images": "list",
+    "docker logs": "list",
+    "docker inspect": "list",
+    "docker stats": "list",
+    "docker network ls": "list",
+    "docker volume ls": "list",
+    "git status": "list",
+    "git log": "list",
+    "git diff": "list",
+    "git branch": "list",
+    "git stash list": "list",
+    "git show": "list",
+    "git reflog": "list",
+    # Shell commands with mutation potential (base class only — pattern matching handles specifics)
+    "bash": "run",
+    "sh": "run",
+    "write": "write",
+    "mkdir": "write",
+    "cp": "write",
+    "mv": "write",
+    "touch": "write",
+    "echo": "write",
+    "docker": "run",  # generic docker — pattern matching handles specifics
+    "git": "run",  # generic git — pattern matching handles specifics
     # arifOS
     "arif_mind_reason": "read",  # Reasoning is reversible
     "arif_sense_observe": "read",
@@ -416,4 +467,77 @@ __all__ = [
     "ReversibilityVerdict",
     "ReversibilityEngine",
     "classify_tool_base",
+    "classify_action",
 ]
+
+
+def classify_action(tool_id: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+    """
+    Fast pre-gate classifier for agents and native tools.
+
+    Maps reversibility classes to action taxonomy:
+      OBSERVE  ← TRIVIAL
+      MUTATE   ← REVERSIBLE, PARTIAL
+      ATOMIC   ← IRREVERSIBLE, CRITICAL
+      UNKNOWN  ← falls through or unknown base class
+
+    This is the fast triage layer ABOVE the full floor enforcement.
+    Use before any tool call to quickly classify risk class.
+
+    Used by:
+      - OpenCode native tool wrappers (pre-flight gate)
+      - arif_kernel_route (fast triage before floor checks)
+      - Agent self-model (quick risk assessment)
+      - Native bash/filesystem/git/docker wrappers
+
+    Canonical source: /root/.arif/identity.json (version 2)
+
+    Args:
+        tool_id: The tool name or command being classified.
+                 Examples: "bash", "git status", "write", "rm -rf",
+                           "arif_mind_reason", "docker ps"
+        params: Optional params for context-sensitive classification.
+
+    Returns:
+        dict with keys:
+          - action_class: "OBSERVE" | "MUTATE" | "ATOMIC" | "UNKNOWN"
+          - reversibility: the underlying reversibility class string
+          - may_proceed: bool — True if OBSERVE
+          - requires_plan: bool — True if MUTATE or ATOMIC
+          - requires_arif_approval: bool — True if ATOMIC
+          - reason: str — human-readable classification reasoning
+    """
+    # Lazy import to avoid circular import at module load time.
+    # ReversibilityEngine.assess() is only needed when this function
+    # is actually called, not when the module loads.
+    from arifosmcp.core.reversibility_engine import (
+        ReversibilityEngine,
+        ReversibilityClass,
+    )
+
+    engine = ReversibilityEngine()
+    result = engine.assess(tool_id, params or {})
+    rev_class = result.reversibility_class.value
+
+    # Map reversibility → action taxonomy
+    rev_to_action: dict[str, str] = {
+        "trivial": "OBSERVE",
+        "reversible": "MUTATE",
+        "partial": "MUTATE",
+        "irreversible": "ATOMIC",
+        "critical": "ATOMIC",
+    }
+
+    action_class = rev_to_action.get(rev_class, "UNKNOWN")
+    last_reason = result.reasoning[-1] if result.reasoning else "classified"
+
+    return {
+        "action_class": action_class,
+        "reversibility": rev_class,
+        "may_proceed": action_class == "OBSERVE",
+        "requires_plan": action_class in ("MUTATE", "ATOMIC"),
+        "requires_arif_approval": action_class == "ATOMIC",
+        "reason": last_reason,
+        "tool_id": tool_id,
+        "verdict": "SEAL" if action_class == "OBSERVE" else "HOLD",
+    }
