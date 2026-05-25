@@ -33,11 +33,12 @@ def _git_sha_short() -> str:
 
     # 2. Try reading .git/HEAD from known bind-mount paths (fallback)
     _possible_git_dirs = [
-        "/app/.git",
+        "/opt/arifos/app/.git",      # ← ACTUAL deployment path (highest priority)
+        "/root/arifOS/.git",         # ← Canonical source repo on this VPS
+        "/app/.git",                 # ← Generic fallback (WELL repo)
         "/usr/src/app/.git",
         "/usr/src/app/arifOS/.git",
         "/usr/src/project/.git",
-        "/root/arifOS/.git",
     ]
     for _git_dir in _possible_git_dirs:
         try:
