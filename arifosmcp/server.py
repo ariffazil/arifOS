@@ -319,9 +319,26 @@ try:
             tags={"diagnostic", "read-only"},
         )(_arif_session_budget)
 
+        # ── mcp_drift_check (PHOENIX-72 readiness) ──────────────────────────
+        try:
+            from arifosmcp.tools.drift_check import arif_mcp_drift_check as _arif_mcp_drift_check
+            mcp.tool(
+                name="mcp_drift_check",
+                description=(
+                    "PHOENIX-72: Read-only surface drift detector. "
+                    "Compares canonical manifest against live registered MCP tools. "
+                    "Modes: report (default) | warn | strict. "
+                    "Returns allowed_count, registered_count, missing, extra, drift_detected, verdict."
+                ),
+                tags={"diagnostic", "read-only", "phoenix72"},
+            )(_arif_mcp_drift_check)
+            logger.info("Registered mcp_drift_check (PHOENIX-72)")
+        except Exception as e:
+            logger.warning(f"Failed to register mcp_drift_check: {e}")
+
         logger.info(
             "Registered diagnostic tools: arif_stack_health_probe, arif_organ_consensus, "
-            "arif_scan_local_instructions, arif_session_budget"
+            "arif_scan_local_instructions, arif_session_budget, mcp_drift_check"
         )
     except Exception as e:
         logger.warning(f"Failed to register arifOS diagnostic tools: {e}")

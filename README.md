@@ -292,18 +292,36 @@ may sleep, leave, or be absent — execution continues until manually interrupte
 
 **DITEMPA BUKAN DIBERI** — No manipulation, no theorizing, only F2 ground truth.
 
+---
+
+## PHOENIX-72 Readiness
+
+| Item | Status |
+|------|--------|
+| Current stable mode | **canonical13** |
+| Target architecture | PHOENIX-72 / PHOENIX-99 |
+| PHOENIX-72 status | **NOT SEALED** — see [`docs/PHOENIX_72_STATUS.md`](docs/PHOENIX_72_STATUS.md) |
+| Live tools | 13 canonical + 4 diagnostic + 4 wiki + 1 drift check = 22 |
+| Target tools | 72 |
+| Resources (est) | 17 / 18 |
+| Prompts (est) | 13 / 9 |
+| Drift check | Implemented (`mcp_drift_check`) |
+| Manifest | [`arifosmcp/manifests/phoenix72.tools.json`](arifosmcp/manifests/phoenix72.tools.json) |
+
+Do not claim PHOENIX-72 is sealed until the drift check reports `drift_detected=false` with 72 live tools.
+
 
 ---
 
 ## ??? Federated Architecture
 
 This repository is a core organ of the **arifOS Federation**:
-*   **Operator Cockpit (AAA):** [C:\ariffazil\AAA](file:///C:/Users/User/../ariffazil/AAA)
-*   **Constitutional Kernel (arifOS):** [C:\ariffazil\arifOS](file:///C:/Users/User/../ariffazil/arifOS)
-*   **Vision Shell (A-FORGE):** [C:\ariffazil\A-FORGE](file:///C:/Users/User/../ariffazil/A-FORGE)
-*   **Geological Engine (GEOX):** [C:\ariffazil\geox](file:///C:/Users/User/../ariffazil/geox)
-*   **Capital Engine (WEALTH):** [C:\ariffazil\wealth](file:///C:/Users/User/../ariffazil/wealth)
-*   **Biological Substrate (WELL):** [C:\ariffazil\well](file:///C:/Users/User/../ariffazil/well)
-*   **Informational Surfaces (arif-sites):** [C:\ariffazil\arif-sites](file:///C:/Users/User/../ariffazil/arif-sites)
+*   **Operator Cockpit (AAA):** `/root/AAA`
+*   **Constitutional Kernel (arifOS):** `/root/arifOS`
+*   **Vision Shell (A-FORGE):** `/root/A-FORGE`
+*   **Geological Engine (GEOX):** `/root/geox`
+*   **Capital Engine (WEALTH):** `/root/WEALTH`
+*   **Biological Substrate (WELL):** `/root/WELL`
+*   **Informational Surfaces (arif-sites):** `/root/arif-sites`
 
 *Unified under the arifOS Sovereign Constitution (F1�F13).*

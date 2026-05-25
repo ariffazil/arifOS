@@ -1,107 +1,80 @@
 # PHOENIX-72 Status
 
-## Verdict
-**HOLD / PLANNED** — Current surface is PHOENIX-13 (canonical kernel). PHOENIX-72 is the future federated organ surface, not the current active state.
+> DITEMPA BUKAN DIBERI — Forged, Not Given.
+> This document is the sole authority on PHOENIX-72 readiness. Do not overclaim.
 
-## Architecture Clarification
+## Current Verdict
 
-```
-Current active system = PHONEIX-13 (kernel)
-Future arifos_mcp    = federation gateway + organ connections
-```
+| Mode | Status |
+|------|--------|
+| canonical13 | ✅ LIVE |
+| PHOENIX-72 | ⛔ NOT YET SEALED |
 
-### Current Active arifosmcp (port 8088)
-- **Identity:** Brainstem / kernel / control layer
-- **Tool count:** 13 canonical kernel tools
-- **Purpose:** Session, observe, reason, critique, route, judge, vault, forge gates
-- **Tool registry status:** healthy ✅
-- **Organ connections:** GEOX/WEALTH/WELL are separate MCP servers, not proxies
+## Verified
 
-### Future arifos_mcp (migration target)
-- **Identity:** Clean MCP gateway + federation layer
-- **Purpose:** "I can route to specialist organs safely" — agentic federation gateway
-- **Structure:**
-  - `arifos_mcp/` = kernel + providers/geox.py + providers/wealth.py + providers/well.py
-  - `geox_mcp/` = subsurface intelligence MCP
-  - `wealth_mcp/` = capital/valuation MCP
-  - `well_mcp/` = vitality/dignity MCP
-- **Tool count target:** 13 kernel + organ tools via providers/proxy mounting
+- arifOS MCP session init (`arif_session_init`) — live
+- arifOS ops measure (`arif_ops_measure`) — healthy (cpu: 15.0, mem: 32.0, disk: 45.0)
+- 13 canonical kernel tools registered in `canonical13` mode
+- Port 8088 invariant — live on VPS
+- `ARIFOS_PUBLIC_SURFACE_MODE=canonical13` is default
+- Federation probes: arifOS self, GEOX, WEALTH, WELL defined in `known_services`
+- `000_FIX` (SAFE_VOID `/home/arifos/.local/share`) — resolved
 
-## Live Service Verification (2026-05-25)
+## Live Surface Counts (2026-05-25)
 
-| Service | Port | Public Endpoint | Status |
-|---------|------|----------------|--------|
-| arifOS kernel | 8088 | arifos.arif-fazil.com | ✅ healthy |
-| GEOX organ | 18081 | geox.arif-fazil.com | ✅ ok |
-| WEALTH organ | 18082 | wealth.arif-fazil.com | ✅ healthy |
-| WELL organ | none | well.arif-fazil.com | ⛔ 525 (intentional) |
+| Surface | Live Count | PHOENIX-72 Target | Gap |
+|---------|-----------:|------------------:|-----|
+| Tools (canonical13) | 13 | 72 | **-59** |
+| Tools (expanded45) | 41 aliases | 72 | **-31** |
+| Diagnostic tools | 4 | part of 72 | — |
+| Resources | ~17* | 18 | **-1** |
+| Prompts | ~13* | 9 | **+4** (over) |
 
-## Current MCP Tool Surface (PHONEIX-13)
+*Resource/prompt counts are estimated from decorator inventory. Exact registered counts require runtime inspection via `scripts/inspect-mcp-surface.py`.
 
-**13 canonical kernel tools:**
-```
-arif_session_init    — 000 INIT
-arif_sense_observe  — 111 SENSE
-arif_evidence_fetch — 222 EVIDENCE
-arif_mind_reason   — 333 MIND
-arif_heart_critique — 666 HEART
-arif_kernel_route   — 444 KERNEL
-arif_reply_compose  — 444r REPLY
-arif_memory_recall  — 555 MEM
-arif_gateway_connect — 666g GATE
-arif_judge_deliberate — 888 JUDGE
-arif_vault_seal     — 999 VAULT
-arif_forge_execute  — 010 FORGE
-arif_ops_measure    — 777 OPS
-```
+## Not Yet Proven
 
-**4 resources:** Constitutional Doctrine, System Vitals, Complete Blueprint, Execution Bridge.
+- [ ] 72-tool manifest live and drift-free
+- [ ] `mcp_drift_check` implemented and returning `drift_detected=false`
+- [ ] Live registry count = 72 (not 13, not 41, not 45)
+- [ ] Resource count proven at runtime = 18
+- [ ] Prompt count proven at runtime = 9
+- [ ] GEOX organ proxy mounted through arifOS gateway (not standalone)
+- [ ] WEALTH organ proxy mounted through arifOS gateway (not standalone)
+- [ ] WELL organ proxy mounted through arifOS gateway (not standalone)
+- [ ] `tools.json` or equivalent manifest exists and is machine-checkable
+- [ ] `v72.0.0` git tag
 
-**8 prompts:** arif_system, arif_judge, arif_init, rsi, ortho, epistemic, governance, entropy.
+## Completion Gate
 
-## Domain Organ Surfaces
+PHOENIX-72 may be called **SEALED** only when **ALL** of the following are true:
 
-| Organ | Tool Count | Port | Notes |
-|-------|-----------|------|-------|
-| GEOX MCP | 21+ (geoscience) | 18081 | Well log, seismic, petrophysics, DST, prospect |
-| WEALTH MCP | 33+ (capital) | 18082 | NPV, IRR, cashflow, inequality, capital flow |
-| WELL MCP | 30+ (vitality) | none | Disabled until real service exists |
+1. Manifest tool count = 72
+2. Live registry tool count = 72
+3. `mcp_drift_check` returns `drift_detected = false`
+4. Resources count = 18
+5. Prompts count = 9
+6. GEOX/WEALTH/WELL status is explicitly **mounted** (not standalone)
+7. canonical13 tests still pass
+8. No docs overclaim sealed state
 
-## PHOENIX-72 vs PHONEIX-13
+## Risks & Blockers
 
-| Dimension | PHONEIX-13 (current) | PHOENIX-72 (future) |
-|-----------|----------------------|---------------------|
-| Tool count | 13 | 13 kernel + organ tools |
-| Character | Kernel/control layer | Kernel + federation gateway |
-| Organ connection | Separate MCP servers | providers/geox.py + wealth.py + well.py |
-| Main purpose | Governed reasoning, routing, judgment | Clean gateway routing to specialist organs |
-| Drift status | runtime_drift=true (container vs repo) | Not yet deployed |
+| Risk | Tier | Mitigation |
+|------|------|------------|
+| `expanded45` aliases lack handlers — registry inflation without runtime coverage | MEDIUM | Do not count aliases as implemented tools |
+| WELL is NOT DEPLOYED — no live organ to proxy | MEDIUM | Stage as `mount_status: not_mounted` until deployed |
+| Prompt count (13) exceeds PHOENIX-72 target (9) | LOW | May need prompt consolidation or target revision |
+| `arifosmcp/packages/npm/arifos-geox/` untracked | LOW | Needs Arif decision |
 
-## Drift Status
-- `runtime_drift: true` — container image (967d8e3) differs from live git HEAD (ed5cf7f)
-- Container needs rebuild to sync build_commit with live_commit
-- Tool registry healthy at 13 ✅
+## Files
 
-## Completion Gate (PHOENIX-72)
+- Readiness script: `scripts/inspect-mcp-surface.py`
+- Target manifest: `arifosmcp/manifests/phoenix72.tools.json`
+- Drift check: `arifosmcp/tools/drift_check.py` (stub)
+- Tests: `tests/test_surface_inventory.py`, `tests/test_mcp_drift_check.py`
+- This doc: `docs/PHOENIX_72_STATUS.md`
 
-PHOENIX-72 requires:
-1. arifos_mcp deployed as active gateway (not arifosmcp)
-2. `providers/geox.py`, `providers/wealth.py`, `providers/well.py` wired
-3. Domain organ MCP tools accessible via providers or FastMCP proxy mounting
-4. `mcp_drift_check` enforced at startup
-5. `v72.0.0` tag cut
+## Last Updated
 
-## Untracked Directory Decisions
-
-| Directory | Decision | Reason |
-|----------|----------|--------|
-| `arifOS_LEGACY/` | DELETE | No active content; informational marker only |
-| `arifOS_QUARANTINED_20260524/` | PRESERVE | Requires 888_HOLD per README |
-| `arifos_mcp/` | KEEP planning docs | Contains PHOENIX-72 GAP_MATRIX and migration docs; source tree may be dead-end |
-| `arifOS_LEGACY/README.md` | DELETE | FROZEN reference only, no unique value |
-
-## Notes
-- Current active surface is PHONEIX-13, not PHOENIX-72
-- GEOX/WEALTH/WELL are separate MCP servers (federation, not monolith)
-- arifos_mcp = future clean gateway target
-- arifosmcp = current live kernel on port 8088
+2026-05-25
