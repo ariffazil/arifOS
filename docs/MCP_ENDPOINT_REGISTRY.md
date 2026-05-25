@@ -76,7 +76,7 @@ Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 |---------|------------------|-----------------|-------------------|
 | arifOS | `http://localhost:8088/mcp` | `arifos.arif-fazil.com/mcp*` | `streamable-http` |
 | GEOX | `https://geox.arif-fazil.com/mcp` | `geox.arif-fazil.com/mcp/*` | `streamable-http` |
-| WEALTH | `http://localhost:8082/mcp` | `wealth.arif-fazil.com/mcp` | `streamable-http` |
+| WEALTH | `http://localhost:18082/mcp` | `wealth.arif-fazil.com/mcp` | `streamable-http` |
 | WELL | *(dead)* | *(removed)* | `streamable-http` |
 
 ---

@@ -81,7 +81,7 @@ Call arifOS **first, always.** It is the session anchor and audit trail.
 |---|---|
 | Domain | Earth & Geoscience Intelligence |
 | Canonical URL | `https://geox.arif-fazil.com/mcp` |
-| Local port | `127.0.0.1:8081` |
+| Local port | `127.0.0.1:18081` |
 | Image | `ghcr.io/ariffazil/geox:dd4120c0` |
 | Tools | 21 tools (excluding health check) |
 | Jurisdiction | Subsurface data, seismic, well logs, stratigraphy, prospect evaluation |
@@ -138,7 +138,7 @@ Call arifOS **first, always.** It is the session anchor and audit trail.
 | Domain | Capital & Financial Intelligence |
 | Canonical URL | `https://wealth.arif-fazil.com/mcp` ← **authoritative** |
 | Dead URL | `https://wealth.fastmcp.app` ← **deprecated, do not use** |
-| Local port | `127.0.0.1:8082` |
+| Local port | `127.0.0.1:18082` |
 | Version | wealth-mcp 2026.05.02 |
 | Tools | 12 tools (excluding health/registry) |
 | Jurisdiction | EMV, NPV, capital flows, risk pricing, game theory, macro field economics |

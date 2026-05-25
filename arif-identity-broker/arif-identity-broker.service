@@ -12,7 +12,7 @@ ExecStart=/usr/bin/python3 /root/arifOS/arif-identity-broker/broker.py --port 80
 Restart=on-failure
 RestartSec=5s
 Environment=PYTHONUNBUFFERED=1
-Environment=ARIF_KERNEL_URL=http://localhost:8080/mcp
+Environment=ARIF_KERNEL_URL=http://localhost:8088/mcp
 Environment=ARIF_IDENTITY_FILE=/root/.arif/identity.json
 
 # Security hardening

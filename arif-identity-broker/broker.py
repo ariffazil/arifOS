@@ -11,7 +11,7 @@ Usage:
 
 Environment:
     ARIF_IDENTITY_FILE  — path to ~/.arif/identity.json (default)
-    ARIF_KERNEL_URL     — arifOS MCP endpoint (default: http://localhost:8080/mcp)
+    ARIF_KERNEL_URL     — arifOS MCP endpoint (default: http://localhost:8088/mcp)
 """
 
 from __future__ import annotations
@@ -43,7 +43,7 @@ logger = logging.getLogger("arif-identity-broker")
 
 # ─── Constants ─────────────────────────────────────────────────────────────────
 
-DEFAULT_KERNEL_URL = "http://localhost:8080/mcp"
+DEFAULT_KERNEL_URL = "http://localhost:8088/mcp"
 DEFAULT_PORT = 8088
 ARIF_DIR = Path.home() / ".arif"
 ARIF_IDENTITY_FILE = ARIF_DIR / "identity.json"
