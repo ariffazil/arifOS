@@ -184,8 +184,8 @@ python -m arifosmcp.runtime stdio
 # HTTP mode
 python -m arifosmcp.runtime http
 
-# With custom port
-PORT=8080 python -m arifosmcp.runtime http
+# With custom port (live VPS uses 8088)
+PORT=8088 python -m arifosmcp.runtime http
 ```
 
 ### Docker Deployment
@@ -193,8 +193,8 @@ PORT=8080 python -m arifosmcp.runtime http
 # Quick start with Docker
 docker compose up -d
 
-# Check health
-curl http://localhost:8080/health
+# Check health (live VPS port is 8088; default Docker/internal port is 8080)
+curl http://localhost:8088/health
 
 # View logs
 docker logs -f arifosmcp

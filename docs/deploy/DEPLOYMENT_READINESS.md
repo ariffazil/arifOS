@@ -70,9 +70,10 @@ python -m arifosmcp.runtime http
 ## Post-Deploy Checks
 
 ```bash
-curl -fsS http://127.0.0.1:8080/health
-curl -fsS http://127.0.0.1:8080/.well-known/mcp/server.json
-curl -fsS http://127.0.0.1:8080/mcp \
+# Live VPS port is 8088 (default local dev port is 8080)
+curl -fsS http://127.0.0.1:8088/health
+curl -fsS http://127.0.0.1:8088/.well-known/mcp/server.json
+curl -fsS http://127.0.0.1:8088/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":"1","method":"tools/list","params":{}}'
 ```

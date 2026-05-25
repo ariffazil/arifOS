@@ -2830,7 +2830,7 @@ if __name__ == "__main__":
   "federation": {
     "governance_server": {
       "id": "arifos-core",
-      "endpoint": "http://localhost:8080",
+      "endpoint": "http://localhost:8088",  // live VPS port; default dev port is 8080
       "role": "governance"
     },
     "federated_servers": [

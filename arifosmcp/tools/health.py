@@ -50,12 +50,12 @@ _SERVICE_ENDPOINTS: dict[str, dict[str, Any]] = {
         "timeout": 5.0,
     },
     "wealth": {
-        "url": "http://localhost:8082/health",
+        "url": "http://localhost:18082/health",
         "docker_host": "wealth-organ:8082",
         "timeout": 5.0,
     },
     "geox": {
-        "url": "http://localhost:8081/health",
+        "url": "http://localhost:18081/health",
         "docker_host": "geox:8081",
         "timeout": 5.0,
     },

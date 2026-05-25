@@ -24,7 +24,7 @@
 
 ## 1. LIVE TRANSPORT TESTING
 
-### 1.1 HTTP/SSE (Streamable-HTTP) — Port 8080
+### 1.1 HTTP/SSE (Streamable-HTTP) — Port 8080 (default); live VPS runs on 8088
 - **Server Status:** ✅ Healthy (`v2026.04.26-KANON`, 13 tools loaded)
 - **Transport:** FastMCP 3.2 `streamable-http` with `stateless_http=True`
 - **Issue — Session Chicken-Egg:** The server requires `mcp-session-id` header for ALL `/mcp` calls, including `tools/list` and `arif_session_init`. This creates a bootstrap paradox: you need a session to get a session.

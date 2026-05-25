@@ -40,7 +40,7 @@ Tools on GEOX/WEALTH/WELL that accept session_id should receive it from the acti
 |---|---|
 | Domain | Constitutional Governance |
 | Canonical URL | `https://arifos.arif-fazil.com/mcp` |
-| Local port | `127.0.0.1:8080` |
+| Local port | `127.0.0.1:8088` |
 | Version | v2026.05.05-SSCT |
 | Tools | 13 canonical + 1 daily brief = 14 total |
 | Jurisdiction | **Everything.** The only MCP that can judge, seal, forge, and govern. |

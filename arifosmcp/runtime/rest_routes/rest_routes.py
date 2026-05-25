@@ -4398,19 +4398,19 @@ def register_rest_routes(
         """Probe GEOX organ health. Returns 'active' or 'offline'."""
         return await _probe_organ_health(
             client,
-            "http://geox_eic:8081/health",
-            "http://geox:8081/health",
-            "http://127.0.0.1:8081/health",
-            "http://localhost:8081/health",
+            "http://geox_eic:8081/health",   # Docker compose network
+            "http://geox:8081/health",       # Docker compose network
+            "http://127.0.0.1:18081/health", # Live VPS port
+            "http://localhost:18081/health", # Live VPS port
         )
 
     async def _probe_wealth(client: httpx.AsyncClient) -> str:
         """Probe WEALTH organ health. Returns 'active' or 'offline'."""
         return await _probe_organ_health(
             client,
-            "http://wealth-organ:8082/health",
-            "http://127.0.0.1:8082/health",
-            "http://localhost:8082/health",
+            "http://wealth-organ:8082/health", # Docker compose network
+            "http://127.0.0.1:18082/health",   # Live VPS port
+            "http://localhost:18082/health",   # Live VPS port
         )
 
     async def _probe_well(client: httpx.AsyncClient) -> str:

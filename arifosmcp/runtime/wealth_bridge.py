@@ -3,7 +3,7 @@ arifosmcp/runtime/wealth_bridge.py — WEALTH SSE MCP Client Bridge
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 
-Bridges arifOS kernel (port 8080) to WEALTH organ (port 8082) via SSE + JSON-RPC POST.
+Bridges arifOS kernel (port 8088) to WEALTH organ (port 18082) via SSE + JSON-RPC POST.
 WEALTH FastMCP uses StreamableHTTP with server-generated session IDs.
 
 Protocol (MCP StreamableHTTP):

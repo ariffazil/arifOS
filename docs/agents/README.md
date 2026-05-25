@@ -28,7 +28,7 @@
 
 ## 2. Live System State (Verified 2026-03-27 UTC)
 
-Kernel health verified by direct `curl -sf http://localhost:8080/health` call during Codex session:
+Kernel health verified by direct `curl -sf http://localhost:8088/health` call during Codex session:
 
 ```
 status: healthy
@@ -72,7 +72,7 @@ redaction_policy: no-raw-credential-values
 #### `arifOS_kernel`
 - **Purpose:** Primary metabolic conductor (444_ROUTER) — processes queries through 000-999 pipeline
 - **Coverage:** 90%
-- **Files:** Live at `http://localhost:8080`
+- **Files:** Live at `http://localhost:8088`
 - **Status:** Production
 - **AGI Contribution:** The orchestrator brain — routes to correct pipeline stage
 - **Notes:** 37 tools loaded. Transport: streamable-http. Protocol: 2025-11-25.

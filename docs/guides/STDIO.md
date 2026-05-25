@@ -11,8 +11,8 @@ arifOS supports **three transport modes**:
 | Transport | Use Case | URL/Command |
 |-----------|----------|-------------|
 | **STDIO** | Local AI assistants (Claude, Cursor, Gemini) | `python stdio_server.py` |
-| **HTTP** | Web clients, mobile apps, third-party integrations | `http://localhost:8080/mcp` |
-| **SSE** | Server-sent events for streaming | `http://localhost:8080/sse` |
+| **HTTP** | Web clients, mobile apps, third-party integrations | `http://localhost:8080/mcp` (default; live VPS: `8088`) |
+| **SSE** | Server-sent events for streaming | `http://localhost:8080/sse` (default; live VPS: `8088`)
 
 **STDIO** is the simplest for local development and Claude Desktop integration.
 

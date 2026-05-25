@@ -3,7 +3,7 @@ arifosmcp/runtime/geox_bridge.py — GEOX SSE MCP Client Bridge
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 
-Bridges arifOS kernel (port 8080) to GEOX organ (port 8081) via SSE + JSON-RPC POST.
+Bridges arifOS kernel (port 8088) to GEOX organ (port 18081) via SSE + JSON-RPC POST.
 The GEOX FastMCP server uses StreamableHTTP with SSE responses.
 
 Pattern:

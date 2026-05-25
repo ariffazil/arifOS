@@ -5423,7 +5423,7 @@ setInterval(refreshSot, 30000);
                     client.get("http://arifosmcp:8080/ready"),
                     # WEALTH — health only
                     client.get("http://wealth-organ:8082/health"),
-                    # GEOX — port 8081 inside container (not 8000)
+                    # GEOX — Docker compose network (live VPS: 18081)
                     client.get("http://geox:8081/", timeout=3.0),
                     client.post(
                         "http://geox:8081/mcp",

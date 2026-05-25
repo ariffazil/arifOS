@@ -298,7 +298,8 @@ assert result != CLAIM_ONLY, "guard must NOT return CLAIM_ONLY for this input"
 PYEOF
 
 # Test 3: MCP server health
-curl -sf http://localhost:8080/health | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['status']=='healthy'; print('MCP HEALTH: OK')"
+# Live VPS port is 8088 (default local dev port is 8080)
+curl -sf http://localhost:8088/health | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['status']=='healthy'; print('MCP HEALTH: OK')"
 
 # Test 4: AMANAH re-test — score must be >= 85
 # (run amanah test, extract amanah_score from logs/amanah_results.json)

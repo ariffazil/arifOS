@@ -48,7 +48,7 @@ ls arifosmcp/sites/apex-dashboard/
 python -m arifosmcp.runtime http
 
 # 3. Open in browser
-# http://localhost:8080/dashboard/
+# http://localhost:8088/dashboard/  (live VPS port; default dev port is 8080)
 ```
 
 ### Option 2: Deploy to Production (VPS)

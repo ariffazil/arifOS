@@ -182,7 +182,7 @@ ls -la arifosmcp/runtime/a2a/__init__.py
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    arifOS SERVER                             │
-│                    Port 8080                                 │
+│                    Port 8088 (live VPS)                      │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  MCP (Model Context Protocol)         ✅ /mcp               │

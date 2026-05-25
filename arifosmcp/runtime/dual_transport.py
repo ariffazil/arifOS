@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Dual Transport Entrypoint for arifOS MCP Server
-Runs both HTTP (streamable-http on 8080) and SSE (on 8089) transports.
+Runs both HTTP (streamable-http, default port from PORT env var) and SSE (on 8089) transports.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 async def run_dual_transport() -> None:
-    """Run both HTTP (streamable-http on 8080) and SSE (on 8089) transports."""
+    """Run both HTTP (streamable-http, default port from PORT env var) and SSE (on 8089) transports."""
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",

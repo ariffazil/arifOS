@@ -69,7 +69,7 @@ The roadmap cited this as HIGH severity in `runtime/tools.py`. On the live syste
 
 The MCP server advertises tools to clients. If any tool has a null name, clients will fail to call it. The registry shows `"name": null` for all 13 tools in raw JSON parsing, but this may be a display artifact from how the JSON is being read.
 
-**Fix needed:** Verify tool names are non-null via `curl http://localhost:8080/mcp/tools` or equivalent MCP protocol call. The health endpoint shows 13 tools but doesn't list names.
+**Fix needed:** Verify tool names are non-null via `curl http://localhost:8088/mcp/tools` or equivalent MCP protocol call. The health endpoint shows 13 tools but doesn't list names.
 
 ### CRITICAL-2: `arifos_judge` health mode returns synthetic labeled data
 
@@ -122,6 +122,8 @@ No `slowapi` or equivalent rate limiter found in `stdio_server.py` or any runtim
 
 ---
 
+> ⚠️ **HISTORICAL** — Ports and some findings below are stale. Live arifOS port is **8088**. WELL is dead.
+
 ## Part 4: What to Fix Before Next Horizon Main Push
 
 ### Must Fix (Blockers)
@@ -129,7 +131,7 @@ No `slowapi` or equivalent rate limiter found in `stdio_server.py` or any runtim
 **1. Verify tool registry names are non-null**
 ```python
 # Run on live server:
-curl -s http://localhost:8080/health | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('tools'))"
+curl -s http://localhost:8088/health | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('tools'))"
 # Should show tool count + actual names via MCP protocol
 ```
 

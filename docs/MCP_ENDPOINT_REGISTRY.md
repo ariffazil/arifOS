@@ -19,9 +19,9 @@ Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 | Name | arifOS Constitutional |
 | Public URL | `https://arifos.arif-fazil.com/mcp` |
 | Transport | `streamable-http` |
-| Internal | `http://arifosmcp:8080/mcp` |
-| Container port | 8080 |
-| Caddy route | `arifos.arif-fazil.com/mcp*` → `arifosmcp:8080` |
+| Internal | `http://127.0.0.1:8088/mcp` |
+| Container port | 8080 (Docker default); live VPS uses 8088 |
+| Caddy route | `arifos.arif-fazil.com/mcp*` → `127.0.0.1:8088` |
 | Tools | 13 canonical `arif_*` tools |
 | Auth | None (public) |
 | Status | HEALTHY, verified by `/api/federation-probe` on 2026-05-22 |
@@ -32,9 +32,9 @@ Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 | Name | GEOX Earth Coprocessor |
 | Public URL | `https://geox.arif-fazil.com/mcp` |
 | Transport | `streamable-http` |
-| Internal | `http://geox_eic:8081/mcp` AND `/mcp/stream` (both routes) |
-| Container port | 8081 |
-| Caddy route | `geox.arif-fazil.com/mcp/*` → `geox_eic:8081/mcp/stream` |
+| Internal | `http://127.0.0.1:18081/mcp` AND `/mcp/stream` (both routes) |
+| Container port | 8081 (Docker default); live VPS uses 18081 |
+| Caddy route | `geox.arif-fazil.com/mcp/*` → `127.0.0.1:18081/mcp/stream` |
 | Tools | 22 verified MCP tools |
 | Auth | None (public) |
 | Status | HEALTHY, verified by `/api/federation-probe` on 2026-05-22 |
@@ -46,9 +46,9 @@ Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 | Name | WEALTH Capital Coprocessor |
 | Public URL | `https://wealth.arif-fazil.com/mcp` |
 | Transport | `streamable-http` |
-| Internal | `http://wealth-organ:8082/mcp` |
-| Container port | 8082 |
-| Caddy route | `wealth.arif-fazil.com/mcp` → `wealth-organ:8082/mcp` |
+| Internal | `http://127.0.0.1:18082/mcp` |
+| Container port | 8082 (Docker default); live VPS uses 18082 |
+| Caddy route | `wealth.arif-fazil.com/mcp` → `127.0.0.1:18082/mcp` |
 | Tools | 17 verified MCP tools |
 | Auth | None (public) |
 | Status | HEALTHY, verified by `/api/federation-probe` on 2026-05-22 |
@@ -58,15 +58,15 @@ Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 | Property | Value |
 |----------|-------|
 | Name | WELL Biological Monitor |
-| Public URL | `https://well.arif-fazil.com/mcp` |
+| Public URL | *(dead — Caddy route removed)* |
 | Transport | `streamable-http` |
-| Internal | `http://well:8083/mcp` |
-| Container port | 8083 |
-| Caddy route | `well.arif-fazil.com/mcp` → `well:8083/mcp` |
+| Internal | `http://127.0.0.1:8083/mcp` (dead) |
+| Container port | 8083 (never deployed on live VPS) |
+| Caddy route | *(removed from Caddyfile)* |
 | Tools | 15 verified MCP tools |
 | Auth | None (public) |
-| Status | HEALTHY, verified by `/api/federation-probe` on 2026-05-22 |
-| Note | REFLECT_ONLY substrate monitor. 3 apparent alias pairs observed. |
+| Status | **DEAD** — Service removed from Caddyfile; returns 525/404 |
+| Note | REFLECT_ONLY substrate monitor. Not deployed on live VPS. |
 
 ---
 
@@ -74,10 +74,10 @@ Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 
 | Service | openclaw.json url | Caddyfile route | server.py transport |
 |---------|------------------|-----------------|-------------------|
-| arifOS | `http://localhost:8080/mcp` | `arifos.arif-fazil.com/mcp*` | `streamable-http` |
+| arifOS | `http://localhost:8088/mcp` | `arifos.arif-fazil.com/mcp*` | `streamable-http` |
 | GEOX | `https://geox.arif-fazil.com/mcp` | `geox.arif-fazil.com/mcp/*` | `streamable-http` |
 | WEALTH | `http://localhost:8082/mcp` | `wealth.arif-fazil.com/mcp` | `streamable-http` |
-| WELL | `https://well.arif-fazil.com/mcp` | `well.arif-fazil.com/mcp` | `streamable-http` |
+| WELL | *(dead)* | *(removed)* | `streamable-http` |
 
 ---
 

@@ -391,7 +391,7 @@ apexd (master process)
 ### Local IPC Socket
 
 - **Path:** `/run/arifos.sock` (or `AF_UNIX`)
-- **Fallback:** `127.0.0.1:8080` (localhost TCP)
+- **Fallback:** `127.0.0.1:8088` (localhost TCP — live VPS port; default dev port is 8080)
 - **Protocol:** MCP over JSON-RPC 2.0
 - **Auth:** `ARIFOS_SESSION_ID` + `ARIFOS_ACTOR_ID` headers
 
@@ -827,7 +827,7 @@ export ARIFOS_PLANE="BODY"                # BODY | MIND | SIGNAL
 export ARIFOS_MODE="PLAYGROUND"           # PLAYGROUND | STAGE | PROD
 export ARIFOS_SESSION_ID="SEAL-xxx"       # From arif_session_init
 export ARIFOS_ACTOR_ID="a-forge"         # From arif_session_init
-export ARIFOS_MCP_ENDPOINT="http://127.0.0.1:8080"
+export ARIFOS_MCP_ENDPOINT="http://127.0.0.1:8088"
 export ARIFOS_FLOORS="F1,F2,F3,F4,F5,F6,F7,F8,F9,F10,F11,F12,F13"
 export ARIFOS_HARD_FLOORS="F1,F2,F9,F10,F13"
 export ARIFOS_SOFT_FLOORS="F3,F4,F5,F6,F7,F8,F11,F12"
