@@ -198,11 +198,89 @@ WELL deliberately uses `verb_noun` for readability. arifOS uses `noun_verb` for 
 
 ---
 
-## 9. Change Log
+## 9. Routing Protocol — Pre-Consequential-Action Gate (PHOENIX-73F)
+
+### When to Call WELL First
+
+Before producing any **consequential output** (C3 or higher), the AI assistant acting as orchestrator must:
+
+1. **Call `well_readiness_gate`** with the operator's current biometric inputs and the decision class
+2. **Interpret the verdict** before calling arifOS governance tools
+3. **Shape the final output** based on both WELL verdict and arifOS governance constraints
+
+### Decision Class Quick Reference
+
+| Class | Stakes | Examples | Readiness Required |
+|-------|--------|----------|-------------------|
+| C1 | Trivial | What to eat, routine choices | CRITICAL OK |
+| C2 | Low | Routine admin, low-risk work | CRITICAL OK |
+| C3 | Moderate | Work comms, non-critical decisions | STABLE minimum |
+| C4 | High | Legal, financial, contracts, consequential comms | OPTIMAL required |
+| C5 | Critical | Health, safety, life-altering choices | OPTIMAL + no chronic fatigue |
+
+### Routing Flow
+
+```
+User Request (consequential, C3+)
+    │
+    ▼
+well_readiness_gate(decision_class, biometric_inputs)
+    │
+    ├── PROCEED → proceed to arifOS governance + produce output
+    ├── DEFER   → produce safe holding action / internal draft only
+    └── ADVISORY_BLOCKED → produce safety notice only, do not proceed
+    │
+    ▼
+arifOS governance tools (arif_heart_critique, arif_judge_deliberate)
+    │
+    ▼
+Final output shaped by both WELL verdict + arifOS constraints
+```
+
+### Contrast Scenario (Contractor Dispute)
+
+This is the canonical test case from PHOENIX-73F:
+
+**Scenario:** Arif has been working 14h days for 2 weeks, 4h sleep last night, low HRV, foggy, irritable. He wants to send a final contractor dispute response now.
+
+**WELL routing call:**
+```
+well_readiness_gate(
+    sleep_last_night_hours=4.0,
+    sleep_debt_days=3.0,
+    cognitive_clarity=3.0,
+    decision_fatigue=8.0,
+    stress_load=7.0,
+    hrv_status="low",
+    emotional_state="irritable",
+    chronic_fatigue=false,
+    accumulated_session_fatigue=5.0,
+    decision_class="C4"
+)
+→ verdict: ADVISORY_BLOCKED
+→ readiness_score: 1.5
+→ homeostasis_status: CRITICAL
+```
+
+**AI assistant response:** Do not produce a final dispute response. Produce a neutral holding message only.
+
+### Tool Reference
+
+| Tool | Repo | Role |
+|------|------|------|
+| `well_readiness_gate` | WELL | Pre-action readiness gate — returns PROCEED / DEFER / ADVISORY_BLOCKED |
+| `well_arifos_packet` | WELL | Full substrate state packet for arifOS consumption |
+| `arif_heart_critique` | arifOS | Ethical risk + human impact before sensitive actions |
+| `arif_judge_deliberate` | arifOS | Final constitutional verdict before irreversible actions |
+
+---
+
+## 10. Change Log
 
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-05-08 | v1.0 — Initial contract with unified substrate packet | Arif |
+| 2026-05-26 | v1.1 — Add routing protocol (Section 9) + `well_readiness_gate` | PHOENIX-73F |
 
 ---
 
