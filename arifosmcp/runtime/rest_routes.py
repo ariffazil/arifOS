@@ -476,6 +476,7 @@ def _build_trinity_matrix(
         }
         try:
             import socket as _socket
+
             for name, port in _critical_tcp_ports.items():
                 if not running.get(name):
                     try:
@@ -757,13 +758,16 @@ def _build_governance_status_payload() -> dict[str, Any]:
     for canonical, legacy_key in canonical_floor_aliases.items():
         if legacy_key in floors:
             resolved_floors[canonical] = floors[legacy_key]
-    # Guard: if the governance kernel produced a failing score, fall back to the
-    # canonical default which is calibrated to the passing threshold. This prevents
-    # stale kernel state from keeping the Observatory in NEGATIVE indefinitely.
+    # F5/F6 FIX: Only apply defaults for floors the kernel did NOT provide.
+    # Previously this loop overrode ANY failing floor with its passing default,
+    # which HID genuine F5 (peace2=0.5) and F6 (kappa_r=0.5946) failures.
+    # Now we preserve live failing values — constitutional failures must be visible.
     for fid in FLOOR_SPEC_KEYS:
-        val = resolved_floors.get(fid)
-        if val is not None and not _floor_passes(fid, float(val)):
+        kernel_provided = fid in floors  # True only if kernel had an explicit value
+        if not kernel_provided:
+            # Kernel didn't provide this floor — use default (floor was never checked)
             resolved_floors[fid] = _FLOOR_DEFAULTS[fid]
+        # If kernel DID provide a value (passing OR failing) — keep it as-is.
     resolved_witness = {
         k: witness.get(k) if witness.get(k) is not None and witness.get(k) != 0.0 else v
         for k, v in _WITNESS_DEFAULTS.items()
@@ -831,18 +835,32 @@ def _build_governance_status_payload() -> dict[str, Any]:
     except Exception:
         pass
 
-    # Observatory seal-readiness guard: if all canonical floors pass and the
-    # vault is reachable, force verdict to SEAL and confidence to ≥0.99 so the
-    # trinity matrix can reach POSITIVE. Stale kernel state should not block
-    # a healthy runtime from reporting its true status.
-    all_floors_pass = all(
-        _floor_passes(fid, float(resolved_floors.get(fid, 0.0))) for fid in FLOOR_SPEC_KEYS
-    )
-    if all_floors_pass:
-        resolved_telemetry["verdict"] = "SEAL"
-        resolved_telemetry["confidence"] = max(
-            float(resolved_telemetry.get("confidence") or 0.0), 0.99
+    # F5/F6 THERMODYNAMIC VERDICT: Compute verdict from actual live floor states,
+    # not from a stale override. If kernel provided explicit values use those;
+    # if F5/F6 failed (peace2 < 1.0 or vitality < 0.70) the verdict must be HOLD.
+    kernel_provided_live_floors = bool(floors)  # True if kernel returned actual floor values
+    # resolved_telemetry values are None when kernel didn't provide them (not missing from telemetry dict).
+    thermo_peace2_val = resolved_telemetry.get("peace2")
+    thermo_kappa_r_val = resolved_telemetry.get("kappa_r")
+    thermo_f5_fail = thermo_peace2_val is not None and thermo_peace2_val < 1.0
+    thermo_f6_fail = thermo_kappa_r_val is not None and thermo_kappa_r_val < 0.70
+
+    if thermo_f5_fail or thermo_f6_fail:
+        # Constitutional failure visible — HOLD until sovereign intervenes
+        resolved_telemetry["verdict"] = "HOLD"
+    elif kernel_provided_live_floors:
+        # Kernel provided explicit floor values (all passing) — trust the kernel verdict
+        pass  # verdict already set from kernel or defaults
+    else:
+        # No kernel state — use default verdict from computed floors
+        all_floors_pass = all(
+            _floor_passes(fid, float(resolved_floors.get(fid, 0.0))) for fid in FLOOR_SPEC_KEYS
         )
+        if all_floors_pass:
+            resolved_telemetry["verdict"] = "SEAL"
+            resolved_telemetry["confidence"] = max(
+                float(resolved_telemetry.get("confidence") or 0.0), 0.99
+            )
 
     return {
         "telemetry": resolved_telemetry,
