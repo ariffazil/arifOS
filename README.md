@@ -187,14 +187,14 @@ arifOS exposes exactly **13 canonical tools** through the public MCP shell (`htt
 ║ arif_sense_observe   — 111_OBSERVE │ AGI │ F02, F07      │ Web search, local wiki/repo map discovery (read-only)║
 ║ arif_evidence_fetch — 222_EVIDENCE│ AGI │ F02, F03, F05 │ Verified external evidence fetch with SOT citation.  ║
 ║ arif_mind_reason    — 333_REASON  │ AGI │ F02, F07, F08 │ Symbolic, self-critiquing reasoning.                 ║
-║ arif_heart_critique — 444_CRITIQUE│ ASI │ F05, F06, F09 │ Ethical critique & consequence modeling.             ║
-║ arif_kernel_route   — 555_ROUTE   │ AGI │ F01, F04, F03 │ Route intent to correct tool or federation organ.    ║
-║ arif_reply_compose  — 444_REPLY   │ AGI │ F04, F06, F09 │ Governed response composition and calibration.       ║
-║ arif_memory_recall  — 555m_MEMORY │ AGI │ F01, F08      │ Associative memory & vector recall across sessions.   ║
-║ arif_gateway_connect— 666_GATEWAY │ ASI │ F01, F03      │ Federated cross-agent bridge to GEOX/WEALTH/WELL.    ║
+║ arif_heart_critique — 666_CRITIQUE│ ASI │ F05, F06, F09 │ Ethical critique & consequence modeling.             ║
+║ arif_kernel_route   — 444_ROUTE   │ AGI │ F01, F04, F03 │ Route intent to correct tool or federation organ.    ║
+║ arif_reply_compose  — 444r_REPLY  │ AGI │ F04, F06, F09 │ Governed response composition and calibration.       ║
+║ arif_memory_recall  — 555m         │ AGI │ F01, F08      │ Associative memory & vector recall across sessions.   ║
+║ arif_gateway_connect— 666g_GATEWAY │ ASI │ F01, F03      │ Federated cross-agent bridge to GEOX/WEALTH/WELL.    ║
 ║ arif_judge_deliberate— 888_JUDGE   │ ASI │ F11, F13      │ Final constitutional arbitration (SEAL/HOLD/VOID).   ║
 ║ arif_vault_seal     — 999_SEAL    │ APEX│ F01, F11, F13 │ Immutable ledger anchoring to VAULT999.              ║
-║ arif_forge_execute  — 666_FORGE   │ AGI │ F01, F11, F13 │ Build execution (code generation & modification).   ║
+║ arif_forge_execute  — 010_FORGE   │ AGI │ F01, F11, F13 │ Build execution (code generation & modification).   ║
 ║ arif_ops_measure    — 777_MEASURE │ AGI │ F04           │ VPS system resource health & thermodynamic metrics.  ║
 ╚═════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 ```

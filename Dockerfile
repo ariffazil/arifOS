@@ -73,7 +73,7 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONPATH=/app
-ENV PORT=8080
+ENV PORT=8088
 ENV HOST=0.0.0.0
 ENV AAA_MCP_TRANSPORT=streamable-http
 ENV ARIFOS_HTTP_JSON_RESPONSE=true
@@ -121,11 +121,11 @@ RUN python -m playwright install --with-deps chromium && \
 USER arifos
 
 # Expose canonical MCP port
-EXPOSE 8080
+EXPOSE 8088
 
 # Production Healthcheck (F12 Defense)
 HEALTHCHECK --interval=20s --timeout=5s --start-period=30s --retries=3 \
-    CMD curl -fsS --max-time 3 http://localhost:8080/health || exit 1
+    CMD curl -fsS --max-time 3 http://localhost:8088/health || exit 1
 
 # Metadata Labels — OCI image spec for immutable provenance
 # Uses ENV variables (DEPLOY_GIT_COMMIT, DEPLOY_BUILD_TIME) since those
@@ -139,4 +139,4 @@ LABEL io.modelcontextprotocol.server.name="io.github.ariffazil/arifosmcp" \
       org.opencontainers.image.licenses="AGPL-3.0"
 
 # Execute consolidated entrypoint
-CMD ["uvicorn", "arifosmcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "arifosmcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8088"]
