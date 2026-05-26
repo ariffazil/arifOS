@@ -42,6 +42,12 @@ def _get_diagnostic_tools() -> list[str]:
     return list(DIAGNOSTIC_TOOLS)
 
 
+def _get_domain_aliases() -> list[str]:
+    from arifosmcp.runtime.public_surface import DOMAIN_ALIASES
+
+    return list(DOMAIN_ALIASES)
+
+
 def _get_handlers() -> list[str]:
     from arifosmcp.runtime.tools import _CANONICAL_HANDLERS
 
@@ -79,6 +85,7 @@ def _build_report() -> dict:
     canonical_tools = _get_canonical_tools()
     expanded_tools = _get_expanded_tools()
     diagnostic_tools = _get_diagnostic_tools()
+    domain_aliases = _get_domain_aliases()
     handlers = _get_handlers()
 
     resource_files = [

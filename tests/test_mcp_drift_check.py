@@ -20,16 +20,25 @@ def test_drift_check_canonical13_detects_no_drift_when_exact():
 
 
 def test_drift_check_strict_mode_raises_on_drift():
-    """strict mode with DRIFT_ENFORCEMENT=strict must raise on drift."""
+    """strict mode with DRIFT_ENFORCEMENT=strict must raise on drift.
+
+    PHOENIX-72: expanded45 now equals canonical13 + diagnostic (19 tools).
+    In normal mode, live surface is 13, so expanded45 check drifts.
+    In dev mode, live surface is 19, so expanded45 check does NOT drift.
+    This test runs in normal mode (no ARIFOS_MCP_EXPOSE_DEV_TOOLS).
+    """
     import os
 
     # Only test if strict is enabled
     if os.getenv("ARIFOS_DRIFT_ENFORCEMENT") != "strict":
         pytest.skip("ARIFOS_DRIFT_ENFORCEMENT is not strict")
 
-    # canonical13 vs expanded45 will always drift
-    with pytest.raises(RuntimeError):
-        mcp_drift_check(mode="strict", target_manifest="expanded45")
+    # In normal mode, canonical13 (13) vs expanded45 (19) shows 6 missing → drift
+    if os.getenv("ARIFOS_MCP_EXPOSE_DEV_TOOLS", "").lower() not in ("true", "1", "yes"):
+        with pytest.raises(RuntimeError):
+            mcp_drift_check(mode="strict", target_manifest="expanded45")
+    else:
+        pytest.skip("Dev mode: expanded45 matches live surface, no drift to test")
 
 
 def test_drift_check_report_mode_never_raises():

@@ -271,6 +271,10 @@ try:
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
 
+    # Refresh the public registry cache after all canonical tools are registered
+    from arifosmcp.runtime.public_registry import _runtime_contracts
+    _runtime_contracts.cache_clear()
+
     # ── arifOS Wiki Tools Forge (repo comprehension) ─────────────────────────
     # PHOENIX-72 / canonical13: wiki tools are absorbed as modes of canonical13.
     # They remain registered ONLY when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.

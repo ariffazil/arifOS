@@ -45,15 +45,8 @@ def _alias_public_name(alias_name: str) -> str:
     return f"{namespace}_{clean_name}"
 
 
-# EXPANDED_45 is a *registry listing* of tool names (canonical + aliases).
-# It does NOT imply all listed tools are registered as callable MCP handlers
-# in the current runtime. The live MCP server may expose fewer tools than
-# appear in this registry. Use MCP tools/list for the authoritative count.
-EXPANDED_45: tuple[str, ...] = tuple(
-    list(dict.fromkeys([*CANONICAL_13, *(_alias_public_name(name) for name in TOOL_ALIAS_MAP)]))
-)
-
 # Diagnostic tools — reversible governance inspectors, not canonical constitutional tools.
+# These are the ONLY non-canonical tools that have live FastMCP handlers.
 DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arif_stack_health_probe",
     "arif_scan_local_instructions",
@@ -61,6 +54,25 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arif_session_budget",
     "arif_floor_status",
     "mcp_drift_check",
+)
+
+# EXPANDED_45 — the honest expanded public surface.
+# Previously this included ~28 ghost aliases (wealth_*, AFWELL_*, geoxarifOS_*,
+# arifos_T_*, arifos_M_*) that have NO FastMCP handlers. Those aliases created
+# ontology drift: the registry claimed 41 tools but only 19 were callable.
+# PHOENIX-72 fix: EXPANDED_45 now contains ONLY tools with actual handlers.
+# Canonical 13 + Diagnostic 6 = 19 registrable tools.
+# The old ghost aliases are preserved below as DOMAIN_ALIASES for documentation
+# and future implementation tracking, but they are NOT part of any public mode.
+EXPANDED_45: tuple[str, ...] = tuple(
+    list(dict.fromkeys([*CANONICAL_13, *DIAGNOSTIC_TOOLS]))
+)
+
+# DOMAIN_ALIASES — planned domain-specific tools that currently have NO FastMCP
+# handlers. They exist in the alias map as implementation targets, not as live
+# public tools. Do NOT include these in drift check manifests or public modes.
+DOMAIN_ALIASES: tuple[str, ...] = tuple(
+    _alias_public_name(name) for name in TOOL_ALIAS_MAP
 )
 
 

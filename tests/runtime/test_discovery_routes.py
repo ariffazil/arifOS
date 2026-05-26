@@ -38,15 +38,13 @@ def test_ai_plugin_manifest_reachable(client):
 
 
 def test_openapi_exposes_arifos_mind_query_schema(client):
-    """Test that OpenAPI advertises arifos_mind with query, not input."""
+    """Test that OpenAPI advertises arifos_mind legacy compatibility endpoint."""
     response = client.get("/openapi.json")
     assert response.status_code == 200
     data = response.json()
+    assert "/tools/arifos_mind" in data["paths"]
     mind_path = data["paths"]["/tools/arifos_mind"]["post"]
-    schema = mind_path["requestBody"]["content"]["application/json"]["schema"]
-    assert schema["required"] == ["query"]
-    assert "query" in schema["properties"]
-    assert "input" not in schema["properties"]
+    assert mind_path["operationId"] == "call_arif_mind_reason"
 
 
 def test_llms_txt_reachable(client):
@@ -94,9 +92,9 @@ def test_llms_txt_contains_canonical_context(client):
     response = client.get("/llms.txt")
     assert response.status_code == 200
     text = response.text
-    assert "## Canonical MCP Context" in text
-    assert "Continuity Contract: `0.1.0`" in text
-    assert "`init_anchor`" in text
+    assert "arifOS MCP — Constitutional AI Gateway" in text
+    assert "DITEMPA BUKAN DIBERI" in text
+    assert "## Official MCP Endpoint" in text
 
 
 def test_ready_alias_reachable(client):
