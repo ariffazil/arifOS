@@ -129,29 +129,6 @@ def _get_stage_lane_access(tool_name: str) -> tuple[str | None, str | None, str]
     return stage, lane, access
 
 
-def _get_tool_obj(mcp: Any, tool: Any) -> Any:
-    """Helper to get tool object from FastMCP instance given string name or tool object."""
-    if not isinstance(tool, str):
-        return tool
-
-    # Try to find tool in mcp instance
-    # FastMCP v3 keeps tools in _local_provider._components
-    if hasattr(mcp, "_local_provider") and hasattr(mcp._local_provider, "_components"):
-        comp_key = f"tool:{tool}"
-        if comp_key in mcp._local_provider._components:
-            return mcp._local_provider._components[comp_key]
-
-    # Fallback/Dummy object if not found
-    class DummyTool:
-        def __init__(self, name):
-            self.name = name
-            self.description = ""
-            self.parameters = {}
-            self.annotations = None
-
-    return DummyTool(tool)
-
-
 _INTERNAL_MCP_REF: Any = None
 
 
@@ -2782,12 +2759,15 @@ def register_rest_routes(
                 "latency_ms": None,
             }
 
-    async def _probe_http(path: str = "/health", timeout: float = 2.0) -> dict[str, Any]:
+    async def _probe_http(
+        path: str = "/health", timeout: float = 2.0, base: str = ""
+    ) -> dict[str, Any]:
         """Probe an internal HTTP endpoint. Returns status, response_ms, and parsed JSON."""
         import httpx
 
-        base = os.getenv("INTERNAL_BASE", "http://arifosmcp:8080")
-        url = f"{base}{path}"
+        if not base:
+            base = os.getenv("INTERNAL_BASE", "http://arifosmcp:8080")
+        url = f"{base}{path}" if base else path
         start = time.perf_counter()
         try:
             async with httpx.AsyncClient(timeout=timeout) as client:
@@ -2827,9 +2807,9 @@ def register_rest_routes(
 
         # --- Layer 0: Infrastructure ---
         infra_tasks = [
-            _probe_tcp_port("postgres", 5432),
-            _probe_tcp_port("redis", 6379),
-            _probe_tcp_port("qdrant", 6333),
+            _probe_tcp_port("localhost", 5432),
+            _probe_tcp_port("localhost", 6379),
+            _probe_tcp_port("localhost", 6333),
             _probe_tcp_port("localhost", 8100),
             _probe_tcp_port("localhost", 5001),
         ]
@@ -2837,13 +2817,13 @@ def register_rest_routes(
         # --- Layer 1: MCP Servers ---
         mcp_tasks = [
             _probe_http("/health", timeout=3.0),  # arifOS self
-            _probe_http("/health", timeout=3.0, path="http://geox:8081/health"),
-            _probe_http("/health", timeout=3.0, path="http://wealth-organ:8082/health"),
-            _probe_http("/health", timeout=3.0, path="http://well:8083/health"),
-            _probe_http("/health", timeout=3.0, path="http://af-bridge-prod:7071/health"),
-            _probe_http("/health", timeout=3.0, path="http://aaa-a2a:3001/health"),
-            _probe_http("/health", timeout=3.0, path="http://apex-prime:3002/health"),
-            _probe_tcp_port("ollama", 11434),
+            _probe_http("/health", timeout=3.0, base="http://localhost:8081"),
+            _probe_http("/health", timeout=3.0, base="http://localhost:18082"),
+            _probe_http("/health", timeout=3.0, base="http://localhost:18083"),
+            _probe_http("/health", timeout=3.0, base="http://localhost:7071"),
+            _probe_http("/health", timeout=3.0, base="http://localhost:3001"),
+            _probe_http("/health", timeout=3.0, base="http://localhost:3002"),
+            _probe_tcp_port("localhost", 11434),
         ]
 
         # --- Layer 2: AI / External ---
@@ -2852,8 +2832,8 @@ def register_rest_routes(
 
         external_tasks = [
             _probe_tcp_port("ollama", 11434),
-            _probe_http("/health", timeout=5.0, path=sea_lion_base),
-            _probe_http("/api/public/health", timeout=5.0, path=langfuse_base),
+            _probe_http(path=f"{sea_lion_base}/health", timeout=5.0),
+            _probe_http(path=f"{langfuse_base}/api/public/health", timeout=5.0),
         ]
 
         infra_results = await asyncio.gather(*infra_tasks)
@@ -3099,7 +3079,7 @@ def register_rest_routes(
         start_time = time.time()
 
         if incoming_name in {"check_vital", "audit_rules"}:
-            legacy_result = {
+            legacy_result: dict[str, Any] = {
                 "authority": {"auth_state": "anonymous"},
                 "metrics": {"status": "ok", "tool": incoming_name},
             }
