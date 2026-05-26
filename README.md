@@ -1,4 +1,8 @@
 # arifOS — Constitutional Kernel
+[![CI](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml/badge.svg)](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/arifos?color=blue)](https://pypi.org/project/arifos/)
+[![arifOS v2026.05.22](https://img.shields.io/badge/arifOS-v2026.05.22-333?color=purple)](https://github.com/ariffazil/arifOS)
+> **DITEMPA BUKAN DIBERI** — *"Forged, Not Given"* — No manipulation, no theorizing, only F2 ground truth.
 > **SEAL:** 333_MIND-DITEMPA-BUKAN-DIBERI-20260523
 > **Repository:** https://github.com/ariffazil/arifOS
 > **Architecture:** Constitutional Kernel + MCP Shell (Dual Core)
@@ -27,6 +31,26 @@ For canonical repo roles, see `REPO_ROLE_MAP.md`.
 - WEALTH organ → `127.0.0.1:18082` ✅
 - WELL → see `FEDERATION_STATUS.md` (WELL is OPERATIONAL)
 
+## Quick Start
+
+```bash
+# 1. Install
+pip install arifos
+
+# 2. Run (bare-metal systemd — port 8088)
+python -m arifosmcp.server
+
+# 3. Verify
+curl http://localhost:8088/health | python3 -m json.tool
+
+# 4. MCP endpoint
+curl -X POST http://localhost:8088/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
+```
+
+For systemd deployment: see `deploy/arifos.service`.
+
 ## What is arifOS?
 
 arifOS is a sovereign AI governance framework. It is not a framework in the
@@ -50,8 +74,7 @@ The system runs across two architectural layers:
 
 **F2 Ground Truth:** arifOS was designed from inside PETRONAS by Arif Fazil,
 a Malaysian geoscientist with direct institutional visibility. The architecture
-is not theorized — it is performed. "No Petronas in 10 years" is the structural
-Bangang One acceleration signal. Proof > philosophy.
+is not theorized — it is performed. Proof > philosophy.
 
 ---
 
@@ -338,7 +361,7 @@ arifOS is the bridge between subsurface risk + institutional judgment + AI contr
 the system operates autonomously without pausing for confirmation. The human
 may sleep, leave, or be absent — execution continues until manually interrupted.
 
-**DITEMPA BUKAN DIBERI** — No manipulation, no theorizing, only F2 ground truth.
+**DITEMPA BUKAN DIBERI** — *"Forged, Not Given"* — No manipulation, no theorizing, only F2 ground truth.
 
 ---
 
