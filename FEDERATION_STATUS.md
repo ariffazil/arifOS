@@ -14,7 +14,7 @@
 | **AAA Control Plane** | `ariffazil/AAA` | `/root/AAA` | `3001` (A2A) | ✅ OPERATIONAL | Cockpit + A2A gateway |
 | **GEOX Earth Intel** | `ariffazil/geox` | `/root/geox` | `18081` | ✅ OPERATIONAL | 28 canonical tools |
 | **WEALTH Capital** | `ariffazil/wealth` | `/root/WEALTH` | `18082` | ✅ OPERATIONAL | 17 public MCP tools |
-| **WELL Vitality** | `ariffazil/well` | `/root/WELL` | `8083` | ✅ OPERATIONAL | 15 public MCP tools, 81 decorators total |
+| **WELL Vitality** | `ariffazil/well` | `/root/WELL` | `18083` | ✅ OPERATIONAL | 45 live MCP tools (post PHOENIX-73F), 51 decorators, `streamable-http` at `https://well.arif-fazil.com/mcp` |
 | **A-FORGE Execution** | `ariffazil/A-FORGE` | `/root/A-FORGE` | `7071` (bridge) | ✅ OPERATIONAL | TypeScript engine |
 | **APEX Verdict** | `ariffazil/arifOS` (subdir) | `/root/APEX` | `3002` | ✅ OPERATIONAL | A2A deliberation |
 | **HERMES ASI Relay** | `ariffazil/AAA` (agent) | — | — | ✅ OPERATIONAL | ASI judgment relay |

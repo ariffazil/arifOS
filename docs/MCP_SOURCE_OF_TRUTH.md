@@ -1,7 +1,7 @@
 # arifOS MCP Source of Truth
 
 **Status:** CURRENT SOT | RUNTIME COUNTS VERIFIED | GDK TEST SEAL PENDING
-**Last verified:** 2026-05-22
+**Last verified:** 2026-05-26
 **Scope:** arifOS MCP surface, federation MCP endpoints, and discovery boundaries.
 
 This file is the human-readable MCP SOT. Machine-readable surfaces remain:
@@ -22,7 +22,7 @@ Verified against `https://arifos.arif-fazil.com/api/federation-probe` on 2026-05
 | arifOS | `https://arifos.arif-fazil.com/mcp` | healthy | 13 | Canonical governance surface. |
 | GEOX | `https://geox.arif-fazil.com/mcp` | healthy | 22 | MCP session required for enumeration. |
 | WEALTH | `https://wealth.arif-fazil.com/mcp` | healthy | 17 | MCP session required for enumeration. |
-| WELL | `https://well.arif-fazil.com/mcp` | healthy | 15 | REFLECT_ONLY substrate monitor. |
+| WELL | `https://well.arif-fazil.com/mcp` | healthy | 45 | REFLECT_ONLY substrate monitor. Post PHOENIX-73F collapse (2026-05-26). |
 | AAA | no canonical MCP endpoint in this repo | healthy | unknown | Control plane and A2A gateway surface. |
 | A-FORGE | no canonical MCP endpoint in this repo | healthy | unknown | Execution/metabolism repo, not arifOS law. |
 | Wiki | static knowledge site | unknown | 0 | Static surface, not an MCP server. |
