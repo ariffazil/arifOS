@@ -3106,7 +3106,7 @@ def _arif_session_init(
             (_context_receipt["verdict"], _context_receipt["degraded_reason"]),
             (_evidence_receipt["verdict"], _evidence_receipt["degraded_reason"]),
             (_tooling_receipt["verdict"], _tooling_receipt["degraded_reason"]),
-            (_memory_receipt["verdict"], _memory_receipt["degraded_reason"]),
+            (_memory_receipt["verdict"], _memory_receipt["reason"]),
         ]
         _critical = [v for v, r in _degradation_flags if v in ("HOLD_EVIDENCE_REQUIRED",)]
         _degraded = [v for v, r in _degradation_flags if v.startswith("DEGRADED")]
