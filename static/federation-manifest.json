@@ -1,6 +1,8 @@
 {
   "_schema": "arifos-federation-manifest-v1",
-  "_updated": "2026-05-22T11:34:00Z",
+  "_updated": "2026-05-26T13:47:00Z",
+  "_sealed_by": "arifOS Forge Agent",
+  "_seal_note": "Corrected to bare-metal systemd ports (18081/18082/18083), live tool counts (GEOX 6, WEALTH 33, WELL 13). Health/counts still fetched live via /api/federation-probe.",
   "_note": "Authored truth for the arifOS federation. Runtime truth (health, counts, version) is fetched live from organ endpoints.",
   "stack": {
     "name": "arifOS Federation",
@@ -44,6 +46,7 @@
       "role": "Governance Kernel · ΔΩΨ Trinity",
       "base_url": "https://arifos.arif-fazil.com",
       "repo": "https://github.com/ariffazil/arifOS",
+      "port": 8088,
       "tool_count": 13,
       "endpoints": {
         "health": "/health",
@@ -133,14 +136,15 @@
       "role": "Earth · Ψ Node",
       "base_url": "https://geox.arif-fazil.com",
       "repo": "https://github.com/ariffazil/geox",
+      "port": 18081,
       "endpoints": {
         "health": "/health",
         "discovery": "/.well-known/mcp/server.json",
         "mcp": "/mcp"
       },
       "discovery_status": "mcp-only",
-      "discovery_note": "No REST discovery. 22 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 4 dot-notation aliases.",
-      "tool_count": 22,
+      "discovery_note": "6 tools live on port 18081. Design target: 11 tools (seismic_compute, sequence_interpret, evidence_reason, prospect_evaluate, map_context_scene).",
+      "tool_count": 6,
       "stack": {
         "runtime": "Python 3.11+",
         "framework": "FastMCP, Pydantic v2, Uvicorn",
@@ -193,6 +197,7 @@
       "role": "Capital · Ω Node",
       "base_url": "https://wealth.arif-fazil.com",
       "repo": "https://github.com/ariffazil/wealth",
+      "port": 18082,
       "endpoints": {
         "health": "/health",
         "discovery": "/.well-known/mcp/server.json",
@@ -200,8 +205,8 @@
         "ready": "/ready"
       },
       "discovery_status": "mcp-only",
-      "discovery_note": "No REST discovery. 17 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 2 generic-name tools (vault_write, vault_query).",
-      "tool_count": 17,
+      "discovery_note": "33 verified MCP tools on port 18082.",
+      "tool_count": 33,
       "stack": {
         "runtime": "Python 3.12+",
         "framework": "FastMCP (single-file monolith)",
@@ -266,14 +271,15 @@
       "role": "Biological · Substrate",
       "base_url": "https://well.arif-fazil.com",
       "repo": "https://github.com/ariffazil/well",
+      "port": 18083,
       "endpoints": {
         "health": "/health",
         "discovery": "/.well-known/mcp/server.json",
         "mcp": "/mcp"
       },
       "discovery_status": "mcp-only",
-      "discovery_note": "No REST discovery. 15 tools enumerable via MCP JSON-RPC with session (mcp-session-id header). 3 apparent alias pairs.",
-      "tool_count": 15,
+      "discovery_note": "13 tools on port 18083. WELL_HOLD verdict active. State stale (637h). Sovereign data injection required.",
+      "tool_count": 13,
       "stack": {
         "runtime": "Python 3.12+",
         "framework": "FastMCP",
@@ -320,6 +326,7 @@
       "role": "Agent · Control Plane",
       "base_url": "https://aaa.arif-fazil.com",
       "repo": "https://github.com/ariffazil/AAA",
+      "port": 443,
       "endpoints": {
         "health": "/health",
         "discovery": "/.well-known/mcp/server.json",
@@ -356,6 +363,7 @@
       "role": "Metabolic Shell",
       "base_url": "https://forge.arif-fazil.com",
       "repo": "https://github.com/ariffazil/A-FORGE",
+      "port": 7071,
       "endpoints": {
         "health": "/health"
       },
