@@ -348,7 +348,7 @@ def _get_sync_langfuse_tracer():
                     "batch": [
                         {
                             "id": str(uuid.uuid4()),
-                            "type": "trace",
+                            "type": "trace-create",  # Langfuse v4 discriminator
                             "body": body,
                             "timestamp": ts,
                         }

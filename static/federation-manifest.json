@@ -3,54 +3,54 @@
   "source": "arifOS MCP /api/federation-probe",
   "generated": "2026-05-26T13:51:00Z",
   "_sealed_by": "arifOS Forge Agent",
-  "_seal_note": "Corrected to bare-metal systemd ports (18081/18082/18083), live tool counts (GEOX 6, WEALTH 33, WELL 13). Health fetched live via /api/federation-probe.",
+  "_seal_note": "Corrected: GEOX port 8081 (not 18081), 11 tools (not 6). WEALTH 33, WELL 13. arifOS 8088. Health via /api/federation-probe.",
   "stack": {
     "topology": {
       "ordinal": 1,
-      "name": "APEX \u00b7 Human Sovereign",
+      "name": "APEX · Human Sovereign",
       "role": "Final authority. F13 veto absolute. Constitutional witness to all terminal verdicts.",
       "status": "live",
       "layers": [
         {
           "ordinal": 1,
-          "name": "APEX \u00b7 Human Sovereign",
+          "name": "APEX · Human Sovereign",
           "role": "Final authority. F13 veto absolute. Constitutional witness to all terminal verdicts.",
           "status": "live"
         },
         {
           "ordinal": 2,
           "name": "arifOS Governance Kernel",
-          "role": "13-floor constitutional engine. 888_JUDGE verdicts. 999_VAULT immutable ledger. \u0394\u03a9\u03a8 Trinity routing.",
+          "role": "13-floor constitutional engine. 888_JUDGE verdicts. 999_VAULT immutable ledger. ΔΩΨ Trinity routing.",
           "status": "live"
         },
         {
           "ordinal": 3,
-          "name": "GEOX \u00b7 WEALTH \u00b7 WELL \u00b7 AAA",
-          "role": "Earth \u00b7 Capital \u00b7 Vitality \u00b7 A2A Hub. MCP-connected organs. 65 confirmed live tools across 4 organs.",
+          "name": "GEOX · WEALTH · WELL · AAA",
+          "role": "Earth · Capital · Vitality · A2A Hub. MCP-connected organs. 70 confirmed live tools across 4 organs.",
           "status": "live"
         },
         {
           "ordinal": 4,
-          "name": "OpenClaw \u00b7 Hermes \u00b7 OpenCode",
+          "name": "OpenClaw · Hermes · OpenCode",
           "role": "Agent runtime. Telegram interface. A2A bridge. Model routing and execution.",
           "status": "live"
         },
         {
           "ordinal": 5,
-          "name": "Observatory \u00b7 Canon \u00b7 Wiki",
+          "name": "Observatory · Canon · Wiki",
           "role": "Public-facing surfaces. Read-only governance visibility. Constitutional doctrine.",
           "status": "live"
         }
       ],
       "flow": [
-        "APEX (human) \u2192 arifOS kernel \u2192 GEOX/WEALTH/WELL \u2192 agents \u2192 public surfaces"
+        "APEX (human) → arifOS kernel → GEOX/WEALTH/WELL → agents → public surfaces"
       ]
     },
     "organs": {
       "arifos": {
         "name": "arifOS",
         "type": "governance_kernel",
-        "role": "Constitutional engine. F1\u2013F13 floors. 888_JUDGE. 999_VAULT.",
+        "role": "Constitutional engine. F1–F13 floors. 888_JUDGE. 999_VAULT.",
         "port": 8088,
         "mcp": true,
         "tools": 13,
@@ -60,10 +60,10 @@
       "geox": {
         "name": "GEOX",
         "type": "earth_intelligence",
-        "role": "Subsurface physics. Petrophysics. Seismic. Basin analysis. Physics-9 grounded. 6 tools live (design target: 11).",
-        "port": 18081,
+        "role": "Subsurface physics. Petrophysics. Seismic. Basin analysis. Physics-9 grounded. 11 MCP tools live on port 8081.",
+        "port": 8081,
         "mcp": true,
-        "tools": 6,
+        "tools": 11,
         "health_endpoint": "/health",
         "discovery_endpoint": "/.well-known/mcp/server.json",
         "status": "healthy"
@@ -71,7 +71,7 @@
       "wealth": {
         "name": "WEALTH",
         "type": "capital_intelligence",
-        "role": "NPV/EMV. Risk scoring. Makcik\u00b2 relational credit. Capital conservation. 33 verified MCP tools.",
+        "role": "NPV/EMV. Risk scoring. Makcik² relational credit. Capital conservation. 33 verified MCP tools.",
         "port": 18082,
         "mcp": true,
         "tools": 33,

@@ -1174,9 +1174,14 @@
   "geox_categories": {
     "geox_registry_contract": 1,
     "geox_data_intake": 2,
-    "geox_data_qc": 1,
+    "geox_data_qc_bundle": 1,
     "geox_well_rock_properties": 2,
-    "note": "5 additional GEOX tools pending full enumeration via geox_system_registry_status"
+    "geox_seismic_compute": 1,
+    "geox_sequence_interpret": 1,
+    "geox_evidence_reason": 1,
+    "geox_prospect_evaluate": 1,
+    "geox_map_context_scene": 1,
+    "note": "All 11 tools live on geox-mcp port 8081 as of 2026-05-26"
   },
   "well_cognitive_axes": {
     "identity": 2,

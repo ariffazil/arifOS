@@ -17,18 +17,18 @@
 
 ---
 
-## Live Values (Verified 2026-05-26T13:51:00Z)
+## Live Values (Verified 2026-05-26T14:05:00Z)
 
 ```
 arifOS:  port=8088, tools=13,  status=healthy
-GEOX:    port=18081, tools=6,   status=healthy
+GEOX:    port=8081,  tools=11,  status=healthy
 WEALTH:  port=18082, tools=33,  status=healthy
 WELL:    port=18083, tools=13,  status=healthy (WELL_HOLD active)
 AAA:     port=443,   tools=—,   status=healthy
 A-FORGE: port=7071,  tools=—,   status=degraded
 ```
 
-**65 confirmed live tools** across 4 organs. A-FORGE: no /tools endpoint.
+**70 confirmed live tools** across 4 organs. A-FORGE: no /tools endpoint.
 
 ---
 
