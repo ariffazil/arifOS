@@ -27,7 +27,7 @@ jobs:
           REPORT=federation-report.md
 
           declare -A TIERS=( ["arifOS"]="infra" ["AAA"]="infra" ["A-FORGE"]="core"
-            ["well"]="core" ["geox"]="core" ["wealth"]="package" ["arif-sites"]="site" )
+            ["well"]="core" ["geox"]="core" ["wealth"]="core" ["arif-sites"]="site" )
 
           {
             echo "## 🌐 Federation Health — $WEEK"
