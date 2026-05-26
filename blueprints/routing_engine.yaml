@@ -63,36 +63,40 @@ servers:
 
 keyword_substrate_map:
 
-  # arifOS — Constitutional Kernel
-  - keywords: ["unknown", "route", "which organ", "what tool", "constitutional", "governance", "floor", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12", "f13", "seal", "vault", "vault999", "immutable", "memory", "recall", "session", "init", "judgment", "judge", "deliberate", "execute", "forge", "epistemic", "witness", "evidence"]
-    substrate: "arifOS"
-    organ: "arifOS"
-    confidence: "HIGH"
-    fallback: null
-
   # WEALTH — Capital Intelligence
-  - keywords: ["capital", "money", "financial", "npv", "irr", "net present", "internal rate", "payback", "cash flow", "cashflow", "runway", "burn rate", "liquidity", "balance sheet", "net worth", "valuation", "price", "spread", "mispricing", "risk", "cvar", "entropy", "uncertainty", "productivity", "efficiency", "roe", "roi", "roc", "profitability", "leverage", "dscr", "debt service", "macro", "gdp", "inflation", "interest rate", "fx", "usd", "myr", "brent", "oil price", "game theory", "nash", "equilibrium", "negotiation", "preference", "utility", "inequality", "gini", "world bank", "information value", "voi", "emv", "expected monetary", "monte carlo", "stochastic", "evidence quality", "soe", "noc", "audit"]
+  # Placed FIRST because "runway" (months of cash) must match before A-FORGE's "run"
+  - keywords: ["capital", "money", "financial", "npv", "irr", "net present", "internal rate", "payback", "cash flow", "cashflow", "months of cash", "burn rate", "liquidity", "balance sheet", "net worth", "valuation", "price", "spread", "mispricing", "cvar", "entropy", "uncertainty", "productivity", "efficiency", "roe", "roi", "roc", "profitability", "leverage", "dscr", "debt service", "macro", "gdp", "inflation", "interest rate", "fx", "usd", "myr", "brent", "oil price", "game theory", "nash", "equilibrium", "negotiation", "preference", "utility", "inequality", "gini", "world bank", "information value", "voi", "emv", "expected monetary", "monte carlo", "stochastic", "evidence quality", "soe", "noc", "audit", "run out of cash", "cash remaining", "how long until"]
     substrate: "CAPITAL"
     organ: "WEALTH"
     confidence: "HIGH"
     fallback: null
 
-  # GEOX — Earth Intelligence
-  - keywords: ["geology", "geoscience", "subsurface", "petrophysics", "well log", "las file", "seg-y", "seismic", "depth", "tvdss", "md", "tvd", "drc", "_DST", "drill stem", "formation", "lithology", "porosity", "saturation", "sw", "vsh", "shale", "sandstone", "carbonate", "reservoir", "trap", "seal", "closure", "structure", "antcline", "fault", "trap", "prospect", "lead", "play", "basin", "source rock", "maturity", "ro", "kerogen", "migration", "charge", "timing", "pressure", "gradient", "pore pressure", "fracture", "permeability", "well integrity", " casing", "cement", "log analysis", "rho", "vp", "vs", "ai", "sonic", "density", "neutron", "gamma ray", "sp", "curves", "mnemonic", "qc", "quality control", "monotonic"]
-    substrate: "EARTH"
-    organ: "GEOX"
-    confidence: "HIGH"
-    fallback: null
-
-  # WELL — Body/Mind Vitality
-  - keywords: ["vitality", "health", "metabolism", "metabolic", "bandwidth", "cognitive", "clarity", "decision fatigue", "fatigue", "sleep", "rest", "hrv", "heart rate", "stress", "cortisol", "hydration", "fasting", "nutrition", "movement", "exercise", "pain", "discomfort", "dignity", "meaning", "livelihood", "purpose", "homeostasis", "repair", "recovery", "readiness", "coupled", "human-machine", "substrate", "h-well", "m-well", "c-well", "g-well", "boundary", "gradient", "reliability", "entropy rate", "machine health", "freshness", "stale", "state age", "well score", "niyat", "intention", "reversibility", "task classify", "c0", "c1", "c2", "c3", "c4", "c5", "decision class", "risk tier"]
+  # WELL — Body/Mind Vitality (before GEOX because "improving/degrading" and "c fatigue" might overlap)
+  - keywords: ["vitality", "metabolism", "metabolic", "bandwidth", "cognitive", "clarity", "decision fatigue", "fatigue", "sleep", "rest", "hrv", "heart rate", "cortisol", "hydration", "fasting", "nutrition", "movement", "exercise", "pain", "discomfort", "dignity", "meaning", "livelihood", "purpose", "homeostasis", "repair", "recovery", "readiness", "coupled", "human-machine", "substrate", "h-well", "m-well", "c-well", "g-well", "boundary", "reliability", "entropy rate", "machine health", "freshness", "stale", "state age", "well score", "niyat", "intention", "task classify", "c0", "c1", "c2", "c3", "c4", "c5", "decision class", "risk tier", "decision risk", "improving or degrading", "improving", "degrading", "trajectory"]
     substrate: "VITALITY"
     organ: "WELL"
     confidence: "HIGH"
     fallback: null
 
-  # A-FORGE — Execution (never direct — via kernel)
-  - keywords: ["build", "compile", "deploy", "execute", "run", "script", "container", "docker", "image", "ghcr", "push", "forge", "a-forge"]
+  # GEOX — Earth Intelligence
+  # NOTE: "seal", "well", "gas", "depth", "pressure", "gradient" are intentionally LATER
+  # to avoid false matches with WELL and arifOS
+  - keywords: ["geology", "geoscience", "subsurface", "petrophysics", "well log", "las file", "seg-y", "seismic", "tvdss", "tvd", "drc", "dst", "_DST", "drill stem", "formation", "lithology", "porosity", "saturation", "sw", "vsh", "shale", "sandstone", "carbonate", "reservoir", "trap", "closure", "antcline", "fault", "prospect", "lead", "play", "basin", "source rock", "maturity", "ro", "kerogen", "migration", "charge", "timing", "pore pressure", "fracture", "permeability", "well integrity", " casing", "cement", "log analysis", "rho", "sonic", "density", "neutron", "gamma ray", "curves", "mnemonic", "qc", "quality control", "monotonic", "physics integrity", "verify integrity", "verify physics", "physics verify"]
+    substrate: "EARTH"
+    organ: "GEOX"
+    confidence: "HIGH"
+    fallback: null
+
+  # arifOS — Constitutional Kernel (near last — many generic keywords)
+  - keywords: ["which organ", "what tool", "constitutional", "governance", "floor", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12", "f13", "vault999", "immutable", "epistemic", "witness", "vps system health", "system health", "fetch evidence", "external source", "multi-step reasoning", "analyze this", "multi-step", "search the web", "search for", "recall prior", "recall past", "prior sessions", "session history"]
+    substrate: "arifOS"
+    organ: "arifOS"
+    confidence: "HIGH"
+    fallback: null
+
+  # A-FORGE — Execution (LAST — only if no other organ matched)
+  # "run" removed — too greedy; task_patterns handle build/deploy/execute cases
+  - keywords: ["build", "compile", "deploy", "execute", "script", "container", "docker", "image", "ghcr", "push", "forge", "a-forge"]
     substrate: "EXECUTION"
     organ: "A-FORGE"
     confidence: "HIGH"
