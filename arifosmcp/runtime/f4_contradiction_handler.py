@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 # Configuration
 # ============================================================================
 
-_OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
+_OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 _EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3:latest")
 _PG_URL = os.getenv(
     "ARIFOS_MEMORY_POSTGRES_URL",

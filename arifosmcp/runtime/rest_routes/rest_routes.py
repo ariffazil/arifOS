@@ -3126,9 +3126,10 @@ def register_rest_routes(
 
         # Ollama model list
         ollama_models = None
+        _ollama_base = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
-                r = await client.get("http://ollama:11434/api/tags")
+                r = await client.get(f"{_ollama_base}/api/tags")
                 if r.status_code == 200:
                     ollama_models = [m["name"] for m in r.json().get("models", [])]
         except Exception:

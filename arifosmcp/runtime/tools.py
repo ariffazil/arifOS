@@ -3058,6 +3058,7 @@ def _arif_session_init(
         _wired: dict[str, bool] = {}
         try:
             import socket as _sock
+
             for _name, _port in _mcp_ports.items():
                 try:
                     _s = _sock.socket(_sock.AF_INET, _sock.SOCK_STREAM)
@@ -3093,11 +3094,7 @@ def _arif_session_init(
             "count": memory_loaded,
             "window": _mem_win,
             "verdict": "WARN_MEMORY_UNBOUND" if _mem_req and memory_loaded == 0 else "STABLE",
-            "reason": (
-                "memory_not_available_yet"
-                if _mem_req and memory_loaded == 0
-                else "ok"
-            ),
+            "reason": ("memory_not_available_yet" if _mem_req and memory_loaded == 0 else "ok"),
         }
 
         # ── 2f: Session verdict — aggregate all Phase-2 degradation ──────────
@@ -3612,7 +3609,9 @@ def _arif_session_init(
                 "context_receipt": _SESSIONS.get(session_id, {}).get("context_receipt"),
                 "evidence_receipt": _SESSIONS.get(session_id, {}).get("evidence_receipt"),
                 "tool_binding": {
-                    "wired": _SESSIONS.get(session_id, {}).get("tooling_receipt", {}).get("wired", {}),
+                    "wired": _SESSIONS.get(session_id, {})
+                    .get("tooling_receipt", {})
+                    .get("wired", {}),
                 },
                 "memory_receipt": _SESSIONS.get(session_id, {}).get("memory_receipt"),
                 "session_verdict": _SESSIONS.get(session_id, {}).get("session_verdict", "STABLE"),
@@ -7288,7 +7287,7 @@ def _try_reformulate_query(query: str) -> str | None:
     try:
         import os
 
-        ollama_url = os.getenv("OLLAMA_URL", "http://ollama:11434")
+        ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
         import json as _json
         import urllib.request
 
@@ -8496,9 +8495,7 @@ def _arif_ops_measure(
     if mode == "budget":
         from arifosmcp.tools.session_budget import arif_session_budget
 
-        return _call_async_from_sync(
-            arif_session_budget(session_id=session_id, actor_id=actor_id)
-        )
+        return _call_async_from_sync(arif_session_budget(session_id=session_id, actor_id=actor_id))
 
     gate = _constitutional_gate("arif_ops_measure", mode, actor_id, session_id=session_id)
     if gate is not None:
@@ -10530,6 +10527,7 @@ async def _arif_vault_seal_tool(
     nonce: str | None = None,
     constitutional_chain_id: str | None = None,
     judge_state_hash: str | None = None,
+    witness_type: str = "ai",
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """
@@ -10552,6 +10550,7 @@ async def _arif_vault_seal_tool(
       ack_irreversible      — Explicit human ack for permanent writes
       constitutional_chain_id — Chain hash for lineage verification
       judge_state_hash      — Judge verdict hash that authorized this seal
+      witness_type          — ai | human (F13: human bypasses sovereign gate)
       session_id            — Governed session ID
       actor_id              — Sovereign actor identifier
       ctx                   — FastMCP Context for progress reporting and elicitation
@@ -10599,6 +10598,7 @@ async def _arif_vault_seal_tool(
             nonce=nonce,
             constitutional_chain_id=constitutional_chain_id,
             judge_state_hash=judge_state_hash,
+            witness_type=witness_type,
         )
 
         if trace:
@@ -12267,4 +12267,3 @@ _LEGACY_ALIASES: dict[str, str] = {
 LEGACY_TOOL_ALIASES = _LEGACY_ALIASES
 # Backward-compat alias map: arifos_* tool names → canonical arif_* names.
 # Used by tools_hardened_dispatch.get_tool_handler to route legacy calls.
-

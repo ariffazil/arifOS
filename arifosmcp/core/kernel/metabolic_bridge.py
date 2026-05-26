@@ -12,7 +12,7 @@ from arifosmcp.runtime.vault_postgres import VaultEvent, VaultManager
 
 class OllamaClient:
     def __init__(self, base_url: str = None):
-        self.base_url = base_url or os.getenv("OLLAMA_URL", "http://ollama:11434")
+        self.base_url = base_url or os.getenv("OLLAMA_URL", "http://localhost:11434")
 
     async def generate(self, model: str, prompt: str, format: str = None) -> dict[str, Any]:
         async with httpx.AsyncClient(timeout=60.0) as client:

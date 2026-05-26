@@ -56,7 +56,9 @@ def _get_ollama_client():
 
             from arifosmcp.core.kernel.metabolic_bridge import OllamaClient
 
-            _ollama_client = OllamaClient(base_url=os.getenv("OLLAMA_URL", "http://ollama:11434"))
+            _ollama_client = OllamaClient(
+                base_url=os.getenv("OLLAMA_URL", "http://localhost:11434")
+            )
             return _ollama_client
         except Exception as exc:
             sys.stderr.write(f"[relate_bridge] OllamaClient unavailable: {exc}\n")

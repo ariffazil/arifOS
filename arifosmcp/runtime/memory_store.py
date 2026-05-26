@@ -52,7 +52,7 @@ _LEGACY_INDEX_FILE = _MEMORY_DIR / ".index.json"
 
 _QDRANT_URL = os.getenv("QDRANT_URL", "http://qdrant:6333")
 _QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "arifos_memory")
-_OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
+_OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 _EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3:latest")
 _PG_URL = os.getenv(
     "ARIFOS_MEMORY_POSTGRES_URL",
