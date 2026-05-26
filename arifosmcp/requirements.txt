@@ -1,4 +1,4 @@
-fastmcp==3.2.4
+fastmcp==3.3.1
 fastapi>=0.136.1
 uvicorn>=0.47.0
 pydantic>=2.13.4
@@ -7,18 +7,18 @@ prometheus-client>=0.25.0
 redis>=7.4.0
 itsdangerous>=2.1.0
 httpx>=0.24.0
-aiohttp>=3.9.0
+aiohttp>=3.13.5
 blake3==1.0.8
 
 asyncpg>=0.31.0
 langfuse
 jsonschema
-numpy==2.4.5
+numpy==2.4.6
 scipy==1.14.1
 scikit-learn==1.8.0
 torch==2.12.0
-transformers==5.8.1
-sentence-transformers==5.5.0
+transformers==5.9.0
+sentence-transformers==5.5.1
 qdrant-client>=1.18.0
 google-api-python-client>=2.160.0
 google-auth-httplib2>=0.2.0

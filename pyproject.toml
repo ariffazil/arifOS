@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "2026.05.25"
+version = "2026.05.26"
 description = "arifOS Constitutional AI Kernel — 13 canonical MCP tools, VAULT999 ledger, F1–F13 floor enforcement"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -25,7 +25,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "fastmcp==3.2.4",
+    "fastmcp==3.3.1",
     "fastapi>=0.136.1",
     "uvicorn[standard]>=0.47.0",
     "sse-starlette>=3.4.4",
@@ -45,12 +45,12 @@ dependencies = [
     "structlog>=24.4.0",
     "rich>=15.0.0",
     "psutil>=7.2.2",
-    "numpy==2.4.5",
+    "numpy==2.4.6",
     "scipy==1.17.1",
     "scikit-learn==1.8.0",
     "torch==2.12.0",
-    "transformers==5.8.1",
-    "sentence-transformers==5.5.0",
+    "transformers==5.9.0",
+    "sentence-transformers==5.5.1",
     "google-api-python-client>=2.160.0",
     "google-auth-httplib2>=0.2.0",
     "google-auth-oauthlib>=1.2.1",
