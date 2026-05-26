@@ -60,7 +60,7 @@ jobs:
             sleep 8
 
             echo "[DEPLOY] Verifying server health..."
-            HEALTH=$(curl -fsS http://localhost:8080/health)
+            HEALTH=$(curl -fsS http://localhost:8088/health)
             echo "${HEALTH}" | python3 -m json.tool
             echo "${HEALTH}" | python3 -c "
             import sys, json
