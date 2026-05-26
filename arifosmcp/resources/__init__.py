@@ -27,6 +27,7 @@ from .doctrine import register_doctrine
 from .embodied_resources import register_embodied_resources
 from .evidence import register_evidence_resources
 from .forge import register_forge
+from .philosophy import register_philosophy
 from .schema import register_schema
 from .tree777 import register_tree777_resources
 from .vitals import register_vitals
@@ -37,6 +38,7 @@ CANONICAL_RESOURCES = (
     "arifos://schema",
     "arifos://forge",
     "arifos://civilization",
+    "arifos://philosophy",
 )
 
 TREE777_RESOURCES = (
@@ -74,6 +76,7 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_schema(mcp))
     registered.extend(register_forge(mcp))
     registered.extend(register_civilization(mcp))
+    registered.extend(register_philosophy(mcp))
     registered.extend(register_evidence_resources(mcp))
     registered.extend(register_embodied_resources(mcp))
     registered.extend(register_tree777_resources(mcp))
