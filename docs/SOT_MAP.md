@@ -1,6 +1,6 @@
 # arifOS Federation — Source of Truth Map
 
-**Sealed:** 2026-05-26  
+**Sealed:** 2026-05-26T14:05:00Z  
 **Authority:** Ω-FORGE (arifOS Forge Agent)  
 **Schema:** federation-manifest/v1
 

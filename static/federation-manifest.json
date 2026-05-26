@@ -1,7 +1,7 @@
 {
   "schema": "federation-manifest/v1",
   "source": "arifOS MCP /api/federation-probe",
-  "generated": "2026-05-26T13:51:00Z",
+  "generated": "2026-05-26T14:05:00Z",
   "_sealed_by": "arifOS Forge Agent",
   "_seal_note": "Corrected: GEOX port 8081 (not 18081), 11 tools (not 6). WEALTH 33, WELL 13. arifOS 8088. Health via /api/federation-probe.",
   "stack": {
