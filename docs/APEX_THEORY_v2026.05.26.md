@@ -147,7 +147,7 @@ The arifOS Federation is structured across a rigorously orthogonal topology. Int
 |-------|----------|------|-------|
 | ⚙️ **arifOS** | Constitutional Kernel | 8088 | 13 |
 | 🟡 **WEALTH** | Capital Intelligence | 18082 | 33 |
-| 🌏 **GEOX** | Earth Intelligence | 8081 | 11 |
+| 🌏 **GEOX** | Earth Intelligence | 18081 | 6 (11 design target) |
 | 🧬 **WELL** | Body/Mind Vitality | 18083 | 13 |
 | 🔨 **A-FORGE** | Execution Shell | 7071 | 0 |
 
@@ -179,11 +179,11 @@ Seven distinct cognitive classes:
 |-------|---------|--------|-----|--------|--------|---------|------|-----------|
 | ⚙️ arifOS | 5 | 1 | 0 | 2 | 3 | 1 | 1 | **13** |
 | 🟡 WEALTH | 12 | 1 | 0 | 13 | 4 | 0 | 3 | **33** |
-| 🌍 GEOX | 1 | 2 | 2 | 2 | 0 | 0 | 0 | **11** |
+| 🌍 GEOX | 1 | 2 | 2 | 1 | 0 | 0 | 0 | **6 (11 design)** |
 | 🧬 WELL | 4 | 1 | 0 | 3 | 4 | 0 | 0 | **13** |
-| **Total** | **22** | **5** | **2** | **20** | **11** | **1** | **4** | **70*** |
+| **Total** | **22** | **5** | **2** | **20** | **11** | **1** | **4** | **65** |
 
-*A-FORGE contributes 0 tools to this total — it is a routing endpoint, not an MCP server.*
+*Live public MCP surface: arifOS 13 + WEALTH 33 + GEOX 6 + WELL 13 = 65 tools. A-FORGE contributes 0 (it is a routing endpoint, not a primary MCP surface).*
 
 ---
 
@@ -259,11 +259,7 @@ GEOX manages physical planetary reality. Originally developed to mitigate instit
 | QC | `geox_data_qc_bundle` | TIER_1 | Physics validation, depth monotonicity |
 | Interpret | `geox_subsurface_generate_candidates` | TIER_2 | Ensemble P10/P50/P90 candidates |
 | Interpret | `geox_subsurface_verify_integrity` | TIER_1 | Physics9 boundary enforcement |
-| Petrophysics | `geox_petrophysics_analyze` | TIER_1 | Porosity, saturation, VSH analysis |
-| Pressure | `geox_pressure_gradient_analyze` | TIER_2 | Pore pressure, fracture pressure, mud window |
-| Structure | `geox_structural_mapping` | TIER_2 | Faults, traps, closures, antiforms |
-| Formation | `geox_formation_evaluate` | TIER_2 | Reservoir quality, pay thickness |
-| Trauma | `geox_trauma_memory` | TIER_1 | Basin dry holes, Macondo, Piper Alpha reference |
+> **GEOX Canonical 11 (design target):** geox_seismic_compute, geox_sequence_interpret, geox_evidence_reason, geox_prospect_evaluate, geox_map_context_scene — not yet deployed to live MCP server.
 
 **GEOX enforces:**
 - **Depth reference frames**: Any depth value must include MD, TVD, or TVDSS

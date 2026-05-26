@@ -4,10 +4,10 @@
   "tool_count": {
     "arifOS": 13,
     "WEALTH": 33,
-    "GEOX": 11,
-    "WELL": 12,
+    "GEOX": 6,
+    "WELL": 13,
     "A-FORGE": 0,
-    "total": 69
+    "total": 65
   },
   "servers": [
     {
@@ -1080,79 +1080,19 @@
       "description": "Dignity preservation guard"
     },
     {
-      "tool_name": "geox_petrophysics_analyze",
-      "server": "GEOX",
-      "substrate": "EARTH_INTELLIGENCE",
+      "tool_name": "mcp_health_check",
+      "server": "WELL",
+      "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "OBSERVE",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "PETROPHYSICS",
-      "category": "geox_petrophysics",
+      "stage": "SYS",
       "requires_prior_verdict": false,
-      "resulting_claim_state": "OBSERVED",
+      "resulting_claim_state": "HEALTH_CHECKED",
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Porosity, saturation, VSH, sw analysis from well log curves"
-    },
-    {
-      "tool_name": "geox_pressure_gradient_analyze",
-      "server": "GEOX",
-      "substrate": "EARTH_INTELLIGENCE",
-      "action_mode": "REASON",
-      "reversibility": "TIER_2_LOGGED",
-      "stage": "PRESSURE_ANALYSIS",
-      "category": "geox_pressure_gradient",
-      "requires_prior_verdict": false,
-      "resulting_claim_state": "INTERPRETED",
-      "audit_required": true,
-      "ledger_required": false,
-      "side_effect_class": "INTERNAL",
-      "description": "Pore pressure, fracture pressure, mud window analysis"
-    },
-    {
-      "tool_name": "geox_structural_mapping",
-      "server": "GEOX",
-      "substrate": "EARTH_INTELLIGENCE",
-      "action_mode": "REASON",
-      "reversibility": "TIER_2_LOGGED",
-      "stage": "STRUCTURAL",
-      "category": "geox_structural",
-      "requires_prior_verdict": false,
-      "resulting_claim_state": "INTERPRETED",
-      "audit_required": true,
-      "ledger_required": false,
-      "side_effect_class": "INTERNAL",
-      "description": "Fault mapping, trap identification, closure analysis"
-    },
-    {
-      "tool_name": "geox_formation_evaluate",
-      "server": "GEOX",
-      "substrate": "EARTH_INTELLIGENCE",
-      "action_mode": "REASON",
-      "reversibility": "TIER_2_LOGGED",
-      "stage": "FORMATION_EVAL",
-      "category": "geox_formation",
-      "requires_prior_verdict": false,
-      "resulting_claim_state": "INTERPRETED",
-      "audit_required": true,
-      "ledger_required": false,
-      "side_effect_class": "INTERNAL",
-      "description": "Reservoir quality, pay thickness, formation evaluation"
-    },
-    {
-      "tool_name": "geox_trauma_memory",
-      "server": "GEOX",
-      "substrate": "EARTH_INTELLIGENCE",
-      "action_mode": "OBSERVE",
-      "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "TRAUMA_MEMORY",
-      "category": "geox_trauma",
-      "requires_prior_verdict": false,
-      "resulting_claim_state": "OBSERVED",
-      "audit_required": false,
-      "ledger_required": false,
-      "side_effect_class": "NONE",
-      "description": "Trauma memory: basin dry holes, Macondo, Piper Alpha reference"
+      "description": "Somatic alias delegating to well_assess_reliability \u2014 live legacy endpoint",
+      "category": "well_somatic_alias"
     }
   ],
   "action_mode_counts": {
