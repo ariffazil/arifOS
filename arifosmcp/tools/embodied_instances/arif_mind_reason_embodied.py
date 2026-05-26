@@ -105,9 +105,17 @@ class ArifMindReasonEmbodied(EmbodiedTool):
             recalled_memories: list[str] = []
             memory_summary = ""
             try:
+                # Build scoped query: include epoch/plan context if available
+                task_cfg = params.get("task", {})
+                recall_query = query or ""
+                if task_cfg.get("epoch_id"):
+                    recall_query = f"[epoch:{task_cfg['epoch_id']}] {recall_query}"
+                if task_cfg.get("plan_id"):
+                    recall_query = f"[plan:{task_cfg['plan_id']}] {recall_query}"
+
                 recall_result = arif_memory_recall(
                     mode="search",
-                    query=query or "",
+                    query=recall_query,
                     session_id=session_id,
                     actor_id=actor_id or "anonymous",
                     limit=5,
@@ -156,6 +164,23 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                 confidence = 0.7  # Reasoning has good confidence
                 sensitivity = 0.1  # Low sensitivity unless domain is sensitive
 
+                # Extract canonical metadata from params and result
+                task_cfg = params.get("task", {})
+                epoch_id = task_cfg.get("epoch_id") or None
+                plan_id = task_cfg.get("plan_id") or None
+
+                # Classify: metabolize output is evidence-class
+                memory_class = "evidence"
+
+                # Pull evidence refs from the evidence param
+                evidence_ref: dict[str, Any] = {}
+                raw_evidence = params.get("evidence", {})
+                if isinstance(raw_evidence, dict):
+                    evidence_ref = {
+                        "search_receipts": raw_evidence.get("search_decision_receipts", []),
+                        "source_cards": raw_evidence.get("source_cards", []),
+                    }
+
                 candidate = MemoryCandidate(
                     type=MemoryType.EPISODIC,
                     subject=query[:200] if query else "reasoning_output",
@@ -170,11 +195,15 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                         "mode": mode,
                         "session_id": session_id,
                         "actor_id": actor_id,
+                        "epoch_id": epoch_id,
+                        "plan_id": plan_id,
+                        "memory_class": memory_class,
+                        "evidence_ref": evidence_ref,
                     },
                     confidence=confidence,
                     authority=Authority.SYSTEM_INFERRED,
                     sensitivity=sensitivity,
-                    tags=["reasoning", "metabolize", "333_MIND"],
+                    tags=["reasoning", "metabolize", "333_MIND", memory_class],
                 )
 
                 allowed, reason, score = _policy_engine.evaluate(
@@ -187,9 +216,12 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                         session_id=session_id,
                         actor_id=actor_id or "anonymous",
                         content=result_content,
-                        tags=["reasoning", "metabolize", "333_MIND"],
+                        tags=["reasoning", "metabolize", "333_MIND", memory_class],
                     )
-                    logger.debug(f"333_MIND stored outcome: score={score:.3f}")
+                    logger.debug(
+                        f"333_MIND stored outcome: score={score:.3f}, "
+                        f"class={memory_class}, epoch={epoch_id}, plan={plan_id}"
+                    )
                 else:
                     logger.debug(f"333_MIND memory store held: {reason}")
             except Exception as exc:
