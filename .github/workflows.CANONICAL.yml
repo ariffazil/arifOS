@@ -1,0 +1,41 @@
+# ═══════════════════════════════════════════════════════════════
+# arifOS Canonical Workflow Manifest
+# Single source of truth for the 13-workflow automation stack.
+# 02-aaa-seal.yml reads this to detect forbidden workflow drift.
+# ═══════════════════════════════════════════════════════════════
+
+canonical_workflows:
+  - 01-unified-ci.yml        # Core CI: lint, constitutional, MCP, 888_JUDGE, secrets
+  - 02-aaa-seal.yml          # Structural integrity + entrypoint health + anti-hantu
+  - 03-secrets-gate.yml      # F11 defense-in-depth Gitleaks (independent of CI)
+  - 04-uptime-monitor.yml    # Live endpoint health every 6h
+  - 05-law-sync.yml          # Constitutional files → Gist (living law)
+  - 06-mcp-conformance.yml   # MCP protocol conformance (quick standalone signal)
+  - 07-publish-pypi.yml      # Auto-publish on arifosmcp/pyproject.toml version bump
+  - auto-merge-dependabot.yml # Squash-merge patch/minor Dependabot PRs automatically
+  - deploy.yml               # VPS auto-deploy on main push
+  - sentinel-premerge-gate.yml # Semantic PR gate: critical paths, coverage, migration
+  - repo-routing-validation.yml # Enforces REPO= trailer on all commits
+  - repo-hygiene-weekly.yml  # Weekly automation-health digest + self-improvement issue
+  - prune-images.yml         # GHCR stale image cleanup (weekly)
+
+forbidden_workflows:
+  # These were deleted in commit 2ef8ee5c — list here to catch regressions
+  - ci.yml                   # superseded by 01-unified-ci.yml
+  - ci-unified.yml           # superseded by 01-unified-ci.yml
+  - live_tests.yml           # duplicated by 01-unified-ci.yml matrix
+  - aaa-seal-check.yml       # merged into 02-aaa-seal.yml
+  - secrets-scan.yml         # weaker duplicate of 03-secrets-gate.yml
+  - 888-judge.yml            # absorbed by 01-unified-ci.yml 888_JUDGE job
+
+required_checks_for_main:
+  # These must pass before merging to main
+  - "arifOS Unified CI"       # 01-unified-ci.yml
+  - "AAA Seal Integrity"      # 02-aaa-seal.yml
+  - "F11 Secrets Gate"        # 03-secrets-gate.yml
+  - "MCP Conformance"         # 06-mcp-conformance.yml
+  - "Sentinel Gate"           # sentinel-premerge-gate.yml
+  - "Repo Routing Validation" # repo-routing-validation.yml
+
+last_audit: "2026-05-26"
+canonical_count: 13

@@ -4,7 +4,21 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run — pull + build only, skip restart and health check"
+        type: boolean
+        default: true
 
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
 jobs:
   deploy:
     name: SSH Deploy → af-forge VPS
@@ -55,6 +69,11 @@ jobs:
             grep "arifosmcp:" -A 2 /root/compose/docker-compose.yml | grep image
 
             echo "[DEPLOY] Restarting Docker Compose arifosmcp service..."
+            if [ "${{ github.event.inputs.dry_run }}" = "true" ] && [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "[DRY RUN] Skipping restart and health check — dry_run=true"
+              echo "[DRY RUN] Would have run: docker compose up -d --no-deps --force-recreate arifosmcp"
+              exit 0
+            fi
             cd /root/compose
             DEPLOY_GIT_COMMIT="${LOCAL_SHA}" docker compose up -d --no-deps --force-recreate arifosmcp
             sleep 8

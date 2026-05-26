@@ -34,6 +34,7 @@ on:
       - '.github/workflows.archive/**'
   pull_request:
     branches: [main]
+  merge_group:
   schedule:
     # Daily 00:00 UTC — catches regressions even when no PR is open
     - cron: '0 0 * * *'

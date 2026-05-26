@@ -14,6 +14,14 @@ on:
       - 'arifosmcp/pyproject.toml'
   workflow_dispatch:
 
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-pypi
+  cancel-in-progress: false
 jobs:
   publish:
     name: Build and publish arifos

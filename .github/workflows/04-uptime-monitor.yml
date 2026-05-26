@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
 jobs:
   uptime:
     name: 🌐 Live Endpoint Health

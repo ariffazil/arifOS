@@ -2,57 +2,133 @@ name: Weekly Repo Hygiene
 
 on:
   schedule:
-    - cron: "30 2 * * 1"
+    - cron: "30 2 * * 1"  # Monday 02:30 UTC (10:30 MYT)
   workflow_dispatch:
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
   issues: write
+
+concurrency:
+  group: repo-hygiene
+  cancel-in-progress: true
 
 jobs:
   hygiene:
+    name: 📊 Automation Health Digest
     runs-on: ubuntu-latest
     steps:
-      - name: Build hygiene report
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build automation health digest
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
 
-          open_prs=$(gh pr list --repo "$REPO" --state open --json number,title,updatedAt,headRefName --jq 'length')
-          stale_prs=$(gh pr list --repo "$REPO" --state open --json number,title,updatedAt,headRefName --jq '[.[] | select((now - (.updatedAt | fromdateiso8601)) > (14*24*3600))]')
+          # ── PR metrics ────────────────────────────────────────────────
+          open_prs=$(gh pr list --repo "$REPO" --state open --json number --jq 'length')
+          stale_prs=$(gh pr list --repo "$REPO" --state open \
+            --json number,title,updatedAt,headRefName \
+            --jq '[.[] | select((now - (.updatedAt | fromdateiso8601)) > (14*24*3600))]')
           stale_pr_count=$(echo "$stale_prs" | jq 'length')
+          dep_prs=$(gh pr list --repo "$REPO" --state open --author "dependabot[bot]" \
+            --json number --jq 'length')
+
+          # ── Workflow health ───────────────────────────────────────────
+          CANONICAL="01-unified-ci.yml 02-aaa-seal.yml 03-secrets-gate.yml
+            04-uptime-monitor.yml 05-law-sync.yml 06-mcp-conformance.yml
+            07-publish-pypi.yml auto-merge-dependabot.yml deploy.yml
+            sentinel-premerge-gate.yml repo-routing-validation.yml
+            repo-hygiene-weekly.yml prune-images.yml"
+
+          FORBIDDEN="ci.yml ci-unified.yml live_tests.yml aaa-seal-check.yml
+            secrets-scan.yml 888-judge.yml"
+
+          canonical_ok=true
+          canonical_missing=""
+          for wf in $CANONICAL; do
+            if [ ! -f ".github/workflows/$wf" ]; then
+              canonical_ok=false
+              canonical_missing="$canonical_missing $wf"
+            fi
+          done
+
+          forbidden_found=""
+          for wf in $FORBIDDEN; do
+            if [ -f ".github/workflows/$wf" ]; then
+              forbidden_found="$forbidden_found $wf"
+            fi
+          done
+
+          # ── Recent workflow failures (last 7 days) ────────────────────
+          failed_runs=$(gh run list --repo "$REPO" --status failure \
+            --created "$(date -d '7 days ago' '+%Y-%m-%d')" \
+            --json workflowName,conclusion,createdAt,url \
+            --jq '[.[] | {name: .workflowName, time: .createdAt, url: .url}]' \
+            2>/dev/null || echo "[]")
+          failed_count=$(echo "$failed_runs" | jq 'length')
+
+          # ── Verdict ──────────────────────────────────────────────────
+          verdict="✅ HEALTHY"
+          if [ "$canonical_ok" = "false" ] || [ -n "$forbidden_found" ] || [ "$failed_count" -gt 2 ]; then
+            verdict="⚠️ ACTION NEEDED"
+          fi
 
           report_file=report.md
           {
-            echo "## Weekly Repo Hygiene"
+            echo "## 🔬 Automation Health Digest — $(date '+%Y-%m-%d')"
             echo
-            echo "- Open PRs: $open_prs"
-            echo "- Stale PRs (>14d no update): $stale_pr_count"
+            echo "**Overall:** $verdict"
             echo
-            echo "### Stale PR Candidates"
-            if [ "$stale_pr_count" -eq 0 ]; then
-              echo "- None"
+            echo "### Workflow Stack"
+            if [ "$canonical_ok" = "true" ]; then
+              echo "- ✅ All 13 canonical workflows present"
             else
-              echo "$stale_prs" | jq -r '.[] | "- #\(.number) \(.title) (branch: \(.headRefName), updated: \(.updatedAt))"'
+              echo "- ❌ Missing canonical workflows:$canonical_missing"
+            fi
+            if [ -z "$forbidden_found" ]; then
+              echo "- ✅ No forbidden workflows detected"
+            else
+              echo "- ❌ Forbidden workflows found:$forbidden_found"
             fi
             echo
+            echo "### CI Health (Last 7 Days)"
+            echo "- Failed workflow runs: $failed_count"
+            if [ "$failed_count" -gt 0 ]; then
+              echo "$failed_runs" | jq -r '.[] | "  - \(.name) — \(.time)"' | head -10
+            fi
+            echo
+            echo "### PR Metrics"
+            echo "- Open PRs: $open_prs"
+            echo "- Stale PRs (>14d no update): $stale_pr_count"
+            echo "- Open Dependabot PRs: $dep_prs"
+            echo
+            if [ "$stale_pr_count" -gt 0 ]; then
+              echo "### Stale PR Candidates"
+              echo "$stale_prs" | jq -r \
+                '.[] | "- #\(.number) \(.title) (updated: \(.updatedAt | split("T")[0]))"'
+              echo
+            fi
             echo "### Checklist"
-            echo "- [ ] Close or supersede stale PRs"
-            echo "- [ ] Archive dead branches"
-            echo "- [ ] Review failed workflows"
-            echo "- [ ] Review secret/token hygiene"
-            echo "- [ ] Review MCP routing and overlap"
+            echo "- [ ] All required checks passing on main"
+            echo "- [ ] No forbidden workflows present"
+            echo "- [ ] Dependabot PRs reviewed/merged"
+            echo "- [ ] Dead branches pruned"
+            echo "- [ ] Secrets/token hygiene verified"
           } > "$report_file"
 
           issue_title="Weekly Repo Hygiene"
-          existing=$(gh issue list --repo "$REPO" --state open --search "in:title $issue_title" --json number --jq '.[0].number // empty')
+          existing=$(gh issue list --repo "$REPO" --state open \
+            --search "in:title $issue_title" --json number --jq '.[0].number // empty')
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --repo "$REPO" --body-file "$report_file"
             echo "Updated issue #$existing"
           else
-            gh issue create --repo "$REPO" --title "$issue_title" --body-file "$report_file"
+            gh issue create --repo "$REPO" --title "$issue_title" --body-file "$report_file" \
+              --label "maintenance"
             echo "Created hygiene issue"
           fi

@@ -3,9 +3,18 @@ name: Repo Routing Validation
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  merge_group:
   push:
     branches-ignore: []
 
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   validate-routing:
     runs-on: ubuntu-latest

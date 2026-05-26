@@ -1,24 +1,75 @@
 version: 2
+
 updates:
+  # ── Python dependencies ─────────────────────────────────────
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Kuala_Lumpur"
     open-pull-requests-limit: 10
     labels:
+      - "deps"
       - "dependencies"
     commit-message:
-      prefix: "chore"
+      prefix: "chore(deps)"
       include: "scope"
+    groups:
+      # Batch all scientific/ML packages together — same risk tier
+      ml-stack:
+        patterns:
+          - "numpy"
+          - "transformers"
+          - "sentence-transformers"
+          - "torch*"
+          - "scikit-learn"
+      # Batch agentic/MCP runtime packages
+      agentic-runtime:
+        patterns:
+          - "fastmcp"
+          - "langfuse"
+          - "opentelemetry*"
+      # Batch HTTP/async packages
+      network-stack:
+        patterns:
+          - "aiohttp"
+          - "httpx"
+          - "starlette"
+          - "uvicorn"
+      # Batch security packages
+      security-stack:
+        patterns:
+          - "cryptography"
+          - "pyjwt"
+          - "python-jose"
 
+  # ── GitHub Actions versions ──────────────────────────────────
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Kuala_Lumpur"
     open-pull-requests-limit: 5
     labels:
+      - "deps"
       - "ci"
-      - "dependencies"
     commit-message:
-      prefix: "chore"
+      prefix: "chore(actions)"
       include: "scope"
+    groups:
+      # Batch all GitHub first-party actions
+      github-actions-official:
+        patterns:
+          - "actions/*"
+          - "github/*"
+      # Batch all third-party Actions
+      third-party-actions:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "actions/*"
+          - "github/*"

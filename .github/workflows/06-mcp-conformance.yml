@@ -12,7 +12,12 @@ on:
       - 'arifosmcp/tool_registry.json'
       - '.github/workflows/06-mcp-conformance.yml'
   pull_request:
+  merge_group:
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
 
 concurrency:
   group: mcp-conformance-${{ github.ref }}

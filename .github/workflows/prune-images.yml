@@ -7,6 +7,14 @@ on:
   workflow_dispatch:
     # Manual trigger: Arif can fire this from Actions tab
 
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: prune-images
+  cancel-in-progress: true
 jobs:
   prune:
     name: Prune stale arifOS GHCR images
