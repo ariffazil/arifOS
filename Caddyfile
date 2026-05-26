@@ -397,6 +397,63 @@ wiki.arif-fazil.com {
 }
 
 # ═══════════════════════════════════════════════════════════════════════
+# VAULT999 — Constitutional Ledger API (Federated)
+# Exposes vault999-api (port 8100) for read access across all agents
+# Write access via vault999-writer (port 5001) — internal only
+# ═══════════════════════════════════════════════════════════════════════
+vault999.arif-fazil.com {
+	import tls_origin
+	encode zstd gzip
+
+	# Health and status — public
+	handle /health {
+		reverse_proxy http://127.0.0.1:8100 {
+			header_up Host vault999.arif-fazil.com
+		}
+	}
+	handle /vault/status {
+		reverse_proxy http://127.0.0.1:8100 {
+			header_up Host vault999.arif-fazil.com
+		}
+	}
+
+	# Read-only vault operations — public (no auth for health/audit)
+	handle /vault/audit/* {
+		reverse_proxy http://127.0.0.1:8100 {
+			header_up Host vault999.arif-fazil.com
+		}
+	}
+	handle /vault/receipt/* {
+		reverse_proxy http://127.0.0.1:8100 {
+			header_up Host vault999.arif-fazil.com
+		}
+	}
+	handle /vault/session/* {
+		reverse_proxy http://127.0.0.1:8100 {
+			header_up Host vault999.arif-fazil.com
+		}
+	}
+
+	# CLI operations — require Authorization header
+	handle /cli/* {
+		reverse_proxy http://127.0.0.1:8100 {
+			header_up Host vault999.arif-fazil.com
+		}
+	}
+
+	# All vault write operations proxy to writer (internal only)
+	handle /seal {
+		reverse_proxy http://127.0.0.1:5001 {
+			header_up Host vault999.arif-fazil.com
+		}
+	}
+
+	handle {
+		respond "vault999.arif-fazil.com — Constitutional Ledger API (use /health, /vault/status, or /cli/*)" 200
+	}
+}
+
+# ═══════════════════════════════════════════════════════════════════════
 # INFRASTRUCTURE
 # ═══════════════════════════════════════════════════════════════════════
 ollama.arif-fazil.com {
