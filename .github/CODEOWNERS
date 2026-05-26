@@ -1,38 +1,32 @@
-# arifOS CODEOWNERS (v35Ω)
-# Critical constitutional & security-sensitive paths
+# CODEOWNERS — arifOS Constitutional Repo
+# All PRs to these paths require @ariffazil review.
 
-# Core constitutional runtime (AAA Trinity, APEX, guards)
-arifos_core/APEX_PRIME.py           @ariffazil
-arifos_core/eye_sentinel.py         @ariffazil
-arifos_core/guard.py                @ariffazil
-arifos_core/metrics.py              @ariffazil
-arifos_core/ignition.py             @ariffazil
-arifos_core/kms_signer.py           @ariffazil
+# Constitutional governance kernel
+arifosmcp/constitutional_map.py     @ariffazil
+arifosmcp/tool_registry.json        @ariffazil
+arifosmcp/runtime/                  @ariffazil
+core/                               @ariffazil
 
-# Memory layer (L0-L3)
-arifos_core/memory/                 @ariffazil
-
-# Canon (constitutional specifications)
-canon/                              @ariffazil
-
-# Specs & governance
-spec/                               @ariffazil
-GOVERNANCE.md                       @ariffazil
-SECURITY.md                         @ariffazil
-CONTRIBUTING.md                     @ariffazil
-CHANGELOG.md                        @ariffazil
-
-# Tests for floors, APEX, ledger, @EYE
-tests/test_*apex*.py                @ariffazil
-tests/test_*eye*.py                 @ariffazil
-tests/test_*ledger*.py              @ariffazil
+# Floors and judgment
+arifosmcp/core/                     @ariffazil
+tests/constitutional/               @ariffazil
+tests/test_*floor*.py               @ariffazil
 tests/test_*vault*.py               @ariffazil
-tests/test_*zkpc*.py                @ariffazil
+tests/test_*judge*.py               @ariffazil
 
-# Runtime configs & ledgers
-runtime/                            @ariffazil
-constitutional_floors.json          @ariffazil
-arifos_pipeline.yaml                @ariffazil
+# Deployment, secrets, CI
+pyproject.toml                      @ariffazil
+.github/workflows/                  @ariffazil
+.gitmodules                         @ariffazil
+Dockerfile                          @ariffazil
+docker-compose.yml                  @ariffazil
+config/                             @ariffazil
 
-# Default fallback: owner of the project
+# Identity canon
+AGENTS.md                           @ariffazil
+PUBLIC_SURFACE_CANON.md             @ariffazil
+CANONICAL_PATHS.md                  @ariffazil
+VAULT999/                           @ariffazil
+
+# Default — all files owned by Arif
 *                                   @ariffazil

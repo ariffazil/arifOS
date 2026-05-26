@@ -6,8 +6,8 @@
 - Run the canonical local server with `python -m arifosmcp.runtime.server`. The root `server.py` is only a compatibility shim.
 - Docker build/run path:
   - `docker build -t arifos:latest .`
-  - `docker run -p 8080:8080 arifos:latest`
-  - The production command in the image is `uvicorn arifosmcp.runtime.server:app --host 0.0.0.0 --port 8080`.
+  - `docker run -p 8088:8088 arifos:latest`
+  - The production command in the image is `uvicorn arifosmcp.runtime.server:app --host 0.0.0.0 --port 8088`.
 - Full tests: `pytest tests/ -q --tb=short`
 - Single file: `pytest tests/test_public_tool_registry.py -q`
 - Single test: `pytest tests/test_public_tool_registry.py::test_public_registry_matches_runtime -q`

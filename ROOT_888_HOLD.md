@@ -1,58 +1,28 @@
-# 888_HOLD — Root/Submodule Restructure
+# ROOT STRUCTURAL HOLDS
 
-**Status:** HOLD
-**Owner approval required:** Arif Fazil (F13 SOVEREIGN)
-**Date:** 2026-05-26
-**Audit source:** External GitHub audit + internal verification
-
----
-
-## Do Not Restructure or Delete Without Explicit Approval
-
-The following are **structural repository topology decisions** — not documentation cleanups. They may encode historical, deployment, submodule, or federation-path assumptions. Treat as repo surgery.
-
-### Submodule & Case Dual Naming
-
-| Path | Type | Risk |
-|------|------|------|
-| `GEOX/` | Git submodule (commit 7d662d6) | Canonical GEOX reference |
-| `geox/` | Git submodule (commit 44cb5de) | Different commit — may be experimental |
-| `CONFIG/` | Git tree | Uppercase config registry |
-| `config/` | Git tree | Lowercase config — possible duplicate or override |
-
-**Risk:** Renaming or merging may break submodule references, deploy scripts, CI paths, or federation organ routing.
-
-### Root Working-State Directories
-
-| Path | Contents | Risk |
-|------|---------|------|
-| `.archive/` | Root-level dot-archive | May encode historical state |
-| `archive/` | Staged patchplans, legacy docs | May reference deployment paths |
-| `scratch/` | ad-hoc scripts (check_db_schema.py, etc.) | May be referenced by ops |
-| `staging/` | Agent inventory, alignment docs | May be federation state |
-
-### Reason
-
-These paths were present in the audit snapshot and may reflect:
-- Historical submodule deployment states
-- Cross-repo federation path assumptions
-- CI/CD or hook references
-- Agent inventory or alignment state
-
-**Action required:** Architectural review before any move/rename/delete.
+**Status:** ✅ ALL RESOLVED — 2026-05-26
+**Resolver:** Copilot CLI session `c2d1f4ee`
+**Commit:** `73292d09`
 
 ---
 
-## Resolved Issues (This Session)
+## Resolved Collisions
 
-| Issue | Fix | Commit |
-|-------|-----|--------|
-| Dockerfile port 8080→8088 | Fixed | `dcaaf8fa` |
-| README stage map drift | Fixed | `dcaaf8fa` |
-| README badges + quick start | Fixed | `d1e96419` |
-| DITEMPA translation | Fixed | `d1e96419` |
-| Cryptic F2 language | Removed | `d1e96419` |
+| Issue | Verdict | Commit |
+|-------|---------|--------|
+| `GEOX/` vs `geox/` submodule collision | `GEOX/` survives; `geox` removed (labeled "broken alias" in `cb1c02d7`) | `73292d09` |
+| `CONFIG/` vs `config/` directory collision | `config/` survives; 5 unique files migrated from CONFIG, CONFIG deleted | `73292d09` |
+| `staging/` Windows-path snapshot | Archived → `archive/2026-05-22-windows-staging/` | `73292d09` |
+| `scratch/` diagnostic scripts at root | Moved → `audit/scratch/` | `73292d09` |
+| `.archive/` vs `archive/` | Merged into `archive/` | Prior session |
+| `breach_results.json` at root | Moved → `audit/breach_results.json` | `75f8c812` |
 
 ---
 
-*Last Updated: 2026-05-26 | DITEMPA BUKAN DIBERI | 888_HOLD*
+## Next Active Holds
+
+None currently. Open a new `888_HOLD` entry if a new structural decision requires Sovereign review.
+
+---
+
+*DITEMPA BUKAN DIBERI | F13 SOVEREIGN*
