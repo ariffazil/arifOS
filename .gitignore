@@ -97,6 +97,9 @@ _ARCHIVE/
 *.7z
 *.rar
 BACKUP_*.zip
+*.backup
+Caddyfile.backup.*
+breach_results.json
 
 # arifosmcp distribution
 arifosmcp.egg-info/
