@@ -831,7 +831,14 @@ async def arif_heart_critique(
     # ── Final Verdict Logic ──
     # Top-level 'verdict' is the EXECUTION status (the tool ran successfully)
     # 'action_risk_verdict' is the actual ethical judgment of the proposed action
-    result["execution_verdict"] = "SEAL"
+    # CHAOS FIX (Eureka 2026-05-26): Never SEAL when LLM unavailable or schema invalid.
+    llm_ok = result.get("_llm_available", True) is not False
+    schema_ok = result.get("schema_valid", True) is not False
+    is_fallback = result.get("_llm_available") is False
+    result["execution_verdict"] = "SEAL" if (llm_ok and schema_ok) else "DEGRADED_FALLBACK"
+    if is_fallback:
+        result["degraded_reason"] = "FALLBACK_ONLY: LLM unavailable — no actual critique performed"
+        result["do_not_treat_as_seal"] = True
     result["action_risk_verdict"] = result.get("status", "HOLD")
 
     # ── F05/F06 Maruah (Dignity) Integration ──

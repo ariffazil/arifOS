@@ -56,6 +56,23 @@ def forge_verdict(
         conf = min(conf, philosophy.confidence_cap)
         metrics.telemetry.confidence = conf
 
+    # ── CHAOS FIX (Eureka 2026-05-26): Deterministic Contradiction Scanner ──
+    # Block outer SEAL when inner evidence says unavailable, invalid, compromised, or unknown.
+    # Prevents false-SEAL from poisoning operator trust under degraded conditions.
+    contradiction_flags: list[str] = []
+    p = payload if isinstance(payload, dict) else {}
+    if p.get("_llm_available") is False:
+        contradiction_flags.append("LLM_UNAVAILABLE")
+    if p.get("schema_valid") is False:
+        contradiction_flags.append("SCHEMA_INVALID")
+    if p.get("dignity_verdict") == "COMPROMISED":
+        contradiction_flags.append("DIGNITY_COMPROMISED")
+    if p.get("F02_TRUTH") is False:
+        contradiction_flags.append("F02_TRUTH_FALSE")
+    if p.get("execution_verdict") == "DEGRADED_FALLBACK":
+        contradiction_flags.append("FALLBACK_MODE")
+    is_contradiction = bool(contradiction_flags)
+
     # Determine Code & Reason
     if override_code:
         code = override_code
@@ -81,6 +98,13 @@ def forge_verdict(
         else:
             code = VerdictCode.SEAL
             reason = "OK_ALL_PASS"
+
+    # ── CHAOS FIX (Eureka 2026-05-26): Contradiction Override ──
+    # If inner state is degraded/unavailable/invalid, outer SEAL is forbidden.
+    if is_contradiction and code == VerdictCode.SEAL:
+        code = VerdictCode.VOID
+        reason = f"CONSTITUTIONAL_CONTRADICTION: {'; '.join(contradiction_flags)}"
+        message = message or f"Blocked SEAL due to inner degradation: {contradiction_flags}"
 
     # 4. Determine status fields (Unified V2)
     exec_status = ExecutionStatus.SUCCESS if code != VerdictCode.VOID else ExecutionStatus.ERROR
@@ -125,6 +149,7 @@ def forge_verdict(
             "floors_checked": floors_checked or ["F4", "F11"],
             "reason": reason,
             "message": message,
+            "contradiction_flags": contradiction_flags if is_contradiction else [],
         },
         timestamp=time.time(),
     )
