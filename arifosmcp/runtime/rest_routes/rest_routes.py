@@ -2701,6 +2701,253 @@ def register_rest_routes(
             headers={"Access-Control-Allow-Origin": "*"},
         )
 
+    @route("/registry", methods=["GET"])
+    async def registry(request: Request) -> Response:
+        """
+        Sole Source of Truth for federation topology.
+
+        Every agent queries this ONE endpoint to know:
+          - Which organs exist
+          - What their health is
+          - What tools/capabilities they expose
+          - How to reach them
+
+        This is the live machine map. All agents read this.
+        If this endpoint disagrees with an agent's assumptions, this wins.
+
+        SOT rule: one canonical answer, always correct, no drift.
+
+        Cache: 30 seconds. Don't hammer this — cache the result.
+        """
+        import httpx
+
+        # ── Federation organs with correct bare-metal ports ──────────────────
+        ORGANS = [
+            {
+                "name": "arifOS Kernel",
+                "type": "governance_kernel",
+                "url": "http://localhost:8088",
+                "health_path": "/health",
+                "mcp_tools_path": "/.well-known/mcp/server.json",
+                "is_mcp": True,
+                "capabilities": ["floors_F1_F13", "verdicts", "vault999", "identity"],
+                "role": "Constitutional engine. F1-F13 floors. 888_JUDGE. 999_VAULT.",
+            },
+            {
+                "name": "GEOX",
+                "type": "earth_intelligence",
+                "url": "http://localhost:8081",
+                "health_path": "/health",
+                "mcp_tools_path": "/.well-known/mcp/server.json",
+                "is_mcp": True,
+                "capabilities": ["subsurface", "seismic", "petrophysics", "prospect", "sequence"],
+                "role": "Subsurface physics. Petrophysics. Seismic. Basin analysis. Physics-9 grounded.",
+            },
+            {
+                "name": "WEALTH",
+                "type": "capital_intelligence",
+                "url": "http://localhost:18082",
+                "health_path": "/health",
+                "mcp_tools_path": "/.well-known/mcp/server.json",
+                "is_mcp": True,
+                "capabilities": ["NPV_EMV", "risk_scoring", "capital_allocation", "cashflow"],
+                "role": "Capital thermodynamics. Risk. Allocation. MakcikScore relational credit.",
+            },
+            {
+                "name": "WELL",
+                "type": "human_readiness",
+                "url": "http://localhost:18083",
+                "health_path": "/health",
+                "mcp_tools_path": "/.well-known/mcp/server.json",
+                "is_mcp": True,
+                "capabilities": ["metabolic", "human_state", "vitality", "well_score"],
+                "role": "Human readiness. Metabolic contract. H-WELL / M-WELL / C-WELL / G-WELL.",
+            },
+            {
+                "name": "A-FORGE",
+                "type": "execution_shell",
+                "url": "http://localhost:7071",
+                "health_path": "/health",
+                "mcp_tools_path": "/contract",
+                "is_mcp": False,
+                "capabilities": ["forge_execute", "code_mode", "budget", "tool_registry"],
+                "role": "Execution shell. Budget management. Tool orchestration. CoolingGate.",
+            },
+            {
+                "name": "arifosd",
+                "type": "constitutional_daemon",
+                "url": "http://localhost:18081",
+                "health_path": "/health",
+                "mcp_tools_path": None,
+                "is_mcp": False,
+                "capabilities": [
+                    "organ_health_monitor",
+                    "vault_ledger",
+                    "policy_loaded",
+                    "adapters",
+                ],
+                "note": "arifosd monitors GEOX/WEALTH/WELL — it is NOT GEOX itself. GEOX runs on 8081.",
+                "role": "Constitutional daemon. Monitors organ health. Vault accessible. Uptime ~2 days.",
+            },
+            {
+                "name": "OpenClaw",
+                "type": "a2a_mesh",
+                "url": "http://localhost:18789",
+                "health_path": "/health",
+                "mcp_tools_path": None,
+                "is_mcp": False,
+                "capabilities": ["a2a_routing", "agent_lifecycle", "telegram", "memory"],
+                "role": "A2A mesh gateway. Agent runtime. Telegram interface. OpenCode agent.",
+            },
+        ]
+
+        PROBE_TIMEOUT = 2.0  # seconds per organ
+
+        async def probe_organ(organ: dict) -> dict:
+            """Probe one organ's health and optionally its tool list."""
+            url = organ["url"]
+            health_path = organ["health_path"]
+            mcp_path = organ.get("mcp_tools_path")
+
+            result = {
+                "name": organ["name"],
+                "type": organ["type"],
+                "url": url,
+                "is_mcp": organ["is_mcp"],
+                "capabilities": organ["capabilities"],
+                "role": organ.get("role", ""),
+                "note": organ.get("note"),
+                "status": "unreachable",
+                "latency_ms": None,
+                "error": None,
+                "health": None,
+                "tools": [],
+                "tool_count": 0,
+            }
+
+            health_url = f"{url}{health_path}"
+            start = time.perf_counter()
+
+            try:
+                async with httpx.AsyncClient(
+                    timeout=PROBE_TIMEOUT, follow_redirects=True
+                ) as client:
+                    r = await client.get(health_url)
+                    elapsed_ms = (time.perf_counter() - start) * 1000
+                    result["latency_ms"] = round(elapsed_ms, 2)
+
+                    if r.status_code == 200:
+                        result["status"] = "healthy"
+                        try:
+                            result["health"] = r.json()
+                        except Exception:
+                            result["health"] = {"raw": r.text[:200]}
+                        h = result["health"] or {}
+                        result["version"] = (
+                            h.get("version") or h.get("service") or str(h.get("version", ""))
+                        )
+                        result["well_score"] = h.get("well_score")
+                    else:
+                        result["status"] = "degraded"
+                        result["error"] = f"HTTP {r.status_code}"
+
+            except httpx.TimeoutException:
+                result["status"] = "timeout"
+                result["error"] = f"No response within {PROBE_TIMEOUT}s"
+                result["latency_ms"] = round((time.perf_counter() - start) * 1000, 2)
+            except Exception as e:
+                result["status"] = "unreachable"
+                result["error"] = str(e)[:120]
+                result["latency_ms"] = round((time.perf_counter() - start) * 1000, 2)
+
+            # Probe MCP tools if applicable and organ is healthy
+            if mcp_path and result["status"] == "healthy":
+                try:
+                    mcp_url = f"{url}{mcp_path}"
+                    async with httpx.AsyncClient(
+                        timeout=PROBE_TIMEOUT, follow_redirects=True
+                    ) as client:
+                        mr = await client.get(mcp_url)
+                        if mr.status_code == 200:
+                            try:
+                                mcp_data = mr.json()
+                                if "tools" in mcp_data and isinstance(mcp_data["tools"], list):
+                                    result["tools"] = [
+                                        t.get("name") or t.get("id", "?") for t in mcp_data["tools"]
+                                    ]
+                                elif "tool_count" in mcp_data:
+                                    result["tool_count"] = int(mcp_data["tool_count"])
+                                elif "contract" in mcp_data and isinstance(
+                                    mcp_data["contract"], dict
+                                ):
+                                    result["tools"] = list(mcp_data["contract"].keys())
+                                elif "capabilities" in mcp_data and isinstance(
+                                    mcp_data["capabilities"], dict
+                                ):
+                                    result["tools"] = list(mcp_data["capabilities"].keys())
+                                # Only set tool_count from tools if tools was actually populated
+                                if result["tools"]:
+                                    result["tool_count"] = len(result["tools"])
+                            except Exception:
+                                pass
+                except Exception:
+                    pass
+
+            # Fallback: derive tool_count from health response (runs regardless of MCP probe result)
+            if result["status"] == "healthy" and result["tool_count"] == 0:
+                h = result["health"] or {}
+                for key in (
+                    "runtime_surface_count",
+                    "tools_loaded",
+                    "runtime_tools_loaded",
+                    "public_surface_count",
+                    "tool_count",
+                ):
+                    if key in h:
+                        result["tool_count"] = int(h[key])
+                        break
+
+            return result
+
+        probe_tasks = [probe_organ(o) for o in ORGANS]
+        probed = await asyncio.gather(*probe_tasks)
+
+        healthy = [p for p in probed if p["status"] == "healthy"]
+        degraded = [p for p in probed if p["status"] == "degraded"]
+        unreachable = [p for p in probed if p["status"] in ("unreachable", "timeout")]
+
+        return JSONResponse(
+            {
+                "schema": "agent-registry/v1",
+                "source": "arifOS MCP kernel — /registry",
+                "generated": datetime.now(UTC).isoformat(),
+                "sovereign": "ARIF",
+                "sot_note": (
+                    "This is the SOLE source of truth for federation topology. "
+                    "Every agent queries this on boot. If this disagrees with your assumptions, this wins. "
+                    "Cache for 30s. No hardcoding of organ URLs."
+                ),
+                "summary": {
+                    "total": len(probed),
+                    "healthy": len(healthy),
+                    "degraded": len(degraded),
+                    "unreachable": len(unreachable),
+                    "federation_status": (
+                        "INTACT"
+                        if len(unreachable) == 0
+                        else "DEGRADED"
+                        if len(healthy) > 0
+                        else "BROKEN"
+                    ),
+                },
+                "agents": probed,
+            },
+            headers={
+                "Cache-Control": "max-age=30, stale-while-revalidate=10",
+                "Access-Control-Allow-Origin": "*",
+            },
+        )
+
     @route("/version", methods=["GET"])
     async def version(request: Request) -> Response:
         payload = dict(BUILD_INFO)
