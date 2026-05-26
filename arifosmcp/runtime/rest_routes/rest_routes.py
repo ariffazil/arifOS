@@ -1947,7 +1947,7 @@ def _probe_vault999_health() -> str:
     try:
         import urllib.request
 
-        with urllib.request.urlopen("http://vault999:8100/health", timeout=2) as resp:
+        with urllib.request.urlopen("http://localhost:8100/health", timeout=2) as resp:
             data = json.loads(resp.read().decode())
             return data.get("status", "unknown")
     except Exception:
@@ -3030,8 +3030,8 @@ def register_rest_routes(
             _probe_tcp_port("postgres", 5432),
             _probe_tcp_port("redis", 6379),
             _probe_tcp_port("qdrant", 6333),
-            _probe_tcp_port("vault999", 8100),
-            _probe_tcp_port("vault999-writer", 5001),
+            _probe_tcp_port("localhost", 8100),
+            _probe_tcp_port("localhost", 5001),
         ]
 
         # --- Layer 1: MCP Servers ---
