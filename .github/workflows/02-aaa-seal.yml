@@ -89,14 +89,25 @@ jobs:
 
       - name: Workflow manifest guard (no forbidden workflows)
         run: |
-          FORBIDDEN="ci.yml ci-unified.yml live_tests.yml aaa-seal-check.yml secrets-scan.yml 888-judge.yml"
+          # Forbid non-canonical workflows that should not exist
+          FORBIDDEN="ci.yml ci-unified.yml live_tests.yml aaa-seal-check.yml secrets-scan.yml 888-judge.yml constitutional-eval.yml deployment-gates.yml"
+
+          # Also check against .github/workflows.CANONICAL.yml if present
+          if [ -f ".github/workflows.CANONICAL.yml" ]; then
+            # Extract forbidden patterns from manifest using grep
+            MANIFEST_FORBIDDEN=$(grep -A 100 "forbidden_workflow_patterns:" .github/workflows.CANONICAL.yml 2>/dev/null | grep "pattern:" | awk '{print $3}' | tr -d '"' || true)
+            if [ -n "$MANIFEST_FORBIDDEN" ]; then
+              FORBIDDEN="$FORBIDDEN $MANIFEST_FORBIDDEN"
+            fi
+          fi
+
           FOUND=""
           for wf in $FORBIDDEN; do
-            [ -f ".github/workflows/$wf" ] && FOUND="$FOUND $wf"
+            [ -n "$wf" ] && [ -f ".github/workflows/$wf" ] && FOUND="$FOUND $wf"
           done
           if [ -n "$FOUND" ]; then
             echo "🚨 888 HOLD — Forbidden workflow(s) detected:$FOUND"
-            echo "These were deleted in commit 2ef8ee5c. Remove them before merging."
+            echo "Remove them before merging. See .github/workflows.CANONICAL.yml"
             exit 1
           fi
           echo "✅ PASS: No forbidden workflows present"
