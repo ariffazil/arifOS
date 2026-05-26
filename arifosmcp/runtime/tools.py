@@ -6782,6 +6782,17 @@ def _arif_reply_compose(
     Returns:
       Composed message with formatted text, tone tag, and delta_S.
     """
+    # ── Absorbed wiki mode (PHOENIX-72 / canonical13) ──────────────────────────
+    # Short-circuit before gate because it is read-only and non-network.
+    if mode == "repo_answer":
+        from arifos_wiki_tools.synthesis import ask_repo
+
+        return ask_repo(
+            repo_path=style or ".",
+            question=message or "",
+            top_k=int(citations[0]) if citations else 8,
+        )
+
     gate = _constitutional_gate(
         "arif_reply_compose", mode, actor_id, session_id=session_id, query=message
     )
@@ -6899,16 +6910,6 @@ def _arif_reply_compose(
             delta_S=0.0,
         )
 
-    # ── Absorbed wiki mode (PHOENIX-72 / canonical13) ──────────────────────────
-    if mode == "repo_answer":
-        from arifos_wiki_tools.synthesis import ask_repo
-
-        return ask_repo(
-            repo_path=style or ".",
-            question=message or "",
-            top_k=int(citations[0]) if citations else 8,
-        )
-
     return _hold("arif_reply_compose", f"Unknown mode: {mode}")
 
 
@@ -6942,22 +6943,23 @@ async def _arif_reply_compose_tool(
         except Exception:
             pass
 
+    # ── Absorbed wiki mode (PHOENIX-72 / canonical13) ──────────────────────
+    # Short-circuit before gate because it is read-only and non-network.
+    if mode == "repo_answer":
+        from arifos_wiki_tools.synthesis import ask_repo
+
+        return ask_repo(
+            repo_path=style or ".",
+            question=message or "",
+            top_k=int(citations[0]) if citations else 8,
+        )
+
     try:
         gate = _constitutional_gate(
             "arif_reply_compose", mode, actor_id, session_id=session_id, query=message
         )
         if gate is not None:
             return gate
-
-        # ── Absorbed wiki mode (PHOENIX-72 / canonical13) ──────────────────────
-        if mode == "repo_answer":
-            from arifos_wiki_tools.synthesis import ask_repo
-
-            return ask_repo(
-                repo_path=style or ".",
-                question=message or "",
-                top_k=int(citations[0]) if citations else 8,
-            )
 
         try:
             from arifosmcp.runtime.reply_compose import arif_reply_compose as _llm_reply
