@@ -307,6 +307,15 @@ state_machine:
     can_skip: false  # Cannot skip if gate is triggered
     gate: "TIER_3_IRREVERSIBLE"
 
+  "889":
+    name: "PROOF"
+    label: "Proof"
+    function: "Verify evidence chain is sound, floor checks passed, execution parameters within tolerance"
+    default_tool: "arif_judge_deliberate"
+    mandatory: false  # Only if JUDGE returned SEAL or PARTIAL
+    can_skip: false  # Cannot skip if proof is required
+    requires_verdict: true
+
   "010":
     name: "EXECUTE"
     label: "Execute"
