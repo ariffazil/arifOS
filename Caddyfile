@@ -451,16 +451,35 @@ openclaw.arif-fazil.com {
 }
 
 # ═══════════════════════════════════════════════════════════════════════
-# WELL — intentionally inactive backend (no service on 8083)
-# 525 noise eliminated: this block returns a proper 404 instead of TLS alert
-# Decision: 2026-05-25 — retire public route until backend exists
+# WELL — Human Substrate Governance Layer
+# Running bare-metal on port 18083. Public surface restored.
 # ═══════════════════════════════════════════════════════════════════════
 well.arif-fazil.com {
 	import tls_origin
+	import shared_assets
+	encode zstd gzip
+	root * /var/www/html/well
+
+	handle /.well-known/mcp/server.json {
+		reverse_proxy 127.0.0.1:18083
+	}
+	handle /mcp {
+		reverse_proxy 127.0.0.1:18083
+	}
+	handle /mcp/* {
+		reverse_proxy 127.0.0.1:18083
+	}
 	handle /health {
-		respond "{\"status\": \"inactive\", \"note\": \"WELL backend not yet active — 2026-05-25\"}" 200
+		reverse_proxy 127.0.0.1:18083
+	}
+	handle /tools {
+		reverse_proxy 127.0.0.1:18083
+	}
+	handle /ready {
+		reverse_proxy 127.0.0.1:18083
 	}
 	handle {
-		respond "{\"error\": \"WELL not active\", \"note\": \"No backend on port 8083\"}" 404
+		try_files {path} /index.html
+		file_server
 	}
 }

@@ -215,6 +215,7 @@ def arif_memory_recall(
                     "tags": record["tags"],
                     "created_at": record["created_at"],
                     "summary": record["summary"],
+                    "tier": record.get("tier"),  # sacred | canon | session | ephemeral
                 },
             ),
             context,
@@ -322,6 +323,7 @@ def arif_memory_recall(
                 "summary": r.get("summary"),
                 "tags": r.get("tags", []),
                 "mode": r.get("mode"),
+                "tier": r.get("tier"),  # sacred | canon | session | ephemeral
                 "created_at": r.get("created_at"),
                 "score": r.get("score", 0.0),
                 "_governance": r.get("_governance"),

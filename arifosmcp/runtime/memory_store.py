@@ -1306,6 +1306,7 @@ def stats() -> dict[str, Any]:
         - (1 if _INDEX_FILE.exists() else 0)
         - (1 if _LEGACY_INDEX_FILE.exists() else 0),
         "by_mode": _mode_counts(idx),
+        "by_tier": _tier_counts(idx),  # sacred | canon | session | ephemeral
         "by_session": _session_counts(idx),
         "backend": "qdrant_postgres_v3",
         "memory_mode": memory_mode(),
@@ -1317,6 +1318,14 @@ def _mode_counts(idx: dict) -> dict[str, int]:
     for meta in idx.values():
         m = meta.get("mode", "unknown")
         counts[m] = counts.get(m, 0) + 1
+    return counts
+
+
+def _tier_counts(idx: dict) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for meta in idx.values():
+        t = meta.get("tier", "unknown")
+        counts[t] = counts.get(t, 0) + 1
     return counts
 
 

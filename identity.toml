@@ -7,7 +7,7 @@ display_name = "arifOS"
 owner = "Muhammad Arif bin Fazil"
 domain = "aaa.arif-fazil.com"
 
-canonical_commit = "341ccc6"
+canonical_commit = "04fe657"
 identity_marker = "arifos-sovereign-runtime"
 environment = "production"
 
