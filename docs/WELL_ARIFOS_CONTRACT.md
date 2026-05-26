@@ -202,11 +202,7 @@ WELL deliberately uses `verb_noun` for readability. arifOS uses `noun_verb` for 
 
 ### When to Call WELL First
 
-Before producing any **consequential output** (C3 or higher), the AI assistant acting as orchestrator must:
-
-1. **Call `well_readiness_gate`** with the operator's current biometric inputs and the decision class
-2. **Interpret the verdict** before calling arifOS governance tools
-3. **Shape the final output** based on both WELL verdict and arifOS governance constraints
+Before producing any **consequential output** (C3 or higher), the AI assistant acting as orchestrator calls `well_assess_homeostasis(mode="fatigue")` with biometric inputs and decision class. No new tool required.
 
 ### Decision Class Quick Reference
 
@@ -224,11 +220,22 @@ Before producing any **consequential output** (C3 or higher), the AI assistant a
 User Request (consequential, C3+)
     │
     ▼
-well_readiness_gate(decision_class, biometric_inputs)
+well_assess_homeostasis(
+    mode="fatigue",
+    decision_class="<class>",
+    sleep_debt_days=?,
+    cognitive_clarity=?,
+    decision_fatigue=?,
+    stress_load=?,
+    hrv_status="low|normal|high",
+    emotional_state="irritable|anxious|neutral|calm|elevated",
+    chronic_fatigue=true|false,
+    accumulated_session_fatigue=?
+)
     │
-    ├── PROCEED → proceed to arifOS governance + produce output
-    ├── DEFER   → produce safe holding action / internal draft only
-    └── ADVISORY_BLOCKED → produce safety notice only, do not proceed
+    ├── route_verdict: PROCEED → proceed to arifOS governance + produce output
+    ├── route_verdict: DEFER   → produce safe holding action / internal draft only
+    └── route_verdict: ADVISORY_BLOCKED → produce safety notice only, do not proceed
     │
     ▼
 arifOS governance tools (arif_heart_critique, arif_judge_deliberate)
@@ -239,27 +246,27 @@ Final output shaped by both WELL verdict + arifOS constraints
 
 ### Contrast Scenario (Contractor Dispute)
 
-This is the canonical test case from PHOENIX-73F:
+Canonical test case — PHOENIX-73F:
 
-**Scenario:** Arif has been working 14h days for 2 weeks, 4h sleep last night, low HRV, foggy, irritable. He wants to send a final contractor dispute response now.
+**Scenario:** Arif — 14h days for 2 weeks, 4h sleep last night, low HRV, foggy, irritable. Wants to send final contractor dispute response now.
 
 **WELL routing call:**
 ```
-well_readiness_gate(
-    sleep_last_night_hours=4.0,
+well_assess_homeostasis(
+    mode="fatigue",
+    decision_class="C4",
     sleep_debt_days=3.0,
-    cognitive_clarity=3.0,
+    cognitive_clarity=3.0,       # foggy
     decision_fatigue=8.0,
     stress_load=7.0,
     hrv_status="low",
     emotional_state="irritable",
     chronic_fatigue=false,
-    accumulated_session_fatigue=5.0,
-    decision_class="C4"
+    accumulated_session_fatigue=5.0
 )
-→ verdict: ADVISORY_BLOCKED
-→ readiness_score: 1.5
-→ homeostasis_status: CRITICAL
+→ homeostasis_score: 1.75
+→ status: CRITICAL
+→ route_verdict: ADVISORY_BLOCKED
 ```
 
 **AI assistant response:** Do not produce a final dispute response. Produce a neutral holding message only.
@@ -268,7 +275,7 @@ well_readiness_gate(
 
 | Tool | Repo | Role |
 |------|------|------|
-| `well_readiness_gate` | WELL | Pre-action readiness gate — returns PROCEED / DEFER / ADVISORY_BLOCKED |
+| `well_assess_homeostasis(mode="fatigue", ...)` | WELL | Unified readiness gate — computes homeostasis + C-class routing; returns route_verdict PROCEED/DEFER/ADVISORY_BLOCKED |
 | `well_arifos_packet` | WELL | Full substrate state packet for arifOS consumption |
 | `arif_heart_critique` | arifOS | Ethical risk + human impact before sensitive actions |
 | `arif_judge_deliberate` | arifOS | Final constitutional verdict before irreversible actions |
@@ -280,7 +287,7 @@ well_readiness_gate(
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-05-08 | v1.0 — Initial contract with unified substrate packet | Arif |
-| 2026-05-26 | v1.1 — Add routing protocol (Section 9) + `well_readiness_gate` | PHOENIX-73F |
+| 2026-05-26 | v1.1 — Add routing protocol (Section 9) via `well_assess_homeostasis(mode="fatigue")` | PHOENIX-73F |
 
 ---
 
