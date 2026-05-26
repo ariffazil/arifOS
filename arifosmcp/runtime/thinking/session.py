@@ -124,7 +124,8 @@ class ThinkingSessionManager:
                     if fcntl:
                         fcntl.flock(f, fcntl.LOCK_UN)
         except Exception as e:
-            print(f"Error loading mind sessions: {e}")
+            import sys
+            sys.stderr.write(f"Error loading mind sessions: {e}\n")
 
     def _save_sessions(self):
         """Save sessions to disk with exclusive lock."""
@@ -170,18 +171,29 @@ class ThinkingSessionManager:
                 s_dict["timestamp"] = datetime.fromisoformat(s_dict["timestamp"])
             steps.append(ThinkingStep(**s_dict))
 
+        now_str = datetime.now().isoformat()
+        
+        status_val = d.get("status")
+        if not status_val:
+            status_enum = SessionStatus.ACTIVE
+        else:
+            try:
+                status_enum = SessionStatus(status_val)
+            except ValueError:
+                status_enum = SessionStatus.ACTIVE
+
         return ThinkingSession(
-            session_id=d["session_id"],
-            problem=d["problem"],
+            session_id=d.get("session_id", str(uuid.uuid4())[:8]),
+            problem=d.get("problem", "unknown"),
             context=d.get("context"),
             tags=d.get("tags", []),
             template=d.get("template"),
             steps=steps,
             branches=d.get("branches", {}),
-            status=SessionStatus(d["status"]),
+            status=status_enum,
             quality_score=d.get("quality_score", 0.0),
-            created_at=datetime.fromisoformat(d["created_at"]),
-            updated_at=datetime.fromisoformat(d["updated_at"]),
+            created_at=datetime.fromisoformat(d.get("created_at", now_str)),
+            updated_at=datetime.fromisoformat(d.get("updated_at", now_str)),
             arifos_session_id=d.get("arifos_session_id"),
             final_verdict=d.get("final_verdict"),
             floors_triggered=d.get("floors_triggered", []),
