@@ -45,17 +45,16 @@ def _get_live_tools(mcp_server: Any | None = None) -> list[str]:
             return sorted(mcp_server._tools.keys())
         except Exception:
             pass
-    # Fallback: ask the public registry
+    # Fallback: derive from canonical handlers + env-gated diagnostic tools.
+    # NOTE: EXPANDED_45 aliases are NOT included here because they have no
+    # FastMCP handlers. Including them falsely inflates the registered count.
     try:
-        from arifosmcp.runtime.public_surface import (
-            DIAGNOSTIC_TOOLS,
-            EXPANDED_45,
-        )
+        from arifosmcp.runtime.public_surface import DIAGNOSTIC_TOOLS
         from arifosmcp.runtime.tools import _CANONICAL_HANDLERS
 
         live = set(_CANONICAL_HANDLERS.keys())
-        live.update(EXPANDED_45)
-        live.update(DIAGNOSTIC_TOOLS)
+        if os.getenv("ARIFOS_MCP_EXPOSE_DEV_TOOLS", "").lower() in ("true", "1", "yes"):
+            live.update(DIAGNOSTIC_TOOLS)
         return sorted(live)
     except Exception as e:
         logger.warning(f"Failed to enumerate live tools: {e}")

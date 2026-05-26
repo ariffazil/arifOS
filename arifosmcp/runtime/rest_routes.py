@@ -465,6 +465,30 @@ def _build_trinity_matrix(
     running = {
         container["name"]: "Up" in str(container.get("status") or "") for container in containers
     }
+
+    # Fallback: if docker ps returned nothing (no socket access), probe via TCP directly
+    # This handles the case where the service runs as non-docker user
+    if not running or not any(running.values()):
+        _critical_tcp_ports = {
+            "postgres": 5432,
+            "redis": 6379,
+            "qdrant": 6333,
+        }
+        try:
+            import socket as _socket
+            for name, port in _critical_tcp_ports.items():
+                if not running.get(name):
+                    try:
+                        s = _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM)
+                        s.settimeout(2)
+                        s.connect(("127.0.0.1", port))
+                        s.close()
+                        running[name] = True
+                    except OSError:
+                        pass
+        except Exception:
+            pass
+
     missing_critical = sorted(name for name in _CRITICAL_CONTAINERS if not running.get(name, False))
     entropy_delta = float(thermo.get("entropy_delta") or 0.0)
     confidence = float(thermo.get("confidence") or 0.0)
@@ -1562,13 +1586,25 @@ def _tool_openapi_paths(base_url: str, tools: list[Any]) -> dict[str, Any]:
         }
     }
 
+    # PHOENIX-73C fix: look up ToolSpec.input_schema for accurate OpenAPI schema.
+    # Tools from mcp._tool_registry are callables — their __annotations__ or
+    # 'parameters' attr does not carry the full input_schema. The canonical schema
+    # lives in public_tool_specs() which returns ToolSpec objects with input_schema.
+    _specs_by_name: dict[str, Any] = {spec.name: spec for spec in public_tool_specs()}
+
     for tool_raw in tools:
         tool = _get_tool_obj(tool_raw)
         tool_name = tool.name
-        request_schema = getattr(tool, "parameters", {}) or {
-            "type": "object",
-            "properties": {},
-        }
+
+        # Prefer ToolSpec.input_schema; fall back to tool.parameters for unknown tools.
+        spec = _specs_by_name.get(tool_name)
+        if spec is not None:
+            request_schema = spec.input_schema if spec.input_schema else {}
+        else:
+            request_schema = getattr(tool, "parameters", {}) or {
+                "type": "object",
+                "properties": {},
+            }
         paths[f"/tools/{tool_name}"] = {
             "post": {
                 "operationId": f"call_{tool_name}",
@@ -3687,13 +3723,23 @@ def register_rest_routes(
                 if any(name in str(c.get("name", "")) for name in {"geox", "wealth", "well"})
             )
             if not any_organ_up:
-                # Fallback: probe organ health endpoints via Docker DNS
+                # Fallback: probe organ health endpoints via Docker DNS,
+                # then via localhost (native/non-container organ processes)
+                _probe_hosts = [
+                    ("geox_eic", 8081),
+                    ("wealth-organ", 8082),
+                    ("well", 8083),
+                    # Native processes on localhost (no Docker DNS)
+                    ("127.0.0.1", 18081),  # geox-mcp native
+                    ("127.0.0.1", 18082),  # wealth-mcp native
+                    ("127.0.0.1", 18083),  # well-mcp native
+                ]
                 try:
                     import urllib.request
 
-                    for host in ("geox_eic:8081", "wealth-organ:8082", "well:8083"):
+                    for host, port in _probe_hosts:
                         try:
-                            urllib.request.urlopen(f"http://{host}/health", timeout=2)
+                            urllib.request.urlopen(f"http://{host}:{port}/health", timeout=2)
                             any_organ_up = True
                             break
                         except Exception:

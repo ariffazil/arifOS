@@ -1,0 +1,53 @@
+name: P_browser_interact
+canonical: true
+type: perception-tool
+authority: SOVEREIGN
+description: >
+  Browser interact — state-mutating browser actions (click, fill, press, submit).
+  Risk tier: HIGH. Requires explicit human ack (ack_irreversible=True).
+  F1 AMANAH hard gate: this tool MUST NOT be called without human authorization.
+  Constitutional gates: F1 (amanah), F2 (truth), F6 (dignity),
+  F9 (anti-hantu), F12 (injection guard), F13 (sovereign veto).
+  Blast radius estimation included in response.
+floors:
+  - F1: AMANAH
+  - F2: TRUTH
+  - F6: EMPATHY
+  - F9: ANTIHANTU
+  - F12: INJECTION
+  - F13: SOVEREIGN
+risk_tier: P0
+modes: [interact]
+session_required: true
+vault_on_seal: true
+reversible: false
+requires_human_ack: true
+parameters:
+  url:
+    type: string
+    required: true
+    description: Target URL to navigate and interact with
+  actions:
+    type: array
+    required: true
+    description: Browser actions (click, fill, press, select_option, submit)
+  max_steps:
+    type: integer
+    required: false
+    description: Maximum interaction steps, safety limit 20
+  ack_irreversible:
+    type: boolean
+    required: true
+    description: Explicit human authorization for irreversible actions (F1 Amanah)
+response_schema:
+  data:
+    url: string
+    actions: array
+    results: array
+    blast_radius_estimate: string
+    evidence_receipt:
+      receipt_id: string
+      action: string
+      url: string
+      status: string
+      timestamp: string

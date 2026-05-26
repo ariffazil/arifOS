@@ -1,0 +1,48 @@
+name: P_browser_observe
+canonical: true
+type: perception-tool
+authority: SOVEREIGN
+description: >
+  Browser observe — pure extraction, no state mutation.
+  Navigates to URL, scrolls, extracts DOM, takes screenshots.
+  Uses Playwright MCP (port 8931) behind the scenes.
+  Constitutional gates: F2 (truth), F9 (anti-hantu), F12 (injection guard).
+  Risk tier: LOW (OBSERVE). No human ack required.
+  F-WEB injection scan on all loaded content.
+floors:
+  - F2: TRUTH
+  - F9: ANTIHANTU
+  - F12: INJECTION
+risk_tier: P1
+modes: [observe]
+session_required: false
+vault_on_seal: true
+reversible: true
+parameters:
+  url:
+    type: string
+    required: true
+    description: Target URL to navigate and extract
+  actions:
+    type: array
+    required: false
+    description: Browser actions (navigate, scroll, extract_dom, screenshot, get_cookies)
+  viewport_width:
+    type: integer
+    required: false
+    description: Viewport width in pixels
+  viewport_height:
+    type: integer
+    required: false
+    description: Viewport height in pixels
+response_schema:
+  data:
+    url: string
+    actions: array
+    results: array
+    evidence_receipt:
+      receipt_id: string
+      action: string
+      url: string
+      status: string
+      timestamp: string

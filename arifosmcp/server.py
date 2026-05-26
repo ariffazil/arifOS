@@ -94,6 +94,13 @@ _canonical_tool_names_text = ", ".join(_canonical_tool_names)
 _constitutional_tool_names = list_constitutional_tools()
 _probe_tool_names = list_probe_tools()
 
+# ── Dev-mode gate: expose wiki + diagnostic tools on the public surface ───────
+_EXPOSE_DEV_TOOLS = os.getenv("ARIFOS_MCP_EXPOSE_DEV_TOOLS", "false").lower() in (
+    "true",
+    "1",
+    "yes",
+)
+
 
 class GlobalPanicMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
@@ -265,162 +272,157 @@ try:
     v2_resources_registered = register_resources(mcp)
 
     # ── arifOS Wiki Tools Forge (repo comprehension) ─────────────────────────
-    try:
-        from arifos_wiki_tools.indexer import ingest_repo as _ingest_repo
-        from arifos_wiki_tools.search import search_index as _search_index
-        from arifos_wiki_tools.synthesis import ask_repo as _ask_repo, map_repo as _map_repo
+    # PHOENIX-72 / canonical13: wiki tools are absorbed as modes of canonical13.
+    # They remain registered ONLY when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
+    if _EXPOSE_DEV_TOOLS:
+        try:
+            from arifos_wiki_tools.indexer import ingest_repo as _ingest_repo
+            from arifos_wiki_tools.search import search_index as _search_index
+            from arifos_wiki_tools.synthesis import ask_repo as _ask_repo, map_repo as _map_repo
 
-        # arif_wiki_ingest — index a repo, produce wiki index + optional markdown pages
-        mcp.tool(
-            name="arif_wiki_ingest",
-            description=(
-                "Index a local repository: scan files, detect language, extract symbols, "
-                "chunk source, and write a local wiki index to <repo>/.arifos/. "
-                "Optionally generates markdown wiki pages at <repo>/wiki/generated/. "
-                "Safe: respects exclusions, skips binaries and files >1MB. "
-                "Run this first before map, search, or ask."
-            ),
-            tags={"utility", "write"},
-        )(_ingest_repo)
+            # arif_wiki_ingest — index a repo, produce wiki index + optional markdown pages
+            mcp.tool(
+                name="arif_wiki_ingest",
+                description=(
+                    "Index a local repository into the wiki. "
+                    "Run this FIRST before map, search, or ask."
+                ),
+                tags={"utility", "write"},
+            )(_ingest_repo)
 
-        # arif_wiki_map — structural map of the repo
-        mcp.tool(
-            name="arif_wiki_map",
-            description=(
-                "Return a structural map of a repository from its local wiki index: "
-                "directory tree, language distribution, and symbol inventory for top files. "
-                "Run arif_wiki_ingest first."
-            ),
-            tags={"utility", "read-only"},
-        )(_map_repo)
+            # arif_wiki_map — structural map of the repo
+            mcp.tool(
+                name="arif_wiki_map",
+                description=(
+                    "Get a structural map of an indexed repository. "
+                    "Run arif_wiki_ingest first."
+                ),
+                tags={"utility", "read-only"},
+            )(_map_repo)
 
-        # arif_wiki_search — lexical evidence retrieval
-        mcp.tool(
-            name="arif_wiki_search",
-            description=(
-                "Search the local wiki index and return scored evidence chunks: "
-                "file path, line range, detected symbols, and contextual excerpt. "
-                "Scoring weights term frequency, path hits, and symbol hits. "
-                "Run arif_wiki_ingest first."
-            ),
-            tags={"utility", "read-only"},
-        )(_search_index)
+            # arif_wiki_search — lexical evidence retrieval
+            mcp.tool(
+                name="arif_wiki_search",
+                description=(
+                    "Search the wiki index for scored evidence chunks. "
+                    "Run arif_wiki_ingest first."
+                ),
+                tags={"utility", "read-only"},
+            )(_search_index)
 
-        # arif_wiki_ask — evidence-grounded Q&A
-        mcp.tool(
-            name="arif_wiki_ask",
-            description=(
-                "Draft a cautious evidence-first answer to a natural-language question "
-                "about a repository, grounded in retrieved index chunks. "
-                "Always cites file paths and line ranges. "
-                "Confidence is 'medium' when >=3 chunks match, else 'low'. "
-                "Run arif_wiki_ingest first."
-            ),
-            tags={"utility", "read-only"},
-        )(_ask_repo)
+            # arif_wiki_ask — evidence-grounded Q&A
+            mcp.tool(
+                name="arif_wiki_ask",
+                description=(
+                    "Ask a natural-language question over the wiki index. "
+                    "Run arif_wiki_ingest first."
+                ),
+                tags={"utility", "read-only"},
+            )(_ask_repo)
 
-        logger.info(
-            "Registered arifOS Wiki Tools Forge: arif_wiki_ingest, arif_wiki_map, arif_wiki_search, arif_wiki_ask"
-        )
-    except Exception as e:
-        logger.warning(f"Failed to register arifOS Wiki Tools: {e}")
+            logger.info(
+                "Registered arifOS Wiki Tools Forge: arif_wiki_ingest, arif_wiki_map, arif_wiki_search, arif_wiki_ask"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to register arifOS Wiki Tools: {e}")
+    else:
+        logger.info("Wiki tools absorbed into canonical13 modes (dev mode disabled).")
 
     # ── Diagnostic tools registered as FastMCP tools ─────────────────────────
-    try:
-        from arifosmcp.tools.health import arif_stack_health_probe as _arif_stack_health_probe
-
-        mcp.tool(
-            name="arif_stack_health_probe",
-            description=(
-                "777_OPS: Federation stack health and governance probe.\n"
-                "Checks arifOS MCP, organ services, model registry, risk leash, tool registry, and VAULT999 ledger."
-            ),
-            tags={"diagnostic", "read-only"},
-        )(_arif_stack_health_probe)
-
-        from arifosmcp.tools.organ_consensus import arif_organ_consensus as _arif_organ_consensus
-
-        mcp.tool(
-            name="arif_organ_consensus",
-            description=(
-                "F3 WITNESS: Cross-organ Tri-Witness consensus for proposed actions.\n"
-                "Calls WELL, WEALTH, and GEOX as independent witnesses and aggregates their signals."
-            ),
-            tags={"diagnostic", "read-only"},
-        )(_arif_organ_consensus)
-
-        from arifosmcp.tools.governance_scan import (
-            arif_scan_local_instructions as _arif_scan_local_instructions,
-        )
-
-        mcp.tool(
-            name="arif_scan_local_instructions",
-            description=(
-                "F12 GUARD: Scans files for local instruction directives and governance violations."
-            ),
-            tags={"diagnostic", "read-only"},
-        )(_arif_scan_local_instructions)
-
-        from arifosmcp.tools.session_budget import arif_session_budget as _arif_session_budget
-
-        mcp.tool(
-            name="arif_session_budget",
-            description=(
-                "777_OPS: Computes and monitors token, computation, and financial budget for the active session."
-            ),
-            tags={"diagnostic", "read-only"},
-        )(_arif_session_budget)
-
-        # ── arif_floor_status (constitutional floor report) ───────────────────
+    # PHOENIX-72 / canonical13: diagnostics are absorbed as modes of canonical13.
+    # They remain registered ONLY when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
+    if _EXPOSE_DEV_TOOLS:
         try:
-            from arifosmcp.runtime.floor import get_floor_status as _get_floor_status
-
-            def _arif_floor_status(
-                session_id: str | None = None,
-                actor_id: str | None = None,
-            ):
-                """Report the current state of constitutional floor enforcement."""
-                result = _get_floor_status()
-                result["session_id"] = session_id
-                result["actor_id"] = actor_id
-                return result
+            from arifosmcp.tools.health import arif_stack_health_probe as _arif_stack_health_probe
 
             mcp.tool(
-                name="arif_floor_status",
+                name="arif_stack_health_probe",
                 description=(
-                    "F8 TABLIGH: Report the current state of constitutional floor enforcement. "
-                    "Returns all 13 floors (F01–F13), active floor list, floor count, and alignment status."
+                    "Probe federation health: arifOS, organs, vault, and model registry."
                 ),
-                tags={"diagnostic", "read-only", "perception"},
-            )(_arif_floor_status)
-            logger.info("Registered arif_floor_status")
-        except Exception as e:
-            logger.warning(f"Failed to register arif_floor_status: {e}")
+                tags={"diagnostic", "read-only"},
+            )(_arif_stack_health_probe)
 
-        # ── mcp_drift_check (PHOENIX-72 readiness) ──────────────────────────
-        try:
-            from arifosmcp.tools.drift_check import arif_mcp_drift_check as _arif_mcp_drift_check
+            from arifosmcp.tools.organ_consensus import arif_organ_consensus as _arif_organ_consensus
 
             mcp.tool(
-                name="mcp_drift_check",
+                name="arif_organ_consensus",
                 description=(
-                    "PHOENIX-72: Read-only surface drift detector. "
-                    "Compares canonical manifest against live registered MCP tools. "
-                    "Modes: report (default) | warn | strict. "
-                    "Returns allowed_count, registered_count, missing, extra, drift_detected, verdict."
+                    "Request cross-organ consensus from WELL, WEALTH, and GEOX."
                 ),
-                tags={"diagnostic", "read-only", "phoenix72"},
-            )(_arif_mcp_drift_check)
-            logger.info("Registered mcp_drift_check (PHOENIX-72)")
-        except Exception as e:
-            logger.warning(f"Failed to register mcp_drift_check: {e}")
+                tags={"diagnostic", "read-only"},
+            )(_arif_organ_consensus)
 
-        logger.info(
-            "Registered diagnostic tools: arif_stack_health_probe, arif_organ_consensus, "
-            "arif_scan_local_instructions, arif_session_budget, arif_floor_status, mcp_drift_check"
-        )
-    except Exception as e:
-        logger.warning(f"Failed to register arifOS diagnostic tools: {e}")
+            from arifosmcp.tools.governance_scan import (
+                arif_scan_local_instructions as _arif_scan_local_instructions,
+            )
+
+            mcp.tool(
+                name="arif_scan_local_instructions",
+                description=(
+                    "Scan files for hidden instructions or governance violations."
+                ),
+                tags={"diagnostic", "read-only"},
+            )(_arif_scan_local_instructions)
+
+            from arifosmcp.tools.session_budget import arif_session_budget as _arif_session_budget
+
+            mcp.tool(
+                name="arif_session_budget",
+                description=(
+                    "Check token, compute, and financial budget for this session."
+                ),
+                tags={"diagnostic", "read-only"},
+            )(_arif_session_budget)
+
+            # ── arif_floor_status (constitutional floor report) ───────────────────
+            try:
+                from arifosmcp.runtime.floor import get_floor_status as _get_floor_status
+
+                def _arif_floor_status(
+                    session_id: str | None = None,
+                    actor_id: str | None = None,
+                ):
+                    """Report the current state of constitutional floor enforcement."""
+                    result = _get_floor_status()
+                    result["session_id"] = session_id
+                    result["actor_id"] = actor_id
+                    return result
+
+                mcp.tool(
+                    name="arif_floor_status",
+                    description=(
+                        "Report the current state of all 13 constitutional floors."
+                    ),
+                    tags={"diagnostic", "read-only", "perception"},
+                )(_arif_floor_status)
+                logger.info("Registered arif_floor_status")
+            except Exception as e:
+                logger.warning(f"Failed to register arif_floor_status: {e}")
+
+            # ── mcp_drift_check (PHOENIX-72 readiness) ──────────────────────────
+            try:
+                from arifosmcp.tools.drift_check import arif_mcp_drift_check as _arif_mcp_drift_check
+
+                mcp.tool(
+                    name="mcp_drift_check",
+                    description=(
+                        "Compare live tool registry against canonical manifest for drift."
+                    ),
+                    tags={"diagnostic", "read-only", "phoenix72"},
+                )(_arif_mcp_drift_check)
+                logger.info("Registered mcp_drift_check (PHOENIX-72)")
+            except Exception as e:
+                logger.warning(f"Failed to register mcp_drift_check: {e}")
+
+            logger.info(
+                "Registered diagnostic tools: arif_stack_health_probe, arif_organ_consensus, "
+                "arif_scan_local_instructions, arif_session_budget, arif_floor_status, mcp_drift_check"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to register arifOS diagnostic tools: {e}")
+    else:
+        logger.info("Diagnostic tools absorbed into canonical13 modes (dev mode disabled).")
 
     # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
     try:

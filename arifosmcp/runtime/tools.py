@@ -165,6 +165,23 @@ def check_adaptation_status() -> dict[str, Any]:
     }
 
 
+def _call_async_from_sync(coro) -> Any:
+    """Safely run an async coroutine from a sync context.
+
+    FastMCP sync tools may be called from threads with or without a running
+    event loop. This helper tries asyncio.run first, then falls back to a
+    fresh thread with its own loop if needed.
+    """
+    try:
+        return asyncio.run(coro)
+    except RuntimeError:
+        # Already inside a running event loop — offload to a fresh thread
+        import concurrent.futures
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            return executor.submit(asyncio.run, coro).result()
+
+
 async def INIT_ANCHOR(  # noqa: N802
     raw_input: str = "", ctx: Any | None = None, **kwargs: Any
 ) -> dict[str, Any]:
@@ -3595,6 +3612,16 @@ def _arif_sense_observe(
     Returns:
       Observation payload with results, source tag, and omega_0 (uncertainty).
     """
+    # ── Absorbed wiki mode (PHOENIX-72 / canonical13) ──────────────────────────
+    # Short-circuit before auth/gate because it is read-only and non-network.
+    if mode == "repo_map":
+        from arifos_wiki_tools.synthesis import map_repo
+
+        return map_repo(
+            repo_path=query or ".",
+            max_depth=int(layers[0]) if layers else 4,
+        )
+
     # F11 AUTH: validate session before processing observational data
     _session_valid = False
     if session_id:
@@ -4299,6 +4326,7 @@ def _arif_sense_observe(
         "classify",
         "extract_claims",
         "contrast",
+        "repo_map",
     ]
     return _hold(
         "arif_sense_observe",
@@ -6299,6 +6327,13 @@ def _arif_kernel_route(
     Returns:
       Routing decision with path, hops, stage, workflow, budget, and authority boundary.
     """
+    # ── Absorbed diagnostic mode (PHOENIX-72 / canonical13) ────────────────────
+    # Short-circuit before auth/gate because it is read-only and public.
+    if mode == "surface_drift":
+        from arifosmcp.tools.drift_check import mcp_drift_check
+
+        return mcp_drift_check(mode="report", target_manifest="canonical13")
+
     from arifosmcp.runtime.session_auth import validate_session
 
     # Public modes — no session required
@@ -6702,6 +6737,7 @@ def _arif_kernel_route(
             },
             delta_S=0.0,
         )
+
     return _hold("arif_kernel_route", f"Unknown mode: {mode}", session_id=session_id)
 
 
@@ -6862,6 +6898,17 @@ def _arif_reply_compose(
             ),
             delta_S=0.0,
         )
+
+    # ── Absorbed wiki mode (PHOENIX-72 / canonical13) ──────────────────────────
+    if mode == "repo_answer":
+        from arifos_wiki_tools.synthesis import ask_repo
+
+        return ask_repo(
+            repo_path=style or ".",
+            question=message or "",
+            top_k=int(citations[0]) if citations else 8,
+        )
+
     return _hold("arif_reply_compose", f"Unknown mode: {mode}")
 
 
@@ -6901,6 +6948,16 @@ async def _arif_reply_compose_tool(
         )
         if gate is not None:
             return gate
+
+        # ── Absorbed wiki mode (PHOENIX-72 / canonical13) ──────────────────────
+        if mode == "repo_answer":
+            from arifos_wiki_tools.synthesis import ask_repo
+
+            return ask_repo(
+                repo_path=style or ".",
+                question=message or "",
+                top_k=int(citations[0]) if citations else 8,
+            )
 
         try:
             from arifosmcp.runtime.reply_compose import arif_reply_compose as _llm_reply
@@ -7035,6 +7092,27 @@ def _arif_memory_recall(
       context — Session context window.
       dry_run — Ephemeral write/recall/cleanup cycle.
     """
+    # ── Absorbed wiki modes (PHOENIX-72 / canonical13) ───────────────────────
+    # Short-circuit before the constitutional gate because they are read-only.
+    if mode == "repo_ingest":
+        from arifos_wiki_tools.indexer import ingest_repo
+
+        return ingest_repo(
+            repo_path=query or ".",
+            scope_name=(metadata or {}).get("scope_name", "arifOS"),
+            include_globs=(metadata or {}).get("include_globs"),
+            exclude_globs=(metadata or {}).get("exclude_globs"),
+            write_wiki=(metadata or {}).get("write_wiki", True),
+        )
+    if mode == "repo_search":
+        from arifos_wiki_tools.search import search_index
+
+        return search_index(
+            repo_path=memory_id or query or ".",
+            query=query or "",
+            top_k=(metadata or {}).get("top_k", 8),
+        )
+
     gate = _constitutional_gate(
         "arif_memory_recall", mode, actor_id, session_id=session_id, query=query
     )
@@ -7352,6 +7430,7 @@ def _arif_memory_recall(
             result,
             delta_S=0.0,
         )
+
     return _hold("arif_memory_recall", f"Unknown mode: {mode}")
 
 
@@ -7495,6 +7574,16 @@ async def _arif_heart_critique(
             "arif_heart_critique",
             result,
             delta_S=0.0,
+        )
+
+    # ── Absorbed diagnostic mode (PHOENIX-72 / canonical13) ────────────────────
+    if mode == "instruction_scan":
+        from arifosmcp.tools.governance_scan import arif_scan_local_instructions
+
+        return await arif_scan_local_instructions(
+            root_dir=target,
+            session_id=session_id,
+            actor_id=actor_id,
         )
 
     try:
@@ -8145,6 +8234,22 @@ def _arif_ops_measure(
     Returns:
       Health payload with status, metrics, and thermodynamic bands.
     """
+    # ── Absorbed diagnostic modes (PHOENIX-72 / canonical13) ───────────────────
+    # These short-circuit before the constitutional gate because they are
+    # read-only operational probes that do not mutate state.
+    if mode == "stack_health":
+        from arifosmcp.tools.health import arif_stack_health_probe
+
+        return _call_async_from_sync(
+            arif_stack_health_probe(session_id=session_id, actor_id=actor_id)
+        )
+    if mode == "budget":
+        from arifosmcp.tools.session_budget import arif_session_budget
+
+        return _call_async_from_sync(
+            arif_session_budget(session_id=session_id, actor_id=actor_id)
+        )
+
     gate = _constitutional_gate("arif_ops_measure", mode, actor_id, session_id=session_id)
     if gate is not None:
         return gate
@@ -9110,6 +9215,23 @@ async def _arif_judge_deliberate_tool(
       VerdictOutput with code, floor compliance proof, epistemic_snapshot,
       and required_next_tool (if any).
     """
+    # ── Absorbed diagnostic modes (PHOENIX-72 / canonical13) ─────────────────
+    if mode == "floor_status":
+        from arifosmcp.runtime.floor import get_floor_status
+
+        result = get_floor_status()
+        result["session_id"] = session_id
+        result["actor_id"] = actor_id
+        return result
+    if mode == "witness_consensus":
+        from arifosmcp.tools.organ_consensus import arif_organ_consensus
+
+        return await arif_organ_consensus(
+            action_description=candidate or "",
+            session_id=session_id,
+            actor_id=actor_id,
+        )
+
     trace = None
     if _LANGFUSE_TRACER is not None:
         try:

@@ -211,48 +211,48 @@ geox.arif-fazil.com {
 
 	handle /mcp {
 		import cors_public
-		reverse_proxy 127.0.0.1:18081 {
+		reverse_proxy 127.0.0.1:8081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
 	handle /mcp/* {
 		import cors_public
-		reverse_proxy 127.0.0.1:18081 {
+		reverse_proxy 127.0.0.1:8081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
 	handle /health {
 		import cors_public
-		reverse_proxy 127.0.0.1:18081 {
+		reverse_proxy 127.0.0.1:8081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
 	handle /ready {
 		import cors_public
-		reverse_proxy 127.0.0.1:18081 {
+		reverse_proxy 127.0.0.1:8081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
 	handle /sse* {
-		reverse_proxy 127.0.0.1:18081 {
+		reverse_proxy 127.0.0.1:8081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
 	handle /status {
 		import cors_public
-		reverse_proxy 127.0.0.1:18081 {
+		reverse_proxy 127.0.0.1:8081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
 	handle /.well-known/mcp/server.json {
 		import cors_public
-		reverse_proxy 127.0.0.1:18081 {
+		reverse_proxy 127.0.0.1:8081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}
 	handle /tools {
 		import cors_public
-		reverse_proxy 127.0.0.1:18081 {
+		reverse_proxy 127.0.0.1:8081 {
 			header_up Host geox.arif-fazil.com
 		}
 	}

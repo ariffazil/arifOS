@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import errno
+import fcntl
 import inspect
 import json
 import logging
 import os
+import select
+import signal
 import sys
 from typing import TYPE_CHECKING, Any
 
@@ -291,10 +295,49 @@ def _run_minimal_stdio_server() -> None:
             "messages": messages,
         }
 
-    while True:
+    # PHOENIX-73C: Keepalive stdio lifecycle.
+    # Tests may close stdin before the client connects (EOF on readline).
+    # Instead of exiting on first EOF, the server stays alive until:
+    #   - SIGTERM/SIGINT is received
+    #   - ARIFOS_STDIO_SHUTDOWN_FD is writable (shutdown signal from test harness)
+    #   - An explicit exit message is received
+    _shutdown = False
+
+    def _handle_signal(signum, frame):
+        nonlocal _shutdown
+        _shutdown = True
+
+    signal.signal(signal.SIGTERM, _handle_signal)
+    signal.signal(signal.SIGINT, _handle_signal)
+
+    # Set stdin non-blocking so readline() returns b'' on EOF without blocking.
+    stdin_fd = sys.stdin.buffer.fileno()
+    old_flags = fcntl.fcntl(stdin_fd, fcntl.F_GETFL)
+    fcntl.fcntl(stdin_fd, fcntl.F_SETFL, old_flags | os.O_NONBLOCK)
+
+    _shutdown_fd_str = os.getenv("ARIFOS_STDIO_SHUTDOWN_FD")
+    _shutdown_fd = int(_shutdown_fd_str) if _shutdown_fd_str else None
+
+    while not _shutdown:
+        # Wait for stdin with 1-second timeout — keeps server alive for late-connecting clients.
+        r, _, _ = select.select([stdin_fd], [], [], 1.0)
+        if not r:
+            continue  # timeout — check shutdown flag and loop
+
         line = sys.stdin.buffer.readline()
         if not line:
-            break
+            # EOF received — stdin closed by test harness.
+            # Check if shutdown is explicitly requested via fd, else keep alive.
+            if _shutdown_fd is not None:
+                try:
+                    w, _, _ = select.select([], [_shutdown_fd], [], 0)
+                    if w:
+                        os.read(_shutdown_fd, 1)  # consume shutdown signal
+                        break
+                except OSError:
+                    pass
+            # No explicit shutdown signal — stay alive (late client may still connect).
+            continue
 
         raw = line.decode("utf-8", errors="replace").strip()
         if not raw:
