@@ -1,25 +1,23 @@
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-05-25
-valid_from: 2026-05-25
-valid_until: 2026-06-25
+last_verified: 2026-05-26
+valid_from: 2026-05-26
+valid_until: 2026-06-26
 confidence: high
 scope: /root/arifOS
 -->
 
-# AGENTS.md — arifOS
+# AGENTS.md — arifOS | arifOS Federation
+
+> **MANDATORY BOOT SEQUENCE**
+> 1. Read `/root/AGENTS.md` (Global Federation Rules & Identity)
+> 2. Read `/root/CONTEXT.md` (Live Machine State & Ports)
+> 3. Read this file (Repo-Specific Build/Test/Run rules)
 
 > **Constitutional Intelligence Kernel**
 >
 > The law kernel of the arifOS Federation. arifOS structures decision; it does not decide.
 > Constitutional judgment (SEAL / SABAR / VOID) and floor enforcement remain in arifOS.
-
-## Mandatory Boot Sequence
-
-1. Read `/root/AGENTS.md` (workspace-level federation rules)
-2. Read `INVARIANTS.md`
-3. Read `README.md`
-4. Install: `pip install -e ".[dev]"` or `uv sync --extra dev`
 
 ## Allowed Actions
 

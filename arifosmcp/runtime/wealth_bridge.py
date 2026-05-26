@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from datetime import UTC
 from typing import Any
 
@@ -24,15 +25,23 @@ import httpx
 
 logger = logging.getLogger("arifosmcp.wealth_bridge")
 
-WEALTH_HOST = "wealth-organ"
-WEALTH_PORT = 8082
+# Bare-metal: use localhost. Docker: override via WEALTH_BRIDGE_HOST env var.
+WEALTH_HOST = os.getenv("WEALTH_BRIDGE_HOST", "localhost")
+# Bare-metal: 18082 (wealth-mcp systemd). Docker: 8082 (wealth-organ container).
+WEALTH_PORT = int(os.getenv("WEALTH_BRIDGE_PORT", "18082"))
 WEALTH_BASE = f"http://{WEALTH_HOST}:{WEALTH_PORT}"
 
 _WEALTH_SESSION_ID: str | None = None
 
 
-async def _ensure_session() -> str:
-    """Establish or reuse a WEALTH session ID."""
+async def _ensure_session() -> str | None:
+    """
+    Establish or reuse a WEALTH session ID.
+
+    WEALTH is a stateless MCP server — it does not issue mcp-session-id headers.
+    This function returns None if no session is needed, or the session ID if WEALTH
+    starts requiring sessions in future versions.
+    """
     global _WEALTH_SESSION_ID
     if _WEALTH_SESSION_ID is not None:
         return _WEALTH_SESSION_ID
@@ -62,33 +71,40 @@ async def _ensure_session() -> str:
             )
 
         server_session = resp.headers.get("mcp-session-id")
-        if not server_session:
-            raise ConnectionError("WEALTH did not return mcp-session-id header")
-
-        async for _ in resp.aiter_lines():
-            pass
-
-        _WEALTH_SESSION_ID = server_session
-        logger.info(f"WEALTH session established: {server_session}")
-        return server_session
+        if server_session:
+            # WEALTH supports sessions — cache and use it
+            _WEALTH_SESSION_ID = server_session
+            logger.info(f"WEALTH session established: {server_session}")
+            return server_session
+        else:
+            # WEALTH is stateless — no session needed
+            logger.info("WEALTH is stateless — no session required")
+            _WEALTH_SESSION_ID = None
+            return None
 
 
 async def _post_json_rpc(payload: dict[str, Any]) -> dict[str, Any]:
     """
-    Send a JSON-RPC request to WEALTH using the established session.
+    Send a JSON-RPC request to WEALTH.
+
+    WEALTH is stateless — accepts requests with or without session headers.
+    Responses are plain JSON (not SSE).
     """
     session_id = await _ensure_session()
+
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/event-stream",
+    }
+    if session_id:
+        headers["x-mcp-session-id"] = session_id
+        headers["mcp-session-id"] = session_id
 
     async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
         resp = await client.post(
             f"{WEALTH_BASE}/mcp",
             json=payload,
-            headers={
-                "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream",
-                "x-mcp-session-id": session_id,
-                "mcp-session-id": session_id,
-            },
+            headers=headers,
         )
 
         if resp.status_code == 406:
@@ -102,15 +118,8 @@ async def _post_json_rpc(payload: dict[str, Any]) -> dict[str, Any]:
                 msg = resp.text[:200]
             raise ConnectionError(f"WEALTH HTTP {resp.status_code}: {msg}")
 
-        buffer = b""
-        async for line in resp.aiter_lines():
-            if line.startswith("data: "):
-                buffer += line[6:].encode()
-
-        if not buffer:
-            raise ConnectionError("WEALTH returned empty SSE response")
-
-        parsed = json.loads(buffer)
+        # WEALTH returns plain JSON, not SSE
+        parsed = resp.json()
         if parsed.get("error"):
             raise ConnectionError(f"WEALTH JSON-RPC error: {parsed['error']}")
 

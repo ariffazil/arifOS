@@ -1,4 +1,8 @@
 {
+  "_telemetry": {
+    "mutation_share_active": true,
+    "last_mutation": "SAFE_MUTATION_001"
+  },
   "mcpServers": {
     "context7": {
       "_comment": "Context7 — Up-to-date library docs for LLMs. Remote HTTP, no API key needed for free tier.",

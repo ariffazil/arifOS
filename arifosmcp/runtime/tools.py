@@ -6544,6 +6544,9 @@ def _arif_kernel_route(
     stage: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    organ: str | None = None,
+    tool_name: str | None = None,
+    arguments: dict | None = None,
 ) -> dict[str, Any]:
     """
     444_KERNEL: Central orchestration, intent routing, and stage dispatch.
@@ -6558,18 +6561,22 @@ def _arif_kernel_route(
       lane    — Switch cognitive lane (AGI | ASI | APEX).
       list    — Enumerate available tools for the current session.
       status  — Kernel health + orchestration maturity metrics.
+      bridge  — Bridge call to GEOX or WEALTH organ.
 
     Governance gating modes (standalone diagnostics):
       depth_select, risk_gate, budget_gate, authority_gate,
       reversibility_gate, workflow_select
 
     Parameters:
-      mode       — route | stage | lane | list | status | depth_select | ...
+      mode       — route | stage | lane | list | status | depth_select | bridge | ...
       target     — Target tool or endpoint name
       task       — Task description for routing resolution
       stage      — Explicit stage override (000–999)
       session_id — Governed session ID
       actor_id   — Sovereign actor identifier
+      organ      — Organ name for bridge mode (geox | wealth)
+      tool_name  — Tool name on the target organ
+      arguments  — Tool arguments for bridge mode
 
     Returns:
       Routing decision with path, hops, stage, workflow, budget, and authority boundary.
@@ -6984,6 +6991,31 @@ def _arif_kernel_route(
             },
             delta_S=0.0,
         )
+
+    if mode == "bridge":
+        # Bridge to GEOX or WEALTH organ via the federation bridges.
+        if not organ or not tool_name:
+            return _hold("arif_kernel_route", "bridge mode requires organ and tool_name")
+        try:
+            if organ == "geox":
+                from arifosmcp.runtime.geox_bridge import call_geox_tool
+
+                result = _run_async(call_geox_tool(tool_name, arguments or {}))
+                return _ok(
+                    "arif_kernel_route",
+                    {"organ": "GEOX", "tool": tool_name, "result": result, "status": "bridged"},
+                )
+            if organ == "wealth":
+                from arifosmcp.runtime.wealth_bridge import call_wealth_tool
+
+                result = _run_async(call_wealth_tool(tool_name, arguments or {}))
+                return _ok(
+                    "arif_kernel_route",
+                    {"organ": "WEALTH", "tool": tool_name, "result": result, "status": "bridged"},
+                )
+            return _hold("arif_kernel_route", f"Unknown organ: {organ}")
+        except Exception as e:
+            return _hold("arif_kernel_route", f"Bridge failed: {e}")
 
     return _hold("arif_kernel_route", f"Unknown mode: {mode}", session_id=session_id)
 

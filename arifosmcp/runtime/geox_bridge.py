@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
 import statistics
 from collections.abc import Sequence
 from typing import Any
@@ -25,8 +26,10 @@ import httpx
 
 logger = logging.getLogger("arifosmcp.geox_bridge")
 
-GEOX_HOST = "geox_eic"
-GEOX_PORT = 8081
+# Bare-metal: use localhost. Docker: override via GEOX_BRIDGE_HOST env var.
+GEOX_HOST = os.getenv("GEOX_BRIDGE_HOST", "localhost")
+# Bare-metal: 18081 (arifosd). Docker: 8081 (geox_eic container).
+GEOX_PORT = int(os.getenv("GEOX_BRIDGE_PORT", "18081"))
 GEOX_BASE = f"http://{GEOX_HOST}:{GEOX_PORT}"
 
 
