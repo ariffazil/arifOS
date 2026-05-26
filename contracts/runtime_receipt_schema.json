@@ -1,0 +1,440 @@
+{
+  "schema": "arifOS-runtime-receipt/v1",
+  "version": "2026.05.26",
+  "purpose": "Canonical audit receipt for all consequential actions across the arifOS federation",
+
+  "receipt_types": {
+
+    "ACTION_RECEIPT": {
+      "type": "ACTION_RECEIPT",
+      "description": "Standard receipt for any tool execution",
+      "required_fields": [
+        "receipt_id",
+        "session_id",
+        "task_id",
+        "operator",
+        "tool_name",
+        "server",
+        "substrate",
+        "action_mode",
+        "reversibility",
+        "verdict",
+        "timestamp",
+        "seal"
+      ],
+      "fields": {
+        "receipt_id": {
+          "type": "string",
+          "pattern": "^RCT-[A-Z0-9]{8}-[0-9]{10}$",
+          "description": "Unique receipt identifier",
+          "example": "RCT-7A3F9B2C-1748347200"
+        },
+        "session_id": {
+          "type": "string",
+          "description": "Governed session ID from arif_session_init",
+          "example": "SEAL-2026-05-26-001"
+        },
+        "task_id": {
+          "type": "string",
+          "description": "Task identifier for this specific action",
+          "example": "TASK-444-WEALTH-01"
+        },
+        "operator": {
+          "type": "string",
+          "description": "Identity of the acting entity",
+          "enum": ["ARIF", "agent/kimi", "agent/claude", "AAA/gateway", "hermes"],
+          "default": "ARIF"
+        },
+        "tool_name": {
+          "type": "string",
+          "description": "Canonical tool name that was executed",
+          "example": "wealth_value_npv"
+        },
+        "server": {
+          "type": "string",
+          "description": "Which organ served this tool",
+          "example": "WEALTH"
+        },
+        "substrate": {
+          "type": "string",
+          "description": "AXIS 1 substrate classification",
+          "example": "CAPITAL_INTELLIGENCE"
+        },
+        "action_mode": {
+          "type": "string",
+          "description": "AXIS 2 action mode",
+          "example": "REASON"
+        },
+        "reversibility": {
+          "type": "string",
+          "description": "AXIS 3 reversibility tier",
+          "example": "TIER_1_REVERSIBLE"
+        },
+        "verdict": {
+          "type": "string",
+          "description": "Constitutional verdict on this action",
+          "enum": ["SEAL", "PARTIAL", "SABAR", "HOLD", "VOID", "AUTO"]
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Source citations or artifact references used"
+        },
+        "floors_triggered": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "F1-F13 floors checked",
+          "example": ["F1", "F4"]
+        },
+        "claim_state_before": {
+          "type": "string",
+          "description": "Claim state before this action",
+          "example": "QC_VERIFIED"
+        },
+        "claim_state_after": {
+          "type": "string",
+          "description": "Claim state after this action",
+          "example": "INTERPRETED"
+        },
+        "execution_allowed": {
+          "type": "boolean",
+          "description": "Whether execution was permitted"
+        },
+        "sealed": {
+          "type": "boolean",
+          "description": "Whether this receipt has been submitted to VAULT999"
+        },
+        "vault_ref": {
+          "type": ["string", "null"],
+          "description": "VAULT999 entry hash if sealed",
+          "example": "a3f5b8c2d1e4..."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp"
+        },
+        "seal": {
+          "type": "string",
+          "const": "DITEMPA BUKAN DIBERI"
+        }
+      }
+    },
+
+    "VERDICT_RECEIPT": {
+      "type": "VERDICT_RECEIPT",
+      "description": "Receipt for arif_judge_deliberate output",
+      "required_fields": [
+        "receipt_id",
+        "session_id",
+        "verdict_id",
+        "candidate_action",
+        "verdict",
+        "floors_triggered",
+        "operator",
+        "timestamp",
+        "seal"
+      ],
+      "fields": {
+        "receipt_id": {
+          "type": "string",
+          "pattern": "^RCT-[A-Z0-9]{8}-[0-9]{10}$"
+        },
+        "verdict_id": {
+          "type": "string",
+          "pattern": "^VRT-[A-Z0-9]{8}-[0-9]{10}$",
+          "description": "Unique verdict identifier"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "candidate_action": {
+          "type": "object",
+          "description": "The action that was judged",
+          "properties": {
+            "tool_name": {"type": "string"},
+            "substrate": {"type": "string"},
+            "action_mode": {"type": "string"},
+            "reversibility": {"type": "string"}
+          }
+        },
+        "verdict": {
+          "type": "string",
+          "enum": ["SEAL", "PARTIAL", "SABAR", "HOLD", "VOID"]
+        },
+        "justification": {
+          "type": "string",
+          "description": "Plain-language explanation"
+        },
+        "floors_triggered": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "floors_summary": {
+          "type": "object"
+        },
+        "next_safe_action": {
+          "type": "string"
+        },
+        "human_confirmation_required": {
+          "type": "boolean"
+        },
+        "appeal_possible": {
+          "type": "boolean"
+        },
+        "void_reason": {
+          "type": ["string", "null"]
+        },
+        "judge_state_hash": {
+          "type": "string",
+          "description": "Hash for audit integrity"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "seal": {
+          "type": "string",
+          "const": "DITEMPA BUKAN DIBERI"
+        }
+      }
+    },
+
+    "EXECUTION_RECEIPT": {
+      "type": "EXECUTION_RECEIPT",
+      "description": "Receipt for arif_forge_execute output",
+      "required_fields": [
+        "receipt_id",
+        "session_id",
+        "execution_id",
+        "task_description",
+        "prior_verdict_receipt_id",
+        "executed_by",
+        "substrate",
+        "action_mode",
+        "reversibility",
+        "execution_status",
+        "timestamp",
+        "seal"
+      ],
+      "fields": {
+        "receipt_id": {
+          "type": "string",
+          "pattern": "^RCT-[A-Z0-9]{8}-[0-9]{10}$"
+        },
+        "execution_id": {
+          "type": "string",
+          "pattern": "^EXEC-[A-Z0-9]{8}-[0-9]{10}$"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "task_description": {
+          "type": "string"
+        },
+        "prior_verdict_receipt_id": {
+          "type": "string",
+          "description": "VERDICT_RECEIPT that authorized this execution",
+          "pattern": "^VRT-[A-Z0-9]{8}-[0-9]{10}$"
+        },
+        "executed_by": {
+          "type": "string",
+          "description": "Tool that performed the execution",
+          "example": "arif_forge_execute"
+        },
+        "substrate": {
+          "type": "string"
+        },
+        "action_mode": {
+          "type": "string"
+        },
+        "reversibility": {
+          "type": "string",
+          "enum": ["TIER_3_IRREVERSIBLE"]
+        },
+        "execution_status": {
+          "type": "string",
+          "enum": ["SUCCESS", "FAIL", "PARTIAL", "BLOCKED"]
+        },
+        "execution_details": {
+          "type": "object",
+          "properties": {
+            "duration_ms": {"type": "number"},
+            "output_summary": {"type": "string"},
+            "error_message": {"type": ["string", "null"]}
+          }
+        },
+        "side_effects": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Known side effects produced"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "seal": {
+          "type": "string",
+          "const": "DITEMPA BUKAN DIBERI"
+        }
+      }
+    },
+
+    "VAULT_SEAL_RECEIPT": {
+      "type": "VAULT_SEAL_RECEIPT",
+      "description": "Receipt for arif_vault_seal output — VAULT999 immutable anchor",
+      "required_fields": [
+        "receipt_id",
+        "vault_entry_id",
+        "session_id",
+        "prior_receipt_ids",
+        "content_hash",
+        "previous_hash",
+        "merkle_root",
+        "ledger_sequence",
+        "timestamp",
+        "seal"
+      ],
+      "fields": {
+        "receipt_id": {
+          "type": "string",
+          "pattern": "^RCT-[A-Z0-9]{8}-[0-9]{10}$"
+        },
+        "vault_entry_id": {
+          "type": "string",
+          "pattern": "^VLT-[0-9]{7}$",
+          "description": "VAULT999 sequential entry number",
+          "example": "VLT-014786"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "prior_receipt_ids": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Receipt IDs that this entry anchors"
+        },
+        "content_hash": {
+          "type": "string",
+          "description": "SHA-256 of entry content"
+        },
+        "previous_hash": {
+          "type": "string",
+          "description": "SHA-256 of previous VAULT999 entry (chain link)"
+        },
+        "merkle_root": {
+          "type": "string",
+          "description": "Merkle root for this entry's evidence bundle"
+        },
+        "ledger_sequence": {
+          "type": "number",
+          "description": "Sequential position in VAULT999"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "seal": {
+          "type": "string",
+          "const": "DITEMPA BUKAN DIBERI"
+        }
+      }
+    },
+
+    "JOURNAL_RECEIPT": {
+      "type": "JOURNAL_RECEIPT",
+      "description": "Receipt for TIER_2_LOGGED actions that don't require SEAL",
+      "required_fields": [
+        "receipt_id",
+        "session_id",
+        "tool_name",
+        "server",
+        "action_summary",
+        "substrate",
+        "reversibility",
+        "timestamp",
+        "seal"
+      ],
+      "fields": {
+        "receipt_id": {
+          "type": "string",
+          "pattern": "^RCT-[A-Z0-9]{8}-[0-9]{10}$"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "server": {
+          "type": "string"
+        },
+        "action_summary": {
+          "type": "string"
+        },
+        "substrate": {
+          "type": "string"
+        },
+        "action_mode": {
+          "type": "string"
+        },
+        "reversibility": {
+          "type": "string",
+          "enum": ["TIER_2_LOGGED"]
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "floors_triggered": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "journaled": {
+          "type": "boolean",
+          "const": true
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "seal": {
+          "type": "string",
+          "const": "DITEMPA BUKAN DIBERI"
+        }
+      }
+    }
+  },
+
+  "receipt_id_generator": {
+    "prefix": "RCT",
+    "format": "RCT-{RAND8}-{TIMESTAMP10}",
+    "random_alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    "random_length": 8
+  },
+
+  "verdict_id_generator": {
+    "prefix": "VRT",
+    "format": "VRT-{RAND8}-{TIMESTAMP10}"
+  },
+
+  "vault_entry_id_generator": {
+    "prefix": "VLT",
+    "format": "VLT-{SEQUENCE:07d}",
+    "description": "Zero-padded 7-digit sequential number from VAULT999 ledger"
+  },
+
+  "registry": {
+    "seal": "DITEMPA BUKAN DIBERI",
+    "verified_at": "2026-05-26T12:55:00+08:00",
+    "source": "arifOS Federation Orthogonal Tool Map v2026.05.26",
+    "ledger": "VAULT999",
+    "ledger_path": "/root/arifOS/VAULT999/outcomes.jsonl"
+  }
+}

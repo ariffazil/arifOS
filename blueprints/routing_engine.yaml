@@ -1,0 +1,505 @@
+# arifOS Federation — Routing Engine
+# Machine-readable routing grammar for substrate classification
+# v2026.05.26 | SEAL: DITEMPA BUKAN DIBERI
+
+schema: "arifOS-routing-engine/v1"
+version: "2026.05.26"
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 1: ORGAN ENDPOINTS
+# ─────────────────────────────────────────────────────────────────
+
+servers:
+  arifOS:
+    organ: "arifOS"
+    symbol: "⚙️"
+    port: 8088
+    endpoint: "/mcp"
+    transport: "streamable-http"
+    role: "Constitutional Kernel"
+    routes_here: ["UNKNOWN", "GOVERNANCE", "CONSTITUTIONAL", "MEMORY", "EXECUTION", "SEALING"]
+
+  WEALTH:
+    organ: "WEALTH"
+    symbol: "🟡"
+    port: 18082
+    endpoint: "/mcp"
+    transport: "streamable-http"
+    role: "Capital Intelligence"
+    routes_here: ["CAPITAL", "FINANCIAL", "MONEY", "NPV", "IRR", "VALUATION", "CASHFLOW", "RISK", "MACRO", "ECONOMIC"]
+
+  GEOX:
+    organ: "GEOX"
+    symbol: "🌍"
+    port: 8081
+    endpoint: "/mcp"
+    transport: "streamable-http"
+    role: "Earth Intelligence"
+    routes_here: ["GEOLOGY", "SUBSURFACE", "PETROPHYSICS", "SEISMIC", "WELL_LOG", "DST", "DEPTH", "LITHOLOGY", "STRUCTURAL"]
+
+  WELL:
+    organ: "WELL"
+    symbol: "🧬"
+    port: 18083
+    endpoint: "/mcp"
+    transport: "streamable-http"
+    role: "Body/Mind Vitality"
+    routes_here: ["VITALITY", "HEALTH", "METABOLISM", "BANDWIDTH", "FATIGUE", "DIGNITY", "READINESS", "COGNITIVE", "SLEEP", "STRESS"]
+
+  A_FORGE:
+    organ: "A-FORGE"
+    symbol: "🔨"
+    port: 7071
+    endpoint: "/contract"
+    transport: "a2a-via-openclaw"
+    role: "Execution Bridge"
+    routes_here: ["BUILD", "DEPLOY", "EXECUTE"]
+    note: "Never routed to directly — always via arif_forge_execute after SEAL"
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 2: KEYWORD → SUBSTRATE MAP
+# First-match wins. Keywords are lowercased for comparison.
+# ─────────────────────────────────────────────────────────────────
+
+keyword_substrate_map:
+
+  # arifOS — Constitutional Kernel
+  - keywords: ["unknown", "route", "which organ", "what tool", "constitutional", "governance", "floor", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12", "f13", "seal", "vault", "vault999", "immutable", "memory", "recall", "session", "init", "judgment", "judge", "deliberate", "execute", "forge", "epistemic", "witness", "evidence"]
+    substrate: "arifOS"
+    organ: "arifOS"
+    confidence: "HIGH"
+    fallback: null
+
+  # WEALTH — Capital Intelligence
+  - keywords: ["capital", "money", "financial", "npv", "irr", "net present", "internal rate", "payback", "cash flow", "cashflow", "runway", "burn rate", "liquidity", "balance sheet", "net worth", "valuation", "price", "spread", "mispricing", "risk", "cvar", "entropy", "uncertainty", "productivity", "efficiency", "roe", "roi", "roc", "profitability", "leverage", "dscr", "debt service", "macro", "gdp", "inflation", "interest rate", "fx", "usd", "myr", "brent", "oil price", "game theory", "nash", "equilibrium", "negotiation", "preference", "utility", "inequality", "gini", "world bank", "information value", "voi", "emv", "expected monetary", "monte carlo", "stochastic", "evidence quality", "soe", "noc", "audit"]
+    substrate: "CAPITAL"
+    organ: "WEALTH"
+    confidence: "HIGH"
+    fallback: null
+
+  # GEOX — Earth Intelligence
+  - keywords: ["geology", "geoscience", "subsurface", "petrophysics", "well log", "las file", "seg-y", "seismic", "depth", "tvdss", "md", "tvd", "drc", "_DST", "drill stem", "formation", "lithology", "porosity", "saturation", "sw", "vsh", "shale", "sandstone", "carbonate", "reservoir", "trap", "seal", "closure", "structure", "antcline", "fault", "trap", "prospect", "lead", "play", "basin", "source rock", "maturity", "ro", "kerogen", "migration", "charge", "timing", "pressure", "gradient", "pore pressure", "fracture", "permeability", "well integrity", " casing", "cement", "log analysis", "rho", "vp", "vs", "ai", "sonic", "density", "neutron", "gamma ray", "sp", "curves", "mnemonic", "qc", "quality control", "monotonic"]
+    substrate: "EARTH"
+    organ: "GEOX"
+    confidence: "HIGH"
+    fallback: null
+
+  # WELL — Body/Mind Vitality
+  - keywords: ["vitality", "health", "metabolism", "metabolic", "bandwidth", "cognitive", "clarity", "decision fatigue", "fatigue", "sleep", "rest", "hrv", "heart rate", "stress", "cortisol", "hydration", "fasting", "nutrition", "movement", "exercise", "pain", "discomfort", "dignity", "meaning", "livelihood", "purpose", "homeostasis", "repair", "recovery", "readiness", "coupled", "human-machine", "substrate", "h-well", "m-well", "c-well", "g-well", "boundary", "gradient", "reliability", "entropy rate", "machine health", "freshness", "stale", "state age", "well score", "niyat", "intention", "reversibility", "task classify", "c0", "c1", "c2", "c3", "c4", "c5", "decision class", "risk tier"]
+    substrate: "VITALITY"
+    organ: "WELL"
+    confidence: "HIGH"
+    fallback: null
+
+  # A-FORGE — Execution (never direct — via kernel)
+  - keywords: ["build", "compile", "deploy", "execute", "run", "script", "container", "docker", "image", "ghcr", "push", "forge", "a-forge"]
+    substrate: "EXECUTION"
+    organ: "A-FORGE"
+    confidence: "HIGH"
+    note: "Must route via arif_forge_execute after 888_JUDGE SEAL"
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 3: TASK PATTERN → ORGAN + TOOL ROUTING
+# For well-formed tasks, routes to specific organ + tool
+# ─────────────────────────────────────────────────────────────────
+
+task_patterns:
+
+  # WEALTH — Capital patterns
+  - pattern: "net present value|calculate npv|npv of"
+    organ: "WEALTH"
+    tool: "wealth_value_npv"
+    reversibility: "TIER_1"
+
+  - pattern: "internal rate of return|calculate irr|irr of"
+    organ: "WEALTH"
+    tool: "wealth_energy_irr"
+    reversibility: "TIER_1"
+
+  - pattern: "payback period|how long to recoup|time to recover"
+    organ: "WEALTH"
+    tool: "wealth_time_payback"
+    reversibility: "TIER_1"
+
+  - pattern: "cash flow|cashflow analysis|monthly burn"
+    organ: "WEALTH"
+    tool: "wealth_flow_cashflow"
+    reversibility: "TIER_1"
+
+  - pattern: "runway|months of cash|how long survive"
+    organ: "WEALTH"
+    tool: "wealth_velocity_runway"
+    reversibility: "TIER_1"
+
+  - pattern: "net worth|total assets minus liabilities"
+    organ: "WEALTH"
+    tool: "wealth_mass_networth"
+    reversibility: "TIER_1"
+
+  - pattern: "balance sheet|assets and liabilities"
+    organ: "WEALTH"
+    tool: "wealth_conservation_capital"
+    reversibility: "TIER_1"
+
+  - pattern: "risk|cvar|tail risk|uncertainty distribution"
+    organ: "WEALTH"
+    tool: "wealth_entropy_risk"
+    reversibility: "TIER_1"
+
+  - pattern: "macro|brent|usd|myr|gdp|inflation|rates"
+    organ: "WEALTH"
+    tool: "wealth_field_macro"
+    reversibility: "TIER_1"
+
+  - pattern: "leverage|dscr|debt service|fragility"
+    organ: "WEALTH"
+    tool: "wealth_inertia_leverage"
+    reversibility: "TIER_1"
+
+  - pattern: "governance|constitutional floors|maruah"
+    organ: "WEALTH"
+    tool: "wealth_boundary_governance"
+    reversibility: "TIER_2"
+
+  - pattern: "allocation verdict|capital decision"
+    organ: "WEALTH"
+    tool: "wealth_governance_verdict"
+    reversibility: "TIER_3"
+
+  - pattern: "expected monetary value|emv|probability weighted"
+    organ: "WEALTH"
+    tool: "wealth_expectation_emv"
+    reversibility: "TIER_1"
+
+  - pattern: "value of information|voi|evoi"
+    organ: "WEALTH"
+    tool: "wealth_signal_evoi"
+    reversibility: "TIER_1"
+
+  - pattern: "monte carlo|stochastic forecast|simulation"
+    organ: "WEALTH"
+    tool: "wealth_probability_monte_carlo"
+    reversibility: "TIER_1"
+
+  - pattern: "inequality|gini| Palma| WB data"
+    organ: "WEALTH"
+    tool: "wealth_inequality_kernel"
+    reversibility: "TIER_1"
+
+  - pattern: "ledger|sealed record|vaul999|path dependent"
+    organ: "WEALTH"
+    tool: "wealth_hysteresis_ledger"
+    reversibility: "TIER_3"
+
+  - pattern: "capital routing|synthesis|master verdict"
+    organ: "WEALTH"
+    tool: "wealth_synthesize"
+    reversibility: "TIER_2"
+
+  # GEOX — Earth Intelligence patterns
+  - pattern: "load.*las|import.*las|ingest.*log|load well log"
+    organ: "GEOX"
+    tool: "geox_data_ingest_bundle"
+    reversibility: "TIER_2"
+
+  - pattern: "load.*seg|import.*seg|ingest.*seismic"
+    organ: "GEOX"
+    tool: "geox_data_ingest_bundle"
+    reversibility: "TIER_2"
+
+  - pattern: "dst|drill stem test|formation test"
+    organ: "GEOX"
+    tool: "geox_dst_ingest_test"
+    reversibility: "TIER_2"
+
+  - pattern: "qc.*data|validate.*log|check.*depth|monotonicity"
+    organ: "GEOX"
+    tool: "geox_data_qc_bundle"
+    reversibility: "TIER_1"
+
+  - pattern: "subsurface|porosity|saturation|net pay|permeability|vsh"
+    organ: "GEOX"
+    tool: "geox_subsurface_generate_candidates"
+    reversibility: "TIER_2"
+
+  - pattern: "verify.*physics|integrity.*check|boundary.*enforce"
+    organ: "GEOX"
+    tool: "geox_subsurface_verify_integrity"
+    reversibility: "TIER_1"
+
+  - pattern: "geox.*status|registry|tool.*list"
+    organ: "GEOX"
+    tool: "geox_system_registry_status"
+    reversibility: "TIER_1"
+
+  # WELL — Vitality patterns
+  - pattern: "well.*score|state|readiness|how am i"
+    organ: "WELL"
+    tool: "well_state"
+    reversibility: "TIER_1"
+
+  - pattern: "log.*sleep|log.*stress|log.*clarity|update.*metrics"
+    organ: "WELL"
+    tool: "well_log"
+    reversibility: "TIER_2"
+
+  - pattern: "trend|trajectory|improving|degrading"
+    organ: "WELL"
+    tool: "well_trend_analysis"
+    reversibility: "TIER_1"
+
+  - pattern: "decision.*class|c0|c1|c2|c3|c4|c5|risk tier"
+    organ: "WELL"
+    tool: "well_decision_classify"
+    reversibility: "TIER_1"
+
+  - pattern: "bandwidth|capacity|can i do|allowed to"
+    organ: "WELL"
+    tool: "well_decision_bandwidth"
+    reversibility: "TIER_1"
+
+  - pattern: "coupled.*readiness|human.*machine|interaction"
+    organ: "WELL"
+    tool: "well_coupled_readiness"
+    reversibility: "TIER_1"
+
+  - pattern: "dignity|maruah|preserve|protect.*dignity"
+    organ: "WELL"
+    tool: "well_guard_dignity"
+    reversibility: "TIER_2"
+
+  - pattern: "metabolism|metabolic flux|energy.*output"
+    organ: "WELL"
+    tool: "well_assess_metabolism"
+    reversibility: "TIER_1"
+
+  - pattern: "homeostasis|stable|regulation|balance"
+    organ: "WELL"
+    tool: "well_assess_homeostasis"
+    reversibility: "TIER_1"
+
+  - pattern: "substrate.*class|H-well|M-well|C-well|G-well"
+    organ: "WELL"
+    tool: "well_classify_substrate"
+    reversibility: "TIER_1"
+
+  - pattern: "gradient|measure.*change|rate.*shift"
+    organ: "WELL"
+    tool: "well_measure_gradient"
+    reversibility: "TIER_1"
+
+  - pattern: "repair.*cycle|recovery|autonomic"
+    organ: "WELL"
+    tool: "well_check_repair"
+    reversibility: "TIER_1"
+
+  - pattern: "livelihood|meaning|role|purpose|vocational"
+    organ: "WELL"
+    tool: "well_assess_livelihood"
+    reversibility: "TIER_1"
+
+  - pattern: "machine.*reliability|m-well|server.*health"
+    organ: "WELL"
+    tool: "well_assess_reliability"
+    reversibility: "TIER_1"
+
+  - pattern: "lineage|provenance|evidence.*trace"
+    organ: "WELL"
+    tool: "well_trace_lineage"
+    reversibility: "TIER_1"
+
+  - pattern: "boundary.*detect|threshold.*cross|limit"
+    organ: "WELL"
+    tool: "well_detect_boundary"
+    reversibility: "TIER_1"
+
+  - pattern: "vitality|validate.*state|alive.*check"
+    organ: "WELL"
+    tool: "well_validate_vitality"
+    reversibility: "TIER_2"
+
+  # arifOS — Constitutional Kernel patterns
+  - pattern: "which organ|route|where.*go|what.*tool"
+    organ: "arifOS"
+    tool: "arif_kernel_route"
+    reversibility: "TIER_1"
+
+  - pattern: "session.*init|start.*session|bootstrap"
+    organ: "arifOS"
+    tool: "arif_session_init"
+    reversibility: "TIER_1"
+
+  - pattern: "search|web.*find|look.*up|internet"
+    organ: "arifOS"
+    tool: "arif_sense_observe"
+    reversibility: "TIER_1"
+
+  - pattern: "fetch.*evidence|cite|source|external.*data"
+    organ: "arifOS"
+    tool: "arif_evidence_fetch"
+    reversibility: "TIER_1"
+
+  - pattern: "reason|think|analyze|hypothesize|plan"
+    organ: "arifOS"
+    tool: "arif_mind_reason"
+    reversibility: "TIER_1"
+
+  - pattern: "memory|recall|past.*session|vector"
+    organ: "arifOS"
+    tool: "arif_memory_recall"
+    reversibility: "TIER_1"
+
+  - pattern: "ethical|consequence|impact|heart.*critique"
+    organ: "arifOS"
+    tool: "arif_heart_critique"
+    reversibility: "TIER_1"
+
+  - pattern: "vps.*health|system.*metrics|thermodynamic"
+    organ: "arifOS"
+    tool: "arif_ops_measure"
+    reversibility: "TIER_1"
+
+  - pattern: "judge|deliberate|verdict|seal.*hold|void"
+    organ: "arifOS"
+    tool: "arif_judge_deliberate"
+    reversibility: "TIER_3"
+
+  - pattern: "forge|execute|build|run.*approved"
+    organ: "arifOS"
+    tool: "arif_forge_execute"
+    reversibility: "TIER_3"
+
+  - pattern: "seal.*vault|vaul999|immutable.*record|anchor"
+    organ: "arifOS"
+    tool: "arif_vault_seal"
+    reversibility: "TIER_3"
+
+  - pattern: "compose.*response|reply|format.*output"
+    organ: "arifOS"
+    tool: "arif_reply_compose"
+    reversibility: "TIER_1"
+
+  - pattern: "bridge|gateway|connect.*organ"
+    organ: "arifOS"
+    tool: "arif_gateway_connect"
+    reversibility: "TIER_1"
+
+  - pattern: "federation.*health|all.*servers|system.*check"
+    organ: "arifOS"
+    tool: "mcp_health_check"
+    reversibility: "TIER_1"
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 4: MULTI-SUBSTRATE / CONFLICT RULES
+# ─────────────────────────────────────────────────────────────────
+
+conflict_resolution:
+
+  - scenario: "task mentions WEALTH + GEOX simultaneously"
+    example: "value of this geology find"
+    resolution: "Route GEOX first for evidence, then WEALTH for valuation"
+    order: ["GEOX", "WEALTH"]
+    reason: "Evidence before valuation — truth before fluency (L1)"
+
+  - scenario: "task mentions WELL + any technical organ"
+    example: "am i ready to review this NPV"
+    resolution: "Route WELL first for readiness, then route to technical organ"
+    order: ["WELL", "arifOS", "WEALTH"]
+    reason: "Coupled readiness gate — human bandwidth is a precondition"
+
+  - scenario: "task mentions A-FORGE without prior SEAL"
+    example: "build and deploy this"
+    resolution: "BLOCK — route to arif_judge_deliberate first"
+    order: ["arifOS"]
+    reason: "A-FORGE is execution-only after SEAL — never direct"
+
+  - scenario: "task is multi-organ with no dominant signal"
+    example: "evaluate this opportunity holistically"
+    resolution: "Route arif_kernel_route for deliberate organ selection"
+    order: ["arifOS"]
+    reason: "Kernel must classify before routing"
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 5: REVERSIBILITY GATE — ROUTING CONSTRAINT
+# ─────────────────────────────────────────────────────────────────
+
+reversibility_gate:
+
+  TIER_3_IRREVERSIBLE_instruments:
+    - "arif_judge_deliberate"  # 888 — must precede arif_forge_execute
+    - "arif_forge_execute"      # 010 — requires prior SEAL
+    - "arif_vault_seal"         # 999 — appends to immutable ledger
+    - "wealth_governance_verdict" # WEALTH Ω-11 — capital allocation
+    - "wealth_hysteresis_ledger" # WEALTH Ω-12 — path-dependent state
+    - "wealth_ledger_write"      # WEALTH Ω-12 — irreversible append
+    - "well_validate_vitality"   # WELL — state change on biological record
+    - "well_guard_dignity"       # WELL — dignity state transition
+    - "geox_data_ingest_bundle"  # GEOX — data ingestion (reversible only if QC fails)
+    - "geox_dst_ingest_test"     # GEOX — DST ingestion
+
+  routing_constraint:
+    description: "Any TIER_3 route must enforce 888_JUDGE gate"
+    enforcement: "arif_kernel_route returns 'HOLD' verdict and blocks execution path"
+    exception: "arif_vault_seal and arif_judge_deliberate are their own gatekeepers"
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 6: ROUTING VERBS — WHAT HAPPENS AT EACH STAGE
+# ─────────────────────────────────────────────────────────────────
+
+stage_routing:
+
+  "000_INIT":
+    must_run: "arif_session_init"
+    then: "Proceed to SENSE"
+
+  "111_SENSE":
+    must_run: "arif_sense_observe"
+    then: "Proceed to EVIDENCE"
+
+  "222_EVIDENCE":
+    fallback: "arif_evidence_fetch"
+    if: "arif_sense_observe returns insufficient evidence"
+
+  "333_REASON":
+    must_run: "arif_mind_reason"
+    then: "Proceed to ROUTE"
+
+  "444_ROUTE":
+    must_run: "arif_kernel_route"
+    routing_logic: "keyword_substrate_map + task_patterns"
+    then: "Dispatch to organ-specific tool"
+
+  "555_MEMORY":
+    optional: "arif_memory_recall"
+    if: "prior sessions or sealed events are relevant"
+
+  "666_GOVERN":
+    must_run: "arif_heart_critique"
+    if: "consequential action or ethical risk detected"
+    bridge_check: "arif_gateway_connect if cross-organ"
+
+  "777_MEASURE":
+    optional: "arif_ops_measure"
+    if: "runtime health or VPS state is relevant to decision"
+
+  "888_JUDGE":
+    must_run: "arif_judge_deliberate"
+    if: "action is TIER_3 or HIGH_STAKES_GATE triggered"
+    verdict_must_be: "SEAL | PARTIAL | SABAR | HOLD | VOID"
+
+  "010_EXECUTE":
+    requires: "prior SEAL from 888"
+    tool: "arif_forge_execute"
+
+  "999_SEAL":
+    requires: "completed consequential action"
+    tool: "arif_vault_seal"
+
+# ─────────────────────────────────────────────────────────────────
+# SEAL
+# ─────────────────────────────────────────────────────────────────
+
+seal: "DITEMPA BUKAN DIBERI"
+verified_at: "2026-05-26T12:55:00+08:00"
+source: "arifOS Federation Orthogonal Tool Map v2026.05.26"
+registry_ref: "/root/arifOS/registry/federation_registry.json"

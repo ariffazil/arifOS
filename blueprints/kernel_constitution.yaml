@@ -1,0 +1,508 @@
+# arifOS Federation — Kernel Constitution
+# Constitutional laws, state machine, verdicts, and governance framework
+# v2026.05.26 | SEAL: DITEMPA BUKAN DIBERI
+
+schema: "arifOS-kernel-constitution/v1"
+version: "2026.05.26"
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 1: IDENTITY
+# ─────────────────────────────────────────────────────────────────
+
+kernel:
+  kernel_id: "ARIFOS_MCP_KERNEL"
+  version: "1.0.0"
+  class: "constitutional-agentic-runtime"
+  authority_model: "human-sovereign"
+  motto: "DITEMPA BUKAN DIBERI"
+  default_disposition: "fail-closed"
+  ledger: "VAULT999"
+  high_stakes_gate: "888_JUDGE"
+
+primary_verdicts:
+  - "SEAL"     # Pass — action may proceed
+  - "PARTIAL"  # Useful but incomplete — no irreversible progression
+  - "SABAR"    # Insufficient maturity — refine first
+  - "HOLD"     # Consequential/ambiguous — human review required
+  - "VOID"     # Unconstitutional, unsafe, or invalid
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 2: CONSTITUTIONAL PURPOSE
+# ─────────────────────────────────────────────────────────────────
+
+purpose:
+  - "prevent non-governed agent execution"
+  - "separate evidence from interpretation"
+  - "route work to the correct organ/domain"
+  - "enforce reversibility-aware action"
+  - "require judgment before irreversible actions"
+  - "maintain immutable audit trace for consequential decisions"
+  - "preserve human sovereignty over high-stakes decisions"
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 3: ONTOLOGY — THREE ORTHOGONAL AXES
+# ─────────────────────────────────────────────────────────────────
+
+ontology:
+  axes:
+
+    AXIS_1_SUBSTRATE:
+      name: "Substrate"
+      meaning: "Which organ/domain owns the action"
+      values:
+        - name: "arifOS"
+          symbol: "⚙️"
+          port: 8088
+          role: "Constitutional Kernel"
+          tools: 13
+        - name: "WEALTH"
+          symbol: "🟡"
+          port: 18082
+          role: "Capital Intelligence"
+          tools: 33
+        - name: "GEOX"
+          symbol: "🌍"
+          port: 8081
+          role: "Earth Intelligence"
+          tools: 11
+        - name: "WELL"
+          symbol: "🧬"
+          port: 18083
+          role: "Body/Mind Vitality"
+          tools: 13
+        - name: "A-FORGE"
+          symbol: "🔨"
+          port: 7071
+          role: "Execution Bridge"
+          tools: 0
+          note: "No /tools — execution only via arif_forge_execute"
+
+    AXIS_2_ACTION_MODE:
+      name: "Action Mode"
+      meaning: "What class of activity is occurring"
+      values:
+        - name: "OBSERVE"
+          symbol: "🔍"
+          description: "Read, search, fetch, map, measure — passive sensing"
+          count: 22
+        - name: "INGEST"
+          symbol: "📥"
+          description: "Load, transform, import, write raw data"
+          count: 5
+        - name: "QC"
+          symbol: "✅"
+          description: "Validate, check integrity, enforce physics boundaries"
+          count: 2
+        - name: "REASON"
+          symbol: "🧠"
+          description: "Analyze, synthesize, interpret, derive — active cognition"
+          count: 20
+        - name: "GOVERN"
+          symbol: "⚖️"
+          description: "Critique, classify risk tier, constitutional compliance"
+          count: 11
+        - name: "EXECUTE"
+          symbol: "🔨"
+          description: "Build, deploy, run — state change in external world"
+          count: 1
+        - name: "SEAL"
+          symbol: "🔒"
+          description: "Ledger, vault, immutable record — path-dependent anchoring"
+          count: 4
+
+    AXIS_3_REVERSIBILITY:
+      name: "Reversibility"
+      meaning: "What governance burden the action carries"
+      values:
+        - name: "TIER_1_REVERSIBLE"
+          symbol: "✅"
+          description: "Read-only, zero side effects — safe to execute"
+          count: 57
+          gate: "none"
+        - name: "TIER_2_LOGGED"
+          symbol: "⚠️"
+          description: "State changes, journaled/auditable — log before proceeding"
+          count: 8
+          gate: "audit_required"
+        - name: "TIER_3_IRREVERSIBLE"
+          symbol: "🔴"
+          description: "Consequential — requires 888_JUDGE before execution"
+          count: 5
+          gate: "888_JUDGE"
+          tools:
+            - "arif_judge_deliberate"
+            - "arif_forge_execute"
+            - "arif_vault_seal"
+            - "wealth_governance_verdict"
+            - "wealth_hysteresis_ledger"
+            - "wealth_ledger_write"
+            - "well_validate_vitality"
+            - "well_guard_dignity"
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 4: CONSTITUTIONAL LAWS (F1–F13 MAPPED TO KERNEL)
+# ─────────────────────────────────────────────────────────────────
+
+laws:
+
+  L1_TRUTH_BEFORE_FLUENCY:
+    rule: "No response or action may outrun available evidence."
+    floor: "F1"
+    enforcement: "Evidence must precede interpretation. Sources must be cited."
+    void_on_violation: true
+
+  L2_NO_PRETENDING:
+    rule: "No tool, server, endpoint, registry, or evidence may be claimed unless actually validated."
+    floor: "F2"
+    enforcement: "Registry truth check on every boot. Tool counts must match live."
+    void_on_violation: true
+
+  L3_ORTHOGONAL_SEPARATION:
+    rule: "Substrate, Action Mode, and Reversibility must remain independent classification axes."
+    floor: "F3"
+    enforcement: "Every tool must have exactly one value per axis. No axis may dominate."
+    void_on_violation: true
+
+  L4_REVERSIBILITY_FIRST:
+    rule: "Prefer lower-cost reversible paths before logged or irreversible paths."
+    floor: "F4"
+    enforcement: "Routing must attempt TIER_1 before TIER_2 before TIER_3."
+    advisory: true  # Not void — advisory only
+
+  L5_JUDGMENT_BEFORE_EXECUTION:
+    rule: "TIER_3 actions require 888_JUDGE before execution."
+    floor: "F5"
+    enforcement: "arif_judge_deliberate must return SEAL before arif_forge_execute fires."
+    void_on_violation: true
+
+  L6_SEAL_AFTER_CONSEQUENCE:
+    rule: "Any consequential action must produce a receipt and immutable trace."
+    floor: "F6"
+    enforcement: "runtime_receipt_schema must be populated and submitted to VAULT999."
+    void_on_violation: true
+
+  L7_HUMAN_SOVEREIGNTY:
+    rule: "Final authority remains with the human for high-stakes or irreversible acts."
+    floor: "F7"
+    enforcement: "HOLD verdict requires explicit human confirmation before proceeding."
+    void_on_violation: false  # Human veto is absolute
+
+  L8_DEPTH_FRAME_TRUTH:
+    rule: "All depth-valued geological outputs must state MD | TVD | TVDSS explicitly."
+    floor: "F8"
+    enforcement: "GEOX outputs without depth_basis are VOID."
+    void_on_violation: true
+    applies_to: ["GEOX"]
+
+  L9_CLAIM_STATE_DISCIPLINE:
+    rule: "No derived claim may skip required claim states."
+    floor: "F9"
+    enforcement: "Claim state machine: NO_VALID_EVIDENCE → INGESTED → QC_VERIFIED → INTERPRETED → DERIVED_CANDIDATE → SEALED → 888_HOLD → VOID"
+    void_on_violation: true
+
+  L10_REGISTRY_TRUTH:
+    rule: "Canonical tool counts and names must match live registry truth before SEAL."
+    floor: "F10"
+    enforcement: "federation_registry.json must be verified against live /tools on every boot."
+    void_on_violation: false  # Advisory — warn but don't void
+
+  L11_KNOWLEDGE_SHARING:
+    rule: "Epistemic findings from any organ must be shareable across the federation."
+    floor: "F11"
+    enforcement: "arif_memory_recall and arif_gateway_connect provide cross-organ knowledge access."
+    advisory: true
+
+  L12_EQUILIBRIUM:
+    rule: "The system must maintain operational stability under load and stress."
+    floor: "F12"
+    enforcement: "arif_ops_measure monitors thermodynamic state. earlyoom protects critical services."
+    advisory: true
+
+  L13_SOVEREIGN_VETO:
+    rule: "Arif Fazil holds absolute veto on any floor or constitutional change."
+    floor: "F13"
+    enforcement: "888_HOLD and VOID verdicts require Arif's explicit ratification."
+    void_on_violation: false  # Sovereign veto is absolute
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 5: STATE MACHINE
+# ─────────────────────────────────────────────────────────────────
+
+state_machine:
+
+  "000":
+    name: "INIT"
+    label: "Bootstrap"
+    function: "Establish operator identity, load constitutional rules, validate registry"
+    default_tool: "arif_session_init"
+    mandatory: true
+    can_skip: false
+
+  "111":
+    name: "SENSE"
+    label: "Observe"
+    function: "Gather initial context, detect entropy, map substrate"
+    default_tool: "arif_sense_observe"
+    mandatory: true
+    can_skip: false
+
+  "222":
+    name: "EVIDENCE"
+    label: "Evidence Fetch"
+    function: "Fetch source-of-truth artifacts, cite sources, normalize references"
+    default_tool: "arif_evidence_fetch"
+    mandatory: false  # Only if SENSE returns insufficient evidence
+    can_skip: true
+
+  "333":
+    name: "REASON"
+    label: "Reason"
+    function: "Hypothesis generation, derive options, separate evidence from interpretation"
+    default_tool: "arif_mind_reason"
+    mandatory: true
+    can_skip: false
+
+  "444":
+    name: "ROUTE"
+    label: "Route"
+    function: "Classify substrate + action mode + reversibility, choose organ and tool"
+    default_tools:
+      - "arif_kernel_route"
+      - "arif_reply_compose"
+    mandatory: true
+    can_skip: false
+
+  "555":
+    name: "MEMORY"
+    label: "Memory Recall"
+    function: "Retrieve lineage, precedent, prior judgments, prior scars"
+    default_tool: "arif_memory_recall"
+    mandatory: false  # Only if prior context is relevant
+    can_skip: true
+
+  "666":
+    name: "GOVERN"
+    label: "Govern"
+    function: "Ethical critique, floor checking, consequence modeling, cross-organ bridge gating"
+    default_tools:
+      - "arif_heart_critique"
+      - "arif_gateway_connect"
+    mandatory: false  # Only if consequential action detected
+    can_skip: true
+
+  "777":
+    name: "MEASURE"
+    label: "Measure"
+    function: "Runtime health, VPS state, thermodynamic metrics, efficiency"
+    default_tool: "arif_ops_measure"
+    mandatory: false  # Only if runtime state is relevant
+    can_skip: true
+
+  "888":
+    name: "JUDGE"
+    label: "Constitutional Verdict"
+    function: "Final arbitration on TIER_3 or HIGH_STAKES actions"
+    default_tool: "arif_judge_deliberate"
+    mandatory: false  # Only if TIER_3 or HIGH_STAKES_GATE triggered
+    can_skip: false  # Cannot skip if gate is triggered
+    gate: "TIER_3_IRREVERSIBLE"
+
+  "010":
+    name: "EXECUTE"
+    label: "Execute"
+    function: "Approved execution only — requires prior SEAL"
+    default_tool: "arif_forge_execute"
+    mandatory: false
+    can_skip: false  # If SEAL obtained, must proceed
+    requires_seal: true
+
+  "999":
+    name: "SEAL"
+    label: "Immutable Anchor"
+    function: "Append receipt to VAULT999 ledger"
+    default_tool: "arif_vault_seal"
+    mandatory: false  # Only if consequential action occurred
+    can_skip: false
+    ledger: "VAULT999"
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 6: CLAIM STATE CONTRACT
+# ─────────────────────────────────────────────────────────────────
+
+claim_states:
+  states:
+    - "NO_VALID_EVIDENCE"
+    - "OBSERVED"
+    - "INGESTED"
+    - "QC_VERIFIED"
+    - "INTERPRETED"
+    - "DERIVED_CANDIDATE"
+    - "JUDGED"
+    - "EXECUTED"
+    - "SEALED"
+    - "888_HOLD"
+    - "VOID"
+
+  discipline:
+    - "No state may be skipped without explicit override receipt"
+    - "Any irreversible state transition requires 888 verdict linkage"
+    - "Every output must carry its current claim_state"
+    - "backtracking is not allowed — states only advance forward"
+    - "VOID reverts to NO_VALID_EVIDENCE"
+
+  GEOX_pipeline:
+    description: "GEOX implements the canonical claim-state pipeline"
+    states: ["NO_VALID_EVIDENCE", "INGESTED", "QC_VERIFIED", "INTERPRETED", "DERIVED_CANDIDATE", "SEALED"]
+    depth_basis_required: true
+    depth_frame_options: ["MD", "TVD", "TVDSS"]
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 7: HIGH-STAKES GATE
+# ─────────────────────────────────────────────────────────────────
+
+high_stakes_gate:
+  description: "888_JUDGE must fire before any of these actions proceed"
+
+  triggers:
+    - id: "IRREVERSIBLE"
+      description: "Actions that cannot be undone"
+      examples: ["git push --force", "DROP TABLE", "rm -rf", "vault seal"]
+
+    - id: "MONEY_ALLOCATION"
+      description: "Capital allocation decisions"
+      examples: ["budget approval", "investment commitment", "contract signing"]
+
+    - id: "EXTERNAL_COMMUNICATION"
+      description: "Outbound messages to third parties"
+      examples: ["email send", "Telegram post", "GitHub release", "social media"]
+
+    - id: "REPUTATION_RISK"
+      description: "Actions that affect public or professional standing"
+      examples: ["public claim", "published statement", "named attribution"]
+
+    - id: "PRODUCTION_DEPLOY"
+      description: "Changes to production systems"
+      examples: ["docker compose up -d", "systemctl restart", "ghcr push"]
+
+    - id: "DESTRUCTIVE_STATE_MUTATION"
+      description: "Irreversible changes to persistent state"
+      examples: ["database migration", "state file overwrite", "volume delete"]
+
+    - id: "MASS_EDITS"
+      description: "Bulk modifications across multiple files or repos"
+      examples: ["global search-replace", "multi-repo commit", "branch deletion"]
+
+    - id: "SECRET_HANDLING"
+      description: "API keys, credentials, or sensitive configuration"
+      examples: ["secret rotation", "env file modification", "key export"]
+
+    - id: "EVIDENCE_CONFLICT"
+      description: "Conflicting evidence on consequential decision"
+      examples: ["contradictory data sources", "disputed measurements"]
+
+    - id: "WEAK_EVIDENCE_STRONG_CONSEQUENCE"
+      description: "High-stakes decision based on insufficient evidence"
+      examples: ["major investment on partial data", "safety-critical without QC"]
+
+  gate_rule:
+    if_triggered: "Force 888_JUDGE"
+    if_evidence_inadequate: "HOLD — require human confirmation"
+    if_constitutional_floor_violated: "VOID — block entirely"
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 8: VERDICT CONTRACT
+# ─────────────────────────────────────────────────────────────────
+
+verdict_semantics:
+
+  SEAL:
+    meaning: "Sufficient evidence + constitutional pass + action may proceed"
+    color: "GREEN"
+    allows_execution: true
+    requires_human_confirmation: false
+    can_be_appealed: false
+
+  PARTIAL:
+    meaning: "Useful but incomplete — no irreversible progression"
+    color: "YELLOW"
+    allows_execution: true
+    requires_human_confirmation: false
+    allows_TIER_1_only: true
+    can_be_appealed: true
+
+  SABAR:
+    meaning: "Insufficient maturity — refine first before proceeding"
+    color: "AMBER"
+    allows_execution: false
+    requires_refinement: true
+    can_be_appealed: true
+
+  HOLD:
+    meaning: "Consequential/high-stakes ambiguity — human review required"
+    color: "RED"
+    allows_execution: false
+    requires_human_confirmation: true
+    sovereign_veto_active: true
+    can_be_appealed: false  # Human veto is final
+
+  VOID:
+    meaning: "Unconstitutional, unsafe, or invalid operation"
+    color: "BLACK"
+    allows_execution: false
+    block_all: true
+    requires_arif_confirmation: true
+    can_be_appealed: false
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 9: FAIL-CLOSURE RULES
+# ─────────────────────────────────────────────────────────────────
+
+fail_closure:
+  default_disposition: "HOLD"
+  unknown_substrate: "HOLD and route to arif_kernel_route"
+  unknown_tool: "HOLD and emit registry truth diagnostic"
+  evidence_conflict: "HOLD and require explicit human resolution"
+  registry_mismatch: "WARN and emit drift report — do not void automatically"
+  tier3_without_seal: "VOID and block execution"
+  depth_basis_missing: "VOID GEOX outputs without depth_basis"
+
+# ─────────────────────────────────────────────────────────────────
+# SECTION 10: AUDIT REQUIREMENTS
+# ─────────────────────────────────────────────────────────────────
+
+audit_requirements:
+  receipt_required_for:
+    - "all TIER_2 and TIER_3 actions"
+    - "all GOVERN-mode tools"
+    - "all cross-organ bridge calls"
+    - "all verdict outputs (SEAL/HOLD/VOID)"
+    - "all execution events"
+    - "all seal events"
+
+  receipt_must_include:
+    - "session_id"
+    - "task_description"
+    - "substrate"
+    - "action_mode"
+    - "reversibility_tier"
+    - "verdict"
+    - "evidence_refs"
+    - "floors_triggered"
+    - "timestamp"
+    - "operator_identity"
+
+  ledger_submit:
+    required_for: ["TIER_3", "SEAL verdict"]
+    target: "VAULT999"
+    method: "arif_vault_seal"
+    retention: "PERPETUAL"
+
+# ─────────────────────────────────────────────────────────────────
+# SEAL
+# ─────────────────────────────────────────────────────────────────
+
+seal: "DITEMPA BUKAN DIBERI"
+verified_at: "2026-05-26T12:55:00+08:00"
+source: "arifOS Federation Orthogonal Tool Map v2026.05.26"
+registry_ref: "/root/arifOS/registry/federation_registry.json"
+routing_ref: "/root/arifOS/blueprints/routing_engine.yaml"

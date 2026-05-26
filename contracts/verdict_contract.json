@@ -1,0 +1,245 @@
+{
+  "schema": "arifOS-verdict-contract/v1",
+  "version": "2026.05.26",
+  "purpose": "Canonical input/output schema for 888_JUDGE constitutional arbitration via arif_judge_deliberate",
+
+  "input_schema": {
+    "type": "object",
+    "required": ["candidate", "session_id", "actor_id"],
+    "properties": {
+      "candidate": {
+        "type": "object",
+        "description": "The proposed action to be judged",
+        "required": ["action_description", "substrate", "action_mode", "reversibility"],
+        "properties": {
+          "action_description": {
+            "type": "string",
+            "description": "Plain-language description of what the action does"
+          },
+          "tool_name": {
+            "type": "string",
+            "description": "Canonical tool name that would execute this action",
+            "examples": ["arif_forge_execute", "wealth_governance_verdict", "geox_data_ingest_bundle"]
+          },
+          "substrate": {
+            "type": "string",
+            "description": "AXIS 1: Organ classification",
+            "enum": ["arifOS", "WEALTH", "GEOX", "WELL", "A-FORGE", "UNKNOWN"]
+          },
+          "action_mode": {
+            "type": "string",
+            "description": "AXIS 2: What class of action",
+            "enum": ["OBSERVE", "INGEST", "QC", "REASON", "GOVERN", "EXECUTE", "SEAL"]
+          },
+          "reversibility": {
+            "type": "string",
+            "description": "AXIS 3: Governance burden",
+            "enum": ["TIER_1_REVERSIBLE", "TIER_2_LOGGED", "TIER_3_IRREVERSIBLE"]
+          },
+          "organ": {
+            "type": "string",
+            "description": "Which organ owns this tool",
+            "examples": ["arifOS", "WEALTH", "GEOX", "WELL"]
+          }
+        }
+      },
+      "session_id": {
+        "type": "string",
+        "description": "Governed session ID from arif_session_init",
+        "pattern": "^SEAL-[0-9]{4}-[0-9]{2}-[0-9]{2}-[A-Z0-9]+$",
+        "examples": ["SEAL-2026-05-26-001"]
+      },
+      "actor_id": {
+        "type": "string",
+        "description": "Identity of the actor requesting this action",
+        "default": "ARIF",
+        "examples": ["ARIF", "agent/kimi", "agent/claude", "AAA/gateway"]
+      },
+      "constitutional_chain_id": {
+        "type": ["string", "null"],
+        "description": "Optional chain linking to prior verdict for cascading decisions"
+      },
+      "evidence_bundle": {
+        "type": "object",
+        "description": "Evidence supporting or contradicting this action",
+        "properties": {
+          "evidence_refs": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "List of source citations or artifact references"
+          },
+          "provenance": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source": {"type": "string"},
+                "tool": {"type": "string"},
+                "timestamp": {"type": "string"},
+                "claim_state": {"type": "string"}
+              }
+            }
+          },
+          "contradictions": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Known conflicts or inconsistencies in evidence"
+          },
+          "confidence_level": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Confidence that evidence supports this action"
+          }
+        }
+      },
+      "risks": {
+        "type": "object",
+        "properties": {
+          "reversibility_risk": {
+            "type": "string",
+            "enum": ["NONE", "LOW", "MEDIUM", "HIGH", "TOTAL"]
+          },
+          "blast_radius": {
+            "type": "string",
+            "description": "Scope of impact if action goes wrong",
+            "examples": ["single file", "single repo", "federation", "production", "irreversible"]
+          },
+          "recovery_time": {
+            "type": "string",
+            "description": "How long to recover if action fails",
+            "examples": ["seconds", "minutes", "hours", "days", "irrecoverable"]
+          },
+          "human_impact": {
+            "type": "string",
+            "enum": ["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
+          },
+          "financial_impact": {
+            "type": "string",
+            "enum": ["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
+          }
+        }
+      },
+      "alternatives": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "alternative_description": {"type": "string"},
+            "tool_name": {"type": "string"},
+            "reversibility": {"type": "string"},
+            "tradeoffs": {"type": "string"}
+          }
+        },
+        "description": "Other possible approaches to achieve the same goal with lower risk"
+      },
+      "claimed_evidence_level": {
+        "type": "string",
+        "description": "Actor's self-assessment of evidence quality",
+        "enum": ["ANECDOTAL", "CORROBORATED", "VERIFIED", "MEASURED", "DIRECT"],
+        "default": "ANECDOTAL"
+      }
+    }
+  },
+
+  "output_schema": {
+    "type": "object",
+    "description": "Verdict output from arif_judge_deliberate",
+    "properties": {
+      "verdict": {
+        "type": "string",
+        "description": "The constitutional verdict",
+        "enum": ["SEAL", "PARTIAL", "SABAR", "HOLD", "VOID"],
+        "examples": ["SEAL", "HOLD", "VOID"]
+      },
+      "justification": {
+        "type": "string",
+        "description": "Reasoned explanation for the verdict in plain language"
+      },
+      "floors_triggered": {
+        "type": "array",
+        "items": {"type": "string"},
+        "description": "F1–F13 floors that were checked and their status",
+        "examples": [["F1: PASS", "F5: PASS", "F9: PASS"], ["F5: FAIL"]]
+      },
+      "floors_summary": {
+        "type": "object",
+        "description": "Per-floor breakdown",
+        "properties": {
+          "F1_TRUTH_BEFORE_FLUENCY": {"type": "string", "enum": ["PASS", "FAIL", "N/A"]},
+          "F2_NO_PRETENDING": {"type": "string", "enum": ["PASS", "FAIL", "N/A"]},
+          "F3_ORTHOGONAL_SEPARATION": {"type": "string", "enum": ["PASS", "FAIL", "N/A"]},
+          "F5_JUDGMENT_BEFORE_EXECUTION": {"type": "string", "enum": ["PASS", "FAIL", "N/A"]},
+          "F6_SEAL_AFTER_CONSEQUENCE": {"type": "string", "enum": ["PASS", "FAIL", "N/A"]},
+          "F7_HUMAN_SOVEREIGNTY": {"type": "string", "enum": ["PASS", "FAIL", "N/A"]},
+          "F8_DEPTH_FRAME_TRUTH": {"type": "string", "enum": ["PASS", "FAIL", "N/A"]},
+          "F9_CLAIM_STATE_DISCIPLINE": {"type": "string", "enum": ["PASS", "FAIL", "N/A"]},
+          "F13_SOVEREIGN_VETO": {"type": "string", "enum": ["PASS", "FAIL", "N/A"]}
+        }
+      },
+      "next_safe_action": {
+        "type": "string",
+        "description": "What the actor should do next given the verdict",
+        "examples": [
+          "Proceed to arif_forge_execute with SEAL receipt",
+          "Refine evidence_bundle and resubmit",
+          "Obtain ARIF's explicit confirmation before proceeding",
+          "Block — action violates constitutional floor"
+        ]
+      },
+      "receipt_id": {
+        "type": ["string", "null"],
+        "description": "Immutable receipt ID for this verdict (null if HOLD/VOID)"
+      },
+      "session_id": {
+        "type": "string",
+        "description": "Session this verdict belongs to"
+      },
+      "verdict_timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 timestamp of verdict"
+      },
+      "judge_state_hash": {
+        "type": "string",
+        "description": "Hash of judge state for audit integrity"
+      },
+      "alternative_recommended": {
+        "type": ["object", "null"],
+        "description": "If verdict is HOLD/VOID, a suggested lower-risk alternative",
+        "properties": {
+          "alternative_description": {"type": "string"},
+          "tool_name": {"type": "string"},
+          "reversibility": {"type": "string"}
+        }
+      },
+      "human_confirmation_required": {
+        "type": "boolean",
+        "description": "Whether explicit ARIF confirmation is needed before proceeding",
+        "default": false
+      },
+      "appeal_possible": {
+        "type": "boolean",
+        "description": "Whether this verdict can be appealed",
+        "default": false
+      },
+      "void_reason": {
+        "type": ["string", "null"],
+        "description": "If verdict is VOID, the specific constitutional violation",
+        "examples": ["F5 violated: TIER_3 action attempted without prior SEAL", "F8 violated: GEOX output missing depth_basis"]
+      }
+    }
+  },
+
+  "registry": {
+    "tool": "arif_judge_deliberate",
+    "server": "arifOS",
+    "port": 8088,
+    "endpoint": "/mcp",
+    "transport": "streamable-http",
+    "stage": "888",
+    "reversibility": "TIER_3_IRREVERSIBLE",
+    "high_stakes_gate": true,
+    "seal_ref": "DITEMPA BUKAN DIBERI"
+  }
+}
