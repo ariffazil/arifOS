@@ -44,7 +44,7 @@ from dotenv import load_dotenv  # noqa: E402
 
 _env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
 if os.path.exists(_env_path):
-    load_dotenv(_env_path)
+    load_dotenv(_env_path, override=False)  # systemd EnvironmentFile wins
 
 _llm_client = sys.modules.get("arifosmcp.runtime.llm_client")
 if _llm_client is not None:
