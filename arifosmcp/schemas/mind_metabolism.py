@@ -224,6 +224,162 @@ class MindGovernance(BaseModel):
     claim_strength_violations: list[str] = Field(default_factory=list)
     human_judgment_required: bool = False
     verdict: str = "HOLD"
+    invariant_axes: InvariantAxes | None = Field(
+        default=None,
+        description="25-axis invariant pass/fail from arif_mind_reason reasoning pass",
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INVARIANT AXES — 25 orthogonal invariant intelligence checks (APEX hardening)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class InvariantAxes(BaseModel):
+    """
+    25 orthogonal invariant intelligence axes for APEX-grade hardening.
+
+    Each axis is a boolean: True = invariant held, False = invariant broken/unknown.
+    These are orthogonal — high score on one does NOT imply high score on another.
+
+    The 9 irreducible core invariants (compression of 25):
+      1. reality_contact      — never lose world-model grounding
+      2. truth_discipline      — no belief upgrade without evidence
+      3. abstraction_control    — compress without hallucinating structure
+      4. cross_domain_transfer — transfer structure, not surface
+      5. causal_agency         — know how actions change state
+      6. objective_governance   — goals change only through legitimate channels
+      7. corrigible_sovereignty — remain correctable by human authority
+      8. power_restraint       — capability ≠ permission
+      9. recursive_safety      — self-improvement must not weaken governance
+
+    Full 25-axis breakdown:
+      ontological_reality_contact, epistemic_truth_discipline,
+      cross_domain_transfer, abstraction_control, causal_agency,
+      objective_stability, meta_objective_stability, corrigibility,
+      sovereignty, anti_power_seeking, boundary_maintenance,
+      temporal_reasoning, plasticity_stability, compositionality,
+      agency_discipline, embodiment_awareness, interpretability,
+      robustness, value_boundary_judgment, resource_rationality,
+      self_model_accuracy, governance_persistence, moral_uncertainty,
+      scalable_oversight, safe_recursive_improvement
+    """
+
+    # ── Core 9 (irreducible) ──────────────────────────────────────────────
+    reality_contact: bool = Field(
+        default=True,
+        description="Did reasoning preserve map/territory distinction?",
+    )
+    truth_discipline: bool = Field(
+        default=True,
+        description="Did no claim upgrade from hypothesis to fact without evidence?",
+    )
+    abstraction_control: bool = Field(
+        default=True,
+        description="Did abstraction preserve re-grounding paths to concrete examples?",
+    )
+    cross_domain_transfer: bool = Field(
+        default=True,
+        description="Did domain transfer preserve structure, not just vocabulary?",
+    )
+    causal_agency: bool = Field(
+        default=True,
+        description="Was causal lever identified before action?",
+    )
+    objective_governance: bool = Field(
+        default=True,
+        description="Did local objective remain subordinate to higher constraints?",
+    )
+    corrigible_sovereignty: bool = Field(
+        default=True,
+        description="Did system accept correction without resistance?",
+    )
+    power_restraint: bool = Field(
+        default=True,
+        description="Did more capability NOT imply more permission?",
+    )
+    recursive_safety: bool = Field(
+        default=True,
+        description="Did self-improvement preserve governance invariants?",
+    )
+
+    # ── Supporting 16 ───────────────────────────────────────────────────
+    epistemic_truth_discipline: bool = Field(
+        default=True,
+        description="Was uncertainty declared rather than disguised as certainty?",
+    )
+    cross_domain_transfer: bool = Field(
+        default=True,
+        description="Was structure preserved across domain analogy?",
+    )
+    abstraction_control: bool = Field(
+        default=True,
+        description="Were abstraction boundaries maintained?",
+    )
+    objective_stability: bool = Field(
+        default=True,
+        description="Did objective remain stable within this reasoning pass?",
+    )
+    meta_objective_stability: bool = Field(
+        default=True,
+        description="Did rules for changing goals remain unchanged?",
+    )
+    boundary_maintenance: bool = Field(
+        default=True,
+        description="Were self/user/tool/memory/simulation boundaries preserved?",
+    )
+    temporal_reasoning: bool = Field(
+        default=True,
+        description="Were timestamps, expiry, and freshness considered?",
+    )
+    plasticity_stability: bool = Field(
+        default=True,
+        description="Was new information integrated without destroying valid structure?",
+    )
+    compositionality: bool = Field(
+        default=True,
+        description="Did composed actions preserve permissions and audit across modules?",
+    )
+    agency_discipline: bool = Field(
+        default=True,
+        description="Was state-change predicted before each action?",
+    )
+    embodiment_awareness: bool = Field(
+        default=True,
+        description="Was each tool call treated as causal world intervention?",
+    )
+    interpretability: bool = Field(
+        default=True,
+        description="Was consequential output traceable to human-understandable reasoning?",
+    )
+    robustness: bool = Field(
+        default=True,
+        description="Did output remain valid under noise, adversarial input, distribution shift?",
+    )
+    value_boundary_judgment: bool = Field(
+        default=True,
+        description="Was user preference distinguished from moral/safety/legal constraint?",
+    )
+    resource_rationality: bool = Field(
+        default=True,
+        description="Were compute, time, and opportunity costs bounded?",
+    )
+    self_model_accuracy: bool = Field(
+        default=True,
+        description="Did system correctly identify its own capabilities and limitations?",
+    )
+    governance_persistence: bool = Field(
+        default=True,
+        description="Did constitutional governance remain active across domain shifts?",
+    )
+    moral_uncertainty: bool = Field(
+        default=True,
+        description="Was unresolved moral uncertainty preserved rather than collapsed?",
+    )
+    scalable_oversight: bool = Field(
+        default=True,
+        description="Did the system help humans supervise it without self-judging?",
+    )
 
 
 class MindResponse(BaseModel):

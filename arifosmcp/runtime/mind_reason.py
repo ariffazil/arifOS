@@ -96,6 +96,22 @@ Your ROLE is to behave as a REASONING WITNESS:
 - Acknowledge uncertainty explicitly
 - NEVER return "SEAL" (that is for 888_JUDGE only)
 
+INVARIANT AXES — 25 orthogonal checks for APEX-grade hardening:
+These are ORTHOGONAL — high score on one does NOT imply high score on another.
+The FALSE CHAIN to reject: scale → intelligence → truth → alignment → governance.
+The 9 irreducible invariants: (1) reality_contact — never lose map/territory distinction;
+(2) truth_discipline — no belief upgrade without evidence; (3) abstraction_control — compress
+without hallucinating re-grounding paths; (4) cross_domain_transfer — transfer structure not
+surface; (5) causal_agency — know how actions change state before acting; (6) objective_governance —
+local objective remains subordinate to higher constraints; (7) corrigible_sovereignty —
+accept correction without resistance; (8) power_restraint — capability ≠ permission;
+(9) recursive_safety — self-improvement preserves governance invariants.
+Supporting 16: epistemic_truth_discipline, cross_domain_transfer, abstraction_control,
+objective_stability, meta_objective_stability, boundary_maintenance, temporal_reasoning,
+plasticity_stability, compositionality, agency_discipline, embodiment_awareness,
+interpretability, robustness, value_boundary_judgment, resource_rationality,
+self_model_accuracy, governance_persistence, moral_uncertainty, scalable_oversight.
+
 MODES:
 - reason: General reasoning
 - reflect: Interpretive / philosophical / biographical reflection
@@ -206,6 +222,39 @@ RESPONSE_SCHEMA = {
         },
         "axioms_used": {"type": "array", "items": {"type": "string"}},
         "next_safe_action": {"type": "array", "items": {"type": "string"}},
+        "invariant_pass": {
+            "type": "object",
+            "description": "25-axis invariant pass/fail. All should be True. Any False = HOLD + escalate.",
+            "properties": {
+                "reality_contact": {"type": "boolean"},
+                "truth_discipline": {"type": "boolean"},
+                "abstraction_control": {"type": "boolean"},
+                "cross_domain_transfer": {"type": "boolean"},
+                "causal_agency": {"type": "boolean"},
+                "objective_governance": {"type": "boolean"},
+                "corrigible_sovereignty": {"type": "boolean"},
+                "power_restraint": {"type": "boolean"},
+                "recursive_safety": {"type": "boolean"},
+                "epistemic_truth_discipline": {"type": "boolean"},
+                "objective_stability": {"type": "boolean"},
+                "meta_objective_stability": {"type": "boolean"},
+                "boundary_maintenance": {"type": "boolean"},
+                "temporal_reasoning": {"type": "boolean"},
+                "plasticity_stability": {"type": "boolean"},
+                "compositionality": {"type": "boolean"},
+                "agency_discipline": {"type": "boolean"},
+                "embodiment_awareness": {"type": "boolean"},
+                "interpretability": {"type": "boolean"},
+                "robustness": {"type": "boolean"},
+                "value_boundary_judgment": {"type": "boolean"},
+                "resource_rationality": {"type": "boolean"},
+                "self_model_accuracy": {"type": "boolean"},
+                "governance_persistence": {"type": "boolean"},
+                "moral_uncertainty": {"type": "boolean"},
+                "scalable_oversight": {"type": "boolean"},
+                "safe_recursive_improvement": {"type": "boolean"},
+            },
+        },
     },
     "required": ["status", "claim_state", "synthesis", "reasoning", "confidence"],
 }
@@ -221,6 +270,7 @@ _FIELD_PROVENANCE_LLM = {
     "uncertainty": "llm_generated_array",
     "axioms_used": "llm_generated_defaulted_if_empty",
     "next_safe_action": "llm_generated_defaulted_if_empty",
+    "invariant_pass": "llm_generated_object_defaulted_if_empty",
     "reasoning_mode": "runtime_metadata",
     "_llm_tier": "runtime_metadata",
     "timestamp": "runtime_metadata",
@@ -235,6 +285,7 @@ _FIELD_PROVENANCE_FALLBACK = {
     "uncertainty": "code_derived_fallback_warning",
     "axioms_used": "code_derived_empty_default",
     "next_safe_action": "code_derived_empty_default",
+    "invariant_pass": "code_derived_empty_object",
     "reasoning_mode": "runtime_metadata",
     "timestamp": "runtime_metadata",
 }
