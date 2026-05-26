@@ -2074,7 +2074,7 @@ def _probe_graphiti_enabled() -> bool:
         import urllib.request
 
         req = urllib.request.Request(
-            "http://graphiti-mcp:8000/mcp",
+            "http://localhost:8000/mcp",
             data=json.dumps(
                 {
                     "jsonrpc": "2.0",

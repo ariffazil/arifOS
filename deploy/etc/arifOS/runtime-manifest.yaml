@@ -1,25 +1,26 @@
 # /etc/arifOS/runtime-manifest.yaml
-# Canonical FHS contract for arifOS container runtime
-# SOURCE: git arifosmcp/ → BUILD → container /etc/arifOS/ (this file)
+# Canonical FHS contract for arifOS BARE-METAL systemd runtime
+# SOURCE: git arifosmcp/ → pip install -e . → /opt/arifos/venv/lib/python3.12/site-packages/
+#         config files → /etc/arifOS/ (git-tracked in etc/arifOS/)
 # Agents: read this before reasoning about file placement. This is the law.
 
-version: "v2026.05.19"
+version: "v2026.05.26"
 constitution: "F1-F13"
 anti_proliferation: true
 
 # ── BUILD BOUNDARY CONTRACT ──────────────────────────────────────────────────
-# git source tree → container runtime path
-# arifosmcp/ → /usr/lib/arifOS/ (pip install -e .)
-# arifosmcp/contracts/ → /etc/arifOS/contracts/ (COPY at build)
-# arifosmcp/specs/ → /etc/arifOS/specs/ (COPY at build)
-# arifosmcp/*.json → /etc/arifOS/ (COPY at build)
+# git source tree → bare-metal runtime path
+# arifosmcp/ → /opt/arifos/venv/lib/python3.12/site-packages/ (pip install -e .)
+# arifosmcp/contracts/ → /etc/arifOS/contracts/ (git-tracked in etc/arifOS/)
+# arifosmcp/specs/ → /etc/arifOS/specs/ (git-tracked in etc/arifOS/)
+# arifosmcp/*.json → /etc/arifOS/ (git-tracked in etc/arifOS/)
 # NEVER from git: → /var/lib/arifOS/ (runtime only, Supabase-backed)
 # NEVER from git: → /run/arifOS/ (ephemeral, process-generated)
 # NEVER from git: → /tmp/arifOS/ (ephemeral, process-generated)
 
 build_map:
   source_root: "arifosmcp/"
-  install_target: "/usr/lib/arifOS/"
+  install_target: "/opt/arifos/venv/lib/python3.12/site-packages/"
   config_sources:
     - pattern: "arifosmcp/contracts/**"
       target: "/etc/arifOS/contracts/"
@@ -30,27 +31,24 @@ build_map:
   never_in_git:
     - "/var/lib/arifOS/**"   # VAULT999, session state → Supabase
     - "/run/arifOS/**"        # PID files, sockets → process-generated
-    - "/tmp/arifOS/**"        # ephemeral computation → discarded on container restart
+    - "/tmp/arifOS/**"        # ephemeral computation → discarded on restart
 
 # ── ANTI-PROLIFERATION RULE ──────────────────────────────────────────────────
 # Every new Python file MUST go into an organ subpackage.
 # Flat .py files at arifosmcp/ root are FORBIDDEN except:
 #   - __init__.py (package anchor)
-#   - run.py        (Docker CMD entrypoint)
-#   - server.py     (MCP server binary → /usr/bin/arifos-mcp at build)
+#   - server.py     (MCP server entry point, systemd unit: arifos.service)
 # Any agent adding a flat .py at root is violating this contract.
 
 allowed_root_files:
   - "__init__.py"
-  - "run.py"
   - "server.py"
   - "pyproject.toml"
   - "requirements.txt"
   - "uv.lock"
-  - "Dockerfile"
-  - "docker-compose.yml"
   - ".env.example"
   - ".gitignore"
+  - "arifos.service"    # systemd unit (bare-metal, not container)
 
 # ── 13 CANONICAL MCP TOOLS ────────────────────────────────────────────────────
 # These are the ONLY tools registered in /usr/bin/arifOS/ (MCP entry points).
@@ -103,7 +101,7 @@ filesystem:
     contents: ["constitution/", "contracts/", "specs/", "*.json"]
     rule: "No Python logic here. Config and contracts only."
 
-  /usr/lib/arifOS/:
+  /opt/arifos/venv/lib/python3.12/site-packages/:
     description: "Installed package code (pip install -e .)"
     git_path: "arifosmcp/"
     rule: "Internal names do NOT become public tool names."
@@ -181,10 +179,10 @@ verdict:
 # Update this file, re-seal, rebuild.
 
 manifest_accuracy: "LIVE"
-last_verified: "2026-05-19T00:00:00Z"
+last_verified: "2026-05-26T00:00:00Z"
 
 # ============================================================
 # Forged by Arif Fazil · Seri Kembangan, MY · May 2026
-# Architecture: 13 Tools · 13 Floors · FHS Runtime · Trinity ΔΩΨ
+# Architecture: 13 Tools · 13 Floors · Bare-Metal systemd Runtime · Trinity ΔΩΨ
 # DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 # ============================================================

@@ -1,5 +1,20 @@
 # arifOS Deployment Guide
 
+> ⚠️ **DEPRECATED — CONTAINER ERA (2026.04)**
+>
+> This directory describes the **Docker/container deployment era** of arifOS.
+> arifOS now runs as **bare-metal systemd** on VPS af-forge.
+>
+> **Current architecture:**
+> - arifOS kernel: `/opt/arifos/venv/bin/python -m arifosmcp` (systemd)
+> - WEALTH: `localhost:18082` (systemd)
+> - WELL: `localhost:18083` (systemd)
+> - arifosd: `localhost:18081` (systemd)
+> - A-FORGE: `localhost:7071` (systemd)
+> - Docker: supporting services only (postgres, redis, qdrant, graphiti-mcp)
+>
+> **This directory is retained as historical record.** Do not deploy from these configs.
+>
 > **Version**: 2026.04.11
 > **Authority**: 000_THEORY, 888_APEX
 > **DITEMPA BUKAN DIBERI**
