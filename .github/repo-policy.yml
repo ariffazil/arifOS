@@ -1,0 +1,23 @@
+# repo-policy.yml — canonical governance policy for this repository
+# Consumed by: repo-hygiene-weekly.yml (drift detection), CODEOWNERS, human review
+# Do not edit without updating required_checks in branch protection (gh api).
+
+repo: arifOS
+tier: infra
+
+# Tier definitions:
+#   infra     — CI + secrets + manifest + deploy guard + seal
+#   core      — CI + boundary/forge + routing
+#   package   — CI + publish validation + routing
+#   site      — audit + deploy build + routing
+#   experimental — CI + routing only
+
+required_checks: ["arifOS Unified CI", "AAA Seal Integrity", "F11 — Gitleaks Full History Scan", "🔌 MCP Conformance", "🛡️ Sentinel Gate", "Repo Routing Validation"]
+
+optional_checks: ["deploy", "07-publish-pypi", "04-uptime-monitor", "prune-images"]
+
+policy_exceptions: ~
+
+drift_check: enabled
+
+# Updated: 2026-05-26

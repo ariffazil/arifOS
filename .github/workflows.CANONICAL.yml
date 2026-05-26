@@ -55,7 +55,7 @@ canonical_workflows:
     can_deploy: false
 
   - filename: sentinel-premerge-gate.yml
-    purpose: Pre-merge semantic gate — 3-question block: critical paths, forbidden paths, SABAR state
+    purpose: "Pre-merge semantic gate — 3-question block: critical paths, forbidden paths, SABAR state"
     runs_on: [pull_request main, merge_group]
     required_check: 🛡️ Sentinel Gate
     risk: low

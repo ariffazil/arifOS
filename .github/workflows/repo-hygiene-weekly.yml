@@ -29,6 +29,22 @@ jobs:
         run: |
           set -euo pipefail
 
+          # ── Policy compliance ─────────────────────────────────────────
+          POLICY=".github/repo-policy.yml"
+          if [ -f "$POLICY" ]; then
+            TIER=$(grep "^tier:" "$POLICY" | awk '{print $2}')
+            REQ_COUNT=$(grep -A 20 "^required_checks:" "$POLICY" | grep -c "^  -" || echo 0)
+            POLICY_STATUS="✅ tier=$TIER, $REQ_COUNT required checks declared"
+          else
+            POLICY_STATUS="❌ repo-policy.yml missing"
+          fi
+
+          if [ -f ".github/workflows.CANONICAL.yml" ]; then
+            MANIFEST_STATUS="✅ present"
+          else
+            MANIFEST_STATUS="❌ workflows.CANONICAL.yml missing"
+          fi
+
           # ── PR metrics ────────────────────────────────────────────────
           open_prs=$(gh pr list --repo "$REPO" --state open --json number --jq 'length')
           stale_prs=$(gh pr list --repo "$REPO" --state open \
@@ -39,18 +55,18 @@ jobs:
             --json number --jq 'length')
 
           # ── Workflow health ───────────────────────────────────────────
-          CANONICAL="01-unified-ci.yml 02-aaa-seal.yml 03-secrets-gate.yml
+          CANONICAL_WFS="01-unified-ci.yml 02-aaa-seal.yml 03-secrets-gate.yml
             04-uptime-monitor.yml 05-law-sync.yml 06-mcp-conformance.yml
             07-publish-pypi.yml auto-merge-dependabot.yml deploy.yml
             sentinel-premerge-gate.yml repo-routing-validation.yml
             repo-hygiene-weekly.yml prune-images.yml"
 
-          FORBIDDEN="ci.yml ci-unified.yml live_tests.yml aaa-seal-check.yml
+          FORBIDDEN_WFS="ci.yml ci-unified.yml live_tests.yml aaa-seal-check.yml
             secrets-scan.yml 888-judge.yml"
 
           canonical_ok=true
           canonical_missing=""
-          for wf in $CANONICAL; do
+          for wf in $CANONICAL_WFS; do
             if [ ! -f ".github/workflows/$wf" ]; then
               canonical_ok=false
               canonical_missing="$canonical_missing $wf"
@@ -58,7 +74,7 @@ jobs:
           done
 
           forbidden_found=""
-          for wf in $FORBIDDEN; do
+          for wf in $FORBIDDEN_WFS; do
             if [ -f ".github/workflows/$wf" ]; then
               forbidden_found="$forbidden_found $wf"
             fi
@@ -81,9 +97,13 @@ jobs:
           report_file=report.md
           {
             echo "## 🔬 Automation Health Digest — $(date '+%Y-%m-%d')"
-            echo
+            echo ""
             echo "**Overall:** $verdict"
-            echo
+            echo ""
+            echo "### Policy Compliance"
+            echo "- repo-policy.yml: $POLICY_STATUS"
+            echo "- Canonical manifest: $MANIFEST_STATUS"
+            echo ""
             echo "### Workflow Stack"
             if [ "$canonical_ok" = "true" ]; then
               echo "- ✅ All 13 canonical workflows present"
@@ -95,40 +115,40 @@ jobs:
             else
               echo "- ❌ Forbidden workflows found:$forbidden_found"
             fi
-            echo
+            echo ""
             echo "### CI Health (Last 7 Days)"
             echo "- Failed workflow runs: $failed_count"
             if [ "$failed_count" -gt 0 ]; then
               echo "$failed_runs" | jq -r '.[] | "  - \(.name) — \(.time)"' | head -10
             fi
-            echo
+            echo ""
             echo "### PR Metrics"
             echo "- Open PRs: $open_prs"
             echo "- Stale PRs (>14d no update): $stale_pr_count"
             echo "- Open Dependabot PRs: $dep_prs"
-            echo
+            echo ""
             if [ "$stale_pr_count" -gt 0 ]; then
               echo "### Stale PR Candidates"
               echo "$stale_prs" | jq -r \
                 '.[] | "- #\(.number) \(.title) (updated: \(.updatedAt | split("T")[0]))"'
-              echo
+              echo ""
             fi
             echo "### Checklist"
             echo "- [ ] All required checks passing on main"
             echo "- [ ] No forbidden workflows present"
-            echo "- [ ] Dependabot PRs reviewed/merged"
+            echo "- [ ] Dependabot PRs reviewed or merged"
             echo "- [ ] Dead branches pruned"
-            echo "- [ ] Secrets/token hygiene verified"
+            echo "- [ ] Secrets and token hygiene verified"
           } > "$report_file"
 
-          issue_title="Weekly Repo Hygiene"
+          issue_title="Weekly Automation Health — $(date '+%Y-%m-%d')"
           existing=$(gh issue list --repo "$REPO" --state open \
-            --search "in:title $issue_title" --json number --jq '.[0].number // empty')
+            --search "in:title Weekly Automation Health" --json number --jq '.[0].number // empty')
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --repo "$REPO" --body-file "$report_file"
             echo "Updated issue #$existing"
           else
-            gh issue create --repo "$REPO" --title "$issue_title" --body-file "$report_file" \
-              --label "maintenance"
+            gh issue create --repo "$REPO" --title "$issue_title" \
+              --body-file "$report_file" --label "automation"
             echo "Created hygiene issue"
           fi

@@ -1,32 +1,10 @@
-# CODEOWNERS — arifOS Constitutional Repo
-# All PRs to these paths require @ariffazil review.
+# CODEOWNERS — automation and governance surfaces require Arif's review
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-# Constitutional governance kernel
-arifosmcp/constitutional_map.py     @ariffazil
-arifosmcp/tool_registry.json        @ariffazil
-arifosmcp/runtime/                  @ariffazil
-core/                               @ariffazil
-
-# Floors and judgment
-arifosmcp/core/                     @ariffazil
-tests/constitutional/               @ariffazil
-tests/test_*floor*.py               @ariffazil
-tests/test_*vault*.py               @ariffazil
-tests/test_*judge*.py               @ariffazil
-
-# Deployment, secrets, CI
-pyproject.toml                      @ariffazil
-.github/workflows/                  @ariffazil
-.gitmodules                         @ariffazil
-Dockerfile                          @ariffazil
-docker-compose.yml                  @ariffazil
-config/                             @ariffazil
-
-# Identity canon
-AGENTS.md                           @ariffazil
-PUBLIC_SURFACE_CANON.md             @ariffazil
-CANONICAL_PATHS.md                  @ariffazil
-VAULT999/                           @ariffazil
-
-# Default — all files owned by Arif
-*                                   @ariffazil
+# All automation and governance files — protected
+/.github/                          @ariffazil
+/.github/workflows/                @ariffazil
+/.github/dependabot.yml            @ariffazil
+/.github/workflows.CANONICAL.yml   @ariffazil
+/.github/repo-policy.yml           @ariffazil
+/.github/CODEOWNERS                @ariffazil
