@@ -273,6 +273,7 @@ try:
 
     # Refresh the public registry cache after all canonical tools are registered
     from arifosmcp.runtime.public_registry import _runtime_contracts
+
     _runtime_contracts.cache_clear()
 
     # ── arifOS Wiki Tools Forge (repo comprehension) ─────────────────────────
@@ -298,8 +299,7 @@ try:
             mcp.tool(
                 name="arif_wiki_map",
                 description=(
-                    "Get a structural map of an indexed repository. "
-                    "Run arif_wiki_ingest first."
+                    "Get a structural map of an indexed repository. Run arif_wiki_ingest first."
                 ),
                 tags={"utility", "read-only"},
             )(_map_repo)
@@ -308,8 +308,7 @@ try:
             mcp.tool(
                 name="arif_wiki_search",
                 description=(
-                    "Search the wiki index for scored evidence chunks. "
-                    "Run arif_wiki_ingest first."
+                    "Search the wiki index for scored evidence chunks. Run arif_wiki_ingest first."
                 ),
                 tags={"utility", "read-only"},
             )(_search_index)
@@ -341,19 +340,17 @@ try:
 
             mcp.tool(
                 name="arif_stack_health_probe",
-                description=(
-                    "Probe federation health: arifOS, organs, vault, and model registry."
-                ),
+                description=("Probe federation health: arifOS, organs, vault, and model registry."),
                 tags={"diagnostic", "read-only"},
             )(_arif_stack_health_probe)
 
-            from arifosmcp.tools.organ_consensus import arif_organ_consensus as _arif_organ_consensus
+            from arifosmcp.tools.organ_consensus import (
+                arif_organ_consensus as _arif_organ_consensus,
+            )
 
             mcp.tool(
                 name="arif_organ_consensus",
-                description=(
-                    "Request cross-organ consensus from WELL, WEALTH, and GEOX."
-                ),
+                description=("Request cross-organ consensus from WELL, WEALTH, and GEOX."),
                 tags={"diagnostic", "read-only"},
             )(_arif_organ_consensus)
 
@@ -363,9 +360,7 @@ try:
 
             mcp.tool(
                 name="arif_scan_local_instructions",
-                description=(
-                    "Scan files for hidden instructions or governance violations."
-                ),
+                description=("Scan files for hidden instructions or governance violations."),
                 tags={"diagnostic", "read-only"},
             )(_arif_scan_local_instructions)
 
@@ -373,9 +368,7 @@ try:
 
             mcp.tool(
                 name="arif_session_budget",
-                description=(
-                    "Check token, compute, and financial budget for this session."
-                ),
+                description=("Check token, compute, and financial budget for this session."),
                 tags={"diagnostic", "read-only"},
             )(_arif_session_budget)
 
@@ -395,9 +388,7 @@ try:
 
                 mcp.tool(
                     name="arif_floor_status",
-                    description=(
-                        "Report the current state of all 13 constitutional floors."
-                    ),
+                    description=("Report the current state of all 13 constitutional floors."),
                     tags={"diagnostic", "read-only", "perception"},
                 )(_arif_floor_status)
                 logger.info("Registered arif_floor_status")
@@ -406,7 +397,9 @@ try:
 
             # ── mcp_drift_check (PHOENIX-72 readiness) ──────────────────────────
             try:
-                from arifosmcp.tools.drift_check import arif_mcp_drift_check as _arif_mcp_drift_check
+                from arifosmcp.tools.drift_check import (
+                    arif_mcp_drift_check as _arif_mcp_drift_check,
+                )
 
                 mcp.tool(
                     name="mcp_drift_check",
@@ -504,11 +497,11 @@ async def federation_status_json(request: Request) -> JSONResponse:
     return JSONResponse({"status": "ok"})
 
 
-app = mcp.http_app(transport="streamable-http", stateless_http=True, json_response=True)
+app = mcp.http_app(transport="streamable-http", stateless_http=False, json_response=True)
 if app:
-    # PHOENIX-73C: StatelessGetRejectMiddleware MUST be first — it intercepts
-    # GET /mcp before the MCP SDK's singleton SSE stream handler is reached.
-    app.add_middleware(StatelessGetRejectMiddleware)
+    # PHOENIX-73C FIX: stateless_http=False enables proper session management.
+    # Each client gets its own session; no more GET_STREAM_KEY singleton conflict.
+    # StatelessGetRejectMiddleware removed — SSE streaming now works via sessions.
     app.add_middleware(GlobalPanicMiddleware)
     app.add_middleware(CORSMiddleware, allow_origins=["*"])
     # /health is registered by register_rest_routes() below with full thermodynamic schema
