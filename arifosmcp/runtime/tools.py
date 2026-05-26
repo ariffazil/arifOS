@@ -2644,14 +2644,37 @@ def _arif_session_init(
     declared_model_key: str | None = None,
     actor_signature: str | None = None,
     nonce: str | None = None,
+    # ── PHASE 2 FIELDS: counterparty, context, evidence, tooling ──────────────
+    counterparty: dict | None = None,
+    #   {"type": "human"|"agent"|"institution"|"earth_measurement",
+    #    "id": str|None, "display": str|None,
+    #    "verification_status": "verified"|"claimed"|"unknown",
+    #    "principal": str|None}
+    context: dict | None = None,
+    #   {"timezone": str|None, "spatial_context": str|None,
+    #    "host_id": str|None, "inside_outside": "inside"|"remote"|"unknown",
+    #    "memory_requested": bool, "memory_window": ["today","yesterday"]|None}
+    evidence: dict | None = None,
+    #   {"mode": "strict"|"standard"|"exploratory",
+    #    "godel_lock": bool, "obs_der_int_spec": bool,
+    #    "uncertainty_required": bool}
+    tooling: dict | None = None,
+    #   {"requested_capabilities": [str], "declared_mcp_targets": [str]}
 ) -> dict[str, Any]:
     """
-    000_INIT: Constitutional session bootstrap and identity binding.
+    000_INIT: Constitutional session bootstrap — three-phase binding.
 
-    Anchors a new governed session to the 13-floor constitution (F1–F13).
-    Every session receives a unique ID, actor binding, and a constitutional
-    fingerprint (constitution_hash + invariants_hash). This is the entry gate
-    for all subsequent tool calls.
+    Phase 1 (bind_identity_and_constitution):
+      Verifies actor identity, constitution hash, nonce freshness.
+      Returns a provisional session_id.
+
+    Phase 2 (bind_context_and_counterparty):
+      Binds counterparty type/id, spatial/timezone context, evidence policy,
+      and tooling targets. Computes memory_loaded and mcp_sessions_wired.
+
+    Phase 3 (resolve_capabilities_and_degradation):
+      Determines allowed_tools, wired targets, and session verdict
+      (STABLE / DEGRADED_*). Produces the full session receipt.
 
     Modes:
       init        — Create a new session with full constitutional binding.
@@ -2668,12 +2691,17 @@ def _arif_session_init(
       epoch_id          — Epoch identifier (optional for init; required for epoch_seal)
       declared_model_key — Optional model key (provider/family/variant) for registry binding.
       actor_signature   — Ed25519/ES256 signature over (session_id + constitution_hash + nonce)
-      nonce            — Unique nonce to prevent replay attacks (recommended; required for high-security)
+      nonce             — Unique nonce to prevent replay attacks (recommended; required for high-security)
+      counterparty      — Counterparty type, id, display, verification status, principal (Phase 2)
+      context           — Timezone, spatial context, host_id, inside/outside, memory window (Phase 2)
+      evidence          — Evidence mode, Gödel lock, OBS/DER/INT/SPEC policy, uncertainty requirement (Phase 2)
+      tooling           — Requested capabilities and declared MCP targets (Phase 2)
 
     Returns:
-      SessionState with constitution_id, constitution_hash, public_surface,
-      authority level, next_allowed_tools, and epoch binding.
-      Includes signature_verified and constitution_bound flags for F1/F11 compliance.
+      Session receipt with: session_id, counterparty_receipt, context_receipt,
+      evidence_receipt, tool_binding (allowed + wired + degraded), memory_receipt,
+      constitution, and session_verdict. Phase 1 only produces a provisional
+      receipt; Phase 3 produces the full STABLE/DEGRADED_* receipt.
     """
     # EUREKA EMBODIMENT FIX: explicit null handling before floor check
     # P0: null actor_id should produce clear error, not silent coercion
@@ -2920,6 +2948,189 @@ def _arif_session_init(
             sess["memory_loaded"] = memory_loaded
         except Exception as exc:
             logger.warning("Memory bootstrap failed: %s", exc)
+
+        # ════════════════════════════════════════════════════════════════════
+        # PHASE 2: bind_context_and_counterparty()
+        # ─────────────────────────────────────────────────────────────────
+        # Bind counterparty, spatial/timezone context, evidence policy,
+        # and tooling targets. Compute memory_loaded and mcp_sessions_wired.
+        # This phase converts the Phase-1 provisional session into a
+        # fully-bound session envelope with explicit degradation state.
+        # ════════════════════════════════════════════════════════════════════
+
+        # ── 2a: Counterparty binding ────────────────────────────────────────
+        _cp_in = counterparty or {}
+        _cp_type = _cp_in.get("type", "unknown") if _cp_in else "unknown"
+        _cp_id = _cp_in.get("id")
+        _cp_display = _cp_in.get("display")
+        _cp_verification = _cp_in.get("verification_status", "unknown")
+        _cp_principal = _cp_in.get("principal")
+
+        # Counterparty verdict: degraded if human/agent but not verified
+        _cp_verdict = "STABLE"
+        _cp_degraded_reason: str | None = None
+        if _cp_type in ("human", "agent") and _cp_verification != "verified":
+            _cp_verdict = "DEGRADED_C1_ONLY"
+            _cp_degraded_reason = f"counterparty.{_cp_type}.{_cp_verification}"
+        if _cp_type == "earth_measurement" and not _cp_in:
+            _cp_verdict = "HOLD_EVIDENCE_REQUIRED"
+            _cp_degraded_reason = "earth_measurement_requires_counterparty_binding"
+
+        _counterparty_receipt = {
+            "type": _cp_type,
+            "id": _cp_id,
+            "display": _cp_display,
+            "verification_status": _cp_verification,
+            "principal": _cp_principal,
+            "verdict": _cp_verdict,
+            "degraded_reason": _cp_degraded_reason,
+        }
+        sess["counterparty_type"] = _cp_type
+        sess["counterparty_id"] = _cp_id
+        sess["counterparty_verification"] = _cp_verification
+
+        # ── 2b: Context binding ──────────────────────────────────────────────
+        _ctx_in = context or {}
+        _tz = _ctx_in.get("timezone") or "UTC"
+        _spatial = _ctx_in.get("spatial_context") or "unknown"
+        _host_id = _ctx_in.get("host_id") or "unknown"
+        _inout = _ctx_in.get("inside_outside", "unknown")
+        _mem_req = _ctx_in.get("memory_requested", False)
+        _mem_win = _ctx_in.get("memory_window")
+
+        _ctx_verdict = "STABLE"
+        _ctx_degraded_reason: str | None = None
+        if not _ctx_in or (not _tz or _spatial == "unknown"):
+            _ctx_verdict = "DEGRADED_CONTEXT"
+            _ctx_degraded_reason = "missing_timezone_or_spatial_context"
+
+        _context_receipt = {
+            "timezone": _tz,
+            "spatial_context": _spatial,
+            "host_id": _host_id,
+            "inside_outside": _inout,
+            "memory_requested": _mem_req,
+            "memory_window": _mem_win,
+            "verdict": _ctx_verdict,
+            "degraded_reason": _ctx_degraded_reason,
+        }
+        sess["timezone"] = _tz
+        sess["spatial_context"] = _spatial
+        sess["inside_outside"] = _inout
+
+        # ── 2c: Evidence policy binding ─────────────────────────────────────
+        _ev_in = evidence or {}
+        _ev_mode = _ev_in.get("mode", "standard")
+        _ev_godel = _ev_in.get("godel_lock", True)
+        _ev_odis = _ev_in.get("obs_der_int_spec", False)
+        _ev_unc = _ev_in.get("uncertainty_required", False)
+
+        # Earth measurement requires explicit evidence mode
+        _ev_verdict = "STABLE"
+        _ev_degraded_reason: str | None = None
+        if _cp_type == "earth_measurement" and _ev_mode == "standard":
+            _ev_verdict = "HOLD_EVIDENCE_REQUIRED"
+            _ev_degraded_reason = "earth_measurement_requires_strict_evidence_mode"
+
+        _evidence_receipt = {
+            "mode": _ev_mode,
+            "godel_lock": _ev_godel,
+            "obs_der_int_spec": _ev_odis,
+            "uncertainty_required": _ev_unc,
+            "verdict": _ev_verdict,
+            "degraded_reason": _ev_degraded_reason,
+        }
+        sess["evidence_mode"] = _ev_mode
+        sess["godel_lock"] = _ev_godel
+
+        # ── 2d: Tooling binding ─────────────────────────────────────────────
+        _tl_in = tooling or {}
+        _tl_req_caps = _tl_in.get("requested_capabilities", [])
+        _tl_decl_mcp = _tl_in.get("declared_mcp_targets", [])
+
+        # Probe which MCP targets are actually reachable (localhost ports)
+        _mcp_ports = {
+            "arifos": 8088,
+            "geox": 18081,
+            "wealth": 18082,
+            "well": 18083,
+        }
+        _wired: dict[str, bool] = {}
+        try:
+            import socket as _sock
+            for _name, _port in _mcp_ports.items():
+                try:
+                    _s = _sock.socket(_sock.AF_INET, _sock.SOCK_STREAM)
+                    _s.settimeout(0.5)
+                    _result = _s.connect_ex(("127.0.0.1", _port))
+                    _s.close()
+                    _wired[_name] = _result == 0
+                except Exception:
+                    _wired[_name] = False
+        except Exception:
+            for _n in _mcp_ports:
+                _wired[_n] = False
+
+        _declared_but_not_wired = [t for t in _tl_decl_mcp if _wired.get(t, False) is False]
+        _tl_verdict = "STABLE"
+        _tl_degraded_reason: str | None = None
+        if _declared_but_not_wired:
+            _tl_verdict = "DEGRADED_NO_EXECUTION"
+            _tl_degraded_reason = f"declared_but_unreachable:{_declared_but_not_wired}"
+
+        _tooling_receipt = {
+            "requested_capabilities": _tl_req_caps,
+            "declared_mcp_targets": _tl_decl_mcp,
+            "wired": _wired,
+            "verdict": _tl_verdict,
+            "degraded_reason": _tl_degraded_reason,
+        }
+
+        # ── 2e: Memory receipt ──────────────────────────────────────────────
+        _memory_receipt = {
+            "requested": _mem_req,
+            "loaded": memory_loaded > 0,
+            "count": memory_loaded,
+            "window": _mem_win,
+            "verdict": "WARN_MEMORY_UNBOUND" if _mem_req and memory_loaded == 0 else "STABLE",
+            "reason": (
+                "memory_not_available_yet"
+                if _mem_req and memory_loaded == 0
+                else "ok"
+            ),
+        }
+
+        # ── 2f: Session verdict — aggregate all Phase-2 degradation ──────────
+        _degradation_flags = [
+            (_counterparty_receipt["verdict"], _counterparty_receipt["degraded_reason"]),
+            (_context_receipt["verdict"], _context_receipt["degraded_reason"]),
+            (_evidence_receipt["verdict"], _evidence_receipt["degraded_reason"]),
+            (_tooling_receipt["verdict"], _tooling_receipt["degraded_reason"]),
+            (_memory_receipt["verdict"], _memory_receipt["degraded_reason"]),
+        ]
+        _critical = [v for v, r in _degradation_flags if v in ("HOLD_EVIDENCE_REQUIRED",)]
+        _degraded = [v for v, r in _degradation_flags if v.startswith("DEGRADED")]
+
+        if _critical:
+            _session_verdict = "HOLD_EVIDENCE_REQUIRED"
+        elif _degraded:
+            _session_verdict = _degraded[0]  # first degradation tier
+        else:
+            _session_verdict = "STABLE"
+
+        # C2 requires all Phase-2 fields STABLE; downgrade to C1 on any degradation
+        _decision_class = "C1" if _degraded or _critical else "C2"
+        if sess.get("trace_packet"):
+            sess["trace_packet"]["decision_class"] = _decision_class
+        sess["session_verdict"] = _session_verdict
+        sess["decision_class"] = _decision_class
+
+        # ── 2g: Store Phase-2 receipts into session ─────────────────────────
+        sess["counterparty_receipt"] = _counterparty_receipt
+        sess["context_receipt"] = _context_receipt
+        sess["evidence_receipt"] = _evidence_receipt
+        sess["tooling_receipt"] = _tooling_receipt
+        sess["memory_receipt"] = _memory_receipt
 
         # H2: Store write acknowledgment
         store_ack = {"_SESSIONS": False, "_SESSION_IDENTITY": False}
@@ -3201,6 +3412,25 @@ def _arif_session_init(
             # Stage header
             "stage": "000_INIT",
             "purpose": "agentic_bootstrap",
+            # ── PHASE 2 RECEIPTS ───────────────────────────────────────────────
+            # counterparty: type, id, display, verification, principal
+            "counterparty_receipt": _counterparty_receipt,
+            # context: timezone, spatial_context, host_id, inside_outside, memory_window
+            "context_receipt": _context_receipt,
+            # evidence: mode, godel_lock, obs_der_int_spec, uncertainty_required
+            "evidence_receipt": _evidence_receipt,
+            # tool_binding: allowed_tools, declared_targets, wired (arifos/geox/wealth/well), degraded
+            "tool_binding": {
+                "allowed_tools": next_allowed_tools,
+                "declared_targets": _tl_decl_mcp,
+                "wired": _wired,
+                "degraded": _declared_but_not_wired,
+            },
+            # memory: requested, loaded, count, window
+            "memory_receipt": _memory_receipt,
+            # ── SESSION VERDICT ────────────────────────────────────────────────
+            "session_verdict": _session_verdict,
+            "decision_class": _decision_class,
             # Actor
             "actor": {
                 "claimed_id": actor_id,
@@ -3348,6 +3578,15 @@ def _arif_session_init(
                 "binding": binding,
                 "governance": governance,
                 "next_allowed_tools": next_allowed_tools,
+                # Phase 2 receipts (may be absent for pre-upgrade sessions)
+                "counterparty_receipt": sess.get("counterparty_receipt"),
+                "context_receipt": sess.get("context_receipt"),
+                "evidence_receipt": sess.get("evidence_receipt"),
+                "tool_binding": {
+                    "wired": sess.get("tooling_receipt", {}).get("wired", {}),
+                },
+                "memory_receipt": sess.get("memory_receipt"),
+                "session_verdict": sess.get("session_verdict", "STABLE"),
             },
             delta_S=0.0,
             session_id=session_id,
@@ -3368,6 +3607,15 @@ def _arif_session_init(
                 "governance": governance,
                 "next_allowed_tools": next_allowed_tools,
                 "session_valid": session_id in _SESSIONS,
+                # Phase 2 receipts (may be absent for pre-upgrade sessions)
+                "counterparty_receipt": _SESSIONS.get(session_id, {}).get("counterparty_receipt"),
+                "context_receipt": _SESSIONS.get(session_id, {}).get("context_receipt"),
+                "evidence_receipt": _SESSIONS.get(session_id, {}).get("evidence_receipt"),
+                "tool_binding": {
+                    "wired": _SESSIONS.get(session_id, {}).get("tooling_receipt", {}).get("wired", {}),
+                },
+                "memory_receipt": _SESSIONS.get(session_id, {}).get("memory_receipt"),
+                "session_verdict": _SESSIONS.get(session_id, {}).get("session_verdict", "STABLE"),
             },
             delta_S=0.0,
             session_id=session_id,
