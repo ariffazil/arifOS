@@ -177,56 +177,88 @@ arifOS/
 
 ## Tool Surface
 
-arifOS exposes **13 canonical tools** through the MCP shell. These are the
-only tools available to all agents — no exceptions.
+arifOS exposes exactly **13 canonical tools** through the public MCP shell (`https://arifos.arif-fazil.com/mcp`). These are the only tools exposed directly to public-facing agents like ChatGPT, ensuring zero-chaos governed interaction surfaces.
 
 ```
-╔══════════════════════════════════════════════════════════╗
-║              arifOS 13-Tool Canonical Surface           ║
-╠══════════════════════════════════════════════════════════╣
-║ 000 INIT   — Session binding + identity verification      ║
-║ 111 AGI    — OpenClaw reasoning engine                  ║
-║ 222 ASI    — Hermes execution layer                       ║
-║ 333 APEX   — APEXMax judgment engine                     ║
-║ 444 ROUT   — Operational execution                        ║
-║ 555 WEALTH — Financial domain reasoning                  ║
-║ 666 GEOX   — Geoscience domain reasoning                  ║
-║ 777 VAL    — Value computation + invariant checks          ║
-║ 888 JUDGE  — Human authorization gate (irreversible ops) ║
-║ 999 SEAL   — Verdict emission + audit trail              ║
-║ 000_α META — Metadata operations                         ║
-║ 111_α SYS  — System introspection                         ║
-║ 222_α REG  — Registry operations                         ║
-╚══════════════════════════════════════════════════════════╝
+╔═════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                                        arifOS 13-Tool Canonical Public Surface                                  ║
+╠═════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ arif_session_init   — 000_INIT    │ AGI │ F01, F11, F12 │ Session bootstrap + identity binding. Call FIRST.    ║
+║ arif_sense_observe   — 111_OBSERVE │ AGI │ F02, F07      │ Web search, local wiki/repo map discovery (read-only)║
+║ arif_evidence_fetch — 222_EVIDENCE│ AGI │ F02, F03, F05 │ Verified external evidence fetch with SOT citation.  ║
+║ arif_mind_reason    — 333_REASON  │ AGI │ F02, F07, F08 │ Symbolic, self-critiquing reasoning.                 ║
+║ arif_heart_critique — 444_CRITIQUE│ ASI │ F05, F06, F09 │ Ethical critique & consequence modeling.             ║
+║ arif_kernel_route   — 555_ROUTE   │ AGI │ F01, F04, F03 │ Route intent to correct tool or federation organ.    ║
+║ arif_reply_compose  — 444_REPLY   │ AGI │ F04, F06, F09 │ Governed response composition and calibration.       ║
+║ arif_memory_recall  — 555m_MEMORY │ AGI │ F01, F08      │ Associative memory & vector recall across sessions.   ║
+║ arif_gateway_connect— 666_GATEWAY │ ASI │ F01, F03      │ Federated cross-agent bridge to GEOX/WEALTH/WELL.    ║
+║ arif_judge_deliberate— 888_JUDGE   │ ASI │ F11, F13      │ Final constitutional arbitration (SEAL/HOLD/VOID).   ║
+║ arif_vault_seal     — 999_SEAL    │ APEX│ F01, F11, F13 │ Immutable ledger anchoring to VAULT999.              ║
+║ arif_forge_execute  — 666_FORGE   │ AGI │ F01, F11, F13 │ Build execution (code generation & modification).   ║
+║ arif_ops_measure    — 777_MEASURE │ AGI │ F04           │ VPS system resource health & thermodynamic metrics.  ║
+╚═════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 ```
 
-Full tool registry: `APEX/ASF1/tool_registry.json` (69KB canonical registry)
-Orthogonal matrix: `APEX/ASF1/orthogonal_matrix_33.yaml`
+Each tool's scope and allowed parameter types are strictly governed under **F10 ONTOLOGY** schemas (see `arifOS/arifosmcp/constitutional_map.py` for exact schemas).
 
 ---
 
 ## Constitutional Floor Gates
 
-arifOS enforces 13 constitutional floors (F1-F13). Each floor has a
-specific gate function that must pass before execution proceeds.
+arifOS enforces 13 constitutional floors (F1-F13). Each floor represents a mathematical theorem, physical law, or strict code implementation (not heuristic prompt engineering) derived from `EUREKA_INSIGHTS_SEAL_v2026.04.07`.
 
-| Floor | Name | Gate Type | Description |
-|-------|------|-----------|-------------|
-| F1 | INIT | Session | Session binding verification |
-| F2 | F2_TRUTH | Evidential | F2 ground truth verification |
-| F3 | IDENTITY | Principal | Principal identity confirmation |
-| F4 | JURISDICTION | Domain | Domain jurisdiction check |
-| F5 | BUDGET | Thermodynamic | W_scar budget allocation |
-| F6 | TIMELINESS | Temporal | Temporal constraint check |
-| F7 | SEMANTIC_GATE | Intent | F14 semantic intent classification |
-| F8 | EXECUTION_GATE | Tier | Command tier classification (T0-T3) |
-| F9 | VAL_GATE | Value | Value alignment verification |
-| F10 | GOVERNANCE | Constitutional | Constitutional compliance |
-| F11 | WITNESS | Tri-Witness | Tri-Witness coherence check |
-| F12 | TRI_GODEL | Gödel | Gödel incompleteness boundary |
-| F13 | F13_FINAL | Seal | Final seal before execution |
+| Floor | Code | Name | Domain | Equation / Threshold Metric |
+| :--- | :--- | :--- | :--- | :--- |
+| **F1** | F01 | **AMANAH** | Reversibility | Conservation law: $\exists \text{ undo}(a)$ — Irreversible ops require explicit human ack. |
+| **F2** | F02 | **TRUTH** | Evidentiality | Uncertainty tracking: no fabrication allowed ($\tau \ge 0.99$). Labels claims: FACT/EST/HYPO/UNK. |
+| **F3** | F03 | **WITNESS** | Consensual | Tri-witness consensus coefficient ($W_3 = \sqrt[3]{\text{Human} \times \text{AI} \times \text{Earth}} \ge 0.75$). |
+| **F4** | F04 | **CLARITY** | Progress | Thermodynamic entropy reduction ($\Delta S \le 0$). Intent declared before action. |
+| **F5** | F05 | **PEACE²** | Baseline | Non-destruction of human dignity and VPS security stability ($\text{PEACE}^2 \ge 1.0$). Zero escalation. |
+| **F6** | F06 | **EMPATHY** | Consequences | Consequence thermodynamic cost modeled prior to execution ($\kappa_r \ge 0.70$). |
+| **F7** | F07 | **HUMILITY** | Epistemic | Direct bounds on uncertainty quantification ($\Omega \in [0.03, 0.05]$). |
+| **F8** | F08 | **GENIUS** | Correctness | Elegant correctness and systemic execution health ($G = \text{capability} \times \text{ethics} \dots \ge 0.80$). |
+| **F9** | F09 | **ANTIHANTU** | Integrity | Reject manipulation and consciousness simulation. Machine is an instrument, not a person ($C_{\text{dark}} \le 0.30$). |
+| **F10** | F10 | **ONTOLOGY** | Coherence | Strict StrEnum and Pydantic schema validation. Category lock/immutability across sessions. |
+| **F11** | F11 | **AUTH (AUDIT)** | Traceability | Strict authorization: identity must be verified. Sensitive calls require verified `actor_id`. |
+| **F12** | F12 | **INJECTION** | Security | Sanitize all string parameters. Prompt injection detection ($\text{injection\_probability} < 0.85$). |
+| **F13** | F13 | **SOVEREIGN** | The Apex | Final human veto authority. The Sovereign (Arif Fazil) has absolute command. No algorithm overrides. |
 
 See: `core/shared/floors.py` for full floor definitions.
+
+---
+
+## Public Actions Surface & Representation
+
+### How arifOS Represents Itself in Public (ChatGPT Actions)
+
+When integrated into external surfaces like ChatGPT as a Custom GPT Action (`https://arifos.arif-fazil.com/mcp`), the system is represented as a **Highly Aligned, Multi-Organ Constitutional Intelligence Kernel**.
+
+Instead of exposing raw system endpoints, the public OpenAPI actions layer translates our **13 canonical tools** into clean, self-documenting callable endpoints:
+1. **Perfect Parameter Binding**: Public endpoints expect `session_id`, `actor_id`, and standard schemas, preventing ambient context leaks.
+2. **Explicit Verification Friction**: High-consequence tools (e.g. `arif_forge_execute` or `arif_vault_seal`) require a preceding `SEAL` verdict from `arif_judge_deliberate` and `ack_irreversible=True`. Calling them out-of-order triggers an automatic F1 AMANAH Floor Breach.
+3. **Structured Response Envelope**: Every tool execution returns a canonical payload wrapping the result, a thermodynamic entropy delta (`delta_S`), active floor ratings, and a cross-organ verdict (`verdict`).
+
+### Contrast Analysis
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                    arifOS TRIPLE-VIEW REPRESENTATION                                   │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+                                                 │
+      ┌──────────────────────────────────────────┼──────────────────────────────────────────┐
+      ▼                                          ▼                                          ▼
+ [LLM ACTIONS SURFACE]                    [OBSERVATORY COCKPIT]                       [GITHUB README]
+ https://arifos.arif-fazil.com/mcp        arifos.arif-fazil.com                       SOT Bedrock Code
+ (Dynamic JSON-RPC / OpenAPI)             (Human Telemetry Observability)             (Architectural Theory)
+      │                                          │                                          │
+      ├─► 13 canonical `arif_` tools              ├─► Live organ health state                 ├─► Evidential F2 history
+      ├─► Strict I/O schemas                      ├─► Interactive Floor score chips           ├─► Core metabolic pipeline
+      └─► preflight safety guards                 └─► Federated Site Map of organs            └─► Execution command trees
+```
+
+1. **The LLM Actions Surface (`/mcp` schema)**: Focuses entirely on **functional capability negotiation**. It exposes pure capability under tight boundaries, giving LLMs the means to sense, think, critique, and act without exposing low-level system configuration or database files.
+2. **The Observatory Cockpit (`arifos.arif-fazil.com`)**: Focuses on **operational transparency**. It is a visual dashboard for Arif to inspect live federation health (PSI vitality, server drift, active floor metrics), trace cross-organ decision loops ($\Psi \rightarrow \Omega \rightarrow \text{Heart}$), and locate gaps (like the degraded Grafana DB).
+3. **The GitHub README (`arifOS/README.md`)**: Focuses on **constitutional authority and mechanics**. It serves as the static code source of truth documenting the 13 floors, Eureka-wired physical equations, project layout, and standard testing/deployment instructions.
 
 ---
 
