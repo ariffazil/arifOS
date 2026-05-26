@@ -293,7 +293,7 @@ graph LR
 | Public MCP | `https://arifos.arif-fazil.com/mcp` |
 | Health | `https://arifos.arif-fazil.com/health` |
 
-> ⚠️ **MCP Concurrency (PHOENIX-73C):** Streamable-HTTP transport uses a singleton SSE stream key — only **one** SSE client at a time. Use POST-based JSON-RPC or implement reconnect with backoff for multi-client scenarios.
+> ✅ **MCP Concurrency (PHOENIX-73C):** Fixed — `stateless_http=False` enables per-client session management. Multiple concurrent SSE clients supported.
 
 ---
 
@@ -348,7 +348,7 @@ ruff check . && mypy arifosmcp/
 
 **arifOS** · Constitutional AI Kernel · AGPL-3.0 · `v2026.05.26`
 
-*Built inside PETRONAS by [Arif Fazil](https://arif-fazil.com) — Malaysian geoscientist.*
+*Designed and maintained by [Muhammad Arif Fazil](https://arif-fazil.com) — Senior Exploration Geoscientist.*
 *Proof over philosophy. Architecture performed, not theorized.*
 
 **DITEMPA BUKAN DIBERI** · `999_SEAL ALIVE`
