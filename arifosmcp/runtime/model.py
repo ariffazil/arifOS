@@ -87,8 +87,10 @@ class Stage(StrEnum):
 class ExecutionStatus(StrEnum):
     SUCCESS = "SUCCESS"
     FAILURE = "FAILURE"
+    ERROR = "ERROR"  # Contract variant
     TIMEOUT = "TIMEOUT"
     DRY_RUN = "DRY_RUN"
+    PARTIAL = "PARTIAL"  # Contract variant
     DEGRADED = "DEGRADED"
 
 
@@ -97,12 +99,20 @@ class GovernanceStatus(StrEnum):
     ACTIVE = "ACTIVE"
     SEALED = "SEALED"
     OVERRIDE = "OVERRIDE"
+    APPROVED = "APPROVED"  # Contract variant: maps from SEAL
+    PARTIAL = "PARTIAL"  # Contract variant
+    HOLD = "HOLD"  # Contract variant: awaiting human (F13)
+    VOID = "VOID"  # Contract variant: forbidden/blocked
+    PROVISIONAL = "PROVISIONAL"  # Contract variant
 
 
 class ContinuationStatus(StrEnum):
     READY = "READY"
     WAITING = "WAITING"
     TERMINATED = "TERMINATED"
+    HOLD = "HOLD"  # Contract variant
+    BLOCKED = "BLOCKED"  # Contract variant
+    CLARIFY_FIRST = "CLARIFY_FIRST"  # Contract variant
 
 
 class ArtifactStatus(StrEnum):
@@ -111,6 +121,10 @@ class ArtifactStatus(StrEnum):
     READY = "READY"
     SEALED = "SEALED"
     FAILED = "FAILED"
+    USABLE = "USABLE"  # Contract variant: complete, can be used
+    STAGED = "STAGED"  # Contract variant: prepared but not committed
+    REJECTED = "REJECTED"  # Contract variant: failed validation
+    EMPTY = "EMPTY"  # Contract variant: no output produced
 
 
 class VerdictScope(StrEnum):

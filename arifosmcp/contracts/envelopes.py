@@ -3,14 +3,22 @@ arifosmcp/contracts/envelopes.py — Canonical Unified Response (Audit Fix CR-01
 
 Rule 1: One tool = one contract.
 This shell is used for ALL transports: STDIO, HTTPS, SSE.
+
+Uses runtime/model enums as single source of truth for ExecutionStatus,
+GovernanceStatus, ContinuationStatus, ArtifactStatus — shared with RuntimeEnvelope.
 """
 
 from pydantic import BaseModel, Field
 
-from arifosmcp.contracts.artifacts import Artifact, ArtifactStatus
+from arifosmcp.contracts.artifacts import Artifact
 from arifosmcp.contracts.continuity import ContinuityState
 from arifosmcp.contracts.identity import IdentityContext
-from arifosmcp.contracts.verdicts import ExecutionStatus, GovernanceStatus
+from arifosmcp.runtime.model import (
+    ArtifactStatus,
+    ContinuationStatus,
+    ExecutionStatus,
+    GovernanceStatus,
+)
 
 
 class ResponseEnvelope(BaseModel):

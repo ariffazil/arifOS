@@ -14,14 +14,12 @@ from typing import Any
 
 from arifosmcp.contracts.artifacts import Artifact
 from arifosmcp.contracts.envelopes import ResponseEnvelope
-from arifosmcp.contracts.verdicts import (
+from arifosmcp.runtime.model import (
     ArtifactStatus,
+    CanonicalMetrics,
     ContinuationStatus,
     ExecutionStatus,
     GovernanceStatus,
-)
-from arifosmcp.runtime.model import (
-    CanonicalMetrics,
     PhilosophyState,
     RuntimeEnvelope,
     RuntimeStatus,
@@ -48,9 +46,10 @@ def forge_verdict(
     """
 
     # ... existing metrics/logic ...
-    metrics = metrics or CanonicalMetrics()
-    ds = metrics.telemetry.ds
-    conf = metrics.telemetry.confidence
+    _metrics = metrics if metrics is not None else CanonicalMetrics()
+    metrics = _metrics
+    ds = _metrics.telemetry.ds
+    conf = _metrics.telemetry.confidence
 
     if philosophy:
         conf = min(conf, philosophy.confidence_cap)

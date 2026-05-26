@@ -3,11 +3,12 @@ arifosmcp/contracts/artifacts.py — Canonical Artifact States (Audit Fix 4, 5)
 
 Rule 2: One state name = one meaning.
 ArtifactStatus must be binary enough for governance.
+Uses runtime/model enums as single source of truth (shared with RuntimeEnvelope).
 """
 
 from pydantic import BaseModel, Field
 
-from arifosmcp.contracts.verdicts import ArtifactStatus
+from arifosmcp.runtime.model import ArtifactStatus
 
 
 class Claim(BaseModel):
