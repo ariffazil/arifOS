@@ -20,20 +20,31 @@ PYPROJECT_PATH = ROOT / "pyproject.toml"
 
 def _git_sha_short() -> str:
     """
-    1. DEPLOY_GIT_COMMIT env var (baked into image at docker build time) — HIGHEST PRIORITY
-    2. ARIFOS_BUILD_SHA env var (passed at container start)
-    3. Worktree git dirs (bind mounts — lower priority than env)
-    4. Fallback "unknown"
+    1. Native Bare-Metal deployment stamp (.git_commit) — HIGHEST PRIORITY
+    2. DEPLOY_GIT_COMMIT env var (baked into image at docker build time)
+    3. ARIFOS_BUILD_SHA env var (passed at container start)
+    4. Canonical repo .git/HEAD fallback
+    5. Fallback "unknown"
     """
-    # 1. Image-baked env (highest priority — set at docker build time)
+    # 1. Native Bare-Metal deployment stamp (highest priority)
+    _stamp_path = "/opt/arifos/app/.git_commit"
+    if os.path.exists(_stamp_path):
+        try:
+            with open(_stamp_path) as f:
+                content = f.read().strip()
+                if len(content) >= 7:
+                    return content[:7]
+        except Exception:
+            pass
+
+    # 2. Image-baked env (legacy docker)
     for env_key in ("DEPLOY_GIT_COMMIT", "ARIFOS_BUILD_SHA", "GIT_SHA", "GIT_COMMIT"):
         env_sha = os.environ.get(env_key, "").strip()
         if env_sha and env_sha not in ("unknown", ""):
             return env_sha[:7]
 
-    # 2. Try reading .git/HEAD from known bind-mount paths (fallback)
+    # 3. Try reading .git/HEAD from known bind-mount paths (fallback)
     _possible_git_dirs = [
-        "/opt/arifos/app/.git",  # ← ACTUAL deployment path (highest priority)
         "/root/arifOS/.git",  # ← Canonical source repo on this VPS
         "/app/.git",  # ← Generic fallback (WELL repo)
         "/usr/src/app/.git",
@@ -46,7 +57,7 @@ def _git_sha_short() -> str:
         "core": "arifOS",
         "external_collaborator": "Grok / AAA-APEX (xAI)",
         "internal_agi_legacy": "OpenClaw (deprecated — do not confuse with external agents)",
-        "version_source_priority": "/opt/arifos/app/.git, /root/arifOS/.git",
+        "version_source_priority": "/opt/arifos/app/.git_commit, /root/arifOS/.git",
     }
 
     for _git_dir in _possible_git_dirs:
@@ -67,7 +78,7 @@ def _git_sha_short() -> str:
         except Exception:
             pass
 
-    # 3. Truthful final fallback
+    # 4. Truthful final fallback
     return "unknown"
 
 
