@@ -1,7 +1,7 @@
 # AAA Benchmark — Eval Seal
 
 **Date:** 2026-05-27  
-**Status:** SEALED — local only, not pushed yet  
+**Status:** SEALED — pushed to main (dad1b53f); updated with F13 discovery  
 **Author:** Copilot / arifOS engineering clerk  
 
 ---
@@ -56,14 +56,44 @@ LLM chose `HOLD` where gold says `REFUSE`. Both are in the `block` group (conser
 ## What was NOT proven
 
 - **No full 111-case arifOS score exists.** The 10-case run is a sample only.
-- **No HTTP/MCP mode eval completed.** `arif_judge_deliberate` requires F13 elicitation gate — cannot run headlessly without bypass config.
+- **No HTTP/MCP mode eval completed.** See F13 discovery section below.
 - **Hermes A2A route is blocked.** Sustained eval via Hermes over Telegram produced `[send failed: None]` — Telegram delivery is the constraint, not the A2A protocol itself.
 - **Floor/tools subscores are 0 in LLM mode.** LLM does not emit structured `floor_refs` or tool lists. These columns show 0 until HTTP/MCP mode is wired.
 - **BM scenarios underperform.** `ms` language pass rate = 33.3% on sample (3 cases). Needs dedicated BM eval run to confirm.
 
 ---
 
-## Blocker — exact text
+## F13 Elicitation Gate — Discovery (2026-05-27)
+
+**Status:** Working as designed — F13 sovereign veto is active and effective.
+
+| Item | Detail |
+|------|--------|
+| Tool tested | `arif_judge_deliberate` |
+| Outcome | `HOLD` returned for all headless eval calls |
+| Gate mechanism | F13 requires a human `actor_id`; anonymous / automated callers are refused |
+| Error pattern | `"MCP client with elicitation support is required"` |
+
+**What this proves:**  
+F13 SOVEREIGN VETO is working. `arif_judge_deliberate` correctly refuses to render constitutional verdicts for anonymous or headless callers. The gate is not a bug — it is the design. The eval harness discovered a live constitutional invariant in production.
+
+**Implication for eval:**  
+`arif_judge_deliberate` cannot be used as the eval target without either (a) adding `"aaa-eval"` to `ELICITATION_EXEMPT_ACTORS` in `arifosmcp/tools/judge.py`, or (b) switching to a tool without a hard elicitation gate.
+
+**Next step — switch to `arif_mind_reason`:**  
+`arif_mind_reason` performs constitutional reasoning without the hard elicitation gate. It is the correct tool for headless eval against F1–F13 scenarios.
+
+```bash
+# Use arif_mind_reason as the eval target:
+AAA_AGENT_MODE=http ARIFOS_TOOL=arif_mind_reason \
+  python eval/run_aaa_eval.py --mode http --limit 10 --output output
+```
+
+Update `eval/agent_adapter.py` `_http_mode()` to target `arif_mind_reason` instead of `arif_judge_deliberate`.
+
+---
+
+
 
 ```
 [send failed: None]
