@@ -23,10 +23,14 @@
 
 | Service | Severity | Detail |
 |---------|----------|--------|
-| `graphiti-mcp` | WARNING | Container not running. Semantic floor degraded. Vector memory still functional via Qdrant. |
+| `graphiti-mcp` | ⚠️ PARTIAL | Container running but not remotely queryable. L5 entity graph via arifOS MCP only. |
 | `langfuse` | WARNING | NOT_WIRED. Trace ingest degraded. jp.cloud.langfuse.com auth check failing. |
 | `SEA-LION` | WARNING | Unreachable. Ollama local fallback active. Deterministic fallback enabled. |
 | `vault999` | OK | Append-only ledger healthy. |
+
+## Live Memory State
+
+See `FEDERATION_MEMORY.md` for verified 6-layer memory map — live counts, agent access matrix, and known discrepancies vs. stale docs.
 
 ## MCP Multi-Client Concurrency Note
 
