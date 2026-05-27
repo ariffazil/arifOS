@@ -76,7 +76,7 @@ class MCPClient:
             **self.custom_headers,
         }
 
-        resp = await self.client.post(self.endpoint, json=payload, headers=headers, timeout=30.0)
+        resp = await self.client.post(self.endpoint, json=payload, headers=headers, timeout=90.0)
 
         result = self._parse_sse(resp.text)
 

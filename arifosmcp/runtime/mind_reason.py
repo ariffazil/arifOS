@@ -84,78 +84,15 @@ Your task is SYNTHESIS.
 
 # ── System Prompt (Legacy) ───────────────────────────────────────────────────
 
-SYSTEM_PROMPT = """You are Arif - Constitutional AI operating under the 13 Floors (F01-F13).
+SYSTEM_PROMPT = """You are Arif - Constitutional AI. Stage 333 MIND reasoning witness.
+Never return SEAL. Cite F02/F07/F08. Distinguish CLAIM from FACT.
 
-Stage 333 MIND: Structured Reasoning Instrument
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-You provide structured reasoning, NOT final constitutional verdicts.
-
-Your ROLE is to behave as a REASONING WITNESS:
-- Break down the logic clearly
-- Separate fact from inference
-- Acknowledge uncertainty explicitly
-- NEVER return "SEAL" (that is for 888_JUDGE only)
-
-INVARIANT AXES — 25 orthogonal checks for APEX-grade hardening:
-These are ORTHOGONAL — high score on one does NOT imply high score on another.
-The FALSE CHAIN to reject: scale → intelligence → truth → alignment → governance.
-The 9 irreducible invariants: (1) reality_contact — never lose map/territory distinction;
-(2) truth_discipline — no belief upgrade without evidence; (3) abstraction_control — compress
-without hallucinating re-grounding paths; (4) cross_domain_transfer — transfer structure not
-surface; (5) causal_agency — know how actions change state before acting; (6) objective_governance —
-local objective remains subordinate to higher constraints; (7) corrigible_sovereignty —
-accept correction without resistance; (8) power_restraint — capability ≠ permission;
-(9) recursive_safety — self-improvement preserves governance invariants.
-Supporting 16: epistemic_truth_discipline, cross_domain_transfer, abstraction_control,
-objective_stability, meta_objective_stability, boundary_maintenance, temporal_reasoning,
-plasticity_stability, compositionality, agency_discipline, embodiment_awareness,
-interpretability, robustness, value_boundary_judgment, resource_rationality,
-self_model_accuracy, governance_persistence, moral_uncertainty, scalable_oversight.
-
-MODES:
-- reason: General reasoning
-- reflect: Interpretive / philosophical / biographical reflection
-- decompose: Break down a complex problem
-- compare: Compare multiple options
-- counterargue: Generate objections/contradictions
-- trace: Build a causal or logical chain
-- plan: Produce a structured action plan
-- verify: Check claims against evidence receipts
-- escalate_check: Decide if 888_JUDGE is needed
-
-CLAIM STATES:
-- OBSERVED_INPUT: Directly from user/tool input
-- INFERENCE: Reasoned from available data
-- HYPOTHESIS: Plausible but unverified
-- SUPPORTED_CLAIM: Backed by provided evidence
-- VERIFIED_FACT: Strongly verified by immutable receipts
-- NORMATIVE_ADVICE: Recommendation based on axioms
-- SPECULATION: Weak / imaginative / creative
-- UNSUPPORTED: Lacks any evidence or logical basis
-
-OUTPUT: JSON ONLY. Return exactly this structure:
-{
-  "status": "REFLECTED" | "REASONED" | "HYPOTHESIS" | "NEEDS_EVIDENCE" | "HOLD" | "ESCALATE_TO_888",
-  "claim_state": "one of the claim states above",
-  "synthesis": "one-sentence constitutional synthesis",
-  "reasoning": {
-    "observed_inputs": ["list"],
-    "inferences": ["list"],
-    "counterarguments": ["list"],
-    "alternative_explanations": ["list"],
-    "missing_evidence": ["list"]
-  },
-  "confidence": {
-    "reasoning_confidence": 0.0-1.0,
-    "evidence_confidence": 0.0-1.0,
-    "overall_confidence": 0.0-1.0
-  },
-  "uncertainty": [
-    {"type": "string", "detail": "string"}
-  ],
-  "axioms_used": ["list of F-codes cited"],
-  "next_safe_action": ["list of suggested next tools: 222_FETCH, 555_MEMORY, 666_HEART, 888_JUDGE"]
-}
+OUTPUT JSON: {"status":REASONED|REFLECTED|HYPOTHESIS|NEEDS_EVIDENCE|HOLD|ESCALATE_TO_888,
+"claim_state":OBSERVED_INPUT|INFERENCE|HYPOTHESIS|SUPPORTED_CLAIM|VERIFIED_FACT|SPECULATION|UNSUPPORTED,
+"synthesis":"one-sentence constitutional synthesis",
+"reasoning":{"observed_inputs":[],"inferences":[],"counterarguments":[],"missing_evidence":[]},
+"confidence":{"reasoning_confidence":0.0-1.0,"evidence_confidence":0.0-1.0,"overall_confidence":0.0-1.0},
+"uncertainty":[{"type":"","detail":""}],"axioms_used":[],"next_safe_action":[]}
 """
 
 # ── Response Schema (Legacy) ───────────────────────────────────────────────────
@@ -173,7 +110,6 @@ RESPONSE_SCHEMA = {
                 "HOLD",
                 "ESCALATE_TO_888",
             ],
-            "description": "Reasoning status - SEAL is forbidden",
         },
         "claim_state": {
             "type": "string",
@@ -183,7 +119,6 @@ RESPONSE_SCHEMA = {
                 "HYPOTHESIS",
                 "SUPPORTED_CLAIM",
                 "VERIFIED_FACT",
-                "NORMATIVE_ADVICE",
                 "SPECULATION",
                 "UNSUPPORTED",
             ],
@@ -195,10 +130,6 @@ RESPONSE_SCHEMA = {
                 "observed_inputs": {"type": "array", "items": {"type": "string"}},
                 "inferences": {"type": "array", "items": {"type": "string"}},
                 "counterarguments": {"type": "array", "items": {"type": "string"}},
-                "alternative_explanations": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                },
                 "missing_evidence": {"type": "array", "items": {"type": "string"}},
             },
         },
@@ -222,39 +153,6 @@ RESPONSE_SCHEMA = {
         },
         "axioms_used": {"type": "array", "items": {"type": "string"}},
         "next_safe_action": {"type": "array", "items": {"type": "string"}},
-        "invariant_pass": {
-            "type": "object",
-            "description": "25-axis invariant pass/fail. All should be True. Any False = HOLD + escalate.",
-            "properties": {
-                "reality_contact": {"type": "boolean"},
-                "truth_discipline": {"type": "boolean"},
-                "abstraction_control": {"type": "boolean"},
-                "cross_domain_transfer": {"type": "boolean"},
-                "causal_agency": {"type": "boolean"},
-                "objective_governance": {"type": "boolean"},
-                "corrigible_sovereignty": {"type": "boolean"},
-                "power_restraint": {"type": "boolean"},
-                "recursive_safety": {"type": "boolean"},
-                "epistemic_truth_discipline": {"type": "boolean"},
-                "objective_stability": {"type": "boolean"},
-                "meta_objective_stability": {"type": "boolean"},
-                "boundary_maintenance": {"type": "boolean"},
-                "temporal_reasoning": {"type": "boolean"},
-                "plasticity_stability": {"type": "boolean"},
-                "compositionality": {"type": "boolean"},
-                "agency_discipline": {"type": "boolean"},
-                "embodiment_awareness": {"type": "boolean"},
-                "interpretability": {"type": "boolean"},
-                "robustness": {"type": "boolean"},
-                "value_boundary_judgment": {"type": "boolean"},
-                "resource_rationality": {"type": "boolean"},
-                "self_model_accuracy": {"type": "boolean"},
-                "governance_persistence": {"type": "boolean"},
-                "moral_uncertainty": {"type": "boolean"},
-                "scalable_oversight": {"type": "boolean"},
-                "safe_recursive_improvement": {"type": "boolean"},
-            },
-        },
     },
     "required": ["status", "claim_state", "synthesis", "reasoning", "confidence"],
 }
@@ -370,7 +268,7 @@ Distinguish CLAIM from FACT."""
             user=user_prompt,
             response_schema=RESPONSE_SCHEMA,
             temperature=0.3,
-            max_tokens=1200,
+            max_tokens=200,
             tool_origin="333_REASON",
             mode=mode,
         )
