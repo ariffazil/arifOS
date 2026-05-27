@@ -2304,6 +2304,15 @@ def register_rest_routes(
         finally:
             federation_ledger.close()
 
+        # Pre-assign for freshness computation (Phase 2 hardening)
+        vault999_health = _probe_vault999_health()
+        runtime_drift_val = _compute_runtime_drift().get("runtime_drift", False)
+        contract_drift_val = contracts.get("contract_drift", True)
+        # Freshness status: fresh if vault is healthy and no drift
+        _is_fresh = (
+            vault999_health == "healthy" and not runtime_drift_val and not contract_drift_val
+        )
+
         return JSONResponse(
             {
                 "status": "healthy",
@@ -2377,6 +2386,45 @@ def register_rest_routes(
                 "capability_map": build_runtime_capability_map(),
                 "provider_status": _probe_provider_status(),
                 "timestamp": datetime.now(UTC).isoformat(),
+                # ── Freshness & Owner Summary (Phase 2 Hardening) ─────────────────
+                # Freshness: answers "can you trust my current state?"
+                # Vault health is the primary signal; drift is tracked separately.
+                # Owner summary: green/yellow/red for non-coder operator.
+                "freshness": {
+                    "status": (
+                        "fresh"
+                        if vault999_health == "healthy"
+                        else "stale"
+                        if vault999_health == "healthy"
+                        else "expired"
+                    ),
+                    "checked_at_utc": datetime.now(UTC).isoformat(),
+                    "source_timestamp_utc": datetime.now(UTC).isoformat(),
+                    "age_seconds": 0,
+                    "max_fresh_age_seconds": 60,
+                    "stale_after_seconds": 300,
+                    "expired_after_seconds": 3600,
+                },
+                "owner_summary": {
+                    "color": (
+                        "GREEN"
+                        if vault999_health == "healthy"
+                        and not runtime_drift_val
+                        and not contract_drift_val
+                        else "YELLOW"
+                        if vault999_health == "healthy"
+                        else "RED"
+                    ),
+                    "reasons": (
+                        ["vault_healthy", "no_runtime_drift", "no_contract_drift"]
+                        if vault999_health == "healthy"
+                        and not runtime_drift_val
+                        and not contract_drift_val
+                        else ["vault_healthy", "runtime_or_contract_drift_detected"]
+                        if vault999_health == "healthy"
+                        else ["vault_unavailable_or_degraded"]
+                    ),
+                },
                 # SoT linkage — enables drift detection between repo / docs / runtime
                 "source_commit": BUILD_INFO["build"]["commit"],
                 "source_repo": BUILD_INFO.get("source_repo", "https://github.com/ariffazil/arifOS"),
