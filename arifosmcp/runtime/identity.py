@@ -14,6 +14,13 @@ from pathlib import Path
 from typing import Any
 
 try:
+    import blake3 as _b3
+
+    _HAS_B3 = True
+except ImportError:
+    _HAS_B3 = False
+
+try:
     import tomllib
 except ImportError:
     import tomli as tomllib  # type: ignore[no-redef]
@@ -100,3 +107,35 @@ def invalidate_cache() -> None:
     """Invalidate the identity cache. Useful for testing or hot-reload."""
     global _cached_identity
     _cached_identity = None
+
+
+def get_identity_b3_hash() -> dict[str, Any]:
+    """Return BLAKE3 hash of the canonical identity.toml file content.
+
+    Provides tamper-evidence for the identity file itself. If the file content
+    changes, the hash changes. This is the recommended identity anchor for
+    the federation identity chain.
+
+    Returns:
+        dict with algorithm, source, and the full b3_hash.
+    """
+    try:
+        with open(IDENTITY_TOML_PATH, "rb") as f:
+            content = f.read()
+        if _HAS_B3:
+            b3_hash = _b3.blake3(content).hexdigest()
+        else:
+            # Fallback to blake2b (standard library)
+            b3_hash = hashlib.blake2b(content, digest_size=32).hexdigest()
+        return {
+            "algorithm": "BLAKE3" if _HAS_B3 else "BLAKE2B",
+            "source": "identity.toml",
+            "b3_hash": b3_hash,
+            "b3_prefix": b3_hash[:16],
+        }
+    except Exception as e:
+        return {
+            "algorithm": "UNAVAILABLE",
+            "source": "identity.toml",
+            "error": str(e),
+        }

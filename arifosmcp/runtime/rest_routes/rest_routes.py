@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import blake3
 import httpx
 import inspect
 import json
@@ -55,7 +56,7 @@ from core.shared.floors import (
 )
 
 from arifosmcp.runtime.build import get_build_info
-from arifosmcp.runtime.identity import get_identity
+from arifosmcp.runtime.identity import get_identity, get_identity_b3_hash
 from arifosmcp.runtime.capabilities import build_runtime_capability_map
 from arifosmcp.runtime.contracts import (
     AAA_TOOL_ALIASES,
@@ -2270,6 +2271,12 @@ def register_rest_routes(
 
         Returns thermodynamic truth data (Space, Time, Energy) for preservation verification.
         """
+        try:
+            with open("/opt/arifos/app/.identity_hash", "r") as f:
+                identity_hash = f.read().strip()
+        except Exception:
+            identity_hash = "UNAVAILABLE"
+
         # Get thermodynamic state for Energy dimension
         thermo = _build_governance_status_payload()
         telemetry = thermo.get("telemetry", {})
@@ -2300,6 +2307,7 @@ def register_rest_routes(
         return JSONResponse(
             {
                 "status": "healthy",
+                "identity_hash": identity_hash,
                 "service": "arifOS-mcp",
                 "release_name": BUILD_INFO["version"],
                 "version": f"kanon-{BUILD_INFO['build']['commit']}",
@@ -2324,6 +2332,7 @@ def register_rest_routes(
                 "agent_id": "arifos",
                 "identity_marker": "arifos-sovereign-runtime",
                 "identity_source": "identity.toml",
+                "identity_hash": get_identity_b3_hash(),
                 "boot_attestation": True,
                 "langfuse_tracing": _probe_langfuse_tracing(),
                 "ml_floors": ml_runtime,
