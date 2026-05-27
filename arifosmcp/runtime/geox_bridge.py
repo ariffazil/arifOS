@@ -109,7 +109,11 @@ async def call_geox_tool(
             "arguments": arguments or {},
         },
     }
-    result = await _post_json_rpc("/mcp", payload)
+    result = await _post_json_rpc("/mcp/", payload)
+    # GEOX legacy handler wraps tool output in structuredContent.
+    # Extract it so callers receive the actual tool data, not the wrapper.
+    if isinstance(result, dict) and "structuredContent" in result:
+        return result["structuredContent"]
     return result
 
 
@@ -121,7 +125,7 @@ async def list_geox_tools() -> list[dict[str, Any]]:
         "method": "tools/list",
         "params": {},
     }
-    result = await _post_json_rpc("/mcp", payload)
+    result = await _post_json_rpc("/mcp/", payload)
     return result.get("tools", [])
 
 
