@@ -29,7 +29,7 @@ class MetabolicForge:
                 # target empty inits or old hardened duplicates
                 if f == "__init__.py" and os.path.getsize(path) < 10:
                     targets.append(path)
-                if "hardened" in f.lower() and f != "kernel.py":
+                if "hardened" in f.lower() and f not in ("kernel.py", "thermodynamics_hardened.py"):
                     targets.append(path)
         self.audit_report["pruned"] = targets
         return targets
