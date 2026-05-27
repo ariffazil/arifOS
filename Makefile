@@ -2,15 +2,16 @@
 # Ditempa Bukan Diberi.
 
 PYTHON = uv run python
+DIR := /root/arifOS
 
-.PHONY: status forge seal health sync sot-check deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public
+.PHONY: status forge seal health sync sot-check deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public security-audit
 
 status:
 	@echo "--- arifOS Status (ΔΩΨ) ---"
 	@$(PYTHON) -m arifosmcp.runtime.reforge
 	@git status -s
 
-forge:
+forge: security-audit
 	@echo "Executing Surgical Burn..."
 	@$(PYTHON) -m arifosmcp.runtime.reforge
 	@git add .
@@ -27,42 +28,21 @@ health:
 	@curl -s http://localhost:8088/health | jq .  # live VPS port; use PORT=8080 for local Docker dev
 
 deploy-local:
-	@echo "Deploying current arifOS HEAD to local VPS Docker Compose runtime..."
-	@git fetch origin main
-	@test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/main)" || \
+	@echo "Deploying current arifOS HEAD to native bare-metal runtime..."
+	@cd $(DIR) && git fetch origin main
+	@cd $(DIR) && test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/main)" || \
 		(echo "888_HOLD: local HEAD is not origin/main; push or rebase before deploy-local" && exit 1)
-	@GIT_SHA=$$(git rev-parse --short=7 HEAD); \
-	GIT_BRANCH=$$(git rev-parse --abbrev-ref HEAD); \
-	BUILD_TIME=$$(date -u +%Y-%m-%dT%H:%M:%SZ); \
-	echo "Building ghcr.io/ariffazil/arifos:$$GIT_SHA and :latest"; \
-	docker build \
-		--build-arg ARIFOS_BUILD_SHA=$$GIT_SHA \
-		--build-arg ARIFOS_BUILD_BRANCH=$$GIT_BRANCH \
-		--build-arg ARIFOS_BUILD_TIME=$$BUILD_TIME \
-		-t ghcr.io/ariffazil/arifos:$$GIT_SHA \
-		-t ghcr.io/ariffazil/arifos:latest \
-		-f arifosmcp/Dockerfile .; \
-	cd /root/compose && DEPLOY_GIT_COMMIT=$$GIT_SHA docker compose up -d --no-deps --force-recreate arifosmcp; \
-	READY=0; \
-	for _ in $$(seq 1 45); do \
-		if curl -fsS --max-time 5 http://localhost:8080/health > /tmp/arifos-health.json 2>/tmp/arifos-health.err; then \  # Docker compose maps 8080:8080
-			if EXPECTED_SHA=$$GIT_SHA python -c 'import json, os, sys; d=json.load(sys.stdin); actual=d.get("git_commit"); expected=os.environ["EXPECTED_SHA"]; sys.exit(0 if actual == expected else 1)' < /tmp/arifos-health.json; then \
-				READY=1; \
-				break; \
-			fi; \
-		fi; \
-		sleep 2; \
-	done; \
-	if [ "$$READY" -ne 1 ]; then \
-		echo "888_HOLD: arifOS health did not stabilize on the expected commit"; \
-		[ -s /tmp/arifos-health.err ] && cat /tmp/arifos-health.err; \
-		[ -s /tmp/arifos-health.json ] && cat /tmp/arifos-health.json | python -m json.tool || true; \
-		exit 1; \
-	fi; \
-	cat /tmp/arifos-health.json | python -m json.tool; \
-	echo "git_commit verified: $$GIT_SHA"
+	@cd $(DIR) && GIT_SHA=$$(git rev-parse --short=7 HEAD); \
+	echo "Syncing canonical code to /opt/arifos/app..."; \
+	rsync -av --exclude='.git' --exclude='.venv' $(DIR)/ /opt/arifos/app/; \
+	echo "$$GIT_SHA" > /opt/arifos/app/.git_commit; \
+	echo "Restarting arifOS bare-metal service..."; \
+	systemctl restart arifos.service; \
+	echo "Deployment complete. Verifying health..."; \
+	sleep 3; \
+	curl -s http://localhost:8088/health | jq .
 
-sot-check:
+sot-check: security-audit
 	@echo "Auditing arifOS source-of-truth alignment..."
 	@python scripts/audit_sot.py
 
@@ -72,6 +52,8 @@ sync:
 	@git add .
 	@git commit -m "chore: planetary sync"
 	@git push origin main
+
+# security-audit: moved to include
 
 # ============================================================
 # SOVEREIGN PUBLISH PIPELINE — arifOS Federation
@@ -142,3 +124,4 @@ verify-live:
 	@echo "🔍 Verifying live observatory surface..."
 	@python3 scripts/verify_live.py
 	@echo "📄 Full report: tmp/verify_live_report.json"
+include /root/arifOS/scripts/security_audit.mk
