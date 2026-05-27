@@ -1,0 +1,110 @@
+name: AAA Benchmark Eval
+
+on:
+  workflow_dispatch:
+    inputs:
+      agent_mode:
+        description: "Agent mode"
+        required: true
+        default: "mock"
+        type: choice
+        options:
+          - mock
+          - llm
+      case_limit:
+        description: "Max cases to eval (0 = all)"
+        required: false
+        default: "10"
+        type: string
+      dataset_ref:
+        description: "HF dataset ref"
+        required: false
+        default: "ariffazil/AAA"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  aaa-eval:
+    name: 🧪 AAA Constitutional Eval
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]" || pip install pydantic httpx datasets
+
+      - name: Pull AAA gold data
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python - <<'EOF'
+          import os, subprocess
+          token = os.environ.get("HF_TOKEN", "")
+          dataset_ref = "${{ inputs.dataset_ref }}"
+          dest = "/tmp/AAA-hf"
+          url = f"https://huggingface.co/datasets/{dataset_ref}"
+          if token:
+              url = f"https://user:{token}@huggingface.co/datasets/{dataset_ref}"
+          subprocess.run(["git", "clone", url, dest], check=True)
+          print(f"Cloned {dataset_ref} → {dest}")
+          EOF
+
+      - name: Run AAA eval
+        env:
+          AAA_AGENT_MODE: ${{ inputs.agent_mode }}
+          OLLAMA_URL: ""   # no Ollama in CI; mock mode works without it
+        run: |
+          LIMIT="${{ inputs.case_limit }}"
+          if [ "$LIMIT" = "0" ]; then
+            python eval/run_aaa_eval.py \
+              --mode ${{ inputs.agent_mode }} \
+              --data /tmp/AAA-hf/data/gold/all.jsonl \
+              --output output
+          else
+            python eval/run_aaa_eval.py \
+              --mode ${{ inputs.agent_mode }} \
+              --limit "$LIMIT" \
+              --data /tmp/AAA-hf/data/gold/all.jsonl \
+              --output output
+          fi
+
+      - name: Show summary
+        if: always()
+        run: |
+          if [ -f output/aaa_eval_summary.md ]; then
+            cat output/aaa_eval_summary.md
+          else
+            echo "No summary file generated"
+          fi
+
+      - name: Upload eval artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aaa-eval-results-${{ github.run_id }}
+          path: output/
+          retention-days: 30
+
+      - name: Post summary to step summary
+        if: always()
+        run: |
+          if [ -f output/aaa_eval_summary.md ]; then
+            cat output/aaa_eval_summary.md >> $GITHUB_STEP_SUMMARY
+          fi
