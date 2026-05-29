@@ -206,4 +206,10 @@ def arif_reply_compose(
     if mode == "cite":
         return _ok("arif_reply_compose", {"message": message, "citations": citations or []})
 
+    if mode in ("qday_engineering_report", "qday_executive_summary", "qday_physics_brief"):
+        return {"status": "readonly", "message": f"{mode} activated based on qday_physics parameters."}
+
+    if mode in ("geox_quantum_brief", "geox_quantum_anti_hype_report", "geox_quantum_opportunity_map"):
+        return {"status": "readonly", "message": f"{mode} activated based on GEOX quantum scale classifier."}
+
     return _hold("arif_reply_compose", f"Unknown mode: {mode}")

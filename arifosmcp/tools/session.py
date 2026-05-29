@@ -37,6 +37,8 @@ def arif_session_init(
     output_contract: str = "compact",
     embodiment_request: dict | None = None,
     capability_disclosure: dict | None = None,
+    nonce: str | None = None,
+    signature: str | None = None,
 ) -> SessionManifest:
     """
     000_INIT — Constitutional session bootstrap.
@@ -152,11 +154,21 @@ def arif_session_init(
         authority_level = (
             "SOVEREIGN" if actor_id == "arif" else ("OPERATOR" if actor_id else "ANONYMOUS")
         )
+        
+        identity_verified = False
+        if actor_id == "arif" and nonce and signature:
+            try:
+                from arifosmcp.runtime.crypto_auth import verify_actor_signature
+                identity_verified = verify_actor_signature(actor_id, nonce, signature)
+                sess["signature_verified"] = identity_verified
+            except Exception:
+                pass
+
         actor_block = {
             "claimed_id": actor_id,
-            "identity_verified": False,  # requires signature verification
+            "identity_verified": identity_verified,
             "authority_level": authority_level,
-            "signature_present": False,
+            "signature_present": bool(signature),
         }
 
         # ── Constitution binding ─────────────────────────────

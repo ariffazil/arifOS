@@ -542,11 +542,43 @@ def _heart_fallback(
         }
 
     if mode == "deescalate":
+        qday_envelope = {
+            **base_result["_envelope"],
+            "do_not_treat_as_seal": False,
+        }
         return {
             **base_result,
             "status": "OK",
             "target": target,
-            "strategy": "Pause and reflect (F05). Conduct human impact assessment.",
+            "mode": mode,
+            "risks_found": qday_risks_found
+            if qday_risks_found
+            else [
+                {
+                    "type": "qday_no_signal",
+                    "severity": "none",
+                    "floor_cited": "F01_AMANAH",
+                    "reason": "No Q-Day risk signals detected in target",
+                    "mitigation": "Continue monitoring",
+                }
+            ],
+            "risk_tier": qday_risk_tier,
+            "blast_radius": blast_radius,
+            "blast_radius_details": blast_radius_details,
+            "human_decision_required": qday_human_required,
+            "empathy_score": round(1.0 - (max_severity * 0.2), 3),
+            "dignity_score": 1.0,
+            "verdict": "HOLD" if qday_human_required else "SEAL",
+            "partial_findings": partial_findings
+            + (
+                [
+                    f"Q-Day deterministic scan: {len(qday_risks_found)} signals, radius={blast_radius}"
+                ]
+                if qday_risks_found
+                else ["No Q-Day risk signals found in deterministic scan"]
+            ),
+            "next_safe_action": "route_to_444_KERNEL" if qday_human_required else "continue",
+            "_envelope": qday_envelope,
         }
 
     if mode == "summary":
@@ -558,6 +590,110 @@ def _heart_fallback(
             "human_decision_required": human_required,
             "condensed": True,
             "verdict": "HOLD" if human_required else "SEAL",
+        }
+
+    # Q-Day Blast Radius (deterministic — no LLM required)
+    if mode in ("qday_blast_radius", "pqc_institutional_risk"):
+        # Mark as deterministic-valid: prevent main fn from setting do_not_treat_as_seal=True
+        # The main arif_heart_critique sets this when _llm_available is False.
+        # We override it here so the Q-Day deterministic scan is treated as a valid critique.
+        base_result["_llm_available"] = None  # is_fallback=False in main fn
+        target_lower = (target or "").lower()
+        # Q-Day risk signals
+        qday_signals = {
+            "rsa": "quantum_vulnerable_key",
+            "ecc": "quantum_vulnerable_key",
+            "ecdsa": "quantum_vulnerable_key",
+            "dh": "quantum_vulnerable_key",
+            "diffie-hellman": "quantum_vulnerable_key",
+            "tls": "crypto_protocol",
+            "https": "crypto_protocol",
+            "ssh": "crypto_protocol",
+            "jwt": "auth_token",
+            "json web token": "auth_token",
+            "archive": "long_lived_data",
+            "50 year": "long_lived_data",
+            "30 year": "long_lived_data",
+            "long-lived": "long_lived_data",
+            "harvest now": "hndl_attack",
+            "hnDl": "hndl_attack",
+            "decrypt later": "hndl_attack",
+            "pqc": "migration_action",
+            "post-quantum": "migration_action",
+            "ml-kem": "migration_action",
+            "ml-dsa": "migration_action",
+            "cryptographic": "crypto_systemic",
+            "public key": "crypto_systemic",
+        }
+        qday_risks_found = []
+        blast_radius = "contained"
+        blast_radius_details = []
+        for keyword, signal_type in qday_signals.items():
+            if keyword in target_lower:
+                severity = "high"
+                if signal_type in ("hndl_attack", "long_lived_data", "quantum_vulnerable_key"):
+                    severity = "critical"
+                    blast_radius = "severe"
+                elif signal_type == "crypto_systemic":
+                    severity = "high"
+                    blast_radius = "wide" if blast_radius == "contained" else blast_radius
+                qday_risks_found.append(
+                    {
+                        "type": f"qday_{signal_type}",
+                        "severity": severity,
+                        "floor_cited": "F01_AMANAH",
+                        "reason": f"Q-Day signal detected: '{keyword}' — {signal_type}",
+                        "mitigation": "Prioritize PQC migration planning"
+                        if signal_type
+                        in ("quantum_vulnerable_key", "crypto_protocol", "auth_token")
+                        else "Monitor CRQC timeline",
+                    }
+                )
+                blast_radius_details.append(f"{keyword}:{signal_type}")
+        max_severity = max(
+            (
+                {"none": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}.get(r["severity"], 0)
+                for r in qday_risks_found
+            ),
+            default=0,
+        )
+        qday_risk_tier = {0: "GREEN", 1: "GREEN", 2: "AMBER", 3: "RED", 4: "CRITICAL"}.get(
+            max_severity, "GREEN"
+        )
+        qday_human_required = max_severity >= 3
+        return {
+            **base_result,
+            "status": "OK",
+            "target": target,
+            "mode": mode,
+            "risks_found": qday_risks_found
+            if qday_risks_found
+            else [
+                {
+                    "type": "qday_no_signal",
+                    "severity": "none",
+                    "floor_cited": "F01_AMANAH",
+                    "reason": "No Q-Day risk signals detected in target",
+                    "mitigation": "Continue monitoring",
+                }
+            ],
+            "risk_tier": qday_risk_tier,
+            "blast_radius": blast_radius,
+            "blast_radius_details": blast_radius_details,
+            "human_decision_required": qday_human_required,
+            "empathy_score": round(1.0 - (max_severity * 0.2), 3),
+            "dignity_score": 1.0,
+            "verdict": "HOLD" if qday_human_required else "SEAL",
+            "partial_findings": partial_findings
+            + (
+                [
+                    f"Q-Day deterministic scan: {len(qday_risks_found)} signals, radius={blast_radius}"
+                ]
+                if qday_risks_found
+                else ["No Q-Day risk signals found in deterministic scan"]
+            ),
+            "next_safe_action": "route_to_444_KERNEL" if qday_human_required else "continue",
+            "do_not_treat_as_seal": False,  # Override base_result — deterministic is valid
         }
 
     return {

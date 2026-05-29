@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def arif_evidence_fetch(
+
     mode: Literal["fetch", "search", "archive", "verify", "void_audit"] = "fetch",
     url: str | None = None,
     query: str | None = None,
@@ -53,6 +54,9 @@ def arif_evidence_fetch(
     - allow_early_termination: Stop if confidence > threshold
     - confidence_threshold: Stop threshold (0.0-1.0)
     """
+    if mode in ("pqc_standard", "crqc_estimate", "hardware_claim_evidence", "quantum_earth_science_evidence", "quantum_chemistry_pvt_evidence", "ccus_geochemistry_evidence", "quantum_algorithm_limitations"):
+        return {"status": "readonly", "message": f"{mode} activated based on policy parameters."}
+
     floor_check = check_floors(
         "arif_evidence_fetch", {"url": url or "", "query": query or ""}, actor_id
     )

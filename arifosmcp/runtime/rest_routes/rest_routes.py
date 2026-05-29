@@ -1942,7 +1942,8 @@ def _probe_provider_status() -> dict[str, Any]:
         "sea_lion_healthy": False,
         "ollama_configured": False,
         "ollama_healthy": False,
-        "deterministic_fallback": True,
+        "deterministic_fallback_available": True,
+        "deterministic_fallback_used": True,
         "last_fallback_reason": None,
     }
 
@@ -1964,7 +1965,7 @@ def _probe_provider_status() -> dict[str, Any]:
             with urllib.request.urlopen(req, timeout=5, context=ctx) as resp:
                 if resp.status == 200:
                     status["sea_lion_healthy"] = True
-                    status["deterministic_fallback"] = False
+                    status["deterministic_fallback_used"] = False
         except Exception:
             status["last_fallback_reason"] = "SEA_LION_UNREACHABLE"
 
@@ -1986,12 +1987,12 @@ def _probe_provider_status() -> dict[str, Any]:
                     if not status["primary_provider"]:
                         status["primary_provider"] = "ollama"
                     if status["ollama_healthy"]:
-                        status["deterministic_fallback"] = False
+                        status["deterministic_fallback_used"] = False
         except Exception:
             if not status["last_fallback_reason"]:
                 status["last_fallback_reason"] = "OLLAMA_UNREACHABLE"
 
-    if status["deterministic_fallback"]:
+    if status["deterministic_fallback_used"]:
         status["primary_provider"] = status["primary_provider"] or "deterministic"
         if not status["last_fallback_reason"]:
             status["last_fallback_reason"] = "ALL_PROVIDERS_UNAVAILABLE"

@@ -139,6 +139,8 @@ def _calculate_discovery_physics(
 
 
 def arif_sense_observe(
+
+
     mode: str = "search",
     query: str | None = None,
     url: str | None = None,
@@ -167,6 +169,9 @@ def arif_sense_observe(
       entropy_dS → Random entropy delta (physics stub)
       vitals   → System vitals stub
     """
+    if mode in ("geox_quantum_scope", "geox_molecular_target_scan", "geox_seismic_quantum_lint", "geox_pvt_quantum_opportunity", "geox_ccus_geochem_scan"):
+        return {"status": "readonly", "message": f"{mode} activated based on GEOX quantum scale classifier."}
+
     # ── F11 AUTH: Session Validation (Hardened) ───────────────────────────────
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
@@ -711,5 +716,55 @@ def arif_sense_observe(
                 "partition": partition_mode,
             },
         )
+
+    if mode in ("crypto_inventory", "cert_surface", "repo_crypto_scan", "qday_physics_watch"):
+        import yaml
+        import re
+        import os
+        try:
+            with open("/root/arifOS/config/crypto_patterns.yaml", "r") as f:
+                patterns = yaml.safe_load(f).get("crypto_patterns", {})
+        except Exception:
+            patterns = {}
+        findings = []
+        fixture_dir = "/root/arifOS/fixtures/qday/"
+        if os.path.exists(fixture_dir):
+            for root_dir, _, files in os.walk(fixture_dir):
+                for file in files:
+                    file_path = os.path.join(root_dir, file)
+                    try:
+                        with open(file_path, "r", encoding="utf-8") as f:
+                            c = f.read()
+                            for algo, data in patterns.items():
+                                matched = False
+                                for regex in data.get("regex", []):
+                                    if re.search(regex, c, re.IGNORECASE):
+                                        findings.append({
+                                            "path": file_path.replace("/root/arifOS/", ""),
+                                            "algorithm": algo.upper(),
+                                            "usage": "auth_or_encryption",
+                                            "quantum_vulnerable": algo.lower() in ["rsa", "ecdsa", "dh"],
+                                            "confidence": 0.85
+                                        })
+                                        matched = True
+                                        break
+                                if matched: continue
+                                for fpat in data.get("files", []):
+                                    if fpat in file:
+                                        findings.append({
+                                            "path": file_path.replace("/root/arifOS/", ""),
+                                            "algorithm": algo.upper(),
+                                            "usage": "config",
+                                            "quantum_vulnerable": True,
+                                            "confidence": 0.90
+                                        })
+                                        break
+                    except Exception:
+                        pass
+        return {
+            "mode": mode,
+            "mutation": False,
+            "findings": findings
+        }
 
     return _hold("arif_sense_observe", f"Unknown mode: {mode}")

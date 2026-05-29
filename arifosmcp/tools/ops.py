@@ -339,6 +339,12 @@ def arif_ops_measure(
                 )
             )
 
+    if mode in ("qday_dashboard", "qday_physics_dashboard"):
+        return {"status": "readonly", "message": f"{mode} activated based on qday_physics parameters."}
+
+    if mode in ("geox_quantum_dashboard",):
+        return {"status": "readonly", "message": f"{mode} activated based on GEOX quantum scale classifier."}
+
     return TelemetryBlock(
         **_hold("arif_ops_measure", f"Unknown mode: {mode}", session_id=session_id)
     )

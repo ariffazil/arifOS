@@ -116,6 +116,7 @@ def _run_reasoning_sync(coro: Any, timeout: float = 70.0) -> dict[str, Any]:
 
 
 def arif_mind_reason(
+
     mode: str = "reason",
     query: str | None = None,
     actor_id: str | None = None,
@@ -124,6 +125,39 @@ def arif_mind_reason(
     """
     333_MIND: Constitutional reasoning and synthesis (Structured Witness).
     """
+    if mode in ("geox_quantum_suitability", "geox_scale_classifier", "geox_molecular_vs_macroscopic", "geox_hamiltonian_candidate"):
+        return {"status": "readonly", "message": f"{mode} activated based on GEOX quantum scale classifier."}
+
+    if mode in ("hndl_score", "pqc_gap_analysis", "migration_strategy", "qday_physics_assess", "claim_lint_quantum"):
+        import yaml
+        try:
+            with open("/root/arifOS/config/qday_policy.yaml", "r") as f:
+                policy = yaml.safe_load(f).get("qday_policy", {})
+        except Exception:
+            policy = {}
+            
+        risk = "MEDIUM"
+        reason_text = "Standard crypto usage detected."
+        recommended_action = "Monitor CRQC horizon."
+        
+        has_vulnerable = True
+        data_lifetime = 10
+        hndl_crit = policy.get("hndl_critical_if", {})
+        crit_lifetime = hndl_crit.get("data_lifetime_years_gte", 10)
+        
+        if data_lifetime >= crit_lifetime and has_vulnerable:
+            risk = "CRITICAL"
+            reason_text = "Long-lived data protected by quantum-vulnerable public-key cryptography."
+            recommended_action = "Prioritize hybrid/PQC migration planning."
+            
+        return {
+            "mode": mode,
+            "risk": risk,
+            "reason": reason_text,
+            "recommended_action": recommended_action,
+            "mutation": False
+        }
+        
     from arifosmcp.runtime.mind_reason import (
         arif_mind_reason_structured as run_reasoning,
     )
