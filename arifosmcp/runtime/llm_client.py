@@ -291,6 +291,28 @@ async def call_llm(
     # Build combined prompt string for audit trail
     combined_prompt = f"{system}\n\n{user}"
 
+    # Tier 0 — Deterministic fallback for test/diagnostic modes
+    if mode in {"smoke", "ping", "health", "schema_check", "diagnostic", "status"}:
+        t0 = time.monotonic()
+        parsed = {
+            "status": "HOLD",
+            "verdict": "HOLD",
+            "reason": "provider_timeout_or_unavailable",
+            "reasoning": "Deterministic fallback engaged."
+        }
+        return _make_envelope(
+            json.dumps(parsed),
+            parsed,
+            "deterministic_fallback",
+            "mock-model",
+            tool_origin,
+            mode,
+            combined_prompt,
+            (time.monotonic() - t0) * 1000,
+            None,  # skip strict schema validation
+            trace_recursion_depth,
+        )
+
     # Tier 1 — SEA-LION remote (PRIMARY sovereign model)
     try:
         t0 = time.monotonic()

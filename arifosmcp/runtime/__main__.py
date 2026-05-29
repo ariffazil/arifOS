@@ -168,7 +168,7 @@ def _run_minimal_stdio_server() -> None:
     from .server import create_aaa_mcp_server
     from .tool_spec import LEGACY_NAME_MAP, TOOLS, normalize_tool_name
     from .tools import CANONICAL_TOOL_HANDLERS
-    from .tools_hardened_dispatch import get_tool_handler  # type: ignore[import]
+    from .dispatcher import get_tool_handler  # type: ignore[import]
 
     # FastMCP instance for resources + prompts (all three surfaces)
     _mcp: FastMCPT = create_aaa_mcp_server()  # type: ignore[assignment]
