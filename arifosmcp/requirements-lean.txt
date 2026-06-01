@@ -10,7 +10,7 @@ httpx>=0.24.0
 aiohttp>=3.13.5,<4
 blake3==1.0.8
 asyncpg>=0.31.0
-langfuse>=4.6.1
+langfuse>=4.7.1
 numpy>=2.0.0
 qdrant-client>=1.18.0
 google-api-python-client>=2.160.0
