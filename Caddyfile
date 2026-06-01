@@ -114,6 +114,40 @@ arifos.arif-fazil.com {
 			header_up Accept "text/event-stream, application/json, application/json-rpc"
 		}
 	}
+	# ── Organ health proxy routes (bypass Cloudflare challenge for API calls) ─
+	# Proxy to backend with /health path — use rewrite + reverse_proxy in sequence
+	# since handle_path doesn't chain with proxy in Caddy's route evaluation
+	@arifos-health path /api/organs/arifos/health
+	handle @arifos-health {
+		rewrite /api/organs/arifos/health /health
+		reverse_proxy 127.0.0.1:8088
+	}
+	@geox-health path /api/organs/geox/health
+	handle @geox-health {
+		rewrite /api/organs/geox/health /health
+		reverse_proxy 127.0.0.1:18081
+	}
+	@wealth-health path /api/organs/wealth/health
+	handle @wealth-health {
+		rewrite /api/organs/wealth/health /health
+		reverse_proxy 127.0.0.1:18082
+	}
+	@well-health path /api/organs/well/health
+	handle @well-health {
+		rewrite /api/organs/well/health /health
+		reverse_proxy 127.0.0.1:18083
+	}
+	@apex-health path /api/organs/apex/health
+	handle @apex-health {
+		rewrite /api/organs/apex/health /health
+		reverse_proxy 127.0.0.1:3002
+	}
+	@a-forge-health path /api/organs/a-forge/health
+	handle @a-forge-health {
+		rewrite /api/organs/a-forge/health /health
+		reverse_proxy 127.0.0.1:7071
+	}
+
 	handle /api/* {
 		reverse_proxy 127.0.0.1:8088
 	}
