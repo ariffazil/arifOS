@@ -9667,6 +9667,30 @@ async def _arif_judge_deliberate_tool(
                 metadata={"verdict": result.get("verdict", "UNKNOWN")},
             )
 
+        try:
+            import asyncio
+            from arifOS.supabase_adapter import record_judge_verdict
+            
+            v_code = result.get("verdict", "UNKNOWN")
+            v_str = v_code if isinstance(v_code, str) else getattr(v_code, "value", str(v_code))
+            
+            comp = result.get("constitutional_compliance")
+            floor_summary = comp if isinstance(comp, dict) else (comp.model_dump() if hasattr(comp, "model_dump") else {})
+            
+            reasons = result.get("reasons", [])
+            reasoning = reasons[0] if reasons else None
+            
+            loop = asyncio.get_running_loop()
+            loop.create_task(record_judge_verdict(
+                tool_call_id=None,
+                session_ref=session_id or "unknown",
+                verdict=v_str,
+                floor_summary=floor_summary,
+                reasoning=reasoning
+            ))
+        except Exception as e:
+            logger.error(f"Failed to trigger Supabase record_judge_verdict: {e}")
+
         return result
     finally:
         if trace:
@@ -10757,6 +10781,31 @@ async def _arif_vault_seal_tool(
                     "verdict": result.get("verdict"),
                 },
             )
+
+        if result.get("status") == "OK" and mode == "seal":
+            try:
+                import asyncio
+                import json
+                from arifOS.supabase_adapter import seal_vault999
+                
+                try:
+                    content_payload = json.loads(payload) if payload else {}
+                except Exception:
+                    content_payload = {"raw_payload": payload}
+
+                loop = asyncio.get_running_loop()
+                loop.create_task(seal_vault999(
+                    subject_type="vault_seal",
+                    seal_type="seal",
+                    verdict=result.get("verdict", "SEAL"),
+                    content=content_payload,
+                    session_ref=session_id or "unknown",
+                    actor_ref=actor_id or "anonymous",
+                    organ_code="arifos",
+                ))
+            except Exception as e:
+                logger.error(f"Failed to trigger Supabase seal_vault999: {e}")
+
         return result
     finally:
         if trace:
@@ -12242,12 +12291,28 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 actor_id=kwargs.get("actor_id"),
             )
         # Nine-Signal enforcement on every response
-        return _enforce_nine_signal(
+        final_resp = _enforce_nine_signal(
             tool_name,
             _dict_from_response(response),
             session_id=kwargs.get("session_id"),
             actor_id=kwargs.get("actor_id"),
         )
+        try:
+            from arifOS.supabase_adapter import record_tool_call
+            import asyncio
+            loop = asyncio.get_running_loop()
+            loop.create_task(record_tool_call(
+                session_ref=kwargs.get("session_id") or "unknown",
+                tool_name=tool_name,
+                organ_code="arifOS",
+                arguments=kwargs,
+                risk_tier=0,  # Could extract from manifest
+                status="completed",
+                actor_ref=kwargs.get("actor_id")
+            ))
+        except Exception as e:
+            logger.debug(f"Supabase canonical receipt dispatch failed: {e}")
+        return final_resp
 
     # Async wrapper
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -12266,12 +12331,28 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 actor_id=kwargs.get("actor_id"),
             )
         # Nine-Signal enforcement on every response
-        return _enforce_nine_signal(
+        final_resp = _enforce_nine_signal(
             tool_name,
             _dict_from_response(response),
             session_id=kwargs.get("session_id"),
             actor_id=kwargs.get("actor_id"),
         )
+        try:
+            from arifOS.supabase_adapter import record_tool_call
+            import asyncio
+            loop = asyncio.get_running_loop()
+            loop.create_task(record_tool_call(
+                session_ref=kwargs.get("session_id") or "unknown",
+                tool_name=tool_name,
+                organ_code="arifOS",
+                arguments=kwargs,
+                risk_tier=0,
+                status="completed",
+                actor_ref=kwargs.get("actor_id")
+            ))
+        except Exception as e:
+            logger.debug(f"Supabase canonical receipt dispatch failed: {e}")
+        return final_resp
 
     _wrapped = async_wrapper if inspect.iscoroutinefunction(handler) else wrapper
     # Preserve signature so FastMCP schema generation sees actual parameters

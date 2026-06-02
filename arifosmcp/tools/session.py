@@ -13,15 +13,15 @@ from __future__ import annotations
 from arifosmcp.runtime.floor import check_floors
 from arifosmcp.runtime.tools import ARIF_DOCTRINE, _new_session
 from arifosmcp.schemas.session import (
-    SessionManifest,
-    EmbodimentCard,
-    CausalityWarning,
-    ExecutionLaw,
     AttentionSurface,
-    ToolSurface,
+    CausalityWarning,
+    EmbodimentCard,
+    ExecutionLaw,
     RiskLeash,
-    SessionWarnings,
+    SessionManifest,
     SessionState,
+    SessionWarnings,
+    ToolSurface,
     _get_os_info,
     _is_root,
 )
@@ -76,6 +76,41 @@ def arif_session_init(
         return SessionManifest(
             status="OK",
             result={"stale_swept": True, "active_count": count_after},
+            doctrine=ARIF_DOCTRINE,
+        )
+
+    if mode == "challenge":
+        if actor_id != "arif":
+            return SessionManifest(
+                status="HOLD",
+                mode="challenge",
+                result={},
+                meta={
+                    "reason": "crypto auth challenge is only available for actor_id=arif",
+                    "failed_floors": ["F11"],
+                },
+                doctrine=ARIF_DOCTRINE,
+            )
+
+        from arifosmcp.runtime.crypto_auth import (
+            _CHALLENGE_TTL_SECONDS,
+            issue_actor_challenge,
+        )
+
+        challenge = issue_actor_challenge(actor_id)
+        return SessionManifest(
+            status="OK",
+            mode="challenge",
+            actor={"claimed_id": actor_id, "identity_verified": False},
+            result={
+                "nonce": challenge,
+                "expires_in_seconds": _CHALLENGE_TTL_SECONDS,
+                "signature_payload": f"{actor_id}:{challenge}",
+            },
+            meta={
+                "single_use": True,
+                "next_safe_action": "Sign signature_payload and call mode=init once before expiry.",
+            },
             doctrine=ARIF_DOCTRINE,
         )
 

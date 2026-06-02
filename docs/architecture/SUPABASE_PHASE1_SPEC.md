@@ -1,801 +1,560 @@
-# SUPABASE_PHASE1_SPEC.md — arifOS Constitutional Ledger
+# SUPABASE_PHASE1_SPEC.md — arifOS Governance Ledger
 
-**Version:** 1.0
-**Date:** 2026-06-02
-**Authority:** 888_JUDGE (Arif Fazil, F13 SOVEREIGN)
-**Status:** BLUEPRINT — awaiting execution approval
-**Path:** Path B — create new tables alongside existing production tables
+> **DITEMPA BUKAN DIBERI** — This spec is written, not executed. No SQL runs until Arif approves.
 
 ---
 
-## Governing Principle
+## 1. What This Is
 
-> MCP is the hand.
-> arifOS is the law.
-> Supabase is the ledger.
-
-arifOS MCP on port 8088 remains the constitutional kernel. Supabase is a storage and audit backend beneath it — not above it, not in the hot path, not the router.
+Phase 1 migration spec for arifOS Supabase governance ledger.
+Writes: `/root/arifOS/docs/architecture/SUPABASE_PHASE1_SPEC.md`
+Status: DRAFT — awaiting F13 SOVEREIGN approval before any SQL execution
 
 ---
 
-## /000 / /999 / AAA Zones
-
-Supabase is organized into three storage zones that mirror the arifOS pipeline:
+## 2. Architecture Summary
 
 ```
-s000 / intake
-  → Proposed actions, tool-call receipts, evidence, approvals
-
-s999 / seal
-  → Immutable VAULT999 ledger, final verdicts, sealed outcomes
-
-aaa / cockpit
-  → Read-only views for AAA dashboard visibility
+Before: MCPs worked → some logs, some seals, some partial DB rows
+After:  MCPs work → Supabase records official trail → AAA sees → VAULT999 seals
 ```
 
-**These are storage zones only.** They do not replace arifOS routing, NATS, Qdrant, or Graphiti.
+Supabase becomes the **official record office** behind the MCPs.
+arifOS remains the brain. Supabase becomes the spine for records.
+
+**What Supabase IS NOT:**
+- Not the control plane
+- Not the routing authority
+- Not agent auth system
+- Not NATS replacement
+- Not Qdrant replacement
+- Not session authority
+
+**What Supabase IS:**
+- Structured ledger and evidence layer
+- s000 = intake/receipts/evidence
+- s999 = immutable seal/outcome ledger
+- AAA = cockpit read-model views
 
 ---
 
-## Zone: s000 — Intake and Audit Staging
+## 3. Current Table Map
 
-### Purpose
-Receipt layer. Every consequential action enters the record here before it becomes real.
+| Table | Status | Action |
+|-------|--------|--------|
+| `vault999` | Generic key-value artifact. Not the real seal chain. | IGNORE. Do not use. Do not delete. |
+| `vault_sealed_events` | Real immutable seal records, ~1,337 rows | KEEP. Add append-only trigger. Backfill to vault999_ledger later. |
+| `vault_outcomes` | Decision outcomes, ~12,269 rows | KEEP. Add append-only trigger. |
+| `vault_shim_hits` | Tool alias shim hits, ~4 rows | KEEP. Add append-only trigger. |
+| `arifosmcp_tool_calls` | Tool execution audit | KEEP. Protect from mutation. |
+| `arifosmcp_approval_tickets` | Human approval queue | KEEP. Protect from mutation. |
+| `arifosmcp_floor_rules` | Constitutional floor rules | KEEP. Seed/normalize F1-F13. |
+| `memory_records` | Working/semantic/episodic memory | KEEP. Already populated. |
+| `memory_embeddings` | pgvector embeddings | KEEP. |
+| `memory_store` | Entity-tagged episodic store | KEEP. |
+| `memory_contradictions` | Conflict tracking | KEEP. |
 
-### Tables
+---
 
-#### 1. tool_calls
+## 4. New Schema: s000 — Intake / Receipts
 
-Tool execution audit receipts. Every MCP/A2A call that has risk or consequence creates a row.
+### 4.1 `judge_verdicts`
+
+Stores 888_JUDGE decisions before sealing.
 
 ```sql
-CREATE TABLE s000.tool_calls (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-
-  -- Identity
-  tool_call_id    text UNIQUE NOT NULL,
-  session_ref     text,
-  trace_ref       text,
-  actor_ref       text,
-  service_ref     text,
-  organ_code      text NOT NULL,
-
-  -- What was called
-  tool_name       text NOT NULL,
-  server_ref      text,
-  mcp_method     text,
-  arguments       jsonb NOT NULL DEFAULT '{}',
-  arguments_hash  text,
-  result          jsonb,
-  result_hash     text,
-
-  -- Risk classification
-  risk_tier       int NOT NULL CHECK (risk_tier BETWEEN 0 AND 3),
-  reversibility   numeric CHECK (reversibility >= 0 AND reversibility <= 1),
-
-  -- State
-  status          text NOT NULL CHECK (
-    status IN (
-      'planned', 'pending_approval', 'running',
-      'succeeded', 'failed', 'blocked', 'voided'
-    )
-  ),
-
-  -- Performance
-  latency_ms      int,
-
-  -- Evidence and seal
-  evidence_ref    text,
-  seal_ref        text,
-
-  -- Timestamps
-  created_at       timestamptz DEFAULT NOW(),
-  completed_at     timestamptz
+CREATE TABLE IF NOT EXISTS s000_judge_verdicts (
+  id              BIGSERIAL PRIMARY KEY,
+  verdict_id      TEXT NOT NULL UNIQUE,
+  session_id      TEXT NOT NULL,
+  actor_id        TEXT NOT NULL,
+  organ           TEXT NOT NULL,  -- arifOS, GEOX, WEALTH, WELL
+  candidate       TEXT NOT NULL,
+  verdict         TEXT NOT NULL,   -- SEAL / SABAR / HOLD / VOID
+  evidence_level  TEXT DEFAULT 'unverified',
+  confidence      NUMERIC(4,3),
+  floors_checked  TEXT[],
+  floors_triggered TEXT[],
+  risk_tier       TEXT DEFAULT 'medium',
+  deliberation_ms INTEGER,
+  created_at      TIMESTAMPTZ DEFAULT NOW()
 );
+CREATE INDEX IF NOT EXISTS idx_judge_verdicts_session ON s000_judge_verdicts(session_id);
+CREATE INDEX IF NOT EXISTS idx_judge_verdicts_verdict ON s000_judge_verdicts(verdict);
+CREATE INDEX IF NOT EXISTS idx_judge_verdicts_organ   ON s000_judge_verdicts(organ);
 ```
 
-**Risk tiers:**
+### 4.2 `evidence_items`
 
-| Tier | Meaning | Example |
-|------|---------|---------|
-| 0 | Read-only / inspect / health | `health check`, `list tools`, `inspect registry` |
-| 1 | Reversible mutation | `write draft`, `create artifact`, `log signal` |
-| 2 | External side effect | `deploy`, `send message`, `mutate config` |
-| 3 | Irreversible / destructive | `delete`, `drop`, `force push`, `secret overwrite` |
-
----
-
-#### 2. approvals
-
-Tier 2/3 approval receipts. Records Arif's explicit authorization.
+F2 TRUTH evidence shelf. Stores evidence receipts for MCP operations.
 
 ```sql
-CREATE TABLE s000.approvals (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-
-  approval_id     text UNIQUE NOT NULL,
-  tool_call_id    uuid REFERENCES s000.tool_calls(id) ON DELETE CASCADE,
-
-  requested_by_ref text,
-  approved_by_ref text,
-
-  status          text NOT NULL CHECK (
-    status IN ('pending', 'approved', 'rejected', 'expired')
-  ),
-
-  approval_method text CHECK (
-    approval_method IN ('cli', 'mcp', 'telegram', 'web', 'manual')
-  ),
-
-  reason          text,
-  signed_payload  jsonb,
-  signature       text,
-
-  created_at      timestamptz DEFAULT NOW(),
-  decided_at      timestamptz
+CREATE TABLE IF NOT EXISTS s000_evidence_items (
+  id              BIGSERIAL PRIMARY KEY,
+  evidence_id     TEXT NOT NULL UNIQUE,
+  source_organ    TEXT NOT NULL,  -- GEOX, WEALTH, WELL, arifOS
+  source_url      TEXT,
+  source_type     TEXT NOT NULL,  -- web_fetch, document, api_response, computed
+  query_used      TEXT,
+  content_hash    TEXT NOT NULL,  -- sha256 of content
+  content_preview TEXT,           -- first 500 chars
+  retrieved_at    TIMESTAMPTZ DEFAULT NOW(),
+  confidence      NUMERIC(4,3),
+  authority       TEXT DEFAULT 'system_inferred', -- explicit_user, document, system_inferred
+  tags            TEXT[],
+  metadata        JSONB DEFAULT '{}'
 );
+CREATE INDEX IF NOT EXISTS idx_evidence_source ON s000_evidence_items(source_organ);
+CREATE INDEX IF NOT EXISTS idx_evidence_hash  ON s000_evidence_items(content_hash);
 ```
 
-**Execution gate:**
+### 4.3 `evidence_citations`
 
-```
-Tier 0 → allowed if authenticated
-Tier 1 → planned + logged
-Tier 2 → approval required (Arif explicit)
-Tier 3 → approval + 888_JUDGE SEAL required
-```
-
----
-
-#### 3. judge_verdicts
-
-888_JUDGE deliberation results.
+Links evidence to the tool calls / verdicts that used them.
 
 ```sql
-CREATE TABLE s000.judge_verdicts (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-
-  verdict_id      text UNIQUE NOT NULL,
-  tool_call_id    uuid REFERENCES s000.tool_calls(id) ON DELETE SET NULL,
-
-  session_ref     text,
-  trace_ref       text,
-
-  verdict         text NOT NULL CHECK (
-    verdict IN ('SEAL', 'HOLD', 'VOID', 'QUALIFY', 'SABAR')
-  ),
-
-  risk_tier      int CHECK (risk_tier BETWEEN 0 AND 3),
-  floor_summary   jsonb NOT NULL DEFAULT '{}',
-  reasoning       text,
-
-  judge_ref       text DEFAULT 'arifOS:888_JUDGE',
-  signature       text,
-
-  created_at      timestamptz DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS s000_evidence_citations (
+  id              BIGSERIAL PRIMARY KEY,
+  citation_id      TEXT NOT NULL UNIQUE,
+  evidence_id      TEXT NOT NULL REFERENCES s000_evidence_items(evidence_id),
+  citing_session   TEXT NOT NULL,
+  citing_tool      TEXT,
+  citing_verdict   TEXT,
+  used_for         TEXT,          -- reasoning, grounding, validation
+  created_at       TIMESTAMPTZ DEFAULT NOW()
 );
+CREATE INDEX IF NOT EXISTS idx_citations_evidence ON s000_evidence_citations(evidence_id);
+CREATE INDEX IF NOT EXISTS idx_citations_session  ON s000_evidence_citations(citing_session);
 ```
 
----
+### 4.4 `artifacts`
 
-#### 4. evidence_items
-
-F2 TRUTH evidence shelf. Every claim must cite evidence.
+Indexes Supabase Storage files and agent-generated outputs.
 
 ```sql
-CREATE TABLE s000.evidence_items (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-
-  evidence_id     text UNIQUE NOT NULL,
-  session_ref     text,
-  trace_ref       text,
-  organ_code      text,
-
-  source_type     text NOT NULL CHECK (
-    source_type IN (
-      'github', 'web', 'file', 'mcp',
-      'sensor', 'manual', 'database', 'artifact'
-    )
-  ),
-
-  source_uri      text,
-  source_hash     text,
-  title           text,
-  content         text,
-
-  claim_state     text NOT NULL CHECK (
-    claim_state IN ('FACT', 'EST', 'HYPO', 'UNK')
-  ),
-
-  confidence      numeric CHECK (confidence >= 0 AND confidence <= 1),
-  metadata        jsonb DEFAULT '{}',
-
-  created_at      timestamptz DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS s000_artifacts (
+  id              BIGSERIAL PRIMARY KEY,
+  artifact_id     TEXT NOT NULL UNIQUE,
+  organ           TEXT NOT NULL,
+  artifact_type   TEXT NOT NULL,  -- image, pdf, json, report, model_output, document
+  storage_path    TEXT,            -- Supabase Storage path or URL
+  content_hash    TEXT,
+  file_size_bytes BIGINT,
+  generated_at    TIMESTAMPTZ DEFAULT NOW(),
+  session_id      TEXT,
+  tool_call_id    TEXT,
+  summary         TEXT,
+  tags            TEXT[],
+  metadata        JSONB DEFAULT '{}'
 );
+CREATE INDEX IF NOT EXISTS idx_artifacts_organ     ON s000_artifacts(organ);
+CREATE INDEX IF NOT EXISTS idx_artifacts_type      ON s000_artifacts(artifact_type);
+CREATE INDEX IF NOT EXISTS idx_artifacts_session   ON s000_artifacts(session_id);
 ```
 
-**Claim states:**
+### 4.5 `service_identities`
 
-| State | Meaning |
-|-------|---------|
-| FACT | Directly observed, verifiable |
-| EST | Estimated from evidence |
-| HYPO | Hypothesis, not yet supported |
-| UNK | Unknown, cannot determine |
-
----
-
-#### 5. evidence_citations
-
-Specific excerpts or line references from evidence.
+HMAC/Ed25519 service identity registry for MCP servers.
 
 ```sql
-CREATE TABLE s000.evidence_citations (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-
-  evidence_id     uuid REFERENCES s000.evidence_items(id) ON DELETE CASCADE,
-
-  citation_label  text,
-  line_start     int,
-  line_end       int,
-  excerpt        text,
-
-  created_at      timestamptz DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS s000_service_identities (
+  id              BIGSERIAL PRIMARY KEY,
+  identity_id     TEXT NOT NULL UNIQUE,
+  organ           TEXT NOT NULL,  -- arifOS, GEOX, WEALTH, WELL, AAA
+  service_name    TEXT NOT NULL,
+  key_type        TEXT NOT NULL,  -- ed25519, hmac-sha256
+  public_key_fingerprint TEXT,
+  registered_at   TIMESTAMPTZ DEFAULT NOW(),
+  is_active       BOOLEAN DEFAULT TRUE,
+  last_seen       TIMESTAMPTZ,
+  metadata        JSONB DEFAULT '{}'
 );
+CREATE INDEX IF NOT EXISTS idx_identities_organ    ON s000_service_identities(organ);
+CREATE INDEX IF NOT EXISTS idx_identities_active   ON s000_service_identities(is_active) WHERE is_active = TRUE;
 ```
 
----
+### 4.6 `mcp_servers`
 
-#### 6. artifacts
-
-File metadata for Supabase Storage buckets.
+MCP server registry snapshot.
 
 ```sql
-CREATE TABLE s000.artifacts (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-
-  artifact_id     text UNIQUE NOT NULL,
-  session_ref     text,
-  trace_ref       text,
-  organ_code      text,
-
-  bucket          text NOT NULL,
-  path            text NOT NULL,
-
-  filename        text,
-  mime_type       text,
-  size_bytes      bigint,
-  content_hash    text,
-
-  artifact_type   text,
-  claim_state     text CHECK (claim_state IN ('FACT', 'EST', 'HYPO', 'UNK')),
-  metadata        jsonb DEFAULT '{}',
-
-  created_at      timestamptz DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS s000_mcp_servers (
+  id              BIGSERIAL PRIMARY KEY,
+  server_id       TEXT NOT NULL UNIQUE,
+  organ           TEXT NOT NULL,
+  server_name     TEXT NOT NULL,
+  endpoint_url    TEXT,
+  port            INTEGER,
+  is_active       BOOLEAN DEFAULT TRUE,
+  version         TEXT,
+  registered_at   TIMESTAMPTZ DEFAULT NOW(),
+  last_ping       TIMESTAMPTZ,
+  health_status   TEXT DEFAULT 'unknown',
+  metadata        JSONB DEFAULT '{}'
 );
+CREATE INDEX IF NOT EXISTS idx_mcp_servers_organ   ON s000_mcp_servers(organ);
+CREATE INDEX IF NOT EXISTS idx_mcp_servers_health  ON s000_mcp_servers(health_status);
 ```
 
-**Storage buckets:**
+### 4.7 `mcp_tools`
 
-| Bucket | Contents |
-|--------|---------|
-| `vault999` | Sealed export bundles |
-| `evidence` | Source docs, PDFs, web snapshots |
-| `geox-artifacts` | LAS outputs, maps, well packages |
-| `wealth-artifacts` | Financial models, reports |
-| `well-artifacts` | Readiness snapshots, substrate logs |
-| `forge-artifacts` | Build logs, deploy bundles |
-| `public-surfaces` | Website, wiki, public assets |
-
----
-
-#### 7. constitutional_floors
-
-F1–F13 as database-enforced constraints.
+MCP tool manifest and risk tier registry.
 
 ```sql
-CREATE TABLE s000.constitutional_floors (
-  id                text PRIMARY KEY,
-  name              text NOT NULL,
-  domain            text NOT NULL,
-  invariant         text NOT NULL,
-  enforcement_level text NOT NULL CHECK (
-    enforcement_level IN ('advisory', 'required', 'blocking')
-  ),
-  active            boolean DEFAULT TRUE,
-  created_at        timestamptz DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS s000_mcp_tools (
+  id              BIGSERIAL PRIMARY KEY,
+  tool_id         TEXT NOT NULL UNIQUE,
+  tool_name       TEXT NOT NULL,
+  server_id       TEXT REFERENCES s000_mcp_servers(server_id),
+  organ           TEXT NOT NULL,
+  risk_tier       TEXT NOT NULL,  -- T1 operational, T2 approval, T3 critical
+  description     TEXT,
+  parameters_schema JSONB,
+  is_enabled      BOOLEAN DEFAULT TRUE,
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
+CREATE INDEX IF NOT EXISTS idx_mcp_tools_server   ON s000_mcp_tools(server_id);
+CREATE INDEX IF NOT EXISTS idx_mcp_tools_risk     ON s000_mcp_tools(risk_tier);
+CREATE INDEX IF NOT EXISTS idx_mcp_tools_organ    ON s000_mcp_tools(organ);
 ```
 
-**Seed data:**
+### 4.8 `mcp_manifest_snapshots`
 
-| id | name | domain | invariant | enforcement |
-|----|------|--------|-----------|-------------|
-| F1 | AMANAH | Reversibility | Irreversible ops require explicit human acknowledgement | blocking |
-| F2 | TRUTH | Evidentiality | No fabrication; label FACT, EST, HYPO, UNK | blocking |
-| F3 | WITNESS | Multi-source | Require multi-source evidence | required |
-| F4 | CLARITY | Intent | Declare intent before action | required |
-| F5 | PEACE² | Dignity | Preserve dignity in all interactions | blocking |
-| F6 | EMPATHY | Consequence | Model consequences before execution | required |
-| F7 | HUMILITY | Uncertainty | Bound uncertainty explicitly | required |
-| F8 | GENIUS | Correctness | Correctness plus ethics | required |
-| F9 | ANTIHANTU | Anti-manipulation | Machine remains instrument; no self-authorization | blocking |
-| F10 | ONTOLOGY | Schemas | Strict schemas and category locks | blocking |
-| F11 | AUTH | Traceability | Sensitive calls require actor identity | blocking |
-| F12 | INJECTION | Security | Sanitize all parameters before execution | blocking |
-| F13 | SOVEREIGN | Apex | Arif has final veto; no algorithm overrides | blocking |
-
----
-
-#### 8. service_identities
-
-HMAC/Ed25519 service keys — not Supabase Auth users.
+Tool surface drift detection — periodic snapshots of what tools exist.
 
 ```sql
-CREATE TABLE s000.service_identities (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-
-  service_ref     text UNIQUE NOT NULL,
-  service_name    text NOT NULL,
-  organ_code      text,
-
-  identity_type   text NOT NULL CHECK (
-    identity_type IN ('hmac', 'ed25519', 'systemd', 'manual')
-  ),
-
-  public_key      text,
-  key_fingerprint text,
-
-  active          boolean DEFAULT TRUE,
-  metadata        jsonb DEFAULT '{}',
-
-  created_at      timestamptz DEFAULT NOW(),
-  updated_at      timestamptz DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS s000_mcp_manifest_snapshots (
+  id              BIGSERIAL PRIMARY KEY,
+  snapshot_id     TEXT NOT NULL UNIQUE,
+  server_id       TEXT REFERENCES s000_mcp_servers(server_id),
+  snapshot_at     TIMESTAMPTZ DEFAULT NOW(),
+  tool_count      INTEGER,
+  tool_names      TEXT[],
+  added_tools     TEXT[],  -- tools in this snapshot not in previous
+  removed_tools   TEXT[],  -- tools missing from previous snapshot
+  drift_detected  BOOLEAN DEFAULT FALSE,
+  metadata        JSONB DEFAULT '{}'
 );
+CREATE INDEX IF NOT EXISTS idx_manifest_server     ON s000_mcp_manifest_snapshots(server_id);
+CREATE INDEX IF NOT EXISTS idx_manifest_drift     ON s000_mcp_manifest_snapshots(drift_detected) WHERE drift_detected = TRUE;
 ```
-
-**Seed data:**
-
-| service_ref | service_name | organ_code | identity_type |
-|-------------|--------------|------------|---------------|
-| svc:arifos | arifOS MCP Kernel | arifos | ed25519 |
-| svc:aaa | AAA Cockpit | aaa | ed25519 |
-| svc:forge | A-FORGE | forge | ed25519 |
-| svc:geox | GEOX | geox | ed25519 |
-| svc:wealth | WEALTH | wealth | ed25519 |
-| svc:well | WELL | well | ed25519 |
-| svc:hermes | Hermes ASI | hermes | hmac |
-| svc:openclaw | OpenClaw Gateway | openclaw | hmac |
 
 ---
 
-#### 9. mcp_servers
+## 5. New Schema: s999 — Immutable Seal Ledger
 
-Registry snapshot of MCP servers. Not live router authority.
+### 5.1 `vault999_ledger` (v2 canonical)
+
+Canonical VAULT999 ledger. Path B — keeps vault_sealed_events as-is, creates new table as canonical v2.
 
 ```sql
-CREATE TABLE s000.mcp_servers (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-
-  server_ref      text UNIQUE NOT NULL,
-  organ_code      text NOT NULL,
-
-  name            text NOT NULL,
-  endpoint_url    text,
-  local_port      int,
-
-  transport       text CHECK (
-    transport IN ('streamable-http', 'stdio', 'sse', 'http', 'a2a')
-  ),
-
-  authority_role  text NOT NULL,
-  status_snapshot text CHECK (
-    status_snapshot IN ('live', 'degraded', 'disabled', 'archived', 'unknown')
-  ) DEFAULT 'unknown',
-
-  source_of_truth text DEFAULT 'arifOS/NATS/Prometheus',
-  last_observed_at timestamptz,
-
-  metadata        jsonb DEFAULT '{}',
-
-  created_at      timestamptz DEFAULT NOW(),
-  updated_at      timestamptz DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS s999_vault999_ledger (
+  id              BIGSERIAL PRIMARY KEY,
+  ledger_id       TEXT NOT NULL UNIQUE,
+  seal_id         TEXT NOT NULL UNIQUE,
+  prev_hash       TEXT NOT NULL,
+  payload_hash    TEXT NOT NULL,  -- blake3 of canonical JSON payload
+  actor_id        TEXT NOT NULL,
+  organ           TEXT NOT NULL,
+  action          TEXT NOT NULL,
+  payload         JSONB NOT NULL DEFAULT '{}',
+  epoch           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  human_witness   TEXT,           -- Arif's Ed25519 signature (base64)
+  ai_witness      TEXT,           -- agent identity
+  evidence_refs   TEXT[],         -- evidence_ids used
+  artifact_refs   TEXT[],         -- artifact_ids produced
+  verdict_ref     TEXT,           -- judge_verdicts.verdict_id
+  confidence      NUMERIC(4,3),
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_ledger_prev_hash   ON s999_vault999_ledger(prev_hash);
+CREATE INDEX IF NOT EXISTS idx_ledger_seal_id     ON s999_vault999_ledger(seal_id);
+CREATE INDEX IF NOT EXISTS idx_ledger_organ       ON s999_vault999_ledger(organ);
+CREATE INDEX IF NOT EXISTS idx_ledger_epoch       ON s999_vault999_ledger(epoch);
 ```
 
-**Seed data:**
-
-| server_ref | organ_code | name | local_port | transport | authority_role |
-|-------------|------------|------|------------|-----------|----------------|
-| mcp:arifos | arifos | arifOS MCP | 8088 | streamable-http | constitutional kernel |
-| mcp:geox | geox | GEOX MCP | 18081 | streamable-http | earth intelligence |
-| mcp:wealth | wealth | WEALTH MCP | 18082 | streamable-http | capital intelligence |
-| mcp:well | well | WELL MCP | 18083 | streamable-http | substrate intelligence |
-| mcp:forge | forge | A-FORGE | 7071 | a2a | execution shell |
-
----
-
-#### 10. mcp_tools
-
-Tool manifests and risk tiers per server.
+### 5.2 Append-Only Triggers (all s999 tables)
 
 ```sql
-CREATE TABLE s000.mcp_tools (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-
-  tool_ref        text UNIQUE NOT NULL,
-  server_ref      text NOT NULL REFERENCES s000.mcp_servers(server_ref),
-
-  tool_name       text NOT NULL,
-  organ_code      text NOT NULL,
-
-  description     text,
-  stage           text,
-  input_schema    jsonb,
-  output_schema   jsonb,
-
-  risk_tier       int NOT NULL CHECK (risk_tier BETWEEN 0 AND 3),
-  requires_approval boolean DEFAULT FALSE,
-  requires_judge    boolean DEFAULT FALSE,
-
-  active          boolean DEFAULT TRUE,
-  manifest_hash   text,
-
-  created_at      timestamptz DEFAULT NOW(),
-  updated_at      timestamptz DEFAULT NOW(),
-
-  UNIQUE(server_ref, tool_name)
-);
-```
-
----
-
-#### 11. mcp_manifest_snapshots
-
-Tool surface drift detection. Every time tools change, snapshot the manifest.
-
-```sql
-CREATE TABLE s000.mcp_manifest_snapshots (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-
-  server_ref      text NOT NULL REFERENCES s000.mcp_servers(server_ref),
-  manifest_hash   text NOT NULL,
-
-  tool_count      int NOT NULL,
-  tools           jsonb NOT NULL,
-
-  observed_by_ref text,
-  observed_at     timestamptz DEFAULT NOW(),
-
-  UNIQUE(server_ref, manifest_hash)
-);
-```
-
-**This answers:** What tools existed when this action happened? Did the surface drift? Did a tool become more dangerous?
-
----
-
-## Zone: s999 — VAULT999 Sealed Truth
-
-### Purpose
-Immutable append-only ledger. Final outcomes, sealed verdicts, and hash chains live here.
-
-### Note on existing tables
-The existing production tables are preserved untouched:
-
-- `public.vault_sealed_events` — 1,337 rows, keep as-is
-- `public.vault_outcomes` — 12,269 rows, keep as-is
-- `public.vault_shim_hits` — keep as-is
-
-Path B means we create the new canonical table alongside, not instead of.
-
----
-
-#### 12. vault999_ledger (NEW — Path B)
-
-The improved v2 VAULT999 ledger. Append-only.
-
-```sql
-CREATE TABLE s999.vault999_ledger (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-
-  seal_id         text UNIQUE NOT NULL,
-  session_ref     text,
-  trace_ref       text,
-
-  actor_ref       text,
-  service_ref     text,
-  organ_code      text,
-
-  subject_type    text NOT NULL,
-  subject_ref     text,
-  seal_type       text NOT NULL,
-
-  verdict         text NOT NULL CHECK (
-    verdict IN ('SEAL', 'HOLD', 'VOID', 'QUALIFY', 'SABAR')
-  ),
-
-  content_hash    text NOT NULL,
-  previous_hash   text,
-  content         jsonb NOT NULL,
-
-  signature       text,
-  signed_by_ref   text,
-
-  created_at      timestamptz DEFAULT NOW()
-);
-```
-
-**Append-only trigger:**
-
-```sql
-CREATE OR REPLACE FUNCTION s999.prevent_vault999_mutation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
+CREATE OR REPLACE FUNCTION enforce_append_only()
+RETURNS TRIGGER AS $$
 BEGIN
-  RAISE EXCEPTION 'VAULT999 is append-only';
+  RAISE EXCEPTION 'This table is append-only. UPDATE and DELETE are forbidden.';
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
-CREATE TRIGGER vault999_no_update
-BEFORE UPDATE OR DELETE ON s999.vault999_ledger
-FOR EACH ROW EXECUTE FUNCTION s999.prevent_vault999_mutation();
+-- Apply to vault_sealed_events
+CREATE OR REPLACE TRIGGER no_vault_sealed_events_mutation
+  BEFORE UPDATE OR DELETE ON vault_sealed_events
+  FOR EACH ROW EXECUTE FUNCTION enforce_append_only();
+
+-- Apply to vault_outcomes
+CREATE OR REPLACE TRIGGER no_vault_outcomes_mutation
+  BEFORE UPDATE OR DELETE ON vault_outcomes
+  FOR EACH ROW EXECUTE FUNCTION enforce_append_only();
+
+-- Apply to vault_shim_hits
+CREATE OR REPLACE TRIGGER no_vault_shim_hits_mutation
+  BEFORE UPDATE OR DELETE ON vault_shim_hits
+  FOR EACH ROW EXECUTE FUNCTION enforce_append_only();
+
+-- Apply to s999_vault999_ledger
+CREATE OR REPLACE TRIGGER no_vault999_ledger_mutation
+  BEFORE UPDATE OR DELETE ON s999_vault999_ledger
+  FOR EACH ROW EXECUTE FUNCTION enforce_append_only();
 ```
 
 ---
 
-#### Append-only triggers for existing tables
+## 6. New Schema: AAA — Cockpit Read Model
 
-These protect existing production tables from accidental mutation:
-
-```sql
--- vault_outcomes
-CREATE OR REPLACE FUNCTION s999.prevent_vault_outcomes_mutation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  RAISE EXCEPTION 'vault_outcomes is append-only';
-END;
-$$;
-
-CREATE TRIGGER vault_outcomes_no_update
-BEFORE UPDATE OR DELETE ON vault_outcomes
-FOR EACH ROW EXECUTE FUNCTION s999.prevent_vault_outcomes_mutation();
-
--- vault_shim_hits
-CREATE OR REPLACE FUNCTION s999.prevent_vault_shim_hits_mutation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  RAISE EXCEPTION 'vault_shim_hits is append-only';
-END;
-$$;
-
-CREATE TRIGGER vault_shim_hits_no_update
-BEFORE UPDATE OR DELETE ON vault_shim_hits
-FOR EACH ROW EXECUTE FUNCTION s999.prevent_vault_shim_hits_mutation();
-```
-
----
-
-## Zone: aaa — Cockpit Read Model
-
-### Purpose
-Read-only views for AAA dashboard. No authority. No routing.
-
-#### Views
+All AAA views are SELECT-only. No write authority.
 
 ```sql
--- Pending approvals requiring Arif action
-CREATE VIEW aaa.pending_approvals AS
+-- Pending approvals requiring human decision
+CREATE OR REPLACE VIEW aaa_pending_approvals AS
 SELECT
-  a.approval_id,
-  a.status,
-  a.requested_by_ref,
-  a.created_at,
-  tc.tool_name,
-  tc.organ_code,
-  tc.risk_tier
-FROM s000.approvals a
-JOIN s000.tool_calls tc ON tc.id = a.tool_call_id
-WHERE a.status = 'pending'
-ORDER BY a.created_at DESC;
+  ticket_id,
+  action_plan,
+  requested_at,
+  epoch,
+  status
+FROM arifosmcp_approval_tickets
+WHERE human_verdict = 'PENDING'
+ORDER BY requested_at DESC;
 
--- Recent seals for dashboard
-CREATE VIEW aaa.recent_seals AS
+-- Recent tool calls across all organs
+CREATE OR REPLACE VIEW aaa_recent_tool_calls AS
 SELECT
-  seal_id,
-  verdict,
-  organ_code,
-  subject_type,
-  created_at
-FROM s999.vault999_ledger
-ORDER BY created_at DESC
+  id, organ, session_id, tool_name, agent_id,
+  verdict, floor_triggered, duration_ms, epoch
+FROM arifosmcp_tool_calls
+ORDER BY epoch DESC
 LIMIT 100;
 
--- Active tool surface for MCP registry
-CREATE VIEW aaa.mcp_surface AS
+-- Recent sealed events
+CREATE OR REPLACE VIEW aaa_recent_seals AS
 SELECT
-  mcp.server_ref,
-  mcp.name,
-  mcp.status_snapshot,
-  mcp.last_observed_at,
-  COUNT(mt.tool_ref) AS tool_count,
-  ARRAY_AGG(mt.tool_name) AS tools
-FROM s000.mcp_servers mcp
-LEFT JOIN s000.mcp_tools mt ON mt.server_ref = mcp.server_ref AND mt.active = TRUE
-GROUP BY mcp.server_ref, mcp.name, mcp.status_snapshot, mcp.last_observed_at;
+  seal_id, organ, action, epoch,
+  human_witness, ai_witness, confidence,
+  payload
+FROM s999_vault999_ledger
+ORDER BY epoch DESC
+LIMIT 100;
 
 -- Evidence index
-CREATE VIEW aaa.evidence_index AS
+CREATE OR REPLACE VIEW aaa_evidence_index AS
 SELECT
-  evidence_id,
-  source_type,
-  claim_state,
-  title,
-  organ_code,
-  created_at
-FROM s000.evidence_items
-ORDER BY created_at DESC;
+  evidence_id, source_organ, source_type,
+  query_used, confidence, retrieved_at, tags
+FROM s000_evidence_items
+ORDER BY retrieved_at DESC;
 
 -- Artifact index
-CREATE VIEW aaa.artifact_index AS
+CREATE OR REPLACE VIEW aaa_artifact_index AS
 SELECT
-  artifact_id,
-  bucket,
-  filename,
-  artifact_type,
-  organ_code,
-  size_bytes,
-  created_at
-FROM s000.artifacts
-ORDER BY created_at DESC;
+  artifact_id, organ, artifact_type,
+  generated_at, session_id, summary, tags
+FROM s000_artifacts
+ORDER BY generated_at DESC;
 
--- Risk dashboard
-CREATE VIEW aaa.risk_dashboard AS
+-- MCP surface (what tools exist)
+CREATE OR REPLACE VIEW aaa_mcp_surface AS
 SELECT
-  organ_code,
-  risk_tier,
-  COUNT(*) AS count,
-  status
-FROM s000.tool_calls
-WHERE created_at > NOW() - INTERVAL '24 hours'
-GROUP BY organ_code, risk_tier, status;
+  t.tool_name, t.organ, t.risk_tier,
+  s.server_name, s.endpoint_url, s.health_status
+FROM s000_mcp_tools t
+JOIN s000_mcp_servers s ON t.server_id = s.server_id
+WHERE t.is_enabled = TRUE AND s.is_active = TRUE;
+
+-- Risk dashboard (Tier 2/3 tool calls this week)
+CREATE OR REPLACE VIEW aaa_risk_dashboard AS
+SELECT
+  organ,
+  COUNT(*) FILTER (WHERE risk_tier IN ('T2', 'T3')) AS high_risk_calls,
+  COUNT(*) AS total_calls,
+  COUNT(*) FILTER (WHERE verdict = 'SEAL') AS approved,
+  COUNT(*) FILTER (WHERE verdict = 'VOID') AS rejected,
+  AVG(confidence) AS avg_confidence
+FROM arifosmcp_tool_calls t
+LEFT JOIN s000_mcp_tools m ON t.tool_name = m.tool_name
+WHERE epoch > NOW() - INTERVAL '7 days'
+GROUP BY organ;
+
+-- Organ registry snapshot
+CREATE OR REPLACE VIEW aaa_organ_registry_snapshot AS
+SELECT
+  organ,
+  is_active,
+  registered_at,
+  last_ping,
+  health_status
+FROM s000_mcp_servers
+ORDER BY organ;
+
+-- Tool manifest drift
+CREATE OR REPLACE VIEW aaa_manifest_drift AS
+SELECT
+  server_id,
+  snapshot_at,
+  drift_detected,
+  added_tools,
+  removed_tools,
+  tool_count
+FROM s000_mcp_manifest_snapshots
+WHERE drift_detected = TRUE
+ORDER BY snapshot_at DESC;
 ```
 
 ---
 
-## RLS Policies
+## 7. Constitutional Floor Seeding
 
-All tables use RLS. `service_role` bypasses RLS (arifOS kernel uses service_role).
+Normalize F1-F13 in arifosmcp_floor_rules:
 
 ```sql
--- Deny anon completely on all s000 tables
-ALTER TABLE s000.tool_calls ENABLE ROW LEVEL SECURITY;
-ALTER TABLE s000.approvals ENABLE ROW LEVEL SECURITY;
-ALTER TABLE s000.judge_verdicts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE s000.evidence_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE s000.evidence_citations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE s000.artifacts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE s000.constitutional_floors ENABLE ROW LEVEL SECURITY;
-ALTER TABLE s000.service_identities ENABLE ROW LEVEL SECURITY;
-ALTER TABLE s000.mcp_servers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE s000.mcp_tools ENABLE ROW LEVEL SECURITY;
-ALTER TABLE s000.mcp_manifest_snapshots ENABLE ROW LEVEL SECURITY;
-
--- Deny anon on all s000 tables
-CREATE POLICY "s000_no_anon" ON s000.tool_calls FOR ALL TO anon USING (false);
-CREATE POLICY "s000_no_anon" ON s000.approvals FOR ALL TO anon USING (false);
-CREATE POLICY "s000_no_anon" ON s000.judge_verdicts FOR ALL TO anon USING (false);
-CREATE POLICY "s000_no_anon" ON s000.evidence_items FOR ALL TO anon USING (false);
-CREATE POLICY "s000_no_anon" ON s000.evidence_citations FOR ALL TO anon USING (false);
-CREATE POLICY "s000_no_anon" ON s000.artifacts FOR ALL TO anon USING (false);
-CREATE POLICY "s000_no_anon" ON s000.constitutional_floors FOR ALL TO anon USING (false);
-CREATE POLICY "s000_no_anon" ON s000.service_identities FOR ALL TO anon USING (false);
-CREATE POLICY "s000_no_anon" ON s000.mcp_servers FOR ALL TO anon USING (false);
-CREATE POLICY "s000_no_anon" ON s000.mcp_tools FOR ALL TO anon USING (false);
-CREATE POLICY "s000_no_anon" ON s000.mcp_manifest_snapshots FOR ALL TO anon USING (false);
-
--- Deny authenticated on all s000 tables
-CREATE POLICY "s000_no_auth" ON s000.tool_calls FOR ALL TO authenticated USING (false);
-CREATE POLICY "s000_no_auth" ON s000.approvals FOR ALL TO authenticated USING (false);
-CREATE POLICY "s000_no_auth" ON s000.judge_verdicts FOR ALL TO authenticated USING (false);
-CREATE POLICY "s000_no_auth" ON s000.evidence_items FOR ALL TO authenticated USING (false);
-CREATE POLICY "s000_no_auth" ON s000.evidence_citations FOR ALL TO authenticated USING (false);
-CREATE POLICY "s000_no_auth" ON s000.artifacts FOR ALL TO authenticated USING (false);
-CREATE POLICY "s000_no_auth" ON s000.constitutional_floors FOR ALL TO authenticated USING (false);
-CREATE POLICY "s000_no_auth" ON s000.service_identities FOR ALL TO authenticated USING (false);
-CREATE POLICY "s000_no_auth" ON s000.mcp_servers FOR ALL TO authenticated USING (false);
-CREATE POLICY "s000_no_auth" ON s000.mcp_tools FOR ALL TO authenticated USING (false);
-CREATE POLICY "s000_no_auth" ON s000.mcp_manifest_snapshots FOR ALL TO authenticated USING (false);
-
--- service_role has full access (arifOS kernel path)
-CREATE POLICY "s000_service_full" ON s000.tool_calls FOR ALL TO service_role USING (true);
-CREATE POLICY "s000_service_full" ON s000.approvals FOR ALL TO service_role USING (true);
-CREATE POLICY "s000_service_full" ON s000.judge_verdicts FOR ALL TO service_role USING (true);
-CREATE POLICY "s000_service_full" ON s000.evidence_items FOR ALL TO service_role USING (true);
-CREATE POLICY "s000_service_full" ON s000.evidence_citations FOR ALL TO service_role USING (true);
-CREATE POLICY "s000_service_full" ON s000.artifacts FOR ALL TO service_role USING (true);
-CREATE POLICY "s000_service_full" ON s000.constitutional_floors FOR ALL TO service_role USING (true);
-CREATE POLICY "s000_service_full" ON s000.service_identities FOR ALL TO service_role USING (true);
-CREATE POLICY "s000_service_full" ON s000.mcp_servers FOR ALL TO service_role USING (true);
-CREATE POLICY "s000_service_full" ON s000.mcp_tools FOR ALL TO service_role USING (true);
-CREATE POLICY "s000_service_full" ON s000.mcp_manifest_snapshots FOR ALL TO service_role USING (true);
-
--- s999 vault999_ledger: service_role full, anon/auth denied
-ALTER TABLE s999.vault999_ledger ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "s999_no_anon" ON s999.vault999_ledger FOR ALL TO anon USING (false);
-CREATE POLICY "s999_no_auth" ON s999.vault999_ledger FOR ALL TO authenticated USING (false);
-CREATE POLICY "s999_service_full" ON s999.vault999_ledger FOR ALL TO service_role USING (true);
-
--- Existing vault_sealed_events: keep existing RLS + add service_role
-ALTER TABLE vault_sealed_events ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "vault_sealed_events_service" ON vault_sealed_events FOR ALL TO service_role USING (true);
-
--- aaa views: readable by service_role only
-ALTER TABLE aaa.pending_approvals ENABLE ROW LEVEL SECURITY;
-ALTER TABLE aaa.recent_seals ENABLE ROW LEVEL SECURITY;
-ALTER TABLE aaa.mcp_surface ENABLE ROW LEVEL SECURITY;
-ALTER TABLE aaa.evidence_index ENABLE ROW LEVEL SECURITY;
-ALTER TABLE aaa.artifact_index ENABLE ROW LEVEL SECURITY;
-ALTER TABLE aaa.risk_dashboard ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "aaa_read_service" ON aaa.pending_approvals FOR SELECT TO service_role USING (true);
-CREATE POLICY "aaa_read_service" ON aaa.recent_seals FOR SELECT TO service_role USING (true);
-CREATE POLICY "aaa_read_service" ON aaa.mcp_surface FOR SELECT TO service_role USING (true);
-CREATE POLICY "aaa_read_service" ON aaa.evidence_index FOR SELECT TO service_role USING (true);
-CREATE POLICY "aaa_read_service" ON aaa.artifact_index FOR SELECT TO service_role USING (true);
-CREATE POLICY "aaa_read_service" ON aaa.risk_dashboard FOR SELECT TO service_role USING (true);
+INSERT INTO arifosmcp_floor_rules (floor_code, rule_name, constraint_definition, is_active)
+VALUES
+  ('F01', 'AMANAH',  '{"type": "HARD", "invariant": "Reversible-first; irreversible → 888_HOLD"}', TRUE),
+  ('F02', 'TRUTH',   '{"type": "HARD", "invariant": "≥0.99 accuracy or declare uncertainty band"}', TRUE),
+  ('F03', 'WITNESS', '{"type": "SOFT", "invariant": "Theory · constitution · intent must align"}', TRUE),
+  ('F04', 'CLARITY', '{"type": "SOFT", "invariant": "Every output reduces entropy (ΔS ≤ 0)"}', TRUE),
+  ('F05', 'PEACE',   '{"type": "SOFT", "invariant": "Peace ≥ 1.0; de-escalate, guard maruah"}', TRUE),
+  ('F06', 'EMPATHY', '{"type": "SOFT", "invariant": "Dignity-first; ASEAN/MY context"}', TRUE),
+  ('F07', 'HUMILITY', '{"type": "SOFT", "invariant": "Uncertainty band 0.03–0.05; no fake certainty"}', TRUE),
+  ('F08', 'GENIUS',  '{"type": "SOFT", "invariant": "Maintain intelligence quality, system health"}', TRUE),
+  ('F09', 'ANTIHANTU', '{"type": "HARD", "invariant": "C_dark < 0.30, no consciousness claims"}', TRUE),
+  ('F10', 'ONTOLOGY', '{"type": "HARD", "invariant": "AI-only ontology; no soul/feelings claims"}', TRUE),
+  ('F11', 'AUTH',    '{"type": "HARD", "invariant": "Verify identity before sensitive ops"}', TRUE),
+  ('F12', 'INJECTION', '{"type": "HARD", "invariant": "Sanitize inputs; no prompt injection"}', TRUE),
+  ('F13', 'SOVEREIGN', '{"type": "HARD", "invariant": "Human veto absolute"}', TRUE)
+ON CONFLICT (floor_code) DO NOTHING;
 ```
 
 ---
 
-## What NOT to do
+## 8. Migration Sequence
 
-These are NOT in scope. They require separate 888_HOLD:
+### Phase A — Write adapter (before any DB changes)
 
-| Do NOT | Reason |
-|--------|--------|
-| Replace NATS with pgmq | NATS JetStream is the live event bus |
-| Replace Qdrant with pgvector | Qdrant is the L3 semantic memory |
-| Replace Graphiti with Supabase | Graphiti is the L5 entity extractor |
-| Replace arifOS MCP routing | Port 8088 is the constitutional gateway |
-| Make Supabase Edge Functions the organ gateway | Adds latency; current architecture is correct |
-| Add Supabase Auth for agents | HMAC/Ed25519 service identities are correct model |
-| Create workspace/membership tables | Single sovereign — no multi-tenant needed |
-| Route MCP traffic through Supabase | Not in the hot path |
+Before SQL runs, build the write path adapter:
+
+```
+arifOS MCP
+  ↓
+record_tool_call(tool_name, organ, session_id, verdict, risk_tier)
+record_approval(ticket_id, action_plan, human_verdict)
+record_judge_verdict(verdict_id, session_id, organ, candidate, verdict, confidence)
+record_evidence(evidence_id, source_organ, source_url, content_hash, confidence)
+record_artifact(artifact_id, organ, artifact_type, storage_path, session_id)
+seal_vault999(seal_id, prev_hash, payload, human_witness)
+  ↓
+Supabase adapter (graceful fallback: if Supabase is down, log locally)
+```
+
+This adapter must handle Supabase being offline — local fallback writes to JSONL, retries when connection restores.
+
+### Phase B — Append-only triggers (first SQL)
+
+Apply append-only triggers to existing tables:
+1. `vault_sealed_events`
+2. `vault_outcomes`
+3. `vault_shim_hits`
+4. `arifosmcp_tool_calls`
+5. `arifosmcp_approval_tickets`
+
+Verify each trigger fires correctly with a test INSERT + attempted UPDATE.
+
+### Phase C — s000 tables (second SQL wave)
+
+Create in order:
+1. `s000_judge_verdicts`
+2. `s000_evidence_items`
+3. `s000_evidence_citations`
+4. `s000_artifacts`
+5. `s000_service_identities`
+6. `s000_mcp_servers`
+7. `s000_mcp_tools`
+8. `s000_mcp_manifest_snapshots`
+
+Apply indexes after each table.
+
+### Phase D — s999 vault (third SQL wave)
+
+1. Create `s999_vault999_ledger`
+2. Apply append-only trigger
+3. Verify hash chain with test entry
+
+### Phase E — AAA views (fourth SQL wave)
+
+Create all AAA views. No data modification.
+
+### Phase F — F1-F13 seed
+
+Seed constitutional floor rules. Idempotent — safe to re-run.
+
+### Phase G — Backfill plan
+
+After Phase A-F complete, backfill plan:
+- Some historical tool_calls and approvals may need review
+- vault_sealed_events backfill into s999_vault999_ledger: TBD — after review
+- Not done in initial Phase 1
 
 ---
 
-## Success Criteria
+## 9. What Supabase Is NOT
 
-Phase 1 succeeds only if:
+These are out of scope for this phase:
 
-- [ ] arifOS still runs without Supabase
-- [ ] NATS still handles local events
-- [ ] Qdrant still owns L3 memory
-- [ ] Graphiti still owns L5 memory
-- [ ] MCP routing remains on port 8088
-- [ ] No organ call gets slower because of Supabase
-- [ ] VAULT999 has stronger immutable mirror
-- [ ] Evidence is easier to inspect
-- [ ] Approvals are easier to audit
-- [ ] MCP surface is trackable
-- [ ] AAA can read Supabase for dashboard
-- [ ] Secrets can migrate to Supabase Vault
+- Supabase Auth for agent login — not needed
+- Supabase Edge Functions as organ gateways — NATS handles this
+- Supabase pg_cron as health authority — Prometheus still owns this
+- Supabase pgmq as NATS replacement — NATS still owns this
+- Supabase pgvector as Qdrant replacement — Qdrant still owns this
+- Supabase as session authority — arifOS MCP still owns this
+
+arifOS remains sovereign. Supabase is ledger, not engine.
 
 ---
 
-## Execution Gate
+## 10. Rollback Plan
 
-This is a **reversible design blueprint**. SQL execution happens only after:
-
-1. Arif reviews and approves this SPEC.md
-2. 888_HOLD is issued for production Supabase changes
-3. Rollback plan exists (DROP SCHEMA IF EXISTS s000, s999, aaa)
+If migration fails mid-way:
+1. All new tables use `IF NOT EXISTS` / `CREATE TABLE IF NOT EXISTS` — idempotent
+2. Append-only triggers do not block SELECT — reads always work
+3. Existing tables unchanged except triggers — safe to drop triggers
+4. No data destruction in any step
 
 ---
 
-**999 SEAL | SUPABASE_PHASE1_SPEC.md | arifOS Constitutional Ledger | DITEMPA BUKAN DIBERI**
+## 11. Verification Checklist
+
+After each phase, verify:
+
+- [ ] Append-only triggers block UPDATE/DELETE on protected tables
+- [ ] New tables have correct indexes
+- [ ] AAA views return expected data shape
+- [ ] F1-F13 floor rules seeded correctly
+- [ ] arifOS can write to Supabase and fall back to local JSONL if offline
+- [ ] Tool calls, approvals, verdicts all route through adapter
+
+---
+
+## 12. Files to Produce
+
+| File | Purpose |
+|------|---------|
+| `docs/architecture/SUPABASE_PHASE1_SPEC.md` | This spec |
+| `arifosmcp/adapters/record_receipts.py` | Write path adapter |
+| `arifosmcp/adapters/supabase_fallback.py` | Graceful offline fallback |
+| `supabase/migrations/004_append_only_triggers.sql` | Phase B |
+| `supabase/migrations/005_s000_intake_tables.sql` | Phase C |
+| `supabase/migrations/006_s999_vault_ledger.sql` | Phase D |
+| `supabase/migrations/007_aaa_views.sql` | Phase E |
+| `supabase/migrations/008_floor_rules_seed.sql` | Phase F |
+
+---
+
+**DITEMPA BUKAN DIBERI** — Spec written. No SQL executed. Awaiting Arif's approval.
