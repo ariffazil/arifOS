@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import inspect
 
 from arifosmcp.runtime.DNA import OMEGA_BAND, VERSION
@@ -277,6 +278,24 @@ class ConstitutionalKernel:
             }
         latency_ms = (_time.perf_counter_ns() - start_ns) / 1e6
 
+        # ── Supabase L4: non-blocking tool call receipt ─────────────────────────────
+        # Fire-and-forget: never blocks arifOS execution. Supabase failure is non-fatal.
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(
+                self._record_tool_call_to_supabase(
+                    canonical_name=canonical_name,
+                    arguments=arguments,
+                    result=result,
+                    latency_ms=latency_ms,
+                    session_id=session_id,
+                    actor_id=actor_id,
+                )
+            )
+        except Exception:
+            # Never let Supabase failure propagate — fire-and-forget
+            pass
+
         # ── Ontology bridge: canonicalize + validate output ─────────────────────────────
         try:
             from arifosmcp.runtime.ontology_bridge import ontology_bridge
@@ -368,6 +387,55 @@ class ConstitutionalKernel:
     def calculate_coherence(self, entropy_delta: float, confidence: float) -> float:
         """Lyapunov-like stability assessment (K_FORGE §XI)."""
         return confidence * (1.0 if entropy_delta <= 0 else 0.5)
+
+    async def _record_tool_call_to_supabase(
+        self,
+        canonical_name: str,
+        arguments: dict,
+        result: "dict",
+        latency_ms: float,
+        session_id: str | None,
+        actor_id: str,
+    ) -> None:
+        """Fire-and-forget Supabase L4 tool call receipt. Never blocks arifOS execution."""
+        try:
+            from arifOS.supabase_adapter import record_tool_call
+
+            # Extract verdict from result
+            verdict = None
+            if isinstance(result, dict):
+                verdict = result.get("verdict") or result.get("status") or "UNKNOWN"
+
+            # Determine risk tier
+            risk_tier = 0
+            if arguments.get("ack_irreversible"):
+                risk_tier = 3
+            elif "risk_tier" in arguments:
+                risk_tier = int(arguments.get("risk_tier", 0))
+
+            # Map verdict to valid Supabase status
+            status = "succeeded"
+            if verdict in ("HOLD", "SABAR"):
+                status = "blocked"
+            elif verdict in ("VOID", "ERROR"):
+                status = "failed"
+            elif verdict == "SEAL":
+                status = "succeeded"
+
+            await record_tool_call(
+                session_ref=session_id or "anon",
+                tool_name=canonical_name,
+                organ_code="ARIFOS",
+                arguments=arguments,
+                risk_tier=risk_tier,
+                status=status,
+                actor_ref=actor_id,
+                service_ref="arifOS-MCP",
+                mcp_method="tools/call",
+            )
+        except Exception:
+            # Never let Supabase failure propagate — fire-and-forget
+            pass
 
 
 # Global kernel instance for the gateway
