@@ -88,7 +88,7 @@ jobs:
           canonical = [
             'arifosmcp.tools.fetch',
             'arifosmcp.tools.judge',
-            'arifosmcp.tools.mind',
+            'arifosmcp.tools.reason',  # exports arif_mind_reason
             'arifosmcp.tools.sense',
             'arifosmcp.tools.session',
             'arifosmcp.tools.evidence',

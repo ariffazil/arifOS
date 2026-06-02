@@ -13,9 +13,10 @@ from __future__ import annotations
 import logging
 import re
 
+from arifosmcp.constitutional_map import RiskClass
 from arifosmcp.integrations.substrate_bridge import bridge
-from arifosmcp.runtime.model import RiskClass, Verdict
 from arifosmcp.runtime.model import RuntimeEnvelope as _RE
+from arifosmcp.runtime.model import Verdict
 
 logger = logging.getLogger(__name__)
 
