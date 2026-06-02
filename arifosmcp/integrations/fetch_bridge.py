@@ -62,7 +62,7 @@ class FetchBridge:
         """
         Execute a fetch via substrate with pre/post constitutional guards.
         """
-        from core.floors import evaluate_tool_call
+        from arifosmcp.core.floors import evaluate_tool_call
 
         # 1. Baseline Governance
         gov = evaluate_tool_call(

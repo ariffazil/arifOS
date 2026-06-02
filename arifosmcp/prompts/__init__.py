@@ -6,7 +6,8 @@ Registers canonical prompts:
   system      — Constitutional system context
   judge       — 888_JUDGE verdict engine context
   init        — 000_INIT session anchor context
-  meta-skills — AGI→ASI→APEX structural capacities
+  888_deliberation — APEX deliberation protocol
+  rsi, ortho, epistemic, governance, entropy — meta-skill prompts
 """
 
 from __future__ import annotations

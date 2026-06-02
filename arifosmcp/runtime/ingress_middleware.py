@@ -12,13 +12,154 @@ FastMCP 2.x/3.x Compatibility: Middleware API differs between versions.
 
 from __future__ import annotations
 
+import asyncio
+import hashlib
+import json
 import logging
+import os
 import time
+from datetime import datetime, timezone
 from typing import Any
 
 from arifosmcp.runtime.fastmcp_version import IS_FASTMCP_3
 
 logger = logging.getLogger(__name__)
+
+# ── Supabase Receipt Mode ─────────────────────────────────────────────
+# Controls whether the kernel hook writes receipts to Supabase.
+#   off       → no write, log only
+#   design    → write to s000/s999 (Phase 1 design tables)
+#   production → write to public.arifosmcp_tool_calls (production schema)
+#   shadow    → design only, log production intent
+_RECEIPT_MODE = os.getenv("SUPABASE_WRITE_MODE", "off").lower()
+_RECEIPT_OFF = _RECEIPT_MODE == "off"
+
+
+# ── Supabase Tool Call Receipt ─────────────────────────────────────────
+# Fire-and-forget async receipt written after each tool execution.
+# Never blocks the tool result. Never fails the tool call.
+
+
+def _result_code_from_tool_result(result: Any) -> str:
+    """Extract result code from ToolResult content."""
+    try:
+        if hasattr(result, "content") and result.content:
+            first = result.content[0]
+            if hasattr(first, "text"):
+                text = first.text.lower()
+                if "error" in text or "exception" in text or "traceback" in text:
+                    return "ERR"
+                if result.isError:
+                    return "ERR"
+                return "OK"
+        if getattr(result, "isError", False):
+            return "ERR"
+        return "OK"
+    except Exception:
+        return "UNK"
+
+
+def _extract_error_from_result(result: Any) -> str | None:
+    """Extract error message from ToolResult if present."""
+    try:
+        if hasattr(result, "content") and result.content:
+            first = result.content[0]
+            if hasattr(first, "text"):
+                text = first.text
+                if "error" in text.lower() or "exception" in text.lower():
+                    # Return last 200 chars of error
+                    return text[-200:]
+        return None
+    except Exception:
+        return None
+
+
+def _risk_tier_for_tool(tool_name: str) -> int:
+    """
+    Estimate risk tier for arifOS canonical tools.
+
+    0=minimal, 1=low, 2=medium, 3=high/introspective.
+    Used for receipt metadata only — not enforced here.
+    """
+    high_risk = {
+        "arif_judge_deliberate",
+        "arif_vault_seal",
+        "arif_heart_critique",
+        "arif_session_init",
+        "arif_forge_execute",
+    }
+    medium_risk = {
+        "arif_mind_reason",
+        "arif_gateway_connect",
+        "arif_kernel_route",
+    }
+    low_risk = {
+        "arif_sense_observe",
+        "arif_evidence_fetch",
+        "arif_reply_compose",
+        "arif_memory_recall",
+        "arif_ops_measure",
+    }
+    if tool_name in high_risk:
+        return 3
+    if tool_name in medium_risk:
+        return 2
+    if tool_name in low_risk:
+        return 1
+    return 1  # default low
+
+
+async def _write_tool_call_receipt(
+    tool_name: str,
+    arguments: dict,
+    result: Any,
+    elapsed_ms: int,
+) -> None:
+    """
+    Fire-and-forget Supabase tool call receipt.
+
+    Writes to s000.tool_calls (design) or public.arifosmcp_tool_calls (production),
+    depending on SUPABASE_WRITE_MODE. Never raises. Never blocks caller.
+    """
+    if _RECEIPT_OFF:
+        return
+
+    try:
+        # Lazy import to avoid circular dependency at startup
+        from arifOS.supabase_adapter import record_tool_call
+
+        session_ref = "gateway-mcp"
+        organ_code = "arifos"
+        actor_ref = "arifOS-kernel"
+        result_code = _result_code_from_tool_result(result)
+        error_msg = _extract_error_from_result(result)
+        risk_tier = _risk_tier_for_tool(tool_name)
+        status = "succeeded"
+
+        # Compute input hash for audit trail
+        try:
+            body = json.dumps(arguments, sort_keys=True, default=str)
+            input_hash = hashlib.sha256(body.encode()).hexdigest()[:16]
+        except Exception:
+            input_hash = None
+
+        await record_tool_call(
+            session_ref=session_ref,
+            tool_name=tool_name,
+            organ_code=organ_code,
+            arguments=arguments,
+            risk_tier=risk_tier,
+            status=status,
+            actor_ref=actor_ref,
+            trace_ref=None,
+        )
+        logger.debug(
+            f"[supabase-receipt] {tool_name} → {result_code} ({elapsed_ms}ms) session={session_ref}"
+        )
+    except Exception as e:
+        # Fire-and-forget — never propagate
+        logger.debug(f"[supabase-receipt] {tool_name} failed (soft): {e}")
+
 
 try:
     from arifosmcp.runtime.metrics import METABOLIC_LOOP_DURATION, REQUESTS_TOTAL
@@ -250,11 +391,28 @@ if IS_FASTMCP_3:
                 # Instrument: track latency and call count per tool
                 t0 = time.monotonic()
                 result = await call_next(context)
+                elapsed_ms = int((time.monotonic() - t0) * 1000)
+
+                # ── Supabase tool call receipt (fire-and-forget) ───────────────
+                # Writes receipt after tool executes. Never blocks result return.
+                # Uses SUPABASE_WRITE_MODE: off/design/production/shadow
+                try:
+                    loop = asyncio.get_running_loop()
+                    loop.create_task(
+                        _write_tool_call_receipt(
+                            tool_name=tool_name,
+                            arguments=dict(msg.arguments or {}),
+                            result=result,
+                            elapsed_ms=elapsed_ms,
+                        )
+                    )
+                except Exception:
+                    pass  # Never block — receipt is advisory only
+
                 if _METRICS_AVAILABLE and tool_name in MEGA_TOOLS:
-                    elapsed = time.monotonic() - t0
                     try:
                         REQUESTS_TOTAL.labels(method=tool_name, status="ok").inc()
-                        METABOLIC_LOOP_DURATION.observe(elapsed)
+                        METABOLIC_LOOP_DURATION.observe(elapsed_ms / 1000.0)
                     except Exception:
                         pass
                 return result

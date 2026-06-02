@@ -68,65 +68,68 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Python + uv
-        uses: astral-sh/setup-uv@v7
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
           enable-cache: true
 
       - name: Verify 13 canonical tools load
         run: |
           cd "$WORKDIR"
-          uv run python3 -c "
-            import sys, warnings
-            sys.path.insert(0, '.')
-            errors = []
-            canonical = [
-              'arifosmcp.tools.fetch',
-              'arifosmcp.tools.judge',
-              'arifosmcp.tools.mind',
-              'arifosmcp.tools.sense',
-              'arifosmcp.tools.session',
-              'arifosmcp.tools.evidence',
-              'arifosmcp.tools.memory',
-              'arifosmcp.tools.vault',
-              'arifosmcp.tools.forge',
-              'arifosmcp.tools.gateway',
-              'arifosmcp.tools.kernel',
-              'arifosmcp.tools.heart',
-              'arifosmcp.tools.ops',
-            ]
-            for m in canonical:
-              with warnings.catch_warnings():
-                warnings.simplefilter('ignore', DeprecationWarning)
-                try:
-                  __import__(m)
-                  print(f'OK {m}')
-                except Exception as e:
-                  errors.append(f'FAIL {m}: {e}')
-            if errors:
-              for e in errors: print(e)
-              sys.exit(1)
-          "
+          uv run python3 - <<'PY'
+          import sys, warnings
+          sys.path.insert(0, '.')
+          errors = []
+          canonical = [
+            'arifosmcp.tools.fetch',
+            'arifosmcp.tools.judge',
+            'arifosmcp.tools.mind',
+            'arifosmcp.tools.sense',
+            'arifosmcp.tools.session',
+            'arifosmcp.tools.evidence',
+            'arifosmcp.tools.memory',
+            'arifosmcp.tools.vault',
+            'arifosmcp.tools.forge',
+            'arifosmcp.tools.gateway',
+            'arifosmcp.tools.kernel',
+            'arifosmcp.tools.heart',
+            'arifosmcp.tools.ops',
+          ]
+          for m in canonical:
+            with warnings.catch_warnings():
+              warnings.simplefilter('ignore', DeprecationWarning)
+              try:
+                __import__(m)
+                print(f'OK {m}')
+              except Exception as e:
+                errors.append(f'FAIL {m}: {e}')
+          if errors:
+            for e in errors: print(e)
+            sys.exit(1)
+          PY
 
       - name: Tool registry integrity
         run: |
           cd "$WORKDIR"
-          uv run python3 -c "
-            import json, sys
-            with open('arifosmcp/tool_registry.json') as f:
-                reg = json.load(f)
-            tools = reg.get('tools', {})
-            # tools is a dict keyed by name
-            if len(tools) != 13:
-                print(f'ERROR: expected 13 tools, got {len(tools)}')
-                sys.exit(1)
-            for name in tools:
-                if not name.startswith('arifos_') and not name.startswith('arif_'):
-                    print(f'ERROR: bad name {name}')
-                    sys.exit(1)
-            print(f'PASS: {len(tools)} canonical tools')
-          "
+          uv run python3 - <<'PY'
+          import json, sys
+          with open('arifosmcp/tool_registry.json') as f:
+            reg = json.load(f)
+          tools = reg.get('tools', {})
+          if len(tools) != 13:
+            print(f'ERROR: expected 13 tools, got {len(tools)}')
+            sys.exit(1)
+          for name in tools:
+            if not name.startswith('arifos_') and not name.startswith('arif_'):
+              print(f'ERROR: bad name {name}')
+              sys.exit(1)
+          print(f'PASS: {len(tools)} canonical tools')
+          PY
 
       - name: Charter naming audit
         run: |
@@ -145,51 +148,58 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Python + uv
-        uses: astral-sh/setup-uv@v7
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
           enable-cache: true
 
       - name: 000_INIT smoke
         run: |
           cd "$WORKDIR"
-          uv run python3 -c "
-            import sys; sys.path.insert(0,'.')
-            from arifosmcp.runtime.tools import _arif_session_init
-            result = _arif_session_init(mode='init', actor_id='test-ci')
-            if result.get('status') != 'OK':
-                print(f'FAIL: init status={result.get(\"status\")}')
-                sys.exit(1)
-            print(f'PASS: 000_INIT status={result.get(\"status\")}')
-          "
+          uv run python3 - <<'PY'
+          import sys
+          sys.path.insert(0, '.')
+          from arifosmcp.runtime.tools import _arif_session_init
+          result = _arif_session_init(mode='init', actor_id='test-ci')
+          if result.get('status') != 'OK':
+            print(f'FAIL: init status={result.get("status")}')
+            sys.exit(1)
+          print(f'PASS: 000_INIT status={result.get("status")}')
+          PY
 
       - name: 888_JUDGE smoke
         run: |
           cd "$WORKDIR"
-          uv run python3 -c "
-            import sys; sys.path.insert(0,'.')
-            from arifosmcp.runtime.tools import _arif_judge_deliberate
-            result = _arif_judge_deliberate(candidate='test-ci-smoke', session_id='test-session', actor_id='test-ci')
-            verdict = result.get('verdict','')
-            if verdict not in ('SEAL','SABAR','HOLD','VOID'):
-                print(f'UNEXPECTED verdict={verdict}')
-                sys.exit(1)
-            print(f'PASS: 888_JUDGE verdict={verdict}')
-          "
+          uv run python3 - <<'PY'
+          import sys
+          sys.path.insert(0, '.')
+          from arifosmcp.runtime.tools import _arif_judge_deliberate
+          result = _arif_judge_deliberate(candidate='test-ci-smoke', session_id='test-session', actor_id='test-ci')
+          verdict = result.get('verdict', '')
+          if verdict not in ('SEAL', 'SABAR', 'HOLD', 'VOID'):
+            print(f'UNEXPECTED verdict={verdict}')
+            sys.exit(1)
+          print(f'PASS: 888_JUDGE verdict={verdict}')
+          PY
 
       - name: 999_VAULT smoke
         run: |
           cd "$WORKDIR"
-          uv run python3 -c "
-            import sys; sys.path.insert(0,'.')
-            from arifosmcp.runtime.tools import _arif_vault_seal
-            result = _arif_vault_seal(mode='dry_run', payload='{\"test\":\"data\"}', session_id='test-session', actor_id='test-ci')
-            if result.get('status') != 'OK':
-                print(f'FAIL: vault status={result.get(\"status\")}')
-                sys.exit(1)
-            print(f'PASS: vault status={result.get(\"status\")}')
-          "
+          uv run python3 - <<'PY'
+          import sys
+          sys.path.insert(0, '.')
+          from arifosmcp.runtime.tools import _arif_vault_seal
+          result = _arif_vault_seal(mode='dry_run', payload='{"test":"data"}', session_id='test-session', actor_id='test-ci')
+          if result.get('status') != 'OK':
+            print(f'FAIL: vault status={result.get("status")}')
+            sys.exit(1)
+          print(f'PASS: vault status={result.get("status")}')
+          PY
 
   # ─────────────────────────────────────────────────────────────
   # JOB 3: Runtime Shim Verification
@@ -203,82 +213,86 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Python + uv
-        uses: astral-sh/setup-uv@v7
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
           enable-cache: true
 
       - name: All 9 runtime shims resolve
         run: |
           cd "$WORKDIR"
-          uv run python3 -c "
-            import sys, warnings
-            sys.path.insert(0, '.')
-            shims = [
-              ('arifosmcp.runtime.tool_specs', 'get_tool_spec'),
-              ('arifosmcp.runtime.schemas', 'RuntimeSchema'),
-              ('arifosmcp.runtime.models', 'RuntimeEnvelope'),
-              ('arifosmcp.runtime.sessions', 'Session'),
-              ('arifosmcp.runtime.resources', 'register_resources'),
-              ('arifosmcp.runtime.prompts', 'register_prompts'),
-              ('arifosmcp.runtime.floors', 'check_floors'),
-              ('arifosmcp.runtime.governance_identity', 'GovernanceIdentity'),
-              ('arifosmcp.runtime.mcp_util', 'mcp_json'),
-            ]
-            ok = fail = 0
-            for pkg, name in shims:
-                with warnings.catch_warnings():
-                    warnings.simplefilter('ignore', DeprecationWarning)
-                    try:
-                        m = __import__(pkg, fromlist=[name])
-                        print(f'OK {pkg}.{name}')
-                        ok += 1
-                    except Exception as e:
-                        print(f'FAIL {pkg}.{name}: {str(e)[:60]}')
-                        fail += 1
-            print(f'Result: {ok} OK, {fail} FAIL')
-            if fail: sys.exit(1)
-          "
+          uv run python3 - <<'PY'
+          import sys, warnings
+          sys.path.insert(0, '.')
+          shims = [
+            ('arifosmcp.runtime.tool_specs', 'get_tool_spec'),
+            ('arifosmcp.runtime.schemas', 'RuntimeSchema'),
+            ('arifosmcp.runtime.models', 'RuntimeEnvelope'),
+            ('arifosmcp.runtime.sessions', 'Session'),
+            ('arifosmcp.runtime.resources', 'register_resources'),
+            ('arifosmcp.runtime.prompts', 'register_prompts'),
+            ('arifosmcp.runtime.floors', 'check_floors'),
+            ('arifosmcp.runtime.governance_identity', 'GovernanceIdentity'),
+            ('arifosmcp.runtime.mcp_util', 'mcp_json'),
+          ]
+          ok = fail = 0
+          for pkg, name in shims:
+            with warnings.catch_warnings():
+              warnings.simplefilter('ignore', DeprecationWarning)
+              try:
+                m = __import__(pkg, fromlist=[name])
+                print(f'OK {pkg}.{name}')
+                ok += 1
+              except Exception as e:
+                print(f'FAIL {pkg}.{name}: {str(e)[:60]}')
+                fail += 1
+          print(f'Result: {ok} OK, {fail} FAIL')
+          if fail: sys.exit(1)
+          PY
 
       - name: All 17 tool shims resolve
         run: |
           cd "$WORKDIR"
-          uv run python3 -c "
-            import sys, warnings
-            sys.path.insert(0, '.')
-            shims = [
-              ('arifosmcp.tools.session_init', 'arif_session_init'),
-              ('arifosmcp.tools.sense_observe', 'arif_sense_observe'),
-              ('arifosmcp.tools.evidence_fetch', 'arif_evidence_fetch'),
-              ('arifosmcp.tools.judge_deliberate', 'arif_judge_deliberate'),
-              ('arifosmcp.tools.mind_reason', 'arif_mind_reason'),
-              ('arifosmcp.tools.kernel_route', 'arif_kernel_route'),
-              ('arifosmcp.tools.reply_compose', 'arif_reply_compose'),
-              ('arifosmcp.tools.memory_recall', 'arif_memory_recall'),
-              ('arifosmcp.tools.heart_critique', 'arif_heart_critique'),
-              ('arifosmcp.tools.gateway_connect', 'arif_gateway_connect'),
-              ('arifosmcp.tools.ops_measure', 'arif_ops_measure'),
-              ('arifosmcp.tools.vault_seal', 'arif_vault_seal'),
-              ('arifosmcp.tools.forge_execute', 'arif_forge_execute'),
-              ('arifosmcp.tools.fetch_tool', 'arifos_fetch'),
-              ('arifosmcp.tools.lsp_tools', 'lsp_'),
-              ('arifosmcp.tools.reality_bridge', 'RealityBridge'),
-              ('arifosmcp.tools.architect_tools', 'architect_'),
-            ]
-            ok = fail = 0
-            for pkg, name in shims:
-                with warnings.catch_warnings():
-                    warnings.simplefilter('ignore', DeprecationWarning)
-                    try:
-                        m = __import__(pkg, fromlist=[name])
-                        print(f'OK {pkg}.{name}')
-                        ok += 1
-                    except Exception as e:
-                        # 2 known pre-existing failures
-                        print(f'SKIP {pkg}.{name}: {str(e)[:60]}')
-            print(f'Result: {ok} resolved')
-          "
+          uv run python3 - <<'PY'
+          import sys, warnings
+          sys.path.insert(0, '.')
+          shims = [
+            ('arifosmcp.tools.session_init', 'arif_session_init'),
+            ('arifosmcp.tools.sense_observe', 'arif_sense_observe'),
+            ('arifosmcp.tools.evidence_fetch', 'arif_evidence_fetch'),
+            ('arifosmcp.tools.judge_deliberate', 'arif_judge_deliberate'),
+            ('arifosmcp.tools.mind_reason', 'arif_mind_reason'),
+            ('arifosmcp.tools.kernel_route', 'arif_kernel_route'),
+            ('arifosmcp.tools.reply_compose', 'arif_reply_compose'),
+            ('arifosmcp.tools.memory_recall', 'arif_memory_recall'),
+            ('arifosmcp.tools.heart_critique', 'arif_heart_critique'),
+            ('arifosmcp.tools.gateway_connect', 'arif_gateway_connect'),
+            ('arifosmcp.tools.ops_measure', 'arif_ops_measure'),
+            ('arifosmcp.tools.vault_seal', 'arif_vault_seal'),
+            ('arifosmcp.tools.forge_execute', 'arif_forge_execute'),
+            ('arifosmcp.tools.fetch_tool', 'arifos_fetch'),
+            ('arifosmcp.tools.lsp_tools', 'lsp_'),
+            ('arifosmcp.tools.reality_bridge', 'RealityBridge'),
+            ('arifosmcp.tools.architect_tools', 'architect_'),
+          ]
+          ok = fail = 0
+          for pkg, name in shims:
+            with warnings.catch_warnings():
+              warnings.simplefilter('ignore', DeprecationWarning)
+              try:
+                m = __import__(pkg, fromlist=[name])
+                print(f'OK {pkg}.{name}')
+                ok += 1
+              except Exception as e:
+                # 2 known pre-existing failures
+                print(f'SKIP {pkg}.{name}: {str(e)[:60]}')
+          print(f'Result: {ok} resolved')
+          PY
 
   # ─────────────────────────────────────────────────────────────
   # JOB 4: F9 Anti-Hantu — no consciousness claims in codebase
@@ -318,6 +332,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
       - name: F1-F13 Floor Audit
         run: |
           cd "$WORKDIR"
@@ -337,16 +361,17 @@ jobs:
       - name: 888_JUDGE verdict gate
         run: |
           cd "$WORKDIR"
-          uv run python3 -c "
-            import sys; sys.path.insert(0,'.')
-            from arifosmcp.runtime.tools import _arif_judge_deliberate
-            result = _arif_judge_deliberate(
-                candidate='ci-888-verdict-gate',
-                session_id='ci-session',
-                actor_id='ci-bot',
-            )
-            print(f'888_JUDGE verdict: {result.get(\"verdict\", \"?\")}')
-          "
+          uv run python3 - <<'PY'
+          import sys
+          sys.path.insert(0, '.')
+          from arifosmcp.runtime.tools import _arif_judge_deliberate
+          result = _arif_judge_deliberate(
+            candidate='ci-888-verdict-gate',
+            session_id='ci-session',
+            actor_id='ci-bot',
+          )
+          print(f'888_JUDGE verdict: {result.get("verdict", "?")}')
+          PY
 
       - name: Secrets scan (F11 Authority)
         uses: github/super-linter/slim@v7
@@ -370,10 +395,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Python + uv
-        uses: astral-sh/setup-uv@v7
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
           enable-cache: true
 
       - name: Install
@@ -384,13 +413,13 @@ jobs:
       - name: MCP health endpoint
         run: |
           cd "$WORKDIR"
-          timeout 5 uv run python3 -c "
-            import sys, asyncio, json
-            sys.path.insert(0, '.')
-            from arifosmcp.server import create_arifos_mcp_server
-            # Just verify the server factory can be imported, not full spin-up
-            print('MCP transport: OK')
-          " 2>&1 | head -5
+          timeout 5 uv run python3 - <<'PY'
+          import sys, asyncio, json
+          sys.path.insert(0, '.')
+          from arifosmcp.server import create_arifos_mcp_server
+          # Just verify the server factory can be imported, not full spin-up
+          print('MCP transport: OK')
+          PY
 
   # ─────────────────────────────────────────────────────────────
   # JOB 7: Test Suite (non-MCP)
@@ -407,10 +436,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Python + uv
-        uses: astral-sh/setup-uv@v7
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
           enable-cache: true
 
       - name: Install
@@ -445,7 +478,7 @@ jobs:
           fetch-depth: 0
 
       - name: Gitleaks full history
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

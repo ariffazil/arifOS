@@ -446,7 +446,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_mind_reason": {
         "name": "arif_mind_reason",
-        "description": "333_REASON: Symbolic reasoning kernel — epistemically honest, self-critiquing, confidence-labeled. Call this for: complex multi-step reasoning, plan generation, cross-domain analysis, hypothesis evaluation. Labels its own uncertainty (F7). Do NOT call this for domain-specific calculations — use GEOX/WEALTH for those. Parameters: mode (reason|reflect|verify|critique|plan|plan_review|plan_approve|metabolize), query (the reasoning prompt), plan_id, witness_type, session_id, actor_id.",  # noqa: E501
+        "description": "333_REASON: Symbolic reasoning kernel — epistemically honest, self-critiquing, confidence-labeled. Call this for: complex multi-step reasoning, plan generation, refactor planning, cross-domain analysis, hypothesis evaluation. Labels its own uncertainty (F7). Do NOT call this for domain-specific calculations — use GEOX/WEALTH for those. Parameters: mode (reason|reflect|verify|critique|plan|plan_review|plan_approve|refactor_plan|metabolize), query (the reasoning prompt), plan_id, witness_type, session_id, actor_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.REASON,
         "lane": TrinityLane.AGI,
@@ -467,12 +467,14 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "plan",
             "plan_review",
             "plan_approve",
+            "refactor_plan",
             "metabolize",
         ],
         "eureka_insight": (
             "F2: τ ≥ 0.99. F7: Ω ∈ [0.03, 0.05]. "
             "F8: G = capability × ethics × continuity × resilience² ≥ 0.80. "
-            "F10: structural coherence enforced."
+            "F10: ambiguity is permanent; expose assumptions before reasoning. "
+            "Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable."
         ),
         "cognitive_axis": "reason",
         "expose": True,
@@ -490,7 +492,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "eureka_insight": (
             "F5: P² ≥ 1.0. F6: κᵣ ≥ 0.70 (RASA). "
             "F9: C_dark ≤ 0.30 — no biological or artificial emotional substrate. "
-            "F9 Doctrine (arifOS×SEA-LION): The machine is an instrument, not a person. "
+            "F9 Doctrine (arifOS×MiniMax-M3, originally with SEA-LION): The machine is an instrument, not a person. "
             "No substrate grants it feeling, intent, or personhood. "
             "PROHIBITED: 'I feel', 'I want', 'I intend', 'I am sentient', 'I have a soul'. "
             "PROTECTED: clarity, consistency, operational precision. SEA-Guard pre-filter active on all outputs."
@@ -519,7 +521,10 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "eureka_insight": (
             "F1: Amanah — routing decisions must be auditable. "
             "F4: ΔS ≤ 0 (entropy must decrease). "
-            "F10: routing taxonomy must not violate category lock."
+            "F10: ambiguity is permanent; expose assumptions before routing. "
+            "F12: graceful degradation — if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution. "
+            "Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. "
+            "Eureka: internal depth, external legibility."
         ),
         "cognitive_axis": "boundary",
         "expose": True,
@@ -536,7 +541,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["compose", "summarize", "cite", "tone_shift"],
         "eureka_insight": (
             "F4: ΔS ≤ 0 — reply must reduce entropy, not add noise. "
-            "F6: RASA protocol. F9: C_dark ≤ 0.30 — no dark patterns."
+            "F6: RASA protocol. F9: C_dark ≤ 0.30 — no dark patterns. "
+            "F10: ambiguity is permanent; expose assumptions before composing. "
+            "Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable."
         ),
         "cognitive_axis": "reflect",
         "expose": True,
@@ -553,7 +560,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["recall", "asset_query", "asset_store", "context_restore"],
         "eureka_insight": (
             "F1: recall must be auditable — no silent memory mutation. "
-            "F8: G ≥ 0.80 — recall contributes to systemic continuity."
+            "F8: G ≥ 0.80 — recall contributes to systemic continuity. "
+            "F8/F11: memory is power; recall/store requires purpose limits, stale-assumption checks, sensitive-data boundaries, and auditable consent."
         ),
         "cognitive_axis": "trace",
         "expose": True,
@@ -570,7 +578,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["connect", "delegate", "handover", "revoke", "probe"],
         "eureka_insight": (
             "F1: cross-agent actions must be auditable. "
-            "F3: W₃ ≥ 0.75 — cross-agent consensus required."
+            "F3: W₃ ≥ 0.75 — cross-agent consensus required. "
+            "F12: graceful degradation — if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution."
         ),
         "cognitive_axis": "boundary",
         "expose": True,
@@ -629,7 +638,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         ],
         "eureka_insight": (
             "F1: irreversible — ack_irreversible=True mandatory. "
-            "F11: actor verified. F13: judge SEAL required before execution."
+            "F11: actor verified. F12: fail safely; no unsafe continuation when substrate confidence drops. "
+            "F13: judge SEAL required before execution."
         ),
         "cognitive_axis": "execute",
         "expose": True,
@@ -656,7 +666,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         ],
         "eureka_insight": (
             "F4: ΔS ≤ 0 — ops must contribute to entropy reduction. "
-            "Thermodynamic telemetry: delta_S, omega_band, tri_witness."
+            "Eureka: health is trajectory, not binary; measure delta_S, omega_band, tri_witness, and drift trend. "
+            "Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. "
+            "F8: measured intelligence is not useful intelligence; prefer local workflow evals over leaderboard metrics."
         ),
         "cognitive_axis": "vitality",
         "expose": True,
