@@ -5,7 +5,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ARIFOS_DIR="${SCRIPT_DIR}/.."
+ARIFOS_DIR="${SCRIPT_DIR}/../.."
 EVIDENCE_DIR="${ARIFOS_DIR}/evidence"
 TIMESTAMP=$(date -u +%Y%m%d_%H%M%S)
 EVIDENCE_FILE="${EVIDENCE_DIR}/predeploy_audit_${TIMESTAMP}.json"
