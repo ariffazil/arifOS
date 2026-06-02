@@ -3510,6 +3510,19 @@ def register_rest_routes(
     async def well_known(request: Request) -> Response:
         return await server_card_json(request)
 
+    @route("/.well-known/server.json", methods=["GET"])
+    async def well_known_server_json(request: Request) -> Response:
+        """Legacy CIMD-compatible server metadata path."""
+        base = _public_base_url(request)
+        payload = build_server_json(base)
+        payload["authentication"] = {
+            "type": "oauth2",
+            "authorization_endpoint": f"{base}/api/auth/authorize",
+            "token_endpoint": f"{base}/api/auth/token",
+            "jwks_uri": f"{base}/.well-known/jwks.json",
+        }
+        return JSONResponse(payload, headers={"Access-Control-Allow-Origin": "*"})
+
     @route("/mcp-discovery.json", methods=["GET"])
     async def mcp_discovery(request: Request) -> Response:
         """MCP discovery document at a Cloudflare-friendly path."""
@@ -5673,7 +5686,16 @@ setInterval(refreshSot, 30000);
                     LIMIT 50
                     """
                 )
-            tickets = [dict(r) for r in rows]
+
+            # Serialize datetime objects to ISO strings for JSON response
+            def _serialize_ticket(row: dict) -> dict:
+                result = dict(row)
+                for key, value in result.items():
+                    if hasattr(value, "isoformat"):
+                        result[key] = value.isoformat()
+                return result
+
+            tickets = [_serialize_ticket(dict(r)) for r in rows]
             return JSONResponse(
                 {
                     "pending": tickets,
