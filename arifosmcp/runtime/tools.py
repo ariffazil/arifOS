@@ -72,7 +72,6 @@ from pydantic import BaseModel, Field
 
 from arifosmcp.constitutional_map import (
     CANONICAL_TOOLS,
-    get_tool_spec,
     validate_tool_response_schema,
 )
 from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_budget
@@ -1416,6 +1415,352 @@ def _detect_scars(query: str | None, synthesis: str) -> list[str]:
     return scars
 
 
+SCAR_COMPRESSION_RECORD_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "required": [
+        "scar_id",
+        "claim_a",
+        "claim_b",
+        "severity",
+        "resolution",
+        "status",
+    ],
+    "properties": {
+        "scar_id": {"type": "string"},
+        "claim_a": {"type": "string"},
+        "claim_b": {"type": "string"},
+        "severity": {"type": "string", "enum": ["INFO", "HOLD", "VOID"]},
+        "resolution": {"type": "string"},
+        "status": {"type": "string", "enum": ["open", "patched", "sealed"]},
+    },
+}
+
+
+def _compact_text(value: Any, limit: int = 180) -> str:
+    text = re.sub(r"\s+", " ", str(value or "")).strip()
+    if len(text) <= limit:
+        return text
+    return f"{text[: limit - 3].rstrip()}..."
+
+
+def _context_lines(raw_context: str | None, limit: int = 80) -> list[str]:
+    if not raw_context:
+        return []
+    lines: list[str] = []
+    for chunk in str(raw_context).replace("\r", "\n").split("\n"):
+        cleaned = chunk.strip(" \t-*•0123456789.)")
+        if cleaned:
+            lines.append(_compact_text(cleaned, 220))
+        if len(lines) >= limit:
+            break
+    return lines
+
+
+def _append_unique(target: list[str], value: str, limit: int) -> None:
+    item = _compact_text(value)
+    if item and item not in target and len(target) < limit:
+        target.append(item)
+
+
+def _scar_id_for_claims(claim_a: str, claim_b: str) -> str:
+    joined = f"{claim_a} {claim_b}".lower()
+    if "geox" in joined and ("8081" in joined or "18081" in joined):
+        return "SCAR-GEOX-PORT-001"
+    if "prompt" in joined and ("8" in joined or "9" in joined):
+        return "SCAR-PROMPT-COUNT-001"
+    if "resource" in joined and ("5" in joined or "6" in joined or "18" in joined):
+        return "SCAR-RESOURCE-COUNT-001"
+    if any(token in joined for token in ("openclaw", "legacy", "arif_*", "arif_")):
+        return "SCAR-BRIDGE-NAMING-001"
+    digest = hashlib.sha256(joined.encode("utf-8")).hexdigest()[:10].upper()
+    return f"SCAR-{digest}"
+
+
+def _scar_severity(line: str) -> str:
+    lowered = line.lower()
+    if "void" in lowered or "critical" in lowered or "8081" in lowered:
+        return "VOID"
+    if "hold" in lowered or "contradiction" in lowered or "drift" in lowered:
+        return "HOLD"
+    return "INFO"
+
+
+def _scar_resolution(line: str) -> str:
+    lowered = line.lower()
+    if "geox" in lowered and ("8081" in lowered or "18081" in lowered):
+        return "Patch federation metadata to GEOX internal_port=18081."
+    if "prompt" in lowered:
+        return "Normalize public prompt count to 9 and align inspector/docs."
+    if "resource" in lowered:
+        return "Normalize canonical resources to 6 and report registered families separately."
+    if "openclaw" in lowered or "legacy" in lowered:
+        return "Mark legacy bridge names or update bridge docs to canonical arif_* tools."
+    return "Resolve contradiction, add regression coverage, then seal receipt."
+
+
+def _scar_records_from_contradictions(contradictions: list[str]) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for line in contradictions[:8]:
+        claim_a = line
+        claim_b = "No reconciled canonical source recorded."
+        if " vs " in line.lower():
+            before, after = re.split(r"\s+vs\s+", line, maxsplit=1, flags=re.IGNORECASE)
+            claim_a = before
+            claim_b = after
+        elif "8081" in line and "18081" in line:
+            claim_a = "GEOX internal_port=8081"
+            claim_b = "GEOX verified live port=18081"
+        elif "prompt" in line.lower():
+            claim_a = "Public surface prompt count drift"
+            claim_b = "Canonical prompt count must be 9"
+        elif "resource" in line.lower():
+            claim_a = "Public surface resource count drift"
+            claim_b = "Canonical resource count must be 6"
+
+        scar_id = _scar_id_for_claims(claim_a, claim_b)
+        if scar_id in seen:
+            continue
+        seen.add(scar_id)
+        records.append(
+            {
+                "scar_id": scar_id,
+                "claim_a": _compact_text(claim_a, 180),
+                "claim_b": _compact_text(claim_b, 180),
+                "severity": _scar_severity(line),
+                "resolution": _scar_resolution(line),
+                "status": "open",
+            }
+        )
+    return records
+
+
+def _compress_context(
+    raw_context: str | None, source_refs: list[str] | None = None
+) -> dict[str, Any]:
+    lines = _context_lines(raw_context)
+    facts: list[str] = []
+    decisions: list[str] = []
+    open_loops: list[str] = []
+    contradictions: list[str] = []
+    risk_flags: list[str] = []
+    refs: list[str] = []
+
+    contradiction_markers = (
+        "contradiction",
+        "conflict",
+        "drift",
+        " vs ",
+        "8081",
+        "18081",
+        "5 vs 6",
+        "8 vs 9",
+        "legacy",
+    )
+    decision_markers = ("verdict", "fix", "patch", "update", "normalize", "mark", "return")
+    loop_markers = ("todo", "pending", "open", "hold", "until", "needs", "not yet")
+    risk_markers = ("void", "hold", "critical", "irreversible", "secret", "deploy", "stale")
+    ref_markers = (".py", ".md", ".json", "arifos://", "http://", "https://")
+
+    for line in lines:
+        lowered = line.lower()
+        if any(marker in lowered for marker in contradiction_markers):
+            _append_unique(contradictions, line, 8)
+        if any(marker in lowered for marker in decision_markers):
+            _append_unique(decisions, line, 8)
+        if any(marker in lowered for marker in loop_markers):
+            _append_unique(open_loops, line, 8)
+        if any(marker in lowered for marker in risk_markers):
+            _append_unique(risk_flags, line, 8)
+        if any(marker in lowered for marker in ref_markers):
+            _append_unique(refs, line, 10)
+        if len(facts) < 10 and not any(
+            marker in lowered
+            for marker in (*contradiction_markers, *decision_markers, *loop_markers)
+        ):
+            _append_unique(facts, line, 10)
+
+    for ref in source_refs or []:
+        _append_unique(refs, ref, 10)
+
+    next_action = ""
+    for candidate in decisions + open_loops + contradictions:
+        if any(
+            token in candidate.lower() for token in ("patch", "fix", "update", "normalize", "test")
+        ):
+            next_action = candidate
+            break
+    if not next_action and contradictions:
+        next_action = f"Resolve scar: {contradictions[0]}"
+    if not next_action:
+        next_action = "No safe next action identified."
+
+    output = {
+        "facts": facts,
+        "decisions": decisions,
+        "open_loops": open_loops,
+        "contradictions": contradictions,
+        "risk_flags": risk_flags,
+        "next_action": _compact_text(next_action, 220),
+        "confidence": 0.72 if lines else 0.0,
+        "source_refs": refs,
+    }
+    output["scar_records"] = _scar_records_from_contradictions(contradictions)
+    encoded = json.dumps(output, sort_keys=True, default=str)
+    output["compression"] = {
+        "input_chars": len(raw_context or ""),
+        "output_chars": len(encoded),
+        "ratio": round(len(encoded) / max(len(raw_context or ""), 1), 3),
+    }
+    return output
+
+
+def _build_refactor_plan(raw_context: str | None) -> tuple[dict[str, list[str]], dict[str, Any]]:
+    envelope = _compress_context(raw_context)
+    patch_items = [
+        f"{record['scar_id']}: {record['resolution']}"
+        for record in envelope.get("scar_records", [])
+    ]
+    for decision in envelope.get("decisions", []):
+        lowered = decision.lower()
+        if any(token in lowered for token in ("patch", "fix", "update", "normalize")):
+            _append_unique(patch_items, decision, 8)
+
+    rename_items = (
+        ["Keep compatibility aliases outside canonical13; prefer arif_* naming in docs."]
+        if any("legacy" in c.lower() or "openclaw" in c.lower() for c in envelope["contradictions"])
+        else []
+    )
+
+    plan = {
+        "keep": ["canonical13 public tool surface"],
+        "merge": ["count truth into public_surface/public_registry/inspector outputs"],
+        "delete": ["duplicate diagnostic expansion in expanded45"],
+        "rename": rename_items[:4],
+        "patch": patch_items[:8],
+        "test": [
+            "surface inventory regression",
+            "chaotic context compression <= 900 words",
+            "scar schema required fields",
+        ],
+        "seal": ["operator-verifiable receipt pending after gates pass"],
+    }
+    return plan, envelope
+
+
+def _git_state_summary() -> dict[str, Any]:
+    cwd = os.getcwd()
+    path = cwd
+    while True:
+        git_dir = os.path.join(path, ".git")
+        if os.path.isdir(git_dir):
+            break
+        parent = os.path.dirname(path)
+        if parent == path:
+            return {"repo": cwd, "branch": None, "head": None, "status": "not_a_git_repo"}
+        path = parent
+
+    head_file = os.path.join(git_dir, "HEAD")
+    branch: str | None = None
+    head: str | None = None
+    try:
+        with open(head_file, encoding="utf-8") as handle:
+            head_ref = handle.read().strip()
+        if head_ref.startswith("ref: "):
+            ref = head_ref[5:]
+            branch = ref.rsplit("/", 1)[-1]
+            ref_file = os.path.join(git_dir, ref)
+            if os.path.exists(ref_file):
+                with open(ref_file, encoding="utf-8") as handle:
+                    head = handle.read().strip()[:12]
+        else:
+            head = head_ref[:12]
+    except OSError:
+        return {"repo": path, "branch": None, "head": None, "status": "unreadable"}
+    return {"repo": path, "branch": branch, "head": head, "status": "read_only"}
+
+
+def _context_restore_summary(
+    *,
+    query: str | None,
+    session_id: str | None,
+    actor_id: str | None,
+) -> dict[str, Any]:
+    envelope = _compress_context(query)
+    latest_sealed = _VAULT_LEDGER[-1] if _VAULT_LEDGER else None
+    sealed_summary = None
+    if latest_sealed:
+        sealed_summary = {
+            "id": latest_sealed.get("id"),
+            "type": latest_sealed.get("type"),
+            "timestamp": latest_sealed.get("timestamp"),
+            "session_id": latest_sealed.get("session_id"),
+        }
+
+    ledger_scars: list[dict[str, Any]] = []
+    for entry in reversed(_VAULT_LEDGER):
+        if entry.get("type") != "scar":
+            continue
+        payload = entry.get("payload")
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except json.JSONDecodeError:
+                payload = {"raw": payload}
+        if isinstance(payload, dict) and payload.get("status", "open") == "open":
+            ledger_scars.append(payload)
+        if len(ledger_scars) >= 8:
+            break
+
+    last_human_verdict = None
+    for entry in reversed(_VAULT_LEDGER):
+        if entry.get("witness_type") == "human" or entry.get("approved_by"):
+            last_human_verdict = {
+                "type": entry.get("type"),
+                "timestamp": entry.get("timestamp"),
+                "actor_id": entry.get("approved_by") or entry.get("actor_id"),
+            }
+            break
+
+    session_state = None
+    if session_id and session_id in _SESSIONS:
+        sess = _SESSIONS[session_id]
+        session_state = {
+            "session_id": session_id,
+            "actor_id": sess.get("actor_id") or actor_id,
+            "created_at": sess.get("created_at"),
+            "session_verdict": sess.get("session_verdict", "STABLE"),
+        }
+
+    try:
+        from arifosmcp.runtime.public_surface import PEER_SOVEREIGNS, public_surface
+
+        surface = public_surface()
+        ports = {
+            name: data.get("internal_port")
+            for name, data in PEER_SOVEREIGNS.items()
+            if data.get("status") == "live"
+        }
+        service_status = {
+            "probe": "not_performed",
+            "surface": surface.get("mcp", {}),
+            "live_ports": ports,
+        }
+    except Exception as exc:
+        service_status = {"probe": "not_performed", "error": str(exc)}
+
+    return {
+        "latest_sealed_state": sealed_summary,
+        "open_scars": [*envelope.get("scar_records", []), *ledger_scars][:8],
+        "active_risks": envelope.get("risk_flags", [])[:8],
+        "current_git": _git_state_summary(),
+        "current_live_service_status": service_status,
+        "last_human_verdict": last_human_verdict,
+        "session_state": session_state,
+        "last_human_verdict_source": "vault_ledger" if last_human_verdict else "not_found",
+    }
+
+
 # ── Async LLM Synthesis (SEA-LION → Ollama → template fallback) ───────────────
 # Replaces _synthesize in reason/reflect/verify/critique/debate/socratic modes.
 # F7 Humility: confidence capped at 0.85.
@@ -1682,6 +2027,44 @@ _TIMEOUT_MS = int(
 _MAX_HOPS = 10  # Maximum tool hops per intent (prevents metabolic death spiral)
 _ENTROPY_LIMIT = 1.0  # Maximum entropy per route (ΔS budget cap)
 _HOP_COUNTER: dict[str, int] = {}  # session_id -> current hop count
+
+
+def _approve_plan_internal(
+    plan_id: str,
+    actor_id: str,
+    session_id: str,
+    witness_type: str = "human",
+) -> bool:
+    """Internal plan approval — updates _PLAN_REGISTRY + _VAULT_LEDGER.
+
+    Called by the /approval REST endpoint after Arif exercises sovereign judgment
+    via the AAA cockpit. Bypasses F13 human-witness check since the REST call
+    itself represents the sovereign's will.
+
+    Returns True if plan was found and updated; False if plan_id not found.
+    """
+    plan = _PLAN_REGISTRY.get(plan_id)
+    if plan is None:
+        logger.warning(f"[_approve_plan_internal] plan_id not found: {plan_id}")
+        return False
+    plan["status"] = "approved"
+    plan["approved_at"] = _now()
+    plan["approved_by"] = actor_id or "system"
+    plan["approved_session_id"] = session_id
+    plan["witness_type"] = witness_type
+    _VAULT_LEDGER.append(
+        {
+            "id": uuid.uuid4().hex[:16],
+            "timestamp": _now(),
+            "type": "plan_approval",
+            "plan_id": plan_id,
+            "approved_by": actor_id or "system",
+            "session_id": session_id,
+            "witness_type": witness_type,
+        }
+    )
+    logger.info(f"[_approve_plan_internal] plan approved: {plan_id} by {actor_id}")
+    return True
 
 
 def _get_vault_file_path() -> str:
@@ -5441,9 +5824,10 @@ def _arif_mind_reason(
       plan         — Generate a governed execution plan (PlanReceipt).
       plan_review  — Retrieve an existing plan by plan_id.
       plan_approve — Promote a plan from pending_approval → approved.
+      refactor_plan — Compress chaotic context into keep/merge/delete/rename/patch/test/seal.
 
     Parameters:
-      mode       — reason | reflect | verify | critique | axioms | plan | plan_review | plan_approve
+      mode       — reason | reflect | verify | critique | axioms | plan | plan_review | plan_approve | refactor_plan
       query      — Reasoning prompt or claim to verify
       session_id — Governed session ID
       actor_id   — Sovereign actor identifier
@@ -5644,6 +6028,21 @@ def _arif_mind_reason(
             session_id=session_id,
         )
 
+    if mode == "refactor_plan":
+        plan, envelope = _build_refactor_plan(query)
+        return _ok(
+            "arif_mind_reason",
+            plan,
+            meta={
+                "mode": "refactor_plan",
+                "circuit": "CIRCUIT-DELTA-C",
+                "compression_envelope": envelope,
+                "scar_schema": SCAR_COMPRESSION_RECORD_SCHEMA,
+            },
+            delta_S=-0.004,
+            session_id=session_id,
+        )
+
     if mode == "reason":
         # ── Deterministic constitutional breach scan (LLM-independent) ──
         scan = _constitutional_reasoning_scan(query)
@@ -5743,9 +6142,7 @@ def _arif_mind_reason(
         # Async constitutional synthesis — SEA-LION LLM when available, template fallback
         # F7 Humility: confidence hard-capped at 0.85 by _synthesize_async
         synthesis_dict = _run_async(_synthesize_async(query, "inductive"))
-        synthesis_text = synthesis_dict.get(
-            "bounded_answer", _synthesize(query, "inductive")
-        )
+        synthesis_text = synthesis_dict.get("bounded_answer", _synthesize(query, "inductive"))
         llm_confidence = synthesis_dict.get("overall_confidence", 0.85)
         scars_list = _detect_scars(query, synthesis_text)
         output = MindOutput(
@@ -7469,6 +7866,7 @@ def _arif_memory_recall(
       prune   — Soft-delete (sacred tier requires 888_HOLD).
       search  — Alias for recall.
       context — Session context window.
+      context_restore — Restore compact state: sealed state, scars, risks, git, service truth.
       dry_run — Ephemeral write/recall/cleanup cycle.
     """
     # ── Absorbed wiki modes (PHOENIX-72 / canonical13) ───────────────────────
@@ -7716,6 +8114,24 @@ def _arif_memory_recall(
             actor_id=actor_id,
             metadata=metadata,
             tier=tier,
+        )
+
+    # ── context_restore ─────────────────────────────────────
+    if mode == "context_restore":
+        restore = _context_restore_summary(
+            query=query,
+            session_id=session_id,
+            actor_id=actor_id,
+        )
+        return _ok(
+            "arif_memory_recall",
+            {
+                "mode": "context_restore",
+                "restore": restore,
+                "compression_envelope": _compress_context(query),
+            },
+            delta_S=-0.003,
+            session_id=session_id,
         )
 
     # ── prune ────────────────────────────────────────────────
@@ -9633,11 +10049,7 @@ async def _arif_judge_deliberate_tool(
         # pre-authorized by the sovereign (F13). This does NOT grant general access — it
         # authorises specifically-identified programmatic benchmarks.
         _bench_approved = frozenset({"aaa-eval", "arifOS-bench"})
-        if (
-            actor_id in _bench_approved
-            and ctx is None
-            and mode != "history"
-        ):
+        if actor_id in _bench_approved and ctx is None and mode != "history":
             # Programmatic bench harness — skip human elicitation, pass-through candidate.
             # The full constitutional kernel (_arif_judge_deliberate) still runs.
             # Safe to bypass here: this path only triggers for headless bench callers with
@@ -9670,24 +10082,30 @@ async def _arif_judge_deliberate_tool(
         try:
             import asyncio
             from arifOS.supabase_adapter import record_judge_verdict
-            
+
             v_code = result.get("verdict", "UNKNOWN")
             v_str = v_code if isinstance(v_code, str) else getattr(v_code, "value", str(v_code))
-            
+
             comp = result.get("constitutional_compliance")
-            floor_summary = comp if isinstance(comp, dict) else (comp.model_dump() if hasattr(comp, "model_dump") else {})
-            
+            floor_summary = (
+                comp
+                if isinstance(comp, dict)
+                else (comp.model_dump() if hasattr(comp, "model_dump") else {})
+            )
+
             reasons = result.get("reasons", [])
             reasoning = reasons[0] if reasons else None
-            
+
             loop = asyncio.get_running_loop()
-            loop.create_task(record_judge_verdict(
-                tool_call_id=None,
-                session_ref=session_id or "unknown",
-                verdict=v_str,
-                floor_summary=floor_summary,
-                reasoning=reasoning
-            ))
+            loop.create_task(
+                record_judge_verdict(
+                    tool_call_id=None,
+                    session_ref=session_id or "unknown",
+                    verdict=v_str,
+                    floor_summary=floor_summary,
+                    reasoning=reasoning,
+                )
+            )
         except Exception as e:
             logger.error(f"Failed to trigger Supabase record_judge_verdict: {e}")
 
@@ -10787,22 +11205,24 @@ async def _arif_vault_seal_tool(
                 import asyncio
                 import json
                 from arifOS.supabase_adapter import seal_vault999
-                
+
                 try:
                     content_payload = json.loads(payload) if payload else {}
                 except Exception:
                     content_payload = {"raw_payload": payload}
 
                 loop = asyncio.get_running_loop()
-                loop.create_task(seal_vault999(
-                    subject_type="vault_seal",
-                    seal_type="seal",
-                    verdict=result.get("verdict", "SEAL"),
-                    content=content_payload,
-                    session_ref=session_id or "unknown",
-                    actor_ref=actor_id or "anonymous",
-                    organ_code="arifos",
-                ))
+                loop.create_task(
+                    seal_vault999(
+                        subject_type="vault_seal",
+                        seal_type="seal",
+                        verdict=result.get("verdict", "SEAL"),
+                        content=content_payload,
+                        session_ref=session_id or "unknown",
+                        actor_ref=actor_id or "anonymous",
+                        organ_code="arifos",
+                    )
+                )
             except Exception as e:
                 logger.error(f"Failed to trigger Supabase seal_vault999: {e}")
 
@@ -12300,16 +12720,19 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         try:
             from arifOS.supabase_adapter import record_tool_call
             import asyncio
+
             loop = asyncio.get_running_loop()
-            loop.create_task(record_tool_call(
-                session_ref=kwargs.get("session_id") or "unknown",
-                tool_name=tool_name,
-                organ_code="arifOS",
-                arguments=kwargs,
-                risk_tier=0,  # Could extract from manifest
-                status="completed",
-                actor_ref=kwargs.get("actor_id")
-            ))
+            loop.create_task(
+                record_tool_call(
+                    session_ref=kwargs.get("session_id") or "unknown",
+                    tool_name=tool_name,
+                    organ_code="arifOS",
+                    arguments=kwargs,
+                    risk_tier=0,  # Could extract from manifest
+                    status="completed",
+                    actor_ref=kwargs.get("actor_id"),
+                )
+            )
         except Exception as e:
             logger.debug(f"Supabase canonical receipt dispatch failed: {e}")
         return final_resp
@@ -12340,16 +12763,19 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         try:
             from arifOS.supabase_adapter import record_tool_call
             import asyncio
+
             loop = asyncio.get_running_loop()
-            loop.create_task(record_tool_call(
-                session_ref=kwargs.get("session_id") or "unknown",
-                tool_name=tool_name,
-                organ_code="arifOS",
-                arguments=kwargs,
-                risk_tier=0,
-                status="completed",
-                actor_ref=kwargs.get("actor_id")
-            ))
+            loop.create_task(
+                record_tool_call(
+                    session_ref=kwargs.get("session_id") or "unknown",
+                    tool_name=tool_name,
+                    organ_code="arifOS",
+                    arguments=kwargs,
+                    risk_tier=0,
+                    status="completed",
+                    actor_ref=kwargs.get("actor_id"),
+                )
+            )
         except Exception as e:
             logger.debug(f"Supabase canonical receipt dispatch failed: {e}")
         return final_resp

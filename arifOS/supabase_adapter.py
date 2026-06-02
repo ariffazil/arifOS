@@ -37,7 +37,7 @@ VAULT999_DB = os.getenv(
 )
 PROD_DB = os.getenv(
     "PROD_DB",
-    "postgresql://postgres.utbmmjmbolmuahwixjqc:cWZ228S72IaC9UzRD5i7UHh8s8NUbaXT@db.utbmmjmbolmuahwixjqc.supabase.co:5432/postgres",
+    "postgresql://postgres.utbmmjmbolmuahwixjqc:cWZ228S72IaC9UzRD5i7UHh8s8NUbaXT@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres",
 )
 
 # Pool state
@@ -799,6 +799,61 @@ async def record_judge_verdict(
         signature,
         judge_ref,
     )
+
+
+# ── Production Approval Ticket Mutation ─────────────────────────
+
+
+async def _write_prod_approval_ticket(
+    ticket_id: str,
+    human_verdict: str,
+    resolved_by: str,
+) -> bool:
+    """Update human_verdict + resolved_at on public.arifosmcp_approval_tickets."""
+    if MODE_OFF:
+        return False
+    try:
+        pool = await _get_prod_pool()
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                UPDATE public.arifosmcp_approval_tickets
+                SET human_verdict = $1, resolved_at = $2
+                WHERE ticket_id = $3
+                RETURNING id
+                """,
+                human_verdict,
+                _now(),
+                ticket_id,
+            )
+        if row:
+            logger.info(f"[adapter/prod] approval_ticket resolved: {ticket_id} → {human_verdict}")
+            return True
+        logger.warning(f"[adapter/prod] approval_ticket not found: {ticket_id}")
+        return False
+    except Exception as e:
+        logger.warning(f"[adapter/prod] approval_ticket resolve failed: {e}")
+        return False
+
+
+async def resolve_approval_ticket(
+    ticket_id: str,
+    verdict: str,
+    actor_id: str = "arif:sovereign",
+) -> bool:
+    """Resolve an approval ticket (APPROVED / REJECTED).
+
+    Called by the AAA cockpit when Arif exercises sovereign judgment.
+    Writes to public.arifosmcp_approval_tickets.human_verdict + resolved_at.
+
+    Returns True on success, False on failure (all failures are non-fatal).
+    """
+    if verdict not in ("APPROVED", "REJECTED"):
+        logger.warning(
+            f"[adapter] resolve_approval_ticket: invalid verdict '{verdict}' — must be APPROVED or REJECTED"
+        )
+        return False
+    return await _write_prod_approval_ticket(ticket_id, verdict, actor_id)
 
 
 # ── Smoke Test ────────────────────────────────────────────────
