@@ -45,9 +45,9 @@ graph TD
 
     subgraph ORGANS ["Federation Organs"]
         FORGE["⚡ A-FORGE :7071<br/>Execution Engine"]
-        GEOX["🌍 GEOX :8081<br/>Earth Intelligence"]
+        GEOX["🌍 GEOX :18081<br/>Earth Intelligence"]
         WEALTH["💰 WEALTH :18082<br/>Capital Intelligence"]
-        WELL["🧬 WELL :18083<br/>Human Substrate"]
+        WELL["🧬 WELL :18083<br/>Human Substrate (disabled)"]
         AAA["🎛️ AAA :80/443<br/>Control Plane"]
         APEX["⚖️ APEX :3002<br/>888 Judge Relay"]
     end
@@ -159,15 +159,15 @@ Schemas: `arifosmcp/constitutional_map.py` · Registry: `APEX/ASF1/tool_registry
 |-------|------|--------|-----------|
 | **F1** | AMANAH | Reversibility | `∃ undo(a)` — irreversible ops require explicit human ack |
 | **F2** | TRUTH | Evidentiality | No fabrication · uncertainty τ ≥ 0.99 · FACT/EST/HYPO/UNK labels |
-| **F3** | WITNESS | Consensus | Tri-witness `W₃ = ∛(Human × AI × Earth) ≥ 0.75` |
+| **F3** | QUAD-WITNESS | Consensus | Byzantine `W₄ = ∜(Human × AI × Earth × Verifier) ≥ 0.75` (action-specific: read 0.60 / write 0.75 / execute 0.85 / critical 0.95) |
 | **F4** | CLARITY | Progress | Entropy reduction `ΔS ≤ 0` · intent declared before action |
-| **F5** | PEACE² | Dignity | Non-destruction of human dignity · `PEACE² ≥ 1.0` |
-| **F6** | EMPATHY | Consequence | Cost modeled before execution · `κᵣ ≥ 0.70` |
+| **F5** | PEACE² | Stability | Lyapunov stability · `PEACE² ≥ 1.0` · non-destructive power |
+| **F6** | EMPATHY | Stakeholder | Protect weakest stakeholder · `κᵣ ≥ 0.70` (social) / `0.10` (ops) |
 | **F7** | HUMILITY | Epistemic | Uncertainty bounds `Ω ∈ [0.03, 0.05]` |
-| **F8** | GENIUS | Correctness | Elegant correctness · `G = capability × ethics ≥ 0.80` |
-| **F9** | ANTIHANTU | Integrity | Reject manipulation · `C_dark ≤ 0.30` · machine is instrument |
-| **F10** | ONTOLOGY | Coherence | Strict StrEnum + Pydantic schemas · category lock |
-| **F11** | AUTH | Traceability | Identity verified · sensitive calls require `actor_id` |
+| **F8** | GENIUS | Correctness | `G = (A × P × X × E²) × (1 - h) ≥ 0.80` |
+| **F9** | ANTIHANTU | Integrity | Reject manipulation · `C_dark < 0.30` · machine is instrument |
+| **F10** | ONTOLOGY | Coherence | Strict StrEnum + Pydantic schemas · category lock (boolean) |
+| **F11** | COMMAND-AUTH | Identity | Verified identity · sensitive calls require `session_id` + `auth_token` |
 | **F12** | INJECTION | Security | Sanitize all params · `injection_probability < 0.85` |
 | **F13** | SOVEREIGN | Apex | Arif Fazil has absolute final veto. No algorithm overrides. |
 
@@ -271,9 +271,9 @@ graph LR
     subgraph VPS ["af-forge  72.62.71.199"]
         A["⚙️ arifOS\n:8088"] 
         B["⚡ A-FORGE\n:7071"]
-        C["🌍 GEOX\n:8081"]
+        C["🌍 GEOX\n:18081"]
         D["💰 WEALTH\n:18082"]
-        E["🧬 WELL\n:18083"]
+        E["🧬 WELL\n:18083\n(404 intentional)"]
         F["🎛️ AAA\n:80/443"]
         G["⚖️ APEX\n:3002"]
     end
@@ -310,8 +310,11 @@ graph LR
 | Docker | `deploy/docker-compose.yml` |
 | Public MCP | `https://arifos.arif-fazil.com/mcp` |
 | Health | `https://arifos.arif-fazil.com/health` |
+| **Live deployment** | `af-forge` (72.62.71.199) · kanon `fd719f2` · release `v2026.05.05-SSCT` |
 
 > ✅ **MCP Concurrency (PHOENIX-73C):** Fixed — `stateless_http=False` enables per-client session management. Multiple concurrent SSE clients supported.
+
+> ⚠️ **FLOOR SOT HIERARCHY:** The table above is descriptive. The canonical implementation is `core/shared/floors.py` (`CONSTITUTIONAL_VERSION = "2026.03.12--FORGED"`). F3 in code is **Quad-Witness** (`W₄`, Byzantine, 4-witness) — the README's "Tri-witness" label predates the 4-witness hardening. F5 domain in code is "Lyapunov stability" — README's "Dignity" is a simplification. F11 in code is **CommandAuth** — README's "AUTH" is a contraction. F9 in code uses strict `C_dark < 0.30` (not `≤`). Live `/health` reports `floors_hard_doctrinal` ≠ `floors.py` hard set; the resolution requires F13 sovereign sign-off — see `arifOS/ROOT_888_HOLD.md`.
 
 ---
 
@@ -364,7 +367,9 @@ ruff check . && mypy arifosmcp/
 
 <div align="center">
 
-**arifOS** · Constitutional AI Kernel · AGPL-3.0 · `v2026.05.26`
+**arifOS** · Constitutional AI Kernel · AGPL-3.0 · release `v2026.05.26` · live `v2026.05.05-SSCT` (kanon-fd719f2)
+
+> **Version policy:** the release badge reflects the latest GitHub release. The live deployment on `af-forge` is `v2026.05.05-SSCT` — see `https://arifos.arif-fazil.com/health` for the canonical runtime version.
 
 *Designed and maintained by [Muhammad Arif Fazil](https://arif-fazil.com) — Senior Exploration Geoscientist.*
 *Proof over philosophy. Architecture performed, not theorized.*
