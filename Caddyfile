@@ -261,6 +261,12 @@ geox.arif-fazil.com {
 			header_up Host geox.arif-fazil.com
 		}
 	}
+	handle /api/build-info {
+		import cors_public
+		reverse_proxy 127.0.0.1:8081 {
+			header_up Host geox.arif-fazil.com
+		}
+	}
 	handle /ready {
 		import cors_public
 		reverse_proxy 127.0.0.1:8081 {
@@ -313,6 +319,10 @@ wealth.arif-fazil.com {
 		reverse_proxy 127.0.0.1:18082
 	}
 	handle /health {
+		import cors_public
+		reverse_proxy 127.0.0.1:18082
+	}
+	handle /api/build-info {
 		import cors_public
 		reverse_proxy 127.0.0.1:18082
 	}
@@ -561,6 +571,9 @@ well.arif-fazil.com {
 		reverse_proxy 127.0.0.1:18083
 	}
 	handle /health {
+		reverse_proxy 127.0.0.1:18083
+	}
+	handle /api/build-info {
 		reverse_proxy 127.0.0.1:18083
 	}
 	handle /tools {
