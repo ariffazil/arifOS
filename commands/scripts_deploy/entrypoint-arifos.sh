@@ -86,5 +86,17 @@ if [ -d "/usr/src/app/arifOS" ] && [ ! -L "/usr/src/app/arifOS/arifosmcp" ] && [
     echo "[arifOS] Linked /usr/src/app/arifOS/arifosmcp -> /usr/src/app/arifosmcp"
 fi
 
+# ── Regenerate AGENTS.md from CANONICAL_TOOLS ──────────────────────────────────
+# Ensures the deployed runtime's AGENTS.md always reflects the
+# canonical tool registry. Non-fatal on failure (preflight is the
+# proper CI gate; this is a defense-in-depth refresh).
+if [ -f "/root/arifOS/arifosmcp/maintenance/generate_agents_md.py" ]; then
+    if (cd /root/arifOS && python3 -m arifosmcp.maintenance.generate_agents_md >/dev/null 2>&1); then
+        echo "[arifOS] AGENTS.md regenerated from CANONICAL_TOOLS"
+    else
+        echo "[arifOS] WARNING: AGENTS.md regeneration failed (non-fatal)"
+    fi
+fi
+
 # ── Run the original command ──────────────────────────────────────────────────
 exec "$@"

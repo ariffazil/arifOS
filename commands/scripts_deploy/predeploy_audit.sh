@@ -264,6 +264,28 @@ if [ "$TOOL_REGISTRY_HASH" = "MISSING" ]; then
     [ "$RISK" = "LOW" ] && RISK="MEDIUM"
 fi
 
+# AGENTS.md auto-gen drift check — must be in sync with CANONICAL_TOOLS
+# (Single source of truth: arifosmcp/constitutional_map.py)
+if [ -f "$ARIFOS_DIR/arifosmcp/maintenance/generate_agents_md.py" ]; then
+    if (cd "$ARIFOS_DIR" && python3 -m arifosmcp.maintenance.generate_agents_md --check) \
+            > "$TMP_DIR/agents_md_check.log" 2>&1; then
+        echo "  PASS: AGENTS.md is in sync with CANONICAL_TOOLS"
+    else
+        REGISTRY_PASS=false
+        [ "$STATUS" = "PASS" ] && STATUS="HOLD"
+        REASONS+=("agents_md_drift_detected")
+        [ "$RISK" = "LOW" ] && RISK="MEDIUM"
+        echo "  FAIL: AGENTS.md has drifted from CANONICAL_TOOLS"
+        echo "        Remediation:"
+        echo "          cd $ARIFOS_DIR"
+        echo "          python3 -m arifosmcp.maintenance.generate_agents_md"
+        echo "          git add arifosmcp/AGENTS.md && git commit"
+        cat "$TMP_DIR/agents_md_check.log" | head -3
+    fi
+else
+    echo "  SKIP: AGENTS.md generator not present (run pre-deploy on a clean clone)"
+fi
+
 # ── Policy Gatekeeper ─────────────────────────────────────────
 echo ""
 echo "[POLICY GATEKEEPER]"
