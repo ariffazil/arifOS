@@ -5,7 +5,7 @@ from core.shared.vault_client import VaultClient
 
 # Use core.floors as the source for tool call evaluation
 try:
-    from core.floors import evaluate_tool_call, Verdict
+    from arifosmcp.core.floors import evaluate_tool_call, Verdict
 except ImportError:
     # Fallback/Mock for local testing if core.floors is not available
     class Verdict:

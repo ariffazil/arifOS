@@ -48,6 +48,23 @@ def arif_forge_execute(
     action_tier: str = "standard",
     permitted_scope: dict | None = None,
 ) -> ForgeOutput:
+    """
+    010_FORGE: Sovereign execution bridge to A-FORGE.
+
+    Executes approved builds, deployments, or system changes ONLY after
+    arif_judge_deliberate has issued a SEAL verdict. If no vault_entry_id
+    is provided, the action must have been pre-authorized by the judge.
+
+    Args:
+        mode: "engineer" | "preview" | "audit".
+        manifest: JSON manifest describing the action to execute.
+        query: Natural language description of the intended change.
+        artifact_id: Reference to a prior artifact (e.g., plan output).
+        session_id: Constitutional session ID from arif_session_init.
+        ack_irreversible: Must be True to confirm irreversible execution.
+        action_tier: "standard" | "sovereign" | "c4" | "c5".
+        permitted_scope: Bounding scope dict for the execution.
+    """
     # ── W-2: SOVEREIGN clarity gate for elevated-tier FORGE actions ───────────
     _is_elevated = action_tier.lower() in ("sovereign", "c4", "c5")
     if _is_elevated:

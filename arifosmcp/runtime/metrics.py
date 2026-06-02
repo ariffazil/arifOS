@@ -239,6 +239,43 @@ VERDICT_TOTAL = _counter(
     ["verdict"],  # SEAL, VOID, HOLD_888, PARTIAL
 )
 
+# ---------------------------------------------------------------------------
+# M3 LLM Token Usage (F2 TRUTH observability)
+# ---------------------------------------------------------------------------
+# Per F2 TRUTH: every LLM call must be measurable. Token counts surface in
+# Grafana so token-plan budget is never a surprise. F13 SOVEREIGN owns the
+# decision to spend; the metric is the witness that we did.
+
+M3_TOKENS_TOTAL = _counter(
+    "arifos_m3_tokens_total",
+    "Total MiniMax-M3 tokens consumed by arifOS LLM cascade (Tier 1)",
+    ["type"],  # prompt, completion, cached
+)
+M3_CALLS_TOTAL = _counter(
+    "arifos_m3_calls_total",
+    "Total M3 API calls (Tier 1) — success or error",
+    ["status"],  # success, error
+)
+M3_LATENCY_SECONDS = _histogram(
+    "arifos_m3_latency_seconds",
+    "Latency of M3 chat completions in seconds (Tier 1)",
+    buckets=(0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0, 120.0),
+)
+M3_FALLBACK_TOTAL = _counter(
+    "arifos_m3_fallback_total",
+    "Falls through Tier 1 to Tier 2 (Ollama) or Tier 3 (deterministic)",
+    ["to_tier"],  # ollama, deterministic
+)
+
+# ---------------------------------------------------------------------------
+# Multimodal MCP Usage (text_to_image, video, audio, music)
+# ---------------------------------------------------------------------------
+MULTIMODAL_CALLS_TOTAL = _counter(
+    "arifos_multimodal_calls_total",
+    "Total calls to MiniMax multimodal MCP tools (text_to_image, generate_video, etc.)",
+    ["tool", "status"],
+)
+
 # Request Counter
 REQUESTS_TOTAL = _counter(
     "arifos_requests_total",
@@ -327,6 +364,60 @@ def record_constitutional_metrics(
 def record_verdict(verdict: str) -> None:
     """Increment verdict counter."""
     VERDICT_TOTAL.labels(verdict=verdict).inc()
+
+
+# ---------------------------------------------------------------------------
+# M3 LLM USAGE (F2 TRUTH observability)
+# ---------------------------------------------------------------------------
+
+
+def record_m3_usage(
+    prompt_tokens: int,
+    completion_tokens: int,
+    cached_tokens: int = 0,
+    latency_seconds: float | None = None,
+    status: str = "success",
+) -> None:
+    """
+    Record M3 chat completion usage for token-plan budget observability.
+
+    F2 TRUTH: every LLM call must be measurable.
+    F13 SOVEREIGN: the human owns the decision to spend; this metric is the
+    witness that we did.
+
+    Args:
+        prompt_tokens: tokens billed as input (may include cached)
+        completion_tokens: tokens billed as output
+        cached_tokens: subset of prompt_tokens that hit cache (still billed)
+        latency_seconds: end-to-end call latency in seconds
+        status: "success" or "error"
+    """
+    try:
+        M3_CALLS_TOTAL.labels(status=status).inc()
+        M3_TOKENS_TOTAL.labels(type="prompt").inc(max(0, prompt_tokens))
+        M3_TOKENS_TOTAL.labels(type="completion").inc(max(0, completion_tokens))
+        M3_TOKENS_TOTAL.labels(type="cached").inc(max(0, cached_tokens))
+        if latency_seconds is not None and latency_seconds >= 0:
+            M3_LATENCY_SECONDS.observe(latency_seconds)
+    except Exception:
+        # Metrics must never break the call path
+        pass
+
+
+def record_m3_fallback(to_tier: str) -> None:
+    """Record when M3 Tier 1 falls through to Tier 2/3."""
+    try:
+        M3_FALLBACK_TOTAL.labels(to_tier=to_tier).inc()
+    except Exception:
+        pass
+
+
+def record_multimodal_call(tool: str, status: str) -> None:
+    """Record a MiniMax multimodal MCP call (text_to_image, generate_video, etc.)."""
+    try:
+        MULTIMODAL_CALLS_TOTAL.labels(tool=tool, status=status).inc()
+    except Exception:
+        pass
 
 
 # ---------------------------------------------------------------------------
