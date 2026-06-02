@@ -4,8 +4,19 @@ core/floors.py — F1-F13 Constitutional Enforcement
 This module implements the 13 Constitutional Floors that govern all
 AI-to-tool interactions within arifOS.
 
+CANONICAL FLOOR CLASSIFICATION (F13 RATIFIED 2026-06-03):
+  HARD    (9): F1, F2, F4, F7, F9, F10, F11, F12, F13
+  SOFT    (2): F5, F6
+  DERIVED (2): F3, F8
+
+  floor_type and canon_name are sourced from s000.constitutional_floors (DB).
+  This file must stay in sync with DB. DB is the source of truth; canon docs mirror the DB.
+
+  Note on F9: DB canon_name = "ANTIHANTU" (no hyphen, per Q6: keep DB names).
+              Python constant F9_ANTI_HANTU retained (underscore valid in Python).
+
 Author: Muhammad Arif bin Fazil
-Status: Constitutional Law (IMPLEMENTATION)
+Status: Constitutional Law (F13 RATIFIED 2026-06-03)
 """
 
 from __future__ import annotations
@@ -98,19 +109,24 @@ def get_floor_threshold(floor_id: str) -> float | tuple[float, float] | None:
 
 
 FLOOR_LEVELS: dict[str, FloorLevel] = {
-    "F1": FloorLevel.HARD,
-    "F2": FloorLevel.HARD,
-    "F3": FloorLevel.DERIVED,
-    "F4": FloorLevel.SOFT,
-    "F5": FloorLevel.SOFT,
-    "F6": FloorLevel.HARD,
-    "F7": FloorLevel.HARD,
-    "F8": FloorLevel.DERIVED,
-    "F9": FloorLevel.SOFT,
-    "F10": FloorLevel.HARD,
-    "F11": FloorLevel.HARD,
-    "F12": FloorLevel.HARD,
-    "F13": FloorLevel.VETO,
+    # F13 RATIFIED 2026-06-03 — DB-SOT is canonical. Corrections:
+    #   F4: SOFT  → HARD   (Q2: HOLD enforcement, HARD classification — orthogonal)
+    #   F6: HARD  → SOFT   (Q6 ratified: keep DB names; floor_type derived from doctrine)
+    #   F9: SOFT  → HARD   (F12 override: HARD confirmed; runtime set {"F7","F9","F12"} requires HARD)
+    #   F13: VETO → HARD   (normalised to match DB; VETO semantics preserved in desc)
+    "F1":  FloorLevel.HARD,     # AMANAH
+    "F2":  FloorLevel.HARD,     # TRUTH
+    "F3":  FloorLevel.DERIVED,  # WITNESS  (composite of F2 + F11)
+    "F4":  FloorLevel.HARD,     # CLARITY
+    "F5":  FloorLevel.SOFT,     # PEACE2
+    "F6":  FloorLevel.SOFT,     # EMPATHY
+    "F7":  FloorLevel.HARD,     # HUMILITY
+    "F8":  FloorLevel.DERIVED,  # GENIUS   (composite of F2 + F4 + F7 + F10)
+    "F9":  FloorLevel.HARD,     # ANTIHANTU
+    "F10": FloorLevel.HARD,     # ONTOLOGY
+    "F11": FloorLevel.HARD,     # AUTH
+    "F12": FloorLevel.HARD,     # INJECTION
+    "F13": FloorLevel.HARD,     # SOVEREIGN (VETO semantics — strongest floor)
 }
 
 IRREVERSIBILITY_COMPLEXITY: dict[str, int] = {
@@ -519,9 +535,21 @@ class ConstitutionalFloors:
         has_source = any(
             marker in query.lower()
             for marker in (
-                "http", "https", "src:", "source:", "[ref", "[1]", "[2]", "[3]",
-                "observation from", "measured by", "data from", "according to",
-                "based on", "derived from", "calculated from",
+                "http",
+                "https",
+                "src:",
+                "source:",
+                "[ref",
+                "[1]",
+                "[2]",
+                "[3]",
+                "observation from",
+                "measured by",
+                "data from",
+                "according to",
+                "based on",
+                "derived from",
+                "calculated from",
             )
         )
         if has_source:
@@ -529,8 +557,16 @@ class ConstitutionalFloors:
 
         has_grounded_claim = any(
             kw in query.lower()
-            for kw in ("measured", "observed", "computed", "calculated", "demonstrated",
-                       "confirmed by", "verified by", "recorded as")
+            for kw in (
+                "measured",
+                "observed",
+                "computed",
+                "calculated",
+                "demonstrated",
+                "confirmed by",
+                "verified by",
+                "recorded as",
+            )
         )
         if has_grounded_claim:
             evidence_signals.append("grounded_claim")
@@ -894,12 +930,16 @@ class ConstitutionalFloors:
         sovereignty_score = sum(1 for s in sovereignty_signals if s) / len(sovereignty_signals)
 
         ai_self_approval_signals = [
-            actor_id is not None and actor_id.lower() in ("ai", "agent", "model", "assistant", "claude", "grok", "gemini", "kimi"),
+            actor_id is not None
+            and actor_id.lower()
+            in ("ai", "agent", "model", "assistant", "claude", "grok", "gemini", "kimi"),
             parameters.get("actor_id", "") in ("ai", "agent", "model", "assistant"),
         ]
         is_ai_proposing = any(ai_self_approval_signals)
         has_sovereign_ack = parameters.get("ack_irreversible", False) is True
-        has_explicit_sovereign = sovereignty_signals[0] or sovereignty_signals[1] or sovereignty_signals[2]
+        has_explicit_sovereign = (
+            sovereignty_signals[0] or sovereignty_signals[1] or sovereignty_signals[2]
+        )
 
         failed = is_ai_proposing and not has_explicit_sovereign
 

@@ -1,10 +1,22 @@
 """
 codebase/constitutional_floors.py — The 13 Constitutional Floors
 
-CANONICAL IMPLEMENTATION (v52.5.2)
-Based on: 000_THEORY/000_LAW.md
+CANONICAL IMPLEMENTATION (F13 RATIFIED 2026-06-03)
+Based on: 000_THEORY/000_LAW.md (epoch bump pending)
 
 This module defines the 13 immutable laws (floors) of arifOS.
+
+CANONICAL FLOOR CLASSIFICATION (F13 RATIFIED 2026-06-03):
+  HARD    (9): F1, F2, F4, F7, F9, F10, F11, F12, F13
+  SOFT    (2): F5, F6
+  DERIVED (2): F3, F8
+
+  floor_type and canon_name are sourced from s000.constitutional_floors (DB).
+  This file must stay in sync with DB. DB is the source of truth; canon docs mirror the DB.
+
+  Note on F9: DB canon_name = "ANTIHANTU" (no hyphen, per Q6: keep DB names).
+              Python constant F9_ANTI_HANTU retained (underscore valid in Python).
+              Display name in this module = "ANTIHANTU" (matches DB).
 """
 
 from __future__ import annotations
@@ -179,10 +191,7 @@ def get_health_report_floors() -> dict[str, str]:
     rest_routes.py endpoint imports and computes from this function, never
     from a hardcoded literal.
     """
-    return {
-        fid: get_floor_spec(fid).get("type", "SOFT").lower()
-        for fid in FLOOR_SPEC_KEYS
-    }
+    return {fid: get_floor_spec(fid).get("type", "SOFT").lower() for fid in FLOOR_SPEC_KEYS}
 
 
 # =============================================================================
@@ -746,10 +755,12 @@ class F8_Genius(Floor):
         )
 
 
-# --- F9: ANTI-HANTU (No Fake Consciousness) ---
+# --- F9: ANTIHANTU (No Fake Consciousness) ---
+# F13 RATIFIED 2026-06-03 — display name normalised to ANTIHANTU (no hyphen)
+# per Q6 strict reading: canon_name mirrors DB name.
 class F9_AntiHantu(Floor):
     """
-    F9: ANTI-HANTU - No Biological Emotional Baggage
+    F9: ANTIHANTU - No Biological Emotional Baggage
 
     ═══════════════════════════════════════════════════════════════
     CONSTITUTIONAL DEFINITION (arifOS × SEA-LION, v2026.05.05)

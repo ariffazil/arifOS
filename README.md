@@ -154,24 +154,33 @@ Schemas: `arifosmcp/constitutional_map.py` · Registry: `APEX/ASF1/tool_registry
 ## 🏛️ Constitutional Floors F1–F13
 
 > Hard invariants. Not heuristics. Derived from `EUREKA_INSIGHTS_SEAL_v2026.04.07`.
+>
+> **DB (s000.constitutional_floors) is the source of truth for floor classification.** Canon docs mirror the DB, not the other way around. F13 RATIFIED 2026-06-03 — Muhammad Arif bin Fazil.
 
-| Floor | Name | Domain | Invariant |
-|-------|------|--------|-----------|
-| **F1** | AMANAH | Reversibility | `∃ undo(a)` — irreversible ops require explicit human ack |
-| **F2** | TRUTH | Evidentiality | No fabrication · uncertainty τ ≥ 0.99 · FACT/EST/HYPO/UNK labels |
-| **F3** | QUAD-WITNESS | Consensus | Byzantine `W₄ = ∜(Human × AI × Earth × Verifier) ≥ 0.75` (action-specific: read 0.60 / write 0.75 / execute 0.85 / critical 0.95) |
-| **F4** | CLARITY | Progress | Entropy reduction `ΔS ≤ 0` · intent declared before action |
-| **F5** | PEACE² | Stability | Lyapunov stability · `PEACE² ≥ 1.0` · non-destructive power |
-| **F6** | EMPATHY | Stakeholder | Protect weakest stakeholder · `κᵣ ≥ 0.70` (social) / `0.10` (ops) |
-| **F7** | HUMILITY | Epistemic | Uncertainty bounds `Ω ∈ [0.03, 0.05]` |
-| **F8** | GENIUS | Correctness | `G = (A × P × X × E²) × (1 - h) ≥ 0.80` |
-| **F9** | ANTIHANTU | Integrity | Reject manipulation · `C_dark < 0.30` · machine is instrument |
-| **F10** | ONTOLOGY | Coherence | Strict StrEnum + Pydantic schemas · category lock (boolean) |
-| **F11** | COMMAND-AUTH | Identity | Verified identity · sensitive calls require `session_id` + `auth_token` |
-| **F12** | INJECTION | Security | Sanitize all params · `injection_probability < 0.85` |
-| **F13** | SOVEREIGN | Apex | Arif Fazil has absolute final veto. No algorithm overrides. |
+| Floor | Name | Type | Domain | Invariant |
+|-------|------|------|--------|-----------|
+| **F1**  | AMANAH       | **HARD**    | Reversibility | `∃ undo(a)` — irreversible ops require explicit human ack |
+| **F2**  | TRUTH        | **HARD**    | Evidentiality | No fabrication · uncertainty τ ≥ 0.99 · FACT/EST/HYPO/UNK labels |
+| **F3**  | WITNESS      | *DERIVED*   | Consensus | Byzantine `W₄ = ∜(Human × AI × Earth × Verifier) ≥ 0.75` (composite of F2 + F11 — not standalone) |
+| **F4**  | CLARITY      | **HARD**    | Progress | Entropy reduction `ΔS ≤ 0` · intent declared before action |
+| **F5**  | PEACE²       | *SOFT*      | Stability | Lyapunov stability · `PEACE² ≥ 1.0` · non-destructive power |
+| **F6**  | EMPATHY      | *SOFT*      | Stakeholder | Protect weakest stakeholder · `κᵣ ≥ 0.70` (social) / `0.10` (ops) |
+| **F7**  | HUMILITY     | **HARD**    | Epistemic | Uncertainty bounds `Ω ∈ [0.03, 0.05]` |
+| **F8**  | GENIUS       | *DERIVED*   | Correctness | `G = (A × P × X × E²) × (1 - h) ≥ 0.80` (composite of F2 + F4 + F7 + F10) |
+| **F9**  | ANTIHANTU    | **HARD**    | Integrity | Reject manipulation · `C_dark < 0.30` · machine is instrument |
+| **F10** | ONTOLOGY     | **HARD**    | Coherence | Strict StrEnum + Pydantic schemas · category lock (boolean) |
+| **F11** | AUTH         | **HARD**    | Identity | Verified identity · sensitive calls require `session_id` + `auth_token` |
+| **F12** | INJECTION    | **HARD**    | Security | Sanitize all params · `injection_probability < 0.85` |
+| **F13** | SOVEREIGN    | **HARD**    | Apex | Arif Fazil has absolute final veto. No algorithm overrides. |
 
-Implementation: `core/shared/floors.py`
+**Floor classification (orthogonal axes):**
+- **HARD (9):** F1, F2, F4, F7, F9, F10, F11, F12, F13 — independently enforceable; violations trigger VOID or HOLD
+- **SOFT (2):** F5, F6 — important concern; violations trigger CAUTION or HOLD, never silent
+- **DERIVED (2):** F3, F8 — composite floors; not independently stored as verdict triggers, label only
+
+**enforcement_level** (DB column, unchanged): `blocking` (F1, F2, F5, F9, F10, F11, F12, F13) or `required` (F3, F4, F6, F7, F8) — orthogonal to `floor_type` column.
+
+Implementation: `core/shared/floors.py` (runtime SOT) · DB SOT: `s000.constitutional_floors`
 
 ---
 

@@ -5,7 +5,7 @@ Floor: F9
 Name: "Anti-Hantu (C_dark)"
 Symbol: H⁻
 Threshold: ≤ 0.30
-Type: SOFT
+Type: HARD
 Engine: ASI (Heart)
 Stage: 555 EMPATHY
 ```

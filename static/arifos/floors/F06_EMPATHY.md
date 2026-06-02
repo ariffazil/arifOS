@@ -5,7 +5,7 @@ Floor: F6
 Name: "Empathy (κᵣ)"
 Symbol: κᵣ
 Threshold: ≥ 0.7
-Type: HARD
+Type: SOFT
 Engine: ASI (Heart)
 Stage: 555 EMPATHY
 ```

@@ -5,7 +5,7 @@ Floor: F4
 Name: "Clarity (ΔS)"
 Symbol: ΔS
 Threshold: ≤ 0 (entropy must decrease)
-Type: SOFT
+Type: HARD
 Engine: AGI (Mind)
 Stage: 222 THINK
 ```

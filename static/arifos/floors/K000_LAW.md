@@ -1,11 +1,12 @@
 ---
-title: "arifOS v2026.03.07 Constitutional Law"
-version: "v2026.03.07-ARCH-SEAL"
-epoch: "2026-03-07"
-sealed_by: "888_Judge"
+title: "arifOS v2026.06.03 Constitutional Law"
+version: "v2026.06.03-F13-RATIFIED"
+epoch: "2026-06-03"
+sealed_by: "F13 SOVEREIGN — Muhammad Arif bin Fazil"
 authority: "Muhammad Arif bin Fazil"
-status: "SOVEREIGNLY_SEALED"
+status: "F13_RATIFIED"
 hash: "SHA256:SEALED"
+ratification_event: "F13-RATIFICATION-2026-06-03-FLOOR-CHARTER"
 ---
 
 # 000_LAW — The Thermodynamic Constitution for AI (Constitution)
@@ -154,11 +155,13 @@ Task τ = {
 
 ## Overview: Floor Classification
 
+> **F13 RATIFIED 2026-06-03.** Source of truth: `s000.constitutional_floors` (Supabase). This table mirrors the DB, not the other way around. See [docs/ratifications/2026-06-03-floor-charter](../../../../docs/ratifications/2026-06-03-floor-charter/) for the full ratification record.
+
 | Type | Behavior | Floors |
 |------|----------|--------|
-| **HARD** | Violation = VOID (immediate halt) | F1, F2, F6, F7, F10, F11, F12, F13 |
-| **SOFT** | Violation = SABAR (warning, retry) | F4, F5, F9 |
-| **DERIVED** | Computed from other metrics | F3, F8 |
+| **HARD** | Independently enforceable constitutional invariant | F1, F2, F4, F7, F9, F10, F11, F12, F13 |
+| **SOFT** | Composite or context-dependent concern; violation routes to HOLD/CAUTION per `enforcement_level` | F5, F6 |
+| **DERIVED** | Computed from contributing HARD floors; not a runtime dispatch key | F3, F8 |
 
 ---
 
