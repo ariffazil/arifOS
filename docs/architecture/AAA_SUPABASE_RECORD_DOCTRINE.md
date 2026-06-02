@@ -361,4 +361,39 @@ This doctrine is enforced by:
 
 ---
 
+## Addendum: AAA Namespace Receipt Fields (v1.2 — 2026-06-02)
+
+Following the ratification of the [AAA Namespace Doctrine](AAA_NAMESPACE_DOCTRINE.md), every Supabase record now carries explicit namespace context. The bare field name `aaa_version` is banned from new schemas.
+
+### New Fields (all tables)
+
+| Field | Type | Default | Purpose |
+|-------|------|---------|---------|
+| `aaa_surface` | `TEXT` | `'AAA-HF'` | Which AAA surface governed this record |
+| `aaa_doctrine_version` | `TEXT` | `NULL` | Version of the AAA-HF corpus in effect |
+| `aaa_canon_refs` | `TEXT[]` | `NULL` | Canonical references from the HF corpus |
+| `floor_refs` | `TEXT[]` | `NULL` | All floors triggered (multi-floor replacement for `floor_triggered`) |
+| `record_class` | `TEXT` | `'constitutional_receipt'` | Semantic class of this record |
+
+### Canonical Receipt Shape
+
+```json
+{
+  "aaa_surface": "AAA-HF",
+  "aaa_doctrine_version": "v1.2",
+  "aaa_canon_refs": ["aaa-0000"],
+  "floor_refs": ["F1", "F3", "F12"],
+  "verdict": "888_HOLD",
+  "record_class": "constitutional_receipt"
+}
+```
+
+### Migration
+
+Applied via: `supabase/migrations/20260602000000_aaa_namespace_receipt_fields.sql`
+
+Full schema reference: `docs/architecture/CONSTITUTIONAL_RECEIPT_SCHEMA.md`
+
+---
+
 *DITEMPA BUKAN DIBERI — Intelligence is forged, not given.*
