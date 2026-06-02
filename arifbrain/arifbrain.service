@@ -1,0 +1,39 @@
+[Unit]
+Description=arifbrain Phase 1 Federation Heartbeat (poll → embed → log)
+Documentation=file:/root/arifOS/arifbrain/README.md
+After=network-online.target qdrant.service docker.service
+Wants=network-online.target
+StartLimitBurst=3
+StartLimitIntervalSec=600
+
+[Service]
+Type=oneshot
+# Phase 1 audit-validated: embed-only, no LLM, no Graphiti
+# 512MB hard cap → earlyoom-safe; bge-m3 is already loaded in Ollama
+MemoryMax=512M
+MemoryHigh=384M
+CPUQuota=50%
+TasksMax=32
+# Run as root (so it can read /root/VAULT999 and write to /var/log/arifos)
+User=root
+Group=root
+WorkingDirectory=/root/arifOS/arifbrain
+ExecStart=/usr/bin/python3 /root/arifOS/arifbrain/arifbrain_observe.py
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/log/arifos /root/arifOS/arifbrain
+PrivateTmp=true
+# Restart on transient failure
+Restart=on-failure
+RestartSec=30
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=arifbrain
+# Env overrides (whisper opt-in, etc.)
+Environment=ARIFBRAIN_WHISPER_ENABLED=false
+
+[Install]
+WantedBy=multi-user.target

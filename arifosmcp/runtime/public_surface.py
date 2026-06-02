@@ -4,6 +4,13 @@ import os
 from typing import Any
 
 from arifosmcp.constitutional_map import list_constitutional_tools
+from arifosmcp.prompts import CANONICAL_PROMPTS
+from arifosmcp.resources import (
+    CANONICAL_RESOURCES,
+    EMBODIED_RESOURCES,
+    EVIDENCE_RESOURCES,
+    TREE777_RESOURCES,
+)
 from arifosmcp.runtime.build import get_build_info
 
 try:
@@ -102,7 +109,7 @@ def current_public_surface_mode() -> str:
 def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     resolved = normalize_public_surface_mode(mode)
     if resolved == "expanded45":
-        return tuple([*EXPANDED_45, *DIAGNOSTIC_TOOLS])
+        return EXPANDED_45
     return CANONICAL_13
 
 
@@ -116,7 +123,7 @@ def public_boundary_allows(name: str, mode: str | None = None) -> bool:
 def public_surface_state(mode: str | None = None) -> dict[str, Any]:
     resolved = normalize_public_surface_mode(mode)
     tool_names = list(public_tool_names_for_mode(resolved))
-    diagnostic_tools = [name for name in tool_names if name in {"arif_ping", "arif_selftest"}]
+    diagnostic_tools = [name for name in tool_names if name in set(DIAGNOSTIC_TOOLS)]
     return {
         "mode": resolved,
         "tools_registered": len(tool_names),
@@ -148,37 +155,37 @@ PEER_SOVEREIGNS: dict[str, dict[str, Any]] = {
         "role": "constitutional_kernel",
         "mcp": True,
         "public_endpoint": CANONICAL_MCP_ENDPOINT,
-        "internal_host": "arifosmcp",
-        "internal_port": 8080,
+        "internal_host": "127.0.0.1",
+        "internal_port": 8088,
         "mcp_path": "/mcp",
         "health_path": "/health",
         "ready_path": "/ready",
         "tools": 13,
-        "prompts": 8,
-        "resources": 5,
+        "prompts": len(CANONICAL_PROMPTS),
+        "resources": len(CANONICAL_RESOURCES),
         "protocol_version": "2025-03-26",
     },
     "geox": {
         "role": "earth_intelligence_processor",
         "mcp": True,
         "public_endpoint": "https://geox.arif-fazil.com/mcp",
-        "internal_host": "geox",
-        "internal_port": 8081,
+        "internal_host": "127.0.0.1",
+        "internal_port": 18081,
         "mcp_path": "/mcp",
-        "health_path": None,
+        "health_path": "/health",
         "ready_path": None,
         "tools": None,
         "prompts": None,
         "resources": None,
         "protocol_version": "2025-03-26",
-        "probe_note": "No /health endpoint — probe /mcp via MCP initialize",
+        "probe_note": "Systemd GEOX bridge endpoint. Do not use retired Docker-era 8081 metadata.",
     },
     "wealth": {
         "role": "capital_intelligence_processor",
         "mcp": True,
         "public_endpoint": "https://wealth.arif-fazil.com/mcp",
-        "internal_host": "wealth-organ",
-        "internal_port": 8000,
+        "internal_host": "127.0.0.1",
+        "internal_port": 18082,
         "mcp_path": "/mcp",
         "health_path": "/health",
         "ready_path": None,
@@ -225,6 +232,12 @@ def public_surface() -> dict[str, Any]:
     MUST be derived from here. README, llms.txt, status.json, and
     landing pages consume this function, not hardcoded values.
     """
+    registered_resource_families = (
+        len(CANONICAL_RESOURCES)
+        + len(EVIDENCE_RESOURCES)
+        + len(EMBODIED_RESOURCES)
+        + len(TREE777_RESOURCES)
+    )
     return {
         "system": SYSTEM_NAME,
         "version": VERSION,
@@ -244,8 +257,10 @@ def public_surface() -> dict[str, Any]:
             "transport": "streamable-http",
             "protocol_version": PROTOCOL_VERSION,
             "tools": 13,
-            "prompts": 8,
-            "resources": 5,
+            "prompts": len(CANONICAL_PROMPTS),
+            "resources": len(CANONICAL_RESOURCES),
+            "canonical_resources": len(CANONICAL_RESOURCES),
+            "registered_resource_families": registered_resource_families,
         },
         "source_repo": SOURCE_REPO,
         "seal": "DITEMPA BUKAN DIBERI",

@@ -2,12 +2,13 @@
 arifOS Resources — Canonical URI Surface
 ════════════════════════════════════════
 
-Registers the 5 Canonical Resources:
+Registers the 6 Canonical Resources:
   arifos://doctrine      — Immutable law (Ψ)
   arifos://vitals        — Living pulse (Ω)
   arifos://schema        — Complete blueprint (Δ)
   arifos://forge         — Execution bridge
   arifos://civilization  — Organs + strata definition
+  arifos://philosophy    — 33-axis human intelligence canon
 
 Plus F-WEB Evidence Resource families:
   source://{hash}       — Ingested source content (SSRF-gated)
@@ -69,7 +70,7 @@ EVIDENCE_RESOURCES = (
 
 
 def register_resources(mcp: FastMCP) -> list[str]:
-    """Register all canonical arifos:// resources and F-WEB evidence resources."""
+    """Register canonical resources plus evidence, embodied, and TREE777 families."""
     registered: list[str] = []
     registered.extend(register_doctrine(mcp))
     registered.extend(register_vitals(mcp))

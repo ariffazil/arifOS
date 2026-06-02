@@ -87,7 +87,7 @@ class Tool(ABC):
 
         Override to customize floor checking.
         """
-        from core.floors import ConstitutionalFloors
+        from arifosmcp.core.floors import ConstitutionalFloors
 
         floors = ConstitutionalFloors()
         result = floors.evaluate(

@@ -7,45 +7,58 @@
 
 ---
 
-## The 6-Layer Federation Memory Architecture
+## The 6-Layer Federation Memory Architecture (Atlas Compass)
 
 ```
-Layer  Name          Engine         Status   Purpose
-─────  ────────────  ────────────    ──────   ─────────────────────────────
- L1    Ephemeral     Hermes L2       ✅ Live  Turn-by-turn, session RAM
- L2    Session       Hermes state   ✅ Live  FTS5 full-text, 30-day retain
-                           .db
- L3    Associative   Qdrant         ⚠️ Lean  Semantic search, 10 pts total
-                           (Docker)           (was 42 in stale doc)
- L4    Relational    Postgres       ❌ DOWN  Durable records, schema inactive
-                           (Docker)           DB up but nothing writing
- L5    Knowledge     Graphiti MCP  ✅ Live  Entity graph, temporal links
-                           (Docker)           Accessible via arifOS MCP
- L6    Immutable     VAULT999       ✅       Hash-chained append-only truth
-                           (Files)    Healthy  16,794 total entries
+Layer  Name          Engine         Status   Role
+─────  ────────────  ────────────   ──────   ─────────────────────────────
+ L1    Ephemeral     Redis          ✅ Live  now
+ L2    Session       Redis          ✅ Live  session
+ L3    Associative   Qdrant         ✅ Live  similar (864 vectors)
+ L4    Relational    Supabase       ⚠️ Hold  official records (shelves exist, flow minimal)
+ L5    Knowledge     Graphiti       ⚠️ Hold  relationships (partial)
+ L6    Immutable     VAULT999       ✅ Live  forever (16,859 lines)
 ```
 
-### Live Counts (as of 2026-05-27)
+### Live Counts & Milestone 2 Gate (as of 2026-06-02)
 
-| Layer | Store | Count | Source |
-|-------|-------|-------|--------|
-| L3 | Qdrant `arif_evidence` | 1 pt | `curl 127.0.0.1:6333/collections` |
-| L3 | Qdrant `arifos_memory` | 9 pts | same |
-| L3 | **Total** | **10 pts** | stale docs said 42 |
-| L4 | Postgres | empty | nothing writing to it |
-| L5 | Graphiti | active, not remotely queryable | accessible via arifOS MCP only |
-| L6 | VAULT999 | 16,794 lines across 4 files | `wc -l /root/arifOS/VAULT999/*.jsonl` |
+| Layer | Store | Count | Phase 1 Verdict |
+|-------|-------|-------|-----------------|
+| L1/L2 | Redis | - | Live |
+| L3 | Qdrant | 864 vectors | Live |
+| L4 | Supabase Cloud | shelves exist | Shelves built. Workers not filing yet. |
+| L5 | Graphiti | partial | - |
+| L6 | VAULT999 | 16,859 lines | Active |
 
-### VAULT999 File Breakdown
+### Supabase Cloud — Phase 1 Domain (L4)
 
-```
-SEALED_EVENTS.jsonl   1,338 entries  — witnessed constitutional events
-outcomes.jsonl        15,348 entries — judgment outcomes
-shim_hits.jsonl           2 entries  — gateway shim events
-vault999.jsonl          106 entries  — core ledger
-─────────────────────────────────────────────────────────
-Total                16,794 lines
-```
+*Naming convention: `arifosmcp_*` not `s000.*` — same intent, different namespace.*
+*See the full integration rule: [SUPABASE_MCP_CONTRACT.md](file:///root/arifOS/docs/contracts/SUPABASE_MCP_CONTRACT.md).*
+
+**Structured Tables (Shelves Built):**
+- `arifosmcp_tool_calls`
+- `arifosmcp_approval_tickets`
+- `arifosmcp_floor_rules`
+- `arifosmcp_memory_policy`
+- `arifosmcp_memory_contract`
+- `arifosmcp_sessions`
+- `arifosmcp_canon_records`
+- `arifosmcp_daily_roots`
+- `arifosmcp_portfolio_snapshots`
+- `arifosmcp_transactions`
+- `arifosmcp_well_states`
+- `arifosmcp_agent_telemetry`
+- `mcp_prompt_versions` (planned)
+- `mcp_resources` (planned)
+- `mcp_manifest_snapshots` (planned)
+
+**VAULT L4/L6 FACET:**
+- `vault_sealed_events` (1,338 rows — actual L6 mirror)
+- `vault_outcomes` (12,269+ rows)
+- `vault_seals` (61 rows — legacy)
+- `vault_shim_hits` (2 rows)
+
+> **Milestone 2 Integration Gap:** arifOS MCP and federation organs must write receipts via the shared organ adapter (fail-soft). Do not connect Supabase to MCPs as a router.
 
 ---
 
