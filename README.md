@@ -246,6 +246,24 @@ arifOS/
 
 ---
 
+## 🏷️ AAA Namespace Doctrine
+
+**AAA is a polymorphic sovereign acronym.** It has multiple valid surfaces, each with a distinct role and authority boundary. When precision matters, qualify the surface:
+
+| Term | Surface | Role |
+|------|---------|------|
+| **AAA-HF** | Hugging Face dataset `ariffazil/AAA` | Doctrine corpus, F1–F13 floors, verdicts, schemas, gold eval records |
+| **AAA-Cockpit** | GitHub repo `ariffazil/AAA` | Control plane, A2A gateway, agent registry, mission control |
+| **AAA-Doctrine** | Conceptual layer | Constitutional principle: alignment, authority, accountability |
+| **AAA-Interface** | Operator surface | Human visibility — inspect actions, approvals, seals |
+| **AAA-Eval** | Benchmark layer | Gold records and evaluation harness |
+
+Invariant: AAA-HF defines doctrine → **arifOS applies doctrine** → MCP tools execute → Supabase records → VAULT999 seals → AAA-Cockpit displays → Arif decides.
+
+→ Full specification: [`docs/architecture/AAA_NAMESPACE_DOCTRINE.md`](docs/architecture/AAA_NAMESPACE_DOCTRINE.md)
+
+---
+
 ## 🌐 Federation
 
 ```mermaid
