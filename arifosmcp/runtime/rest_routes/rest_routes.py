@@ -1912,10 +1912,16 @@ def _compute_runtime_drift() -> dict[str, Any]:
                 break
         except Exception:
             continue
+    # Build/runtime are comparable only when both SHAs are known and resolved.
+    _both_known = build_commit != "unknown" and live_commit != "unknown"
+    _matches = _both_known and (build_commit == live_commit)
     return {
-        "runtime_drift": build_commit != live_commit
-        and build_commit != "unknown"
-        and live_commit != "unknown",
+        # Negative framing: "is the runtime drifted from the build?"
+        "runtime_drift": _both_known and (build_commit != live_commit),
+        # Positive framing: "is the build/runtime boundary intact?" (F2 Truth)
+        # Use this for CI gates and self-audit signals. Inverse of runtime_drift
+        # when both SHAs are known; False when either is "unknown".
+        "runtime_matches_build": _matches,
         "build_commit": build_commit,
         "live_commit": live_commit,
         "git_dirty": None,  # Would require git status; skipped for performance
@@ -2327,8 +2333,16 @@ def register_rest_routes(
                 "identity_hash": identity_hash,
                 "service": "arifOS-mcp",
                 "release_name": BUILD_INFO["version"],
-                "version": f"kanon-{BUILD_INFO['build']['commit']}",
-                "git_commit": BUILD_INFO["build"]["commit"],
+                # Use BUILD_VERSION (always populated from constitutional version) as
+                # the fallback when build.commit is missing. Avoids `kanon-unknown`
+                # leaking into the public /health surface.
+                "version": (
+                    f"kanon-{BUILD_INFO['build']['commit']}"
+                    if BUILD_INFO.get("build", {}).get("commit")
+                    and BUILD_INFO["build"]["commit"] != "unknown"
+                    else f"kanon-{BUILD_VERSION}"
+                ),
+                "git_commit": BUILD_INFO["build"].get("commit") or BUILD_VERSION,
                 "git_branch": BUILD_INFO["build"].get("branch"),
                 "build_time": BUILD_INFO["build"].get("built_at"),
                 "image": f"ghcr.io/ariffazil/arifos:{BUILD_INFO['build']['commit']}",
@@ -2475,9 +2489,7 @@ def register_rest_routes(
                     # Audit trail: 2026-06-02 floor consensus fix (F9 → HARD,
                     # added floors_derived_doctrinal field for DERIVED floors).
                     "floors_hard_doctrinal": _floor_cats["hard"],
-                    "floors_soft_doctrinal": sorted(
-                        _floor_cats["soft"] + _floor_cats["derived"]
-                    ),
+                    "floors_soft_doctrinal": sorted(_floor_cats["soft"] + _floor_cats["derived"]),
                     "floors_derived_doctrinal": _floor_cats["derived"],
                     "floors_health_report": get_health_report_floors(),
                     "sovereign_status": getattr(
