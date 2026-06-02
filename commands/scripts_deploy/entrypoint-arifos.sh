@@ -86,10 +86,20 @@ if [ -d "/usr/src/app/arifOS" ] && [ ! -L "/usr/src/app/arifOS/arifosmcp" ] && [
     echo "[arifOS] Linked /usr/src/app/arifOS/arifosmcp -> /usr/src/app/arifosmcp"
 fi
 
+# ── Inject BUILD_VERSION env (constitutional version stamp) ───────────────────
+# Falls back to GIT_SHA if ARIFOS_APP_VERSION wasn't set above; otherwise
+# defaults to the constitutional version literal. Always populated so the
+# /health `version` field never leaks "kanon-unknown".
+if [ -z "${BUILD_VERSION:-}" ]; then
+    BUILD_VERSION="${ARIFOS_APP_VERSION:-${GIT_SHA:-v2026.05.05-SSCT}}"
+    export BUILD_VERSION
+    echo "[arifOS] BUILD_VERSION=$BUILD_VERSION (injected)"
+fi
+
 # ── Regenerate AGENTS.md from CANONICAL_TOOLS ──────────────────────────────────
 # Ensures the deployed runtime's AGENTS.md always reflects the
 # canonical tool registry. Non-fatal on failure (preflight is the
-# proper CI gate; this is a defense-in-depth refresh).
+# proper CI gate; this is defense-in-depth freshness).
 if [ -f "/root/arifOS/arifosmcp/maintenance/generate_agents_md.py" ]; then
     if (cd /root/arifOS && python3 -m arifosmcp.maintenance.generate_agents_md >/dev/null 2>&1); then
         echo "[arifOS] AGENTS.md regenerated from CANONICAL_TOOLS"

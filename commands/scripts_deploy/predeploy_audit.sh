@@ -5,7 +5,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ARIFOS_DIR="${SCRIPT_DIR}/../.."
+# Prefer explicit ARIFOS_DIR env var; fall back to script's parent dir.
+# This is the SOURCE of truth for path resolution — line 18 below also
+# defaults to /root/arifOS, but only if ARIFOS_DIR is unset.
+ARIFOS_DIR="${ARIFOS_DIR:-$(cd "$SCRIPT_DIR/.." 2>/dev/null && pwd || echo "$SCRIPT_DIR/..")}"
 EVIDENCE_DIR="${ARIFOS_DIR}/evidence"
 TIMESTAMP=$(date -u +%Y%m%d_%H%M%S)
 EVIDENCE_FILE="${EVIDENCE_DIR}/predeploy_audit_${TIMESTAMP}.json"

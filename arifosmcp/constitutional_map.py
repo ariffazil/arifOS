@@ -733,6 +733,33 @@ def list_sovereign_tools() -> list[str]:
     return _list_tools_by_access("sovereign")
 
 
+def list_internal_only_tools() -> list[str]:
+    """
+    Return tools registered in CANONICAL_TOOLS with access == "internal_only".
+
+    These tools exist in the canonical registry (so they can be inspected
+    internally, audited, and reasoned about) but are NEVER exposed to
+    any public MCP surface. They are filtered from:
+
+    - public_tool_names_for_mode()
+    - arif_session_init's `allowed_tools` list
+    - The /health `tools_loaded` count
+    - AGENTS.md auto-generated tables
+
+    Use cases:
+    - Diagnostic probes only operators should call
+    - Tools in development not yet ready for public release
+    - Tools that exist for federation-internal coordination (e.g.
+      _arif_daily_intelligence_brief is currently a defined function
+      but not registered; this tier formalises that pattern).
+
+    F2 TRUTH: Internal-only tools are NOT phantoms — they are
+    deliberately registered, deliberately filtered. The
+    `internal_only_registry` distinction is auditable.
+    """
+    return _list_tools_by_access("internal_only")
+
+
 def get_floor_bindings() -> dict[str, list[Floor]]:
     return {name: data["floors"] for name, data in CANONICAL_TOOLS.items()}
 

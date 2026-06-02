@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from arifosmcp.constitutional_map import list_constitutional_tools
+from arifosmcp.constitutional_map import CANONICAL_TOOLS, list_constitutional_tools
 from arifosmcp.prompts import CANONICAL_PROMPTS
 from arifosmcp.resources import (
     CANONICAL_RESOURCES,
@@ -71,16 +71,12 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
 # Canonical 13 + Diagnostic 6 = 19 registrable tools.
 # The old ghost aliases are preserved below as DOMAIN_ALIASES for documentation
 # and future implementation tracking, but they are NOT part of any public mode.
-EXPANDED_45: tuple[str, ...] = tuple(
-    list(dict.fromkeys([*CANONICAL_13, *DIAGNOSTIC_TOOLS]))
-)
+EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_13, *DIAGNOSTIC_TOOLS])))
 
 # DOMAIN_ALIASES — planned domain-specific tools that currently have NO FastMCP
 # handlers. They exist in the alias map as implementation targets, not as live
 # public tools. Do NOT include these in drift check manifests or public modes.
-DOMAIN_ALIASES: tuple[str, ...] = tuple(
-    _alias_public_name(name) for name in TOOL_ALIAS_MAP
-)
+DOMAIN_ALIASES: tuple[str, ...] = tuple(_alias_public_name(name) for name in TOOL_ALIAS_MAP)
 
 
 def normalize_public_surface_mode(mode: str | None = None) -> str:
@@ -107,10 +103,25 @@ def current_public_surface_mode() -> str:
 
 
 def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
+    """
+    Return the public tool names for a given surface mode.
+
+    INTERNAL_ONLY filter: tools registered in CANONICAL_TOOLS with
+    access == "internal_only" are NEVER exposed via any public mode.
+    See arifosmcp.constitutional_map.list_internal_only_tools() for
+    the tier definition.
+    """
     resolved = normalize_public_surface_mode(mode)
     if resolved == "expanded45":
-        return EXPANDED_45
-    return CANONICAL_13
+        candidates = EXPANDED_45
+    else:
+        candidates = CANONICAL_13
+    # Filter out internal_only tools regardless of mode.
+    return tuple(
+        name
+        for name in candidates
+        if CANONICAL_TOOLS.get(name, {}).get("access") != "internal_only"
+    )
 
 
 def public_boundary_allows(name: str, mode: str | None = None) -> bool:

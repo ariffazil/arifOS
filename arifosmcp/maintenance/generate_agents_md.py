@@ -259,34 +259,62 @@ def _tool_table_row(name: str) -> str:
 
 
 def _render_tool_tables() -> str:
-    """Render all 5 category tables from CANONICAL_TOOLS."""
-    # Validate: every tool in CANONICAL_TOOLS must be in exactly one category.
-    all_grouped = {name for names in _TOOL_CATEGORIES.values() for name in names}
-    canonical = set(CANONICAL_TOOLS.keys())
-    missing = canonical - all_grouped
-    extra = all_grouped - canonical
+    """Render all 5 category tables from CANONICAL_TOOLS.
+
+    INTERNAL_ONLY tools (access == "internal_only") are filtered out of
+    the public tables. They exist in CANONICAL_TOOLS for federation-internal
+    inspection but are not exposed to clients. The tier itself is documented
+    in a footnote at the end of the section.
+    """
+    # Filter out internal_only tools from the public tables.
+    public_tools_in_categories: dict[str, list[str]] = {}
+    for category, names in _TOOL_CATEGORIES.items():
+        public_tools_in_categories[category] = [
+            name for name in names if CANONICAL_TOOLS.get(name, {}).get("access") != "internal_only"
+        ]
+
+    # Validate: every PUBLIC tool in CANONICAL_TOOLS must be in exactly one
+    # category. INTERNAL_ONLY tools are excluded from this check (they are
+    # not part of the public surface, by design).
+    all_grouped_public = {name for names in public_tools_in_categories.values() for name in names}
+    public_canonical = {
+        name for name, spec in CANONICAL_TOOLS.items() if spec.get("access") != "internal_only"
+    }
+    missing = public_canonical - all_grouped_public
+    extra = all_grouped_public - public_canonical
     if missing:
         raise RuntimeError(
-            f"AGENTS.md auto-gen invariant violated: tools in CANONICAL_TOOLS "
+            f"AGENTS.md auto-gen invariant violated: public tools in CANONICAL_TOOLS "
             f"but missing from _TOOL_CATEGORIES: {sorted(missing)}. "
             f"Add them to generate_agents_md.py:_TOOL_CATEGORIES."
         )
     if extra:
         raise RuntimeError(
             f"AGENTS.md auto-gen invariant violated: tools in _TOOL_CATEGORIES "
-            f"but not in CANONICAL_TOOLS: {sorted(extra)}. "
+            f"but not in CANONICAL_TOOLS as public: {sorted(extra)}. "
             f"Either remove from _TOOL_CATEGORIES or re-add to CANONICAL_TOOLS."
         )
 
-    out = f"## {len(CANONICAL_TOOLS)} Canonical Tools (arif_noun_verb)\n\n"
+    public_count = len(public_canonical)
+    internal_count = len(CANONICAL_TOOLS) - public_count
+    out = f"## {public_count} Canonical Tools (arif_noun_verb)\n\n"
     out += "All tools follow the `arif_<noun>_<verb>` naming convention.\n\n"
-    for category, tools in _TOOL_CATEGORIES.items():
+    for category, tools in public_tools_in_categories.items():
+        if not tools:
+            continue
         out += f"### {category}\n\n"
         out += "| Tool | Stage | Lane | Access | F-Floors |\n"
         out += "| :--- | :---- | :--- | :----- | :-------- |\n"
         for name in tools:
             out += _tool_table_row(name) + "\n"
         out += "\n"
+
+    if internal_count > 0:
+        out += f"> **Note:** {internal_count} `INTERNAL_ONLY` tool(s) are registered in "
+        out += "`CANONICAL_TOOLS` but filtered from this public surface. "
+        out += "They are auditable via "
+        out += "`arifosmcp.constitutional_map.list_internal_only_tools()`.\n\n"
+
     return out
 
 
