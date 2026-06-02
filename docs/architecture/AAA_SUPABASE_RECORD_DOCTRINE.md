@@ -2,7 +2,10 @@
 **Authority:** 888 (Muhammad Arif bin Fazil, F13 SOVEREIGN)
 **Version:** 1.0
 **Date:** 2026-06-02
-**Status:** DRAFT — pending sovereign ratification
+**Status:** RATIFIED
+**doctrine_id:** AAA-SUPABASE-RECORD-DOCTRINE
+**ratified_at:** 2026-06-02
+**authority:** Muhammad Arif bin Fazil (F13 SOVEREIGN)
 
 ---
 
@@ -352,7 +355,7 @@ This doctrine is enforced by:
 
 ---
 
-**SEAL: pending ratification**
+**SEAL: RATIFIED**
 
 > AAA gives law. arifOS gives judgment. MCP gives action. Supabase gives record. VAULT999 gives finality. AAA cockpit gives visibility. Arif remains the final judge.
 
