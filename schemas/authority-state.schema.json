@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arif-fazil.com/schemas/authority-state.schema.json",
+  "title": "arifOS Authority State",
+  "description": "The current authority posture of the federation. Published by arif-sites; consumed by every organ's gate-check. Forged 2026-06-02 18:41 UTC under F13 SOVEREIGN ratification. See docs/AUTHORITY_MODEL.md.",
+  "type": "object",
+  "properties": {
+    "state_id": {
+      "type": "string",
+      "pattern": "^as_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}$",
+      "description": "Globally unique authority-state identifier (date-based)."
+    },
+    "snapshot_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this state was captured (ISO 8601 UTC)."
+    },
+    "actor": {
+      "type": "object",
+      "properties": {
+        "claimed_id": { "type": "string" },
+        "verified": { "type": "boolean" },
+        "verification_method": {
+          "enum": ["none", "session", "signature", "oauth", "hardware", "f13_sovereign"]
+        }
+      },
+      "required": ["claimed_id", "verified", "verification_method"]
+    },
+    "context_verdict": {
+      "enum": ["STABLE", "DEGRADED_CONTEXT", "UNKNOWN"]
+    },
+    "seals": {
+      "type": "object",
+      "description": "Current state of each namespaced seal.",
+      "properties": {
+        "kernel_seal_awareness":    { "enum": ["ACTIVE", "INACTIVE", "STALE"] },
+        "domain_seal_validity":     { "enum": ["ACTIVE", "INACTIVE", "STALE"] },
+        "judge_seal_authorization": { "enum": ["ACTIVE", "INACTIVE", "STALE", "REVOKED"] },
+        "vault999_seal_record":     { "enum": ["ACTIVE", "INACTIVE", "STALE"] },
+        "public_seal_readiness":    { "enum": ["ACTIVE", "INACTIVE", "STALE"] }
+      }
+    },
+    "execution_authority": {
+      "enum": ["HOLD", "SEAL_AUTHORIZED", "VOID"],
+      "description": "The current top-level execution verdict. A-FORGE reads this to decide whether to act."
+    },
+    "apex_approval": {
+      "enum": ["ABSENT", "PRESENT", "REJECTED"]
+    },
+    "active_holds": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Hold IDs currently in effect."
+    },
+    "active_missions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Mission IDs currently being processed."
+    },
+    "forge_gate": {
+      "type": "object",
+      "description": "The state of the A-FORGE gate. enabled=false means A-FORGE is disabled regardless of any other signal.",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "reversibility_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Minimum reversibility_score required for a forge action to proceed."
+        },
+        "blockers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Reasons the gate is disabled (empty array if enabled). Examples: 'actor_unverified', 'context_degraded', 'no_apex_approval'."
+        }
+      },
+      "required": ["enabled", "reversibility_threshold", "blockers"]
+    },
+    "public_posture": {
+      "type": "object",
+      "description": "Receipt-bound public view. Must not exceed what the receipts support. The two health fields are deliberately separated: service_health is liveness, execution_readiness is gate state.",
+      "properties": {
+        "service_health": {
+          "enum": ["green", "yellow", "red", "unknown"],
+          "description": "Liveness of the federation services. Does NOT imply execution readiness."
+        },
+        "execution_readiness": {
+          "enum": ["ready", "held", "void", "unknown"],
+          "description": "Current execution gate state. ready only if JUDGE_SEAL_AUTHORIZATION is ACTIVE and forge_gate.enabled is true."
+        },
+        "human_visible_summary": {
+          "type": "string",
+          "description": "Plain-language summary. Must not contain bare 'SEAL' or 'authorized' without namespacing."
+        }
+      },
+      "required": ["service_health", "execution_readiness"]
+    },
+    "non_overclaim_check": {
+      "enum": ["passed", "failed"],
+      "description": "Whether the kernel's non-overclaim check passed for this state snapshot."
+    }
+  },
+  "required": [
+    "state_id",
+    "snapshot_at",
+    "actor",
+    "context_verdict",
+    "seals",
+    "execution_authority",
+    "apex_approval",
+    "forge_gate",
+    "public_posture",
+    "non_overclaim_check"
+  ]
+}

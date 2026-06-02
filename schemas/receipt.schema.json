@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arif-fazil.com/schemas/receipt.schema.json",
+  "title": "arifOS Evidence Receipt",
+  "description": "Canonical schema for an evidence receipt. Every claim in the federation must reference one. The receipt's evidence_level caps the claim's certainty. Forged 2026-06-02 18:41 UTC under F13 SOVEREIGN ratification.",
+  "type": "object",
+  "properties": {
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^rcp_[a-zA-Z0-9_]{8,64}$",
+      "description": "Globally unique receipt identifier."
+    },
+    "claim_id": {
+      "type": "string",
+      "description": "The claim this receipt supports. Multiple receipts may reference the same claim (corroboration)."
+    },
+    "evidence_type": {
+      "enum": ["primary", "corroborating", "contextual", "contradicting"],
+      "description": "How this evidence relates to its claim."
+    },
+    "source": {
+      "type": "string",
+      "description": "Provenance. e.g., 'GEOX', 'WEALTH', 'WELL', 'VAULT999', 'APEX', 'AAA'."
+    },
+    "source_uri": {
+      "type": ["string", "null"],
+      "description": "Optional URI for retrieval. May be a hash, file path, or external URL."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the evidence was produced (ISO 8601 UTC)."
+    },
+    "ingested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the kernel received the evidence (ISO 8601 UTC)."
+    },
+    "evidence_level": {
+      "enum": [
+        "L0_HUMAN_DIRECT",
+        "L1_REDIS_LIVE",
+        "L2_SESSION_THREAD",
+        "L3_VECTOR_FUZZY",
+        "L4_SUPABASE_STRUCTURED",
+        "L5_GRAPHITI_RELATIONSHIP",
+        "L6_VAULT999_SEALED"
+      ],
+      "description": "Where in the memory stack this evidence lives. Caps the certainty of the claim it supports."
+    },
+    "actor_verified": {
+      "type": "boolean",
+      "description": "Whether the actor that produced this evidence is verified. false here caps the claim at KERNEL_SEAL_AWARENESS."
+    },
+    "actor_id": {
+      "type": ["string", "null"],
+      "description": "The actor that produced this evidence. null if anonymous."
+    },
+    "verification_method": {
+      "enum": ["none", "session", "signature", "oauth", "hardware", "f13_sovereign"],
+      "description": "How actor_verified was determined."
+    },
+    "context_verdict": {
+      "enum": ["STABLE", "DEGRADED_CONTEXT", "UNKNOWN"],
+      "description": "The kernel's verdict on the context in which this evidence was produced."
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "SHA-256 of the evidence content (if applicable)."
+    },
+    "ttl_seconds": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "How long this receipt remains valid, in seconds. null = perpetual."
+    },
+    "expires_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Absolute expiration time (ISO 8601 UTC). null = no expiration."
+    },
+    "non_overclaim_check": {
+      "enum": ["passed", "failed", "skipped"],
+      "description": "Whether the kernel's non-overclaim check passed for this receipt. 'skipped' is allowed only for L0_HUMAN_DIRECT evidence."
+    },
+    "notes": {
+      "type": ["string", "null"],
+      "description": "Optional human-readable note. Must not contain SEAL language without namespacing (see docs/VERDICT_SEMANTICS.md)."
+    }
+  },
+  "required": [
+    "receipt_id",
+    "claim_id",
+    "evidence_type",
+    "source",
+    "timestamp",
+    "ingested_at",
+    "evidence_level",
+    "actor_verified",
+    "verification_method",
+    "context_verdict",
+    "non_overclaim_check"
+  ]
+}

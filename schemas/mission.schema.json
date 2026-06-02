@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arif-fazil.com/schemas/mission.schema.json",
+  "title": "arifOS Canonical Mission",
+  "description": "The canonical mission object. Every workflow that crosses organ boundaries is represented as a mission with this shape. Forged 2026-06-02 18:41 UTC under F13 SOVEREIGN ratification. See docs/VERDICT_SEMANTICS.md for the verdict grammar.",
+  "type": "object",
+  "properties": {
+    "mission_id": {
+      "type": "string",
+      "pattern": "^m_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6}_[a-zA-Z0-9_]+$",
+      "description": "Globally unique mission identifier (date-based)."
+    },
+    "objective": {
+      "type": "string",
+      "description": "Free-text mission objective. Human-readable. Must not include SEAL claims without namespacing."
+    },
+    "actor": {
+      "type": "object",
+      "properties": {
+        "claimed_id": { "type": "string" },
+        "verified": { "type": "boolean" },
+        "verification_method": {
+          "enum": ["none", "session", "signature", "oauth", "hardware", "f13_sovereign"]
+        }
+      },
+      "required": ["claimed_id", "verified", "verification_method"]
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "verdict": { "enum": ["STABLE", "DEGRADED_CONTEXT", "UNKNOWN"] },
+        "timezone": { "type": ["string", "null"] },
+        "host": { "type": ["string", "null"] },
+        "workspace": { "type": ["string", "null"] }
+      },
+      "required": ["verdict"]
+    },
+    "authority": {
+      "type": "object",
+      "description": "Authority posture for this mission. self_approval_allowed is a constitutional constant.",
+      "properties": {
+        "self_approval_allowed": {
+          "type": "boolean",
+          "const": false,
+          "description": "Always false. No organ may self-approve. Enforced at schema level."
+        },
+        "human_final_authority": {
+          "type": "boolean",
+          "const": true,
+          "description": "Always true. APEX is final authority. Enforced at schema level."
+        },
+        "apex_approval": {
+          "enum": ["ABSENT", "PRESENT", "REJECTED"]
+        },
+        "execution_authority": {
+          "enum": ["HOLD", "SEAL_AUTHORIZED", "VOID"]
+        }
+      },
+      "required": [
+        "self_approval_allowed",
+        "human_final_authority",
+        "apex_approval",
+        "execution_authority"
+      ]
+    },
+    "stages": {
+      "type": "object",
+      "description": "Pipeline stage state. Keys are stage names, values are the stage's current state.",
+      "properties": {
+        "000_INIT":    { "enum": ["PENDING", "PASS", "HOLD", "VOID"] },
+        "111_SENSE":   { "enum": ["PENDING", "PASS", "HOLD", "VOID"] },
+        "222_EVIDENCE":{ "enum": ["PENDING", "PASS", "HOLD", "VOID"] },
+        "333_MIND":    { "enum": ["PENDING", "PASS", "HOLD", "VOID"] },
+        "444_HEART":   { "enum": ["PENDING", "PASS", "HOLD", "VOID"] },
+        "888_JUDGE":   { "enum": ["PENDING", "SEAL", "HOLD", "VOID"] },
+        "999_VAULT":   { "enum": ["DISABLED", "PENDING", "SEALED", "FAILED"] },
+        "666_FORGE":   { "enum": ["DISABLED", "DRY_RUN", "EXECUTED", "FAILED"] }
+      }
+    },
+    "receipts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Array of receipt_ids attached to this mission. See schemas/receipt.schema.json."
+    },
+    "holds": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "hold_id": { "type": "string" },
+          "stage": { "type": "string" },
+          "reason": { "type": "string" },
+          "raised_at": { "type": "string", "format": "date-time" },
+          "raised_by": { "type": "string" }
+        },
+        "required": ["hold_id", "stage", "reason", "raised_at", "raised_by"]
+      }
+    },
+    "seals": {
+      "type": "array",
+      "description": "Namespaced seals applied to this mission. Each entry uses one of the five seal types — never bare 'SEAL'.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "seal_type": {
+            "enum": [
+              "KERNEL_SEAL_AWARENESS",
+              "DOMAIN_SEAL_VALIDITY",
+              "JUDGE_SEAL_AUTHORIZATION",
+              "VAULT999_SEAL_RECORD",
+              "PUBLIC_SEAL_READINESS"
+            ]
+          },
+          "issued_at": { "type": "string", "format": "date-time" },
+          "issued_by": { "type": "string" },
+          "evidence_chain": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Receipt IDs backing this seal. May be empty only for KERNEL_SEAL_AWARENESS."
+          }
+        },
+        "required": ["seal_type", "issued_at", "issued_by", "evidence_chain"]
+      }
+    },
+    "non_overclaim_check": {
+      "enum": ["passed", "failed", "skipped"],
+      "description": "Whether the kernel's non-overclaim check passed for this mission object."
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "required": [
+    "mission_id",
+    "objective",
+    "actor",
+    "context",
+    "authority",
+    "stages",
+    "receipts",
+    "holds",
+    "seals",
+    "non_overclaim_check",
+    "created_at",
+    "updated_at"
+  ]
+}
