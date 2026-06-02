@@ -1,0 +1,28 @@
+--- /etc/caddy/Caddyfile
++++ /etc/caddy/Caddyfile
+@@ -488,8 +488,18 @@
+ # MAIN SITE 3 — Δ AAA COCKPIT
+ # ═══════════════════════════════════════════════════════════════════════
+ aaa.arif-fazil.com {
+ 	import tls_origin
+ 	import shared_assets
+ 	encode zstd gzip
+ 	root * /var/www/html/aaa
+
++	# F7-0a — interim shield (arifOS audit 2026-06-02 19:30 UTC)
++	# The Cockpit is a public surface; the server-side PII redaction
++	# (commit 66e14da3 in AAA) is the real fix, but until the
++	# deployed build rolls, mark all responses as noindex so search
++	# engines and crawlers do not index operator input.
++	#
++	# Removed once AAA deploys commit 66e14da3 to production.
++	# Forged 2026-06-02 19:35 UTC under F13 SOVEREIGN ratification.
++	header {
++		X-Robots-Tag "noindex, nofollow, noarchive"
++		Cache-Control "no-store, no-cache, must-revalidate, private"
++		Pragma "no-cache"
++	}
++
+ 	@a2a_static path /a2a/agent-card.json /a2a/agent.json /a2a/agents.json /a2a/status.json /a2a/index.html
+ 	handle @a2a_static {
+ 		file_server
