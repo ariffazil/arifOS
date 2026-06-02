@@ -55,9 +55,9 @@ THRESHOLDS: dict[str, dict[str, Any]] = {
         "desc": "Governed Intelligence (G)",
     },
     "F9_AntiHantu": {
-        "type": "SOFT",
+        "type": "HARD",
         "threshold": 0.30,
-        "desc": "Dark Cleverness Limit",
+        "desc": "Dark Cleverness Limit (VOID on fail per constitution_kernel.py:246)",
     },
     "F10_Ontology": {
         "type": "HARD",
@@ -73,7 +73,7 @@ THRESHOLDS: dict[str, dict[str, Any]] = {
     "F13_Sovereign": {
         "type": "HARD",
         "threshold": 1.0,
-        "desc": "Human Final Authority",
+        "desc": "Human Final Authority (Sovereign Veto — strongest floor)",
     },
 }
 
@@ -142,6 +142,46 @@ def get_floor_classes() -> dict[str, set[str]]:
         "hard": hard,
         "soft": soft,
         "derived": derived,
+    }
+
+
+# =============================================================================
+# /HEALTH REPORTING HELPERS — Single source of truth for the /health endpoint
+# =============================================================================
+# These helpers exist so the /health endpoint in arifosmcp/runtime/rest_routes/
+# rest_routes.py can COMPUTE its floor lists from THRESHOLDS instead of
+# hardcoding them. Hardcoded snapshots drifted (2026-06 audit) and the runtime
+# was reporting F4, F6, F7, F9, F12 incorrectly.
+# =============================================================================
+
+
+def get_floors_by_category() -> dict[str, list[str]]:
+    """
+    Sorted lists per category. Used by /health endpoint.
+    Returns:
+      - 'hard'   : HARD floors (fail-closed enforcement)
+      - 'soft'   : SOFT floors only (advisory; does NOT include DERIVED)
+      - 'derived': DERIVED floors (computed from other floors)
+    """
+    classes = get_floor_classes()
+    return {
+        "hard": sorted(classes["hard"]),
+        "soft": sorted(classes["soft"] - classes["derived"]),
+        "derived": sorted(classes["derived"]),
+    }
+
+
+def get_health_report_floors() -> dict[str, str]:
+    """
+    Per-floor category map for /health endpoint. Returns F1-F13 → category.
+    Categories: 'hard' | 'soft' | 'derived' (lowercase, JSON-safe).
+    This is the SOLE source of truth for /health floor reporting — the
+    rest_routes.py endpoint imports and computes from this function, never
+    from a hardcoded literal.
+    """
+    return {
+        fid: get_floor_spec(fid).get("type", "SOFT").lower()
+        for fid in FLOOR_SPEC_KEYS
     }
 
 
@@ -1043,8 +1083,8 @@ class F12_Injection(Floor):
 class F13_Sovereign(Floor):
     """
     F13: SOVEREIGN - Human Final Authority
-    Threshold: 1.0 (SOFT - human can always override)
-    The 888 Judge has absolute veto power.
+    Threshold: 1.0 (HARD — sovereign veto, strongest floor)
+    The 888 Judge has absolute veto power. Human can always override.
     """
 
     def __init__(self):
@@ -1273,6 +1313,8 @@ __all__ = [
     "get_floor_threshold",
     "get_floor_comparator",
     "get_floor_classes",
+    "get_floors_by_category",
+    "get_health_report_floors",
     "ALL_FLOORS",
     "check_all_floors",
     "update_floor_status",

@@ -53,6 +53,8 @@ from core.shared.floors import (
     get_floor_comparator,
     get_floor_spec,
     get_floor_threshold,
+    get_floors_by_category,
+    get_health_report_floors,
 )
 
 from arifosmcp.runtime.build import get_build_info
@@ -2314,6 +2316,11 @@ def register_rest_routes(
             vault999_health == "healthy" and not runtime_drift_val and not contract_drift_val
         )
 
+        # Compute floor classification lists from canonical doctrine.
+        # Single source of truth — no hardcoded snapshots in /health.
+        # Audit: 2026-06-02 floor consensus fix.
+        _floor_cats = get_floors_by_category()
+
         return JSONResponse(
             {
                 "status": "healthy",
@@ -2462,20 +2469,17 @@ def register_rest_routes(
                     "peace_squared": telemetry.get("peace2"),
                     # Last VAULT999 seal — null if no seal yet or vault unavailable
                     "last_seal_timestamp": vault_last_seal,
-                    # Hard/soft floor classification: DOCTRINAL INTERPRETATION ONLY.
-                    # Not verified against runtime enforcement mode. May not reflect
-                    # actual per-floor enforcement behavior. Verify against floor spec
-                    # at https://github.com/ariffazil/arifOS before treating as fact.
-                    "floors_hard_doctrinal": [
-                        "F1",
-                        "F2",
-                        "F6",
-                        "F9",
-                        "F10",
-                        "F11",
-                        "F13",
-                    ],
-                    "floors_soft_doctrinal": ["F3", "F4", "F5", "F7", "F8", "F12"],
+                    # Hard/soft floor classification: COMPUTED from
+                    # core.shared.floors.THRESHOLDS at request time.
+                    # Single source of truth — no hardcoded snapshot.
+                    # Audit trail: 2026-06-02 floor consensus fix (F9 → HARD,
+                    # added floors_derived_doctrinal field for DERIVED floors).
+                    "floors_hard_doctrinal": _floor_cats["hard"],
+                    "floors_soft_doctrinal": sorted(
+                        _floor_cats["soft"] + _floor_cats["derived"]
+                    ),
+                    "floors_derived_doctrinal": _floor_cats["derived"],
+                    "floors_health_report": get_health_report_floors(),
                     "sovereign_status": getattr(
                         getattr(request.app.state, "arifos_sovereign_status", {}),
                         "get",
