@@ -19,6 +19,12 @@ Phase 1b (2026-06-02): federation-probe refactor.
   - Falls back to individual organ polls if probe is unreachable
   - Snapshot text now includes the GREEN/YELLOW/RED verdict
 
+Phase 1c (2026-06-02): federation expanded to 9 organs.
+  - Federation-probe was extended to 9 organs (added arifosd, APEX, OpenClaw, cn-organ)
+  - Fallback ORGANS dict updated to all 9 to match
+  - Comments and log messages bumped 6→9 to match reality
+  - Shape unchanged; old Qdrant points still valid (backward compatible)
+
 Authority: Ω (A-ENGINEER) | F1 Safety (reversible) | F9 Anti-Hantu
 DITEMPA BUKAN DIBERI.
 """
@@ -47,17 +53,22 @@ COLLECTION = os.getenv("ARIFBRAIN_COLLECTION", "arifbrain_states")
 VECTOR_SIZE = int(os.getenv("VECTOR_SIZE", "1024"))
 
 # Organ endpoints — health, optional /identity for richer payload
-# Primary: A-FORGE /api/federation-probe (1 call, 6 organs + verdict)
+# Primary: A-FORGE /api/federation-probe (1 call, 9 organs + verdict)
 # Fallback: individual polls (used if probe is unreachable)
+# 9 organs: arifOS, arifosd, WEALTH, WELL, GEOX, A-FORGE, APEX, OpenClaw, cn-organ
 FEDERATION_PROBE_URL = os.getenv(
     "ARIFBRAIN_PROBE_URL", "http://127.0.0.1:7071/api/federation-probe"
 )
 ORGANS = {
     "arifOS": os.getenv("ARIFBRAIN_ARIFOS_URL", "http://127.0.0.1:8088/health"),
+    "arifosd": os.getenv("ARIFBRAIN_ARIFOSD_URL", "http://127.0.0.1:18081/health"),
     "WEALTH": os.getenv("ARIFBRAIN_WEALTH_URL", "http://127.0.0.1:18082/health"),
     "WELL": os.getenv("ARIFBRAIN_WELL_URL", "http://127.0.0.1:18083/health"),
     "GEOX": os.getenv("ARIFBRAIN_GEOX_URL", "http://127.0.0.1:8081/health"),
     "A-FORGE": os.getenv("ARIFBRAIN_AFORGE_URL", "http://127.0.0.1:7071/health"),
+    "APEX": os.getenv("ARIFBRAIN_APEX_URL", "http://127.0.0.1:3002/health"),
+    "OpenClaw": os.getenv("ARIFBRAIN_OPENCLAW_URL", "http://127.0.0.1:18789/health"),
+    "cn-organ": os.getenv("ARIFBRAIN_CNORGAN_URL", "http://127.0.0.1:18790/health"),
 }
 
 # VAULT999 height source — we use the writer on 5001 (gives chain height)
@@ -141,12 +152,12 @@ def _http_put(url: str, payload: dict, timeout: int = HTTP_TIMEOUT_S) -> tuple[i
 # Observe
 # ─────────────────────────────────────────────────────────
 def poll_organs() -> dict[str, dict[str, Any]]:
-    """Poll federation via A-FORGE /api/federation-probe (1 call, 6 organs).
+    """Poll federation via A-FORGE /api/federation-probe (1 call, 9 organs).
 
     Falls back to individual organ polls if the probe is unreachable.
     Returns {name: {status, code, url, excerpt, latency_ms?}, "__summary__"?: {...}}.
     """
-    # Try federation-probe (single call, 6 organs + verdict)
+    # Try federation-probe (single call, 9 organs + verdict)
     code, body, parsed = _http_get(FEDERATION_PROBE_URL)
     if code == 200 and isinstance(parsed, dict) and "organs" in parsed:
         snapshot: dict[str, dict[str, Any]] = {}
@@ -179,7 +190,7 @@ def poll_organs() -> dict[str, dict[str, Any]]:
             )
         return snapshot
 
-    # Fallback: individual polls (5 separate HTTP calls)
+    # Fallback: individual polls (9 separate HTTP calls)
     log.warning(
         f"federation-probe unreachable at {FEDERATION_PROBE_URL} ({code}); "
         f"falling back to individual organ polls"
