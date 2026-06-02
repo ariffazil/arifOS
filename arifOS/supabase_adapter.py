@@ -415,13 +415,22 @@ async def _write_prod_tool_call(
     arguments: dict,
     risk_tier: int,
     status: str,
+    verdict: Optional[str],
+    floor_triggered: Optional[str],
+    duration_ms: Optional[int],
     actor_ref: Optional[str],
     service_ref: Optional[str],
     trace_ref: Optional[str],
     server_ref: Optional[str],
     mcp_method: Optional[str],
 ) -> Optional[str]:
-    """Write to public.arifosmcp_tool_calls (production schema)."""
+    """Write to public.arifosmcp_tool_calls (production schema).
+
+    Constitutional mapping:
+      verdict          → the arifOS verdict (SEAL/HOLD/VOID/SABAR)
+      floor_triggered → comma-separated F-codes triggered
+      duration_ms     → tool execution time
+    """
     if MODE_OFF:
         return None
     try:
@@ -440,9 +449,9 @@ async def _write_prod_tool_call(
                 tool_name,
                 actor_ref,
                 _hash_payload(arguments),
-                status,
-                None,
-                None,
+                verdict,  # constitutional verdict, not execution status
+                floor_triggered,  # F-codes triggered
+                duration_ms,  # actual execution time
                 _now(),
                 result_code_from_status(status),
                 None,
@@ -538,6 +547,9 @@ async def record_tool_call(
     arguments: dict,
     risk_tier: int,
     status: str = "planned",
+    verdict: Optional[str] = None,
+    floor_triggered: Optional[str] = None,
+    duration_ms: Optional[int] = None,
     actor_ref: Optional[str] = None,
     service_ref: Optional[str] = None,
     trace_ref: Optional[str] = None,
@@ -553,6 +565,11 @@ async def record_tool_call(
       dual       → both namespaces
       shadow     → design only (kernel integration prep)
       off        → no write, log only
+
+    Constitutional fields:
+      verdict           → arifOS constitutional verdict (SEAL/HOLD/VOID/SABAR)
+      floor_triggered  → comma-separated list of F-codes triggered
+      duration_ms      → tool execution time in ms
     """
     result_design = None
     result_prod = None
@@ -582,6 +599,9 @@ async def record_tool_call(
                 arguments,
                 risk_tier,
                 status,
+                verdict,
+                floor_triggered,
+                duration_ms,
                 actor_ref,
                 service_ref,
                 trace_ref,

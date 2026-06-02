@@ -401,10 +401,25 @@ class ConstitutionalKernel:
         try:
             from arifOS.supabase_adapter import record_tool_call
 
-            # Extract verdict from result
+            # Extract constitutional verdict from result
             verdict = None
+            floors_data = None
             if isinstance(result, dict):
                 verdict = result.get("verdict") or result.get("status") or "UNKNOWN"
+                # Extract floor references from the result
+                floors_data = result.get("floors")
+                if isinstance(floors_data, dict):
+                    failed = floors_data.get("failed_floors", [])
+                    triggered = floors_data.get("triggered", [])
+                    all_floors = failed + triggered
+                    if all_floors:
+                        floors_data = ",".join(sorted(set(all_floors)))
+                    else:
+                        floors_data = None
+                elif isinstance(floors_data, list):
+                    floors_data = (
+                        ",".join(sorted(set(str(f) for f in floors_data))) if floors_data else None
+                    )
 
             # Determine risk tier
             risk_tier = 0
@@ -429,6 +444,9 @@ class ConstitutionalKernel:
                 arguments=arguments,
                 risk_tier=risk_tier,
                 status=status,
+                verdict=verdict,
+                floor_triggered=floors_data,
+                duration_ms=int(latency_ms) if latency_ms else None,
                 actor_ref=actor_id,
                 service_ref="arifOS-MCP",
                 mcp_method="tools/call",
