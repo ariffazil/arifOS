@@ -258,6 +258,7 @@ async def _call_minimax(
         "temperature": temperature,
     }
 
+    t0 = time.monotonic()
     try:
         # M3 with thinking enabled can be slower than typical LLMs (60s+)
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -275,6 +276,18 @@ async def _call_minimax(
 
     if response.status_code != 200:
         logger.warning("MiniMax M3 HTTP %s: %s", response.status_code, response.text[:200])
+        try:
+            from arifosmcp.runtime.metrics import record_m3_usage
+
+            record_m3_usage(
+                prompt_tokens=0,
+                completion_tokens=0,
+                cached_tokens=0,
+                latency_seconds=time.monotonic() - t0,
+                status="error",
+            )
+        except Exception:
+            pass
         raise LLMUnavailableError(f"MiniMax M3 HTTP {response.status_code}")
 
     try:
@@ -284,7 +297,38 @@ async def _call_minimax(
         content = msg.get("content") or msg.get("reasoning_content", "")
     except Exception as exc:
         logger.warning("MiniMax M3 parse error: %s", exc)
+        try:
+            from arifosmcp.runtime.metrics import record_m3_usage
+
+            record_m3_usage(
+                prompt_tokens=0,
+                completion_tokens=0,
+                cached_tokens=0,
+                latency_seconds=time.monotonic() - t0,
+                status="error",
+            )
+        except Exception:
+            pass
         raise LLMUnavailableError(f"MiniMax M3 response parse error: {exc}") from exc
+
+    # Record M3 token usage (F2 TRUTH observability)
+    try:
+        from arifosmcp.runtime.metrics import record_m3_usage
+
+        usage = data.get("usage", {}) or {}
+        prompt_tokens = int(usage.get("prompt_tokens", 0))
+        completion_tokens = int(usage.get("completion_tokens", 0))
+        cached_tokens = int((usage.get("prompt_tokens_details") or {}).get("cached_tokens", 0))
+        record_m3_usage(
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            cached_tokens=cached_tokens,
+            latency_seconds=time.monotonic() - t0,
+            status="success",
+        )
+    except Exception:
+        # Metrics must never break the call path
+        pass
 
     raw_output = _strip_markdown(content)
 
