@@ -9,7 +9,7 @@ DITEMPA BUKAN DIBERI — 999 SEAL
 
 import logging
 
-from core.floors import evaluate_tool_call
+from arifosmcp.core.floors import evaluate_tool_call
 
 from arifosmcp.integrations.substrate_bridge import bridge
 from arifosmcp.runtime.model import RiskClass

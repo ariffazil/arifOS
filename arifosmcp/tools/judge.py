@@ -23,7 +23,6 @@ from arifosmcp.runtime.tools import _arif_judge_deliberate
 from arifosmcp.runtime.niat_gate import check_niat_gate
 from arifosmcp.runtime.metabolic_receipt import get_cumulative_metrics
 from arifosmcp.runtime.self_mod_lock import is_self_modification_attempt
-from arifosmcp.runtime.claim_compiler import compile_claim_state
 from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
 
 

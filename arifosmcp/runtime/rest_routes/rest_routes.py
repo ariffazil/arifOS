@@ -3510,6 +3510,19 @@ def register_rest_routes(
     async def well_known(request: Request) -> Response:
         return await server_card_json(request)
 
+    @route("/.well-known/server.json", methods=["GET"])
+    async def well_known_server_json(request: Request) -> Response:
+        """Legacy CIMD-compatible server metadata path."""
+        base = _public_base_url(request)
+        payload = build_server_json(base)
+        payload["authentication"] = {
+            "type": "oauth2",
+            "authorization_endpoint": f"{base}/api/auth/authorize",
+            "token_endpoint": f"{base}/api/auth/token",
+            "jwks_uri": f"{base}/.well-known/jwks.json",
+        }
+        return JSONResponse(payload, headers={"Access-Control-Allow-Origin": "*"})
+
     @route("/mcp-discovery.json", methods=["GET"])
     async def mcp_discovery(request: Request) -> Response:
         """MCP discovery document at a Cloudflare-friendly path."""
@@ -4442,6 +4455,28 @@ def register_rest_routes(
             health_payload = json.loads(health_resp.body.decode("utf-8"))
             governance_payload = _build_governance_status_payload()
             vitals = health_payload.get("thermodynamic", {})
+            governance_floor_scores = governance_payload.get("floors", {})
+            governance_floors: dict[str, dict[str, Any]] = {}
+            floors_passing = 0
+            floors_failing = 0
+            for floor_id in sorted(FLOOR_SPEC_KEYS.keys(), key=lambda item: int(item[1:])):
+                score = float(
+                    governance_floor_scores.get(
+                        floor_id,
+                        _FLOOR_DEFAULTS.get(floor_id, 0.0),
+                    )
+                )
+                floor_passes = _floor_passes(floor_id, score)
+                if floor_passes:
+                    floors_passing += 1
+                else:
+                    floors_failing += 1
+                governance_floors[floor_id] = {
+                    "name": floor_id,
+                    "status": "pass" if floor_passes else "fail",
+                    "score": score,
+                }
+            machine_vitals = governance_payload.get("machine_vitals", {})
 
             async with httpx.AsyncClient(timeout=5.0) as client:
                 geox_status = await _probe_geox(client)
@@ -4474,6 +4509,11 @@ def register_rest_routes(
                     "well": {"status": well_status},
                 },
                 "governance": {
+                    "system_status": "HEALTHY" if floors_failing == 0 else "DEGRADED",
+                    "floors_active": len(governance_floors),
+                    "floors_passing": floors_passing,
+                    "floors_failing": floors_failing,
+                    "floors": governance_floors,
                     "tau_confidence_system": governance_payload.get("tau_confidence_system", 0.0),
                     "f2_threshold": governance_payload.get("f2_threshold", 0.99),
                     "psi_vitality": governance_payload.get("psi_vitality", 0.0),
@@ -4483,9 +4523,13 @@ def register_rest_routes(
                 },
                 "capability_map": health_payload.get("capability_map", {}),
                 "machine": {
-                    "cpu": 0,
-                    "memory": 0,
-                    "disk": 0,
+                    "cpu_percent": machine_vitals.get("cpu_percent", 0.0),
+                    "ram_percent": machine_vitals.get(
+                        "ram_percent",
+                        machine_vitals.get("memory_percent", 0.0),
+                    ),
+                    "disk_percent": machine_vitals.get("disk_percent", 0.0),
+                    "uptime_seconds": machine_vitals.get("uptime_seconds", 0.0),
                 },
             }
             return JSONResponse(
@@ -5550,6 +5594,116 @@ setInterval(refreshSot, 30000);
                 }
             )
         except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── Phase 3E: Approval Ticket Mutation ───────────────────────────────────
+    @route("/approval/{ticket_id}/resolve", methods=["POST"])
+    async def approval_resolve(request: Request) -> JSONResponse:
+        """Resolve a pending approval ticket (APPROVED / REJECTED).
+
+        Called by AAA cockpit when Arif exercises sovereign judgment.
+        1. Writes human_verdict + resolved_at to public.arifosmcp_approval_tickets.
+        2. If APPROVED: also calls _approve_plan_internal to update arifOS _PLAN_REGISTRY.
+
+        Body: {"verdict": "APPROVED" | "REJECTED", "actor_id": "arif:sovereign",
+               "session_id": "optional"}
+        """
+        try:
+            body = await request.json()
+            verdict = body.get("verdict", "")
+            actor_id = body.get("actor_id", "arif:sovereign")
+            session_id = body.get("session_id", "rest-api")
+
+            if verdict not in ("APPROVED", "REJECTED"):
+                return JSONResponse(
+                    {"error": "verdict must be APPROVED or REJECTED"},
+                    status_code=400,
+                )
+
+            from arifOS.supabase_adapter import resolve_approval_ticket
+
+            ticket_id = request.path_params.get("ticket_id", "").strip()
+            if not ticket_id:
+                return JSONResponse({"error": "ticket_id is required"}, status_code=400)
+
+            # Step 1: Persist to Supabase
+            db_ok = await resolve_approval_ticket(
+                ticket_id=ticket_id,
+                verdict=verdict,
+                actor_id=actor_id,
+            )
+
+            if not db_ok:
+                return JSONResponse(
+                    {"error": f"ticket '{ticket_id}' not found or already resolved"},
+                    status_code=404,
+                )
+
+            # Step 2: If approved, update arifOS in-memory plan registry
+            plan_updated = False
+            if verdict == "APPROVED":
+                try:
+                    from arifosmcp.runtime.tools import _approve_plan_internal
+
+                    plan_updated = _approve_plan_internal(
+                        plan_id=ticket_id,
+                        actor_id=actor_id,
+                        session_id=session_id,
+                    )
+                except Exception as plan_err:
+                    logger.warning(f"[approval_resolve] plan update failed: {plan_err}")
+
+            return JSONResponse(
+                {
+                    "status": "resolved",
+                    "ticket_id": ticket_id,
+                    "verdict": verdict,
+                    "resolved_by": actor_id,
+                    "plan_updated": plan_updated,
+                }
+            )
+        except Exception as e:
+            logger.error(f"[approval_resolve] error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @route("/approval/pending", methods=["GET"])
+    async def approval_pending(request: Request) -> JSONResponse:
+        """List pending (unresolved) approval tickets from arifosmcp_approval_tickets.
+
+        Returns tickets where human_verdict IS NULL.
+        """
+        try:
+            from arifOS.supabase_adapter import _get_prod_pool, _now
+
+            pool = await _get_prod_pool()
+            async with pool.acquire() as conn:
+                rows = await conn.fetch(
+                    """
+                    SELECT ticket_id, action_plan, requested_at
+                    FROM public.arifosmcp_approval_tickets
+                    WHERE human_verdict IS NULL
+                    ORDER BY requested_at DESC
+                    LIMIT 50
+                    """
+                )
+
+            # Serialize datetime objects to ISO strings for JSON response
+            def _serialize_ticket(row: dict) -> dict:
+                result = dict(row)
+                for key, value in result.items():
+                    if hasattr(value, "isoformat"):
+                        result[key] = value.isoformat()
+                return result
+
+            tickets = [_serialize_ticket(dict(r)) for r in rows]
+            return JSONResponse(
+                {
+                    "pending": tickets,
+                    "count": len(tickets),
+                }
+            )
+        except Exception as e:
+            logger.error(f"[approval_pending] error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)
 
     # ── Discovery Static Files ────────────────────────────────────────────────

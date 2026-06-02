@@ -295,12 +295,30 @@ class KernelCore:
             op_val = getattr(g02_result.operation_class, "value", str(g02_result.operation_class))
             logger.info(f"[G02] Allowed: {tool_name} → {axis_val}/{op_val}")
 
-        except ImportError:
-            # G02 not available — degrade gracefully (old runtime)
-            logger.warning("[G02] Router not available, skipping enforcement")
+        except ImportError as exc:
+            logger.error("[G02] Router unavailable; failing closed")
+            return self._router_error(
+                code="G02_UNAVAILABLE",
+                summary="G02 governance router unavailable. Execution blocked fail-closed.",
+                context=context,
+                resolved_lane=tool_name,
+                route_intent=routing_result.get("route_intent"),
+                dependency_failure_point="g02_router_import",
+                retryable=True,
+                exception=exc,
+            )
         except Exception as exc:
-            logger.error(f"[G02] Router error: {exc}")
-            # Non-fatal — don't block tool execution on router errors
+            logger.error(f"[G02] Router error; failing closed: {exc}")
+            return self._router_error(
+                code="G02_ROUTER_ERROR",
+                summary="G02 governance router failed. Execution blocked fail-closed.",
+                context=context,
+                resolved_lane=tool_name,
+                route_intent=routing_result.get("route_intent"),
+                dependency_failure_point="g02_router",
+                retryable=True,
+                exception=exc,
+            )
 
         # 3. Invoke Tool
         handler = get_tool_handler(tool_name) or get_tool_handler("arifos_mind")

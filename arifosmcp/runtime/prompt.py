@@ -10,6 +10,7 @@ CANONICAL_PROMPTS = (
     "system",
     "judge",
     "init",
+    "888_deliberation",
     "rsi",
     "ortho",
     "epistemic",
@@ -35,6 +36,13 @@ V2_PROMPT_SPECS = (
     {
         "name": "init",
         "description": "000_INIT session anchor context — temporal + identity grounding",
+        "input_schema": {},
+        "default_tools": [],
+        "tool_choice": "auto",
+    },
+    {
+        "name": "888_deliberation",
+        "description": "APEX deliberation ritual — prepares a sovereign judgment case",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",

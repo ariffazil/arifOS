@@ -1,0 +1,82 @@
+qday_physics:
+  version: "0.1"
+  doctrine: "Q-day is constrained by fault-tolerant logical computation, not raw physical qubit count."
+
+  variables:
+    physical_qubits:
+      symbol: "N_phys"
+      meaning: "Total noisy hardware qubits."
+
+    logical_qubits:
+      symbol: "N_logical"
+      meaning: "Error-corrected useful qubits."
+
+    physical_error_rate:
+      symbol: "p_phys"
+      meaning: "Error probability per operation."
+
+    logical_error_rate:
+      symbol: "p_logical"
+      meaning: "Effective error probability after correction."
+
+    circuit_depth:
+      symbol: "D"
+      meaning: "Number of sequential quantum gate layers."
+
+    coherence_time:
+      symbol: "T2"
+      meaning: "How long a qubit keeps usable quantum state."
+
+    gate_time:
+      symbol: "t_gate"
+      meaning: "Duration of one gate operation."
+
+    correction_overhead:
+      symbol: "O_qec"
+      meaning: "Physical qubits required per logical qubit."
+
+  constraints:
+    useful_quantum_computation_requires:
+      - "p_phys below error-correction threshold"
+      - "N_logical sufficient for target algorithm"
+      - "D executable within logical error budget"
+      - "classical control and readout fast enough"
+      - "correction overhead economically and physically feasible"
+
+  anti_hype_rules:
+    - bad_claim: "More physical qubits directly means more useful computation."
+      correction: "Useful computation depends on logical qubits, error rates, and circuit depth."
+
+    - bad_claim: "Quantum computers try all answers at once."
+      correction: "Quantum algorithms use interference, not classical brute-force parallelism."
+
+    - bad_claim: "Q-day happens when a machine has many qubits."
+      correction: "Q-day requires cryptographically relevant fault-tolerant quantum computation."
+
+    - bad_claim: "All encryption breaks."
+      correction: "RSA, DH, ECDH, and ECDSA are the main public-key concern; symmetric crypto is affected differently."
+
+crqc_model:
+  target: "Break practically deployed public-key cryptography such as RSA-2048 or comparable ECC."
+
+  required_properties:
+    - fault_tolerant_logical_qubits
+    - low logical error rate
+    - sufficient circuit depth
+    - stable runtime
+    - scalable error correction
+    - classical control system
+    - practical wall-clock execution
+
+  readiness_bands:
+    impossible_now:
+      condition: "No evidence of sufficient logical qubits or fault-tolerant depth."
+
+    research_watch:
+      condition: "Logical qubits demonstrated but not enough for cryptographic-scale algorithms."
+
+    migration_urgent:
+      condition: "Credible path to CRQC within confidentiality lifetime of protected data."
+
+    qday_active:
+      condition: "CRQC exists or is plausibly available to capable adversary."
