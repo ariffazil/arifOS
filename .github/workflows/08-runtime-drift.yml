@@ -1,0 +1,115 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# arifOS Runtime Drift Detection
+# Checks that /opt/arifos/app/ matches git HEAD on the VPS.
+# "Chronic blocker" per CLAUDE.md — automated so the drift is never invisible.
+# ═══════════════════════════════════════════════════════════════════════════
+name: "📡 Runtime Drift"
+
+on:
+  schedule:
+    - cron: "30 2 * * *"  # 02:30 UTC daily (10:30 MYT) — 30 min after vault check
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "arifosmcp/**"
+      - "pyproject.toml"
+      - "Dockerfile"
+
+permissions:
+  contents: read
+
+jobs:
+  drift-check:
+    name: "📡 Drift Check"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check runtime drift via SSH
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: 72.62.71.199
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -euo pipefail
+
+            RUNTIME_DIR="/opt/arifos/app"
+            SOURCE_DIR="/root/arifOS"
+
+            echo "=== arifOS Runtime Drift Check ==="
+            echo "Source:  $SOURCE_DIR"
+            echo "Runtime: $RUNTIME_DIR"
+
+            # Get git HEAD from source repo
+            cd "$SOURCE_DIR"
+            SOURCE_SHA=$(git rev-parse HEAD 2>/dev/null || echo "UNKNOWN")
+            SOURCE_SHORT=$(git rev-parse --short HEAD 2>/dev/null || echo "UNKNOWN")
+
+            # Get deployed SHA from runtime
+            if [[ -f "$RUNTIME_DIR/.git_commit" ]]; then
+              RUNTIME_SHA=$(cat "$RUNTIME_DIR/.git_commit" | tr -d '[:space:]')
+            elif [[ -d "$RUNTIME_DIR/.git" ]]; then
+              RUNTIME_SHA=$(cd "$RUNTIME_DIR" && git rev-parse HEAD 2>/dev/null || echo "UNKNOWN")
+            else
+              RUNTIME_SHA="NOT_FOUND"
+            fi
+
+            RUNTIME_SHORT="${RUNTIME_SHA:0:7}"
+
+            echo ""
+            echo "Source HEAD:  $SOURCE_SHORT ($SOURCE_SHA)"
+            echo "Runtime HEAD: $RUNTIME_SHORT ($RUNTIME_SHA)"
+
+            if [[ "$SOURCE_SHA" == "$RUNTIME_SHA" ]]; then
+              echo ""
+              echo "✅ ALIGNED — runtime matches source HEAD"
+            else
+              echo ""
+              echo "⚠️  DRIFT DETECTED — runtime is behind source"
+              echo ""
+              echo "Commits in source not in runtime:"
+              git log "${RUNTIME_SHA}..${SOURCE_SHA}" --oneline 2>/dev/null || echo "(unable to compute delta)"
+              echo ""
+              echo "To fix: cd $SOURCE_DIR && make deploy-local"
+              echo ""
+              # Exit 1 so CI flags the drift
+              exit 1
+            fi
+
+      - name: Check systemd service health
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: 72.62.71.199
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            echo "=== arifOS Service Health ==="
+
+            UNITS=("arifos.service" "arifosd.service")
+            FAILED=""
+
+            for unit in "${UNITS[@]}"; do
+              STATUS=$(systemctl is-active "$unit" 2>/dev/null || echo "unknown")
+              if [[ "$STATUS" == "active" ]]; then
+                echo "✅ $unit: $STATUS"
+              else
+                echo "❌ $unit: $STATUS"
+                FAILED="$FAILED $unit"
+              fi
+            done
+
+            if [[ -n "$FAILED" ]]; then
+              echo ""
+              echo "Failed units:$FAILED"
+              exit 1
+            fi
+
+            # Quick health endpoint check
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8088/health 2>/dev/null || echo "000")
+            if [[ "$HTTP_STATUS" == "200" ]]; then
+              echo "✅ :8088/health → HTTP $HTTP_STATUS"
+            else
+              echo "⚠️  :8088/health → HTTP $HTTP_STATUS (non-200)"
+              exit 1
+            fi

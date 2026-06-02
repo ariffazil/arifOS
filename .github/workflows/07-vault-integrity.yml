@@ -1,0 +1,122 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# VAULT999 Hash-Chain Integrity Check
+# Verifies SEALED_EVENTS.jsonl prev_hash → chain_hash linkage is unbroken.
+# Runs daily + on push to main touching vault files.
+# ═══════════════════════════════════════════════════════════════════════════
+name: "🔏 Vault Integrity"
+
+on:
+  schedule:
+    - cron: "0 2 * * *"  # 02:00 UTC daily (10:00 MYT)
+  push:
+    branches: [main]
+    paths:
+      - "VAULT999/**"
+      - "arifosmcp/core/vault*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vault-integrity
+  cancel-in-progress: false  # Never cancel an integrity check in flight
+
+jobs:
+  chain-verify:
+    name: "🔏 Hash-Chain Verify"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify SEALED_EVENTS hash chain
+        run: |
+          python3 - <<'PY'
+          import json
+          import hashlib
+          import sys
+
+          VAULT_FILE = "VAULT999/SEALED_EVENTS.jsonl"
+
+          try:
+              with open(VAULT_FILE) as f:
+                  lines = [l.strip() for l in f if l.strip()]
+          except FileNotFoundError:
+              print(f"SKIP: {VAULT_FILE} not present in repo checkout")
+              sys.exit(0)
+
+          print(f"Loaded {len(lines)} entries from {VAULT_FILE}")
+
+          errors = []
+          prev_chain_hash = None
+          seen_event_ids = {}
+
+          for i, raw in enumerate(lines, 1):
+              try:
+                  entry = json.loads(raw)
+              except json.JSONDecodeError as e:
+                  errors.append(f"Line {i}: invalid JSON — {e}")
+                  continue
+
+              event_id = entry.get("event_id", "")
+              chain_hash = entry.get("chain_hash", "")
+              prev_hash = entry.get("prev_hash", "")
+
+              # Duplicate event_id check
+              if event_id and event_id in seen_event_ids:
+                  errors.append(f"Line {i}: duplicate event_id '{event_id}' (first seen at line {seen_event_ids[event_id]})")
+              elif event_id:
+                  seen_event_ids[event_id] = i
+
+              # Chain linkage: prev_hash must equal previous entry's chain_hash
+              if i > 1 and prev_chain_hash is not None:
+                  if prev_hash != prev_chain_hash:
+                      errors.append(
+                          f"Line {i}: chain broken — prev_hash={prev_hash!r} != expected={prev_chain_hash!r}"
+                      )
+
+              prev_chain_hash = chain_hash if chain_hash else prev_chain_hash
+
+          if errors:
+              print(f"\n❌ VAULT INTEGRITY FAILURE — {len(errors)} violation(s):\n")
+              for e in errors:
+                  print(f"  {e}")
+              sys.exit(1)
+
+          print(f"✅ VAULT INTACT — {len(lines)} entries, chain unbroken, {len(seen_event_ids)} unique event IDs")
+          PY
+
+      - name: Verify outcomes.jsonl is valid JSONL
+        run: |
+          python3 - <<'PY'
+          import json, sys
+
+          VAULT_FILE = "VAULT999/outcomes.jsonl"
+
+          try:
+              with open(VAULT_FILE) as f:
+                  lines = [l.strip() for l in f if l.strip()]
+          except FileNotFoundError:
+              print(f"SKIP: {VAULT_FILE} not present in repo checkout")
+              sys.exit(0)
+
+          errors = []
+          for i, raw in enumerate(lines, 1):
+              try:
+                  json.loads(raw)
+              except json.JSONDecodeError as e:
+                  errors.append(f"Line {i}: invalid JSON — {e}")
+
+          if errors:
+              print(f"❌ outcomes.jsonl has {len(errors)} corrupt line(s):")
+              for e in errors: print(f"  {e}")
+              sys.exit(1)
+
+          print(f"✅ outcomes.jsonl valid — {len(lines)} entries")
+          PY
