@@ -30,6 +30,11 @@ from arifosmcp.runtime.llm_envelope import (
     wrap_llm_error,
     wrap_llm_output,
 )
+from arifosmcp.runtime.m3_agentic import (
+    AgentRole,
+    get_m3_header,
+    is_m3_model,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +61,22 @@ class LLMUnavailableError(Exception):
 
 
 # ── Internal Helpers ───────────────────────────────────────────────────────────
+
+
+def _extract_m3_role_from_system(system: str) -> AgentRole | None:
+    """Detect if the caller's system prompt already specifies a role.
+
+    Looks for a line like: ROLE: leader  or  ROLE=worker  or  # role: verifier
+    Returns the role if found, else None (caller didn't specify, default to WORKER).
+    """
+    if not system:
+        return None
+    lowered = system.lower()
+    for role in AgentRole:
+        for marker in (f"role: {role.value}", f"role={role.value}", f"[{role.value}]"):
+            if marker in lowered:
+                return role
+    return None
 
 
 def _sha256(text: str) -> str:
@@ -214,7 +235,19 @@ async def _call_minimax(
     if not MINIMAX_API_KEY:
         raise LLMUnavailableError("MINIMAX_API_KEY not configured")
 
-    messages = [{"role": "system", "content": system}]
+    # M3 agentic contract injection: when calling M3, prepend the role-specific
+    # header (Leader/Worker/Verifier + shared base) to the system prompt. The
+    # caller's system prompt is preserved as the tail (caller-specific framing).
+    # Caller can opt out by prepending the header themselves (idempotent: we
+    # detect an already-tagged prompt by the [arifos-m3-header] marker).
+    system_with_header = system
+    if is_m3_model(MINIMAX_MODEL):
+        role = _extract_m3_role_from_system(system) or AgentRole.WORKER
+        header = get_m3_header(role)
+        if "[arifos-m3-header]" not in system:
+            system_with_header = header + "\n\n" + system
+
+    messages = [{"role": "system", "content": system_with_header}]
     if user:
         messages.append({"role": "user", "content": user})
 
