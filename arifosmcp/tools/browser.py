@@ -18,7 +18,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from core.floors import evaluate_tool_call
+from arifosmcp.core.floors import evaluate_tool_call
 from arifosmcp.integrations.playwright_bridge import playwright_bridge
 from arifosmcp.runtime.model import RiskClass
 from arifosmcp.runtime.model import RuntimeEnvelope as _RE
