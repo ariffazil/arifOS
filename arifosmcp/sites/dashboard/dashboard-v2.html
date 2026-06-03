@@ -536,7 +536,7 @@ function parseFloors() {
     const items = Object.entries(floors).map(([id, val]) => {
         const score = typeof val === 'number' ? val : (val.score ?? 0);
         const name = typeof val === 'object' ? (val.name || id) : id;
-        const hard = ['F1','F2','F9','F10','F11','F13'];
+        const hard = STATE.status?.governance?.floors_hard_doctrinal || ['F1','F2','F9','F10','F11','F13'];
         const threshold = hard.includes(id) ? 0.8 : 0.5;
         const status = score >= threshold ? 'pass' : score >= threshold * 0.6 ? 'band' : 'fail';
         return { id, name, score, hard: hard.includes(id), status };
@@ -585,7 +585,7 @@ function parseGovernance() {
     return {
         tau: g.tau_confidence_system ?? STATE.live?.governance?.tau_confidence_system ?? 0,
         psi: g.psi_vitality ?? STATE.live?.governance?.psi_vitality ?? 0,
-        drift: STATE.status?.runtime_drift ?? false,
+        drift: STATE.status?.owner_summary?.reasons?.includes('runtime_or_contract_drift_detected') ?? STATE.status?.runtime_drift ?? false,
         seal_ready: STATE.status?.seal_readiness || {},
         vault: STATE.status?.vault999_health || g.vault999 || 'unknown',
     };
@@ -624,6 +624,12 @@ function findDegradations() {
     if (v.langfuse && v.langfuse.includes('DEGRADED')) {
         // already caught
     }
+    if (STATE.status?.owner_summary?.reasons?.includes('runtime_or_contract_drift_detected')) {
+        d.push({ title: 'Runtime drift detected', severity: 'warning' });
+    }
+    if (STATE.status?.overall_ok === false && d.length === 0) {
+        d.push({ title: 'System overall degraded', severity: 'warning' });
+    }
     return d;
 }
 
@@ -655,9 +661,12 @@ function render() {
     const orgHealth = STATE.organHealth;
 
     // Determine overall health
-    const hasDegradation = degs.length > 0;
+    const hasDegradation = degs.length > 0 || STATE.status?.overall_ok === false;
     const overallClass = STATE.error ? 'critical' : hasDegradation ? 'degraded' : 'healthy';
     const overallLabel = STATE.error ? 'ERROR' : hasDegradation ? 'DEGRADED' : 'HEALTHY';
+
+    // UI DOCTRINE: If UI shows SEAL but kernel is DEGRADED, override verdict UI
+    const displayVerdict = (thermo.verdict === 'SEAL' && hasDegradation) ? 'DEGRADED' : thermo.verdict;
 
     root.innerHTML = `
     <div class="app">
@@ -694,9 +703,9 @@ function render() {
       <div class="section ${STATE.mode === 'public' ? 'show' : ''}">
 
         <div class="hero">
-          <div class="hero-verdict ${thermo.verdict.toLowerCase()}">
+          <div class="hero-verdict ${displayVerdict.toLowerCase()}">
             <span class="hero-verdict-dot"></span>
-            ${thermo.verdict === 'SEAL' ? 'Governance Active' : thermo.verdict}
+            ${displayVerdict === 'SEAL' ? 'Governance Active' : displayVerdict}
           </div>
           <h1 class="hero-title">Constitutional Infrastructure<br>for <em>Governed Intelligence</em></h1>
           <p class="hero-sub">

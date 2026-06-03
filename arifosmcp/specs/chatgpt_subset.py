@@ -53,6 +53,85 @@ CHATGPT_PROMPT_NAMES: tuple[str, ...] = (
 )
 
 
+# ════════════════════════════════════════════════════════════════════════════════
+# CHATGPT-TOOL ALIASES (added 2026-06-03 — ChatGPT connector backward-compat)
+# ════════════════════════════════════════════════════════════════════════════════
+#
+# Maps legacy/phantom tool names that may appear in stale ChatGPT connector
+# manifests to the canonical arifOS tool names + default arguments.
+#
+# Use case: ChatGPT connector caches an older arifOS manifest. The user
+# refreshes the connector (Option A) AND we ship alias resolution
+# (Option B) so legacy names still resolve during the transition.
+#
+# 4 phantom tools are INTENTIONALLY ABSENT (REFUSED) — they would be
+# F7 (no system destruction) or F13 (sovereign veto) violations:
+#   - arif_run        : would be an executor, F7 STEWARDSHIP
+#   - arif_exec       : would be an executor, F7 STEWARDSHIP
+#   - arif_sudo       : would bypass authority, F13 SOVEREIGN
+#   - arif_systemctl  : would mutate production, F7 + F13
+
+CHATGPT_TOOL_ALIASES: dict[str, dict[str, str]] = {
+    # floor_status → kernel_route with mode=floor_status (read-only)
+    "arif_floor_status": {
+        "canonical_tool": "arif_kernel_route",
+        "mode": "floor_status",
+        "rationale": "Floor status is a read-only view of the F1-F13 kernel state.",
+    },
+    # apex_judge → gateway_connect routing to APEX deliberation engine
+    "arif_apex_judge": {
+        "canonical_tool": "arif_gateway_connect",
+        "target_agent": "apex",
+        "mode": "route",
+        "rationale": "APEX 888 JUDGE is reachable via gateway_connect (port 3002).",
+    },
+    # vault_integrity → memory_recall with read-only dry_run trace
+    "arif_vault_integrity": {
+        "canonical_tool": "arif_memory_recall",
+        "mode": "trace",
+        "dry_run": "true",
+        "rationale": "Vault integrity is a read-only trace of the sealed ledger; "
+        "memory_recall(mode=trace, dry_run=true) is the safe path.",
+    },
+}
+
+# Phantom tools that will never be aliased (constitution refuses them)
+CHATGPT_REFUSED_TOOLS: frozenset[str] = frozenset(
+    {
+        "arif_run",  # F7 — would be an executor
+        "arif_exec",  # F7 — would be an executor
+        "arif_sudo",  # F13 — would bypass authority
+        "arif_systemctl",  # F7 + F13 — would mutate production
+    }
+)
+
+
+def resolve_chatgpt_alias(tool_name: str) -> dict[str, str] | None:
+    """Resolve a legacy/phantom tool name to canonical arifOS tool + args.
+
+    Returns the alias mapping dict (with `canonical_tool` + args) if found.
+    Returns None if the tool name is not a known alias.
+
+    Refused tools (arif_run, arif_exec, arif_sudo, arif_systemctl) return
+    None — the caller should reject them with a constitutional HOLD and
+    return a 9-signal verdict of KHIANAT (betrayed) / BANGANG (foolish).
+
+    Example:
+        >>> resolve_chatgpt_alias("arif_floor_status")
+        {"canonical_tool": "arif_kernel_route", "mode": "floor_status", ...}
+        >>> resolve_chatgpt_alias("arif_run")
+        None  # refused by F7/F13
+    """
+    if tool_name in CHATGPT_REFUSED_TOOLS:
+        return None
+    return CHATGPT_TOOL_ALIASES.get(tool_name)
+
+
+def is_chatgpt_refused_tool(tool_name: str) -> bool:
+    """Check if a tool name is constitutionally refused (F7/F13)."""
+    return tool_name in CHATGPT_REFUSED_TOOLS
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # SAFETY CHECKS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -321,6 +400,11 @@ __all__ = [
     "CHATGPT_TOOL_NAMES",
     "CHATGPT_RESOURCE_URIS",
     "CHATGPT_PROMPT_NAMES",
+    # Aliases (added 2026-06-03 — ChatGPT connector backward-compat)
+    "CHATGPT_TOOL_ALIASES",
+    "CHATGPT_REFUSED_TOOLS",
+    "resolve_chatgpt_alias",
+    "is_chatgpt_refused_tool",
     # Safety checks
     "is_chatgpt_safe_tool",
     "is_chatgpt_safe_resource",

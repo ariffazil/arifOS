@@ -234,10 +234,10 @@ class TestManifestResources:
         assert any("arifos://doctrine" in r for r in m)
         assert any("arifos://vitals" in r for r in m)
 
-    def test_manifest_count_is_22(self):
+    def test_manifest_count_is_23(self):
         m = manifest_resources()
-        # 5 canonical + 5 tree777 + 6 embodied + 6 evidence = 22
-        assert len(m) == 22, f"Expected 22, got {len(m)}: {m}"
+        # 6 canonical + 5 tree777 + 6 embodied + 6 evidence = 23
+        assert len(m) == 23, f"Expected 23, got {len(m)}: {m}"
 
 
 class TestReadResourceContent:

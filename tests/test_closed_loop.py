@@ -73,7 +73,7 @@ def test_execution_validator_hash_match():
 
 def test_dashboard():
     """Test Trinity Dashboard."""
-    from scripts.trinity_dashboard import TrinityDashboard
+    from commands.scripts_deploy.trinity_dashboard import TrinityDashboard
 
     dashboard = TrinityDashboard()
     dashboard.register_session("test-1", "vps-docker", "op")

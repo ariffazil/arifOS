@@ -157,7 +157,7 @@ class TestRoutingFailSafety:
         assert result.get("verdict") != "SEAL"
 
     def test_judge_hold_blocks_operation(self):
-        """Gate check: HOLD verdict from judge blocks compute_petrophysics."""
+        """H5: judge returning HOLD blocks geox_bridge operation."""
         import asyncio
         from arifosmcp.apps.geox_bridge import GEOXBridge
 

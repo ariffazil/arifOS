@@ -54,11 +54,11 @@ def test_canonical_prompts_count():
 
 
 def test_canonical_resources_count():
-    """Exactly 5 canonical resources required."""
+    """Exactly 6 canonical resources required."""
     from arifosmcp.resources import CANONICAL_RESOURCES
 
-    assert len(CANONICAL_RESOURCES) == 5, (
-        f"Resource drift: expected 5, got {len(CANONICAL_RESOURCES)}. VOID."
+    assert len(CANONICAL_RESOURCES) == 6, (
+        f"Resource drift: expected 6, got {len(CANONICAL_RESOURCES)}. VOID."
     )
 
 

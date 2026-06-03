@@ -23,7 +23,7 @@ def capability_map():
 
 @pytest.fixture
 def public_tool_specs():
-    from arifosmcp.runtime.tool_specs import PUBLIC_TOOL_SPECS
+    from arifosmcp.runtime.tool_spec import PUBLIC_TOOL_SPECS
 
     return PUBLIC_TOOL_SPECS
 

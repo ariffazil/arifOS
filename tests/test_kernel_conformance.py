@@ -10,6 +10,7 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 
 import json
 import sys
+import pytest
 import time
 import uuid
 from datetime import datetime, timezone
@@ -36,7 +37,7 @@ RECEIPT_SCHEMA_PATH = Path(__file__).parent.parent / "contracts" / "runtime_rece
 # ─────────────────────────────────────────────────────────────────
 
 
-class TestResult:
+class AuditResult:
     def __init__(self):
         self.passed = 0
         self.failed = 0
@@ -119,7 +120,7 @@ def fetch_health(host: str) -> dict | None:
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_registry_truth(result: TestResult):
+def test_registry_truth(result: AuditResult):
     """Verify live tool counts match the canonical registry."""
     print("\n📋 TEST 1: REGISTRY TRUTH")
 
@@ -208,7 +209,7 @@ def test_registry_truth(result: TestResult):
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_routing_engine(result: TestResult):
+def test_routing_engine(result: AuditResult):
     """Verify routing grammar correctly classifies tasks."""
     print("\n📋 TEST 2: ROUTING ENGINE")
 
@@ -314,7 +315,7 @@ def test_routing_engine(result: TestResult):
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_888_gate(result: TestResult):
+def test_888_gate(result: AuditResult):
     """Verify TIER_3 actions require 888_JUDGE gate."""
     print("\n📋 TEST 3: 888 GATING")
 
@@ -390,7 +391,7 @@ def test_888_gate(result: TestResult):
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_receipt_schema(result: TestResult):
+def test_receipt_schema(result: AuditResult):
     """Verify receipt schema is structurally valid."""
     print("\n📋 TEST 4: RECEIPT EMISSION SCHEMA")
 
@@ -475,7 +476,7 @@ def test_receipt_schema(result: TestResult):
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_constitutional_laws(result: TestResult):
+def test_constitutional_laws(result: AuditResult):
     """Verify all F1-F13 constitutional laws are codified."""
     print("\n📋 TEST 5: CONSTITUTIONAL LAWS")
 
@@ -531,7 +532,7 @@ def test_constitutional_laws(result: TestResult):
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_live_health(result: TestResult):
+def test_live_health(result: AuditResult):
     """Probe all MCP servers for live health."""
     print("\n📋 TEST 6: LIVE HEALTH PROBE")
 
@@ -560,13 +561,21 @@ def test_live_health(result: TestResult):
 # ─────────────────────────────────────────────────────────────────
 
 
+
+
+@pytest.fixture
+def result():
+    res = AuditResult()
+    yield res
+    assert res.failed == 0, f"Test failed {res.failed} checks."
+
 def main():
     print("=" * 60)
     print("arifOS Federation — Kernel Conformance Test Suite")
     print("SEAL: DITEMPA BUKAN DIBERI")
     print("=" * 60)
 
-    result = TestResult()
+    result = AuditResult()
 
     test_registry_truth(result)
     test_routing_engine(result)

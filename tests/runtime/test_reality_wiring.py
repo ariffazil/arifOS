@@ -142,8 +142,11 @@ class TestEvidenceStubWiring:
 
     @patch("arifosmcp.tools.evidence.check_floors")
     @patch("arifosmcp.evidence.store.get_evidence_store")
-    def test_search_mode_returns_results(self, mock_get_store, mock_floors):
+    @patch("arifosmcp.runtime.reality_handlers.handler.search_brave")
+    def test_search_mode_returns_results(self, mock_search_brave, mock_get_store, mock_floors):
         """Search mode queries the evidence store when QDRANT_URL is configured."""
+        from arifosmcp.runtime.reality_handlers import SearchResult
+        mock_search_brave.return_value = SearchResult(engine="mock", query="python", results=[], status="mocked_empty")
         mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
         mock_store = MagicMock()
         mock_store.search_sources.return_value = [
