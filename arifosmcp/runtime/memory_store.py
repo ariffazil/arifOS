@@ -484,6 +484,16 @@ def _memory_triage_gate(
 # =============================================================================
 
 
+def _l5_async_enabled() -> bool:
+    """Check env for L5 async toggle. Defaults to True (sovereign).
+
+    When async, store() returns immediately after the L5 fire-and-forget
+    is scheduled in a background thread. This keeps the L3/L4 fast path
+    responsive even when qwen2.5:7b cold start takes >2 minutes.
+    """
+    return os.getenv("L5_SOVEREIGN_ASYNC", "true").lower() != "false"
+
+
 def store(
     content: Any,
     mode: str = "unknown",

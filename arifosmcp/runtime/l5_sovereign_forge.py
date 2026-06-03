@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 
 # ── Configuration ──────────────────────────────────────────────────────────
 _OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
-_OLLAMA_MODEL = os.getenv("OLLAMA_L5_MODEL", "qwen2.5:7b")
+_OLLAMA_MODEL = os.getenv("OLLAMA_L5_MODEL", "qwen2.5:3b")
 _FALKORDB_HOST = os.getenv("FALKORDB_HOST", "localhost")
 # FalkorDB now runs standalone on 6380 (regular Redis owns 6379)
 _FALKORDB_PORT = int(os.getenv("FALKORDB_PORT", "6380"))
