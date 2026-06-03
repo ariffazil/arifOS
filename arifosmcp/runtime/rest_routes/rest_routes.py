@@ -359,27 +359,49 @@ def _collect_container_status(limit: int = 24) -> list[dict[str, str]]:
     except Exception:
         pass
 
-    # Fallback: when running inside a container without Docker socket access,
-    # probe critical services via HTTP health endpoints.
+    # Fallback: when the kernel can't reach the docker socket (e.g. systemd
+    # context where the service user is not in the `docker` group), probe
+    # services via TCP. We try two host families:
+    #   1. `127.0.0.1` — works when the kernel runs as systemd on the host
+    #      network namespace (organs bind to host loopback via docker-proxy).
+    #   2. docker-network hostnames — works when the kernel runs inside a
+    #      container that shares a docker network with the other services.
+    # We accept the first that connects for each service. If all attempts
+    # fail, we record the service as `Down (unreachable)` so the trinity
+    # matrix correctly reports it as missing rather than silently dropping it.
     if not containers:
         _HEALTH_PROBES = {
-            "postgres": ("postgres", 5432),
-            "redis": ("redis", 6379),
-            "qdrant": ("qdrant", 6333),
-            "arifosmcp": ("arifosmcp", 8080),
-            "geox_eic": ("geox_eic", 8081),
-            "wealth-organ": ("wealth-organ", 8082),
-            "well": ("well", 8083),
+            "postgres": [("127.0.0.1", 5432), ("postgres", 5432)],
+            "redis": [("127.0.0.1", 6379), ("redis", 6379)],
+            "qdrant": [("127.0.0.1", 6333), ("qdrant", 6333)],
+            "arifosmcp": [("127.0.0.1", 8080), ("arifosmcp", 8080)],
+            "geox_eic": [("127.0.0.1", 8081), ("geox_eic", 8081)],
+            "wealth-organ": [("127.0.0.1", 18082), ("wealth-organ", 18082)],
+            "well": [("127.0.0.1", 18083), ("well", 8083)],
         }
-        for name, (host, port) in _HEALTH_PROBES.items():
-            try:
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.settimeout(1.0)
-                sock.connect((host, port))
-                sock.close()
-                containers.append({"name": name, "image": "probed", "status": "Up (tcp-probed)"})
-            except OSError:
-                pass
+        for name, host_attempts in _HEALTH_PROBES.items():
+            probed = False
+            for host, port in host_attempts:
+                try:
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(0.5)
+                    sock.connect((host, port))
+                    sock.close()
+                    containers.append({
+                        "name": name,
+                        "image": "probed",
+                        "status": f"Up (tcp-probed:{host})",
+                    })
+                    probed = True
+                    break
+                except OSError:
+                    continue
+            if not probed:
+                containers.append({
+                    "name": name,
+                    "image": "probed",
+                    "status": "Down (unreachable)",
+                })
             if len(containers) >= limit:
                 break
     return containers
