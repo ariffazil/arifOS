@@ -1,0 +1,221 @@
+# tiering.yml — Prometheus Alert Rules for Thermodynamic Compute Tiering
+#
+# Constitutional anchor: /root/arifOS/COMPUTE_TIERING.md
+# Floors enforced: F13 SOVEREIGN (tier 3 is sovereignty floor)
+#
+# These alerts monitor the health of the 3-tier cascade across all substrates
+# (LLM, vector search, storage). They fire when tier behavior deviates from
+# expected patterns, indicating upstream problems or sovereignty mode activation.
+
+groups:
+  - name: arifos_compute_tiering
+    interval: 30s
+    rules:
+      # ═════════════════════════════════════════════════════════════════════
+      # CRITICAL: Tier 3 Failure (F13 SOVEREIGN Violation)
+      # ═════════════════════════════════════════════════════════════════════
+      
+      - alert: Tier3Failure
+        expr: increase(arifos_tier_failures_total{tier="tier3"}[5m]) > 0
+        for: 0m  # Fire immediately — this is constitutional violation
+        labels:
+          severity: critical
+          floor: F13_SOVEREIGN
+          escalation: human_immediate
+        annotations:
+          summary: "Tier 3 ({{ $labels.provider }}) failure detected — F13 SOVEREIGN floor breached"
+          description: |
+            Tier 3 sovereignty floor has failed for {{ $labels.substrate }} substrate (provider: {{ $labels.provider }}).
+            
+            **This is a CONSTITUTIONAL VIOLATION (F13 SOVEREIGN).**
+            
+            System cannot degrade further. All {{ $labels.substrate }} operations will fail until Tier 3 restored.
+            
+            **Immediate human investigation required.**
+            
+            Failure count (last 5m): {{ $value }}
+            
+            **Recovery steps:**
+            1. Check Tier 3 service status: `systemctl status {{ $labels.provider }}`
+            2. Check disk space: `df -h` (Ollama requires ~5GB free)
+            3. Check port availability: `ss -tuln | grep {{ $labels.provider }}_PORT`
+            4. Check logs: `journalctl -u {{ $labels.provider }} -n 100`
+            5. Restart if needed: `systemctl restart {{ $labels.provider }}`
+            6. Verify health: `curl http://localhost:{{ $labels.provider }}_PORT/health`
+            
+            **Constitutional reference:** /root/arifOS/COMPUTE_TIERING.md §7.2
+
+      # ═════════════════════════════════════════════════════════════════════
+      # WARNING: Tier 3 Usage Spike (Sovereignty Mode = Upstream Problem)
+      # ═════════════════════════════════════════════════════════════════════
+      
+      - alert: Tier3UsageSpike
+        expr: rate(arifos_tier_calls_total{tier="tier3"}[5m]) > 0.1
+        for: 2m  # Allow brief spike, but alert if sustained
+        labels:
+          severity: warning
+          floor: F13_SOVEREIGN
+          escalation: investigate
+        annotations:
+          summary: "Tier 3 ({{ $labels.provider }}) usage spike — system in sovereignty mode"
+          description: |
+            Tier 3 ({{ $labels.provider }}) is handling >10% of {{ $labels.substrate }} traffic.
+            
+            **This means Tier 1+2 are BOTH failing.** System is in sovereignty mode (degraded but functional).
+            
+            **Expected behavior:**
+            - Response latency increased (2s → 60s typical)
+            - A2A mesh slower
+            - No data loss
+            
+            **Investigation steps:**
+            1. Check Tier 1 provider status page (MiniMax, etc.)
+            2. Check Tier 2 provider status page (ILMU, etc.)
+            3. Verify network connectivity: `curl https://api.tier1_provider.com/health`
+            4. Check API key validity: `cat /root/.secrets/env/arifOS-extra.env | grep API_KEY`
+            5. Review Tier 1+2 failure reasons: `prometheus query 'arifos_tier_failures_total{tier=~"tier1|tier2"}'`
+            
+            **Recovery:**
+            System will automatically resume Tier 1/2 when they restore. No restart needed.
+            
+            Tier 3 call rate (last 5m): {{ $value | humanizePercentage }}
+            
+            **Constitutional reference:** /root/arifOS/COMPUTE_TIERING.md §7.1
+
+      # ═════════════════════════════════════════════════════════════════════
+      # INFO: Tier 1 Degraded (Expected — System Routing to Tier 2)
+      # ═════════════════════════════════════════════════════════════════════
+      
+      - alert: Tier1Degraded
+        expr: rate(arifos_tier_failures_total{tier="tier1"}[5m]) > 0.5
+        for: 5m  # Only alert if sustained (brief blips OK)
+        labels:
+          severity: info
+          escalation: monitor
+        annotations:
+          summary: "Tier 1 ({{ $labels.provider }}) degraded — system routing to Tier 2"
+          description: |
+            Tier 1 ({{ $labels.provider }}) failure rate >50% for {{ $labels.substrate }} substrate.
+            
+            **This is expected cascade behavior.** System is routing traffic to Tier 2 ({{ $labels.tier2_provider }}).
+            
+            **Impact:**
+            - Latency increased slightly (2s → 5s typical)
+            - Increased Tier 2 cost (more API calls)
+            - No functional degradation
+            
+            **Common causes:**
+            - Tier 1 timeout too aggressive (review P95 latency)
+            - Tier 1 rate limiting (check provider dashboard)
+            - Tier 1 regional outage (check status page)
+            
+            **Action required:**
+            Monitor for 10 minutes. If persists, review Prometheus metrics:
+            ```
+            rate(arifos_tier_failures_total{tier="tier1",reason="timeout"}[10m])
+            rate(arifos_tier_failures_total{tier="tier1",reason="unavailable"}[10m])
+            ```
+            
+            If >80% are timeout (not unavailable), consider increasing Tier 1 timeout in llm_client.py.
+            
+            Failure rate (last 5m): {{ $value | humanizePercentage }}
+            
+            **Constitutional reference:** /root/arifOS/COMPUTE_TIERING.md §7.3
+
+      # ═════════════════════════════════════════════════════════════════════
+      # WARNING: Tier 2 Degraded (Sovereignty Mode Imminent)
+      # ═════════════════════════════════════════════════════════════════════
+      
+      - alert: Tier2Degraded
+        expr: rate(arifos_tier_failures_total{tier="tier2"}[5m]) > 0.3
+        for: 3m
+        labels:
+          severity: warning
+          escalation: investigate
+        annotations:
+          summary: "Tier 2 ({{ $labels.provider }}) degraded — sovereignty mode imminent"
+          description: |
+            Tier 2 ({{ $labels.provider }}) failure rate >30% for {{ $labels.substrate }} substrate.
+            
+            **If Tier 2 continues to degrade, system will enter sovereignty mode (Tier 3).**
+            
+            **Impact if Tier 3 activated:**
+            - Latency increased significantly (5s → 60s)
+            - CPU load spike (local inference)
+            - A2A mesh slowdown
+            
+            **Investigation steps:**
+            1. Check Tier 2 provider status: https://status.{{ $labels.provider }}.com
+            2. Verify API key: `cat /root/.secrets/env/arifOS-extra.env | grep {{ $labels.provider | upper }}_API_KEY`
+            3. Test direct API call: `curl -H "Authorization: Bearer $API_KEY" https://api.{{ $labels.provider }}.com/health`
+            4. Review failure reasons: `prometheus query 'arifos_tier_failures_total{tier="tier2",reason!=""}'`
+            
+            Failure rate (last 5m): {{ $value | humanizePercentage }}
+            
+            **Constitutional reference:** /root/arifOS/COMPUTE_TIERING.md §7.1
+
+      # ═════════════════════════════════════════════════════════════════════
+      # INFO: All Tiers Healthy (Baseline)
+      # ═════════════════════════════════════════════════════════════════════
+      
+      - alert: TieringHealthy
+        expr: |
+          (rate(arifos_tier_calls_total{tier="tier1"}[5m]) > 0.8)
+          and
+          (rate(arifos_tier_failures_total{tier="tier1"}[5m]) < 0.1)
+          and
+          (rate(arifos_tier_calls_total{tier="tier3"}[5m]) == 0)
+        for: 10m
+        labels:
+          severity: info
+          escalation: none
+        annotations:
+          summary: "{{ $labels.substrate }} tiering healthy — 80%+ traffic on Tier 1"
+          description: |
+            {{ $labels.substrate }} substrate is operating in optimal state:
+            - Tier 1 ({{ $labels.provider }}) handling >80% of traffic
+            - Tier 1 failure rate <10%
+            - Tier 3 not in use (sovereignty mode not needed)
+            
+            **This is the expected baseline state.**
+            
+            Tier 1 call rate: {{ $value | humanizePercentage }}
+
+      # ═════════════════════════════════════════════════════════════════════
+      # CRITICAL: Sovereignty Drill Failure
+      # ═════════════════════════════════════════════════════════════════════
+      
+      - alert: SovereigntyDrillFailure
+        expr: arifos_sovereignty_drill_status == 0
+        for: 0m
+        labels:
+          severity: critical
+          floor: F13_SOVEREIGN
+          escalation: human_immediate
+        annotations:
+          summary: "Monthly sovereignty drill failed — Tier 3 did not serve traffic when Tier 1+2 disabled"
+          description: |
+            **HIDDEN SOVEREIGNTY VULNERABILITY DISCOVERED.**
+            
+            Monthly drill detected that Tier 3 ({{ $labels.provider }}) failed to serve traffic
+            when Tier 1+2 were disabled.
+            
+            **This means if a real Tier 1+2 outage occurred, system would hard-fail instead of
+            degrading gracefully.**
+            
+            **DO NOT re-enable Tier 1+2 until Tier 3 fixed.** This is pre-failure discovery (good outcome).
+            
+            **Investigation steps:**
+            1. Check drill logs: `/var/log/arifos/sovereignty_drill.log`
+            2. Why did Tier 3 fail? Common causes:
+               - Ollama crashed (check `systemctl status ollama`)
+               - Model deleted (check `ollama list`)
+               - Port conflict (check `ss -tuln | grep 11434`)
+               - Disk full (check `df -h`)
+            3. Fix root cause
+            4. Re-run drill manually: `/root/arifOS/scripts/sovereignty_drill.sh`
+            5. Verify success before restoring Tier 1+2
+            
+            **Post-mortem required:** Document in `/root/arifOS/incidents/SOVEREIGNTY_DRILL_FAILURE_{{ $labels.timestamp }}.md`
+            
+            **Constitutional reference:** /root/arifOS/COMPUTE_TIERING.md §7.4
