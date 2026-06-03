@@ -79,7 +79,9 @@ class CapabilityGrant(BaseModel):
     def _force_invisible(cls, v: Any) -> bool:
         """F13-enforced: agents never see raw secrets."""
         if v is True:
-            raise ValueError("agent_visible_secret cannot be true — agents must never see raw secrets")
+            raise ValueError(
+                "agent_visible_secret cannot be true — agents must never see raw secrets"
+            )
         return False
 
     def is_expired(self) -> bool:
