@@ -12,7 +12,7 @@
 |-------|------|-------------|------|--------|-------|
 | **Constitutional Kernel** | `ariffazil/arifOS` | `/root/arifOS` | `8088` | ✅ OPERATIONAL | streamable-http, 13 tools, F1-F13 active |
 | **AAA Control Plane** | `ariffazil/AAA` | `/root/AAA` | `3001` (A2A) | ✅ OPERATIONAL | Cockpit + A2A gateway |
-| **GEOX Earth Intel** | `ariffazil/geox` | `/root/geox` | `18081` | ✅ OPERATIONAL | 28 canonical tools |
+| **GEOX Earth Intel** | `ariffazil/geox` | `/root/geox` | `8081` | ✅ OPERATIONAL | 20 canonical tools |
 | **WEALTH Capital** | `ariffazil/wealth` | `/root/WEALTH` | `18082` | ✅ OPERATIONAL | 17 public MCP tools |
 | **WELL Vitality** | `ariffazil/well` | `/root/WELL` | `18083` | ✅ OPERATIONAL | 45 live MCP tools (post PHOENIX-73F), 51 decorators, `streamable-http` at `https://well.arif-fazil.com/mcp` |
 | **A-FORGE Execution** | `ariffazil/A-FORGE` | `/root/A-FORGE` | `7071` (bridge) | ✅ OPERATIONAL | TypeScript engine |
