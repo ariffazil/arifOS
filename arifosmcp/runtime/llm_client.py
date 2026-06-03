@@ -48,6 +48,20 @@ MINIMAX_MODEL = os.getenv("MINIMAX_MODEL", "MiniMax-M3")
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")  # Only 7b is installed on ollama-engine-prod
 
+# Tier 2.5 — ILMU hosted fallback (2026-06-03, replaces ollama as Tier 2)
+# ILMU is OpenAI-compatible. Faster than ollama on CPU. Wired per 888_HOLD.
+# Env: ILMU_API_KEY, ILMU_BASE_URL, ILMU_MODEL. If unset → falls through to ollama.
+ILMU_BASE_URL = os.getenv("ILMU_BASE_URL", "https://api.ilmu.ai/v1")
+ILMU_MODEL = os.getenv("ILMU_MODEL", "ilmu-nemo-nano")
+ILMU_API_KEY = os.getenv("ILMU_API_KEY", "")
+ILMU_ENABLED = bool(ILMU_API_KEY)  # only active when key is configured
+
+# Tier 2 — ILMU Console (hosted hosted fallback, replaces ollama for text generation 2026-06-03)
+# OpenAI-compatible chat/completions endpoint. Used by arifOS when MiniMax M3 is unreachable.
+ILMU_API_KEY = os.getenv("ILMU_API_KEY")
+ILMU_BASE_URL = os.getenv("ILMU_BASE_URL", "https://api.ilmu.ai/v1")
+ILMU_MODEL = os.getenv("ILMU_MODEL", "ilmu-nemo-nano")
+
 # Legacy — SEA-LION retained in env for reactivation, no longer in cascade
 SEA_LION_API_KEY = os.getenv("SEA_LION_API_KEY")
 SEA_LION_BASE_URL = os.getenv("SEA_LION_BASE_URL", "https://api.sea-lion.ai/v1")
@@ -427,6 +441,81 @@ async def _call_ollama(
     return raw_output, parsed
 
 
+async def _call_ilmu(
+    system: str,
+    user: str,
+    response_schema: dict[str, Any] | None,
+    temperature: float,
+    max_tokens: int = 1200,
+) -> tuple[str, dict[str, Any]]:
+    """
+    Tier 2 — call ILMU Console (ilmu-nemo-nano) as hosted fallback.
+
+    OpenAI-compatible /v1/chat/completions endpoint at api.ilmu.ai.
+    Migrated into the cascade 2026-06-03 18:50 UTC to relieve local ollama
+    (qwen2.5:7b on CPU was 0.076 tok/s — see audit/2026-06-03-audit-and-clean-report.md).
+
+    Returns (raw_output_str, parsed_output_dict).
+    """
+    if not ILMU_API_KEY:
+        raise LLMUnavailableError("ILMU_API_KEY not configured")
+
+    messages = [{"role": "system", "content": system}]
+    if user:
+        messages.append({"role": "user", "content": user})
+
+    payload: dict[str, Any] = {
+        "model": ILMU_MODEL,
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
+
+    try:
+        # ILMU is a hosted API — 50s is generous; typical responses are <5s.
+        async with httpx.AsyncClient(timeout=50.0) as client:
+            response = await client.post(
+                f"{ILMU_BASE_URL}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {ILMU_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+            )
+    except Exception as exc:
+        logger.warning("ILMU transport error: %s", exc)
+        raise LLMUnavailableError(f"ILMU unavailable: {exc}") from exc
+
+    if response.status_code != 200:
+        logger.warning("ILMU HTTP %s: %s", response.status_code, response.text[:200])
+        raise LLMUnavailableError(f"ILMU HTTP {response.status_code}")
+
+    try:
+        data = response.json()
+        msg = data["choices"][0]["message"]
+        content = msg.get("content", "") or msg.get("reasoning_content", "")
+    except Exception as exc:
+        logger.warning("ILMU parse error: %s", exc)
+        raise LLMUnavailableError(f"ILMU response parse error: {exc}") from exc
+
+    raw_output = _strip_markdown(content)
+
+    try:
+        parsed = json.loads(raw_output)
+    except json.JSONDecodeError:
+        logger.warning("ILMU returned invalid JSON, wrapping plain text: %s", raw_output[:200])
+        parsed = {"reasoning": raw_output, "answer": raw_output}
+
+    if not isinstance(parsed, dict):
+        raise LLMUnavailableError(f"ILMU output must be a JSON object, got {type(parsed).__name__}")
+
+    if not parsed:
+        raise LLMUnavailableError("ILMU returned empty JSON object")
+
+    logger.debug("ILMU inference complete (model=%s)", ILMU_MODEL)
+    return raw_output, parsed
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 
@@ -502,7 +591,30 @@ async def call_llm(
     except LLMUnavailableError:
         pass
 
-    # Tier 2 — Ollama local fallback (qwen2.5:7b on VPS localhost:11434, free)
+    # Tier 2 — ILMU hosted fallback (ilmu-nemo-nano, OpenAI-compatible, added 2026-06-03)
+    # Replaces ollama for text generation — CPU ollama was 0.076 tok/s, ILMU is fast.
+    try:
+        t0 = time.monotonic()
+        raw_output, parsed = await _call_ilmu(
+            system, user, response_schema, temperature, max_tokens
+        )
+        return _make_envelope(
+            raw_output,
+            parsed,
+            "ilmu",
+            ILMU_MODEL,
+            tool_origin,
+            mode,
+            combined_prompt,
+            (time.monotonic() - t0) * 1000,
+            response_schema,
+            trace_recursion_depth,
+        )
+    except LLMUnavailableError:
+        pass
+
+    # Tier 2b — Ollama local fallback (qwen2.5:7b on VPS localhost:11434, free)
+    # Last-resort before Tier 3. Kept for the rare case both MiniMax and ILMU are down.
     try:
         t0 = time.monotonic()
         raw_output, parsed = await _call_ollama(
@@ -530,7 +642,7 @@ async def call_llm(
         tool_origin=tool_origin,
         mode=mode,
         prompt=combined_prompt,
-        error_message="All LLM tiers exhausted (MiniMax M3 + Ollama)",
+        error_message="All LLM tiers exhausted (MiniMax M3 + ILMU + Ollama)",
     )
 
 
