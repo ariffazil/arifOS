@@ -16,6 +16,7 @@ Constitution structure (source of truth):
 import json
 import math
 import re
+import pytest
 from pathlib import Path
 
 # ─────────────────────────────────────────────────────────────────
@@ -88,7 +89,7 @@ def find_floor(constitution: dict, floor_id: str) -> dict | None:
 # ─────────────────────────────────────────────────────────────────
 
 
-class Result:
+class AuditResult:
     def __init__(self):
         self.passed = 0
         self.failed = 0
@@ -147,7 +148,7 @@ class Result:
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_law1_mechanical_bounding(result: Result):
+def test_law1_mechanical_bounding(result: AuditResult):
     result.section("LAW 1: MECHANICAL BOUNDING")
 
     # 1.1: A-FORGE has health endpoint
@@ -231,7 +232,7 @@ def test_law1_mechanical_bounding(result: Result):
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_law2_godel_lock(result: Result):
+def test_law2_godel_lock(result: AuditResult):
     result.section("LAW 2: GÖDEL LOCK — Certainty as Impossible State")
 
     constitution = get_constitution()
@@ -293,7 +294,7 @@ def test_law2_godel_lock(result: Result):
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_law3_hysteresis_ledger(result: Result):
+def test_law3_hysteresis_ledger(result: AuditResult):
     result.section("LAW 3: HYSTERESIS LEDGER — Memory Scars Future Freedom")
 
     registry = get_registry()
@@ -347,7 +348,7 @@ def test_law3_hysteresis_ledger(result: Result):
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_law4_triwitness_physical_veto(result: Result):
+def test_law4_triwitness_physical_veto(result: AuditResult):
     result.section("LAW 4: TRI-WITNESS — Physical Reality Vetoes Social Consensus")
 
     constitution = get_constitution()
@@ -409,7 +410,7 @@ def test_law4_triwitness_physical_veto(result: Result):
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_organ_separation_of_powers(result: Result):
+def test_organ_separation_of_powers(result: AuditResult):
     result.section("LAW 5: ORGAN REPUBLIC — Separation of Powers")
 
     registry = get_registry()
@@ -461,7 +462,7 @@ def test_organ_separation_of_powers(result: Result):
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_metabolic_pipeline_integrity(result: Result):
+def test_metabolic_pipeline_integrity(result: AuditResult):
     result.section("LAW 6: METABOLIC COGNITION — 11-Stage Pipeline Integrity")
 
     constitution = get_constitution()
@@ -516,7 +517,7 @@ def test_metabolic_pipeline_integrity(result: Result):
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_decision_biology(result: Result):
+def test_decision_biology(result: AuditResult):
     result.section("LAW 7: DECISION BIOLOGY — C0–C5 + Anti-Hantu")
 
     constitution = get_constitution()
@@ -567,7 +568,7 @@ def test_decision_biology(result: Result):
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_trust_thermodynamics(result: Result):
+def test_trust_thermodynamics(result: AuditResult):
     result.section("LAW 8: TRUST THERMODYNAMICS — Ditempa Bukan Diberi")
 
     constitution = get_constitution()
@@ -620,7 +621,7 @@ def test_trust_thermodynamics(result: Result):
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_routing_orthogonality(result: Result):
+def test_routing_orthogonality(result: AuditResult):
     result.section("LAW 9: ROUTING ORTHOGONALITY — Composite Hallucination Prevention")
 
     routing = get_routing()
@@ -703,7 +704,7 @@ def test_routing_orthogonality(result: Result):
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_live_system(result: Result):
+def test_live_system(result: AuditResult):
     result.section("LIVE SYSTEM — Philosophy Runs on Metal")
 
     hosts = [
@@ -733,13 +734,21 @@ def test_live_system(result: Result):
 # ─────────────────────────────────────────────────────────────────
 
 
+
+
+@pytest.fixture
+def result():
+    res = AuditResult()
+    yield res
+    assert res.failed == 0, f"Test failed {res.failed} checks."
+
 def main():
     print("=" * 60)
     print("APEX Theory — Runtime Conformance Matrix")
     print("SEAL: DITEMPA BUKAN DIBERI")
     print("=" * 60)
 
-    result = Result()
+    result = AuditResult()
 
     test_law1_mechanical_bounding(result)
     test_law2_godel_lock(result)
@@ -765,6 +774,5 @@ def main():
 
 if __name__ == "__main__":
     import sys
-
     success = main()
     sys.exit(0 if success else 1)

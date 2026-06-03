@@ -59,5 +59,5 @@ def test_public_registry_publishes_input_and_output_schemas() -> None:
     assert contract_status_summary()["schemas_complete"] is True
     assert all("properties" in tool["inputSchema"] for tool in tools.values())
     assert all(tool.get("outputSchema", {}).get("properties") for tool in tools.values())
-    assert "archive" in tools["arif_evidence_fetch"]["description"]
-    assert "predict" in tools["arif_ops_measure"]["description"]
+    assert "preserve" in tools["arif_evidence_fetch"]["description"]
+    assert "health" in tools["arif_ops_measure"]["description"]

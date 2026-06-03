@@ -19,7 +19,7 @@ from .public_surface import (
     normalize_public_surface_mode,
     public_tool_names_for_mode,
 )
-from .tool_specs import PUBLIC_RESOURCE_SPECS
+from .tool_spec import PUBLIC_RESOURCE_SPECS
 
 ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = ROOT / "pyproject.toml"

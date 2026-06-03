@@ -44,6 +44,7 @@ class TestWealthHealthCheck:
 
         ping_resp = MagicMock()
         ping_resp.status_code = 200
+        ping_resp.json = MagicMock(return_value={"result": {}})
         ping_resp.aiter_lines = MagicMock(
             return_value=aiter_lines(['data: {"jsonrpc":"2.0","id":1,"result":{}}'])
         )
