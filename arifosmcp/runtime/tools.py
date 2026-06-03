@@ -12816,11 +12816,13 @@ def register_tools(
     *,
     surface_mode: str | None = None,
     include_legacy_compat: bool = False,
+    ingress_middleware: Any | None = None,
 ) -> list[str]:
     """Register the active canonical public surface with the MCP server."""
     from arifosmcp.runtime.public_registry import public_tool_spec_by_name
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
     from arifosmcp.tool_charter import TOOL_CHARTER
+    from arifosmcp.core.enforcement.risk_classifier import classify_tool
 
     registered: list[str] = []
     del include_legacy_compat
@@ -12833,6 +12835,10 @@ def register_tools(
             manifest = TOOL_CHARTER.get(name, {})
             spec = spec_by_name.get(name)
             wrapped = _wrap_handler(handler, name)
+
+            # Compute canonical risk passport for this tool
+            tool_risk = classify_tool(name, spec.description if spec else None)
+
             mcp.tool(
                 name=name,
                 description=(spec.description if spec is not None else None),
@@ -12846,10 +12852,27 @@ def register_tools(
                     "irreversible": manifest.get("risk", {}).get("irreversible", False),
                     "requires_human_ack": manifest.get("risk", {}).get("requires_human_ack", False),
                     "canonical_order": manifest.get("canonical_order", []),
+                    # Canonical risk passport (Reconstruction A Foundation)
+                    "risk_passport": {
+                        "tier": tool_risk.tier.value,
+                        "action_class": tool_risk.action_class.value,
+                        "blast_radius": tool_risk.blast_radius.value,
+                        "reversibility": tool_risk.reversibility.value,
+                        "secret_touch": tool_risk.secret_touch.value,
+                        "external_effect": tool_risk.external_effect.value,
+                    },
                 },
             )(wrapped)
+
+            # Register tool params with ingress middleware for unknown-field absorption
+            if ingress_middleware is not None:
+                param_names = set()
+                if spec and spec.input_schema and "properties" in spec.input_schema:
+                    param_names = set(spec.input_schema["properties"].keys())
+                ingress_middleware.register_tool_params(name, param_names)
+
             registered.append(name)
-            logger.debug(f"Registered canonical tool: {name}")
+            logger.debug(f"Registered canonical tool: {name} (risk={tool_risk.tier.value})")
         except Exception as e:
             logger.warning(f"Failed to register canonical tool {name}: {e}")
     logger.info(f"Registered {len(registered)} canonical tools")

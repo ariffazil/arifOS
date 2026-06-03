@@ -268,6 +268,114 @@ wording, new examples, additional cross-references are Tier 1 (autonomous).
 
 ---
 
+## 11. 555_MEMORY v2 — Constitutional Governance (2026-06-03)
+
+### 11.1 Memory Risk Tiers (M0–M4)
+
+Every memory is classified into one of five risk tiers at store time.
+**M-tier is computed, not caller-set.**
+
+| M-Tier | Legacy Tier | Durability | Authority Effect | can_authorize | requires_888 |
+|--------|-------------|------------|------------------|---------------|--------------|
+| **M0** | ephemeral | ephemeral | none | false | false |
+| **M1** | canon | persistent | advisory | false | false |
+| **M2** | canon | persistent | advisory | false | false |
+| **M3** | sacred | persistent | operational | false | true |
+| **M4** | sacred | sealed | sovereign | false | true + vault_seal |
+
+> **Hard law:** `can_authorize_action` is **always false** at storage time.
+> Authority is granted at recall time by the sovereign or judge, never by memory itself.
+
+### 11.2 Memory Envelope
+
+Every memory event carries a constitutional envelope:
+
+```json
+{
+  "actor_id": "...",
+  "session_id": "...",
+  "memory_intent": "preference | fact | verdict | case_law | identity | authority | operational | emotional | project",
+  "niat": "...",
+  "content": "...",
+  "source": {
+    "type": "user_direct | tool_observed | file_evidence | web_evidence | inference | agent_generated",
+    "uri": "...",
+    "timestamp": "...",
+    "confidence": 0.0
+  },
+  "risk": {
+    "durability": "ephemeral | session | persistent | sealed",
+    "authority_effect": "none | advisory | operational | sovereign",
+    "privacy": "public | internal | sensitive | secret",
+    "reversibility": "high | medium | low"
+  },
+  "governance": {
+    "requires_888": false,
+    "floors": ["F1", "F13"],
+    "expiry": "...",
+    "can_authorize_action": false
+  }
+}
+```
+
+### 11.3 Virtue Gates
+
+Every memory write passes four machine tests:
+
+- **AMANAH** — Is this memory honest, sourced, reversible, non-secret-leaking?
+- **BERADAB** — Is it respectful to store this about the human?
+- **BERHIKMAH** — Will this reduce future chaos, or create dangerous overreach?
+- **BERAKAL** — Is it typed correctly: fact, preference, inference, verdict, authority?
+
+Receipt:
+```json
+{
+  "amanah": "PASS | FAIL | DEFER",
+  "beradab": "PASS | FAIL | DEFER",
+  "berhikmah": "PASS | FAIL | DEFER",
+  "berakal": "PASS | FAIL | DEFER",
+  "memory_status": "stored_advisory | stored_authority | quarantined | sealed | rejected"
+}
+```
+
+### 11.4 Ten Hard Rules
+
+1. No memory write without `source_type`.
+2. No persistent memory without expiry or review policy.
+3. No authority memory (M3/M4) without 888 confirmation.
+4. No vector memory (L3) can be treated as proof in recall.
+5. No agent-generated memory can authorize action.
+6. No secret goes into L3 vector memory.
+7. No raw API key enters any memory layer.
+8. No emotional-state memory becomes permanent unless user explicitly confirms.
+9. No contradiction overwrite. Create a conflict record.
+10. No sealed memory deletion. Only tombstone/revoke.
+
+### 11.5 New Modes
+
+- `quarantine` — Store unproven memory with warning flag.
+- `seal` — Store constitutional verdict to sacred tier + VAULT999 witness.
+- `forget` — Soft-delete (M0–M2) or tombstone (M3–M4). Replaces `prune`.
+- `update` — Create new version, mark old superseded. Never mutate in place.
+- Enhanced `audit` — Checks stale, contradiction, missing_provenance, over_authorized.
+- Enhanced `recall` — Returns provenance classification: remembered | inferred | verified | sealed | stale | contradicted.
+
+### 11.6 Secret Handling
+
+Memory stores **capabilities**, not secrets:
+
+```json
+{
+  "capability": "github.repo.read",
+  "provider": "github",
+  "scope": "ariffazil/arifOS",
+  "secret_location": "gateway://vault/github/arifos/read",
+  "agent_visible_secret": false
+}
+```
+
+---
+
 **DITEMPA BUKAN DIBERI — One substrate. One interface. Many organs.**
 
 *Arif Fazil, F13 SOVEREIGN · arifOS Federation · 2026-06-03*

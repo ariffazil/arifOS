@@ -3,36 +3,153 @@ canonical: true
 type: mega-tool
 authority: MEMORY_KEEPER
 description: >
-  Governed memory recall from vector store. Modes: vector_query (semantic search),
-  vector_store (store new memory with content-hash deduplication), engineer (engineering context),
-  query (exact-match).
-  Session-scoped retrieval maintains continuity across session epochs.
+  Governed persistent memory — ONE GATE, MANY MODES.
+  Every store runs virtue gates (amanah/beradab/berhikmah/berakal).
+  Every store runs ten hard rules.
+  Hard default: can_authorize_action = FALSE.
+
+  Modes:
+    init_recall — Load sacred constitutional context at session boot.
+    recall      — Retrieve by ID or semantic query. Returns provenance classification.
+    store       — Persist with envelope, virtue gates, hard rules, M-tier computation.
+    quarantine  — Store unproven memory with warning flag.
+    seal        — Store constitutional verdict to sacred tier + VAULT999 witness.
+    forget      — Soft-delete (M0–M2) or tombstone (M3–M4).
+    update      — Create new version, mark old superseded (never mutate in place).
+    audit       — Check stale, contradiction, missing_provenance, over_authorized.
+    search      — Full-text + tag + semantic search with JITU circuit breaker.
+    context     — Load all memories for a given session.
+    stats       — Return memory store statistics.
+    import      — Batch ingestion (Phoenix-72 legacy).
+    prune       — DEPRECATED — use forget.
+
 floors:
-  - F2: TRUTH (Accurate recall)
-  - F10: ONTOLOGY (No mysticism/soul claims in stored memories)
-  - F11: COMMAND_AUTH (Audit trail of all memory operations)
+  - F1: AMANAH (Reversible, auditable, no secret leakage)
+  - F2: TRUTH (Accurate recall, bitemporal valid_at)
+  - F9: ANTIHANTU (No consciousness/emotion claims without consent)
+  - F10: ONTOLOGY (Typed memory_intent, structured envelope)
+  - F11: AUTH (actor_id + session_id mandatory for storage)
+  - F13: SOVEREIGN (can_authorize_action always false at storage)
 risk_tier: P2
 modes:
-  - vector_query
-  - vector_store
-  - engineer
-  - query
+  - init_recall
+  - recall
+  - store
+  - quarantine
+  - seal
+  - forget
+  - update
+  - audit
+  - search
+  - context
+  - stats
+  - import
+  - prune
 session_required: false
-vault_on_seal: false
+vault_on_seal: true
 reversible: true
 parameters:
-  query:
-    type: string
-    required: true
-    description: Semantic query string for memory search
   mode:
     type: string
-    enum: [vector_query, vector_store, engineer, query]
-    default: vector_query
+    enum: [init_recall, recall, store, quarantine, seal, forget, update, audit, search, context, stats, import, prune]
+    default: recall
+  query:
+    type: string
+    required: false
+    description: Semantic query string for recall/search
+  memory_id:
+    type: string
+    required: false
+    description: Memory ID for recall/forget/update
   session_id:
+    type: string
+    required: false
+  actor_id:
     type: string
     required: false
   content:
     type: string
     required: false
-    description: Content to store (mode=vector_store)
+    description: Content to store/quarantine/seal/update
+  tags:
+    type: array
+    required: false
+    description: Cross-organ search tags
+  # v2 envelope fields
+  memory_intent:
+    type: string
+    enum: [preference, fact, verdict, case_law, identity, authority, operational, emotional, project]
+    required: false
+  niat:
+    type: string
+    required: false
+    description: Moral intent behind this memory
+  source_type:
+    type: string
+    enum: [user_direct, tool_observed, file_evidence, web_evidence, inference, agent_generated]
+    required: false
+  source_uri:
+    type: string
+    required: false
+  source_confidence:
+    type: number
+    default: 0.8
+  durability:
+    type: string
+    enum: [ephemeral, session, persistent, sealed]
+    required: false
+  authority_effect:
+    type: string
+    enum: [none, advisory, operational, sovereign]
+    required: false
+  privacy:
+    type: string
+    enum: [public, internal, sensitive, secret]
+    required: false
+  reversibility:
+    type: string
+    enum: [high, medium, low]
+    required: false
+  requires_888:
+    type: boolean
+    default: false
+  expiry:
+    type: string
+    required: false
+    description: ISO 8601 expiry datetime
+  can_authorize_action:
+    type: boolean
+    default: false
+    description: HARD DEFAULT FALSE. Memory cannot self-authorize.
+  # recall filters
+  scope:
+    type: string
+    enum: [session, project, identity, case_law, all]
+    required: false
+  min_confidence:
+    type: number
+    default: 0.0
+  require_provenance:
+    type: boolean
+    default: false
+  # forget/update
+  method:
+    type: string
+    enum: [soft_delete, revoke_authority, tombstone]
+    required: false
+  reason:
+    type: string
+    required: false
+  # audit
+  checks:
+    type: array
+    required: false
+    description: Governance checks to run [stale, contradiction, missing_provenance, over_authorized]
+  target:
+    type: string
+    required: false
+    description: memory_id, actor_id, project, authority_memories
+  # seal
+  ack_irreversible:
+    type: boolean
+    default: false

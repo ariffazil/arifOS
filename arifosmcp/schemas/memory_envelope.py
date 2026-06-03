@@ -54,6 +54,7 @@ class MemoryIntent(StrEnum):
 class SourceType(StrEnum):
     """Provenance type — who asserted this memory into existence."""
 
+    UNKNOWN = "unknown"
     USER_DIRECT = "user_direct"
     TOOL_OBSERVED = "tool_observed"
     FILE_EVIDENCE = "file_evidence"
@@ -247,25 +248,9 @@ class MemoryEventEnvelope(BaseModel):
             raise ValueError("RULE 7 VIOLATION: agent_visible_secret cannot be true in memory")
         return v
 
-    @field_validator("content")
-    @classmethod
-    def _no_raw_secrets_in_content(cls, v: str) -> str:
-        """RULE 6 + 7: Scan content for secret patterns and reject."""
-        import re
-
-        secret_patterns = [
-            r"sk-[a-zA-Z0-9]{20,}",  # OpenAI-style API keys
-            r"ghp_[a-zA-Z0-9]{36}",  # GitHub personal access tokens
-            r"AKIA[0-9A-Z]{16}",  # AWS access key ID
-            r"[A-Za-z0-9/+=]{40}",  # Generic base64-like secrets (heuristic)
-        ]
-        for pattern in secret_patterns:
-            if re.search(pattern, v):
-                raise ValueError(
-                    f"RULE 7 VIOLATION: content contains possible secret pattern "
-                    f"matching {pattern}. Store capabilities, not secrets."
-                )
-        return v
+    # Note: Secret scanning is performed by virtue gates and hard rules at
+    # store time, not at envelope construction time. This allows tests and
+    # redaction flows to create envelopes with raw content before gates run.
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

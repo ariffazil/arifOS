@@ -266,10 +266,20 @@ try:
 
     _CANONICAL_HANDLERS["arif_mind_reason"] = embodied_mind_reason_handler
 
-    v2_tools_registered = register_tools(mcp)
+    # ── Ingress tolerance middleware with envelope validation ──────────────
+    from arifosmcp.runtime.ingress_middleware import IngressToleranceMiddleware
+
+    _ingress_middleware = IngressToleranceMiddleware()
+
+    v2_tools_registered = register_tools(mcp, ingress_middleware=_ingress_middleware)
     _assert_registered_surface(v2_tools_registered)
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
+
+    # Attach middleware to MCP server (FastMCP 3.x only)
+    if IS_FASTMCP_3:
+        mcp.add_middleware(_ingress_middleware)
+        logger.info("IngressToleranceMiddleware attached with envelope validation")
 
     # Refresh the public registry cache after all canonical tools are registered
     from arifosmcp.runtime.public_registry import _runtime_contracts

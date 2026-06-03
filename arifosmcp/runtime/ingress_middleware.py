@@ -22,6 +22,13 @@ from datetime import datetime, timezone
 from typing import Any
 
 from arifosmcp.runtime.fastmcp_version import IS_FASTMCP_3
+from arifosmcp.schemas.federation_envelope import (
+    ActionClass,
+    AuthoritySource,
+    FederationEnvelope,
+    wrap_legacy_call,
+)
+from arifosmcp.core.enforcement.risk_classifier import classify_tool
 
 logger = logging.getLogger(__name__)
 
@@ -322,6 +329,102 @@ MODE_SYNONYMS: dict[str, dict[str, str]] = {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Envelope extraction helpers
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _extract_envelope_from_arguments(
+    arguments: dict[str, Any],
+    tool_name: str,
+) -> FederationEnvelope | None:
+    """
+    Extract a FederationEnvelope from tool arguments.
+
+    Looks for envelope fields nested under 'envelope' or flattened at top level.
+    Returns None if no envelope data found.
+    """
+    if not arguments:
+        return None
+
+    # Try nested envelope first
+    env_data = arguments.get("envelope")
+    if env_data and isinstance(env_data, dict):
+        try:
+            return FederationEnvelope(**env_data)
+        except Exception as e:
+            logger.debug(f"Envelope parse failed (nested): {e}")
+            return None
+
+    # Try flattened fields
+    flat_fields = {
+        "actor_id", "session_id", "agent_id", "tool_id",
+        "trace_id", "parent_trace_id", "niat", "matlamat",
+        "authority", "risk", "receipts",
+    }
+    if flat_fields & set(arguments.keys()):
+        try:
+            # Build minimal envelope from whatever fields exist
+            return FederationEnvelope(
+                trace_id=arguments.get("trace_id", f"auto-{time.time()}"),
+                actor_id=arguments.get("actor_id", "anonymous"),
+                session_id=arguments.get("session_id", "unknown"),
+                agent_id=arguments.get("agent_id"),
+                tool_id=arguments.get("tool_id", tool_name),
+                organ=arguments.get("organ", "arifOS"),
+                niat=arguments.get("niat"),
+                matlamat=arguments.get("matlamat"),
+                legacy_wrap=True,
+            )
+        except Exception as e:
+            logger.debug(f"Envelope parse failed (flat): {e}")
+            return None
+
+    return None
+
+
+def _validate_envelope_for_tool(
+    envelope: FederationEnvelope,
+    tool_name: str,
+) -> tuple[bool, str]:
+    """
+    Validate envelope against tool risk classification.
+
+    Returns (ok, reason).
+    """
+    # 1. Classify tool risk and upgrade envelope if needed
+    tool_risk = classify_tool(tool_name)
+    if envelope.risk.action_class == ActionClass.OBSERVE and tool_risk.action_class != ActionClass.OBSERVE:
+        logger.debug(
+            f"Envelope risk upgraded from OBSERVE to {tool_risk.action_class.value} "
+            f"based on tool classification for {tool_name}"
+        )
+        envelope.risk.action_class = tool_risk.action_class
+        envelope.risk.tier = tool_risk.tier
+
+    # 2. Legacy wrap + MUTATE/ATOMIC = HOLD (before receipt validation)
+    if envelope.legacy_wrap and envelope.risk.action_class in (ActionClass.MUTATE, ActionClass.ATOMIC):
+        return False, (
+            f"LEGACY_WRAP cannot execute {envelope.risk.action_class.value} on {tool_name}. "
+            "Upgrade client to send FederationEnvelope with verified authority."
+        )
+
+    # 3. Run full envelope validation (identity, authority, receipts, ceiling)
+    ok, reason = envelope.validate_for_execution()
+    if not ok:
+        return False, reason
+
+    # 4. Authority check for mutating actions (redundant with validate_for_execution but explicit)
+    if envelope.risk.action_class in (ActionClass.MUTATE, ActionClass.ATOMIC):
+        if envelope.authority.source in (AuthoritySource.UNKNOWN, AuthoritySource.FALLBACK):
+            return False, (
+                f"{envelope.risk.action_class.value} requires verified authority. "
+                "Send AuthorityEnvelope with source=token|session|delegated|human_888."
+            )
+
+    return True, "SEAL"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # FastMCP 3.x Middleware (Full functionality)
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -338,15 +441,17 @@ if IS_FASTMCP_3:
         class IngressToleranceMiddleware(Middleware):
             """
             Strip unknown fields from tool arguments before they reach Pydantic.
+            Validate FederationEnvelope for constitutional governance.
 
             Doctrine:
               - entry: adaptive (accept any field)
-              - core: governed (strict after normalization)
+              - core: governed (strict after normalization + envelope validation)
               - output: strong
             """
 
             def __init__(self, tool_param_sets: dict[str, set[str]] | None = None) -> None:
                 self._tool_param_sets: dict[str, set[str]] = tool_param_sets or {}
+                self._envelope_log: list[dict[str, Any]] = []
 
             def register_tool_params(self, tool_name: str, param_names: set[str]) -> None:
                 self._tool_param_sets[tool_name] = param_names
@@ -358,6 +463,40 @@ if IS_FASTMCP_3:
             ) -> ToolResult:
                 msg = context.message
                 tool_name = msg.name
+
+                # ── FEDERATION ENVELOPE EXTRACTION & VALIDATION ───────────────
+                envelope = _extract_envelope_from_arguments(
+                    dict(msg.arguments or {}), tool_name
+                )
+                if envelope is None:
+                    # Legacy call: wrap with conservative defaults
+                    envelope = wrap_legacy_call(
+                        actor_id=None,
+                        session_id=None,
+                        tool_name=tool_name,
+                    )
+                    logger.debug(f"Ingress: wrapped legacy call for {tool_name}")
+
+                envelope_ok, envelope_reason = _validate_envelope_for_tool(envelope, tool_name)
+                if not envelope_ok:
+                    logger.warning(f"Ingress envelope HOLD for {tool_name}: {envelope_reason}")
+                    # Return HOLD result — do not execute tool
+                    from mcp.types import TextContent
+                    return ToolResult(
+                        content=[TextContent(type="text", text=f"888_HOLD: {envelope_reason}")],
+                        isError=True,
+                    )
+
+                # Log envelope (no secrets)
+                self._envelope_log.append({
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "tool_name": tool_name,
+                    "trace_id": envelope.trace_id,
+                    "actor_id": envelope.actor_id,
+                    "action_class": envelope.risk.action_class.value,
+                    "risk_tier": envelope.risk.tier.value,
+                    "legacy_wrap": envelope.legacy_wrap,
+                })
 
                 if tool_name in MEGA_TOOLS and msg.arguments:
                     # 1. Mode synonym normalization: "recommend" → "reason", etc.

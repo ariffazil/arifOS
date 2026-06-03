@@ -1518,8 +1518,404 @@ def get_memory_store() -> MemoryStore:
     return _memory_store_singleton
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# 555_MEMORY v2 — CONSTITUTIONAL EXTENSIONS
+# Quarantine, tombstone, forget, audit_governance, store_v2 with envelope
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def store_v2(
+    envelope: dict[str, Any],
+    existing_records: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """
+    Constitutional memory store with virtue gates and hard rules.
+
+    Wraps store() with envelope validation, M-tier computation,
+    virtue gates (amanah/beradab/berhikmah/berakal), and ten hard rules.
+
+    Args:
+        envelope: MemoryEventEnvelope as dict (from tool layer)
+        existing_records: Optional existing L4 records for contradiction check (RULE 9)
+
+    Returns:
+        dict with stored flag, virtue receipt, hard rules result, and store() output
+    """
+    from arifosmcp.memory.hard_rules import run_all_hard_rules
+    from arifosmcp.memory.virtue_gates import run_all_virtue_gates
+    from arifosmcp.schemas.memory_envelope import (
+        MemoryEventEnvelope,
+        compute_m_tier,
+    )
+
+    # Build Pydantic envelope from dict
+    try:
+        parsed = MemoryEventEnvelope.model_validate(envelope)
+    except Exception as exc:
+        return {
+            "stored": False,
+            "error": "envelope_validation_failed",
+            "detail": str(exc),
+            "virtue_receipt": None,
+            "hard_rules": {"passed": False, "reason": f"Invalid envelope: {exc}"},
+        }
+
+    # Compute M-tier (cannot be set by caller)
+    parsed.m_tier = compute_m_tier(parsed)
+
+    # Run hard rules
+    hard_result = run_all_hard_rules(parsed, existing_records)
+    if not hard_result["passed"]:
+        return {
+            "stored": False,
+            "error": "hard_rule_violation",
+            "failed_rule": hard_result.get("failed_rule"),
+            "detail": hard_result["reason"],
+            "virtue_receipt": None,
+            "hard_rules": hard_result,
+            "m_tier": parsed.m_tier.value,
+        }
+
+    # Handle contradiction (RULE 9) — create conflict record, don't block store
+    contradiction = hard_result.get("contradiction")
+
+    # Run virtue gates
+    virtue = run_all_virtue_gates(parsed)
+
+    # If any virtue FAIL, block storage
+    if virtue.any_fail():
+        return {
+            "stored": False,
+            "error": "virtue_gate_failure",
+            "virtue_receipt": virtue.model_dump(),
+            "hard_rules": hard_result,
+            "m_tier": parsed.m_tier.value,
+            "reasons": virtue.reasons,
+        }
+
+    # Build tags with governance metadata
+    tags = list(parsed.tags or [])
+    tags.append(f"intent:{parsed.memory_intent.value}")
+    tags.append(f"m_tier:{parsed.m_tier.value}")
+    tags.append(f"source:{parsed.source.type.value}")
+    if parsed.governance.can_authorize_action:
+        tags.append("can_authorize:true")
+    else:
+        tags.append("can_authorize:false")
+
+    # Determine legacy tier from M-tier
+    from arifosmcp.schemas.memory_envelope import M_TIER_CONFIG
+
+    legacy_tier = M_TIER_CONFIG[parsed.m_tier]["legacy_tier"]
+
+    # Build summary with provenance
+    summary = parsed.content[:120] if len(parsed.content) > 120 else parsed.content
+
+    # Call canonical store() with enriched metadata
+    store_result = store(
+        content=parsed.content,
+        mode=parsed.memory_intent.value,
+        tags=tags,
+        actor_id=parsed.actor_id,
+        session_id=parsed.session_id,
+        summary=summary,
+        tier=legacy_tier,
+    )
+
+    # Enrich store result with v2 fields
+    store_result["virtue_receipt"] = virtue.model_dump()
+    store_result["hard_rules"] = hard_result
+    store_result["m_tier"] = parsed.m_tier.value
+    store_result["memory_status"] = virtue.memory_status.value
+    store_result["source_type"] = parsed.source.type.value
+    store_result["authority_effect"] = parsed.risk.authority_effect.value
+    store_result["can_authorize_action"] = False  # Always false at storage
+
+    if contradiction:
+        store_result["contradiction"] = contradiction
+        store_result["warning"] = (
+            "RULE 9: Contradiction detected with existing memory. "
+            "Conflict record created. Do not overwrite."
+        )
+
+    return store_result
+
+
+def quarantine(
+    content: Any,
+    reason: str,
+    actor_id: str | None = None,
+    session_id: str | None = None,
+    tags: list[str] | None = None,
+) -> dict[str, Any]:
+    """
+    Store memory in quarantined state — useful but unproven.
+
+    Quarantined memory is retrievable but displays a warning.
+    It cannot be treated as proof or authority.
+    """
+    store_result = store(
+        content=content,
+        mode="quarantined",
+        tags=(tags or []) + ["quarantined", f"reason:{reason[:50]}"],
+        actor_id=actor_id,
+        session_id=session_id,
+        summary=f"[QUARANTINED: {reason}] {_summarize(content)}",
+        tier="ephemeral",  # Quarantined memory is ephemeral by default
+    )
+    store_result["quarantined"] = True
+    store_result["quarantine_reason"] = reason
+    store_result["memory_status"] = "quarantined"
+    return store_result
+
+
+def forget(
+    memory_id: str,
+    method: str = "soft_delete",
+    reason: str = "",
+    actor_id: str | None = None,
+) -> dict[str, Any]:
+    """
+    Forget a memory — with M-tier-aware behavior.
+
+    M0–M2 (ephemeral/canon): soft-delete (set deleted_at in Postgres)
+    M3–M4 (sacred/authority): tombstone only — create revocation record
+
+    Args:
+        memory_id: The memory to forget
+        method: soft_delete | revoke_authority | tombstone
+        reason: Why this memory is being forgotten
+        actor_id: Who is requesting the forget
+
+    Returns:
+        dict with forgotten status and method used
+    """
+    from arifosmcp.memory.hard_rules import rule_10_no_delete_sealed
+    from arifosmcp.schemas.memory_envelope import MemoryRiskTier
+
+    # First, recall to check M-tier
+    record = recall(memory_id)
+    if record is None:
+        return {"forgotten": False, "error": "memory_not_found", "memory_id": memory_id}
+
+    # Determine M-tier from tags or default to M1
+    tags = record.get("tags", [])
+    m_tier_str = next((t.split(":")[1] for t in tags if t.startswith("m_tier:")), "M1")
+    try:
+        m_tier = MemoryRiskTier(m_tier_str)
+    except ValueError:
+        m_tier = MemoryRiskTier.M1
+
+    # RULE 10: No sealed memory deletion
+    try:
+        rule_10_no_delete_sealed(m_tier, method)
+    except Exception as exc:
+        return {
+            "forgotten": False,
+            "error": "hard_rule_violation",
+            "failed_rule": 10,
+            "detail": str(exc),
+            "memory_id": memory_id,
+            "m_tier": m_tier.value,
+        }
+
+    # M0–M2: soft-delete
+    if m_tier in (MemoryRiskTier.M0, MemoryRiskTier.M1, MemoryRiskTier.M2):
+        if method == "soft_delete":
+            pg_id = record.get("pg_id")
+            if pg_id:
+                _pg_run(_pg_soft_delete(pg_id))
+            return {
+                "forgotten": True,
+                "method": "soft_delete",
+                "memory_id": memory_id,
+                "m_tier": m_tier.value,
+                "reason": reason,
+                "actor_id": actor_id,
+            }
+
+    # M3–M4 or any method=tombstone/revoke_authority: tombstone
+    # Create a revocation record
+    revocation_content = {
+        "action": "revocation",
+        "revoked_memory_id": memory_id,
+        "original_content": record.get("content", "")[:200],
+        "reason": reason,
+        "revoked_by": actor_id,
+        "revoked_at": datetime.now(UTC).isoformat(),
+        "original_m_tier": m_tier.value,
+    }
+    revocation_result = store(
+        content=json.dumps(revocation_content),
+        mode="revocation",
+        tags=["tombstone", f"revokes:{memory_id}", f"m_tier:{m_tier.value}"],
+        actor_id=actor_id,
+        session_id=record.get("session_id"),
+        summary=f"[TOMBSTONE] Revokes {memory_id}: {reason}",
+        tier="sacred",
+    )
+
+    # Mark original as superseded in Qdrant payload (best effort)
+    point_id = record.get("point_id")
+    if point_id:
+        try:
+            client = _get_qdrant_client()
+            client.set_payload(
+                collection_name=_QDRANT_COLLECTION,
+                payload={
+                    "temporal_marker": "revoked",
+                    "revoked_at": datetime.now(UTC).isoformat(),
+                    "revoked_by": actor_id,
+                    "revocation_reason": reason,
+                    "revocation_record_id": revocation_result.get("memory_id"),
+                },
+                points=[point_id],
+            )
+        except Exception as exc:
+            logger.warning("Failed to mark memory %s as revoked in Qdrant: %s", memory_id, exc)
+
+    return {
+        "forgotten": True,
+        "method": "tombstone",
+        "memory_id": memory_id,
+        "m_tier": m_tier.value,
+        "reason": reason,
+        "actor_id": actor_id,
+        "revocation_record_id": revocation_result.get("memory_id"),
+    }
+
+
+def audit_governance(
+    target: str | None = None,
+    actor_id: str | None = None,
+    checks: list[str] | None = None,
+    limit: int = 1000,
+) -> dict[str, Any]:
+    """
+    Audit memory governance — check for stale, contradiction, missing_provenance, over_authorized.
+
+    Args:
+        target: memory_id | actor_id | project | authority_memories | None (all)
+        actor_id: Filter by actor
+        checks: List of checks to run ["stale", "contradiction", "missing_provenance", "over_authorized"]
+        limit: Max memories to audit
+
+    Returns:
+        dict with audit report, escalation queue, and governance summary
+    """
+    checks = checks or ["stale", "contradiction", "missing_provenance", "over_authorized"]
+    memories = get_all_memories_for_audit(limit=limit, include_deleted=False)
+
+    # Filter by target
+    if target:
+        if target == "authority_memories":
+            memories = [m for m in memories if any(t.startswith("m_tier:M3") or t.startswith("m_tier:M4") for t in m.get("tags", []))]
+        elif target.startswith("memory_"):
+            memories = [m for m in memories if m.get("memory_id") == target]
+        else:
+            # Assume actor_id target
+            memories = [m for m in memories if m.get("actor_id") == target]
+
+    # Also filter by actor_id param
+    if actor_id:
+        memories = [m for m in memories if m.get("actor_id") == actor_id]
+
+    findings: dict[str, list[dict[str, Any]]] = {
+        "stale": [],
+        "contradiction": [],
+        "missing_provenance": [],
+        "over_authorized": [],
+    }
+
+    now = datetime.now(UTC)
+
+    for mem in memories:
+        meta = mem.get("metadata", {})
+        tags = mem.get("tags", [])
+        created_at_str = mem.get("created_at")
+        created_at = None
+        if created_at_str:
+            try:
+                created_at = datetime.fromisoformat(created_at_str.replace("Z", "+00:00"))
+            except (ValueError, TypeError):
+                pass
+
+        # Check stale: no access for > 90 days (canon) or > 30 days (session)
+        if "stale" in checks and created_at:
+            tier = mem.get("tier", "canon")
+            stale_threshold_days = 90 if tier == "canon" else 30
+            age_days = (now - created_at).days
+            if age_days > stale_threshold_days:
+                findings["stale"].append({
+                    "memory_id": mem.get("memory_id"),
+                    "tier": tier,
+                    "age_days": age_days,
+                    "threshold": stale_threshold_days,
+                    "reason": f"Memory untouched for {age_days} days (threshold: {stale_threshold_days})",
+                })
+
+        # Check missing_provenance: no source_type or actor_id
+        if "missing_provenance" in checks:
+            has_source = any(t.startswith("source:") for t in tags)
+            has_actor = bool(mem.get("actor_id"))
+            if not has_source or not has_actor:
+                findings["missing_provenance"].append({
+                    "memory_id": mem.get("memory_id"),
+                    "has_source": has_source,
+                    "has_actor": has_actor,
+                    "reason": "Missing source_type or actor_id provenance",
+                })
+
+        # Check over_authorized: can_authorize=true without M3/M4
+        if "over_authorized" in checks:
+            has_authorize = "can_authorize:true" in tags
+            is_high_tier = any(t.startswith("m_tier:M3") or t.startswith("m_tier:M4") for t in tags)
+            if has_authorize and not is_high_tier:
+                findings["over_authorized"].append({
+                    "memory_id": mem.get("memory_id"),
+                    "reason": "Memory claims can_authorize=true but is not M3/M4",
+                })
+
+    # Contradiction check: use existing F4 results from metadata
+    if "contradiction" in checks:
+        for mem in memories:
+            meta = mem.get("metadata", {})
+            if meta.get("f4_conflicts_count", 0) > 0 or meta.get("phoenix_state") == "contradiction_hold":
+                findings["contradiction"].append({
+                    "memory_id": mem.get("memory_id"),
+                    "phoenix_state": meta.get("phoenix_state"),
+                    "f4_conflicts_count": meta.get("f4_conflicts_count", 0),
+                    "reason": "Contradiction detected by F4 or Phoenix-72",
+                })
+
+    # Build escalation queue (anything that needs sovereign attention)
+    escalation_queue = (
+        findings["contradiction"]
+        + findings["over_authorized"]
+        + findings["missing_provenance"]
+    )
+
+    return {
+        "mode": "audit",
+        "target": target,
+        "checks_run": checks,
+        "total_memories_audited": len(memories),
+        "findings": findings,
+        "findings_count": sum(len(v) for v in findings.values()),
+        "escalation_queue": escalation_queue,
+        "escalation_count": len(escalation_queue),
+        "governance_summary": {
+            "stale_count": len(findings["stale"]),
+            "contradiction_count": len(findings["contradiction"]),
+            "missing_provenance_count": len(findings["missing_provenance"]),
+            "over_authorized_count": len(findings["over_authorized"]),
+        },
+    }
+
+
 __all__ = [
     "store",
+    "store_v2",
     "recall",
     "search",
     "get_all_memories_for_audit",
@@ -1530,6 +1926,9 @@ __all__ = [
     "load_canonical_for_actor",
     "memory_mode",
     "stats",
+    "quarantine",
+    "forget",
+    "audit_governance",
     "TIER_SACRED",
     "TIER_CANONICAL",
     "TIER_SESSION",
