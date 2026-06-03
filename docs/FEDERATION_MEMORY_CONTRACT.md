@@ -81,6 +81,22 @@ succeed for `stored=True`.**
 - Source: `json` (structured episode body)
 - NEVER raises. NEVER blocks. Returns `{l5_status: "queued"|"skipped"|"error"}`
 
+#### L5 worker status (2026-06-03, F2 TRUTH correction)
+
+The bridge **queues** episodes to Graphiti MCP `add_memory`. However, the
+downstream Graphiti worker is **neutralized** (888 Sovereign command — hardcoded
+OpenAI dependencies create an API paradox; not auto-woken).
+
+**Operational reality:**
+- `l5_status: "queued"` means "in the queue" — **not** "in the graph"
+- 888 injects L5 entities manually via raw Cypher to FalkorDB
+- The bridge stays in place as a **forward-compatible substrate** — if 888
+  re-enables the worker, queued episodes process automatically
+- **Do NOT auto-wake, debug, or fix the Graphiti worker.** 888 owns this.
+
+**For organ tools writing memory:** treat L5 as advisory only. The contract
+guarantees L3 + L4 durability. L5 is enrichment-on-paper until further notice.
+
 ---
 
 ## 4. Cross-Organ Memory Rules
