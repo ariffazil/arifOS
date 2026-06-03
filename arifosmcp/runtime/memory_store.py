@@ -122,7 +122,7 @@ async def _pg_write(
     try:
         import asyncpg  # noqa: PLC0415
 
-        conn = await asyncpg.connect(_PG_URL, timeout=5)
+        conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
         try:
             await conn.execute(
                 """
@@ -158,7 +158,7 @@ async def _pg_soft_delete(memory_id: str) -> bool:
     try:
         import asyncpg  # noqa: PLC0415
 
-        conn = await asyncpg.connect(_PG_URL, timeout=5)
+        conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
         try:
             result = await conn.execute(
                 "UPDATE memory_store SET deleted_at = now() WHERE id = $1::uuid AND deleted_at IS NULL",  # noqa: E501
@@ -177,7 +177,7 @@ async def _pg_load_canonical(actor_id: str, limit: int = 5) -> list[dict]:
     try:
         import asyncpg  # noqa: PLC0415
 
-        conn = await asyncpg.connect(_PG_URL, timeout=5)
+        conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
         try:
             rows = await conn.fetch(
                 """
@@ -228,7 +228,7 @@ async def _pg_ping() -> bool:
     try:
         import asyncpg  # noqa: PLC0415
 
-        conn = await asyncpg.connect(_PG_URL, timeout=3)
+        conn = await asyncpg.connect(_PG_URL, timeout=3, statement_cache_size=0)
         await conn.fetchval("SELECT 1")
         await conn.close()
         return True
@@ -273,10 +273,14 @@ def _get_qdrant_client():
 def _generate_embedding(text: str) -> list[float]:
     import httpx  # noqa: PLC0415
 
+    # BGE-M3 on CPU takes ~60-90s on first call (model load + 1024-dim inference).
+    # Federation store must wait for the embedding — we cannot proceed without it.
+    # 120s timeout absorbs worst-case cold start; subsequent calls reuse warm model.
+    _timeout = float(os.getenv("ARIFOS_EMBEDDING_TIMEOUT_S", "120.0"))
     response = httpx.post(
         f"{_OLLAMA_URL}/api/embeddings",
         json={"model": _EMBEDDING_MODEL, "prompt": text},
-        timeout=30.0,
+        timeout=_timeout,
     )
     response.raise_for_status()
     embedding = response.json().get("embedding", [])
@@ -636,6 +640,33 @@ def store(
     except Exception as exc:
         logger.warning("Postgres dual-write skipped: %s", exc)
 
+    # --- L5 Graphiti forge (FEDERATION — fire-and-forget) -----------------
+    # Only fire if at least one durable leg succeeded. Graphiti enriches but
+    # is NOT a source of truth; failure here must not block the store result.
+    l5_status = "skipped"
+    if qdrant_ok or pg_ok:
+        try:
+            from arifosmcp.runtime.l5_graphiti_bridge import bridge_forge_episode
+
+            l5_result = bridge_forge_episode(
+                memory_id=memory_id,
+                content=text,
+                summary=payload.get("summary"),
+                session_id=session_id,
+                actor_id=actor_id,
+                tier=normalised_tier,
+                tags=tags,
+                l3_point_id=point_id,
+                l4_row_id=pg_memory_id,
+                phoenix_id=phoenix["phoenix_id"],
+                entity_tags=f4_result.entity_tags,
+                phoenix_state=phoenix.get("state"),
+            )
+            l5_status = l5_result.get("status", "unknown")
+        except Exception as exc:
+            logger.warning("L5 Graphiti forge skipped: %s", exc)
+            l5_status = f"error:{type(exc).__name__}"
+
     # --- JSON index (search assist) ---
     idx = _index_read()
     idx[memory_id] = {
@@ -662,8 +693,9 @@ def store(
         "point_id": point_id,
         "pg_id": pg_memory_id,
         "pg_ok": pg_ok,
+        "l5_status": l5_status,  # FEDERATION: Graphiti episode forge outcome
         "tier": normalised_tier,
-        "backends": {"qdrant": qdrant_ok, "postgres": pg_ok},
+        "backends": {"qdrant": qdrant_ok, "postgres": pg_ok, "graphiti": l5_status},
         "phoenix": phoenix_summary(phoenix),
         # Phase 1b: F4 result
         "f4": {
@@ -694,7 +726,7 @@ def recall(memory_id: str) -> dict[str, Any] | None:
             import asyncpg
 
             async def _pg_get():
-                conn = await asyncpg.connect(_PG_URL, timeout=5)
+                conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
                 try:
                     row = await conn.fetchrow(
                         """
@@ -952,7 +984,7 @@ def _pg_get_by_qdrant_id(qdrant_id: str | None):
         return None
 
     async def _pg_get():
-        conn = await asyncpg.connect(_PG_URL, timeout=5)
+        conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
         try:
             row = await conn.fetchrow(
                 """
@@ -1286,7 +1318,7 @@ def stats() -> dict[str, Any]:
         import asyncpg  # noqa: PLC0415
 
         async def _pg_stats():
-            conn = await asyncpg.connect(_PG_URL, timeout=3)
+            conn = await asyncpg.connect(_PG_URL, timeout=3, statement_cache_size=0)
             try:
                 return await conn.fetchval(
                     "SELECT count(*) FROM memory_store WHERE deleted_at IS NULL"
@@ -1345,7 +1377,7 @@ class MemoryStore:
         try:
             import asyncpg  # noqa: PLC0415
 
-            conn = await asyncpg.connect(_PG_URL, timeout=5)
+            conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
             try:
                 rows = await conn.fetch(
                     """
@@ -1380,7 +1412,7 @@ class MemoryStore:
             {"phoenix_state": "sealed", "tier": TIER_CANONICAL},
         )
         try:
-            conn = await asyncpg.connect(_PG_URL, timeout=5)
+            conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
             try:
                 result = await conn.execute(
                     """
@@ -1408,7 +1440,7 @@ class MemoryStore:
         """Soft-delete a cooling entry (void/purge)."""
         updated = self._set_qdrant_payload(memory_id, {"phoenix_state": "voided"})
         try:
-            conn = await asyncpg.connect(_PG_URL, timeout=5)
+            conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
             try:
                 result = await conn.execute(
                     """
