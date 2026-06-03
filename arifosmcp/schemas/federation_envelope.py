@@ -70,10 +70,18 @@ class AuthorityEnvelope(BaseModel):
         default=AuthoritySource.UNKNOWN,
         description="How authority was obtained",
     )
-    verified: bool = Field(default=False, description="Has authority been cryptographically verified?")
-    delegator: str | None = Field(default=None, description="Actor who delegated authority")
-    delegatee: str | None = Field(default=None, description="Actor receiving delegated authority")
-    scope: list[str] = Field(default_factory=list, description="Allowed actions under this authority")
+    verified: bool = Field(
+        default=False, description="Has authority been cryptographically verified?"
+    )
+    delegator: str | None = Field(
+        default=None, description="Actor who delegated authority"
+    )
+    delegatee: str | None = Field(
+        default=None, description="Actor receiving delegated authority"
+    )
+    scope: list[str] = Field(
+        default_factory=list, description="Allowed actions under this authority"
+    )
     expires_at: datetime | None = Field(default=None, description="Authority expiry")
 
     def is_delegation_valid(self) -> bool:
@@ -163,10 +171,16 @@ class RiskPassport(BaseModel):
     tier: RiskTier = Field(default=RiskTier.T0, description="Risk tier")
     action_class: ActionClass = Field(default=ActionClass.OBSERVE, description="Action phase")
     blast_radius: BlastRadius = Field(default=BlastRadius.LOCAL, description="Blast radius")
-    reversibility: ReversibilityLevel = Field(default=ReversibilityLevel.HIGH, description="Reversibility")
+    reversibility: ReversibilityLevel = Field(
+        default=ReversibilityLevel.HIGH, description="Reversibility"
+    )
     secret_touch: SecretTouch = Field(default=SecretTouch.NONE, description="Secret exposure")
-    external_effect: ExternalEffect = Field(default=ExternalEffect.NONE, description="External side effects")
-    risk_ceiling: str | None = Field(default=None, description="Max risk tier allowed for this actor")
+    external_effect: ExternalEffect = Field(
+        default=ExternalEffect.NONE, description="External side effects"
+    )
+    risk_ceiling: str | None = Field(
+        default=None, description="Max risk tier allowed for this actor"
+    )
 
     def exceeds_ceiling(self, ceiling: RiskTier | str | None) -> bool:
         """True if this risk exceeds the given ceiling."""
@@ -256,7 +270,9 @@ class FederationEnvelope(BaseModel):
 
     # Niat / Matlamat separation
     niat: str | None = Field(default=None, description="Moral intent: why this action exists")
-    matlamat: str | None = Field(default=None, description="Concrete goal: what outcome is requested")
+    matlamat: str | None = Field(
+        default=None, description="Concrete goal: what outcome is requested"
+    )
 
     # Authority and Risk
     authority: AuthorityEnvelope = Field(default_factory=AuthorityEnvelope)

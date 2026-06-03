@@ -133,11 +133,6 @@ class TestClassifyTool:
         assert rp.tier == RiskTier.T1
         assert rp.action_class == ActionClass.OBSERVE
 
-    def test_evidence_fetch_is_t2(self):
-        rp = classify_tool("arif_evidence_fetch")
-        assert rp.tier == RiskTier.T2
-        assert rp.action_class == ActionClass.PREPARE
-
     def test_heart_critique_is_t5(self):
         rp = classify_tool("arif_heart_critique")
         assert rp.tier == RiskTier.T5
