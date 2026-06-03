@@ -101,22 +101,20 @@ def arif_ops_measure(
             if getattr(leash, "status", None) == "registry_unavailable":
                 warnings.append("risk_leash_unavailable")
 
+        # Live telemetry — Reconstruction A Foundation / Track 3
+        from arifosmcp.core.telemetry.live_metrics import get_live_metrics
+
+        live = get_live_metrics().health_snapshot()
+
         health_payload = {
-            "status": "healthy",
-            "cpu": {
-                "value": 15.0,
-                "unit": "percent",
-                "scope": "container",
-                "sample_window_sec": 1,
-            },
-            "mem": {"value": 32.0, "unit": "percent", "scope": "container"},
-            "disk": {"value": 45.0, "unit": "percent", "mount": "/"},
-            "bands": {"cpu": "low", "mem": "moderate", "disk": "moderate"},
-            "thresholds": {
-                "healthy_cpu_max": 70,
-                "healthy_mem_max": 80,
-                "healthy_disk_max": 85,
-            },
+            "status": live["status"],
+            "verified": live["verified"],
+            "timestamp": live["timestamp"],
+            "cpu": live["cpu"],
+            "mem": live["mem"],
+            "disk": live["disk"],
+            "bands": live["bands"],
+            "thresholds": live["thresholds"],
             "runtime": {
                 "execution_mode": runtime.get("execution_mode", "dry_run"),
                 "side_effects_allowed": runtime.get("side_effects_allowed", False),
@@ -135,7 +133,11 @@ def arif_ops_measure(
             **_ok(
                 "arif_ops_measure",
                 health_payload,
-                meta=drift_metrics,
+                meta={
+                    **drift_metrics,
+                    "telemetry_source": "live_metrics",
+                    "verified": live["verified"],
+                },
                 session_id=session_id,
             )
         )
@@ -242,19 +244,33 @@ def arif_ops_measure(
         )
 
     if mode == "metabolic-pulse":
+        from arifosmcp.core.telemetry.live_metrics import get_live_metrics
         from arifosmcp.runtime.rest_routes import _build_governance_status_payload
         from arifosmcp.runtime.tools import get_session
 
         gov = _build_governance_status_payload()
         sess = get_session(session_id) if session_id else {}
+        live = get_live_metrics().health_snapshot()
+
+        # Derive thermodynamic scores from live system state
+        cpu_val = live["cpu"].get("value") or 0.0
+        mem_val = live["mem"].get("percent", {}).get("value") or 0.0
+        disk_val = live["disk"].get("percent", {}).get("value") or 0.0
+
+        # G_score: system health index (1.0 = perfect, 0.0 = dead)
+        # Penalize high resource usage
+        g_score = max(0.0, 1.0 - (cpu_val + mem_val + disk_val) / 300.0)
 
         pulse_payload = {
-            "vitals": {"g_score": 0.98, "delta_S": 0.001, "omega": 0.95, "psi_le": 1.02},
+            "vitals": {
+                "g_score": round(g_score, 3),
+                "delta_S": 0.001,
+                "omega": 0.95,
+                "psi_le": 1.02,
+            },
             "substrate": {
                 "docker_healthy": True,
-                "disk_usage": (
-                    health_payload["disk"]["value"] if "health_payload" in locals() else 45.0
-                ),
+                "disk_usage": disk_val,
                 "memory_janitor_active": True,
             },
             "governance": {
@@ -267,7 +283,11 @@ def arif_ops_measure(
             **_ok(
                 "arif_ops_measure",
                 pulse_payload,
-                meta=drift_metrics,
+                meta={
+                    **drift_metrics,
+                    "telemetry_source": "live_metrics",
+                    "verified": live["verified"],
+                },
                 session_id=session_id,
             )
         )

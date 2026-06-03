@@ -9056,9 +9056,22 @@ def _arif_ops_measure(
     )
 
     if mode == "health":
+        # Live telemetry — Reconstruction A Foundation / Track 3
+        from arifosmcp.core.telemetry.live_metrics import get_live_metrics
+
+        live = get_live_metrics().health_snapshot()
         return _ok(
             "arif_ops_measure",
-            {"status": "healthy", "cpu": 15.0, "mem": 32.0, "disk": 45.0},
+            {
+                "status": live["status"],
+                "verified": live["verified"],
+                "timestamp": live["timestamp"],
+                "cpu": live["cpu"],
+                "mem": live["mem"],
+                "disk": live["disk"],
+                "bands": live["bands"],
+                "thresholds": live["thresholds"],
+            },
             delta_S=0.001,
         )
     if mode == "vitals":
@@ -9076,15 +9089,34 @@ def _arif_ops_measure(
             mem_stats = _memory_stats()
         except Exception as exc:
             logger.warning("Memory vitals unavailable: %s", exc)
+
+        # Live telemetry — derive thermodynamic scores from system state
+        from arifosmcp.core.telemetry.live_metrics import get_live_metrics
+
+        live = get_live_metrics().health_snapshot()
+        cpu_val = live["cpu"].get("value") or 0.0
+        mem_val = live["mem"].get("percent", {}).get("value") or 0.0
+        disk_val = live["disk"].get("percent", {}).get("value") or 0.0
+
+        # G_score: system health index (1.0 = perfect, 0.0 = dead)
+        g_score = max(0.0, 1.0 - (cpu_val + mem_val + disk_val) / 300.0)
+        # Omega: operational stability (inverse of entropy)
+        omega = max(0.0, 1.0 - (cpu_val / 100.0) * 0.5)
+        # Psi_LE: paradox tension (higher when resources are stressed)
+        psi_le = 1.0 + (mem_val / 100.0) * 0.1
+
         return _ok(
             "arif_ops_measure",
             {
-                "g_score": 0.98,
+                "g_score": round(g_score, 3),
                 "delta_S": 0.001,
-                "omega": 0.95,
-                "psi_le": 1.02,
+                "omega": round(omega, 3),
+                "psi_le": round(psi_le, 3),
                 "memory_mode": mem_mode,
                 "memory_stats": mem_stats,
+                "telemetry_source": "live_metrics",
+                "verified": live["verified"],
+                "timestamp": live["timestamp"],
             },
             delta_S=0.001,
         )

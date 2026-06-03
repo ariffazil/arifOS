@@ -1,7 +1,7 @@
 # Runbook — arifOS Federation
 
 > **Purpose**: Restart, verify, rollback, and **deploy** per organ without guesswork.
-> **Last updated**: 2026-05-29 by Kimi (Ω).
+> **Last updated**: 2026-06-03 by Kimi (Ω) — SOT sweep: ports, services, topology aligned to live state.
 > **Sovereign law**: `F1–F13` active at `/root` — all agents are governed.
 
 ---
@@ -10,27 +10,31 @@
 
 ```
 Bare-metal systemd (ports exposed via Caddy)
-├── arifOS MCP        → :8088   (ghcr.io/ariffazil/arifos:1c47649)
+├── arifOS MCP        → :8088   (constitutional kernel)
 ├── arifosd           → :18081  (constitutional daemon)
 ├── WEALTH            → :18082  (FastMCP monolith, 44 tools)
-├── WELL              → :18083  (Human readiness)
-├── GEOX MCP          → :8081   (Earth intelligence)
+├── WELL              → :18083  (human readiness)
+├── GEOX MCP          → :8081   (earth intelligence)
 ├── A-FORGE           → :7071   (TypeScript execution shell)
+├── AAA a2a           → :3001   (control plane / React cockpit)
 ├── Hermes ASI        → Telegram bot (@ASI_arifos_bot)
-├── Hermes A2A        → :3002   (A2A deliberative relay)
+├── Hermes A2A        → :18001  (A2A bridge)
 ├── OpenClaw GW       → :18789  (A2A mesh gateway)
+├── cn-organ          → :18790  (Continue CLI organ gateway)
+├── APEX Prime        → :3002   (888 JUDGE deliberative relay)
 ├── NATS              → :4222/:8222 (event bus + JetStream)
 ├── Prometheus        → :9090
 ├── Grafana           → :3000
 ├── Ollama            → :11434
 ├── Node Exporter     → :9100
 ├── Caddy             → :80/:443 (TLS reverse proxy)
+├── earlyoom          → —       (memory guardian)
 
 Docker (supporting services only)
 ├── postgres  → :5432  (vault999, Supabase pooler)
 ├── redis     → :6379  (session cache, federation memory broker)
 ├── qdrant    → :6333  (L3 semantic memory)
-├── graphiti-mcp → :8000 (L5 entity extraction)
+├── falkordb  → :8000  (L5 entity extraction / Graphiti backend)
 ├── temporal  → :7233  (workflow engine)
 └── temporal-ui → :8233
 ```
@@ -360,7 +364,7 @@ journalctl -u hermes-asi-gateway -n 10 --no-pager
 | Field | Value |
 |-------|-------|
 | Service | `hermes-a2a.service` |
-| Port | 3002 |
+| Port | 18001 |
 
 #### Restart
 ```bash
@@ -390,12 +394,42 @@ curl -s http://localhost:18789/.well-known/agent-card.json | python3 -m json.too
 
 ---
 
-### OpenClaw Agent Card Server
+### cn-organ (Continue CLI Gateway)
 
 | Field | Value |
 |-------|-------|
-| Service | `openclaw-agent-card.service` |
+| Service | `cn-organ.service` |
 | Port | 18790 |
+| Agent Card | `http://localhost:18790/.well-known/agent-card.json` |
+
+#### Restart
+```bash
+systemctl restart cn-organ
+```
+
+#### Verify
+```bash
+curl -s http://localhost:18790/health | python3 -m json.tool
+```
+
+---
+
+### APEX Prime (888 JUDGE)
+
+| Field | Value |
+|-------|-------|
+| Service | `apex-prime.service` |
+| Port | 3002 |
+
+#### Restart
+```bash
+systemctl restart apex-prime
+```
+
+#### Verify
+```bash
+curl -s http://localhost:3002/health | python3 -m json.tool
+```
 
 ---
 
@@ -409,7 +443,7 @@ Core federation is **bare-metal systemd**. Docker runs only supporting services:
 docker ps --format "{{.Names}}" | xargs -I{} docker restart {}
 
 # Individual
-docker restart graphiti-mcp
+docker restart falkordb
 docker restart postgres
 docker restart redis
 docker restart qdrant
@@ -430,7 +464,7 @@ docker exec redis redis-cli ping
 # qdrant
 curl -s http://localhost:6333/healthz
 
-# graphiti
+# falkordb (Graphiti L5 backend)
 curl -s http://localhost:8000/health
 
 # temporal
@@ -465,14 +499,26 @@ curl -s http://localhost:8081/health | python3 -c "import sys,json; d=json.load(
 echo "=== A-FORGE ==="
 curl -s http://localhost:7071/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d[\"ok\"]} | Service: {d[\"service\"]}')"
 
+echo "=== AAA a2a ==="
+curl -s http://localhost:3001/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")} | Vault: {d.get(\"vault\",\"?\")}')"
+
+echo "=== OpenClaw ==="
+curl -s http://localhost:18789/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")}')"
+
+echo "=== cn-organ ==="
+curl -s http://localhost:18790/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")}')"
+
+echo "=== APEX Prime ==="
+curl -s http://localhost:3002/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")}')"
+
+echo "=== Hermes A2A ==="
+curl -s http://localhost:18001/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")}')" || echo "Hermes A2A: no /health endpoint (A2A bridge)"
+
 echo "=== Prometheus ==="
 curl -s http://localhost:9090/api/v1/targets | python3 -c "import sys,json; d=json.load(sys.stdin); ups=[t for t in d['data']['activeTargets'] if t['health']=='up']; print(f'Up: {len(ups)}/6')"
 
 echo "=== NATS ==="
 nats -s localhost server info 2>/dev/null | head -5 || echo "NATS: FAIL"
-
-echo "=== OpenClaw ==="
-curl -s http://localhost:18789/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")}')"
 
 echo "=== Grafana ==="
 curl -s -o /dev/null -w "HTTP %{http_code}" http://localhost:3000/api/health
