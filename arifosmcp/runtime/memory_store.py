@@ -640,31 +640,52 @@ def store(
     except Exception as exc:
         logger.warning("Postgres dual-write skipped: %s", exc)
 
-    # --- L5 Graphiti forge (FEDERATION — fire-and-forget) -----------------
-    # Only fire if at least one durable leg succeeded. Graphiti enriches but
+    # --- L5 Sovereign Forge (FEDERATION — fire-and-forget) -----------------
+    # Only fire if at least one durable leg succeeded. L5 enriches but
     # is NOT a source of truth; failure here must not block the store result.
+    # Uses forge_l5_async() so the store() caller does NOT wait for
+    # qwen2.5:7b cold start (~120s on CPU). L5 lands in background.
     l5_status = "skipped"
     if qdrant_ok or pg_ok:
         try:
-            from arifosmcp.runtime.l5_graphiti_bridge import bridge_forge_episode
-
-            l5_result = bridge_forge_episode(
-                memory_id=memory_id,
-                content=text,
-                summary=payload.get("summary"),
-                session_id=session_id,
-                actor_id=actor_id,
-                tier=normalised_tier,
-                tags=tags,
-                l3_point_id=point_id,
-                l4_row_id=pg_memory_id,
-                phoenix_id=phoenix["phoenix_id"],
-                entity_tags=f4_result.entity_tags,
-                phoenix_state=phoenix.get("state"),
+            from arifosmcp.runtime.l5_sovereign_forge import (
+                bridge_forge_episode,
+                forge_l5_async,
             )
+
+            # Use async variant to keep L3+L4 fast path responsive
+            if _l5_async_enabled():
+                l5_result = forge_l5_async(
+                    memory_id=memory_id,
+                    content=text,
+                    summary=payload.get("summary"),
+                    session_id=session_id,
+                    actor_id=actor_id,
+                    tier=normalised_tier,
+                    tags=tags,
+                    l3_point_id=point_id,
+                    l4_row_id=pg_memory_id,
+                    content_hash=payload.get("content_hash"),
+                )
+            else:
+                # Back-compat: sync path (debugging only)
+                l5_result = bridge_forge_episode(
+                    memory_id=memory_id,
+                    content=text,
+                    summary=payload.get("summary"),
+                    session_id=session_id,
+                    actor_id=actor_id,
+                    tier=normalised_tier,
+                    tags=tags,
+                    l3_point_id=point_id,
+                    l4_row_id=pg_memory_id,
+                    phoenix_id=phoenix["phoenix_id"],
+                    entity_tags=f4_result.entity_tags,
+                    phoenix_state=phoenix.get("state"),
+                )
             l5_status = l5_result.get("status", "unknown")
         except Exception as exc:
-            logger.warning("L5 Graphiti forge skipped: %s", exc)
+            logger.warning("L5 sovereign forge skipped: %s", exc)
             l5_status = f"error:{type(exc).__name__}"
 
     # --- JSON index (search assist) ---
