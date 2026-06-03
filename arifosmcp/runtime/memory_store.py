@@ -654,7 +654,7 @@ def store(
     # Only fire if at least one durable leg succeeded. L5 enriches but
     # is NOT a source of truth; failure here must not block the store result.
     # Uses forge_l5_async() so the store() caller does NOT wait for
-    # qwen2.5:7b cold start (~120s on CPU). L5 lands in background.
+    # qwen2.5:3b cold start (~30-120s on CPU depending on load).
     l5_status = "skipped"
     if qdrant_ok or pg_ok:
         try:
