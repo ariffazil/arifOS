@@ -50,7 +50,9 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 _OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
-_EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3:latest")
+# F4 extraction uses a text-generation model (not an embedding model).
+# bge-m3 was incorrectly used here; it cannot generate coherent text.
+_EXTRACTION_MODEL = os.getenv("F4_EXTRACTION_MODEL", "qwen2.5:3b")
 _PG_URL = os.getenv(
     "ARIFOS_MEMORY_POSTGRES_URL",
     "postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999",
@@ -179,7 +181,7 @@ def _llm_extract(content: str) -> F4ExtractionResult | None:
         response = httpx.post(
             f"{_OLLAMA_URL}/api/generate",
             json={
-                "model": _EMBEDDING_MODEL,
+                "model": _EXTRACTION_MODEL,
                 "prompt": prompt,
                 "stream": False,
                 "options": {"temperature": 0.1, "num_predict": 1024},
@@ -218,7 +220,7 @@ def _llm_extract(content: str) -> F4ExtractionResult | None:
             contradiction_signals=contradiction_signals,
             extraction_metadata={
                 "extracted_at": _iso_now(),
-                "model_used": _EMBEDDING_MODEL,
+                "model_used": _EXTRACTION_MODEL,
                 "extraction_version": "1.0",
             },
             raw_llm_output=data,
