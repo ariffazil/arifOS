@@ -48,7 +48,7 @@ if os.path.exists(_env_path):
 
 _llm_client = sys.modules.get("arifosmcp.runtime.llm_client")
 if _llm_client is not None:
-    _llm_client.SEA_LION_API_KEY = os.getenv("SEA_LION_API_KEY")
+    _llm_client.SEA_LION_API_KEY = os.getenv("SEA_LION_API_KEY")  # pyright: ignore[reportAttributeAccessIssue]
 
 # Fix sys.path so arifOS packages resolve correctly inside Docker
 _apply_path_priority()
@@ -301,7 +301,7 @@ try:
 
     # Attach middleware to MCP server (FastMCP 3.x only)
     if IS_FASTMCP_3:
-        mcp.add_middleware(_ingress_middleware)
+        mcp.add_middleware(_ingress_middleware)  # pyright: ignore[reportArgumentType]
         logger.info("IngressToleranceMiddleware attached with envelope validation")
 
     # Refresh the public registry cache after all canonical tools are registered
@@ -315,7 +315,7 @@ try:
         import asyncio
         import json
 
-        from fastmcp.tools.base import TextContent, ToolResult
+        from fastmcp.tools.base import TextContent, ToolResult  # pyright: ignore[reportPrivateImportUsage]
         from fastmcp.tools.function_tool import FunctionTool
 
         from arifosmcp.runtime.federation_bridge import (
@@ -415,14 +415,12 @@ try:
                     parameters=schema.get("inputSchema", {"type": "object"}),
                     fn=proxy_fn,
                 )
-                lp.add_tool(ft)
+                lp.add_tool(ft)  # pyright: ignore[reportAttributeAccessIssue]
 
             logger.info(f"HTTP federation: {len(_REMOTE_TOOLS_HTTP)} proxy tools registered")
             # Update tool count for health endpoint (app is what register_rest_routes receives)
             total_tools = len(v2_tools_registered) + len(_REMOTE_TOOLS_HTTP)
-            mcp._tool_count = total_tools
-            if app:
-                app._tool_count = total_tools
+            mcp._tool_count = total_tools  # pyright: ignore[reportAttributeAccessIssue]
     except Exception as exc:
         logger.warning(f"HTTP federation bootstrap failed: {exc}")
 
@@ -666,7 +664,7 @@ async def mcp_health(request: Request) -> JSONResponse:
 app = mcp.http_app(transport="streamable-http", stateless_http=False, json_response=True)
 # Mirror federated tool count onto app for health endpoint (register_rest_routes receives app)
 if hasattr(mcp, "_tool_count"):
-    app._tool_count = mcp._tool_count
+    app._tool_count = mcp._tool_count  # pyright: ignore[reportAttributeAccessIssue]
 if app:
     # PHOENIX-73C FIX: stateless_http=False enables proper session management.
     # Each client gets its own session; no more GET_STREAM_KEY singleton conflict.
