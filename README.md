@@ -62,7 +62,7 @@ curl -X POST http://localhost:8088/mcp \
 
 ## 🛠️ Tool Surface
 
-> 13 canonical tools. Public MCP endpoint: `https://arifos.arif-fazil.com/mcp`
+> 13 canonical public tools (84 wired internally — see `/health` for live count). Public MCP endpoint: `https://arifos.arif-fazil.com/mcp`
 
 | # | Tool | Stage | Class | Floors | Role |
 |---|------|-------|-------|--------|------|
@@ -252,7 +252,7 @@ graph LR
 | Docker | `deploy/docker-compose.yml` |
 | Public MCP | `https://arifos.arif-fazil.com/mcp` |
 | Health | `https://arifos.arif-fazil.com/health` |
-| **Live deployment** | `af-forge` (72.62.71.199) · kanon `2a323ba` · release `v2026.05.05-SSCT` |
+| **Live deployment** | `af-forge` (72.62.71.199) · kanon `4b6220e` · release `v2026.05.05-SSCT` |
 
 > ✅ **MCP Concurrency (PHOENIX-73C):** Fixed — `stateless_http=False` enables per-client session management. Multiple concurrent SSE clients supported.
 
