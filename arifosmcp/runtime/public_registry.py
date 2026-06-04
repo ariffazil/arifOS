@@ -289,7 +289,7 @@ def _spec_for_name(name: str) -> Any:
             "input_schema",
             {"type": "object", "properties": {}, "additionalProperties": False},
         ),
-        output_schema=runtime_contract.get("output_schema", _tool_output_schema(name)),
+        output_schema=runtime_contract.get("output_schema") or _tool_output_schema(name),
         visibility="public",
         access=contract.get("access", "public"),
     )
