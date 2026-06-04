@@ -45,9 +45,9 @@ graph TD
 
     subgraph ORGANS ["Federation Organs"]
         FORGE["⚡ A-FORGE :7071<br/>Execution Engine"]
-        GEOX["🌍 GEOX :18081<br/>Earth Intelligence"]
+        GEOX["🌍 GEOX :8081<br/>Earth Intelligence"]
         WEALTH["💰 WEALTH :18082<br/>Capital Intelligence"]
-        WELL["🧬 WELL :18083<br/>Human Substrate (disabled)"]
+        WELL["🧬 WELL :18083<br/>Human Substrate (active)"]
         AAA["🎛️ AAA :80/443<br/>Control Plane"]
         APEX["⚖️ APEX :3002<br/>888 Judge Relay"]
     end
@@ -280,9 +280,9 @@ graph LR
     subgraph VPS ["af-forge  72.62.71.199"]
         A["⚙️ arifOS\n:8088"] 
         B["⚡ A-FORGE\n:7071"]
-        C["🌍 GEOX\n:18081"]
+        C["🌍 GEOX\n:8081"]
         D["💰 WEALTH\n:18082"]
-        E["🧬 WELL\n:18083\n(404 intentional)"]
+        E["🧬 WELL\n:18083\n(active)"]
         F["🎛️ AAA\n:80/443"]
         G["⚖️ APEX\n:3002"]
     end
@@ -315,11 +315,11 @@ graph LR
 | Surface | Detail |
 |---------|--------|
 | MCP Shell | `python -m arifosmcp.server` · port `8088` |
-| Systemd | `deploy/arifos.service` |
+| Systemd | `infrastructure/systemd/arifos.service` |
 | Docker | `deploy/docker-compose.yml` |
 | Public MCP | `https://arifos.arif-fazil.com/mcp` |
 | Health | `https://arifos.arif-fazil.com/health` |
-| **Live deployment** | `af-forge` (72.62.71.199) · kanon `fd719f2` · release `v2026.05.05-SSCT` |
+| **Live deployment** | `af-forge` (72.62.71.199) · kanon `2a323ba` · release `v2026.05.05-SSCT` |
 
 > ✅ **MCP Concurrency (PHOENIX-73C):** Fixed — `stateless_http=False` enables per-client session management. Multiple concurrent SSE clients supported.
 
@@ -369,14 +369,14 @@ ruff check . && mypy arifosmcp/
 | [`INVARIANTS.md`](INVARIANTS.md) | Hard constitutional invariants |
 | [`FEDERATION_STATUS.md`](FEDERATION_STATUS.md) | Live organ health |
 | [`docs/00_META/CONSTITUTION.md`](docs/00_META/CONSTITUTION.md) | Master constitution |
-| [`CONFIG/charter/kernel.charter.yaml`](CONFIG/charter/kernel.charter.yaml) | Kernel charter (SEALED) |
+| [`CONFIG/charter/kernel.charter.yaml`](config/charter/kernel.charter.yaml) | Kernel charter (SEALED) |
 | [`APEX/ASF1/tool_registry.json`](APEX/ASF1/tool_registry.json) | 69KB canonical tool registry |
 
 ---
 
 <div align="center">
 
-**arifOS** · Constitutional AI Kernel · AGPL-3.0 · release `v2026.05.26` · live `v2026.05.05-SSCT` (kanon-fd719f2)
+**arifOS** · Constitutional AI Kernel · AGPL-3.0 · release `v2026.05.26` · live `v2026.05.05-SSCT` (kanon-`2a323ba`)
 
 > **Version policy:** the release badge reflects the latest GitHub release. The live deployment on `af-forge` is `v2026.05.05-SSCT` — see `https://arifos.arif-fazil.com/health` for the canonical runtime version.
 
