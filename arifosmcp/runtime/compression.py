@@ -33,9 +33,16 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from core.shared.constitutional_ontology import (
-    RuntimeState,
-)
+try:
+    from core.shared.constitutional_ontology import RuntimeState
+except ModuleNotFoundError:
+    import sys
+    import os as _os
+
+    _parent = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+    if _parent not in sys.path:
+        sys.path.insert(0, _parent)
+    from core.shared.constitutional_ontology import RuntimeState
 
 
 class CompressionMode(Enum):

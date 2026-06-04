@@ -44,6 +44,7 @@ arifOS is a working prototype, not a finished product. The current limitations a
 - **G-score** (system elegance metric) runs at ~0.57, below the 0.80 target — functional but not polished
 - **No adversarial validation** — the system has not been stress-tested by people actively trying to break it
 - **Single operator** — the architecture is designed for federation, but currently runs under one sovereign
+- **Audit coverage incomplete** — 61 sealed verdicts against ~2,690 recorded outcomes (~2.3% sealing rate). The receipt pipeline exists but most actions leave raw log entries rather than cryptographically sealed records
 
 The gap between current state and the vision is not primarily a conceptual gap — the ideas hold up under review. It is a hardening and validation gap.
 
@@ -82,7 +83,7 @@ The **888 HOLD** is not a failure mode — it is the intended behaviour when sta
 | **WEALTH** | Capital intelligence | Financial governance, resource allocation |
 | **WELL** | Vitality intelligence | Human readiness, biological/operational health |
 
-These four organs together form the W@W Federation — AI subsystems that must reach consensus before consequential action.
+These four organs together form the W@W Federation. The architecture is designed so that no single organ can dominate — consensus across relevant organs is required before consequential decisions. (Note: cross-organ consensus is currently manual via human operator, not yet automated.)
 
 ### The Gödel Lock
 
