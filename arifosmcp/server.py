@@ -401,8 +401,11 @@ try:
             logger.info(
                 f"HTTP federation: {len(_REMOTE_TOOLS_HTTP)} proxy tools registered"
             )
-            # Update tool count for health endpoint
-            mcp._tool_count = len(v2_tools_registered) + len(_REMOTE_TOOLS_HTTP)
+            # Update tool count for health endpoint (app is what register_rest_routes receives)
+            total_tools = len(v2_tools_registered) + len(_REMOTE_TOOLS_HTTP)
+            mcp._tool_count = total_tools
+            if app:
+                app._tool_count = total_tools
     except Exception as exc:
         logger.warning(f"HTTP federation bootstrap failed: {exc}")
 
