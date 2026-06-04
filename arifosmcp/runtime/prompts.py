@@ -1,78 +1,52 @@
-# Fix the runtime/prompts.py stub to have proper V2_PROMPT_SPECS
+# Runtime prompt registry — must match arifosmcp.prompts.CANONICAL_PROMPTS
+# Auto-synced with prompts/__init__.py on 2026-06-04 (RSI upgrade)
 
 CANONICAL_PROMPTS = (
-    "arif_system",
-    "arif_judge",
-    "arif_init",
-    "888_deliberation",
-    "rsi",
-    "ortho",
-    "epistemic",
-    "governance",
-    "entropy",
+    "111_abstraction",
+    "222_attestation",
+    "333_abduction",
+    "444_orthogonal",
+    "555_generality",
 )
 
-# Proper prompt specs that public_registry.py expects
+# Prompt specs for public_registry.py introspection
 V2_PROMPT_SPECS = (
     {
-        "name": "arif_system",
-        "description": "Constitutional system context — arifOS F1-F13 governance floor",
+        "name": "111_abstraction",
+        "description": "111_ABSTRACTION — Reduce complexity to essential structure (SENSE stage). "
+        "6-level abstraction ladder, identity preservation, thermodynamic compression, F10 ontology.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "arif_judge",
-        "description": "888_JUDGE verdict engine context — deliberative decision protocol",
+        "name": "222_attestation",
+        "description": "222_ATTESTATION — Bind claims to evidence; escape the Gödel Lock (EVIDENCE stage). "
+        "8-step attestation chain, truth taxonomy, witness triad, F02/F03/F11/F12 compliance.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "arif_init",
-        "description": "000_INIT session anchor context — temporal + identity grounding",
+        "name": "333_abduction",
+        "description": "333_ABDUCTION — Generate and rank competing explanations (MIND stage). "
+        "7-step abduction cycle, N≥3 hypotheses, C_dark integration, active falsification.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "888_deliberation",
-        "description": "APEX deliberation ritual — prepares a sovereign judgment case",
+        "name": "444_orthogonal",
+        "description": "444_ORTHOGONAL — Transfer structure across unrelated domains (HEART stage). "
+        "7-step transfer protocol, Ω_ortho coefficient, cross-domain archetypes, F10 ontology guard.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "rsi",
-        "description": "Recursive Self-Improvement meta-skill — AGI reflection protocol",
-        "input_schema": {},
-        "default_tools": [],
-        "tool_choice": "auto",
-    },
-    {
-        "name": "ortho",
-        "description": "Orthogonal correction meta-skill — drift detection and correction",
-        "input_schema": {},
-        "default_tools": [],
-        "tool_choice": "auto",
-    },
-    {
-        "name": "epistemic",
-        "description": "Epistemic hygiene meta-skill — uncertainty and confidence framing",
-        "input_schema": {},
-        "default_tools": [],
-        "tool_choice": "auto",
-    },
-    {
-        "name": "governance",
-        "description": "Governance awareness meta-skill — constitutional floor context",
-        "input_schema": {},
-        "default_tools": [],
-        "tool_choice": "auto",
-    },
-    {
-        "name": "entropy",
-        "description": "Entropy management meta-skill — disorder detection and ordering",
+        "name": "555_generality",
+        "description": "555_GENERALITY — Universal principles; domain independence (ROUTE/MEMORY stage). "
+        "5-level generality ladder, 6 tests (domain/scale/time/adversary/inversion/minimality).",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
@@ -81,7 +55,7 @@ V2_PROMPT_SPECS = (
 
 
 def register_v2_prompts(mcp):
-    """Stub — delegate to register_prompts."""
+    """Delegate to canonical prompt registration."""
     from arifosmcp.prompts import register_prompts
 
     return register_prompts(mcp)
