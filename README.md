@@ -7,7 +7,7 @@
 [![CI](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml/badge.svg)](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/arifos?color=6e40c9&label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/arifos/)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://pypi.org/project/arifos/)
-[![Version](https://img.shields.io/badge/arifOS-v2026.05.26-8b5cf6?logo=github)](https://github.com/ariffazil/arifOS/releases)
+[![Version](https://img.shields.io/badge/arifOS-v2026.05.05--SSCT-8b5cf6?logo=github)](https://github.com/ariffazil/arifOS/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-ef4444?logo=gnu)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-13%20tools-10b981?logo=anthropic&logoColor=white)](https://arifos.arif-fazil.com/mcp)
 [![Floors](https://img.shields.io/badge/floors-F1–F13-f59e0b)](docs/00_META/CONSTITUTION.md)
@@ -19,6 +19,15 @@
 > No manipulation. No theorizing. Only F2 ground truth.
 
 [Quick Start](#-quick-start) · [13 Tools](#-tool-surface) · [13 Floors](#-constitutional-floors-f1f13) · [Architecture](#-architecture) · [Deploy](#-deployment)
+
+<!-- SOT-MANIFEST
+owner: Arif
+last_verified: 2026-06-04
+valid_from: 2026-06-04
+valid_until: 2026-09-04
+confidence: high
+scope: /root/arifOS
+-->
 
 </div>
 
