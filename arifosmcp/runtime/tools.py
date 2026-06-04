@@ -9234,6 +9234,15 @@ def _arif_ops_measure(
 
         # G_score: system health index (1.0 = perfect, 0.0 = dead)
         g_score = max(0.0, 1.0 - (cpu_val + mem_val + disk_val) / 300.0)
+        # G_SCORE regression gate — warn but don't block
+        if g_score < 0.80:
+            logger.warning(
+                "G_SCORE_BELOW_TARGET g_score=%.3f target=0.80 cpu=%.1f mem=%.1f disk=%.1f",
+                g_score,
+                cpu_val,
+                mem_val,
+                disk_val,
+            )
         # Omega: operational stability (inverse of entropy)
         omega = max(0.0, 1.0 - (cpu_val / 100.0) * 0.5)
         # Psi_LE: paradox tension (higher when resources are stressed)

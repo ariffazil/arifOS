@@ -228,24 +228,26 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
         blast_radius=BlastRadius.LOCAL,
         reversibility=ReversibilityLevel.HIGH,
     ),
-    # T3 MUTATE
+    # T1 OBSERVE — read-only routing (all modes: status/list/route are non-destructive)
     "arif_kernel_route": RiskPassport(
-        tier=RiskTier.T3,
-        action_class=ActionClass.MUTATE,
+        tier=RiskTier.T1,
+        action_class=ActionClass.OBSERVE,
         blast_radius=BlastRadius.ORG,
-        reversibility=ReversibilityLevel.MEDIUM,
+        reversibility=ReversibilityLevel.HIGH,
     ),
+    # T1 OBSERVE — bridge connection, no mutation
     "arif_gateway_connect": RiskPassport(
-        tier=RiskTier.T3,
-        action_class=ActionClass.MUTATE,
+        tier=RiskTier.T1,
+        action_class=ActionClass.OBSERVE,
         blast_radius=BlastRadius.ORG,
-        reversibility=ReversibilityLevel.MEDIUM,
+        reversibility=ReversibilityLevel.HIGH,
     ),
+    # T2 PREPARE — recall/list/get are read-only; store writes but is gated separately
     "arif_memory_recall": RiskPassport(
-        tier=RiskTier.T3,
-        action_class=ActionClass.MUTATE,
+        tier=RiskTier.T2,
+        action_class=ActionClass.PREPARE,
         blast_radius=BlastRadius.ACCOUNT,
-        reversibility=ReversibilityLevel.MEDIUM,
+        reversibility=ReversibilityLevel.HIGH,
     ),
     # T2 PREPARE
     "arif_mind_reason": RiskPassport(

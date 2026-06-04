@@ -161,53 +161,76 @@ class StatelessGetRejectMiddleware(BaseHTTPMiddleware):
 
 
 # ─── Deployment Identity ─────────────────────────────────────────────────────
-def _get_git_info() -> tuple[str, str, str]:
-    import subprocess  # nosec B404
+def _resolve_git_commit() -> str:
+    """Resolve canonical git commit with same priority chain as build.py:_git_sha_short.
 
-    commit = os.environ.get("DEPLOY_GIT_COMMIT", "").strip()
-    branch = os.environ.get("DEPLOY_GIT_BRANCH", "").strip()
-    build_time = os.environ.get("DEPLOY_BUILD_TIME", "").strip()
-    if commit:
-        return commit, branch, build_time
+    Priority: 1) bare-metal stamp  2) env vars  3) .git/HEAD  4) subprocess git
+    This fixes the 'kanon-unknown' defect where the FastMCP serverInfo.version
+    was unbound because subprocess git rev-parse fails when CWD is not a git repo.
+    """
+    # 1. Bare-metal deployment stamp (written by deploy scripts)
+    _stamp_path = "/opt/arifos/app/.git_commit"
+    if os.path.exists(_stamp_path):
+        try:
+            with open(_stamp_path) as f:
+                content = f.read().strip()
+                if len(content) >= 7:
+                    return content[:7]
+        except Exception:
+            pass
+    # 2. Environment variables
+    for _key in ("DEPLOY_GIT_COMMIT", "ARIFOS_BUILD_SHA", "GIT_SHA", "GIT_COMMIT"):
+        _val = os.environ.get(_key, "").strip()
+        if _val and _val not in ("unknown", ""):
+            return _val[:7]
+    # 3. Read .git/HEAD from canonical repo
+    for _git_dir in ("/root/arifOS/.git", "/app/.git"):
+        try:
+            _head = os.path.join(_git_dir, "HEAD")
+            if os.path.exists(_head):
+                with open(_head) as _f:
+                    _content = _f.read().strip()
+                if _content.startswith("ref: refs/heads/"):
+                    _branch = _content.split("ref: refs/heads/", 1)[1].strip()
+                    _ref = os.path.join(_git_dir, "refs", "heads", _branch)
+                    if os.path.exists(_ref):
+                        with open(_ref) as _f:
+                            return _f.read().strip()[:7]
+                elif len(_content) >= 7:
+                    return _content[:7]
+        except Exception:
+            pass
+    # 4. Subprocess git (legacy fallback — works only if CWD is git repo)
     try:
-        cwd = os.path.dirname(os.path.abspath(__file__))
-        commit = (
-            subprocess.check_output(  # nosec
-                ["git", "describe", "--always", "--long"],
+        import subprocess  # nosec B404
+
+        return (
+            subprocess.check_output(
+                ["git", "rev-parse", "--short", "HEAD"],
                 stderr=subprocess.DEVNULL,
-                cwd=cwd,
+                cwd="/root/arifOS",
             )
             .decode()
-            .strip()
+            .strip()[:7]
         )
-        branch = (
-            subprocess.check_output(  # nosec
-                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                stderr=subprocess.DEVNULL,
-                cwd=cwd,
-            )
-            .decode()
-            .strip()
-        )
-        build_time = (
-            subprocess.check_output(  # nosec
-                ["git", "log", "-1", "--format=%ci"], stderr=subprocess.DEVNULL, cwd=cwd
-            )
-            .decode()
-            .strip()
-        )
-        return commit, branch, build_time
     except Exception:
-        return "unknown", "unknown", "unknown"
+        return "unknown"
 
 
-_DEPLOY_GIT_COMMIT, _DEPLOY_GIT_BRANCH, _DEPLOY_BUILD_TIME = _get_git_info()
-_DEPLOY_VERSION = f"kanon-{_DEPLOY_GIT_COMMIT}"
+from datetime import datetime, timezone  # noqa: E402
+
+_DEPLOY_GIT_COMMIT = _resolve_git_commit()
+_DEPLOY_BUILD_DATE = datetime.now(timezone.utc).strftime("%Y.%m.%d")
+_DEPLOY_VERSION = (
+    f"kanon-{_DEPLOY_BUILD_DATE}+{_DEPLOY_GIT_COMMIT}"
+    if _DEPLOY_GIT_COMMIT != "unknown"
+    else f"kanon-{_DEPLOY_BUILD_DATE}"
+)
 
 
 mcp = FastMCP(
     "ARIFOS MCP",
-    version=f"kanon-{_DEPLOY_GIT_COMMIT}",
+    version=_DEPLOY_VERSION,
     website_url="https://arifosmcp.arif-fazil.com",
     instructions=(
         "Constitutional AI orchestration kernel — arifOS.\n\n"
@@ -318,13 +341,9 @@ try:
                             "organ": organ_name,
                             "schema": tool,
                         }
-                    logger.info(
-                        f"HTTP federation: discovered {len(tools)} tools from {organ_name}"
-                    )
+                    logger.info(f"HTTP federation: discovered {len(tools)} tools from {organ_name}")
                 except Exception as exc:
-                    logger.warning(
-                        f"HTTP federation: {organ_name} discovery failed: {exc}"
-                    )
+                    logger.warning(f"HTTP federation: {organ_name} discovery failed: {exc}")
 
             await asyncio.gather(
                 _load_organ(list_wealth_tools, "WEALTH"),
@@ -398,9 +417,7 @@ try:
                 )
                 lp.add_tool(ft)
 
-            logger.info(
-                f"HTTP federation: {len(_REMOTE_TOOLS_HTTP)} proxy tools registered"
-            )
+            logger.info(f"HTTP federation: {len(_REMOTE_TOOLS_HTTP)} proxy tools registered")
             # Update tool count for health endpoint (app is what register_rest_routes receives)
             total_tools = len(v2_tools_registered) + len(_REMOTE_TOOLS_HTTP)
             mcp._tool_count = total_tools
@@ -630,6 +647,22 @@ async def federation_status_json(request: Request) -> JSONResponse:
     return JSONResponse({"status": "ok"})
 
 
+async def mcp_health(request: Request) -> JSONResponse:
+    """GET /mcp/health — liveness probe for MCP endpoint.
+
+    Returns 200 with status and timestamp. No auth required.
+    This is a lightweight probe, not a full tool call.
+    Use arif_ops_measure(mode='health') for the thermodynamic health check.
+    """
+    return JSONResponse(
+        {
+            "status": "healthy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "version": _DEPLOY_VERSION,
+        }
+    )
+
+
 app = mcp.http_app(transport="streamable-http", stateless_http=False, json_response=True)
 # Mirror federated tool count onto app for health endpoint (register_rest_routes receives app)
 if hasattr(mcp, "_tool_count"):
@@ -642,6 +675,7 @@ if app:
     app.add_middleware(CORSMiddleware, allow_origins=["*"])
     # /health is registered by register_rest_routes() below with full thermodynamic schema
     app.add_route("/ready", horizon_ready, methods=["GET"])
+    app.add_route("/mcp/health", mcp_health, methods=["GET"])
     app.add_route("/metadata", horizon_metadata, methods=["GET"])
     app.add_route("/tools", tools_with_meta, methods=["GET"])
     app.add_route("/status.json", federation_status_json, methods=["GET"])
