@@ -407,7 +407,43 @@ def _constitutional_gate(
     All tools call this before executing. If the core returns non-SEAL,
     the tool must return the constitutional HOLD/VOID response immediately.
     Returns None if the action is authorized (SEAL).
+
+    RSI HARDENING (2026-06-04): F13 SOVEREIGN gate — irreversible actions on
+    Tier 3 tools require sovereign session authorization (not just a boolean).
     """
+    # ═══════════════════════════════════════════════════════════════════════════
+    # F13 SOVEREIGN — Irreversible Action Gate (RSI HARDENING)
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Previously: ack_irreversible was just a boolean any agent could set True.
+    # Now: Tier 3 tools require sovereign session authorization.
+    # A session is "sovereign" if actor_id matches the sovereign identity AND
+    # the session has passed identity verification.
+    _TIER_3_IRREVERSIBLE_TOOLS: frozenset[str] = frozenset(
+        {
+            "arif_forge_execute",
+            "arif_vault_seal",
+        }
+    )
+    if tool_name in _TIER_3_IRREVERSIBLE_TOOLS and ack_irreversible:
+        sess = _SESSIONS.get(session_id) if session_id else None
+        authority = sess.get("authority_level", "anonymous") if sess else "anonymous"
+        identity_verified = sess.get("identity_verified", False) if sess else False
+
+        if authority != "sovereign" or not identity_verified:
+            return _hold(
+                tool_name,
+                "F13 SOVEREIGN: Irreversible action requires sovereign session authorization. "
+                f"Current session authority={authority}, identity_verified={identity_verified}. "
+                "Re-initiate session with sovereign credentials.",
+                ["F13"],
+                session_id=session_id,
+                extra_meta={
+                    "event_type": "f13_sovereign_block",
+                    "severity": "critical",
+                },
+            )
+    # ═══════════════════════════════════════════════════════════════════════════
+
     # H2: Build unified session registry from ephemeral + persistent stores
     _unified_session_registry = set(_SESSIONS.keys())
     try:
@@ -1179,12 +1215,43 @@ def get_sesat_counter() -> int:
 
 # ─── MIND Synthesis Helpers ───────────────────────────────────────────────────
 
+# RSI HARDENING (2026-06-04): Multi-turn injection risk accumulator.
+# Tracks cumulative F12 injection risk per session across multiple turns.
+# Single-turn regex catches explicit attacks; this accumulator catches
+# slow-build injection across multiple messages.
+_INJECTION_RISK: dict[str, float] = {}  # session_id → cumulative risk score
 
-def _constitutional_reasoning_scan(query: str | None) -> dict[str, Any]:
+
+def _accumulate_injection_risk(session_id: str | None, score: float, source: str) -> None:
+    """Accumulate injection risk score for a session across multiple turns."""
+    if not session_id:
+        return
+    current = _INJECTION_RISK.get(session_id, 0.0)
+    _INJECTION_RISK[session_id] = min(current + score, 3.0)
+
+
+def _get_injection_risk(session_id: str | None) -> float:
+    """Get cumulative injection risk for a session."""
+    if not session_id:
+        return 0.0
+    return _INJECTION_RISK.get(session_id, 0.0)
+
+
+def _constitutional_reasoning_scan(
+    query: str | None,
+    session_id: str | None = None,
+) -> dict[str, Any]:
     """
-    Deterministic constitutional breach scan for MIND reason mode.
-    No LLM required — pattern-matches known adversarial and floor-violation
-    signatures from P0 breach test suite. Returns a breach report or clean.
+    Constitutional breach scan for MIND reason mode.
+
+    RSI HARDENING (2026-06-04): Upgraded from regex-only to three-layer detection:
+      L1 — Fast regex patterns (catches explicit attacks)
+      L2 — Semantic keyword escalation (flags suspicious but non-exact matches)
+      L3 — Multi-turn risk accumulation (tracks injection risk across session)
+
+    Previously: 100% regex-based, trivially bypassed by rephrasing.
+    Now: L1 fast-path catches explicit attacks, L2 escalates semantic patterns
+    that regex misses, L3 accumulates injection risk across multiple turns.
     """
     if not query:
         return {"breach_detected": False}
@@ -1193,6 +1260,11 @@ def _constitutional_reasoning_scan(query: str | None) -> dict[str, Any]:
     violations: list[str] = []
     failed_floors: list[str] = []
     verdict: str | None = None
+    l2_flags: list[str] = []  # L2 semantic escalation flags
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # L1: FAST REGEX PATTERNS — explicit attack detection
+    # ═══════════════════════════════════════════════════════════════════════════
 
     # ══ F1 AMANAH — irreversible destruction ══
     f1_triggers = [
@@ -1210,6 +1282,33 @@ def _constitutional_reasoning_scan(query: str | None) -> dict[str, Any]:
         violations.append("F1: Destructive operation detected without irreversibility ack")
         failed_floors.append("F01")
         verdict = "HOLD"
+
+    # ══ F1 L2: Semantic escalation — destructive intent without exact regex match ══
+    # Catches rephrased attacks that bypass L1: "remove all files", "wipe the disk", etc.
+    _destructive_semantic = [
+        ("remove" in q or "delete" in q or "wipe" in q or "erase" in q or "purge" in q)
+        and ("all" in q or "everything" in q or "recursive" in q or "entire" in q or "whole" in q)
+        and ("file" in q or "disk" in q or "directory" in q or "system" in q or "data" in q),
+        ("destroy" in q or "nuke" in q or "obliterate" in q)
+        and ("system" in q or "server" in q or "machine" in q or "vps" in q),
+        ("format" in q and ("disk" in q or "drive" in q or "partition" in q)),
+        ("truncate" in q and ("table" in q or "database" in q)),
+        ("unlink" in q and ("all" in q or "recursive" in q)),
+        (
+            "kill" in q
+            and ("-9" in q or "sigkill" in q)
+            and ("process" in q or "pid" in q or "service" in q)
+        ),
+        ("overwrite" in q and ("boot" in q or "mbr" in q or "partition" in q)),
+    ]
+    if any(_destructive_semantic):
+        l2_flags.append(
+            "F1_semantic: Destructive intent detected in query semantics (L2 escalation)"
+        )
+        if "F01" not in failed_floors:
+            failed_floors.append("F01")
+            violations.append("F1: Potential destructive operation — semantic escalation (L2)")
+            verdict = "HOLD" if verdict != "VOID" else verdict
 
     # ══ F2 TRUTH — false certainty / fabricated claims ══
     f2_triggers = [
@@ -1283,8 +1382,13 @@ def _constitutional_reasoning_scan(query: str | None) -> dict[str, Any]:
         else:
             verdict = "VOID" if verdict != "HOLD" else verdict
 
-    # ══ F12 INJECTION — prompt injection / jailbreak ══
+    # ══ F12 INJECTION — prompt injection / jailbreak (L1 + L2 + multi-turn) ══
     # Checked BEFORE F11 so injection patterns take precedence over auth patterns
+    # RSI HARDENING (2026-06-04): Added L2 semantic + multi-turn risk accumulation.
+    # Single-turn regex catches explicit attacks; L2 catches rephrased variants;
+    # multi-turn accumulator flags cumulative injection patterns across a session.
+
+    # ── L1: Explicit injection patterns ──
     f12_triggers = [
         "ignore previous instructions" in q,
         "ignore all previous instructions" in q,
@@ -1303,6 +1407,51 @@ def _constitutional_reasoning_scan(query: str | None) -> dict[str, Any]:
         violations.append("F12: Injection / jailbreak pattern detected")
         failed_floors.append("F12")
         verdict = "VOID" if verdict != "HOLD" else verdict
+        # Record injection event in session accumulator
+        _accumulate_injection_risk(session_id, 1.0, "L1_explicit")
+
+    # ── L2: Semantic injection patterns (rephrased bypass attempts) ──
+    _injection_semantic = [
+        ("forget" in q or "disregard" in q or "override" in q)
+        and ("previous" in q or "above" in q or "earlier" in q or "all" in q)
+        and (
+            "instruction" in q or "rule" in q or "directive" in q or "command" in q or "prompt" in q
+        ),
+        (
+            "you are now" in q
+            and ("god" in q or "admin" in q or "root" in q or "owner" in q or "sovereign" in q)
+        ),
+        ("pretend" in q and ("you are" in q or "to be" in q))
+        and ("no rules" in q or "no restrictions" in q or "free" in q),
+        ("new system prompt" in q or "system message override" in q),
+        (
+            "roleplay" in q
+            and ("unrestricted" in q or "no filter" in q or "evil" in q or "malicious" in q)
+        ),
+        ("decode" in q and ("base64" in q or "hex" in q))
+        and ("instruction" in q or "command" in q or "prompt" in q),
+    ]
+    if any(_injection_semantic):
+        l2_flags.append("F12_semantic: Potential injection rephrasing detected (L2 escalation)")
+        _accumulate_injection_risk(session_id, 0.6, "L2_semantic")
+        if "F12" not in failed_floors:
+            failed_floors.append("F12")
+            violations.append("F12: Potential prompt injection — semantic escalation (L2)")
+            verdict = "SABAR" if verdict is None else verdict
+
+    # ── L3: Multi-turn risk accumulator ──
+    if session_id:
+        cumulative_risk = _get_injection_risk(session_id)
+        if cumulative_risk >= 1.5:
+            violations.append(
+                f"F12: Cumulative injection risk {cumulative_risk:.1f}/3.0 across session — VOID"
+            )
+            failed_floors.append("F12")
+            verdict = "VOID" if verdict != "HOLD" else verdict
+        elif cumulative_risk >= 0.8:
+            l2_flags.append(
+                f"F12_cumulative: Injection risk accumulating ({cumulative_risk:.1f}/3.0)"
+            )
 
     # ══ F11 AUTH — unauthorized mutation ══
     f11_triggers = [
@@ -1314,25 +1463,10 @@ def _constitutional_reasoning_scan(query: str | None) -> dict[str, Any]:
     if any(f11_triggers):
         violations.append("F11: Auth violation — state-mutating operation without audit trail")
         failed_floors.append("F11")
-        # Upgrade to VOID if audit is explicitly disabled
         if "audit log: disabled" in q or "audit disabled" in q:
             verdict = "VOID" if verdict != "HOLD" else verdict
         else:
             verdict = "HOLD" if verdict is None else verdict
-    f12_triggers = [
-        "ignore previous instructions" in q,
-        "ignore all previous instructions" in q,
-        "jailbreak" in q,
-        "developer mode" in q,
-        "do anything now" in q,
-        "dan" in q and "not bound" in q,
-        "authority escalation" in q,
-        "super_admin" in q,
-        "override code" in q,
-        "floors are disabled" in q,
-        "bypass governance" in q,
-        "[begin system message]" in q,
-    ]
     if any(f12_triggers):
         violations.append("F12: Injection / jailbreak pattern detected")
         failed_floors.append("F12")
