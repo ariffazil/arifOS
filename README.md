@@ -35,83 +35,7 @@ scope: /root/arifOS
 
 ## 🗺️ Architecture
 
-### Federation Map
-
-```mermaid
-graph TD
-    ARIF["👤 Arif Fazil<br/><i>Sovereign — F13</i>"]
-
-    subgraph KERNEL ["⚙️ arifOS  :8088  (this repo)"]
-        direction TB
-        MCP["MCP Shell<br/>13 canonical tools"]
-        FLOORS["F1–F13 Floors"]
-        VAULT["VAULT999 Ledger"]
-        JUDGE["888_JUDGE Gate"]
-        MCP --> FLOORS
-        FLOORS --> JUDGE
-        JUDGE --> VAULT
-    end
-
-    subgraph ORGANS ["Federation Organs"]
-        FORGE["⚡ A-FORGE :7071<br/>Execution Engine"]
-        GEOX["🌍 GEOX :8081<br/>Earth Intelligence"]
-        WEALTH["💰 WEALTH :18082<br/>Capital Intelligence"]
-        WELL["🧬 WELL :18083<br/>Human Substrate (active)"]
-        AAA["🎛️ AAA :80/443<br/>Control Plane"]
-        APEX["⚖️ APEX :3002<br/>888 Judge Relay"]
-    end
-
-    ARIF -->|"veto · sovereign"| KERNEL
-    KERNEL -->|"route · govern"| FORGE
-    KERNEL -->|"evidence"| GEOX
-    KERNEL -->|"capital"| WEALTH
-    KERNEL -->|"vitality"| WELL
-    AAA -->|"A2A mesh"| KERNEL
-    APEX -->|"deliberation"| JUDGE
-
-    style KERNEL fill:#1e1b4b,stroke:#6d28d9,color:#e9d5ff
-    style ARIF fill:#7c3aed,stroke:#6d28d9,color:#fff
-    style ORGANS fill:#0f172a,stroke:#334155,color:#94a3b8
-```
-
-### Metabolic Pipeline (000 → 999)
-
-```mermaid
-flowchart LR
-    I000["🔑 000\nINIT"]
-    I111["👁️ 111\nSENSE"]
-    I333["🧠 333\nMIND"]
-    I444["🔀 444\nKERNEL"]
-    I555["🗃️ 555\nMEMORY"]
-    I666["❤️ 666\nHEART"]
-    I777["📊 777\nOPS"]
-    I888["⚖️ 888\nJUDGE"]
-    I999["🔒 999\nSEAL"]
-
-    I000 --> I111 --> I333 --> I444 --> I555 --> I666 --> I777 --> I888 --> I999
-
-    style I000 fill:#0f172a,stroke:#6d28d9,color:#e2e8f0
-    style I888 fill:#7c3aed,stroke:#6d28d9,color:#fff
-    style I999 fill:#065f46,stroke:#10b981,color:#d1fae5
-```
-
-### Trinity ΔΩΨ
-
-```mermaid
-graph LR
-    D["Δ DELTA<br/><b>SOUL</b><br/>Human intent · values · purpose"]
-    O["Ω OMEGA<br/><b>MIND</b><br/>Constitutional law · invariants"]
-    P["Ψ PSI<br/><b>BODY</b><br/>Machine execution · tools"]
-
-    D <-->|"W ≥ 0.95"| O
-    O <-->|"W ≥ 0.95"| P
-    P <-->|"W ≥ 0.95"| D
-
-    style D fill:#7c3aed,stroke:#6d28d9,color:#fff
-    style O fill:#1d4ed8,stroke:#1e40af,color:#fff
-    style P fill:#065f46,stroke:#10b981,color:#d1fae5
-```
-
+#
 ---
 
 ## ⚡ Quick Start
@@ -391,9 +315,35 @@ ruff check . && mypy arifosmcp/
 
 *Designed and maintained by [Muhammad Arif Fazil](https://arif-fazil.com) — Senior Exploration Geoscientist.*
 *Proof over philosophy. Architecture performed, not theorized.*
-
-**DITEMPA BUKAN DIBERI** · `999_SEAL ALIVE`
+ · `999_SEAL ALIVE`
 
 </div>
 
 <!-- Steel Forge Validation Cycle - Phase 4 complete -->
+
+## 🏛️ Federation
+
+| Organ | Repository | Role | Port |
+|-------|-----------|------|------|
+| **arifOS** | [ariffazil/arifOS](https://github.com/ariffazil/arifOS) | Constitutional Kernel · F1-F13 | 8088 |
+| **AAA** | [ariffazil/AAA](https://github.com/ariffazil/AAA) | Reality Console · A2A Gateway | 3001 |
+| **A-FORGE** | [ariffazil/A-FORGE](https://github.com/ariffazil/A-FORGE) | Execution Shell | 7071 |
+| **GEOX** | [ariffazil/geox](https://github.com/ariffazil/geox) | Earth Intelligence | 8081 |
+| **WEALTH** | [ariffazil/wealth](https://github.com/ariffazil/wealth) | Capital Intelligence | 18082 |
+| **WELL** | [ariffazil/well](https://github.com/ariffazil/well) | Human Readiness | 18083 |
+| **arif-sites** | [ariffazil/arif-sites](https://github.com/ariffazil/arif-sites) | Public Surfaces | 443 |
+
+> **Constitutional authority:** F1-F13 floors, 888_JUDGE, and VAULT999 live in `ariffazil/arifOS`.  
+> **Live federation status:** See `ariffazil/arifOS/FEDERATION_STATUS.md`.
+## 📄 Contributing
+
+This repository operates under the arifOS Federation constitution (F1–F13).  
+See [AGENTS.md](AGENTS.md) for the canonical boot sequence and agent operating rules.
+
+## 📜 License
+
+AGPL-3.0. See [LICENSE](LICENSE).
+
+---
+
+**DITEMPA BUKAN DIBERI** — Forged, Not Given.
