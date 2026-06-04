@@ -233,6 +233,20 @@ def _tool_output_schema(name: str) -> dict[str, Any]:
             "nine_signal": _NINE_SIGNAL_SCHEMA,
             "reasons": {"type": "array", "items": {"type": "string"}},
             "philosophical_anchor": {"type": "object", "additionalProperties": True},
+            "stage_progression": {
+                "anyOf": [
+                    {"type": "null"},
+                    {
+                        "type": "object",
+                        "properties": {
+                            "current_stage": {"type": "string"},
+                            "next_stage": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+                            "next_tool": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+                            "next_prompt": {"anyOf": [{"type": "string"}, {"type": "null"}]},
+                        },
+                    },
+                ],
+            },
         },
         "required": [
             "status",

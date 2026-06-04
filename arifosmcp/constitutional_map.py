@@ -77,6 +77,30 @@ class ToolStage(StrEnum):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# STAGE PROGRESSION — Golden Path auto-chaining
+# ═══════════════════════════════════════════════════════════════════════════════
+# After each stage completes with SEAL verdict, agents can auto-load the next
+# stage's tool and prompt. HOLD/SABAR/VOID verdicts nullify progression.
+# 999_SEAL is terminal — no next stage.
+
+STAGE_PROGRESSION: dict[str, dict[str, str | None]] = {
+    "000": {"next": "111", "tool": "arif_sense_observe", "prompt": "111_agi"},
+    "111": {"next": "222", "tool": "arif_evidence_fetch", "prompt": None},
+    "222": {"next": "333", "tool": "arif_mind_reason", "prompt": None},
+    "333": {"next": "444", "tool": "arif_heart_critique", "prompt": "444_asi"},
+    "444": {"next": "444r", "tool": "arif_reply_compose", "prompt": None},
+    "444r": {"next": "555", "tool": "arif_kernel_route", "prompt": None},
+    "555": {"next": "666", "tool": "arif_forge_execute", "prompt": None},
+    "555m": {"next": "666", "tool": "arif_forge_execute", "prompt": None},
+    "666": {"next": "777", "tool": "arif_ops_measure", "prompt": None},
+    "666g": {"next": "777", "tool": "arif_ops_measure", "prompt": None},
+    "777": {"next": "888", "tool": "arif_judge_deliberate", "prompt": "888_apex"},
+    "888": {"next": "999", "tool": "arif_vault_seal", "prompt": "999_seal"},
+    "999": {"next": None, "tool": None, "prompt": None},
+}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # RISK CLASSIFICATION TIER (C0–C5) — Right-sized governance mapper
 # Derived from LLM_INVARIANTS_SEAL_v2026.05.05 / Agent Kernel Paradox
 #

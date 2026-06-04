@@ -56,9 +56,49 @@ def _lock_exclusive(handle: Any) -> None:
 
 
 def _unlock(handle: Any) -> None:
-    if fcntl is None:
-        return
-    fcntl.flock(handle, fcntl.LOCK_UN)
+    try:
+        handle.release()
+    except Exception:
+        pass
+
+
+def _compute_stage_progression(tool_name: str, verdict: str) -> dict[str, Any] | None:
+    """Compute the next stage, tool, and prompt for golden path auto-chaining.
+
+    Returns None when:
+    - Verdict is HOLD, SABAR, or VOID (pause required — don't auto-chain through danger)
+    - Tool is not in CANONICAL_TOOLS
+    - Stage is not in STAGE_PROGRESSION
+    - Stage is 999 (SEAL — terminal, no next stage)
+    """
+    if verdict not in ("SEAL", "OK", "DRY_RUN"):
+        return None
+
+    tool_spec = CANONICAL_TOOLS.get(tool_name)
+    if not tool_spec:
+        return None
+
+    stage = tool_spec.get("stage")
+    if not stage:
+        return None
+
+    # Handle StrEnum values — get the string representation
+    stage_str = stage.value if hasattr(stage, "value") else str(stage)
+
+    progression = STAGE_PROGRESSION.get(stage_str)
+    if not progression:
+        return None
+
+    next_stage = progression.get("next")
+    if not next_stage:
+        return None  # Terminal stage (999_SEAL)
+
+    return {
+        "current_stage": stage_str,
+        "next_stage": next_stage,
+        "next_tool": progression.get("tool"),
+        "next_prompt": progression.get("prompt"),
+    }
 
 
 from fastmcp import Context, FastMCP
@@ -72,6 +112,7 @@ from pydantic import BaseModel, Field
 
 from arifosmcp.constitutional_map import (
     CANONICAL_TOOLS,
+    STAGE_PROGRESSION,
     validate_tool_response_schema,
 )
 from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_budget
@@ -1014,6 +1055,7 @@ def _enforce_nine_signal(
                 ),
                 "nine_signal": nine,
                 "reasons": reasons,
+                "stage_progression": _compute_stage_progression(tool_name, verdict),
             }
         )
         return out
