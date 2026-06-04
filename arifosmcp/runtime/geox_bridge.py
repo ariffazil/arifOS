@@ -28,8 +28,8 @@ logger = logging.getLogger("arifosmcp.geox_bridge")
 
 # Bare-metal: use localhost. Docker: override via GEOX_BRIDGE_HOST env var.
 GEOX_HOST = os.getenv("GEOX_BRIDGE_HOST", "localhost")
-# Bare-metal: 18081 (arifosd). Docker: 8081 (geox_eic container).
-GEOX_PORT = int(os.getenv("GEOX_BRIDGE_PORT", "18081"))
+# GEOX runs on port 8081 (bare-metal systemd).
+GEOX_PORT = int(os.getenv("GEOX_BRIDGE_PORT", "8081"))
 GEOX_BASE = f"http://{GEOX_HOST}:{GEOX_PORT}"
 
 

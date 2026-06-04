@@ -170,11 +170,65 @@ def _run_minimal_stdio_server() -> None:
     from .tools import CANONICAL_TOOL_HANDLERS
     from .dispatcher import get_tool_handler  # type: ignore[import]
 
+    # Phase 2 — Federation bridge imports
+    from .federation_bridge import (
+        call_wealth_tool,
+        call_well_tool,
+        list_wealth_tools,
+        list_well_tools,
+    )
+    from .geox_bridge import call_geox_tool, list_geox_tools
+
     # FastMCP instance for resources + prompts (all three surfaces)
     _mcp: FastMCPT = create_aaa_mcp_server()  # type: ignore[assignment]
 
     # Persistent event loop — shared across all async bridge calls (resources/prompts)
     _async_loop = asyncio.new_event_loop()
+
+    # ── Federation surface: discover remote tools (Phase 2) ────────────────
+    async def _discover_remote_tools() -> dict[str, dict[str, Any]]:
+        _remote_tools: dict[str, dict[str, Any]] = {}
+
+        async def _load_organ(list_fn, organ_name: str) -> None:
+            try:
+                tools = await list_fn()
+                for tool in tools:
+                    name = tool.get("name", "")
+                    if not name:
+                        continue
+                    _remote_tools[name] = {
+                        "organ": organ_name,
+                        "schema": {
+                            "name": name,
+                            "description": tool.get("description", ""),
+                            "inputSchema": tool.get(
+                                "inputSchema",
+                                {
+                                    "type": "object",
+                                    "properties": {},
+                                    "additionalProperties": True,
+                                },
+                            ),
+                        },
+                    }
+                logging.getLogger("arifosmcp").info(
+                    f"Federation surface: discovered {len(tools)} tools from {organ_name}"
+                )
+            except Exception as exc:
+                logging.getLogger("arifosmcp").warning(
+                    f"Federation surface: {organ_name} discovery failed: {exc}"
+                )
+
+        await asyncio.gather(
+            _load_organ(list_wealth_tools, "WEALTH"),
+            _load_organ(list_well_tools, "WELL"),
+            _load_organ(list_geox_tools, "GEOX"),
+        )
+        return _remote_tools
+
+    _remote_tools: dict[str, dict[str, Any]] = _async_loop.run_until_complete(
+        _discover_remote_tools()
+    )
 
     # tool_handlers uses arif_* names (CANONICAL_TOOL_HANDLERS keys)
     tool_handlers: dict[str, Any] = CANONICAL_TOOL_HANDLERS.copy()
@@ -484,11 +538,13 @@ def _run_minimal_stdio_server() -> None:
 
         # ── tools/list ───────────────────────────────────────────────────────
         if method == "tools/list":
+            local_tools = [tool_descriptor(name) for name in tool_handlers]
+            remote_tools = [rt["schema"] for rt in _remote_tools.values()]
             send(
                 {
                     "jsonrpc": "2.0",
                     "id": request_id,
-                    "result": {"tools": [tool_descriptor(name) for name in tool_handlers]},
+                    "result": {"tools": local_tools + remote_tools},
                 }
             )
             continue
@@ -498,6 +554,58 @@ def _run_minimal_stdio_server() -> None:
             name = normalize_tool_name(params.get("name", ""))
             name = LEGACY_NAME_MAP.get(name, name)
             arguments = params.get("arguments") or {}
+
+            # ── Remote tool proxy (Phase 2 — federated surface) ──────────────
+            if name in _remote_tools:
+                organ = _remote_tools[name]["organ"]
+                try:
+                    if organ == "WEALTH":
+                        coro = call_wealth_tool(name, arguments)
+                    elif organ == "WELL":
+                        coro = call_well_tool(name, arguments)
+                    elif organ == "GEOX":
+                        coro = call_geox_tool(name, arguments)
+                    else:
+                        raise RuntimeError(f"Unknown organ: {organ}")
+
+                    raw_result = _async_loop.run_until_complete(coro)
+
+                    # Normalise response format per organ
+                    if organ == "GEOX":
+                        # GEOX returns raw dict — wrap in standard MCP content
+                        result_payload = {
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": json.dumps(raw_result, default=_json_default),
+                                }
+                            ],
+                        }
+                    else:
+                        # WEALTH / WELL return standard FastMCP ToolResult dict
+                        result_payload = raw_result
+
+                    send(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": request_id,
+                            "result": result_payload,
+                        }
+                    )
+                except Exception as exc:
+                    send(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": request_id,
+                            "error": {
+                                "code": -32000,
+                                "message": f"{organ} proxy error: {exc}",
+                            },
+                        }
+                    )
+                continue
+
+            # ── Local tool ───────────────────────────────────────────────────
             handler = tool_handlers.get(name) or get_tool_handler(name)
             if handler is None:
                 send(
