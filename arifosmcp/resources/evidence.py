@@ -70,32 +70,7 @@ def register_evidence_resources(mcp: FastMCP) -> list[str]:
 
     registered.append("source://{hash}")
 
-    # ── source://list ─────────────────────────────────────────────────────────
-    @mcp.resource(
-        "source://list",
-        description=(
-            "List all stored evidence sources, most-recent first (limit 100). "
-            "Returns array of source metadata (hash, url, length, timestamp)."
-        ),
-    )
-    async def list_sources() -> str:
-        store = get_evidence_store()
-        sources = store.list_sources(limit=100)
-        return json.dumps(
-            [
-                {
-                    "source_hash": s.get("source_hash"),
-                    "url": s.get("url"),
-                    "content_length": s.get("content_length", 0),
-                    "fetched_at": s.get("fetched_at"),
-                    "claims_count": len(s.get("claims", [])),
-                }
-                for s in sources
-            ],
-            indent=2,
-        )
-
-    registered.append("source://list")
+    # source://list — REMOVED (dynamic data → belongs in arif_evidence_fetch tool)
 
     # ── receipt://web/{id} ─────────────────────────────────────────────────────
     @mcp.resource(
@@ -130,37 +105,7 @@ def register_evidence_resources(mcp: FastMCP) -> list[str]:
 
     registered.append("receipt://web/{id}")
 
-    # ── receipt://list ─────────────────────────────────────────────────────────
-    @mcp.resource(
-        "receipt://list",
-        description=(
-            "List all evidence receipts, most-recent first (limit 100). "
-            "Returns array of receipt metadata with receipt_id, timestamp, "
-            "evidence_level, and human_judgment_required flag."
-        ),
-    )
-    async def list_receipts() -> str:
-        store = get_evidence_store()
-        receipts = store.list_receipts(limit=100)
-        return json.dumps(
-            [
-                {
-                    "receipt_id": r.get("receipt_id"),
-                    "timestamp_utc": r.get("timestamp_utc"),
-                    "tool": r.get("tool"),
-                    "mode": r.get("mode"),
-                    "max_evidence_level": r.get("max_evidence_level"),
-                    "claimed_evidence_level": r.get("claimed_evidence_level"),
-                    "human_judgment_required": r.get("human_judgment_required", False),
-                    "risk_flags": r.get("risk_flags", []),
-                    "session_id": r.get("session_id"),
-                }
-                for r in receipts
-            ],
-            indent=2,
-        )
-
-    registered.append("receipt://list")
+    # receipt://list — REMOVED (dynamic data → belongs in arif_evidence_fetch tool)
 
     # ── contrast://{id} ─────────────────────────────────────────────────────────
     @mcp.resource(

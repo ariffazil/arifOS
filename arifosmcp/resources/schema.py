@@ -66,6 +66,14 @@ Separation of Powers:
   No prompt can do another prompt's job.
   This separation IS the constitution.
 
+FORGE BRIDGE (010):
+  arif_forge_execute — Build and deployment execution.
+  Gated by APEX authority (must have prior JUDGE_SEAL_AUTHORIZATION).
+  Authority flow: AGI proposes → ASI evaluates → APEX authorizes → Forge executes.
+  Interface contract: query /health for runtime capabilities.
+  Output contract: generated artifact + delta_S reduction metric.
+  Hardcoded paths to A-FORGE internals are PROHIBITED.
+
 DITEMPA BUKAN DIBERI
 """
 

@@ -323,7 +323,6 @@ def register_tree777_resources(mcp: FastMCP) -> list[str]:
       tree777://skills/{category}/{name} — individual skills
       tree777://concepts/{name}         — concept pages
       tree777://scars/{name}            — scar records
-      tree777://search                  — search wiki content
     """
     registered: list[str] = []
 
@@ -342,29 +341,8 @@ def register_tree777_resources(mcp: FastMCP) -> list[str]:
 
     registered.append("tree777://index")
 
-    # Search resource
-    @mcp.resource(
-        "tree777://search",
-        description=(
-            "TREE777 wiki full-text index for client-side search. Returns all "
-            "skill/concept/scar URIs with their names and categories. "
-            "To find a specific item, read tree777://index for the full map, "
-            "then fetch the specific resource URI."
-        ),
-    )
-    async def search_tree777() -> str:
-        index = _build_index()
-        search_index = {
-            "skills": [
-                {"uri": s["uri"], "category": s["category"], "name": s["name"]}
-                for s in index["skills"]
-            ],
-            "concepts": [{"uri": c["uri"], "name": c["name"]} for c in index["concepts"]],
-            "scars": [{"uri": sc["uri"], "name": sc["name"]} for sc in index["scars"]],
-        }
-        return json.dumps(search_index, indent=2)
-
-    registered.append("tree777://search")
+    # tree777://search — REMOVED (dynamic search → belongs in arif_memory_recall tool)
+    # get_tree777_search_resource() still available for tool-internal use.
 
     # Dynamic skill resources — registered as template resources
     # tree777://skills/{category}/{name}
@@ -497,7 +475,6 @@ def handle_resource(uri: str, params: dict[str, Any] | None = None) -> dict[str,
         "error": f"Unknown TREE777 resource URI: {uri}",
         "available": [
             "tree777://index",
-            "tree777://search",
             "tree777://skills/{category}/{name}",
             "tree777://concepts/{name}",
             "tree777://scars/{name}",
