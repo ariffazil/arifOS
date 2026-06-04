@@ -13009,6 +13009,7 @@ def register_tools(
                 name=name,
                 description=(spec.description if spec is not None else None),
                 tags={"canonical", "arifos"},
+                output_schema=None,
                 meta={
                     "arifos_manifest": manifest,
                     "stage_code": manifest.get("stage_code", ""),

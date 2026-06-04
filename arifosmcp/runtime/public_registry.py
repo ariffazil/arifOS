@@ -260,14 +260,14 @@ def _runtime_contracts() -> dict[str, dict[str, Any]]:
             description=_TOOL_DESCRIPTIONS.get(name)
             or inspect.getdoc(handler)
             or "Governed arifOS MCP tool.",
-            output_schema=_tool_output_schema(name),
+            output_schema=None,
         )
         contracts[name] = {
             "description": tool.description
             or _TOOL_DESCRIPTIONS.get(name, "Governed arifOS MCP tool."),
             "input_schema": tool.parameters
             or {"type": "object", "properties": {}, "additionalProperties": False},
-            "output_schema": tool.output_schema or _tool_output_schema(name),
+            "output_schema": None,
         }
     return contracts
 
