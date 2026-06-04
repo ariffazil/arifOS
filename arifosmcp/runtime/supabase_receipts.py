@@ -1,10 +1,11 @@
-import os
-import json
-import httpx
 import asyncio
+import json
 import logging
+import os
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
+import httpx
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +68,7 @@ def dispatch_tool_receipt(tool_name: str, kwargs: dict, response: dict, session_
             "actor_id": actor_id or "arifOS-MCP",
             "kwargs_snapshot": sanitize(kwargs),
             "response_snapshot": sanitize(response),
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
         
         try:

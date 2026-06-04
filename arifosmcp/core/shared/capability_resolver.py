@@ -26,10 +26,9 @@ DITEMPA BUKAN DIBERI
 """
 
 import json
-import os
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional, Dict, Any
-from datetime import datetime, timezone
+from typing import Any
 
 CAPABILITIES_FILE = Path("/root/.secrets/capabilities.json")
 
@@ -49,22 +48,22 @@ class CapabilityDeniedError(Exception):
     pass
 
 
-def load_capabilities() -> Dict[str, Any]:
+def load_capabilities() -> dict[str, Any]:
     """Load capabilities.json from disk"""
     if not CAPABILITIES_FILE.exists():
         raise FileNotFoundError(f"Capabilities file not found: {CAPABILITIES_FILE}")
     
-    with open(CAPABILITIES_FILE, "r") as f:
+    with open(CAPABILITIES_FILE) as f:
         return json.load(f)
 
 
 def resolve_capability(
     provider: str,
     action: str,
-    scope: Optional[str] = None,
+    scope: str | None = None,
     check_expiry: bool = True,
     check_888_hold: bool = True
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Resolve capability pointer to capability object
     
@@ -105,7 +104,7 @@ def resolve_capability(
     # Check expiry
     if check_expiry and cap.get("expires"):
         expires = datetime.fromisoformat(cap["expires"].replace("Z", "+00:00"))
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if now > expires:
             raise CapabilityExpiredError(
                 f"Capability expired: {provider}.{action} (expired {cap['expires']})"
@@ -120,7 +119,7 @@ def resolve_capability(
     return cap
 
 
-def inject_secret(cap: Dict[str, Any]) -> str:
+def inject_secret(cap: dict[str, Any]) -> str:
     """
     Resolve secret_location and return actual secret value
     
@@ -159,7 +158,7 @@ def inject_secret(cap: Dict[str, Any]) -> str:
         )
     
     # Read secret
-    with open(secret_path, "r") as f:
+    with open(secret_path) as f:
         secret = f.read().strip()
     
     return secret
@@ -177,7 +176,7 @@ def update_last_used(provider: str, action: str) -> None:
     
     if provider in caps["capabilities"] and action in caps["capabilities"][provider]:
         caps["capabilities"][provider][action]["last_used"] = (
-            datetime.now(timezone.utc).isoformat()
+            datetime.now(UTC).isoformat()
         )
         
         # Write back to disk
@@ -185,7 +184,7 @@ def update_last_used(provider: str, action: str) -> None:
             json.dump(caps, f, indent=2)
 
 
-def check_capability(provider: str, action: str, scope: Optional[str] = None) -> bool:
+def check_capability(provider: str, action: str, scope: str | None = None) -> bool:
     """
     Check if agent has capability (without raising exceptions)
     
@@ -204,7 +203,7 @@ def check_capability(provider: str, action: str, scope: Optional[str] = None) ->
         return False
 
 
-def list_capabilities(provider: Optional[str] = None) -> Dict[str, Any]:
+def list_capabilities(provider: str | None = None) -> dict[str, Any]:
     """
     List all capabilities (or filter by provider)
     
@@ -243,7 +242,7 @@ if __name__ == "__main__":
     # Example 2: Check Caddy reload capability (888_HOLD blocked)
     try:
         cap = resolve_capability("caddy", "reload")
-        print(f"✓ Caddy reload capability found (this should not print)")
+        print("✓ Caddy reload capability found (this should not print)")
     except CapabilityDeniedError as e:
         print(f"✓ Expected: {e}")
     

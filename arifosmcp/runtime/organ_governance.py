@@ -35,9 +35,9 @@ import json
 import logging
 import os
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger("organ_governance")
 
@@ -201,10 +201,10 @@ class GovernanceResult:
     tool: str
     risk_tier: RiskTier
     reason: str
-    session_id: Optional[str] = None
-    constitution_hash: Optional[str] = None
+    session_id: str | None = None
+    constitution_hash: str | None = None
     requires_ack: bool = False
-    raw_judgment: Optional[dict] = None
+    raw_judgment: dict | None = None
 
 
 # ─── Main OrganGovernance Class ───────────────────────────────────────────────
@@ -223,13 +223,13 @@ class OrganGovernance:
         self,
         organ_name: str,
         organ_version: str,
-        risk_map: Optional[dict[str, RiskTier]] = None,
+        risk_map: dict[str, RiskTier] | None = None,
     ):
         self.organ_name = organ_name
         self.organ_version = organ_version
         self.risk_map = risk_map or TOOL_RISK_MAP.get(organ_name, {})
-        self._session_id: Optional[str] = None
-        self._constitution_hash: Optional[str] = None
+        self._session_id: str | None = None
+        self._constitution_hash: str | None = None
         self._logged_tools: list[str] = []
 
         logger.info(
@@ -238,7 +238,7 @@ class OrganGovernance:
         )
 
     @property
-    def session_id(self) -> Optional[str]:
+    def session_id(self) -> str | None:
         return self._session_id
 
     def register_session(self, session_id: str, constitution_hash: str) -> None:
@@ -257,7 +257,7 @@ class OrganGovernance:
         self,
         tool_name: str,
         arguments: dict[str, Any],
-        session_id: Optional[str] = None,
+        session_id: str | None = None,
         actor_id: str = "organ-governed",
     ) -> GovernanceResult:
         """
@@ -402,7 +402,7 @@ class OrganGovernance:
 def governed(
     tool_name: str,
     governance: OrganGovernance,
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
     actor_id: str = "organ-governed",
 ):
     """

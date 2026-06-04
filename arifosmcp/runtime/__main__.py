@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import errno
 import fcntl
 import inspect
 import json
@@ -163,11 +162,7 @@ async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[st
 
 
 def _run_minimal_stdio_server() -> None:
-    from mcp import types as mcp_types
 
-    from .server import create_aaa_mcp_server
-    from .tool_spec import LEGACY_NAME_MAP, TOOLS, normalize_tool_name
-    from .tools import CANONICAL_TOOL_HANDLERS
     from .dispatcher import get_tool_handler  # type: ignore[import]
 
     # Phase 2 — Federation bridge imports
@@ -178,6 +173,9 @@ def _run_minimal_stdio_server() -> None:
         list_well_tools,
     )
     from .geox_bridge import call_geox_tool, list_geox_tools
+    from .server import create_aaa_mcp_server
+    from .tool_spec import LEGACY_NAME_MAP, TOOLS, normalize_tool_name
+    from .tools import CANONICAL_TOOL_HANDLERS
 
     # FastMCP instance for resources + prompts (all three surfaces)
     _mcp: FastMCPT = create_aaa_mcp_server()  # type: ignore[assignment]

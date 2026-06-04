@@ -9,10 +9,10 @@ to prevent split-action bypass (Metabolic Bypass).
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 """
 
-from dataclasses import dataclass, field
-from datetime import datetime, UTC
-from typing import Any, Dict, List
 import uuid
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from typing import Any
 
 
 @dataclass
@@ -23,8 +23,8 @@ class MetabolicReceipt:
     trace_id: str
     objective_hash: str
     target_subsystem: str
-    files_touched: List[str] = field(default_factory=list)
-    tools_called: List[str] = field(default_factory=list)
+    files_touched: list[str] = field(default_factory=list)
+    tools_called: list[str] = field(default_factory=list)
     risk_delta: float = 0.0
     entropy_delta: float = 0.0
     reversibility: str = "unknown"
@@ -32,14 +32,14 @@ class MetabolicReceipt:
 
 
 # In-memory aggregate store
-_AGGREGATE_RECEIPTS: Dict[str, List[MetabolicReceipt]] = {}
+_AGGREGATE_RECEIPTS: dict[str, list[MetabolicReceipt]] = {}
 
 
 def create_receipt(
     actor_id: str,
     session_id: str,
     objective: str,
-    action_payload: Dict[str, Any],
+    action_payload: dict[str, Any],
     risk_score: float,
     reversibility: str,
 ) -> MetabolicReceipt:
@@ -67,7 +67,7 @@ def create_receipt(
     return receipt
 
 
-def get_cumulative_metrics(session_id: str, window_minutes: int = 60) -> Dict[str, Any]:
+def get_cumulative_metrics(session_id: str, window_minutes: int = 60) -> dict[str, Any]:
     """
     Gap 3.4 Invariant: Judge the operation, not only the step.
     Calculates cumulative risk and entropy across the session.

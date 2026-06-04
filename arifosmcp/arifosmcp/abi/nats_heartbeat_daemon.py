@@ -10,12 +10,12 @@ import json
 import logging
 import signal
 import sys
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 try:
-    import nats
     import httpx
+    import nats
 
     DEPS_AVAILABLE = True
 except ImportError:
@@ -39,7 +39,7 @@ class NATSHeartbeatDaemon:
     def __init__(self, nats_url: str = NATS_URL, health_url: str = ARIFOS_HEALTH_URL):
         self.nats_url = nats_url
         self.health_url = health_url
-        self.nc: Optional[Any] = None
+        self.nc: Any | None = None
         self.running = False
 
     async def connect_nats(self) -> bool:
@@ -66,7 +66,7 @@ class NATSHeartbeatDaemon:
             self.nc = None
             logger.info("NATS disconnected")
 
-    async def fetch_health(self) -> Optional[dict]:
+    async def fetch_health(self) -> dict | None:
         if not DEPS_AVAILABLE:
             return None
         try:
@@ -84,7 +84,7 @@ class NATSHeartbeatDaemon:
         if not self.nc:
             return False
         try:
-            payload["_ts"] = datetime.now(timezone.utc).isoformat()
+            payload["_ts"] = datetime.now(UTC).isoformat()
             await self.nc.publish(subject, json.dumps(payload, default=str).encode())
             await self.nc.flush()
             return True
@@ -139,7 +139,7 @@ class NATSHeartbeatDaemon:
                         {
                             "event": "ARIFOS_ALERT",
                             "alert_type": "ARIFOS_DEGRADED",
-                            "message": f"arifOS health degraded",
+                            "message": "arifOS health degraded",
                             "severity": "high",
                         },
                     )

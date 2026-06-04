@@ -26,9 +26,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any
 
 # Prometheus instrumentation (optional — only if prometheus_client installed)
 try:
@@ -96,7 +97,7 @@ class SovereigntyFloorBreach(Exception):
 async def tiered_call(
     tiers: list[TierConfig],
     request: Any,
-    on_fallback: Optional[Callable[[int, str, Exception], None]] = None,
+    on_fallback: Callable[[int, str, Exception], None] | None = None,
 ) -> Any:
     """
     Execute a tiered cascade call across compute substrates.
@@ -164,7 +165,7 @@ async def tiered_call(
             )
             return result
 
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             reason = TierFailureReason.TIMEOUT
             logger.warning(
                 f"[Cascade] Tier {tier_num} ({tier.name}) timeout after {tier.timeout}s"

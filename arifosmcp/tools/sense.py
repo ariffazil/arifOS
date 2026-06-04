@@ -41,7 +41,7 @@ def _calculate_discovery_physics(
     Calculates uncertainty reduction, evidence level, and witness consensus.
     """
     try:
-        from arifosmcp.runtime.a_rif import engine, source_rank, prompt_injection, contradiction
+        from arifosmcp.runtime.a_rif import contradiction, engine, prompt_injection, source_rank
 
         def _W_4(H, A, E, V):
             """Manual F3 Quad-Witness Consensus helper."""
@@ -505,7 +505,7 @@ def arif_sense_observe(
             })
             kernel_bridge = "HIT"
             # Log the kernel function invoked and payload shape
-            print(f"[KERNEL-BRIDGE] arif_sense_observe → core.governance_kernel.evaluate_floors")
+            print("[KERNEL-BRIDGE] arif_sense_observe → core.governance_kernel.evaluate_floors")
             print(f"[KERNEL-BRIDGE]   query={repr(q[:80])}, payload_keys={list(kernel_result.keys())}")
             kernel_metrics = {
                 "qdf": kernel_result.get("qdf"),
@@ -718,11 +718,12 @@ def arif_sense_observe(
         )
 
     if mode in ("crypto_inventory", "cert_surface", "repo_crypto_scan", "qday_physics_watch"):
-        import yaml
-        import re
         import os
+        import re
+
+        import yaml
         try:
-            with open("/root/arifOS/config/crypto_patterns.yaml", "r") as f:
+            with open("/root/arifOS/config/crypto_patterns.yaml") as f:
                 patterns = yaml.safe_load(f).get("crypto_patterns", {})
         except Exception:
             patterns = {}
@@ -733,7 +734,7 @@ def arif_sense_observe(
                 for file in files:
                     file_path = os.path.join(root_dir, file)
                     try:
-                        with open(file_path, "r", encoding="utf-8") as f:
+                        with open(file_path, encoding="utf-8") as f:
                             c = f.read()
                             for algo, data in patterns.items():
                                 matched = False

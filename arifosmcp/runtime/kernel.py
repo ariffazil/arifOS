@@ -392,7 +392,7 @@ class ConstitutionalKernel:
         self,
         canonical_name: str,
         arguments: dict,
-        result: "dict",
+        result: dict,
         latency_ms: float,
         session_id: str | None,
         actor_id: str,

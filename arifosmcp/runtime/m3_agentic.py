@@ -24,12 +24,11 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Literal
+from typing import Any
 
 from pydantic import BaseModel, Field
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Role Enum
@@ -263,8 +262,8 @@ class LongTask(BaseModel):
     checkpoints: list[dict[str, Any]] = Field(default_factory=list)
     assigned_agents: list[str] = Field(default_factory=list)
     status: LongTaskStatus = LongTaskStatus.PLANNING
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     f13_signed_off: bool = False
     loop_budget: int = 5  # max autonomous steps before human checkpoint
     loop_count: int = 0
@@ -278,15 +277,15 @@ class LongTask(BaseModel):
         If returns False, the caller must emit 888_HOLD and stop.
         """
         self.loop_count += 1
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
         return self.loop_count <= self.loop_budget
 
     def checkpoint(self, snapshot: dict[str, Any] | None = None) -> None:
         """Record a checkpoint. The snapshot can be a partial LongTask or any state."""
         snap = snapshot or {"loop_count": self.loop_count, "status": self.status.value}
-        snap["checkpoint_at"] = datetime.now(timezone.utc).isoformat()
+        snap["checkpoint_at"] = datetime.now(UTC).isoformat()
         self.checkpoints.append(snap)
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -317,8 +316,8 @@ class Skill(BaseModel):
     safety_profile: dict[str, Any] = Field(default_factory=dict)
     examples: list[dict[str, Any]] = Field(default_factory=list)
     created_by: str = "forge-agent"
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     status: SkillStatus = SkillStatus.DRAFT
     git_commit: str | None = None
     retired_reason: str | None = None

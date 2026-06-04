@@ -18,9 +18,10 @@ import json
 import logging
 import os
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
+from arifosmcp.core.enforcement.risk_classifier import classify_tool
 from arifosmcp.runtime.fastmcp_version import IS_FASTMCP_3
 from arifosmcp.schemas.federation_envelope import (
     ActionClass,
@@ -28,7 +29,6 @@ from arifosmcp.schemas.federation_envelope import (
     FederationEnvelope,
     wrap_legacy_call,
 )
-from arifosmcp.core.enforcement.risk_classifier import classify_tool
 
 logger = logging.getLogger(__name__)
 
@@ -488,7 +488,7 @@ if IS_FASTMCP_3:
 
                 # Log envelope (no secrets)
                 self._envelope_log.append({
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "tool_name": tool_name,
                     "trace_id": envelope.trace_id,
                     "actor_id": envelope.actor_id,

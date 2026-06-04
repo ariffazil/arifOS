@@ -11,7 +11,6 @@ Ditempa Bukan Diberi — Intelligence is forged, not given.
 from __future__ import annotations
 
 import importlib.util
-import sys
 
 from arifosmcp.constitutional_map import CANONICAL_TOOLS
 

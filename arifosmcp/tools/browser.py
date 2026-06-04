@@ -12,7 +12,6 @@ DITEMPA BUKAN DIBERI — 999 SEAL
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import logging
 from datetime import UTC, datetime
@@ -22,7 +21,6 @@ from arifosmcp.constitutional_map import RiskClass
 from arifosmcp.core.floors import evaluate_tool_call
 from arifosmcp.integrations.playwright_bridge import playwright_bridge
 from arifosmcp.runtime.model import RuntimeEnvelope as _RE
-from arifosmcp.runtime.session_auth import validate_session
 
 logger = logging.getLogger(__name__)
 

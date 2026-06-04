@@ -9,12 +9,12 @@ Blocks direct execution from federated agent payloads.
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 
 def wrap_federated_output(
-    agent_id: str, raw_output: str, metadata: Dict[str, Any]
-) -> Dict[str, Any]:
+    agent_id: str, raw_output: str, metadata: dict[str, Any]
+) -> dict[str, Any]:
     """
     Wraps federated agent output in a quarantine envelope.
     """
@@ -31,7 +31,7 @@ def wrap_federated_output(
     }
 
 
-def validate_external_payload(payload: Dict[str, Any]) -> bool:
+def validate_external_payload(payload: dict[str, Any]) -> bool:
     """
     Checks if a payload contains unauthorized instructions or authority elevation attempts.
     """

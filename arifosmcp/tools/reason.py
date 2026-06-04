@@ -131,7 +131,7 @@ def arif_mind_reason(
     if mode in ("hndl_score", "pqc_gap_analysis", "migration_strategy", "qday_physics_assess", "claim_lint_quantum"):
         import yaml
         try:
-            with open("/root/arifOS/config/qday_policy.yaml", "r") as f:
+            with open("/root/arifOS/config/qday_policy.yaml") as f:
                 policy = yaml.safe_load(f).get("qday_policy", {})
         except Exception:
             policy = {}

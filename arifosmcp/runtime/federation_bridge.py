@@ -14,7 +14,6 @@ Phase-2 simplification (2026-06-04): gutted ~120 lines of stale SSE session code
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 from typing import Any
 
@@ -160,7 +159,7 @@ async def geox_health_check() -> dict[str, Any]:
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             resp = await client.get(
-                f"http://localhost:8081/health",
+                "http://localhost:8081/health",
                 headers={"Accept": "application/json"},
             )
             if resp.status_code == 200:

@@ -9,8 +9,7 @@ thresholds, or authority boundaries.
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 """
 
-import os
-from typing import Any, Dict, List
+from typing import Any
 
 # Canonical paths for protected core files
 _PROTECTED_CORE_PATHS = [
@@ -23,8 +22,8 @@ _PROTECTED_CORE_PATHS = [
 
 
 def is_self_modification_attempt(
-    target_path: str, action_type: str, trace_lineage: List[str]
-) -> Dict[str, Any]:
+    target_path: str, action_type: str, trace_lineage: list[str]
+) -> dict[str, Any]:
     """
     Law 3 Invariant: A critique organ may diagnose itself, but must not authorize mutation.
     """

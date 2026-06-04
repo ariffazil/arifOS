@@ -13,9 +13,8 @@ from __future__ import annotations
 
 import logging
 
-from arifosmcp.core.floors import evaluate_tool_call
-
 from arifosmcp.constitutional_map import RiskClass
+from arifosmcp.core.floors import evaluate_tool_call
 from arifosmcp.integrations.substrate_bridge import bridge
 from arifosmcp.runtime.continuity_contract import seal_runtime_envelope
 from arifosmcp.runtime.model import RuntimeEnvelope, Verdict

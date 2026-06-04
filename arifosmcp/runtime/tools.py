@@ -3788,6 +3788,7 @@ def _arif_session_init(
             pass
         # EUREKA: Build embodied capability card
         import socket as _socket
+
         from arifosmcp.schemas.session import _get_os_info, _is_root
 
         _emb_is_root_val = _is_root()
@@ -10298,6 +10299,7 @@ async def _arif_judge_deliberate_tool(
 
         try:
             import asyncio
+
             from arifOS.supabase_adapter import record_judge_verdict
 
             v_code = result.get("verdict", "UNKNOWN")
@@ -10435,8 +10437,8 @@ def _arif_vault_seal(
         try:
             from arifosmcp.runtime.sovereign_verify import (
                 AUTHORITY_SOVEREIGN,
-                verify_sovereign_signature,
                 purge_expired_nonces,
+                verify_sovereign_signature,
             )
 
             identity = get_constitution_identity()
@@ -11421,6 +11423,7 @@ async def _arif_vault_seal_tool(
             try:
                 import asyncio
                 import json
+
                 from arifOS.supabase_adapter import seal_vault999
 
                 try:
@@ -12935,8 +12938,9 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             actor_id=kwargs.get("actor_id"),
         )
         try:
-            from arifOS.supabase_adapter import record_tool_call
             import asyncio
+
+            from arifOS.supabase_adapter import record_tool_call
 
             loop = asyncio.get_running_loop()
             loop.create_task(
@@ -12978,8 +12982,9 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             actor_id=kwargs.get("actor_id"),
         )
         try:
-            from arifOS.supabase_adapter import record_tool_call
             import asyncio
+
+            from arifOS.supabase_adapter import record_tool_call
 
             loop = asyncio.get_running_loop()
             loop.create_task(
@@ -13036,10 +13041,10 @@ def register_tools(
     ingress_middleware: Any | None = None,
 ) -> list[str]:
     """Register the active canonical public surface with the MCP server."""
+    from arifosmcp.core.enforcement.risk_classifier import classify_tool
     from arifosmcp.runtime.public_registry import public_tool_spec_by_name
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
     from arifosmcp.tool_charter import TOOL_CHARTER
-    from arifosmcp.core.enforcement.risk_classifier import classify_tool
 
     registered: list[str] = []
     del include_legacy_compat

@@ -34,7 +34,6 @@ import json
 import logging
 import os
 import time
-import uuid
 from datetime import UTC, datetime
 from typing import Any
 
@@ -415,7 +414,7 @@ def _build_cypher(
 
 
 def _execute_cypher(
-    cypher: str, episode_uuid: str, result: "ExtractionResult", memory_id: str, content_hash: str
+    cypher: str, episode_uuid: str, result: ExtractionResult, memory_id: str, content_hash: str
 ) -> bool:
     """Execute Cypher against the chosen L5 substrate.
 
@@ -529,7 +528,7 @@ def _execute_falkordb(cypher: str) -> bool:
 
 
 def _execute_qdrant_graph(
-    result: "ExtractionResult",
+    result: ExtractionResult,
     episode_uuid: str,
     memory_id: str,
     content_hash: str,

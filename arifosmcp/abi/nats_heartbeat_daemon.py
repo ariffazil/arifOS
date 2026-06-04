@@ -9,12 +9,11 @@ import json
 import logging
 import signal
 import sys
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 try:
-    import nats
     import httpx
+    import nats
     DEPS_AVAILABLE = True
 except ImportError:
     DEPS_AVAILABLE = False
@@ -43,7 +42,7 @@ class NATSHeartbeatDaemon:
     def __init__(self, nats_url: str = NATS_URL, health_url: str = ARIFOS_HEALTH_URL):
         self.nats_url = nats_url
         self.health_url = health_url
-        self.nc: Optional[object] = None
+        self.nc: object | None = None
         self.running = False
 
     async def connect_nats(self) -> bool:
@@ -65,7 +64,7 @@ class NATSHeartbeatDaemon:
             await self.nc.close()
             self.nc = None
 
-    async def fetch_arifOS_health(self) -> Optional[dict]:
+    async def fetch_arifOS_health(self) -> dict | None:
         """Fetch arifOS health endpoint."""
         if not DEPS_AVAILABLE:
             return None
@@ -100,7 +99,7 @@ class NATSHeartbeatDaemon:
             "federation_epistemology": federation,
             "graphiti_enabled": graphiti,
             "raw_health": health_data,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         try:
             await self.nc.publish("arifOS.health", json.dumps(event, default=str).encode())
@@ -118,7 +117,7 @@ class NATSHeartbeatDaemon:
             "alert_type": alert_type,
             "message": message,
             "severity": severity,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         try:
             await self.nc.publish("arifOS.alerts", json.dumps(event, default=str).encode())

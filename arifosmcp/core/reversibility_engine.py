@@ -512,7 +512,6 @@ def classify_action(tool_id: str, params: dict[str, Any] | None = None) -> dict[
     # is actually called, not when the module loads.
     from arifosmcp.core.reversibility_engine import (
         ReversibilityEngine,
-        ReversibilityClass,
     )
 
     engine = ReversibilityEngine()

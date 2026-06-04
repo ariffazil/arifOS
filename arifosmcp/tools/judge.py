@@ -19,12 +19,11 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from arifosmcp.runtime.tools import _arif_judge_deliberate
-from arifosmcp.runtime.niat_gate import check_niat_gate
 from arifosmcp.runtime.metabolic_receipt import get_cumulative_metrics
+from arifosmcp.runtime.niat_gate import check_niat_gate
 from arifosmcp.runtime.self_mod_lock import is_self_modification_attempt
+from arifosmcp.runtime.tools import _arif_judge_deliberate
 from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
-
 
 # WELL state file candidates — covers docker-compose path, manual-start path, env override
 _WELL_STATE_CANDIDATES = [

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 generate_agents_md.py — arifOS MCP Runtime AGENTS.md Auto-Generator
 
@@ -45,7 +44,6 @@ import argparse
 import hashlib
 import sys
 from pathlib import Path
-from typing import Any
 
 # Ensure we can import the runtime module whether run as a module or as a script.
 _REPO_ROOT = Path(__file__).resolve().parents[2]

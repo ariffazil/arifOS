@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import blake3
 import httpx
 import inspect
 import json
@@ -2354,7 +2353,7 @@ def register_rest_routes(
                 return JSONResponse(_health_cache["payload"])
 
         try:
-            with open("/opt/arifos/app/.identity_hash", "r") as f:
+            with open("/opt/arifos/app/.identity_hash") as f:
                 identity_hash = f.read().strip()
         except Exception:
             identity_hash = "UNAVAILABLE"
@@ -5758,7 +5757,7 @@ setInterval(refreshSot, 30000);
         Returns tickets where human_verdict IS NULL.
         """
         try:
-            from arifOS.supabase_adapter import _get_prod_pool, _now
+            from arifOS.supabase_adapter import _get_prod_pool
 
             pool = await _get_prod_pool()
             async with pool.acquire() as conn:

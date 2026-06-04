@@ -217,10 +217,10 @@ def _resolve_git_commit() -> str:
         return "unknown"
 
 
-from datetime import datetime, timezone  # noqa: E402
+from datetime import UTC, datetime  # noqa: E402
 
 _DEPLOY_GIT_COMMIT = _resolve_git_commit()
-_DEPLOY_BUILD_DATE = datetime.now(timezone.utc).strftime("%Y.%m.%d")
+_DEPLOY_BUILD_DATE = datetime.now(UTC).strftime("%Y.%m.%d")
 _DEPLOY_VERSION = (
     f"kanon-{_DEPLOY_BUILD_DATE}+{_DEPLOY_GIT_COMMIT}"
     if _DEPLOY_GIT_COMMIT != "unknown"
@@ -315,7 +315,10 @@ try:
         import asyncio
         import json
 
-        from fastmcp.tools.base import TextContent, ToolResult  # pyright: ignore[reportPrivateImportUsage]
+        from fastmcp.tools.base import (  # pyright: ignore[reportPrivateImportUsage]
+            TextContent,
+            ToolResult,
+        )
         from fastmcp.tools.function_tool import FunctionTool
 
         from arifosmcp.runtime.federation_bridge import (
@@ -431,7 +434,8 @@ try:
         try:
             from arifos_wiki_tools.indexer import ingest_repo as _ingest_repo
             from arifos_wiki_tools.search import search_index as _search_index
-            from arifos_wiki_tools.synthesis import ask_repo as _ask_repo, map_repo as _map_repo
+            from arifos_wiki_tools.synthesis import ask_repo as _ask_repo
+            from arifos_wiki_tools.synthesis import map_repo as _map_repo
 
             # arif_wiki_ingest — index a repo, produce wiki index + optional markdown pages
             mcp.tool(
@@ -655,7 +659,7 @@ async def mcp_health(request: Request) -> JSONResponse:
     return JSONResponse(
         {
             "status": "healthy",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "version": _DEPLOY_VERSION,
         }
     )

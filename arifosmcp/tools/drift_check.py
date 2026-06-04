@@ -14,7 +14,6 @@ PHOENIX-72 gate: drift_detected=false + counts match target.
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 from typing import Any

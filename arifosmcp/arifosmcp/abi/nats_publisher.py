@@ -8,8 +8,8 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 import asyncio
 import json
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 try:
     import nats
@@ -33,7 +33,7 @@ class NATSEventPublisher:
 
     def __init__(self, nats_url: str = "nats://127.0.0.1:4222"):
         self.nats_url = nats_url
-        self.nc: Optional[Any] = None
+        self.nc: Any | None = None
         self._connected = False
 
     async def connect(self) -> bool:
@@ -44,7 +44,7 @@ class NATSEventPublisher:
             self.nc = await nats.connect(self.nats_url)
             self._connected = True
             return True
-        except Exception as e:
+        except Exception:
             self._connected = False
             return False
 
@@ -65,7 +65,7 @@ class NATSEventPublisher:
         if not self._connected or not self.nc:
             return False
         try:
-            payload["_ts"] = datetime.now(timezone.utc).isoformat()
+            payload["_ts"] = datetime.now(UTC).isoformat()
             data = json.dumps(payload, default=str).encode()
             await self.nc.publish(subject, data)
             await self.nc.flush()
@@ -76,7 +76,7 @@ class NATSEventPublisher:
     # ── Health Events ──────────────────────────────────────────────
 
     async def publish_health(
-        self, organ: str, status: str, metadata: Optional[dict] = None
+        self, organ: str, status: str, metadata: dict | None = None
     ) -> bool:
         """Publish a heartbeat/health signal from an organ."""
         return await self.publish(
@@ -88,8 +88,8 @@ class NATSEventPublisher:
         session_id: str,
         verdict: str,
         stage: str,
-        tool_name: Optional[str] = None,
-        metadata: Optional[dict] = None,
+        tool_name: str | None = None,
+        metadata: dict | None = None,
     ) -> bool:
         """
         Publish a constitutional verdict.
@@ -109,7 +109,7 @@ class NATSEventPublisher:
         )
 
     async def publish_seal(
-        self, session_id: str, seal_id: str, stage: str, metadata: Optional[dict] = None
+        self, session_id: str, seal_id: str, stage: str, metadata: dict | None = None
     ) -> bool:
         """Publish a SEAL event — verdict is constitutionally final."""
         return await self.publish(
@@ -127,7 +127,7 @@ class NATSEventPublisher:
         alert_type: str,
         message: str,
         severity: str = "medium",
-        metadata: Optional[dict] = None,
+        metadata: dict | None = None,
     ) -> bool:
         """
         Publish a governance alert (e.g. 888_HOLD, constitutional violation).
@@ -145,7 +145,7 @@ class NATSEventPublisher:
         )
 
     async def publish_evidence(
-        self, session_id: str, artifact_id: str, evidence_type: str, metadata: Optional[dict] = None
+        self, session_id: str, artifact_id: str, evidence_type: str, metadata: dict | None = None
     ) -> bool:
         """Publish an evidence ingestion event."""
         return await self.publish(
@@ -160,7 +160,7 @@ class NATSEventPublisher:
 
 
 # ── Singleton instance ─────────────────────────────────────────────
-_publisher: Optional[NATSEventPublisher] = None
+_publisher: NATSEventPublisher | None = None
 
 
 async def get_publisher() -> NATSEventPublisher:

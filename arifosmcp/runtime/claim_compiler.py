@@ -10,7 +10,6 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 """
 
 from enum import Enum
-from typing import Any, Dict, List
 
 
 class ClaimState(str, Enum):

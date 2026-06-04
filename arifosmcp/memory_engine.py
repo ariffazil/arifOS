@@ -19,7 +19,7 @@ from __future__ import annotations
 import logging
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -34,7 +34,7 @@ class LangfuseSpan:
 
     def __init__(
         self,
-        tracer: "LangfuseTrace",
+        tracer: LangfuseTrace,
         trace_id: str,
         observation_id: str | None = None,
     ):
@@ -47,7 +47,7 @@ class LangfuseSpan:
         if not self.tracer.enabled:
             return
         try:
-            ts = datetime.now(timezone.utc).isoformat()
+            ts = datetime.now(UTC).isoformat()
             await self.tracer._ingest(
                 [
                     {
@@ -75,11 +75,11 @@ class LangfuseSpan:
         input: Any = None,
         output: Any = None,
         metadata: dict[str, Any] | None = None,
-    ) -> "LangfuseSpan":
+    ) -> LangfuseSpan:
         """Create a child span observation."""
         if not self.tracer.enabled:
             return LangfuseSpan(self.tracer, self.trace_id)
-        ts = datetime.now(timezone.utc).isoformat()
+        ts = datetime.now(UTC).isoformat()
         span_id = str(uuid.uuid4())
         body: dict[str, Any] = {
             "id": span_id,
@@ -156,7 +156,7 @@ class LangfuseTrace:
         Emit a root trace observation (Langfuse v4 trace-create).
         Returns a LangfuseSpan with .end() / .close() for explicit termination.
         """
-        ts = datetime.now(timezone.utc).isoformat()
+        ts = datetime.now(UTC).isoformat()
         trace_id = str(uuid.uuid4())
         if self.enabled:
             body: dict[str, Any] = {

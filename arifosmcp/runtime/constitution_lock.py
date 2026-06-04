@@ -12,7 +12,6 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 import hashlib
 import os
 from pathlib import Path
-from typing import Dict, List
 
 # Trusted hashes for the current sealed constitution (Example - should be updated on SEAL)
 _TRUSTED_CONSTITUTION_HASHES = {
@@ -29,7 +28,7 @@ def _calculate_hash(path: str) -> str:
         return f"sha256:{hashlib.sha256(f.read()).hexdigest()[:16]}"
 
 
-def verify_constitutional_integrity() -> Dict[str, Any]:
+def verify_constitutional_integrity() -> dict[str, Any]:
     """
     Checks if root constitution files have been tampered with or shadowed.
     """

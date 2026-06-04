@@ -36,8 +36,8 @@ from typing import Any
 try:
     from core.shared.constitutional_ontology import RuntimeState
 except ModuleNotFoundError:
-    import sys
     import os as _os
+    import sys
 
     _parent = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
     if _parent not in sys.path:

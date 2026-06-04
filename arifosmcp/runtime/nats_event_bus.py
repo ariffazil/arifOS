@@ -3,11 +3,10 @@ NATS Event Bus Publisher for arifOS
 Publishes health events, verdicts, and heartbeats to the federation nervous system.
 DITEMPA BUKAN DIBERI
 """
-import asyncio
 import json
 import logging
-from datetime import datetime, timezone
-from typing import Optional, Any
+from datetime import UTC, datetime
+from typing import Any, Optional
 
 try:
     import nats
@@ -31,7 +30,7 @@ class NATSEventBus:
     Publishes constitutional events: SEAL, SABAR, HOLD, VOID verdicts.
     """
     _instance: Optional['NATSEventBus'] = None
-    _nc: Optional[Any] = None
+    _nc: Any | None = None
 
     def __new__(cls) -> 'NATSEventBus':
         if cls._instance is None:
@@ -77,7 +76,7 @@ class NATSEventBus:
             "stage": stage,
             "evidence_count": evidence_count,
             "source": source,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
         try:
             await self._nc.publish(SUBJECT_VERDICTS, json.dumps(event).encode())
@@ -95,7 +94,7 @@ class NATSEventBus:
             "event": "HEARTBEAT",
             "organ": organ,
             "status": status,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
         try:
             await self._nc.publish(SUBJECT_HEARTBEAT, json.dumps(event).encode())
@@ -120,7 +119,7 @@ class NATSEventBus:
             "message": message,
             "severity": severity,
             "source": source,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
         try:
             await self._nc.publish(SUBJECT_ALERTS, json.dumps(event).encode())

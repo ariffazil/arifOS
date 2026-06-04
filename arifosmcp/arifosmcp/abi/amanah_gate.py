@@ -19,12 +19,10 @@ DITEMPA BUKAN DIBERI — forged for unambiguous harm, nothing more.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import re
 import sys
 from enum import Enum
-from typing import Optional
 
 logger = logging.getLogger("amanah_gate")
 
@@ -113,7 +111,7 @@ HOLD_PATTERNS: list[tuple[str, str]] = [
 ]
 
 
-def scan(text: str) -> tuple[Verdict, Optional[str], Optional[str]]:
+def scan(text: str) -> tuple[Verdict, str | None, str | None]:
     """
     Scan text against HARAM and HOLD patterns.
 

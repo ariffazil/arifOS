@@ -15,7 +15,6 @@ from arifosmcp.contracts.continuity import ContinuityState
 from arifosmcp.contracts.identity import IdentityContext
 from arifosmcp.runtime.model import (
     ArtifactStatus,
-    ContinuationStatus,
     ExecutionStatus,
     GovernanceStatus,
 )
