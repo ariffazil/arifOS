@@ -3,16 +3,16 @@
   "version": "2026.05.26",
   "tool_count": {
     "arifOS": 13,
-    "WEALTH": 42,
+    "WEALTH": 26,
     "GEOX": 16,
     "WELL": 13,
     "A-FORGE": 0,
-    "total": 84
+    "total": 68
   },
   "servers": [
     {
       "organ": "arifOS",
-      "symbol": "\u2699\ufe0f",
+      "symbol": "⚙️",
       "port": 8088,
       "endpoint": "/mcp",
       "transport": "streamable-http",
@@ -23,20 +23,17 @@
     },
     {
       "organ": "WEALTH",
-      "symbol": "\ud83d\udfe1",
+      "symbol": "🟡",
       "port": 18082,
       "endpoint": "/mcp",
       "transport": "streamable-http",
       "role": "Capital Intelligence",
       "version": "2026.05.02",
-      "tools": 42,
-      "public_surface": 38,
-      "runtime_surface": 33,
-      "hidden_aliases": 34
+      "tools": 26
     },
     {
       "organ": "GEOX",
-      "symbol": "\ud83c\udf0d",
+      "symbol": "🌍",
       "port": 8081,
       "endpoint": "/mcp",
       "transport": "streamable-http",
@@ -49,12 +46,12 @@
     },
     {
       "organ": "WELL",
-      "symbol": "\ud83e\uddec",
+      "symbol": "🧬",
       "port": 18083,
       "endpoint": "/mcp",
       "transport": "streamable-http",
       "role": "Body/Mind Vitality",
-      "version": "2026.05.15-\u03a9WELL+GWELL+FEDERATION",
+      "version": "2026.05.15-ΩWELL+GWELL+FEDERATION",
       "tools": 13,
       "somatic_tools": 13,
       "note": "A-FORGE (port 7071) exposes no /tools endpoint; execution bridge via OpenClaw A2A mesh on port 18789"
@@ -73,7 +70,7 @@
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Session bootstrap \u2014 call first in any session"
+      "description": "Session bootstrap — call first in any session"
     },
     {
       "tool_name": "arif_sense_observe",
@@ -214,7 +211,7 @@
       "ledger_required": true,
       "side_effect_class": "CONSTITUTIONAL_VERDICT",
       "high_stakes_gate": true,
-      "description": "Constitutional arbitration \u2192 SEAL/HOLD/VOID"
+      "description": "Constitutional arbitration → SEAL/HOLD/VOID"
     },
     {
       "tool_name": "arif_forge_execute",
@@ -267,7 +264,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "REASON",
       "reversibility": "TIER_2_LOGGED",
-      "stage": "\u03a9-00",
+      "stage": "Ω-00",
       "omega_layer": "00",
       "omega_name": "Synthesis",
       "requires_prior_verdict": false,
@@ -275,7 +272,7 @@
       "audit_required": true,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Master verdict \u2014 routes all dimensions, returns SEAL/SABAR/VOID"
+      "description": "Master verdict — routes all dimensions, returns SEAL/SABAR/VOID"
     },
     {
       "tool_name": "wealth_conservation_capital",
@@ -283,7 +280,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "OBSERVE",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-01",
+      "stage": "Ω-01",
       "omega_layer": "01",
       "omega_name": "Conservation",
       "requires_prior_verdict": false,
@@ -299,7 +296,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "OBSERVE",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-01",
+      "stage": "Ω-01",
       "omega_layer": "01",
       "omega_name": "Conservation",
       "requires_prior_verdict": false,
@@ -315,7 +312,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "OBSERVE",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-02",
+      "stage": "Ω-02",
       "omega_layer": "02",
       "omega_name": "Flow",
       "requires_prior_verdict": false,
@@ -331,7 +328,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "OBSERVE",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-02",
+      "stage": "Ω-02",
       "omega_layer": "02",
       "omega_name": "Flow",
       "requires_prior_verdict": false,
@@ -347,7 +344,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "OBSERVE",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-02",
+      "stage": "Ω-02",
       "omega_layer": "02",
       "omega_name": "Flow",
       "requires_prior_verdict": false,
@@ -363,7 +360,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "OBSERVE",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-03",
+      "stage": "Ω-03",
       "omega_layer": "03",
       "omega_name": "Gradient",
       "requires_prior_verdict": false,
@@ -379,7 +376,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "REASON",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-04",
+      "stage": "Ω-04",
       "omega_layer": "04",
       "omega_name": "Entropy",
       "requires_prior_verdict": false,
@@ -395,7 +392,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "GOVERN",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-04",
+      "stage": "Ω-04",
       "omega_layer": "04",
       "omega_name": "Entropy",
       "requires_prior_verdict": false,
@@ -411,7 +408,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "OBSERVE",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-05",
+      "stage": "Ω-05",
       "omega_layer": "05",
       "omega_name": "Energy",
       "requires_prior_verdict": false,
@@ -427,7 +424,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "OBSERVE",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-05",
+      "stage": "Ω-05",
       "omega_layer": "05",
       "omega_name": "Energy",
       "requires_prior_verdict": false,
@@ -435,7 +432,7 @@
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Profitability Index \u2014 value density per unit of capital committed"
+      "description": "Profitability Index — value density per unit of capital committed"
     },
     {
       "tool_name": "wealth_time_discount",
@@ -443,7 +440,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "REASON",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-06",
+      "stage": "Ω-06",
       "omega_layer": "06",
       "omega_name": "Time",
       "requires_prior_verdict": false,
@@ -459,7 +456,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "REASON",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-06",
+      "stage": "Ω-06",
       "omega_layer": "06",
       "omega_name": "Time",
       "requires_prior_verdict": false,
@@ -467,7 +464,7 @@
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Net Present Value \u2014 scalar thermodynamic work potential"
+      "description": "Net Present Value — scalar thermodynamic work potential"
     },
     {
       "tool_name": "wealth_energy_irr",
@@ -475,7 +472,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "REASON",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-06",
+      "stage": "Ω-06",
       "omega_layer": "06",
       "omega_name": "Time",
       "requires_prior_verdict": false,
@@ -483,7 +480,7 @@
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Internal Rate of Return \u2014 energy yield of a capital system"
+      "description": "Internal Rate of Return — energy yield of a capital system"
     },
     {
       "tool_name": "wealth_time_payback",
@@ -491,7 +488,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "REASON",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-06",
+      "stage": "Ω-06",
       "omega_layer": "06",
       "omega_name": "Time",
       "requires_prior_verdict": false,
@@ -499,7 +496,7 @@
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Payback Period \u2014 time to recover committed capital"
+      "description": "Payback Period — time to recover committed capital"
     },
     {
       "tool_name": "wealth_inertia_leverage",
@@ -507,7 +504,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "GOVERN",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-07",
+      "stage": "Ω-07",
       "omega_layer": "07",
       "omega_name": "Inertia",
       "requires_prior_verdict": false,
@@ -523,7 +520,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "OBSERVE",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-07",
+      "stage": "Ω-07",
       "omega_layer": "07",
       "omega_name": "Inertia",
       "requires_prior_verdict": false,
@@ -531,7 +528,7 @@
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Debt Service Coverage Ratio \u2014 gravitational load on capital structure"
+      "description": "Debt Service Coverage Ratio — gravitational load on capital structure"
     },
     {
       "tool_name": "wealth_field_macro",
@@ -539,7 +536,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "OBSERVE",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-08",
+      "stage": "Ω-08",
       "omega_layer": "08",
       "omega_name": "Field",
       "requires_prior_verdict": false,
@@ -555,7 +552,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "REASON",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-09",
+      "stage": "Ω-09",
       "omega_layer": "09",
       "omega_name": "Signal",
       "requires_prior_verdict": false,
@@ -571,7 +568,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "REASON",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-09",
+      "stage": "Ω-09",
       "omega_layer": "09",
       "omega_name": "Signal",
       "requires_prior_verdict": false,
@@ -579,7 +576,7 @@
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Expected Value of Information \u2014 point-estimate of information signal"
+      "description": "Expected Value of Information — point-estimate of information signal"
     },
     {
       "tool_name": "wealth_expectation_emv",
@@ -587,7 +584,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "REASON",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-09",
+      "stage": "Ω-09",
       "omega_layer": "09",
       "omega_name": "Signal",
       "requires_prior_verdict": false,
@@ -595,7 +592,7 @@
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Expected Monetary Value \u2014 probability-weighted outcome"
+      "description": "Expected Monetary Value — probability-weighted outcome"
     },
     {
       "tool_name": "wealth_probability_monte_carlo",
@@ -603,7 +600,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "REASON",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-09",
+      "stage": "Ω-09",
       "omega_layer": "09",
       "omega_name": "Signal",
       "requires_prior_verdict": false,
@@ -611,7 +608,7 @@
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Monte Carlo Simulation \u2014 stochastic forecast of outcome distribution"
+      "description": "Monte Carlo Simulation — stochastic forecast of outcome distribution"
     },
     {
       "tool_name": "wealth_game_coordination",
@@ -619,7 +616,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "REASON",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-10",
+      "stage": "Ω-10",
       "omega_layer": "10",
       "omega_name": "Game",
       "requires_prior_verdict": false,
@@ -635,7 +632,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "REASON",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-10",
+      "stage": "Ω-10",
       "omega_layer": "10",
       "omega_name": "Game",
       "requires_prior_verdict": false,
@@ -643,7 +640,7 @@
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Personal Utility Ranking \u2014 preference ordering under constraints"
+      "description": "Personal Utility Ranking — preference ordering under constraints"
     },
     {
       "tool_name": "wealth_agent_path",
@@ -651,7 +648,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "REASON",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-10",
+      "stage": "Ω-10",
       "omega_layer": "10",
       "omega_name": "Game",
       "requires_prior_verdict": false,
@@ -659,7 +656,7 @@
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Sovereign Intent Router \u2014 classifies tasks into L1/L2 physics-economic paths"
+      "description": "Sovereign Intent Router — classifies tasks into L1/L2 physics-economic paths"
     },
     {
       "tool_name": "wealth_boundary_governance",
@@ -667,7 +664,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "GOVERN",
       "reversibility": "TIER_2_LOGGED",
-      "stage": "\u03a9-11",
+      "stage": "Ω-11",
       "omega_layer": "11",
       "omega_name": "Boundary",
       "requires_prior_verdict": false,
@@ -683,7 +680,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "GOVERN",
       "reversibility": "TIER_3_IRREVERSIBLE",
-      "stage": "\u03a9-11",
+      "stage": "Ω-11",
       "omega_layer": "11",
       "omega_name": "Boundary",
       "requires_prior_verdict": false,
@@ -692,7 +689,7 @@
       "ledger_required": true,
       "side_effect_class": "CONSTITUTIONAL_VERDICT",
       "high_stakes_gate": true,
-      "description": "Final Allocation Verdict \u2014 sovereign governance recommendation"
+      "description": "Final Allocation Verdict — sovereign governance recommendation"
     },
     {
       "tool_name": "wealth_hysteresis_ledger",
@@ -700,7 +697,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "SEAL",
       "reversibility": "TIER_3_IRREVERSIBLE",
-      "stage": "\u03a9-12",
+      "stage": "Ω-12",
       "omega_layer": "12",
       "omega_name": "Hysteresis",
       "requires_prior_verdict": false,
@@ -717,7 +714,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "OBSERVE",
       "reversibility": "TIER_1_REVERSIBLE",
-      "stage": "\u03a9-12",
+      "stage": "Ω-12",
       "omega_layer": "12",
       "omega_name": "Hysteresis",
       "requires_prior_verdict": false,
@@ -725,7 +722,7 @@
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Ledger Read \u2014 query the immutable governance ledger"
+      "description": "Ledger Read — query the immutable governance ledger"
     },
     {
       "tool_name": "wealth_ledger_write",
@@ -733,7 +730,7 @@
       "substrate": "CAPITAL_INTELLIGENCE",
       "action_mode": "INGEST",
       "reversibility": "TIER_3_IRREVERSIBLE",
-      "stage": "\u03a9-12",
+      "stage": "Ω-12",
       "omega_layer": "12",
       "omega_name": "Hysteresis",
       "requires_prior_verdict": false,
@@ -742,7 +739,7 @@
       "ledger_required": true,
       "side_effect_class": "IMMUTABLE_LEDGER",
       "high_stakes_gate": true,
-      "description": "Ledger Append \u2014 irreversible state transition to VAULT999. F01 AMANAH: irreversible."
+      "description": "Ledger Append — irreversible state transition to VAULT999. F01 AMANAH: irreversible."
     },
     {
       "tool_name": "wealth_inequality_kernel",
@@ -772,7 +769,7 @@
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Registry truth diagnostic \u2014 intended, registered, and alias surfaces"
+      "description": "Registry truth diagnostic — intended, registered, and alias surfaces"
     },
     {
       "tool_name": "geox_system_registry_status",
@@ -1092,7 +1089,7 @@
       "audit_required": false,
       "ledger_required": false,
       "side_effect_class": "NONE",
-      "description": "Somatic alias delegating to well_assess_reliability \u2014 live legacy endpoint",
+      "description": "Somatic alias delegating to well_assess_reliability — live legacy endpoint",
       "category": "well_somatic_alias"
     }
   ],
@@ -1111,55 +1108,55 @@
     "TIER_3_IRREVERSIBLE": 5
   },
   "omega_layers_WEALTH": {
-    "\u03a9-00": {
+    "Ω-00": {
       "name": "Synthesis",
       "tools": 1
     },
-    "\u03a9-01": {
+    "Ω-01": {
       "name": "Conservation",
       "tools": 2
     },
-    "\u03a9-02": {
+    "Ω-02": {
       "name": "Flow",
       "tools": 3
     },
-    "\u03a9-03": {
+    "Ω-03": {
       "name": "Gradient",
       "tools": 1
     },
-    "\u03a9-04": {
+    "Ω-04": {
       "name": "Entropy",
       "tools": 2
     },
-    "\u03a9-05": {
+    "Ω-05": {
       "name": "Energy",
       "tools": 2
     },
-    "\u03a9-06": {
+    "Ω-06": {
       "name": "Time",
       "tools": 4
     },
-    "\u03a9-07": {
+    "Ω-07": {
       "name": "Inertia",
       "tools": 2
     },
-    "\u03a9-08": {
+    "Ω-08": {
       "name": "Field",
       "tools": 1
     },
-    "\u03a9-09": {
+    "Ω-09": {
       "name": "Signal",
       "tools": 4
     },
-    "\u03a9-10": {
+    "Ω-10": {
       "name": "Game",
       "tools": 3
     },
-    "\u03a9-11": {
+    "Ω-11": {
       "name": "Boundary",
       "tools": 2
     },
-    "\u03a9-12": {
+    "Ω-12": {
       "name": "Hysteresis",
       "tools": 3
     },

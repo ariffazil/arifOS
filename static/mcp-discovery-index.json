@@ -208,8 +208,8 @@
       "mcp_url": "https://wealth.arif-fazil.com/mcp",
       "tools_url": "https://wealth.arif-fazil.com/tools",
       "server_manifest_url": "https://wealth.arif-fazil.com/.well-known/mcp/server.json",
-      "verified_mcp_tool_count": 17,
-      "rest_registry_tool_count": 33,
+      "verified_mcp_tool_count": 26,
+      "rest_registry_tool_count": 26,
       "authority": "capital_evidence_only_not_unchecked_allocator",
       "discovery_status": "listed_with_registry_mcp_count_difference",
       "tool_examples": [
