@@ -335,6 +335,27 @@ ruff check . && mypy arifosmcp/
 
 > **Constitutional authority:** F1-F13 floors, 888_JUDGE, and VAULT999 live in `ariffazil/arifOS`.  
 > **Live federation status:** See `ariffazil/arifOS/FEDERATION_STATUS.md`.
+
+## 📖 Glossary
+
+These terms appear throughout the arifOS federation. They are precise within the system — here is what each one means in plain English.
+
+| Term | Meaning |
+|------|---------|
+| **DITEMPA BUKAN DIBERI** | "Forged, not given" (Malay). The system was built under real constraint, not handed down. |
+| **F1–F13 / Constitutional Floors** | Thirteen rules the AI cannot override — like physical laws, not suggestions. |
+| **888 HOLD** | The condition where the AI refuses to decide and hands the question back to the human. |
+| **SEAL** | Constitutional approval — proceed. The system has verified that the action is lawful under the floors. |
+| **SABAR** | "Patient discipline" (Malay). Hold — wait for more evidence or human review. |
+| **VOID** | Rejected. The action violates one or more constitutional floors. |
+| **VAULT999** | The append-only audit ledger where all sealed decisions are permanently recorded. |
+| **AAA Trinity** | Three reasoning layers: Mind (AGI — proposes), Heart (ASI — critiques), Judge (APEX — decides). |
+| **W@W Federation** | The four core organs: arifOS, GEOX, WEALTH, and WELL — AI subsystems that must reach consensus. |
+| **Golden Path** | The 10-stage workflow from session boot (000) to vault closure (999). |
+| **Tri-Witness** | The requirement that Human, AI, and Earth (physical reality) agree before a verdict seals. |
+| **Gödel Lock** | The insight (from Gödel's incompleteness theorem) that no AI can fully audit itself — hence Tri-Witness. |
+| **G-score** | System elegance metric (0–1). Measures how coherently the federation is operating. |
+
 ## 📄 Contributing
 
 This repository operates under the arifOS Federation constitution (F1–F13).  
