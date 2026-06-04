@@ -1,52 +1,50 @@
 # Runtime prompt registry — must match arifosmcp.prompts.CANONICAL_PROMPTS
-# Auto-synced with prompts/__init__.py on 2026-06-04 (RSI upgrade)
-
+# 2026-06-04: AAA Trinity upgrade — 2 gateways (000+999) + 3 lanes (111/444/888)
 CANONICAL_PROMPTS = (
-    "111_abstraction",
-    "222_attestation",
-    "333_abduction",
-    "444_orthogonal",
-    "555_generality",
+    "000_init",
+    "111_agi",
+    "444_asi",
+    "888_apex",
+    "999_seal",
 )
 
-# Prompt specs for public_registry.py introspection
 V2_PROMPT_SPECS = (
     {
-        "name": "111_abstraction",
-        "description": "111_ABSTRACTION — Reduce complexity to essential structure (SENSE stage). "
-        "6-level abstraction ladder, identity preservation, thermodynamic compression, F10 ontology.",
+        "name": "000_init",
+        "description": "000_INIT — Session anchor and constitutional gateway. "
+        "Identity binding (F11), entropy baseline, session manifest, F1-F13 confirmation.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "222_attestation",
-        "description": "222_ATTESTATION — Bind claims to evidence; escape the Gödel Lock (EVIDENCE stage). "
-        "8-step attestation chain, truth taxonomy, witness triad, F02/F03/F11/F12 compliance.",
+        "name": "111_agi",
+        "description": "111_AGI — Tactical intelligence (AGI lane, stages 111-555). "
+        "PROPOSE. Abstraction + abduction + synthesis. EVOI discipline. C_dark guard.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "333_abduction",
-        "description": "333_ABDUCTION — Generate and rank competing explanations (MIND stage). "
-        "7-step abduction cycle, N≥3 hypotheses, C_dark integration, active falsification.",
+        "name": "444_asi",
+        "description": "444_ASI — Strategic judgment (ASI lane, stages 666-888). "
+        "JUDGE. Attestation chain + F1-F13 floor-by-floor + orthogonal transfer + deliberation.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "444_orthogonal",
-        "description": "444_ORTHOGONAL — Transfer structure across unrelated domains (HEART stage). "
-        "7-step transfer protocol, Ω_ortho coefficient, cross-domain archetypes, F10 ontology guard.",
+        "name": "888_apex",
+        "description": "888_APEX — Authority resolution (APEX lane, stages 888-999). "
+        "AUTHORIZE. Governance separation + generality test + verdict verification + pre-forge checklist.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "555_generality",
-        "description": "555_GENERALITY — Universal principles; domain independence (ROUTE/MEMORY stage). "
-        "5-level generality ladder, 6 tests (domain/scale/time/adversary/inversion/minimality).",
+        "name": "999_seal",
+        "description": "999_SEAL — Vault closure and constitutional exit. "
+        "Golden path verification + actor chain + evidence chain + floor compliance + VAULT999 write.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
@@ -55,12 +53,10 @@ V2_PROMPT_SPECS = (
 
 
 def register_v2_prompts(mcp):
-    """Delegate to canonical prompt registration."""
     from arifosmcp.prompts import register_prompts
 
     return register_prompts(mcp)
 
 
 def register_v2_tools(mcp, **kwargs):
-    """Stub — use register_tools from runtime/tools.py instead."""
     return []
