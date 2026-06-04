@@ -1,7 +1,7 @@
 # Runbook — arifOS Federation
 
 > **Purpose**: Restart, verify, rollback, and **deploy** per organ without guesswork.
-> **Last updated**: 2026-06-03 by Kimi (Ω) — SOT sweep: ports, services, topology aligned to live state.
+> **Last updated**: 2026-06-03 by Kimi (Ω) — Option A Foundation Sprint deployed: live telemetry + A2A envelope + autonomy bands UI.
 > **Sovereign law**: `F1–F13` active at `/root` — all agents are governed.
 
 ---
@@ -20,8 +20,10 @@ Bare-metal systemd (ports exposed via Caddy)
 ├── Hermes ASI        → Telegram bot (@ASI_arifos_bot)
 ├── Hermes A2A        → :18001  (A2A bridge)
 ├── OpenClaw GW       → :18789  (A2A mesh gateway)
-├── cn-organ          → :18790  (Continue CLI organ gateway)
+├── cn-organ          → :18795  (Continue CLI organ gateway)
 ├── APEX Prime        → :3002   (888 JUDGE deliberative relay)
+├── vault999-api      → :8100   (vault read API)
+├── vault999-writer   → :5001   (vault write API — internal only)
 ├── NATS              → :4222/:8222 (event bus + JetStream)
 ├── Prometheus        → :9090
 ├── Grafana           → :3000
@@ -52,7 +54,7 @@ All core organs run as systemd services. **No Docker compose for core services.*
 | Repo | `/root/arifOS` |
 | Service | `arifos.service` |
 | Port | 8088 |
-| Container | `ghcr.io/ariffazil/arifos:1c47649` |
+| Runtime version | `kanon-5be8851` (dynamic, from `git describe`) |
 
 #### Restart
 ```bash
@@ -79,13 +81,14 @@ curl -s http://localhost:8088/api/build-info | python3 -m json.tool
 ```
 
 #### Rollback
-arifOS deploys via GitHub container registry. To roll back:
+arifOS deploys via bare-metal systemd from `/root/arifOS` repo. To roll back:
 ```bash
 # 1. Identify last good commit
 git -C /root/arifOS log --oneline -10
 
-# 2. Restart with previous image tag (editable in /etc/systemd/system/arifos.service)
-# Edit the image tag in the service file, then:
+# 2. Checkout previous commit and restart:
+git -C /root/arifOS checkout <last-good-sha>
+# Or edit WorkingDirectory in /etc/systemd/system/arifos.service, then:
 systemctl daemon-reload
 systemctl restart arifos
 
@@ -399,8 +402,8 @@ curl -s http://localhost:18789/.well-known/agent-card.json | python3 -m json.too
 | Field | Value |
 |-------|-------|
 | Service | `cn-organ.service` |
-| Port | 18790 |
-| Agent Card | `http://localhost:18790/.well-known/agent-card.json` |
+| Port | 18795 |
+| Agent Card | `http://localhost:18795/.well-known/agent-card.json` |
 
 #### Restart
 ```bash
@@ -409,7 +412,8 @@ systemctl restart cn-organ
 
 #### Verify
 ```bash
-curl -s http://localhost:18790/health | python3 -m json.tool
+curl -s http://localhost:18795/health | python3 -m json.tool
+curl -s http://localhost:18795/.well-known/agent-card.json | python3 -m json.tool
 ```
 
 ---
@@ -429,6 +433,49 @@ systemctl restart apex-prime
 #### Verify
 ```bash
 curl -s http://localhost:3002/health | python3 -m json.tool
+```
+
+---
+
+### vault999-api
+
+| Field | Value |
+|-------|-------|
+| Service | `vault999-api.service` (or via Caddy at vault999.arif-fazil.com) |
+| Port | 8100 |
+
+#### Restart
+```bash
+systemctl restart vault999-api
+# or if managed by Python supervisor:
+pkill -f vault999-api; sleep 1; nohup python3 /opt/arifOS/vault999-api.py &
+```
+
+#### Verify
+```bash
+curl -s http://localhost:8100/health | python3 -m json.tool
+```
+
+---
+
+### vault999-writer
+
+| Field | Value |
+|-------|-------|
+| Service | `vault999-writer.service` (internal write API) |
+| Port | 5001 |
+| Note | Internal only — not exposed via Caddy |
+
+#### Restart
+```bash
+systemctl restart vault999-writer
+# or if managed by Python supervisor:
+pkill -f vault999-writer; sleep 1; nohup python3 /opt/arifOS/vault999-writer.py &
+```
+
+#### Verify
+```bash
+curl -s http://localhost:5001/health | python3 -m json.tool
 ```
 
 ---
@@ -506,10 +553,16 @@ echo "=== OpenClaw ==="
 curl -s http://localhost:18789/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")}')"
 
 echo "=== cn-organ ==="
-curl -s http://localhost:18790/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")}')"
+curl -s http://localhost:18795/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")}')"
 
 echo "=== APEX Prime ==="
 curl -s http://localhost:3002/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")}')"
+
+echo "=== vault999-api ==="
+curl -s http://localhost:8100/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")} | Vault: {d.get(\"vault\",\"?\")}')"
+
+echo "=== vault999-writer ==="
+curl -s http://localhost:5001/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'Seals: {d.get(\"vault_seals_count\",\"?\")} | Chain: {d.get(\"chain_height\",\"?\")} | Pending: {d.get(\"pending_holds\",\"?\")}')"
 
 echo "=== Hermes A2A ==="
 curl -s http://localhost:18001/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d.get(\"ok\",\"?\")}')" || echo "Hermes A2A: no /health endpoint (A2A bridge)"

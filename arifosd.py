@@ -606,7 +606,7 @@ class Vault999:
                     entry = json.loads(line)
                     content = json.dumps(
                         {k: v for k, v in entry.items()
-                         if k not in ("merkle_leaf", "chain_hash", "prev_hash")},
+                         if k not in ("merkle_leaf", "chain_hash", "prev_hash", "vault_version", "sealed_epoch")},
                         sort_keys=True
                     )
                     expected_leaf, expected_chain = self._chain_hash(content, prev)
