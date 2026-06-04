@@ -199,59 +199,85 @@ def _derive_tier_from_action(action: ActionClass) -> RiskTier:
 _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
     # T5 ATOMIC — constitutional / irreversible
     "arif_forge_execute": RiskPassport(
-        tier=RiskTier.T5, action_class=ActionClass.ATOMIC,
-        blast_radius=BlastRadius.INFRA, reversibility=ReversibilityLevel.IRREVERSIBLE,
+        tier=RiskTier.T5,
+        action_class=ActionClass.ATOMIC,
+        blast_radius=BlastRadius.INFRA,
+        reversibility=ReversibilityLevel.IRREVERSIBLE,
     ),
     "arif_judge_deliberate": RiskPassport(
-        tier=RiskTier.T5, action_class=ActionClass.ATOMIC,
-        blast_radius=BlastRadius.ORG, reversibility=ReversibilityLevel.IRREVERSIBLE,
+        tier=RiskTier.T5,
+        action_class=ActionClass.ATOMIC,
+        blast_radius=BlastRadius.ORG,
+        reversibility=ReversibilityLevel.IRREVERSIBLE,
     ),
     "arif_vault_seal": RiskPassport(
-        tier=RiskTier.T5, action_class=ActionClass.ATOMIC,
-        blast_radius=BlastRadius.ORG, reversibility=ReversibilityLevel.IRREVERSIBLE,
+        tier=RiskTier.T5,
+        action_class=ActionClass.ATOMIC,
+        blast_radius=BlastRadius.ORG,
+        reversibility=ReversibilityLevel.IRREVERSIBLE,
     ),
     "arif_heart_critique": RiskPassport(
-        tier=RiskTier.T5, action_class=ActionClass.ATOMIC,
-        blast_radius=BlastRadius.PUBLIC, reversibility=ReversibilityLevel.IRREVERSIBLE,
+        tier=RiskTier.T5,
+        action_class=ActionClass.ATOMIC,
+        blast_radius=BlastRadius.PUBLIC,
+        reversibility=ReversibilityLevel.IRREVERSIBLE,
     ),
     "arif_session_init": RiskPassport(
-        tier=RiskTier.T5, action_class=ActionClass.ATOMIC,
-        blast_radius=BlastRadius.ORG, reversibility=ReversibilityLevel.IRREVERSIBLE,
+        tier=RiskTier.T1,
+        action_class=ActionClass.OBSERVE,
+        blast_radius=BlastRadius.LOCAL,
+        reversibility=ReversibilityLevel.HIGH,
     ),
     # T3 MUTATE
     "arif_kernel_route": RiskPassport(
-        tier=RiskTier.T3, action_class=ActionClass.MUTATE,
-        blast_radius=BlastRadius.ORG, reversibility=ReversibilityLevel.MEDIUM,
+        tier=RiskTier.T3,
+        action_class=ActionClass.MUTATE,
+        blast_radius=BlastRadius.ORG,
+        reversibility=ReversibilityLevel.MEDIUM,
     ),
     "arif_gateway_connect": RiskPassport(
-        tier=RiskTier.T3, action_class=ActionClass.MUTATE,
-        blast_radius=BlastRadius.ORG, reversibility=ReversibilityLevel.MEDIUM,
+        tier=RiskTier.T3,
+        action_class=ActionClass.MUTATE,
+        blast_radius=BlastRadius.ORG,
+        reversibility=ReversibilityLevel.MEDIUM,
     ),
     "arif_memory_recall": RiskPassport(
-        tier=RiskTier.T3, action_class=ActionClass.MUTATE,
-        blast_radius=BlastRadius.ACCOUNT, reversibility=ReversibilityLevel.MEDIUM,
+        tier=RiskTier.T3,
+        action_class=ActionClass.MUTATE,
+        blast_radius=BlastRadius.ACCOUNT,
+        reversibility=ReversibilityLevel.MEDIUM,
     ),
     # T2 PREPARE
     "arif_mind_reason": RiskPassport(
-        tier=RiskTier.T2, action_class=ActionClass.PREPARE,
-        blast_radius=BlastRadius.ORG, reversibility=ReversibilityLevel.HIGH,
+        tier=RiskTier.T2,
+        action_class=ActionClass.PREPARE,
+        blast_radius=BlastRadius.ORG,
+        reversibility=ReversibilityLevel.HIGH,
     ),
     "arif_evidence_fetch": RiskPassport(
-        tier=RiskTier.T2, action_class=ActionClass.PREPARE,
-        blast_radius=BlastRadius.ORG, reversibility=ReversibilityLevel.HIGH,
+        tier=RiskTier.T2,
+        action_class=ActionClass.PREPARE,
+        blast_radius=BlastRadius.ORG,
+        reversibility=ReversibilityLevel.HIGH,
     ),
     # T1 OBSERVE
     "arif_sense_observe": RiskPassport(
-        tier=RiskTier.T1, action_class=ActionClass.OBSERVE,
-        blast_radius=BlastRadius.ACCOUNT, reversibility=ReversibilityLevel.HIGH,
+        tier=RiskTier.T1,
+        action_class=ActionClass.OBSERVE,
+        blast_radius=BlastRadius.ACCOUNT,
+        reversibility=ReversibilityLevel.HIGH,
     ),
     "arif_ops_measure": RiskPassport(
-        tier=RiskTier.T1, action_class=ActionClass.OBSERVE,
-        blast_radius=BlastRadius.ORG, reversibility=ReversibilityLevel.HIGH,
+        tier=RiskTier.T1,
+        action_class=ActionClass.OBSERVE,
+        blast_radius=BlastRadius.ORG,
+        reversibility=ReversibilityLevel.HIGH,
     ),
     "arif_reply_compose": RiskPassport(
-        tier=RiskTier.T1, action_class=ActionClass.OBSERVE,
-        blast_radius=BlastRadius.PUBLIC, reversibility=ReversibilityLevel.HIGH,
+        tier=RiskTier.T1,
+        action_class=ActionClass.OBSERVE,
+        blast_radius=BlastRadius.PUBLIC,
+        reversibility=ReversibilityLevel.HIGH,
     ),
 }
 
@@ -271,11 +297,24 @@ def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPa
         return _CANONICAL_TOOL_RISKS[name]
 
     # T5 ATOMIC: infrastructure-scoped atomic
-    if any(kw in combined for kw in [
-        "atomic", "deploy", "infrastructure", "reboot", "shutdown",
-        "partition", "format", "drop table", "drop database",
-        "rm -rf", "git push --force", "vault999", "seal",
-    ]):
+    if any(
+        kw in combined
+        for kw in [
+            "atomic",
+            "deploy",
+            "infrastructure",
+            "reboot",
+            "shutdown",
+            "partition",
+            "format",
+            "drop table",
+            "drop database",
+            "rm -rf",
+            "git push --force",
+            "vault999",
+            "seal",
+        ]
+    ):
         return RiskPassport(
             tier=RiskTier.T5,
             action_class=ActionClass.ATOMIC,
@@ -284,10 +323,19 @@ def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPa
         )
 
     # T4 PUBLIC-scoped mutation
-    if any(kw in combined for kw in [
-        "public", "broadcast", "send email", "post tweet",
-        "publish", "release", "merge to main", "git push",
-    ]):
+    if any(
+        kw in combined
+        for kw in [
+            "public",
+            "broadcast",
+            "send email",
+            "post tweet",
+            "publish",
+            "release",
+            "merge to main",
+            "git push",
+        ]
+    ):
         return RiskPassport(
             tier=RiskTier.T4,
             action_class=ActionClass.MUTATE,
@@ -295,11 +343,24 @@ def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPa
         )
 
     # T3 ORG-scoped mutation
-    if any(kw in combined for kw in [
-        "write", "modify", "update", "delete", "create",
-        "restart service", "systemctl", "commit", "push",
-        "migrate", "alter", "insert", "execute",
-    ]):
+    if any(
+        kw in combined
+        for kw in [
+            "write",
+            "modify",
+            "update",
+            "delete",
+            "create",
+            "restart service",
+            "systemctl",
+            "commit",
+            "push",
+            "migrate",
+            "alter",
+            "insert",
+            "execute",
+        ]
+    ):
         return RiskPassport(
             tier=RiskTier.T3,
             action_class=ActionClass.MUTATE,
@@ -307,11 +368,24 @@ def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPa
         )
 
     # T2 PREPARE
-    if any(kw in combined for kw in [
-        "prepare", "plan", "validate", "check", "dry-run",
-        "lint", "test", "audit", "verify", "estimate",
-        "simulate", "forecast", "project",
-    ]):
+    if any(
+        kw in combined
+        for kw in [
+            "prepare",
+            "plan",
+            "validate",
+            "check",
+            "dry-run",
+            "lint",
+            "test",
+            "audit",
+            "verify",
+            "estimate",
+            "simulate",
+            "forecast",
+            "project",
+        ]
+    ):
         return RiskPassport(
             tier=RiskTier.T2,
             action_class=ActionClass.PREPARE,
@@ -319,11 +393,24 @@ def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPa
         )
 
     # T1 Account-scoped observation
-    if any(kw in combined for kw in [
-        "search", "fetch", "read", "get", "list",
-        "view", "query", "select", "describe", "show",
-        "inspect", "analyze", "summary",
-    ]):
+    if any(
+        kw in combined
+        for kw in [
+            "search",
+            "fetch",
+            "read",
+            "get",
+            "list",
+            "view",
+            "query",
+            "select",
+            "describe",
+            "show",
+            "inspect",
+            "analyze",
+            "summary",
+        ]
+    ):
         return RiskPassport(
             tier=RiskTier.T1,
             action_class=ActionClass.OBSERVE,
