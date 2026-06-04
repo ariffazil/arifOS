@@ -451,6 +451,23 @@ Every `make forge` or `make security-audit` runs:
 - **No Docker for organs:** Bare-metal systemd reduces attack surface; containers are data-only.
 - **earlyoom** protects host-critical services (Caddy, SSH, Postgres, Redis, Qdrant, NATS) and preferentially kills agent/model processes under memory pressure.
 
+### Localhost-as-Authentication (ADR-001 — ratified 2026-06-04)
+
+> **"Localhost IS the password."** — Arif Fazil
+
+Every federation data service follows one rule: **bind to 127.0.0.1, no password.** UFW handles the outside world. 127.0.0.1 handles the inside.
+
+| Service   | Bind           | Auth   |
+|-----------|---------------|--------|
+| Redis     | 127.0.0.1:6379 | none   |
+| Postgres  | 127.0.0.1:5432 | trust  |
+| Qdrant    | 127.0.0.1:6333 | none   |
+| FalkorDB  | 127.0.0.1:6380 | none   |
+| Ollama    | 127.0.0.1:11434 | none  |
+| NATS      | 127.0.0.1:4222 | none   |
+
+**Iron rule:** If a service needs a password, it's not bound to 127.0.0.1. If it's bound to 127.0.0.1, it doesn't need a password. Full doctrine: `/root/docs/LOCALHOST_IS_PASSWORD.md`.
+
 ### Permissions Posture (Agent Tools)
 - **Claude Code:** 0 hard deny; default `auto`; full agentic freedom.
 - **Continue CLI:** 22 hard deny (F7 STEWARDSHIP HARAM only); 54 ask; 63 allow.
