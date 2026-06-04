@@ -1934,6 +1934,17 @@ def _compute_runtime_drift() -> dict[str, Any]:
                 break
         except Exception:
             continue
+    # Fallback: .git_commit files written by deploy-local Makefile target
+    if live_commit == "unknown":
+        for commit_file in ["/opt/arifos/app/.git_commit", "/root/arifOS/.git_commit"]:
+            try:
+                if os.path.exists(commit_file):
+                    with open(commit_file) as f:
+                        live_commit = f.read().strip()[:7]
+                    if live_commit:
+                        break
+            except Exception:
+                continue
     # Build/runtime are comparable only when both SHAs are known and resolved.
     _both_known = build_commit != "unknown" and live_commit != "unknown"
     _matches = _both_known and (build_commit == live_commit)

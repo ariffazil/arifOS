@@ -631,6 +631,9 @@ async def federation_status_json(request: Request) -> JSONResponse:
 
 
 app = mcp.http_app(transport="streamable-http", stateless_http=False, json_response=True)
+# Mirror federated tool count onto app for health endpoint (register_rest_routes receives app)
+if hasattr(mcp, "_tool_count"):
+    app._tool_count = mcp._tool_count
 if app:
     # PHOENIX-73C FIX: stateless_http=False enables proper session management.
     # Each client gets its own session; no more GET_STREAM_KEY singleton conflict.
