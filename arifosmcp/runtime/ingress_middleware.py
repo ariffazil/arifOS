@@ -56,7 +56,7 @@ def _result_code_from_tool_result(result: Any) -> str:
                 text = first.text.lower()
                 if "error" in text or "exception" in text or "traceback" in text:
                     return "ERR"
-                if result.isError:
+                if getattr(result, "isError", False):
                     return "ERR"
                 return "OK"
         if getattr(result, "isError", False):
@@ -484,7 +484,6 @@ if IS_FASTMCP_3:
                     from mcp.types import TextContent
                     return ToolResult(
                         content=[TextContent(type="text", text=f"888_HOLD: {envelope_reason}")],
-                        isError=True,
                     )
 
                 # Log envelope (no secrets)

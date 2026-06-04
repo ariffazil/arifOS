@@ -292,8 +292,13 @@ class FederationEnvelope(BaseModel):
         Returns (ok, reason).
         """
         # Identity check
-        if not self.actor_id or self.actor_id == "anonymous":
+        if not self.actor_id:
             return False, "actor_id is mandatory"
+        if self.actor_id == "anonymous" and self.risk.action_class in (
+            ActionClass.MUTATE,
+            ActionClass.ATOMIC,
+        ):
+            return False, f"{self.risk.action_class.value} requires non-anonymous actor_id"
         if not self.session_id:
             return False, "session_id is mandatory"
 

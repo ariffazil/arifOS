@@ -1,7 +1,7 @@
 # Runbook — arifOS Federation
 
 > **Purpose**: Restart, verify, rollback, and **deploy** per organ without guesswork.
-> **Last updated**: 2026-06-03 by Kimi (Ω) — Option A Foundation Sprint deployed: live telemetry + A2A envelope + autonomy bands UI.
+> **Last updated**: 2026-06-04 by Kimi — Cloudflare Tunnel deployed for arifOS MCP; GEOX Caddy 307 fix applied; all 4 public MCP endpoints verified.
 > **Sovereign law**: `F1–F13` active at `/root` — all agents are governed.
 
 ---
@@ -9,8 +9,8 @@
 ## ARCHITECTURE OVERVIEW
 
 ```
-Bare-metal systemd (ports exposed via Caddy)
-├── arifOS MCP        → :8088   (constitutional kernel)
+Bare-metal systemd (ports exposed via Caddy or Cloudflare Tunnel)
+├── arifOS MCP        → :8088   (constitutional kernel)  ← Tunnel ingress
 ├── arifosd           → :18081  (constitutional daemon)
 ├── WEALTH            → :18082  (FastMCP monolith, 44 tools)
 ├── WELL              → :18083  (human readiness)
@@ -30,6 +30,7 @@ Bare-metal systemd (ports exposed via Caddy)
 ├── Ollama            → :11434
 ├── Node Exporter     → :9100
 ├── Caddy             → :80/:443 (TLS reverse proxy)
+├── cloudflared       → —       (Cloudflare Tunnel for arifos.arif-fazil.com)
 ├── earlyoom          → —       (memory guardian)
 
 Docker (supporting services only)
@@ -40,6 +41,25 @@ Docker (supporting services only)
 ├── temporal  → :7233  (workflow engine)
 └── temporal-ui → :8233
 ```
+
+### Ingress Topology
+
+| Site | DNS | Path |
+|------|-----|------|
+| `arif-fazil.com` | A → `72.62.71.199` | Direct → Caddy :443 → static |
+| `arifos.arif-fazil.com` | CNAME → Tunnel | Cloudflare Tunnel → `localhost:8088` (bypasses Caddy) |
+| `aaa.arif-fazil.com` | A → `72.62.71.199` | Direct → Caddy :443 → `localhost:3001` |
+| `geox.arif-fazil.com` | A → `72.62.71.199` | Direct → Caddy :443 → `localhost:8081` |
+| `wealth.arif-fazil.com` | wildcard → `arif-fazil.com` | Direct → Caddy :443 → `localhost:18082` |
+| `well.arif-fazil.com` | wildcard → `arif-fazil.com` | Direct → Caddy :443 → `localhost:18083` |
+
+**Cloudflare Tunnel:**
+- Tunnel name: `arifos-mcp`
+- Tunnel ID: `ea84faf9-8dd3-4185-8444-c9033c1b2473`
+- Config: `/root/.cloudflared/config.yml`
+- Credentials: `/root/.cloudflared/ea84faf9-8dd3-4185-8444-c9033c1b2473.json`
+- Service: `systemctl status cloudflared`
+- DNS managed by: `cloudflared tunnel route dns`
 
 ---
 
@@ -579,6 +599,50 @@ curl -s -o /dev/null -w "HTTP %{http_code}" http://localhost:3000/api/health
 echo ""
 echo "=== Done ==="
 ```
+
+---
+
+## PUBLIC MCP ENDPOINT VERIFICATION
+
+Verify the 4 federation MCP surfaces from the public internet:
+
+```bash
+#!/bin/bash
+set -e
+
+echo "=== arifOS MCP (Tunnel) ==="
+curl -sS --max-time 10 -X POST https://arifos.arif-fazil.com/mcp \
+  -H 'Content-Type: application/json' -H 'Accept: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"probe","version":"1.0"}}}' \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d[\"result\"][\"serverInfo\"][\"name\"]}')
+
+echo "=== GEOX MCP ==="
+curl -sS --max-time 10 -X POST https://geox.arif-fazil.com/mcp \
+  -H 'Content-Type: application/json' -H 'Accept: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"probe","version":"1.0"}}}' \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d[\"result\"][\"serverInfo\"][\"name\"]}')
+
+echo "=== WEALTH MCP ==="
+curl -sS --max-time 10 -X POST https://wealth.arif-fazil.com/mcp \
+  -H 'Content-Type: application/json' -H 'Accept: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"probe","version":"1.0"}}}' \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d[\"result\"][\"serverInfo\"][\"name\"]}')
+
+echo "=== WELL MCP ==="
+curl -sS --max-time 10 -X POST https://well.arif-fazil.com/mcp \
+  -H 'Content-Type: application/json' -H 'Accept: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"probe","version":"1.0"}}}' \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'OK: {d[\"result\"][\"serverInfo\"][\"name\"]}')
+
+echo "=== Done ==="
+```
+
+**Expected:** All 4 return `OK: <server name>`.
+
+**Common failures:**
+- `arifOS` 522 → Cloudflare Tunnel down; check `systemctl status cloudflared`
+- `GEOX` 307 → Caddy not rewriting `/mcp` → `/mcp/`; verify Caddyfile has `rewrite * /mcp/` in the `/mcp` handle block
+- `WEALTH`/`WELL` timeout → organ service down; check `systemctl status wealth-organ` / `systemctl status well`
 
 ---
 

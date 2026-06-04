@@ -63,6 +63,13 @@ arif-fazil.com {
 		file_server
 	}
 
+	@wealth path /wealth*
+	handle @wealth {
+		root * /var/www/html/arif/static
+		rewrite * /wealth.html
+		file_server
+	}
+
 	handle {
 		try_files {path} /index.html
 		file_server
@@ -245,6 +252,7 @@ geox.arif-fazil.com {
 
 	handle /mcp {
 		import cors_public
+		rewrite * /mcp/
 		reverse_proxy 127.0.0.1:8081 {
 			header_up Host geox.arif-fazil.com
 		}
