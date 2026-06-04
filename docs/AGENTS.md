@@ -625,7 +625,7 @@ F01–F13. No irreversible action without Arif's explicit approval (888_HOLD).
   - `ca_ygnSTDy1imSv` — Google Drive (OAuth2, ACTIVE) — connected 22:38 MYT
   - 2 REVOKED (old Jan 22 connections — safe, dashboard-managed)
 - **Connected user_id:** `pg-test-6a141225-1865-42a6-b1f4-0456f23f64aa` (OAuth-issued entity)
-- **Bridge:** `/root/HERMES/scripts/composio_bridge.py` (PENTAGON policy-gated)
+- **Bridge:** `/root/HERMES/scripts/composio_bridge.py` (HEXAGON policy-gated)
 - **Policy:** `/root/HERMES/config/agent_policies/composio.yaml` (per-agent allowed/blocked, 5 phases)
 - **Phase:** Phase 1 (read-only reach) ACTIVE; writes BLOCKED until VAULT999 chain repaired
 - **Tool Router:** `c.create(user_id=...)` — example `trs_X7q9cwDW-ePA` (MCP: `https://backend.composio.dev/tool_router/trs_X7q9cwDW-ePA/mcp`)

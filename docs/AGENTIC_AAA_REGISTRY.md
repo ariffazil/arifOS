@@ -78,11 +78,11 @@ All other actions: allow or ask. No agent is trapped behind permission walls.
 
 ---
 
-## PENTAGON COVERAGE (Composio / Google Workspace)
+## HEXAGON COVERAGE (Composio / Google Workspace)
 
-The Pentagon policy (`/root/HERMES/config/agent_policies/composio.yaml`) governs **external API access through Composio** — a separate layer from CLI agent permissions.
+The Hexagon policy (`/root/HERMES/config/agent_policies/composio.yaml`) governs **external API access through Composio** — a separate layer from CLI agent permissions. Originally named PENTAGON (5 roles); renamed when A-ARCHIVE became the 6th.
 
-| Pentagon Agent | Lane | Composio Scope | Phase |
+| Hexagon Agent | Lane | Composio Scope | Phase |
 |----------------|------|---------------|-------|
 | 333-AGI | AGI (synthesis) | Gmail/Drive/Calendar/Sheets/Docs — read + draft | Phase 1 ACTIVE |
 | 555-ASI | ASI (critique) | Gmail/Calendar — read only | Phase 1 ACTIVE |
@@ -90,7 +90,7 @@ The Pentagon policy (`/root/HERMES/config/agent_policies/composio.yaml`) governs
 | A-AUDIT | Observer | Composio audit logs — read only | Phase 1 ACTIVE |
 | A-ARCHIVE | Witness | VAULT999 — on HOLD until chain repaired | Phase 1 ACTIVE |
 
-**Organ-level Pentagon:**
+**Organ-level Hexagon:**
 | Organ | Scope | Write Gate |
 |-------|-------|------------|
 | GEOX | Read-only evidence ingest | None (never writes) |
