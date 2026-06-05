@@ -1040,27 +1040,26 @@ def _enforce_nine_signal(
         if verdict != "SEAL" and not reasons:
             reasons = [f"{verdict} — tool returned a non-SEAL status"]
 
-        out.update(
-            {
-                "status": status,
-                "tool": tool_name,
-                "verdict": verdict,
-                "result": result_payload,
-                "meta": meta_payload,
-                "delta_S": float(delta_s),
-                "timestamp": out.get("timestamp") or _now(),
-                "session_id": resolved_session_id,
-                "actor_id": resolved_actor_id,
-                "output_policy": out.get("output_policy")
-                or _output_policy_for_verdict(
-                    verdict if verdict in ("SEAL", "HOLD", "VOID", "SABAR", "DRY_RUN") else "HOLD"
-                ),
-                "nine_signal": nine,
-                "reasons": reasons,
-                "stage_progression": _compute_stage_progression(tool_name, verdict),
-            }
-        )
-        return out
+        # Build clean envelope — strip any stray keys from the original payload
+        # so the response matches CANONICAL_OUTPUT_SCHEMA exactly.
+        return {
+            "status": status,
+            "tool": tool_name,
+            "verdict": verdict,
+            "result": result_payload,
+            "meta": meta_payload,
+            "delta_S": float(delta_s),
+            "timestamp": out.get("timestamp") or _now(),
+            "session_id": resolved_session_id,
+            "actor_id": resolved_actor_id,
+            "output_policy": out.get("output_policy")
+            or _output_policy_for_verdict(
+                verdict if verdict in ("SEAL", "HOLD", "VOID", "SABAR", "DRY_RUN") else "HOLD"
+            ),
+            "nine_signal": nine,
+            "reasons": reasons,
+            "stage_progression": _compute_stage_progression(tool_name, verdict),
+        }
 
     # Already wrapped by a prior call — prevent double-wrapping (causes
     # _violations / _nine_signal_compliant contradiction per MCP audit bug #2).

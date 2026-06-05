@@ -595,6 +595,36 @@ def arif_memory_recall(
             {"session_id": session_id, "context_window": records, "count": len(records)},
         )
 
+    # ── list ─────────────────────────────────────────────────────────────────
+    if mode == "list":
+        try:
+            from arifosmcp.runtime.memory_store import _index_read
+
+            idx = _index_read()
+            entries = []
+            for mid, meta in sorted(idx.items(), key=lambda x: x[1].get("created_at", ""), reverse=True)[:limit]:
+                entries.append(
+                    {
+                        "memory_id": mid,
+                        "summary": meta.get("summary") or meta.get("text", "")[:200],
+                        "tags": meta.get("tags", []),
+                        "tier": meta.get("tier", "unknown"),
+                        "created_at": meta.get("created_at"),
+                        "mode": meta.get("mode"),
+                    }
+                )
+            return _ok(
+                "arif_memory_recall",
+                {"session_id": session_id, "entries": entries, "count": len(entries), "source": "local_index"},
+                delta_S=0.0,
+            )
+        except Exception as exc:
+            return _ok(
+                "arif_memory_recall",
+                {"session_id": session_id, "entries": [], "count": 0, "_degraded": f"list failed: {exc}"},
+                delta_S=0.0,
+            )
+
     # ── stats ────────────────────────────────────────────────────────────────
     if mode == "stats":
         return _ok("arif_memory_recall", {**stats(), "memory_contract_version": "v2"})
