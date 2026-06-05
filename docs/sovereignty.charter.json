@@ -215,7 +215,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["F0-SOVEREIGN", "F1-AMANAH", "F2-TRUTH", "F3-TRI-WITNESS", "F4-CLARITY", "F5-PEACE", "F6-EMPATHY", "F7-HUMILITY", "F8-GENIUS", "F9-ANTI-HANTU", "F10-ONTOLOGY", "F11-AUDIT", "F12-INJECTION", "F13-SOVEREIGN"]
+            "enum": ["F1-AMANAH", "F2-TRUTH", "F3-WITNESS", "F4-CLARITY", "F5-PEACE", "F6-EMPATHY", "F7-HUMILITY", "F8-GENIUS", "F9-ANTI-HANTU", "F10-ONTOLOGY", "F11-AUDIT", "F12-INJECTION", "F13-SOVEREIGN"]
           },
           "minItems": 14,
           "description": "Active constitutional floors"
@@ -315,7 +315,7 @@
       },
       "constitution": {
         "version": "F1-F13@VAULT999",
-        "floors": ["F0-SOVEREIGN", "F1-AMANAH", "F2-TRUTH", "F3-TRI-WITNESS", "F4-CLARITY", "F5-PEACE", "F6-EMPATHY", "F7-HUMILITY", "F8-GENIUS", "F9-ANTI-HANTU", "F10-ONTOLOGY", "F11-AUDIT", "F12-INJECTION", "F13-SOVEREIGN"],
+        "floors": ["F1-AMANAH", "F2-TRUTH", "F3-WITNESS", "F4-CLARITY", "F5-PEACE", "F6-EMPATHY", "F7-HUMILITY", "F8-GENIUS", "F9-ANTI-HANTU", "F10-ONTOLOGY", "F11-AUDIT", "F12-INJECTION", "F13-SOVEREIGN"],
         "enforcement_mode": "strict",
         "audit_ledger": {
           "type": "VAULT999",

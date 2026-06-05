@@ -144,18 +144,18 @@ The `floors` array shows which constitutional rules were checked.
 | Floor | Plain English |
 |-------|--------------|
 | F1 AMANAH | "Can this be reversed?" — Reversibility check |
-| F2 SIDDIQ | "Is this true?" — Fact-checking |
-| F3 TRI_WITNESS | "Do 3 people agree?" — Human + AI + System consensus |
+| F2 TRUTH | "Is this true?" — Fact-checking |
+| F3 WITNESS | "Do we have verifiable evidence?" — Evidence preservation |
 | F4 CLARITY | "Is the reasoning clear?" — Entropy must decrease |
 | F5 PEACE² | "Will this cause harm?" — Non-destruction |
 | F6 EMPATHY | "Did we listen?" — RASA listening protocol |
 | F7 HUMILITY | "Are we overconfident?" — Ω must stay in GOLDILOCKS [0.03, 0.05] |
 | F8 GENIUS | "Is this a good idea?" — System health check |
-| F9 TAQWA | "Is this ethical?" — Ethics guard |
-| F10 CONSCIENCE | "Any false claims?" — Truthfulness check |
-| F11 AUDITABILITY | "Can we explain this?" — Transparent logging |
-| F12 RESILIENCE | "Will this break things?" — Graceful failure |
-| F13 ADAPTABILITY | "Is this safe to evolve?" — Safe self-modification |
+| F9 ANTI-HANTU | "Is this manipulation?" — Reject deception |
+| F10 ONTOLOGY | "Is the structure sound?" — Category lock |
+| F11 AUDIT | "Who authorized this?" — Identity + provenance |
+| F12 INJECTION | "Is input safe?" — Sanitize all parameters |
+| F13 SOVEREIGN | "Does Arif approve?" — Human veto is absolute |
 
 ---
 
