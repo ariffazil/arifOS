@@ -148,13 +148,11 @@ def _grep_search(
     # If repo_path matches a federation root, search that root only
     # Otherwise search repo_path and its subdirs
     targets: list[tuple[str, Path]] = []
-    repo_name = None
 
     for name, root in _FEDERATION_ROOTS.items():
         try:
             if repo_resolved == root.resolve():
                 targets = [(name, root)]
-                repo_name = name
                 break
         except Exception:
             pass
@@ -162,7 +160,6 @@ def _grep_search(
         # Not a known root — treat repo_path as the search target
         if repo_path.exists():
             targets = [("local", repo_path)]
-            repo_name = "local"
 
     if not targets:
         return []

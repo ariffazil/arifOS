@@ -10,7 +10,6 @@ from __future__ import annotations
 import pytest
 
 from arifosmcp.core.paradox.recursive_governance_locks import (
-    LockViolationError,
     RecursiveGovernanceEngine,
 )
 from arifosmcp.schemas.governance_locks import (

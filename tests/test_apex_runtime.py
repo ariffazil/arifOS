@@ -14,8 +14,6 @@ Constitution structure (source of truth):
 """
 
 import json
-import math
-import re
 import pytest
 from pathlib import Path
 

@@ -77,7 +77,7 @@ def _pull_from_hf() -> None:
     try:
         import subprocess
         dest = "/tmp/AAA-hf"
-        hf_token = os.environ.get("HF_TOKEN", "")
+        os.environ.get("HF_TOKEN", "")
         url = f"https://huggingface.co/datasets/ariffazil/AAA"
         subprocess.run(
             ["git", "clone", url, dest],

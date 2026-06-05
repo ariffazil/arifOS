@@ -27,15 +27,12 @@ from typing import Any
 from arifosmcp.schemas.topology import (
     AntiSinkCheck,
     AppealPath,
-    Delta,
     InstitutionalDrift,
     InstitutionalVerdict,
     InnovationRights,
     ParticipationWidth,
-    Presence,
     RiskBand,
     SovereigntyIntegrity,
-    Strength,
 )
 
 logger = logging.getLogger(__name__)

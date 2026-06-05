@@ -31,14 +31,12 @@ Motto: DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import subprocess
 import sys
 import time
 import uuid
-from datetime import datetime, timezone
 from typing import Optional
 
 import requests
@@ -92,7 +90,7 @@ def deterministic_uuid(name: str) -> str:
 def falkordb_query(cypher: str) -> list:
     """Execute Cypher query against FalkorDB via Docker exec + redis-cli."""
     # Escape single quotes in Cypher
-    safe_cypher = cypher.replace("'", "'\"'\"'")
+    cypher.replace("'", "'\"'\"'")
     cmd = [
         "docker",
         "exec",

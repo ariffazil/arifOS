@@ -1,7 +1,5 @@
 import pytest
-import os
-import aiohttp
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, patch
 from datetime import datetime
 
 from core.vault999.layer1_epistemic.blockchain_anchor import (

@@ -9,7 +9,6 @@ Uses `nats` CLI under the hood — zero Python NATS dependency issues.
 
 import json
 import subprocess
-import sys
 from datetime import datetime, timezone
 
 SUBJECT_PREFIX = "agent.memory"

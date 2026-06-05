@@ -10,8 +10,6 @@ if str(root_dir) not in sys.path:
 if str(root_dir / "core") not in sys.path:
     sys.path.insert(0, str(root_dir / "core"))
 
-import json
-import tempfile
 import pytest
 
 from arifos_wiki_tools.indexer import ingest_repo

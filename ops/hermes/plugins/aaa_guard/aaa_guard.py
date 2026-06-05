@@ -10,11 +10,10 @@ import json
 import os
 import re
 import hashlib
-import hmac
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
-from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
+from dataclasses import dataclass
 
 
 FLOOR_CLASSES = {
@@ -345,7 +344,7 @@ class AAAGuardPlugin:
 
 def register(ctx):
     enforce = os.environ.get("AAA_ENFORCE", "false").lower() == "true"
-    plugin = AAAGuardPlugin(
+    AAAGuardPlugin(
         enforce=enforce,
         audit_path=os.environ.get("AAA_AUDIT_PATH", "/root/VAULT999/outcomes.jsonl"),
         workspace_root=os.environ.get("AAA_WORKSPACE_ROOT", "/root/AAA/ops/hermes"),

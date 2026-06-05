@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-import pytest
 
 from arifosmcp.schemas.embodied_tool import ClaimState
 from arifosmcp.schemas.federation_envelope import (
@@ -25,7 +24,6 @@ from arifosmcp.schemas.federation_envelope import (
     FederationEnvelope,
     HostAttestation,
     RiskPassport,
-    RiskTier,
     ToolScope,
     wrap_legacy_call,
 )
@@ -435,7 +433,6 @@ class TestWakefulnessAssessment:
             actor_id="arif",
             risk_summary={},
         )
-        question_ids = ["evidence", "uncertainty", "responsibility", "repair"]
         for i, (qid, text) in enumerate(answers):
             chk.answers.append(
                 CheckpointAnswer(

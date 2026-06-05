@@ -18,7 +18,7 @@ import hashlib
 import threading
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 DEFAULT_VAULT_PATH = "/root/VAULT999/outcomes.jsonl"
 
@@ -33,7 +33,6 @@ def _read_last_leaf(path: Path) -> str:
     """Find the most recent merkle_leaf in the file. Returns 'GENESIS' if empty."""
     if not path.exists() or path.stat().st_size == 0:
         return "GENESIS"
-    last = "GENESIS"
     # Read in reverse chunks; for big files this is O(leaf) not O(file).
     with path.open("rb") as f:
         f.seek(0, os.SEEK_END)

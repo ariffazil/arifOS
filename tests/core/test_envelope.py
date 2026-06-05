@@ -1,8 +1,7 @@
 import pytest
-import os
 import nacl.signing
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 from core.vault999.layer3_attestation.envelope import (
     ExecutionEnvelope,
     ExecutionStatus,
@@ -110,7 +109,7 @@ async def test_execution_attestor(monkeypatch):
     # So it uses local nacl key, which is fine.
     
     # Execute
-    res = await attestor.verify_and_execute(env, mock_executor)
+    await attestor.verify_and_execute(env, mock_executor)
     
     # The signature in env will be verified by env.verify(None) which will try to load authority key
     # But since we didn't mock _load_authority_key, it will fail unless we mock it

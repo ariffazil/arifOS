@@ -27,11 +27,9 @@ from arifosmcp.schemas.federation_envelope import (
     ActionClass,
     AuthoritySource,
     FederationEnvelope,
-    HostAttestation,
     wrap_legacy_call,
 )
 from arifosmcp.schemas.sovereignty_checkpoint import (
-    SovereigntyCheckpoint,
     SovereigntyCheckpointRequest,
     build_sovereignty_checkpoint,
 )
@@ -206,16 +204,16 @@ async def _write_tool_call_receipt(
         organ_code = "arifos"
         actor_ref = "arifOS-kernel"
         result_code = _result_code_from_tool_result(result)
-        error_msg = _extract_error_from_result(result)
+        _extract_error_from_result(result)
         risk_tier = _risk_tier_for_tool(tool_name)
         status = "succeeded"
 
         # Compute input hash for audit trail
         try:
             body = json.dumps(arguments, sort_keys=True, default=str)
-            input_hash = hashlib.sha256(body.encode()).hexdigest()[:16]
+            hashlib.sha256(body.encode()).hexdigest()[:16]
         except Exception:
-            input_hash = None
+            pass
 
         await record_tool_call(
             session_ref=session_ref,
@@ -595,8 +593,7 @@ if IS_FASTMCP_3:
                             tool_description=f"Risk tier {envelope.risk.tier.value}, "
                             f"action class {envelope.risk.action_class.value}",
                         )
-                        chk_req = SovereigntyCheckpointRequest(checkpoint=chk)
-                        import json as _json
+                        SovereigntyCheckpointRequest(checkpoint=chk)
 
                         logger.warning(
                             f"Ingress checkpoint HOLD for {tool_name}: "

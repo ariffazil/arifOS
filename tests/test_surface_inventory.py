@@ -7,7 +7,6 @@ Does not require full PHOENIX-72 completion.
 import json
 from pathlib import Path
 
-import pytest
 
 PROJECT_ROOT = Path(__file__).parent.parent
 

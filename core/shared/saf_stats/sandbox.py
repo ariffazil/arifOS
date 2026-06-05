@@ -8,7 +8,6 @@ absolute path is always returned. The data root defaults to
 from __future__ import annotations
 
 import os
-import re
 from pathlib import Path
 from typing import Iterable
 

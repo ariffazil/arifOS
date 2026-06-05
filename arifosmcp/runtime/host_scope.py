@@ -214,7 +214,6 @@ def evaluate_host_scope(
                 blocked_scopes=blocked,
             )
         # Partial block — attenuate but allow
-        attenuated = True
 
     # Check external effect
     if tool_external_effect not in matrix.allowed_external_effects:
@@ -315,7 +314,7 @@ def redact_tool_surface(
     redacted = []
     for tool in tools:
         name = tool.get("name", "")
-        desc = tool.get("description", "")
+        tool.get("description", "")
         # Only include read-looking tools
         if any(p in name.lower() for p in ["observe", "measure", "evidence", "fetch", "health"]):
             redacted.append(tool)

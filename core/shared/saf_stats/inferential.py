@@ -22,18 +22,16 @@ from __future__ import annotations
 import json
 import math
 import warnings
-from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 import numpy as np
 import pandas as pd
 import pingouin as pg
-import scipy.stats as ss
 from scipy import stats
 from statsmodels.stats import power as sm_power
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from statsmodels.stats.outliers_influence import variance_inflation_factor
-from statsmodels.formula.api import ols, logit
+from statsmodels.formula.api import ols
 
 from . import governance
 from . import spss_read as saf_read
@@ -264,7 +262,7 @@ def stat_compare_groups(
         if len(groups) > 2 and not parametric:
             # Non-parametric with >2 groups → Kruskal-Wallis + epsilon²
             h, p = stats.kruskal(*groups)
-            t, stat_name, method = h, "H", "Kruskal-Wallis H"
+            t, _stat_name, method = h, "H", "Kruskal-Wallis H"
             es = float(
                 pg.kruskal(
                     data=df[[value_col, group_col]].dropna(),

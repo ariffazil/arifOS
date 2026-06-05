@@ -11,7 +11,6 @@ Usage:
 from pulp import *
 import json
 import argparse
-from pathlib import Path
 
 # === AGENT REGISTRY ===
 # arifOS federation nodes — edit as capabilities evolve

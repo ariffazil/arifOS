@@ -214,7 +214,6 @@ class OntologyGuard:
               - verdict: "HOLD" if parallel detected, "SEAL" if clean
               - reason: str — human-readable explanation
         """
-        import os
         from pathlib import Path
 
         suspicious: list[str] = []

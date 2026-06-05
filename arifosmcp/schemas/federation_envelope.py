@@ -20,7 +20,7 @@ DITEMPA BUKAN DIBERI — Jurisdiction before intelligence.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 

@@ -64,7 +64,7 @@ Sentence 3: Whether the definition of "green" (healthy) has drifted in any subtl
         with urllib.request.urlopen(req, timeout=120) as response:
             result = json.loads(response.read().decode())
             return result.get("response", "").strip()
-    except Exception as e:
+    except Exception:
         return "1. The agents executed minor autonomous operations and logged events to Vault999. 2. The system expended energy primarily on security audits and metabolic cycles. 3. The definition of green remains unchanged, though the LLM summarizer was unreachable."
 
 def send_to_hermes(text):
@@ -88,9 +88,9 @@ DITEMPA BUKAN DIBERI"""
 
     req = urllib.request.Request(HERMES_URL, data=json.dumps(payload).encode("utf-8"), headers=HERMES_HEADERS)
     try:
-        with urllib.request.urlopen(req, timeout=10) as response:
+        with urllib.request.urlopen(req, timeout=10):
             pass # Success
-    except Exception as e:
+    except Exception:
         # Fallback to local file if Hermes is down
         with open("/root/memory/weekly_pulse.md", "a") as f:
             f.write(f"\n\n## Weekly Pulse ({datetime.now().isoformat()})\n\n{text}\n")

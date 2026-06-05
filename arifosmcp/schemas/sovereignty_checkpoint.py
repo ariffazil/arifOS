@@ -356,7 +356,7 @@ def assess_wakefulness(
         return WakefulnessLevel.UNKNOWN
 
     # Average answer length
-    avg_length = sum(len(a.answer_text) for a in answers) / len(answers)
+    sum(len(a.answer_text) for a in answers) / len(answers)
 
     # Depth scores
     depth_scores = {

@@ -936,7 +936,7 @@ class ConstitutionalFloors:
             parameters.get("actor_id", "") in ("ai", "agent", "model", "assistant"),
         ]
         is_ai_proposing = any(ai_self_approval_signals)
-        has_sovereign_ack = parameters.get("ack_irreversible", False) is True
+        parameters.get("ack_irreversible", False) is True
         has_explicit_sovereign = (
             sovereignty_signals[0] or sovereignty_signals[1] or sovereignty_signals[2]
         )

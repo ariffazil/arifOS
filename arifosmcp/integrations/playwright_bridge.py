@@ -105,7 +105,7 @@ class PlaywrightBridge:
     async def health_check(self) -> dict[str, Any]:
         """Verify playwright-mcp service is reachable and initialized."""
         try:
-            async with playwright_mcp_session(self.base_url) as session:
+            async with playwright_mcp_session(self.base_url):
                 # Successful session creation + initialize = health OK
                 return {
                     "status": "OK",

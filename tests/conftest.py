@@ -21,7 +21,6 @@ sys.path = [str(root_dir), str(root_dir / "core")] + [p for p in sys.path if p n
 
 
 # Pre-import core package to lock it in sys.modules and prevent collision with arifosmcp/core
-import core
 
 
 

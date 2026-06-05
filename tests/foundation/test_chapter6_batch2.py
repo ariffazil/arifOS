@@ -12,25 +12,20 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.schemas.federation_envelope import (
     ActionClass,
     HostAttestation,
-    RiskTier,
     ToolScope,
-    ExternalEffect,
 )
 from arifosmcp.schemas.responsibility_ledger import (
     MoralOwner,
     ResponsibilityClass,
-    ResponsibilityReceipt,
     build_responsibility_receipt,
 )
 from arifosmcp.runtime.host_scope import (
     HOST_TRUST_MATRIX,
     PermissionLayer,
-    ScopeGateResult,
     evaluate_host_scope,
     redact_tool_description,
     redact_tool_surface,

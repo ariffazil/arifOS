@@ -327,7 +327,7 @@ def arif_ops_measure(
 
             from arifosmcp.tools.session_budget import arif_session_budget
 
-            sig = inspect.signature(arif_session_budget)
+            inspect.signature(arif_session_budget)
             call_kwargs: dict = {"session_id": session_id, "actor_id": actor_id}
             raw_result = (
                 arif_session_budget(**call_kwargs)
@@ -365,8 +365,6 @@ def arif_ops_measure(
         # evidence is unread, and uncertainty is hidden.
         try:
             import importlib.util
-            import json
-            from pathlib import Path
 
             # Query WELL state
             spec = importlib.util.spec_from_file_location(
@@ -384,7 +382,6 @@ def arif_ops_measure(
             rubber_stamp_rate = 0.0
             evidence_opened = 0
             avg_ack_time_ms = 0.0
-            appeal_count = 0
             dignity_holds = 0
             certainty_overclaims = 0
 

@@ -17,13 +17,13 @@
 #   Key: local negentropy only in open system. ΔS_total ≥ 0 always preserved.
 # =============================================================================
 
-import os, sys, json, time, uuid, hashlib, asyncio, socket, logging, argparse, re
+import os, json, time, uuid, hashlib, asyncio, socket, argparse, re
 import subprocess
 import urllib.request
 import urllib.error
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Optional, Dict, List, Tuple
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 import socketserver, threading
@@ -125,16 +125,12 @@ class ApexThermodynamicEngine:
 
         if not thermo["valid"]:
             verdict = "HOLD"
-            reason = "Entropy violation — not a valid open-system operation"
         elif not reversibility_passed:
             verdict = "SABAR"
-            reason = f"Reversibility gate not met: κᵣ={kappa_r:.2f} < {self.kappa_r_threshold}"
         elif j_value >= 0.5 and thermo["valid"]:
             verdict = "SEAL"
-            reason = "APEX conditions met"
         else:
             verdict = "CAUTION"
-            reason = "Marginal — proceed with monitoring"
 
         apex_metric = {
             "ℐ_value": round(j_value, 4),
@@ -678,7 +674,7 @@ class MetabolicPipeline:
         # 000 INIT
         stages_run.append("000_INIT")
         human = ctx.get("human", "Arif Fazil")
-        actor_id = ctx.get("actor_id", "arifOS")
+        ctx.get("actor_id", "arifOS")
         kappa_r = ctx.get("kappa_r", 0.9)
 
         # 111 SENSE
@@ -1756,7 +1752,7 @@ def main():
 
     elif args.mode == "watchdog-check":
         # Watchdog mode: verify arifosd process is alive
-        import os, signal
+        import os
         pid_file = Path("/var/run/arifosd/daemon.pid")
         alive = False
         if pid_file.exists():

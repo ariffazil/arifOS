@@ -11,7 +11,6 @@ DITEMPA BUKAN DIBERI
 
 from __future__ import annotations
 
-import hashlib
 import json
 import sys
 from pathlib import Path
@@ -98,7 +97,7 @@ def verify_v2_active() -> dict:
         v1_state = state.get("v1", {})
 
         # Verify genesis hash anchors to v1 terminal
-        genesis = entries[0]
+        entries[0]
         genesis_hash = v2_state.get("genesis_hash")
         v1_terminal = v1_state.get("terminal_hash")
         result["genesis_anchored"] = genesis_hash == v1_terminal

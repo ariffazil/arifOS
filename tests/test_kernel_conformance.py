@@ -12,10 +12,8 @@ import json
 import sys
 import pytest
 import time
-import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 # ─────────────────────────────────────────────────────────────────
 # CONFIG
@@ -135,7 +133,6 @@ def test_registry_truth(result: AuditResult):
         ("WELL", WELL_HOST, 13),  # confirmed somatic tools = 13
     ]
 
-    all_match = True
     for name, host, expected in servers:
         live_tools = fetch_tools(host)
         live_count = len(live_tools)
@@ -159,7 +156,6 @@ def test_registry_truth(result: AuditResult):
             result.fail_test(
                 f"{name}: tool count MISMATCH", f"live={live_count}, registry={expected}"
             )
-            all_match = False
 
     # Check server health
     for name, host, _ in servers:
@@ -279,11 +275,10 @@ def test_routing_engine(result: AuditResult):
                 break
 
         # Find matching tool via task patterns
-        matched_tool = None
         for pattern in task_patterns:
             pat = pattern.get("pattern", "")
             if pat.lower() in query_lower:
-                matched_tool = pattern.get("tool")
+                pattern.get("tool")
                 break
 
         if matched_organ == expected_organ:

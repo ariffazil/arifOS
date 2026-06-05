@@ -3,7 +3,6 @@ Tests for SovereignVault999 (unified_vault999.py).
 Exercises the integration layer across all 4 vault security layers.
 """
 import pytest
-from pathlib import Path
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -163,8 +162,8 @@ def test_get_vivid_memories(vault):
 
 def test_phenomenological_record_to_dict(vault):
     """PhenomenologicalVaultRecord.to_dict should serialize all layers."""
-    from core.vault999.phenomenological.qualia_trace import QualiaTrace, RASAField, EmotionalTone
-    from core.vault999.phenomenological.autonoetic import AutonoeticMarker, NarrativeContinuity
+    from core.vault999.phenomenological.qualia_trace import QualiaTrace
+    from core.vault999.phenomenological.autonoetic import NarrativeContinuity
 
     qualia = QualiaTrace.from_session_context(
         session_id="sess-test",

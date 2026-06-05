@@ -34,9 +34,6 @@ import asyncpg
 sys.path.insert(0, "/root/arifOS")
 
 from arifOS.supabase_adapter import (
-    record_tool_call,
-    record_approval,
-    record_judge_verdict,
     record_evidence,
     record_artifact,
     seal_vault999,
@@ -217,8 +214,8 @@ async def main():
             "SELECT seal_id, verdict, organ_code, subject_type, created_at "
             "FROM aaa.recent_seals ORDER BY created_at DESC LIMIT 3"
         )
-        seal_seen = len(rows) > 0
-        seal_seen = len(rows) > 0
+        len(rows) > 0
+        len(rows) > 0
         print(f"\n  aaa.recent_seals (last 3):")
         for r in rows:
             print(

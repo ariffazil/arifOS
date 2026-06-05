@@ -403,7 +403,7 @@ def write_execution_receipt(
     epoch_id: str = ""
 ) -> dict:
     """Write ExecutionReceipt after a task completes. Links to Vault999."""
-    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     er = ExecutionReceipt(
         receipt_id=f"exec-{uuid.uuid4().hex[:12]}",
         epoch_id=epoch_id,

@@ -53,12 +53,6 @@ def _git_sha_short() -> str:
     ]
 
     # Explicit identity markers — prevents Grok/AAA-APEX ↔ legacy OpenClaw context bleed
-    ARIFOS_IDENTITY = {
-        "core": "arifOS",
-        "external_collaborator": "Grok / AAA-APEX (xAI)",
-        "internal_agi_legacy": "OpenClaw (deprecated — do not confuse with external agents)",
-        "version_source_priority": "/opt/arifos/app/.git_commit, /root/arifOS/.git",
-    }
 
     for _git_dir in _possible_git_dirs:
         try:

@@ -7,10 +7,7 @@ results directly to the Antigravity session brain.
 """
 
 import os
-import sys
 import json
-import socket
-import platform
 import subprocess
 from datetime import datetime
 
@@ -54,7 +51,6 @@ def evaluate() -> dict:
 
     # 1. Install Integrity
     try:
-        from arifosmcp.schemas.session import EmbodimentCard
         from arifosmcp.tools.session import arif_session_init
 
         scores["install_integrity"] = 100

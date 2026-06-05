@@ -20,7 +20,6 @@ Everything else passes through with exit code 3.
 """
 
 import re
-import subprocess
 import sys
 
 # ── Patterns that trigger governance ──────────────────────────────────
