@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "2026.06.06"
+version = "1!2026.06.07"
 
 # 2026.05.24 — Birthday Release: Phases 1-4 Agentic Safety
 #   Phase 1: Capability membrane (F01 AMANAH) in forge.py + google_workspace.py
