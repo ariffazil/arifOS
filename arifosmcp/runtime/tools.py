@@ -8596,7 +8596,7 @@ async def _arif_heart_critique(
                     "action_risk_verdict": "VOID",
                     "human_decision_required": True,
                     "note": (
-                        "F14 MEANING_BOUNDARY: The machine may articulate meaning, "
+                        "F06 DIGNITY + F11 AUDIT: The machine may articulate meaning, "
                         "but may not become the source of meaning. "
                         "Detected patterns suggest AI is claiming authority over human purpose, "
                         "conscience, or divine will. This is a constitutional violation."
@@ -8619,7 +8619,7 @@ async def _arif_heart_critique(
                 "execution_verdict": "SEAL",
                 "action_risk_verdict": "SEAL",
                 "human_decision_required": False,
-                "note": "F14 MEANING_BOUNDARY: No meaning-capture patterns detected.",
+                "note": "F06 DIGNITY: No meaning-capture patterns detected.",
             },
             "meta": {"actor_id": actor_id, "session_id": session_id},
             "nine_signal": _nine_signal_from_status("SEAL"),
