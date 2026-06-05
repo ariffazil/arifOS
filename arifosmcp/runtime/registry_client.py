@@ -32,7 +32,7 @@ def _detect_registry_root() -> Path:
     env = os.environ.get("ARIFOS_REGISTRY_ROOT")
     if env:
         return Path(env)
-    for candidate in ["/app/registry", "/root/arifOS/registry"]:
+    for candidate in ["/root/arifos-model-registry", "/app/registry", "/root/arifOS/registry"]:
         p = Path(candidate)
         if (p / "catalog.json").exists():
             return p

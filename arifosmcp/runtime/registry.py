@@ -30,9 +30,11 @@ def _candidate_registry_roots() -> list[Path]:
     env_root = os.environ.get("ARIFOS_REGISTRY_ROOT")
     candidates = [
         Path(env_root).expanduser() if env_root else None,
+        Path("/root/arifos-model-registry"),  # LIVE spine (GitHub canonical, 2026-06-05)
         Path("/app/registry"),  # Docker default
-        Path("/root/arifOS/registry"),  # VPS default
-        Path("/root/arifos-model-registry"),  # Legacy separate repo
+        Path(
+            "/root/arifOS/registry"
+        ),  # DEPRECATED — 3-week stale ghost (May 15). Kept as fallback.
         _REPO_ROOT / "registry",  # Relative to arifOS repo
         _REPO_ROOT / "arifos-model-registry",  # Legacy relative
         _REPO_ROOT / "00_legacy_materials" / "arifOS-upstream" / "archive",
