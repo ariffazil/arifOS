@@ -72,6 +72,67 @@ def _result_code_from_tool_result(result: Any) -> str:
         return "UNK"
 
 
+def _hold_envelope_dict(
+    tool_name: str,
+    reason: str,
+    *,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """
+    Build a schema-conformant HOLD envelope dict.
+
+    Used by ingress HOLD paths to return a ToolResult that satisfies
+    CANONICAL_OUTPUT_SCHEMA (so MCP SDK does not reject it as
+    'outputSchema defined but no structured output returned').
+
+    F2 Truth + F13 SOVEREIGN: every HOLD is a real verdict, with a reason.
+    The reason is preserved verbatim so callers can act on it.
+    """
+    ts = datetime.now(UTC).isoformat()
+    result_payload: dict[str, Any] = {
+        "reason": reason,
+        "checkpoint_required": True,
+    }
+    if extra:
+        result_payload.update(extra)
+    return {
+        "status": "HOLD",
+        "tool": tool_name,
+        "verdict": "HOLD",
+        "result": result_payload,
+        "meta": {"actor_id": actor_id or "ingress-middleware"},
+        "delta_S": 0.0,
+        "timestamp": ts,
+        "session_id": session_id,
+        "actor_id": actor_id,
+        "output_policy": "DOMAIN_HOLD",
+        "nine_signal": {
+            "delta": {
+                "state": "ROSAK",
+                "en": "BROKEN",
+                "domain_meaning": "Ingress rejected call before tool execution.",
+            },
+            "psi": {
+                "state": "KHIANAT",
+                "en": "BETRAYED",
+                "domain_meaning": "Floor violation, unauthorized action.",
+            },
+            "omega": {
+                "state": "BANGANG",
+                "en": "FOOLISH",
+                "domain_meaning": "Authority check failed at the boundary.",
+            },
+            "overall": {"state": "RETAK", "en": "FAILED"},
+        },
+        "reasons": [reason, "Ingress middleware rejected before tool execution."],
+        "_nine_signal_compliant": True,
+        "_violations": [],
+        "stage_progression": None,
+    }
+
+
 def _extract_error_from_result(result: Any) -> str | None:
     """Extract error message from ToolResult if present."""
     try:
@@ -499,10 +560,19 @@ if IS_FASTMCP_3:
                 if not envelope_ok:
                     logger.warning(f"Ingress envelope HOLD for {tool_name}: {envelope_reason}")
                     # Return HOLD result — do not execute tool
+                    # MUST include structured_content so MCP SDK accepts it
+                    # under CANONICAL_OUTPUT_SCHEMA (F8 / MCP Spec 2025-11-25).
                     from mcp.types import TextContent
 
                     return ToolResult(
                         content=[TextContent(type="text", text=f"888_HOLD: {envelope_reason}")],
+                        structured_content=_hold_envelope_dict(
+                            tool_name=tool_name,
+                            reason=envelope_reason,
+                            session_id=envelope.session_id,
+                            actor_id=envelope.actor_id,
+                            extra={"gate": "envelope_validation"},
+                        ),
                     )
 
                 # ── SOVEREIGNTY CHECKPOINT GATE (v2: Chapter 6 Upgrade) ────
@@ -554,6 +624,20 @@ if IS_FASTMCP_3:
                                     ),
                                 )
                             ],
+                            structured_content=_hold_envelope_dict(
+                                tool_name=tool_name,
+                                reason="Sovereignty checkpoint required (F13 SOVEREIGN gate)",
+                                session_id=envelope.session_id,
+                                actor_id=envelope.actor_id,
+                                extra={
+                                    "gate": "sovereignty_checkpoint_required",
+                                    "checkpoint_id": chk.checkpoint_id,
+                                    "checkpoint_expires_at": str(chk.expires_at),
+                                    "risk_tier": envelope.risk.tier.value,
+                                    "action_class": envelope.risk.action_class.value,
+                                    "reversibility": envelope.risk.reversibility.value,
+                                },
+                            ),
                         )
                     else:
                         # Checkpoint exists — validate it
@@ -571,6 +655,16 @@ if IS_FASTMCP_3:
                                         text=f"888_HOLD: Sovereignty checkpoint invalid — {chk_reason}",
                                     )
                                 ],
+                                structured_content=_hold_envelope_dict(
+                                    tool_name=tool_name,
+                                    reason=f"Sovereignty checkpoint invalid: {chk_reason}",
+                                    session_id=envelope.session_id,
+                                    actor_id=envelope.actor_id,
+                                    extra={
+                                        "gate": "sovereignty_checkpoint_invalid",
+                                        "checkpoint_invalid_reason": chk_reason,
+                                    },
+                                ),
                             )
                         logger.debug(
                             f"Ingress checkpoint passed for {tool_name}: "
