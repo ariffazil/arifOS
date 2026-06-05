@@ -55,8 +55,9 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Use when a claim needs verified backing or factual grounding."
     ),
     "arif_mind_reason": (
-        "Multi-step reasoning, planning, and reflection. "
-        "Use for complex analysis, hypothesis evaluation, and decision preparation."
+        "Multi-step reasoning, planning, and reflection with confidence labeling. "
+        "Use for complex analysis, hypothesis evaluation, plan generation, and decision preparation. "
+        "Modes: reason | reflect | verify | critique | plan | plan_review | plan_approve | refactor_plan | metabolize."
     ),
     "arif_kernel_route": (
         "Route intent to the correct tool or federation organ. "
@@ -69,8 +70,8 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Modes: compose | style | cite | summary | format | nudge | repo_answer."
     ),
     "arif_memory_recall": (
-        "Search past sessions, assets, and sealed events. "
-        "Use for retrieving historical context and prior decisions. "
+        "Search past sessions, assets, sealed events, or repositories. "
+        "Use for retrieving historical context, prior decisions, and codebase knowledge. "
         "Modes: recall | store | get | list | context | repo_ingest | repo_search."
     ),
     "arif_heart_critique": (
@@ -79,7 +80,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Modes: critique | simulate | empathize | redteam | maruah | deescalate | instruction_scan."
     ),
     "arif_gateway_connect": (
-        "Bridge to other federation agents (GEOX, WEALTH, WELL). "
+        "Bridge to other federation agents (GEOX, WEALTH, WELL, A-FORGE, AAA, APEX, cn-organ). "
         "Use for cross-organ tasks and multi-agent coordination."
     ),
     "arif_ops_measure": (

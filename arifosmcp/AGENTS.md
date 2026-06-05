@@ -34,7 +34,7 @@ All tools follow the `arif_<noun>_<verb>` naming convention.
 | Tool | Stage | Lane | Access | F-Floors |
 | :--- | :---- | :--- | :----- | :-------- |
 | `arif_session_init` | 000 | AGI | public | F01, F11, F12 |
-| `arif_judge_deliberate` | 888 | ASI | authenticated | F11, F13 |
+| `arif_judge_deliberate` | 888 | ASI | authenticated | F01, F11, F13 |
 | `arif_vault_seal` | 999 | APEX | authenticated | F01, F11, F13 |
 
 ### INTELLIGENCE (Δ Mind / Ω Heart)
@@ -43,16 +43,16 @@ All tools follow the `arif_<noun>_<verb>` naming convention.
 | :--- | :---- | :--- | :----- | :-------- |
 | `arif_mind_reason` | 333 | AGI | public | F02, F07, F08, F10 |
 | `arif_heart_critique` | 444 | ASI | public | F05, F06, F09 |
-| `arif_reply_compose` | 444r | AGI | public | F04, F06, F09 |
+| `arif_reply_compose` | 444r | AGI | public | F02, F04, F06, F09 |
 
 ### INFRASTRUCTURE
 
 | Tool | Stage | Lane | Access | F-Floors |
 | :--- | :---- | :--- | :----- | :-------- |
 | `arif_kernel_route` | 555 | AGI | public | F01, F04, F03, F10 |
-| `arif_gateway_connect` | 666g | ASI | public | F01, F03 |
+| `arif_gateway_connect` | 666g | ASI | public | F01, F03, F11 |
 | `arif_memory_recall` | 555m | AGI | public | F01, F08 |
-| `arif_ops_measure` | 777 | AGI | public | F04 |
+| `arif_ops_measure` | 777 | AGI | public | F02, F04 |
 
 ### REALITY GROUNDING
 
