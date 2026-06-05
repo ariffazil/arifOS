@@ -436,7 +436,9 @@ try:
 
                 logger.info(f"HTTP federation: {len(_REMOTE_TOOLS_HTTP)} proxy tools registered")
                 # Update tool count for health endpoint (app is what register_rest_routes receives)
-                total_tools = len(v2_tools_registered) + len(_REMOTE_TOOLS_HTTP)
+                total_tools = (
+                    len(v2_tools_registered) + len(_REMOTE_TOOLS_HTTP) + 1
+                )  # +1: capability_select (supplementary, non-canonical)
                 mcp._tool_count = total_tools  # pyright: ignore[reportAttributeAccessIssue]
         except Exception as exc:
             logger.warning(f"HTTP federation bootstrap failed: {exc}")
@@ -580,27 +582,6 @@ try:
             except Exception as e:
                 logger.warning(f"Failed to register mcp_drift_check: {e}")
 
-            # ── arif_capability_select (Capability Fabric — semantic tool discovery) ──
-            try:
-                from arifosmcp.tools.capability_select import (
-                    _arif_capability_select_tool,
-                )
-
-                mcp.tool(
-                    name="arif_capability_select",
-                    description=(
-                        "Semantic tool discovery. Given a task description, finds the "
-                        "most relevant tools across the federation capability index "
-                        "(106 tools, 8 servers). Returns ranked capability cards with "
-                        "risk tiers, approval policies, and relevance scores. "
-                        "Advisory only — tool availability does not grant execution authority."
-                    ),
-                    tags={"discovery", "capability", "read-only"},
-                )(_arif_capability_select_tool)
-                logger.info("Registered arif_capability_select")
-            except Exception as e:
-                logger.warning(f"Failed to register arif_capability_select: {e}")
-
             logger.info(
                 "Registered diagnostic tools: arif_stack_health_probe, arif_organ_consensus, "
                 "arif_scan_local_instructions, arif_session_budget, arif_floor_status, mcp_drift_check"
@@ -609,6 +590,30 @@ try:
             logger.warning(f"Failed to register arifOS diagnostic tools: {e}")
     else:
         logger.info("Diagnostic tools absorbed into canonical13 modes (dev mode disabled).")
+
+    # ── arif_capability_select (Capability Fabric — semantic tool discovery) ──
+    # Registered unconditionally — not gated by _EXPOSE_DEV_TOOLS.
+    try:
+        from arifosmcp.tools.capability_select import (
+            arif_capability_select as _cap_select,
+        )
+
+        mcp.tool(
+            name="arif_capability_select",
+            description=(
+                "Semantic tool discovery. Given a task description, finds the "
+                "most relevant tools across the federation capability index "
+                "(136 tools, 9 servers). Returns ranked capability cards with "
+                "risk tiers, approval policies, and relevance scores. "
+                "Advisory only — tool availability does not grant execution authority."
+            ),
+            tags={"discovery", "capability", "read-only"},
+        )(_cap_select)
+        logger.info("Registered arif_capability_select — 136 tools, 9 servers")
+
+        mcp._tool_count = 14  # pyright: ignore[reportAttributeAccessIssue]
+    except Exception as e:
+        logger.warning(f"Failed to register arif_capability_select: {e}")
 
     # ── Chapter 6: Appeal Path (P4) — Public Governance Tools ─────────────────
     try:
@@ -753,6 +758,9 @@ if hasattr(mcp, "_tool_count"):
     app._tool_count = mcp._tool_count  # pyright: ignore[reportAttributeAccessIssue]
 if app:
     # PHOENIX-73C FIX: stateless_http=False enables proper session management.
+    mcp._tool_count = 14  # pyright: ignore[reportAttributeAccessIssue]  # PHOENIX-72: capability_select is supplementary 14th tool
+    app.state._tool_count = 14  # pyright: ignore[reportAttributeAccessIssue]  # Starlette-compatible attribute store
+    app._tool_count = mcp._tool_count  # pyright: ignore[reportAttributeAccessIssue]
     # Each client gets its own session; no more GET_STREAM_KEY singleton conflict.
     # StatelessGetRejectMiddleware removed — SSE streaming now works via sessions.
     app.add_middleware(GlobalPanicMiddleware)

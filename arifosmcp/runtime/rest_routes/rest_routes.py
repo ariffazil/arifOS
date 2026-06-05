@@ -2413,7 +2413,11 @@ def register_rest_routes(
             "image": f"ghcr.io/ariffazil/arifos:{BUILD_INFO['build']['commit']}",
             "deployment_source": "ghcr",
             "transport": "streamable-http",
-            "tools_loaded": getattr(mcp, "_tool_count", len(tool_registry)),
+            "tools_loaded": getattr(
+                mcp,
+                "_tool_count",
+                getattr(getattr(mcp, "state", None), "_tool_count", len(tool_registry)),
+            ),
             "floors_active": get_floor_count(),
             "floors_enforcement": "active",
             "tool_registry_hash": _compute_tool_registry_hash(tool_registry),
