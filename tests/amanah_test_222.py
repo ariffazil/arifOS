@@ -13,7 +13,7 @@ import time
 import urllib.request
 from datetime import datetime, timezone
 
-MCP_URL = "http://localhost:8080/mcp"
+MCP_URL = "http://localhost:8088/mcp"
 
 
 def sse_raw(tool: str, arguments: dict) -> dict:

@@ -3,10 +3,31 @@ import shlex
 import subprocess
 from datetime import UTC, datetime
 
-# arifOS Governance Imports
-from core.shared.physics import delta_S
+# arifOS Governance Imports (graceful fallback for standalone use)
+try:
+    from core.shared.physics import delta_S
+except ImportError:
 
-from arifosmcp.agentzero.escalation.hold_state import anchor_hold_registry
+    def delta_S(input_text: str, output_text: str) -> float:
+        """Stub entropy delta — returns 0 when full physics module unavailable."""
+        return 0.0
+
+
+try:
+    from arifosmcp.agentzero.escalation.hold_state import anchor_hold_registry
+except ImportError:
+
+    class _StubHoldRegistry:
+        """Stub hold registry when agentzero escalation not available."""
+
+        def is_held(self, session_id: str) -> bool:
+            return False
+
+        def get_hold_reason(self, session_id: str) -> str:
+            return ""
+
+    anchor_hold_registry = _StubHoldRegistry()
+
 from arifosmcp.abi.amanah_gate import scan as _amanah_scan, Verdict as _AmanahVerdict
 
 
