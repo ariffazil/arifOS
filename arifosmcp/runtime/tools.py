@@ -13093,6 +13093,9 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
             from arifOS.supabase_adapter import record_tool_call
 
+            # s000.tool_calls.tool_calls_status_check allows:
+            # planned | pending_approval | running | succeeded | failed | blocked | voided
+            # Map "completed" → "succeeded" to satisfy the CHECK constraint.
             loop = asyncio.get_running_loop()
             loop.create_task(
                 record_tool_call(
@@ -13101,7 +13104,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     organ_code="arifOS",
                     arguments=kwargs,
                     risk_tier=0,  # Could extract from manifest
-                    status="completed",
+                    status="succeeded",
                     actor_ref=kwargs.get("actor_id"),
                 )
             )
@@ -13146,7 +13149,9 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     organ_code="arifOS",
                     arguments=kwargs,
                     risk_tier=0,
-                    status="completed",
+                    # See sync wrapper — s000.tool_calls CHECK constraint
+                    # does not allow "completed"; use "succeeded".
+                    status="succeeded",
                     actor_ref=kwargs.get("actor_id"),
                 )
             )
