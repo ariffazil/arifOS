@@ -27,16 +27,32 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-# Registry root — env var, Docker default, or VPS fallback
+# Registry root — ARIFOS_REGISTRY_ROOT env var is authoritative.
+# Without it, attempts common deployment locations as best-effort fallbacks.
+# Sovereign deployments MUST set ARIFOS_REGISTRY_ROOT for reliable operation.
 def _detect_registry_root() -> Path:
     env = os.environ.get("ARIFOS_REGISTRY_ROOT")
     if env:
-        return Path(env)
-    for candidate in ["/root/arifos-model-registry", "/app/registry", "/root/arifOS/registry"]:
+        root = Path(env)
+        if (root / "catalog.json").exists():
+            return root
+        logger.warning(
+            "ARIFOS_REGISTRY_ROOT=%s set but catalog.json not found. "
+            "Falling back to common locations.",
+            env,
+        )
+    for candidate in [
+        "/root/arifos-model-registry",  # af-forge VPS (production)
+        "/app/registry",  # Docker container default
+    ]:
         p = Path(candidate)
         if (p / "catalog.json").exists():
             return p
-    return Path("/app/registry")  # fallback for Docker
+    logger.warning(
+        "No model registry found. Set ARIFOS_REGISTRY_ROOT to the path "
+        "of your arifos-model-registry clone. See docs/SPINE_CONFIG.md"
+    )
+    return Path("/app/registry")  # last-resort Docker default
 
 
 REGISTRY_ROOT = _detect_registry_root()

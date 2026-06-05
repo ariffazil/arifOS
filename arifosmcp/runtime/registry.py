@@ -23,23 +23,34 @@ from arifosmcp.schemas.model_card import (
 )
 
 _HERE = Path(__file__).resolve()
-_REPO_ROOT = _HERE.parents[2]
 
 
 def _candidate_registry_roots() -> list[Path]:
+    """Resolve registry root paths.
+
+    AUTHORITATIVE: ARIFOS_REGISTRY_ROOT env var. Set this to point at your
+    arifos-model-registry clone. Without it, the registry loader will attempt
+    common deployment locations but may fail on non-VPS installs.
+
+    Usage:
+        export ARIFOS_REGISTRY_ROOT=/path/to/arifos-model-registry
+
+    The published wheel (arifos on PyPI) does NOT assume any VPS-specific path.
+    Sovereign deployments MUST set ARIFOS_REGISTRY_ROOT or clone the registry
+    to a standard location.
+    """
     env_root = os.environ.get("ARIFOS_REGISTRY_ROOT")
+    if env_root:
+        # Env var is authoritative — use it exclusively
+        return [Path(env_root).expanduser()]
+
+    # No env var set — attempt common deployment locations.
+    # These are BEST-EFFORT fallbacks, not guaranteed.
     candidates = [
-        Path(env_root).expanduser() if env_root else None,
-        Path("/root/arifos-model-registry"),  # LIVE spine (GitHub canonical, 2026-06-05)
-        Path("/app/registry"),  # Docker default
-        Path(
-            "/root/arifOS/registry"
-        ),  # DEPRECATED — 3-week stale ghost (May 15). Kept as fallback.
-        _REPO_ROOT / "registry",  # Relative to arifOS repo
-        _REPO_ROOT / "arifos-model-registry",  # Legacy relative
-        _REPO_ROOT / "00_legacy_materials" / "arifOS-upstream" / "archive",
+        Path("/root/arifos-model-registry"),  # af-forge VPS (production)
+        Path("/app/registry"),  # Docker container default
     ]
-    return [path for path in candidates if path is not None]
+    return [p for p in candidates if p is not None]
 
 
 def _resolve_registry_paths() -> tuple[Path, Path, Path, Path]:
