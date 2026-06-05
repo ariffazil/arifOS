@@ -805,10 +805,30 @@ if app:
 
 
 def main() -> None:
-    import uvicorn
+    """arifOS MCP entry point — dual-transport (stdio for uvx/npx, SSE for server).
 
-    port = int(os.getenv("ARIFOS_PORT", "8080"))
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")  # nosec B104
+    Called from pyproject.toml [project.scripts]:
+      arifos     = "arifosmcp.server:main"
+      arifos-mcp = "arifosmcp.server:main"
+
+    Transport selection:
+      - stdin is a pipe (not a TTY) → stdio transport for MCP clients
+        (Claude Desktop, Cursor, Codex, OpenCode, etc.)
+      - stdin is a TTY (terminal)  → SSE server on ARIFOS_PORT (default 8080)
+        (uvicorn, for VPS deployment)
+    """
+    if sys.stdin.isatty():
+        # ── SSE transport: human in terminal / systemd service ────────────
+        import uvicorn
+
+        port = int(os.getenv("ARIFOS_PORT", "8080"))
+        host = os.getenv("ARIFOS_HOST", "127.0.0.1")
+        uvicorn.run(app, host=host, port=port, log_level="info")  # nosec B104
+    else:
+        # ── stdio transport: MCP client via pipe ─────────────────────────
+        # Claude Desktop config:
+        #   { "mcpServers": { "arifOS": { "command": "uvx", "args": ["arifos"] } } }
+        mcp.run(transport="stdio")
 
 
 if __name__ == "__main__":
