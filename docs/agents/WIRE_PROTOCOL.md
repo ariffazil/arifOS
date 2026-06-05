@@ -33,7 +33,7 @@ class AgentMessage:
 
     # Constitutional context
     floors_active: list[str]     # F1-F13 floors relevant to this message
-    constitutional_tags: list[str]  # e.g., ["F1_AMANAH", "F9_TAQWA"]
+    constitutional_tags: list[str]  # e.g., ["F1_AMANAH", "F09_ANTIHANTU"]
 
     # Routing
     session_id: str          # Associated session
@@ -111,7 +111,7 @@ A-ENGINEER
     │
     │ ERROR: "F9 violation in proposed code"
     ▼
-A-AUDITOR ──► A-AUDITOR.REJECT("Cannot proceed: F9_TAQWA violated")
+A-AUDITOR ──► A-AUDITOR.REJECT("Cannot proceed: F09_ANTIHANTU violated")
     │
     ▼
 A-ARCHITECT ──► A-ARCHITECT.NOTIFY("Design rejected, revise")
@@ -204,7 +204,7 @@ A-ARCHITECT ──► A-ARCHITECT.NOTIFY("Design rejected, revise")
   "action": "REJECT",
   "payload": {
     "task_id": "task_042",
-    "reason": "F9_TAQWA violation: proposed code allows shell injection",
+    "reason": "F09_ANTIHANTU violation: proposed code allows shell injection",
     "floor": "F9",
     "suggestion": "Add input sanitization before code_engine call"
   },
@@ -225,7 +225,7 @@ Every message MUST carry `floors_active` — the floors this message touches.
 | Floor | When Active | Example |
 |-------|-------------|---------|
 | F1 AMANAH | Reversibility concerns | "This action cannot be undone" |
-| F2 SIDDIQ | Truth/fact claims | "This implementation is verified" |
+| F2 TRUTH | Truth/fact claims | "This implementation is verified" |
 | F4 CLARITY | Entropy/reasoning | "Reasoning chain attached" |
 | F7 HUMILITY | Uncertainty | "Confidence 0.6, needs review" |
 | F9 TAQWA | Ethics/safety | "Checked for harm vectors" |

@@ -477,7 +477,7 @@ continuity:
       function: "Safety meta-review"
       triggers: "Periodic check if checklist still relevant"
 
-    - name: "F13_ADAPTABILITY"
+    - name: "F13_SOVEREIGN"
       function: "Rule evolution"
       when: "If purpose/mission drifts significantly"
 
@@ -491,4 +491,4 @@ continuity:
     - step: "Weekly"
       action: "666_HEART meta-review - are we still aligned?"
     - step: "Drift detected"
-      action: "F13_ADAPTABILITY - update rules, don't just continue"
+      action: "F13_SOVEREIGN - update rules, don't just continue"
