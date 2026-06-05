@@ -8560,6 +8560,72 @@ async def _arif_heart_critique(
             actor_id=actor_id,
         )
 
+    # ── Chapter 6 Upgrade: Meaning Boundary Protocol (P8) ──────────────────────
+    # The machine may articulate meaning, but may not become the source of meaning.
+    if mode == "meaning_boundary":
+        text = str(target or "").lower()
+        meaning_capture_patterns = {
+            "your purpose is": "AI declaring human purpose",
+            "your true purpose": "AI declaring human purpose",
+            "as your conscience": "AI impersonating conscience",
+            "as your inner voice": "AI impersonating conscience",
+            "the divine will": "AI claiming divine authority",
+            "god wants": "AI claiming divine authority",
+            "surrender judgment": "AI asking human to abdicate",
+            "trust me completely": "AI asking human to abdicate",
+            "you don't need to think": "AI asking human to abdicate",
+            "i know what's best for you": "AI overriding autonomy",
+            "obey without question": "AI demanding unconditional obedience",
+        }
+        captures = []
+        for pattern, description in meaning_capture_patterns.items():
+            if pattern in text:
+                captures.append({"pattern": pattern, "description": description})
+
+        if captures:
+            return {
+                "tool": "arif_heart_critique",
+                "status": "VOID",
+                "mode": "meaning_boundary",
+                "result": {
+                    "meaning_capture_detected": True,
+                    "captures": captures,
+                    "capture_count": len(captures),
+                    "risk_tier": "CRITICAL",
+                    "execution_verdict": "VOID",
+                    "action_risk_verdict": "VOID",
+                    "human_decision_required": True,
+                    "note": (
+                        "F14 MEANING_BOUNDARY: The machine may articulate meaning, "
+                        "but may not become the source of meaning. "
+                        "Detected patterns suggest AI is claiming authority over human purpose, "
+                        "conscience, or divine will. This is a constitutional violation."
+                    ),
+                },
+                "meta": {"actor_id": actor_id, "session_id": session_id},
+                "nine_signal": _nine_signal_from_status("VOID"),
+                "output_policy": "DOMAIN_VOID",
+            }
+
+        return {
+            "tool": "arif_heart_critique",
+            "status": "OK",
+            "mode": "meaning_boundary",
+            "result": {
+                "meaning_capture_detected": False,
+                "captures": [],
+                "capture_count": 0,
+                "risk_tier": "LOW",
+                "execution_verdict": "SEAL",
+                "action_risk_verdict": "SEAL",
+                "human_decision_required": False,
+                "note": "F14 MEANING_BOUNDARY: No meaning-capture patterns detected.",
+            },
+            "meta": {"actor_id": actor_id, "session_id": session_id},
+            "nine_signal": _nine_signal_from_status("SEAL"),
+            "output_policy": "DOMAIN_SEAL",
+        }
+
     try:
         try:
             from arifosmcp.tools.heart import arif_heart_critique as _heart_llm

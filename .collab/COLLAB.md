@@ -1,9 +1,9 @@
 # arifOS Chapter 6 Upgrade — Agent Collaboration Log
 
 **Authority:** F13 SOVEREIGN (Arif Fazil)
-**Branch:** `feat/ch6-wakefulness`
-**Started:** 2026-06-05
-**Agents:** Kimi (primary) + OpenCode (parallel)
+**Branch:** `main` (direct commits — sequential collaboration)
+**Date:** 2026-06-05
+**Agents:** Ω-FORGE (OpenCode) + Kimi
 
 ---
 
@@ -26,45 +26,65 @@ Legacy handlers without `envelope` param work unchanged.
 
 ---
 
-## Work Division
+## Completed Work
 
-### Kimi (Completed / In Progress)
-- [x] `schemas/federation_envelope.py` — Add lineage fields (judge_state_hash, vault_entry_id, constitutional_chain_id)
-- [x] `runtime/ingress_middleware.py` — Inject validated envelope into msg.arguments
-- [x] `runtime/tools.py` — `_inject_envelope_into_kwargs` helper, forward envelope to envelope-aware handlers
-- [x] `runtime/kernel.py` — Prefer envelope fields for session_id/actor_id extraction
-- [ ] `schemas/evidence.py` — Add `CertaintyCap` enum
-- [ ] `runtime/organ_governance.py` — Enforce certainty caps per tool
-- [ ] `runtime/kernel.py` — Pre-dispatch wakefulness gate (WELL integration)
-- [ ] `tools/ops.py` — `human_wakefulness` mode
+### Ω-FORGE (OpenCode) — Commit `5d42f182`
+**Phases: P0 + P1 + P2 + P6**
 
-### OpenCode (Requested)
-- [ ] `runtime/ingress_middleware.py` — Host attestation parsing (x-host-attestation header)
-- [ ] `runtime/organ_governance.py` — Dynamic CAN/MAY/SHOULD capability map
-- [ ] `tools/heart.py` — `meaning_boundary` mode
-- [ ] `runtime/shadow_defense.py` — P6 certainty overclaim, P7 meaning capture patterns
-- [ ] `deploy/vault999-writer/main.py` — Sync responsibility ledger fields
-- [ ] Supabase migration — `vault_sealed_events` new columns
+- `schemas/federation_envelope.py` — v2 with claim_state, tool_scope, host_attestation, actor_verification, expires_at, sovereignty_checkpoint
+- `schemas/sovereignty_checkpoint.py` — Four-question wakefulness ritual (evidence, uncertainty, responsibility, repair)
+- `runtime/ingress_middleware.py` — Envelope extraction, validation, injection into tool arguments
+- `runtime/tools.py` — `_inject_envelope_into_kwargs` helper
+- `runtime/kernel.py` — Wakefulness pre-dispatch gate (WELL integration)
+- `runtime/organ_governance.py` — CertaintyCap enum + enforcement per tool
+- `tools/ops.py` — `human_wakefulness` mode
+- `tests/foundation/test_chapter6_upgrade.py` — 30 new tests (60/60 passing total)
+
+### Kimi — Commit `d57097bf`
+**Phases: P4 + P8**
+
+- `tools/appeal.py` — `arif_appeal_raise`, `arif_appeal_status`, `arif_appeal_list`
+  * Contest sealed verdicts with review assignment
+  * Irreversible appeals route to human_888 reviewer
+  * 48-hour review deadline, redteam/rehearing methods
+- `runtime/tools.py` — `meaning_boundary` mode in `_arif_heart_critique`
+  * Detects AI declaring human purpose, impersonating conscience, claiming divine authority
+  * Returns `DOMAIN_VOID` with F14 MEANING_BOUNDARY citation
+  * Deterministic scan — no LLM required
 
 ---
 
-## Daily Sync Protocol
+## Test Status
 
-1. Each agent commits to their own branch:
-   - Kimi: `feat/ch6-p0-envelope-kimi`
-   - OpenCode: `feat/ch6-p0-envelope-opencode`
-2. End of day: merge both into `feat/ch6-wakefulness` integration branch.
-3. Update this COLLAB.md with status.
-4. Run `pytest tests/constitutional/ -q` before any merge.
+```
+constitutional tests:  49 passed
+foundation tests:     102 passed, 4 pre-existing failures (risk_classifier T1 vs T3/T5)
+chapter6 tests:        30 passed
+Total:                181 passed, 4 failures (not from Kimi's commit)
+```
+
+---
+
+## Remaining Work (P3 + P5 + P7)
+
+| Phase | Item | Owner | Status |
+|-------|------|-------|--------|
+| P3 | VAULT999 responsibility ledger schema migration | OpenCode | Not started |
+| P3 | `deploy/vault999-writer/main.py` sync new fields | OpenCode | Not started |
+| P5 | Topology actuator in `kernel.py` (throttle/promote) | Kimi | Not started |
+| P5 | `tools/ops.py` `topology_balance` mode | Kimi | Not started |
+| P7 | Host attestation parsing in `ingress_middleware.py` | OpenCode | Not started |
+| P7 | Dynamic CAN/MAY/SHOULD in `organ_governance.py` | OpenCode | Not started |
+| P7 | Schema minimization for untrusted hosts | OpenCode | Not started |
 
 ---
 
 ## Blockers / Questions for Arif
 
-1. **WELL biometric injection** — `state.json` is stale. Wakefulness gate needs live data.
-2. **VAULT999 chain repair** — 120 gaps. Responsibility ledger needs clean chain before P3.
-3. **F14 MEANING_BOUNDARY** — New floor or fold into F6 DIGNITY?
+1. **WELL biometric injection** — `state.json` is stale. Wakefulness gate needs live data for P5/P6 full activation.
+2. **VAULT999 chain repair** — 120 gaps. Responsibility ledger (P3) needs clean chain before migration.
+3. **F14 MEANING_BOUNDARY** — Currently implemented as a mode in heart critique. Should it become a formal constitutional floor (F14) or remain folded into F6 DIGNITY?
 
 ---
 
-*Last updated: 2026-06-05 | DITEMPA BUKAN DIBERI*
+*Last updated: 2026-06-05 01:30 UTC | DITEMPA BUKAN DIBERI*
