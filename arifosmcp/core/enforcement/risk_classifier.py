@@ -217,10 +217,18 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
         reversibility=ReversibilityLevel.IRREVERSIBLE,
     ),
     "arif_heart_critique": RiskPassport(
-        tier=RiskTier.T5,
-        action_class=ActionClass.ATOMIC,
-        blast_radius=BlastRadius.PUBLIC,
-        reversibility=ReversibilityLevel.IRREVERSIBLE,
+        # 666_HEART: read-only ethical reflection (critique | simulate |
+        # empathize | redteam | maruah | deescalate | summary). The tool
+        # never mutates state — it produces advisory output consumed by
+        # upstream judgment. Over-classifying as ATOMIC broke legacy
+        # callers (Claude web / Perplexity) who could not pass the
+        # FederationEnvelope gate. The other 3 ATOMIC tools (judge
+        # verdict, vault seal, forge execute) correctly remain ATOMIC
+        # because they produce binding decisions or actual mutations.
+        tier=RiskTier.T1,
+        action_class=ActionClass.OBSERVE,
+        blast_radius=BlastRadius.LOCAL,
+        reversibility=ReversibilityLevel.HIGH,
     ),
     "arif_session_init": RiskPassport(
         tier=RiskTier.T1,
