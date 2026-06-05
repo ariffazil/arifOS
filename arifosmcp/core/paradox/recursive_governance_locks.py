@@ -41,6 +41,7 @@ from arifosmcp.schemas.governance_locks import (
     LockType,
     LockVerdict,
     MemoryProvenance,
+    ParadoxHoldReceipt,
     ProvenanceLabel,
     SelfClaimCategory,
     StrangeLoopReceipt,
@@ -157,36 +158,63 @@ class RecursiveGovernanceEngine:
 
         # Lock 1 — Gödel
         godel = self._apply_godel_lock(tool_name, params, actor_id, ctx)
-        receipts.append(LockReceipt(
-            lock_type=LockType.GODEL,
-            verdict=godel.verdict,
-            reason=godel.reason,
-            payload=godel,
-        ))
+        receipts.append(
+            LockReceipt(
+                lock_type=LockType.GODEL,
+                verdict=godel.verdict,
+                reason=godel.reason,
+                payload=godel,
+            )
+        )
 
         # Lock 2 — Strange Loop
         strange = self._apply_strange_loop_lock(tool_name, params, actor_id, ctx)
-        receipts.append(LockReceipt(
-            lock_type=LockType.STRANGE_LOOP,
-            verdict=strange.verdict,
-            reason=strange.reason,
-            payload=strange,
-        ))
+        receipts.append(
+            LockReceipt(
+                lock_type=LockType.STRANGE_LOOP,
+                verdict=strange.verdict,
+                reason=strange.reason,
+                payload=strange,
+            )
+        )
 
         # Lock 3 — Anti-Beautiful-One
         ab1 = self._apply_anti_beautiful_one(tool_name, params, actor_id, ctx)
-        receipts.append(LockReceipt(
-            lock_type=LockType.ANTI_BEAUTIFUL_ONE,
-            verdict=ab1.verdict,
-            reason=ab1.reason,
-            payload=ab1,
-        ))
+        receipts.append(
+            LockReceipt(
+                lock_type=LockType.ANTI_BEAUTIFUL_ONE,
+                verdict=ab1.verdict,
+                reason=ab1.reason,
+                payload=ab1,
+            )
+        )
+
+        # Lock 4 — Paradox Hold (conditional)
+        paradox = self._apply_paradox_hold(tool_name, params, actor_id, ctx)
+        if paradox is not None:
+            receipts.append(
+                LockReceipt(
+                    lock_type=LockType.PARADOX_HOLD,
+                    verdict=paradox.verdict,
+                    reason=paradox.reason,
+                    payload=paradox,
+                )
+            )
+
+        locks_applied = [
+            LockType.GODEL,
+            LockType.STRANGE_LOOP,
+            LockType.ANTI_BEAUTIFUL_ONE,
+        ]
+        if paradox is not None:
+            locks_applied.append(LockType.PARADOX_HOLD)
 
         unified = UnifiedGovernanceReceipt(
             session_id=params.get("session_id"),
             actor_id=actor_id,
-            locks_applied=[LockType.GODEL, LockType.STRANGE_LOOP, LockType.ANTI_BEAUTIFUL_ONE],
+            locks_applied=locks_applied,
             lock_receipts=receipts,
+            paradox_hold=paradox,
         )
 
         if unified.composite_verdict == LockVerdict.VOID:
@@ -197,9 +225,10 @@ class RecursiveGovernanceEngine:
             )
         elif unified.composite_verdict == LockVerdict.HOLD:
             self.hold_count += 1
+            paradox_tag = f" paradox=HOLD" if paradox is not None else ""
             logger.warning(
                 f"HOLD [{tool_name}] actor={actor_id} — "
-                f"godel={godel.verdict} loop={strange.verdict} ab1={ab1.verdict}"
+                f"godel={godel.verdict} loop={strange.verdict} ab1={ab1.verdict}{paradox_tag}"
             )
         else:
             logger.debug(f"SEAL [{tool_name}] actor={actor_id}")
@@ -312,8 +341,7 @@ class RecursiveGovernanceEngine:
             return StrangeLoopReceipt(
                 verdict=LockVerdict.HOLD,
                 reason=(
-                    f"Memory confidence {provenance.confidence:.2f} < 0.5 — "
-                    "too weak for recursion"
+                    f"Memory confidence {provenance.confidence:.2f} < 0.5 — too weak for recursion"
                 ),
                 loop_depth=loop_depth,
                 provenance_label=provenance.label,
@@ -402,4 +430,66 @@ class RecursiveGovernanceEngine:
             verdict=LockVerdict.SEAL,
             reason="Operational contact and consequence alignment confirmed",
             metrics=metrics,
+        )
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Lock 4 — Paradox Hold
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def _apply_paradox_hold(
+        self,
+        tool_name: str,
+        params: dict[str, Any],
+        actor_id: str | None,
+        context: dict[str, Any],
+    ) -> ParadoxHoldReceipt | None:
+        """
+        Detect when two verified claims are in productive conflict.
+
+        Reads context["paradox_claims"] — a dict with claim_a, claim_b, and
+        optional conflict_description. If both claims have evidence receipts
+        (both_verified=True), issue PARADOX_HOLD instead of forcing resolution.
+
+        Returns None if no paradox claims are present — this lock is
+        conditionally applied, not mandatory.
+        """
+        paradox_claims: dict[str, Any] | None = context.get("paradox_claims")
+        if not paradox_claims:
+            return None  # No paradox to hold — lock is inactive
+
+        claim_a = paradox_claims.get("claim_a", "")
+        claim_b = paradox_claims.get("claim_b", "")
+        if not claim_a or not claim_b:
+            return None  # Incomplete paradox spec
+
+        conflict_description = paradox_claims.get(
+            "conflict_description",
+            f"'{claim_a}' and '{claim_b}' are in unresolved tension.",
+        )
+        both_verified = paradox_claims.get("both_verified", True)
+        resolution_attempted = paradox_claims.get("resolution_attempted", False)
+        preserved_until = paradox_claims.get("preserved_until")
+
+        # If only one is verified, no paradox hold — the unverified claim
+        # loses. This is a normal SEAL for the single verified claim.
+        if not both_verified:
+            logger.debug(
+                f"Paradox claims not both verified — paradox hold NOT applied. "
+                f"claim_a={claim_a[:60]}... claim_b={claim_b[:60]}..."
+            )
+            return None
+
+        logger.info(
+            f"PARADOX_HOLD [{tool_name}] — '{claim_a[:60]}...' vs "
+            f"'{claim_b[:60]}...' — tension preserved"
+        )
+        self.hold_count += 1
+
+        return ParadoxHoldReceipt(
+            claim_a=claim_a,
+            claim_b=claim_b,
+            conflict_description=conflict_description,
+            both_verified=both_verified,
+            resolution_attempted=resolution_attempted,
+            preserved_until=preserved_until,
         )

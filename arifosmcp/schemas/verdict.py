@@ -19,10 +19,11 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from arifosmcp.schemas.cognition import UncertaintyGeometry
 from arifosmcp.schemas.forge import ConstitutionalCompliance, IrreversibilityBond
@@ -38,6 +39,7 @@ class VerdictCode(StrEnum):
     SABAR = "SABAR"  # Wait — under review
     VOID = "VOID"  # Rejected — constitutional breach
     HOLD = "HOLD"  # Paused — manual review required
+    PARADOX_HOLD = "PARADOX_HOLD"  # Two truths conflict — both verified, both preserved
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -729,6 +731,42 @@ class EpistemicSnapshot(BaseModel):
     confidence_sources: list[str] = Field(default_factory=list)
 
 
+class AttributionLink(BaseModel):
+    """A single link in the attribution chain."""
+
+    source_seal_hash: str  # SHA-256 of the prior seal being cited
+    source_agent: str  # e.g. "geox", "wealth", "omega-forge-agent"
+    source_session_id: str
+    citation_type: Literal["EVIDENCE", "DECISION", "METHOD", "DATA"]
+    cited_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class AttributionChain(BaseModel):
+    """Full provenance chain for a sealed verdict."""
+
+    links: list[AttributionLink] = Field(default_factory=list)
+    chain_integrity: Literal["INTACT", "UNCONFORMITY_DETECTED", "UNVERIFIED"] = "UNVERIFIED"
+    unconformity_at: Optional[int] = None  # index where chain broke
+    unconformity_reason: Optional[str] = None
+
+    @model_validator(mode="after")
+    def detect_unconformity(self) -> "AttributionChain":
+        """Scan chain for missing links — geological unconformity detection."""
+        if not self.links:
+            self.chain_integrity = "UNVERIFIED"
+            return self
+        for i, link in enumerate(self.links):
+            if not link.source_seal_hash:
+                self.chain_integrity = "UNCONFORMITY_DETECTED"
+                self.unconformity_at = i
+                self.unconformity_reason = (
+                    f"Missing seal hash at link {i} ({link.citation_type} from {link.source_agent})"
+                )
+                return self
+        self.chain_integrity = "INTACT"
+        return self
+
+
 class SealOutput(BaseModel):
     """
     Full output for arif_vault_seal (999_VAULT).
@@ -853,4 +891,14 @@ class SealOutput(BaseModel):
         "llm_generated: always false. "
         "source: 'arifOS constitutional doctrine'. "
         "Authority remains with the constitution and human sovereign.",
+    )
+
+    # ── EUREKA 2: Attribution Chain (Geological Unconformity Detector) ─────────
+    attribution_chain: Optional[AttributionChain] = Field(
+        default=None,
+        description="Provenance chain for this seal. "
+        "UNCONFORMITY_DETECTED means a cited source has no traceable origin "
+        "— the geological equivalent of a missing layer in the stratigraphic column. "
+        "Named after Arif's Layang-Layang scar: work existed, truth was correct, "
+        "but attribution was erased.",
     )

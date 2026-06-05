@@ -685,6 +685,51 @@ async def seal(
         except Exception as _pg_exc:
             logger.warning("Postgres 999 SQL write failed (non-critical): %s", _pg_exc)
 
+    # ── EUREKA 2: Attribution Chain — Unconformity Detector ──────────────────
+    # Geological principle: an unconformity is a missing layer in the
+    # stratigraphic column. In VAULT999, an unconformity is a citation
+    # without provenance — work existed, truth was correct, but attribution
+    # was erased. Named after Arif's Layang-Layang scar.
+    attribution_alert: str | None = None
+    prior_seal_hash = kwargs.get("prior_seal_hash")
+    evidence_chain_refs: list[dict[str, Any]] = kwargs.get("evidence_chain", []) or []
+
+    # Build attribution chain if provenance data exists
+    if prior_seal_hash or evidence_chain_refs:
+        try:
+            from arifosmcp.schemas.verdict import AttributionChain, AttributionLink
+
+            links: list[AttributionLink] = []
+            for ref in evidence_chain_refs:
+                links.append(
+                    AttributionLink(
+                        source_seal_hash=ref.get("seal_hash", ""),
+                        source_agent=ref.get("source_agent", "unknown"),
+                        source_session_id=ref.get("session_id", "unknown"),
+                        citation_type=ref.get("citation_type", "EVIDENCE"),
+                    )
+                )
+
+            chain_result = AttributionChain(links=links)
+            if chain_result.chain_integrity == "UNCONFORMITY_DETECTED":
+                attribution_alert = (
+                    f"UNCONFORMITY DETECTED at link {chain_result.unconformity_at}: "
+                    f"{chain_result.unconformity_reason}. "
+                    "Evidence cited without traceable provenance — "
+                    "the geological equivalent of a missing stratigraphic layer."
+                )
+                floors["EUREKA_2_UNCONFORMITY"] = attribution_alert
+                logger.warning("EUREKA 2: %s", attribution_alert)
+            else:
+                logger.info(
+                    "EUREKA 2: Attribution chain INTACT (%d links, source=%s)",
+                    len(links),
+                    source_agent,
+                )
+        except Exception as _attrib_exc:
+            logger.warning("EUREKA 2 attribution scan degraded: %s", _attrib_exc)
+    # ─────────────────────────────────────────────────────────────────────────
+
     # 8. Construct Output
     return VaultOutput(
         session_id=session_id,
@@ -697,7 +742,10 @@ async def seal(
         human_witness=1.0,
         ai_witness=1.0,
         earth_witness=1.0,
-        evidence={"grounding": f"v1 Tamper-Evident Chain Seal: {entry_chain_hash[:16]}..."},
+        evidence={
+            "grounding": f"v1 Tamper-Evident Chain Seal: {entry_chain_hash[:16]}...",
+            **({"attribution_chain": attribution_alert} if attribution_alert else {}),
+        },
     )
 
 

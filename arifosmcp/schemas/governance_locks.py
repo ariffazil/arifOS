@@ -29,6 +29,7 @@ class LockType(StrEnum):
     GODEL = "godel_lock"
     STRANGE_LOOP = "strange_loop_lock"
     ANTI_BEAUTIFUL_ONE = "anti_beautiful_one"
+    PARADOX_HOLD = "paradox_hold"
 
 
 class LockVerdict(StrEnum):
@@ -90,7 +91,6 @@ class GodelLockReceipt(BaseModel):
     witness_type: str | None = Field(default=None)
     vault_entry_id: str | None = Field(default=None)
     timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
-
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -156,6 +156,43 @@ class AntiBeautifulOneReceipt(BaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# PARADOX HOLD
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class ParadoxHoldReceipt(BaseModel):
+    """
+    Receipt representing a productive paradox — two verified claims
+    that conflict, and the system chooses to preserve the tension
+    rather than force a false resolution.
+
+    F02 TRUTH: Both claims must be independently verified.
+    F08 GENIUS: The paradox itself carries intelligence value.
+    """
+
+    lock_type: LockType = LockType.PARADOX_HOLD
+    verdict: LockVerdict = LockVerdict.HOLD
+    claim_a: str = Field(description="First verified claim")
+    claim_b: str = Field(description="Second verified claim, in tension with claim_a")
+    conflict_description: str = Field(description="Why these two claims are in conflict")
+    both_verified: bool = Field(
+        default=True, description="Both claims passed F2 TRUTH verification"
+    )
+    resolution_attempted: bool = Field(
+        default=False,
+        description="We deliberately did NOT attempt forced resolution — paradox is preserved",
+    )
+    preserved_until: datetime | None = Field(
+        default=None, description="Optional expiry after which re-evaluation is triggered"
+    )
+    reason: str = Field(
+        default="Two verified truths conflict. Paradox is preserved, not resolved.",
+        description="Human-readable reason for the paradox hold",
+    )
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # UNIFIED RECEIPT
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -166,7 +203,9 @@ class LockReceipt(BaseModel):
     lock_type: LockType
     verdict: LockVerdict
     reason: str
-    payload: GodelLockReceipt | StrangeLoopReceipt | AntiBeautifulOneReceipt | None = None
+    payload: (
+        GodelLockReceipt | StrangeLoopReceipt | AntiBeautifulOneReceipt | ParadoxHoldReceipt | None
+    ) = None
 
 
 class UnifiedGovernanceReceipt(BaseModel):
@@ -175,6 +214,9 @@ class UnifiedGovernanceReceipt(BaseModel):
 
     Composite verdict rule: strictest wins.
       VOID > HOLD > SEAL
+
+    PARADOX_HOLD: Both claims verified under F2 but they conflict.
+      Composite verdict becomes HOLD — neither claim is discarded.
     """
 
     version: str = Field(default="2026.06.03-v1")
@@ -184,12 +226,21 @@ class UnifiedGovernanceReceipt(BaseModel):
     lock_receipts: list[LockReceipt] = Field(default_factory=list)
     composite_verdict: LockVerdict = Field(default=LockVerdict.SEAL)
     sealed_by: str | None = Field(default=None, description="VAULT999 hash if SEAL")
+    paradox_hold: ParadoxHoldReceipt | None = Field(
+        default=None,
+        description="Active paradox hold — two verified truths in productive tension",
+    )
     timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     @model_validator(mode="after")
     def compute_composite_verdict(self) -> UnifiedGovernanceReceipt:
+        # If a paradox hold is active, both claims are held
+        if self.paradox_hold is not None:
+            self.composite_verdict = LockVerdict.HOLD
+
         if not self.lock_receipts:
-            self.composite_verdict = LockVerdict.SEAL
+            if self.paradox_hold is None:
+                self.composite_verdict = LockVerdict.SEAL
             return self
 
         verdicts = [r.verdict for r in self.lock_receipts]
@@ -198,7 +249,9 @@ class UnifiedGovernanceReceipt(BaseModel):
         elif LockVerdict.HOLD in verdicts:
             self.composite_verdict = LockVerdict.HOLD
         else:
-            self.composite_verdict = LockVerdict.SEAL
+            # Only SEAL if no paradox hold AND no other blocks
+            if self.paradox_hold is None:
+                self.composite_verdict = LockVerdict.SEAL
         return self
 
     def to_dict(self) -> dict[str, Any]:

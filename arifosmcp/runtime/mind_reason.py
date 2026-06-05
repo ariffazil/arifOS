@@ -328,7 +328,29 @@ Distinguish CLAIM from FACT."""
 
         # Uncertainty auto-population
         uncertainty = parsed_output.get("uncertainty", [])
+        if not isinstance(uncertainty, list):
+            uncertainty = [
+                {
+                    "type": "PARSE_ERROR",
+                    "detail": f"LLM returned {type(uncertainty).__name__} for uncertainty",
+                }
+            ]
+
         reasoning = parsed_output.get("reasoning", {})
+        if not isinstance(reasoning, dict):
+            reasoning = {
+                "observed_inputs": [str(reasoning)[:500]]
+                if reasoning
+                else ["LLM returned empty/unstructured reasoning"],
+                "inferences": [
+                    "LLM output was not structured — raw text wrapped as observed_inputs"
+                ],
+                "counterarguments": [],
+                "alternative_explanations": [],
+                "missing_evidence": ["Structured reasoning unavailable — LLM returned non-dict"],
+            }
+            parsed_output["reasoning"] = reasoning
+
         if not reasoning.get("observed_inputs") or not reasoning.get("inferences"):
             uncertainty.append(
                 {

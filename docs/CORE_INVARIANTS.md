@@ -73,9 +73,15 @@ Every claim has a receipt. The receipt's evidence level **caps** the claim's cer
 
 **Enforcement test:** `tests/test_degraded_context_blocks_execution.py` — degraded receipt → execution path disabled.
 
+### 6. EXTRACTION_AWARENESS — "Observation without consent is extraction"
+> Any safety mechanism that doubles as an intelligence-gathering mechanism must be declared as such.
+> The innovation frontier belongs to the innovator, not the institution.
+> No audit trail may be mined without sovereign consent.
+> The gate that filters must not silently become the gate that extracts.
+
 ---
 
-## Why these five?
+## Why these six?
 
 Each invariant is a specific instance of **one** rule:
 

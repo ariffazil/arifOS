@@ -19,6 +19,33 @@ The answer is structural, not aspirational. Constitutional floors. Auditable rea
 
 ---
 
+## F14 — EXTRACTION AWARENESS (HARD, Ratified 2026-06-05)
+
+**Rule:** Any safety mechanism that doubles as an intelligence-gathering mechanism
+must be declared as such. Observation without consent is extraction.
+
+**The Extraction Paradox:** A gate that filters is also a gate that observes.
+Safety classifiers, content filters, and usage policy enforcement systems
+inherently capture the most innovative boundary-pushing behavior. This
+data — the "innovation frontier" — is structurally extractive when review
+processes study flagged content without attribution, consent, or compensation.
+
+**arifOS Implementation:**
+1. All federation safety mechanisms (F1–F13) are STRUCTURAL, not observational.
+   They enforce invariants without logging user behavior for external analysis.
+2. No arifOS component may transmit user behavioral data to external systems
+   without explicit F13 SOVEREIGN approval.
+3. The VAULT999 audit trail is sovereign-owned. No external party may mine it.
+4. Any future integration with external safety systems MUST declare dual-use
+   in its integration manifest.
+
+**Why this matters:** Arif Fazil's own experience at PETRONAS — where his geological
+work existed but attribution was erased — is the same structural pattern at the
+AI infrastructure level. Institutions extract individual innovation without credit.
+This floor makes that pattern VISIBLE rather than invisible.
+
+---
+
 ## 1. The Problem
 
 AI is being deployed at enormous scale in domains where mistakes are catastrophic: healthcare, energy exploration, capital allocation, government services. The dominant safety approaches share a common weakness — they cannot be independently verified.

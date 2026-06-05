@@ -132,6 +132,15 @@ A non-terminal advisory verdict meaning "the calculation is valid but borderline
 
 ---
 
+### PARADOX_HOLD — Productive Contradiction Preservation
+- **Meaning:** Both claims verified under F2 TRUTH, but they conflict. The tension is preserved, not resolved.
+- **When to use:** When two independently verified truth claims contradict each other. Neither is discarded.
+- **Why it matters:** Genuine intelligence emerges from holding contradictions, not from premature resolution.
+- **arifOS behavior:** Both claims are sealed with a paradox edge between them. Future reasoning must acknowledge both.
+- **Example:** Claim A: "The structure is a horst block." Claim B: "The structure is an inverted graben." Both supported by different evidence sets. PARADOX_HOLD preserves both interpretations.
+
+---
+
 ## Writing a Verdict (Required Shape)
 
 When emitting a verdict, you **must** include the following fields. The `non_overclaim_check` field is a schema-level guard that the kernel uses to reject non-compliant verdicts at parse time.
