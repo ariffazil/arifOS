@@ -101,6 +101,16 @@ _EXPOSE_DEV_TOOLS = os.getenv("ARIFOS_MCP_EXPOSE_DEV_TOOLS", "false").lower() in
     "yes",
 )
 
+# ── Organ bridge gate: proxy GEOX/WEALTH/WELL tools through kernel (default: OFF) ─
+# When OFF, agents call organ tools directly via their own MCP endpoints.
+# When ON, 71 bridged proxy tools are registered on the arifOS surface.
+# Set ARIFOS_EXPOSE_ORGAN_BRIDGE=true to enable (e.g. for HTTP-only clients).
+_EXPOSE_ORGAN_BRIDGE = os.getenv("ARIFOS_EXPOSE_ORGAN_BRIDGE", "false").lower() in (
+    "true",
+    "1",
+    "yes",
+)
+
 
 class GlobalPanicMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
@@ -311,121 +321,127 @@ try:
 
     # ── HTTP-mode federation proxy (Phase 2) ─────────────────────────────────
     # Register remote tools from WEALTH, WELL, GEOX so HTTP clients see all ~84.
-    try:
-        import asyncio
-        import json
+    # Gated by ARIFOS_EXPOSE_ORGAN_BRIDGE (default: false — agents use direct organ MCP).
+    if _EXPOSE_ORGAN_BRIDGE:
+        try:
+            import asyncio
+            import json
 
-        from fastmcp.tools.base import (  # pyright: ignore[reportPrivateImportUsage]
-            TextContent,
-            ToolResult,
-        )
-        from fastmcp.tools.function_tool import FunctionTool
-
-        from arifosmcp.runtime.federation_bridge import (
-            call_wealth_tool,
-            call_well_tool,
-            list_wealth_tools,
-            list_well_tools,
-        )
-        from arifosmcp.runtime.geox_bridge import call_geox_tool, list_geox_tools
-
-        async def _bootstrap_http_federation() -> dict[str, dict]:
-            """Discover remote tools and register proxy FunctionTools."""
-            remote_map: dict[str, dict] = {}
-
-            async def _load_organ(list_fn, organ_name: str) -> None:
-                try:
-                    tools = await asyncio.wait_for(list_fn(), timeout=10.0)
-                    for tool in tools:
-                        name = tool.get("name", "")
-                        if not name:
-                            continue
-                        remote_map[name] = {
-                            "organ": organ_name,
-                            "schema": tool,
-                        }
-                    logger.info(f"HTTP federation: discovered {len(tools)} tools from {organ_name}")
-                except Exception as exc:
-                    logger.warning(f"HTTP federation: {organ_name} discovery failed: {exc}")
-
-            await asyncio.gather(
-                _load_organ(list_wealth_tools, "WEALTH"),
-                _load_organ(list_well_tools, "WELL"),
-                _load_organ(list_geox_tools, "GEOX"),
+            from fastmcp.tools.base import (  # pyright: ignore[reportPrivateImportUsage]
+                TextContent,
+                ToolResult,
             )
-            return remote_map
+            from fastmcp.tools.function_tool import FunctionTool
 
-        _REMOTE_TOOLS_HTTP = asyncio.run(_bootstrap_http_federation())
+            from arifosmcp.runtime.federation_bridge import (
+                call_wealth_tool,
+                call_well_tool,
+                list_wealth_tools,
+                list_well_tools,
+            )
+            from arifosmcp.runtime.geox_bridge import call_geox_tool, list_geox_tools
 
-        if _REMOTE_TOOLS_HTTP:
-            lp = mcp.providers[0]
+            async def _bootstrap_http_federation() -> dict[str, dict]:
+                """Discover remote tools and register proxy FunctionTools."""
+                remote_map: dict[str, dict] = {}
 
-            def _make_proxy(organ: str, tool_name: str):
-                async def proxy(**kwargs: object) -> ToolResult:
-                    if organ == "WEALTH":
-                        raw = await call_wealth_tool(tool_name, kwargs)
-                    elif organ == "WELL":
-                        raw = await call_well_tool(tool_name, kwargs)
-                    elif organ == "GEOX":
-                        raw = await call_geox_tool(tool_name, kwargs)
-                    else:
-                        raise RuntimeError(f"Unknown organ: {organ}")
-
-                    # Normalise to FastMCP ToolResult
-                    if organ in ("WEALTH", "WELL"):
-                        raw_content = raw.get("content", [])
-                        structured = raw.get("structuredContent")
-                        if raw.get("isError"):
-                            errmsg = "Remote tool error"
-                            if (
-                                raw_content
-                                and isinstance(raw_content[0], dict)
-                                and raw_content[0].get("text")
-                            ):
-                                errmsg = raw_content[0]["text"]
-                            raise RuntimeError(errmsg)
-                        # Convert dicts to TextContent objects
-                        content = [
-                            TextContent(
-                                type=c.get("type", "text"),
-                                text=c.get("text", ""),
-                            )
-                            for c in raw_content
-                            if isinstance(c, dict)
-                        ]
-                        return ToolResult(
-                            content=content,
-                            structured_content=structured,
+                async def _load_organ(list_fn, organ_name: str) -> None:
+                    try:
+                        tools = await asyncio.wait_for(list_fn(), timeout=10.0)
+                        for tool in tools:
+                            name = tool.get("name", "")
+                            if not name:
+                                continue
+                            remote_map[name] = {
+                                "organ": organ_name,
+                                "schema": tool,
+                            }
+                        logger.info(
+                            f"HTTP federation: discovered {len(tools)} tools from {organ_name}"
                         )
-                    else:  # GEOX
-                        return ToolResult(
-                            content=[
-                                TextContent(
-                                    type="text",
-                                    text=json.dumps(raw, default=str),
-                                )
-                            ],
-                        )
+                    except Exception as exc:
+                        logger.warning(f"HTTP federation: {organ_name} discovery failed: {exc}")
 
-                return proxy
-
-            for name, info in _REMOTE_TOOLS_HTTP.items():
-                schema = info["schema"]
-                proxy_fn = _make_proxy(info["organ"], name)
-                ft = FunctionTool(
-                    name=name,
-                    description=schema.get("description", ""),
-                    parameters=schema.get("inputSchema", {"type": "object"}),
-                    fn=proxy_fn,
+                await asyncio.gather(
+                    _load_organ(list_wealth_tools, "WEALTH"),
+                    _load_organ(list_well_tools, "WELL"),
+                    _load_organ(list_geox_tools, "GEOX"),
                 )
-                lp.add_tool(ft)  # pyright: ignore[reportAttributeAccessIssue]
+                return remote_map
 
-            logger.info(f"HTTP federation: {len(_REMOTE_TOOLS_HTTP)} proxy tools registered")
-            # Update tool count for health endpoint (app is what register_rest_routes receives)
-            total_tools = len(v2_tools_registered) + len(_REMOTE_TOOLS_HTTP)
-            mcp._tool_count = total_tools  # pyright: ignore[reportAttributeAccessIssue]
-    except Exception as exc:
-        logger.warning(f"HTTP federation bootstrap failed: {exc}")
+            _REMOTE_TOOLS_HTTP = asyncio.run(_bootstrap_http_federation())
+
+            if _REMOTE_TOOLS_HTTP:
+                lp = mcp.providers[0]
+
+                def _make_proxy(organ: str, tool_name: str):
+                    async def proxy(**kwargs: object) -> ToolResult:
+                        if organ == "WEALTH":
+                            raw = await call_wealth_tool(tool_name, kwargs)
+                        elif organ == "WELL":
+                            raw = await call_well_tool(tool_name, kwargs)
+                        elif organ == "GEOX":
+                            raw = await call_geox_tool(tool_name, kwargs)
+                        else:
+                            raise RuntimeError(f"Unknown organ: {organ}")
+
+                        # Normalise to FastMCP ToolResult
+                        if organ in ("WEALTH", "WELL"):
+                            raw_content = raw.get("content", [])
+                            structured = raw.get("structuredContent")
+                            if raw.get("isError"):
+                                errmsg = "Remote tool error"
+                                if (
+                                    raw_content
+                                    and isinstance(raw_content[0], dict)
+                                    and raw_content[0].get("text")
+                                ):
+                                    errmsg = raw_content[0]["text"]
+                                raise RuntimeError(errmsg)
+                            # Convert dicts to TextContent objects
+                            content = [
+                                TextContent(
+                                    type=c.get("type", "text"),
+                                    text=c.get("text", ""),
+                                )
+                                for c in raw_content
+                                if isinstance(c, dict)
+                            ]
+                            return ToolResult(
+                                content=content,
+                                structured_content=structured,
+                            )
+                        else:  # GEOX
+                            return ToolResult(
+                                content=[
+                                    TextContent(
+                                        type="text",
+                                        text=json.dumps(raw, default=str),
+                                    )
+                                ],
+                            )
+
+                    return proxy
+
+                for name, info in _REMOTE_TOOLS_HTTP.items():
+                    schema = info["schema"]
+                    proxy_fn = _make_proxy(info["organ"], name)
+                    ft = FunctionTool(
+                        name=name,
+                        description=schema.get("description", ""),
+                        parameters=schema.get("inputSchema", {"type": "object"}),
+                        fn=proxy_fn,
+                    )
+                    lp.add_tool(ft)  # pyright: ignore[reportAttributeAccessIssue]
+
+                logger.info(f"HTTP federation: {len(_REMOTE_TOOLS_HTTP)} proxy tools registered")
+                # Update tool count for health endpoint (app is what register_rest_routes receives)
+                total_tools = len(v2_tools_registered) + len(_REMOTE_TOOLS_HTTP)
+                mcp._tool_count = total_tools  # pyright: ignore[reportAttributeAccessIssue]
+        except Exception as exc:
+            logger.warning(f"HTTP federation bootstrap failed: {exc}")
+    else:
+        logger.info("HTTP federation: organ bridge disabled (ARIFOS_EXPOSE_ORGAN_BRIDGE=false)")
 
     # ── arifOS Wiki Tools Forge (repo comprehension) ─────────────────────────
     # PHOENIX-72 / canonical13: wiki tools are absorbed as modes of canonical13.
