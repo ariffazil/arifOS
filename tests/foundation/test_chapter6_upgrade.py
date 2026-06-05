@@ -117,8 +117,15 @@ class TestTightenedLegacyWrap:
         ok, reason = env.validate_for_execution()
         assert ok is True, f"OBSERVE should pass, got: {reason}"
 
-    def test_legacy_wrap_prepare_blocked(self):
-        """PREPARE with legacy_wrap must be blocked (v2 tightening)."""
+    def test_legacy_wrap_prepare_allowed(self):
+        """PREPARE with legacy_wrap must be allowed (v2 hotfix 2026-06-05).
+
+        Legacy callers (Claude web / Perplexity) cannot construct a full
+        FederationEnvelope. PREPARE-class tools (mind_reason, memory_recall,
+        evidence_fetch) are read-only planning tools — blocking them broke
+        all connector use. OBSERVE + PREPARE are allowed; MUTATE + ATOMIC
+        remain blocked.
+        """
         env = FederationEnvelope(
             trace_id="t1",
             actor_id="arif",
@@ -128,8 +135,7 @@ class TestTightenedLegacyWrap:
             legacy_wrap=True,
         )
         ok, reason = env.validate_for_execution()
-        assert ok is False
-        assert "LEGACY_WRAP" in reason
+        assert ok is True, f"PREPARE should pass for legacy_wrap, got: {reason}"
 
     def test_legacy_wrap_mutate_blocked(self):
         """MUTATE with legacy_wrap must be blocked."""

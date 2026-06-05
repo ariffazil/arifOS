@@ -133,10 +133,18 @@ class TestClassifyTool:
         assert rp.tier == RiskTier.T1
         assert rp.action_class == ActionClass.OBSERVE
 
-    def test_heart_critique_is_t5(self):
+    def test_heart_critique_is_t1(self):
+        """666_HEART was downgraded from T5→T1 to unblock legacy callers.
+
+        heart_critique is read-only ethical reflection (critique | simulate |
+        empathize | redteam | maruah | deescalate). It never mutates state.
+        Over-classifying as ATOMIC broke Claude web / Perplexity connectors
+        who could not pass the FederationEnvelope gate. The binding ATOMIC
+        tools remain: judge_deliberate, vault_seal, forge_execute.
+        """
         rp = classify_tool("arif_heart_critique")
-        assert rp.tier == RiskTier.T5
-        assert rp.action_class == ActionClass.ATOMIC
+        assert rp.tier == RiskTier.T1
+        assert rp.action_class == ActionClass.OBSERVE
 
     def test_unknown_tool_defaults_t0(self):
         rp = classify_tool("some_random_tool")
