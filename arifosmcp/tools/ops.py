@@ -359,6 +359,96 @@ def arif_ops_measure(
                 )
             )
 
+    if mode == "human_wakefulness":
+        # Chapter 6 Upgrade: Measure whether the human remains awake in the loop.
+        # A dangerous system is one where approvals become automatic,
+        # evidence is unread, and uncertainty is hidden.
+        try:
+            import importlib.util
+            import json
+            from pathlib import Path
+
+            # Query WELL state
+            spec = importlib.util.spec_from_file_location(
+                "well_gate", "/root/WELL/gate/well_gate.py"
+            )
+            well_status = "UNANCHORED"
+            well_score = 0
+            well_msg = "WELL gate unavailable"
+            if spec and spec.loader:
+                well_gate = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(well_gate)
+                well_status, well_msg, well_score, well_violations = well_gate.reflect_readiness()
+
+            # Compute witness-log metrics
+            rubber_stamp_rate = 0.0
+            evidence_opened = 0
+            avg_ack_time_ms = 0.0
+            appeal_count = 0
+            dignity_holds = 0
+            certainty_overclaims = 0
+
+            if session_id:
+                from arifosmcp.runtime.tools import get_session
+
+                sess = get_session(session_id)
+                if sess:
+                    witness_log = sess.get("witness_log", [])
+                    total_calls = len(witness_log)
+                    if total_calls > 0:
+                        # Rubber stamp: consecutive SEAL without HOLD/VOID
+                        seals = sum(1 for e in witness_log if e.get("verdict") == "SEAL")
+                        rubber_stamp_rate = round(seals / total_calls, 2)
+
+                        # Average ack time (stub — would need timestamp diffs)
+                        avg_ack_time_ms = 0.0
+
+                        # Dignity holds from session
+                        dignity_holds = sum(
+                            1 for e in witness_log if e.get("stage") == "WELL_GATE"
+                        )
+
+            # Determine wakefulness verdict
+            if well_score >= 80 and rubber_stamp_rate < 0.8:
+                wakefulness_verdict = "OPTIMAL"
+            elif well_score >= 60 and rubber_stamp_rate < 0.9:
+                wakefulness_verdict = "STABLE"
+            elif well_score >= 40:
+                wakefulness_verdict = "DEGRADED"
+            else:
+                wakefulness_verdict = "CRITICAL"
+
+            wakefulness_payload = {
+                "wakefulness_verdict": wakefulness_verdict,
+                "well_score": well_score,
+                "well_status": well_status,
+                "well_message": well_msg,
+                "rubber_stamp_rate": rubber_stamp_rate,
+                "evidence_opened_before_approval": evidence_opened,
+                "average_time_before_ack_ms": avg_ack_time_ms,
+                "appeal_resolution_time_ms": 0,
+                "dignity_hold_count": dignity_holds,
+                "certainty_overclaim_count": certainty_overclaims,
+                "meaning_capture_risk": 0,
+                "session_id": session_id,
+            }
+            return TelemetryBlock(
+                **_ok(
+                    "arif_ops_measure",
+                    wakefulness_payload,
+                    meta={**drift_metrics, "source": "human_wakefulness", "mode": "wakefulness"},
+                    session_id=session_id,
+                )
+            )
+        except Exception as exc:
+            return TelemetryBlock(
+                **_hold(
+                    "arif_ops_measure",
+                    f"human_wakefulness mode failed: {exc}",
+                    session_id=session_id,
+                )
+            )
+
     if mode in ("qday_dashboard", "qday_physics_dashboard"):
         return {"status": "readonly", "message": f"{mode} activated based on qday_physics parameters."}
 

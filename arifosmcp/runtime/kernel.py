@@ -128,6 +128,66 @@ def _auditor_quick_scan(result_text: str) -> dict:
     return {"gate": "666_HEART", "verdict": "SEAL"}
 
 
+# --- Wakefulness Pre-Dispatch Gate (Chapter 6 Upgrade) ---
+
+
+def _check_wakefulness_gate(tool_name: str) -> dict[str, Any]:
+    """
+    Query WELL biological readiness before high-impact decisions.
+
+    Returns dict:
+      - ok: bool — whether dispatch should proceed
+      - downgrade: bool — whether to downgrade risk tier one level
+      - reason: str — human-readable explanation
+      - well_score: int — biological readiness score
+    """
+    try:
+        # Import WELL gate dynamically to avoid hard dependency at startup
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "well_gate", "/root/WELL/gate/well_gate.py"
+        )
+        if spec is None or spec.loader is None:
+            return {"ok": True, "downgrade": False, "reason": "WELL gate unavailable", "well_score": 100}
+        well_gate = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(well_gate)
+
+        status, msg, score, violations = well_gate.reflect_readiness()
+
+        # CRITICAL: clarity < 4 or sleep_debt > 2 days → block C4+ (forge, vault, judge)
+        if status == "DEGRADED" and tool_name in {
+            "arif_forge_execute",
+            "arif_vault_seal",
+            "arif_judge_deliberate",
+        }:
+            return {
+                "ok": False,
+                "downgrade": False,
+                "reason": f"WELL HOLD: {msg}. F13 SOVEREIGN requires biological readiness for atomic actions.",
+                "well_score": score,
+            }
+
+        # Downgrade all decisions one class if well_score < 60
+        if score < 60:
+            return {
+                "ok": True,
+                "downgrade": True,
+                "reason": f"WELL ADVISORY: score={score}. Risk tier downgraded one level.",
+                "well_score": score,
+            }
+
+        return {"ok": True, "downgrade": False, "reason": msg, "well_score": score}
+    except Exception as e:
+        # WELL gate failure is non-blocking (W0 axiom: WELL holds no veto)
+        return {
+            "ok": True,
+            "downgrade": False,
+            "reason": f"WELL gate error (non-blocking): {e}",
+            "well_score": 100,
+        }
+
+
 # --- Core Governance Classes ---
 
 
@@ -165,8 +225,14 @@ class ConstitutionalKernel:
         print(f"KERNEL: Dispatching {tool_name} through Fail-Closed Gates...")
 
         canonical_name = LEGACY_TOOL_ALIASES.get(tool_name, tool_name)
-        session_id = arguments.get("session_id")
-        actor_id = arguments.get("actor_id") or "system"
+        # Chapter 6 Upgrade: Prefer envelope fields for identity if present
+        envelope_data = arguments.get("envelope") or arguments.get("_envelope")
+        if envelope_data and isinstance(envelope_data, dict):
+            session_id = envelope_data.get("session_id") or arguments.get("session_id")
+            actor_id = envelope_data.get("actor_id") or arguments.get("actor_id") or "system"
+        else:
+            session_id = arguments.get("session_id")
+            actor_id = arguments.get("actor_id") or "system"
 
         # ── Formal Execution State Machine Gate ───────────────────────────────────────
         current_state_str = get_session_execution_state(session_id)
@@ -262,6 +328,41 @@ class ConstitutionalKernel:
                 latency_ms=0.0,
             )
             return result
+
+        # ── Chapter 6 Upgrade: Wakefulness Pre-Dispatch Gate ────────────────
+        wakefulness = _check_wakefulness_gate(canonical_name)
+        if not wakefulness["ok"]:
+            hold_result = {
+                "tool": canonical_name,
+                "stage": "WELL_GATE",
+                "status": "HOLD",
+                "result": {
+                    "error": "WAKEFULNESS_HOLD",
+                    "reason": wakefulness["reason"],
+                    "well_score": wakefulness["well_score"],
+                    "failed_floors": ["F13", "WELL"],
+                    "next_safe_action": "Wait for biological readiness recovery or override via F13 SOVEREIGN.",
+                },
+                "verdict": "HOLD",
+                "nine_signal": "RETAK",
+            }
+            trace_tool_call(
+                tool_name=canonical_name,
+                arguments=arguments,
+                result=hold_result,
+                session_id=session_id,
+                actor_id=actor_id,
+                latency_ms=0.0,
+            )
+            record_session_tool_event(
+                session_id=session_id,
+                tool_name=canonical_name,
+                stage="WELL_GATE",
+                verdict="HOLD",
+                payload=hold_result,
+                execution_state=current_state_str,
+            )
+            return hold_result
 
         start_ns = _time.perf_counter_ns()
         try:

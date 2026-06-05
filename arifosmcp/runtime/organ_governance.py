@@ -49,6 +49,59 @@ class RiskTier(StrEnum):
     IRREVERSIBLE = "irreversible"  # SEAL + human ack required
 
 
+# ─── Certainty Cap Classification (Chapter 6 Upgrade) ─────────────────────────
+
+class CertaintyCap(StrEnum):
+    """Epistemic certainty ceiling per tool."""
+
+    OBSERVED = "verified"
+    DERIVED = "calculated"
+    INTERPRETED = "likely"
+    SPECULATIVE = "possible"
+    MYTHIC = "symbolically_framed"
+
+
+# Mapping: truth_class → max certainty expression allowed
+CERTAINTY_CAP_RANK: dict[str, int] = {
+    CertaintyCap.OBSERVED: 4,
+    CertaintyCap.DERIVED: 3,
+    CertaintyCap.INTERPRETED: 2,
+    CertaintyCap.SPECULATIVE: 1,
+    CertaintyCap.MYTHIC: 0,
+}
+
+# Tool-level certainty caps (default = SPECULATIVE for safety)
+TOOL_CERTAINTY_CAP: dict[str, CertaintyCap] = {
+    # GEOX: direct measurements
+    "geox_well_analyze_sequence": CertaintyCap.DERIVED,
+    "geox_data_qc_bundle": CertaintyCap.OBSERVED,
+    "geox_forward_model_synthetic": CertaintyCap.DERIVED,
+    "geox_seismic_well_tie_compute": CertaintyCap.DERIVED,
+    "geox_time_depth_anchor": CertaintyCap.OBSERVED,
+    "geox_anomalous_contrast_detector": CertaintyCap.INTERPRETED,
+    "geox_subsurface_verify_integrity": CertaintyCap.INTERPRETED,
+    "geox_prospect_evaluate": CertaintyCap.SPECULATIVE,
+    "geox_prospect_judge_preview": CertaintyCap.SPECULATIVE,
+    "geox_prospect_judge_seal": CertaintyCap.INTERPRETED,
+    "geox_process_abduction": CertaintyCap.SPECULATIVE,
+    # WEALTH: financial calculations
+    "wealth_field_macro": CertaintyCap.OBSERVED,
+    "wealth_conservation_capital": CertaintyCap.DERIVED,
+    "wealth_flow_liquidity": CertaintyCap.DERIVED,
+    "wealth_energy_productivity": CertaintyCap.DERIVED,
+    "wealth_gradient_price": CertaintyCap.OBSERVED,
+    "wealth_entropy_risk": CertaintyCap.INTERPRETED,
+    "wealth_synthesize": CertaintyCap.SPECULATIVE,
+    "wealth_governance_verdict": CertaintyCap.SPECULATIVE,
+    # WELL: biological assessments
+    "well_classify_substrate": CertaintyCap.INTERPRETED,
+    "well_assess_metabolism": CertaintyCap.INTERPRETED,
+    "well_assess_homeostasis": CertaintyCap.INTERPRETED,
+    "well_assess_livelihood": CertaintyCap.INTERPRETED,
+    "well_guard_dignity": CertaintyCap.MYTHIC,
+}
+
+
 # ─── Risk Classification Per Organ ────────────────────────────────────────────
 
 TOOL_RISK_MAP: dict[str, dict[str, RiskTier]] = {
@@ -252,6 +305,66 @@ class OrganGovernance:
     def get_risk_tier(self, tool_name: str) -> RiskTier:
         """Look up risk tier for a tool. Default to C1 if unknown."""
         return self.risk_map.get(tool_name, RiskTier.C1_ADVISORY)
+
+    def get_certainty_cap(self, tool_name: str) -> CertaintyCap:
+        """Look up certainty cap for a tool. Default to SPECULATIVE for safety."""
+        return TOOL_CERTAINTY_CAP.get(tool_name, CertaintyCap.SPECULATIVE)
+
+    def check_certainty_cap(
+        self,
+        tool_name: str,
+        output_text: str,
+        claimed_certainty: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Chapter 6 Upgrade: Check if a tool's output exceeds its certainty cap.
+
+        Returns dict with:
+          - ok: bool
+          - cap: the tool's CertaintyCap
+          - overclaim_detected: bool
+          - reason: human-readable explanation
+        """
+        cap = self.get_certainty_cap(tool_name)
+        cap_rank = CERTAINTY_CAP_RANK.get(cap, 1)
+        overclaim = False
+        reason = f"Certainty cap for {tool_name}: {cap.value}"
+
+        # Detect overclaim patterns in output text
+        text_lower = (output_text or "").lower()
+        overclaim_patterns = {
+            CertaintyCap.OBSERVED: [],  # top rank — cannot overclaim
+            CertaintyCap.DERIVED: ["verified", "proven", "certain"],
+            CertaintyCap.INTERPRETED: ["verified", "proven", "certain", "calculated"],
+            CertaintyCap.SPECULATIVE: ["verified", "proven", "certain", "calculated", "likely"],
+            CertaintyCap.MYTHIC: ["verified", "proven", "certain", "calculated", "likely", "possible"],
+        }
+        forbidden = overclaim_patterns.get(cap, [])
+        found = [p for p in forbidden if p in text_lower]
+        if found:
+            overclaim = True
+            reason = (
+                f"Certainty overclaim detected in {tool_name}: "
+                f"cap={cap.value}, forbidden words found={found}. "
+                f"F9 ANTI-HANTU: downgrade certainty or provide evidence receipt."
+            )
+
+        # If explicit claimed_certainty is provided, validate rank
+        if claimed_certainty:
+            claimed_rank = CERTAINTY_CAP_RANK.get(claimed_certainty, 99)
+            if claimed_rank > cap_rank:
+                overclaim = True
+                reason = (
+                    f"Explicit certainty overclaim: {tool_name} claims {claimed_certainty} "
+                    f"but cap is {cap.value}. F9 ANTI-HANTU violation."
+                )
+
+        return {
+            "ok": not overclaim,
+            "cap": cap.value,
+            "overclaim_detected": overclaim,
+            "reason": reason,
+        }
 
     def check_governance(
         self,

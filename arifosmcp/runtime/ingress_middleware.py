@@ -27,7 +27,13 @@ from arifosmcp.schemas.federation_envelope import (
     ActionClass,
     AuthoritySource,
     FederationEnvelope,
+    HostAttestation,
     wrap_legacy_call,
+)
+from arifosmcp.schemas.sovereignty_checkpoint import (
+    SovereigntyCheckpoint,
+    SovereigntyCheckpointRequest,
+    build_sovereignty_checkpoint,
 )
 
 logger = logging.getLogger(__name__)
@@ -357,9 +363,17 @@ def _extract_envelope_from_arguments(
 
     # Try flattened fields
     flat_fields = {
-        "actor_id", "session_id", "agent_id", "tool_id",
-        "trace_id", "parent_trace_id", "niat", "matlamat",
-        "authority", "risk", "receipts",
+        "actor_id",
+        "session_id",
+        "agent_id",
+        "tool_id",
+        "trace_id",
+        "parent_trace_id",
+        "niat",
+        "matlamat",
+        "authority",
+        "risk",
+        "receipts",
     }
     if flat_fields & set(arguments.keys()):
         try:
@@ -393,7 +407,10 @@ def _validate_envelope_for_tool(
     """
     # 1. Classify tool risk and upgrade envelope if needed
     tool_risk = classify_tool(tool_name)
-    if envelope.risk.action_class == ActionClass.OBSERVE and tool_risk.action_class != ActionClass.OBSERVE:
+    if (
+        envelope.risk.action_class == ActionClass.OBSERVE
+        and tool_risk.action_class != ActionClass.OBSERVE
+    ):
         logger.debug(
             f"Envelope risk upgraded from OBSERVE to {tool_risk.action_class.value} "
             f"based on tool classification for {tool_name}"
@@ -402,7 +419,10 @@ def _validate_envelope_for_tool(
         envelope.risk.tier = tool_risk.tier
 
     # 2. Legacy wrap + MUTATE/ATOMIC = HOLD (before receipt validation)
-    if envelope.legacy_wrap and envelope.risk.action_class in (ActionClass.MUTATE, ActionClass.ATOMIC):
+    if envelope.legacy_wrap and envelope.risk.action_class in (
+        ActionClass.MUTATE,
+        ActionClass.ATOMIC,
+    ):
         return False, (
             f"LEGACY_WRAP cannot execute {envelope.risk.action_class.value} on {tool_name}. "
             "Upgrade client to send FederationEnvelope with verified authority."
@@ -465,9 +485,7 @@ if IS_FASTMCP_3:
                 tool_name = msg.name
 
                 # ── FEDERATION ENVELOPE EXTRACTION & VALIDATION ───────────────
-                envelope = _extract_envelope_from_arguments(
-                    dict(msg.arguments or {}), tool_name
-                )
+                envelope = _extract_envelope_from_arguments(dict(msg.arguments or {}), tool_name)
                 if envelope is None:
                     # Legacy call: wrap with conservative defaults
                     envelope = wrap_legacy_call(
@@ -482,20 +500,106 @@ if IS_FASTMCP_3:
                     logger.warning(f"Ingress envelope HOLD for {tool_name}: {envelope_reason}")
                     # Return HOLD result — do not execute tool
                     from mcp.types import TextContent
+
                     return ToolResult(
                         content=[TextContent(type="text", text=f"888_HOLD: {envelope_reason}")],
                     )
 
+                # ── SOVEREIGNTY CHECKPOINT GATE (v2: Chapter 6 Upgrade) ────
+                if envelope.requires_sovereignty_checkpoint():
+                    checkpoint = envelope.sovereignty_checkpoint
+                    if checkpoint is None:
+                        # No checkpoint — issue one and return 888_HOLD
+                        risk_dict = {
+                            "tier": envelope.risk.tier.value,
+                            "action_class": envelope.risk.action_class.value,
+                            "blast_radius": envelope.risk.blast_radius.value,
+                            "reversibility": envelope.risk.reversibility.value,
+                            "external_effect": envelope.risk.external_effect.value,
+                        }
+                        chk = build_sovereignty_checkpoint(
+                            tool_name=tool_name,
+                            session_id=envelope.session_id,
+                            actor_id=envelope.actor_id,
+                            risk_summary=risk_dict,
+                            tool_description=f"Risk tier {envelope.risk.tier.value}, "
+                            f"action class {envelope.risk.action_class.value}",
+                        )
+                        chk_req = SovereigntyCheckpointRequest(checkpoint=chk)
+                        import json as _json
+
+                        logger.warning(
+                            f"Ingress checkpoint HOLD for {tool_name}: "
+                            f"sovereignty_checkpoint required"
+                        )
+                        from mcp.types import TextContent
+
+                        return ToolResult(
+                            content=[
+                                TextContent(
+                                    type="text",
+                                    text=(
+                                        f"888_HOLD: Sovereignty checkpoint required.\\n\\n"
+                                        f"Tool: {tool_name}\\n"
+                                        f"Risk: {envelope.risk.tier.value} | {envelope.risk.action_class.value}\\n"
+                                        f"Reversibility: {envelope.risk.reversibility.value}\\n\\n"
+                                        f"Answer these four questions:\\n"
+                                        f"1. What EVIDENCE are you accepting?\\n"
+                                        f"2. What UNCERTAINTY are you tolerating?\\n"
+                                        f"3. What RESPONSIBILITY are you assuming?\\n"
+                                        f"4. What REPAIR path exists if this goes wrong?\\n\\n"
+                                        f"Resubmit with sovereignty_checkpoint in FederationEnvelope.\\n"
+                                        f"Checkpoint ID: {chk.checkpoint_id}\\n"
+                                        f"Expires: {chk.expires_at}"
+                                    ),
+                                )
+                            ],
+                        )
+                    else:
+                        # Checkpoint exists — validate it
+                        chk_ok, chk_reason = checkpoint.is_valid()
+                        if not chk_ok:
+                            logger.warning(
+                                f"Ingress checkpoint invalid for {tool_name}: {chk_reason}"
+                            )
+                            from mcp.types import TextContent
+
+                            return ToolResult(
+                                content=[
+                                    TextContent(
+                                        type="text",
+                                        text=f"888_HOLD: Sovereignty checkpoint invalid — {chk_reason}",
+                                    )
+                                ],
+                            )
+                        logger.debug(
+                            f"Ingress checkpoint passed for {tool_name}: "
+                            f"checkpoint_id={checkpoint.checkpoint_id}, "
+                            f"wakefulness={checkpoint.wakefulness_level.value}"
+                        )
+                # ── END SOVEREIGNTY CHECKPOINT GATE ──────────────────────
+
                 # Log envelope (no secrets)
-                self._envelope_log.append({
-                    "timestamp": datetime.now(UTC).isoformat(),
-                    "tool_name": tool_name,
-                    "trace_id": envelope.trace_id,
-                    "actor_id": envelope.actor_id,
-                    "action_class": envelope.risk.action_class.value,
-                    "risk_tier": envelope.risk.tier.value,
-                    "legacy_wrap": envelope.legacy_wrap,
-                })
+                self._envelope_log.append(
+                    {
+                        "timestamp": datetime.now(UTC).isoformat(),
+                        "tool_name": tool_name,
+                        "trace_id": envelope.trace_id,
+                        "actor_id": envelope.actor_id,
+                        "action_class": envelope.risk.action_class.value,
+                        "risk_tier": envelope.risk.tier.value,
+                        "legacy_wrap": envelope.legacy_wrap,
+                    }
+                )
+
+                # ── Chapter 6 Upgrade: Inject validated envelope into tool arguments ──
+                # The envelope is validated above; now propagate it so tool handlers
+                # can access authority, risk, receipts, and lineage fields.
+                # Handlers that accept an 'envelope' param receive the full object.
+                # Handlers that don't accept it have it silently filtered by _wrap_handler.
+                if msg.arguments is None:
+                    msg.arguments = {}
+                msg.arguments["_envelope"] = envelope.model_dump(mode="json")
 
                 if tool_name in MEGA_TOOLS and msg.arguments:
                     # 1. Mode synonym normalization: "recommend" → "reason", etc.

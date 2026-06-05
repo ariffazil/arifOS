@@ -1,13 +1,17 @@
 """
-Federation Envelope — MCP Federation Reconstruction A Foundation
+Federation Envelope — MCP Federation Reconstruction A Foundation (v2)
 ═══════════════════════════════════════════════════════════════════════════════
 
 Every MCP tool call and A2A message across the arifOS Federation MUST carry
 this envelope. Without it, the call is invisible to constitutional governance.
 
-Hard rules:
-  - No envelope → wrap legacy call → classify as UNKNOWN → allow OBSERVE only.
-  - No envelope + action_class in (MUTATE, ATOMIC) → HOLD.
+v2 Hard rules (Chapter 6 Upgrade — Human Wakefulness Federation):
+  - No envelope → wrap legacy call → allow OBSERVE only.
+  - LEGACY_WRAP + any action beyond OBSERVE → HOLD.
+  - claim_state is mandatory for consequential actions (PREPARE, MUTATE, ATOMIC).
+  - Tool calls touching dignity, memory, mutation, vault, identity, or external
+    effects REQUIRE a SovereigntyCheckpoint before execution.
+  - host_attestation identifies the calling runtime for semi-trusted host defense.
   - agent_id and tool_id are mandatory for production. Transition mode allows missing.
   - trace_id links the full call chain across organs.
 
@@ -16,11 +20,14 @@ DITEMPA BUKAN DIBERI — Jurisdiction before intelligence.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
+
+from arifosmcp.schemas.embodied_tool import ClaimState
+from arifosmcp.schemas.sovereignty_checkpoint import SovereigntyCheckpoint
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ORGAN ENUM
@@ -48,12 +55,12 @@ class FederationOrgan(StrEnum):
 class AuthoritySource(StrEnum):
     """How the caller obtained authority for this action."""
 
-    TOKEN = "token"          # JWT / auth token verified
-    SESSION = "session"      # Active session bound
+    TOKEN = "token"  # JWT / auth token verified
+    SESSION = "session"  # Active session bound
     DELEGATED = "delegated"  # Delegated from another actor
     HUMAN_888 = "human_888"  # Explicit human approval via 888_JUDGE
-    FALLBACK = "fallback"    # Legacy/env fallback (transition mode)
-    UNKNOWN = "unknown"      # No authority established
+    FALLBACK = "fallback"  # Legacy/env fallback (transition mode)
+    UNKNOWN = "unknown"  # No authority established
 
 
 class AuthorityEnvelope(BaseModel):
@@ -73,12 +80,8 @@ class AuthorityEnvelope(BaseModel):
     verified: bool = Field(
         default=False, description="Has authority been cryptographically verified?"
     )
-    delegator: str | None = Field(
-        default=None, description="Actor who delegated authority"
-    )
-    delegatee: str | None = Field(
-        default=None, description="Actor receiving delegated authority"
-    )
+    delegator: str | None = Field(default=None, description="Actor who delegated authority")
+    delegatee: str | None = Field(default=None, description="Actor receiving delegated authority")
     scope: list[str] = Field(
         default_factory=list, description="Allowed actions under this authority"
     )
@@ -116,21 +119,21 @@ class RiskTier(StrEnum):
 class ActionClass(StrEnum):
     """What phase of action this call represents."""
 
-    OBSERVE = "OBSERVE"    # Read-only, no side effects
-    PREPARE = "PREPARE"    # Plan, dry-run, validate
-    MUTATE = "MUTATE"      # Write, modify, execute
-    ATOMIC = "ATOMIC"      # Irreversible, dangerous, final
+    OBSERVE = "OBSERVE"  # Read-only, no side effects
+    PREPARE = "PREPARE"  # Plan, dry-run, validate
+    MUTATE = "MUTATE"  # Write, modify, execute
+    ATOMIC = "ATOMIC"  # Irreversible, dangerous, final
 
 
 class BlastRadius(StrEnum):
     """How far the blast reaches if this action goes wrong."""
 
-    LOCAL = "local"          # Single process / file
-    ACCOUNT = "account"      # User account / session
-    ORG = "org"              # Organization / project
-    PUBLIC = "public"        # Public-facing / external users
+    LOCAL = "local"  # Single process / file
+    ACCOUNT = "account"  # User account / session
+    ORG = "org"  # Organization / project
+    PUBLIC = "public"  # Public-facing / external users
     FINANCIAL = "financial"  # Money / capital at risk
-    INFRA = "infra"          # Infrastructure / host at risk
+    INFRA = "infra"  # Infrastructure / host at risk
 
 
 class ReversibilityLevel(StrEnum):
@@ -145,7 +148,7 @@ class ReversibilityLevel(StrEnum):
 class SecretTouch(StrEnum):
     """Whether this action touches secrets."""
 
-    NONE = "none"       # No secret access
+    NONE = "none"  # No secret access
     POSSIBLE = "possible"  # May access secrets depending on params
     DEFINITE = "definite"  # Definitely accesses secrets
 
@@ -153,11 +156,32 @@ class SecretTouch(StrEnum):
 class ExternalEffect(StrEnum):
     """Whether this action has effects outside the federation."""
 
-    NONE = "none"       # Internal only
+    NONE = "none"  # Internal only
     PRIVATE = "private"  # External but private (internal API)
-    PUBLIC = "public"    # External and public-visible
-    LEGAL = "legal"      # Legal/regulatory implications
+    PUBLIC = "public"  # External and public-visible
+    LEGAL = "legal"  # Legal/regulatory implications
     FINANCIAL = "financial"  # Financial transaction
+
+
+class ToolScope(StrEnum):
+    """What domains the tool touches — for semi-trusted host defense."""
+
+    READ = "read"  # Read-only tool surface
+    WRITE = "write"  # Mutation of state
+    EXTERNAL = "external"  # External API / side effect
+    SECRET = "secret"  # Touches secrets / credentials
+    MEMORY = "memory"  # Reads or writes memory
+    DIGNITY = "dignity"  # Touches human dignity / identity
+    VAULT = "vault"  # Touches VAULT999
+
+
+class HostAttestation(StrEnum):
+    """Level of trust for the calling host runtime."""
+
+    TRUSTED = "trusted"  # Locally verified host
+    SEMI_TRUSTED = "semi_trusted"  # Known host, not fully verified
+    UNTRUSTED = "untrusted"  # Unknown or public host
+    UNKNOWN = "unknown"  # No attestation available
 
 
 class RiskPassport(BaseModel):
@@ -255,6 +279,14 @@ class FederationEnvelope(BaseModel):
 
     Without this envelope, the federation cannot govern, judge, or witness.
     With it, every call becomes a traceable, risk-classified, authority-bound event.
+
+    v2 (Chapter 6 Upgrade — Human Wakefulness Federation):
+      - claim_state: epistemic tag on the call itself (OBSERVED/DERIVED/...)
+      - tool_scope: what domains this tool touches (read/write/external/secret/memory/dignity/vault)
+      - host_attestation: trust level of the calling runtime
+      - expires_at: envelope expiry for short-lived authority
+      - actor_verification: claimed | verified | delegated
+      - sovereignty_checkpoint: required for dignity/memory/mutation/vault/identity tools
     """
 
     envelope_version: str = Field(default="1.0", description="Envelope spec version")
@@ -263,6 +295,10 @@ class FederationEnvelope(BaseModel):
 
     # Identity
     actor_id: str = Field(description="Who triggered this call")
+    actor_verification: str = Field(
+        default="claimed",
+        description="claimed | verified | delegated — how the actor was verified",
+    )
     session_id: str = Field(description="Governing session")
     agent_id: str | None = Field(default=None, description="Which agent is acting")
     tool_id: str | None = Field(default=None, description="Which tool is being invoked")
@@ -279,17 +315,91 @@ class FederationEnvelope(BaseModel):
     risk: RiskPassport = Field(default_factory=RiskPassport)
     receipts: ActionReceipts = Field(default_factory=ActionReceipts)
 
+    # ── v2: Chapter 6 Upgrade Fields ──────────────────────────────────────
+    # Epistemic tag on the call itself — separates certainty from capability
+    claim_state: ClaimState = Field(
+        default=ClaimState.UNKNOWN,
+        description="Epistemic tag on this call: VERIFIED | INTERPRETED | HYPOTHESIS | UNKNOWN",
+    )
+    # What domains this tool touches — for semi-trusted host defense
+    tool_scope: list[ToolScope] = Field(
+        default_factory=list,
+        description="Domains this tool touches: read | write | external | secret | memory | dignity | vault",
+    )
+    # Trust level of the calling host runtime
+    host_attestation: HostAttestation = Field(
+        default=HostAttestation.UNKNOWN,
+        description="Trust level of the calling host runtime",
+    )
+    # Envelope expiry for short-lived authority
+    expires_at: datetime | None = Field(
+        default=None,
+        description="When this envelope expires (default: 5 min from creation)",
+    )
+    # Sovereignty checkpoint for high-impact actions
+    sovereignty_checkpoint: SovereigntyCheckpoint | None = Field(
+        default=None,
+        description="Completed wakefulness checkpoint for dignity/memory/vault/identity actions",
+    )
+    # ───────────────────────────────────────────────────────────────────────
+
+    # ── v2: Lineage propagation ───────────────────────────────────────────
+    # Links this envelope to the constitutional chain for audit and appeal
+    judge_state_hash: str | None = Field(
+        default=None,
+        description="Hash of the judge deliberation state that authorized this call",
+    )
+    vault_entry_id: str | None = Field(
+        default=None,
+        description="VAULT999 entry ID that sealed the prior decision in this chain",
+    )
+    constitutional_chain_id: str | None = Field(
+        default=None,
+        description="Canonical constitutional chain ID for lineage tracking",
+    )
+    # ───────────────────────────────────────────────────────────────────────
+
     # Transition mode flag
     legacy_wrap: bool = Field(
         default=False,
         description="True if this envelope was auto-generated for a legacy call",
     )
 
+    def requires_sovereignty_checkpoint(self) -> bool:
+        """
+        True if this call touches domains that require the human to stay awake.
+
+        Triggers for: dignity, memory mutation, vault writes, identity operations,
+        external effects at scale, or secret access.
+        """
+        checkpoint_scopes = {
+            ToolScope.DIGNITY,
+            ToolScope.VAULT,
+            ToolScope.MEMORY,
+            ToolScope.SECRET,
+        }
+        touched = set(self.tool_scope) & checkpoint_scopes
+        if touched:
+            return True
+        # Also trigger for ATOMIC actions regardless of scope
+        if self.risk.action_class == ActionClass.ATOMIC:
+            return True
+        # External effects at PUBLIC/FINANCIAL/LEGAL level
+        if self.risk.external_effect in (
+            ExternalEffect.PUBLIC,
+            ExternalEffect.FINANCIAL,
+            ExternalEffect.LEGAL,
+        ):
+            return True
+        return False
+
     def validate_for_execution(self) -> tuple[bool, str]:
         """
         Validate this envelope before tool execution.
 
         Returns (ok, reason).
+
+        v2: tightened legacy_wrap — anything beyond OBSERVE with legacy_wrap = HOLD.
         """
         # Identity check
         if not self.actor_id:
@@ -302,14 +412,37 @@ class FederationEnvelope(BaseModel):
         if not self.session_id:
             return False, "session_id is mandatory"
 
+        # ── v2: Tightened legacy_wrap — only OBSERVE allowed ──────────────
+        if self.legacy_wrap and self.risk.action_class != ActionClass.OBSERVE:
+            return False, (
+                f"LEGACY_WRAP cannot execute {self.risk.action_class.value}. "
+                "Upgrade client to send FederationEnvelope with verified authority, "
+                "claim_state, tool_scope, and host_attestation."
+            )
+
         # Authority check
         if self.authority.source == AuthoritySource.UNKNOWN:
             if self.risk.action_class in (ActionClass.MUTATE, ActionClass.ATOMIC):
                 return False, f"UNKNOWN authority cannot execute {self.risk.action_class.value}"
 
+        # v2: actor_verification check for mutating actions
+        if self.risk.action_class in (ActionClass.MUTATE, ActionClass.ATOMIC):
+            if self.actor_verification == "claimed" and self.authority.source not in (
+                AuthoritySource.TOKEN,
+                AuthoritySource.HUMAN_888,
+            ):
+                return False, (
+                    f"{self.risk.action_class.value} requires verified actor, not claimed. "
+                    "Use actor_verification='verified' or authority source TOKEN/HUMAN_888."
+                )
+
         # Delegation expiry check
         if self.authority.delegator and not self.authority.is_delegation_valid():
             return False, "Delegation expired or missing expiry"
+
+        # Envelope expiry check (v2)
+        if self.expires_at and datetime.now(UTC) > self.expires_at:
+            return False, "Envelope expired — reissue with fresh authority"
 
         # Receipt check
         receipt_ok, receipt_reason = self.receipts.validate_for_action(self.risk.action_class)
@@ -329,6 +462,7 @@ class FederationEnvelope(BaseModel):
             "trace_id": self.trace_id,
             "parent_trace_id": self.parent_trace_id,
             "actor_id": self.actor_id,
+            "actor_verification": self.actor_verification,
             "session_id": self.session_id,
             "agent_id": self.agent_id,
             "tool_id": self.tool_id,
@@ -344,6 +478,10 @@ class FederationEnvelope(BaseModel):
             "risk_secret_touch": self.risk.secret_touch.value,
             "risk_external_effect": self.risk.external_effect.value,
             "legacy_wrap": self.legacy_wrap,
+            "claim_state": self.claim_state.value,
+            "tool_scope": [s.value for s in self.tool_scope],
+            "host_attestation": self.host_attestation.value,
+            "expires_at": self.expires_at.isoformat() if self.expires_at else None,
         }
 
 
@@ -363,10 +501,13 @@ def wrap_legacy_call(
     Wrap a legacy call that does not carry an envelope.
 
     Transition mode: assigns conservative defaults and marks as legacy_wrap.
+    v2: only OBSERVE is allowed with legacy_wrap. PREPARE/MUTATE/ATOMIC
+    will be rejected by validate_for_execution().
     """
     return FederationEnvelope(
         trace_id=f"legacy-{datetime.now(UTC).isoformat()}",
         actor_id=actor_id or "anonymous",
+        actor_verification="claimed",
         session_id=session_id or "unknown",
         tool_id=tool_name,
         organ=organ,
@@ -375,5 +516,8 @@ def wrap_legacy_call(
             tier=RiskTier.T2 if action_class == ActionClass.MUTATE else RiskTier.T0,
             action_class=action_class,
         ),
+        claim_state=ClaimState.UNKNOWN,
+        tool_scope=[ToolScope.READ] if action_class == ActionClass.OBSERVE else [],
+        host_attestation=HostAttestation.UNKNOWN,
         legacy_wrap=True,
     )

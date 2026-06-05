@@ -30,26 +30,32 @@ class TestExtractEnvelope:
         assert env is None
 
     def test_nested_envelope(self):
-        env = _extract_envelope_from_arguments({
-            "envelope": {
-                "trace_id": "t1",
-                "actor_id": "arif",
-                "session_id": "s1",
-                "organ": "arifOS",
+        env = _extract_envelope_from_arguments(
+            {
+                "envelope": {
+                    "trace_id": "t1",
+                    "actor_id": "arif",
+                    "session_id": "s1",
+                    "organ": "arifOS",
+                },
+                "query": "test",
             },
-            "query": "test",
-        }, "test")
+            "test",
+        )
         assert env is not None
         assert env.actor_id == "arif"
         assert env.trace_id == "t1"
 
     def test_flattened_fields(self):
-        env = _extract_envelope_from_arguments({
-            "actor_id": "arif",
-            "session_id": "s1",
-            "trace_id": "t1",
-            "query": "test",
-        }, "test")
+        env = _extract_envelope_from_arguments(
+            {
+                "actor_id": "arif",
+                "session_id": "s1",
+                "trace_id": "t1",
+                "query": "test",
+            },
+            "test",
+        )
         assert env is not None
         assert env.actor_id == "arif"
         assert env.legacy_wrap is True
@@ -68,7 +74,9 @@ class TestValidateEnvelope:
 
     def test_mutate_with_legacy_wrap_fails(self):
         env = wrap_legacy_call(
-            actor_id="a1", session_id="s1", tool_name="arif_forge_execute",
+            actor_id="a1",
+            session_id="s1",
+            tool_name="arif_forge_execute",
             action_class=ActionClass.MUTATE,
         )
         ok, reason = _validate_envelope_for_tool(env, "arif_forge_execute")
@@ -140,9 +148,9 @@ class TestValidateEnvelope:
             risk=RiskPassport(tier=RiskTier.T0, action_class=ActionClass.OBSERVE),
             authority=AuthorityEnvelope(source=AuthoritySource.TOKEN, verified=True),
         )
-        ok, reason = _validate_envelope_for_tool(env, "arif_kernel_route")
-        # Envelope gets upgraded to tool's risk class (MUTATE/T3), then fails on receipt check
+        ok, reason = _validate_envelope_for_tool(env, "arif_forge_execute")
+        # Envelope gets upgraded to tool's risk class (ATOMIC/T5), then fails on receipt check
         assert ok is False
-        assert "observe_receipt_id" in reason
-        assert env.risk.action_class == ActionClass.MUTATE
-        assert env.risk.tier == RiskTier.T3
+        assert "arif_ack_id" in reason
+        assert env.risk.action_class == ActionClass.ATOMIC
+        assert env.risk.tier == RiskTier.T5

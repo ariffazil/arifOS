@@ -142,6 +142,7 @@ from arifosmcp.schemas.synthesis import (
     ReasoningStep,
     ReasoningTrace,
 )
+from arifosmcp.schemas.federation_envelope import FederationEnvelope
 from arifosmcp.schemas.verdict import (
     AmanahProof,
     EntropyDelta,
@@ -12904,12 +12905,47 @@ def _filter_kwargs_for_handler(
     return filtered
 
 
+def _handler_accepts_envelope(handler: Any) -> bool:
+    """True if handler signature includes an 'envelope' parameter."""
+    try:
+        sig = inspect.signature(handler)
+        return "envelope" in sig.parameters
+    except Exception:
+        return False
+
+
+def _inject_envelope_into_kwargs(
+    handler: Any, kwargs: dict[str, Any], tool_name: str
+) -> dict[str, Any]:
+    """
+    Chapter 6 Upgrade: Inject FederationEnvelope into kwargs if handler accepts it.
+
+    The envelope arrives as '_envelope' (dict from JSON serialization).
+    If handler has an 'envelope' param, convert back to FederationEnvelope.
+    If not, remove silently to avoid _filter_kwargs_for_handler warnings.
+    """
+    envelope_dict = kwargs.pop("_envelope", None)
+    if envelope_dict is None:
+        return kwargs
+
+    if _handler_accepts_envelope(handler):
+        try:
+            kwargs["envelope"] = FederationEnvelope(**envelope_dict)
+            logger.debug("Tool %s: envelope injected into handler", tool_name)
+        except Exception as e:
+            logger.debug("Tool %s: envelope reconstruction failed: %s", tool_name, e)
+    else:
+        logger.debug("Tool %s: envelope discarded (handler not envelope-aware)", tool_name)
+    return kwargs
+
+
 def _wrap_handler(handler: Any, tool_name: str) -> Any:
     """
     Wrap a handler so:
     1. Pydantic validation errors expose the public tool name
     2. Every response passes through Nine-Signal enforcement (F2 addendum)
     3. Unknown / aliased parameters are filtered, not crashed on
+    4. FederationEnvelope is forwarded to envelope-aware handlers (Chapter 6)
     """
     # Guard: None handler (arif_metabolize placeholder before lazy injection)
     if handler is None:
@@ -12917,6 +12953,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
     # Sync wrapper
     def wrapper(*args: Any, **kwargs: Any) -> Any:
+        kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
         _filtered = _filter_kwargs_for_handler(handler, kwargs, tool_name)
         try:
             response = handler(*args, **_filtered)
@@ -12961,6 +12998,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
     # Async wrapper
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+        kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
         _filtered = _filter_kwargs_for_handler(handler, kwargs, tool_name)
         try:
             response = await handler(*args, **_filtered)
