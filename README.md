@@ -58,6 +58,36 @@ curl -X POST http://localhost:8088/mcp \
   -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
 ```
 
+### Stdio mode (local agents — Claude Code, OpenCode, Continue CLI)
+
+arifOS is dual-transport. Use `AAA_MCP_TRANSPORT=stdio` or the runtime minimal entry for agents that launch the server as a subprocess:
+
+```bash
+# Native FastMCP auto-detect (stdio when stdin is not a TTY)
+AAA_MCP_TRANSPORT=stdio python -m arifosmcp.server
+
+# Runtime minimal — organ-proxy capable, localhost federation discovery
+AAA_MCP_TRANSPORT=stdio uv run python -c \
+  "from arifosmcp.runtime.__main__ import main; main()"
+```
+
+Agent config example:
+
+```json
+{
+  "mcpServers": {
+    "arifos": {
+      "command": "python3",
+      "args": ["-m", "arifosmcp.server"],
+      "cwd": "/root/arifOS",
+      "env": { "AAA_MCP_TRANSPORT": "stdio" }
+    }
+  }
+}
+```
+
+In stdio mode the bridge discovers WEALTH/WELL/GEOX over `http://127.0.0.1:18082`, `:18083`, `:8081` — no Cloudflare, no TLS, works offline. Override via `WEALTH_BRIDGE_HOST`, `WELL_BRIDGE_HOST`, `GEOX_BRIDGE_HOST` env vars.
+
 > Systemd deployment: `deploy/arifos.service`
 
 ---
