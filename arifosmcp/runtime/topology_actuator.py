@@ -27,12 +27,15 @@ from typing import Any
 from arifosmcp.schemas.topology import (
     AntiSinkCheck,
     AppealPath,
+    Delta,
     InstitutionalDrift,
     InstitutionalVerdict,
     InnovationRights,
     ParticipationWidth,
     Presence,
+    RiskBand,
     SovereigntyIntegrity,
+    Strength,
 )
 
 logger = logging.getLogger(__name__)
@@ -110,7 +113,7 @@ def evaluate_topology(
     recommendations: list[ActuatorRecommendation] = []
 
     # ── 1. Extractive Capture → THROTTLE ────────────────────────────────
-    if drift and drift.extractive_capture in (Presence.PRESENT, Presence.PRESENT):
+    if drift and drift.extractive_capture in (RiskBand.HIGH, RiskBand.MEDIUM):
         if tool_call_distribution:
             # Find the dominant tool (most calls)
             sorted_tools = sorted(tool_call_distribution.items(), key=lambda x: x[1], reverse=True)
@@ -211,7 +214,7 @@ def evaluate_topology(
         )
 
     # ── 6. Anti-Sink — Agency Compression ───────────────────────────────
-    if anti_sink and anti_sink.agency_compression in (Presence.PRESENT, Presence.PRESENT):
+    if anti_sink and anti_sink.agency_compression in (RiskBand.HIGH, RiskBand.MEDIUM):
         recommendations.append(
             ActuatorRecommendation(
                 action=ActuatorAction.WARN,
