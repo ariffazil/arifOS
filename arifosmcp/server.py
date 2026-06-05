@@ -580,6 +580,27 @@ try:
             except Exception as e:
                 logger.warning(f"Failed to register mcp_drift_check: {e}")
 
+            # ── arif_capability_select (Capability Fabric — semantic tool discovery) ──
+            try:
+                from arifosmcp.tools.capability_select import (
+                    _arif_capability_select_tool,
+                )
+
+                mcp.tool(
+                    name="arif_capability_select",
+                    description=(
+                        "Semantic tool discovery. Given a task description, finds the "
+                        "most relevant tools across the federation capability index "
+                        "(106 tools, 8 servers). Returns ranked capability cards with "
+                        "risk tiers, approval policies, and relevance scores. "
+                        "Advisory only — tool availability does not grant execution authority."
+                    ),
+                    tags={"discovery", "capability", "read-only"},
+                )(_arif_capability_select_tool)
+                logger.info("Registered arif_capability_select")
+            except Exception as e:
+                logger.warning(f"Failed to register arif_capability_select: {e}")
+
             logger.info(
                 "Registered diagnostic tools: arif_stack_health_probe, arif_organ_consensus, "
                 "arif_scan_local_instructions, arif_session_budget, arif_floor_status, mcp_drift_check"
