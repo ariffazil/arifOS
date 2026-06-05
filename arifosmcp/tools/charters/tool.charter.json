@@ -27,7 +27,7 @@
       "name": "arif_sense_observe",
       "floor": "111",
       "available": true,
-      "safe_modes": ["search", "ingest", "compass", "atlas", "entropy_dS", "vitals"],
+      "safe_modes": ["search", "ingest", "compass", "atlas", "entropy_dS", "vitals", "classify", "extract_claims", "contrast", "repo_map"],
       "dangerous_modes": [],
       "requires_ack_irreversible": false,
       "requires_judge_state_hash": false,
