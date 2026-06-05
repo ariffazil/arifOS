@@ -614,74 +614,17 @@ try:
     else:
         logger.info("Diagnostic tools absorbed into canonical13 modes (dev mode disabled).")
 
-    # ── arif_capability_select (Capability Fabric — semantic tool discovery) ──
-    # Registered unconditionally — not gated by _EXPOSE_DEV_TOOLS.
-    try:
-        from arifosmcp.tools.capability_select import (
-            arif_capability_select as _cap_select,
-        )
-
-        mcp.tool(
-            name="arif_capability_select",
-            description=(
-                "Semantic tool discovery. Given a task description, finds the "
-                "most relevant tools across the federation capability index "
-                "(136 tools, 9 servers). Returns ranked capability cards with "
-                "risk tiers, approval policies, and relevance scores. "
-                "Advisory only — tool availability does not grant execution authority."
-            ),
-            tags={"discovery", "capability", "read-only"},
-        )(_cap_select)
-        logger.info("Registered arif_capability_select — 136 tools, 9 servers")
-
-        mcp._tool_count = 14  # pyright: ignore[reportAttributeAccessIssue]
-    except Exception as e:
-        logger.warning(f"Failed to register arif_capability_select: {e}")
-
-    # ── Chapter 6: Appeal Path (P4) — Public Governance Tools ─────────────────
-    try:
-        from arifosmcp.tools.appeal import (
-            arif_appeal_list as _arif_appeal_list,
-            arif_appeal_raise as _arif_appeal_raise,
-            arif_appeal_status as _arif_appeal_status,
-        )
-
-        mcp.tool(
-            name="arif_appeal_raise",
-            description=(
-                "Raise an appeal against a sealed or decided verdict. "
-                "Contest decisions, request reconsideration, reversal, correction, or apology. "
-                "Irreversible actions route to human_888 reviewer. "
-                "48-hour review deadline. Chapter 6 Appeal Path (P4)."
-            ),
-            tags={"governance", "chapter6", "appeal"},
-        )(_arif_appeal_raise)
-
-        mcp.tool(
-            name="arif_appeal_status",
-            description=(
-                "Check the status of a previously raised appeal by appeal_id. "
-                "Returns PENDING, UNDER_REVIEW, RESOLVED, or REJECTED. "
-                "Chapter 6 Appeal Path (P4)."
-            ),
-            tags={"governance", "chapter6", "appeal", "read-only"},
-        )(_arif_appeal_status)
-
-        mcp.tool(
-            name="arif_appeal_list",
-            description=(
-                "List all appeals with optional status filter. "
-                "Returns appeal_id, status, contested_verdict_id, reviewer, deadline. "
-                "Chapter 6 Appeal Path (P4)."
-            ),
-            tags={"governance", "chapter6", "appeal", "read-only"},
-        )(_arif_appeal_list)
-
-        logger.info(
-            "Chapter 6 P4: Registered arif_appeal_raise, arif_appeal_status, arif_appeal_list"
-        )
-    except Exception as e:
-        logger.warning(f"Failed to register Chapter 6 appeal tools: {e}")
+    # ── Eureka Forge: Supplementary capabilities absorbed into canonical13 ──
+    # arif_capability_select  →  arif_kernel_route(mode="capability")  [via tools.py mode dispatch]
+    # arif_appeal_raise       →  arif_judge_deliberate(mode="appeal")  [via tools.py mode dispatch]
+    # arif_appeal_status      →  arif_judge_deliberate(mode="appeal_status")  [via tools.py mode dispatch]
+    # arif_appeal_list        →  arif_memory_recall(mode="appeals")    [via tools.py mode dispatch]
+    # The capability and appeal logic remains in arifosmcp/tools/ — callable
+    # as modes of existing canonical tools. No separate MCP registrations.
+    # 13-tool constitutional surface preserved. Entropy reduced.
+    logger.info(
+        "Eureka Forge: capability_select + appeals → canonical13 modes (no separate registrations)"
+    )
 
     # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
     try:
@@ -782,13 +725,11 @@ async def mcp_health(request: Request) -> JSONResponse:
 
 app = mcp.http_app(transport="streamable-http", stateless_http=False, json_response=True)
 # Mirror federated tool count onto app for health endpoint (register_rest_routes receives app)
-if hasattr(mcp, "_tool_count"):
-    app._tool_count = mcp._tool_count  # pyright: ignore[reportAttributeAccessIssue]
+mcp._tool_count = 13  # pyright: ignore[reportAttributeAccessIssue]  # 13 canonical tools
+app.state._tool_count = 13  # pyright: ignore[reportAttributeAccessIssue]
+app._tool_count = 13  # pyright: ignore[reportAttributeAccessIssue]
 if app:
     # PHOENIX-73C FIX: stateless_http=False enables proper session management.
-    mcp._tool_count = 14  # pyright: ignore[reportAttributeAccessIssue]  # PHOENIX-72: capability_select is supplementary 14th tool
-    app.state._tool_count = 14  # pyright: ignore[reportAttributeAccessIssue]  # Starlette-compatible attribute store
-    app._tool_count = mcp._tool_count  # pyright: ignore[reportAttributeAccessIssue]
     # Each client gets its own session; no more GET_STREAM_KEY singleton conflict.
     # StatelessGetRejectMiddleware removed — SSE streaming now works via sessions.
     app.add_middleware(GlobalPanicMiddleware)
