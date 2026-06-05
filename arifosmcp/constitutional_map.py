@@ -718,6 +718,102 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
 PROBE_TOOLS: tuple[str, ...] = ()
 CONSTITUTIONAL_TOOLS: tuple[str, ...] = tuple(CANONICAL_TOOLS.keys())
 
+# MCP Spec 2025-11-25 tool annotations (SEP-1862/1913/1984/2417)
+# title + readOnlyHint + destructiveHint + idempotentHint + openWorldHint
+_TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
+    "arif_session_init": {
+        "title": "Init Session",
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    },
+    "arif_sense_observe": {
+        "title": "Sense & Observe",
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": False,
+        "openWorldHint": True,
+    },
+    "arif_evidence_fetch": {
+        "title": "Fetch Evidence",
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": False,
+        "openWorldHint": True,
+    },
+    "arif_mind_reason": {
+        "title": "Mind Reason",
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": False,
+        "openWorldHint": False,
+    },
+    "arif_heart_critique": {
+        "title": "Heart Critique",
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": False,
+        "openWorldHint": False,
+    },
+    "arif_kernel_route": {
+        "title": "Kernel Route",
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    },
+    "arif_reply_compose": {
+        "title": "Reply Compose",
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": False,
+        "openWorldHint": False,
+    },
+    "arif_memory_recall": {
+        "title": "Memory Recall",
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    },
+    "arif_gateway_connect": {
+        "title": "Gateway Connect",
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "idempotentHint": True,
+        "openWorldHint": True,
+    },
+    "arif_judge_deliberate": {
+        "title": "Judge Deliberate",
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": False,
+        "openWorldHint": False,
+    },
+    "arif_vault_seal": {
+        "title": "Vault Seal",
+        "readOnlyHint": False,
+        "destructiveHint": True,
+        "idempotentHint": False,
+        "openWorldHint": True,
+    },
+    "arif_forge_execute": {
+        "title": "Forge Execute",
+        "readOnlyHint": False,
+        "destructiveHint": True,
+        "idempotentHint": False,
+        "openWorldHint": True,
+    },
+    "arif_ops_measure": {
+        "title": "Ops Measure",
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    },
+}
+
 TOOL_STAGES: dict[str, ToolStage] = {
     "arif_session_init": ToolStage.INIT,
     "arif_sense_observe": ToolStage.OBSERVE,
@@ -1382,6 +1478,7 @@ __all__ = [
     "get_floor_bindings",
     "get_floor_coverage",
     "build_tool_registry_manifest",
+    "_TOOL_ANNOTATIONS",
     "_TOOL_INPUT_SCHEMAS",
     "_TOOL_OUTPUT_SCHEMAS",
     "NINE_SIGNAL_FIELDS",

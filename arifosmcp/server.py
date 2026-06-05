@@ -170,6 +170,29 @@ class StatelessGetRejectMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+class OriginValidationMiddleware(BaseHTTPMiddleware):
+    """Validate Origin header on MCP endpoints to prevent DNS rebinding (SEP-2243)."""
+
+    ALLOWED_ORIGIN_PREFIXES: tuple[str, ...] = (
+        "https://arifos.arif-fazil.com",
+        "https://arif-fazil.com",
+        "http://localhost",
+        "https://localhost",
+        "http://127.0.0.1",
+        "https://127.0.0.1",
+    )
+
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path.startswith("/mcp"):
+            origin = request.headers.get("origin", "")
+            if origin and not any(origin.startswith(p) for p in self.ALLOWED_ORIGIN_PREFIXES):
+                return JSONResponse(
+                    {"error": "Invalid Origin", "detail": "DNS rebinding protection"},
+                    status_code=403,
+                )
+        return await call_next(request)
+
+
 # ─── Deployment Identity ─────────────────────────────────────────────────────
 def _resolve_git_commit() -> str:
     """Resolve canonical git commit with same priority chain as build.py:_git_sha_short.
@@ -699,10 +722,15 @@ async def horizon_metadata(request: Request) -> JSONResponse:
 
 
 async def webmcp_discovery(request: Request) -> JSONResponse:
+    """MCP Server Card — SEP-2127 HTTP discovery document."""
     return JSONResponse(
         {
-            "name": "arifOS WebMCP Gateway",
-            "endpoints": {"health": "/health", "tools": "/tools", "execute": "/mcp"},
+            "name": "arifos",
+            "displayName": "arifOS Constitutional Kernel",
+            "url": "https://arifos.arif-fazil.com/mcp",
+            "version": _DEPLOY_VERSION.lstrip("v"),
+            "capabilities": {"tools": True, "resources": True, "prompts": True},
+            "authentication": {"type": "none"},
         }
     )
 
@@ -764,6 +792,7 @@ if app:
     # Each client gets its own session; no more GET_STREAM_KEY singleton conflict.
     # StatelessGetRejectMiddleware removed — SSE streaming now works via sessions.
     app.add_middleware(GlobalPanicMiddleware)
+    app.add_middleware(OriginValidationMiddleware)
     app.add_middleware(CORSMiddleware, allow_origins=["*"])
     # /health is registered by register_rest_routes() below with full thermodynamic schema
     app.add_route("/ready", horizon_ready, methods=["GET"])
@@ -771,7 +800,7 @@ if app:
     app.add_route("/metadata", horizon_metadata, methods=["GET"])
     app.add_route("/tools", tools_with_meta, methods=["GET"])
     app.add_route("/status.json", federation_status_json, methods=["GET"])
-    app.add_route("/.well-known/mcp", webmcp_discovery, methods=["GET"])
+    app.add_route("/.well-known/mcp.json", webmcp_discovery, methods=["GET"])
 
     # Register REST routes from rest_routes.py — /000, /999, /constitution, etc.
     try:

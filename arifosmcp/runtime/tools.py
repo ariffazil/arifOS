@@ -13161,6 +13161,7 @@ def register_tools(
 ) -> list[str]:
     """Register the active canonical public surface with the MCP server."""
     from arifosmcp.core.enforcement.risk_classifier import classify_tool
+    from arifosmcp.constitutional_map import _TOOL_ANNOTATIONS
     from arifosmcp.runtime.public_registry import public_tool_spec_by_name
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
     from arifosmcp.tool_charter import TOOL_CHARTER
@@ -13185,6 +13186,7 @@ def register_tools(
                 description=(spec.description if spec is not None else None),
                 tags={"canonical", "arifos"},
                 output_schema=None,
+                annotations=_TOOL_ANNOTATIONS.get(name),
                 meta={
                     "arifos_manifest": manifest,
                     "stage_code": manifest.get("stage_code", ""),
