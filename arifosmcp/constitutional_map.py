@@ -829,7 +829,7 @@ CANONICAL_OUTPUT_SCHEMA: dict[str, Any] = {
         "timestamp": {"type": "string", "description": "ISO-8601 timestamp"},
         "session_id": {"type": ["string", "null"], "description": "Active session identifier"},
         "actor_id": {"type": ["string", "null"], "description": "Sovereign or agent actor ID"},
-        "output_policy": {"type": ["object", "null"], "description": "Policy constraints on this output"},
+        "output_policy": {"type": "string", "description": "Policy constraints: DOMAIN_SEAL, DOMAIN_HOLD, DOMAIN_VOID, SIMULATION_ONLY"},
         "nine_signal": {"type": "object", "description": "F2 addendum nine-signal block"},
         "reasons": {"type": "array", "items": {"type": "string"}, "description": "Human-readable justification list"},
         "_nine_signal_compliant": {"type": "boolean", "description": "Internal compliance flag"},
