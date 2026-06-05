@@ -412,8 +412,14 @@ class FederationEnvelope(BaseModel):
         if not self.session_id:
             return False, "session_id is mandatory"
 
-        # ── v2: Tightened legacy_wrap — only OBSERVE allowed ──────────────
-        if self.legacy_wrap and self.risk.action_class != ActionClass.OBSERVE:
+        # ── v2: Tightened legacy_wrap — OBSERVE + PREPARE allowed ─────────
+        # PREPARE (reasoning, planning, recall) does not mutate state;
+        # legacy clients should be able to call mind_reason, memory_recall,
+        # evidence_fetch without a full FederationEnvelope.
+        if self.legacy_wrap and self.risk.action_class not in (
+            ActionClass.OBSERVE,
+            ActionClass.PREPARE,
+        ):
             return False, (
                 f"LEGACY_WRAP cannot execute {self.risk.action_class.value}. "
                 "Upgrade client to send FederationEnvelope with verified authority, "
