@@ -52,7 +52,6 @@ class Floor(StrEnum):
 
     F12_INJECTION = "F12"  # Sanitize inputs (injection_probability < 0.85)
     F13_SOVEREIGN = "F13"  # Human veto absolute (final authority)
-    F14_EXTRACTION = "F14"  # Safety mechanisms must declare dual-use (EXTRACTION AWARENESS)
 
 
 class TrinityLane(StrEnum):
