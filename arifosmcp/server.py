@@ -589,6 +589,51 @@ try:
     else:
         logger.info("Diagnostic tools absorbed into canonical13 modes (dev mode disabled).")
 
+    # ── Chapter 6: Appeal Path (P4) — Public Governance Tools ─────────────────
+    try:
+        from arifosmcp.tools.appeal import (
+            arif_appeal_list as _arif_appeal_list,
+            arif_appeal_raise as _arif_appeal_raise,
+            arif_appeal_status as _arif_appeal_status,
+        )
+
+        mcp.tool(
+            name="arif_appeal_raise",
+            description=(
+                "Raise an appeal against a sealed or decided verdict. "
+                "Contest decisions, request reconsideration, reversal, correction, or apology. "
+                "Irreversible actions route to human_888 reviewer. "
+                "48-hour review deadline. Chapter 6 Appeal Path (P4)."
+            ),
+            tags={"governance", "chapter6", "appeal"},
+        )(_arif_appeal_raise)
+
+        mcp.tool(
+            name="arif_appeal_status",
+            description=(
+                "Check the status of a previously raised appeal by appeal_id. "
+                "Returns PENDING, UNDER_REVIEW, RESOLVED, or REJECTED. "
+                "Chapter 6 Appeal Path (P4)."
+            ),
+            tags={"governance", "chapter6", "appeal", "read-only"},
+        )(_arif_appeal_status)
+
+        mcp.tool(
+            name="arif_appeal_list",
+            description=(
+                "List all appeals with optional status filter. "
+                "Returns appeal_id, status, contested_verdict_id, reviewer, deadline. "
+                "Chapter 6 Appeal Path (P4)."
+            ),
+            tags={"governance", "chapter6", "appeal", "read-only"},
+        )(_arif_appeal_list)
+
+        logger.info(
+            "Chapter 6 P4: Registered arif_appeal_raise, arif_appeal_status, arif_appeal_list"
+        )
+    except Exception as e:
+        logger.warning(f"Failed to register Chapter 6 appeal tools: {e}")
+
     # ── Memory Janitor (Phoenix-72) ──────────────────────────────────────────
     try:
         from arifosmcp.runtime.workers.memory_janitor import MemoryJanitor
