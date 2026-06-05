@@ -112,6 +112,7 @@ from pydantic import BaseModel, Field
 
 from arifosmcp.constitutional_map import (
     CANONICAL_TOOLS,
+    CANONICAL_OUTPUT_SCHEMA,
     STAGE_PROGRESSION,
     validate_tool_response_schema,
 )
@@ -12883,7 +12884,13 @@ from typing import Annotated
 
 
 def _build_enriched_signature(handler):
-    """Build a signature with Annotated descriptions from docstring."""
+    """Build a signature with Annotated descriptions from docstring.
+
+    Injects `_envelope` as an optional parameter so external MCP clients
+    (Perplexity, Claude, Cursor) can pass A2A federation envelopes without
+    triggering Pydantic validation errors.  The wrapper pops and handles
+    `_envelope` via `_inject_envelope_into_kwargs`.
+    """
     sig = inspect.signature(handler)
     param_docs = _extract_param_docs(inspect.getdoc(handler) or "")
     new_params = []
@@ -12902,6 +12909,17 @@ def _build_enriched_signature(handler):
         else:
             new_ann = ann
         new_params.append(param.replace(annotation=new_ann))
+
+    # Inject _envelope so FastMCP's Pydantic model accepts it.
+    # The wrapper strips it before calling the real handler.
+    envelope_param = inspect.Parameter(
+        "_envelope",
+        inspect.Parameter.KEYWORD_ONLY,
+        default=None,
+        annotation=Any,
+    )
+    new_params.append(envelope_param)
+
     return sig.replace(parameters=new_params)
 
 
@@ -13127,6 +13145,9 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     _wrapped.__signature__ = _build_enriched_signature(handler)
     functools.wraps(handler)(_wrapped)  # copies __annotations__, __name__, __doc__, __wrapped__
     _wrapped.__name__ = tool_name
+    # Ensure _envelope is in __annotations__ so FastMCP/Pydantic type-hint
+    # resolution does not KeyError when building the input schema.
+    _wrapped.__annotations__["_envelope"] = Any
     return _wrapped
 
 
@@ -13166,6 +13187,15 @@ def register_tools(
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
     from arifosmcp.tool_charter import TOOL_CHARTER
 
+    # MCP Tasks extension: long-running async tools that benefit from
+    # background execution + polling (SEP-2025 / FastMCP 3.x tasks).
+    _TASK_ELIGIBLE: set[str] = {
+        "arif_forge_execute",
+        "arif_vault_seal",
+        "arif_judge_deliberate",
+        "arif_evidence_fetch",
+    }
+
     registered: list[str] = []
     del include_legacy_compat
     spec_by_name = public_tool_spec_by_name(surface_mode)
@@ -13181,12 +13211,17 @@ def register_tools(
             # Compute canonical risk passport for this tool
             tool_risk = classify_tool(name, spec.description if spec else None)
 
+            # Tasks extension: only async handlers can be background tasks.
+            is_async = inspect.iscoroutinefunction(handler)
+            task_flag = name in _TASK_ELIGIBLE and is_async
+
             mcp.tool(
                 name=name,
                 description=(spec.description if spec is not None else None),
                 tags={"canonical", "arifos"},
-                output_schema=None,
+                output_schema=CANONICAL_OUTPUT_SCHEMA,
                 annotations=_TOOL_ANNOTATIONS.get(name),
+                task=task_flag or None,
                 meta={
                     "arifos_manifest": manifest,
                     "stage_code": manifest.get("stage_code", ""),

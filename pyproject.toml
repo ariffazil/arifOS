@@ -25,7 +25,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "fastmcp==3.3.1",
+    "fastmcp[tasks]==3.3.1",
     "fastapi>=0.136.1",
     "uvicorn[standard]>=0.47.0",
     "sse-starlette>=3.4.4",

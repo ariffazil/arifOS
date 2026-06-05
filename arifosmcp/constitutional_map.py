@@ -814,6 +814,31 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     },
 }
 
+# MCP Spec 2025-11-25 outputSchema (SEP-2127 / JSON Schema)
+# Every canonical tool returns through _enforce_nine_signal which produces
+# a standardized envelope.  The `result` field is tool-specific.
+CANONICAL_OUTPUT_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "status": {"type": "string", "description": "Execution status: OK, ERROR, TIMEOUT, DRY_RUN"},
+        "tool": {"type": "string", "description": "Canonical tool name that produced this response"},
+        "verdict": {"type": "string", "description": "Constitutional verdict: SEAL, HOLD, VOID, SABAR, PROVISIONAL, PARTIAL"},
+        "result": {"type": "object", "description": "Tool-specific payload"},
+        "meta": {"type": "object", "description": "Metadata including actor_id, mode, circuit"},
+        "delta_S": {"type": "number", "description": "Thermodynamic entropy change"},
+        "timestamp": {"type": "string", "description": "ISO-8601 timestamp"},
+        "session_id": {"type": ["string", "null"], "description": "Active session identifier"},
+        "actor_id": {"type": ["string", "null"], "description": "Sovereign or agent actor ID"},
+        "output_policy": {"type": ["object", "null"], "description": "Policy constraints on this output"},
+        "nine_signal": {"type": "object", "description": "F2 addendum nine-signal block"},
+        "reasons": {"type": "array", "items": {"type": "string"}, "description": "Human-readable justification list"},
+        "_nine_signal_compliant": {"type": "boolean", "description": "Internal compliance flag"},
+        "_violations": {"type": "array", "items": {"type": "string"}, "description": "Non-compliance audit trail"},
+        "stage_progression": {"type": ["object", "null"], "description": "Next stage auto-chain hint"},
+    },
+    "required": ["status", "tool", "verdict", "result", "nine_signal", "reasons"],
+}
+
 TOOL_STAGES: dict[str, ToolStage] = {
     "arif_session_init": ToolStage.INIT,
     "arif_sense_observe": ToolStage.OBSERVE,
@@ -1479,6 +1504,7 @@ __all__ = [
     "get_floor_coverage",
     "build_tool_registry_manifest",
     "_TOOL_ANNOTATIONS",
+    "CANONICAL_OUTPUT_SCHEMA",
     "_TOOL_INPUT_SCHEMAS",
     "_TOOL_OUTPUT_SCHEMAS",
     "NINE_SIGNAL_FIELDS",
