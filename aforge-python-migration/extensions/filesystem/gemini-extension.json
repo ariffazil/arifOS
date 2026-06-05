@@ -1,0 +1,14 @@
+{
+  "name": "filesystem",
+  "version": "1.0.0",
+  "description": "ArifOS filesystem AGI extension",
+  "mcpServers": {
+    "filesystem": {
+      "command": "python3",
+      "args": [
+        "${extensionPath}/bridge.py",
+        "http://localhost:8002/mcp"
+      ]
+    }
+  }
+}

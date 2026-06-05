@@ -1,0 +1,14 @@
+{
+  "name": "arifosmcp",
+  "version": "1.0.0",
+  "description": "ArifOS arifosmcp AGI extension",
+  "mcpServers": {
+    "arifosmcp": {
+      "command": "python3",
+      "args": [
+        "${extensionPath}/bridge.py",
+        "http://localhost:8088/mcp"
+      ]
+    }
+  }
+}

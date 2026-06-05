@@ -1,0 +1,14 @@
+{
+  "name": "git",
+  "version": "1.0.0",
+  "description": "ArifOS git AGI extension",
+  "mcpServers": {
+    "git": {
+      "command": "python3",
+      "args": [
+        "${extensionPath}/bridge.py",
+        "http://localhost:8003/mcp"
+      ]
+    }
+  }
+}

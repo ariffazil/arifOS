@@ -1,0 +1,43 @@
+[Unit]
+Description=cn-organ — Continue CLI as arifOS Federation Organ
+Documentation=https://github.com/ariffazil/A-FORGE
+After=network.target arifos.service
+Wants=arifos.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/continue-arifos/service
+Environment=CN_CONFIG=/root/.continue/config.yaml
+Environment=CN_BINARY=/usr/bin/cn
+Environment=CN_ORGAN_HOST=127.0.0.1
+Environment=CN_ORGAN_PORT=18790
+Environment=PYTHONUNBUFFERED=1
+ExecStartPre=/root/continue-arifos/service/cn-organ-preflight.sh
+ExecStart=/usr/bin/python3 /root/continue-arifos/service/cn_organ.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+TimeoutStopSec=15
+
+# Hardening
+# Note: MemoryDenyWriteExecute removed — V8 (Node.js) needs executable
+# memory pages for JIT compilation. This is acceptable since the
+# service runs as root only on a single-tenant VPS.
+ProtectSystem=full
+ProtectHome=read-only
+PrivateTmp=true
+NoNewPrivileges=true
+ReadOnlyPaths=/proc /sys /dev
+ReadWritePaths=/root/.continue /root/continue-arifos
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

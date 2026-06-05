@@ -1,0 +1,14 @@
+{
+  "name": "grafana",
+  "version": "1.0.0",
+  "description": "ArifOS grafana AGI extension",
+  "mcpServers": {
+    "grafana": {
+      "command": "python3",
+      "args": [
+        "${extensionPath}/bridge.py",
+        "http://localhost:3000/api/mcp"
+      ]
+    }
+  }
+}

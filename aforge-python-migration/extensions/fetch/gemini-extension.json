@@ -1,0 +1,14 @@
+{
+  "name": "fetch",
+  "version": "1.0.0",
+  "description": "ArifOS fetch AGI extension",
+  "mcpServers": {
+    "fetch": {
+      "command": "python3",
+      "args": [
+        "${extensionPath}/bridge.py",
+        "http://localhost:8005/mcp"
+      ]
+    }
+  }
+}

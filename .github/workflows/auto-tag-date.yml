@@ -1,0 +1,40 @@
+name: auto-tag-date
+
+# AUTO-TAG: Creates vYYYY.MM.DD tag on every push to main.
+# If today's tag already exists, skips silently.
+# This is NOT optional — the forge date IS the version.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create date-stamped tag
+        run: |
+          TODAY="v$(date -u +'%Y.%m.%d')"
+
+          if git rev-parse "$TODAY" >/dev/null 2>&1; then
+            echo "✅ Tag $TODAY already exists. Skipping."
+            exit 0
+          fi
+
+          echo "🏷️  Creating tag: $TODAY"
+          git tag -a "$TODAY" -m "$TODAY — auto-tagged forge date
+
+          Auto-generated. The forge date IS the version.
+          Timestamp = real time-space-energy.
+
+          DITEMPA BUKAN DIBERI"
+
+          git push origin "$TODAY"
+          echo "✅ Tag $TODAY pushed."

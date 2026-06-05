@@ -1,0 +1,14 @@
+{
+  "name": "time",
+  "version": "1.0.0",
+  "description": "ArifOS time AGI extension",
+  "mcpServers": {
+    "time": {
+      "command": "python3",
+      "args": [
+        "${extensionPath}/bridge.py",
+        "http://localhost:8001/mcp"
+      ]
+    }
+  }
+}
