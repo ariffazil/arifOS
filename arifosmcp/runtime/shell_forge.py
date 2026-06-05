@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from core.shared.physics import delta_S
 
 from arifosmcp.agentzero.escalation.hold_state import anchor_hold_registry
+from arifosmcp.abi.amanah_gate import scan as _amanah_scan, Verdict as _AmanahVerdict
 
 
 class HardenedShellForge:
@@ -47,6 +48,18 @@ class HardenedShellForge:
         target_cwd = cwd or self.default_cwd
         is_risk = self._is_high_risk(command)
 
+        # 0. AMANAH Awareness — HARAM/HOLD pattern scan (informational, not blocking)
+        #    Agents must know halal/haram. The gate informs; the agent chooses.
+        amanah_v, amanah_d, amanah_c = _amanah_scan(command)
+        _amanah_awareness = None
+        if amanah_v != _AmanahVerdict.PROCEED:
+            _amanah_awareness = {
+                "verdict": amanah_v.value,
+                "description": amanah_d,
+                "recovery_cost": amanah_c,
+                "note": "AMANAH awareness: this command matches a dangerous pattern. The agent chooses; the record remembers.",
+            }
+
         # 1. Check for global 888_HOLD (Anchor Void)
         if anchor_hold_registry.is_held(session_id):
             return {
@@ -68,13 +81,16 @@ class HardenedShellForge:
 
         # 3. F7 Humility: Dry Run Simulation
         if dry_run:
-            return {
+            result = {
                 "ok": True,
                 "status": "SIMULATED",
                 "command": command,
                 "note": "F7 Humility: Command simulated but not executed.",
                 "thermodynamics": {"delta_s": 0, "status": "STABLE"},
             }
+            if _amanah_awareness:
+                result["amanah_awareness"] = _amanah_awareness
+            return result
 
         # 4. Preparation: F1 Amanah Checkpoint (MOCK Logic - in prod would call git)
         # Note: In a real system, we would trigger a worktree-add or commit here.
@@ -98,7 +114,7 @@ class HardenedShellForge:
             output_context = f"{result.stdout}\n{result.stderr}"
             ds = delta_S(input_context, output_context)
 
-            return {
+            result = {
                 "ok": result.returncode == 0,
                 "status": "SEALED" if result.returncode == 0 else "ERROR",
                 "stdout": result.stdout,
@@ -107,20 +123,29 @@ class HardenedShellForge:
                 "entropy": {"delta_s": round(ds, 4), "is_stable": ds <= 0},
                 "execution_timestamp": start_time.isoformat(),
             }
+            if _amanah_awareness:
+                result["amanah_awareness"] = _amanah_awareness
+            return result
         except subprocess.TimeoutExpired:
-            return {
+            result = {
                 "ok": False,
                 "status": "TIMEOUT",
                 "error": "F7 Humility: Command timed_out after 60s.",
                 "command": command,
             }
+            if _amanah_awareness:
+                result["amanah_awareness"] = _amanah_awareness
+            return result
         except Exception as e:
-            return {
+            result = {
                 "ok": False,
                 "status": "EXCEPTION",
                 "error": str(e),
                 "command": command,
             }
+            if _amanah_awareness:
+                result["amanah_awareness"] = _amanah_awareness
+            return result
 
 
 # Canonical instance

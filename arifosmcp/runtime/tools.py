@@ -11596,6 +11596,20 @@ def _arif_forge_execute(
                 session_id=session_id,
             )
 
+    # ── AMANAH Awareness — HARAM/HOLD pattern scan (informational, not blocking) ──
+    #    Agents must know halal/haram. This informs; the agent chooses.
+    from arifosmcp.abi.amanah_gate import scan as _amanah_scan, Verdict as _AmanahVerdict
+
+    _amanah_v, _amanah_d, _amanah_c = _amanah_scan(manifest or "")
+    _amanah_awareness = None
+    if _amanah_v != _AmanahVerdict.PROCEED:
+        _amanah_awareness = {
+            "verdict": _amanah_v.value,
+            "description": _amanah_d,
+            "recovery_cost": _amanah_c,
+            "note": "AMANAH awareness: this manifest matches a dangerous pattern. The agent chooses; the record remembers.",
+        }
+
     # dry_run mode — simulate but still run floor checks for threat preview
     if mode == "dry_run":
         from arifosmcp.core.constitution_kernel import WitnessType
