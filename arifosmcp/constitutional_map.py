@@ -66,10 +66,19 @@ class ToolStage(StrEnum):
     EVIDENCE = "222"
     REASON = "333"
     CRITIQUE = "444"
+    # REPLY is a refinement of CRITIQUE (444). The "r" suffix encodes
+    # parent-child relationship: reply composition is a governance-refined
+    # sub-stage of the critique/reflection phase, not an independent stage.
     REPLY = "444r"
     ROUTE = "555"
+    # MEMORY is a refinement of ROUTE (555). The "m" suffix encodes
+    # that memory operations are a specialized form of routing — they
+    # route queries through the 6-layer memory stack (L1-L6).
     MEMORY = "555m"
     FORGE = "666"
+    # GATEWAY is a refinement of FORGE (666). The "g" suffix encodes
+    # that cross-organ federation bridging is a governed sub-stage of
+    # the execution/forge phase, not an independent stage.
     GATEWAY = "666g"
     MEASURE = "777"
     JUDGE = "888"
@@ -88,6 +97,10 @@ STAGE_PROGRESSION: dict[str, dict[str, str | None]] = {
     "111": {"next": "222", "tool": "arif_evidence_fetch", "prompt": None},
     "222": {"next": "333", "tool": "arif_mind_reason", "prompt": None},
     "333": {"next": "444", "tool": "arif_heart_critique", "prompt": "444_asi"},
+    # Stage suffixes: "r" = reply (refinement of critique), "m" = memory
+    # (refinement of route), "g" = gateway (refinement of forge). These
+    # encode parent-child relationships, not independent stage numbers.
+    # All stages sort correctly when read as semantic keys, not numeric.
     "444": {"next": "444r", "tool": "arif_reply_compose", "prompt": None},
     "444r": {"next": "555", "tool": "arif_kernel_route", "prompt": None},
     "555": {"next": "666", "tool": "arif_forge_execute", "prompt": None},
@@ -416,7 +429,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
         "floors": [Floor.F01_AMANAH, Floor.F11_AUDIT, Floor.F12_INJECTION],
-        "risk_tier": "critical",
+        "risk_tier": "medium",
         "irreversible": False,
         "modes": ["init", "resume", "validate", "epoch_open", "epoch_seal"],
         "eureka_insight": "F1: ∃ undo(a) — irreversibility requires explicit human ack.",
@@ -559,7 +572,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.REPLY,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F04_CLARITY, Floor.F06_EMPATHY, Floor.F09_ANTIHANTU],
+        "floors": [Floor.F02_TRUTH, Floor.F04_CLARITY, Floor.F06_EMPATHY, Floor.F09_ANTIHANTU],
         "risk_tier": "low",
         "irreversible": False,
         "modes": ["compose", "summarize", "cite", "tone_shift"],
@@ -596,13 +609,14 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.GATEWAY,
         "lane": TrinityLane.ASI,
-        "floors": [Floor.F01_AMANAH, Floor.F03_WITNESS],
+        "floors": [Floor.F01_AMANAH, Floor.F03_WITNESS, Floor.F11_AUDIT],
         "risk_tier": "medium",
         "irreversible": False,
         "modes": ["connect", "delegate", "handover", "revoke", "probe"],
         "eureka_insight": (
             "F1: cross-agent actions must be auditable. "
             "F3: W₃ ≥ 0.75 — cross-agent consensus required. "
+            "F11: cross-organ routing requires verified identity. "
             "F12: graceful degradation — if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution."
         ),
         "cognitive_axis": "boundary",
@@ -614,11 +628,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "authenticated",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.ASI,
-        "floors": [Floor.F11_AUDIT, Floor.F13_SOVEREIGN],
+        "floors": [Floor.F01_AMANAH, Floor.F11_AUDIT, Floor.F13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": False,
         "modes": ["judge", "validate", "hold", "rules", "armor", "probe", "notify"],
         "eureka_insight": (
+            "F01: irreversible downstream — judge verdicts authorize forge/vault actions. "
             "F11: identity must be verified before judgment. "
             "F13: human veto is absolute — no algorithm overrides sovereign."
         ),
@@ -674,7 +689,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.MEASURE,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F04_CLARITY],
+        "floors": [Floor.F02_TRUTH, Floor.F04_CLARITY],
         "risk_tier": "low",
         "irreversible": False,
         "modes": [
