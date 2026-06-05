@@ -78,10 +78,10 @@ class TestClassifyTool:
         assert rp.tier == RiskTier.T5
         assert rp.action_class == ActionClass.ATOMIC
 
-    def test_session_init_is_t5(self):
+    def test_session_init_is_t1(self):
         rp = classify_tool("arif_session_init")
-        assert rp.tier == RiskTier.T5
-        assert rp.action_class == ActionClass.ATOMIC
+        assert rp.tier == RiskTier.T1
+        assert rp.action_class == ActionClass.OBSERVE
 
     def test_vault_seal_is_t5(self):
         rp = classify_tool("arif_vault_seal")
@@ -98,10 +98,10 @@ class TestClassifyTool:
         assert rp.tier == RiskTier.T1
         assert rp.action_class == ActionClass.OBSERVE
 
-    def test_memory_recall_is_t3(self):
+    def test_memory_recall_is_t2(self):
         rp = classify_tool("arif_memory_recall")
-        assert rp.tier == RiskTier.T3
-        assert rp.action_class == ActionClass.MUTATE
+        assert rp.tier == RiskTier.T2
+        assert rp.action_class == ActionClass.PREPARE
 
     def test_mind_reason_is_t2(self):
         rp = classify_tool("arif_mind_reason")
@@ -113,15 +113,15 @@ class TestClassifyTool:
         assert rp.tier == RiskTier.T2
         assert rp.action_class == ActionClass.PREPARE
 
-    def test_kernel_route_is_t3(self):
+    def test_kernel_route_is_t1(self):
         rp = classify_tool("arif_kernel_route")
-        assert rp.tier == RiskTier.T3
-        assert rp.action_class == ActionClass.MUTATE
+        assert rp.tier == RiskTier.T1
+        assert rp.action_class == ActionClass.OBSERVE
 
-    def test_gateway_connect_is_t3(self):
+    def test_gateway_connect_is_t1(self):
         rp = classify_tool("arif_gateway_connect")
-        assert rp.tier == RiskTier.T3
-        assert rp.action_class == ActionClass.MUTATE
+        assert rp.tier == RiskTier.T1
+        assert rp.action_class == ActionClass.OBSERVE
 
     def test_ops_measure_is_t1(self):
         rp = classify_tool("arif_ops_measure")
