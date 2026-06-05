@@ -11,7 +11,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'arifosmcp/pyproject.toml'
+      - 'pyproject.toml'
   workflow_dispatch:
 
 
@@ -39,10 +39,10 @@ jobs:
         run: pip install uv
 
       - name: Build package
-        run: uv build --project arifosmcp
+        run: uv build
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: arifosmcp/dist/
+          packages-dir: dist/
           password: ${{ secrets.PYPI_API_TOKEN }}
