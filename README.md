@@ -4,6 +4,8 @@
 
 **Sovereign AI governance. Forged, not given.**
 
+> 📋 **First time here?** Read [`CLARITY.md`](../CLARITY.md) — explains the two-repo structure (`arifos` vs `arifOS`).
+
 [![CI](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml/badge.svg)](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/arifos?color=6e40c9&label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/arifos/)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://pypi.org/project/arifos/)
