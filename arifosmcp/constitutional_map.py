@@ -470,7 +470,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             Floor.F05_PEACE,
             Floor.F12_INJECTION,
         ],
-        "risk_tier": "low",
+        "risk_tier": "medium",
         "irreversible": False,
         "modes": ["fetch", "search", "eureka"],
         "eureka_insight": (
@@ -883,6 +883,7 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
         "actor_id": str | None,
         "url": str | None,  # [F12: sanitized]
         "layers": list[str] | None,
+        "result_limit": int,  # max results for search/ingest (default 10)
     },
     "arif_evidence_fetch": {
         "mode": str,

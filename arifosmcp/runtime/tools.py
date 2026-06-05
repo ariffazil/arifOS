@@ -4480,6 +4480,7 @@ def _arif_sense_observe(
     actor_id: str | None = None,
     url: str | None = None,
     layers: list[str] | None = None,
+    result_limit: int = 10,
 ) -> dict[str, Any]:
     """
     111_SENSE: Multimodal reality observation and environmental sensing.
@@ -4880,7 +4881,7 @@ def _arif_sense_observe(
             )
 
         # ── Brave cascade (F7 Humility) ──
-        brave = _brave_web_search(query or "", max_results=5)
+        brave = _brave_web_search(query or "", max_results=result_limit)
         if brave.get("hits"):
             evidence_receipt = {
                 "tool": "111_SENSE",
