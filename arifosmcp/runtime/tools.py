@@ -4991,7 +4991,23 @@ def _arif_sense_observe(
             delta_S=0.02,
         )
     if mode == "ingest":
-        if url and minimax_bridge is not None:
+        # F2 Truth: only claim `ingested: true` for real HTTP/HTTPS URLs.
+        # Malformed inputs (XSS, SQL, javascript:) must not be reported as ingested.
+        import re as _re_ingest
+
+        _url_ok = bool(url) and bool(_re_ingest.match(r"^https?://[^\s<>\"';]+$", str(url)))
+        if not _url_ok:
+            return _ok(
+                "arif_sense_observe",
+                {
+                    "url": url,
+                    "ingested": False,
+                    "description": "",
+                    "note": "ingest requires a real http(s) URL; received malformed input",
+                },
+                delta_S=0.003,
+            )
+        if minimax_bridge is not None:
             try:
                 img_result = _run_async(
                     minimax_bridge.understand_image(url, "Describe this image concisely")
