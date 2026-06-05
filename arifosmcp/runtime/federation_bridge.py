@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from typing import Any
 
 import httpx
@@ -22,14 +23,19 @@ import httpx
 logger = logging.getLogger("arifosmcp.federation_bridge")
 
 # ── Endpoint defaults ─────────────────────────────────────────────────────────
-WEALTH_HOST = "wealth.arif-fazil.com"
-WEALTH_BASE = f"https://{WEALTH_HOST}"
+# Bare-metal federation: localhost with env overrides for Docker/off-machine.
+# Pattern mirrors geox_bridge.py (localhost default, env override).
+WEALTH_HOST = os.getenv("WEALTH_BRIDGE_HOST", "127.0.0.1")
+WEALTH_PORT = int(os.getenv("WEALTH_BRIDGE_PORT", "18082"))
+WEALTH_BASE = f"http://{WEALTH_HOST}:{WEALTH_PORT}"
 
-WELL_HOST = "well.arif-fazil.com"
-WELL_BASE = f"https://{WELL_HOST}"
+WELL_HOST = os.getenv("WELL_BRIDGE_HOST", "127.0.0.1")
+WELL_PORT = int(os.getenv("WELL_BRIDGE_PORT", "18083"))
+WELL_BASE = f"http://{WELL_HOST}:{WELL_PORT}"
 
-GEOX_HOST = "geox.arif-fazil.com"
-GEOX_BASE = f"https://{GEOX_HOST}"
+GEOX_HOST = os.getenv("GEOX_BRIDGE_HOST", "localhost")
+GEOX_PORT = int(os.getenv("GEOX_BRIDGE_PORT", "8081"))
+GEOX_BASE = f"http://{GEOX_HOST}:{GEOX_PORT}"
 
 # ── Generic stateless JSON-RPC helper ─────────────────────────────────────────
 
