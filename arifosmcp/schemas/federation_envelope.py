@@ -289,7 +289,7 @@ class FederationEnvelope(BaseModel):
       - sovereignty_checkpoint: required for dignity/memory/mutation/vault/identity tools
     """
 
-    envelope_version: str = Field(default="1.0", description="Envelope spec version")
+    envelope_version: str = Field(default="2.0", description="Envelope spec version — Chapter 6 Upgrade")
     trace_id: str = Field(description="Unique trace ID for this call chain")
     parent_trace_id: str | None = Field(default=None, description="Parent trace for nested calls")
 
