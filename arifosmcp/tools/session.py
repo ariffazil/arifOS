@@ -10,18 +10,27 @@ Constitutional session bootstrap + identity binding + embodiment card.
 
 from __future__ import annotations
 
-from arifosmcp.runtime.floor import check_floors
+from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import ARIF_DOCTRINE, _new_session
 from arifosmcp.schemas.session import (
     AttentionSurface,
+    BeliefState,
     CausalityWarning,
+    ConsentBoundaries,
+    ContextCompletenessReceipt,
     EmbodimentCard,
     ExecutionLaw,
+    FalseBeliefFlag,
+    IntentModel,
+    OperatorIdentity,
+    PreferenceMemory,
     RiskLeash,
+    SessionContinuity,
     SessionManifest,
     SessionState,
     SessionWarnings,
     ToolSurface,
+    WellMirrorEnhanced,
     _get_os_info,
     _is_root,
 )
@@ -62,7 +71,7 @@ def arif_session_init(
             result={},
             meta={
                 "reason": "actor_id required — null not coerced to anonymous",
-                "failed_floors": ["F11"],
+                "violated_laws": ["L11"],
                 "hint": "Provide actor_id as non-null string for verified sessions, "
                 "or use mode=discover for anonymous capability inspection",
             },
@@ -87,7 +96,7 @@ def arif_session_init(
                 result={},
                 meta={
                     "reason": "crypto auth challenge is only available for actor_id=arif",
-                    "failed_floors": ["F11"],
+                    "violated_laws": ["L11"],
                 },
                 doctrine=ARIF_DOCTRINE,
             )
@@ -115,7 +124,7 @@ def arif_session_init(
         )
 
     # ── FLOOR CHECK ────────────────────────────────────────────
-    floor_check = check_floors(
+    floor_check = check_laws(
         "arif_session_init",
         {"mode": mode, "ack_irreversible": ack_irreversible},
         actor_id,
@@ -132,7 +141,7 @@ def arif_session_init(
             result={},
             meta={
                 "reason": floor_check["reason"],
-                "failed_floors": floor_check.get("failed_floors", []),
+                "violated_laws": floor_check.get("violated_laws", []),
             },
             warnings=warnings,
             doctrine=ARIF_DOCTRINE,
@@ -226,6 +235,30 @@ def arif_session_init(
             constitution_bound=True,
         )
 
+        # ── ToM-1 upgrade: Operator theory-of-mind scaffold ───
+        operator_identity = _build_operator_identity(
+            actor_id=actor_id,
+            nonce=nonce,
+            signature=signature,
+            identity_verified=identity_verified,
+            authority_level=authority_level,
+        )
+        intent_model = _build_intent_model(sess, actor_id)
+        belief_state = _build_belief_state(actor_id)
+        preference_memory = _build_preference_memory(actor_id)
+        false_belief_flags = _build_false_belief_flags(actor_id)
+        well_mirror_enhanced = _build_well_mirror_enhanced(_well_mirror)
+        session_continuity = _build_session_continuity(sess, session_id, actor_id)
+        consent_boundaries = _build_consent_boundaries(actor_id)
+
+        # ── v3.1: Context completeness receipt ───────────────
+        context_completeness = _compute_context_completeness(
+            actor_id=actor_id,
+            identity_verified=identity_verified,
+            well_mirror=_well_mirror,
+            session=sess,
+        )
+
         # ── Determine output based on contract ───────────────
         if output_contract == "debug":
             # Full raw manifest — include everything
@@ -239,7 +272,7 @@ def arif_session_init(
                 doctrine=ARIF_DOCTRINE,
             )
 
-        # Default: compact output with WAJIB fields only
+        # Default: compact output with WAJIB fields + ToM-1 scaffold
         return SessionManifest(
             status="OK",
             tool="arif_session_init",
@@ -255,9 +288,19 @@ def arif_session_init(
             risk_leash=risk_leash,
             warnings=warnings,
             output_contract=output_contract,
+            operator_identity=operator_identity,
+            intent_model=intent_model,
+            belief_state=belief_state,
+            preference_memory=preference_memory,
+            false_belief_flags=false_belief_flags,
+            well_mirror_enhanced=well_mirror_enhanced,
+            session_continuity=session_continuity,
+            consent_boundaries=consent_boundaries,
+            context_completeness=context_completeness,
             result={
                 "session": sess,
                 "well_mirror": _well_mirror,
+                "context_completeness": context_completeness.model_dump() if context_completeness else None,
             },
             doctrine=ARIF_DOCTRINE,
         )
@@ -420,10 +463,255 @@ def _compute_warnings(
         warnings_list.append("model_identity_unverified")
         warnings_list.append("max_action_class_analyze_only")
 
+    # ToM-1 warnings
+    warnings_list.append("consent_not_established")
+    warnings_list.append("theory_of_mind_scaffold_T0_only")
+
     return SessionWarnings(
         warnings=warnings_list,
         identity_unverified=(actor_id is None or actor_id == "anonymous"),
         model_identity_unverified=(declared_model_key is None),
         risk_registry_unavailable=False,
         max_action_class_analyze_only=(declared_model_key is None),
+        consent_not_established=True,
+        personalization_without_consent=False,
+        theory_of_mind_scaffold="ToM-0",
+    )
+
+
+# ── ToM-1 Helper Builders ──────────────────────────────────────
+
+
+def _build_operator_identity(
+    actor_id: str,
+    nonce: str | None,
+    signature: str | None,
+    identity_verified: bool,
+    authority_level: str,
+) -> OperatorIdentity:
+    """Build structured operator identity with trust chain."""
+    trust_level = "claimed"
+    if identity_verified and actor_id == "arif":
+        trust_level = "sovereign"
+    elif identity_verified:
+        trust_level = "verified"
+    elif actor_id and actor_id != "anonymous":
+        trust_level = "attested"
+
+    return OperatorIdentity(
+        claimed_id=actor_id,
+        verified_id=actor_id if identity_verified else None,
+        verification_method="signature" if (nonce and signature and identity_verified) else "none",
+        verification_provider="arifos_crypto_auth" if identity_verified else None,
+        trust_level=trust_level,
+        delegation_chain=[],
+    )
+
+
+def _build_intent_model(sess: dict, actor_id: str) -> IntentModel:
+    """Build operator intent model from session context."""
+    # Light inference: check if session carries declared purpose from prior context
+    declared = sess.get("declared_purpose")
+    return IntentModel(
+        declared_purpose=declared,
+        session_objective=declared or "governed_agentic_session",
+        intent_history=sess.get("intent_history", []),
+        commitment_tracked=False,
+        commitments=sess.get("commitments", []),
+    )
+
+
+def _build_belief_state(actor_id: str) -> BeliefState:
+    """Initialize belief-state tracking scaffold."""
+    # ToM-1: Start empty. Beliefs are quarantined until provenance is established.
+    return BeliefState(
+        operator_beliefs=[],
+        system_beliefs=[],
+        belief_provenance_required=True,
+        unverified_beliefs_quarantined=True,
+    )
+
+
+def _build_preference_memory(actor_id: str) -> PreferenceMemory:
+    """Initialize provenance-bound preference memory."""
+    # ToM-1: Preferences require explicit consent and provenance.
+    return PreferenceMemory(
+        preferences=[],
+        provenance_bound=True,
+        consent_required_for_new=True,
+        personalization_enabled=False,
+    )
+
+
+def _build_false_belief_flags(actor_id: str) -> FalseBeliefFlag:
+    """Initialize false-belief detection scaffold."""
+    # ToM-1: Detection active but no flags yet at init time.
+    return FalseBeliefFlag(
+        flags=[],
+        false_belief_detection_active=True,
+        humility_applied=True,
+    )
+
+
+def _build_well_mirror_enhanced(_well_mirror: dict) -> WellMirrorEnhanced:
+    """Build enhanced WELL mirror from existing well substrate data."""
+    status = _well_mirror.get("status", "unavailable")
+    h_well = _well_mirror.get("h_well", {})
+
+    if status == "unavailable":
+        return WellMirrorEnhanced(
+            well_informed=False,
+            well_status="unavailable",
+        )
+
+    # Extract WELL signals if available
+    readiness = h_well.get("readiness") if isinstance(h_well, dict) else None
+    dignity = h_well.get("dignity_preservation") if isinstance(h_well, dict) else None
+
+    return WellMirrorEnhanced(
+        operator_readiness=readiness,
+        dignity_preservation_score=dignity,
+        well_informed=True,
+        well_status="available",
+        well_timestamp=_well_mirror.get("timestamp"),
+    )
+
+
+def _build_session_continuity(
+    sess: dict, session_id: str | None, actor_id: str
+) -> SessionContinuity:
+    """Build session continuity from prior sessions of same actor."""
+    from arifosmcp.runtime.tools import _SESSIONS
+
+    prior_id = None
+    prior_commitments: list[str] = []
+
+    # _SESSIONS may be a _FileSessionStore — use _load() to get raw dict
+    try:
+        sessions_data = _SESSIONS._load() if hasattr(_SESSIONS, "_load") else _SESSIONS
+    except Exception:
+        sessions_data = {}
+
+    # Handle nested "sessions" key or flat dict
+    all_sessions: dict = {}
+    if isinstance(sessions_data, dict):
+        if "sessions" in sessions_data:
+            all_sessions = sessions_data["sessions"]
+        else:
+            all_sessions = sessions_data
+
+    # Find most recent prior session from same actor
+    if actor_id and actor_id != "anonymous" and all_sessions:
+        candidates = [
+            (sid, sdata)
+            for sid, sdata in all_sessions.items()
+            if isinstance(sdata, dict) and sdata.get("actor_id") == actor_id and sid != session_id
+        ]
+        if candidates:
+            # Sort by created_at descending, fallback to session_id string sort
+            candidates.sort(key=lambda x: x[1].get("created_at", x[0]), reverse=True)
+            prior_id, prior_sess = candidates[0]
+            prior_commitments = prior_sess.get("commitments", [])
+
+    return SessionContinuity(
+        prior_session_id=prior_id,
+        continuity_established=bool(prior_id),
+        prior_commitments=prior_commitments,
+        drift_detected=False,
+    )
+
+
+def _build_consent_boundaries(actor_id: str) -> ConsentBoundaries:
+    """Build consent boundaries. All False until explicitly established."""
+    return ConsentBoundaries(
+        personalization_consent=False,
+        memory_consent=False,
+        inference_consent=False,
+        theory_of_mind_consent=False,
+        privacy_boundaries=[],
+        consent_establishment_required=True,
+    )
+
+
+def _compute_context_completeness(
+    actor_id: str | None,
+    identity_verified: bool,
+    well_mirror: dict,
+    session: dict,
+) -> ContextCompletenessReceipt:
+    """
+    v3.1: Compute context completeness score for session bootstrap.
+
+    Score breakdown (0.0 to 1.0):
+      timezone:          0.15 (present) | 0.05 (inferred) | 0.00 (missing)
+      spatial_context:   0.15 (present) | 0.05 (inferred) | 0.00 (missing)
+      host_id:           0.15 (attested) | 0.00 (missing)
+      identity:          0.25 (verified) | 0.10 (claimed) | 0.00 (anonymous)
+      memory:            0.15 (loaded) | 0.05 (partial) | 0.00 (not_loaded)
+      session_provenance: 0.15 (resumed/handover) | 0.10 (fresh)
+    """
+    score = 0.0
+
+    # timezone
+    import os
+    tz = os.environ.get("TZ", "")
+    if tz:
+        timezone = tz
+        score += 0.15
+    else:
+        timezone = "missing"
+
+    # spatial_context (simplified — could be enriched later)
+    spatial_context = "missing"
+
+    # host_id
+    try:
+        import socket
+        host_id = socket.gethostname()
+        score += 0.15
+    except Exception:
+        host_id = "missing"
+
+    # identity
+    if identity_verified:
+        identity = "verified_operator"
+        score += 0.25
+    elif actor_id and actor_id != "anonymous":
+        identity = "claimed_not_verified"
+        score += 0.10
+    else:
+        identity = "anonymous"
+
+    # memory
+    memory = "not_loaded"
+    if well_mirror.get("status") != "unavailable":
+        memory = "partial"
+        score += 0.10
+
+    # session_provenance
+    if session.get("resumed"):
+        session_provenance = "resumed"
+        score += 0.15
+    else:
+        session_provenance = "fresh"
+        score += 0.10
+
+    # Round score and determine verdict
+    score = round(score, 2)
+    if score >= 0.8:
+        verdict = "COMPLETE_CONTEXT"
+    elif score >= 0.5:
+        verdict = "DEGRADED_CONTEXT"
+    else:
+        verdict = "MINIMAL_CONTEXT"
+
+    return ContextCompletenessReceipt(
+        timezone=timezone,
+        spatial_context=spatial_context,
+        host_id=host_id,
+        identity=identity,
+        memory=memory,
+        session_provenance=session_provenance,
+        score=score,
+        verdict=verdict,
     )

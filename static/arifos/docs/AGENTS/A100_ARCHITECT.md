@@ -12,7 +12,7 @@ It is implemented as an **MCP-compatible cognitive runtime** using:
 * **FastMCP**
 * **uv** runtime environment
 
-The system is designed around **Trinity Architecture**, **Constitutional Floors**, and the **Metabolic Loop execution pipeline**.
+The system is designed around **Trinity Architecture**, **Constitutional Laws**, and the **Metabolic Loop execution pipeline**.
 
 ---
 
@@ -153,7 +153,7 @@ quantum_eureka_forge
 
 ### 888 JUDGE
 
-Applies the **13 Constitutional Floors**.
+Applies the **13 Constitutional Laws**.
 
 **Critical:** APEX (Ψ/777-888) is **NON-LEARNING**. It is a calculator applying fixed law,
 not a student improving itself. The judge applies invariant thresholds; it never updates them.
@@ -189,7 +189,7 @@ seal_vault_commit
 
 ---
 
-# 4. Constitutional Floors
+# 4. Constitutional Laws
 
 The system enforces **13 invariant laws** that govern decision integrity.
 
@@ -207,7 +207,7 @@ If any floor fails, execution halts.
 Example:
 
 ```
-F11_AUTHORITY
+L11_AUTHORITY
 session_id mismatch
 ```
 
@@ -278,7 +278,7 @@ session_id == auth_context.session_id
 If this invariant breaks, the system triggers:
 
 ```
-F11_AUTHORITY
+L11_AUTHORITY
 ```
 
 and aborts the pipeline.
@@ -431,7 +431,7 @@ Typical system failures include:
 | Failure                 | Cause                    |
 | ----------------------- | ------------------------ |
 | Schema validation error | API contract drift       |
-| F11_AUTHORITY           | session mismatch         |
+| L11_AUTHORITY           | session mismatch         |
 | VOID verdict            | constitutional violation |
 | SABAR verdict           | governance pause         |
 

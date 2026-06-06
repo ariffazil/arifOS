@@ -69,11 +69,11 @@ def _law13_checks(tool_name: str, result: dict[str, Any]) -> dict[str, Any]:
             "pass": _safe_float(result, "truth_score", default=0.88) >= 0.7,
         },
         "F3_TRI_WITNESS": {"required": True, "pass": tri["pass"]},
-        "F11_AUTHORITY": {
+        "L11_AUTHORITY": {
             "required": True,
             "pass": has_session or bool(result.get("auth_context")),
         },
-        "F13_SOVEREIGN": {"required": False, "pass": True},
+        "L13_SOVEREIGN": {"required": False, "pass": True},
     }
 
 
@@ -142,7 +142,7 @@ def wrap_tool_output(
     errors = []
     for name in failed:
         remediation = None
-        if name == "F11_AUTHORITY":
+        if name == "L11_AUTHORITY":
             remediation = {
                 "next_tool": "arifos.init",
                 "required_args": ["actor_id", "intent"],

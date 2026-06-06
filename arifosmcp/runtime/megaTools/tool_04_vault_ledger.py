@@ -81,7 +81,7 @@ async def vault_ledger(
             payload=_res.get("payload", _res),
             session_id=session_id,
             metrics=CanonicalMetrics(),
-            floors_checked=["F1", "F13"],
+            floors_checked=["F1", "L13"],
             message=_res.get("note"),
         )
 

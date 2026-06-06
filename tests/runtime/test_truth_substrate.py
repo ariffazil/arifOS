@@ -61,9 +61,9 @@ def mock_reality_search():
 
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_evidence_fetch_abstraction_and_attestation(mock_floors, mock_store, mock_reality_fetch):
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
     mock_store_inst = mock_store.return_value
     mock_store_inst.store_source.return_value = "hash123"
     mock_store_inst.store_receipt.return_value = "receipt_abc"
@@ -88,9 +88,9 @@ def test_evidence_fetch_abstraction_and_attestation(mock_floors, mock_store, moc
 
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_evidence_fetch_injection_quarantine(mock_floors, mock_store):
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     # Mocking RealityHandler directly here for the specific bad content
     with patch("arifosmcp.runtime.reality_handlers.handler.fetch_url") as mock_bad_fetch:
@@ -114,9 +114,9 @@ def test_evidence_fetch_injection_quarantine(mock_floors, mock_store):
 
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_evidence_search_abduction_and_audit(mock_floors, mock_store, mock_reality_search):
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_evidence_fetch
 
@@ -138,9 +138,9 @@ def test_evidence_search_abduction_and_audit(mock_floors, mock_store, mock_reali
         assert data["a_rif"]["claim_state"] in ["hypothesis", "supported", "verified"]
 
 
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_a_rif_search_worthiness_gate_blocks(mock_floors):
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_sense_observe
 
@@ -156,9 +156,9 @@ def test_a_rif_search_worthiness_gate_blocks(mock_floors):
         assert "Search Worthiness" in result["result"]["note"]
 
 
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_stable_fact_speed_of_light_skips_search(mock_floors):
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_sense_observe
 
@@ -173,9 +173,9 @@ def test_stable_fact_speed_of_light_skips_search(mock_floors):
     assert len(data["results"]) == 0
 
 
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_sense_observe_classify(mock_floors):
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_sense_observe
 
@@ -194,9 +194,9 @@ def test_sense_observe_classify(mock_floors):
         assert data["suggested_next_step"] == "arif_evidence_fetch"
 
 
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_sense_observe_invalid_mode(mock_floors):
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_sense_observe
 
@@ -210,10 +210,10 @@ def test_sense_observe_invalid_mode(mock_floors):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_stable_fact_skips_search(mock_floors):
     """F2: Stable physical constants should skip search."""
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_sense_observe
 
@@ -232,10 +232,10 @@ def test_stable_fact_skips_search(mock_floors):
         assert result["status"] in ("OK", "SABAR")
 
 
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_current_fact_requires_search(mock_floors):
     """F2: Current facts should still search."""
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_sense_observe
 
@@ -277,10 +277,10 @@ def test_search_worthiness_threshold(uncertainty, importance, freshness, thresho
 
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_snippet_only_max_l1(mock_floors, mock_store, mock_reality_search):
     """A-RIF: Search-only results cap at L1."""
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_evidence_fetch
 
@@ -291,10 +291,10 @@ def test_snippet_only_max_l1(mock_floors, mock_store, mock_reality_search):
 
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_primary_source_upgrades_to_l4(mock_floors, mock_store):
     """A-RIF: Official regulator source upgrades to L4."""
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
     mock_store_inst = mock_store.return_value
     mock_store_inst.store_source.return_value = "hash123"
     mock_store_inst.store_receipt.return_value = "receipt_abc"
@@ -317,10 +317,10 @@ def test_primary_source_upgrades_to_l4(mock_floors, mock_store):
 
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_ssrf_guard_blocks_internal_network(mock_floors, mock_store):
     """F12: SSRF guard blocks private IP ranges."""
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_evidence_fetch
 
@@ -330,10 +330,10 @@ def test_ssrf_guard_blocks_internal_network(mock_floors, mock_store):
 
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_contradiction_routes_to_hold(mock_floors, mock_store, mock_reality_search):
     """F4: Contradictory sources should route to HOLD."""
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_evidence_fetch
 
@@ -358,10 +358,10 @@ def test_claim_strength_cannot_exceed_evidence_level():
 
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_positive_entropy_marks_void(mock_floors, mock_store, mock_reality_search):
     """A-RIF: Search increasing entropy returns VOID."""
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_evidence_fetch
 
@@ -384,10 +384,10 @@ def test_positive_entropy_marks_void(mock_floors, mock_store, mock_reality_searc
 
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_native_web_not_final_for_high_risk(mock_floors, mock_store, mock_reality_search):
     """A-RIF: Native web search alone caps at L2."""
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_evidence_fetch
 
@@ -437,10 +437,10 @@ def test_abduction_generates_hypothesis_not_truth():
     assert hyp.falsification_tests
 
 
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_stable_fact_speed_of_light_skips_search(mock_floors):
     """A-RIF: Stable physical constant must skip search via hard gate."""
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_sense_observe
 

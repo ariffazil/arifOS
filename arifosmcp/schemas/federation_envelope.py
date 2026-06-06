@@ -125,6 +125,24 @@ class ActionClass(StrEnum):
     ATOMIC = "ATOMIC"  # Irreversible, dangerous, final
 
 
+class ToolClass(StrEnum):
+    """Policy/approval risk class for the tool.
+
+    Distinct from ActionClass: ToolClass governs approval posture,
+    ActionClass governs execution phase. Both coexist on RiskPassport.
+
+    observe   → read-only, no approval
+    retrieve  → fetch from external source, attestation only
+    decide    → judgment/routing/evaluation, floor check + receipt
+    mutate    → write/modify/execute/deploy, 888_JUDGE or F13
+    """
+
+    OBSERVE = "observe"
+    RETRIEVE = "retrieve"
+    DECIDE = "decide"
+    MUTATE = "mutate"
+
+
 class BlastRadius(StrEnum):
     """How far the blast reaches if this action goes wrong."""
 
@@ -194,6 +212,10 @@ class RiskPassport(BaseModel):
 
     tier: RiskTier = Field(default=RiskTier.T0, description="Risk tier")
     action_class: ActionClass = Field(default=ActionClass.OBSERVE, description="Action phase")
+    tool_class: ToolClass = Field(
+        default=ToolClass.OBSERVE,
+        description="Policy/approval risk class: observe | retrieve | decide | mutate",
+    )
     blast_radius: BlastRadius = Field(default=BlastRadius.LOCAL, description="Blast radius")
     reversibility: ReversibilityLevel = Field(
         default=ReversibilityLevel.HIGH, description="Reversibility"

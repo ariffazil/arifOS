@@ -150,7 +150,7 @@ ticket_id, session_id, status, risk_level
 intent_model, domain?, data, created_at
 ```
 
-**Escalation:** Tickets open > 24h without resolution trigger `F13_ESCALATION` event in `vault_sealed_events`.
+**Escalation:** Tickets open > 24h without resolution trigger `L13_ESCALATION` event in `vault_sealed_events`.
 
 ---
 
@@ -339,7 +339,7 @@ Only these event types are sealed into VAULT999:
 |---------|-----------------|
 | Supabase write fails | Log to local file, retry async, never block tool |
 | VAULT999 seal fails | Keep in `vault_sealed_events`, retry on next cycle |
-| Approval ticket never cleared | After 24h: emit `F13_ESCALATION` event |
+| Approval ticket never cleared | After 24h: emit `L13_ESCALATION` event |
 | Evidence ref is empty for `risk_tier >= 2` | Set `verdict = HOLD`, do not execute |
 | Duplicate seal attempt | Skip write, increment `duplicate_count` in metadata |
 

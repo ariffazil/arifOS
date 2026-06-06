@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from arifosmcp.core.floor import check_floors
+from arifosmcp.core.law import check_laws
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ class GovernanceKernel:
         """
         self.invocation_count += 1
 
-        floor_check = check_floors(tool_name, params, actor_id)
+        floor_check = check_laws(tool_name, params, actor_id)
         verdict = floor_check["verdict"]
 
         if verdict == VERDICT_VOID:
@@ -65,7 +65,7 @@ class GovernanceKernel:
                 "result": {},
                 "meta": {
                     "reason": floor_check["reason"],
-                    "failed_floors": floor_check["failed_floors"],
+                    "violated_laws": floor_check["violated_laws"],
                     "actor_id": actor_id,
                 },
             }
@@ -79,7 +79,7 @@ class GovernanceKernel:
                 "result": {},
                 "meta": {
                     "reason": floor_check["reason"],
-                    "failed_floors": floor_check["failed_floors"],
+                    "violated_laws": floor_check["violated_laws"],
                     "actor_id": actor_id,
                 },
             }
@@ -90,7 +90,7 @@ class GovernanceKernel:
             "result": {},
             "meta": {
                 "reason": "All constitutional floors clear",
-                "failed_floors": [],
+                "violated_laws": [],
                 "actor_id": actor_id,
             },
         }

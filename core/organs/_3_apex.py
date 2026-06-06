@@ -122,7 +122,7 @@ def _detect_contradictions(
             0.5,
             "gt",
             ("SEAL", "PARTIAL"),
-            "F12_injection",
+            "L12_injection",
             "critical",
             lambda v, vc: f"F12 injection risk={v:.2f} but verdict={vc}",
             0.95,
@@ -353,9 +353,9 @@ async def forge(
         floors = {
             "F3": "pass",
             "F8": "pass",
-            "F11": "pass",
-            "F12": "pass",
-            "F13": "pass",
+            "L11": "pass",
+            "L12": "pass",
+            "L13": "pass",
         }
         verdict = Verdict.SEAL
     else:

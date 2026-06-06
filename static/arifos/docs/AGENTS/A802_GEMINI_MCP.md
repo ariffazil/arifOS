@@ -7,7 +7,7 @@
 
 ## 🏛️ Project Overview
 
-**arifOS** is a production-grade **Constitutional AI Governance System**. It functions as a "TCP layer" for AI agents, wrapping any LLM (Claude, GPT, Gemini) in a mathematical governance kernel that enforces 13 Constitutional Floors.
+**arifOS** is a production-grade **Constitutional AI Governance System**. It functions as a "TCP layer" for AI agents, wrapping any LLM (Claude, GPT, Gemini) in a mathematical governance kernel that enforces 13 Constitutional Laws.
 
 ### Core Architecture: The Trinity (ΔΩΨ)
 1.  **AGI Δ (Mind):** Logic, truth verification, and factual grounding (F2, F4, F7, F8).

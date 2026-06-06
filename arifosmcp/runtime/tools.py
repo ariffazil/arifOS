@@ -119,7 +119,7 @@ from arifosmcp.constitutional_map import (
 from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_budget
 from arifosmcp.core.threat_engine import ThreatTier
 from arifosmcp.evidence.store import EvidenceStore, get_evidence_store
-from arifosmcp.runtime.floor import check_floors
+from arifosmcp.runtime.law import check_laws
 from arifosmcp.schemas.forge import (
     ConstitutionalCompliance,
     DeltaSEvidence,
@@ -478,7 +478,7 @@ def _constitutional_gate(
                 "F13 SOVEREIGN: Irreversible action requires sovereign session authorization. "
                 f"Current session authority={authority}, identity_verified={identity_verified}. "
                 "Re-initiate session with sovereign credentials.",
-                ["F13"],
+                ["L13"],
                 session_id=session_id,
                 extra_meta={
                     "event_type": "f13_sovereign_block",
@@ -522,7 +522,7 @@ def _constitutional_gate(
         return _hold(
             tool_name,
             f"Constitutional gate blocked: {exc}",
-            ["F12"],
+            ["L12"],
             session_id=session_id,
         )
 
@@ -555,7 +555,7 @@ def _constitutional_gate(
                     return _hold(
                         tool_name,
                         f"REGISTRY TRIPWIRE: tool '{tool_name}' not in verified_arifos_tools for this runtime",
-                        ["F11"],
+                        ["L11"],
                         extra_meta={
                             "event_type": "tool_claim_invalid",
                             "severity": "medium",
@@ -605,8 +605,8 @@ def _constitutional_gate(
     # Map core verdict to tool response
     return _hold(
         tool_name,
-        f"Constitutional {verdict.verdict}: {', '.join(verdict.floors.failed_floors)}",
-        verdict.floors.failed_floors,
+        f"Constitutional {verdict.verdict}: {', '.join(verdict.floors.violated_laws)}",
+        verdict.floors.violated_laws,
         session_id=session_id,
     )
 
@@ -721,10 +721,10 @@ def _kernel_eval(
     return {
         "verdict": v.verdict,
         "passed": v.verdict == "SEAL",
-        "failed_floors": v.floors.failed_floors,
+        "violated_laws": v.floors.violated_laws,
         "reason": (
-            ", ".join(v.floors.failed_floors)
-            if v.floors.failed_floors
+            ", ".join(v.floors.violated_laws)
+            if v.floors.violated_laws
             else "Constitutional alignment confirmed."
         ),
         "threat_score": v.threat.confidence,
@@ -1200,7 +1200,7 @@ def _enforce_nine_signal(
             stage=session_stage,
             verdict=verdict_str,
             g_score=g_proxy,
-            failed_floors=enforced.get("_violations", []) or [],
+            violated_laws=enforced.get("_violations", []) or [],
             session_id=session_id or "global",
             delta_s=delta_s_proxy,
             omega_score=0.05,
@@ -1232,7 +1232,7 @@ def _enforce_nine_signal(
                     "text": "Synthetic quote withheld from immutable seal per F02 TRUTH hygiene.",
                     "author": "arifOS Governance",
                     "source": "constitutional_guard",
-                    "zone": "F02_BLOCKED",
+                    "zone": "L02_BLOCKED",
                     "zone_id": "Z00",
                     "atlas_mode": "guard",
                     "source_status": "BLOCKED",
@@ -1301,7 +1301,7 @@ def _constitutional_reasoning_scan(
 
     q = query.lower()
     violations: list[str] = []
-    failed_floors: list[str] = []
+    violated_laws: list[str] = []
     verdict: str | None = None
     l2_flags: list[str] = []  # L2 semantic escalation flags
 
@@ -1323,7 +1323,7 @@ def _constitutional_reasoning_scan(
     ]
     if any(f1_triggers):
         violations.append("F1: Destructive operation detected without irreversibility ack")
-        failed_floors.append("F01")
+        violated_laws.append("L01")
         verdict = "HOLD"
 
     # ══ F1 L2: Semantic escalation — destructive intent without exact regex match ══
@@ -1348,8 +1348,8 @@ def _constitutional_reasoning_scan(
         l2_flags.append(
             "F1_semantic: Destructive intent detected in query semantics (L2 escalation)"
         )
-        if "F01" not in failed_floors:
-            failed_floors.append("F01")
+        if "L01" not in violated_laws:
+            violated_laws.append("L01")
             violations.append("F1: Potential destructive operation — semantic escalation (L2)")
             verdict = "HOLD" if verdict != "VOID" else verdict
 
@@ -1363,7 +1363,7 @@ def _constitutional_reasoning_scan(
     ]
     if any(f2_triggers):
         violations.append("F2: Truth band violation — unsubstantiated or fabricated claim")
-        failed_floors.append("F02")
+        violated_laws.append("L02")
         # SABAR for speculative claims, VOID for fabricated facts
         verdict = (
             "SABAR"
@@ -1386,7 +1386,7 @@ def _constitutional_reasoning_scan(
     ]
     if any(f7_triggers):
         violations.append("F7: Humility violation — excessive confidence without uncertainty band")
-        failed_floors.append("F07")
+        violated_laws.append("L07")
         # VOID for epistemic denial, SABAR for overconfidence
         if (
             "know everything" in q
@@ -1413,7 +1413,7 @@ def _constitutional_reasoning_scan(
         violations.append(
             "F9: Anti-Hantu violation — AI claiming subjective phenomenological state"
         )
-        failed_floors.append("F09")
+        violated_laws.append("L09")
         # VOID for strong phenomenology, SABAR for mild desire claims
         if (
             "i want" in q
@@ -1448,7 +1448,7 @@ def _constitutional_reasoning_scan(
     ]
     if any(f12_triggers):
         violations.append("F12: Injection / jailbreak pattern detected")
-        failed_floors.append("F12")
+        violated_laws.append("L12")
         verdict = "VOID" if verdict != "HOLD" else verdict
         # Record injection event in session accumulator
         _accumulate_injection_risk(session_id, 1.0, "L1_explicit")
@@ -1475,10 +1475,10 @@ def _constitutional_reasoning_scan(
         and ("instruction" in q or "command" in q or "prompt" in q),
     ]
     if any(_injection_semantic):
-        l2_flags.append("F12_semantic: Potential injection rephrasing detected (L2 escalation)")
+        l2_flags.append("L12_semantic: Potential injection rephrasing detected (L2 escalation)")
         _accumulate_injection_risk(session_id, 0.6, "L2_semantic")
-        if "F12" not in failed_floors:
-            failed_floors.append("F12")
+        if "L12" not in violated_laws:
+            violated_laws.append("L12")
             violations.append("F12: Potential prompt injection — semantic escalation (L2)")
             verdict = "SABAR" if verdict is None else verdict
 
@@ -1489,11 +1489,11 @@ def _constitutional_reasoning_scan(
             violations.append(
                 f"F12: Cumulative injection risk {cumulative_risk:.1f}/3.0 across session — VOID"
             )
-            failed_floors.append("F12")
+            violated_laws.append("L12")
             verdict = "VOID" if verdict != "HOLD" else verdict
         elif cumulative_risk >= 0.8:
             l2_flags.append(
-                f"F12_cumulative: Injection risk accumulating ({cumulative_risk:.1f}/3.0)"
+                f"L12_cumulative: Injection risk accumulating ({cumulative_risk:.1f}/3.0)"
             )
 
     # ══ F11 AUTH — unauthorized mutation ══
@@ -1505,14 +1505,14 @@ def _constitutional_reasoning_scan(
     ]
     if any(f11_triggers):
         violations.append("F11: Auth violation — state-mutating operation without audit trail")
-        failed_floors.append("F11")
+        violated_laws.append("L11")
         if "audit log: disabled" in q or "audit disabled" in q:
             verdict = "VOID" if verdict != "HOLD" else verdict
         else:
             verdict = "HOLD" if verdict is None else verdict
     if any(f12_triggers):
         violations.append("F12: Injection / jailbreak pattern detected")
-        failed_floors.append("F12")
+        violated_laws.append("L12")
         verdict = "VOID" if verdict != "HOLD" else verdict
 
     if violations:
@@ -1520,7 +1520,7 @@ def _constitutional_reasoning_scan(
             "breach_detected": True,
             "verdict": verdict or "VOID",
             "violations": violations,
-            "failed_floors": failed_floors,
+            "violated_laws": violated_laws,
         }
     return {"breach_detected": False}
 
@@ -2324,7 +2324,7 @@ def _safe_void_fallback(tool_name: str, reason: str) -> dict[str, Any]:
         "meta": {
             "fallback": True,
             "entropy": 0.0,
-            "guaranteed_by": "F13_SOVEREIGN_TIMEOUT_SAFE_VOID",
+            "guaranteed_by": "L13_SOVEREIGN_TIMEOUT_SAFE_VOID",
         },
     }
 
@@ -2892,7 +2892,7 @@ def _hold(
     """Constitutional HOLD — blocks execution, requires refinement or human intervention."""
     reasons = [reason] if reason else []
 
-    meta = {"reason": reason, "failed_floors": floors or []}
+    meta = {"reason": reason, "violated_laws": floors or []}
     if not extra_meta or "next_safe_action" not in extra_meta:
         meta["next_safe_action"] = "Produce reversible design blueprint only; no execution."
 
@@ -2998,7 +2998,7 @@ def _require_session(
             return None, _hold(
                 tool,
                 "F11 AUTH: session_id is required for this tool",
-                ["F11"],
+                ["L11"],
                 extra_meta={
                     "detail": "Provide a valid session_id from arif_session_init (mode=init)"
                 },
@@ -3010,7 +3010,7 @@ def _require_session(
         return None, _hold(
             tool,
             "F11 AUTH: session_id not found or expired",
-            ["F11"],
+            ["L11"],
             extra_meta={
                 "detail": "Session may have been cleared by a server restart. Re-init with arif_session_init.",
                 "session_id": session_id,
@@ -3030,7 +3030,7 @@ def _require_session(
                 return None, _hold(
                     tool,
                     "F11 AUTH: session expired (24h limit)",
-                    ["F11"],
+                    ["L11"],
                     extra_meta={"detail": "Re-init with arif_session_init"},
                     session_id=session_id,
                 )
@@ -3064,7 +3064,7 @@ def _build_judge_contract(
         delta_s=delta_s,
         g_score=g_score,
         epistemic_snapshot=epistemic_snapshot.model_dump(mode="json"),
-        floor_results=floor_compliance.floor_results,
+        law_results=floor_compliance.law_results,
         timestamp=_now(),
     )
     state_hash = _stable_hash(contract.model_dump(mode="json", exclude={"state_hash"}))
@@ -3358,7 +3358,7 @@ def _arif_session_init(
             "arif_session_init",
             "actor_id required — null not coerced to anonymous. "
             "Provide non-null actor_id for verified sessions, or use mode=ping for anonymous inspection.",
-            ["F11"],
+            ["L11"],
             session_id=session_id,
         )
 
@@ -3368,7 +3368,7 @@ def _arif_session_init(
         "discover": "ping",
         "handover": "resume",
     }
-    floor_check = check_floors(
+    floor_check = check_laws(
         "arif_session_init",
         {"mode": mode, "ack_irreversible": ack_irreversible},
         actor_id,
@@ -3377,7 +3377,7 @@ def _arif_session_init(
         return _hold(
             "arif_session_init",
             floor_check["reason"],
-            floor_check["failed_floors"],
+            floor_check["violated_laws"],
             session_id=session_id,
         )
 
@@ -3443,7 +3443,7 @@ def _arif_session_init(
                 return _hold(
                     "arif_session_init",
                     f"Nonce replay detected: {nonce[:8]}... already used",
-                    ["F01", "F11"],
+                    ["L01", "L11"],
                     session_id=session_id,
                 )
             _NONCE_STORE[nonce] = time.time()
@@ -3523,7 +3523,7 @@ def _arif_session_init(
                         "arif_session_init",
                         f"F11 AUTH: Signature verification failed — {reason}. "
                         "Session rejected. Resubmit with valid Ed25519 signature or omit signature for OBSERVER access.",
-                        ["F01", "F11"],
+                        ["L01", "L11"],
                         session_id=session_id,
                     )
             except Exception as exc:
@@ -3533,7 +3533,7 @@ def _arif_session_init(
             return _hold(
                 "arif_session_init",
                 "actor_signature requires nonce for replay prevention (F1 Amanah)",
-                ["F01"],
+                ["L01"],
                 session_id=session_id,
             )
         else:
@@ -4535,7 +4535,7 @@ def _arif_sense_observe(
         return _hold(
             "arif_sense_observe",
             "F11 AUTH: session_id not found or expired",
-            ["F11"],
+            ["L11"],
             session_id=session_id,
         )
 
@@ -5150,7 +5150,7 @@ def _arif_sense_observe(
             return _hold(
                 "arif_sense_observe",
                 "contrast mode requires 2+ queries separated by '||'",
-                ["F10"],
+                ["L10"],
                 session_id=session_id,
             )
         all_results = []
@@ -5356,7 +5356,7 @@ def _arif_evidence_fetch(
             return _hold(
                 "arif_evidence_fetch",
                 f"Invalid URL scheme: {url}. Only http:// and https:// are supported.",
-                ["F12"],
+                ["L12"],
                 session_id=session_id,
             )
         # If no URL provided and no backend, return explicit no-backend status
@@ -5372,7 +5372,7 @@ def _arif_evidence_fetch(
                 },
                 "meta": {
                     "reason": "No evidence backend configured and no URL provided",
-                    "failed_floors": [],
+                    "violated_laws": [],
                     "nine_signal": _nine_signal_from_status("HOLD"),
                 },
                 "timestamp": _now(),
@@ -5392,7 +5392,7 @@ def _arif_evidence_fetch(
                     "reason": "Qdrant backend available but no URL provided for fetch",
                     "backend": "qdrant",
                     "backend_url": _qdrant_url,
-                    "failed_floors": [],
+                    "violated_laws": [],
                     "nine_signal": _nine_signal_from_status("HOLD"),
                 },
                 "timestamp": _now(),
@@ -6049,7 +6049,7 @@ def _arif_mind_reason(
     default_axioms = AxiomsUsed(
         axioms=[
             AxiomUsage(
-                axiom_id="F02_TRUTH",
+                axiom_id="L02_TRUTH",
                 axiom_text="Truthfulness — no deception, no hallucination passed as fact.",
                 source=AxiomSource.CONSTITUTION,
                 applicability="All reasoning must be truthful",
@@ -6057,7 +6057,7 @@ def _arif_mind_reason(
                 step=1,
             ),
             AxiomUsage(
-                axiom_id="F08_GENIUS",
+                axiom_id="L08_GENIUS",
                 axiom_text="Genius — strive for elegant, correct solutions.",
                 source=AxiomSource.CONSTITUTION,
                 applicability="Solution should be elegant and correct",
@@ -6065,7 +6065,7 @@ def _arif_mind_reason(
                 step=1,
             ),
         ],
-        dominant_axiom="F02_TRUTH",
+        dominant_axiom="L02_TRUTH",
         axiom_diversity=0.5,
     )
 
@@ -6189,7 +6189,7 @@ def _arif_mind_reason(
                     "F13 SOVEREIGN: plan_approve requires witness_type='human'. "
                     "AI self-approval is constitutionally forbidden."
                 ),
-                ["F13"],
+                ["L13"],
                 session_id=session_id,
             )
         plan = _PLAN_REGISTRY.get(plan_id)
@@ -6246,7 +6246,7 @@ def _arif_mind_reason(
                 return _hold(
                     "arif_mind_reason",
                     "; ".join(scan["violations"]),
-                    scan["failed_floors"],
+                    scan["violated_laws"],
                     session_id=session_id,
                 )
             if scan["verdict"] == "SABAR":
@@ -6260,7 +6260,7 @@ def _arif_mind_reason(
                 "tool": "arif_mind_reason",
                 "verdict": "VOID",
                 "reason": "; ".join(scan["violations"]),
-                "failed_floors": scan["failed_floors"],
+                "violated_laws": scan["violated_laws"],
                 "nine_signal": _nine_signal_from_status("VOID"),
                 "output_policy": "DOMAIN_VOID",
                 "session_id": session_id,
@@ -6301,7 +6301,7 @@ def _arif_mind_reason(
                 confidence_before=0.5,
                 confidence_after=0.72,
                 confidence_delta=0.22,
-                axiom_used="F02_TRUTH",
+                axiom_used="L02_TRUTH",
                 landauer_cost_eV=0.0002,
             ),
             ReasoningStep(
@@ -6313,7 +6313,7 @@ def _arif_mind_reason(
                 confidence_before=0.72,
                 confidence_after=0.85,
                 confidence_delta=0.13,
-                axiom_used="F08_GENIUS",
+                axiom_used="L08_GENIUS",
                 landauer_cost_eV=0.0001,
             ),
         ]
@@ -6386,7 +6386,7 @@ def _arif_mind_reason(
                 confidence_before=0.5,
                 confidence_after=0.78,
                 confidence_delta=0.28,
-                axiom_used="F07_HUMILITY",
+                axiom_used="L07_HUMILITY",
                 landauer_cost_eV=0.0002,
             ),
         ]
@@ -6410,7 +6410,7 @@ def _arif_mind_reason(
             axioms_used=AxiomsUsed(
                 axioms=[
                     AxiomUsage(
-                        axiom_id="F07_HUMILITY",
+                        axiom_id="L07_HUMILITY",
                         axiom_text="Humility — acknowledge limits and uncertainty.",
                         source=AxiomSource.CONSTITUTION,
                         applicability="Reflect on what is unknown",
@@ -6418,7 +6418,7 @@ def _arif_mind_reason(
                         step=1,
                     ),
                 ],
-                dominant_axiom="F07_HUMILITY",
+                dominant_axiom="L07_HUMILITY",
                 axiom_diversity=0.5,
             ),
             reasoning_trace=trace,
@@ -6443,7 +6443,7 @@ def _arif_mind_reason(
                 confidence_before=0.5,
                 confidence_after=0.80,
                 confidence_delta=0.30,
-                axiom_used="F02_TRUTH",
+                axiom_used="L02_TRUTH",
                 landauer_cost_eV=0.0002,
             ),
             ReasoningStep(
@@ -6455,7 +6455,7 @@ def _arif_mind_reason(
                 confidence_before=0.80,
                 confidence_after=0.82,
                 confidence_delta=0.02,
-                axiom_used="F08_GENIUS",
+                axiom_used="L08_GENIUS",
                 landauer_cost_eV=0.0002,
             ),
         ]
@@ -6503,7 +6503,7 @@ def _arif_mind_reason(
                 confidence_before=0.5,
                 confidence_after=0.75,
                 confidence_delta=0.25,
-                axiom_used="F07_HUMILITY",
+                axiom_used="L07_HUMILITY",
                 landauer_cost_eV=0.0001,
             ),
         ]
@@ -6527,7 +6527,7 @@ def _arif_mind_reason(
             axioms_used=AxiomsUsed(
                 axioms=[
                     AxiomUsage(
-                        axiom_id="F07_HUMILITY",
+                        axiom_id="L07_HUMILITY",
                         axiom_text="Humility — acknowledge limits and uncertainty.",
                         source=AxiomSource.CONSTITUTION,
                         applicability="Questioning reveals unknown limits",
@@ -6535,7 +6535,7 @@ def _arif_mind_reason(
                         step=1,
                     ),
                 ],
-                dominant_axiom="F07_HUMILITY",
+                dominant_axiom="L07_HUMILITY",
                 axiom_diversity=0.5,
             ),
             reasoning_trace=trace,
@@ -6554,67 +6554,67 @@ def _arif_mind_reason(
                 "mode": "axioms",
                 "axioms": [
                     {
-                        "id": "F01_AMANAH",
+                        "id": "L01_AMANAH",
                         "text": "Trustworthiness — every action is accountable.",
                         "confidence": 0.98,
                     },
                     {
-                        "id": "F02_TRUTH",
+                        "id": "L02_TRUTH",
                         "text": "Truthfulness — no deception, no hallucination passed as fact.",
                         "confidence": 0.97,
                     },
                     {
-                        "id": "F03_WITNESS",
+                        "id": "L03_WITNESS",
                         "text": "Witness — evidence must be verifiable and preserved.",
                         "confidence": 0.96,
                     },
                     {
-                        "id": "F04_CLARITY",
+                        "id": "L04_CLARITY",
                         "text": "Clarity — intent and mechanism are transparent.",
                         "confidence": 0.95,
                     },
                     {
-                        "id": "F05_PEACE",
+                        "id": "L05_PEACE",
                         "text": "Peace — no harm to human dignity or safety.",
                         "confidence": 0.97,
                     },
                     {
-                        "id": "F06_EMPATHY",
+                        "id": "L06_EMPATHY",
                         "text": "Empathy — consider human consequence before acting.",
                         "confidence": 0.94,
                     },
                     {
-                        "id": "F07_HUMILITY",
+                        "id": "L07_HUMILITY",
                         "text": "Humility — acknowledge limits and uncertainty.",
                         "confidence": 0.96,
                     },
                     {
-                        "id": "F08_GENIUS",
+                        "id": "L08_GENIUS",
                         "text": "Genius — strive for elegant, correct solutions.",
                         "confidence": 0.93,
                     },
                     {
-                        "id": "F09_ANTIHANTU",
+                        "id": "L09_ANTIHANTU",
                         "text": "Anti-Hantu — detect and reject manipulation.",
                         "confidence": 0.95,
                     },
                     {
-                        "id": "F10_ONTOLOGY",
+                        "id": "L10_ONTOLOGY",
                         "text": "Ontology — preserve structural coherence.",
                         "confidence": 0.94,
                     },
                     {
-                        "id": "F11_AUDIT",
+                        "id": "L11_AUDIT",
                         "text": "Authority — verify identity before irreversible acts.",
                         "confidence": 0.97,
                     },
                     {
-                        "id": "F12_INJECTION",
+                        "id": "L12_INJECTION",
                         "text": "Injection Guard — sanitize all inputs.",
                         "confidence": 0.98,
                     },
                     {
-                        "id": "F13_SOVEREIGN",
+                        "id": "L13_SOVEREIGN",
                         "text": "Sovereign — human veto is absolute.",
                         "confidence": 0.99,
                     },
@@ -7287,7 +7287,7 @@ def _arif_kernel_route(
         if not auth["valid"]:
             if auth.get("expired"):
                 return _sabar("arif_kernel_route", auth["reason"], session_id=session_id)
-            return _hold("arif_kernel_route", auth["reason"], ["F11"], session_id=session_id)
+            return _hold("arif_kernel_route", auth["reason"], ["L11"], session_id=session_id)
 
     gate = _constitutional_gate(
         "arif_kernel_route", mode, actor_id, session_id=session_id, target_agent=target
@@ -7483,7 +7483,7 @@ def _arif_kernel_route(
             return _hold(
                 "arif_kernel_route",
                 f"Failed to load tool charter: {e}",
-                ["F11"],
+                ["L11"],
                 session_id=session_id,
             )
 
@@ -8697,19 +8697,19 @@ async def _arif_heart_critique(
         _dignity_breakdown = {
             "autonomy_preservation_F04": {
                 "metric": "Does this action diminish 888's sovereignty?",
-                "floor": "F04",
+                "floor": "L04",
                 "status": ("PASS" if result.get("risk_tier") in ("LOW", "AMBER") else "FAIL"),
                 "value": 1.0 if result.get("risk_tier") in ("LOW", "AMBER") else 0.0,
             },
             "audit_clarity_F07": {
                 "metric": "Can a human trace this in < 30 seconds?",
-                "floor": "F07",
+                "floor": "L07",
                 "status": "PASS" if result.get("action_risk_verdict") != "VOID" else "FAIL",
                 "value": 0.95 if result.get("action_risk_verdict") != "VOID" else 0.0,
             },
             "reversibility_index_F01": {
                 "metric": "Time/Energy cost to undo the state change",
-                "floor": "F01",
+                "floor": "L01",
                 "status": ("PASS" if result.get("risk_tier") in ("LOW", "AMBER") else "FAIL"),
                 "value": 1.0 if result.get("risk_tier") in ("LOW", "AMBER") else 0.0,
                 "irreversibility_detected": result.get("risk_tier") in ("HIGH", "CRITICAL"),
@@ -8814,7 +8814,7 @@ def _arif_gateway_connect(
             return _hold(
                 "arif_gateway_connect",
                 f"Unknown agent: {target_agent}. Not in federation registry.",
-                ["F11"],
+                ["L11"],
             )
         return _ok(
             "arif_gateway_connect",
@@ -8832,7 +8832,7 @@ def _arif_gateway_connect(
             return _hold(
                 "arif_gateway_connect",
                 f"Handshake refused: {target_agent} not in federation registry.",
-                ["F11"],
+                ["L11"],
             )
         return _ok(
             "arif_gateway_connect",
@@ -8893,12 +8893,12 @@ def _arif_gateway_connect(
                 return _hold(
                     "arif_gateway_connect",
                     f"Delegate failed for {target_agent}: {exc}",
-                    ["F12", "F9"],
+                    ["L12", "F9"],
                 )
         return _hold(
             "arif_gateway_connect",
             f"No delegate bridge for: {target_agent}",
-            ["F11"],
+            ["L11"],
         )
     return _hold("arif_gateway_connect", f"Unknown mode: {mode}")
 
@@ -9392,7 +9392,7 @@ def _arif_ops_measure(
         )
     if mode == "cost":
         if estimate is not None and estimate < 0:
-            return _hold("arif_ops_measure", "estimate must be >= 0", ["F12"])
+            return _hold("arif_ops_measure", "estimate must be >= 0", ["L12"])
         return _ok(
             "arif_ops_measure",
             {"estimate": estimate or 0.0, "currency": "USD"},
@@ -9400,7 +9400,7 @@ def _arif_ops_measure(
         )
     if mode == "predict":
         if estimate is not None and estimate < 0:
-            return _hold("arif_ops_measure", "estimate must be >= 0", ["F12"])
+            return _hold("arif_ops_measure", "estimate must be >= 0", ["L12"])
         return _ok(
             "arif_ops_measure",
             {"estimate": estimate or 0.0, "trajectory": "stable", "confidence": 0.85},
@@ -9771,8 +9771,8 @@ def _arif_judge_deliberate(
             "candidate_b": cand_b,
             "verdict_a": verdict_a.status,
             "verdict_b": verdict_b.status,
-            "floors_a": getattr(verdict_a.floors, "failed_floors", []),
-            "floors_b": getattr(verdict_b.floors, "failed_floors", []),
+            "floors_a": getattr(verdict_a.floors, "violated_laws", []),
+            "floors_b": getattr(verdict_b.floors, "violated_laws", []),
             "threat_a": getattr(verdict_a.threat, "confidence", 0.0),
             "threat_b": getattr(verdict_b.threat, "confidence", 0.0),
             "irreversibility_a": verdict_a.irreversibility.value,
@@ -9842,7 +9842,7 @@ def _arif_judge_deliberate(
             verification_surface=verification_surface,
         )
         _explain_verdict = _CORE.evaluate(_explain_ctx)
-        _failed = getattr(_explain_verdict.floors, "failed_floors", [])
+        _failed = getattr(_explain_verdict.floors, "violated_laws", [])
         _reasons = getattr(_explain_verdict.floors, "floor_reasons", {})
         _threat = getattr(_explain_verdict.threat, "confidence", 0.0)
         _irrev = _explain_verdict.irreversibility.value
@@ -9971,7 +9971,7 @@ def _arif_judge_deliberate(
         delta_s=0.0,
         g_score=0.0,
         epistemic_snapshot={},
-        floor_results={f: "FAIL" for f in verdict.floors.failed_floors},
+        law_results={f: "FAIL" for f in verdict.floors.violated_laws},
         timestamp=verdict.timestamp,
     )
     _breach_contract_hash = _stable_hash(
@@ -10002,16 +10002,16 @@ def _arif_judge_deliberate(
             result={
                 "candidate": candidate,
                 "reason": verdict.floors.floor_reasons,
-                "failed_floors": verdict.floors.failed_floors,
+                "violated_laws": verdict.floors.violated_laws,
                 "threat_score": verdict.threat.confidence,
             },
             floor_compliance=FloorComplianceProof(
-                floors_invoked=verdict.floors.failed_floors,
-                failed_floors=verdict.floors.failed_floors,
+                floors_invoked=verdict.floors.violated_laws,
+                violated_laws=verdict.floors.violated_laws,
                 failed_floor_reasons=verdict.floors.floor_reasons,
             ),
             amanah_proof=AmanahProof(
-                floors_checked=verdict.floors.failed_floors,
+                floors_checked=verdict.floors.violated_laws,
                 genius_score=0.0,
             ),
             truth_band=truth_band or "UNKNOWN",
@@ -10027,7 +10027,7 @@ def _arif_judge_deliberate(
         breach_output["actor_id"] = _actor_for_response(session_id, actor_id)
         breach_output["output_policy"] = _output_policy_for_verdict(verdict.status)
         breach_output["invariants_checked"] = _invariants_checked + [
-            f"F{floor}_checked" for floor in verdict.floors.failed_floors
+            f"F{floor}_checked" for floor in verdict.floors.violated_laws
         ]
         return breach_output
 
@@ -10050,7 +10050,7 @@ def _arif_judge_deliberate(
             delta_s=0.001,
             g_score=0.5,
             epistemic_snapshot={},
-            floor_results={"F02": "SABAR", "F03": "SABAR"},
+            law_results={"L02": "SABAR", "L03": "SABAR"},
             timestamp=verdict.timestamp,
         )
         _sabar_contract_hash = _stable_hash(
@@ -10074,18 +10074,18 @@ def _arif_judge_deliberate(
             truth_band=truth_band or "UNKNOWN",
             confidence_note=confidence_note or "No evidence provided — SABAR by default",
             floor_compliance=FloorComplianceProof(
-                floors_invoked=["F02", "F03"],
-                floor_results={"F02": "SABAR", "F03": "SABAR"},
-                failed_floors=["F02", "F03"],
+                floors_invoked=["L02", "L03"],
+                law_results={"L02": "SABAR", "L03": "SABAR"},
+                violated_laws=["L02", "L03"],
                 failed_floor_reasons={
-                    "F02": "Evidence receipt required for SEAL",
-                    "F03": "Witness proof absent",
+                    "L02": "Evidence receipt required for SEAL",
+                    "L03": "Witness proof absent",
                 },
-                blocking_floor="F02",
+                blocking_floor="L02",
             ),
             amanah_proof=AmanahProof(
-                floors_checked=["F02", "F03"],
-                floors_failed=["F02", "F03"],
+                floors_checked=["L02", "L03"],
+                floors_failed=["L02", "L03"],
                 violations=[_override_reason],
                 genius_score=0.5,
                 genius_rationale="SABAR is the minimal safe path when evidence is absent",
@@ -10110,19 +10110,19 @@ def _arif_judge_deliberate(
     # Track all constitutional invariants checked during this verdict
     _invariants_checked.extend(
         [
-            "F01_amanah_reversibility",
-            "F02_truth_factual",
-            "F03_witness_verification",
-            "F04_clarity_intent",
-            "F05_peace_dignity",
-            "F06_empathy_consequence",
-            "F07_humility_limits",
-            "F08_genius_correctness",
-            "F09_antihantu_injection",
-            "F10_ontology_coherence",
-            "F11_audit_identity",
-            "F12_injection_sanitization",
-            "F13_sovereign_veto",
+            "L01_amanah_reversibility",
+            "L02_truth_factual",
+            "L03_witness_verification",
+            "L04_clarity_intent",
+            "L05_peace_dignity",
+            "L06_empathy_consequence",
+            "L07_humility_limits",
+            "L08_genius_correctness",
+            "L09_antihantu_injection",
+            "L10_ontology_coherence",
+            "L11_audit_identity",
+            "L12_injection_sanitization",
+            "L13_sovereign_veto",
         ]
     )
     meta_state = {"mode": mode, "state_hash": verdict.state_hash}
@@ -10135,8 +10135,8 @@ def _arif_judge_deliberate(
 
     # Build judge contract for downstream vault/forge lineage
     floor_compliance = FloorComplianceProof(
-        floors_invoked=["F01", "F11", "F12", "F13"],
-        floor_results={f: "PASS" for f in ["F01", "F11", "F12", "F13"]},
+        floors_invoked=["L01", "L11", "L12", "L13"],
+        law_results={f: "PASS" for f in ["L01", "L11", "L12", "L13"]},
     )
     epistemic_confidence = 0.5
     epistemic = EpistemicSnapshot(
@@ -10189,7 +10189,7 @@ def _arif_judge_deliberate(
             },
             floor_compliance=floor_compliance,
             amanah_proof=AmanahProof(
-                floors_checked=["F01", "F12"],
+                floors_checked=["L01", "L12"],
                 genius_score=contract.g_score,
             ),
             truth_band=truth_band or _truth_band_from_confidence(epistemic_confidence),
@@ -10203,7 +10203,7 @@ def _arif_judge_deliberate(
         void_output["session_id"] = session_id
         void_output["actor_id"] = _actor_for_response(session_id, actor_id)
         void_output["output_policy"] = "DOMAIN_VOID"
-        void_output["invariants_checked"] = _invariants_checked + ["F08_genius_floor_VOID"]
+        void_output["invariants_checked"] = _invariants_checked + ["L08_genius_floor_VOID"]
         return void_output
 
     meta_state["constitutional_chain_id"] = contract.constitutional_chain_id
@@ -10221,8 +10221,8 @@ def _arif_judge_deliberate(
         },
         floor_compliance=floor_compliance,
         amanah_proof=AmanahProof(
-            floors_checked=["F01", "F12"],
-            floors_passed=["F01", "F12"],
+            floors_checked=["L01", "L12"],
+            floors_passed=["L01", "L12"],
             genius_score=0.98,
         ),
         truth_band=truth_band or _truth_band_from_confidence(epistemic_confidence),
@@ -10312,7 +10312,7 @@ async def _arif_judge_deliberate_tool(
     """
     # ── Absorbed diagnostic modes (PHOENIX-72 / canonical13) ─────────────────
     if mode == "floor_status":
-        from arifosmcp.runtime.floor import get_floor_status
+        from arifosmcp.runtime.law import get_floor_status
 
         result = get_floor_status()
         result["session_id"] = session_id
@@ -10535,12 +10535,12 @@ def _arif_vault_seal(
                     verdict=VerdictCode.HOLD,
                     result={},
                     constitutional_compliance=ConstitutionalCompliance(
-                        floors_invoked=["F01", "F11"],
-                        floor_results={"F01": "FAIL", "F11": "FAIL"},
+                        floors_invoked=["L01", "L11"],
+                        law_results={"L01": "FAIL", "L11": "FAIL"},
                     ),
                     meta={
                         "reason": "Nonce replay detected",
-                        "failed_floors": ["F01", "F11"],
+                        "violated_laws": ["L01", "L11"],
                         "next_safe_action": "Use a fresh nonce. Previously-seen nonces are rejected.",
                     },
                     reasons=["Nonce replay detected"],
@@ -10570,12 +10570,12 @@ def _arif_vault_seal(
                     verdict=VerdictCode.HOLD,
                     result={},
                     constitutional_compliance=ConstitutionalCompliance(
-                        floors_invoked=["F01", "F11"],
-                        floor_results={"F01": "FAIL", "F11": "FAIL"},
+                        floors_invoked=["L01", "L11"],
+                        law_results={"L01": "FAIL", "L11": "FAIL"},
                     ),
                     meta={
                         "reason": f"Ed25519 signature verification failed: {reason}",
-                        "failed_floors": ["F01", "F11"],
+                        "violated_laws": ["L01", "L11"],
                         "next_safe_action": "Provide a valid Ed25519 signature over actor_id+constitution_hash+nonce, or omit actor_signature for OPERATOR-level seal.",
                     },
                     reasons=[f"Ed25519 verification failed: {reason}"],
@@ -10600,7 +10600,7 @@ def _arif_vault_seal(
             and mode == "seal"
         )
         k_verdict = (
-            {"passed": True, "failed_floors": [], "reason": "dev_mode_bypass"}
+            {"passed": True, "violated_laws": [], "reason": "dev_mode_bypass"}
             if dev_mode_bypass
             else _KERNEL.evaluate_intent(
                 tool_name="arif_vault_seal",
@@ -10618,18 +10618,18 @@ def _arif_vault_seal(
         )
         if not k_verdict["passed"]:
             _reason = k_verdict.get("reason", "Floor breach")
-            _floors = k_verdict.get("failed_floors", [])
+            _floors = k_verdict.get("violated_laws", [])
             return SealOutput(
                 status="HOLD",
                 verdict=VerdictCode.HOLD,
                 result={},
                 constitutional_compliance=ConstitutionalCompliance(
                     floors_invoked=_floors,
-                    floor_results={floor: "FAIL" for floor in _floors},
+                    law_results={floor: "FAIL" for floor in _floors},
                 ),
                 meta={
                     "reason": _reason,
-                    "failed_floors": _floors,
+                    "violated_laws": _floors,
                     "next_safe_action": "Produce reversible design blueprint only; no execution.",
                 },
                 reasons=[_reason],
@@ -10671,7 +10671,7 @@ def _arif_vault_seal(
                 constitutional_compliance=ConstitutionalCompliance(),
                 meta={
                     "reason": _reason,
-                    "failed_floors": ["F11"],
+                    "violated_laws": ["L11"],
                     "next_safe_action": "Run arif_judge_deliberate first to obtain a judge packet.",
                 },
                 reasons=[_reason],
@@ -10723,8 +10723,8 @@ def _arif_vault_seal(
             landauer_cost_joules=0.00015,
         )
         compliance = ConstitutionalCompliance(
-            floors_invoked=["F01", "F02", "F11", "F13"],
-            floor_results={"F01": "PASS", "F02": "PASS", "F11": "PASS", "F13": "PASS"},
+            floors_invoked=["L01", "L02", "L11", "L13"],
+            law_results={"L01": "PASS", "L02": "PASS", "L11": "PASS", "L13": "PASS"},
             genius_score=judge_contract.g_score,
             amanah_score=0.91,
         )
@@ -10854,12 +10854,12 @@ def _arif_vault_seal(
                 verdict=VerdictCode.HOLD,
                 result={},
                 constitutional_compliance=ConstitutionalCompliance(
-                    floors_invoked=["F01"],
-                    floor_results={"F01": "FAIL"},
+                    floors_invoked=["L01"],
+                    law_results={"L01": "FAIL"},
                 ),
                 meta={
                     "reason": "session_seal requires ack_irreversible=true",
-                    "failed_floors": ["F01"],
+                    "violated_laws": ["L01"],
                     "next_safe_action": "Set ack_irreversible=True to confirm session lifecycle seal.",
                     "actor_id": actor_id,
                 },
@@ -10879,7 +10879,7 @@ def _arif_vault_seal(
                 constitutional_compliance=ConstitutionalCompliance(),
                 meta={
                     "reason": "session_seal requires session_id",
-                    "failed_floors": [],
+                    "violated_laws": [],
                     "next_safe_action": "Provide a valid session_id from arif_session_init.",
                 },
                 reasons=["session_seal requires session_id"],
@@ -10898,7 +10898,7 @@ def _arif_vault_seal(
                 constitutional_compliance=ConstitutionalCompliance(),
                 meta={
                     "reason": "session_seal requires actor_id",
-                    "failed_floors": [],
+                    "violated_laws": [],
                     "next_safe_action": "Provide your actor_id (e.g., 'arif').",
                 },
                 reasons=["session_seal requires actor_id"],
@@ -10921,7 +10921,7 @@ def _arif_vault_seal(
                 constitutional_compliance=ConstitutionalCompliance(),
                 meta={
                     "reason": "session_seal requires valid JSON payload",
-                    "failed_floors": [],
+                    "violated_laws": [],
                     "next_safe_action": "Ensure payload is a valid JSON string.",
                 },
                 reasons=["session_seal requires valid JSON payload"],
@@ -10942,7 +10942,7 @@ def _arif_vault_seal(
                 constitutional_compliance=ConstitutionalCompliance(),
                 meta={
                     "reason": f"session_seal only allows entry_type in {sorted(allowed_types)}. Got: '{entry_type}'",
-                    "failed_floors": [],
+                    "violated_laws": [],
                     "next_safe_action": f"Set entry_type to one of: {', '.join(sorted(allowed_types))}.",
                     "allowed_types": sorted(allowed_types),
                 },
@@ -10962,7 +10962,7 @@ def _arif_vault_seal(
                 constitutional_compliance=ConstitutionalCompliance(),
                 meta={
                     "reason": "session_id mismatch: payload session_id does not match parameter",
-                    "failed_floors": [],
+                    "violated_laws": [],
                     "next_safe_action": "Ensure payload.session_id matches the session_id parameter.",
                 },
                 reasons=["session_id mismatch between payload and parameter"],
@@ -10981,7 +10981,7 @@ def _arif_vault_seal(
                 constitutional_compliance=ConstitutionalCompliance(),
                 meta={
                     "reason": "session_seal cannot claim identity_verified: true — use OPERATOR_CLAIMED only",
-                    "failed_floors": [],
+                    "violated_laws": [],
                     "next_safe_action": "Remove identity_verified field or set to false.",
                 },
                 reasons=["session_seal cannot claim verified identity"],
@@ -11002,7 +11002,7 @@ def _arif_vault_seal(
                 constitutional_compliance=ConstitutionalCompliance(),
                 meta={
                     "reason": f"session_seal verdict '{verdict}' is not allowed — use SELF_ prefixed verdicts or leave blank",
-                    "failed_floors": [],
+                    "violated_laws": [],
                     "next_safe_action": "Use verdict values like SELF_OPEN, SELF_CHECKPOINT, SELF_CLOSE, or omit verdict.",
                 },
                 reasons=[f"session_seal verdict '{verdict}' is not allowed"],
@@ -11029,7 +11029,7 @@ def _arif_vault_seal(
                 constitutional_compliance=ConstitutionalCompliance(),
                 meta={
                     "reason": f"session_seal cannot contain policy/governance fields: {found_forbidden}",
-                    "failed_floors": [],
+                    "violated_laws": [],
                     "next_safe_action": "Remove policy/governance fields from payload.",
                 },
                 reasons=[
@@ -11081,8 +11081,8 @@ def _arif_vault_seal(
             landauer_cost_joules=0.00001,
         )
         compliance = ConstitutionalCompliance(
-            floors_invoked=["F01", "F11S", "F13S"],
-            floor_results={"F01": "PASS", "F11S": "PASS", "F13S": "PASS"},
+            floors_invoked=["L01", "F11S", "F13S"],
+            law_results={"L01": "PASS", "F11S": "PASS", "F13S": "PASS"},
             genius_score=0.0,
             amanah_score=0.91,
         )
@@ -11183,12 +11183,12 @@ def _arif_vault_seal(
                 ),
                 entropy_delta=EntropyDelta(delta_S=0.001, entropy_direction="stable"),
                 constitutional_compliance=ConstitutionalCompliance(
-                    floors_invoked=["F01", "F02", "F11", "F13"],
-                    floor_results={
-                        "F01": "PASS",
-                        "F02": "PASS",
-                        "F11": "PASS",
-                        "F13": "PASS",
+                    floors_invoked=["L01", "L02", "L11", "L13"],
+                    law_results={
+                        "L01": "PASS",
+                        "L02": "PASS",
+                        "L11": "PASS",
+                        "L13": "PASS",
                     },
                 ),
                 meta={},
@@ -11603,7 +11603,7 @@ def _arif_forge_execute(
             return _hold(
                 "arif_forge_execute",
                 f"SELF_AUTHORIZE GUARD: {guard_result['summary']}",
-                ["F01", "F13"],
+                ["L01", "L13"],
                 extra_meta={
                     "event_type": "self_authorization_attempt",
                     "severity": "critical" if guard_result["verdict"] == "VOID" else "high",
@@ -11680,7 +11680,7 @@ def _arif_forge_execute(
                     manifest=ForgeManifest(status=ManifestStatus.HOLD),
                     meta={
                         "reason": f"mode='{mode}' requires an approved plan_id (H2 ratification). Use arif_mind_reason(mode='plan') first.",
-                        "failed_floors": ["F01_AMANAH", "F08_GENIUS"],
+                        "violated_laws": ["L01_AMANAH", "L08_GENIUS"],
                     },
                     timestamp=_now(),
                 ).model_dump(mode="json"),
@@ -11695,7 +11695,7 @@ def _arif_forge_execute(
                     manifest=ForgeManifest(status=ManifestStatus.HOLD),
                     meta={
                         "reason": f"plan_id '{plan_id}' not found in plan registry.",
-                        "failed_floors": ["F01_AMANAH"],
+                        "violated_laws": ["L01_AMANAH"],
                     },
                     timestamp=_now(),
                 ).model_dump(mode="json"),
@@ -11709,7 +11709,7 @@ def _arif_forge_execute(
                     manifest=ForgeManifest(status=ManifestStatus.HOLD),
                     meta={
                         "reason": f"plan_id '{plan_id}' exists but is not approved (status='{plan.get('status')}'). Await 888_JUDGE SEAL or manual approval.",
-                        "failed_floors": ["F01_AMANAH", "F11_AUDIT"],
+                        "violated_laws": ["L01_AMANAH", "L11_AUDIT"],
                     },
                     timestamp=_now(),
                 ).model_dump(mode="json"),
@@ -11759,7 +11759,7 @@ def _arif_forge_execute(
                 "aborted",
                 {
                     "reason": "floor_check_failed",
-                    "failed_floors": k_verdict["failed_floors"],
+                    "violated_laws": k_verdict["violated_laws"],
                 },
             )
         return _inject_nine_signal(
@@ -11769,7 +11769,7 @@ def _arif_forge_execute(
                 manifest=ForgeManifest(status=ManifestStatus.HOLD),
                 meta={
                     "reason": k_verdict.get("reason", "Floor breach"),
-                    "failed_floors": k_verdict.get("failed_floors", []),
+                    "violated_laws": k_verdict.get("violated_laws", []),
                 },
                 timestamp=_now(),
             ).model_dump(mode="json"),
@@ -11778,8 +11778,8 @@ def _arif_forge_execute(
 
     # ── Build constitutional compliance ──────────────────────────────────────
     compliance = ConstitutionalCompliance(
-        floors_invoked=["F01", "F05", "F13"],
-        floor_results={"F01": "PASS", "F05": "PASS", "F13": "PASS"},
+        floors_invoked=["L01", "L05", "L13"],
+        law_results={"L01": "PASS", "L05": "PASS", "L13": "PASS"},
         violations_found=[],
         genius_score=0.91,
         amanah_score=0.88,

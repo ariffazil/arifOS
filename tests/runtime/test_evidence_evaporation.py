@@ -203,7 +203,7 @@ class TestDryRunMode:
     """Phase 1: Bridge works in dry_run mode — no permanent write."""
 
     @patch("arifosmcp.tools.sense.validate_session")
-    @patch("arifosmcp.tools.sense.check_floors")
+    @patch("arifosmcp.tools.sense.check_laws")
     @patch("arifosmcp.tools.sense.reality_handler")
     def test_sense_calls_auto_sync_bundle_in_dry_run(self, mock_rh, mock_floors, mock_auth):
         """
@@ -217,7 +217,7 @@ class TestDryRunMode:
         mock_floors.return_value = {
             "verdict": "SEAL",
             "reason": "",
-            "failed_floors": [],
+            "violated_laws": [],
         }
 
         from arifosmcp.runtime.reality_models import SearchResult

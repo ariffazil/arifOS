@@ -29,6 +29,7 @@ from arifosmcp.schemas.federation_envelope import (
     RiskPassport,
     RiskTier,
     SecretTouch,
+    ToolClass,
 )
 
 logger = logging.getLogger(__name__)
@@ -172,9 +173,11 @@ def classify_from_legacy(
     if action_class:
         acl = _map_legacy(action_class, _LEGACY_ACTION_CLASS_MAP, acl)
 
+    tool_class = _derive_tool_class(acl, "")
     return RiskPassport(
         tier=tier,
         action_class=acl,
+        tool_class=tool_class,
         blast_radius=_map_legacy(blast_radius, _LEGACY_BLAST_MAP, BlastRadius.LOCAL),
         reversibility=_map_legacy(
             reversibility, _LEGACY_REVERSIBILITY_MAP, ReversibilityLevel.HIGH
@@ -195,24 +198,45 @@ def _derive_tier_from_action(action: ActionClass) -> RiskTier:
     }.get(action, RiskTier.T0)
 
 
+def _derive_tool_class(action: ActionClass, combined: str) -> ToolClass:
+    """Derive ToolClass from action class and keyword heuristics.
+
+    observe  → OBSERVE (read-only, local)
+    retrieve → RETRIEVE (fetch from external/persistent source)
+    decide   → DECIDE (judgment, routing, evaluation)
+    mutate   → MUTATE (write, modify, execute, deploy)
+    """
+    if action in (ActionClass.MUTATE, ActionClass.ATOMIC):
+        return ToolClass.MUTATE
+    if action == ActionClass.PREPARE:
+        return ToolClass.DECIDE
+    # OBSERVE: distinguish retrieve from pure observe
+    if any(kw in combined for kw in ["fetch", "retrieve", "download", "pull", "sync"]):
+        return ToolClass.RETRIEVE
+    return ToolClass.OBSERVE
+
+
 # Explicit canonical tool mappings (arifOS Federation)
 _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
     # T5 ATOMIC — constitutional / irreversible
     "arif_forge_execute": RiskPassport(
         tier=RiskTier.T5,
         action_class=ActionClass.ATOMIC,
+        tool_class=ToolClass.MUTATE,
         blast_radius=BlastRadius.INFRA,
         reversibility=ReversibilityLevel.IRREVERSIBLE,
     ),
     "arif_judge_deliberate": RiskPassport(
         tier=RiskTier.T5,
         action_class=ActionClass.ATOMIC,
+        tool_class=ToolClass.MUTATE,
         blast_radius=BlastRadius.ORG,
         reversibility=ReversibilityLevel.IRREVERSIBLE,
     ),
     "arif_vault_seal": RiskPassport(
         tier=RiskTier.T5,
         action_class=ActionClass.ATOMIC,
+        tool_class=ToolClass.MUTATE,
         blast_radius=BlastRadius.ORG,
         reversibility=ReversibilityLevel.IRREVERSIBLE,
     ),
@@ -227,12 +251,14 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
         # because they produce binding decisions or actual mutations.
         tier=RiskTier.T1,
         action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.OBSERVE,
         blast_radius=BlastRadius.LOCAL,
         reversibility=ReversibilityLevel.HIGH,
     ),
     "arif_session_init": RiskPassport(
         tier=RiskTier.T1,
         action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.OBSERVE,
         blast_radius=BlastRadius.LOCAL,
         reversibility=ReversibilityLevel.HIGH,
     ),
@@ -240,6 +266,7 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
     "arif_kernel_route": RiskPassport(
         tier=RiskTier.T1,
         action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.DECIDE,
         blast_radius=BlastRadius.ORG,
         reversibility=ReversibilityLevel.HIGH,
     ),
@@ -247,6 +274,7 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
     "arif_gateway_connect": RiskPassport(
         tier=RiskTier.T1,
         action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.OBSERVE,
         blast_radius=BlastRadius.ORG,
         reversibility=ReversibilityLevel.HIGH,
     ),
@@ -254,6 +282,7 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
     "arif_memory_recall": RiskPassport(
         tier=RiskTier.T2,
         action_class=ActionClass.PREPARE,
+        tool_class=ToolClass.RETRIEVE,
         blast_radius=BlastRadius.ACCOUNT,
         reversibility=ReversibilityLevel.HIGH,
     ),
@@ -261,12 +290,14 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
     "arif_mind_reason": RiskPassport(
         tier=RiskTier.T2,
         action_class=ActionClass.PREPARE,
+        tool_class=ToolClass.DECIDE,
         blast_radius=BlastRadius.ORG,
         reversibility=ReversibilityLevel.HIGH,
     ),
     "arif_evidence_fetch": RiskPassport(
         tier=RiskTier.T2,
         action_class=ActionClass.PREPARE,
+        tool_class=ToolClass.RETRIEVE,
         blast_radius=BlastRadius.ORG,
         reversibility=ReversibilityLevel.HIGH,
     ),
@@ -274,18 +305,21 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
     "arif_sense_observe": RiskPassport(
         tier=RiskTier.T1,
         action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.OBSERVE,
         blast_radius=BlastRadius.ACCOUNT,
         reversibility=ReversibilityLevel.HIGH,
     ),
     "arif_ops_measure": RiskPassport(
         tier=RiskTier.T1,
         action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.OBSERVE,
         blast_radius=BlastRadius.ORG,
         reversibility=ReversibilityLevel.HIGH,
     ),
     "arif_reply_compose": RiskPassport(
         tier=RiskTier.T1,
         action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.OBSERVE,
         blast_radius=BlastRadius.PUBLIC,
         reversibility=ReversibilityLevel.HIGH,
     ),
@@ -328,6 +362,7 @@ def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPa
         return RiskPassport(
             tier=RiskTier.T5,
             action_class=ActionClass.ATOMIC,
+            tool_class=ToolClass.MUTATE,
             blast_radius=BlastRadius.INFRA,
             reversibility=ReversibilityLevel.IRREVERSIBLE,
         )
@@ -349,6 +384,7 @@ def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPa
         return RiskPassport(
             tier=RiskTier.T4,
             action_class=ActionClass.MUTATE,
+            tool_class=ToolClass.MUTATE,
             blast_radius=BlastRadius.PUBLIC,
         )
 
@@ -374,6 +410,7 @@ def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPa
         return RiskPassport(
             tier=RiskTier.T3,
             action_class=ActionClass.MUTATE,
+            tool_class=ToolClass.MUTATE,
             blast_radius=BlastRadius.ORG,
         )
 
@@ -399,10 +436,11 @@ def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPa
         return RiskPassport(
             tier=RiskTier.T2,
             action_class=ActionClass.PREPARE,
+            tool_class=ToolClass.DECIDE,
             blast_radius=BlastRadius.ORG,
         )
 
-    # T1 Account-scoped observation
+    # T1 Account-scoped observation / retrieve
     if any(
         kw in combined
         for kw in [
@@ -421,9 +459,11 @@ def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPa
             "summary",
         ]
     ):
+        tool_cls = ToolClass.RETRIEVE if "fetch" in combined else ToolClass.OBSERVE
         return RiskPassport(
             tier=RiskTier.T1,
             action_class=ActionClass.OBSERVE,
+            tool_class=tool_cls,
             blast_radius=BlastRadius.ACCOUNT,
         )
 
@@ -431,6 +471,7 @@ def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPa
     return RiskPassport(
         tier=RiskTier.T0,
         action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.OBSERVE,
         blast_radius=BlastRadius.LOCAL,
     )
 

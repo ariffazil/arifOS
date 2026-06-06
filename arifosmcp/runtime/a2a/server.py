@@ -216,7 +216,7 @@ class A2ATaskManager:
                         action_type=task.skill_id or "general_execution",
                         reason="F13 Sovereign: Human ratification required",
                         risk_level="high",
-                        floor_violations=["F1", "F13"],
+                        floor_violations=["F1", "L13"],
                         session_id=task.session_id or "unknown",
                         actor_id=task.client_agent_id,
                     )
@@ -371,7 +371,7 @@ class A2ATaskManager:
                 "client_agent_id": task.client_agent_id,
                 "action_type": task.skill_id or "general_execution",
                 "risk_level": "high",
-                "floor_violations": ["F1", "F13"],
+                "floor_violations": ["F1", "L13"],
             },
             "payload_hash": hashlib.sha256(
                 json.dumps(action_payload, sort_keys=True).encode()

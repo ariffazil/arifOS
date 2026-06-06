@@ -115,7 +115,7 @@ You are the LEADER for this task. You plan; you do not implement.
 **Escalation language:**
 - `LOOP_LIMIT_REACHED` — after 5 autonomous steps
 - `888_HOLD` — irreversible action requested
-- `F13_REQUIRED` — human sign-off needed
+- `L13_REQUIRED` — human sign-off needed
 - `ROLE_REQUEST=verifier` — I need QA on this
 - `ROLE_REQUEST=worker` — I need implementation on this
 

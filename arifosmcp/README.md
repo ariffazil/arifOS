@@ -597,7 +597,7 @@ graph RL
 KILL_SWITCH_CONDITIONS = [
     ("F1_AMANAH", lambda s: s["amanah"] == 0),
     ("F9_ETHICS", lambda s: s["c_dark"] >= 0.50),
-    ("F10_CONSCIENCE", lambda s: s["f10_violation"] and s["f2_violation"]),
+    ("L10_CONSCIENCE", lambda s: s["f10_violation"] and s["f2_violation"]),
     ("PSI_COLLAPSE", lambda s: s["vitality_index"] < 0.20),
     ("HUMAN_OVERRIDE", lambda s: s.get("judge_override", False)),
 ]

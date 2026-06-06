@@ -377,7 +377,7 @@ async def institutional_drift_check(
         verdict=verdict,
         confidence=Confidence.LOW,  # Until real sensors are wired
         notes=[n for n in notes if n],
-        constitutional_floors_checked=["F05", "F08", "F10", "F13"],
+        constitutional_floors_checked=["L05", "L08", "L10", "L13"],
     )
 
     logger.info(

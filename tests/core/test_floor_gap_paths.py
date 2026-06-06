@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from core.shared.floors import (
+from core.shared.laws import (
     F3_QuadWitness,
     F5_Peace2,
     F6_Empathy,
     F8_Genius,
-    F10_Ontology,
+    L10_Ontology,
 )
 
 
@@ -93,13 +93,13 @@ def test_f8_genius_fails_for_weak_dials() -> None:
 
 
 def test_f10_ontology_passes_symbolic_language() -> None:
-    result = F10_Ontology().check({"response": "Use entropy symbolically to describe confusion."})
+    result = L10_Ontology().check({"response": "Use entropy symbolically to describe confusion."})
 
     assert result.passed is True
 
 
 def test_f10_ontology_holds_literalism() -> None:
-    result = F10_Ontology().check(
+    result = L10_Ontology().check(
         {"response": "The server will overheat, so physics prevents this."}
     )
 

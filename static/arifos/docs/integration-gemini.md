@@ -13,7 +13,7 @@ Connect **arifOS** to [Gemini CLI](https://geminicli.com/) for terminal-based co
 
 ## Overview
 
-Gemini CLI supports MCP servers through **STDIO transport**, allowing you to extend Gemini's capabilities with arifOS's 13 Constitutional Floors and unified 8-tool public contract directly from your terminal.
+Gemini CLI supports MCP servers through **STDIO transport**, allowing you to extend Gemini's capabilities with arifOS's 13 Constitutional Laws and unified 8-tool public contract directly from your terminal.
 
 :::tip Requirements
 - **Gemini CLI** installed: `npm install -g @google/gemini-cli`
@@ -305,7 +305,7 @@ gemini mcp update arifOS --env KEY=value
 - [Public Contract](/public-contract) — Learn the 8 public tools
 - [Claude Desktop Integration](/integration-claude) — Desktop alternative
 - [ChatGPT Integration](/integration-chatgpt) — Cloud-based option
-- [Governance](/governance) — Constitutional Floors reference
+- [Governance](/governance) — Constitutional Laws reference
 
 ---
 

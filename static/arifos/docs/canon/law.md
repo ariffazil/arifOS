@@ -2,7 +2,7 @@
 id: canon-law
 title: Constitutional Law
 sidebar_position: 2
-description: The 13 Constitutional Floors (F1-F13) - 9 Laws, 2 Mirrors, 2 Walls. The operational core of arifOS governance.
+description: The 13 Constitutional Laws (F1-F13) - 9 Laws, 2 Mirrors, 2 Walls. The operational core of arifOS governance.
 ---
 
 # Constitutional Law - The 13 Floors

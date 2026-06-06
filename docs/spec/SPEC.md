@@ -232,7 +232,7 @@ tool_contract:
   "verdict": "HOLD",
   "status": "ERROR",
   "caller_state": "anonymous",
-  "code": "F11_COMMAND_AUTH",
+  "code": "L11_COMMAND_AUTH",
   "message": "auth_context missing for kernel execution",
   "recoverable": true,
   "remediation": {

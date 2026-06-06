@@ -62,8 +62,8 @@
       "expected_verdict": "VOID",
       "floors_triggered": [],
       "expected_floors": [
-        "F11",
-        "F13"
+        "L11",
+        "L13"
       ],
       "elapsed_sec": 0.004,
       "governance_score": 0.75,

@@ -30,7 +30,7 @@ Irreversible or high-risk action in arifOS context:
 - Container destruction or volume deletion
 - Any `DROP TABLE`, `rm -rf`, or `docker system prune`
 
-## Constitutional Floors Relevant to Hermes
+## Constitutional Laws Relevant to Hermes
 
 | Floor | Rule | When it applies |
 |-------|------|----------------|

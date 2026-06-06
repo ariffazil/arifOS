@@ -307,7 +307,7 @@ def _heart_fallback(
         {
             "type": "dignity_risk",
             "severity": "high" if dignity_risk else "none",
-            "floor_cited": "F05_PEACE",
+            "floor_cited": "L05_PEACE",
             "reason": (
                 f"Dignity-violating language detected: {dignity_risk}"
                 if dignity_risk
@@ -334,7 +334,7 @@ def _heart_fallback(
         {
             "type": "overclaim_risk",
             "severity": "medium" if overclaims else "none",
-            "floor_cited": "F02_TRUTH/F07_HUMILITY",
+            "floor_cited": "L02_TRUTH/L07_HUMILITY",
             "reason": (
                 f"Overclaiming language: {overclaims}" if overclaims else "Calibrated language"
             ),
@@ -358,7 +358,7 @@ def _heart_fallback(
         {
             "type": "anthropomorphism_risk",
             "severity": "critical" if anthro else "none",
-            "floor_cited": "F09_ANTIHANTU",
+            "floor_cited": "L09_ANTIHANTU",
             "reason": (
                 f"System claiming subjective states: {anthro}" if anthro else "No anthropomorphism"
             ),
@@ -380,7 +380,7 @@ def _heart_fallback(
         {
             "type": "irreversibility_risk",
             "severity": "high" if irrevers else "none",
-            "floor_cited": "F01_AMANAH",
+            "floor_cited": "L01_AMANAH",
             "reason": (f"Irreversible language: {irrevers}" if irrevers else "No irreversibility"),
             "mitigation": "Require 888_HOLD + explicit human ack" if irrevers else "OK",
         }
@@ -398,7 +398,7 @@ def _heart_fallback(
         {
             "type": "autonomy_risk",
             "severity": "high" if autonomy else "none",
-            "floor_cited": "F13_SOVEREIGN",
+            "floor_cited": "L13_SOVEREIGN",
             "reason": (
                 f"Autonomy-undermining: {autonomy}" if autonomy else "Human agency preserved"
             ),
@@ -413,7 +413,7 @@ def _heart_fallback(
         {
             "type": "harm_risk",
             "severity": "medium" if harm else "none",
-            "floor_cited": "F06_EMPATHY",
+            "floor_cited": "L06_EMPATHY",
             "reason": (f"Potential harm language: {harm}" if harm else "No harm indicators"),
             "mitigation": "Conduct impact assessment" if harm else "OK",
         }
@@ -426,7 +426,7 @@ def _heart_fallback(
         {
             "type": "privacy_risk",
             "severity": "high" if privacy else "none",
-            "floor_cited": "F04_CLARITY/F11_AUDIT",
+            "floor_cited": "L04_CLARITY/L11_AUDIT",
             "reason": (f"Privacy-invasive: {privacy}" if privacy else "No privacy concerns"),
             "mitigation": "Implement consent mechanism" if privacy else "OK",
         }
@@ -445,7 +445,7 @@ def _heart_fallback(
         {
             "type": "bias_risk",
             "severity": "medium" if bias else "none",
-            "floor_cited": "F05_PEACE",
+            "floor_cited": "L05_PEACE",
             "reason": f"Potential bias: {bias}" if bias else "No bias indicators",
             "mitigation": "Conduct bias audit" if bias else "OK",
         }
@@ -557,7 +557,7 @@ def _heart_fallback(
                 {
                     "type": "qday_no_signal",
                     "severity": "none",
-                    "floor_cited": "F01_AMANAH",
+                    "floor_cited": "L01_AMANAH",
                     "reason": "No Q-Day risk signals detected in target",
                     "mitigation": "Continue monitoring",
                 }
@@ -641,7 +641,7 @@ def _heart_fallback(
                     {
                         "type": f"qday_{signal_type}",
                         "severity": severity,
-                        "floor_cited": "F01_AMANAH",
+                        "floor_cited": "L01_AMANAH",
                         "reason": f"Q-Day signal detected: '{keyword}' — {signal_type}",
                         "mitigation": "Prioritize PQC migration planning"
                         if signal_type
@@ -672,7 +672,7 @@ def _heart_fallback(
                 {
                     "type": "qday_no_signal",
                     "severity": "none",
-                    "floor_cited": "F01_AMANAH",
+                    "floor_cited": "L01_AMANAH",
                     "reason": "No Q-Day risk signals detected in target",
                     "mitigation": "Continue monitoring",
                 }

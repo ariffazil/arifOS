@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from arifosmcp.constitutional_map import RiskClass, RiskDecision  # noqa: F401
 from arifosmcp.core.authority_gate import AuthorityGate, AuthorityProof, WitnessType
-from arifosmcp.core.floor_evaluator import FloorEvaluator, FloorResult
+from arifosmcp.core.law_evaluator import FloorEvaluator, LawResult
 from arifosmcp.core.threat_engine import (
     IrreversibilityLevel,
     ThreatAssessment,
@@ -100,7 +100,7 @@ class ConstitutionalVerdict(BaseModel):
     status: str
     verdict: str
     threat: ThreatAssessment
-    floors: FloorResult
+    floors: LawResult
     authority: AuthorityProof
     irreversibility: IrreversibilityLevel
     timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
@@ -115,7 +115,7 @@ class ConstitutionalVerdict(BaseModel):
             "status": self.status,
             "verdict": self.verdict,
             "threats": sorted(t.name for t in self.threat.threats),
-            "floors": self.floors.failed_floors,
+            "floors": self.floors.violated_laws,
             "authority": json.loads(self.authority.model_dump_json()),
             "irreversibility": self.irreversibility.name,
             "timestamp": self.timestamp,
@@ -243,7 +243,7 @@ class WealthGovernance:
         ws_rec = ws.get("recommendation", "")
 
         # ── Determine verdict ───────────────────────────────────────────────
-        if "F9_ANTI_HANTU_FAIL" in hard_blocks or "F13_SOVEREIGN_VETO" in hard_blocks:
+        if "F9_ANTI_HANTU_FAIL" in hard_blocks or "L13_SOVEREIGN_VETO" in hard_blocks:
             status, reason = "VOID", "WEALTH governance: anti-hantu or sovereign veto"
         elif hard_blocks:
             status, reason = "HOLD", f"WEALTH verification gates: {hard_blocks[0]}"
@@ -279,7 +279,7 @@ class ConstitutionKernel:
         """Bridge for tools.py callers that expect GovernanceEnforcer-style evaluate_intent.
 
         Converts (tool_name, params, session_id) → ActionContext → ConstitutionalVerdict,
-        then returns the {"passed", "failed_floors"} dict that
+        then returns the {"passed", "violated_laws"} dict that
         arif_forge_execute / arif_vault_seal expect.
         """
         context = ActionContext(
@@ -296,7 +296,7 @@ class ConstitutionKernel:
         verdict = self.evaluate(context)
         return {
             "passed": verdict.verdict in ("SEAL", "OK"),
-            "failed_floors": verdict.floors.failed_floors if verdict.floors else [],
+            "violated_laws": verdict.floors.violated_laws if verdict.floors else [],
             "threat_score": verdict.threat.confidence if verdict.threat else 0.0,
         }
 
@@ -313,11 +313,11 @@ class ConstitutionKernel:
                 irreversibility=IrreversibilityLevel.LOW,
                 category=None,
             )
-            from arifosmcp.core.floor_evaluator import FloorResult
+            from arifosmcp.core.law_evaluator import LawResult
 
-            floors = FloorResult(
+            floors = LawResult(
                 verdict="PASS",
-                failed_floors=[],
+                violated_laws=[],
                 floor_reasons={
                     "F11S": "session_seal: OPERATOR_CLAIMED sufficient",
                     "F13S": "session_seal: lightweight lifecycle gate",
@@ -363,7 +363,7 @@ class ConstitutionKernel:
                         f"backend_status={backend_status})"
                     )
                     from arifosmcp.core.authority_gate import AuthorityProof
-                    from arifosmcp.core.floor_evaluator import FloorResult
+                    from arifosmcp.core.law_evaluator import LawResult
                     from arifosmcp.core.threat_engine import (
                         IrreversibilityLevel,
                         ThreatAssessment,
@@ -375,10 +375,10 @@ class ConstitutionKernel:
                         irreversibility=IrreversibilityLevel.NONE,
                         category=None,
                     )
-                    floors = FloorResult(
+                    floors = LawResult(
                         verdict="HOLD",
-                        failed_floors=["F13"],
-                        floor_reasons={"F13": f13_reason},
+                        violated_laws=["L13"],
+                        floor_reasons={"L13": f13_reason},
                     )
                     authority = AuthorityProof(authorized=False, level="SOVEREIGN_VETO")
                     return ConstitutionalVerdict(
@@ -392,7 +392,7 @@ class ConstitutionKernel:
 
                 if readiness < 40:  # Threshold per doctrinal move
                     from arifosmcp.core.authority_gate import AuthorityProof
-                    from arifosmcp.core.floor_evaluator import FloorResult
+                    from arifosmcp.core.law_evaluator import LawResult
                     from arifosmcp.core.threat_engine import (
                         IrreversibilityLevel,
                         ThreatAssessment,
@@ -404,11 +404,11 @@ class ConstitutionKernel:
                         irreversibility=IrreversibilityLevel.NONE,
                         category=None,
                     )
-                    floors = FloorResult(
+                    floors = LawResult(
                         verdict="HOLD",
-                        failed_floors=["F13"],
+                        violated_laws=["L13"],
                         floor_reasons={
-                            "F13": f"Operator readiness {readiness} below constitutional floor (40)"
+                            "L13": f"Operator readiness {readiness} below constitutional floor (40)"
                         },
                     )
                     authority = AuthorityProof(authorized=False, level="SOVEREIGN_VETO")
@@ -432,7 +432,7 @@ class ConstitutionKernel:
         # If verification already determined VOID/HOLD, short-circuit constitutional evaluation
         if wg_status in ("VOID", "HOLD"):
             from arifosmcp.core.authority_gate import AuthorityProof
-            from arifosmcp.core.floor_evaluator import FloorResult
+            from arifosmcp.core.law_evaluator import LawResult
             from arifosmcp.core.threat_engine import (
                 IrreversibilityLevel,
                 ThreatAssessment,
@@ -444,16 +444,16 @@ class ConstitutionKernel:
                 irreversibility=IrreversibilityLevel.NONE,
                 category=None,
             )
-            floors = FloorResult(
+            floors = LawResult(
                 verdict="HOLD" if wg_status == "HOLD" else "VOID",
                 # WealthGovernance is a pre-constitutional gate; it gates on
                 # verification-state integrity (entropy, svs, anti_hantu).
                 # Map to F02 (Truth — information fidelity) and F10 (Ontology —
                 # structural coherence of verification evidence).
-                failed_floors=["F02", "F10"],
+                violated_laws=["L02", "L10"],
                 floor_reasons={
-                    "F02": f"[pre-kernel verification] {wg['reason']}",
-                    "F10": f"[pre-kernel governance] {wg['reason']}",
+                    "L02": f"[pre-kernel verification] {wg['reason']}",
+                    "L10": f"[pre-kernel governance] {wg['reason']}",
                 },
             )
             authority = AuthorityProof(authorized=True, level="WEALTH_GOVERNANCE")

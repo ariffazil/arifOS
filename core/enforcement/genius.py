@@ -26,7 +26,7 @@ from typing import Any
 import numpy as np
 from pydantic import BaseModel, Field
 
-from core.shared.floor_audit import AuditResult
+from core.shared.law_audit import AuditResult
 from core.shared.types import FloorScores
 
 logger = logging.getLogger(__name__)
@@ -387,9 +387,9 @@ class APEXDials(BaseModel):
 def audit_result_to_floor_scores(audit_result: Any) -> FloorScores:
     """Convert a FloorAuditor AuditResult or a raw dict to FloorScores."""
     if isinstance(audit_result, AuditResult):
-        results = audit_result.floor_results
+        results = audit_result.law_results
     elif isinstance(audit_result, dict):
-        results = audit_result.get("floor_results", audit_result)
+        results = audit_result.get("law_results", audit_result)
     else:
         return FloorScores()
 
@@ -427,10 +427,10 @@ def audit_result_to_floor_scores(audit_result: Any) -> FloorScores:
         f7_humility=get_score("F7", 0.04),
         f8_genius=get_score("F8", 0.80),
         f9_anti_hantu=1.0 - get_score("F9", 1.0),
-        f10_ontology=get_bool("F10"),
-        f11_command_auth=get_bool("F11"),
-        f12_injection=1.0 - get_score("F12", 1.0),
-        f13_sovereign=get_score("F13"),
+        f10_ontology=get_bool("L10"),
+        f11_command_auth=get_bool("L11"),
+        f12_injection=1.0 - get_score("L12", 1.0),
+        f13_sovereign=get_score("L13"),
     )
 
 
@@ -479,7 +479,7 @@ def coerce_floor_scores(
         return source
     if isinstance(source, AuditResult):
         return audit_result_to_floor_scores(source)
-    if isinstance(source, dict) and "floor_results" in source:
+    if isinstance(source, dict) and "law_results" in source:
         return audit_result_to_floor_scores(source)
 
     payload = source if isinstance(source, dict) else {}

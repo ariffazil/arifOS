@@ -493,10 +493,10 @@ def test_constitutional_laws(result: AuditResult):
         "L7_HUMAN_SOVEREIGNTY": "F7",
         "L8_DEPTH_FRAME_TRUTH": "F8",
         "L9_CLAIM_STATE_DISCIPLINE": "F9",
-        "L10_REGISTRY_TRUTH": "F10",
-        "L11_KNOWLEDGE_SHARING": "F11",
-        "L12_EQUILIBRIUM": "F12",
-        "L13_SOVEREIGN_VETO": "F13",
+        "L10_REGISTRY_TRUTH": "L10",
+        "L11_KNOWLEDGE_SHARING": "L11",
+        "L12_EQUILIBRIUM": "L12",
+        "L13_SOVEREIGN_VETO": "L13",
     }
 
     for law_id, floor in expected_laws.items():

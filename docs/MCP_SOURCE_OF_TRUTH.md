@@ -120,7 +120,7 @@ SENSE / DISCOVERY -> MIND / REASON -> HEART / CRITIQUE -> JUDGE -> VAULT
 These are not reasons to reject the SOT, but they should stay visible in any readiness report:
 
 - The current shell does not expose `BRAVE_API_KEY`, `EXA_API_KEY`, or `TAVILY_API_KEY`; web search layers may report `UNAVAILABLE` in local tests while live services still resolve through configured runtime providers.
-- Some compatibility/docs/runtime strings still contain `F11_AUTH`; canonical map uses `F11_AUDIT`, but full nomenclature normalization is not complete.
+- Some compatibility/docs/runtime strings still contain `L11_AUTH`; canonical map uses `L11_AUDIT`, but full nomenclature normalization is not complete.
 - JS/TS symbol extraction now detects `export function`, `export async function`, `export class`, and `export const ... =>` in the local smoke test.
 - Latest combined local smoke before this docs audit:
   `tests/test_canonical.py tests/test_wiki_tools.py tests/test_hybrid_discovery.py tests/test_gdk_compass.py`

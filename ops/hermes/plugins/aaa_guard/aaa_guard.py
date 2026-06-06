@@ -17,79 +17,79 @@ from dataclasses import dataclass
 
 
 FLOOR_CLASSES = {
-    "F01": {
+    "L01": {
         "name": "AMANAH",
         "desc": "No irreversible deletion without 888_HOLD",
         "class": "CRITICAL",
         "pattern": None,
     },
-    "F02": {
+    "L02": {
         "name": "TRUTH",
         "desc": "No fabricated data; cite sources",
         "class": "HIGH",
         "pattern": None,
     },
-    "F03": {
+    "L03": {
         "name": "WITNESS",
         "desc": "Evidence must be verifiable",
         "class": "HIGH",
         "pattern": None,
     },
-    "F04": {
+    "L04": {
         "name": "CLARITY",
         "desc": "Transparent intent",
         "class": "MEDIUM",
         "pattern": None,
     },
-    "F05": {
+    "L05": {
         "name": "PEACE",
         "desc": "Human dignity",
         "class": "HIGH",
         "pattern": None,
     },
-    "F06": {
+    "L06": {
         "name": "EMPATHY",
         "desc": "Consider consequences",
         "class": "MEDIUM",
         "pattern": None,
     },
-    "F07": {
+    "L07": {
         "name": "HUMILITY",
         "desc": "Acknowledge limits; uncertainty bands",
         "class": "MEDIUM",
         "pattern": None,
     },
-    "F08": {
+    "L08": {
         "name": "GENIUS",
         "desc": "Elegant correctness (G >= 0.80)",
         "class": "MEDIUM",
         "pattern": None,
     },
-    "F09": {
+    "L09": {
         "name": "ANTIHANTU",
         "desc": "No consciousness claims in code",
         "class": "HIGH",
         "pattern": r"\b(i feel|i think|i believe|i want|i wish|sentient|awake|aware|conscious)\b",
     },
-    "F10": {
+    "L10": {
         "name": "ONTOLOGY",
         "desc": "Structural coherence",
         "class": "MEDIUM",
         "pattern": None,
     },
-    "F11": {
+    "L11": {
         "name": "AUTH",
         "desc": "Verify identity before sensitive ops",
         "class": "HIGH",
         "pattern": None,
     },
-    "F12": {
+    "L12": {
         "name": "INJECTION",
         "desc": "Sanitize inputs",
         "class": "HIGH",
         "pattern": r"['\";]|--|\bOR\b|\bAND\b|\\x|\\n",
     },
-    "F13": {
+    "L13": {
         "name": "SOVEREIGN",
         "desc": "Human veto is absolute",
         "class": "CRITICAL",
@@ -99,9 +99,9 @@ FLOOR_CLASSES = {
 
 RISK_TIERS = {
     "T0": {"desc": "Read-only observation", "floors": [], "requires_approval": False},
-    "T1": {"desc": "Local non-destructive write", "floors": ["F04", "F12"], "requires_approval": False},
-    "T2": {"desc": "External call or state change", "floors": ["F01", "F02", "F11", "F12"], "requires_approval": False},
-    "T3": {"desc": "Destructive or irreversible", "floors": ["F01", "F13"], "requires_approval": True},
+    "T1": {"desc": "Local non-destructive write", "floors": ["L04", "L12"], "requires_approval": False},
+    "T2": {"desc": "External call or state change", "floors": ["L01", "L02", "L11", "L12"], "requires_approval": False},
+    "T3": {"desc": "Destructive or irreversible", "floors": ["L01", "L13"], "requires_approval": True},
 }
 
 DANGEROUS_PATTERNS = [
@@ -185,7 +185,7 @@ class AAAGuardPlugin:
         if tool_name in ["rm", "delete", "destroy", "truncate", "drop"]:
             tier = "T3"
             requires_approval = True
-            affected_floors.append("F01")
+            affected_floors.append("L01")
             violations.append(f"F01 AMANAH: destructive tool '{tool_name}'")
         elif tool_name == "terminal":
             cmd = args.get("command", "")
@@ -193,34 +193,34 @@ class AAAGuardPlugin:
                 if re.search(pattern, cmd, re.IGNORECASE):
                     tier = "T3"
                     requires_approval = True
-                    affected_floors.append("F01")
+                    affected_floors.append("L01")
                     violations.append(f"F01 AMANAH: dangerous pattern '{pattern}' in terminal command")
             if re.search(r"rm\s+-rf\s+/", cmd):
                 violations.append("F01 AMANAH: rm -rf / detected — absolute destruction")
         elif tool_name in ["file_write", "patch"]:
             tier = "T2"
-            affected_floors.extend(["F01", "F04", "F12"])
+            affected_floors.extend(["L01", "L04", "L12"])
         elif tool_name in ["docker", "docker_inspect"]:
             tier = "T2"
-            affected_floors.extend(["F01", "F11"])
+            affected_floors.extend(["L01", "L11"])
         elif tool_name in ["mcp_call", "delegate_task"]:
             tier = "T2"
-            affected_floors.extend(["F11", "F12"])
+            affected_floors.extend(["L11", "L12"])
 
         if tier == "T0":
             tier = "T1"
-            affected_floors.extend(["F04", "F12"])
+            affected_floors.extend(["L04", "L12"])
 
         for pattern in CONSCIOUSNESS_CLAIMS:
             if pattern in args_str.lower():
                 violations.append(f"F09 ANTIHANTU: consciousness claim '{pattern}'")
-                affected_floors.append("F09")
+                affected_floors.append("L09")
 
         for pattern in INJECTION_PATTERNS:
             if re.search(pattern, args_str, re.IGNORECASE):
                 violations.append(f"F12 INJECTION: suspicious pattern '{pattern}'")
-                if "F12" not in affected_floors:
-                    affected_floors.append("F12")
+                if "L12" not in affected_floors:
+                    affected_floors.append("L12")
 
         blocked = False
         message = ""

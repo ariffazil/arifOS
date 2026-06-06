@@ -439,7 +439,7 @@ def arif_judge_deliberate(
                 ),
                 meta={
                     "scan_instructions": raw if isinstance(raw, dict) else {"raw": str(raw)},
-                    "floor": "F12",
+                    "floor": "L12",
                     "guard": "INJECTION_SCANNER",
                 },
             )

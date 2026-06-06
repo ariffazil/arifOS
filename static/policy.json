@@ -13,8 +13,8 @@
     "default_mode": "dry_run_only",
     "irreversible_actions_require_ack": true,
     "constitutional_floors": 13,
-    "hard_floors": ["F1", "F2", "F6", "F9", "F10", "F11", "F13"],
-    "soft_floors": ["F3", "F4", "F5", "F7", "F8", "F12"]
+    "hard_floors": ["F1", "F2", "F6", "F9", "L10", "L11", "L13"],
+    "soft_floors": ["F3", "F4", "F5", "F7", "F8", "L12"]
   },
   "mcp": {
     "endpoint": "https://mcp.arif-fazil.com/mcp",

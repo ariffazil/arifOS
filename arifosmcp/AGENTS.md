@@ -68,7 +68,7 @@ All tools follow the `arif_<noun>_<verb>` naming convention.
 | `arif_forge_execute` | 666 | AGI | sovereign | F01, F11, F13 |
 
 
-## Constitutional Floors (F1–F13)
+## Constitutional Laws (F1–F13)
 
 | Floor | Name | Type | Core Invariant |
 | :---- | :--- | :---- | :------------- |

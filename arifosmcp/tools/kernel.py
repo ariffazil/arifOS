@@ -14,7 +14,7 @@ import time
 from typing import Any
 
 from arifosmcp.core.federation_contracts import validate_organ_output
-from arifosmcp.runtime.floor import check_floors
+from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _hold, _ok
 
 # SURPRISE_WINDOW_SIZE is imported for the contradiction check default
@@ -91,9 +91,9 @@ def arif_kernel_route(
     Parallel authority artifacts are detected by ontology_guard.check_parallel_artifacts().
     Do NOT create separate constitution files or parallel governance documents.
     """
-    floor_check = check_floors("arif_kernel_route", {"target": target or ""}, actor_id)
+    floor_check = check_laws("arif_kernel_route", {"target": target or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_kernel_route", floor_check["reason"], floor_check["failed_floors"])
+        return _hold("arif_kernel_route", floor_check["reason"], floor_check["violated_laws"])
 
     if mode == "route":
         # Check if any tools are contradicted before routing forward
@@ -478,7 +478,7 @@ def _441_surprise_handler(
             f"Tool '{tool_id}' has a contradicted self-model. "
             f"Run arif_mind_reason(mode='reflect') to repair before retrying."
         ),
-        "required_floors": ["F01", "F07"],
+        "required_floors": ["L01", "L07"],
         "action_required": "reflect_and_repair",
         "actor_id": actor_id,
     }

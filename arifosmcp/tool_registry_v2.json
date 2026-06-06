@@ -103,8 +103,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F11",
-        "F13"
+        "L11",
+        "L13"
       ]
     },
     {
@@ -118,7 +118,7 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F11"
+        "L11"
       ]
     },
     {
@@ -132,8 +132,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F11",
-        "F12"
+        "L11",
+        "L12"
       ]
     },
     {
@@ -152,7 +152,7 @@
         "F3",
         "F5",
         "F8",
-        "F13"
+        "L13"
       ]
     },
     {
@@ -182,7 +182,7 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F13"
+        "L13"
       ]
     },
     {
@@ -198,7 +198,7 @@
       "floor_gates": [
         "F2",
         "F5",
-        "F13"
+        "L13"
       ]
     },
     {
@@ -212,8 +212,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F11",
-        "F12"
+        "L11",
+        "L12"
       ]
     },
     {
@@ -312,7 +312,7 @@
       "requires_human": false,
       "status": "HOLD",
       "floor_gates": [
-        "F11"
+        "L11"
       ]
     },
     {
@@ -326,7 +326,7 @@
       "requires_human": false,
       "status": "HOLD",
       "floor_gates": [
-        "F11"
+        "L11"
       ]
     },
     {
@@ -540,7 +540,7 @@
         "F2",
         "F3",
         "F5",
-        "F13"
+        "L13"
       ]
     },
     {
@@ -589,7 +589,7 @@
         "F3",
         "F6",
         "F9",
-        "F10"
+        "L10"
       ]
     },
     {
@@ -621,7 +621,7 @@
       "floor_gates": [
         "F7",
         "F8",
-        "F12"
+        "L12"
       ]
     },
     {
@@ -636,7 +636,7 @@
       "status": "FORGED",
       "floor_gates": [
         "F4",
-        "F12"
+        "L12"
       ]
     },
     {
@@ -651,7 +651,7 @@
       "status": "FORGED",
       "floor_gates": [
         "F9",
-        "F12"
+        "L12"
       ]
     },
     {
@@ -667,7 +667,7 @@
       "floor_gates": [
         "F1",
         "F3",
-        "F13"
+        "L13"
       ]
     },
     {
@@ -682,7 +682,7 @@
       "status": "LIVE",
       "floor_gates": [
         "F5",
-        "F13"
+        "L13"
       ]
     },
     {
@@ -698,8 +698,8 @@
       "floor_gates": [
         "F1",
         "F6",
-        "F10",
-        "F13"
+        "L10",
+        "L13"
       ]
     },
     {
@@ -715,8 +715,8 @@
       "floor_gates": [
         "F1",
         "F6",
-        "F10",
-        "F13"
+        "L10",
+        "L13"
       ]
     },
     {
@@ -732,7 +732,7 @@
       "floor_gates": [
         "F5",
         "F8",
-        "F13"
+        "L13"
       ]
     },
     {
@@ -748,8 +748,8 @@
       "floor_gates": [
         "F1",
         "F6",
-        "F10",
-        "F13"
+        "L10",
+        "L13"
       ]
     },
     {
@@ -765,7 +765,7 @@
       "floor_gates": [
         "F5",
         "F8",
-        "F13"
+        "L13"
       ]
     },
     {
@@ -887,7 +887,7 @@
         "F6",
         "F8",
         "F9",
-        "F13"
+        "L13"
       ]
     },
     {
@@ -948,8 +948,8 @@
       "floor_gates": [
         "F7",
         "F8",
-        "F11",
-        "F12"
+        "L11",
+        "L12"
       ]
     },
     {
@@ -964,7 +964,7 @@
       "status": "FORGED",
       "floor_gates": [
         "F8",
-        "F11"
+        "L11"
       ]
     },
     {
@@ -978,8 +978,8 @@
       "requires_human": false,
       "status": "FORGED",
       "floor_gates": [
-        "F11",
-        "F12"
+        "L11",
+        "L12"
       ]
     },
     {
@@ -1024,7 +1024,7 @@
       "status": "FORGED",
       "floor_gates": [
         "F8",
-        "F13"
+        "L13"
       ]
     },
     {
@@ -1039,7 +1039,7 @@
       "status": "FORGED",
       "floor_gates": [
         "F9",
-        "F12"
+        "L12"
       ]
     },
     {
@@ -1055,7 +1055,7 @@
       "floor_gates": [
         "F1",
         "F3",
-        "F13"
+        "L13"
       ]
     },
     {
@@ -1069,8 +1069,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F02",
-        "F08"
+        "L02",
+        "L08"
       ]
     },
     {
@@ -1084,7 +1084,7 @@
       "requires_human": true,
       "status": "LIVE",
       "floor_gates": [
-        "F01"
+        "L01"
       ]
     },
     {
@@ -1098,7 +1098,7 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F04"
+        "L04"
       ]
     },
     {
@@ -1112,7 +1112,7 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F04"
+        "L04"
       ]
     },
     {
@@ -1126,8 +1126,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F02",
-        "F08"
+        "L02",
+        "L08"
       ]
     },
     {
@@ -1141,8 +1141,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F02",
-        "F08"
+        "L02",
+        "L08"
       ]
     },
     {
@@ -1156,8 +1156,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F02",
-        "F08"
+        "L02",
+        "L08"
       ]
     },
     {
@@ -1171,8 +1171,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F02",
-        "F08"
+        "L02",
+        "L08"
       ]
     },
     {
@@ -1186,8 +1186,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F02",
-        "F08"
+        "L02",
+        "L08"
       ]
     },
     {
@@ -1201,8 +1201,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F02",
-        "F08"
+        "L02",
+        "L08"
       ]
     },
     {
@@ -1216,8 +1216,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F02",
-        "F08"
+        "L02",
+        "L08"
       ]
     },
     {
@@ -1231,8 +1231,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F02",
-        "F08"
+        "L02",
+        "L08"
       ]
     },
     {
@@ -1246,8 +1246,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F02",
-        "F08"
+        "L02",
+        "L08"
       ]
     },
     {
@@ -1261,8 +1261,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F02",
-        "F08"
+        "L02",
+        "L08"
       ]
     },
     {
@@ -1276,8 +1276,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F02",
-        "F08"
+        "L02",
+        "L08"
       ]
     },
     {
@@ -1291,8 +1291,8 @@
       "requires_human": false,
       "status": "LIVE",
       "floor_gates": [
-        "F02",
-        "F08"
+        "L02",
+        "L08"
       ]
     }
   ],

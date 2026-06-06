@@ -53,7 +53,7 @@ def get_telemetry() -> dict:
 def get_floors_enforced() -> list[str]:
     """Return list of floors currently enforced by runtime."""
     try:
-        from arifosmcp.runtime.floor import get_floor_status
+        from arifosmcp.runtime.law import get_floor_status
 
         status = get_floor_status()
         floors = status.get("floors", [])
@@ -176,7 +176,7 @@ class TestF7_Humility:
     """F7: Uncertainty band Ω₀ ∈ [0.03, 0.05]. NOT [0.03, 0.15]."""
 
     def test_humility_band_canonical(self):
-        """Ω₀ must be in [0.03, 0.05] per canon F07_HUMILITY.md."""
+        """Ω₀ must be in [0.03, 0.05] per canon L07_HUMILITY.md."""
         t = get_telemetry()
         shadow = t.get("thermodynamic", {}).get("shadow", None)
         # shadow is a proxy for Ω₀

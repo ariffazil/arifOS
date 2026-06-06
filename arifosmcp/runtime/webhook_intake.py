@@ -514,7 +514,7 @@ def adjudicate_event(
     # ── Verdict derivation ─────────────────────────────────────────────
     # Webhooks NEVER auto-SEAL. Maximum is QUALIFY.
     if issues:
-        verdict = "VOID" if any(i.startswith(("F11", "F12")) for i in issues) else "888-HOLD"
+        verdict = "VOID" if any(i.startswith(("L11", "L12")) for i in issues) else "888-HOLD"
     else:
         verdict = "QUALIFY"
 

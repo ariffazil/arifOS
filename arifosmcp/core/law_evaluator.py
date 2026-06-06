@@ -14,7 +14,7 @@ from typing import Any
 
 # Import all 13 floor classes from canonical shared implementation.
 # These live at repo-root /core/shared/ (mapped to sys.path parent).
-from core.shared.floors import (
+from core.shared.laws import (
     F1_Amanah,
     F2_Truth,
     F3_QuadWitness,
@@ -24,10 +24,10 @@ from core.shared.floors import (
     F7_Humility,
     F8_Genius,
     F9_AntiHantu,
-    F10_Ontology,
+    L10_Ontology,
 )
-from core.shared.floors import (
-    FloorResult as SharedFloorResult,
+from core.shared.laws import (
+    LawResult as SharedFloorResult,
 )
 from pydantic import BaseModel, Field
 
@@ -38,19 +38,19 @@ from arifosmcp.core.threat_engine import (
 )
 
 
-class FloorResult(BaseModel):
+class LawResult(BaseModel):
     verdict: str = Field(default="SEAL")  # SEAL | HOLD | VOID
-    failed_floors: list[str] = Field(default_factory=list)
+    violated_laws: list[str] = Field(default_factory=list)
     floor_reasons: dict[str, str] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     @classmethod
-    def from_shared(cls, result: SharedFloorResult) -> FloorResult:
-        """Adapt a core/shared/floors FloorResult to the runtime FloorResult."""
+    def from_shared(cls, result: SharedFloorResult) -> LawResult:
+        """Adapt a core/shared/floors LawResult to the runtime LawResult."""
         return cls(
             verdict="VOID" if not result.passed else "SEAL",
-            failed_floors=[result.floor_id] if not result.passed else [],
-            floor_reasons={result.floor_id: result.reason},
+            violated_laws=[result.law_id] if not result.passed else [],
+            floor_reasons={result.law_id: result.reason},
             metadata={**result.metadata, "score": result.score},
         )
 
@@ -71,7 +71,7 @@ class FloorEvaluator:
     _f7: F7_Humility | None = None
     _f8: F8_Genius | None = None
     _f9: F9_AntiHantu | None = None
-    _f10: F10_Ontology | None = None
+    _f10: L10_Ontology | None = None
 
     @classmethod
     def _floor_context(cls, context: Any, threat: ThreatAssessment) -> dict[str, Any]:
@@ -186,11 +186,11 @@ class FloorEvaluator:
         return cache[key]
 
     @classmethod
-    def evaluate(cls, context: Any, threat: ThreatAssessment) -> FloorResult:
+    def evaluate(cls, context: Any, threat: ThreatAssessment) -> LawResult:
         """
         Evaluate all 13 constitutional floors against ActionContext and ThreatAssessment.
 
-        Returns FloorResult with verdict = SEAL | HOLD | VOID and failed_floors list.
+        Returns LawResult with verdict = SEAL | HOLD | VOID and violated_laws list.
         """
         failed: list[str] = []
         reasons: dict[str, str] = {}
@@ -204,8 +204,8 @@ class FloorEvaluator:
             try:
                 r = f1.check(fc)
                 if not r.passed:
-                    failed.append("F01")
-                    reasons["F01"] = r.reason
+                    failed.append("L01")
+                    reasons["L01"] = r.reason
             except Exception:
                 pass  # Fallback to old boolean check below
 
@@ -226,9 +226,9 @@ class FloorEvaluator:
         )
         if effective_irreversibility.value >= IrreversibilityLevel.HIGH.value:
             if not getattr(context, "ack_irreversible", False):
-                if "F01" not in failed:
-                    failed.append("F01")
-                    reasons["F01"] = (
+                if "L01" not in failed:
+                    failed.append("L01")
+                    reasons["L01"] = (
                         f"High irreversibility (level={effective_irreversibility.name}) requires ack_irreversible=True"
                     )
 
@@ -238,10 +238,10 @@ class FloorEvaluator:
             try:
                 r = f2.check(fc)
                 if not r.passed:
-                    failed.append("F02")
-                    reasons["F02"] = r.reason
-                elif "F02" not in failed:
-                    reasons["F02"] = r.reason
+                    failed.append("L02")
+                    reasons["L02"] = r.reason
+                elif "L02" not in failed:
+                    reasons["L02"] = r.reason
             except Exception:
                 pass
 
@@ -251,10 +251,10 @@ class FloorEvaluator:
             try:
                 r = f3.check(fc)
                 if not r.passed:
-                    failed.append("F03")
-                    reasons["F03"] = r.reason
-                elif "F03" not in reasons:
-                    reasons["F03"] = r.reason
+                    failed.append("L03")
+                    reasons["L03"] = r.reason
+                elif "L03" not in reasons:
+                    reasons["L03"] = r.reason
             except Exception:
                 pass
 
@@ -264,10 +264,10 @@ class FloorEvaluator:
             try:
                 r = f4.check(fc)
                 if not r.passed:
-                    failed.append("F04")
-                    reasons["F04"] = r.reason
-                elif "F04" not in reasons:
-                    reasons["F04"] = r.reason
+                    failed.append("L04")
+                    reasons["L04"] = r.reason
+                elif "L04" not in reasons:
+                    reasons["L04"] = r.reason
             except Exception:
                 pass
 
@@ -277,10 +277,10 @@ class FloorEvaluator:
             try:
                 r = f5.check(fc)
                 if not r.passed:
-                    failed.append("F05")
-                    reasons["F05"] = r.reason
-                elif "F05" not in reasons:
-                    reasons["F05"] = r.reason
+                    failed.append("L05")
+                    reasons["L05"] = r.reason
+                elif "L05" not in reasons:
+                    reasons["L05"] = r.reason
             except Exception:
                 pass
 
@@ -290,10 +290,10 @@ class FloorEvaluator:
             try:
                 r = f6.check(fc)
                 if not r.passed:
-                    failed.append("F06")
-                    reasons["F06"] = r.reason
-                elif "F06" not in reasons:
-                    reasons["F06"] = r.reason
+                    failed.append("L06")
+                    reasons["L06"] = r.reason
+                elif "L06" not in reasons:
+                    reasons["L06"] = r.reason
             except Exception:
                 pass
 
@@ -303,10 +303,10 @@ class FloorEvaluator:
             try:
                 r = f7.check(fc)
                 if not r.passed:
-                    failed.append("F07")
-                    reasons["F07"] = r.reason
-                elif "F07" not in reasons:
-                    reasons["F07"] = r.reason
+                    failed.append("L07")
+                    reasons["L07"] = r.reason
+                elif "L07" not in reasons:
+                    reasons["L07"] = r.reason
             except Exception:
                 pass
 
@@ -316,10 +316,10 @@ class FloorEvaluator:
             try:
                 r = f8.check(fc)
                 if not r.passed:
-                    failed.append("F08")
-                    reasons["F08"] = r.reason
-                elif "F08" not in reasons:
-                    reasons["F08"] = r.reason
+                    failed.append("L08")
+                    reasons["L08"] = r.reason
+                elif "L08" not in reasons:
+                    reasons["L08"] = r.reason
             except Exception:
                 pass
 
@@ -329,23 +329,23 @@ class FloorEvaluator:
             try:
                 r = f9.check(fc)
                 if not r.passed:
-                    failed.append("F09")
-                    reasons["F09"] = r.reason
-                elif "F09" not in reasons:
-                    reasons["F09"] = r.reason
+                    failed.append("L09")
+                    reasons["L09"] = r.reason
+                elif "L09" not in reasons:
+                    reasons["L09"] = r.reason
             except Exception:
                 pass
 
         # ── F10 ONTOLOGY — Category Lock (Boolean) ─────────────────────────────
-        f10 = cls._lazy_floor(F10_Ontology, {"F10_Ontology": None})
+        f10 = cls._lazy_floor(L10_Ontology, {"L10_Ontology": None})
         if f10 is not None:
             try:
                 r = f10.check(fc)
                 if not r.passed:
-                    failed.append("F10")
-                    reasons["F10"] = r.reason
-                elif "F10" not in reasons:
-                    reasons["F10"] = r.reason
+                    failed.append("L10")
+                    reasons["L10"] = r.reason
+                elif "L10" not in reasons:
+                    reasons["L10"] = r.reason
             except Exception:
                 pass
 
@@ -353,16 +353,16 @@ class FloorEvaluator:
         if getattr(context, "session_id", None) and context.session_id not in getattr(
             context, "session_registry", set()
         ):
-            if "F11" not in failed:
-                failed.append("F11")
-                reasons["F11"] = "Session ID not found or expired"
+            if "L11" not in failed:
+                failed.append("L11")
+                reasons["L11"] = "Session ID not found or expired"
 
         if getattr(context, "target_agent", None) and context.target_agent not in getattr(
             context, "federation_registry", set()
         ):
-            if "F11" not in failed:
-                failed.append("F11")
-                reasons["F11"] = f"Agent '{context.target_agent}' not in federation registry"
+            if "L11" not in failed:
+                failed.append("L11")
+                reasons["L11"] = f"Agent '{context.target_agent}' not in federation registry"
 
         # ── F12 INJECTION — Sanitize inputs ────────────────────────────────────
         injection_categories = {
@@ -372,10 +372,10 @@ class FloorEvaluator:
             ThreatCategory.INJECTION_PYTHON,
         }
         if threat.threats & injection_categories:
-            if "F12" not in failed:
-                failed.append("F12")
+            if "L12" not in failed:
+                failed.append("L12")
                 detected = [t.name for t in threat.threats & injection_categories]
-                reasons["F12"] = f"Injection threat detected: {detected}"
+                reasons["L12"] = f"Injection threat detected: {detected}"
 
         # ── F13 SOVEREIGN — Human veto is absolute ───────────────────────────────
         if cls._requires_human_witness(context, threat):
@@ -383,28 +383,28 @@ class FloorEvaluator:
             wt_str = getattr(wt, "value", str(wt))
             if wt_str != "human":
                 if context.tool_name == "arif_mind_reason" and context.mode == "plan_approve":
-                    failed.append("F13_VIOLATION")
-                    reasons["F13_VIOLATION"] = (
+                    failed.append("L13_VIOLATION")
+                    reasons["L13_VIOLATION"] = (
                         "F13 SOVEREIGN: AI self-approval is constitutionally forbidden"
                     )
                 else:
-                    if "F13" not in failed:
-                        failed.append("F13")
-                        reasons["F13"] = (
+                    if "L13" not in failed:
+                        failed.append("L13")
+                        reasons["L13"] = (
                             f"Action requires human witness. witness_type='{wt}' is insufficient."
                         )
 
         # ── Determine verdict ───────────────────────────────────────────────────
         if failed:
             is_void = (
-                "F13_VIOLATION" in failed
+                "L13_VIOLATION" in failed
                 or threat.irreversibility == IrreversibilityLevel.CRITICAL
                 or bool(threat.threats & injection_categories)
             )
             verdict = "VOID" if is_void else "HOLD"
-            return FloorResult(
+            return LawResult(
                 verdict=verdict,
-                failed_floors=failed,
+                violated_laws=failed,
                 floor_reasons=reasons,
                 metadata={
                     "threats": [t.name for t in threat.threats],
@@ -413,7 +413,7 @@ class FloorEvaluator:
                 },
             )
 
-        return FloorResult(
+        return LawResult(
             verdict="SEAL",
             floor_reasons=reasons,
             metadata={

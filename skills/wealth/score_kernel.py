@@ -174,7 +174,7 @@ def wealth_score_kernel(
     if anti_hantu_fail:
         hard_blocks.append("F9_ANTI_HANTU_FAIL")
     if sovereign_veto:
-        hard_blocks.append("F13_SOVEREIGN_VETO")
+        hard_blocks.append("L13_SOVEREIGN_VETO")
 
     # Δm / svs gates
     if entropy_band == "EXTREME":

@@ -71,7 +71,7 @@ class CapabilityGrant(BaseModel):
     risk_ceiling: RiskClass = Field(default=RiskClass.OBSERVE)
     issued_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     expires_at: str | None = Field(default=None, description="ISO timestamp or None for perpetual")
-    issuer: str = Field(default="F13_SOVEREIGN", description="Who issued this grant")
+    issuer: str = Field(default="L13_SOVEREIGN", description="Who issued this grant")
     conditions: list[str] = Field(default_factory=list, description="E.g. 'requires_rollback_plan'")
     revoked: bool = Field(default=False)
     revocation_reason: str | None = None

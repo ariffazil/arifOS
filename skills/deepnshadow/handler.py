@@ -42,7 +42,7 @@ class DeepnShadowSkill:
     """Skill for governed shadow-scar inference."""
 
     NAME = "deepnshadow"
-    FLOOR = "F05"
+    FLOOR = "L05"
 
     def __init__(self, session_id: str, dry_run: bool = True):
         self.session_id = session_id

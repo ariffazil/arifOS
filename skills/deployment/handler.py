@@ -11,7 +11,7 @@ class DeploymentSkill:
     """Skill for deployment with F11 authority checks."""
 
     NAME = "deployment"
-    FLOOR = "F11"
+    FLOOR = "L11"
 
     async def execute(
         self,
@@ -46,7 +46,7 @@ class DeploymentSkill:
         if not operator or operator == "anonymous":
             return {
                 "verdict": "VOID",
-                "floor_violated": "F11",
+                "floor_violated": "L11",
                 "reason": "Anonymous deployment not allowed",
             }
 
@@ -139,7 +139,7 @@ async def execute(
 
 metadata = {
     "name": "deployment",
-    "floor": "F11",
+    "floor": "L11",
     "actions": ["execute_deployment", "rollback"],
     "reversible": True,
 }

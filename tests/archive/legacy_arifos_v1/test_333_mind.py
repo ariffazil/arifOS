@@ -51,7 +51,7 @@ def make_valid_bind_artifact(**overrides):
             "F2_TRUTH": {"name": "TRUTH"},
             "F8_GOVERNANCE": {"name": "GOVERNANCE"},
             "F9_ANTIHANTU": {"name": "ANTI-HANTU"},
-            "F10_ONTOLOGY": {"name": "ONTOLOGY"},
+            "L10_ONTOLOGY": {"name": "ONTOLOGY"},
         },
         "lifecycle": {
             "current_stage": "333_FORGE",

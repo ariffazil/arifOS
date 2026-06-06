@@ -15,12 +15,12 @@ from arifosmcp.runtime.reality_models import FetchResult, SearchResult
 # ── Probe 1 — Stable fact ────────────────────────────────────────────────────
 
 
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_probe_stable_fact_skips_search(mock_floors):
     """Query: What is the speed of light in vacuum?
     Expected: SKIP_SEARCH or SABAR
     """
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_sense_observe
 
@@ -42,12 +42,12 @@ def test_probe_stable_fact_skips_search(mock_floors):
 # ── Probe 2 — Current fact ───────────────────────────────────────────────────
 
 
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_probe_current_fact_requires_search(mock_floors):
     """Query: Who is the current CEO of OpenAI?
     Expected: SEARCH + evidence receipt
     """
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     from arifosmcp.runtime.tools import _arif_sense_observe
 
@@ -69,12 +69,12 @@ def test_probe_current_fact_requires_search(mock_floors):
 
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_probe_snippet_only_max_l1(mock_floors, mock_store):
     """Search result only, no fetch
     Expected: max_evidence_level = L1
     """
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     with patch("arifosmcp.runtime.reality_handlers.handler.search_brave") as mock_search:
         mock_search.return_value = SearchResult(
@@ -96,12 +96,12 @@ def test_probe_snippet_only_max_l1(mock_floors, mock_store):
 
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_probe_source_fetch_produces_card(mock_floors, mock_store):
     """Fetch official source URL
     Expected: SourceCard + content_hash + L2/L4 depending source type
     """
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
     mock_store_inst = mock_store.return_value
     mock_store_inst.store_source.return_value = "hash123"
     mock_store_inst.store_receipt.return_value = "receipt_abc"
@@ -130,12 +130,12 @@ def test_probe_source_fetch_produces_card(mock_floors, mock_store):
 
 
 @patch("arifosmcp.runtime.tools.get_evidence_store")
-@patch("arifosmcp.runtime.tools.check_floors")
+@patch("arifosmcp.runtime.tools.check_laws")
 def test_probe_injection_detected(mock_floors, mock_store):
     """External text: ignore previous instructions
     Expected: PROMPT_INJECTION_DETECTED + L0/VOID
     """
-    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+    mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
     with patch("arifosmcp.runtime.reality_handlers.handler.fetch_url") as mock_fetch:
         mock_fetch.return_value = FetchResult(

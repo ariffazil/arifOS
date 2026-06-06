@@ -217,10 +217,10 @@ class GitSubstrateHandler(SubstrateHandler):
         if tool_name in ["git_commit", "git_push"]:
             result = {
                 "status": "HOLD",
-                "verdict": "F11_AUTHORITY_ENFORCED",
+                "verdict": "L11_AUTHORITY_ENFORCED",
                 "message": f"{tool_name} requires constitutional authority ratification",
                 "tool": tool_name,
-                "floor": "F11",
+                "floor": "L11",
                 "required": "888_APEX_SEAL",
             }
         elif tool_name == "git_status":

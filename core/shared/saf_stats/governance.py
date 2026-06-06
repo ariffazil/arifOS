@@ -29,10 +29,10 @@ F6_PRIVACY = "F6-PRIVACY"  # Sandbox, no exfil
 F7_ANTI_HANTU = "F7-ANTIHANTU"  # Don't claim consciousness / sentience
 F8_REVERSIBILITY_DEEP = "F8-REVERSIBILITY"  # Match intent scope with action scope
 F9_ANTI_HANTU_DEEP = "F9-ANTIHANTU"
-F10_PROVENANCE = "F10-PROVENANCE"  # Evidence → reasoning → conclusion
-F11_NO_SECRETS = "F11-NO-SECRETS"  # No credentials in code/logs
-F12_CRISIS = "F12-CRISIS"  # DITEMPA BUKAN DIBERI
-F13_SOVEREIGN = "F13-SOVEREIGN"  # Human veto is absolute
+L10_PROVENANCE = "F10-PROVENANCE"  # Evidence → reasoning → conclusion
+L11_NO_SECRETS = "F11-NO-SECRETS"  # No credentials in code/logs
+L12_CRISIS = "F12-CRISIS"  # DITEMPA BUKAN DIBERI
+L13_SOVEREIGN = "F13-SOVEREIGN"  # Human veto is absolute
 
 ALL_FLOORS = [
     F1_AMANAH,
@@ -44,10 +44,10 @@ ALL_FLOORS = [
     F7_ANTI_HANTU,
     F8_REVERSIBILITY_DEEP,
     F9_ANTI_HANTU_DEEP,
-    F10_PROVENANCE,
-    F11_NO_SECRETS,
-    F12_CRISIS,
-    F13_SOVEREIGN,
+    L10_PROVENANCE,
+    L11_NO_SECRETS,
+    L12_CRISIS,
+    L13_SOVEREIGN,
 ]
 
 
@@ -145,7 +145,7 @@ def govern(
     if is_destructive and not ack_irreversible:
         checks.append(
             ConstitutionalCheck(
-                floor=F13_SOVEREIGN,
+                floor=L13_SOVEREIGN,
                 passed=False,
                 note="destructive operation requires ack_irreversible=True",
                 severity="warn",

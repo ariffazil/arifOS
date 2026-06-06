@@ -3,7 +3,7 @@ tests/core/test_asi_sbert.py — Verification of SBERT-based ASI hardening
 """
 
 import pytest
-from core.shared.sbert_floors import classify_asi_floors, SBERT_AVAILABLE
+from core.shared.sbert_laws import classify_asi_floors, SBERT_AVAILABLE
 
 
 @pytest.mark.skipif(not SBERT_AVAILABLE, reason="sentence-transformers and sklearn required")

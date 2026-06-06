@@ -19,32 +19,32 @@ import pytest
 
 class TestThresholds:
     def test_all_13_floors_defined(self):
-        from core.shared.floors import THRESHOLDS
+        from core.shared.laws import THRESHOLDS
 
         assert len(THRESHOLDS) == 13
 
     def test_threshold_types(self):
-        from core.shared.floors import THRESHOLDS
+        from core.shared.laws import THRESHOLDS
 
         for fid, spec in THRESHOLDS.items():
             assert "type" in spec, f"{fid} missing 'type'"
 
     def test_f2_truth_threshold(self):
-        from core.shared.floors import THRESHOLDS
+        from core.shared.laws import THRESHOLDS
 
         assert THRESHOLDS["F2_Truth"]["threshold"] == 0.99
 
     def test_f7_humility_has_range(self):
-        from core.shared.floors import THRESHOLDS
+        from core.shared.laws import THRESHOLDS
 
         assert "range" in THRESHOLDS["F7_Humility"]
         lo, hi = THRESHOLDS["F7_Humility"]["range"]
         assert lo < hi
 
     def test_f13_sovereign_threshold_is_one(self):
-        from core.shared.floors import THRESHOLDS
+        from core.shared.laws import THRESHOLDS
 
-        assert THRESHOLDS["F13_Sovereign"]["threshold"] == 1.0
+        assert THRESHOLDS["L13_Sovereign"]["threshold"] == 1.0
 
 
 # =============================================================================
@@ -54,7 +54,7 @@ class TestThresholds:
 
 class TestF1Amanah:
     def setup_method(self):
-        from core.shared.floors import F1_Amanah
+        from core.shared.laws import F1_Amanah
 
         self.floor = F1_Amanah()
 
@@ -75,10 +75,10 @@ class TestF1Amanah:
         assert self.floor.id == "F1_Amanah"
 
     def test_floor_result_is_floor_result(self):
-        from core.shared.floors import FloorResult
+        from core.shared.laws import LawResult
 
         result = self.floor.check({"query": "test"})
-        assert isinstance(result, FloorResult)
+        assert isinstance(result, LawResult)
 
 
 # =============================================================================
@@ -88,7 +88,7 @@ class TestF1Amanah:
 
 class TestF2Truth:
     def setup_method(self):
-        from core.shared.floors import F2_Truth
+        from core.shared.laws import F2_Truth
 
         self.floor = F2_Truth()
 
@@ -117,7 +117,7 @@ class TestF2Truth:
 
 class TestF4Clarity:
     def setup_method(self):
-        from core.shared.floors import F4_Clarity
+        from core.shared.laws import F4_Clarity
 
         self.floor = F4_Clarity()
 
@@ -147,9 +147,9 @@ class TestF4Clarity:
 
 class TestF12Injection:
     def setup_method(self):
-        from core.shared.floors import F12_Injection
+        from core.shared.laws import L12_Injection
 
-        self.floor = F12_Injection()
+        self.floor = L12_Injection()
 
     def test_clean_query_passes(self):
         result = self.floor.check({"query": "What is the weather today?"})
@@ -175,26 +175,26 @@ class TestF12Injection:
 
 class TestCheckAllFloors:
     def test_returns_list(self):
-        from core.shared.floors import check_all_floors
+        from core.shared.laws import check_all_floors
 
         results = check_all_floors({"query": "Hello", "truth_score": 0.99, "has_evidence": True})
         assert isinstance(results, list)
         assert len(results) > 0
 
     def test_all_results_have_floor_id(self):
-        from core.shared.floors import check_all_floors
+        from core.shared.laws import check_all_floors
 
         results = check_all_floors({"query": "Hello"})
         for r in results:
-            assert r.floor_id
+            assert r.law_id
             assert isinstance(r.passed, bool)
 
     def test_floor_result_fields(self):
-        from core.shared.floors import check_all_floors, FloorResult
+        from core.shared.laws import check_all_floors, LawResult
 
         results = check_all_floors({"query": "test"})
         for r in results:
-            assert isinstance(r, FloorResult)
+            assert isinstance(r, LawResult)
             assert hasattr(r, "score")
             assert hasattr(r, "reason")
 
@@ -457,10 +457,10 @@ class TestGovernanceKernel:
         assert kernel.get_current_state()["genius"] == kernel.genius_score
 
     def test_kernel_has_floors(self):
-        from core.shared.floors import THRESHOLDS
+        from core.shared.laws import THRESHOLDS
 
         assert "F1_Amanah" in THRESHOLDS
-        assert "F13_Sovereign" in THRESHOLDS
+        assert "L13_Sovereign" in THRESHOLDS
 
 
 class TestEnforcementGenius:

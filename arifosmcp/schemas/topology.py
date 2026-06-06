@@ -171,7 +171,7 @@ class AntiSinkCheck(BaseModel):
                     "verdict": "hold",
                     "confidence": "medium",
                     "notes": ["Automation is removing all human decision points."],
-                    "constitutional_floors_checked": ["F05", "F08", "F10", "F13"],
+                    "constitutional_floors_checked": ["L05", "L08", "L10", "L13"],
                 }
             ]
         }
@@ -245,7 +245,7 @@ class InstitutionalDrift(BaseModel):
                     "verdict": "extractive",
                     "confidence": "medium",
                     "notes": ["Human veto exists only as rubber-stamp."],
-                    "constitutional_floors_checked": ["F05", "F08", "F10", "F13"],
+                    "constitutional_floors_checked": ["L05", "L08", "L10", "L13"],
                 }
             ]
         }

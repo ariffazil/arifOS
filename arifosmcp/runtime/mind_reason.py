@@ -304,7 +304,7 @@ Distinguish CLAIM from FACT."""
                     "detail": "Primary reasoning engine unavailable",
                 }
             ],
-            "axioms_used": ["F07"],
+            "axioms_used": ["L07"],
             "next_safe_action": ["222_EVIDENCE", "888_JUDGE"],
         }
         provenance = _FIELD_PROVENANCE_FALLBACK
@@ -376,9 +376,13 @@ Distinguish CLAIM from FACT."""
             "governance_level": ("governed_reasoning" if session_id else "ungoverned_reflection"),
         },
         "actor": {
-            "requested_actor_id": actor_id,
-            "resolved_actor_id": actor_id if actor_id else "anonymous",
+            "claimed_id": actor_id or "anonymous",
+            "verified_id": actor_id if actor_id else None,
+            "verification_method": "none",
+            "trust_level": "claimed" if actor_id else "anonymous",
+            "effective_actor": actor_id if actor_id else "anonymous_until_verified",
             "actor_binding_confidence": 1.0 if actor_id else 0.5,
+            "mismatch_warning": None,
         },
         # Metadata
         "timestamp": timestamp,
@@ -608,7 +612,7 @@ async def arif_mind_reason_v2(request: MindRequest) -> MindResponse:
 
     governance = MindGovernance(
         axioms_used=[a.name for a in abstractions if a.type == "axiom"],
-        floors_checked=["F02", "F04", "F07", "F08"],
+        floors_checked=["L02", "L04", "L07", "L08"],
         verdict="OK" if synthesis.confidence.get("overall_confidence", 0) > 0.7 else "HOLD",
     )
 

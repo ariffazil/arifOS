@@ -213,13 +213,13 @@ def rule_8_emotional_requires_confirm(envelope: MemoryEventEnvelope) -> None:
             # Check for explicit confirmation marker in governance floors or tags
             confirmed = (
                 "user_confirmed" in envelope.tags
-                or "F13_CONFIRMED" in envelope.governance.floors
+                or "L13_CONFIRMED" in envelope.governance.floors
             )
             if not confirmed:
                 raise MemoryHardRuleViolation(
                     8,
                     "Emotional-state memory requires explicit user confirmation to become persistent. "
-                    "Add tag 'user_confirmed' or floor 'F13_CONFIRMED', or downgrade to session/ephemeral.",
+                    "Add tag 'user_confirmed' or floor 'L13_CONFIRMED', or downgrade to session/ephemeral.",
                 )
 
 

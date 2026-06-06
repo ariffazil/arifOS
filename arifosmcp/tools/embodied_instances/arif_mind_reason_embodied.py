@@ -58,7 +58,7 @@ class ArifMindReasonEmbodied(EmbodiedTool):
     reversibility = "reversible"
     blast_radius = "low"
     required_permissions = []
-    required_floors = ["F02", "F07", "F08", "F10"]
+    required_floors = ["L02", "L07", "L08", "L10"]
     safe_compose_with = [
         "arif_sense_observe",
         "arif_evidence_fetch",

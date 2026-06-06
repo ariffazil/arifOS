@@ -47,7 +47,7 @@ async def test_seal_e2e():
             judge_payload = json.loads(res_judge.content[0].text)
             assert judge_payload.get("status") == "HOLD"
             assert (
-                "F13" in judge_payload.get("meta", {}).get("reason", "")
+                "L13" in judge_payload.get("meta", {}).get("reason", "")
                 or "elicitation" in judge_payload.get("meta", {}).get("reason", "").lower()
                 or "self-certify" in judge_payload.get("meta", {}).get("reason", "").lower()
             )

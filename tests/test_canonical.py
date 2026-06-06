@@ -24,7 +24,7 @@ from arifosmcp.resources import (
     TREE777_RESOURCES,
     register_resources,
 )
-from arifosmcp.runtime.floor import get_floor_status
+from arifosmcp.runtime.law import get_floor_status
 from arifosmcp.runtime.tools import (
     IrreversibleConfirmation,
     JudgeCandidateInput,

@@ -56,7 +56,7 @@ CANONICAL_RESOURCE_SPECS: tuple[ResourceSpec, ...] = (
         name="arifOS Doctrine",
         description=(
             "Immutable constitutional substrate. F1-F13 floors, verdict schema, Gödel Lock, agent skills manifest. "
-            "Sub-resources: arifos://doctrine/floor/{floor_id}, arifos://doctrine/skill/{skill_name}"
+            "Sub-resources: arifos://doctrine/floor/{law_id}, arifos://doctrine/skill/{skill_name}"
         ),
         mime_type="application/json",
         dynamic=False,

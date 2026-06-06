@@ -122,7 +122,7 @@ reset()
 r = propose_plan(intent={"description": "staging deploy"}, tasks=[], risk_band="HIGH", irreversible=True)
 test("starts PENDING_APPROVAL", r["plan"]["status"] == "PENDING_APPROVAL", r["plan"]["status"])
 r2 = update_status(r["plan"]["plan_id"], "APPROVED", "APPROVED",
-                   {"F0": "ok", "F1": "ok", "F13": "ok"}, "Staging only, rollback ready", "arif-human")
+                   {"F0": "ok", "F1": "ok", "L13": "ok"}, "Staging only, rollback ready", "arif-human")
 test("verdict SEAL", r2["verdict"] == "SEAL", r2["verdict"])
 test("plan APPROVED", r2["plan"]["status"] == "APPROVED", r2["plan"]["status"])
 test("receipt has floor sigs", len(r2["receipt"]["floor_signatures"]) >= 3, r2["receipt"]["floor_signatures"])

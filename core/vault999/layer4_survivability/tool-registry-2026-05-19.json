@@ -13,7 +13,7 @@
       "sealed": true,
       "stage": "222",
       "organ": "PO",
-      "floor_map": ["F2", "F3", "F5", "F12"],
+      "floor_map": ["F2", "F3", "F5", "L12"],
       "status": "SEALED",
       "note": "Fully implemented in constitutional_map.py + embodied.py. Sealed 2026-05-19."
     },
@@ -26,7 +26,7 @@
       "sealed": true,
       "stage": "010",
       "organ": "EE",
-      "floor_map": ["F1", "F2", "F3", "F13"],
+      "floor_map": ["F1", "F2", "F3", "L13"],
       "status": "SEALED"
     },
     {
@@ -38,7 +38,7 @@
       "sealed": true,
       "stage": "050",
       "organ": "CL",
-      "floor_map": ["F1", "F2", "F13"],
+      "floor_map": ["F1", "F2", "L13"],
       "status": "SEALED"
     },
     {
@@ -62,7 +62,7 @@
       "sealed": true,
       "stage": "555",
       "organ": "GK",
-      "floor_map": ["F1", "F2", "F3", "F13"],
+      "floor_map": ["F1", "F2", "F3", "L13"],
       "status": "SEALED"
     },
     {
@@ -74,7 +74,7 @@
       "sealed": true,
       "stage": "020",
       "organ": "GK",
-      "floor_map": ["F1", "F2", "F13"],
+      "floor_map": ["F1", "F2", "L13"],
       "status": "SEALED"
     },
     {
@@ -86,7 +86,7 @@
       "sealed": true,
       "stage": "030",
       "organ": "TB",
-      "floor_map": ["F2", "F4", "F11"],
+      "floor_map": ["F2", "F4", "L11"],
       "status": "SEALED"
     },
     {
@@ -98,7 +98,7 @@
       "sealed": true,
       "stage": "333",
       "organ": "MH",
-      "floor_map": ["F2", "F4", "F7", "F13"],
+      "floor_map": ["F2", "F4", "F7", "L13"],
       "status": "SEALED"
     },
     {
@@ -134,7 +134,7 @@
       "sealed": true,
       "stage": "111",
       "organ": "PO",
-      "floor_map": ["F1", "F2", "F3", "F13"],
+      "floor_map": ["F1", "F2", "F3", "L13"],
       "status": "SEALED"
     },
     {
@@ -146,7 +146,7 @@
       "sealed": true,
       "stage": "000",
       "organ": "GK",
-      "floor_map": ["F1", "F2", "F11", "F13"],
+      "floor_map": ["F1", "F2", "L11", "L13"],
       "status": "SEALED"
     },
     {
@@ -158,7 +158,7 @@
       "sealed": true,
       "stage": "666",
       "organ": "SI",
-      "floor_map": ["F1", "F2", "F3", "F11", "F13"],
+      "floor_map": ["F1", "F2", "F3", "L11", "L13"],
       "status": "SEALED"
     },
     {

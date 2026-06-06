@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from arifosmcp.runtime.floor import get_active_floors
+from arifosmcp.runtime.law import get_active_floors
 
 logger = logging.getLogger(__name__)
 
@@ -138,7 +138,7 @@ async def _architect_design(query: str, context: dict, session_id: str) -> dict:
             "data_flow": _suggest_data_flow(query),
             "constitutional_checklist": _constitutional_checklist(query),
         },
-        "floors_relevant": ["F1", "F2", "F4", "F7", "F9", "F13"],
+        "floors_relevant": ["F1", "F2", "F4", "F7", "F9", "L13"],
         "priority_assigned": priority,
         "constraints": constraints,
     }
@@ -166,7 +166,7 @@ async def _architect_review(query: str, context: dict, session_id: str) -> dict:
             },
             "F7_HUMILITY": {"status": "PASS", "notes": "No overconfidence detected"},
             "F9_TAQWA": {"status": "PASS", "notes": "No harm vectors"},
-            "F13_KHILAFAH": {"status": "PASS", "notes": "Human authority preserved"},
+            "L13_KHILAFAH": {"status": "PASS", "notes": "Human authority preserved"},
         },
         "overall_verdict": "SEAL",
     }
@@ -181,7 +181,7 @@ async def _architect_refactor(query: str, context: dict, session_id: str) -> dic
             {
                 "priority": "P0",
                 "change": "Add constitutional error handling",
-                "floors": ["F1", "F11"],
+                "floors": ["F1", "L11"],
             },
             {
                 "priority": "P1",
@@ -209,7 +209,7 @@ async def _architect_decision(query: str, context: dict, session_id: str) -> dic
             "F4": "clear",
             "F7": "humble",
             "F9": "safe",
-            "F13": "human_in_charge",
+            "L13": "human_in_charge",
         },
     }
 
@@ -252,7 +252,7 @@ def _constitutional_checklist(query: str) -> list[dict]:
         {"floor": "F4", "check": "Is complexity justified?", "status": "TODO"},
         {"floor": "F7", "check": "Are uncertainty bands declared?", "status": "TODO"},
         {"floor": "F9", "check": "Does this cause harm?", "status": "TODO"},
-        {"floor": "F13", "check": "Is human authority preserved?", "status": "TODO"},
+        {"floor": "L13", "check": "Is human authority preserved?", "status": "TODO"},
     ]
 
 

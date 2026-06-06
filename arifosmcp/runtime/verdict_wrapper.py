@@ -66,8 +66,8 @@ def forge_verdict(
         contradiction_flags.append("SCHEMA_INVALID")
     if p.get("dignity_verdict") == "COMPROMISED":
         contradiction_flags.append("DIGNITY_COMPROMISED")
-    if p.get("F02_TRUTH") is False:
-        contradiction_flags.append("F02_TRUTH_FALSE")
+    if p.get("L02_TRUTH") is False:
+        contradiction_flags.append("L02_TRUTH_FALSE")
     if p.get("execution_verdict") == "DEGRADED_FALLBACK":
         contradiction_flags.append("FALLBACK_MODE")
     is_contradiction = bool(contradiction_flags)
@@ -145,7 +145,7 @@ def forge_verdict(
         ),
         diagnostics={
             "metrics": metrics.model_dump() if hasattr(metrics, "model_dump") else {},
-            "floors_checked": floors_checked or ["F4", "F11"],
+            "floors_checked": floors_checked or ["F4", "L11"],
             "reason": reason,
             "message": message,
             "contradiction_flags": contradiction_flags if is_contradiction else [],

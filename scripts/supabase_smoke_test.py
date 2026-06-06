@@ -101,7 +101,7 @@ async def run_fk_batch(session_ref: str):
                     session_ref,
                     "SEAL",
                     1,
-                    json.dumps({"F01": "pass", "F13": "pass"}),
+                    json.dumps({"L01": "pass", "L13": "pass"}),
                     "Smoke test verdict",
                     "arifOS:888_JUDGE",
                     now,

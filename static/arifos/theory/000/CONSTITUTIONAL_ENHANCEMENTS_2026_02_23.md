@@ -61,7 +61,7 @@ Only execute tool if APEX grants SEAL.
 """
 ```
 
-**Constitutional Floors Enforced**:
+**Constitutional Laws Enforced**:
 - F1 (Amanah): No fabrication, admit uncertainty
 - F3 (Contracts): Type safety, honor schemas
 - F5 (Reversibility): Halt before destructive operations

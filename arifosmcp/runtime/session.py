@@ -633,7 +633,7 @@ def validate_session(
             return {
                 "valid": False,
                 "record": None,
-                "code": "F11_MISSING",
+                "code": "L11_MISSING",
                 "reason": "session_id is required but was not provided",
             }
         return {
@@ -648,7 +648,7 @@ def validate_session(
         return {
             "valid": False,
             "record": None,
-            "code": "F11_EXPIRED",
+            "code": "L11_EXPIRED",
             "reason": f"session_id not found or expired: {session_id}",
         }
 
@@ -656,7 +656,7 @@ def validate_session(
         return {
             "valid": False,
             "record": record,
-            "code": "F11_MISMATCH",
+            "code": "L11_MISMATCH",
             "reason": f"Actor mismatch: expected {actor_id}, got {record.get('actor_id')}",
         }
 

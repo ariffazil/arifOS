@@ -15,7 +15,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from arifosmcp.core.floor_evaluator import FloorEvaluator
+from arifosmcp.core.law_evaluator import FloorEvaluator
 from arifosmcp.core.threat_engine import ThreatAssessment
 
 

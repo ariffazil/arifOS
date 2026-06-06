@@ -40,7 +40,7 @@ class VPSMonitorSkill:
             return {
                 "ok": False,
                 "verdict": "VOID",
-                "error": f"F12_BLOCKED: Action '{action}' is not in the safe-list.",
+                "error": f"L12_BLOCKED: Action '{action}' is not in the safe-list.",
             }
 
         if dry_run:

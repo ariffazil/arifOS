@@ -132,7 +132,7 @@ async def agi(
         """F12: scan LLM output before injecting into next phase prompt."""
         if _f12(text) >= 0.7:
             logger.warning("[%s] F12 injection pattern in %s output — excised", session_id, phase)
-            return f"[F12_EXCISED:{phase}]"
+            return f"[L12_EXCISED:{phase}]"
         return text
 
     # =============================================================================

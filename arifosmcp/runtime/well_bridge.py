@@ -167,9 +167,9 @@ def apply_metabolic_constraints(
                         + f" [W6-LOW_CAPACITY] Rest interval active ({30 - int(elapsed_min)} min remaining)."
                     )
                 else:
-                    constraints_applied.append("W6-LOW_CAPACITY-F13_AVAILABLE")
+                    constraints_applied.append("W6-LOW_CAPACITY-L13_AVAILABLE")
             else:
-                constraints_applied.append("W6-LOW_CAPACITY-F13_AVAILABLE")
+                constraints_applied.append("W6-LOW_CAPACITY-L13_AVAILABLE")
 
     if constraints_applied:
         governance_state["metabolic_constraints"] = constraints_applied

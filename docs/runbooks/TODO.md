@@ -30,7 +30,7 @@
 - [x] **Separation of Powers:** Governance (9) and Execution (1) strictly separated
 - [x] **AAA MCP Induction:** Unified arifOS repository, collapsed `AAA/` shadow workspace.
 - [x] **Substrate Controller:** Implemented auto-risk detection and `888_HOLD` in `tools_hardened_dispatch.py`.
-- [x] **000/ Kernel Induction:** Established the 13 Constitutional Floors as the root governing substrate.
+- [x] **000/ Kernel Induction:** Established the 13 Constitutional Laws as the root governing substrate.
 - [x] **Agent Skills Resource:** Implement `arifos://agents/skills` URI.
 - [x] **Unified DEPLOY:** Consolidated VPS deployment into a single, directive-style `DEPLOY.md`.
 - [x] **A-RIF Framework:** Created `000_A-RIF.md` — Retrieval Augmented Generation with constitutional floors.

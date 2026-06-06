@@ -72,7 +72,7 @@ pre-commit run --all-files                 # Manual quality check
 
 ---
 
-## 4. The 13 Constitutional Floors (F1–F13)
+## 4. The 13 Constitutional Laws (F1–F13)
 
 Every tool call must be validated against these floors:
 

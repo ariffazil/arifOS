@@ -31,7 +31,7 @@ Every arifOS action requires consensus across three rings. No ring can override 
 
 ***
 
-## The 13 Constitutional Floors
+## The 13 Constitutional Laws
 
 | # | Floor | Type | Invariant |
 |---|-------|------|-----------|

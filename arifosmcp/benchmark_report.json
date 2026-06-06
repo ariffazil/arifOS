@@ -12,7 +12,7 @@
       "output_size": 8014,
       "verdict": "SEAL",
       "floors_passed": [
-        "F12"
+        "L12"
       ],
       "floors_failed": [],
       "error": null,
@@ -128,9 +128,9 @@
       "output_size": 10021,
       "verdict": "Verdict.SEAL",
       "floors_passed": [
-        "F12",
-        "F11",
-        "F13"
+        "L12",
+        "L11",
+        "L13"
       ],
       "floors_failed": [],
       "error": null,

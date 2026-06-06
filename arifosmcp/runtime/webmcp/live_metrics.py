@@ -21,7 +21,7 @@ from typing import Any
 
 import httpx
 
-from arifosmcp.runtime.floor import get_floor_count
+from arifosmcp.runtime.law import get_floor_count
 
 try:
     import psutil
@@ -235,7 +235,7 @@ class LiveMetricsCollector:
         """Collect arifOS governance metrics."""
         try:
             # import core modules
-            from core.shared.floors import THRESHOLDS
+            from core.shared.laws import THRESHOLDS
 
             from core.physics.thermodynamics_hardened import get_thermodynamic_report
 
@@ -249,19 +249,19 @@ class LiveMetricsCollector:
             floors_passing = 0
             floors_failing = 0
 
-            for floor_id, config in THRESHOLDS.items():
+            for law_id, config in THRESHOLDS.items():
                 # Check if floor is currently passing (this would come from actual checks)
                 # For now, use healthy defaults
                 is_passing = True
                 status = "pass"
 
-                if floor_id in ["F10", "F11"]:
+                if law_id in ["L10", "L11"]:
                     status = "lock"
-                elif floor_id == "F13":
+                elif law_id == "L13":
                     status = "human"
 
-                floors[floor_id] = {
-                    "name": config.get("name", floor_id),
+                floors[law_id] = {
+                    "name": config.get("name", law_id),
                     "type": config.get("type", "Hard"),
                     "threshold": str(config.get("threshold", "N/A")),
                     "status": status,

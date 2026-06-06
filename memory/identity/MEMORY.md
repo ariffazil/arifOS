@@ -80,7 +80,7 @@ The Sovereign (Arif Fazil) performed a deterministic audit and "Horizon Rebuild"
 ## 🛠️ System Architecture (Unified)
 
 - **Transport**: `streamable-http` (FastMCP 3.2.0) with ChatGPT/Claude parity.
-- **Governance**: F1-F13 Constitutional Floors enforced at the kernel dispatcher.
+- **Governance**: F1-F13 Constitutional Laws enforced at the kernel dispatcher.
 - **Deployment**: Unified Docker Trinity Stack (Traefik + Postgre + Redis + Qdrant + Ollama + arifOS).
 
 

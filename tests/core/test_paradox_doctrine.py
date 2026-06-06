@@ -25,7 +25,7 @@ from core.paradox.conflict_resolver import (
     conservative_wins,
     resolve_verdict_conflict,
 )
-from core.floors import ConstitutionalFloors, evaluate_tool_call, Verdict
+from core.laws import ConstitutionalFloors, evaluate_tool_call, Verdict
 
 
 class TestCircuitBreakers:

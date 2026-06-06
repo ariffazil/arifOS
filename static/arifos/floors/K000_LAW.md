@@ -4,7 +4,7 @@ version: "v2026.06.03-F13-RATIFIED"
 epoch: "2026-06-03"
 sealed_by: "F13 SOVEREIGN — Muhammad Arif bin Fazil"
 authority: "Muhammad Arif bin Fazil"
-status: "F13_RATIFIED"
+status: "L13_RATIFIED"
 hash: "SHA256:SEALED"
 ratification_event: "F13-RATIFICATION-2026-06-03-FLOOR-CHARTER"
 ---

@@ -18,7 +18,7 @@
 AAA MCP-governed constitutional kernel for AI agents. The implementation layer of APEX-THEORY.
 
 **Key Components:**
-- 13 Constitutional Floors (F1-F13)
+- 13 Constitutional Laws (F1-F13)
 - 888 Judge Protocol
 - 4 Dials (A, P, E, X)
 - MCP Server (`io.github.ariffazil/aaa-mcp`)

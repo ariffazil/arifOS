@@ -390,13 +390,13 @@ class FloorComplianceProof(BaseModel):
     )
 
     # Per-floor results
-    floor_results: dict[str, str] = Field(
+    law_results: dict[str, str] = Field(
         default_factory=dict,
         description="Per-floor result: 'PASS' | 'FAIL' | 'OVERRIDE' | 'N/A'",
     )
 
     # Failed floors
-    failed_floors: list[str] = Field(
+    violated_laws: list[str] = Field(
         default_factory=list, description="Floors that returned HOLD or VOID"
     )
     failed_floor_reasons: dict[str, str] = Field(
@@ -487,6 +487,63 @@ class CivilizationalAnchor(BaseModel):
         default=None,
         description="Why this anchor was selected for this specific decision",
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEGRADED MODE — RUNTIME DEGRADE STATES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class DegradedMode(StrEnum):
+    """Runtime degradation state when policy or approval is unavailable."""
+
+    FULL = "full"  # Normal operation
+    OBSERVE_ONLY = "observe_only"  # Downshifted to read-only
+    DENY = "deny"  # Default deny — all mutations blocked
+    CIRCUIT_OPEN = "circuit_open"  # Circuit breaker tripped
+
+
+class CircuitBreaker(BaseModel):
+    """Circuit breaker state for fault-tolerant degradation."""
+
+    open: bool = Field(default=False, description="Is the circuit open?")
+    reason: str | None = Field(default=None, description="Why the circuit opened")
+    half_open_attempts: int = Field(
+        default=0, ge=0, description="Attempts made in half-open state"
+    )
+    last_failure: str | None = Field(default=None, description="Timestamp or reason of last failure")
+    consecutive_failures: int = Field(
+        default=0, ge=0, description="Failures before circuit opened"
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# APPROVAL REQUIRED — DURABLE APPROVAL OBJECT
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class ApprovalRequired(BaseModel):
+    """
+    Durable approval object for high-impact actions.
+
+    NOT an ad-hoc UI prompt — this is a structured, traceable, expirable
+    approval record that links to evidence and can be replayed.
+    """
+
+    subject: str = Field(description="Who or what needs approval")
+    action: str = Field(description="What action is being requested")
+    scope: list[str] = Field(default_factory=list, description="Scoped boundaries of the action")
+    expires_at: datetime | None = Field(default=None, description="When this approval expires")
+    evidence_link: str | None = Field(
+        default=None, description="Link to evidence that triggered the approval request"
+    )
+    resolution_status: str = Field(
+        default="pending",
+        description="pending | approved | declined | modified | expired | superseded",
+    )
+    resolved_by: str | None = Field(default=None, description="Who resolved the approval")
+    resolution_reason: str | None = Field(default=None, description="Why it was resolved this way")
+    resolution_timestamp: datetime | None = Field(default=None, description="When it was resolved")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -642,7 +699,7 @@ class VerdictOutput(BaseModel):
         default_factory=list,
         description=(
             "List of constitutional invariants tested during this verdict "
-            "(e.g., F01_reversibility, F11_identity, F13_sovereign). "
+            "(e.g., L01_reversibility, L11_identity, L13_sovereign). "
             "Proves WHY the verdict was reached, not just WHAT."
         ),
     )
@@ -665,6 +722,27 @@ class VerdictOutput(BaseModel):
     requires_888_judge: bool = Field(
         default=False,
         description="Does this candidate require 888_JUDGE re-review before action?",
+    )
+
+    # ── v3.1 Degrade Modes (ChatGPT Deep Research integration) ──────────────
+    # If policy decision is unavailable → default deny.
+    # If approval service is unavailable → downshift actionable tools to observe-only.
+    # If model/tool registry lacks valid attestation → refuse activation.
+    degraded_mode: DegradedMode = Field(
+        default=DegradedMode.FULL,
+        description="Runtime degradation state: full | observe_only | deny | circuit_open",
+    )
+    circuit_breaker: CircuitBreaker = Field(
+        default_factory=CircuitBreaker,
+        description="Circuit breaker state for fault-tolerant degradation",
+    )
+
+    # ── v3.1 Durable Approval Object (ChatGPT Deep Research integration) ────
+    # Structured approval record with subject, action, scope, expiration,
+    # evidence link, and resolution status. Replaces ad-hoc UI prompts.
+    approval_required: ApprovalRequired | None = Field(
+        default=None,
+        description="Durable approval object if the verdict requires human sign-off",
     )
 
     timestamp: str | None = None

@@ -392,7 +392,7 @@ def _build_constitutional_audit(session_id: str) -> dict[str, Any]:
     Build the constitutional audit report for audit_rules tool.
     Returns the 13 Floors, their thresholds, and current governance state.
     """
-    from core.shared.floors import FLOOR_SPEC_KEYS, THRESHOLDS
+    from core.shared.laws import LAW_SPEC_KEYS, THRESHOLDS
     from core.state.session_manager import session_manager
 
     # Build floors report using canonical floor specs
@@ -413,16 +413,16 @@ def _build_constitutional_audit(session_id: str) -> dict[str, Any]:
             "name": "Anti-Hantu (Shadow)",
             "doctrine": "C_dark < 0.30 (no deception)",
         },
-        "F10": {"name": "Ontology Lock", "doctrine": "Category precision"},
-        "F11": {"name": "Command Authority", "doctrine": "Verified identity"},
-        "F12": {"name": "Injection Defense", "doctrine": "Input sanitization"},
-        "F13": {"name": "Sovereign Override", "doctrine": "Human final authority"},
+        "L10": {"name": "Ontology Lock", "doctrine": "Category precision"},
+        "L11": {"name": "Command Authority", "doctrine": "Verified identity"},
+        "L12": {"name": "Injection Defense", "doctrine": "Input sanitization"},
+        "L13": {"name": "Sovereign Override", "doctrine": "Human final authority"},
     }
 
-    for floor_id in [f"F{i}" for i in range(1, 14)]:
-        spec_key = FLOOR_SPEC_KEYS.get(floor_id)
+    for law_id in [f"F{i}" for i in range(1, 14)]:
+        spec_key = LAW_SPEC_KEYS.get(law_id)
         threshold_data = THRESHOLDS.get(spec_key, {}) if spec_key else {}
-        meta = floor_metadata.get(floor_id, {})
+        meta = floor_metadata.get(law_id, {})
 
         # Format threshold for display
         threshold_val = threshold_data.get("threshold")
@@ -434,12 +434,12 @@ def _build_constitutional_audit(session_id: str) -> dict[str, Any]:
         else:
             threshold_str = "HARD"
 
-        floor_type = threshold_data.get("type", "SOFT")
+        law_type = threshold_data.get("type", "SOFT")
 
         floor_data = {
-            "floor_id": floor_id,
-            "name": meta.get("name", floor_id),
-            "type": floor_type,
+            "law_id": law_id,
+            "name": meta.get("name", law_id),
+            "type": law_type,
             "threshold": threshold_str,
             "doctrine": meta.get("doctrine", threshold_data.get("desc", "—")),
         }
@@ -473,9 +473,9 @@ def _build_constitutional_audit(session_id: str) -> dict[str, Any]:
         "discovery_resource": "canon://contracts",
         "floor_runtime_hooks": [
             "F1_AMANAH",
-            "F11_AUDIT",
-            "F12_INJECTION",
-            "F13_SOVEREIGN",
+            "L11_AUDIT",
+            "L12_INJECTION",
+            "L13_SOVEREIGN",
         ],
         "guidance": "Run init_anchor to establish a governed session (Bootstrap sequence).",
         "doctrine_to_runtime": [
@@ -498,7 +498,7 @@ def _build_vitals_report(session_id: str) -> dict[str, Any]:
     Build the system vitals report for check_vital tool.
     Returns health status, thermodynamic budget, and capability map.
     """
-    from core.shared.floors import THRESHOLDS
+    from core.shared.laws import THRESHOLDS
 
     from arifosmcp.runtime.session import get_session_identity
 

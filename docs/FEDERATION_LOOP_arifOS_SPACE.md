@@ -93,7 +93,7 @@ WELL is the only organ that can **block** a decision class before capital or ear
 
 ***
 
-## 13 Constitutional Floors — Enforcement Summary
+## 13 Constitutional Laws — Enforcement Summary
 
 | Floor | Name | Type | Enforcement Point |
 |---|---|---|---|

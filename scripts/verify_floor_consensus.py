@@ -30,10 +30,10 @@ CANONICAL = {
     "F7":  ("HUMILITY",      "HARD"),
     "F8":  ("GENIUS",        "DERIVED"),
     "F9":  ("ANTI_HANTU",    "HARD"),      # FIX applied: was SOFT
-    "F10": ("ONTOLOGY",      "HARD"),
-    "F11": ("COMMAND_AUTH",  "HARD"),
-    "F12": ("INJECTION",     "HARD"),
-    "F13": ("SOVEREIGN",     "HARD"),
+    "L10": ("ONTOLOGY",      "HARD"),
+    "L11": ("COMMAND_AUTH",  "HARD"),
+    "L12": ("INJECTION",     "HARD"),
+    "L13": ("SOVEREIGN",     "HARD"),
 }
 
 
@@ -50,10 +50,10 @@ PRE_FIX_HEALTH = {
     "F7":  "soft",     # WRONG: should be hard
     "F8":  "soft",     # WRONG: should be derived
     "F9":  "hard",     # kernel enforces hard; doctrine said soft
-    "F10": "hard",
-    "F11": "hard",
-    "F12": "soft",     # WRONG: should be hard
-    "F13": "hard",
+    "L10": "hard",
+    "L11": "hard",
+    "L12": "soft",     # WRONG: should be hard
+    "L13": "hard",
 }
 
 
@@ -80,7 +80,7 @@ def main() -> int:
         return 1
 
     gov = health.get("governance", {})
-    live_hard = set(gov.get("floors_hard_doctrinal", []))
+    live_hard = set(gov.get("laws_hard_active", []))
     live_soft_full = set(gov.get("floors_soft_doctrinal", []))
     live_derived = set(gov.get("floors_derived_doctrinal", []))
     live_report = gov.get("floors_health_report", {})
@@ -128,7 +128,7 @@ def main() -> int:
 
     print("  LIVE /health vs CANONICAL")
     print("  ──────────────────────────")
-    print(f"  floors_hard_doctrinal    : {sorted(live_hard)}")
+    print(f"  laws_hard_active    : {sorted(live_hard)}")
     print(f"  canonical hard           : {sorted(canon_hard)}")
     print(f"  match                    : {'✓' if hard_match else '✗'}")
     print()

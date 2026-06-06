@@ -225,7 +225,7 @@ F2_pass = {ω ∈ Ω : truth_score(ω) ≥ 0.99}
 F6_pass = {ω ∈ Ω : kappa_r(ω) ≥ 0.70}
 ...
 
-Tri-Witness = F2_pass ∩ F6_pass ∩ ... ∩ F13_pass
+Tri-Witness = F2_pass ∩ F6_pass ∩ ... ∩ L13_pass
 ```
 
 **Constitutional Enforcement:**

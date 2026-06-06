@@ -3,7 +3,7 @@
 **Version:** v52.5.1
 **Status:** SEALED
 **Authority:** Muhammad Arif bin Fazil
-**Constitutional Floors:** F1, F8, F12
+**Constitutional Laws:** F1, F8, F12
 
 ---
 
@@ -99,7 +99,7 @@ Enter your name: Muhammad Arif bin Fazil
 - `VAULT999/AAA_HUMAN/rootkey.json` (400 perms)
 - Log entry in `VAULT999/BBB_LEDGER/rootkey_gen_log.json`
 
-**Constitutional Floors Enforced:**
+**Constitutional Laws Enforced:**
 - F1 Amanah: Generation logged, reversible
 - F8 Tri-Witness: Multiple entropy sources
 - F12 Injection Defense: AI cannot run script

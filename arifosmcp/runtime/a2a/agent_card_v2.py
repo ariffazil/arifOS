@@ -57,8 +57,8 @@ class ConstitutionalMetadata(BaseModel):
             "F7_CONFIDENCE",
             "F8_GROUNDING",
             "F9_INJECTION",
-            "F11_COHERENCE",
-            "F13_SOVEREIGN",
+            "L11_COHERENCE",
+            "L13_SOVEREIGN",
         ]
     )
     trinity: str = "ΔΩΨ"
@@ -225,8 +225,8 @@ class ArifOSAgentCard(BaseModel):
                         "F7_CONFIDENCE",
                         "F8_GROUNDING",
                         "F9_INJECTION",
-                        "F11_COHERENCE",
-                        "F13_SOVEREIGN",
+                        "L11_COHERENCE",
+                        "L13_SOVEREIGN",
                     ],
                     "trinity": "ΔΩΨ",
                     "motto": "Ditempa Bukan Diberi — Forged, Not Given",

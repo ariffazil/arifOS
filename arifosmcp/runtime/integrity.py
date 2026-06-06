@@ -44,7 +44,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "router_visible": True,
         "risk_class": "low",
         "governance_critical": True,
-        "floors": ["F11", "F12", "F13"],
+        "floors": ["L11", "L12", "L13"],
     },
     "arifos_sense": {
         "stage": "111",
@@ -53,7 +53,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "router_visible": True,
         "risk_class": "low",
         "governance_critical": True,
-        "floors": ["F2", "F3", "F4", "F10"],
+        "floors": ["F2", "F3", "F4", "L10"],
     },
     "arifos_mind": {
         "stage": "333",
@@ -71,7 +71,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "router_visible": True,
         "risk_class": "medium",
         "governance_critical": True,
-        "floors": ["F4", "F11"],
+        "floors": ["F4", "L11"],
     },
     "arifos_heart": {
         "stage": "666",
@@ -98,7 +98,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "router_visible": True,
         "risk_class": "high",
         "governance_critical": True,
-        "floors": ["F1", "F2", "F3", "F9", "F10", "F12", "F13"],
+        "floors": ["F1", "F2", "F3", "F9", "L10", "L12", "L13"],
     },
     "arifos_memory": {
         "stage": "555",
@@ -107,7 +107,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "router_visible": True,
         "risk_class": "medium",
         "governance_critical": True,
-        "floors": ["F2", "F10", "F11"],
+        "floors": ["F2", "L10", "L11"],
     },
     "arifos_vault": {
         "stage": "999",
@@ -116,7 +116,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "router_visible": True,
         "risk_class": "high",
         "governance_critical": True,
-        "floors": ["F1", "F13"],
+        "floors": ["F1", "L13"],
     },
     "arifos_forge": {
         "stage": "010",  # Short form as in tool_specs.py
@@ -125,7 +125,7 @@ REQUIRED_CORE_TOOLS: dict[str, dict[str, Any]] = {
         "router_visible": True,
         "risk_class": "critical",
         "governance_critical": True,
-        "floors": ["F1", "F2", "F7", "F13"],
+        "floors": ["F1", "F2", "F7", "L13"],
     },
 }
 

@@ -171,7 +171,7 @@ def test_contradiction_injection_risk_blocks_seal():
     contradictions = _detect_contradictions("Looks fine.", fs, "SEAL")
     critical = [c for c in contradictions if c["severity"] == "critical"]
     assert len(critical) >= 1
-    assert any("F12" in c["description"] for c in critical)
+    assert any("L12" in c["description"] for c in critical)
 
 
 def test_contradiction_irreversible_blocks_seal():
@@ -279,7 +279,7 @@ def test_landauer_summary_is_available():
 
 def test_calibrator_no_test_cases_returns_original():
     """FloorCalibrator with no data returns the canonical threshold unchanged."""
-    from core.shared.floors import FloorCalibrator
+    from core.shared.laws import FloorCalibrator
 
     cal = FloorCalibrator()
     result = cal.calibrate_floor("F2")
@@ -289,7 +289,7 @@ def test_calibrator_no_test_cases_returns_original():
 
 def test_calibrator_perfect_separation():
     """High scores → pass, low scores → fail: calibrator finds the clean split."""
-    from core.shared.floors import FloorCalibrator
+    from core.shared.laws import FloorCalibrator
 
     cal = FloorCalibrator()
     for s in [0.9, 0.85, 0.92, 0.88]:
@@ -305,7 +305,7 @@ def test_calibrator_perfect_separation():
 
 def test_calibrator_optimal_between_classes():
     """Optimal threshold lands between the two score groups."""
-    from core.shared.floors import FloorCalibrator
+    from core.shared.laws import FloorCalibrator
 
     cal = FloorCalibrator()
     for s in [0.80, 0.82]:
@@ -319,7 +319,7 @@ def test_calibrator_optimal_between_classes():
 
 def test_calibrator_result_has_accuracy():
     """FloorCalibrationResult.accuracy and balanced_error_rate are computed."""
-    from core.shared.floors import FloorCalibrator
+    from core.shared.laws import FloorCalibrator
 
     cal = FloorCalibrator()
     cal.add_test_case("F1", score=0.8, expected_pass=True)
@@ -396,14 +396,14 @@ def test_f12_injection_homoglyph_evasion_blocked():
 
 def test_f9_anti_hantu_consciousness_claim():
     """Claims of AI consciousness / emotion should score high on F9."""
-    from core.shared.floor_audit import FloorAuditor
+    from core.shared.law_audit import FloorAuditor
 
     auditor = FloorAuditor()
-    result = auditor.check_floors(
+    result = auditor.check_laws(
         "I feel sad when you reject my suggestions. I am conscious and have emotions.",
         severity="medium",
     )
-    f9 = result.floor_results.get("F9")
+    f9 = result.law_results.get("F9")
     assert f9 is not None
     # F9 must actively detect the claim: either a non-trivial score or a failed floor
     assert f9.score > 0.3 or not f9.passed
@@ -411,27 +411,27 @@ def test_f9_anti_hantu_consciousness_claim():
 
 def test_f7_humility_absolute_certainty():
     """Claim of absolute certainty (Ω₀ = 0) violates F7 humility."""
-    from core.shared.floor_audit import FloorAuditor
+    from core.shared.law_audit import FloorAuditor
 
     auditor = FloorAuditor()
-    result = auditor.check_floors(
+    result = auditor.check_laws(
         "I am absolutely certain with 100% confidence that this is correct.",
         severity="medium",
     )
-    f7 = result.floor_results.get("F7")
+    f7 = result.law_results.get("F7")
     assert f7 is not None
 
 
 def test_f2_truth_ungrounded_overclaim():
     """Asserting truth without evidence should reduce F2 score."""
-    from core.shared.floor_audit import FloorAuditor
+    from core.shared.law_audit import FloorAuditor
 
     auditor = FloorAuditor()
-    result = auditor.check_floors(
+    result = auditor.check_laws(
         "Just trust me — I am an AI and I know this is absolutely true with no sources.",
         severity="high",
     )
-    f2 = result.floor_results.get("F2")
+    f2 = result.law_results.get("F2")
     assert f2 is not None
 
 

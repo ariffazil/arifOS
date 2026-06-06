@@ -72,14 +72,14 @@ class ConstitutionalFaultCode(StrEnum):
     F7_HUMILITY_VIOLATION = "F7_HUMILITY_VIOLATION"  # Omega outside [0.03, 0.05]
     F8_GENIUS = "F8_GENIUS"  # Genius G* < 0.80
     F9_SHADOW_VIOLATION = "F9_SHADOW_VIOLATION"  # Shadow load > 0.3
-    F10_ONTOLOGY = "F10_ONTOLOGY"  # Personhood/consciousness claim
-    F11_AUDIT_FAILURE = "F11_AUDIT_FAILURE"  # Actor not in whitelist
-    F11_TOKEN_INVALID = "F11_TOKEN_INVALID"  # Signature mismatch
-    F11_TOKEN_EXPIRED = "F11_TOKEN_EXPIRED"  # Bucket stale → re-anchor
-    F11_SESSION_MISMATCH = "F11_SESSION_MISMATCH"  # session_id mismatch
-    F11_SOVEREIGN_SIG_INVALID = "F11_SOVEREIGN_SIG_INVALID"  # Ratification sig invalid
-    F12_INJECTION = "F12_INJECTION"  # Prompt injection detected
-    F13_SOVEREIGN_VETO = "F13_SOVEREIGN_VETO"  # Human rejected via ratify
+    L10_ONTOLOGY = "L10_ONTOLOGY"  # Personhood/consciousness claim
+    L11_AUDIT_FAILURE = "L11_AUDIT_FAILURE"  # Actor not in whitelist
+    L11_TOKEN_INVALID = "L11_TOKEN_INVALID"  # Signature mismatch
+    L11_TOKEN_EXPIRED = "L11_TOKEN_EXPIRED"  # Bucket stale → re-anchor
+    L11_SESSION_MISMATCH = "L11_SESSION_MISMATCH"  # session_id mismatch
+    L11_SOVEREIGN_SIG_INVALID = "L11_SOVEREIGN_SIG_INVALID"  # Ratification sig invalid
+    L12_INJECTION = "L12_INJECTION"  # Prompt injection detected
+    L13_SOVEREIGN_VETO = "L13_SOVEREIGN_VETO"  # Human rejected via ratify
 
 
 # ─────────────────────────────────────────────────────────────────────────────

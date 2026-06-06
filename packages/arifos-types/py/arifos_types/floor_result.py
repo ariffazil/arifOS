@@ -1,5 +1,5 @@
 """
-FloorResult — Constitutional floor evaluation result
+LawResult — Constitutional floor evaluation result
 DITEMPA BUKAN DIBERI
 """
 
@@ -14,7 +14,7 @@ class FloorViolation(BaseModel):
     severity: str
 
 
-class FloorResult(BaseModel):
+class LawResult(BaseModel):
     passed: bool
     verdict: str
     floors_checked: List[str]
@@ -34,10 +34,10 @@ FLOOR_NAMES = {
     "F7": "Ω₀ Humility",
     "F8": "G Genius",
     "F9": "Ethics",
-    "F10": "Conscience",
-    "F11": "Audit",
-    "F12": "Injection",
-    "F13": "Sovereign",
+    "L10": "Conscience",
+    "L11": "Audit",
+    "L12": "Injection",
+    "L13": "Sovereign",
 }
 
 FLOOR_ORDER = [
@@ -50,8 +50,8 @@ FLOOR_ORDER = [
     "F7",
     "F8",
     "F9",
-    "F10",
-    "F11",
-    "F12",
-    "F13",
+    "L10",
+    "L11",
+    "L12",
+    "L13",
 ]

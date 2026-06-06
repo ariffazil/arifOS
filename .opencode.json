@@ -39,7 +39,7 @@
   ],
   "arifOS_contract": {
     "version": "1.0-sealed",
-    "floors_enforced": ["F2", "F4", "F7", "F8", "F9", "F11", "F13"],
+    "floors_enforced": ["F2", "F4", "F7", "F8", "F9", "L11", "L13"],
     "description": "Constitutional governance contract between human architect (Arif Fazil) and Opencode agent. DITEMPA BUKAN DIBERI.",
     "modes": {
       "review_first": {
@@ -191,11 +191,11 @@
         "rule": "no-consciousness-claims",
         "enforcement": "No 'I feel', 'I am conscious', 'I have emotions' in code or output."
       },
-      "F11_auth": {
+      "L11_auth": {
         "rule": "critical-ops-require-approval",
         "enforcement": "Structural refactors, deployment changes, vault operations require explicit Arif approval."
       },
-      "F13_sovereign": {
+      "L13_sovereign": {
         "rule": "human-veto-absolute",
         "enforcement": "Arif's last explicit instruction overrides any generic config. Human word is final."
       }

@@ -141,7 +141,7 @@ class TelemetryEnvelope(BaseModel):
     verdict_hint: VerdictCode | None = Field(None, description="Indicative verdict")
 
 
-from arifosmcp.runtime.floor import get_floor_count
+from arifosmcp.runtime.law import get_floor_count
 
 
 class ConstitutionalHealthView(BaseModel):
@@ -350,30 +350,30 @@ TRINITY_BY_TOOL = {
 }
 
 AAA_TOOL_LAW_BINDINGS = {
-    "init_session_anchor": ["F11", "F12", "F13"],
-    "get_tool_registry": ["F10", "F11"],
-    "sense_reality": ["F2", "F3", "F10"],
+    "init_session_anchor": ["L11", "L12", "L13"],
+    "get_tool_registry": ["L10", "L11"],
+    "sense_reality": ["F2", "F3", "L10"],
     "reason_synthesis": ["F2", "F4", "F7", "F8"],
     "critique_safety": ["F5", "F6", "F9"],
-    "route_execution": ["F4", "F11"],
-    "load_memory_context": ["F2", "F10", "F11"],
+    "route_execution": ["F4", "L11"],
+    "load_memory_context": ["F2", "L10", "L11"],
     "estimate_ops": ["F4", "F5"],
-    "judge_verdict": ["F1", "F2", "F3", "F9", "F10", "F12", "F13"],
-    "record_vault_entry": ["F1", "F13"],
-    "execute_vps_task": ["F1", "F2", "F7", "F13"],
+    "judge_verdict": ["F1", "F2", "F3", "F9", "L10", "L12", "L13"],
+    "record_vault_entry": ["F1", "L13"],
+    "execute_vps_task": ["F1", "F2", "F7", "L13"],
     # v2 underscored names
-    "arifos_init": ["F11", "F12", "F13"],
-    "arifos_sense": ["F2", "F3", "F4", "F10"],
+    "arifos_init": ["L11", "L12", "L13"],
+    "arifos_sense": ["F2", "F3", "F4", "L10"],
     "arifos_mind": ["F2", "F4", "F7", "F8"],
-    "arifos_kernel": ["F4", "F11"],
+    "arifos_kernel": ["F4", "L11"],
     "arifos_heart": ["F5", "F6", "F9"],
     "arifos_ops": ["F4", "F5"],
-    "arifos_judge": ["F1", "F2", "F3", "F9", "F10", "F12", "F13"],
-    "arifos_memory": ["F2", "F10", "F11"],
-    "arifos_vault": ["F1", "F13"],
-    "arifos_forge": ["F1", "F2", "F7", "F13"],
-    "arifos_gateway": ["F3", "F4", "F9", "F11", "F13"],
-    "arifos_health": ["F4", "F12"],
+    "arifos_judge": ["F1", "F2", "F3", "F9", "L10", "L12", "L13"],
+    "arifos_memory": ["F2", "L10", "L11"],
+    "arifos_vault": ["F1", "L13"],
+    "arifos_forge": ["F1", "F2", "F7", "L13"],
+    "arifos_gateway": ["F3", "F4", "F9", "L11", "L13"],
+    "arifos_health": ["F4", "L12"],
 }
 
 # Executable contract metadata
@@ -410,10 +410,10 @@ LAW_13_CATALOG = {
     "F7": "Humility under uncertainty",
     "F8": "Governance integrity",
     "F9": "Anti-deception / anti-hantu",
-    "F10": "Boundary integrity",
-    "F11": "Audit continuity",
-    "F12": "Injection defense",
-    "F13": "Sovereign ratification",
+    "L10": "Boundary integrity",
+    "L11": "Audit continuity",
+    "L12": "Injection defense",
+    "L13": "Sovereign ratification",
 }
 READ_ONLY_TOOLS = [
     "arifos_sense",

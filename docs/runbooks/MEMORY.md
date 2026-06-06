@@ -26,7 +26,7 @@ All agents must follow: REASON → PLAN → ACT → OBSERVE → REFLECT → REPE
 | **000_INIT** | Session anchoring — loads constitutional context (Ω₀=0.04, 13 floors) |
 | **999_SEAL** | Audit log — reads previous seal for self-improvement loop |
 
-### 13 Constitutional Floors (F1-F13)
+### 13 Constitutional Laws (F1-F13)
 - F1: AMANAH — Reversibility
 - F2: TRUTH — Evidence required
 - F3: TRI_WITNESS — W³ ≥ 0.95

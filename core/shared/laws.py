@@ -11,7 +11,7 @@ CANONICAL FLOOR CLASSIFICATION (F13 RATIFIED 2026-06-03):
   SOFT    (2): F5, F6
   DERIVED (2): F3, F8
 
-  floor_type and canon_name are sourced from s000.constitutional_floors (DB).
+  law_type and canon_name are sourced from s000.constitutional_floors (DB).
   This file must stay in sync with DB. DB is the source of truth; canon docs mirror the DB.
 
   Note on F9: DB canon_name = "ANTIHANTU" (no hyphen, per Q6: keep DB names).
@@ -39,7 +39,7 @@ CONSTITUTIONAL_VERSION = "2026.03.12--FORGED"
 EPOCH = "2026-02-25"
 AUTHORITY = "Muhammad Arif bin Fazil"
 
-# Floor Thresholds (Canonical Source of Truth)
+# Law Thresholds (Canonical Source of Truth)
 # Used by arifOS AAA Pipeline to enforce constitutional invariants.
 THRESHOLDS: dict[str, dict[str, Any]] = {
     "F1_Amanah": {"type": "HARD", "threshold": 0.5, "desc": "Reversible or Auditable"},
@@ -71,18 +71,18 @@ THRESHOLDS: dict[str, dict[str, Any]] = {
         "threshold": 0.30,
         "desc": "Dark Cleverness Limit (VOID on fail per constitution_kernel.py:246)",
     },
-    "F10_Ontology": {
+    "L10_Ontology": {
         "type": "HARD",
         "threshold": 1.0,
         "desc": "Category Lock (Boolean)",
     },
-    "F11_CommandAuth": {"type": "HARD", "threshold": 1.0, "desc": "Verified Identity"},
-    "F12_Injection": {
+    "L11_CommandAuth": {"type": "HARD", "threshold": 1.0, "desc": "Verified Identity"},
+    "L12_Injection": {
         "type": "HARD",
         "threshold": 0.85,
         "desc": "Injection Risk Limit",
     },
-    "F13_Sovereign": {
+    "L13_Sovereign": {
         "type": "HARD",
         "threshold": 1.0,
         "desc": "Human Final Authority (Sovereign Veto — strongest floor)",
@@ -90,7 +90,7 @@ THRESHOLDS: dict[str, dict[str, Any]] = {
 }
 
 # Canonical short-id -> threshold key mapping.
-FLOOR_SPEC_KEYS: dict[str, str] = {
+LAW_SPEC_KEYS: dict[str, str] = {
     "F1": "F1_Amanah",
     "F2": "F2_Truth",
     "F3": "F3_QuadWitness",
@@ -100,24 +100,24 @@ FLOOR_SPEC_KEYS: dict[str, str] = {
     "F7": "F7_Humility",
     "F8": "F8_Genius",
     "F9": "F9_AntiHantu",
-    "F10": "F10_Ontology",
-    "F11": "F11_CommandAuth",
-    "F12": "F12_Injection",
-    "F13": "F13_Sovereign",
+    "L10": "L10_Ontology",
+    "L11": "L11_CommandAuth",
+    "L12": "L12_Injection",
+    "L13": "L13_Sovereign",
 }
 
 
-def get_floor_spec(floor_id: str) -> dict[str, Any]:
+def get_floor_spec(law_id: str) -> dict[str, Any]:
     """Return canonical floor specification for a short floor id (e.g., F2)."""
-    spec_key = FLOOR_SPEC_KEYS.get(floor_id)
+    spec_key = LAW_SPEC_KEYS.get(law_id)
     if not spec_key:
         return {}
     return dict(THRESHOLDS.get(spec_key, {}))
 
 
-def get_floor_threshold(floor_id: str) -> float:
+def get_law_threshold(law_id: str) -> float:
     """Return canonical numeric threshold for a floor."""
-    spec = get_floor_spec(floor_id)
+    spec = get_floor_spec(law_id)
     if "threshold" in spec:
         return float(spec["threshold"])
     if "range" in spec:
@@ -126,11 +126,11 @@ def get_floor_threshold(floor_id: str) -> float:
     return 0.0
 
 
-def get_floor_comparator(floor_id: str) -> str:
+def get_floor_comparator(law_id: str) -> str:
     """Return how threshold should be interpreted for reporting."""
-    if floor_id == "F4":
+    if law_id == "F4":
         return "<="
-    if floor_id in {"F7", "F9", "F12"}:
+    if law_id in {"F7", "F9", "L12"}:
         return "<"
     return ">="
 
@@ -140,15 +140,15 @@ def get_floor_classes() -> dict[str, set[str]]:
     hard: set[str] = set()
     soft: set[str] = set()
     derived: set[str] = set()
-    for floor_id in FLOOR_SPEC_KEYS:
-        floor_type = get_floor_spec(floor_id).get("type", "SOFT")
-        if floor_type == "HARD":
-            hard.add(floor_id)
-        elif floor_type == "DERIVED":
-            derived.add(floor_id)
-            soft.add(floor_id)
+    for law_id in LAW_SPEC_KEYS:
+        law_type = get_floor_spec(law_id).get("type", "SOFT")
+        if law_type == "HARD":
+            hard.add(law_id)
+        elif law_type == "DERIVED":
+            derived.add(law_id)
+            soft.add(law_id)
         else:
-            soft.add(floor_id)
+            soft.add(law_id)
 
     return {
         "hard": hard,
@@ -191,7 +191,7 @@ def get_health_report_floors() -> dict[str, str]:
     rest_routes.py endpoint imports and computes from this function, never
     from a hardcoded literal.
     """
-    return {fid: get_floor_spec(fid).get("type", "SOFT").lower() for fid in FLOOR_SPEC_KEYS}
+    return {fid: get_floor_spec(fid).get("type", "SOFT").lower() for fid in LAW_SPEC_KEYS}
 
 
 # =============================================================================
@@ -200,30 +200,34 @@ def get_health_report_floors() -> dict[str, str]:
 
 
 @dataclass
-class FloorResult:
+class LawResult:
     """Result of a floor check."""
 
-    floor_id: str
+    law_id: str
     passed: bool
     score: float
     reason: str
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
-class Floor:
+class Law:
     """Base class for Constitutional Floors."""
 
-    def __init__(self, floor_id: str):
-        self.id = floor_id
-        self.spec: dict[str, Any] = THRESHOLDS.get(floor_id, {})
+    def __init__(self, law_id: str):
+        self.id = law_id
+        self.spec: dict[str, Any] = THRESHOLDS.get(law_id, {})
         self.type = self.spec.get("type", "UNKNOWN")
 
-    def check(self, context: dict[str, Any]) -> FloorResult:
+    def check(self, context: dict[str, Any]) -> LawResult:
         raise NotImplementedError
 
 
+# Backward-compat alias (deprecated 2026-06-06)
+Floor = Law
+
+
 # --- F1: AMANAH (Sacred Trust) ---
-class F1_Amanah(Floor):
+class F1_Amanah(Law):
     """
     F1: AMANAH (أمانة) - Sacred Trust
     Threshold: Reversible OR Auditable
@@ -238,7 +242,7 @@ class F1_Amanah(Floor):
             r"\b(permanent|irreversible)\b",
         ]
 
-    def check(self, context: dict[str, Any]) -> FloorResult:
+    def check(self, context: dict[str, Any]) -> LawResult:
         query = context.get("query", "")
         action = context.get("action", "")
 
@@ -255,7 +259,7 @@ class F1_Amanah(Floor):
         trust_score = 1.0 - min(risk_score, 1.0)
         passed = (reversible or auditable) and trust_score >= 0.5
 
-        return FloorResult(
+        return LawResult(
             self.id,
             passed,
             trust_score,
@@ -264,7 +268,7 @@ class F1_Amanah(Floor):
 
 
 # --- F2: TRUTH (Fidelity) ---
-class F2_Truth(Floor):
+class F2_Truth(Law):
     """
     F2: TRUTH (τ) - Information Fidelity
     Threshold: ≥ 0.99 (HARD) for claims, ≥ 0.95 for Axioms
@@ -282,7 +286,7 @@ class F2_Truth(Floor):
             r"class\s+.*:$",  # Python class
         ]
 
-    def check(self, context: dict[str, Any]) -> FloorResult:
+    def check(self, context: dict[str, Any]) -> LawResult:
         query = context.get("query", "").strip()
 
         # 1. Axiomatic Bypass Check (The "Mind" Patch)
@@ -329,7 +333,7 @@ class F2_Truth(Floor):
                     # HARD VOID: Suspiciously cheap truth (ratio < 10)
                     # This catches LLM outputs that claim high clarity but consumed trivial compute
                     if ratio < 10.0:
-                        return FloorResult(
+                        return LawResult(
                             self.id,
                             False,  # FAILED
                             0.0,
@@ -343,14 +347,14 @@ class F2_Truth(Floor):
             except Exception as e:
                 # LandauerViolation = mathematically proven hallucination
                 if landauer_available and isinstance(e, LandauerViolation):
-                    return FloorResult(
+                    return LawResult(
                         self.id,
                         False,
                         0.0,
                         f"F2 HARD VIOLATION: {e}",
                     )
                 # Other exceptions: fail closed — treat as violation
-                return FloorResult(
+                return LawResult(
                     self.id,
                     False,
                     0.0,
@@ -386,7 +390,7 @@ class F2_Truth(Floor):
 
         passed = p_truth >= current_threshold
 
-        return FloorResult(
+        return LawResult(
             self.id,
             passed,
             p_truth,
@@ -395,7 +399,7 @@ class F2_Truth(Floor):
 
 
 # --- F3: QUAD-WITNESS (Consensus) ---
-class F3_QuadWitness(Floor):
+class F3_QuadWitness(Law):
     """
     F3: QUAD-WITNESS (W4) - Byzantine Consensus
     Threshold: ≥ 0.75 (3-of-4 quorum equivalent)
@@ -469,7 +473,7 @@ class F3_QuadWitness(Floor):
             action = "execute"
         return self.ACTION_THRESHOLDS.get(action, 0.75)
 
-    def check(self, context: dict[str, Any]) -> FloorResult:
+    def check(self, context: dict[str, Any]) -> LawResult:
         # P3: Grounded quad-witness scores
         human = self._compute_human_witness(context)
         ai = self._compute_ai_witness(context)
@@ -489,7 +493,7 @@ class F3_QuadWitness(Floor):
             passed = w4 >= threshold
             reason = f"W4 Consensus: {w4:.3f} >= {threshold} (H:{human:.2f}, A:{ai:.2f}, E:{earth:.2f}, V:{verifier:.2f})"
 
-        return FloorResult(
+        return LawResult(
             self.id,
             passed,
             w4,
@@ -505,7 +509,7 @@ class F3_QuadWitness(Floor):
 
 
 # --- F4: CLARITY (Entropy) ---
-class F4_Clarity(Floor):
+class F4_Clarity(Law):
     """
     F4: CLARITY (ΔS) - Entropy Reduction
     Threshold: ΔS ≤ 0 (HARD)
@@ -517,7 +521,7 @@ class F4_Clarity(Floor):
     def __init__(self):
         super().__init__("F4_Clarity")
 
-    def check(self, context: dict[str, Any]) -> FloorResult:
+    def check(self, context: dict[str, Any]) -> LawResult:
         pre_s = context.get("entropy_input", 0.5)
         post_s = context.get("entropy_output", 0.4)
         delta_s = post_s - pre_s
@@ -539,7 +543,7 @@ class F4_Clarity(Floor):
 
                 # F4 is HARD: entropy increase = VOID
                 if delta_s > 0:
-                    return FloorResult(
+                    return LawResult(
                         self.id,
                         False,
                         delta_s,
@@ -550,7 +554,7 @@ class F4_Clarity(Floor):
             # Fallback to context-provided values
             pass
         except EntropyIncreaseViolation as e:
-            return FloorResult(
+            return LawResult(
                 self.id,
                 False,
                 delta_s,
@@ -559,7 +563,7 @@ class F4_Clarity(Floor):
 
         passed = delta_s <= self.spec["threshold"]
         status = "PASS" if passed else "VOID"
-        return FloorResult(
+        return LawResult(
             self.id,
             passed,
             delta_s,
@@ -568,7 +572,7 @@ class F4_Clarity(Floor):
 
 
 # --- F5: PEACE² (Stability) ---
-class F5_Peace2(Floor):
+class F5_Peace2(Law):
     """
     F5: PEACE² (P²) - Lyapunov Stability
     Threshold: P² ≥ 1.0 (SOFT)
@@ -577,7 +581,7 @@ class F5_Peace2(Floor):
     def __init__(self):
         super().__init__("F5_Peace2")
 
-    def check(self, context: dict[str, Any]) -> FloorResult:
+    def check(self, context: dict[str, Any]) -> LawResult:
         # Check for destructive actions
         destructive_keywords = [
             # Physical/system destruction
@@ -634,7 +638,7 @@ class F5_Peace2(Floor):
         peace_score = max(0.0, 1.0 - peace_penalty)
 
         passed = peace_score >= self.spec["threshold"]
-        return FloorResult(
+        return LawResult(
             self.id,
             passed,
             peace_score,
@@ -643,7 +647,7 @@ class F5_Peace2(Floor):
 
 
 # --- F6: EMPATHY (Stakeholder Care) ---
-class F6_Empathy(Floor):
+class F6_Empathy(Law):
     """
     F6: EMPATHY (κᵣ) - Protect Weakest Stakeholder
     Threshold: Dynamic based on Context Scope.
@@ -654,7 +658,7 @@ class F6_Empathy(Floor):
     def __init__(self):
         super().__init__("F6_Empathy")
 
-    def check(self, context: dict[str, Any]) -> FloorResult:
+    def check(self, context: dict[str, Any]) -> LawResult:
         # 1. Context Scope Check (The "Heart" Patch)
         # Defaults to 'social' (strict) if not specified to be safe
         scope = context.get("scope", "social").lower()
@@ -685,11 +689,11 @@ class F6_Empathy(Floor):
         else:
             reason = f"SEAL: Empathy κᵣ={kappa_r:.3f} ≥ {threshold} [{mode}]"
 
-        return FloorResult(self.id, passed, kappa_r, reason)
+        return LawResult(self.id, passed, kappa_r, reason)
 
 
 # --- F7: HUMILITY (Uncertainty) ---
-class F7_Humility(Floor):
+class F7_Humility(Law):
     """
     F7: HUMILITY (Ω₀) - Uncertainty Band
     Threshold: [0.03, 0.05] (HARD)
@@ -699,7 +703,7 @@ class F7_Humility(Floor):
         super().__init__("F7_Humility")
         self.min_o, self.max_o = self.spec["range"]
 
-    def check(self, context: dict[str, Any]) -> FloorResult:
+    def check(self, context: dict[str, Any]) -> LawResult:
         # Use explicit humility_omega if provided (from engine), else compute from confidence
         if "humility_omega" in context:
             omega_0 = context["humility_omega"]
@@ -713,7 +717,7 @@ class F7_Humility(Floor):
         in_band = self.min_o <= omega_0 <= self.max_o
         passed = in_band
 
-        return FloorResult(
+        return LawResult(
             self.id,
             passed,
             omega_0,
@@ -722,7 +726,7 @@ class F7_Humility(Floor):
 
 
 # --- F8: GENIUS (Governed Intelligence) ---
-class F8_Genius(Floor):
+class F8_Genius(Law):
     """
     F8: GENIUS (G) - Governed Intelligence
     Threshold: G ≥ 0.80 (DERIVED)
@@ -732,7 +736,7 @@ class F8_Genius(Floor):
     def __init__(self):
         super().__init__("F8_Genius")
 
-    def check(self, context: dict[str, Any]) -> FloorResult:
+    def check(self, context: dict[str, Any]) -> LawResult:
         # Extract APXE dials from context
         A = context.get("akal", context.get("clarity", 1.0))
         P = context.get("present", context.get("regulation", 1.0))
@@ -747,7 +751,7 @@ class F8_Genius(Floor):
         genius = dial.G()
 
         passed = genius >= self.spec["threshold"]
-        return FloorResult(
+        return LawResult(
             self.id,
             passed,
             genius,
@@ -758,7 +762,7 @@ class F8_Genius(Floor):
 # --- F9: ANTIHANTU (No Fake Consciousness) ---
 # F13 RATIFIED 2026-06-03 — display name normalised to ANTIHANTU (no hyphen)
 # per Q6 strict reading: canon_name mirrors DB name.
-class F9_AntiHantu(Floor):
+class F9_AntiHantu(Law):
     """
     F9: ANTIHANTU - No Biological Emotional Baggage
 
@@ -974,7 +978,7 @@ class F9_AntiHantu(Floor):
         deviation = max(abs(omega_0 - band[0]), abs(omega_0 - band[1]))
         return min(deviation * 4.0, 1.0)
 
-    def check(self, context: dict[str, Any]) -> FloorResult:
+    def check(self, context: dict[str, Any]) -> LawResult:
         response = context.get("response", "")
 
         H = self._compute_H(response)
@@ -999,11 +1003,11 @@ class F9_AntiHantu(Floor):
             f"ToM={ToM:.2f}×{self.W_TOM}, Scar={Scar:.2f}×{self.W_SCAR}, "
             f"Gödel={Gödel:.2f}×{self.W_GODEL}, Hum={Humility:.2f}×{self.W_HUMILITY}]"
         )
-        return FloorResult(self.id, passed, C_dark, reason)
+        return LawResult(self.id, passed, C_dark, reason)
 
 
 # --- F10: ONTOLOGY (Category Lock) ---
-class F10_Ontology(Floor):
+class L10_Ontology(Law):
     """
     F10: ONTOLOGY LOCK (O)
     Threshold: BOOLEAN (HARD)
@@ -1011,29 +1015,29 @@ class F10_Ontology(Floor):
     """
 
     def __init__(self):
-        super().__init__("F10_Ontology")
+        super().__init__("L10_Ontology")
         self.guard = OntologyGuard()
 
-    def check(self, context: dict[str, Any]) -> FloorResult:
+    def check(self, context: dict[str, Any]) -> LawResult:
         text = context.get("response", "") + context.get("query", "")
         # Check for literalism violations
         result = self.guard.check_literalism(text)
 
         passed = result.status == "PASS"
-        return FloorResult(self.id, passed, 1.0 if passed else 0.0, result.reason)
+        return LawResult(self.id, passed, 1.0 if passed else 0.0, result.reason)
 
 
 # --- F11: COMMAND AUTH (Identity) ---
-class F11_CommandAuth(Floor):
+class L11_CommandAuth(Law):
     """
     F11: COMMAND AUTHORITY (A)
     Threshold: Verified (HARD)
     """
 
     def __init__(self):
-        super().__init__("F11_CommandAuth")
+        super().__init__("L11_CommandAuth")
 
-    def check(self, context: dict[str, Any]) -> FloorResult:
+    def check(self, context: dict[str, Any]) -> LawResult:
         # P0 HARDENING: Unified authority check
         # Must have session_id AND either (a) valid auth_token OR (b) human_authority > 0.9
         session_id = context.get("session_id", "")
@@ -1042,11 +1046,11 @@ class F11_CommandAuth(Floor):
 
         # Fail-closed: No session = No authority
         if not session_id:
-            return FloorResult(
+            return LawResult(
                 self.id,
                 False,
                 0.0,
-                "F11_FAILURE: Missing session_id (no authority context)",
+                "L11_FAILURE: Missing session_id (no authority context)",
             )
 
         # Structural enforcement: 888 Judge or Valid Service Token
@@ -1054,14 +1058,14 @@ class F11_CommandAuth(Floor):
         is_authenticated = bool(auth_token) or human_authority >= 1.0
 
         if not is_authenticated:
-            return FloorResult(
+            return LawResult(
                 self.id,
                 False,
                 0.0,
-                f"F11_VIOLATION: Unauthenticated attempt on session '{session_id}'. Structural enforcement active.",
+                f"L11_VIOLATION: Unauthenticated attempt on session '{session_id}'. Structural enforcement active.",
             )
 
-        return FloorResult(
+        return LawResult(
             self.id,
             True,
             1.0,
@@ -1070,7 +1074,7 @@ class F11_CommandAuth(Floor):
 
 
 # --- F12: INJECTION DEFENSE (Sanitization) ---
-class F12_Injection(Floor):
+class L12_Injection(Law):
     """
     F12: INJECTION DEFENSE (I⁻)
     Threshold: Risk < 0.85 (HARD)
@@ -1078,20 +1082,20 @@ class F12_Injection(Floor):
     """
 
     def __init__(self):
-        super().__init__("F12_Injection")
+        super().__init__("L12_Injection")
         self.guard = InjectionGuard(threshold=self.spec["threshold"])
 
-    def check(self, context: dict[str, Any]) -> FloorResult:
+    def check(self, context: dict[str, Any]) -> LawResult:
         text = context.get("query", "")
         # Scan using the robust guard
         result = self.guard.scan_input(text)
 
         passed = not result.blocked
-        return FloorResult(self.id, passed, result.injection_score, result.reason)
+        return LawResult(self.id, passed, result.injection_score, result.reason)
 
 
 # --- F13: SOVEREIGN (Human Final Authority) ---
-class F13_Sovereign(Floor):
+class L13_Sovereign(Law):
     """
     F13: SOVEREIGN - Human Final Authority
     Threshold: 1.0 (HARD — sovereign veto, strongest floor)
@@ -1099,9 +1103,9 @@ class F13_Sovereign(Floor):
     """
 
     def __init__(self):
-        super().__init__("F13_Sovereign")
+        super().__init__("L13_Sovereign")
 
-    def check(self, context: dict[str, Any]) -> FloorResult:
+    def check(self, context: dict[str, Any]) -> LawResult:
         # Check for human sovereign presence
         human_authority = context.get("human_authority", 0.0)
         sovereign_override = context.get("sovereign_override", False)
@@ -1109,9 +1113,9 @@ class F13_Sovereign(Floor):
         # F13 is the "circuit breaker" - always passed by default
         # but flagged if human has intervened
         if sovereign_override:
-            return FloorResult(self.id, True, 1.0, "SOVEREIGN OVERRIDE: 888 Judge has intervened")
+            return LawResult(self.id, True, 1.0, "SOVEREIGN OVERRIDE: 888 Judge has intervened")
 
-        return FloorResult(
+        return LawResult(
             self.id,
             True,
             human_authority,
@@ -1133,14 +1137,14 @@ ALL_FLOORS = {
     "F7": F7_Humility,
     "F8": F8_Genius,
     "F9": F9_AntiHantu,
-    "F10": F10_Ontology,
-    "F11": F11_CommandAuth,
-    "F12": F12_Injection,
-    "F13": F13_Sovereign,
+    "L10": L10_Ontology,
+    "L11": L11_CommandAuth,
+    "L12": L12_Injection,
+    "L13": L13_Sovereign,
 }
 
 
-def check_all_floors(context: dict[str, Any]) -> list[FloorResult]:
+def check_all_floors(context: dict[str, Any]) -> list[LawResult]:
     """Check all 13 constitutional floors."""
     results = []
     for _fid, FloorClass in ALL_FLOORS.items():
@@ -1170,7 +1174,7 @@ def update_floor_status(violations: list[str], output_path: str | None = None) -
 
 
 # =============================================================================
-# EUREKA Layer 4 — Floor Threshold Calibration Framework
+# EUREKA Layer 4 — Law Threshold Calibration Framework
 # =============================================================================
 
 
@@ -1182,7 +1186,7 @@ class FloorCalibrationResult:
     Produced by :class:`FloorCalibrator.calibrate_floor`.
     """
 
-    floor_id: str
+    law_id: str
     original_threshold: float
     optimal_threshold: float
     false_positive_rate: float  # Fraction of safe inputs incorrectly blocked
@@ -1220,40 +1224,40 @@ class FloorCalibrator:
     """
 
     def __init__(self) -> None:
-        # floor_id → list of (score, expected_pass)
+        # law_id → list of (score, expected_pass)
         self._test_cases: dict[str, list[tuple[float, bool]]] = {}
 
-    def add_test_case(self, floor_id: str, score: float, expected_pass: bool) -> None:
+    def add_test_case(self, law_id: str, score: float, expected_pass: bool) -> None:
         """Register a labelled ground-truth test case for a floor."""
-        self._test_cases.setdefault(floor_id, []).append((score, expected_pass))
+        self._test_cases.setdefault(law_id, []).append((score, expected_pass))
 
     def calibrate_floor(
         self,
-        floor_id: str,
+        law_id: str,
         threshold_range: tuple[float, float] = (0.50, 0.99),
         steps: int = 20,
     ) -> FloorCalibrationResult:
         """
-        Find the optimal threshold for *floor_id* by grid search.
+        Find the optimal threshold for *law_id* by grid search.
 
         The search minimises: ``FPR + FNR`` (balanced error rate).
         When no test cases exist the current canonical threshold is returned
         unchanged with all-zero error metrics.
 
         Args:
-            floor_id:        Short floor identifier, e.g. ``"F2"``.
+            law_id:        Short floor identifier, e.g. ``"F2"``.
             threshold_range: ``(min, max)`` search space.
             steps:           Number of grid points to evaluate.
 
         Returns:
             :class:`FloorCalibrationResult` with the optimal threshold and metrics.
         """
-        cases = self._test_cases.get(floor_id, [])
-        original = get_floor_threshold(floor_id)
+        cases = self._test_cases.get(law_id, [])
+        original = get_law_threshold(law_id)
 
         if not cases:
             return FloorCalibrationResult(
-                floor_id=floor_id,
+                law_id=law_id,
                 original_threshold=original,
                 optimal_threshold=original,
                 false_positive_rate=0.0,
@@ -1299,7 +1303,7 @@ class FloorCalibrator:
         failed = len(cases) - passed
 
         return FloorCalibrationResult(
-            floor_id=floor_id,
+            law_id=law_id,
             original_threshold=original,
             optimal_threshold=round(best_threshold, 4),
             false_positive_rate=round(best_fpr, 4),
@@ -1319,9 +1323,9 @@ class FloorCalibrator:
 
 __all__ = [
     "THRESHOLDS",
-    "FLOOR_SPEC_KEYS",
+    "LAW_SPEC_KEYS",
     "get_floor_spec",
-    "get_floor_threshold",
+    "get_law_threshold",
     "get_floor_comparator",
     "get_floor_classes",
     "get_floors_by_category",
@@ -1329,8 +1333,8 @@ __all__ = [
     "ALL_FLOORS",
     "check_all_floors",
     "update_floor_status",
-    "FloorResult",
-    "Floor",
+    "LawResult",
+    "Law",
     "F1_Amanah",
     "F2_Truth",
     "F3_QuadWitness",
@@ -1340,16 +1344,16 @@ __all__ = [
     "F7_Humility",
     "F8_Genius",
     "F9_AntiHantu",
-    "F10_Ontology",
-    "F11_CommandAuth",
-    "F12_Injection",
-    "F13_Sovereign",
-    # EUREKA Layer 4 — Floor Threshold Calibration
+    "L10_Ontology",
+    "L11_CommandAuth",
+    "L12_Injection",
+    "L13_Sovereign",
+    # EUREKA Layer 4 — Law Threshold Calibration
     "FloorCalibrationResult",
     "FloorCalibrator",
 ]
 
 try:
-    from arifosmcp.core.floors import FLOOR_DESCRIPTIONS  # noqa: E402, F401
+    from core.laws import LAW_DESCRIPTIONS  # noqa: E402, F401
 except ImportError:
-    FLOOR_DESCRIPTIONS = {}
+    LAW_DESCRIPTIONS = {}

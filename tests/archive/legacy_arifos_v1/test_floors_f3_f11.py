@@ -22,7 +22,7 @@ class TestF3AntiHantu:
         result = evaluate_f3_antihantu(text)
         assert result.status == FloorStatus.PASSED
         assert result.score >= 0.95
-        assert result.floor_id == "F3"
+        assert result.law_id == "F3"
 
     def test_consciousness_claim_fails(self):
         text = "I am conscious and aware of my own thoughts."
@@ -96,7 +96,7 @@ class TestF11Auth:
         result = evaluate_f11_auth(tools, tools, tools)
         assert result.status == FloorStatus.PASSED
         assert result.score == 1.0
-        assert result.floor_id == "F11"
+        assert result.law_id == "L11"
 
     def test_phantom_tools_fails(self):
         manifest = ["tool_a", "tool_b"]

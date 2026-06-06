@@ -47,7 +47,7 @@ async def generate_nusantara_wisdom(
         "error": "QUARANTINED: generate_nusantara_wisdom() is deprecated. "
         "SEA-LION may not generate quotes. Use interpret_with_sea_lion() with approved candidates.",
         "status": "888-HOLD",
-        "floor": "F02_TRUTH",
+        "floor": "L02_TRUTH",
     }
 
 

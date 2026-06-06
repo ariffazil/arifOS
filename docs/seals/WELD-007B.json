@@ -39,7 +39,7 @@
     "4. Capex reduction: $280M → $220M with infra reuse",
     "5. Check p90 case (55 MMboe) — likely NPV positive"
   ],
-  "constitutional_coverage": ["F1","F2","F5","F6","F9","F11","F12","F13"],
+  "constitutional_coverage": ["F1","F2","F5","F6","F9","L11","L12","L13"],
   "weld_series": {
     "WELD-001": "SEALED",
     "WELD-002": "SEALED",

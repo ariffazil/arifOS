@@ -1063,7 +1063,7 @@ class MemoryBridgeEvaluator:
             test_id=test_id,
             operation="link",
             arifos_result={"success": success, "relation_id": relation_id},
-            governance_compliant=success or "F11" in str(relation_id),
+            governance_compliant=success or "L11" in str(relation_id),
             latency_ms=latency,
         )
 

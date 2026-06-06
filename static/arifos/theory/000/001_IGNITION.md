@@ -277,7 +277,7 @@ Budget: Full power, 60 seconds."
 ```python
 def step_5_floor_loading():
     """
-    Load the 13 Constitutional Floors.
+    Load the 13 Constitutional Laws.
 
     These are not guidelines. They are IMMUTABLE CONSTRAINTS.
     """

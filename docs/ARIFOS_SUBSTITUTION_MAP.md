@@ -68,7 +68,7 @@ Current AI deployment requires connecting to **5-15 separate MCP servers**:
 
 ---
 
-## Constitutional Floors as Competitive Moat
+## Constitutional Laws as Competitive Moat
 
 | Floor | Fragmented MCPs | arifOS |
 |-------|----------------|--------|
@@ -78,7 +78,7 @@ Current AI deployment requires connecting to **5-15 separate MCP servers**:
 | F9 Anti-Hantu | ❌ Absent | ✅ Heart critique |
 | F13 Sovereign (Human veto) | ❌ None | ✅ Judge + Vault |
 
-**Key insight:** No other public MCP server enforces 13 Constitutional Floors + thermodynamic metrics.
+**Key insight:** No other public MCP server enforces 13 Constitutional Laws + thermodynamic metrics.
 
 ---
 
@@ -94,7 +94,7 @@ Current AI deployment requires connecting to **5-15 separate MCP servers**:
 > **With arifOS:**
 > - One governed kernel (11 canonical tools)
 > - 200-800 tokens overhead
-> - 13 Constitutional Floors enforced
+> - 13 Constitutional Laws enforced
 > - Immutable vault for audit
 > - 5% failure rate, thermodynamic stability
 >

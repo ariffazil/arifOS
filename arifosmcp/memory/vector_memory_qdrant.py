@@ -356,7 +356,7 @@ async def vector_health() -> dict:
             },
             "floors": {
                 "F2_truth_threshold": _F2_TRUTH_THRESHOLD,
-                "F10_ontology_check": _F10_ONTOLOGY_CHECK,
+                "L10_ontology_check": _F10_ONTOLOGY_CHECK,
             },
         }
     except Exception as exc:

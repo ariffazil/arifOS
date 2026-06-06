@@ -21,7 +21,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from arifosmcp.runtime.floor import check_floors
+from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.session_auth import validate_session
 from arifosmcp.runtime.tools import _hold, _ok
 from arifosmcp.schemas.telemetry import TelemetryBlock
@@ -82,10 +82,10 @@ def arif_appeal_raise(
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
         return TelemetryBlock(
-            **_hold("arif_appeal_raise", auth["reason"], ["F11"], session_id=session_id)
+            **_hold("arif_appeal_raise", auth["reason"], ["L11"], session_id=session_id)
         )
 
-    floor_check = check_floors(
+    floor_check = check_laws(
         "arif_appeal_raise",
         {"contested_verdict_id": contested_verdict_id, "grounds": grounds},
         actor_id,
@@ -95,7 +95,7 @@ def arif_appeal_raise(
             **_hold(
                 "arif_appeal_raise",
                 floor_check["reason"],
-                floor_check["failed_floors"],
+                floor_check["violated_laws"],
                 session_id=session_id,
             )
         )
@@ -106,7 +106,7 @@ def arif_appeal_raise(
             **_hold(
                 "arif_appeal_raise",
                 "contested_verdict_id is required to identify the decision being appealed",
-                ["F02"],
+                ["L02"],
                 session_id=session_id,
             )
         )
@@ -115,7 +115,7 @@ def arif_appeal_raise(
             **_hold(
                 "arif_appeal_raise",
                 "grounds are required — explain why this decision should be reconsidered",
-                ["F02"],
+                ["L02"],
                 session_id=session_id,
             )
         )
@@ -195,12 +195,12 @@ def arif_appeal_status(
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
         return TelemetryBlock(
-            **_hold("arif_appeal_status", auth["reason"], ["F11"], session_id=session_id)
+            **_hold("arif_appeal_status", auth["reason"], ["L11"], session_id=session_id)
         )
 
     if not appeal_id:
         return TelemetryBlock(
-            **_hold("arif_appeal_status", "appeal_id is required", ["F02"], session_id=session_id)
+            **_hold("arif_appeal_status", "appeal_id is required", ["L02"], session_id=session_id)
         )
 
     entry = _APPEAL_REGISTRY.get(appeal_id)
@@ -209,7 +209,7 @@ def arif_appeal_status(
             **_hold(
                 "arif_appeal_status",
                 f"Appeal {appeal_id} not found",
-                ["F02"],
+                ["L02"],
                 session_id=session_id,
             )
         )
@@ -233,7 +233,7 @@ def arif_appeal_list(
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
         return TelemetryBlock(
-            **_hold("arif_appeal_list", auth["reason"], ["F11"], session_id=session_id)
+            **_hold("arif_appeal_list", auth["reason"], ["L11"], session_id=session_id)
         )
 
     appeals = list(_APPEAL_REGISTRY.values())

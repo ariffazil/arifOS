@@ -45,7 +45,7 @@ class TestF1Custodian:
             custodian_id="",  # Empty — violates F1
             actor_id="agent-001",
         )
-        assert "F01" in decision.failed_floors
+        assert "L01" in decision.violated_laws
         assert decision.verdict == GovernanceVerdict.VOID
 
     def test_anonymous_custodian_flags(self):
@@ -56,7 +56,7 @@ class TestF1Custodian:
             custodian_id="unknown",
             actor_id="agent-001",
         )
-        assert "F01" in decision.failed_floors
+        assert "L01" in decision.violated_laws
 
     def test_named_custodian_passes_f1(self):
         enforcer = DataGovernanceEnforcer()
@@ -67,7 +67,7 @@ class TestF1Custodian:
             custodian_name="Arif Fazil",
             actor_id="agent-001",
         )
-        assert "F01" not in decision.failed_floors
+        assert "L01" not in decision.violated_laws
         assert decision.custodian is not None
         assert decision.custodian.name == "Arif Fazil"
 
@@ -92,7 +92,7 @@ class TestF2Truth:
             actor_id="agent-001",
             source_verification=unverified,
         )
-        assert "F02" in decision.failed_floors
+        assert "L02" in decision.violated_laws
         assert decision.verdict in (GovernanceVerdict.HOLD, GovernanceVerdict.VOID)
 
     def test_verified_source_passes_f2(self):
@@ -111,7 +111,7 @@ class TestF2Truth:
             actor_id="agent-001",
             source_verification=verified,
         )
-        assert "F02" not in decision.failed_floors
+        assert "L02" not in decision.violated_laws
 
     def test_no_source_provided_holds(self):
         enforcer = DataGovernanceEnforcer()
@@ -122,7 +122,7 @@ class TestF2Truth:
             actor_id="agent-001",
             # no source_verification
         )
-        assert "F02" in decision.failed_floors
+        assert "L02" in decision.violated_laws
 
 
 # ─── F3: Witness Bundle ─────────────────────────────────────────────────────
@@ -155,7 +155,7 @@ class TestF3Witness:
             ),
             witness_bundle=bundle,
         )
-        assert "F03" in decision.failed_floors
+        assert "L03" in decision.violated_laws
 
     def test_two_sources_consensus_passes(self):
         enforcer = DataGovernanceEnforcer()
@@ -178,7 +178,7 @@ class TestF3Witness:
             actor_id="agent-001",
             witness_bundle=bundle,
         )
-        assert "F03" not in decision.failed_floors
+        assert "L03" not in decision.violated_laws
 
 
 # ─── F4: Schema Contract ────────────────────────────────────────────────────
@@ -202,7 +202,7 @@ class TestF4Clarity:
             actor_id="agent-001",
             contract=contract,
         )
-        assert "F04" in decision.failed_floors
+        assert "L04" in decision.violated_laws
 
     def test_complete_contract_passes(self):
         enforcer = DataGovernanceEnforcer()
@@ -219,7 +219,7 @@ class TestF4Clarity:
             actor_id="agent-001",
             contract=contract,
         )
-        assert "F04" not in decision.failed_floors
+        assert "L04" not in decision.violated_laws
 
 
 # ─── F5: Sensitive Data Masking ────────────────────────────────────────────
@@ -348,7 +348,7 @@ class TestF10Ontology:
             actor_id="agent-001",
             asset_category="not-a-real-category",
         )
-        assert "F10" in decision.failed_floors
+        assert "L10" in decision.violated_laws
 
 
 # ─── F11: Role-Based Access ─────────────────────────────────────────────────
@@ -388,7 +388,7 @@ class TestF11Auth:
             required_role=AccessRole.ADMIN,
             actor_role=AccessRole.VIEWER,
         )
-        assert "F11" in decision.failed_floors
+        assert "L11" in decision.violated_laws
 
 
 # ─── F12: Input Sanitization ───────────────────────────────────────────────
@@ -427,7 +427,7 @@ class TestF12Injection:
             actor_id="agent-001",
             actor_role=AccessRole.EDITOR,
         )
-        assert "F12" in decision.failed_floors
+        assert "L12" in decision.violated_laws
         assert decision.verdict == GovernanceVerdict.VOID
 
 
@@ -523,7 +523,7 @@ class TestGovernancePipeline:
             actor_role=AccessRole.EDITOR,
         )
         assert decision.verdict == GovernanceVerdict.SEAL, (
-            f"Failed floors: {decision.failed_floors}"
+            f"Failed floors: {decision.violated_laws}"
         )
         assert decision.audit_log is not None
 
@@ -544,7 +544,7 @@ class TestGovernancePipeline:
         # F12 fires first (injection gate) and returns VOID immediately.
         # F01, F10, F11 are skipped in the same pass (correct — F12 is terminal).
         assert decision.verdict == GovernanceVerdict.VOID
-        assert "F12" in decision.failed_floors  # injection caught first; terminal gate
+        assert "L12" in decision.violated_laws  # injection caught first; terminal gate
         # The sanitized query has SQL/shell chars HTML-escaped (&#x27; for ')
         assert "&#x27" in decision.sanitized_input.get("query", "")
         # Password is preserved here since F05 masking runs AFTER the F12 gate,
@@ -557,18 +557,18 @@ class TestGovernancePipeline:
         floor_keys = [k for k in summary.keys()]
         assert len(floor_keys) == 13
         for floor in [
-            "F01",
-            "F02",
-            "F03",
-            "F04",
-            "F05",
-            "F06",
-            "F07",
-            "F08",
-            "F09",
-            "F10",
-            "F11",
-            "F12",
-            "F13",
+            "L01",
+            "L02",
+            "L03",
+            "L04",
+            "L05",
+            "L06",
+            "L07",
+            "L08",
+            "L09",
+            "L10",
+            "L11",
+            "L12",
+            "L13",
         ]:
             assert any(floor in k for k in floor_keys), f"Missing {floor} in summary"

@@ -7,13 +7,13 @@
 
 ## Executive Summary
 
-The arifOS MCP (Model Context Protocol) Constitutional AI Governance System is a revolutionary **Double Helix architecture** that combines an **Inner Ring Sacred Constitutional Chain** with an **Outer Ring Peripheral Nervous System (PNS)**. This system implements 13 Constitutional Floors (F1-F13) enforced through the **Trinity Architecture (ΔΩΨ)** to ensure sovereign, ethical, and reversible AI governance.
+The arifOS MCP (Model Context Protocol) Constitutional AI Governance System is a revolutionary **Double Helix architecture** that combines an **Inner Ring Sacred Constitutional Chain** with an **Outer Ring Peripheral Nervous System (PNS)**. This system implements 13 Constitutional Laws (F1-F13) enforced through the **Trinity Architecture (ΔΩΨ)** to ensure sovereign, ethical, and reversible AI governance.
 
 ---
 
 ## 1. THE 13 CONSTITUTIONAL FLOORS (F1-F13)
 
-The Constitutional Floors form a hierarchical governance framework where each floor represents a fundamental constraint on AI behavior. Floors are enforced through various mechanisms including hard VOID, soft PARTIAL, mirror, wall, and veto types.
+The Constitutional Laws form a hierarchical governance framework where each floor represents a fundamental constraint on AI behavior. Floors are enforced through various mechanisms including hard VOID, soft PARTIAL, mirror, wall, and veto types.
 
 ### Floor Hierarchy and Enforcement Matrix
 
@@ -516,10 +516,10 @@ The MGI (Machine-Governance-Intelligence) Envelope is the standardized response 
         "F7_Tawadu": true,
         "F8_Sabr": true,
         "F9_Rahmah": true,
-        "F10_Ihsan": true,
-        "F11_Aman": true,
-        "F12_Hifz": true,
-        "F13_Khalifah": true
+        "L10_Ihsan": true,
+        "L11_Aman": true,
+        "L12_Hifz": true,
+        "L13_Khalifah": true
       },
       "trinity_alignment": {
         "delta_score": 0.95,
@@ -928,7 +928,7 @@ is_f3_compliant = (w4_score >= 0.75)
 
 The arifOS MCP Constitutional AI Governance System represents a paradigm shift in AI safety and governance architecture. By combining:
 
-1. **13 Constitutional Floors** with graduated enforcement mechanisms
+1. **13 Constitutional Laws** with graduated enforcement mechanisms
 2. **Double Helix Architecture** separating sacred reasoning from peripheral sensing
 3. **Trinity Architecture (ΔΩΨ)** ensuring clarity, humility, and vitality
 4. **8 Sacred Tools** in a metabolic processing loop

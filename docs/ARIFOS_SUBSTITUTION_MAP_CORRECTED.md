@@ -124,12 +124,12 @@
 > "arifOS replaces 10+ MCP servers with 11 tools"
 
 ### After (Accurate)
-> "arifOS consolidates **governance overhead** into 10 canonical tools, adding **13 Constitutional Floors** and **thermodynamic efficiency** to your existing MCP ecosystem."
+> "arifOS consolidates **governance overhead** into 10 canonical tools, adding **13 Constitutional Laws** and **thermodynamic efficiency** to your existing MCP ecosystem."
 
 ### Key Distinction
 - ✅ **Replaces:** Sequential thinking servers, fragmented memory systems, redundant safety checks
 - ✅ **Governs:** Code execution, file access, Git operations, web search (existing MCPs)
-- ✅ **Unique:** 13 Constitutional Floors, thermodynamic metrics, human veto (no equivalents)
+- ✅ **Unique:** 13 Constitutional Laws, thermodynamic metrics, human veto (no equivalents)
 
 ---
 
@@ -160,7 +160,7 @@
 **Corrected Claim:** arifOS governs the ecosystem — raw execution MCPs remain but are now constitutionally supervised.
 
 **Unique Moat (Unchanged):**
-- Only MCP server with 13 Constitutional Floors
+- Only MCP server with 13 Constitutional Laws
 - Only thermodynamic governance (Peace², entropy metrics)
 - Only immutable vault with human veto (F13)
 

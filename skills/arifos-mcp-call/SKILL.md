@@ -154,7 +154,7 @@ When `arifOS_kernel` returns `requires_human: true` or `verdict: "HOLD_888"`:
     "approval_scope": ["arifOS_kernel:execute"]
   },
   "errors": [{
-    "code": "F13_SOVEREIGNTY_HOLD",
+    "code": "L13_SOVEREIGNTY_HOLD",
     "message": "High-risk execution requires sovereign approval.",
     "remediation": {
       "action": "REQUEST_HUMAN_APPROVAL",

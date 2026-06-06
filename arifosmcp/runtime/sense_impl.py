@@ -209,7 +209,7 @@ def _call_a_forge_sense(
                     "contradiction_penalty": 1.0,
                     "uncertainty_hint": 1.0,
                 },
-                "floors_triggered": ["F13"],
+                "floors_triggered": ["L13"],
                 "human_review_required": True,
             },
             "context": {

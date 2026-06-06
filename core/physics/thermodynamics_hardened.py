@@ -59,12 +59,12 @@ class ThermodynamicError(Exception):
     Catching and ignoring it is a constitutional violation.
     """
 
-    floor_id: str = "F4"
+    law_id: str = "F4"
     verdict: str = "VOID"
 
-    def __init__(self, message: str, *, floor_id: str = "F4", verdict: str = "VOID"):
+    def __init__(self, message: str, *, law_id: str = "F4", verdict: str = "VOID"):
         super().__init__(message)
-        self.floor_id = floor_id
+        self.law_id = law_id
         self.verdict = verdict
 
 
@@ -89,7 +89,7 @@ class LandauerError(ThermodynamicError):
             f"Landauer Bound VIOLATED: efficiency={ratio:.1f}x. "
             f"Claims ΔS={claimed_reduction:.4f} but compute cost was {cost_str}. "
             f"Suspiciously fast — likely cached or hallucinated.",
-            floor_id="F2",
+            law_id="F2",
             verdict="VOID",
         )
 
@@ -112,7 +112,7 @@ class EntropyIncreaseError(ThermodynamicError):
                 f"Output clarity ({output_metric:.4f}) below input ({input_metric:.4f}). "
                 f"System generated confusion instead of clarity."
             )
-        super().__init__(msg, floor_id="F4", verdict="VOID")
+        super().__init__(msg, law_id="F4", verdict="VOID")
 
 
 class ModeCollapseError(ThermodynamicError):
@@ -123,7 +123,7 @@ class ModeCollapseError(ThermodynamicError):
             f"Mode Collapse VIOLATED: Ω_ortho={orthogonality:.4f} < 0.95. "
             f"Mind and Heart are echoing (cos_sim={cosine_sim:.4f}). "
             f"Constitutional separation collapsed.",
-            floor_id="F8",
+            law_id="F8",
             verdict="VOID",
         )
 
@@ -135,7 +135,7 @@ class ThermodynamicExhaustionError(ThermodynamicError):
         super().__init__(
             f"Thermodynamic Budget EXHAUSTED: {remaining:.4e} J left, {consumed:.4e} J used. "
             f"Session has reached heat death. 888_HOLD required.",
-            floor_id="F7",
+            law_id="F7",
             verdict="888_HOLD",
         )
 
@@ -185,7 +185,7 @@ class ThermodynamicBudget:
     def __post_init__(self):
         if self.initial_budget <= 0:
             raise ThermodynamicError(
-                "Initial budget must be positive", floor_id="F1", verdict="VOID"
+                "Initial budget must be positive", law_id="F1", verdict="VOID"
             )
 
     @property
@@ -636,7 +636,7 @@ def get_thermodynamic_budget(session_id: str) -> ThermodynamicBudget:
         raise ThermodynamicError(
             f"No thermodynamic budget for session {session_id}. "
             f"Stage 000 must call init_thermodynamic_budget().",
-            floor_id="F1",
+            law_id="F1",
             verdict="VOID",
         )
     return _thermodynamic_registry[session_id]

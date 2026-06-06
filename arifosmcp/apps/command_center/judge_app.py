@@ -114,7 +114,7 @@ def governed_judge_deliberate(
     if output.floor_compliance:
         fc = output.floor_compliance
         floors_passed = list(fc.floors_passed) if fc.floors_passed else []
-        floors_failed = list(fc.failed_floors) if fc.failed_floors else []
+        floors_failed = list(fc.violated_laws) if fc.violated_laws else []
 
     reason = (
         f"888_JUDGE [{verdict_code}] via 13-floor review. "

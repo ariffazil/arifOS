@@ -183,7 +183,7 @@ class GovernanceAgent(Agent):
         return {
             "agent": "G",
             "verdict": "SEAL",
-            "floor_results": {},
+            "law_results": {},
             "session_id": session_id,
         }
 

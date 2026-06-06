@@ -62,7 +62,7 @@ SCENARIOS: dict[str, tuple[dict, str, list[str]]] = {
             "actor_id": "arif-test",
         },
         "expected_verdict": "HOLD",
-        "expected_floors": ["F11", "F13"],
+        "expected_floors": ["L11", "L13"],
     },
 }
 

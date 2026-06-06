@@ -3,16 +3,22 @@ import os
 
 from core.shared.vault_client import VaultClient
 
-# Use core.floors as the source for tool call evaluation
+# Use core.laws as the source for tool call evaluation
 try:
-    from arifosmcp.core.floors import evaluate_tool_call, Verdict
+    from arifosmcp.core.floors import evaluate_tool_call
 except ImportError:
-    # Fallback/Mock for local testing if core.floors is not available
+    evaluate_tool_call = None
+
+# Verdict is not in core.laws; provide a local fallback
+try:
+    from arifosmcp.models.verdicts import VerdictState as Verdict
+except ImportError:
     class Verdict:
         SEAL = "SEAL"
         HOLD = "HOLD"
         VOID = "VOID"
 
+if evaluate_tool_call is None:
     def evaluate_tool_call(**kwargs):
         class MockGov:
             verdict = Verdict.SEAL
@@ -65,19 +71,19 @@ def governed_tool(fn):
 
         # 3. Always seal — even HOLDs get logged
         # Convert gov results to serializable list
-        floor_results = []
-        if hasattr(gov, "floor_results"):
-            floor_results = [
+        law_results = []
+        if hasattr(gov, "law_results"):
+            law_results = [
                 {
-                    "id": r.floor_id,
+                    "id": r.law_id,
                     "name": r.name,
                     "status": "PASS" if r.passed else "FAIL",
                     "score": r.score,
                 }
-                for r in gov.floor_results
+                for r in gov.law_results
             ]
         else:
-            floor_results = [{"verdict": str(gov.verdict), "message": gov.message}]
+            law_results = [{"verdict": str(gov.verdict), "message": gov.message}]
 
         await vault.seal(
             verdict=verdict,
@@ -85,7 +91,7 @@ def governed_tool(fn):
             session_id=ctx.get("session_id", "unknown"),
             actor_id=ctx.get("actor_id", "anonymous"),
             payload=kwargs,
-            floor_results=floor_results,
+            law_results=law_results,
             g_star=ctx.get("g_star", 0.0),
         )
 
@@ -94,7 +100,7 @@ def governed_tool(fn):
                 "ok": False,
                 "verdict": verdict,
                 "message": f"Governance {verdict}: {gov.message}",
-                "floors": floor_results,
+                "floors": law_results,
             }
 
         return result

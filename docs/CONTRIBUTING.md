@@ -58,7 +58,7 @@ pytest tests/core/test_aki_contract.py -v
 
 ## 📜 Constitutional Alignment
 
-Every pull request is audited against the **13 Constitutional Floors (F1–F13)**. Direct modifications to the L0_KERNEL (e.g., `core/theory/000_LAW.md`, `core/shared/floors.py`) require explicit sovereign sign-off and are protected by the `L0KernelGatekeeper`.
+Every pull request is audited against the **13 Constitutional Laws (F1–F13)**. Direct modifications to the L0_KERNEL (e.g., `core/theory/000_LAW.md`, `core/shared/floors.py`) require explicit sovereign sign-off and are protected by the `L0KernelGatekeeper`.
 
 ## 🏛️ Governance
 

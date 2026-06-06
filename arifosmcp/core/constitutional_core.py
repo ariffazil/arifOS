@@ -398,9 +398,9 @@ class IrreversibilityModel:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class FloorResult(BaseModel):
+class LawResult(BaseModel):
     verdict: str = Field(default="SEAL")  # SEAL | HOLD | VOID
-    failed_floors: list[str] = Field(default_factory=list)
+    violated_laws: list[str] = Field(default_factory=list)
     floor_reasons: dict[str, str] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -413,7 +413,7 @@ class FloorEvaluator:
     """
 
     @classmethod
-    def evaluate(cls, context: ActionContext, threat: ThreatAssessment) -> FloorResult:
+    def evaluate(cls, context: ActionContext, threat: ThreatAssessment) -> LawResult:
         failed: list[str] = []
         reasons: dict[str, str] = {}
 
@@ -436,8 +436,8 @@ class FloorEvaluator:
 
         if effective_irreversibility.value >= IrreversibilityLevel.HIGH.value:
             if not context.ack_irreversible:
-                failed.append("F01")
-                reasons["F01"] = (
+                failed.append("L01")
+                reasons["L01"] = (
                     f"Irreversible action (level={effective_irreversibility.name}) "
                     "requires ack_irreversible=True"
                 )
@@ -452,8 +452,8 @@ class FloorEvaluator:
         if not context.candidate and not context.manifest and not context.query:
             # Empty intent is only a problem for judge/forge modes
             if context.tool_name in ("arif_judge_deliberate", "arif_forge_execute"):
-                failed.append("F04")
-                reasons["F04"] = "Action intent is empty or unclear"
+                failed.append("L04")
+                reasons["L04"] = "Action intent is empty or unclear"
 
         # F05 PEACE — No harm to dignity
         # (Enforced by heart_critique)
@@ -485,17 +485,17 @@ class FloorEvaluator:
             "probe",
             "notify",
         }:
-            failed.append("F10")
-            reasons["F10"] = f"Unknown judge mode: {context.mode}"
+            failed.append("L10")
+            reasons["L10"] = f"Unknown judge mode: {context.mode}"
 
         # F11 AUTH — Verify identity
         if context.session_id and context.session_id not in context.session_registry:
-            failed.append("F11")
-            reasons["F11"] = "Session ID not found or expired"
+            failed.append("L11")
+            reasons["L11"] = "Session ID not found or expired"
 
         if context.target_agent and context.target_agent not in context.federation_registry:
-            failed.append("F11")
-            reasons["F11"] = f"Agent '{context.target_agent}' not in federation registry"
+            failed.append("L11")
+            reasons["L11"] = f"Agent '{context.target_agent}' not in federation registry"
 
         # F12 INJECTION — Sanitize inputs
         injection_categories = {
@@ -505,22 +505,22 @@ class FloorEvaluator:
             ThreatCategory.INJECTION_PYTHON,
         }
         if threat.threats & injection_categories:
-            failed.append("F12")
+            failed.append("L12")
             detected = [t.name for t in threat.threats & injection_categories]
-            reasons["F12"] = f"Injection threat detected: {detected}"
+            reasons["L12"] = f"Injection threat detected: {detected}"
 
         # F13 SOVEREIGN — Human veto is absolute
         if cls._requires_human_witness(context, threat):
             if context.witness_type != WitnessType.HUMAN:
                 # Distinguish sovereignty violation (AI self-approval) from missing witness
                 if context.tool_name == "arif_mind_reason" and context.mode == "plan_approve":
-                    failed.append("F13_VIOLATION")
-                    reasons["F13_VIOLATION"] = (
+                    failed.append("L13_VIOLATION")
+                    reasons["L13_VIOLATION"] = (
                         "F13 SOVEREIGN: AI self-approval is constitutionally forbidden"
                     )
                 else:
-                    failed.append("F13")
-                    reasons["F13"] = (
+                    failed.append("L13")
+                    reasons["L13"] = (
                         f"Action requires human witness (tool={context.tool_name}, "
                         f"irreversibility={threat.irreversibility.name}). "
                         f"witness_type='{context.witness_type.value}' is insufficient."
@@ -529,7 +529,7 @@ class FloorEvaluator:
         if failed:
             # VOID for: sovereignty violations, critical irreversibility, injection threats
             is_void = (
-                "F13_VIOLATION" in failed
+                "L13_VIOLATION" in failed
                 or threat.irreversibility == IrreversibilityLevel.CRITICAL
                 or bool(
                     threat.threats
@@ -542,9 +542,9 @@ class FloorEvaluator:
                 )
             )
             verdict = "VOID" if is_void else "HOLD"
-            return FloorResult(
+            return LawResult(
                 verdict=verdict,
-                failed_floors=failed,
+                violated_laws=failed,
                 floor_reasons=reasons,
                 metadata={
                     "threats": [t.name for t in threat.threats],
@@ -552,7 +552,7 @@ class FloorEvaluator:
                 },
             )
 
-        return FloorResult(
+        return LawResult(
             verdict="SEAL", metadata={"irreversibility": threat.irreversibility.name}
         )
 
@@ -600,7 +600,7 @@ class AuthorityGate:
 
     @classmethod
     def verify(
-        cls, context: ActionContext, threat: ThreatAssessment, floors: FloorResult
+        cls, context: ActionContext, threat: ThreatAssessment, floors: LawResult
     ) -> AuthorityProof:
         requires_human = FloorEvaluator._requires_human_witness(context, threat)
 
@@ -647,7 +647,7 @@ class ConstitutionalVerdict(BaseModel):
     status: str = Field(..., description="OK | HOLD | VOID")
     verdict: str = Field(..., description="SEAL | SABAR | HOLD | VOID")
     threat: ThreatAssessment
-    floors: FloorResult
+    floors: LawResult
     authority: AuthorityProof
     irreversibility: IrreversibilityLevel
     timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
@@ -662,7 +662,7 @@ class ConstitutionalVerdict(BaseModel):
             "status": self.status,
             "verdict": self.verdict,
             "threats": sorted(t.name for t in self.threat.threats),
-            "floors": self.floors.failed_floors,
+            "floors": self.floors.violated_laws,
             "authority": json.loads(self.authority.model_dump_json()),
             "irreversibility": self.irreversibility.name,
             "timestamp": self.timestamp,
@@ -747,7 +747,7 @@ class ConstitutionKernel:
                 ThreatCategory.SYSTEM_SHUTDOWN,
             }
         )
-        is_sovereignty_violation = "F13_VIOLATION" in floors.failed_floors
+        is_sovereignty_violation = "L13_VIOLATION" in floors.violated_laws
 
         if floors.verdict == "VOID" or not authority.authorized:
             status = "HOLD"
@@ -874,7 +874,7 @@ __all__ = [
     "ConstitutionalVerdict",
     "ConstitutionKernel",
     "FloorEvaluator",
-    "FloorResult",
+    "LawResult",
     "get_kernel",
     "IrreversibilityLevel",
     "IrreversibilityModel",

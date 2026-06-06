@@ -38,7 +38,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from arifosmcp.runtime.floor import check_floors
+from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.llm_client import LLMUnavailableError, call_llm
 from arifosmcp.runtime.session_auth import validate_session
 from arifosmcp.runtime.tools import _hold, _ok
@@ -435,13 +435,13 @@ async def arif_metabolize(
     if not auth["valid"]:
         return _build_metabolic_hold_dict(
             reason=f"Session invalid: {auth.get('reason', 'unknown')}",
-            floors=["F11"],
+            laws=["L11"],
             session_id=session_id,
             now=now,
         )
 
     # ── Floor Check ───────────────────────────────────────────────────────────
-    floor_check = check_floors(
+    floor_check = check_laws(
         "arif_metabolize",
         {
             "domain": domain,
@@ -453,7 +453,7 @@ async def arif_metabolize(
     if floor_check["verdict"] != "SEAL":
         return _build_metabolic_hold_dict(
             reason=floor_check.get("reason", "Floor check failed"),
-            floors=floor_check.get("failed_floors", []),
+            floors=floor_check.get("violated_laws", []),
             session_id=session_id,
             now=now,
         )
@@ -537,7 +537,7 @@ Process through all 6 steps and return the complete MetabolicOutput JSON.
     except Exception as e:
         return _build_metabolic_hold_dict(
             reason=f"Failed to build metabolic output: {str(e)}",
-            floors=["F10"],
+            laws=["L10"],
             session_id=session_id,
             now=now,
         )

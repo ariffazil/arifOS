@@ -26,10 +26,103 @@ import asyncio
 import threading
 from typing import Any
 
-from arifosmcp.runtime.floor import check_floors
+from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.llm_client import LLMUnavailableError
 from arifosmcp.runtime.tools import _hold, _ok
 from arifosmcp.schemas.synthesis import Synthesis
+
+
+def _reduce_verdict(*verdicts: str) -> str:
+    """
+    Verdict reducer — returns the most conservative verdict.
+
+    Order (most conservative → least):
+    VOID > HOLD > HYPOTHESIS > PARTIAL > PASS > SEAL
+    """
+    order = {
+        "VOID": 0,
+        "HOLD": 1,
+        "ESCALATE_TO_888": 1,
+        "NEEDS_EVIDENCE": 2,
+        "HYPOTHESIS": 3,
+        "PARTIAL": 4,
+        "PASS": 5,
+        "PASS_WITH_SCOPE_LIMIT": 5,
+        "REASONED": 6,
+        "REFLECTED": 6,
+        "SEAL": 7,
+    }
+    # Default to HOLD if unknown verdict encountered
+    mapped = [(order.get(v, 1), v) for v in verdicts if v]
+    if not mapped:
+        return "HOLD"
+    return min(mapped, key=lambda x: x[0])[1]
+
+
+def _sanitize_observed_inputs(inputs: list[str]) -> list[str]:
+    """
+    Sanitize observed_inputs to remove raw <think> blocks and private reasoning text.
+    Replaces raw thinking with safe abstractions.
+    """
+    sanitized = []
+    for item in inputs:
+        if not isinstance(item, str):
+            continue
+        # Strip raw <think> blocks entirely
+        if "<think>" in item or "</think>" in item:
+            # Extract a safe abstraction if possible
+            if "theory of mind" in item.lower() or "tom" in item.lower():
+                sanitized.append("Evidence: operator asked about theory-of-mind scaffolding in init tool.")
+            elif "identity" in item.lower() or "verification" in item.lower():
+                sanitized.append("Evidence: operator identity verification state was discussed.")
+            elif "consent" in item.lower() or "privacy" in item.lower():
+                sanitized.append("Evidence: consent boundaries and privacy were discussed.")
+            else:
+                sanitized.append("Evidence: reasoning trace contained structured constitutional analysis.")
+            continue
+        # Strip obvious raw model artifacts
+        if item.startswith("[think]") or item.startswith("<thinking>"):
+            sanitized.append("Evidence: structured reasoning trace available (raw thinking sanitized).")
+            continue
+        sanitized.append(item)
+    return sanitized
+
+
+def _ensure_confidence(conf: dict | None) -> dict:
+    """Ensure confidence is never empty — governed reasoning requires explicit confidence."""
+    if not isinstance(conf, dict) or not conf:
+        return {
+            "reasoning_confidence": 0.5,
+            "evidence_confidence": 0.3,
+            "overall_confidence": 0.3,
+            "label": "low",
+            "reason": "Confidence was empty or malformed — defaulting to low-confidence heuristic.",
+        }
+    # Ensure required keys exist
+    conf.setdefault("reasoning_confidence", 0.5)
+    conf.setdefault("evidence_confidence", 0.3)
+    conf.setdefault("overall_confidence", 0.3)
+    if "label" not in conf:
+        overall = conf.get("overall_confidence", 0.3)
+        if overall >= 0.8:
+            conf["label"] = "high"
+        elif overall >= 0.5:
+            conf["label"] = "medium"
+        else:
+            conf["label"] = "low"
+    if "reason" not in conf:
+        conf["reason"] = f"Overall confidence {conf['overall_confidence']:.2f} — self-assessed, not verified."
+    return conf
+
+
+def _ensure_synthesis(synthesis: str | None, reasoning_status: str) -> str:
+    """Ensure synthesis is never empty — empty synthesis creates false completion."""
+    if synthesis and isinstance(synthesis, str) and synthesis.strip():
+        return synthesis.strip()
+    return (
+        f"Unable to produce structured synthesis — reasoning status is {reasoning_status}. "
+        "Claim remains unsealed and requires further evidence or critique."
+    )
 
 
 def _build_delta_bundle(
@@ -44,10 +137,24 @@ def _build_delta_bundle(
     axioms_used: list[str] | None = None,
     next_safe_action: list[str] | None = None,
     context: dict | None = None,
+    actor_id: str | None = None,
 ) -> dict:
     """
     Build a Structured Delta Bundle — the upgraded constitutional output for 333_MIND.
+
+    v3.1 fix: Separates execution, reasoning, truth, and final verdicts.
+    Never collapses transport success with truth success.
     """
+    # ── Sanitize inputs ──────────────────────────────────────
+    reasoning = reasoning or {}
+    observed_inputs = reasoning.get("observed_inputs", [])
+    if observed_inputs:
+        reasoning["observed_inputs"] = _sanitize_observed_inputs(observed_inputs)
+
+    # ── Ensure non-empty critical fields ─────────────────────
+    confidence = _ensure_confidence(confidence)
+    synthesis = _ensure_synthesis(synthesis, status)
+
     overall_conf = confidence.get("overall_confidence", 0.5)
     omega_0 = max(0.03, min(0.05, round(1.0 - overall_conf, 4)))
 
@@ -57,8 +164,60 @@ def _build_delta_bundle(
         g_score = context.get("g_score", context.get("vitals", {}).get("g_score", "unavailable"))
         reasoning_trace.append(f"[333_MIND context] session_id={session_id}, g_score={g_score}")
 
+    # ── Compute floor scores ─────────────────────────────────
+    f02_pass = confidence.get("evidence_confidence", 0) >= 0.9
+    floor_scores = {
+        "L02_TRUTH": "PASS" if f02_pass else "FAIL",
+        "L04_CLARITY": "PASS",
+        "L07_HUMILITY": "PASS" if 0.03 <= omega_0 <= 0.05 else "FAIL",
+        "L13_SOVEREIGN": "PASS",
+    }
+
+    # ── Compute separate verdict planes ──────────────────────
+    # Transport: did the tool execute without error?
+    transport_verdict = "SEAL"
+    # Execution: did the tool run safely (no crash, no mutation)?
+    execution_verdict = "SEAL"
+    # Reasoning: what did the inner reasoning conclude?
+    reasoning_verdict = status  # HOLD, HYPOTHESIS, REASONED, etc.
+    # Truth: is the claim proven based on evidence?
+    if claim_state in ("VERIFIED_FACT", "SUPPORTED_CLAIM") and f02_pass:
+        truth_verdict = "SEAL"
+    elif claim_state == "HYPOTHESIS":
+        truth_verdict = "HYPOTHESIS"
+    elif claim_state in ("SPECULATION", "UNSUPPORTED"):
+        truth_verdict = "HOLD"
+    else:
+        truth_verdict = "HOLD"
+    # Floor verdict: did all mandatory floors pass?
+    floor_verdict = "SEAL" if all(v == "PASS" for v in floor_scores.values()) else "HOLD"
+
+    # Final: most conservative across all planes
+    final_verdict = _reduce_verdict(
+        transport_verdict,
+        execution_verdict,
+        reasoning_verdict,
+        truth_verdict,
+        floor_verdict,
+    )
+
+    # ── Stage progression with escalation reason ─────────────
+    next_stage = "444_HEART"
+    if final_verdict in ("HOLD", "VOID", "ESCALATE_TO_888"):
+        escalation_reason = f"Escalating to critique because final_verdict={final_verdict} (reasoning={reasoning_verdict}, truth={truth_verdict})."
+    else:
+        escalation_reason = "Standard progression to ethics/dignity critique stage."
+
     return {
         "query": query,
+        # Verdict planes (v3.1 — never collapse)
+        "transport_verdict": transport_verdict,
+        "execution_verdict": execution_verdict,
+        "reasoning_verdict": reasoning_verdict,
+        "truth_verdict": truth_verdict,
+        "floor_verdict": floor_verdict,
+        "final_verdict": final_verdict,
+        # Legacy fields (preserved for backward compat)
         "status": status,
         "claim_state": claim_state,
         "synthesis": synthesis,
@@ -69,13 +228,18 @@ def _build_delta_bundle(
         "reasoning_mode": reasoning_mode,
         "axioms_used": axioms_used or [],
         "next_safe_action": next_safe_action or [],
-        "floor_scores": {
-            "F02_TRUTH": confidence.get("evidence_confidence", 0) >= 0.9,
-            "F04_CLARITY": True,
-            "F07_HUMILITY": 0.03 <= omega_0 <= 0.05,
-            "F13_SOVEREIGN": True,
-        },
+        "floor_scores": floor_scores,
         "reasoning_trace": reasoning_trace,
+        "stage_progression": {
+            "current_stage": "333_MIND",
+            "next_stage": next_stage,
+            "reason": escalation_reason,
+        },
+        "actor": {
+            "claimed_id": actor_id or "anonymous",
+            "verified": False,
+            "effective_actor": actor_id if actor_id else "anonymous_until_verified",
+        },
     }
 
 
@@ -189,11 +353,12 @@ def arif_mind_reason(
             axioms_used=reason_result.get("governance", {}).get("axioms_used", []),
             next_safe_action=[a.get("tool") for a in packet.get("next_actions", [])],
             context=context,
+            actor_id=actor_id,
         )
         return Synthesis(**_ok("arif_mind_reason", bundle))
 
     # Floor check (Manual override check)
-    floor_check = check_floors("arif_mind_reason", {"query": query or ""}, actor_id)
+    floor_check = check_laws("arif_mind_reason", {"query": query or ""}, actor_id)
     floor_verdict = floor_check.get("verdict", "HOLD")
     floor_reason = floor_check.get("reason", "Constitutional floor check did not SEAL")
 
@@ -213,13 +378,14 @@ def arif_mind_reason(
         axioms_used=reason_result.get("axioms_used", []),
         next_safe_action=reason_result.get("next_safe_action", []),
         context=context,
+        actor_id=actor_id,
     )
 
     if floor_verdict != "SEAL":
         hold_env = _hold(
             "arif_mind_reason",
             floor_reason,
-            floors=list(floor_check.get("failed_floors", [])),
+            floors=list(floor_check.get("violated_laws", [])),
             extra_meta={"floor_verdict": floor_verdict},
             session_id=session_id,
         )

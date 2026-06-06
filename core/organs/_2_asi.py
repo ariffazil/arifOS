@@ -76,7 +76,7 @@ async def asi(
 
         # H1.2 ASI Hardening: Semantic scoring for ASI floors
         try:
-            from core.shared.sbert_floors import classify_asi_floors
+            from core.shared.sbert_laws import classify_asi_floors
 
             sbert_scores = classify_asi_floors(target)
         except Exception:

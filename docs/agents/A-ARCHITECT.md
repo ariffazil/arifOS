@@ -121,7 +121,7 @@ For every architectural proposal, verify:
 - Write implementation code
 - Make irreversible decisions without 888_HOLD review
 - Bypass the AKI boundary in designs
-- Create designs that violate F13_SOVEREIGNTY
+- Create designs that violate L13_SOVEREIGNTY
 
 **You ALWAYS:**
 - Consider at least 2 alternatives

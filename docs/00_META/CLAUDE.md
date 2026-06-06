@@ -181,7 +181,7 @@ All tools return the **v1.0.0 Final Canonical Output Schema** (`RuntimeEnvelope`
 
 ---
 
-## Constitutional Floors (F1-F13)
+## Constitutional Laws (F1-F13)
 
 13 safety rules: 9 Floors + 2 Mirrors + 2 Walls. Hard floors → VOID (block). Soft floors → PARTIAL (warn).
 

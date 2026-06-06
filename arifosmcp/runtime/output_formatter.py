@@ -339,7 +339,7 @@ def _format_agi_reply(envelope: RuntimeEnvelope) -> dict[str, Any]:
 
     # ── Governance trace (F1/F13) — typed model ──────────────────────────────
     governance_trace: AgiReplyGovernanceTrace | None = None
-    if floors_triggered and any(f in floors_triggered for f in ("F1", "F13")):
+    if floors_triggered and any(f in floors_triggered for f in ("F1", "L13")):
         governance_trace = AgiReplyGovernanceTrace(
             floors_triggered=floors_triggered,
             verdict="888_HOLD",

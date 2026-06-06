@@ -43,7 +43,7 @@ class ValidatorAgent(ConstitutionalAgent):
     """
 
     # Floors enforced by Validator (Ψ axis)
-    VALIDATOR_FLOORS = ["F1", "F3", "F10", "F11", "F13"]
+    VALIDATOR_FLOORS = ["F1", "F3", "L10", "L11", "L13"]
 
     def __init__(self, agent_id: str = "validator.apex", arifos_client=None):
         super().__init__(
@@ -129,14 +129,14 @@ class ValidatorAgent(ConstitutionalAgent):
         # Build floor scores
         floor_scores = [
             FloorScore(
-                "F11",
+                "L11",
                 1.0 if f11_passed else 0.0,
                 1.0,
                 f11_passed,
                 {"auth_verified": f11_passed},
             ),
             FloorScore(
-                "F10",
+                "L10",
                 1.0 if f10_passed else 0.0,
                 1.0,
                 f10_passed,
@@ -157,7 +157,7 @@ class ValidatorAgent(ConstitutionalAgent):
                 {"witnesses": f3_passed},
             ),
             FloorScore(
-                "F13",
+                "L13",
                 1.0,
                 1.0,
                 True,

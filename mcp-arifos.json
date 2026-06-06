@@ -61,24 +61,24 @@
     }
   },
   "tools": [
-    {"name": "arif_session_init", "stage": "000_INIT", "lane": "AGI", "floors": ["F01", "F11", "F12"], "risk_tier": "critical"},
-    {"name": "arif_vault_seal", "stage": "999_VAULT", "lane": "APEX", "floors": ["F01", "F11", "F13"], "risk_tier": "critical"},
-    {"name": "arif_sense_observe", "stage": "111_SENSE", "lane": "AGI", "floors": ["F02"], "risk_tier": "low"},
-    {"name": "arif_heart_critique", "stage": "666_HEART", "lane": "ASI", "floors": ["F05", "F06"], "risk_tier": "medium"},
-    {"name": "arif_forge_execute", "stage": "010_FORGE", "lane": "AGI", "floors": ["F01", "F11", "F13"], "risk_tier": "critical"},
-    {"name": "arif_mind_reason", "stage": "333_MIND", "lane": "AGI", "floors": ["F02", "F07", "F08"], "risk_tier": "medium"},
-    {"name": "arif_judge_deliberate", "stage": "888_JUDGE", "lane": "ASI", "floors": ["F11", "F13"], "risk_tier": "critical"},
-    {"name": "arif_kernel_route", "stage": "444_KERNEL", "lane": "AGI", "floors": ["F01", "F04"], "risk_tier": "medium"},
-    {"name": "arif_ops_measure", "stage": "777_OPS", "lane": "AGI", "floors": ["F04"], "risk_tier": "low"},
-    {"name": "arif_memory_recall", "stage": "555_MEMORY", "lane": "AGI", "floors": ["F01", "F08"], "risk_tier": "low"},
-    {"name": "arif_evidence_fetch", "stage": "222_FETCH", "lane": "AGI", "floors": ["F02", "F03"], "risk_tier": "low"},
-    {"name": "arif_reply_compose", "stage": "444r_REPLY", "lane": "AGI", "floors": ["F04", "F06", "F09"], "risk_tier": "low"},
-    {"name": "arif_gateway_connect", "stage": "666g_GATEWAY", "lane": "ASI", "floors": ["F01", "F03"], "risk_tier": "medium"}
+    {"name": "arif_session_init", "stage": "000_INIT", "lane": "AGI", "floors": ["L01", "L11", "L12"], "risk_tier": "critical"},
+    {"name": "arif_vault_seal", "stage": "999_VAULT", "lane": "APEX", "floors": ["L01", "L11", "L13"], "risk_tier": "critical"},
+    {"name": "arif_sense_observe", "stage": "111_SENSE", "lane": "AGI", "floors": ["L02"], "risk_tier": "low"},
+    {"name": "arif_heart_critique", "stage": "666_HEART", "lane": "ASI", "floors": ["L05", "L06"], "risk_tier": "medium"},
+    {"name": "arif_forge_execute", "stage": "010_FORGE", "lane": "AGI", "floors": ["L01", "L11", "L13"], "risk_tier": "critical"},
+    {"name": "arif_mind_reason", "stage": "333_MIND", "lane": "AGI", "floors": ["L02", "L07", "L08"], "risk_tier": "medium"},
+    {"name": "arif_judge_deliberate", "stage": "888_JUDGE", "lane": "ASI", "floors": ["L11", "L13"], "risk_tier": "critical"},
+    {"name": "arif_kernel_route", "stage": "444_KERNEL", "lane": "AGI", "floors": ["L01", "L04"], "risk_tier": "medium"},
+    {"name": "arif_ops_measure", "stage": "777_OPS", "lane": "AGI", "floors": ["L04"], "risk_tier": "low"},
+    {"name": "arif_memory_recall", "stage": "555_MEMORY", "lane": "AGI", "floors": ["L01", "L08"], "risk_tier": "low"},
+    {"name": "arif_evidence_fetch", "stage": "222_FETCH", "lane": "AGI", "floors": ["L02", "L03"], "risk_tier": "low"},
+    {"name": "arif_reply_compose", "stage": "444r_REPLY", "lane": "AGI", "floors": ["L04", "L06", "L09"], "risk_tier": "low"},
+    {"name": "arif_gateway_connect", "stage": "666g_GATEWAY", "lane": "ASI", "floors": ["L01", "L03"], "risk_tier": "medium"}
   ],
   "constitutional_floors": {
     "count": 13,
-    "hard": ["F1", "F2", "F6", "F9", "F10", "F11", "F13"],
-    "soft": ["F3", "F4", "F5", "F7", "F8", "F12"]
+    "hard": ["F1", "F2", "F6", "F9", "L10", "L11", "L13"],
+    "soft": ["F3", "F4", "F5", "F7", "F8", "L12"]
   },
   "endpoints": {
     "mcp": "https://mcp.arif-fazil.com/mcp",

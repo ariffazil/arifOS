@@ -75,10 +75,10 @@ class FloorName(StrEnum):
     F7_HUMILITY = "F7_HUMILITY"  # κ_H — Uncertainty declared
     F8_LOGIC = "F8_LOGIC"  # Internal consistency
     F9_ANTI_HANTU = "F9_ANTI_HANTU"  # Shadow detection
-    F10_AMANAH = "F10_AMANAH"  # Fiduciary duty
-    F11_IDENTITY = "F11_IDENTITY"  # Session anchoring
-    F12_CONTINUITY = "F12_CONTINUITY"  # Passive monitoring
-    F13_SOVEREIGNTY = "F13_SOVEREIGNTY"  # Human Architect Veto
+    L10_AMANAH = "L10_AMANAH"  # Fiduciary duty
+    L11_IDENTITY = "L11_IDENTITY"  # Session anchoring
+    L12_CONTINUITY = "L12_CONTINUITY"  # Passive monitoring
+    L13_SOVEREIGNTY = "L13_SOVEREIGNTY"  # Human Architect Veto
 
 
 class PipelineStage(int, Enum):

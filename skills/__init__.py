@@ -53,7 +53,7 @@ if _security:
     SKILL_REGISTRY["security-audit"] = {
         "skill": _security.SecurityAuditSkill,
         "execute": _security.execute,
-        "floor": "F12",
+        "floor": "L12",
         "description": "F12 injection defense",
     }
 
@@ -77,7 +77,7 @@ if _deploy:
     SKILL_REGISTRY["deployment"] = {
         "skill": _deploy.DeploymentSkill,
         "execute": _deploy.execute,
-        "floor": "F11",
+        "floor": "L11",
         "description": "F11 authority-gated deployment",
     }
 

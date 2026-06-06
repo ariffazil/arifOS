@@ -18,7 +18,7 @@ Traditional MCP is stdio-based (local). WebMCP extends MCP to the browser via HT
 - Real-time browser-to-server metabolic loops
 
 ### Key Innovation
-Every HTTP request to WebMCP passes through the **13 Constitutional Floors (F1-F13)**:
+Every HTTP request to WebMCP passes through the **13 Constitutional Laws (F1-F13)**:
 - F12 Injection Guard protects against XSS/CSRF
 - F11 Command Auth verifies browser sessions
 - F2 Truth grounds web content before reasoning
@@ -180,7 +180,7 @@ class WebMCPGateway:
                     status_code=403,
                     content={
                         "verdict": "VOID",
-                        "error": "F12_INJECTION_DETECTED",
+                        "error": "L12_INJECTION_DETECTED",
                         "session_id": session_id,
                     }
                 )

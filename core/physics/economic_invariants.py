@@ -39,7 +39,7 @@ class EconomicInvariantError(ThermodynamicError):
     """Base for all economic-physics invariant breaches."""
 
     def __init__(self, message: str, *, invariant: str, verdict: str = "VOID"):
-        super().__init__(message, floor_id="F4", verdict=verdict)
+        super().__init__(message, law_id="F4", verdict=verdict)
         self.invariant = invariant
 
 

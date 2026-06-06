@@ -155,7 +155,7 @@ def validate_session(session_id: str | None, actor_id: str | None = None) -> dic
                 "received_session_id": session_id,
                 "session_lookup": "not_found",
                 "actor_id_received": actor_id,
-                "validator": "F11_AUDIT",
+                "validator": "L11_AUDIT",
                 "session_store": "in_memory_and_persisted",
                 "auto_bootstrap_attempted": auto_bootstrapped,
             }
@@ -172,7 +172,7 @@ def validate_session(session_id: str | None, actor_id: str | None = None) -> dic
             "expires_at_unix": expires_at,
             "ttl_seconds": SESSION_TTL_SECONDS,
             "grace_seconds": SESSION_GRACE_SECONDS,
-            "validator": "F11_AUDIT",
+            "validator": "L11_AUDIT",
         }
 
     # ── 4. Actor ID mismatch ──────────────────────────────────────────────────

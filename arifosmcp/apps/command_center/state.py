@@ -130,7 +130,7 @@ class RuntimeState:
                         "exp": expires.isoformat(),
                     }
                 ),
-                floor_audit={"F1": True, "F2": True, "F9": True, "F13": True},
+                floor_audit={"F1": True, "F2": True, "F9": True, "L13": True},
                 created_at=now.isoformat(),
                 expires_at=expires.isoformat(),
             )

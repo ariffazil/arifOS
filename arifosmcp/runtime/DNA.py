@@ -24,10 +24,10 @@ FLOORS: Final[list[str]] = [
     "F7_HUMILITY",  # Uncertainty Band [0.03-0.05]
     "F8_GENIUS",  # G† Calculation
     "F9_ETHICS",  # Anti-Manipulation
-    "F10_REFLECTION",  # Self-Audit
-    "F11_CONTINUITY",  # Auth Lineage
-    "F12_DEFENSE",  # Input Hardening
-    "F13_SOVEREIGN",  # 888_JUDGE Veto
+    "L10_REFLECTION",  # Self-Audit
+    "L11_CONTINUITY",  # Auth Lineage
+    "L12_DEFENSE",  # Input Hardening
+    "L13_SOVEREIGN",  # 888_JUDGE Veto
 ]
 
 # --- METABOLIC LIMITS ---

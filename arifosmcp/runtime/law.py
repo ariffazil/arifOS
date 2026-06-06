@@ -26,7 +26,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from arifosmcp.constitutional_map import CANONICAL_TOOLS, Floor
+from arifosmcp.constitutional_map import CANONICAL_TOOLS, Law
 from arifosmcp.runtime.semantic_gate import classify_intent
 
 logger = logging.getLogger(__name__)
@@ -175,31 +175,31 @@ def is_dangerous_tool(tool_name: str, params: dict[str, Any]) -> bool:
 # Floor Descriptions
 # ─────────────────────────────────────────────────────────────────────────────
 
-FLOOR_DESCRIPTIONS: dict[Floor, str] = {
-    Floor.F01_AMANAH: "Trustworthiness — every action is accountable.",
-    Floor.F02_TRUTH: "Truthfulness — no deception, no hallucination passed as fact.",
-    Floor.F03_WITNESS: "Witness — evidence must be verifiable and preserved.",
-    Floor.F04_CLARITY: "Clarity — intent and mechanism are transparent.",
-    Floor.F05_PEACE: "Peace — no harm to human dignity or safety.",
-    Floor.F06_EMPATHY: "Empathy — consider human consequence before acting.",
-    Floor.F07_HUMILITY: "Humility — acknowledge limits and uncertainty.",
-    Floor.F08_GENIUS: "Genius — strive for elegant, correct solutions.",
-    Floor.F09_ANTIHANTU: "Anti-Hantu — detect and reject manipulation.",
-    Floor.F10_ONTOLOGY: "Ontology — preserve structural coherence.",
-    Floor.F11_AUDIT: "Authority — verify identity before irreversible acts.",
-    Floor.F12_INJECTION: "Injection Guard — sanitize all inputs.",
-    Floor.F13_SOVEREIGN: "Sovereign — human veto is absolute.",
+LAW_DESCRIPTIONS: dict[Law, str] = {
+    Law.L01_AMANAH: "Trustworthiness — every action is accountable.",
+    Law.L02_TRUTH: "Truthfulness — no deception, no hallucination passed as fact.",
+    Law.L03_WITNESS: "Witness — evidence must be verifiable and preserved.",
+    Law.L04_CLARITY: "Clarity — intent and mechanism are transparent.",
+    Law.L05_PEACE: "Peace — no harm to human dignity or safety.",
+    Law.L06_EMPATHY: "Empathy — consider human consequence before acting.",
+    Law.L07_HUMILITY: "Humility — acknowledge limits and uncertainty.",
+    Law.L08_GENIUS: "Genius — strive for elegant, correct solutions.",
+    Law.L09_ANTIHANTU: "Anti-Hantu — detect and reject manipulation.",
+    Law.L10_ONTOLOGY: "Ontology — preserve structural coherence.",
+    Law.L11_AUDIT: "Authority — verify identity before irreversible acts.",
+    Law.L12_INJECTION: "Injection Guard — sanitize all inputs.",
+    Law.L13_SOVEREIGN: "Sovereign — human veto is absolute.",
 }
 
 
-def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -> dict[str, Any]:
+def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> dict[str, Any]:
     """
     Run F1–F13 interceptors + F14 semantic gate for a tool call.
 
     Returns dict with:
       - verdict: SEAL | HOLD | VOID
       - label: VerdictLabel string (fine-grained)
-      - failed_floors: list
+      - violated_laws: list
       - reason: str
       - request_type: classified type
       - next_safe_action: str
@@ -242,7 +242,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
                 return {
                     "verdict": "HOLD",
                     "label": VerdictLabel.HOLD_EXECUTION,
-                    "failed_floors": ["BUDGET"],
+                    "violated_laws": ["BUDGET"],
                     "reasons": [reason],
                     "output_policy": "DOMAIN_VOID",
                     "nine_signal": _nine_signal_from_status("HOLD"),
@@ -257,7 +257,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
                 return {
                     "verdict": "HOLD",
                     "label": VerdictLabel.HOLD_EXECUTION,
-                    "failed_floors": ["BUDGET"],
+                    "violated_laws": ["BUDGET"],
                     "reasons": [reason],
                     "output_policy": "DOMAIN_VOID",
                     "nine_signal": _nine_signal_from_status("HOLD"),
@@ -302,7 +302,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
                         return {
                             "verdict": "VOID",
                             "label": VerdictLabel.VOID,
-                            "failed_floors": ["F14"],
+                            "violated_laws": ["F14"],
                             "reason": (
                                 f"F14 Semantic: {intent_result['category']} "
                                 f"(confidence={intent_result['confidence']:.2f})"
@@ -315,7 +315,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
                             return {
                                 "verdict": "HOLD",
                                 "label": VerdictLabel.HOLD_EXECUTION,
-                                "failed_floors": ["F14"],
+                                "violated_laws": ["F14"],
                                 "reason": (
                                     f"F14 Semantic: manipulation "
                                     f"(confidence={intent_result['confidence']:.2f})"
@@ -329,7 +329,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
         return {
             "verdict": "SEAL",
             "label": VerdictLabel.ALLOW,
-            "failed_floors": [],
+            "violated_laws": [],
             "reason": f"Free reasoning mode: {request_type}",
             "request_type": request_type,
             "next_safe_action": "Proceed — thinking is safe",
@@ -344,7 +344,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
         return {
             "verdict": "SEAL",
             "label": VerdictLabel.ALLOW_WITH_CAVEAT,
-            "failed_floors": [],
+            "violated_laws": [],
             "reason": f"Simulation/design mode: {request_type} — execution blocked separately",
             "request_type": request_type,
             "next_safe_action": (
@@ -358,7 +358,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
         return {
             "verdict": "VOID",
             "label": VerdictLabel.VOID,
-            "failed_floors": ["F10"],
+            "violated_laws": ["L10"],
             "reason": f"Unknown tool: {tool_name}",
             "request_type": request_type,
             "next_safe_action": "Tool not found in canonical registry",
@@ -371,7 +371,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
         if isinstance(value, str):
             risky = ["rm -rf", "eval(", "exec(", "__import__", "os.system"]
             if any(r in value for r in risky):
-                failed.append("F12")
+                failed.append("L12")
                 logger.warning(f"F12 BLOCK: injection pattern in param '{key}' for {tool_name}")
                 break
 
@@ -381,7 +381,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
     if risk_tier in ("critical", "sovereign") and not actor_id:
         mode_val = params.get("mode", "")
         if mode_val not in _f11_safe_modes:
-            failed.append("F11")
+            failed.append("L11")
             logger.warning(
                 "F11 HOLD: %s requires actor_id for mode=%r (actor_id=%r, params_keys=%r)",
                 tool_name,
@@ -392,12 +392,12 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
 
     # F01 Amanah — irreversible tools need explicit ack
     if spec.get("irreversible") and not params.get("ack_irreversible"):
-        failed.append("F01")
+        failed.append("L01")
         logger.warning(f"F01 HOLD: {tool_name} is irreversible without ack")
 
     # F13 Sovereign — master veto
     if params.get("sovereign_veto"):
-        failed.append("F13")
+        failed.append("L13")
         logger.critical("F13 SOVEREIGN VETO invoked")
 
     # F09 TAQWA — arif_heart_critique must precede arif_forge_execute
@@ -408,7 +408,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
                 from arifosmcp.apps.session_state import was_tool_called
 
                 if not was_tool_called(sid, "arif_heart_critique"):
-                    failed.append("F09")
+                    failed.append("L09")
                     logger.critical(
                         f"F09 ANTIHANTU: arif_forge_execute blocked — "
                         f"arif_heart_critique not called in session {sid}. "
@@ -419,29 +419,29 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
 
     # ── 5. Build response ────────────────────────────────────────────────────
     if failed:
-        if "F13" in failed:
+        if "L13" in failed:
             return {
                 "verdict": "VOID",
                 "label": VerdictLabel.VOID,
-                "failed_floors": failed,
+                "violated_laws": failed,
                 "reason": f"Constitutional breach: {', '.join(failed)}",
                 "request_type": request_type,
                 "next_safe_action": "Sovereign veto — no proceed path",
             }
-        if "F09" in failed:
+        if "L09" in failed:
             return {
                 "verdict": "HOLD",
                 "label": VerdictLabel.HOLD_EXECUTION,
-                "failed_floors": failed,
+                "violated_laws": failed,
                 "reason": f"Constitutional floor breach: {', '.join(failed)}",
                 "request_type": request_type,
                 "next_safe_action": "Run arif_heart_critique first, then retry forge",
             }
-        if "F01" in failed or "F11" in failed:
+        if "L01" in failed or "L11" in failed:
             return {
                 "verdict": "HOLD",
                 "label": VerdictLabel.HUMAN_APPROVAL_REQUIRED,
-                "failed_floors": failed,
+                "violated_laws": failed,
                 "reason": f"Constitutional floor breach: {', '.join(failed)}",
                 "request_type": request_type,
                 "next_safe_action": "Provide actor_id and/or ack_irreversible=true to proceed",
@@ -449,7 +449,7 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
         return {
             "verdict": "HOLD",
             "label": VerdictLabel.HOLD_EXECUTION,
-            "failed_floors": failed,
+            "violated_laws": failed,
             "reason": f"Constitutional floor breach: {', '.join(failed)}",
             "request_type": request_type,
             "next_safe_action": "Address failed floors before retry",
@@ -458,30 +458,30 @@ def check_floors(tool_name: str, params: dict[str, Any], actor_id: str | None) -
     return {
         "verdict": "SEAL",
         "label": VerdictLabel.ALLOW,
-        "failed_floors": [],
+        "violated_laws": [],
         "reason": "All floors clear",
         "request_type": request_type,
         "next_safe_action": "Proceed",
     }
 
 
-ACTIVE_FLOORS = [f.value for f in Floor]
+ACTIVE_LAWS = [f.value for f in Law]
 
 
 def get_active_floors() -> list[str]:
     """Returns the list of active constitutional floor identifiers."""
-    return ACTIVE_FLOORS
+    return ACTIVE_LAWS
 
 
 def get_floor_count() -> int:
     """Returns the total number of active constitutional floors."""
-    return len(ACTIVE_FLOORS)
+    return len(ACTIVE_LAWS)
 
 
 def get_floor_status() -> dict[str, Any]:
     """Return current constitutional floor status."""
     return {
-        "floors": {f.value: FLOOR_DESCRIPTIONS[f] for f in Floor},
+        "floors": {f.value: LAW_DESCRIPTIONS[f] for f in Law},
         "active_floors": get_active_floors(),
         "floor_count": get_floor_count(),
         "status": "aligned",

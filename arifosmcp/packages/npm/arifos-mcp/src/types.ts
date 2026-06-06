@@ -90,10 +90,10 @@ export const FLOOR_CODES = [
   "F7",
   "F8",
   "F9",
-  "F10",
-  "F11",
-  "F12",
-  "F13",
+  "L10",
+  "L11",
+  "L12",
+  "L13",
 ] as const;
 
 export type FloorCode = (typeof FLOOR_CODES)[number];

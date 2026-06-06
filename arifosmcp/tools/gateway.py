@@ -10,7 +10,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from arifosmcp.runtime.floor import check_floors
+from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _hold, _ok
 
 
@@ -19,11 +19,11 @@ def arif_gateway_connect(
     target_agent: str | None = None,
     actor_id: str | None = None,
 ) -> dict[str, Any]:
-    floor_check = check_floors(
+    floor_check = check_laws(
         "arif_gateway_connect", {"target_agent": target_agent or ""}, actor_id
     )
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_gateway_connect", floor_check["reason"], floor_check["failed_floors"])
+        return _hold("arif_gateway_connect", floor_check["reason"], floor_check["violated_laws"])
 
     if mode == "route":
         return _ok(

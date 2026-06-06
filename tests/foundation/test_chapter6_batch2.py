@@ -298,7 +298,7 @@ class TestTopologyActuator:
         result = evaluate_topology(drift=drift)
         escalate_recs = [r for r in result.recommendations if r.action == ActuatorAction.ESCALATE]
         assert len(escalate_recs) > 0
-        assert any(r.target == "F13" for r in escalate_recs)
+        assert any(r.target == "L13" for r in escalate_recs)
 
     def test_weak_appeal_path_triggers_promote(self):
         """WEAK appeal path → PROMOTE appeal tools."""

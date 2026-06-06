@@ -238,8 +238,8 @@ class TestConstitutionalInvariants:
         """F11 AUDITABILITY: floor compliance must be recorded in every seal."""
         assert valid_seal.floor_compliance["F1_AMANAH"] is True
         assert valid_seal.floor_compliance["F2_TRUTH"] is True
-        assert valid_seal.floor_compliance["F11_AUDITABILITY"] is True
-        assert valid_seal.floor_compliance["F13_ADAPTABILITY"] is True
+        assert valid_seal.floor_compliance["L11_AUDITABILITY"] is True
+        assert valid_seal.floor_compliance["L13_ADAPTABILITY"] is True
 
     def test_canonical_hash_deterministic(self):
         """F2 TRUTH: hash must be order-independent."""

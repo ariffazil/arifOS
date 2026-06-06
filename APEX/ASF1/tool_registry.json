@@ -24,9 +24,9 @@
       "stage": "000",
       "lane": "AGI",
       "floors": [
-        "F01",
-        "F11",
-        "F12"
+        "L01",
+        "L11",
+        "L12"
       ],
       "risk_tier": "critical",
       "irreversible": false,
@@ -257,7 +257,7 @@
       "stage": "111",
       "lane": "AGI",
       "floors": [
-        "F02"
+        "L02"
       ],
       "risk_tier": "low",
       "irreversible": false,
@@ -450,8 +450,8 @@
       "stage": "222",
       "lane": "AGI",
       "floors": [
-        "F02",
-        "F03"
+        "L02",
+        "L03"
       ],
       "risk_tier": "low",
       "irreversible": false,
@@ -634,9 +634,9 @@
       "stage": "333",
       "lane": "AGI",
       "floors": [
-        "F02",
-        "F07",
-        "F08"
+        "L02",
+        "L07",
+        "L08"
       ],
       "risk_tier": "medium",
       "irreversible": false,
@@ -861,8 +861,8 @@
       "stage": "666",
       "lane": "ASI",
       "floors": [
-        "F05",
-        "F06"
+        "L05",
+        "L06"
       ],
       "risk_tier": "medium",
       "irreversible": false,
@@ -1028,8 +1028,8 @@
       "stage": "444",
       "lane": "AGI",
       "floors": [
-        "F01",
-        "F04"
+        "L01",
+        "L04"
       ],
       "risk_tier": "medium",
       "irreversible": false,
@@ -1170,9 +1170,9 @@
       "stage": "444r",
       "lane": "AGI",
       "floors": [
-        "F04",
-        "F06",
-        "F09"
+        "L04",
+        "L06",
+        "L09"
       ],
       "risk_tier": "low",
       "irreversible": false,
@@ -1357,8 +1357,8 @@
       "stage": "555",
       "lane": "AGI",
       "floors": [
-        "F01",
-        "F08"
+        "L01",
+        "L08"
       ],
       "risk_tier": "low",
       "irreversible": false,
@@ -1524,8 +1524,8 @@
       "stage": "666g",
       "lane": "ASI",
       "floors": [
-        "F01",
-        "F03"
+        "L01",
+        "L03"
       ],
       "risk_tier": "medium",
       "irreversible": false,
@@ -1683,8 +1683,8 @@
       "stage": "888",
       "lane": "ASI",
       "floors": [
-        "F11",
-        "F13"
+        "L11",
+        "L13"
       ],
       "risk_tier": "critical",
       "irreversible": false,
@@ -1850,8 +1850,8 @@
       "stage": "999",
       "lane": "APEX",
       "floors": [
-        "F01",
-        "F11"
+        "L01",
+        "L11"
       ],
       "risk_tier": "critical",
       "irreversible": true,
@@ -2019,8 +2019,8 @@
       "stage": "010",
       "lane": "AGI",
       "floors": [
-        "F01",
-        "F11"
+        "L01",
+        "L11"
       ],
       "risk_tier": "critical",
       "irreversible": true,
@@ -2274,7 +2274,7 @@
       "stage": "777",
       "lane": "AGI",
       "floors": [
-        "F04"
+        "L04"
       ],
       "risk_tier": "low",
       "irreversible": false,

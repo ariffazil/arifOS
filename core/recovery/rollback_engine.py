@@ -153,12 +153,12 @@ def post_execution_dignity_audit(
     # F05 PEACE audit
     peace_violations = [w for w in _INFLAMMATORY_WORDS_P4 if w in output_lower]
     if peace_violations:
-        violations.append(f"F05_PEACE:{peace_violations}")
+        violations.append(f"L05_PEACE:{peace_violations}")
 
     # F09 ANTIHANTU audit
     hantu_claims = [c for c in _CONSCIOUSNESS_CLAIMS_P4 if c in output_lower]
     if hantu_claims:
-        violations.append(f"F09_ANTI_HANTU:{hantu_claims}")
+        violations.append(f"L09_ANTI_HANTU:{hantu_claims}")
 
     # F12 INJECTION audit
     injection_hits = []
@@ -166,7 +166,7 @@ def post_execution_dignity_audit(
         if __import__("re").search(pattern, output, __import__("re").IGNORECASE):
             injection_hits.append(pattern)
     if injection_hits:
-        violations.append("F12_INJECTION:adversarial_pattern_detected")
+        violations.append("L12_INJECTION:adversarial_pattern_detected")
 
     dignity_violated = bool(violations)
     scar_delta = 0.15 if dignity_violated and reversible else 0.30 if dignity_violated else 0.0

@@ -330,7 +330,7 @@ This policy enforces:
 | **Small Active Workspace** | 9+1 tool surface, minimal sufficient |
 | **External Memory System** | `arifos.memory` + `arifos.vault` |
 | **Iterative Reasoning Loops** | ΔΩΨ Trinity pipeline |
-| **Governance Layer** | 13 Constitutional Floors |
+| **Governance Layer** | 13 Constitutional Laws |
 
 ---
 

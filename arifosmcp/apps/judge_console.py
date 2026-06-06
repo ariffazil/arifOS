@@ -27,7 +27,7 @@ def _register(mcp: FastMCP) -> None:
             "context": context,
             "verdict": "SEAL",
             "omega_ortho": 0.97,
-            "floors_checked": ["F01", "F02", "F08", "F11", "F12", "F13"],
+            "floors_checked": ["L01", "L02", "L08", "L11", "L12", "L13"],
             "risk_tier": "medium",
             "app": "judge_console",
         }

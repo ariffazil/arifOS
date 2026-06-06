@@ -75,7 +75,7 @@ Every high-integrity operation MUST flow through this sequence:
 - **Purpose:** Final constitutional arbitration.
 - **Verdicts:** `SEAL` (Approved), `SABAR` (Conditional), `HOLD` (Paused), `VOID` (Rejected).
 - **F1 Amanah:** Irreversible actions require explicit human confirmation.
-- **F11 Audit:** Identity/provenance must be logged for high-consequence action. Legacy text may still say `F11_AUTH`; canonical wording is `F11_AUDIT`.
+- **F11 Audit:** Identity/provenance must be logged for high-consequence action. Legacy text may still say `L11_AUTH`; canonical wording is `L11_AUDIT`.
 
 ### [999] VAULT: `mcp_arifosmcp_arif_vault_seal`
 - **Purpose:** Immutable ledger anchoring (VAULT999).

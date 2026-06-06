@@ -7,7 +7,7 @@ All arif_* naming. No governance surface, no CC modes as separate tools.
 
 MACHINERY:
   - CANONICAL_TOOLS   : 13-tool registry (name → spec with floors, stage, lane)
-  - Floor enum        : F01–F13 with Eureka-wired threshold logic
+  - Law enum          : F01–F13 with Eureka-wired threshold logic
   - TrinityLane      : AGI | ASI | APEX
   - ToolStage        : 000–999 metabolic stage codes
   - _TOOL_INPUT_SCHEMAS  : canonical I/O type signatures (F10 ONTOLOGY enforced)
@@ -17,8 +17,8 @@ MACHINERY:
   - enforce_irreversibility_guard() : F1 hard gate
 
 EUREKA INSIGHTS WIRING (from EUREKA_INSIGHTS_SEAL_v2026.04.07):
-  Each floor threshold is derived from physics, not policy.
-  See: 000/FLOORS/F0X.md for formal proof of each threshold.
+  Each law threshold is derived from physics, not policy.
+  See: 000/LAWS/L0X.md for formal proof of each threshold.
 
 Ditempa Bukan Diberi.
 """
@@ -28,30 +28,30 @@ from enum import StrEnum
 from typing import Any
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# FLOOR DEFINITIONS — 13 Constitutional Laws as Physics
+# LAW DEFINITIONS — 13 Constitutional Laws as Physics
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class Floor(StrEnum):
+class Law(StrEnum):
     """
-    F01–F13. Each Floor is a physics equation, not a policy rule.
+    F01–F13. Each Law is a physics equation, not a policy rule.
     Eureka wired: thresholds derived from EUREKA_INSIGHTS_SEAL_v2026.04.07.
     """
 
-    F01_AMANAH = "F01"  # Reversibility as conservation law (∃ undo)
-    F02_TRUTH = "F02"  # Uncertainty as first-class citizen (τ ≥ 0.99)
-    F03_WITNESS = "F03"  # Tri-witness consensus (W₃ ≥ 0.75)
-    F04_CLARITY = "F04"  # Entropy reduction as progress (ΔS ≤ 0)
-    F05_PEACE = "F05"  # Non-destruction as baseline (P² ≥ 1.0)
-    F06_EMPATHY = "F06"  # RASA as protocol (κᵣ ≥ 0.70)
-    F07_HUMILITY = "F07"  # Uncertainty quantified (Ω ∈ [0.03, 0.05])
-    F08_GENIUS = "F08"  # Systemic health (G ≥ 0.80)
-    F09_ANTIHANTU = "F09"  # Pattern recognition of deception (C_dark ≤ 0.30)
-    F10_ONTOLOGY = "F10"  # Structural coherence (category lock / immutability)
-    F11_AUDIT = "F11"  # Verify identity + log provenance (HUMAN_APPROVAL gate)
+    L01_AMANAH = "L01"  # Reversibility as conservation law (∃ undo)
+    L02_TRUTH = "L02"  # Uncertainty as first-class citizen (τ ≥ 0.99)
+    L03_WITNESS = "L03"  # Tri-witness consensus (W₃ ≥ 0.75)
+    L04_CLARITY = "L04"  # Entropy reduction as progress (ΔS ≤ 0)
+    L05_PEACE = "L05"  # Non-destruction as baseline (P² ≥ 1.0)
+    L06_EMPATHY = "L06"  # RASA as protocol (κᵣ ≥ 0.70)
+    L07_HUMILITY = "L07"  # Uncertainty quantified (Ω ∈ [0.03, 0.05])
+    L08_GENIUS = "L08"  # Systemic health (G ≥ 0.80)
+    L09_ANTIHANTU = "L09"  # Pattern recognition of deception (C_dark ≤ 0.30)
+    L10_ONTOLOGY = "L10"  # Structural coherence (category lock / immutability)
+    L11_AUDIT = "L11"  # Verify identity + log provenance (HUMAN_APPROVAL gate)
 
-    F12_INJECTION = "F12"  # Sanitize inputs (injection_probability < 0.85)
-    F13_SOVEREIGN = "F13"  # Human veto absolute (final authority)
+    L12_INJECTION = "L12"  # Sanitize inputs (injection_probability < 0.85)
+    L13_SOVEREIGN = "L13"  # Human veto absolute (final authority)
 
 
 class TrinityLane(StrEnum):
@@ -75,10 +75,14 @@ class ToolStage(StrEnum):
     # that memory operations are a specialized form of routing — they
     # route queries through the 6-layer memory stack (L1-L6).
     MEMORY = "555m"
+    # 666 is constitutionally the CRITIQUE/HEART gate (arif_heart_critique).
+    # FORGE execution is a separate stage — 010 FORGE_EXECUTE — to prevent
+    # the dangerous semantic confusion that caused v3.1 progression bug.
     FORGE = "666"
+    FORGE_EXECUTE = "010"
     # GATEWAY is a refinement of FORGE (666). The "g" suffix encodes
     # that cross-organ federation bridging is a governed sub-stage of
-    # the execution/forge phase, not an independent stage.
+    # the critique/forge phase, not an independent stage.
     GATEWAY = "666g"
     MEASURE = "777"
     JUDGE = "888"
@@ -96,17 +100,22 @@ STAGE_PROGRESSION: dict[str, dict[str, str | None]] = {
     "000": {"next": "111", "tool": "arif_sense_observe", "prompt": "111_agi"},
     "111": {"next": "222", "tool": "arif_evidence_fetch", "prompt": None},
     "222": {"next": "333", "tool": "arif_mind_reason", "prompt": None},
-    "333": {"next": "444", "tool": "arif_heart_critique", "prompt": "444_asi"},
+    # v3.1: 333 reason → 666 heart (ontology-aligned: 666 = HEART)
+    "333": {"next": "666", "tool": "arif_heart_critique", "prompt": "666_asi"},
     # Stage suffixes: "r" = reply (refinement of critique), "m" = memory
     # (refinement of route), "g" = gateway (refinement of forge). These
     # encode parent-child relationships, not independent stage numbers.
-    # All stages sort correctly when read as semantic keys, not numeric.
-    "444": {"next": "444r", "tool": "arif_reply_compose", "prompt": None},
+    # 444r reply is a side-branch; no tool sits directly at 444.
     "444r": {"next": "555", "tool": "arif_kernel_route", "prompt": None},
-    "555": {"next": "666", "tool": "arif_forge_execute", "prompt": None},
-    "555m": {"next": "666", "tool": "arif_forge_execute", "prompt": None},
-    "666": {"next": "777", "tool": "arif_ops_measure", "prompt": None},
-    "666g": {"next": "777", "tool": "arif_ops_measure", "prompt": None},
+    # v3.1 fix: 555 route/memory → 666 critique (heart), NOT forge.
+    # Constitutionally: critique MUST precede forge. Never skip heart.
+    "555": {"next": "666", "tool": "arif_heart_critique", "prompt": "666_critique"},
+    "555m": {"next": "666", "tool": "arif_heart_critique", "prompt": "666_critique"},
+    # 666 critique → 010 forge (dry_run mandatory)
+    "666": {"next": "010", "tool": "arif_forge_execute", "prompt": "010_dry_run"},
+    "666g": {"next": "010", "tool": "arif_forge_execute", "prompt": "010_dry_run"},
+    # 010 forge → 777 measure (verify before judge)
+    "010": {"next": "777", "tool": "arif_ops_measure", "prompt": None},
     "777": {"next": "888", "tool": "arif_judge_deliberate", "prompt": "888_apex"},
     "888": {"next": "999", "tool": "arif_vault_seal", "prompt": "999_seal"},
     "999": {"next": None, "tool": None, "prompt": None},
@@ -179,19 +188,19 @@ _RISK_GOVERNANCE_TABLE: dict[RiskClass, RiskTierConfig] = {
     RiskClass.C0_GRAMMAR: RiskTierConfig(
         governance_mode="vanilla",
         requires_human_confirmation=False,
-        floors_activated=["F09", "F10"],
+        floors_activated=["L09", "L10"],
         description="Grammar, spelling, tone, formatting. Zero irreversible consequence.",
     ),
     RiskClass.C1_DRAFT: RiskTierConfig(
         governance_mode="light",
         requires_human_confirmation=False,
-        floors_activated=["F04", "F09", "F10"],
+        floors_activated=["L04", "L09", "L10"],
         description="Internal drafts, brainstorming, notes. Reversible. No external exposure.",
     ),
     RiskClass.C2_REVIEW: RiskTierConfig(
         governance_mode="standard",
         requires_human_confirmation=False,
-        floors_activated=["F02", "F03", "F04", "F07", "F08"],
+        floors_activated=["L02", "L03", "L04", "L07", "L08"],
         description=(
             "Code review, testing, analysis, summaries. Evidence-backed. Moderate exposure."
         ),
@@ -199,19 +208,19 @@ _RISK_GOVERNANCE_TABLE: dict[RiskClass, RiskTierConfig] = {
     RiskClass.C3_PUBLIC: RiskTierConfig(
         governance_mode="strict",
         requires_human_confirmation=True,
-        floors_activated=["F01", "F02", "F03", "F04", "F05", "F06", "F09", "F12"],
+        floors_activated=["L01", "L02", "L03", "L04", "L05", "L06", "L09", "L12"],
         description="Public posts, emails to third parties, published documents. Reputation risk.",
     ),
     RiskClass.C4_LEGAL_MONEY: RiskTierConfig(
         governance_mode="strict",
         requires_human_confirmation=True,
-        floors_activated=["F01", "F02", "F03", "F05", "F06", "F11", "F12", "F13"],
+        floors_activated=["L01", "L02", "L03", "L05", "L06", "L11", "L12", "L13"],
         description="Legal claims, financial decisions, HR actions, investments. High consequence.",
     ),
     RiskClass.C5_IRREVERSIBLE: RiskTierConfig(
         governance_mode="seal",
         requires_human_confirmation=True,
-        floors_activated=["F01", "F02", "F03", "F05", "F06", "F11", "F12", "F13"],
+        floors_activated=["L01", "L02", "L03", "L05", "L06", "L11", "L12", "L13"],
         description=(
             "Production writes, database deletes, money movement, regulatory filings. Irreversible."
         ),
@@ -290,7 +299,7 @@ def preflight(
                 f"Required: (1) human confirmation, (2) VAULT999 seal entry, "
                 f"(3) rollback plan on record. Contact Arif for C5 authorization."
             ),
-            floors_activated=["F01", "F11", "F12", "F13"],
+            floors_activated=["L01", "L11", "L12", "L13"],
             requires_human_confirmation=True,
             human_approval_reference=None,
             uncertainty_band=(0.03, 0.05),
@@ -310,7 +319,7 @@ def preflight(
                 f"Evidence gate + human confirmation required. "
                 f"Escalation: 888_HOLD"
             ),
-            floors_activated=["F01", *tier.floors_activated],
+            floors_activated=["L01", *tier.floors_activated],
             requires_human_confirmation=True,
             human_approval_reference=None,
             uncertainty_band=(0.03, 0.05),
@@ -329,7 +338,7 @@ def preflight(
                 f"{risk_class.value} actions. Required: ≥50% evidence confidence. "
                 f"Reduce claim strength or gather more evidence."
             ),
-            floors_activated=["F02", *tier.floors_activated],
+            floors_activated=["L02", *tier.floors_activated],
             requires_human_confirmation=tier.requires_human_confirmation,
             human_approval_reference=None,
             uncertainty_band=(0.03, 0.10),  # Wider Ω band — low evidence
@@ -348,7 +357,7 @@ def preflight(
                 f"confirmation before execution. Provide session_ref to proceed. "
                 f"Compute can advise. Human must decide."
             ),
-            floors_activated=["F13", *tier.floors_activated],
+            floors_activated=["L13", *tier.floors_activated],
             requires_human_confirmation=True,
             human_approval_reference=None,
             uncertainty_band=(0.03, 0.05),
@@ -368,7 +377,7 @@ def preflight(
                 f"Required: (1) human confirmation, (2) VAULT999 seal entry, "
                 f"(3) rollback plan on record. Contact Arif for C5 authorization."
             ),
-            floors_activated=["F01", "F11", "F12", "F13"],
+            floors_activated=["L01", "L11", "L12", "L13"],
             requires_human_confirmation=True,
             human_approval_reference=None,
             uncertainty_band=(0.03, 0.05),
@@ -428,7 +437,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F01_AMANAH, Floor.F11_AUDIT, Floor.F12_INJECTION],
+        "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L12_INJECTION],
         "risk_tier": "medium",
         "irreversible": False,
         "modes": ["init", "resume", "validate", "epoch_open", "epoch_seal"],
@@ -442,7 +451,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.OBSERVE,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F02_TRUTH, Floor.F07_HUMILITY],
+        "floors": [Law.L02_TRUTH, Law.L07_HUMILITY],
         "risk_tier": "low",
         "irreversible": False,
         "modes": [
@@ -465,10 +474,10 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "stage": ToolStage.EVIDENCE,
         "lane": TrinityLane.AGI,
         "floors": [
-            Floor.F02_TRUTH,
-            Floor.F03_WITNESS,
-            Floor.F05_PEACE,
-            Floor.F12_INJECTION,
+            Law.L02_TRUTH,
+            Law.L03_WITNESS,
+            Law.L05_PEACE,
+            Law.L12_INJECTION,
         ],
         "risk_tier": "medium",
         "irreversible": False,
@@ -488,10 +497,10 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "stage": ToolStage.REASON,
         "lane": TrinityLane.AGI,
         "floors": [
-            Floor.F02_TRUTH,
-            Floor.F07_HUMILITY,
-            Floor.F08_GENIUS,
-            Floor.F10_ONTOLOGY,
+            Law.L02_TRUTH,
+            Law.L07_HUMILITY,
+            Law.L08_GENIUS,
+            Law.L10_ONTOLOGY,
         ],
         "risk_tier": "medium",
         "irreversible": False,
@@ -518,11 +527,11 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_heart_critique": {
         "name": "arif_heart_critique",
-        "description": "444_CRITIQUE: Ethical critique and consequence assessment against F1-F13 floors. Call this before: irreversible actions, decisions affecting dignity or human welfare, forge execution, or any proposal that may violate constitutional floors. Do NOT call this to make the final decision — that belongs to arif_judge_deliberate. Parameters: mode (critique|simulate|redteam|maruah|deescalate|empathy), target (the item to critique), stakeholder_ids, session_id, actor_id.",  # noqa: E501
+        "description": "666_HEART: Ethical critique and consequence assessment against F1-F13 floors. Call this before: irreversible actions, decisions affecting dignity or human welfare, forge execution, or any proposal that may violate constitutional floors. Do NOT call this to make the final decision — that belongs to arif_judge_deliberate. Parameters: mode (critique|simulate|redteam|maruah|deescalate|empathy), target (the item to critique), stakeholder_ids, session_id, actor_id.",  # noqa: E501
         "access": "public",
-        "stage": ToolStage.CRITIQUE,
+        "stage": ToolStage.FORGE,
         "lane": TrinityLane.ASI,
-        "floors": [Floor.F05_PEACE, Floor.F06_EMPATHY, Floor.F09_ANTIHANTU],
+        "floors": [Law.L05_PEACE, Law.L06_EMPATHY, Law.L09_ANTIHANTU],
         "risk_tier": "medium",
         "irreversible": False,
         "modes": ["critique", "simulate", "redteam", "maruah", "deescalate", "empathy"],
@@ -547,10 +556,10 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
         "floors": [
-            Floor.F01_AMANAH,
-            Floor.F04_CLARITY,
-            Floor.F03_WITNESS,
-            Floor.F10_ONTOLOGY,
+            Law.L01_AMANAH,
+            Law.L04_CLARITY,
+            Law.L03_WITNESS,
+            Law.L10_ONTOLOGY,
         ],
         "risk_tier": "medium",
         "irreversible": False,
@@ -572,7 +581,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.REPLY,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F02_TRUTH, Floor.F04_CLARITY, Floor.F06_EMPATHY, Floor.F09_ANTIHANTU],
+        "floors": [Law.L02_TRUTH, Law.L04_CLARITY, Law.L06_EMPATHY, Law.L09_ANTIHANTU],
         "risk_tier": "low",
         "irreversible": False,
         "modes": ["compose", "summarize", "cite", "tone_shift"],
@@ -591,7 +600,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.MEMORY,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F01_AMANAH, Floor.F08_GENIUS],
+        "floors": [Law.L01_AMANAH, Law.L08_GENIUS],
         "risk_tier": "low",
         "irreversible": False,
         "modes": ["recall", "asset_query", "asset_store", "context_restore"],
@@ -609,7 +618,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.GATEWAY,
         "lane": TrinityLane.ASI,
-        "floors": [Floor.F01_AMANAH, Floor.F03_WITNESS, Floor.F11_AUDIT],
+        "floors": [Law.L01_AMANAH, Law.L03_WITNESS, Law.L11_AUDIT],
         "risk_tier": "medium",
         "irreversible": False,
         "modes": ["connect", "delegate", "handover", "revoke", "probe"],
@@ -628,7 +637,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "authenticated",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.ASI,
-        "floors": [Floor.F01_AMANAH, Floor.F11_AUDIT, Floor.F13_SOVEREIGN],
+        "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": False,
         "modes": ["judge", "validate", "hold", "rules", "armor", "probe", "notify"],
@@ -646,7 +655,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "authenticated",
         "stage": ToolStage.SEAL,
         "lane": TrinityLane.APEX,
-        "floors": [Floor.F01_AMANAH, Floor.F11_AUDIT, Floor.F13_SOVEREIGN],
+        "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": True,
         "modes": ["seal", "verify", "ledger", "changelog", "audit"],
@@ -659,11 +668,11 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_forge_execute": {
         "name": "arif_forge_execute",
-        "description": "666_FORGE: Build execution — code generation, artifact creation, system modification. Call this for: writing code, generating files, executing build commands. Requires arif_judge_deliberate SEAL before side-effects are live (dry_run by default). Do NOT call this without a preceding judge verdict on consequential changes. Parameters: mode (engineer|query|write|generate|commit|recall|dry_run), manifest (the build manifest/instructions), query, artifact_id, ack_irreversible (bool), actor_id (required), constitutional_chain_id, judge_state_hash, vault_entry_id, plan_id, session_id.",  # noqa: E501
+        "description": "010_FORGE_EXECUTE: Build execution — code generation, artifact creation, system modification. Call this for: writing code, generating files, executing build commands. Requires arif_judge_deliberate SEAL before side-effects are live (dry_run by default). Do NOT call this without a preceding judge verdict on consequential changes. Parameters: mode (engineer|query|write|generate|commit|recall|dry_run), manifest (the build manifest/instructions), query, artifact_id, ack_irreversible (bool), actor_id (required), constitutional_chain_id, judge_state_hash, vault_entry_id, plan_id, session_id.",  # noqa: E501
         "access": "sovereign",
-        "stage": ToolStage.FORGE,
+        "stage": ToolStage.FORGE_EXECUTE,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F01_AMANAH, Floor.F11_AUDIT, Floor.F13_SOVEREIGN],
+        "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": True,
         "modes": [
@@ -689,7 +698,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "access": "public",
         "stage": ToolStage.MEASURE,
         "lane": TrinityLane.AGI,
-        "floors": [Floor.F02_TRUTH, Floor.F04_CLARITY],
+        "floors": [Law.L02_TRUTH, Law.L04_CLARITY],
         "risk_tier": "low",
         "irreversible": False,
         "modes": [
@@ -844,14 +853,14 @@ TOOL_STAGES: dict[str, ToolStage] = {
     "arif_sense_observe": ToolStage.OBSERVE,
     "arif_evidence_fetch": ToolStage.EVIDENCE,
     "arif_mind_reason": ToolStage.REASON,
-    "arif_heart_critique": ToolStage.CRITIQUE,
+    "arif_heart_critique": ToolStage.FORGE,
     "arif_kernel_route": ToolStage.ROUTE,
     "arif_reply_compose": ToolStage.REPLY,
     "arif_memory_recall": ToolStage.MEMORY,
     "arif_gateway_connect": ToolStage.GATEWAY,
     "arif_judge_deliberate": ToolStage.JUDGE,
     "arif_vault_seal": ToolStage.SEAL,
-    "arif_forge_execute": ToolStage.FORGE,
+    "arif_forge_execute": ToolStage.FORGE_EXECUTE,
     "arif_ops_measure": ToolStage.MEASURE,
 }
 
@@ -920,17 +929,25 @@ def list_internal_only_tools() -> list[str]:
     return _list_tools_by_access("internal_only")
 
 
-def get_floor_bindings() -> dict[str, list[Floor]]:
+def get_law_bindings() -> dict[str, list[Law]]:
     return {name: data["floors"] for name, data in CANONICAL_TOOLS.items()}
 
 
-def get_floor_coverage() -> dict[str, list[str]]:
-    """Return which tools cover each floor. Used for CI floor-coverage checks."""
-    coverage: dict[str, list[str]] = {f.value: [] for f in Floor}
+# Backward-compat alias (deprecated 2026-06-06)
+get_floor_bindings = get_law_bindings
+
+
+def get_law_coverage() -> dict[str, list[str]]:
+    """Return which tools cover each law. Used for CI law-coverage checks."""
+    coverage: dict[str, list[str]] = {f.value: [] for f in Law}
     for tool_name, spec in CANONICAL_TOOLS.items():
-        for floor in spec["floors"]:
-            coverage[floor.value].append(tool_name)
+        for law in spec["floors"]:
+            coverage[law.value].append(tool_name)
     return coverage
+
+
+# Backward-compat alias (deprecated 2026-06-06)
+get_floor_coverage = get_law_coverage
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -955,7 +972,8 @@ def build_tool_registry_manifest() -> dict[str, Any]:
         "probe_count": len(PROBE_TOOLS),
         "total_surface": len(CANONICAL_TOOLS),
         "canonical_order": list(CONSTITUTIONAL_TOOLS),
-        "floors": [f.value for f in Floor],
+        "laws": [f.value for f in Law],
+        "floors": [f.value for f in Law],  # deprecated alias
         "tools": {
             name: {
                 "stage": spec["stage"].value,
@@ -1414,9 +1432,9 @@ def check_schema_coverage() -> dict[str, Any]:
     missing_output = canonical - defined_output
     orphan_input = defined_input - canonical
 
-    # Floor coverage check
-    floor_cov = get_floor_coverage()
-    thin_floors = {f: tools for f, tools in floor_cov.items() if len(tools) < 2}
+    # Law coverage check
+    law_cov = get_law_coverage()
+    thin_laws = {f: tools for f, tools in law_cov.items() if len(tools) < 2}
 
     return {
         "canonical_tools": len(canonical),
@@ -1484,7 +1502,7 @@ def enforce_irreversibility_guard(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 __all__ = [
-    "Floor",
+    "Law",
     "TrinityLane",
     "ToolStage",
     "RiskClass",

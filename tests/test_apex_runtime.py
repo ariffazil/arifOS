@@ -73,11 +73,11 @@ def get_routing():
     return load_yaml(ROUTING_PATH)
 
 
-def find_floor(constitution: dict, floor_id: str) -> dict | None:
+def find_floor(constitution: dict, law_id: str) -> dict | None:
     """Find a law by its floor ID (F1-F13). Returns the law dict or None."""
     laws = constitution.get("laws", {})
     for law_name, law in laws.items():
-        if law.get("floor") == floor_id:
+        if law.get("floor") == law_id:
             return law
     return None
 
@@ -580,7 +580,7 @@ def test_trust_thermodynamics(result: AuditResult):
         result.fail_test("F1 (Amanah): NOT codified")
 
     # 8.2: F13 (Sovereign veto) codified
-    f13 = find_floor(constitution, "F13")
+    f13 = find_floor(constitution, "L13")
     if f13:
         result.pass_test("F13 (Sovereign/Human Veto): codified")
     else:

@@ -11,9 +11,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from arifosmcp.runtime.floor import check_floors
+from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _arif_forge_execute
-from arifosmcp.schemas.forge import ForgeManifest, ForgeOutput, ManifestStatus
+from arifosmcp.schemas.forge import ForgeErrorCode, ForgeManifest, ForgeOutput, ManifestStatus, ToolManifest
+from arifosmcp.tools.forge_ladder import ARIF_FORGE_EXECUTE_MANIFEST, ALLOWED_COMMANDS, WORKSPACE_ROOT
 
 
 def action_has_side_effects(mode: str, manifest: str, query: str | None) -> bool:
@@ -33,6 +34,12 @@ def action_has_side_effects(mode: str, manifest: str, query: str | None) -> bool
     return any(r in action_str for r in risky)
 
 
+# v3.1: MUTATE/ATOMIC modes only. OBSERVE/REASON moved to forge_ladder.
+_MUTATE_MODES = {"engineer", "write", "generate"}
+_ATOMIC_MODES = {"commit", "deploy"}
+_FORGE_MUTATE_ATOMIC = _MUTATE_MODES | _ATOMIC_MODES
+
+
 def arif_forge_execute(
     mode: str = "engineer",
     manifest: str = "",
@@ -47,24 +54,81 @@ def arif_forge_execute(
     witness_type: str = "ai",
     action_tier: str = "standard",
     permitted_scope: dict | None = None,
+    plan_id: str | None = None,
 ) -> ForgeOutput:
     """
-    010_FORGE: Sovereign execution bridge to A-FORGE.
+    010_FORGE_EXECUTE: Sovereign execution bridge to A-FORGE.
+
+    MUTATE and ATOMIC modes ONLY. For read-only operations, use forge_query.
+    For planning, use forge_plan. For simulation, use forge_dry_run.
 
     Executes approved builds, deployments, or system changes ONLY after
-    arif_judge_deliberate has issued a SEAL verdict. If no vault_entry_id
-    is provided, the action must have been pre-authorized by the judge.
+    arif_judge_deliberate has issued a SEAL verdict and explicit ack.
 
     Args:
-        mode: "engineer" | "preview" | "audit".
+        mode: "engineer" | "write" | "generate" | "commit" | "deploy".
         manifest: JSON manifest describing the action to execute.
-        query: Natural language description of the intended change.
         artifact_id: Reference to a prior artifact (e.g., plan output).
         session_id: Constitutional session ID from arif_session_init.
         ack_irreversible: Must be True to confirm irreversible execution.
+        judge_state_hash: REQUIRED for all MUTATE/ATOMIC modes.
+        plan_id: Approved plan_id from forge_plan (required for engineer/write/generate).
         action_tier: "standard" | "sovereign" | "c4" | "c5".
         permitted_scope: Bounding scope dict for the execution.
     """
+    # ── v3.1: Mode classification gate ────────────────────────────────────────
+    if mode not in _FORGE_MUTATE_ATOMIC:
+        return ForgeOutput(
+            status="HOLD",
+            result={},
+            manifest=ForgeManifest(status=ManifestStatus.HOLD),
+            meta={
+                "error_code": ForgeErrorCode.E_FORGE_MODE_NOT_ALLOWED,
+                "reason": (
+                    f"mode='{mode}' is not a MUTATE/ATOMIC mode. "
+                    f"Allowed: {sorted(_FORGE_MUTATE_ATOMIC)}. "
+                    f"For read-only: use forge_query. For planning: use forge_plan. "
+                    f"For simulation: use forge_dry_run."
+                ),
+                "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
+            },
+            timestamp=datetime.now(UTC).isoformat(),
+        )
+
+    # ── v3.1: judge_state_hash REQUIRED for MUTATE/ATOMIC ─────────────────────
+    if not judge_state_hash:
+        return ForgeOutput(
+            status="HOLD",
+            result={},
+            manifest=ForgeManifest(status=ManifestStatus.HOLD),
+            meta={
+                "error_code": ForgeErrorCode.E_JUDGE_STATE_HASH_REQUIRED,
+                "reason": (
+                    "888 HOLD — judge_state_hash is REQUIRED for MUTATE/ATOMIC forge modes. "
+                    "Call arif_judge_deliberate first, then pass the returned state_hash."
+                ),
+                "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
+            },
+            timestamp=datetime.now(UTC).isoformat(),
+        )
+
+    # ── v3.1: plan_id REQUIRED for engineer/write/generate ────────────────────
+    if mode in ("engineer", "write", "generate") and not plan_id:
+        return ForgeOutput(
+            status="HOLD",
+            result={},
+            manifest=ForgeManifest(status=ManifestStatus.HOLD),
+            meta={
+                "error_code": ForgeErrorCode.E_SYNTHESIS_EMPTY,
+                "reason": (
+                    f"mode='{mode}' requires an approved plan_id from forge_plan. "
+                    "Call forge_plan(goal=...) first, then pass the returned plan_id."
+                ),
+                "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
+            },
+            timestamp=datetime.now(UTC).isoformat(),
+        )
+
     # ── W-2: SOVEREIGN clarity gate for elevated-tier FORGE actions ───────────
     _is_elevated = action_tier.lower() in ("sovereign", "c4", "c5")
     if _is_elevated:
@@ -83,6 +147,7 @@ def arif_forge_execute(
                     result={},
                     manifest=ForgeManifest(status=ManifestStatus.HOLD),
                     meta={
+                        "error_code": ForgeErrorCode.E_SIDE_EFFECTS_BLOCKED,
                         "reason": (
                             f"W5_COGNITIVE_ENTROPY: clarity={_forge_clarity}/10 below "
                             "SOVEREIGN threshold (4/10). FORGE blocked. "
@@ -128,6 +193,7 @@ def arif_forge_execute(
                     result={},
                     manifest=ForgeManifest(status=ManifestStatus.HOLD),
                     meta={
+                        "error_code": ForgeErrorCode.E_SIDE_EFFECTS_BLOCKED,
                         "reason": f"888 HOLD — side_effects_allowed=False in runtime_truth. "
                         f"Shadow: {shadow_val}. "
                         f"Required: human_ack before proceeding."
@@ -135,7 +201,7 @@ def arif_forge_execute(
                     timestamp=datetime.now(UTC).isoformat(),
                 )
 
-    floor_check = check_floors(
+    floor_check = check_laws(
         "arif_forge_execute",
         {
             "mode": mode,
@@ -156,7 +222,7 @@ def arif_forge_execute(
             manifest=ForgeManifest(status=ManifestStatus.HOLD),
             meta={
                 "reason": floor_check["reason"],
-                "failed_floors": floor_check["failed_floors"],
+                "violated_laws": floor_check["violated_laws"],
             },
             timestamp=datetime.now(UTC).isoformat(),
         ).model_dump(mode="json")
@@ -191,6 +257,7 @@ def arif_forge_execute(
                 result={},
                 manifest=ForgeManifest(status=ManifestStatus.HOLD),
                 meta={
+                    "error_code": ForgeErrorCode.E_CAPABILITY_MEMBRANE_VIOLATION,
                     "reason": (
                         "888 HOLD — CAPABILITY_MEMBRANE: Action parameters exceed "
                         "the explicitly permitted scope. Human grant was limited to "

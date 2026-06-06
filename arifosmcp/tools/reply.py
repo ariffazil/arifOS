@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from arifosmcp.runtime.floor import check_floors
+from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _hold, _ok
 
 
@@ -187,9 +187,9 @@ def arif_reply_compose(
             },
         )
 
-    floor_check = check_floors("arif_reply_compose", {"message": message or ""}, actor_id)
+    floor_check = check_laws("arif_reply_compose", {"message": message or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_reply_compose", floor_check["reason"], floor_check["failed_floors"])
+        return _hold("arif_reply_compose", floor_check["reason"], floor_check["violated_laws"])
 
     if mode == "compose":
         return _ok(

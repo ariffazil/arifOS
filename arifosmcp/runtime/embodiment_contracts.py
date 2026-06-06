@@ -173,7 +173,7 @@ def enforce_embodiment(
     """
     Check whether the current session is authorized to embody *tool_name*.
 
-    Returns {"ok": True, ...} on success, or {"ok": False, "reason": ..., "floors": ["F11"]}.
+    Returns {"ok": True, ...} on success, or {"ok": False, "reason": ..., "floors": ["L11"]}.
     """
     contract = TOOL_EMBODIMENT_CONTRACTS.get(tool_name)
     if contract is None:
@@ -184,7 +184,7 @@ def enforce_embodiment(
                 f"F11 EMBODIMENT: {tool_name} has no embodiment contract — "
                 "unknown tools cannot be embodied."
             ),
-            "floors": ["F11", "F10"],
+            "floors": ["L11", "L10"],
         }
 
     # ── Lane check ────────────────────────────────────────────────────────────
@@ -196,7 +196,7 @@ def enforce_embodiment(
                 f"F11 EMBODIMENT: lane={lane} not allowed for {tool_name}. "
                 f"Allowed: {contract.allowed_lanes}"
             ),
-            "floors": ["F11"],
+            "floors": ["L11"],
             "embodiment_violation": "lane",
         }
 
@@ -210,7 +210,7 @@ def enforce_embodiment(
                 f"F11 EMBODIMENT: tier={tier} insufficient for {tool_name}. "
                 f"Required: {contract.required_tiers}"
             ),
-            "floors": ["F11"],
+            "floors": ["L11"],
             "embodiment_violation": "tier",
         }
 
@@ -221,7 +221,7 @@ def enforce_embodiment(
             "reason": (
                 f"F11 EMBODIMENT: {tool_name} requires an approved plan_id (H2 ratification)."
             ),
-            "floors": ["F11", "H2"],
+            "floors": ["L11", "H2"],
             "embodiment_violation": "plan_id",
             "next_safe_action": "Generate plan via arif_mind_reason(mode='plan') → await approval.",
         }
@@ -234,7 +234,7 @@ def enforce_embodiment(
                 f"F11 EMBODIMENT: {tool_name} requires G05 SEAL/SABAR verdict. "
                 f"Got: {judge_verdict or 'None'}"
             ),
-            "floors": ["F11", "G05"],
+            "floors": ["L11", "G05"],
             "embodiment_violation": "judge_verdict",
             "next_safe_action": "Call arif_judge_deliberate(candidate=...) to obtain SEAL.",
         }

@@ -81,7 +81,7 @@ GitHub: `ariffazil` | Website: https://arif-fazil.com
 | `open_apex_dashboard`| 888_JUDGE | Live governed metrics visualizer |
 | `search_reality` / `ingest_evidence` | — | Hardened search/fetch aliases |
 
-#### 13 Constitutional Floors (F1–F13)
+#### 13 Constitutional Laws (F1–F13)
 | Floor | Name | Type | Effect |
 |-------|------|------|--------|
 | F1 | Amanah (Reversibility) | Hard | Halts execution |

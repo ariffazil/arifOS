@@ -38,8 +38,8 @@ class TestForgeNineSignalContract:
 
         assert result.get("status") == "OK", f"Expected OK for {mode}, got {result.get('status')}"
 
-        failed = result.get("meta", {}).get("failed_floors", [])
-        assert "F11" not in failed, f"F11 breach on {mode} despite being read-only: {failed}"
+        failed = result.get("meta", {}).get("violated_laws", [])
+        assert "L11" not in failed, f"F11 breach on {mode} despite being read-only: {failed}"
 
         nine = result.get("nine_signal", {})
         assert _overall_state(nine) == "SELAMAT", (

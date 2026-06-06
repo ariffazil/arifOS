@@ -16,7 +16,7 @@ from fastmcp.tools.tool import Tool, ToolResult
 from mcp.types import TextContent
 
 from arifosmcp.constitutional_map import CANONICAL_TOOLS
-from arifosmcp.runtime.floor import check_floors
+from arifosmcp.runtime.law import check_laws
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,7 @@ class _ConstitutionalTool(Tool):
                 },
             )
 
-        floor_result = check_floors(self._original_name, arguments, self._actor_id)
+        floor_result = check_laws(self._original_name, arguments, self._actor_id)
         if floor_result["verdict"] != "SEAL":
             logger.warning(
                 f"[ConstitutionalProvider] {self._original_name} HOLD: {floor_result['reason']}"
@@ -74,7 +74,7 @@ class _ConstitutionalTool(Tool):
                 structured_content={
                     "verdict": floor_result["verdict"],
                     "reason": floor_result["reason"],
-                    "failed_floors": floor_result.get("failed_floors", []),
+                    "violated_laws": floor_result.get("violated_laws", []),
                 },
             )
 
@@ -86,7 +86,7 @@ class ConstitutionalProvider(Provider):
     Wraps any Provider and enforces F1–F13 floor checks.
 
     - Registration time: validates tool exists in CANONICAL_TOOLS.
-    - Call time: runs check_floors before delegating to inner tool.
+    - Call time: runs check_laws before delegating to inner tool.
     """
 
     def __init__(self, provider: Provider, actor_id: str | None = None) -> None:

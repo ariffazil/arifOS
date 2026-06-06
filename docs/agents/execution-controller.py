@@ -215,8 +215,8 @@ AGENT_REGISTRY: dict[AgentRole, AgentIdentity] = {
             "F4": 0.0,
             "F6": 0.70,
             "F8": 0.80,
-            "F11": 1.0,
-            "F13": 1.0,
+            "L11": 1.0,
+            "L13": 1.0,
         },
     ),
 }

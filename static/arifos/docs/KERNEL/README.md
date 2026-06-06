@@ -36,10 +36,10 @@ Grounding mathematics and physics for all agentic life.
 - **K333**: The Operational Code of Intelligence.
 
 ### 2. FLOORS (The Law)
-The 13 Constitutional Floors (`F01` to `F13`). These are hard constraints embedded in the metabolic loop.
-- **F01_AMANAH**: Reversibility & Trust.
-- **F02_TRUTH**: Factual Grounding (≥ 0.99).
-- **F13_SOVEREIGN**: The Absolute Human Veto.
+The 13 Constitutional Laws (`F01` to `F13`). These are hard constraints embedded in the metabolic loop.
+- **L01_AMANAH**: Reversibility & Trust.
+- **L02_TRUTH**: Factual Grounding (≥ 0.99).
+- **L13_SOVEREIGN**: The Absolute Human Veto.
 
 ### 3. SPEC (Technical Specs)
 - **K111_SPEC**: Mathematical proofs and genius index variables.

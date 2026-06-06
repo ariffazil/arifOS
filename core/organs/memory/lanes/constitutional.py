@@ -76,7 +76,7 @@ class ConstitutionalMemoryLane:
                 "priority": 1.0,
             },
             {
-                "rule_id": "F13_SOVEREIGN",
+                "rule_id": "L13_SOVEREIGN",
                 "title": "F13 Sovereign: Human Authority",
                 "content": "888_JUDGE can override ANY verdict. Human sovereignty is outside the floor system.",
                 "priority": 1.0,

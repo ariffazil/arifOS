@@ -283,7 +283,7 @@ class ConstitutionalKernel:
                 "result": {
                     "error": "EMBODIMENT_HOLD",
                     "reason": embodiment.get("reason"),
-                    "failed_floors": embodiment.get("floors", ["F11"]),
+                    "violated_laws": embodiment.get("floors", ["L11"]),
                     "embodiment_violation": embodiment.get("embodiment_violation"),
                     "next_safe_action": embodiment.get(
                         "next_safe_action", "Review agent card and constitutional lane."
@@ -340,7 +340,7 @@ class ConstitutionalKernel:
                     "error": "WAKEFULNESS_HOLD",
                     "reason": wakefulness["reason"],
                     "well_score": wakefulness["well_score"],
-                    "failed_floors": ["F13", "WELL"],
+                    "violated_laws": ["L13", "WELL"],
                     "next_safe_action": "Wait for biological readiness recovery or override via F13 SOVEREIGN.",
                 },
                 "verdict": "HOLD",
@@ -510,7 +510,7 @@ class ConstitutionalKernel:
                 # Extract floor references from the result
                 floors_data = result.get("floors")
                 if isinstance(floors_data, dict):
-                    failed = floors_data.get("failed_floors", [])
+                    failed = floors_data.get("violated_laws", [])
                     triggered = floors_data.get("triggered", [])
                     all_floors = failed + triggered
                     if all_floors:

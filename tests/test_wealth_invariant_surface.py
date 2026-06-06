@@ -239,13 +239,13 @@ class TestWealthGameCoordination:
 class TestWealthBoundaryGovernance:
     def test_floors_mode(self):
         result = wealth_boundary_governance(
-            mode="floors", floor_scores={"F01": 0.9, "F02": 0.7, "F03": 0.85}
+            mode="floors", floor_scores={"L01": 0.9, "L02": 0.7, "L03": 0.85}
         )
         _assert_common_envelope(result)
         assert result["result"]["floors_checked"] == 3
 
     def test_screening_mode(self):
-        result = wealth_boundary_governance(mode="screening", floor_scores={"F01": 0.9, "F02": 0.5})
+        result = wealth_boundary_governance(mode="screening", floor_scores={"L01": 0.9, "L02": 0.5})
         _assert_common_envelope(result)
         assert "screened_in" in result["result"]
 
@@ -313,7 +313,7 @@ class TestAppLevelWrappers:
         _assert_common_envelope(result)
 
     def test_app_boundary_governance(self):
-        result = _wealth_boundary_governance(mode="floors", floor_scores={"F01": 0.9})
+        result = _wealth_boundary_governance(mode="floors", floor_scores={"L01": 0.9})
         _assert_common_envelope(result)
 
     def test_app_hysteresis_ledger(self):

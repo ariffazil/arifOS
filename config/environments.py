@@ -74,7 +74,7 @@ HORIZON_CONFIG = EnvironmentConfig(
         "F5",  # Empathy
         "F7",  # Humility
         "F9",  # Security (basic)
-        "F12",  # Audit
+        "L12",  # Audit
     ],
 )
 
@@ -283,7 +283,7 @@ HORIZON_CONFIG = EnvironmentConfig(
         "F5",  # Empathy
         "F7",  # Humility
         "F9",  # Security (basic)
-        "F12",  # Audit
+        "L12",  # Audit
     ],
 )
 

@@ -201,7 +201,7 @@ The kernel is not a tool. It is a **living constitutional organism** with:
 | **Cognitive Layer (CL)** | `providers/`, `llm_client.py` | LLM routing, embedding, reasoning models |
 | **Sovereign Interface (SI)** | `session.py`, `heart.py` | Human veto, 888 HOLD queue, approval routing |
 
-### The 13 Constitutional Floors (F1-F13)
+### The 13 Constitutional Laws (F1-F13)
 
 These are non-negotiable laws. Every action in the kernel passes through them.
 

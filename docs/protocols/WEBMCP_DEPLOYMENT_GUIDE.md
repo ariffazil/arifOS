@@ -428,7 +428,7 @@ webmcp_websocket_connections
 - Session TTL is 1 hour by default
 - Call `/webmcp/init` to refresh
 
-### "F12_INJECTION_BLOCKED"
+### "L12_INJECTION_BLOCKED"
 - Request contains suspicious patterns
 - Check shield report in response
 - Sanitize user input

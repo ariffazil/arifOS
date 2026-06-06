@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Literal
 
-from arifosmcp.runtime.floor import check_floors
+from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _hold
 
 logger = logging.getLogger(__name__)
@@ -57,11 +57,11 @@ def arif_evidence_fetch(
     if mode in ("pqc_standard", "crqc_estimate", "hardware_claim_evidence", "quantum_earth_science_evidence", "quantum_chemistry_pvt_evidence", "ccus_geochemistry_evidence", "quantum_algorithm_limitations"):
         return {"status": "readonly", "message": f"{mode} activated based on policy parameters."}
 
-    floor_check = check_floors(
+    floor_check = check_laws(
         "arif_evidence_fetch", {"url": url or "", "query": query or ""}, actor_id
     )
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_evidence_fetch", floor_check["reason"], floor_check["failed_floors"])
+        return _hold("arif_evidence_fetch", floor_check["reason"], floor_check["violated_laws"])
 
     # ── Phase 1: Real Implementation ──
     # Delegate to runtime implementation which handles the thinking layer,

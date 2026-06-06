@@ -193,7 +193,7 @@ MOTTO_000_INIT = ConstitutionalMotto(
     positive="DITEMPA",
     negative="BUKAN DIBERI",
     primary_floor="F1_Amanah",
-    secondary_floors=["F13_Sovereign"],
+    secondary_floors=["L13_Sovereign"],
     paradox_cell="humility_justice",  # Justice through forging
     trinity_tier=TrinityTier.GAMMA,
     geometry=GeometryType.TOROIDAL,
@@ -213,7 +213,7 @@ MOTTO_111_SENSE = ConstitutionalMotto(
     positive="DIKAJI",
     negative="BUKAN DISUAPI",
     primary_floor="F2_Truth",
-    secondary_floors=["F10_Ontology"],
+    secondary_floors=["L10_Ontology"],
     paradox_cell="truth_care",
     trinity_tier=TrinityTier.ALPHA,
     geometry=GeometryType.ORTHOGONAL,
@@ -247,7 +247,7 @@ MOTTO_333_REASON = ConstitutionalMotto(
     positive="DIJELASKAN",
     negative="BUKAN DIKABURKAN",
     primary_floor="F4_Clarity",
-    secondary_floors=["F2_Truth", "F10_Ontology"],
+    secondary_floors=["F2_Truth", "L10_Ontology"],
     paradox_cell="clarity_peace",
     trinity_tier=TrinityTier.ALPHA,
     geometry=GeometryType.ORTHOGONAL,
@@ -349,7 +349,7 @@ MOTTO_999_SEAL = ConstitutionalMotto(
     positive="DITEMPA",
     negative="BUKAN DIBERI",
     primary_floor="F1_Amanah",
-    secondary_floors=["F3_TriWitness", "F13_Sovereign"],
+    secondary_floors=["F3_TriWitness", "L13_Sovereign"],
     paradox_cell="humility_justice",
     trinity_tier=TrinityTier.GAMMA,
     geometry=GeometryType.TOROIDAL,
@@ -387,7 +387,7 @@ ERROR_MOTTOS: dict[str, str] = {
     "F7": "DISEDARKAN, BUKAN DIYAKINKAN",  # Humility: Made aware, not over-assured
     "F8": "DIUSAHAKAN, BUKAN DIHARAPI",  # Genius: Worked for, not hoped
     "F9": "DIJAGA, BUKAN DIABAIKAN",  # Anti-Hantu: Protected, not neglected
-    "F10": "DIKAJI, BUKAN DISUAPI",  # Ontology: Examined, not spoon-fed
+    "L10": "DIKAJI, BUKAN DISUAPI",  # Ontology: Examined, not spoon-fed
     "EXPLORE": "DIJELAJAH, BUKAN DISEKATI",  # Exploration: Explored, not restricted
     "ENERGY": "DIUSAHAKAN, BUKAN DIHARAPI",  # Energy: Worked for, not hoped
     "FOUNDATION": "DITEMPA, BUKAN DIBERI",  # Foundation: Forged, not given

@@ -20,11 +20,11 @@ class TestSenseObserveStubWiring:
     """arifosmcp.tools.sense — RealityHandler integration."""
 
     @patch("arifosmcp.tools.sense.validate_session")
-    @patch("arifosmcp.tools.sense.check_floors")
+    @patch("arifosmcp.tools.sense.check_laws")
     @patch("arifosmcp.tools.sense.reality_handler")
     def test_search_mode_returns_real_results(self, mock_rh, mock_floors, mock_auth):
         mock_auth.return_value = {"valid": True}
-        mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+        mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
         mock_rh.search_brave = AsyncMock(
             return_value=SearchResult(
                 engine="brave",
@@ -51,11 +51,11 @@ class TestSenseObserveStubWiring:
         mock_rh.search_brave.assert_awaited_once_with("test query", top_k=5)
 
     @patch("arifosmcp.tools.sense.validate_session")
-    @patch("arifosmcp.tools.sense.check_floors")
+    @patch("arifosmcp.tools.sense.check_laws")
     @patch("arifosmcp.tools.sense.reality_handler")
     def test_search_mode_graceful_degradation(self, mock_rh, mock_floors, mock_auth):
         mock_auth.return_value = {"valid": True}
-        mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+        mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
         mock_rh.search_brave = AsyncMock(side_effect=Exception("network down"))
 
         from arifosmcp.tools.sense import arif_sense_observe
@@ -69,11 +69,11 @@ class TestSenseObserveStubWiring:
         assert result["result"]["partition"] == "ONLINE"
 
     @patch("arifosmcp.tools.sense.validate_session")
-    @patch("arifosmcp.tools.sense.check_floors")
+    @patch("arifosmcp.tools.sense.check_laws")
     @patch("arifosmcp.tools.sense.reality_handler")
     def test_ingest_mode_compass(self, mock_rh, mock_floors, mock_auth):
         mock_auth.return_value = {"valid": True}
-        mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+        mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
         mock_bundle = MagicMock()
         mock_bundle.id = "eb-abc123"
@@ -95,10 +95,10 @@ class TestSenseObserveStubWiring:
         assert result["result"]["verdict"] == "SEAL"
 
     @patch("arifosmcp.tools.sense.validate_session")
-    @patch("arifosmcp.tools.sense.check_floors")
+    @patch("arifosmcp.tools.sense.check_laws")
     def test_dead_partition(self, mock_floors, mock_auth):
         mock_auth.return_value = {"valid": True}
-        mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+        mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
 
         from arifosmcp.tools.sense import arif_sense_observe
 
@@ -111,11 +111,11 @@ class TestEvidenceStubWiring:
     """arifosmcp.tools.evidence — RealityHandler integration."""
 
     @patch("urllib.request.urlopen")
-    @patch("arifosmcp.tools.evidence.check_floors")
+    @patch("arifosmcp.tools.evidence.check_laws")
     @patch("arifosmcp.runtime.reality_handlers.handler")
     def test_fetch_mode_returns_content(self, mock_rh, mock_floors, mock_urlopen):
         """When urllib fails, RealityHandler fallback provides content."""
-        mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+        mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
         mock_urlopen.side_effect = Exception("connection refused")
         mock_rh.fetch_url = AsyncMock(
             return_value=FetchResult(
@@ -140,14 +140,14 @@ class TestEvidenceStubWiring:
         assert result["result"]["status"] == "200"
         mock_rh.fetch_url.assert_awaited_once_with("https://example.com", render="auto")
 
-    @patch("arifosmcp.tools.evidence.check_floors")
+    @patch("arifosmcp.tools.evidence.check_laws")
     @patch("arifosmcp.evidence.store.get_evidence_store")
     @patch("arifosmcp.runtime.reality_handlers.handler.search_brave")
     def test_search_mode_returns_results(self, mock_search_brave, mock_get_store, mock_floors):
         """Search mode queries the evidence store when QDRANT_URL is configured."""
         from arifosmcp.runtime.reality_handlers import SearchResult
         mock_search_brave.return_value = SearchResult(engine="mock", query="python", results=[], status="mocked_empty")
-        mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+        mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
         mock_store = MagicMock()
         mock_store.search_sources.return_value = [
             {"title": "Py", "url": "https://py.org", "description": "Python"}
@@ -165,11 +165,11 @@ class TestEvidenceStubWiring:
         assert result["result"]["search_status"] == "found"
 
     @patch("urllib.request.urlopen")
-    @patch("arifosmcp.tools.evidence.check_floors")
+    @patch("arifosmcp.tools.evidence.check_laws")
     @patch("arifosmcp.runtime.reality_handlers.handler")
     def test_fetch_graceful_degradation(self, mock_rh, mock_floors, mock_urlopen):
         """When both urllib and RealityHandler fail, result is OK with empty content."""
-        mock_floors.return_value = {"verdict": "SEAL", "reason": "", "failed_floors": []}
+        mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
         mock_urlopen.side_effect = Exception("connection refused")
         mock_rh.fetch_url = AsyncMock(side_effect=Exception("timeout"))
 

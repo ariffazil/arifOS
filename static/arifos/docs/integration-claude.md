@@ -13,7 +13,7 @@ Connect **arifOS** to [Claude Desktop](https://www.claude.com/download) via the 
 
 ## Overview
 
-Claude Desktop supports MCP servers through **STDIO transport** for local execution. This integration allows Claude to access arifOS's 13 Constitutional Floors and the unified 8-tool public contract directly on your machine.
+Claude Desktop supports MCP servers through **STDIO transport** for local execution. This integration allows Claude to access arifOS's 13 Constitutional Laws and the unified 8-tool public contract directly on your machine.
 
 :::tip Requirements
 - **Claude Desktop** installed (macOS or Windows)
@@ -225,7 +225,7 @@ if __name__ == "__main__":
 ## Next Steps
 
 - [Public Contract](/public-contract) — Understand the 8 public tools
-- [Governance](/governance) — Learn the 13 Constitutional Floors
+- [Governance](/governance) — Learn the 13 Constitutional Laws
 - [API Reference](/api) — Complete tool documentation
 
 ---

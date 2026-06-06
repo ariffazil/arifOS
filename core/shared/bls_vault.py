@@ -172,8 +172,8 @@ class VaultBLSSeal:
         default_factory=lambda: {
             "F1_AMANAH": True,
             "F2_TRUTH": True,
-            "F11_AUDITABILITY": True,
-            "F13_ADAPTABILITY": True,
+            "L11_AUDITABILITY": True,
+            "L13_ADAPTABILITY": True,
         }
     )
 

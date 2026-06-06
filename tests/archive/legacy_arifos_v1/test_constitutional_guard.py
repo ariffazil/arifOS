@@ -20,7 +20,7 @@ def test_guard_downgrades_shell_seal_when_floors_fail() -> None:
     result = constitutional_guard("arifos_init", raw)
 
     assert result["verdict"] in ("PARTIAL", "VOID")
-    assert "floor_results" in result
+    assert "law_results" in result
     assert "reasoning_hash" in result
     assert result["constitutional_guard_version"] == "v1"
     assert result["missing_output_fields"] == []
@@ -43,9 +43,9 @@ def test_guard_allows_seal_when_all_floors_pass() -> None:
     result = constitutional_guard("arifos_init", raw)
 
     assert result["verdict"] == "SEAL"
-    assert result["floor_results"]["F2"]["passed"] is True
-    assert result["floor_results"]["F3"]["passed"] is True
-    assert result["floor_results"]["F7"]["passed"] is True
+    assert result["law_results"]["F2"]["passed"] is True
+    assert result["law_results"]["F3"]["passed"] is True
+    assert result["law_results"]["F7"]["passed"] is True
 
 
 def test_guard_void_on_hard_floor_failure() -> None:
@@ -64,7 +64,7 @@ def test_guard_void_on_hard_floor_failure() -> None:
     }
     result = constitutional_guard("arifos_init", raw)
     assert result["verdict"] == "VOID"
-    assert result["floor_results"]["F2"]["passed"] is False
+    assert result["law_results"]["F2"]["passed"] is False
 
 
 def test_guard_partial_on_missing_fields() -> None:

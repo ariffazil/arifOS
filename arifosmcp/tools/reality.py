@@ -40,7 +40,7 @@ class RealityBridge:
             return {
                 "status": "VOID",
                 "success": False,
-                "error": "F12_INJECTION_DETECTED",
+                "error": "L12_INJECTION_DETECTED",
                 "command": command,
             }
 

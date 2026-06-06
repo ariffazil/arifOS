@@ -187,6 +187,237 @@ class SessionWarnings(BaseModel):
     model_identity_unverified: bool = True
     risk_registry_unavailable: bool = False
     max_action_class_analyze_only: bool = False
+    consent_not_established: bool = True
+    personalization_without_consent: bool = False
+    theory_of_mind_scaffold: str = "ToM-0"  # ToM-0 | ToM-1 | degraded
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ToM-1 UPGRADE — OPERATOR THEORY-OF-MIND SCAFFOLD
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class OperatorIdentity(BaseModel):
+    """
+    Verified operator identity with trust chain.
+
+    Replaces the flat actor_block with a structured identity model that
+    distinguishes claimed vs verified vs delegated authority.
+    """
+
+    claimed_id: str = Field(description="Actor-provided identity string")
+    verified_id: str | None = Field(default=None, description="Cryptographically verified identity")
+    verification_method: str = Field(
+        default="none",
+        description="none | signature | token | delegation | biometric",
+    )
+    verification_provider: str | None = Field(
+        default=None, description="Who performed the verification (e.g. 'arifOS_crypto_auth', 'delegated_from_apex')"
+    )
+    trust_level: str = Field(
+        default="claimed",
+        description="claimed | attested | verified | sovereign",
+    )
+    delegation_chain: list[dict] = Field(
+        default_factory=list,
+        description="Ordered list of delegations: [{delegator, delegatee, scope, expiry}]",
+    )
+    expires_at: str | None = Field(default=None, description="When this identity assertion expires")
+
+    def is_verified(self) -> bool:
+        return self.trust_level in ("verified", "sovereign")
+
+    def is_sovereign(self) -> bool:
+        return self.trust_level == "sovereign"
+
+
+class IntentModel(BaseModel):
+    """
+    Operator intent model — not just authority, but purpose.
+
+    Tracks declared intent, inferred intent, session objectives, and
+    active commitments. This is the difference between "who can act"
+    and "what they are trying to achieve."
+    """
+
+    declared_purpose: str | None = Field(default=None, description="Operator-stated purpose for this session")
+    inferred_purpose: str | None = Field(
+        default=None, description="System-inferred purpose from context (HYPOTHESIS — never treated as fact)"
+    )
+    session_objective: str | None = Field(default=None, description="Concrete objective bound to this session")
+    intent_history: list[str] = Field(
+        default_factory=list, description="Prior intents from continuous sessions"
+    )
+    commitment_tracked: bool = Field(
+        default=False, description="Are active commitments being tracked?"
+    )
+    commitments: list[str] = Field(
+        default_factory=list, description="Active commitments made by operator in this or prior sessions"
+    )
+    intent_drift_detected: bool = Field(
+        default=False, description="Has operator intent drifted from declared purpose?"
+    )
+    intent_drift_flags: list[str] = Field(default_factory=list, description="Why drift was flagged")
+
+
+class BeliefState(BaseModel):
+    """
+    Structured belief tracking about the operator and world.
+
+    Each belief carries provenance and confidence. The system must not
+    act on unproven beliefs about operator mental state.
+    """
+
+    operator_beliefs: list[dict] = Field(
+        default_factory=list,
+        description="Beliefs about operator state: [{proposition, confidence, provenance, verified}]",
+    )
+    system_beliefs: list[dict] = Field(
+        default_factory=list,
+        description="Beliefs the system holds about world state relevant to this session",
+    )
+    belief_provenance_required: bool = Field(
+        default=True, description="Must every belief about operator carry provenance?"
+    )
+    unverified_beliefs_quarantined: bool = Field(
+        default=True, description="Are unverified beliefs prevented from influencing action?"
+    )
+
+
+class PreferenceMemory(BaseModel):
+    """
+    Provenance-bound preference memory.
+
+    Preferences without provenance cannot govern behavior.
+    Preferences without consent cannot be used for personalization.
+    """
+
+    preferences: list[dict] = Field(
+        default_factory=list,
+        description="[{key, value, provenance, consented, timestamp}]",
+    )
+    provenance_bound: bool = Field(default=True, description="All preferences require provenance")
+    consent_required_for_new: bool = Field(
+        default=True, description="New preferences require explicit operator consent"
+    )
+    personalization_enabled: bool = Field(
+        default=False, description="Is personalization active? (requires consent)"
+    )
+
+
+class FalseBeliefFlag(BaseModel):
+    """
+    Flags when operator claim conflicts with evidence.
+
+    ToM-1 requires detecting that the operator may hold a false belief
+    (e.g., "I committed X" when vault shows no such seal).
+    """
+
+    flags: list[dict] = Field(
+        default_factory=list,
+        description="[{operator_claim, evidence_contradicts, severity, resolution}]",
+    )
+    false_belief_detection_active: bool = Field(
+        default=True, description="Is the system checking for operator false beliefs?"
+    )
+    humility_applied: bool = Field(
+        default=True, description="Does the system flag its OWN possible false beliefs?"
+    )
+
+
+class WellMirrorEnhanced(BaseModel):
+    """
+    Enhanced WELL substrate mirror for operator readiness signals.
+
+    ToM-1 requires knowing: Is the operator cognitively loaded?
+    Is their dignity preserved? Are they being coerced?
+    """
+
+    operator_readiness: str | None = Field(
+        default=None, description="WELL readiness signal: OPTIMAL | STABLE | DEGRADED | CRITICAL"
+    )
+    cognitive_load_signal: str | None = Field(
+        default=None, description="WELL cognitive load: LOW | MEDIUM | HIGH | OVERLOAD"
+    )
+    dignity_preservation_score: float | None = Field(
+        default=None, ge=0.0, le=1.0, description="WELL dignity score (0=violated, 1=fully preserved)"
+    )
+    coercion_signal_detected: bool = Field(
+        default=False, description="WELL coercion detection flag"
+    )
+    well_informed: bool = Field(default=False, description="Did WELL provide data this session?")
+    well_status: str = Field(default="unavailable", description="available | degraded | unavailable")
+    well_timestamp: str | None = Field(default=None, description="When WELL data was sampled")
+
+
+class SessionContinuity(BaseModel):
+    """
+    Session continuity and commitment tracking.
+
+    ToM-1 requires remembering prior commitments and detecting intent drift
+    across sessions. Without continuity, every session is a stranger.
+    """
+
+    prior_session_id: str | None = Field(default=None, description="Linked prior session")
+    continuity_established: bool = Field(default=False, description="Was continuity successfully established?")
+    prior_commitments: list[str] = Field(default_factory=list, description="Commitments inherited from prior sessions")
+    commitments_honored: list[str] = Field(default_factory=list, description="Commitments honored since last session")
+    commitments_breached: list[str] = Field(default_factory=list, description="Commitments breached (with reason)")
+    drift_detected: bool = Field(default=False, description="Has intent drifted from prior sessions?")
+    drift_flags: list[str] = Field(default_factory=list, description="Specific drift detection signals")
+
+
+class ConsentBoundaries(BaseModel):
+    """
+    Explicit consent boundaries for personalization and memory.
+
+    ToM-1 must not become surveillance. Modeling operator behavior requires
+    explicit consent. Without consent, the system operates in generic mode.
+    """
+
+    personalization_consent: bool = Field(
+        default=False, description="Operator consented to behavior modeling/personalization"
+    )
+    memory_consent: bool = Field(
+        default=False, description="Operator consented to persistent memory across sessions"
+    )
+    inference_consent: bool = Field(
+        default=False, description="Operator consented to inference about their mental state"
+    )
+    theory_of_mind_consent: bool = Field(
+        default=False, description="Operator consented to ToM-1 modeling (beliefs, preferences, intent)"
+    )
+    surveillance_warning: str = Field(
+        default=(
+            "Modeling operator behavior for assistance is not surveillance. "
+            "However, persistent profiling without explicit consent violates F6 EMPATHY. "
+            "ToM-1 scaffolds are quarantined until consent is established."
+        )
+    )
+    privacy_boundaries: list[str] = Field(
+        default_factory=list, description="Explicit privacy boundaries declared by operator"
+    )
+    consent_establishment_required: bool = Field(
+        default=True, description="Must consent be established before ToM-1 activation?"
+    )
+
+
+class ContextCompletenessReceipt(BaseModel):
+    """
+    v3.1: Context completeness score for session bootstrap.
+
+    High-stakes actions can be denied when context completeness < threshold.
+    This makes missing context a first-class governed metric, not a silent deficiency.
+    """
+
+    timezone: str = Field(default="missing", description="timezone | missing | inferred")
+    spatial_context: str = Field(default="missing", description="spatial_context | missing | inferred")
+    host_id: str = Field(default="missing", description="host_id | missing | attested")
+    identity: str = Field(default="claimed_not_verified", description="claimed_not_verified | verified_operator | anonymous")
+    memory: str = Field(default="not_loaded", description="not_loaded | partial | full")
+    session_provenance: str = Field(default="fresh", description="fresh | resumed | handover")
+    score: float = Field(default=0.0, ge=0.0, le=1.0, description="0.0 = empty, 1.0 = complete")
+    verdict: str = Field(default="DEGRADED_CONTEXT", description="COMPLETE_CONTEXT | DEGRADED_CONTEXT | MINIMAL_CONTEXT")
 
 
 class SessionState(BaseModel):
@@ -204,13 +435,13 @@ class SessionState(BaseModel):
 
 
 class SessionManifest(BaseModel):
-    """Full 000_INIT output — embodiment + capability + attention."""
+    """Full 000_INIT output — embodiment + capability + attention + ToM-1 scaffold."""
 
     status: str = "OK"
     tool: str = "arif_session_init"
     mode: str = "init"
 
-    # WAJIB categories
+    # WAJIB categories (ToM-0 — operational orientation)
     session: SessionState | None = None
     actor: dict[str, Any] = Field(default_factory=dict)
     constitution: dict[str, Any] = Field(default_factory=dict)
@@ -221,6 +452,19 @@ class SessionManifest(BaseModel):
     tool_surface: ToolSurface | None = None
     risk_leash: RiskLeash | None = None
     warnings: SessionWarnings | None = None
+
+    # ToM-1 upgrade — operator theory-of-mind scaffold
+    operator_identity: OperatorIdentity | None = None
+    intent_model: IntentModel | None = None
+    belief_state: BeliefState | None = None
+    preference_memory: PreferenceMemory | None = None
+    false_belief_flags: FalseBeliefFlag | None = None
+    well_mirror_enhanced: WellMirrorEnhanced | None = None
+    session_continuity: SessionContinuity | None = None
+    consent_boundaries: ConsentBoundaries | None = None
+
+    # Context completeness (v3.1)
+    context_completeness: ContextCompletenessReceipt | None = None
 
     # Output control
     output_contract: str = "compact"  # compact | seal_card | debug

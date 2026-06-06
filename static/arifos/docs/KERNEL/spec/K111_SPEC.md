@@ -8,7 +8,7 @@
 
 ## Overview
 
-GENIUS LAW defines measurement formulas for **governed intelligence** — extending the 9 Constitutional Floors with node-level (agent) and system-level metrics.
+GENIUS LAW defines measurement formulas for **governed intelligence** — extending the 9 Constitutional Laws with node-level (agent) and system-level metrics.
 
 **Core Insight:** "Evil genius is a category error — ungoverned cleverness, not true genius."
 

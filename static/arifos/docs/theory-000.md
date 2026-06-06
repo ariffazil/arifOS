@@ -27,7 +27,7 @@ Intelligence without limits is not intelligence - it is noise. The `000_THEORY` 
 | File | What it contains |
 |:--|:--|
 | [`000_FOUNDATIONS.md`](https://github.com/ariffazil/arifosmcp/blob/main/000_THEORY/000_FOUNDATIONS.md) | Meta-constitutional principles. The Strange Loop principle. "The system that knows it doesn't know." Gdel, Hofstadter, thermodynamic intelligence. |
-| [`000_LAW.md`](https://github.com/ariffazil/arifosmcp/blob/main/000_THEORY/000_LAW.md) | The 13 Constitutional Floors in full. 9 Laws + 2 Mirrors + 2 Walls. Four Constitutional Axioms. |
+| [`000_LAW.md`](https://github.com/ariffazil/arifosmcp/blob/main/000_THEORY/000_LAW.md) | The 13 Constitutional Laws in full. 9 Laws + 2 Mirrors + 2 Walls. Four Constitutional Axioms. |
 | [`000_ARCHITECTURE.md`](https://github.com/ariffazil/arifosmcp/blob/main/000_THEORY/000_ARCHITECTURE.md) | L0-L7 stack definition. Kernel boundary rules. |
 | [`MANIFESTO.md`](https://github.com/ariffazil/arifosmcp/blob/main/000_THEORY/MANIFESTO.md) | *Ditempa Bukan Diberi* - the founding philosophical statement. |
 

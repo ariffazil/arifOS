@@ -261,7 +261,7 @@ async def kernel_audit(proposal: ProposalObject) -> KernelVerdict:
 
     # F13 Sovereignty — human required
     if proposal.requires_human:
-        violations.append({"floor": "F13", "reason": "human_approval_required", "verdict": "HOLD"})
+        violations.append({"floor": "L13", "reason": "human_approval_required", "verdict": "HOLD"})
 
     # Compute verdict
     if any(v["verdict"] == "VOID" for v in violations):

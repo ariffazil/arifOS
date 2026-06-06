@@ -199,8 +199,8 @@ def _assess_uncertainty_and_risk(
 
     # F12 INJECTION — if scan detected in LLM output, escalate immediately
     if injection_detected:
-        risk_flags.append("F12_INJECTION_DETECTED")
-        uncertainty.append("F12_injection_scan_triggered_in_LLM_output")
+        risk_flags.append("L12_INJECTION_DETECTED")
+        uncertainty.append("L12_injection_scan_triggered_in_LLM_output")
 
     if tool_origin in ("333_REASON", "444_CRITIQUE", "444r_REPLY"):
         uncertainty.append(f"{tool_origin}_output_is_testimony_not_verdict")

@@ -359,7 +359,7 @@ async def seal(
     telemetry = dict(telemetry) if telemetry else {}
 
     # Hard Floors to track
-    floors = {"F1": "pass", "F5": "pass", "F9": "pass", "F12": "pass", "F13": "pass"}
+    floors = {"F1": "pass", "F5": "pass", "F9": "pass", "L12": "pass", "L13": "pass"}
 
     # Extract tau_truth to floors
     if "tau_truth" in telemetry:

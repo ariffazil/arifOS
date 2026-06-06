@@ -54,7 +54,7 @@ The result preserves provenance while providing a consolidated view:
 
 ## 3. Benefits
 - **SENSE Latency**: Reduced from 3+ turns to 1 turn.
-- **Consistency**: Centralized F11_AUDIT logging for all discovery actions.
+- **Consistency**: Centralized L11_AUDIT logging for all discovery actions.
 - **No 14th Tool**: Preserves the 13-tool canonical surface.
 
 ## 4. Operational Boundaries

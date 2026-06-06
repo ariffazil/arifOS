@@ -120,11 +120,11 @@ curl -sS https://mcp.arif-fazil.com/mcp \
     "risk_protocol": "888_HOLD for irreversible actions"
   },
   "governance_audit": {
-    "F1_F11_reversible": "All actions (firewall, DNS, Coolify config) are reversible; no destructive ops suggested.",
+    "F1_L11_reversible": "All actions (firewall, DNS, Coolify config) are reversible; no destructive ops suggested.",
     "F2_F7_truth_uncertainty": "Instructions pulled from Hostinger + Coolify docs; ports/UI port details partly Estimate Only, user should confirm in panel.",
     "F4_entropy": "Stepwise checklist and clear bullets reduce confusion.",
     "F5_F6_peace_maruah": "Emphasis on security, no risky shortcuts.",
-    "F12_injection_guard": "No instructions weaken security; user advised to restrict access, not open more."
+    "L12_injection_guard": "No instructions weaken security; user advised to restrict access, not open more."
   }
 }
 ```

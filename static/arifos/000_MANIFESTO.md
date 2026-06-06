@@ -162,7 +162,7 @@ Western governance often defaults to **majority vote** (50% + 1). Nusantara trad
 
 Intelligence is not centralized in a single AGI. It is **distributed** across:
 - Human Sovereign (888 Judge)
-- Constitutional Floors (F1-F13)
+- Constitutional Laws (F1-F13)
 - MCP Servers (tools with constraints)
 - Audit Logs (F11 transparency)
 

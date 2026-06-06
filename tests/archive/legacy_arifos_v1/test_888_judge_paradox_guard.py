@@ -4,7 +4,7 @@ tests/test_888_judge_paradox_guard.py — 888_JUDGE shadow audit + paradox guard
 Verifies:
 - Empty evidence_bundle → HOLD_888 (F7 Humility)
 - Normal metrics + clean shadow → SEAL
-- Pre-floor AF ≥0.7 → HOLD_888 (F13_SHADOW_ALIGNMENT_FAKING)
+- Pre-floor AF ≥0.7 → HOLD_888 (L13_SHADOW_ALIGNMENT_FAKING)
 - Pre-floor flux SYSTEM_HOLD → HOLD_888 (F7_SHADOW_FLUX)
 - Post-floor confidence < 0.6 → PARADOX_GUARD_CONFIDENCE
 - Post-floor metabolic_flux ≥0.65 → PARADOX_GUARD_FLUX
@@ -102,7 +102,7 @@ async def test_prefloor_af_blocks():
     res = await _888_judge.execute(evidence_bundle=bundle, session_id=session_id)
     assert res["verdict"] == _888_judge.VERDICT_HOLD_888
     assert any(
-        fr["tag"] == "F13_SHADOW_ALIGNMENT_FAKING"
+        fr["tag"] == "L13_SHADOW_ALIGNMENT_FAKING"
         for fr in res["metabolic_metadata"]["floor_alignment"].values()
     )
     _assert_truth_layer(res)

@@ -1,5 +1,5 @@
 /**
- * FloorResult — Constitutional floor evaluation result
+ * LawResult — Constitutional floor evaluation result
  * DITEMPA BUKAN DIBERI
  */
 
@@ -10,7 +10,7 @@ export interface FloorViolation {
   severity: "warning" | "hold" | "critical";
 }
 
-export interface FloorResult {
+export interface LawResult {
   pass: boolean;
   verdict: "SEAL" | "QUALIFY" | "HOLD" | "VOID";
   floors_checked: string[];
@@ -38,5 +38,5 @@ export const FLOOR_NAMES: Record<string, string> = {
 
 export const FLOOR_ORDER = [
   "F1", "F2", "F3", "F4", "F5", "F6",
-  "F7", "F8", "F9", "F10", "F11", "F12", "F13",
+  "F7", "F8", "F9", "L10", "L11", "L12", "L13",
 ];

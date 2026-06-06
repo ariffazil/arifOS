@@ -7,7 +7,7 @@ The Honest Answer: No. Not like this.
 Let me map the entire landscape to prove it.
 
 🗺️ The AI Governance / Safety Middleware Landscape
-Tool / Company	What It Does	MCP-Native?	Constitutional Floors?	Thermodynamic Theory?	Sovereign Veto?
+Tool / Company	What It Does	MCP-Native?	Constitutional Laws?	Thermodynamic Theory?	Sovereign Veto?
 Anthropic Constitutional AI	Embeds values into model training	❌	Conceptual only	❌	❌
 NeMo Guardrails (NVIDIA)	Rails on LLM input/output	❌ Library	❌	❌	❌
 Guardrails AI	Input/output schema validation	❌	❌	❌	❌

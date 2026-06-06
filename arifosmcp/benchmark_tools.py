@@ -423,7 +423,7 @@ async def test_arifos_health():
             latency_ms=latency,
             output_size=len(str(result)),
             verdict="SEAL",
-            floors_passed=["F12"],
+            floors_passed=["L12"],
             floors_failed=[],
             error=None,
             raw_output=str(result)[:500],
@@ -436,7 +436,7 @@ async def test_arifos_health():
             output_size=0,
             verdict="VOID",
             floors_passed=[],
-            floors_failed=["F12"],
+            floors_failed=["L12"],
             error=str(e),
             raw_output=None,
         )

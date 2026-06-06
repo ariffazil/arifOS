@@ -174,7 +174,7 @@
           "F7_HUMAN_SOVEREIGNTY": {"type": "string", "enum": ["PASS", "FAIL", "N/A"]},
           "F8_DEPTH_FRAME_TRUTH": {"type": "string", "enum": ["PASS", "FAIL", "N/A"]},
           "F9_CLAIM_STATE_DISCIPLINE": {"type": "string", "enum": ["PASS", "FAIL", "N/A"]},
-          "F13_SOVEREIGN_VETO": {"type": "string", "enum": ["PASS", "FAIL", "N/A"]}
+          "L13_SOVEREIGN_VETO": {"type": "string", "enum": ["PASS", "FAIL", "N/A"]}
         }
       },
       "next_safe_action": {

@@ -74,7 +74,7 @@ TOOLS: tuple[ToolSpec, ...] = (
             "probe mode: Session diagnostic checking anchor validity and authority enum compatibility."
         ),
         trinity="Ψ",
-        floors=("F11", "F12", "F13"),
+        floors=("L11", "L12", "L13"),
         input_schema={
             "type": "object",
             "required": ["actor_id", "intent"],
@@ -151,7 +151,7 @@ TOOLS: tuple[ToolSpec, ...] = (
             "claim tags, posterior bands, disagreement spread, and vault receipts instead of flattening them into prose."
         ),
         trinity="Δ",
-        floors=("F2", "F3", "F4", "F10"),
+        floors=("F2", "F3", "F4", "L10"),
         input_schema={
             "type": "object",
             "required": ["query"],
@@ -264,7 +264,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         visibility="public",
         description="Route request to correct metabolic lane or tool family based on risk and task type.",
         trinity="Δ/Ψ",
-        floors=("F4", "F11"),
+        floors=("F4", "L11"),
         input_schema={
             "type": "object",
             "required": ["query"],
@@ -394,7 +394,7 @@ TOOLS: tuple[ToolSpec, ...] = (
             "ensemble disagreement, timing risk, and governed receipts from GEOX without spawning duplicate tools."
         ),
         trinity="Ψ",
-        floors=("F1", "F2", "F3", "F9", "F10", "F12", "F13"),
+        floors=("F1", "F2", "F3", "F9", "L10", "L12", "L13"),
         input_schema={
             "type": "object",
             "required": ["query", "risk_tier"],
@@ -442,7 +442,7 @@ TOOLS: tuple[ToolSpec, ...] = (
             "Supports asset-scoped GEOX memory without adding a new public memory organ."
         ),
         trinity="Ω",
-        floors=("F2", "F10", "F11"),
+        floors=("F2", "L10", "L11"),
         input_schema={
             "type": "object",
             "required": [],
@@ -510,7 +510,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         visibility="public",
         description="Append immutable verdict record to Merkle-hashed ledger (mode=append), or query the ledger (mode=read).",
         trinity="Ψ",
-        floors=("F1", "F13"),
+        floors=("F1", "L13"),
         input_schema={
             "type": "object",
             "required": [],
@@ -573,7 +573,7 @@ TOOLS: tuple[ToolSpec, ...] = (
             "• All actions logged to vault • Separation of powers preserved."
         ),
         trinity="Δ",
-        floors=("F1", "F2", "F7", "F13"),
+        floors=("F1", "F2", "F7", "L13"),
         input_schema={
             "type": "object",
             "required": [
@@ -639,7 +639,7 @@ TOOLS: tuple[ToolSpec, ...] = (
             "arifOS, WEALTH, and GEOX organs."
         ),
         trinity="Ω",
-        floors=("F3", "F4", "F9", "F11", "F13"),
+        floors=("F3", "F4", "F9", "L11", "L13"),
         input_schema={
             "type": "object",
             "required": ["session_id"],

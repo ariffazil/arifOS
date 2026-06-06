@@ -220,7 +220,7 @@ class DataGovernanceDecision:
     decision_id: str
     verdict: GovernanceVerdict
     asset_id: str
-    failed_floors: list[str] = field(default_factory=list)
+    violated_laws: list[str] = field(default_factory=list)
     floor_reasons: dict[str, str] = field(default_factory=dict)
     custodian: DataCustodian | None = None
     witness_bundle: WitnessBundle | None = None
@@ -468,7 +468,7 @@ class DataGovernanceEnforcer:
         governance metadata (custodian, masking, confidence, audit log, etc.).
         """
         decision_id = str(uuid.uuid4())
-        failed_floors: list[str] = []
+        violated_laws: list[str] = []
         reasons: dict[str, str] = {}
         masked_fields: list[str] = []
         sanitized: dict[str, Any] = {}
@@ -479,15 +479,15 @@ class DataGovernanceEnforcer:
             if isinstance(value, str):
                 threats = detect_injection(value)
                 if threats:
-                    failed_floors.append("F12")
-                    reasons["F12"] = f"Injection patterns in '{field_name}': {threats}"
+                    violated_laws.append("L12")
+                    reasons["L12"] = f"Injection patterns in '{field_name}': {threats}"
         # If F12 fails, void immediately
-        if "F12" in failed_floors:
+        if "L12" in violated_laws:
             decision = DataGovernanceDecision(
                 decision_id=decision_id,
                 verdict=GovernanceVerdict.VOID,
                 asset_id=asset_id,
-                failed_floors=failed_floors,
+                violated_laws=violated_laws,
                 floor_reasons=reasons,
                 sanitized_input=sanitized,
             )
@@ -514,43 +514,43 @@ class DataGovernanceEnforcer:
                 verified=False,
             )
         else:
-            failed_floors.append("F01")
-            reasons["F01"] = "F01 AMANAH: No named custodian for this asset"
+            violated_laws.append("L01")
+            reasons["L01"] = "F01 AMANAH: No named custodian for this asset"
 
         # ── F2 TRUTH: Source must be verified before ingestion ──────────────
         if source_verification:
             if source_verification.verification_method == "unverified":
-                failed_floors.append("F02")
-                reasons["F02"] = "F02 TRUTH: Source is unverified — hold for manual confirmation"
+                violated_laws.append("L02")
+                reasons["L02"] = "F02 TRUTH: Source is unverified — hold for manual confirmation"
             else:
                 pass
         else:
             # No source provided — conservative hold
-            failed_floors.append("F02")
-            reasons["F02"] = "F02 TRUTH: No source verification provided"
+            violated_laws.append("L02")
+            reasons["L02"] = "F02 TRUTH: No source verification provided"
 
         # ── F3 WITNESS: Require multi-source or high consensus ───────────────
         witness_bundle = witness_bundle or WitnessBundle(sources=[])
         if not witness_bundle.is_verified:
             if witness_bundle.witness_count == 0 and not source_verification:
-                failed_floors.append("F03")
-                reasons["F03"] = (
+                violated_laws.append("L03")
+                reasons["L03"] = (
                     "F03 WITNESS: No independent sources — single-source ingestion is low-confidence"
                 )
             elif witness_bundle.consensus_score < 0.75:
-                failed_floors.append("F03")
-                reasons["F03"] = (
+                violated_laws.append("L03")
+                reasons["L03"] = (
                     f"F03 WITNESS: Consensus {witness_bundle.consensus_score:.2f} < 0.75 threshold"
                 )
             else:
-                reasons["F03"] = f"F03 WITNESS: Passed with {witness_bundle.witness_count} sources"
+                reasons["L03"] = f"F03 WITNESS: Passed with {witness_bundle.witness_count} sources"
 
         # ── F4 CLARITY: Contract/schema must be present for reusable assets ──
         if contract is not None:
             for req_field in contract.required_fields:
                 if req_field not in sanitized:
-                    failed_floors.append("F04")
-                    reasons["F04"] = (
+                    violated_laws.append("L04")
+                    reasons["L04"] = (
                         f"F04 CLARITY: Required field '{req_field}' missing from ingestion"
                     )
         # No contract is acceptable for ad-hoc assets (pass)
@@ -590,8 +590,8 @@ class DataGovernanceEnforcer:
             source_scores.append(source_verification.trust_score)
         confidence = compute_confidence_envelope(source_scores)
         if confidence.omega_0 < 0.03 or confidence.omega_0 > 0.05:
-            failed_floors.append("F07")
-            reasons["F07"] = (
+            violated_laws.append("L07")
+            reasons["L07"] = (
                 f"F07 HUMILITY: Confidence band {confidence.omega_0:.3f} outside [0.03, 0.05]"
             )
 
@@ -606,7 +606,7 @@ class DataGovernanceEnforcer:
                             f"Field '{field_name}' is null but not declared nullable"
                         )
         if schema_issues:
-            reasons["F08"] = f"F08 GENIUS: Schema issues — {schema_issues}"
+            reasons["L08"] = f"F08 GENIUS: Schema issues — {schema_issues}"
 
         # ── F9 ANTIHANTU: Mutation must write audit log ──────────────────────
         # Audit is written at the end of this method
@@ -614,8 +614,8 @@ class DataGovernanceEnforcer:
         # ── F10 ONTOLOGY: Validate taxonomy ──────────────────────────────────
         taxonomy = validate_taxonomy(asset_category)
         if not taxonomy.is_valid():
-            failed_floors.append("F10")
-            reasons["F10"] = (
+            violated_laws.append("L10")
+            reasons["L10"] = (
                 f"F10 ONTOLOGY: {taxonomy.violations[0] if taxonomy.violations else 'Unknown category'}"
             )
 
@@ -625,8 +625,8 @@ class DataGovernanceEnforcer:
             actor_role=actor_role,
         )
         if not access_policy.evaluate():
-            failed_floors.append("F11")
-            reasons["F11"] = (
+            violated_laws.append("L11")
+            reasons["L11"] = (
                 f"F11 AUTH: Actor role '{actor_role.value}' insufficient for '{required_role.value}' access"
             )
 
@@ -637,24 +637,24 @@ class DataGovernanceEnforcer:
                 decision_id=decision_id,
                 asset_id=asset_id,
                 proposed_verdict=(
-                    GovernanceVerdict.HOLD if not failed_floors else GovernanceVerdict.VOID
+                    GovernanceVerdict.HOLD if not violated_laws else GovernanceVerdict.VOID
                 ),
                 status="pending",
             )
-            if failed_floors:
+            if violated_laws:
                 veto_record.status = "vetoed"
-                veto_record.veto_reason = f"Floor breaches: {', '.join(failed_floors)}"
+                veto_record.veto_reason = f"Floor breaches: {', '.join(violated_laws)}"
             # Human must explicitly confirm even SEAL verdicts for high-impact
 
         # ── Determine verdict ───────────────────────────────────────────────
         if (
-            "F12" in failed_floors
-            or "F01" in failed_floors
-            or "F10" in failed_floors
-            or "F11" in failed_floors
+            "L12" in violated_laws
+            or "L01" in violated_laws
+            or "L10" in violated_laws
+            or "L11" in violated_laws
         ):
             verdict = GovernanceVerdict.VOID
-        elif failed_floors:
+        elif violated_laws:
             verdict = GovernanceVerdict.HOLD
         else:
             verdict = GovernanceVerdict.SEAL
@@ -668,14 +668,14 @@ class DataGovernanceEnforcer:
             session_id=session_id,
             fields_affected=list(asset_data.keys()),
             verdict=verdict,
-            reason=", ".join(reasons.get(f, "") for f in failed_floors),
+            reason=", ".join(reasons.get(f, "") for f in violated_laws),
         )
 
         return DataGovernanceDecision(
             decision_id=decision_id,
             verdict=verdict,
             asset_id=asset_id,
-            failed_floors=failed_floors,
+            violated_laws=violated_laws,
             floor_reasons=reasons,
             custodian=custodian,
             witness_bundle=witness_bundle if witness_bundle.sources else None,
@@ -755,17 +755,17 @@ class DataGovernanceEnforcer:
         Actual floor failures are determined per-asset, not globally.
         """
         return {
-            "F01_AMANAH": "ok",  # Custodian tracking: active
-            "F02_TRUTH": "ok",  # Source verification: active
-            "F03_WITNESS": "ok",  # Multi-source validation: active
-            "F04_CLARITY": "ok",  # Contract enforcement: active
-            "F05_PEACE": "ok",  # Sensitive field masking: active
-            "F06_EMPATHY": "ok",  # Downstream consumer tracking: active
-            "F07_HUMILITY": "ok",  # Confidence envelope: active
-            "F08_GENIUS": "ok",  # Schema validation: active
-            "F09_ANTIHANTU": "ok",  # Audit log: active
-            "F10_ONTOLOGY": "ok",  # Taxonomy validation: active
-            "F11_AUDIT": "ok",  # Role-based access: active
-            "F12_INJECTION": "ok",  # Input sanitization: active
-            "F13_SOVEREIGN": "ok",  # Human veto path: available
+            "L01_AMANAH": "ok",  # Custodian tracking: active
+            "L02_TRUTH": "ok",  # Source verification: active
+            "L03_WITNESS": "ok",  # Multi-source validation: active
+            "L04_CLARITY": "ok",  # Contract enforcement: active
+            "L05_PEACE": "ok",  # Sensitive field masking: active
+            "L06_EMPATHY": "ok",  # Downstream consumer tracking: active
+            "L07_HUMILITY": "ok",  # Confidence envelope: active
+            "L08_GENIUS": "ok",  # Schema validation: active
+            "L09_ANTIHANTU": "ok",  # Audit log: active
+            "L10_ONTOLOGY": "ok",  # Taxonomy validation: active
+            "L11_AUDIT": "ok",  # Role-based access: active
+            "L12_INJECTION": "ok",  # Input sanitization: active
+            "L13_SOVEREIGN": "ok",  # Human veto path: available
         }

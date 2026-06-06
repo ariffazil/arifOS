@@ -44,7 +44,7 @@ Every agent interaction MUST follow this 6-step grounding cycle:
     *   *Rule:* Increment fatigue by 0.1 for each complex tool call.
 
 5.  **JUDGMENT (888_JUDGE)**
-    *   Check F1-F13 Constitutional Floors.
+    *   Check F1-F13 Constitutional Laws.
     *   Evaluate **W-Floors** (Biological).
     *   *Constraint:* If `W6_METABOLIC_PAUSE` is active, the agent MUST wait.
 

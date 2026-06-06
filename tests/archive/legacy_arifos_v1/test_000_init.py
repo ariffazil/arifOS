@@ -140,8 +140,8 @@ def make_valid_pipeline_state():
 def make_valid_continuity_contract():
     return {
         "max_duration_hours": 24,
-        "HOLD_triggered_by": ["F1", "F3", "F5", "F9", "F13"],
-        "VOID_triggered_by": ["F9", "F5", "F10"],
+        "HOLD_triggered_by": ["F1", "F3", "F5", "F9", "L13"],
+        "VOID_triggered_by": ["F9", "F5", "L10"],
     }
 
 

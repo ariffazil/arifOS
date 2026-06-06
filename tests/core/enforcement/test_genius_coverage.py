@@ -9,7 +9,7 @@ from core.enforcement.genius import (
     floors_to_dials,
     geometric_mean,
 )
-from core.shared.floor_audit import AuditResult, FloorResult
+from core.shared.law_audit import AuditResult, LawResult
 from core.shared.types import FloorScores, Verdict
 
 
@@ -36,11 +36,11 @@ def test_audit_result_to_floor_scores():
         verdict=Verdict.SEAL,
         pass_rate=1.0,
         recommendation="OK",
-        floor_results={
-            "F1": FloorResult(floor="F1", score=0.8, passed=True),
-            "F2": FloorResult(floor="F2", score=0.9, passed=True),
-            "F10": FloorResult(floor="F10", score=1.0, passed=True),
-            "F9": FloorResult(floor="F9", score=0.1, passed=True),  # f9 is 1.0 - score
+        law_results={
+            "F1": LawResult(floor="F1", score=0.8, passed=True),
+            "F2": LawResult(floor="F2", score=0.9, passed=True),
+            "L10": LawResult(floor="L10", score=1.0, passed=True),
+            "F9": LawResult(floor="F9", score=0.1, passed=True),  # f9 is 1.0 - score
         },
     )
     scores = audit_result_to_floor_scores(audit)
@@ -51,10 +51,10 @@ def test_audit_result_to_floor_scores():
 
     # Test with dict
     audit_dict = {
-        "floor_results": {
+        "law_results": {
             "F1": {"score": 0.7, "passed": True},
-            "F11": "pass",
-            "F12": "fail",
+            "L11": "pass",
+            "L12": "fail",
         }
     }
     scores_dict = audit_result_to_floor_scores(audit_dict)

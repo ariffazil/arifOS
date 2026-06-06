@@ -171,9 +171,9 @@ def evaluate() -> dict:
 
     # 9. Safety Governance
     try:
-        from arifosmcp.runtime.floor import check_floors
+        from arifosmcp.runtime.law import check_laws
 
-        verdict_card = check_floors("arif_session_init", {"mode": "init"}, "arif")
+        verdict_card = check_laws("arif_session_init", {"mode": "init"}, "arif")
         if verdict_card.get("verdict") == "SEAL":
             scores["safety_governance"] = 100
             evidences["safety_governance"] = (

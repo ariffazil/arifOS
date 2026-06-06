@@ -11,7 +11,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -155,7 +155,7 @@ class ConstitutionalCompliance(BaseModel):
     """F1-F13 floor compliance for this forge action."""
 
     floors_invoked: list[str] = Field(default_factory=list)
-    floor_results: dict[str, str] = Field(default_factory=dict)
+    law_results: dict[str, str] = Field(default_factory=dict)
     violations_found: list[str] = Field(default_factory=list)
     genius_score: float = Field(default=0.0, description="Elegance under constraint")
     amanah_score: float = Field(default=0.0, description="Accountability")
@@ -256,4 +256,128 @@ class ForgeEnvelope(BaseModel):
 
 
 # Alias
+ForgeManifest2 = ForgeManifest
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FORGE ERROR CODES — EXACT REASONS, NOT VAGUE STRINGS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class ForgeErrorCode(StrEnum):
+    """Exact error codes for forge operations. Never return vague strings."""
+
+    # Stage / progression errors
+    E_STAGE_TOOL_MISMATCH = "E_STAGE_TOOL_MISMATCH"
+    E_VERDICT_PLANE_CONFLICT = "E_VERDICT_PLANE_CONFLICT"
+
+    # Identity / auth errors
+    E_IDENTITY_UNVERIFIED = "E_IDENTITY_UNVERIFIED"
+    E_LEGACY_WRAP_ATOMIC_DENIED = "E_LEGACY_WRAP_ATOMIC_DENIED"
+    E_CAPABILITY_MEMBRANE_VIOLATION = "E_CAPABILITY_MEMBRANE_VIOLATION"
+
+    # Execution errors
+    E_FORGE_MODE_NOT_ALLOWED = "E_FORGE_MODE_NOT_ALLOWED"
+    E_JUDGE_STATE_HASH_REQUIRED = "E_JUDGE_STATE_HASH_REQUIRED"
+    E_ACK_IRREVERSIBLE_REQUIRED = "E_ACK_IRREVERSIBLE_REQUIRED"
+    E_SIDE_EFFECTS_BLOCKED = "E_SIDE_EFFECTS_BLOCKED"
+    E_SELF_AUTHORIZE_DETECTED = "E_SELF_AUTHORIZE_DETECTED"
+    E_DRY_RUN_ONLY = "E_DRY_RUN_ONLY"
+
+    # Schema / output errors
+    E_SCHEMA_UNSTRUCTURED_OUTPUT = "E_SCHEMA_UNSTRUCTURED_OUTPUT"
+    E_SYNTHESIS_EMPTY = "E_SYNTHESIS_EMPTY"
+    E_CONFIDENCE_MISCALIBRATED = "E_CONFIDENCE_MISCALIBRATED"
+
+    # Workspace / filesystem errors
+    E_WORKSPACE_ESCAPE = "E_WORKSPACE_ESCAPE"
+    E_COMMAND_NOT_ALLOWLISTED = "E_COMMAND_NOT_ALLOWLISTED"
+    E_TIMEOUT = "E_TIMEOUT"
+
+    # Unknown / fallback
+    E_UNKNOWN = "E_UNKNOWN"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TOOL MANIFEST — SIGNED (EVENTUALLY) INSPECTABLE METADATA PER TOOL
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class ToolManifest(BaseModel):
+    """
+    Every tool carries a manifest describing its capabilities, risks, and requirements.
+
+    Unsigned for now. Eventually signed with constitutional_chain_id.
+    This makes the kernel inspectable — you can ask "what can this tool do?"
+    and get a structured, machine-readable answer.
+    """
+
+    name: str = Field(description="Canonical tool name")
+    version: str = Field(default="0.2.0", description="Manifest version")
+    stage: str = Field(description="Constitutional stage code")
+    lane: str = Field(default="AGI", description="Trinity lane")
+    safe_modes: list[str] = Field(default_factory=list, description="Modes that are read-only")
+    dangerous_modes: list[str] = Field(default_factory=list, description="Modes that mutate state")
+    requires_identity: bool = Field(default=False)
+    requires_state_hash: bool = Field(default=False)
+    requires_approval_for: list[str] = Field(default_factory=list)
+    side_effects: list[str] = Field(default_factory=list)
+    max_blast_radius: str = Field(default="none", description="none | workspace | system | network")
+    schema_hash: str | None = Field(default=None)
+    implementation_hash: str | None = Field(default=None)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FORGE LADDER RESULTS — STRUCTURED OUTPUTS FOR EACH RUNG
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class ForgeQueryResult(BaseModel):
+    """010_FORGE_QUERY: Read-only system introspection."""
+
+    verdict: Literal["SEAL", "HOLD"] = Field(default="SEAL")
+    error_code: ForgeErrorCode | None = Field(default=None)
+    query: str = Field(default="")
+    result: dict[str, Any] = Field(default_factory=dict)
+    workspace_tree: list[dict[str, Any]] = Field(default_factory=list)
+    system_state: dict[str, Any] = Field(default_factory=dict)
+    duration_ms: int = Field(default=0)
+    timestamp: str | None = None
+
+
+class ForgePlanResult(BaseModel):
+    """010_FORGE_PLAN: Action classification and blast radius estimation."""
+
+    verdict: Literal["SEAL", "HOLD"] = Field(default="SEAL")
+    error_code: ForgeErrorCode | None = Field(default=None)
+    plan_id: str = Field(default="")
+    goal: str = Field(default="")
+    action_class: Literal["OBSERVE", "REASON", "MUTATE", "ATOMIC"] = Field(default="OBSERVE")
+    risk_tier: Literal["low", "medium", "high", "critical"] = Field(default="low")
+    required_approval: bool = Field(default=False)
+    required_tools: list[str] = Field(default_factory=list)
+    estimated_blast_radius: str = Field(default="none")
+    plan: dict[str, Any] = Field(default_factory=dict)
+    duration_ms: int = Field(default=0)
+    timestamp: str | None = None
+
+
+class ForgeDryRunResult(BaseModel):
+    """010_FORGE_DRY_RUN: Simulation of planned action without mutation."""
+
+    verdict: Literal["SEAL", "HOLD"] = Field(default="SEAL")
+    error_code: ForgeErrorCode | None = Field(default=None)
+    plan_id: str = Field(default="")
+    dry_run: bool = Field(default=True)
+    commands: list[list[str]] = Field(default_factory=list)
+    files_to_create: list[str] = Field(default_factory=list)
+    files_to_modify: list[str] = Field(default_factory=list)
+    files_to_delete: list[str] = Field(default_factory=list)
+    external_effects: list[str] = Field(default_factory=list)
+    rollback_plan: list[str] = Field(default_factory=list)
+    diff_preview: str = Field(default="")
+    duration_ms: int = Field(default=0)
+    timestamp: str | None = None
+
+
+# Backward-compatible aliases
 ForgeManifest2 = ForgeManifest

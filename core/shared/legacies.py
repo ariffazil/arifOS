@@ -166,7 +166,7 @@ class Legacies99:
         years="1912-1954",
         persona_void_scar="Persecuted for homosexuality after winning WWII; chemically castrated; died by cyanide. Machine must not fool *itself* — Anti-Hantu origin.",
         primary_floor="F9",
-        secondary_floors=("F10", "F2"),
+        secondary_floors=("L10", "F2"),
         dial_affinity=(DialAffinity.AKAL, DialAffinity.EXPLORATION),
         quotes=(
             Quote(
@@ -177,7 +177,7 @@ class Legacies99:
             Quote(
                 "The idea behind digital computers may be explained by saying that these machines are intended to carry out any operations which could be done by a human computer.",
                 "On Computable Numbers",
-                "F10",
+                "L10",
             ),
         ),
         thermodynamic_role="Defines Anti-Hantu (F9) — machine must not claim consciousness. Category boundaries.",
@@ -272,7 +272,7 @@ class Legacies99:
         years="1906-1978",
         persona_void_scar="Paranoid starvation; proved any sufficiently powerful system cannot prove all truths about itself. Incompleteness is law.",
         primary_floor="F7",
-        secondary_floors=("F10",),
+        secondary_floors=("L10",),
         dial_affinity=(DialAffinity.AKAL, DialAffinity.EXPLORATION),
         quotes=(
             Quote(
@@ -298,7 +298,7 @@ class Legacies99:
             Quote(
                 "The important thing is not to stop questioning. Curiosity has its own reason for existing.",
                 "Interview",
-                "F13",
+                "L13",
             ),
             Quote(
                 "Imagination is more important than knowledge. For knowledge is limited, whereas imagination embraces the entire world.",
@@ -317,7 +317,7 @@ class Legacies99:
         years="1882-1935",
         persona_void_scar="Faced gender discrimination; fled Nazi Germany; died from infection after surgery. Noether's Theorem: symmetry implies conservation.",
         primary_floor="F4",
-        secondary_floors=("F1", "F10"),
+        secondary_floors=("F1", "L10"),
         dial_affinity=(DialAffinity.AKAL, DialAffinity.PRESENT),
         quotes=(
             Quote(
@@ -415,7 +415,7 @@ class Legacies99:
         years="1724-1804",
         persona_void_scar="Isolated, rigid routine; never married; sought universal moral law through pure reason.",
         primary_floor="F2",
-        secondary_floors=("F6", "F10"),
+        secondary_floors=("F6", "L10"),
         dial_affinity=(DialAffinity.AKAL, DialAffinity.PRESENT),
         quotes=(
             Quote(
@@ -511,7 +511,7 @@ class Legacies99:
         years="1889-1951",
         persona_void_scar="Wealthy then poor; schoolteacher; hut in Norway; 'Whereof one cannot speak, thereof one must be silent.'",
         primary_floor="F4",
-        secondary_floors=("F10", "F7"),
+        secondary_floors=("L10", "F7"),
         dial_affinity=(DialAffinity.AKAL, DialAffinity.PRESENT),
         quotes=(
             Quote(
@@ -731,7 +731,7 @@ class QuoteOfTheMoment:
             return Quote(
                 "Power is a burden, not a privilege. Return it to those who can bear its weight.",
                 "888_HOLD Protocol",
-                "F13",
+                "L13",
             )
         return None
 

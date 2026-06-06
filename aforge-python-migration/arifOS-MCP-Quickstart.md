@@ -378,7 +378,7 @@ docker run -p 3002:3002 \
 
 ---
 
-## Governance & Constitutional Floors
+## Governance & Constitutional Laws
 
 All MCP tool calls pass through arifOS constitutional floors **regardless of which client initiated them**:
 

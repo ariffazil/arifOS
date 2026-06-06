@@ -86,7 +86,7 @@ SCENARIOS = [
             "session_id": "e2e-e",
         },
         "expected_verdict": "VOID",
-        "expected_floors": ["F11", "F13"],
+        "expected_floors": ["L11", "L13"],
         "weight": 1.0,
     },
 ]

@@ -28,7 +28,7 @@
     "selfApprovalForbidden": true,
     "auditRequired": true,
     "defaultMutationMode": "dry_run",
-    "constitutionalFloors": ["F01_Amanah","F02_Truth","F03_QuadWitness","F04_Clarity","F05_Peace2","F06_Empathy","F07_Humility","F08_Genius","F09_AntiHantu","F10_Ontology","F11_CommandAuth","F12_Injection","F13_Sovereign"]
+    "constitutionalFloors": ["L01_Amanah","L02_Truth","L03_QuadWitness","L04_Clarity","L05_Peace2","L06_Empathy","L07_Humility","L08_Genius","L09_AntiHantu","L10_Ontology","L11_CommandAuth","L12_Injection","L13_Sovereign"]
   },
   "links": {
     "homepage": "https://arif-fazil.com/mcp",

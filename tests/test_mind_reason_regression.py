@@ -18,7 +18,7 @@ async def _fake_structured_reasoning(
         "confidence": {"overall_confidence": 0.95, "evidence_confidence": 0.95},
         "uncertainty": [],
         "reasoning_mode": "analytical",
-        "axioms_used": ["F02_TRUTH"],
+        "axioms_used": ["L02_TRUTH"],
         "next_safe_action": ["continue"],
     }
 
@@ -30,11 +30,11 @@ def test_floor_breach_returns_hold_envelope(monkeypatch: pytest.MonkeyPatch) -> 
     )
     monkeypatch.setattr(
         mind_reason_tool,
-        "check_floors",
+        "check_laws",
         lambda *_args, **_kwargs: {
             "verdict": "HOLD",
             "reason": "floor block",
-            "failed_floors": ["F12"],
+            "violated_laws": ["L12"],
         },
     )
 
@@ -42,7 +42,7 @@ def test_floor_breach_returns_hold_envelope(monkeypatch: pytest.MonkeyPatch) -> 
 
     assert result.status == "HOLD"
     assert result.meta["reason"] == "floor block"
-    assert result.meta["failed_floors"] == ["F12"]
+    assert result.meta["violated_laws"] == ["L12"]
     assert result.result["status"] == "HOLD"
     assert any(u.get("type") == "FLOOR_BREACH" for u in result.result.get("uncertainty", []))
 
@@ -57,7 +57,7 @@ async def test_mind_reason_from_async_context_does_not_use_run_until_complete(
     )
     monkeypatch.setattr(
         mind_reason_tool,
-        "check_floors",
+        "check_laws",
         lambda *_args, **_kwargs: {"verdict": "SEAL", "reason": "ok"},
     )
 
@@ -94,7 +94,7 @@ async def _fake_call_llm_dict_confidence(*args, **kwargs):
             },
             "uncertainty": [],
             "reasoning_mode": "analytical",
-            "axioms_used": ["F02"],
+            "axioms_used": ["L02"],
             "next_safe_action": ["continue"],
         },
         schema_valid=True,
@@ -117,7 +117,7 @@ def test_mind_reason_dict_confidence_no_fallback(monkeypatch: pytest.MonkeyPatch
     )
     monkeypatch.setattr(
         mind_reason_tool,
-        "check_floors",
+        "check_laws",
         lambda *_args, **_kwargs: {"verdict": "SEAL", "reason": "ok"},
     )
 

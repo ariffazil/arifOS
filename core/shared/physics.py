@@ -911,7 +911,7 @@ class ConstitutionalTensor:
 
         if not passed:
             # Check if any violation is "HARD"
-            hard_floors = {"F2", "F4", "F7", "F10", "F11", "F12"}
+            hard_floors = {"F2", "F4", "F7", "L10", "L11", "L12"}
             is_void = any(any(hf in v for hf in hard_floors) for v in violations)
             return "VOID" if is_void else "PARTIAL", violations
 

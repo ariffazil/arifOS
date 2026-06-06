@@ -302,7 +302,7 @@ aclip vault seal a3e73034
 │  ├── floor/    → floor check scripts       │
 │  └── vault/    → VAULT999 ledger           │
 ├─────────────────────────────────────────────┤
-│  Constitutional Floors (F1-F13)            │
+│  Constitutional Laws (F1-F13)            │
 ├─────────────────────────────────────────────┤
 │  arifOS Kernel + MCP Tools                  │
 └─────────────────────────────────────────────┘

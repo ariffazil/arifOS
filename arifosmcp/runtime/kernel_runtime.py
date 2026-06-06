@@ -160,7 +160,7 @@ class ContractRegistry:
                         "operator_summary": {"type": "object"},
                     },
                 },
-                floors_enforced=["F11", "F13"],
+                floors_enforced=["L11", "L13"],
                 physics={
                     "entropy": {"max_delta": 0.1, "target": "bounded"},
                     "uncertainty": {"band": "low", "omega_range": [0.03, 0.05]},
@@ -279,7 +279,7 @@ class ContractRegistry:
                         "estimated_cost": {"type": "object"},
                     },
                 },
-                floors_enforced=["F4", "F11"],
+                floors_enforced=["F4", "L11"],
                 physics={
                     "entropy": {"max_delta": 0.05, "target": "bounded"},
                     "uncertainty": {"band": "low", "omega_range": [0.03, 0.05]},
@@ -391,7 +391,7 @@ class ContractRegistry:
                         "floors_checked": {"type": "array"},
                     },
                 },
-                floors_enforced=["F2", "F3", "F4", "F7", "F13"],
+                floors_enforced=["F2", "F3", "F4", "F7", "L13"],
                 physics={
                     "entropy": {"max_delta": 0.0, "target": "decrease"},
                     "uncertainty": {"band": "low", "omega_range": [0.03, 0.05]},
@@ -430,7 +430,7 @@ class ContractRegistry:
                         "status": {"type": "string"},
                     },
                 },
-                floors_enforced=["F1", "F11", "F13"],
+                floors_enforced=["F1", "L11", "L13"],
                 physics={
                     "entropy": {"max_delta": 0.0, "target": "decrease"},
                     "uncertainty": {"band": "zero", "omega_range": [0.0, 0.01]},
@@ -472,7 +472,7 @@ class ContractRegistry:
                         "continuity_id": {"type": "string"},
                     },
                 },
-                floors_enforced=["F4", "F11"],
+                floors_enforced=["F4", "L11"],
                 physics={
                     "entropy": {"max_delta": 0.1, "target": "bounded"},
                     "uncertainty": {"band": "low", "omega_range": [0.03, 0.05]},
@@ -510,7 +510,7 @@ class ContractRegistry:
                         "hash": {"type": "string"},
                     },
                 },
-                floors_enforced=["F1", "F5", "F11", "F13"],
+                floors_enforced=["F1", "F5", "L11", "L13"],
                 physics={
                     "entropy": {"max_delta": 0.5, "target": "controlled"},
                     "uncertainty": {"band": "bounded", "omega_range": [0.0, 0.1]},
@@ -554,7 +554,7 @@ class ContractRegistry:
                         "verdict_hint": {"type": "string"},
                     },
                 },
-                floors_enforced=["F3", "F4", "F9", "F11", "F13"],
+                floors_enforced=["F3", "F4", "F9", "L11", "L13"],
                 physics={
                     "entropy": {"max_delta": 0.0, "target": "measure_only"},
                     "uncertainty": {"band": "measured", "omega_range": [0.0, 1.0]},

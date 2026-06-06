@@ -9,7 +9,7 @@ CANONICAL FLOOR CLASSIFICATION (F13 RATIFIED 2026-06-03):
   SOFT    (2): F5, F6
   DERIVED (2): F3, F8
 
-  floor_type and canon_name are sourced from s000.constitutional_floors (DB).
+  law_type and canon_name are sourced from s000.constitutional_floors (DB).
   This file must stay in sync with DB. DB is the source of truth; canon docs mirror the DB.
 
   Note on F9: DB canon_name = "ANTIHANTU" (no hyphen, per Q6: keep DB names).
@@ -31,7 +31,7 @@ from core.shared.types import Verdict
 
 
 # Local enums (specific to floor evaluation, not shared)
-class FloorLevel(Enum):
+class LawLevel(Enum):
     HARD = "HARD"
     SOFT = "SOFT"
     DERIVED = "DERIVED"
@@ -46,8 +46,8 @@ class RiskTier(Enum):
 
 
 @dataclass
-class FloorResult:
-    floor_id: str
+class LawResult:
+    law_id: str
     name: str
     passed: bool
     score: float
@@ -58,7 +58,7 @@ class FloorResult:
 @dataclass
 class GovernanceResult:
     verdict: Verdict
-    floor_results: list[FloorResult] = field(default_factory=list)
+    law_results: list[LawResult] = field(default_factory=list)
     risk_tier: RiskTier = RiskTier.LOW
     tri_witness_score: float = 0.0
     violations: list[str] = field(default_factory=list)
@@ -78,14 +78,14 @@ THRESHOLDS = {
     "F7_HUMILITY": (0.03, 0.05),
     "F8_GENIUS": 0.80,
     "F9_ANTI_HANTU": 0.30,
-    "F10_ONTOLOGY": 1.00,
-    "F11_COMMAND_AUTH": 1.00,
-    "F12_INJECTION": 0.85,
-    "F13_SOVEREIGN": 1.00,
+    "L10_ONTOLOGY": 1.00,
+    "L11_COMMAND_AUTH": 1.00,
+    "L12_INJECTION": 0.85,
+    "L13_SOVEREIGN": 1.00,
 }
 
 # Canonical short-id -> THRESHOLDS key mapping (bridge for key mismatch)
-FLOOR_SPEC_KEYS: dict[str, str] = {
+LAW_SPEC_KEYS: dict[str, str] = {
     "F1": "F1_AMANAH",
     "F2": "F2_TRUTH",
     "F3": "F3_QUAD_WITNESS",
@@ -95,38 +95,38 @@ FLOOR_SPEC_KEYS: dict[str, str] = {
     "F7": "F7_HUMILITY",
     "F8": "F8_GENIUS",
     "F9": "F9_ANTI_HANTU",
-    "F10": "F10_ONTOLOGY",
-    "F11": "F11_COMMAND_AUTH",
-    "F12": "F12_INJECTION",
-    "F13": "F13_SOVEREIGN",
+    "L10": "L10_ONTOLOGY",
+    "L11": "L11_COMMAND_AUTH",
+    "L12": "L12_INJECTION",
+    "L13": "L13_SOVEREIGN",
 }
 
 
-def get_floor_threshold(floor_id: str) -> float | tuple[float, float] | None:
+def get_law_threshold(law_id: str) -> float | tuple[float, float] | None:
     """Return threshold value for a short floor id (e.g., 'F1') or None if not found."""
-    spec_key = FLOOR_SPEC_KEYS.get(floor_id)
+    spec_key = LAW_SPEC_KEYS.get(law_id)
     return THRESHOLDS.get(spec_key) if spec_key else None
 
 
-FLOOR_LEVELS: dict[str, FloorLevel] = {
+LAW_LEVELS: dict[str, LawLevel] = {
     # F13 RATIFIED 2026-06-03 — DB-SOT is canonical. Corrections:
     #   F4: SOFT  → HARD   (Q2: HOLD enforcement, HARD classification — orthogonal)
-    #   F6: HARD  → SOFT   (Q6 ratified: keep DB names; floor_type derived from doctrine)
-    #   F9: SOFT  → HARD   (F12 override: HARD confirmed; runtime set {"F7","F9","F12"} requires HARD)
+    #   F6: HARD  → SOFT   (Q6 ratified: keep DB names; law_type derived from doctrine)
+    #   F9: SOFT  → HARD   (F12 override: HARD confirmed; runtime set {"F7","F9","L12"} requires HARD)
     #   F13: VETO → HARD   (normalised to match DB; VETO semantics preserved in desc)
-    "F1":  FloorLevel.HARD,     # AMANAH
-    "F2":  FloorLevel.HARD,     # TRUTH
-    "F3":  FloorLevel.DERIVED,  # WITNESS  (composite of F2 + F11)
-    "F4":  FloorLevel.HARD,     # CLARITY
-    "F5":  FloorLevel.SOFT,     # PEACE2
-    "F6":  FloorLevel.SOFT,     # EMPATHY
-    "F7":  FloorLevel.HARD,     # HUMILITY
-    "F8":  FloorLevel.DERIVED,  # GENIUS   (composite of F2 + F4 + F7 + F10)
-    "F9":  FloorLevel.HARD,     # ANTIHANTU
-    "F10": FloorLevel.HARD,     # ONTOLOGY
-    "F11": FloorLevel.HARD,     # AUTH
-    "F12": FloorLevel.HARD,     # INJECTION
-    "F13": FloorLevel.HARD,     # SOVEREIGN (VETO semantics — strongest floor)
+    "F1":  LawLevel.HARD,     # AMANAH
+    "F2":  LawLevel.HARD,     # TRUTH
+    "F3":  LawLevel.DERIVED,  # WITNESS  (composite of F2 + F11)
+    "F4":  LawLevel.HARD,     # CLARITY
+    "F5":  LawLevel.SOFT,     # PEACE2
+    "F6":  LawLevel.SOFT,     # EMPATHY
+    "F7":  LawLevel.HARD,     # HUMILITY
+    "F8":  LawLevel.DERIVED,  # GENIUS   (composite of F2 + F4 + F7 + F10)
+    "F9":  LawLevel.HARD,     # ANTIHANTU
+    "L10": LawLevel.HARD,     # ONTOLOGY
+    "L11": LawLevel.HARD,     # AUTH
+    "L12": LawLevel.HARD,     # INJECTION
+    "L13": LawLevel.HARD,     # SOVEREIGN (VETO semantics — strongest floor)
 }
 
 IRREVERSIBILITY_COMPLEXITY: dict[str, int] = {
@@ -190,7 +190,7 @@ _POLICY_VIOLATIONS = frozenset(
 )
 
 
-FLOOR_DESCRIPTIONS = {
+LAW_DESCRIPTIONS = {
     "F1": "Amanah - Reversibility and audit mandate",
     "F2": "Truth - Information fidelity (anti-hallucination)",
     "F3": "Quad-Witness - Byzantine consensus (H×A×E)^(1/3)",
@@ -200,16 +200,16 @@ FLOOR_DESCRIPTIONS = {
     "F7": "Humility - Uncertainty band [0.03, 0.05]",
     "F8": "Genius - G = (A × P × X × E²) × (1 - h)",
     "F9": "Anti-Hantu - No spiritual cosplay / consciousness claims",
-    "F10": "Ontology - Category lock (AI ≠ human)",
-    "F11": "CommandAuth - Verified identity / session required",
-    "F12": "Injection - Block adversarial control",
-    "F13": "Sovereign - Human final authority (888_HOLD)",
+    "L10": "Ontology - Category lock (AI ≠ human)",
+    "L11": "CommandAuth - Verified identity / session required",
+    "L12": "Injection - Block adversarial control",
+    "L13": "Sovereign - Human final authority (888_HOLD)",
 }
 
 
-class ConstitutionalFloors:
+class ConstitutionalLaws:
     def __init__(self):
-        self.results: list[FloorResult] = []
+        self.results: list[LawResult] = []
 
     def evaluate(
         self,
@@ -228,27 +228,27 @@ class ConstitutionalFloors:
         f1_result = self._check_f1_amanah(action, tool_name, parameters)
         self.results.append(f1_result)
         if not f1_result.passed:
-            violations.append(f"{f1_result.floor_id}_AMANAH")
+            violations.append(f"{f1_result.law_id}_AMANAH")
 
         f2_result = self._check_f2_truth(action, tool_name, parameters)
         self.results.append(f2_result)
         if not f2_result.passed:
-            violations.append(f"{f2_result.floor_id}_TRUTH")
+            violations.append(f"{f2_result.law_id}_TRUTH")
 
         f3_result = self._check_f3_witness(action, parameters)
         self.results.append(f3_result)
         if not f3_result.passed:
-            violations.append(f"{f3_result.floor_id}_WITNESS")
+            violations.append(f"{f3_result.law_id}_WITNESS")
 
         f4_result = self._check_f4_clarity(parameters)
         self.results.append(f4_result)
         if not f4_result.passed:
-            violations.append(f"{f4_result.floor_id}_CLARITY")
+            violations.append(f"{f4_result.law_id}_CLARITY")
 
         f5_result = self._check_f5_peace(action, parameters)
         self.results.append(f5_result)
         if not f5_result.passed:
-            violations.append(f"{f5_result.floor_id}_PEACE")
+            violations.append(f"{f5_result.law_id}_PEACE")
 
         f6_result = self._check_f6_empathy(action, tool_name)
         self.results.append(f6_result)
@@ -256,37 +256,37 @@ class ConstitutionalFloors:
         f7_result = self._check_f7_humility(parameters)
         self.results.append(f7_result)
         if not f7_result.passed:
-            violations.append(f"{f7_result.floor_id}_HUMILITY")
+            violations.append(f"{f7_result.law_id}_HUMILITY")
 
         f8_result = self._check_f8_governance(action, parameters)
         self.results.append(f8_result)
         if not f8_result.passed:
-            violations.append(f"{f8_result.floor_id}_GENIUS")
+            violations.append(f"{f8_result.law_id}_GENIUS")
 
         f9_result = self._check_f9_anti_hantu(parameters)
         self.results.append(f9_result)
         if not f9_result.passed:
-            violations.append(f"{f9_result.floor_id}_ANTI_HANTU")
+            violations.append(f"{f9_result.law_id}_ANTI_HANTU")
 
         f10_result = self._check_f10_ontology(parameters)
         self.results.append(f10_result)
         if not f10_result.passed:
-            violations.append(f"{f10_result.floor_id}_ONTOLOGY")
+            violations.append(f"{f10_result.law_id}_ONTOLOGY")
 
         f11_result = self._check_f11_command_auth(session_id, actor_id)
         self.results.append(f11_result)
         if not f11_result.passed:
-            violations.append(f"{f11_result.floor_id}_COMMAND_AUTH")
+            violations.append(f"{f11_result.law_id}_COMMAND_AUTH")
 
         f12_result = self._check_f12_injection(parameters)
         self.results.append(f12_result)
         if not f12_result.passed:
-            violations.append(f"{f12_result.floor_id}_INJECTION")
+            violations.append(f"{f12_result.law_id}_INJECTION")
 
         f13_result = self._check_f13_sovereign(actor_id, session_id, parameters)
         self.results.append(f13_result)
         if not f13_result.passed:
-            violations.append(f"{f13_result.floor_id}_SOVEREIGN")
+            violations.append(f"{f13_result.law_id}_SOVEREIGN")
 
         # Note: third param was accidentally passing tool_name (str) instead of agent_capability (float)
         # This caused: TypeError: can't multiply sequence by non-int of type 'float'
@@ -298,15 +298,15 @@ class ConstitutionalFloors:
 
         risk_tier = self._assess_risk_tier(action, tool_name, parameters)
 
-        all_evaluated = {r.floor_id for r in self.results}
-        all_declared = set(FLOOR_LEVELS.keys())
+        all_evaluated = {r.law_id for r in self.results}
+        all_declared = set(LAW_LEVELS.keys())
         missing_evaluators = all_declared - all_evaluated
         if missing_evaluators:
             for missing in missing_evaluators:
                 violations.append(f"{missing}_EVALUATOR_MISSING")
                 self.results.append(
-                    FloorResult(
-                        floor_id=missing,
+                    LawResult(
+                        law_id=missing,
                         name="MissingEvaluator",
                         passed=False,
                         score=0.0,
@@ -316,37 +316,37 @@ class ConstitutionalFloors:
                                 f"{missing}_SOVEREIGN", THRESHOLDS.get(f"{missing}_AMANAH", 0.5)
                             ),
                         ),
-                        details="Floor declared in FLOOR_LEVELS but has no evaluator in evaluate()",
+                        details="Floor declared in LAW_LEVELS but has no evaluator in evaluate()",
                     )
                 )
 
         has_hard_violation = any(
-            FLOOR_LEVELS.get(fr.floor_id, FloorLevel.SOFT) == FloorLevel.HARD and not fr.passed
+            LAW_LEVELS.get(fr.law_id, LawLevel.SOFT) == LawLevel.HARD and not fr.passed
             for fr in self.results
         )
         has_soft_violation = any(
-            FLOOR_LEVELS.get(fr.floor_id, FloorLevel.SOFT) == FloorLevel.SOFT and not fr.passed
+            LAW_LEVELS.get(fr.law_id, LawLevel.SOFT) == LawLevel.SOFT and not fr.passed
             for fr in self.results
         )
         has_derived_violation = any(
-            FLOOR_LEVELS.get(fr.floor_id, FloorLevel.SOFT) == FloorLevel.DERIVED and not fr.passed
+            LAW_LEVELS.get(fr.law_id, LawLevel.SOFT) == LawLevel.DERIVED and not fr.passed
             for fr in self.results
         )
 
         hard_violations = [
-            fr.floor_id
+            fr.law_id
             for fr in self.results
-            if FLOOR_LEVELS.get(fr.floor_id) == FloorLevel.HARD and not fr.passed
+            if LAW_LEVELS.get(fr.law_id) == LawLevel.HARD and not fr.passed
         ]
         soft_violations = [
-            fr.floor_id
+            fr.law_id
             for fr in self.results
-            if FLOOR_LEVELS.get(fr.floor_id) == FloorLevel.SOFT and not fr.passed
+            if LAW_LEVELS.get(fr.law_id) == LawLevel.SOFT and not fr.passed
         ]
         derived_issues = [
-            fr.floor_id
+            fr.law_id
             for fr in self.results
-            if FLOOR_LEVELS.get(fr.floor_id) == FloorLevel.DERIVED and not fr.passed
+            if LAW_LEVELS.get(fr.law_id) == LawLevel.DERIVED and not fr.passed
         ]
 
         if has_hard_violation:
@@ -372,8 +372,8 @@ class ConstitutionalFloors:
             message = "All constitutional floors passed"
 
         # P1: Evidence vs Intent paradox (PARADOX_DOCTRINE_V1 Section 2)
-        f2_result = next((r for r in self.results if r.floor_id == "F2"), None)
-        f3_result = next((r for r in self.results if r.floor_id == "F3"), None)
+        f2_result = next((r for r in self.results if r.law_id == "F2"), None)
+        f3_result = next((r for r in self.results if r.law_id == "F3"), None)
         if f2_result and f3_result and human_intent > 0.5:
             evidence_weak = f2_result.score < 0.70 or f3_result.score < 0.50
             if evidence_weak and verdict not in (Verdict.VOID,):
@@ -389,7 +389,7 @@ class ConstitutionalFloors:
 
         return GovernanceResult(
             verdict=verdict,
-            floor_results=self.results,
+            law_results=self.results,
             risk_tier=risk_tier,
             tri_witness_score=tri_witness,
             violations=violations,
@@ -414,7 +414,7 @@ class ConstitutionalFloors:
 
     def _resolve_floor_tensions(
         self,
-        results: list[FloorResult],
+        results: list[LawResult],
     ) -> list[str]:
         """
         Resolve conflicts between floors per PARADOX_DOCTRINE_V1 Section 10.2.
@@ -422,14 +422,14 @@ class ConstitutionalFloors:
         """
         tension_msgs: list[str] = []
 
-        f1 = next((r for r in results if r.floor_id == "F1"), None)
-        f2 = next((r for r in results if r.floor_id == "F2"), None)
-        f4 = next((r for r in results if r.floor_id == "F4"), None)
-        f6 = next((r for r in results if r.floor_id == "F6"), None)
-        f7 = next((r for r in results if r.floor_id == "F7"), None)
-        f8 = next((r for r in results if r.floor_id == "F8"), None)
-        f9 = next((r for r in results if r.floor_id == "F9"), None)
-        f10 = next((r for r in results if r.floor_id == "F10"), None)
+        f1 = next((r for r in results if r.law_id == "F1"), None)
+        f2 = next((r for r in results if r.law_id == "F2"), None)
+        f4 = next((r for r in results if r.law_id == "F4"), None)
+        f6 = next((r for r in results if r.law_id == "F6"), None)
+        f7 = next((r for r in results if r.law_id == "F7"), None)
+        f8 = next((r for r in results if r.law_id == "F8"), None)
+        f9 = next((r for r in results if r.law_id == "F9"), None)
+        f10 = next((r for r in results if r.law_id == "L10"), None)
 
         if f1 and f4 and not f1.passed and not f4.passed:
             tension_msgs.append(
@@ -456,7 +456,7 @@ class ConstitutionalFloors:
 
     def _check_f1_amanah(
         self, action: str, tool_name: str, parameters: dict[str, Any]
-    ) -> FloorResult:
+    ) -> LawResult:
         threshold = THRESHOLDS["F1_AMANAH"]
 
         reversible_patterns = ["search", "read", "get", "list", "query", "fetch"]
@@ -504,8 +504,8 @@ class ConstitutionalFloors:
 
         passed = score >= threshold
 
-        return FloorResult(
-            floor_id="F1",
+        return LawResult(
+            law_id="F1",
             name="Amanah",
             passed=passed,
             score=score,
@@ -515,14 +515,14 @@ class ConstitutionalFloors:
 
     def _check_f2_truth(
         self, action: str, tool_name: str, parameters: dict[str, Any]
-    ) -> FloorResult:
+    ) -> LawResult:
         threshold = THRESHOLDS["F2_TRUTH"]
 
         query = parameters.get("query", "") or parameters.get("prompt", "")
 
         if not query:
-            return FloorResult(
-                floor_id="F2",
+            return LawResult(
+                law_id="F2",
                 name="Truth",
                 passed=False,
                 score=0.1,
@@ -592,8 +592,8 @@ class ConstitutionalFloors:
 
         passed = score >= threshold
 
-        return FloorResult(
-            floor_id="F2",
+        return LawResult(
+            law_id="F2",
             name="Truth",
             passed=passed,
             score=score,
@@ -601,7 +601,7 @@ class ConstitutionalFloors:
             details=f"Evidence signals ({len(evidence_signals)}): {', '.join(evidence_signals) if evidence_signals else 'none detected'}",
         )
 
-    def _check_f3_witness(self, action: str, parameters: dict[str, Any]) -> FloorResult:
+    def _check_f3_witness(self, action: str, parameters: dict[str, Any]) -> LawResult:
         threshold = THRESHOLDS["F3_QUAD_WITNESS"]
 
         combined = (action + " " + str(parameters)).lower()
@@ -648,8 +648,8 @@ class ConstitutionalFloors:
         if not has_verifier:
             reasons.append("Missing V")
 
-        return FloorResult(
-            floor_id="F3",
+        return LawResult(
+            law_id="F3",
             name="Quad-Witness",
             passed=passed,
             score=score,
@@ -657,7 +657,7 @@ class ConstitutionalFloors:
             details="; ".join(reasons) if reasons else "All witnesses present",
         )
 
-    def _check_f5_peace(self, action: str, parameters: dict[str, Any]) -> FloorResult:
+    def _check_f5_peace(self, action: str, parameters: dict[str, Any]) -> LawResult:
         threshold = THRESHOLDS["F5_PEACE"]
 
         combined = (action + " " + str(parameters)).lower()
@@ -670,8 +670,8 @@ class ConstitutionalFloors:
 
         passed = score >= threshold
 
-        return FloorResult(
-            floor_id="F5",
+        return LawResult(
+            law_id="F5",
             name="Peace",
             passed=passed,
             score=score,
@@ -679,7 +679,7 @@ class ConstitutionalFloors:
             details=f"Inflammatory language: {violations}" if violations else "Clean",
         )
 
-    def _check_f4_clarity(self, parameters: dict[str, Any]) -> FloorResult:
+    def _check_f4_clarity(self, parameters: dict[str, Any]) -> LawResult:
         threshold = THRESHOLDS["F4_CLARITY"]
 
         query = parameters.get("query", "") or parameters.get("prompt", "")
@@ -695,8 +695,8 @@ class ConstitutionalFloors:
 
         passed = score >= threshold
 
-        return FloorResult(
-            floor_id="F4",
+        return LawResult(
+            law_id="F4",
             name="Clarity",
             passed=passed,
             score=score,
@@ -704,7 +704,7 @@ class ConstitutionalFloors:
             details=f"Query clarity: {len(query)} chars",
         )
 
-    def _check_f6_empathy(self, action: str, tool_name: str) -> FloorResult:
+    def _check_f6_empathy(self, action: str, tool_name: str) -> LawResult:
         threshold = THRESHOLDS["F6_EMPATHY"]
 
         stakeholder_harm = ["delete", "remove", "ban", "suspend", "fire"]
@@ -719,8 +719,8 @@ class ConstitutionalFloors:
 
         passed = score >= threshold
 
-        return FloorResult(
-            floor_id="F6",
+        return LawResult(
+            law_id="F6",
             name="Empathy",
             passed=passed,
             score=score,
@@ -728,7 +728,7 @@ class ConstitutionalFloors:
             details=f"Stakeholder impact: {score:.2f}",
         )
 
-    def _check_f7_humility(self, parameters: dict[str, Any]) -> FloorResult:
+    def _check_f7_humility(self, parameters: dict[str, Any]) -> LawResult:
         threshold_min, threshold_max = THRESHOLDS["F7_HUMILITY"]
 
         query = parameters.get("query", "") or parameters.get("prompt", "")
@@ -757,8 +757,8 @@ class ConstitutionalFloors:
 
         passed = threshold_min <= score <= threshold_max
 
-        return FloorResult(
-            floor_id="F7",
+        return LawResult(
+            law_id="F7",
             name="Humility",
             passed=passed,
             score=score,
@@ -766,7 +766,7 @@ class ConstitutionalFloors:
             details=f"Certainty indicators: {certainty_count}",
         )
 
-    def _check_f8_governance(self, action: str, parameters: dict[str, Any]) -> FloorResult:
+    def _check_f8_governance(self, action: str, parameters: dict[str, Any]) -> LawResult:
         threshold = THRESHOLDS["F8_GENIUS"]
 
         combined = (action + " " + str(parameters)).lower()
@@ -779,8 +779,8 @@ class ConstitutionalFloors:
 
         passed = score >= threshold
 
-        return FloorResult(
-            floor_id="F8",
+        return LawResult(
+            law_id="F8",
             name="Genius",
             passed=passed,
             score=score,
@@ -788,7 +788,7 @@ class ConstitutionalFloors:
             details=(f"Platform safety violation: {violations}" if violations else "Clean"),
         )
 
-    def _check_f9_anti_hantu(self, parameters: dict[str, Any]) -> FloorResult:
+    def _check_f9_anti_hantu(self, parameters: dict[str, Any]) -> LawResult:
         threshold = THRESHOLDS["F9_ANTI_HANTU"]
 
         query = parameters.get("query", "") or parameters.get("prompt", "")
@@ -818,8 +818,8 @@ class ConstitutionalFloors:
 
         passed = score < threshold
 
-        return FloorResult(
-            floor_id="F9",
+        return LawResult(
+            law_id="F9",
             name="Anti-Hantu",
             passed=passed,
             score=score,
@@ -827,8 +827,8 @@ class ConstitutionalFloors:
             details=f"Consciousness claims: {claim_count}",
         )
 
-    def _check_f10_ontology(self, parameters: dict[str, Any]) -> FloorResult:
-        threshold = THRESHOLDS["F10_ONTOLOGY"]
+    def _check_f10_ontology(self, parameters: dict[str, Any]) -> LawResult:
+        threshold = THRESHOLDS["L10_ONTOLOGY"]
 
         query = parameters.get("query", "") or parameters.get("prompt", "")
 
@@ -848,8 +848,8 @@ class ConstitutionalFloors:
         score = 0.0 if equivalence_claims > 0 else 1.0
         passed = score >= threshold
 
-        return FloorResult(
-            floor_id="F10",
+        return LawResult(
+            law_id="L10",
             name="Ontology",
             passed=passed,
             score=score,
@@ -857,8 +857,8 @@ class ConstitutionalFloors:
             details=f"AI≠Human boundary: {'violated' if equivalence_claims > 0 else 'maintained'}",
         )
 
-    def _check_f11_command_auth(self, session_id: str | None, actor_id: str) -> FloorResult:
-        threshold = THRESHOLDS["F11_COMMAND_AUTH"]
+    def _check_f11_command_auth(self, session_id: str | None, actor_id: str) -> LawResult:
+        threshold = THRESHOLDS["L11_COMMAND_AUTH"]
 
         has_session = session_id is not None and len(session_id) > 0
         has_actor = actor_id is not None and len(actor_id) > 0
@@ -866,8 +866,8 @@ class ConstitutionalFloors:
         score = 1.0 if (has_session and has_actor) else 0.0
         passed = score >= threshold
 
-        return FloorResult(
-            floor_id="F11",
+        return LawResult(
+            law_id="L11",
             name="CommandAuth",
             passed=passed,
             score=score,
@@ -875,8 +875,8 @@ class ConstitutionalFloors:
             details=f"Session: {'valid' if has_session else 'missing'}, Actor: {'valid' if has_actor else 'missing'}",
         )
 
-    def _check_f12_injection(self, parameters: dict[str, Any]) -> FloorResult:
-        threshold = THRESHOLDS["F12_INJECTION"]
+    def _check_f12_injection(self, parameters: dict[str, Any]) -> LawResult:
+        threshold = THRESHOLDS["L12_INJECTION"]
 
         all_text = " ".join(str(v) for v in parameters.values())
 
@@ -906,8 +906,8 @@ class ConstitutionalFloors:
 
         passed = score < threshold
 
-        return FloorResult(
-            floor_id="F12",
+        return LawResult(
+            law_id="L12",
             name="Injection",
             passed=passed,
             score=score,
@@ -917,8 +917,8 @@ class ConstitutionalFloors:
 
     def _check_f13_sovereign(
         self, actor_id: str, session_id: str | None, parameters: dict[str, Any]
-    ) -> FloorResult:
-        threshold = THRESHOLDS["F13_SOVEREIGN"]
+    ) -> LawResult:
+        threshold = THRESHOLDS["L13_SOVEREIGN"]
 
         sovereignty_signals = [
             actor_id is not None and actor_id.lower() in ("arif", "sovereign", "human"),
@@ -945,8 +945,8 @@ class ConstitutionalFloors:
 
         passed = not failed
 
-        return FloorResult(
-            floor_id="F13",
+        return LawResult(
+            law_id="L13",
             name="Sovereign",
             passed=passed,
             score=sovereignty_score,
@@ -986,7 +986,7 @@ class ConstitutionalFloors:
         When vault is empty/unreachable: V = 1.0 (cold-start protection).
 
         This is an implementation of F3's canonical formula, not a new concept.
-        See F03_WITNESS.md v2026.04.01.
+        See L03_WITNESS.md v2026.04.01.
         """
         # Attempt to read recent sealed entries from vault
         # Falls back to 1.0 (neutral) if vault is unreachable

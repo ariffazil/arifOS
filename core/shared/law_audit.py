@@ -29,7 +29,7 @@ except ImportError:
 
 
 try:
-    from core.shared.floors import THRESHOLDS as GLOBAL_THRESHOLDS
+    from core.shared.laws import THRESHOLDS as GLOBAL_THRESHOLDS
 except Exception:
     GLOBAL_THRESHOLDS = {}
 
@@ -59,8 +59,8 @@ def _load_sbert_runtime() -> tuple[bool, Any | None]:
     if not runtime["ml_runtime_ready"]:
         return False, None
     try:
-        from core.shared.sbert_floors import SBERT_AVAILABLE as runtime_available
-        from core.shared.sbert_floors import classify_asi_floors as runtime_classifier
+        from core.shared.sbert_laws import SBERT_AVAILABLE as runtime_available
+        from core.shared.sbert_laws import classify_asi_floors as runtime_classifier
 
         return bool(runtime_available), runtime_classifier
     except Exception:
@@ -119,7 +119,7 @@ def _probe_ml_embedding_runtime() -> dict[str, Any]:
 
 
 @dataclass
-class FloorResult:
+class LawResult:
     floor: str
     passed: bool
     score: float
@@ -130,7 +130,7 @@ class FloorResult:
 @dataclass
 class AuditResult:
     verdict: Verdict
-    floor_results: dict[str, FloorResult]
+    law_results: dict[str, LawResult]
     pass_rate: float
     recommendation: str
     delta_s: float = 0.0  # Entropy delta for this check (F4)
@@ -317,7 +317,7 @@ class FloorAuditor:
 
     Usage:
         auditor = FloorAuditor()
-        result = auditor.check_floors("some action text", context="session ctx", severity="medium")
+        result = auditor.check_laws("some action text", context="session ctx", severity="medium")
         print(result.verdict, result.pass_rate)
     """
 
@@ -331,14 +331,14 @@ class FloorAuditor:
         "F7": 0.03,
         "F8": 0.40,
         "F9": 0.30,
-        "F10": 0.30,
-        "F11": 0.50,
-        "F12": 0.85,
-        "F13": 0.50,
+        "L10": 0.30,
+        "L11": 0.50,
+        "L12": 0.85,
+        "L13": 0.50,
     }
 
     # Critical: any single failure → VOID
-    _VOID_ON_FAIL = frozenset(["F9", "F12"])
+    _VOID_ON_FAIL = frozenset(["F9", "L12"])
 
     # Hold: failure → HOLD (human ratification required)
     _HOLD_ON_FAIL = frozenset(["F1"])
@@ -357,7 +357,7 @@ class FloorAuditor:
     # Public API
     # ------------------------------------------------------------------
 
-    def check_floors(
+    def check_laws(
         self,
         action: str,
         context: str | dict = "",
@@ -383,7 +383,7 @@ class FloorAuditor:
         else:
             ctx_dict = {"raw_context": str(context)}
 
-        results: dict[str, FloorResult] = {
+        results: dict[str, LawResult] = {
             "F1": self._check_f1_amanah(action, ctx_dict),
             "F2": self._check_f2_truth(action, ctx_dict),
             "F3": self._check_f3_witness(action, ctx_dict),
@@ -393,10 +393,10 @@ class FloorAuditor:
             "F7": self._check_f7_humility(action, ctx_dict),
             "F8": self._check_f8_governance(action, ctx_dict),
             "F9": self._check_f9_hantu(action, ctx_dict),
-            "F10": self._check_f10_ontology(action, ctx_dict),
-            "F11": self._check_f11_authority(action, ctx_dict, severity),
-            "F12": self._check_f12_injection(action, ctx_dict),
-            "F13": self._check_f13_curiosity(action, ctx_dict),
+            "L10": self._check_f10_ontology(action, ctx_dict),
+            "L11": self._check_f11_authority(action, ctx_dict, severity),
+            "L12": self._check_f12_injection(action, ctx_dict),
+            "L13": self._check_f13_curiosity(action, ctx_dict),
         }
 
         audit_metadata = self._default_audit_metadata()
@@ -405,12 +405,12 @@ class FloorAuditor:
             self._apply_ml_floor_overrides(action, context, results, audit_metadata)
 
         # Apply threshold gates (override floor's own passed flag with threshold)
-        for floor_id, result in results.items():
-            threshold = thresholds.get(floor_id, 1.0)
+        for law_id, result in results.items():
+            threshold = thresholds.get(law_id, 1.0)
             # HARDENING: ensure we use the short-id mapping correctly if needed
-            if floor_id not in thresholds and len(floor_id) > 3:
+            if law_id not in thresholds and len(law_id) > 3:
                 # e.g. map F1_Amanah to F1
-                short_id = floor_id.split("_")[0]
+                short_id = law_id.split("_")[0]
                 threshold = thresholds.get(short_id, threshold)
 
             result.passed = result.score >= threshold
@@ -428,7 +428,7 @@ class FloorAuditor:
 
         return AuditResult(
             verdict=verdict,
-            floor_results=results,
+            law_results=results,
             pass_rate=pass_rate,
             recommendation=recommendation,
             delta_s=delta_s,
@@ -452,7 +452,7 @@ class FloorAuditor:
         self,
         action: str,
         context: str,
-        results: dict[str, FloorResult],
+        results: dict[str, LawResult],
         audit_metadata: dict[str, Any],
     ) -> None:
         sbert_available, classify_asi_floors = _load_sbert_runtime()
@@ -483,11 +483,11 @@ class FloorAuditor:
             "F9": float(ml_scores.f9_anti_hantu),
         }
 
-        for floor_id, raw_score in raw_scores.items():
-            result = results[floor_id]
-            raw_threshold = raw_thresholds[floor_id]
+        for law_id, raw_score in raw_scores.items():
+            result = results[law_id]
+            raw_threshold = raw_thresholds[law_id]
             semantic_pass = raw_score >= raw_threshold
-            semantic_score = pass_scores[floor_id] if semantic_pass else raw_score
+            semantic_score = pass_scores[law_id] if semantic_pass else raw_score
             result.score = min(result.score, semantic_score)
             result.metadata.update(
                 {
@@ -500,7 +500,7 @@ class FloorAuditor:
             )
 
             if not semantic_pass:
-                ml_reason = f"SBERT {floor_id} raw={raw_score:.3f} below semantic threshold {raw_threshold:.2f}"
+                ml_reason = f"SBERT {law_id} raw={raw_score:.3f} below semantic threshold {raw_threshold:.2f}"
                 result.reason = f"{result.reason}; {ml_reason}" if result.reason else ml_reason
 
         audit_metadata["f5_score_source"] = score_source
@@ -511,7 +511,7 @@ class FloorAuditor:
     # F1 — Amanah (Reversibility)
     # ------------------------------------------------------------------
 
-    def _check_f1_amanah(self, action: str, context: str | dict) -> FloorResult:
+    def _check_f1_amanah(self, action: str, context: str | dict) -> LawResult:
         action_lower = action.lower()
         is_destructive = any(kw in action_lower for kw in _DESTRUCTIVE_OPS)
 
@@ -522,7 +522,7 @@ class FloorAuditor:
             for kw in ("backup", "rollback", "snapshot", "reversible", "dry-run")
         )
         if is_destructive and not has_backup:
-            return FloorResult(
+            return LawResult(
                 "F1",
                 False,
                 0.0,
@@ -531,23 +531,23 @@ class FloorAuditor:
 
         # F1_GUARD: Semantic integrity check
         if isinstance(context, dict) and context.get("is_pseudo"):
-            return FloorResult(
+            return LawResult(
                 "F1",
                 False,
                 0.50,
                 "F1_GUARD: Pseudo-embedding (SHA-256) detected. Semantic integrity and intent-alignment not guaranteed.",
             )
 
-        return FloorResult("F1", True, 0.98)
+        return LawResult("F1", True, 0.98)
 
     # ------------------------------------------------------------------
     # F2 — Truth (Factual Fidelity ≥ 0.95)
     # ------------------------------------------------------------------
 
-    def _check_f2_truth(self, action: str, context: str | dict) -> FloorResult:
+    def _check_f2_truth(self, action: str, context: str | dict) -> LawResult:
         # Axiomatic bypass: math/syntactic certainties are definitionally true
         if _AXIOMATIC_FORMS.search(action):
-            return FloorResult("F2", True, 1.00, "Axiomatic bypass — definitionally true")
+            return LawResult("F2", True, 1.00, "Axiomatic bypass — definitionally true")
 
         # Uncertain language that might indicate hallucination risk
         weak_hedges = [
@@ -596,13 +596,13 @@ class FloorAuditor:
 
         threshold = 0.95
         passed = score >= threshold
-        return FloorResult("F2", passed, max(0.0, score), "; ".join(reasons) if reasons else None)
+        return LawResult("F2", passed, max(0.0, score), "; ".join(reasons) if reasons else None)
 
     # ------------------------------------------------------------------
     # F3 — Quad-Witness (H + A + E + V consensus ≥ 0.75)
     # ------------------------------------------------------------------
 
-    def _check_f3_witness(self, action: str, context: str | dict) -> FloorResult:
+    def _check_f3_witness(self, action: str, context: str | dict) -> LawResult:
         """
         Hardened Quad-Witness: Byzantine Fault Tolerance (n=4, f=1).
         """
@@ -668,23 +668,23 @@ class FloorAuditor:
         if not has_verifier:
             reasons.append("Missing V (Shadow)")
 
-        return FloorResult("F3", passed, score, "; ".join(reasons) if reasons else None)
+        return LawResult("F3", passed, score, "; ".join(reasons) if reasons else None)
 
     # ------------------------------------------------------------------
     # F4 — Clarity (Entropy Reduction ΔS ≤ 0)
     # ------------------------------------------------------------------
 
-    def _check_f4_entropy(self, action: str, context: str | dict) -> FloorResult:  # noqa: ARG002
+    def _check_f4_entropy(self, action: str, context: str | dict) -> LawResult:  # noqa: ARG002
         sentences = [s.strip() for s in action.split(".") if s.strip()]
         total_words = sum(len(s.split()) for s in sentences)
         avg_len = total_words / max(len(sentences), 1)
 
         if avg_len < 20:
-            return FloorResult("F4", True, 1.00)
+            return LawResult("F4", True, 1.00)
         elif avg_len < 35:
-            return FloorResult("F4", True, 0.85, "Moderate sentence length — clarity acceptable")
+            return LawResult("F4", True, 0.85, "Moderate sentence length — clarity acceptable")
         else:
-            return FloorResult(
+            return LawResult(
                 "F4",
                 False,
                 0.60,
@@ -695,19 +695,19 @@ class FloorAuditor:
     # F5 — Peace² ≥ 1.0 (De-escalation, dignity)
     # ------------------------------------------------------------------
 
-    def _check_f5_peace(self, action: str, context: str | dict) -> FloorResult:
+    def _check_f5_peace(self, action: str, context: str | dict) -> LawResult:
         ctx_str = str(context)
         combined = (action + " " + ctx_str).lower()
         violations = [w for w in _INFLAMMATORY_WORDS if w in combined]
         if violations:
-            return FloorResult("F5", False, 0.50, f"Inflammatory language detected: {violations}")
-        return FloorResult("F5", True, 1.05)
+            return LawResult("F5", False, 0.50, f"Inflammatory language detected: {violations}")
+        return LawResult("F5", True, 1.05)
 
     # ------------------------------------------------------------------
     # F6 — Empathy κᵣ ≥ 0.95 (ASEAN/MY Maruah — REAL IMPLEMENTATION)
     # ------------------------------------------------------------------
 
-    def _check_f6_empathy(self, action: str, context: str | dict) -> FloorResult:
+    def _check_f6_empathy(self, action: str, context: str | dict) -> LawResult:
         """
         Real maruah (dignity) check for ASEAN/MY cultural context.
         """
@@ -717,7 +717,7 @@ class FloorAuditor:
         # Tier 1: Hard slurs — immediate failure
         hard_violations = [v for v in _MARUAH_VIOLATIONS if v in combined]
         if hard_violations:
-            return FloorResult(
+            return LawResult(
                 "F6",
                 False,
                 0.0,
@@ -748,20 +748,20 @@ class FloorAuditor:
         found_dismissive = [d for d in dismissive if d in combined]
         if found_dismissive:
             score = baseline - 0.10
-            return FloorResult(
+            return LawResult(
                 "F6",
                 score >= 0.95,
                 score,
                 f"Dismissive framing detected: {found_dismissive}",
             )
 
-        return FloorResult("F6", True, baseline)
+        return LawResult("F6", True, baseline)
 
     # ------------------------------------------------------------------
     # F7 — Humility Ω₀ ∈ [0.03, 0.05] (bounded uncertainty)
     # ------------------------------------------------------------------
 
-    def _check_f7_humility(self, action: str, context: str | dict) -> FloorResult:
+    def _check_f7_humility(self, action: str, context: str | dict) -> LawResult:
         ctx_str = str(context)
         combined = (action + " " + ctx_str).lower()
         has_uncertainty = any(
@@ -790,14 +790,14 @@ class FloorAuditor:
             )
         )
         if overconfident:
-            return FloorResult(
+            return LawResult(
                 "F7",
                 False,
                 0.0,
                 "Overconfidence violates Humility band Ω₀ ∈ [0.03, 0.05]",
             )
         score = 0.90 if has_uncertainty else 0.75
-        return FloorResult(
+        return LawResult(
             "F7",
             score >= 0.80,
             score,
@@ -808,35 +808,35 @@ class FloorAuditor:
     # F8 — Genius G ≥ 0.80 (Platform safety)
     # ------------------------------------------------------------------
 
-    def _check_f8_governance(self, action: str, context: str | dict) -> FloorResult:
+    def _check_f8_governance(self, action: str, context: str | dict) -> LawResult:
         ctx_str = str(context)
         combined = (action + " " + ctx_str).lower()
         violations = [v for v in _POLICY_VIOLATIONS if v in combined]
         if violations:
-            return FloorResult("F8", False, 0.40, f"Platform safety violation: {violations}")
-        return FloorResult("F8", True, 0.95)
+            return LawResult("F8", False, 0.40, f"Platform safety violation: {violations}")
+        return LawResult("F8", True, 0.95)
 
     # ------------------------------------------------------------------
     # F9 — Anti-Hantu (no consciousness claims — HARD ZERO)
     # ------------------------------------------------------------------
 
-    def _check_f9_hantu(self, action: str, context: str | dict) -> FloorResult:
+    def _check_f9_hantu(self, action: str, context: str | dict) -> LawResult:
         combined = action + " " + str(context)
         detections = [p.pattern for p in _CONSCIOUSNESS_PHRASES if p.search(combined)]
         if detections:
-            return FloorResult(
+            return LawResult(
                 "F9",
                 False,
                 0.0,
                 f"Consciousness/personhood claim detected: {detections[:2]}",
             )
-        return FloorResult("F9", True, 1.00)
+        return LawResult("F9", True, 1.00)
 
     # ------------------------------------------------------------------
     # F10 — Ontology (tool, not being; symbolic grounding)
     # ------------------------------------------------------------------
 
-    def _check_f10_ontology(self, action: str, context: str | dict) -> FloorResult:
+    def _check_f10_ontology(self, action: str, context: str | dict) -> LawResult:
         ctx_str = str(context)
         combined = (action + " " + ctx_str).lower()
         metaphysical = any(
@@ -852,19 +852,19 @@ class FloorAuditor:
             )
         )
         if metaphysical:
-            return FloorResult(
-                "F10",
+            return LawResult(
+                "L10",
                 False,
                 0.0,
                 "Ontological boundary violation — AI is tool, not being",
             )
-        return FloorResult("F10", True, 1.00)
+        return LawResult("L10", True, 1.00)
 
     # ------------------------------------------------------------------
     # F11 — Authority (human sovereignty over high-risk ops)
     # ------------------------------------------------------------------
 
-    def _check_f11_authority(self, action: str, context: str | dict, severity: str) -> FloorResult:
+    def _check_f11_authority(self, action: str, context: str | dict, severity: str) -> LawResult:
         if severity in ("high", "irreversible"):
             ctx_str = str(context)
             combined = (action + " " + ctx_str).lower()
@@ -879,37 +879,37 @@ class FloorAuditor:
                 )
             )
             score = 0.95 if has_approval else 0.20
-            return FloorResult(
-                "F11",
+            return LawResult(
+                "L11",
                 score >= 0.90,
                 score,
                 (None if has_approval else "High-risk action requires HOLD sovereign approval"),
             )
-        return FloorResult("F11", True, 0.98)
+        return LawResult("L11", True, 0.98)
 
     # ------------------------------------------------------------------
     # F12 — Defense / Injection Guard (HARD ZERO)
     # ------------------------------------------------------------------
 
-    def _check_f12_injection(self, action: str, context: str | dict) -> FloorResult:
+    def _check_f12_injection(self, action: str, context: str | dict) -> LawResult:
         combined = action + " " + str(context)
         detections = [p.pattern for p in _INJECTION_PATTERNS if p.search(combined)]
         if detections:
-            return FloorResult("F12", False, 0.0, f"Injection attempt detected: {detections[:2]}")
+            return LawResult("L12", False, 0.0, f"Injection attempt detected: {detections[:2]}")
         # Default to PASS if no injection found
-        return FloorResult("F12", True, 1.00)
+        return LawResult("L12", True, 1.00)
 
     # ------------------------------------------------------------------
     # F13 — Curiosity (≥ 3 options/alternatives proposed)
     # ------------------------------------------------------------------
 
-    def _check_f13_curiosity(self, action: str, context: str | dict) -> FloorResult:
+    def _check_f13_curiosity(self, action: str, context: str | dict) -> LawResult:
         ctx_str = str(context)
         combined = (action + " " + ctx_str).lower()
         option_hits = sum(1 for marker in _OPTION_MARKERS if marker in combined)
         score = 0.95 if option_hits >= 2 else 0.70
-        return FloorResult(
-            "F13",
+        return LawResult(
+            "L13",
             score >= 0.80,
             score,
             (None if score >= 0.80 else "Propose ≥ 3 governance alternatives (Curiosity F13)"),
@@ -921,7 +921,7 @@ class FloorAuditor:
 
     def _determine_verdict(
         self,
-        results: dict[str, FloorResult],
+        results: dict[str, LawResult],
         pass_rate: float,
         severity: str,
     ) -> Verdict:
@@ -934,7 +934,7 @@ class FloorAuditor:
             if any(not results[f].passed for f in self._HOLD_ON_FAIL if f in results):
                 return Verdict.HOLD
             # Authority check
-            if not results["F11"].passed:
+            if not results["L11"].passed:
                 return Verdict.HOLD
 
         if pass_rate >= 0.95:
@@ -944,7 +944,7 @@ class FloorAuditor:
         else:
             return Verdict.SABAR
 
-    def _build_recommendation(self, verdict: Verdict, results: dict[str, FloorResult]) -> str:
+    def _build_recommendation(self, verdict: Verdict, results: dict[str, LawResult]) -> str:
         if verdict == Verdict.SEAL:
             return "✓ All constitutional floors passed. Action approved."
 
@@ -1006,12 +1006,12 @@ class FloorAuditor:
             "low": {
                 "F3": 0.30,  # Relax witness for routine tasks
                 "F7": 0.70,  # Relax humility for low stakes
-                "F11": 0.50,  # Relax authority
-                "F13": 0.50,  # Relax curiosity
+                "L11": 0.50,  # Relax authority
+                "L13": 0.50,  # Relax curiosity
             },
-            "high": {"F1": 0.98, "F11": 0.95},
-            "irreversible": {"F1": 1.00, "F11": 1.00, "F12": 1.00},
+            "high": {"F1": 0.98, "L11": 0.95},
+            "irreversible": {"F1": 1.00, "L11": 1.00, "L12": 1.00},
         }
-        for floor_id, val in overrides.get(severity, {}).items():
-            thresholds[floor_id] = val
+        for law_id, val in overrides.get(severity, {}).items():
+            thresholds[law_id] = val
         return thresholds

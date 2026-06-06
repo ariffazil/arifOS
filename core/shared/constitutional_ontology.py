@@ -275,7 +275,7 @@ class ConstitutionalOntologyPayload(BaseModel):
             return False
         if len(self.floors_failed) > 0:
             # Hard floors failed = cannot proceed
-            hard_floors = {"F1", "F2", "F6", "F10", "F11", "F12", "F13"}
+            hard_floors = {"F1", "F2", "F6", "L10", "L11", "L12", "L13"}
             if any(f in hard_floors for f in self.floors_failed):
                 return False
         return True

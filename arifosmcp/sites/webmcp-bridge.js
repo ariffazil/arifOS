@@ -30,13 +30,13 @@
                 parameters: {
                     type: "object",
                     properties: {
-                        floor_id: { type: "string", description: "e.g., F2 or F7" }
+                        law_id: { type: "string", description: "e.g., F2 or F7" }
                     },
-                    required: ["floor_id"]
+                    required: ["law_id"]
                 },
-                handler: async ({ floor_id }) => {
+                handler: async ({ law_id }) => {
                     const res = await fetch(`${API_BASE}/openapi.json`);
-                    return { message: `Governed explanation for ${floor_id} is active under arifOS v2026.03.14.` };
+                    return { message: `Governed explanation for ${law_id} is active under arifOS v2026.03.14.` };
                 }
             }
         ],

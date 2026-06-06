@@ -33,7 +33,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.floor import check_floors
+from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.memory_store import (
     audit_governance,
     context_for_session,
@@ -103,6 +103,7 @@ def _classify_recall_result(record: dict[str, Any]) -> dict[str, Any]:
       sealed       — tier=sacred with phoenix_state=sealed
       stale        — older than tier threshold
       contradicted — phoenix_state=contradiction_hold or f4 conflicts
+      quarantined  — null content (cannot be canon regardless of tier claim)
     """
     classification = {
         "remembered": True,  # Always true if we got here
@@ -111,16 +112,33 @@ def _classify_recall_result(record: dict[str, Any]) -> dict[str, Any]:
         "sealed": False,
         "stale": False,
         "contradicted": False,
+        "quarantined": False,
     }
 
-    # verified: tri-witness complete + no anti-hantu flag
+    # ── v3.1 Quarantine: null content cannot be canon ──────────────────────
+    text = record.get("text") or record.get("content")
+    if text is None or str(text).strip() == "":
+        classification["quarantined"] = True
+        record["_quarantine"] = {
+            "quarantined": True,
+            "reason": "null_content",
+            "original_tier": record.get("tier", "unknown"),
+            "action": "Downgraded to quarantine. Null-content memory cannot be trusted context.",
+        }
+        record["tier"] = "quarantine"
+        record["usable"] = False
+    else:
+        record["_quarantine"] = {"quarantined": False}
+        record["usable"] = True
+
+    # verified: tri-witness complete + no anti-hantu flag + not quarantined
     tri = record.get("phoenix_tri_witness", {})
     tri_complete = bool(tri) and sum(tri.values()) >= 1.0
-    if tri_complete and not record.get("phoenix_anti_hantu_flag", False):
+    if tri_complete and not record.get("phoenix_anti_hantu_flag", False) and not classification["quarantined"]:
         classification["verified"] = True
 
-    # sealed: sacred tier + sealed state
-    if record.get("tier") == "sacred" and record.get("phoenix_state") == "sealed":
+    # sealed: sacred tier + sealed state + not quarantined
+    if record.get("tier") == "sacred" and record.get("phoenix_state") == "sealed" and not classification["quarantined"]:
         classification["sealed"] = True
 
     # contradicted: contradiction hold or f4 conflicts
@@ -135,11 +153,62 @@ def _classify_recall_result(record: dict[str, Any]) -> dict[str, Any]:
     record["provenance"] = "verified" if classification["verified"] else (
         "sealed" if classification["sealed"] else (
             "contradicted" if classification["contradicted"] else (
-                "suggested" if classification["inferred"] else "remembered"
+                "quarantined" if classification["quarantined"] else (
+                    "suggested" if classification["inferred"] else "remembered"
+                )
             )
         )
     )
     return record
+
+
+def _compute_memory_confidence(
+    results: list[dict],
+    backend_ok: bool = True,
+) -> dict[str, Any]:
+    """
+    Compute calibrated confidence planes for memory retrieval.
+
+    Separates backend health from relevance from content integrity from
+    reasoning authority. Never collapses them into a single misleading number.
+    """
+    total = len(results)
+    if total == 0:
+        return {
+            "backend_confidence": 0.85 if backend_ok else 0.0,
+            "retrieval_relevance": 0.0,
+            "content_integrity": 0.0,
+            "reasoning_authority": 0.0,
+            "calibration_note": "No memories retrieved.",
+        }
+
+    scores = [r.get("score", 0.0) for r in results if "score" in r]
+    avg_score = round(sum(scores) / len(scores), 3) if scores else 0.0
+
+    usable = sum(1 for r in results if r.get("usable", True))
+    quarantined = total - usable
+
+    # Content integrity: what fraction has actual content?
+    content_integrity = round(usable / total, 3)
+
+    # Reasoning authority: can these memories influence reasoning?
+    # High only if relevance AND integrity are both high
+    if quarantined > 0 or avg_score < 0.1:
+        reasoning_authority = 0.05
+    else:
+        reasoning_authority = round(min(avg_score, 0.5), 3)
+
+    return {
+        "backend_confidence": 0.85 if backend_ok else 0.0,
+        "retrieval_relevance": avg_score,
+        "content_integrity": content_integrity,
+        "reasoning_authority": reasoning_authority,
+        "calibration_note": (
+            f"Backend OK. {usable}/{total} usable. "
+            f"Avg relevance {avg_score}. "
+            f"Quarantined {quarantined} due to null content."
+        ),
+    }
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -200,16 +269,16 @@ def arif_memory_recall(
             return _hold(
                 "arif_memory_recall",
                 "F11 AUTH: actor_id is mandatory (WAJIB) for storage operations.",
-                ["F11"],
+                ["L11"],
             )
 
-    floor_check = check_floors(
+    floor_check = check_laws(
         "arif_memory_recall",
         {"query": query or "", "content": str(content) if content else "", "mode": mode},
         actor_id,
     )
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_memory_recall", floor_check["reason"], floor_check["failed_floors"])
+        return _hold("arif_memory_recall", floor_check["reason"], floor_check["violated_laws"])
 
     # ── init_recall ──────────────────────────────────────────────────────────
     if mode == "init_recall":
@@ -227,19 +296,19 @@ def arif_memory_recall(
             {"uri": "arifos://forge", "label": "Execution Bridge", "tier": "operational"},
         ]
         floor_summary = [
-            {"floor": "F01", "name": "AMANAH", "purpose": "Trustworthiness — every action accountable"},
-            {"floor": "F02", "name": "TRUTH", "purpose": "Truthfulness — no fabrication"},
-            {"floor": "F03", "name": "WITNESS", "purpose": "Evidence must be verifiable"},
-            {"floor": "F04", "name": "CLARITY", "purpose": "Transparent intent"},
-            {"floor": "F05", "name": "PEACE", "purpose": "Human dignity"},
-            {"floor": "F06", "name": "EMPATHY", "purpose": "Consider consequence"},
-            {"floor": "F07", "name": "HUMILITY", "purpose": "Acknowledge limits"},
-            {"floor": "F08", "name": "GENIUS", "purpose": "Elegant correctness (G ≥ 0.80)"},
-            {"floor": "F09", "name": "ANTIHANTU", "purpose": "Reject manipulation"},
-            {"floor": "F10", "name": "ONTOLOGY", "purpose": "Structural coherence"},
-            {"floor": "F11", "name": "AUTH", "purpose": "Verify identity before sensitive ops"},
-            {"floor": "F12", "name": "INJECTION", "purpose": "Sanitize inputs"},
-            {"floor": "F13", "name": "SOVEREIGN", "purpose": "Human veto is absolute"},
+            {"floor": "L01", "name": "AMANAH", "purpose": "Trustworthiness — every action accountable"},
+            {"floor": "L02", "name": "TRUTH", "purpose": "Truthfulness — no fabrication"},
+            {"floor": "L03", "name": "WITNESS", "purpose": "Evidence must be verifiable"},
+            {"floor": "L04", "name": "CLARITY", "purpose": "Transparent intent"},
+            {"floor": "L05", "name": "PEACE", "purpose": "Human dignity"},
+            {"floor": "L06", "name": "EMPATHY", "purpose": "Consider consequence"},
+            {"floor": "L07", "name": "HUMILITY", "purpose": "Acknowledge limits"},
+            {"floor": "L08", "name": "GENIUS", "purpose": "Elegant correctness (G ≥ 0.80)"},
+            {"floor": "L09", "name": "ANTIHANTU", "purpose": "Reject manipulation"},
+            {"floor": "L10", "name": "ONTOLOGY", "purpose": "Structural coherence"},
+            {"floor": "L11", "name": "AUTH", "purpose": "Verify identity before sensitive ops"},
+            {"floor": "L12", "name": "INJECTION", "purpose": "Sanitize inputs"},
+            {"floor": "L13", "name": "SOVEREIGN", "purpose": "Human veto is absolute"},
         ]
         return _ok(
             "arif_memory_recall",
@@ -254,7 +323,7 @@ def arif_memory_recall(
             },
         )
 
-    # ── recall (enhanced v2) ─────────────────────────────────────────────────
+    # ── recall (enhanced v2.1 — quarantine + calibrated confidence) ──────────
     if mode == "recall":
         if memory_id:
             record = recall(memory_id)
@@ -274,6 +343,7 @@ def arif_memory_recall(
                         "content": None,
                         "reason": "Provenance requirement not met — memory is not verified or sealed",
                         "provenance": record.get("provenance"),
+                        "quarantine": record.get("_quarantine"),
                     },
                 )
             return _annotate_recall_context(
@@ -290,14 +360,17 @@ def arif_memory_recall(
                 limit=limit,
             )
             results = search_result.get("results", []) if isinstance(search_result, dict) else []
-            hits = []
+            all_classified = []
+            usable_hits = []
+            quarantined_hits = []
             for r in results:
                 r = _classify_recall_result(r)
+                all_classified.append(r)
                 if min_confidence > 0 and r.get("score", 0.0) < min_confidence:
                     continue
                 if require_provenance and r.get("provenance") not in ("verified", "sealed"):
                     continue
-                hits.append({
+                hit = {
                     "memory_id": r.get("memory_id", ""),
                     "summary": r.get("summary"),
                     "tags": r.get("tags", []),
@@ -308,8 +381,28 @@ def arif_memory_recall(
                     "provenance": r.get("provenance"),
                     "can_treat_as_proof": r.get("can_treat_as_proof", False),
                     "_governance": r.get("_governance"),
-                })
-            return _ok("arif_memory_recall", {"query": query, "results": hits, "count": len(hits)})
+                }
+                if r.get("usable", True):
+                    usable_hits.append(hit)
+                else:
+                    quarantined_hits.append(hit)
+
+            confidence = _compute_memory_confidence(all_classified)
+            return _ok(
+                "arif_memory_recall",
+                {
+                    "query": query,
+                    "results": usable_hits,
+                    "count": len(usable_hits),
+                    "memory_quality": {
+                        "total_retrieved": len(results),
+                        "usable_recall_hits": len(usable_hits),
+                        "quarantined_hits": len(quarantined_hits),
+                        "quarantine_reason": "null_content" if quarantined_hits else None,
+                    },
+                    "confidence": confidence,
+                },
+            )
 
         return _hold("arif_memory_recall", "recall mode requires memory_id or query")
 
@@ -383,7 +476,7 @@ def arif_memory_recall(
             return _hold(
                 "arif_memory_recall",
                 "SEAL mode requires ack_irreversible=true or requires_888=true (F1 AMANAH)",
-                ["F01", "F13"],
+                ["L01", "L13"],
             )
 
         # Force M4 envelope
@@ -409,7 +502,7 @@ def arif_memory_recall(
             },
             "governance": {
                 "requires_888": True,
-                "floors": ["F01", "F13"],
+                "floors": ["L01", "L13"],
                 "expiry": None,
                 "can_authorize_action": False,
             },
@@ -546,9 +639,13 @@ def arif_memory_recall(
             )
 
         hits = []
+        usable_hits = []
+        quarantined_hits = []
+        all_classified = []
         for r in all_results:
             r = _classify_recall_result(r)
-            hits.append({
+            all_classified.append(r)
+            hit = {
                 "memory_id": r.get("memory_id", ""),
                 "summary": r.get("summary"),
                 "tags": r.get("tags", []),
@@ -559,19 +656,33 @@ def arif_memory_recall(
                 "provenance": r.get("provenance"),
                 "can_treat_as_proof": r.get("can_treat_as_proof", False),
                 "_governance": r.get("_governance"),
-            })
+            }
+            if r.get("usable", True):
+                usable_hits.append(hit)
+            else:
+                quarantined_hits.append(hit)
+            hits.append(hit)
+
+        confidence = _compute_memory_confidence(all_classified)
         return _annotate_recall_context(
             _ok(
                 "arif_memory_recall",
                 {
                     "query": query,
-                    "results": hits,
-                    "count": len(hits),
+                    "results": usable_hits,
+                    "count": len(usable_hits),
                     "iterations": iterations,
                     "delta_s": round(delta_s, 4),
                     "_governance_report": governance_report,
                     "_escalation_queue": escalation_queue,
                     "searched_at": datetime.now(UTC).isoformat(),
+                    "memory_quality": {
+                        "total_retrieved": len(all_results),
+                        "usable_recall_hits": len(usable_hits),
+                        "quarantined_hits": len(quarantined_hits),
+                        "quarantine_reason": "null_content" if quarantined_hits else None,
+                    },
+                    "confidence": confidence,
                 },
             ),
             context,
@@ -590,9 +701,32 @@ def arif_memory_recall(
     # ── context ──────────────────────────────────────────────────────────────
     if mode == "context":
         records = context_for_session(session_id=session_id or "", limit=limit)
+        # v3.1: classify and quarantine null-content records in session context
+        classified = []
+        usable = []
+        quarantined = []
+        for r in records:
+            r = _classify_recall_result(r)
+            classified.append(r)
+            if r.get("usable", True):
+                usable.append(r)
+            else:
+                quarantined.append(r)
+        confidence = _compute_memory_confidence(classified)
         return _ok(
             "arif_memory_recall",
-            {"session_id": session_id, "context_window": records, "count": len(records)},
+            {
+                "session_id": session_id,
+                "context_window": usable,
+                "count": len(usable),
+                "memory_quality": {
+                    "total_retrieved": len(records),
+                    "loaded_session_memory_count": len(usable),
+                    "quarantined_hits": len(quarantined),
+                    "quarantine_reason": "null_content" if quarantined else None,
+                },
+                "confidence": confidence,
+            },
         )
 
     # ── list ─────────────────────────────────────────────────────────────────
@@ -602,11 +736,21 @@ def arif_memory_recall(
 
             idx = _index_read()
             entries = []
+            quarantined = []
             for mid, meta in sorted(idx.items(), key=lambda x: x[1].get("created_at", ""), reverse=True)[:limit]:
+                # v3.1: quarantine null-content entries at listing time
+                text = meta.get("text") or meta.get("content") or meta.get("summary", "")
+                if text is None or str(text).strip() == "":
+                    quarantined.append({
+                        "memory_id": mid,
+                        "reason": "null_content",
+                        "original_tier": meta.get("tier", "unknown"),
+                    })
+                    continue
                 entries.append(
                     {
                         "memory_id": mid,
-                        "summary": meta.get("summary") or meta.get("text", "")[:200],
+                        "summary": meta.get("summary") or str(text)[:200],
                         "tags": meta.get("tags", []),
                         "tier": meta.get("tier", "unknown"),
                         "created_at": meta.get("created_at"),
@@ -615,7 +759,14 @@ def arif_memory_recall(
                 )
             return _ok(
                 "arif_memory_recall",
-                {"session_id": session_id, "entries": entries, "count": len(entries), "source": "local_index"},
+                {
+                    "session_id": session_id,
+                    "entries": entries,
+                    "count": len(entries),
+                    "quarantined": quarantined,
+                    "quarantine_reason": "null_content" if quarantined else None,
+                    "source": "local_index",
+                },
                 delta_S=0.0,
             )
         except Exception as exc:
@@ -632,7 +783,7 @@ def arif_memory_recall(
     # ── import (legacy) ──────────────────────────────────────────────────────
     if mode == "import":
         if not actor_id:
-            return _hold("arif_memory_recall", "actor_id required for import mode", ["F11"])
+            return _hold("arif_memory_recall", "actor_id required for import mode", ["L11"])
         # Import delegates to legacy store with batch handling
         return _ok("arif_memory_recall", {"imported": True, "note": "Import mode delegates to legacy store"})
 

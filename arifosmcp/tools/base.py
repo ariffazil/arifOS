@@ -19,7 +19,7 @@ from arifosmcp.abi.v1_0 import get_request_schema, get_response_schema
 from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
 
 
-class FloorResult:
+class LawResult:
     """Result of floor evaluation."""
 
     def __init__(self, verdict: Verdict, violations: list[str], message: str = ""):
@@ -81,16 +81,16 @@ class Tool(ABC):
             return self.request_schema(**payload)
         return payload
 
-    async def check_floors(self, payload: dict) -> FloorResult:
+    async def check_laws(self, payload: dict) -> LawResult:
         """
         Check constitutional floors before execution.
 
         Override to customize floor checking.
         """
-        from arifosmcp.core.floors import ConstitutionalFloors
+        from arifosmcp.core.floors import ConstitutionalLaws
 
-        floors = ConstitutionalFloors()
-        result = floors.evaluate(
+        laws = ConstitutionalLaws()
+        result = laws.evaluate(
             action=payload.get("query", ""),
             tool_name=self.name,
             parameters=payload,
@@ -98,7 +98,7 @@ class Tool(ABC):
             session_id=payload.get("session_id"),
         )
 
-        return FloorResult(
+        return LawResult(
             verdict=result.verdict,
             violations=result.violations,
             message=result.message,
@@ -138,7 +138,7 @@ class Tool(ABC):
             validated = await self.validate(payload)
 
             # 2. Check floors
-            floor_result = await self.check_floors(payload)
+            floor_result = await self.check_laws(payload)
 
             # 3. If VOID, return early
             if floor_result.verdict == Verdict.VOID:
@@ -230,7 +230,7 @@ class ToolRegistry:
 
 
 __all__ = [
-    "FloorResult",
+    "LawResult",
     "Tool",
     "ToolRegistry",
 ]

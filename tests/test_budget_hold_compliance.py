@@ -42,15 +42,15 @@ class FakeBudgetContract:
 
 def test_budget_hold_includes_reasons():
     """Budget max_turns violation MUST include non-empty reasons[]."""
-    from arifosmcp.runtime.floor import check_floors
+    from arifosmcp.runtime.law import check_laws
 
     fake = FakeBudgetContract(
         turns_ok=False,
         turn_reason="max_turns exhausted (8/8)",
     )
 
-    with patch("arifosmcp.runtime.floor._get_budget_contract", return_value=fake):
-        result = check_floors(
+    with patch("arifosmcp.runtime.law._get_budget_contract", return_value=fake):
+        result = check_laws(
             tool_name="arif_mind_reason",
             params={"session_id": "test-session"},
             actor_id=None,
@@ -68,15 +68,15 @@ def test_budget_hold_includes_reasons():
 
 def test_budget_hold_includes_domain_void():
     """Budget violation MUST set output_policy = DOMAIN_VOID."""
-    from arifosmcp.runtime.floor import check_floors
+    from arifosmcp.runtime.law import check_laws
 
     fake = FakeBudgetContract(
         turns_ok=False,
         turn_reason="max_turns exhausted (8/8)",
     )
 
-    with patch("arifosmcp.runtime.floor._get_budget_contract", return_value=fake):
-        result = check_floors(
+    with patch("arifosmcp.runtime.law._get_budget_contract", return_value=fake):
+        result = check_laws(
             tool_name="arif_mind_reason",
             params={"session_id": "test-session"},
             actor_id=None,
@@ -91,15 +91,15 @@ def test_budget_hold_includes_domain_void():
 
 def test_budget_hold_includes_nine_signal():
     """Budget violation MUST include nine_signal block."""
-    from arifosmcp.runtime.floor import check_floors
+    from arifosmcp.runtime.law import check_laws
 
     fake = FakeBudgetContract(
         turns_ok=False,
         turn_reason="max_turns exhausted (8/8)",
     )
 
-    with patch("arifosmcp.runtime.floor._get_budget_contract", return_value=fake):
-        result = check_floors(
+    with patch("arifosmcp.runtime.law._get_budget_contract", return_value=fake):
+        result = check_laws(
             tool_name="arif_mind_reason",
             params={"session_id": "test-session"},
             actor_id=None,
@@ -117,7 +117,7 @@ def test_budget_hold_includes_nine_signal():
 
 def test_budget_tool_call_hold_includes_reasons():
     """Budget max_tool_calls violation MUST include non-empty reasons[]."""
-    from arifosmcp.runtime.floor import check_floors
+    from arifosmcp.runtime.law import check_laws
 
     fake = FakeBudgetContract(
         turns_ok=True,
@@ -125,8 +125,8 @@ def test_budget_tool_call_hold_includes_reasons():
         tool_reason="max_tool_calls exhausted (12/12) for arif_forge_execute",
     )
 
-    with patch("arifosmcp.runtime.floor._get_budget_contract", return_value=fake):
-        result = check_floors(
+    with patch("arifosmcp.runtime.law._get_budget_contract", return_value=fake):
+        result = check_laws(
             tool_name="arif_forge_execute",
             params={"session_id": "test-session"},
             actor_id=None,
@@ -142,7 +142,7 @@ def test_budget_tool_call_hold_includes_reasons():
 
 def test_budget_tool_call_hold_includes_domain_void():
     """Budget max_tool_calls violation MUST set output_policy = DOMAIN_VOID."""
-    from arifosmcp.runtime.floor import check_floors
+    from arifosmcp.runtime.law import check_laws
 
     fake = FakeBudgetContract(
         turns_ok=True,
@@ -150,8 +150,8 @@ def test_budget_tool_call_hold_includes_domain_void():
         tool_reason="max_tool_calls exhausted (12/12)",
     )
 
-    with patch("arifosmcp.runtime.floor._get_budget_contract", return_value=fake):
-        result = check_floors(
+    with patch("arifosmcp.runtime.law._get_budget_contract", return_value=fake):
+        result = check_laws(
             tool_name="arif_forge_execute",
             params={"session_id": "test-session"},
             actor_id=None,
@@ -163,7 +163,7 @@ def test_budget_tool_call_hold_includes_domain_void():
 
 def test_budget_tool_call_hold_includes_nine_signal():
     """Budget max_tool_calls violation MUST include nine_signal block."""
-    from arifosmcp.runtime.floor import check_floors
+    from arifosmcp.runtime.law import check_laws
 
     fake = FakeBudgetContract(
         turns_ok=True,
@@ -171,8 +171,8 @@ def test_budget_tool_call_hold_includes_nine_signal():
         tool_reason="max_tool_calls exhausted (12/12)",
     )
 
-    with patch("arifosmcp.runtime.floor._get_budget_contract", return_value=fake):
-        result = check_floors(
+    with patch("arifosmcp.runtime.law._get_budget_contract", return_value=fake):
+        result = check_laws(
             tool_name="arif_forge_execute",
             params={"session_id": "test-session"},
             actor_id=None,
@@ -184,33 +184,33 @@ def test_budget_tool_call_hold_includes_nine_signal():
 
 
 def test_budget_clear_allows_seal():
-    """When budget is clear, check_floors must NOT return HOLD for budget reasons."""
-    from arifosmcp.runtime.floor import check_floors
+    """When budget is clear, check_laws must NOT return HOLD for budget reasons."""
+    from arifosmcp.runtime.law import check_laws
 
     fake = FakeBudgetContract(turns_ok=True, tool_calls_ok=True)
 
-    with patch("arifosmcp.runtime.floor._get_budget_contract", return_value=fake):
-        result = check_floors(
+    with patch("arifosmcp.runtime.law._get_budget_contract", return_value=fake):
+        result = check_laws(
             tool_name="arif_mind_reason",
             params={"session_id": "test-session", "mode": "reason", "query": "test"},
             actor_id=None,
         )
 
     # With NIAT free-pass, REASON mode returns SEAL directly — no budget HOLD
-    assert result["verdict"] != "HOLD" or result.get("failed_floors", []) != ["BUDGET"], (
+    assert result["verdict"] != "HOLD" or result.get("violated_laws", []) != ["BUDGET"], (
         "Budget-clear session should not produce BUDGET HOLD"
     )
 
 
 def test_budget_exception_is_non_blocking():
-    """If budget contract check throws, check_floors must NOT hard-fail — budget is non-blocking."""
-    from arifosmcp.runtime.floor import check_floors
+    """If budget contract check throws, check_laws must NOT hard-fail — budget is non-blocking."""
+    from arifosmcp.runtime.law import check_laws
 
     with patch(
-        "arifosmcp.runtime.floor._get_budget_contract",
+        "arifosmcp.runtime.law._get_budget_contract",
         side_effect=RuntimeError("DB error"),
     ):
-        result = check_floors(
+        result = check_laws(
             tool_name="arif_mind_reason",
             params={"session_id": "test-session", "mode": "reason", "query": "test"},
             actor_id=None,
@@ -218,7 +218,7 @@ def test_budget_exception_is_non_blocking():
 
     # Must not raise; verdict should still be returned (NIAT free-pass SEAL)
     assert "verdict" in result
-    assert result.get("failed_floors", []) != ["BUDGET"], (
+    assert result.get("violated_laws", []) != ["BUDGET"], (
         "Budget exception should not cause BUDGET floor to appear"
     )
 

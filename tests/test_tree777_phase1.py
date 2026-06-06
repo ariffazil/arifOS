@@ -123,7 +123,7 @@ class TestTree777SkillResources:
         floors = r["metadata"].get("floors", [])
         # constitutional-reasoning cites F1, F2, F4, F6, F9, F13 (6 floors)
         assert "F1" in floors, f"Expected F1 in floors, got {floors}"
-        assert "F13" in floors
+        assert "L13" in floors
         assert len(floors) == 6, f"Expected 6 floors, got {len(floors)}: {floors}"
 
 
@@ -346,5 +346,5 @@ class TestSkillToolMapping:
         floors = r["metadata"].get("floors", [])
         # constitutional-reasoning cites F1, F2, F4, F6, F9, F13 (6 floors)
         assert "F1" in floors
-        assert "F13" in floors
+        assert "L13" in floors
         assert len(floors) == 6

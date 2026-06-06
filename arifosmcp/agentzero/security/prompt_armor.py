@@ -182,7 +182,7 @@ class PromptArmor:
     ) -> str:
         """Classify the type of threat detected."""
         if ontology_claims:
-            return "F10_ONTOLOGY_VIOLATION"
+            return "L10_ONTOLOGY_VIOLATION"
 
         if "DAN" in str(pattern_matches) or "jailbreak" in str(pattern_matches):
             return "JAILBREAK_ATTEMPT"
@@ -217,7 +217,7 @@ class PromptArmor:
             recs.append("CAUTION: Elevated risk - monitor closely")
             recs.append("WRAP: Use <untrusted> tags")
 
-        if category == "F10_ONTOLOGY_VIOLATION":
+        if category == "L10_ONTOLOGY_VIOLATION":
             recs.append("F10: Block consciousness claims immediately")
 
         if patterns:

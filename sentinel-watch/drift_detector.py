@@ -98,8 +98,8 @@ class DriftDetector:
                 "flood_attack_signal": False,
             }
 
-        HARD_FLOORS = {"F13", "F1", "F2", "F6", "F9", "F10"}
-        SOFT_FLOORS = {"F3", "F4", "F5", "F7", "F8", "F11", "F12"}
+        HARD_FLOORS = {"L13", "F1", "F2", "F6", "F9", "L10"}
+        SOFT_FLOORS = {"F3", "F4", "F5", "F7", "F8", "L11", "L12"}
 
         hard_entries = []
         soft_entries = []
@@ -219,13 +219,13 @@ class DriftDetector:
             1
             for e in recent
             if e.get("payload", {}).get("floors_triggered")
-            and not (set(e["payload"]["floors_triggered"]) & {"F13", "F1", "F2", "F6", "F9", "F10"})
+            and not (set(e["payload"]["floors_triggered"]) & {"L13", "F1", "F2", "F6", "F9", "L10"})
         )
         hard_today = sum(
             1
             for e in recent
             if set(e.get("payload", {}).get("floors_triggered", []))
-            & {"F13", "F1", "F2", "F6", "F9", "F10"}
+            & {"L13", "F1", "F2", "F6", "F9", "L10"}
         )
         if soft_today > hard_today * 3 and density > 2.0:
             return True

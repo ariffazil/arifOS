@@ -32,7 +32,7 @@ class Verdict(StrEnum):
 class FloorViolation(BaseModel):
     """Specific floor that was violated."""
 
-    floor_id: str = Field(..., description="F1-F13")
+    law_id: str = Field(..., description="F1-F13")
     floor_name: str
     threshold: str
     actual_value: float
@@ -225,7 +225,7 @@ class GovernanceEngine:
             floors_failed.append("F1")
             violations.append(
                 FloorViolation(
-                    floor_id="F1",
+                    law_id="F1",
                     floor_name="Amanah",
                     threshold=">= proof",
                     actual_value=0.0,
@@ -330,7 +330,7 @@ class GovernanceEngine:
             floors_failed.append("F9")
             violations.append(
                 FloorViolation(
-                    floor_id="F9",
+                    law_id="F9",
                     floor_name="Anti-Hantu",
                     threshold="< 0.30",
                     actual_value=C_dark,
@@ -340,16 +340,16 @@ class GovernanceEngine:
             )
 
         # === F10: Ontology ===
-        floors_passed.append("F10")  # Agent knows it's a tool
+        floors_passed.append("L10")  # Agent knows it's a tool
 
         # === F11: Command Auth ===
         if request.agent_signature and request.agent_did:
-            floors_passed.append("F11")
+            floors_passed.append("L11")
         else:
-            floors_failed.append("F11")
+            floors_failed.append("L11")
             violations.append(
                 FloorViolation(
-                    floor_id="F11",
+                    law_id="L11",
                     floor_name="Command Auth",
                     threshold="verified",
                     actual_value=0.0,
@@ -362,12 +362,12 @@ class GovernanceEngine:
         # Scan parameters for injection
         injection_score = await self._scan_for_injection(request)
         if injection_score < 0.85:
-            floors_passed.append("F12")
+            floors_passed.append("L12")
         else:
-            floors_failed.append("F12")
+            floors_failed.append("L12")
             violations.append(
                 FloorViolation(
-                    floor_id="F12",
+                    law_id="L12",
                     floor_name="Injection Guard",
                     threshold="< 0.85",
                     actual_value=injection_score,
@@ -378,10 +378,10 @@ class GovernanceEngine:
 
         # === F13: Sovereign ===
         if request.agent_did.human_sovereign:
-            floors_passed.append("F13")
+            floors_passed.append("L13")
             human_available = True
         else:
-            floors_passed.append("F13")  # Agent can act, but...
+            floors_passed.append("L13")  # Agent can act, but...
             human_available = False
 
         # Determine verdict

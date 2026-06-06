@@ -29,7 +29,7 @@ Just as TCP provides reliability over the unreliable IP layer, arifOS provides g
 
 ### Key Concepts
 
-- **13 Constitutional Floors (F1-F13):** Mathematical thresholds governing AI behavior — not guidelines, but hard constraints. Defined in `core/shared/floors.py`.
+- **13 Constitutional Laws (F1-F13):** Mathematical thresholds governing AI behavior — not guidelines, but hard constraints. Defined in `core/shared/floors.py`.
 - **Trinity Architecture (ΔΩΨ):**
   - **AGI Mind (Δ):** Stages 111-333 — cognition and reasoning (F2, F4, F7, F8)
   - **ASI Heart (Ω):** Stages 555-666 — empathy and impact (F5, F6, F9)
@@ -214,7 +214,7 @@ curl http://localhost:8088/health
 | `REDIS_URL` | — | Redis connection string |
 | `QDRANT_URL` | — | Qdrant vector DB URL |
 | `ARIFOS_GOVERNANCE_SECRET` | auto-generated | HMAC secret for governance tokens |
-| `ARIFOS_F11_AUTH_REQUIRED` | `true` | Enforce authentication |
+| `ARIFOS_L11_AUTH_REQUIRED` | `true` | Enforce authentication |
 | `ARIFOS_888_HOLD_ENABLED` | `true` | Enable human veto |
 
 ---
@@ -346,7 +346,7 @@ pre-commit run --all-files
 
 ---
 
-## 7. The 13 Constitutional Floors
+## 7. The 13 Constitutional Laws
 
 **Canonical source:** `core/shared/floors.py` (THRESHOLDS dict)
 
@@ -459,7 +459,7 @@ The following operations automatically trigger `888_HOLD`:
 ```bash
 # Production checklist
 chmod 600 .env                    # Restrict permissions
-ARIFOS_F11_AUTH_REQUIRED=true     # Enforce authentication
+ARIFOS_L11_AUTH_REQUIRED=true     # Enforce authentication
 ARIFOS_888_HOLD_ENABLED=true      # Enable human veto
 ARIFOS_PHYSICS_DISABLED=0         # NEVER disable in production
 ```
@@ -532,7 +532,7 @@ These rules are structurally enforced:
 
 ### Theory Canon (7 Documents)
 1. `docs/10_THEORY/000_THEORY/000_FOUNDATIONS.md` — Philosophy: *Ditempa Bukan Diberi*
-2. `docs/10_THEORY/000_THEORY/000_LAW.md` — The 13 Constitutional Floors (F1-F13)
+2. `docs/10_THEORY/000_THEORY/000_LAW.md` — The 13 Constitutional Laws (F1-F13)
 3. `docs/10_THEORY/000_THEORY/111_MIND_GENIUS.md` — Logic (Δ): The Physics of Thought
 4. `docs/10_THEORY/000_THEORY/555_HEART_EMPATHY.md` — Ethics (Ω): The Physics of Empathy
 5. `docs/10_THEORY/000_THEORY/777_SOUL_APEX.md` — Judgment (Ψ): Constitutional Physics

@@ -22,7 +22,7 @@
     "audit_trail": "RunLedger → arifOS vault"
   },
 
-  "floors_applied": ["F01", "F07", "F09", "F12"],
+  "floors_applied": ["L01", "L07", "L09", "L12"],
 
   "notes": [
     "DITEMPA BUKAN DIBERI — Forged, Not Given",

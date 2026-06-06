@@ -25,7 +25,7 @@ def test_live_metrics_contract_exposes_dashboard_fields() -> None:
         f"F{i}" for i in range(1, 14)
     ]
 
-    for floor_id, floor_data in governance["floors"].items():
+    for law_id, floor_data in governance["floors"].items():
         assert floor_data["name"]
         assert floor_data["status"] in {"pass", "fail"}
         assert isinstance(floor_data["score"], float)

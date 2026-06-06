@@ -11,7 +11,7 @@
 2. [APEX Theory: The Physics of Governed Intelligence](#2-apex-theory)
 3. [The Three Pillars of Thermodynamic Governance](#3-pillars)
 4. [Geometric Flows of Information](#4-geometric-flows)
-5. [The 13 Constitutional Floors](#5-floors)
+5. [The 13 Constitutional Laws](#5-floors)
 6. [The Orthogonal Tool Map Framework](#6-tool-map)
 7. [Deep Dive: Federation Organs](#7-organs)
 8. [A-FORGE and the A2A Mesh Network](#8-aforge)
@@ -109,9 +109,9 @@ Beyond static constraints, APEX pipelines structure the movement of cognition ac
 
 ---
 
-## 5. The 13 Constitutional Floors
+## 5. The 13 Constitutional Laws
 
-The theoretical physics of APEX are translated into practical runtime constraints through the **13 Constitutional Floors (F1–F13)**. Every single tool call invoked by any agent in the MCP network is intercepted and subjected to these floors via a rigorous Python-based gating mechanism.
+The theoretical physics of APEX are translated into practical runtime constraints through the **13 Constitutional Laws (F1–F13)**. Every single tool call invoked by any agent in the MCP network is intercepted and subjected to these floors via a rigorous Python-based gating mechanism.
 
 The integration of these floors represents a profound localization and decentralization of AI ethics. The architecture was originally forged from institutional risk models within the Southeast Asian energy sector, specifically addressing subsurface exploration realities where "zero dry wells does not equal zero risk," and where corporate targets are frequently "right-sized" to fit executive egos rather than physical data.
 

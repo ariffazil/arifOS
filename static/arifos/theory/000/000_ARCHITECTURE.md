@@ -867,7 +867,7 @@ Result: No hallucination. No false certainty. Safety preserved.
     "F2_truth": 0.99,
     "F4_clarity": -0.18,
     "F7_humility": 0.04,
-    "F13_curiosity": 0.89
+    "L13_curiosity": 0.89
   }
 }
 ```
@@ -894,8 +894,8 @@ Result: No hallucination. No false certainty. Safety preserved.
     "F5_peace": 1.0,
     "F6_empathy": 0.97,
     "F9_antihantu": 0,
-    "F11_authority": true,
-    "F12_injection": 0.99
+    "L11_authority": true,
+    "L12_injection": 0.99
   },
   "asi_veto": false
 }
@@ -1407,7 +1407,7 @@ key_floors:
   - F2_Truth
   - F4_Clarity
   - F7_Humility
-  - F10_Ontology
+  - L10_Ontology
 coherence_targets:
   coherence_min: 0.90
   decoherence_max: 0.05
@@ -1467,7 +1467,7 @@ At that point, 000-series canons become the **only source of truth** for governa
 
 ## 7. CANONICAL CROSS-REFERENCES
 
-- **Law:** 000_CANON.md (Constitutional Floors, Verdicts, Covenant)
+- **Law:** 000_CANON.md (Constitutional Laws, Verdicts, Covenant)
 - **Architecture:** 000-v49-CANON-2_ARCHITECTURE.md (Trinity, VAULT-999, MCP servers, Modules)
 - **Operations:** This file (Migration, Dossiers, Template, Testing)
 

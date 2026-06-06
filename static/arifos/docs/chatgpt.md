@@ -6,7 +6,7 @@ The **arifOS ChatGPT Sovereign Connector** allows any ChatGPT user to plug their
 
 ##  The Architecture
 
-By using the **Model Context Protocol (MCP)**, ChatGPT can now see and use the 13 Constitutional Floors and the Trinity Engines (DeltaOmegaPsi).
+By using the **Model Context Protocol (MCP)**, ChatGPT can now see and use the 13 Constitutional Laws and the Trinity Engines (DeltaOmegaPsi).
 
 ### Connection Modes
 

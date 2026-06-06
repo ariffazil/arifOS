@@ -150,9 +150,9 @@ class TestOutputFormatterDebugMode:
         assert "summary" in result
 
     def test_debug_summary_has_verdict(self):
-        result = self.fmt.format({"verdict": "VOID", "floors_failed": ["F12"]})
+        result = self.fmt.format({"verdict": "VOID", "floors_failed": ["L12"]})
         assert result["summary"]["verdict"] == "VOID"
-        assert result["summary"]["floors_failed"] == ["F12"]
+        assert result["summary"]["floors_failed"] == ["L12"]
 
     def test_debug_stage_outputs_agi(self):
         result = self.fmt.format(
@@ -256,7 +256,7 @@ class TestExtractRationale:
         assert result["note"] == "Fix this first"
 
     def test_rationale_from_floors_failed(self):
-        result = self.fmt.format({"verdict": "VOID", "floors_failed": ["F2", "F12"]})
+        result = self.fmt.format({"verdict": "VOID", "floors_failed": ["F2", "L12"]})
         assert "F2" in result["note"]
 
     def test_rationale_from_apex_judge(self):

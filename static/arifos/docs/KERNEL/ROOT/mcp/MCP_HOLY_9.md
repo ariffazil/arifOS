@@ -127,11 +127,11 @@ MCP Tool Call
 ```python
 def anchor_session(params):
     # F12: Injection defense
-    if detect_injection(params): return VOID("F12_VIOLATION")
+    if detect_injection(params): return VOID("L12_VIOLATION")
 
     # F11: Authority verification
     if not verify_signature(params.auth_token, params.actor):
-        return VOID("F11_UNAUTHORIZED")
+        return VOID("L11_UNAUTHORIZED")
 
     # Initialize thermodynamic state
     session = {

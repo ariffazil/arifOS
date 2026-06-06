@@ -35,7 +35,7 @@ class VaultClient:
         session_id: str,
         actor_id: str,
         payload: Dict[str, Any],
-        floor_results: List[Dict[str, Any]],
+        law_results: List[Dict[str, Any]],
         g_star: float,
     ) -> Dict[str, Any]:
         if not self.client:
@@ -49,7 +49,7 @@ class VaultClient:
             "actor_id": actor_id,
             "verdict": verdict,
             "payload": payload,
-            "floor_results": floor_results,
+            "law_results": law_results,
             "g_star": g_star,
             "prev_hash": prev_hash,
             "timestamp": datetime.utcnow().isoformat(),

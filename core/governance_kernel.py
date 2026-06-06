@@ -24,7 +24,7 @@ def _get_f9_checker():
     global _F9_CLASS
     if _F9_CLASS is None:
         try:
-            from core.shared.floors import F9_AntiHantu
+            from core.shared.laws import F9_AntiHantu
 
             _F9_CLASS = F9_AntiHantu()
         except Exception:
@@ -57,13 +57,13 @@ class AppLayer:
 
 @dataclass(slots=True)
 class FloorClassification:
-    floor_id: str = ""
+    law_id: str = ""
     required: bool = True
 
 
 @dataclass(slots=True)
 class FloorManifesto:
-    floor_id: str = ""
+    law_id: str = ""
     summary: str = ""
 
 

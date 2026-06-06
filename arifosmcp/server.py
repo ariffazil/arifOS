@@ -329,6 +329,46 @@ try:
 
     v2_tools_registered = register_tools(mcp, ingress_middleware=_ingress_middleware)
     _assert_registered_surface(v2_tools_registered)
+
+    # ── Forge Ladder (v3.1) — governed execution surface ────────────────────
+    from arifosmcp.tools.forge_ladder import (
+        forge_dry_run as _forge_dry_run,
+        forge_plan as _forge_plan,
+        forge_query as _forge_query,
+    )
+
+    mcp.tool(
+        name="forge_query",
+        description=(
+            "010_FORGE_QUERY: Read-only system introspection. Safe to call without approval. "
+            "Returns workspace tree, system state, and query result. "
+            "Use this instead of arif_forge_execute(mode='query')."
+        ),
+        tags={"forge", "read-only", "observe"},
+    )(_forge_query)
+
+    mcp.tool(
+        name="forge_plan",
+        description=(
+            "010_FORGE_PLAN: Classify action, estimate blast radius, produce plan. "
+            "Safe to call without approval. Returns action_class, risk_tier, required_tools. "
+            "Required before MUTATE/ATOMIC forge execution."
+        ),
+        tags={"forge", "read-only", "reason"},
+    )(_forge_plan)
+
+    mcp.tool(
+        name="forge_dry_run",
+        description=(
+            "010_FORGE_DRY_RUN: Simulate execution without mutation. "
+            "Safe to call without approval. Returns diff preview, files touched, rollback plan. "
+            "Required before MUTATE/ATOMIC forge execution."
+        ),
+        tags={"forge", "read-only", "reason", "simulate"},
+    )(_forge_dry_run)
+
+    v2_tools_registered.extend(["forge_query", "forge_plan", "forge_dry_run"])
+
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
 
@@ -567,7 +607,7 @@ try:
 
             # ── arif_floor_status (constitutional floor report) ───────────────────
             try:
-                from arifosmcp.runtime.floor import get_floor_status as _get_floor_status
+                from arifosmcp.runtime.law import get_floor_status as _get_floor_status
 
                 def _arif_floor_status(
                     session_id: str | None = None,

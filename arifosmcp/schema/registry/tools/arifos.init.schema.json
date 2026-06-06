@@ -278,7 +278,7 @@
             "enforcement": {"type": "string"}
           }
         },
-        "required": ["F0_SOVEREIGN", "F1_AMANAH", "F2_TRUTH", "F3_TRIWITNESS", "F4_CLARITY", "F5_PEACE2", "F6_THERMO", "F7_GROUNDING", "F8_GOVERNANCE", "F9_ANTIHANTU", "F10_ONTOLOGY", "F11_AUDIT", "F12_RESILIENCE", "F13_SOVEREIGN_SCALE"]
+        "required": ["F0_SOVEREIGN", "F1_AMANAH", "F2_TRUTH", "F3_TRIWITNESS", "F4_CLARITY", "F5_PEACE2", "F6_THERMO", "F7_GROUNDING", "F8_GOVERNANCE", "F9_ANTIHANTU", "L10_ONTOLOGY", "L11_AUDIT", "L12_RESILIENCE", "L13_SOVEREIGN_SCALE"]
       },
 
       "lifecycle": {

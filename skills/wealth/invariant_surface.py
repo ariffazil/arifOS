@@ -1130,7 +1130,7 @@ def wealth_boundary_governance(
     elif mode == "governance":
         result = {"governance_score": sum(scores.values()) / len(scores) if scores else 0}
     elif mode == "incentive":
-        result = {"incentive_aligned": scores.get("F05", 0) > 0.7 if scores else False}
+        result = {"incentive_aligned": scores.get("L05", 0) > 0.7 if scores else False}
     else:
         result = {
             "error": f"Unknown mode: {mode}",

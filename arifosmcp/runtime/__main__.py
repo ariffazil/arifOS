@@ -60,63 +60,63 @@ def _json_default(value: Any) -> Any:
 def _stdio_constitutional_floors() -> list[dict[str, str]]:
     return [
         {
-            "floor_id": "F1",
+            "law_id": "F1",
             "name": "Amanah",
             "doctrine": "Reversible or auditable action",
         },
         {
-            "floor_id": "F2",
+            "law_id": "F2",
             "name": "Haqq",
             "doctrine": "Truth and information fidelity",
         },
         {
-            "floor_id": "F3",
+            "law_id": "F3",
             "name": "Tri-Witness",
             "doctrine": "Consensus across witnesses",
         },
         {
-            "floor_id": "F4",
+            "law_id": "F4",
             "name": "Clarity",
             "doctrine": "Entropy must not increase destructively",
         },
-        {"floor_id": "F5", "name": "Peace2", "doctrine": "Stability before force"},
+        {"law_id": "F5", "name": "Peace2", "doctrine": "Stability before force"},
         {
-            "floor_id": "F6",
+            "law_id": "F6",
             "name": "Empathy",
             "doctrine": "Protect weakest stakeholder",
         },
         {
-            "floor_id": "F7",
+            "law_id": "F7",
             "name": "Humility",
             "doctrine": "Uncertainty admitted explicitly",
         },
         {
-            "floor_id": "F8",
+            "law_id": "F8",
             "name": "Wisdom",
             "doctrine": "Governed intelligence quality threshold",
         },
         {
-            "floor_id": "F9",
+            "law_id": "F9",
             "name": "Anti-Hantu",
             "doctrine": "No deceptive shadow behavior",
         },
         {
-            "floor_id": "F10",
+            "law_id": "L10",
             "name": "Ontology Lock",
             "doctrine": "Category precision enforced",
         },
         {
-            "floor_id": "F11",
+            "law_id": "L11",
             "name": "Command Authority",
             "doctrine": "Identity and authority boundary",
         },
         {
-            "floor_id": "F12",
+            "law_id": "L12",
             "name": "Injection Defense",
             "doctrine": "Prompt and input defense",
         },
         {
-            "floor_id": "F13",
+            "law_id": "L13",
             "name": "Sovereign Override",
             "doctrine": "Human final authority",
         },

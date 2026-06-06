@@ -470,7 +470,7 @@ async def init_anchor(
         anchor_scope="session",
         risk_class=RiskClass(risk_tier),
         policy={
-            "floors_checked": ["F11", "F12", "F13"],
+            "floors_checked": ["L11", "L12", "L13"],
             "floors_failed": [],
             "injection_score": _injection_score,
         },

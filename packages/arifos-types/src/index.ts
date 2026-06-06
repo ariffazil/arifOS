@@ -8,5 +8,5 @@ export { EpistemicTag } from "./epistemic.js";
 export { Verdict, VerdictStatus } from "./verdict.js";
 export { TelemetryPayload } from "./telemetry.js";
 export { AgentMessage } from "./agent_message.js";
-export { FloorResult } from "./floor_result.js";
+export { LawResult } from "./floor_result.js";
 export { ResourceNode } from "./resource_node.js";

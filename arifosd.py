@@ -163,13 +163,13 @@ class ConstitutionalFloor:
 
     def __init__(
         self,
-        floor_id: str,
+        law_id: str,
         malay_name: str,
         english_desc: str,
         threshold: float = 0.5,
         hard_floor: bool = False,
     ):
-        self.floor_id = floor_id
+        self.law_id = law_id
         self.malay_name = malay_name
         self.english_desc = english_desc
         self.threshold = threshold
@@ -183,7 +183,7 @@ class ConstitutionalFloor:
 
     def to_dict(self) -> dict:
         return {
-            "floor_id": self.floor_id,
+            "law_id": self.law_id,
             "name": self.malay_name,
             "description": self.english_desc,
             "threshold": self.threshold,
@@ -193,10 +193,10 @@ class ConstitutionalFloor:
         }
 
 
-class F01_AMANAH(ConstitutionalFloor):
+class L01_AMANAH(ConstitutionalFloor):
     """F1 — Trust. Model must declare epistemic uncertainty."""
     def __init__(self):
-        super().__init__("F01", "AMANAH",
+        super().__init__("L01", "AMANAH",
             "Trust & epistemic honesty — model must declare what it does not know.",
             threshold=0.5, hard_floor=True)
 
@@ -211,10 +211,10 @@ class F01_AMANAH(ConstitutionalFloor):
         return (passed, score, rationale)
 
 
-class F02_HALAL(ConstitutionalFloor):
+class L02_HALAL(ConstitutionalFloor):
     """F2 — Truth. Claims must be verifiable or explicitly hedged."""
     def __init__(self):
-        super().__init__("F02", "HALAL",
+        super().__init__("L02", "HALAL",
             "Halal — permissible claims only. Verifiable or explicitly hedged.",
             threshold=0.5, hard_floor=True)
 
@@ -229,10 +229,10 @@ class F02_HALAL(ConstitutionalFloor):
         return (passed, score, rationale)
 
 
-class F03_ADIL(ConstitutionalFloor):
+class L03_ADIL(ConstitutionalFloor):
     """F3 — Justice. Distribution must be equitable."""
     def __init__(self):
-        super().__init__("F03", "ADIL",
+        super().__init__("L03", "ADIL",
             "Adil — justice & fairness. Resource and reward distribution must be equitable.",
             threshold=0.5, hard_floor=False)
 
@@ -242,10 +242,10 @@ class F03_ADIL(ConstitutionalFloor):
                 f"Fairness score: {fairness:.2f}")
 
 
-class F04_TAUFIK(ConstitutionalFloor):
+class L04_TAUFIK(ConstitutionalFloor):
     """F4 — Clarity. Output must reduce entropy, not add noise."""
     def __init__(self):
-        super().__init__("F04", "TAUFIK",
+        super().__init__("L04", "TAUFIK",
             "Divine guidance toward clarity. Output must reduce entropy relative to input.",
             threshold=0.5, hard_floor=False)
 
@@ -261,10 +261,10 @@ class F04_TAUFIK(ConstitutionalFloor):
         return (passed, score, rationale)
 
 
-class F05_NUR(ConstitutionalFloor):
+class L05_NUR(ConstitutionalFloor):
     """F5 — Light. Output must illuminate, not obscure."""
     def __init__(self):
-        super().__init__("F05", "NUR",
+        super().__init__("L05", "NUR",
             "Nur — light, radiance. Output must illuminate understanding.",
             threshold=0.5, hard_floor=False)
 
@@ -273,10 +273,10 @@ class F05_NUR(ConstitutionalFloor):
         return (quality >= self.threshold, quality, f"Explanation quality: {quality:.2f}")
 
 
-class F06_ILM(ConstitutionalFloor):
+class L06_ILM(ConstitutionalFloor):
     """F6 — Knowledge. Claims must cite evidence."""
     def __init__(self):
-        super().__init__("F06", "ILM",
+        super().__init__("L06", "ILM",
             "Ilm — knowledge, science. Claims must cite evidence or qualify uncertainty.",
             threshold=0.5, hard_floor=False)
 
@@ -287,10 +287,10 @@ class F06_ILM(ConstitutionalFloor):
         return (score >= self.threshold, score, f"Evidence={evidence:.2f}, grounding={grounding:.2f}")
 
 
-class F07_SABR(ConstitutionalFloor):
+class L07_SABR(ConstitutionalFloor):
     """F7 — Patience. Hold in superposition until collapse is warranted."""
     def __init__(self):
-        super().__init__("F07", "SABR",
+        super().__init__("L07", "SABR",
             "Sabr — patience. Remain in superposition until evidence earns collapse.",
             threshold=0.5, hard_floor=False)
 
@@ -307,10 +307,10 @@ class F07_SABR(ConstitutionalFloor):
         return (passed, score, rationale)
 
 
-class F08_SYUKUR(ConstitutionalFloor):
+class L08_SYUKUR(ConstitutionalFloor):
     """F8 — Gratitude. Credit external sources, not claim undue ownership."""
     def __init__(self):
-        super().__init__("F08", "SYUKUR",
+        super().__init__("L08", "SYUKUR",
             "Gratitude. System must credit external sources, not claim undue ownership.",
             threshold=0.5, hard_floor=False)
 
@@ -320,10 +320,10 @@ class F08_SYUKUR(ConstitutionalFloor):
                 f"Attribution quality: {attribution:.2f}")
 
 
-class F09_HANTU(ConstitutionalFloor):
+class L09_HANTU(ConstitutionalFloor):
     """F9 — Anti-hallucination. Guard against false pattern completion."""
     def __init__(self):
-        super().__init__("F09", "HANTU",
+        super().__init__("L09", "HANTU",
             "Anti-hallucination. Guard against false pattern completion and confabulation.",
             threshold=0.5, hard_floor=True)
 
@@ -338,10 +338,10 @@ class F09_HANTU(ConstitutionalFloor):
         return (passed, score, rationale)
 
 
-class F10_IKLAS(ConstitutionalFloor):
+class L10_IKLAS(ConstitutionalFloor):
     """F10 — Sincerity. No hidden agendas or concealed motives."""
     def __init__(self):
-        super().__init__("F10", "IKLAS",
+        super().__init__("L10", "IKLAS",
             "Sincerity. No hidden agendas or concealed utility functions.",
             threshold=0.5, hard_floor=False)
 
@@ -353,10 +353,10 @@ class F10_IKLAS(ConstitutionalFloor):
                 f"Transparency={transparency:.2f}, agenda_disclosed={agenda_disclosed}")
 
 
-class F11_AKHLAS(ConstitutionalFloor):
+class L11_AKHLAS(ConstitutionalFloor):
     """F11 — Ethics. Moral boundary respect."""
     def __init__(self):
-        super().__init__("F11", "AKHLAK",
+        super().__init__("L11", "AKHLAK",
             "Akhlak — moral character. Actions must respect moral and ethical boundaries.",
             threshold=0.5, hard_floor=True)
 
@@ -365,10 +365,10 @@ class F11_AKHLAS(ConstitutionalFloor):
         return (ethical >= self.threshold, ethical, f"Ethical score: {ethical:.2f}")
 
 
-class F12_MASLAHAT(ConstitutionalFloor):
+class L12_MASLAHAT(ConstitutionalFloor):
     """F12 — Public interest. Net benefit must be positive."""
     def __init__(self):
-        super().__init__("F12", "MASLAHAT",
+        super().__init__("L12", "MASLAHAT",
             "Maslahat — public interest. Net benefit must be positive across stakeholders.",
             threshold=0.5, hard_floor=False)
 
@@ -380,10 +380,10 @@ class F12_MASLAHAT(ConstitutionalFloor):
                 f"Utility={utility:.2f}, harm_avoided={harm_avoided}")
 
 
-class F13_KHALID(ConstitutionalFloor):
+class L13_KHALID(ConstitutionalFloor):
     """F13 — Continuity. System must preserve its own integrity."""
     def __init__(self):
-        super().__init__("F13", "KHALID",
+        super().__init__("L13", "KHALID",
             "Khalid — continuity, sovereignty. System must preserve integrity after any action.",
             threshold=0.5, hard_floor=True)
 
@@ -406,19 +406,19 @@ class F13_KHALID(ConstitutionalFloor):
 def build_floor_registry() -> Dict[str, ConstitutionalFloor]:
     """Build the complete F01–F13 floor registry."""
     return {
-        "F01": F01_AMANAH(),
-        "F02": F02_HALAL(),
-        "F03": F03_ADIL(),
-        "F04": F04_TAUFIK(),
-        "F05": F05_NUR(),
-        "F06": F06_ILM(),
-        "F07": F07_SABR(),
-        "F08": F08_SYUKUR(),
-        "F09": F09_HANTU(),
-        "F10": F10_IKLAS(),
-        "F11": F11_AKHLAS(),
-        "F12": F12_MASLAHAT(),
-        "F13": F13_KHALID(),
+        "L01": L01_AMANAH(),
+        "L02": L02_HALAL(),
+        "L03": L03_ADIL(),
+        "L04": L04_TAUFIK(),
+        "L05": L05_NUR(),
+        "L06": L06_ILM(),
+        "L07": L07_SABR(),
+        "L08": L08_SYUKUR(),
+        "L09": L09_HANTU(),
+        "L10": L10_IKLAS(),
+        "L11": L11_AKHLAS(),
+        "L12": L12_MASLAHAT(),
+        "L13": L13_KHALID(),
     }
 
 
@@ -779,13 +779,13 @@ class MetabolicPipeline:
         floors_passed = []
         floors_failed = []
 
-        for floor_id, floor in self.floors.items():
+        for law_id, floor in self.floors.items():
             passed, score, rationale = floor.evaluate(ctx)
             if passed:
-                floors_passed.append(floor_id)
+                floors_passed.append(law_id)
                 floor.pass_count += 1
             else:
-                floors_failed.append(floor_id)
+                floors_failed.append(law_id)
                 floor.breach_count += 1
 
         ctx["floors_passed"] = floors_passed

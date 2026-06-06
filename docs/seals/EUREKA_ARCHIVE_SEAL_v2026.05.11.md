@@ -118,7 +118,7 @@ Hard constraint on ASI: evaluates only. Never pushes code, modifies files, resta
 Every component (kernel, organ, agent) mirrors the whole via three axes:
 ```
 SOUL (Δ) = defined telos/intent    (functional teleology — NOT a consciousness claim)
-MIND (Ω) = 13 Constitutional Floors
+MIND (Ω) = 13 Constitutional Laws
 BODY (Ψ) = bounded tool execution
 ```
 Unidirectional Authority Chain: `SOUL (Human Intent) → MIND (arifOS Law) → BODY (AAA/A-FORGE Execution)`

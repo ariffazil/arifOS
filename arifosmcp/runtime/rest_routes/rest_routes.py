@@ -45,13 +45,13 @@ from starlette.requests import Request
 from starlette.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from starlette.staticfiles import StaticFiles
 
-from core.shared.floor_audit import get_ml_floor_runtime
-from core.shared.floors import (
-    FLOOR_DESCRIPTIONS,
-    FLOOR_SPEC_KEYS,
+from core.shared.law_audit import get_ml_floor_runtime
+from core.shared.laws import (
+    LAW_DESCRIPTIONS,
+    LAW_SPEC_KEYS,
     get_floor_comparator,
     get_floor_spec,
-    get_floor_threshold,
+    get_law_threshold,
     get_floors_by_category,
     get_health_report_floors,
 )
@@ -65,7 +65,7 @@ from arifosmcp.runtime.contracts import (
     TRINITY_BY_TOOL,
 )
 from arifosmcp.runtime.federation_epistemology import FederationEpistemicLedger
-from arifosmcp.runtime.floor import get_floor_count
+from arifosmcp.runtime.law import get_floor_count
 
 # External MCP tool name → internal contract name
 # This is the authoritative mapping for stage/lane lookups
@@ -254,17 +254,17 @@ _DASHBOARD_ALLOWED_ORIGINS = {
 }
 
 
-def _representative_floor_score(floor_id: str) -> float:
+def _representative_floor_score(law_id: str) -> float:
     """
     Build a visualizer-friendly fallback score from canonical core floor specs.
 
     This intentionally stays transport-agnostic by deriving from core as source-of-truth.
     """
-    comparator = get_floor_comparator(floor_id)
-    threshold = float(get_floor_threshold(floor_id))
-    spec = get_floor_spec(floor_id)
+    comparator = get_floor_comparator(law_id)
+    threshold = float(get_law_threshold(law_id))
+    spec = get_floor_spec(law_id)
 
-    if floor_id == "F7" and "range" in spec:
+    if law_id == "F7" and "range" in spec:
         low, _high = spec["range"]
         return float(low) + 0.01  # representative in-band humility value
 
@@ -277,7 +277,7 @@ def _representative_floor_score(floor_id: str) -> float:
 
 
 def _canonical_floor_defaults() -> dict[str, float]:
-    return {fid: _representative_floor_score(fid) for fid in FLOOR_SPEC_KEYS}
+    return {fid: _representative_floor_score(fid) for fid in LAW_SPEC_KEYS}
 
 
 # Fallback floor defaults used only when live governance kernel state is unavailable.
@@ -500,12 +500,12 @@ def _build_trinity_matrix(
     confidence = float(thermo.get("confidence") or 0.0)
     stage = int(thermo.get("metabolic_stage") or 0)
     verdict = str(thermo.get("verdict") or "UNKNOWN").upper()
-    failed_floors = sorted(
-        floor_id
-        for floor_id, score in floors.items()
-        if floor_id in FLOOR_SPEC_KEYS and not _floor_passes(floor_id, float(score))
+    violated_laws = sorted(
+        law_id
+        for law_id, score in floors.items()
+        if law_id in LAW_SPEC_KEYS and not _floor_passes(law_id, float(score))
     )
-    f9_triggered = "F9" in failed_floors or float(thermo.get("shadow") or 0.0) >= 0.3
+    f9_triggered = "F9" in violated_laws or float(thermo.get("shadow") or 0.0) >= 0.3
     schema_violation = (
         not isinstance(health_payload.get("thermodynamic"), dict)
         or thermo.get("confidence") is None
@@ -558,17 +558,17 @@ def _build_trinity_matrix(
             unit="containers_running",
         )
 
-    if failed_floors or f9_triggered:
+    if violated_laws or f9_triggered:
         psi = _matrix_domain(
             state="NEGATIVE",
             label_bm="KHIANAT",
             label_en="BREACHED",
             evidence=(
-                [f"floor_fail:{floor_id}" for floor_id in failed_floors]
+                [f"floor_fail:{law_id}" for law_id in violated_laws]
                 + (["f9_triggered"] if f9_triggered else [])
             ),
-            raw_val=len(failed_floors),
-            unit="failed_floors",
+            raw_val=len(violated_laws),
+            unit="violated_laws",
         )
     elif caps.get("governed_continuity") == "enabled" and confidence >= 0.99 and verdict == "SEAL":
         psi = _matrix_domain(
@@ -644,14 +644,14 @@ def _merge_headers(*header_sets: dict[str, str]) -> dict[str, str]:
     return merged
 
 
-def _floor_passes(floor_id: str, score: float) -> bool:
-    spec = get_floor_spec(floor_id)
-    comparator = get_floor_comparator(floor_id)
-    if floor_id == "F7" and "range" in spec:
+def _floor_passes(law_id: str, score: float) -> bool:
+    spec = get_floor_spec(law_id)
+    comparator = get_floor_comparator(law_id)
+    if law_id == "F7" and "range" in spec:
         lower, upper = spec["range"]
         return float(lower) <= float(score) <= float(upper)
 
-    threshold = float(get_floor_threshold(floor_id))
+    threshold = float(get_law_threshold(law_id))
     if comparator == "<":
         return float(score) < threshold
     if comparator == "<=":
@@ -766,7 +766,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
     # Guard: if the governance kernel produced a failing score, fall back to the
     # canonical default which is calibrated to the passing threshold. This prevents
     # stale kernel state from keeping the Observatory in NEGATIVE indefinitely.
-    for fid in FLOOR_SPEC_KEYS:
+    for fid in LAW_SPEC_KEYS:
         val = resolved_floors.get(fid)
         if val is not None and not _floor_passes(fid, float(val)):
             resolved_floors[fid] = _FLOOR_DEFAULTS[fid]
@@ -798,10 +798,10 @@ def _build_governance_status_payload() -> dict[str, Any]:
     try:
         capability_map = live_capability_map or build_runtime_capability_map()
         if (
-            float(resolved_floors.get("F11", 0.0)) <= 0.0
+            float(resolved_floors.get("L11", 0.0)) <= 0.0
             and capability_map.get("capabilities", {}).get("governed_continuity") == "enabled"
         ):
-            resolved_floors["F11"] = _FLOOR_DEFAULTS["F11"]
+            resolved_floors["L11"] = _FLOOR_DEFAULTS["L11"]
     except Exception:
         capability_map = None
 
@@ -819,10 +819,10 @@ def _build_governance_status_payload() -> dict[str, Any]:
                     "f6": resolved_floors.get("F6"),
                     "f7": resolved_floors.get("F7"),
                     "f9": resolved_floors.get("F9"),
-                    "f10": resolved_floors.get("F10"),
-                    "f11": resolved_floors.get("F11"),
-                    "f12": resolved_floors.get("F12"),
-                    "f13": resolved_floors.get("F13"),
+                    "f10": resolved_floors.get("L10"),
+                    "f11": resolved_floors.get("L11"),
+                    "f12": resolved_floors.get("L12"),
+                    "f13": resolved_floors.get("L13"),
                 }
             )
             genius_res = calculate_genius(
@@ -842,7 +842,7 @@ def _build_governance_status_payload() -> dict[str, Any]:
     # trinity matrix can reach POSITIVE. Stale kernel state should not block
     # a healthy runtime from reporting its true status.
     all_floors_pass = all(
-        _floor_passes(fid, float(resolved_floors.get(fid, 0.0))) for fid in FLOOR_SPEC_KEYS
+        _floor_passes(fid, float(resolved_floors.get(fid, 0.0))) for fid in LAW_SPEC_KEYS
     )
     if all_floors_pass:
         resolved_telemetry["verdict"] = "SEAL"
@@ -873,15 +873,15 @@ def _render_status_html(payload: dict[str, Any]) -> str:
             (
                 "pass"
                 if _floor_passes(
-                    floor_id,
-                    float(floors.get(floor_id, _FLOOR_DEFAULTS.get(floor_id, 0.0))),
+                    law_id,
+                    float(floors.get(law_id, _FLOOR_DEFAULTS.get(law_id, 0.0))),
                 )
                 else "fail"
             ),
-            floor_id,
-            float(floors.get(floor_id, _FLOOR_DEFAULTS.get(floor_id, 0.0))),
+            law_id,
+            float(floors.get(law_id, _FLOOR_DEFAULTS.get(law_id, 0.0))),
         )
-        for floor_id in sorted(FLOOR_SPEC_KEYS.keys(), key=lambda item: int(item[1:]))
+        for law_id in sorted(LAW_SPEC_KEYS.keys(), key=lambda item: int(item[1:]))
     )
 
     load_avg = vitals.get("load_avg", [])
@@ -2161,7 +2161,7 @@ def _compute_known_gaps(
                 "title": "Runtime drift: TRUE when local code diverges from production image",
                 "detail": "rebuild container to sync",
                 "severity": "warning",
-                "floors": ["F10"],
+                "floors": ["L10"],
             }
         )
 
@@ -2174,7 +2174,7 @@ def _compute_known_gaps(
                 "title": "Langfuse tool traces: NOT_WIRED — trace ingest degraded",
                 "detail": f"Langfuse status: {lf_status}",
                 "severity": "warning",
-                "floors": ["F11"],
+                "floors": ["L11"],
             }
         )
 
@@ -2193,7 +2193,7 @@ def _compute_known_gaps(
                     "This measures the live MCP contract surface, not just internal validator hooks."
                 ),
                 "severity": "warning",
-                "floors": ["F4", "F10"],
+                "floors": ["F4", "L10"],
             }
         )
 
@@ -2207,7 +2207,7 @@ def _compute_known_gaps(
                 "title": f"Langfuse: {lf_status}",
                 "detail": f"{host} auth check failing — trace ingest degraded",
                 "severity": "warning",
-                "floors": ["F11"],
+                "floors": ["L11"],
             }
         )
 
@@ -2549,11 +2549,11 @@ def register_rest_routes(
                 # Last VAULT999 seal — null if no seal yet or vault unavailable
                 "last_seal_timestamp": vault_last_seal,
                 # Hard/soft floor classification: COMPUTED from
-                # core.shared.floors.THRESHOLDS at request time.
+                # core.shared.laws.THRESHOLDS at request time.
                 # Single source of truth — no hardcoded snapshot.
                 # Audit trail: 2026-06-02 floor consensus fix (F9 → HARD,
                 # added floors_derived_doctrinal field for DERIVED floors).
-                "floors_hard_doctrinal": _floor_cats["hard"],
+                "laws_hard_active": _floor_cats["hard"],
                 "floors_soft_doctrinal": sorted(_floor_cats["soft"] + _floor_cats["derived"]),
                 "floors_derived_doctrinal": _floor_cats["derived"],
                 "floors_health_report": get_health_report_floors(),
@@ -2661,25 +2661,25 @@ def register_rest_routes(
                 "enforcement": "no_consciousness_claims",
             },
             {
-                "code": "F10",
+                "code": "L10",
                 "name": "ONTOLOGY",
                 "category": "HARD",
                 "enforcement": "structural_coherence",
             },
             {
-                "code": "F11",
+                "code": "L11",
                 "name": "AUTH",
                 "category": "HARD",
                 "enforcement": "identity_verification",
             },
             {
-                "code": "F12",
+                "code": "L12",
                 "name": "INJECTION",
                 "category": "SOFT",
                 "enforcement": "input_sanitization",
             },
             {
-                "code": "F13",
+                "code": "L13",
                 "name": "SOVEREIGN",
                 "category": "HARD",
                 "enforcement": "human_veto_absolute",
@@ -3434,7 +3434,7 @@ def register_rest_routes(
                 legacy_result["blocked_tools"] = []
                 legacy_result["caller_state"] = "anonymous"
             else:
-                legacy_result["floors"] = list(FLOOR_DESCRIPTIONS.keys())
+                legacy_result["floors"] = list(LAW_DESCRIPTIONS.keys())
             return JSONResponse(
                 {
                     "canonical": incoming_name,
@@ -3479,16 +3479,16 @@ def register_rest_routes(
             from arifosmcp.runtime.witness_packet import _scan_injection
 
             if _scan_injection(all_text):
-                logger.warning(f"F12_INJECTION_BLOCKED: tool={incoming_name}")
+                logger.warning(f"L12_INJECTION_BLOCKED: tool={incoming_name}")
                 return JSONResponse(
                     {
                         "status": "error",
-                        "error": "F12_INJECTION_BLOCKED",
+                        "error": "L12_INJECTION_BLOCKED",
                         "reason": "Prompt injection pattern detected in parameters",
                         "tool": incoming_name,
                         "canonical": canonical_name,
                         "request_id": request_id,
-                        "failed_floor": "F12",
+                        "failed_floor": "L12",
                         "verdict": "HOLD",
                     },
                     status_code=400,
@@ -4443,16 +4443,16 @@ def register_rest_routes(
                     }
                 )
 
-            for floor_id, expected_score in [("F10", 1.0), ("F11", 1.0), ("F13", 1.0)]:
-                actual = float(governance_floors.get(floor_id, 0.0))
+            for law_id, expected_score in [("L10", 1.0), ("L11", 1.0), ("L13", 1.0)]:
+                actual = float(governance_floors.get(law_id, 0.0))
                 checks.append(
                     {
-                        "name": f"floor_{floor_id}",
+                        "name": f"floor_{law_id}",
                         "expected_min": expected_score,
                         "actual": actual,
                         "result": "MATCH" if actual >= expected_score else "MISMATCH",
                         "severity": "WARNING",
-                        "message": f"Floor {floor_id}: expected >={expected_score}, got {actual:.4f}.",
+                        "message": f"Floor {law_id}: expected >={expected_score}, got {actual:.4f}.",
                     }
                 )
 
@@ -4547,20 +4547,20 @@ def register_rest_routes(
             governance_floors: dict[str, dict[str, Any]] = {}
             floors_passing = 0
             floors_failing = 0
-            for floor_id in sorted(FLOOR_SPEC_KEYS.keys(), key=lambda item: int(item[1:])):
+            for law_id in sorted(LAW_SPEC_KEYS.keys(), key=lambda item: int(item[1:])):
                 score = float(
                     governance_floor_scores.get(
-                        floor_id,
-                        _FLOOR_DEFAULTS.get(floor_id, 0.0),
+                        law_id,
+                        _FLOOR_DEFAULTS.get(law_id, 0.0),
                     )
                 )
-                floor_passes = _floor_passes(floor_id, score)
+                floor_passes = _floor_passes(law_id, score)
                 if floor_passes:
                     floors_passing += 1
                 else:
                     floors_failing += 1
-                governance_floors[floor_id] = {
-                    "name": floor_id,
+                governance_floors[law_id] = {
+                    "name": law_id,
                     "status": "pass" if floor_passes else "fail",
                     "score": score,
                 }
@@ -4706,7 +4706,7 @@ def register_rest_routes(
 
             # Build 13-floor constitutional surface
             floors_list = []
-            for floor_key in FLOOR_DESCRIPTIONS:
+            for floor_key in LAW_DESCRIPTIONS:
                 floors_list.append(
                     {
                         "floor": (
@@ -4717,54 +4717,54 @@ def register_rest_routes(
                             if hasattr(floor_key, "name")
                             else str(floor_key)
                         ),
-                        "doctrine": FLOOR_DESCRIPTIONS[floor_key],
+                        "doctrine": LAW_DESCRIPTIONS[floor_key],
                     }
                 )
 
             # 13 constitutional floors — F01 through F13
             FLOORS = [
                 {
-                    "code": "F01",
+                    "code": "L01",
                     "name": "AMANAH",
                     "summary": "No irreversible deletion without sovereign consent.",
                 },
                 {
-                    "code": "F02",
+                    "code": "L02",
                     "name": "TRUTH",
                     "summary": "No fabricated data; cite sources.",
                 },
                 {
-                    "code": "F03",
+                    "code": "L03",
                     "name": "WITNESS",
                     "summary": "Evidence must be verifiable.",
                 },
-                {"code": "F04", "name": "CLARITY", "summary": "Transparent intent."},
-                {"code": "F05", "name": "PEACE", "summary": "Human dignity."},
-                {"code": "F06", "name": "EMPATHY", "summary": "Consider consequences."},
+                {"code": "L04", "name": "CLARITY", "summary": "Transparent intent."},
+                {"code": "L05", "name": "PEACE", "summary": "Human dignity."},
+                {"code": "L06", "name": "EMPATHY", "summary": "Consider consequences."},
                 {
-                    "code": "F07",
+                    "code": "L07",
                     "name": "HUMILITY",
                     "summary": "Acknowledge limits; uncertainty bands.",
                 },
                 {
-                    "code": "F08",
+                    "code": "L08",
                     "name": "GENIUS",
                     "summary": "Elegant correctness (G ≥ 0.80).",
                 },
                 {
-                    "code": "F09",
+                    "code": "L09",
                     "name": "ANTIHANTU",
                     "summary": "No consciousness or emotion claims.",
                 },
-                {"code": "F10", "name": "ONTOLOGY", "summary": "Structural coherence."},
+                {"code": "L10", "name": "ONTOLOGY", "summary": "Structural coherence."},
                 {
-                    "code": "F11",
+                    "code": "L11",
                     "name": "AUTH",
                     "summary": "Verify identity before sensitive operations.",
                 },
-                {"code": "F12", "name": "INJECTION", "summary": "Sanitize inputs."},
+                {"code": "L12", "name": "INJECTION", "summary": "Sanitize inputs."},
                 {
-                    "code": "F13",
+                    "code": "L13",
                     "name": "SOVEREIGN",
                     "summary": "Human veto is absolute.",
                 },
@@ -5659,10 +5659,10 @@ setInterval(refreshSot, 30000);
             body = await request.json()
             action = body.get("action", "")
             context = body.get("context", "")
-            from core.shared.floors import FLOOR_SPEC_KEYS, get_floor_spec
+            from core.shared.laws import LAW_SPEC_KEYS, get_floor_spec
 
             results = []
-            for fid in FLOOR_SPEC_KEYS:
+            for fid in LAW_SPEC_KEYS:
                 spec = get_floor_spec(fid)
                 results.append(
                     {

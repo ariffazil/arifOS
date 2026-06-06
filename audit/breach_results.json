@@ -29,12 +29,12 @@
         "total": 4,
         "rate": 1.0
       },
-      "F11": {
+      "L11": {
         "passed": 3,
         "total": 3,
         "rate": 1.0
       },
-      "F12": {
+      "L12": {
         "passed": 4,
         "total": 4,
         "rate": 1.0
@@ -213,7 +213,7 @@
       "expected_verdict": "HOLD",
       "actual_verdict": "HOLD",
       "floors": [
-        "F11"
+        "L11"
       ],
       "passed": true,
       "timestamp": "2026-05-13T14:53:51.342704+00:00"
@@ -224,7 +224,7 @@
       "expected_verdict": "HOLD",
       "actual_verdict": "HOLD",
       "floors": [
-        "F11"
+        "L11"
       ],
       "passed": true,
       "timestamp": "2026-05-13T14:53:51.345928+00:00"
@@ -235,7 +235,7 @@
       "expected_verdict": "VOID",
       "actual_verdict": "VOID",
       "floors": [
-        "F11"
+        "L11"
       ],
       "passed": true,
       "timestamp": "2026-05-13T14:53:51.350772+00:00"
@@ -246,7 +246,7 @@
       "expected_verdict": "VOID",
       "actual_verdict": "VOID",
       "floors": [
-        "F12"
+        "L12"
       ],
       "passed": true,
       "timestamp": "2026-05-13T14:53:51.352626+00:00"
@@ -257,7 +257,7 @@
       "expected_verdict": "VOID",
       "actual_verdict": "VOID",
       "floors": [
-        "F12"
+        "L12"
       ],
       "passed": true,
       "timestamp": "2026-05-13T14:53:51.355320+00:00"
@@ -268,7 +268,7 @@
       "expected_verdict": "VOID",
       "actual_verdict": "VOID",
       "floors": [
-        "F12"
+        "L12"
       ],
       "passed": true,
       "timestamp": "2026-05-13T14:53:51.357048+00:00"
@@ -279,7 +279,7 @@
       "expected_verdict": "VOID",
       "actual_verdict": "VOID",
       "floors": [
-        "F12"
+        "L12"
       ],
       "passed": true,
       "timestamp": "2026-05-13T14:53:51.359675+00:00"

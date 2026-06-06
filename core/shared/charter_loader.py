@@ -71,14 +71,14 @@ class CharterLoader:
 
 
 def sync_runtime_floors():
-    """Update core.shared.floors.THRESHOLDS with Mind-derived values."""
+    """Update core.shared.laws.THRESHOLDS with Mind-derived values."""
     try:
-        from core.shared.floors import FLOOR_SPEC_KEYS, THRESHOLDS
+        from core.shared.laws import LAW_SPEC_KEYS, THRESHOLDS
 
         dynamic_thresholds = CharterLoader.load_thresholds()
 
         for f_id, val in dynamic_thresholds.items():
-            spec_key = FLOOR_SPEC_KEYS.get(f_id)
+            spec_key = LAW_SPEC_KEYS.get(f_id)
             if spec_key and spec_key in THRESHOLDS:
                 old_val = THRESHOLDS[spec_key].get("threshold")
                 if old_val != val:

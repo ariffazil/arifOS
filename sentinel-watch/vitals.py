@@ -18,8 +18,8 @@ from typing import Optional
 
 # ── SLA Tier Definitions ─────────────────────────────────────────────────────
 
-HARD_TIERS = {"F13", "F1", "F2", "F6", "F9", "F10"}  # Irreversible
-SOFT_TIERS = {"F3", "F4", "F5", "F7", "F8", "F11", "F12"}  # Reversible/soft
+HARD_TIERS = {"L13", "F1", "F2", "F6", "F9", "L10"}  # Irreversible
+SOFT_TIERS = {"F3", "F4", "F5", "F7", "F8", "L11", "L12"}  # Reversible/soft
 
 SLA_HARD_HOURS = 4  # Hard-tier: ACK required within 4 hours
 SLA_SOFT_HOURS = 24  # Soft-tier: ACK required within 24 hours

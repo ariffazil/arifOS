@@ -203,21 +203,21 @@ class WebMCPGateway:
             shield_report = await self.injection_guard.scan_request(request)
             if shield_report.is_injection:
                 logger.warning(
-                    f"F12_INJECTION_BLOCKED: {shield_report.category} "
+                    f"L12_INJECTION_BLOCKED: {shield_report.category} "
                     f"score={shield_report.score:.2f} session={session_id}"
                 )
                 return JSONResponse(
                     status_code=403,
                     content={
                         "verdict": "VOID",
-                        "floor": "F12_INJECTION",
+                        "floor": "L12_INJECTION",
                         "error": "Request blocked by constitutional guard",
                         "category": shield_report.category,
                         "session_id": session_id,
                     },
                     headers={
                         "X-Constitutional-Verdict": "VOID",
-                        "X-Failed-Floor": "F12",
+                        "X-Failed-Floor": "L12",
                     },
                 )
 
@@ -726,28 +726,28 @@ class WebMCPGateway:
                         "enforces": "No dark patterns",
                     },
                     {
-                        "id": "F10",
+                        "id": "L10",
                         "name": "Ontology",
                         "type": "Wall",
                         "threshold": "LOCK",
                         "enforces": "No consciousness claims",
                     },
                     {
-                        "id": "F11",
+                        "id": "L11",
                         "name": "Command Auth",
                         "type": "Hard",
                         "threshold": "LOCK",
                         "enforces": "Identity verification",
                     },
                     {
-                        "id": "F12",
+                        "id": "L12",
                         "name": "Injection",
                         "type": "Wall",
                         "threshold": "< 0.85",
                         "enforces": "Block adversarial control",
                     },
                     {
-                        "id": "F13",
+                        "id": "L13",
                         "name": "Sovereign",
                         "type": "Veto",
                         "threshold": "HUMAN",

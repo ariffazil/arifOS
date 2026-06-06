@@ -111,7 +111,7 @@ This is the foundation of arifOS:
 
 ---
 
-## 8. Constitutional Floors Binding This Seal
+## 8. Constitutional Laws Binding This Seal
 
 - **F01 Amanah** — Reversible, auditable, anchored
 - **F07 Humility** — Uncertainty explicit, claims bounded

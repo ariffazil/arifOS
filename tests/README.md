@@ -2,7 +2,7 @@
 
 **Philosophy:** Every test answers *"Does the system govern AI correctly?"*
 
-This test suite verifies that arifOS's 13 Constitutional Floors (F1-F13) are actually enforced, not just that code runs.
+This test suite verifies that arifOS's 13 Constitutional Laws (F1-F13) are actually enforced, not just that code runs.
 
 ## Test Structure
 

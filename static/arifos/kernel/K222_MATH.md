@@ -35,7 +35,7 @@
 
 ---
 
-## II. Constitutional Floors (The Hard Law F1-F13)
+## II. Constitutional Laws (The Hard Law F1-F13)
 
 | Floor | Name | Threshold | Violation |
 |-------|------|-----------|-----------|

@@ -52,7 +52,7 @@ The gap between current state and the vision is not primarily a conceptual gap �
 
 ## The Architecture That Makes It Work
 
-### The Thirteen Constitutional Floors (F1–F13)
+### The Thirteen Constitutional Laws (F1–F13)
 
 Nine hard floors (cannot be overridden by any agent) and four soft floors (advisory, contextual). The hard floors include:
 

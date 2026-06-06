@@ -21,7 +21,7 @@ import logging
 import random
 from typing import Any
 
-from arifosmcp.runtime.floor import check_floors
+from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.reality_handlers import handler as reality_handler
 from arifosmcp.runtime.reality_models import BundleInput
 from arifosmcp.runtime.session_auth import validate_session
@@ -187,7 +187,7 @@ def arif_sense_observe(
         else:
             if auth.get("expired"):
                 return _sabar("arif_sense_observe", auth["reason"], session_id=session_id)
-            return _hold("arif_sense_observe", auth["reason"], ["F11"], session_id=session_id)
+            return _hold("arif_sense_observe", auth["reason"], ["L11"], session_id=session_id)
 
     q = query or url or ""
 
@@ -277,9 +277,9 @@ def arif_sense_observe(
             },
         )
 
-    floor_check = check_floors("arif_sense_observe", {"query": query or ""}, actor_id)
+    floor_check = check_laws("arif_sense_observe", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_sense_observe", floor_check["reason"], floor_check["failed_floors"])
+        return _hold("arif_sense_observe", floor_check["reason"], floor_check["violated_laws"])
 
     if partition_mode == "DEAD":
         return {
@@ -289,7 +289,7 @@ def arif_sense_observe(
             "meta": {
                 "partition": "DEAD",
                 "reason": "Witness unreachable — CANDIDATE_SEAL escalation required",
-                "failed_floors": [],
+                "violated_laws": [],
             },
         }
 
@@ -571,7 +571,7 @@ def arif_sense_observe(
             return _hold(
                 "arif_sense_observe",
                 f"F12 INJECTION: Destructive pattern detected — {', '.join(threat_names) or 'CRITICAL'}",
-                ["F12"],
+                ["L12"],
                 session_id=session_id,
             )
         try:

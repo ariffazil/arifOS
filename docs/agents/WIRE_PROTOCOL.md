@@ -33,7 +33,7 @@ class AgentMessage:
 
     # Constitutional context
     floors_active: list[str]     # F1-F13 floors relevant to this message
-    constitutional_tags: list[str]  # e.g., ["F1_AMANAH", "F09_ANTIHANTU"]
+    constitutional_tags: list[str]  # e.g., ["F1_AMANAH", "L09_ANTIHANTU"]
 
     # Routing
     session_id: str          # Associated session
@@ -111,7 +111,7 @@ A-ENGINEER
     │
     │ ERROR: "F9 violation in proposed code"
     ▼
-A-AUDITOR ──► A-AUDITOR.REJECT("Cannot proceed: F09_ANTIHANTU violated")
+A-AUDITOR ──► A-AUDITOR.REJECT("Cannot proceed: L09_ANTIHANTU violated")
     │
     ▼
 A-ARCHITECT ──► A-ARCHITECT.NOTIFY("Design rejected, revise")
@@ -204,7 +204,7 @@ A-ARCHITECT ──► A-ARCHITECT.NOTIFY("Design rejected, revise")
   "action": "REJECT",
   "payload": {
     "task_id": "task_042",
-    "reason": "F09_ANTIHANTU violation: proposed code allows shell injection",
+    "reason": "L09_ANTIHANTU violation: proposed code allows shell injection",
     "floor": "F9",
     "suggestion": "Add input sanitization before code_engine call"
   },

@@ -67,7 +67,7 @@ Architecture
 └── 000→999 Metabolic Loop Diagram
 
 Stats
-├── 13 Constitutional Floors
+├── 13 Constitutional Laws
 ├── 11 Public Tools
 ├── 3 Trinity Engines
 └── <50ms Overhead
@@ -144,7 +144,7 @@ Core Concepts
 ├── Overview
 ├── Metabolic Loop
 ├── Trinity Engines (ΔΩΨ)
-└── 13 Constitutional Floors
+└── 13 Constitutional Laws
 
 API Reference
 ├── All Tools

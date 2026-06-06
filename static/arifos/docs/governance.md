@@ -2,14 +2,14 @@
 id: governance
 title: Governance & Floors
 sidebar_position: 4
-description: The 13 Constitutional Floors, the 000999 metabolic loop, verdict system, and the 888_HOLD human override.
+description: The 13 Constitutional Laws, the 000999 metabolic loop, verdict system, and the 888_HOLD human override.
 ---
 
 # Governance & Floors
 
 arifOS enforces 13 constitutional floors before governed work is allowed to proceed. The public contract is intentionally smaller than the internal stage graph: public clients use 8 tools, while the kernel still executes the full 000→999 path internally.
 
-## The 13 Constitutional Floors
+## The 13 Constitutional Laws
 
 Hard floors return `VOID`; softer constraints return `PARTIAL` or `SABAR`; high-stakes operations escalate to `888_HOLD`.
 

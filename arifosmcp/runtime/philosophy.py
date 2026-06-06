@@ -394,7 +394,7 @@ def select_governed_philosophy(
     stage: str = "444",
     verdict: str = "SABAR",
     g_score: float = 0.5,
-    failed_floors: list[str] | None = None,
+    violated_laws: list[str] | None = None,
     session_id: str = "global",
     delta_s: float = 0.0,
     omega_score: float = 0.05,
@@ -456,7 +456,7 @@ def _infer_role_from_stage(stage: str) -> str:
 def get_philosophical_anchor(
     stage: str,
     g_score: float,
-    failed_floors: list[str],
+    violated_laws: list[str],
     session_id: str = "global",
     context: str = "",
     label: str | None = None,
@@ -467,7 +467,7 @@ def get_philosophical_anchor(
         stage=stage,
         verdict="SABAR",
         g_score=g_score,
-        failed_floors=failed_floors,
+        violated_laws=violated_laws,
         session_id=session_id,
     )
     primary = result.get("primary_quote", {})
@@ -483,7 +483,7 @@ def get_semantic_wisdom(
     context: str,
     stage: str = "444",
     g_score: float = 0.9,
-    failed_floors: list[str] | None = None,
+    violated_laws: list[str] | None = None,
     verdict: str = "SABAR",
     label: str | None = None,
 ) -> tuple[dict[str, Any] | None, str]:
@@ -493,7 +493,7 @@ def get_semantic_wisdom(
         stage=stage,
         verdict=verdict,
         g_score=g_score,
-        failed_floors=failed_floors or [],
+        violated_laws=violated_laws or [],
         session_id="semantic_wisdom",
     )
     primary = result.get("primary_quote")
@@ -506,10 +506,10 @@ def get_wisdom_for_context(
     context: str,
     stage: str = "444",
     g_score: float = 0.9,
-    failed_floors: list[str] | None = None,
+    violated_laws: list[str] | None = None,
 ) -> Quote:
     """Legacy API - use select_governed_philosophy instead."""
-    anchor = get_philosophical_anchor(stage, g_score, failed_floors or [], context=context)
+    anchor = get_philosophical_anchor(stage, g_score, violated_laws or [], context=context)
     return anchor
 
 

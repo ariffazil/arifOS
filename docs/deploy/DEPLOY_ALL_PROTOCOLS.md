@@ -203,7 +203,7 @@ ls -la arifosmcp/runtime/a2a/__init__.py
 │  └── WebSocket support                                     │
 │                                                              │
 │  All protocols enforce:                                    │
-│  ├── F1-F13 Constitutional Floors                          │
+│  ├── F1-F13 Constitutional Laws                          │
 │  ├── VAULT999 audit logging                                │
 │  └── Thermodynamic governance (ΔΩΨ)                        │
 │                                                              │

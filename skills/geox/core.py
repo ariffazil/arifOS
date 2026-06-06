@@ -55,6 +55,6 @@ def evaluate_prospect(prospect_id: str) -> GeoxVerdict:
         floor_alignment={
             "F2_TRUTH": "τ < 0.90",
             "F4_CLARITY": "Passed (CRS: WGS84)",
-            "F13_SOVEREIGN": "888_HOLD Required",
+            "L13_SOVEREIGN": "888_HOLD Required",
         },
     )

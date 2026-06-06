@@ -12,7 +12,7 @@
 
 The **Nervous System 9** is the internal infrastructure layer of arifOS — nine hardened tools that provide system introspection, resource monitoring, and operational capabilities while maintaining full constitutional governance (000_INIT → 999_VAULT).
 
-Unlike the 23 public tools that face external clients, these 9 tools form the "sense organs" of the system — they feel, monitor, and report on the internal state while staying fully governed by the 13 Constitutional Floors.
+Unlike the 23 public tools that face external clients, these 9 tools form the "sense organs" of the system — they feel, monitor, and report on the internal state while staying fully governed by the 13 Constitutional Laws.
 
 ### Why 9 Tools?
 
@@ -371,7 +371,7 @@ schemas = await list_resources(
   "resources": [
     {
       "uri": "canon://floors",
-      "name": "Constitutional Floors",
+      "name": "Constitutional Laws",
       "description": "All 13 floors with thresholds",
       "mimeType": "application/json",
       "size": 2048
@@ -896,7 +896,7 @@ Example error response:
   "verdict": "VOID",
   "status": "ERROR",
   "payload": {
-    "error": "F12_INJECTION_DETECTED",
+    "error": "L12_INJECTION_DETECTED",
     "message": "Path contains traversal pattern: '../../../etc/passwd'",
     "pattern": "PATH_TRAVERSAL"
   }

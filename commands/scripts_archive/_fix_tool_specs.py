@@ -11,7 +11,7 @@ new_block = """    # -----------------------------------------------------------
         layer="MACHINE",
         description="Probe system status or component health (system, memory, vault, etc.).",
         trinity="Δ",
-        floors=("F4", "F12"),
+        floors=("F4", "L12"),
         input_schema={
             "type": "object",
             "properties": {
@@ -36,7 +36,7 @@ new_block = """    # -----------------------------------------------------------
         layer="EXECUTION",
         description="Maintainer: Run substrate protocol conformance check.",
         trinity="Ψ",
-        floors=("F11",),
+        floors=("L11",),
         input_schema={
             "type": "object",
             "properties": {

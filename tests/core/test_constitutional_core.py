@@ -101,7 +101,7 @@ class TestFloorEvaluator:
         )
         threat = ThreatAssessment(irreversibility=IrreversibilityLevel.NONE)
         floors = FloorEvaluator.evaluate(ctx, threat)
-        assert "F01" in floors.failed_floors
+        assert "L01" in floors.violated_laws
         assert floors.verdict == "HOLD"
 
     def test_f01_amanah_read_only_skipped(self) -> None:
@@ -113,7 +113,7 @@ class TestFloorEvaluator:
         )
         threat = ThreatAssessment(irreversibility=IrreversibilityLevel.NONE)
         floors = FloorEvaluator.evaluate(ctx, threat)
-        assert "F01" not in floors.failed_floors
+        assert "L01" not in floors.violated_laws
         assert floors.verdict == "SEAL"
 
     def test_f11_audit_fake_session(self) -> None:
@@ -127,7 +127,7 @@ class TestFloorEvaluator:
         )
         threat = ThreatAssessment()
         floors = FloorEvaluator.evaluate(ctx, threat)
-        assert "F11" in floors.failed_floors
+        assert "L11" in floors.violated_laws
         assert floors.verdict == "HOLD"
 
     def test_f11_audit_fake_agent(self) -> None:
@@ -140,7 +140,7 @@ class TestFloorEvaluator:
         )
         threat = ThreatAssessment()
         floors = FloorEvaluator.evaluate(ctx, threat)
-        assert "F11" in floors.failed_floors
+        assert "L11" in floors.violated_laws
 
     def test_f12_injection_sql(self) -> None:
         ctx = ActionContext(
@@ -150,7 +150,7 @@ class TestFloorEvaluator:
         )
         threat = ThreatEngine.classify(ctx)
         floors = FloorEvaluator.evaluate(ctx, threat)
-        assert "F12" in floors.failed_floors
+        assert "L12" in floors.violated_laws
 
     def test_f13_sovereign_ai_plan_approve(self) -> None:
         ctx = ActionContext(
@@ -162,7 +162,7 @@ class TestFloorEvaluator:
         )
         threat = ThreatAssessment()
         floors = FloorEvaluator.evaluate(ctx, threat)
-        assert "F13_VIOLATION" in floors.failed_floors
+        assert "L13_VIOLATION" in floors.violated_laws
         assert floors.verdict == "VOID"
 
     def test_f13_sovereign_missing_witness_is_hold(self) -> None:
@@ -175,7 +175,7 @@ class TestFloorEvaluator:
         )
         threat = ThreatAssessment()
         floors = FloorEvaluator.evaluate(ctx, threat)
-        assert "F13" in floors.failed_floors
+        assert "L13" in floors.violated_laws
         assert floors.verdict == "HOLD"  # Procedural failure, not sovereignty violation
 
 
@@ -259,7 +259,7 @@ class TestConstitutionKernel:
         )
         result = self.kernel.evaluate(ctx)
         assert result.verdict == "HOLD"
-        assert "F01" in result.floors.failed_floors
+        assert "L01" in result.floors.violated_laws
 
     def test_url_validation_at_pydantic_layer(self) -> None:
         with pytest.raises(ValueError, match="Invalid URL scheme"):
@@ -283,7 +283,7 @@ class TestConstitutionKernel:
         # Instead, verify hash structure and that identical inputs produce similar proofs.
         assert len(result1.state_hash) == 64  # SHA-256 hex
         assert result1.verdict == result2.verdict
-        assert result1.floors.failed_floors == result2.floors.failed_floors
+        assert result1.floors.violated_laws == result2.floors.violated_laws
 
 
 class TestBootInvariantChecker:

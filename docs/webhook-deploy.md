@@ -69,7 +69,7 @@ Active:          ✓
 
 ---
 
-## Security Model (Constitutional Floors)
+## Security Model (Constitutional Laws)
 
 | Floor | Role | Enforcement |
 |-------|------|-------------|

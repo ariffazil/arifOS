@@ -44,9 +44,9 @@ def patch_budget_contract():
 
 def test_budget_turn_hold_has_reasons_plural():
     """Budget HOLD must include reasons[] (plural list)."""
-    from arifosmcp.runtime.floor import check_floors, VerdictLabel
+    from arifosmcp.runtime.law import check_laws, VerdictLabel
 
-    result = check_floors(
+    result = check_laws(
         tool_name="arif_mind_reason",
         params={"mode": "reason", "query": "test", "session_id": "test-session-g4"},
         actor_id=None,
@@ -56,14 +56,14 @@ def test_budget_turn_hold_has_reasons_plural():
     assert "reasons" in result, "Budget HOLD must include 'reasons' (plural list)"
     assert isinstance(result["reasons"], list), "reasons must be a list"
     assert len(result["reasons"]) > 0, "reasons list must not be empty"
-    assert result["failed_floors"] == ["BUDGET"]
+    assert result["violated_laws"] == ["BUDGET"]
 
 
 def test_budget_turn_hold_has_domain_void():
     """Budget HOLD must include output_policy=DOMAIN_VOID."""
-    from arifosmcp.runtime.floor import check_floors
+    from arifosmcp.runtime.law import check_laws
 
-    result = check_floors(
+    result = check_laws(
         tool_name="arif_mind_reason",
         params={"mode": "reason", "query": "test", "session_id": "test-session-g4"},
         actor_id=None,
@@ -75,9 +75,9 @@ def test_budget_turn_hold_has_domain_void():
 
 def test_budget_turn_hold_has_nine_signal():
     """Budget HOLD must include nine_signal with overall=RETAK."""
-    from arifosmcp.runtime.floor import check_floors
+    from arifosmcp.runtime.law import check_laws
 
-    result = check_floors(
+    result = check_laws(
         tool_name="arif_mind_reason",
         params={"mode": "reason", "query": "test", "session_id": "test-session-g4"},
         actor_id=None,
@@ -94,9 +94,9 @@ def test_budget_turn_hold_has_nine_signal():
 
 def test_budget_turn_hold_has_next_safe_action():
     """Budget HOLD must include next_safe_action."""
-    from arifosmcp.runtime.floor import check_floors
+    from arifosmcp.runtime.law import check_laws
 
-    result = check_floors(
+    result = check_laws(
         tool_name="arif_mind_reason",
         params={"mode": "reason", "query": "test", "session_id": "test-session-g4"},
         actor_id=None,
@@ -108,9 +108,9 @@ def test_budget_turn_hold_has_next_safe_action():
 
 def test_budget_turn_hold_no_singular_reason():
     """Budget HOLD must NOT use singular 'reason' field."""
-    from arifosmcp.runtime.floor import check_floors
+    from arifosmcp.runtime.law import check_laws
 
-    result = check_floors(
+    result = check_laws(
         tool_name="arif_mind_reason",
         params={"mode": "reason", "query": "test", "session_id": "test-session-g4"},
         actor_id=None,

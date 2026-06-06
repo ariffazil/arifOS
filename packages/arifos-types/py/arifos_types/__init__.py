@@ -25,7 +25,7 @@ from arifos_types.agent_message import (
     validateAgentMessage,
 )
 from arifos_types.floor_result import (
-    FloorResult,
+    LawResult,
     FloorViolation,
     FLOOR_NAMES,
     FLOOR_ORDER,
@@ -59,7 +59,7 @@ __all__ = [
     "SendAgentMessageInput",
     "SendAgentMessageOutput",
     "validateAgentMessage",
-    "FloorResult",
+    "LawResult",
     "FloorViolation",
     "FLOOR_NAMES",
     "FLOOR_ORDER",

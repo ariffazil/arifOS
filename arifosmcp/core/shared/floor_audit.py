@@ -56,9 +56,9 @@ def get_ml_floor_runtime() -> dict[str, int | list[str] | bool | str]:
     for _tool_name, spec in CANONICAL_TOOLS.items():
         tool_floors = spec.get("floors", [])
         for f in tool_floors:
-            floor_id = f.value if hasattr(f, "value") else f
-            if floor_id not in active_floors:
-                active_floors.append(floor_id)
+            law_id = f.value if hasattr(f, "value") else f
+            if law_id not in active_floors:
+                active_floors.append(law_id)
 
     unique_floors = sorted(set(active_floors))
 

@@ -158,7 +158,7 @@ async def floor_rules(conn):
         SELECT * FROM (
             SELECT
                 'production' AS src,
-                floor_code::text AS floor_id,
+                floor_code::text AS law_id,
                 rule_name::text AS floor_name,
                 constraint_definition::text,
                 is_active,
@@ -174,7 +174,7 @@ async def floor_rules(conn):
                 created_at
             FROM s000.constitutional_floors
         ) t
-        ORDER BY floor_id
+        ORDER BY law_id
     """)
     return rows
 
@@ -220,7 +220,7 @@ async def run_full():
         if floors and "error" not in floors[0]:
             for f in floors:
                 src = f["src"]
-                fid = f["floor_id"] or ""
+                fid = f["law_id"] or ""
                 fname = f["floor_name"] or ""
                 active = "ACTIVE" if f["is_active"] else "inactive"
                 print(f"  [{src:<9}] {fid:<6} {fname:<35} {active}")

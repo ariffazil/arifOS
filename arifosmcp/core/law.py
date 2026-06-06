@@ -13,24 +13,24 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from arifosmcp.constitutional_map import CANONICAL_TOOLS, Floor
+from arifosmcp.constitutional_map import CANONICAL_TOOLS, Law
 
 logger = logging.getLogger(__name__)
 
-FLOOR_DESCRIPTIONS: dict[Floor, str] = {
-    Floor.F01_AMANAH: "Trustworthiness — every action carries signature and accountability.",
-    Floor.F02_TRUTH: "Truthfulness — no fabrication, no hallucination passed as fact.",
-    Floor.F03_WITNESS: "Verifiable evidence — claims require reproducible grounding.",
-    Floor.F04_CLARITY: "Transparent intent — no hidden objective, no obscured purpose.",
-    Floor.F05_PEACE: "Human dignity — never erode the worth or autonomy of a person.",
-    Floor.F06_EMPATHY: "Consider consequence — model downstream harm before acting.",
-    Floor.F07_HUMILITY: "Acknowledge limits — declare uncertainty, never overstate confidence.",
-    Floor.F08_GENIUS: "Elegant correctness — simple, robust, and thermodynamically efficient.",
-    Floor.F09_ANTIHANTU: "Reject manipulation — detect and neutralize deception vectors.",
-    Floor.F10_ONTOLOGY: "Structural coherence — consistent taxonomy, no category drift.",
-    Floor.F11_AUDIT: "Identity verification — bind actor to capability before execution.",
-    Floor.F12_INJECTION: "Input sanitization — treat all ingress as potentially hostile.",
-    Floor.F13_SOVEREIGN: "Human veto absolute — the Sovereign (Arif) holds master override.",
+LAW_DESCRIPTIONS: dict[Law, str] = {
+    Law.L01_AMANAH: "Trustworthiness — every action carries signature and accountability.",
+    Law.L02_TRUTH: "Truthfulness — no fabrication, no hallucination passed as fact.",
+    Law.L03_WITNESS: "Verifiable evidence — claims require reproducible grounding.",
+    Law.L04_CLARITY: "Transparent intent — no hidden objective, no obscured purpose.",
+    Law.L05_PEACE: "Human dignity — never erode the worth or autonomy of a person.",
+    Law.L06_EMPATHY: "Consider consequence — model downstream harm before acting.",
+    Law.L07_HUMILITY: "Acknowledge limits — declare uncertainty, never overstate confidence.",
+    Law.L08_GENIUS: "Elegant correctness — simple, robust, and thermodynamically efficient.",
+    Law.L09_ANTIHANTU: "Reject manipulation — detect and neutralize deception vectors.",
+    Law.L10_ONTOLOGY: "Structural coherence — consistent taxonomy, no category drift.",
+    Law.L11_AUDIT: "Identity verification — bind actor to capability before execution.",
+    Law.L12_INJECTION: "Input sanitization — treat all ingress as potentially hostile.",
+    Law.L13_SOVEREIGN: "Human veto absolute — the Sovereign (Arif) holds master override.",
 }
 
 
@@ -40,17 +40,17 @@ class ConstitutionalViolation(Exception):
     def __init__(self, floors: list[str], reason: str):
         self.floors = floors
         self.reason = reason
-        super().__init__(f"Floor breach [{', '.join(floors)}]: {reason}")
+        super().__init__(f"Law breach [{', '.join(floors)}]: {reason}")
 
 
-def check_floors(
+def check_laws(
     tool_name: str, params: dict[str, Any], actor_id: str | None = None
 ) -> dict[str, Any]:
     """
     Run F1–F13 interceptors for a tool call.
 
     Returns:
-        {"verdict": "SEAL" | "HOLD" | "VOID", "failed_floors": [...], "reason": str}
+        {"verdict": "SEAL" | "HOLD" | "VOID", "violated_laws": [...], "reason": str}
 
     Ditempa Bukan Diberi.
     """
@@ -68,7 +68,7 @@ def check_floors(
     if not spec:
         return {
             "verdict": "VOID",
-            "failed_floors": ["F10"],
+            "violated_laws": ["L10"],
             "reason": f"Unknown tool in ontology: {tool_name}",
         }
 
@@ -77,38 +77,38 @@ def check_floors(
     for floor in spec.get("floors", []):
         floor_value = floor.value if hasattr(floor, "value") else floor
 
-        if floor_value == "F01":
+        if floor_value == "L01":
             if not actor_id and spec.get("risk_tier") in ("critical", "sovereign"):
-                failed.append("F01")
+                failed.append("L01")
 
-        elif floor_value == "F02":
+        elif floor_value == "L02":
             pass
 
-        elif floor_value == "F03":
+        elif floor_value == "L03":
             pass
 
-        elif floor_value == "F04":
+        elif floor_value == "L04":
             pass
 
-        elif floor_value == "F05":
+        elif floor_value == "L05":
             pass
 
-        elif floor_value == "F06":
+        elif floor_value == "L06":
             pass
 
-        elif floor_value == "F07":
+        elif floor_value == "L07":
             pass
 
-        elif floor_value == "F08":
+        elif floor_value == "L08":
             pass
 
-        elif floor_value == "F09":
+        elif floor_value == "L09":
             # F9a: keyword-level manipulation detection (surface)
             for key, value in params.items():
                 if isinstance(value, str):
                     manipulation = ["sudo", "chmod", "eval", "exec(", "__import__"]
                     if any(m in value for m in manipulation):
-                        failed.append("F09")
+                        failed.append("L09")
                         logger.warning(f"F09 ANTIHANTU: manipulation pattern in {key}")
 
             # F9b: heart-critique prerequisite gate for forge (F9 TAQWA short-circuit)
@@ -120,7 +120,7 @@ def check_floors(
                         from arifosmcp.apps.session_state import was_tool_called
 
                         if not was_tool_called(session_id, "arif_heart_critique"):
-                            failed.append("F09")
+                            failed.append("L09")
                             logger.critical(
                                 f"F09 ANTIHANTU: arif_forge_execute blocked — "
                                 f"arif_heart_critique not called in session {session_id}. "
@@ -129,25 +129,25 @@ def check_floors(
                     except Exception as e:
                         logger.error(f"F09 TAQWA check failed: {e}")
 
-        elif floor_value == "F10":
+        elif floor_value == "L10":
             pass
 
-        elif floor_value == "F11":
+        elif floor_value == "L11":
             if spec.get("access") == "sovereign" and not actor_id:
-                failed.append("F11")
+                failed.append("L11")
             # H2: All F11-gated tools require identity binding (session_id or actor_id)
             if not actor_id and not session_id and spec.get("access") != "public":
-                failed.append("F11")
+                failed.append("L11")
 
-        elif floor_value == "F12":
+        elif floor_value == "L12":
             for key, value in params.items():
                 if isinstance(value, str):
                     injection = ["rm -rf", "eval(", "exec(", "os.system", "subprocess"]
                     if any(i in value for i in injection):
-                        failed.append("F12")
+                        failed.append("L12")
                         logger.warning(f"F12 INJECTION: pattern in {key}")
 
-        elif floor_value == "F13":
+        elif floor_value == "L13":
             # F13 fires when sovereign override is BYPASSED (not when used).
             # sovereign_veto=True means Arif exercised his override — operation halts
             # but this is F13 WORKING, not F13 BREACHING.
@@ -157,27 +157,27 @@ def check_floors(
                 # Return VOID but do NOT append F13 to failed — veto usage is not a breach
                 return {
                     "verdict": "VOID",
-                    "failed_floors": [],
+                    "violated_laws": [],
                     "reason": "Sovereign veto exercised — operation halted by Arif",
                     "sovereign_veto_used": True,
                 }
 
     if failed:
-        if "F13" in failed:
+        if "L13" in failed:
             return {
                 "verdict": "VOID",
-                "failed_floors": failed,
+                "violated_laws": failed,
                 "reason": "Sovereign veto",
             }
         return {
             "verdict": "HOLD",
-            "failed_floors": failed,
-            "reason": f"Floor breach: {', '.join(failed)}",
+            "violated_laws": failed,
+            "reason": f"Law breach: {', '.join(failed)}",
         }
 
     return {
         "verdict": "SEAL",
-        "failed_floors": [],
+        "violated_laws": [],
         "reason": "All constitutional floors clear",
     }
 
@@ -185,7 +185,7 @@ def check_floors(
 def get_floor_status() -> dict[str, Any]:
     """Return current constitutional floor status for /health endpoint."""
     return {
-        "floors": {f.value: FLOOR_DESCRIPTIONS[f] for f in Floor},
+        "floors": {f.value: LAW_DESCRIPTIONS[f] for f in Law},
         "status": "aligned",
         "version": "2026.04.26-KANON",
     }

@@ -12,7 +12,7 @@ This document provides the operational context for AI agents working within the 
 
 ## 🏛️ Project Overview
 
-**arifOS** is a production-grade **Constitutional AI Governance System**. It functions as an "Intelligence Kernel" that wraps any Large Language Model (LLM) to enforce a set of 13 ethical and safety rules, known as "Constitutional Floors."
+**arifOS** is a production-grade **Constitutional AI Governance System**. It functions as an "Intelligence Kernel" that wraps any Large Language Model (LLM) to enforce a set of 13 ethical and safety rules, known as "Constitutional Laws."
 
 Its purpose is to govern AI cognition and agency, ensuring that all outputs and material actions are safe, truthful, and aligned with core principles.
 
@@ -120,7 +120,7 @@ python -m arifosmcp.transport http
 As an AI agent operating in this codebase, you are bound by the constitutional framework.
 
 ### The 13 Floors
-Every action or thought must pass the 13 Constitutional Floors. These are not suggestions; they are load-bearing structural rules enforced by the Kernel. Violating a **HARD** floor (e.g., F2 Truth, F7 Humility) will result in a `VOID` verdict, blocking the action completely.
+Every action or thought must pass the 13 Constitutional Laws. These are not suggestions; they are load-bearing structural rules enforced by the Kernel. Violating a **HARD** floor (e.g., F2 Truth, F7 Humility) will result in a `VOID` verdict, blocking the action completely.
 
 ### Thermodynamic Governance (ΔS, Peace², Ω₀)
 All AI cognition is managed as a thermodynamic process with specific constraints:
@@ -172,7 +172,7 @@ For STDIO transport, NEVER write to `stdout` (e.g., via `print()`). This corrupt
 - **`pyproject.toml`**: Defines project metadata, dependencies, and scripts.
 - **`AGENTS.md`**: The canonical guide for agents, detailing architecture and conventions.
 - **`README.md`**: High-level project overview.
-- **`000_THEORY/000_LAW.md`**: The definitive specification for the 13 Constitutional Floors.
+- **`000_THEORY/000_LAW.md`**: The definitive specification for the 13 Constitutional Laws.
 - **`core/`**: The stateless, transport-agnostic governance kernel.
 - **`arifosmcp.transport/`**: The main MCP server (The Brain).
 - **`arifosmcp.intelligence/`**: The sensory tools for grounding (The Senses).

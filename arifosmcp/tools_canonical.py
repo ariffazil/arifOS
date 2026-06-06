@@ -13,13 +13,13 @@ Axis mapping:
   Oracle World: P_geox_* + P_wealth_* → arifos_oracle_world
 
 EXTENSION HOOKS PATTERN (from wiki/pages/RECURSIVE_IMPROVEMENT_LOG.md):
-  Before deployment: wire F9_TAQWA and F11_AUDIT into the tool dispatch layer.
+  Before deployment: wire F9_TAQWA and L11_AUDIT into the tool dispatch layer.
   class Extension:
       async def before_execution(self, **kwargs):  # F9 TAQWA constitutional check
           pass
       async def after_execution(self, result, **kwargs):  # F11 AUDIT → VAULT999
           pass
-  Maps cleanly to: before_execution → F9_TAQWA check; after_execution → F11_AUDIT logging.
+  Maps cleanly to: before_execution → F9_TAQWA check; after_execution → L11_AUDIT logging.
 
 DELTA BUNDLE SPEC (from wiki/pages/RECURSIVE_IMPROVEMENT_LOG.md):
   arif_mind_reason output must include: facts, scars, floor_scores, entropy, omega_0.

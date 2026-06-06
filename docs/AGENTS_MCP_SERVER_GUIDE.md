@@ -260,7 +260,7 @@ from arifosmcp.runtime.tools import register_tools
 ### Test Philosophy
 Every test must answer: **"Does the system govern AI correctly?"**
 
-Tests verify that arifOS's 13 Constitutional Floors are actually enforced, not just that code runs.
+Tests verify that arifOS's 13 Constitutional Laws are actually enforced, not just that code runs.
 
 ### Critical Test Categories
 
@@ -346,7 +346,7 @@ All capability is consolidated into **11 Mega-Tools** across three layers. Each 
 | | `code_engine` | **`execute_vps_task`** | `M-3_EXEC` | ALL | `fs`, `process`, `net`, `tail`, `replay` | Computational Execution — system-level hygiene |
 | | `architect_registry` | **`get_tool_registry`** | `M-4_ARCH` | Δ DELTA | `register`, `list`, `read` | System Definition — tool and resource discovery |
 
-> **Total:** 11 Mega-Tools enforcing all 13 Constitutional Floors (F1-F13) through the Trinity Architecture (ΔΩΨ).
+> **Total:** 11 Mega-Tools enforcing all 13 Constitutional Laws (F1-F13) through the Trinity Architecture (ΔΩΨ).
 
 > **Naming:** Symbolic names (e.g., `apex_soul`) are for humans; **functional names** (e.g., `judge_verdict`) are the canonical MCP tool names. Both work interchangeably.
 
@@ -373,7 +373,7 @@ One per public tool — each describes when and how to invoke it.
 
 ---
 
-## ⚖️ The 13 Constitutional Floors
+## ⚖️ The 13 Constitutional Laws
 
 | # | Name | Type | Threshold | Enforces |
 |---|------|------|-----------|----------|

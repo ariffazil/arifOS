@@ -8,7 +8,7 @@ This directory contains the **Constitutional Canon** of arifOS. These documents 
 
 ### 1. Foundations & Law
 *   **[000_FOUNDATIONS.md](000_FOUNDATIONS.md)** — **Philosophy**: The Gödel Lock & Thermodynamic justification.
-*   **[000_LAW.md](000_LAW.md)** — **Constitution**: The 13 Constitutional Floors (F1-F13).
+*   **[000_LAW.md](000_LAW.md)** — **Constitution**: The 13 Constitutional Laws (F1-F13).
 *   **[000_ARCHITECTURE.md](000_ARCHITECTURE.md)** — **Design**: The Metabolic Loop (000-999).
 *   **[002_GOVERNANCE_EMERGENCE.md](002_GOVERNANCE_EMERGENCE.md)** — **Safety**: Why we prioritize Governance over "Safety".
 

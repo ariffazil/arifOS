@@ -120,7 +120,7 @@ def human_confirm(candidate: str, verdict: dict) -> bool:
         for r in reasons:
             print(f"  • {r}")
 
-    floors = verdict.get("result", {}).get("constitutional_compliance", {}).get("floor_results", {})
+    floors = verdict.get("result", {}).get("constitutional_compliance", {}).get("law_results", {})
     if floors:
         print("\nFloor compliance:")
         for f, v in floors.items():

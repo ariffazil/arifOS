@@ -53,7 +53,7 @@ class EngineerAgent(ConstitutionalAgent):
     """
 
     # Floors enforced by Engineer (Ω axis)
-    ENGINEER_FLOORS = ["F5", "F6", "F9", "F11"]
+    ENGINEER_FLOORS = ["F5", "F6", "F9", "L11"]
 
     def __init__(
         self,
@@ -158,7 +158,7 @@ class EngineerAgent(ConstitutionalAgent):
             self.blocked_operations += 1
             return {
                 "status": "BLOCKED",
-                "reason": "F11_AUDIT_REQUIRED",
+                "reason": "L11_AUDIT_REQUIRED",
                 "message": "Dangerous code requires authorization",
             }
 

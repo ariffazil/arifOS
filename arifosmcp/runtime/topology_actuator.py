@@ -146,7 +146,7 @@ def evaluate_topology(
         recommendations.append(
             ActuatorRecommendation(
                 action=ActuatorAction.ESCALATE,
-                target="F13",
+                target="L13",
                 reason=f"Sovereignty integrity is {drift.sovereignty_integrity.value} — requires human intervention",
                 signal_source="sovereignty_integrity",
                 severity="critical",

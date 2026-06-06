@@ -133,7 +133,7 @@ def witness_empathy_assessment(stakeholder_impact):
 def witness_authority_validation(operation, authority_token):
     is_authorized = validate_authority_token(operation, authority_token)
     return {
-        "floor": "F11_COMMAND_AUTH",
+        "floor": "L11_COMMAND_AUTH",
         "score": 1.0 if is_authorized else 0.0,
         "verdict": "PASS" if is_authorized else "VOID",
         "justification": "Authority validated" if is_authorized else "Unauthorized operation",

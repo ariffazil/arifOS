@@ -72,7 +72,7 @@ class AxiomUsage(BaseModel):
     Prevents implicit self-modification or invisible drift.
     """
 
-    axiom_id: str = Field(description="Identifier e.g. 'F01_AMANAH', 'F08_GENIUS'")
+    axiom_id: str = Field(description="Identifier e.g. 'L01_AMANAH', 'L08_GENIUS'")
     axiom_text: str = Field(description="Full axiom text")
     source: AxiomSource = Field(description="Where the axiom originates")
     applicability: str = Field(description="Why this axiom applies to this reasoning")

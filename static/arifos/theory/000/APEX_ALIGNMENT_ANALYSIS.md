@@ -17,7 +17,7 @@ This document provides a comprehensive evaluation of the alignment between the A
 - ✅ **115 Scientific Theories/Models** mapped across 8 major disciplines
 - ✅ **Strong alignment** between website presentation and canonical documents
 - ✅ **Scientific validity verified** through peer-reviewed literature references
-- ✅ **All 13 Constitutional Floors** grounded in established scientific principles
+- ✅ **All 13 Constitutional Laws** grounded in established scientific principles
 - ✅ **Three-Engine Architecture** (ΔΩΨ) maps to verified theoretical frameworks
 
 ---
@@ -57,7 +57,7 @@ but symbols (ΔΩΨ) and functions are identical.
 
 ---
 
-### 1.3 13 Constitutional Floors Alignment
+### 1.3 13 Constitutional Laws Alignment
 
 | Floor | Website Name | Canon Name | Status |
 |-------|-------------|------------|--------|
@@ -414,7 +414,7 @@ with core concepts (Thermodynamics, Information Theory, Game Theory) spanning mu
 
 ### Canon Documents Referenced
 1. `000_FOUNDATIONS.md` — Philosophy & Thermodynamics
-2. `000_LAW.md` — 13 Constitutional Floors
+2. `000_LAW.md` — 13 Constitutional Laws
 3. `000_ARCHITECTURE.md` — Metabolic Loop
 4. `010_TRINITY.md` — Three Engines
 5. `111_MIND_GENIUS.md` — Physics of Thought
