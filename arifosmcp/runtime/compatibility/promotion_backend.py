@@ -30,10 +30,7 @@ class PromotionBackend:
         """Load appropriate backend."""
         if self.version == "v2":
             try:
-                from core.organs.bridge.promotion_v2 import (
-                    PromotionBridge,
-                    PromotionOutcome,
-                )
+                from core.organs.bridge.promotion_v2 import PromotionBridge
 
                 return PromotionBridge(self._memory, self._vault)
             except ImportError:

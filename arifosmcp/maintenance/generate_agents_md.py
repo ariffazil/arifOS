@@ -51,7 +51,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 try:
-    from arifosmcp.constitutional_map import CANONICAL_TOOLS, Law
+    from arifosmcp.constitutional_map import CANONICAL_TOOLS
 except ImportError as exc:  # pragma: no cover - import path resolution
     sys.stderr.write(f"[generate_agents_md] FATAL: cannot import CANONICAL_TOOLS: {exc}\n")
     sys.exit(2)

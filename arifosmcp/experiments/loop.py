@@ -24,7 +24,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any, Optional
@@ -110,7 +110,9 @@ class ExperimentCard(BaseModel):
     closed_at: Optional[datetime] = None
     actor_id: str = "system"
     session_id: Optional[str] = None
-    parents: list[str] = Field(default_factory=list, description="Prior experiment_ids this builds on")
+    parents: list[str] = Field(
+        default_factory=list, description="Prior experiment_ids this builds on"
+    )
     content_hash: str = ""
 
     def recompute_hash(self) -> str:
