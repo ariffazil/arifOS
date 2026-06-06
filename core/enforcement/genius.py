@@ -154,7 +154,7 @@ def _floors_to_vector(floors: FloorScores) -> np.ndarray:
     """
     Extract the 13 canonical floor scores as a numpy float64 vector.
 
-    Boolean floors (F10, F11) are coerced: True → 1.0, False → 0.0.
+    Boolean floors (L10, L11) are coerced: True → 1.0, False → 0.0.
     F7 (humility) is kept as-is — the narrow [0.03, 0.05] band is the
     constitutional signal, not noise to be normalized away.
     """
@@ -309,10 +309,10 @@ def _compute_cluster_dials(
         else (1.0 - min(abs(floors.f7_humility - 0.04) * 10, 1.0))
     )
 
-    # A = AKAL (Mind/Structure): F2, F4, F7, F10
+    # A = AKAL (Mind/Structure): F2, F4, F7, L10
     akal = geometric_mean([floors.f2_truth, floors.f4_clarity, f7_norm, f10])
 
-    # P = PRESENCE (Stability/Trust): F1, F5, F11
+    # P = PRESENCE (Stability/Trust): F1, F5, L11
     presence_base = geometric_mean([floors.f1_amanah, floors.f5_peace, f11])
     try:
         from core.governance_kernel import get_governance_kernel
@@ -334,7 +334,7 @@ def _compute_cluster_dials(
         geometric_mean([w3, floors.f6_empathy, floors.f8_genius, anti_hantu_compliance]) * x_breadth
     )
 
-    # E = ENERGY (Vitality/Boundary): F12, F13 + thermodynamic budget
+    # E = ENERGY (Vitality/Boundary): L12, L13 + thermodynamic budget
     injection_compliance = 1.0 - floors.f12_injection
     energy_from_floors = geometric_mean([injection_compliance, floors.f13_sovereign])
     energy_ratio = 1.0 - (compute_budget_used / max(compute_budget_max, 1e-6))
@@ -364,10 +364,10 @@ class APEXDials(BaseModel):
     """
 
     A: float = Field(
-        ge=0.0, le=1.0, description="Akal: Mind dimension (PC1 or F2/F4/F7/F10 cluster)"
+        ge=0.0, le=1.0, description="Akal: Mind dimension (PC1 or F2/F4/F7/L10 cluster)"
     )
     P: float = Field(
-        ge=0.0, le=1.0, description="Presence: Stability dimension (PC2 or F1/F5/F11 cluster)"
+        ge=0.0, le=1.0, description="Presence: Stability dimension (PC2 or F1/F5/L11 cluster)"
     )
     X: float = Field(
         ge=0.0,
@@ -377,7 +377,7 @@ class APEXDials(BaseModel):
     E: float = Field(
         ge=0.0,
         le=1.0,
-        description="Energy: Vitality dimension (PC4 or F12/F13 + budget)",
+        description="Energy: Vitality dimension (PC4 or L12/L13 + budget)",
     )
 
     def to_dict(self) -> dict[str, float]:

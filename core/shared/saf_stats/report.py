@@ -47,7 +47,7 @@ def compose_report(
         "",
         f"- **Source file:** `{sandbox.relative_to_root(p)}`",
         f"- **Generated:** {_now()}",
-        "- **Organ:** SAF-arifOS (F1-F13 governed)",
+        "- **Organ:** SAF-arifOS (F1-L13 governed)",
         "",
     ]
 

@@ -7,10 +7,10 @@ All arif_* naming. No governance surface, no CC modes as separate tools.
 
 MACHINERY:
   - CANONICAL_TOOLS   : 13-tool registry (name → spec with floors, stage, lane)
-  - Law enum          : F01–F13 with Eureka-wired threshold logic
+  - Law enum          : L01–L13 with Eureka-wired threshold logic
   - TrinityLane      : AGI | ASI | APEX
   - ToolStage        : 000–999 metabolic stage codes
-  - _TOOL_INPUT_SCHEMAS  : canonical I/O type signatures (F10 ONTOLOGY enforced)
+  - _TOOL_INPUT_SCHEMAS  : canonical I/O type signatures (L10 ONTOLOGY enforced)
   - _TOOL_OUTPUT_SCHEMAS : canonical output envelope per tool
   - validate_tool_response_schema()  : F2 Nine-Signal contract checker
   - check_schema_coverage()          : all-13 tools have schemas = CI pass
@@ -34,7 +34,7 @@ from typing import Any
 
 class Law(StrEnum):
     """
-    F01–F13. Each Law is a physics equation, not a policy rule.
+    L01–L13. Each Law is a physics equation, not a policy rule.
     Eureka wired: thresholds derived from EUREKA_INSIGHTS_SEAL_v2026.04.07.
     """
 
@@ -135,7 +135,7 @@ STAGE_PROGRESSION: dict[str, dict[str, str | None]] = {
 # | C1    | Low         | Light trace          | Not required       |
 # | C2    | Medium      | Trace + self-review  | Optional            |
 # | C3    | High        | Evidence gate + hold | Required           |
-# | C4    | Very High   | Full floor review    | Required (F13)     |
+# | C4    | Very High   | Full floor review    | Required (L13)     |
 # | C5    | Critical    | SEAL + human sign-off| Required + vault   |
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -248,9 +248,9 @@ class RiskDecision:
     verdict: str  # "PROCEED" | "HOLD" | "VOID"
     reason: str  # Human-readable gate message
     floors_activated: list[str]  # Which floors are on watch
-    requires_human_confirmation: bool  # F13 gate — human must sign off
+    requires_human_confirmation: bool  # L13 gate — human must sign off
     human_approval_reference: str | None  # If confirmed, the approval token / session_ref
-    uncertainty_band: tuple[float, float]  # (lower, upper) — F07 Ω band if evidence is thin
+    uncertainty_band: tuple[float, float]  # (lower, upper) — L07 Ω band if evidence is thin
     preflight_passed: bool  # Did the action pass all preflight checks?
 
 
@@ -279,14 +279,14 @@ def preflight(
       - allowed: can this proceed?
       - verdict: PROCEED / HOLD / VOID
       - reason: why
-      - requires_human_confirmation: does F13 SOVEREIGN require human sign-off?
+      - requires_human_confirmation: does L13 SOVEREIGN require human sign-off?
       - governance_mode: how much governance was applied
       - floors_activated: which floors are on watch
-      - uncertainty_band: F07 Ω range if evidence is weak
+      - uncertainty_band: L07 Ω range if evidence is weak
     """
     tier = _RISK_GOVERNANCE_TABLE[risk_class]
 
-    # ── C5 special: vault seal required — check FIRST before F01 gate ───────
+    # ── C5 special: vault seal required — check FIRST before L01 gate ───────
     if risk_class == RiskClass.C5_IRREVERSIBLE:
         return RiskDecision(
             allowed=False,
@@ -306,7 +306,7 @@ def preflight(
             preflight_passed=False,
         )
 
-    # ── Irreversibility override (F01 AMANAH) ─────────────────────────────────
+    # ── Irreversibility override (L01 AMANAH) ─────────────────────────────────
     if not reversible and tier.governance_mode in ("strict", "seal"):
         # Irreversible + high-risk → always HOLD
         return RiskDecision(
@@ -315,7 +315,7 @@ def preflight(
             governance_mode="seal",
             verdict="HOLD",
             reason=(
-                f"F01 AMANAH: {action} is irreversible and class {risk_class.value}. "
+                f"L01 AMANAH: {action} is irreversible and class {risk_class.value}. "
                 f"Evidence gate + human confirmation required. "
                 f"Escalation: 888_HOLD"
             ),
@@ -326,7 +326,7 @@ def preflight(
             preflight_passed=False,
         )
 
-    # ── Evidence quality check (F02 TRUTH) ────────────────────────────────────
+    # ── Evidence quality check (L02 TRUTH) ────────────────────────────────────
     if evidence_quality < 0.5 and tier.governance_mode in ("strict", "seal"):
         return RiskDecision(
             allowed=False,
@@ -334,7 +334,7 @@ def preflight(
             governance_mode="strict",
             verdict="HOLD",
             reason=(
-                f"F02 TRUTH: evidence quality {evidence_quality:.0%} is insufficient for "
+                f"L02 TRUTH: evidence quality {evidence_quality:.0%} is insufficient for "
                 f"{risk_class.value} actions. Required: ≥50% evidence confidence. "
                 f"Reduce claim strength or gather more evidence."
             ),
@@ -345,7 +345,7 @@ def preflight(
             preflight_passed=False,
         )
 
-    # ── Human confirmation gate (F13 SOVEREIGN) ───────────────────────────────
+    # ── Human confirmation gate (L13 SOVEREIGN) ───────────────────────────────
     if tier.requires_human_confirmation and not session_ref:
         return RiskDecision(
             allowed=False,
@@ -353,7 +353,7 @@ def preflight(
             governance_mode=tier.governance_mode,
             verdict="HOLD",
             reason=(
-                f"F13 SOVEREIGN: {risk_class.value} action '{action}' requires human "
+                f"L13 SOVEREIGN: {risk_class.value} action '{action}' requires human "
                 f"confirmation before execution. Provide session_ref to proceed. "
                 f"Compute can advise. Human must decide."
             ),
@@ -412,22 +412,22 @@ def preflight(
 # 13 CANONICAL TOOLS — arif_noun_verb naming
 # ═══════════════════════════════════════════════════════════════════════════════
 #
-# FLOOR COVERAGE INVARIANT: ALL F01–F13 must appear on ≥ 2 tools each.
+# FLOOR COVERAGE INVARIANT: ALL L01–L13 must appear on ≥ 2 tools each.
 # Current coverage:
-#   F01: arif_session_init, arif_kernel_route, arif_memory_recall,
+#   L01: arif_session_init, arif_kernel_route, arif_memory_recall,
 #        arif_gateway_connect, arif_vault_seal, arif_forge_execute  (6)
-#   F02: arif_sense_observe, arif_evidence_fetch, arif_mind_reason  (3)
-#   F03: arif_evidence_fetch, arif_gateway_connect, arif_kernel_route (3)
-#   F04: arif_kernel_route, arif_reply_compose, arif_ops_measure   (3, incl. topology/drift)
-#   F05: arif_heart_critique, arif_evidence_fetch                   (2)
-#   F06: arif_heart_critique, arif_reply_compose                     (2)
-#   F07: arif_mind_reason, arif_sense_observe                       (2)
-#   F08: arif_mind_reason, arif_memory_recall                       (2)
-#   F09: arif_reply_compose, arif_heart_critique                    (2)
-#   F10: arif_kernel_route, arif_mind_reason                        (2)
-#   F11: arif_session_init, arif_judge_deliberate, arif_vault_seal, arif_forge_execute (4)
-#   F12: arif_session_init, arif_evidence_fetch                      (2)
-#   F13: arif_judge_deliberate, arif_vault_seal, arif_forge_execute (3)
+#   L02: arif_sense_observe, arif_evidence_fetch, arif_mind_reason  (3)
+#   L03: arif_evidence_fetch, arif_gateway_connect, arif_kernel_route (3)
+#   L04: arif_kernel_route, arif_reply_compose, arif_ops_measure   (3, incl. topology/drift)
+#   L05: arif_heart_critique, arif_evidence_fetch                   (2)
+#   L06: arif_heart_critique, arif_reply_compose                     (2)
+#   L07: arif_mind_reason, arif_sense_observe                       (2)
+#   L08: arif_mind_reason, arif_memory_recall                       (2)
+#   L09: arif_reply_compose, arif_heart_critique                    (2)
+#   L10: arif_kernel_route, arif_mind_reason                        (2)
+#   L11: arif_session_init, arif_judge_deliberate, arif_vault_seal, arif_forge_execute (4)
+#   L12: arif_session_init, arif_evidence_fetch                      (2)
+#   L13: arif_judge_deliberate, arif_vault_seal, arif_forge_execute (3)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
@@ -485,7 +485,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "eureka_insight": (
             "F3: W₃ = ∛(Human × AI × Earth) ≥ 0.75. "
             "F5: P² ≥ 1.0 — safety margin. "
-            "F12: injection_probability < 0.85."
+            "L12: injection_probability < 0.85."
         ),
         "cognitive_axis": "verify",
         "expose": True,
@@ -519,7 +519,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "eureka_insight": (
             "F2: τ ≥ 0.99. F7: Ω ∈ [0.03, 0.05]. "
             "F8: G = capability × ethics × continuity × resilience² ≥ 0.80. "
-            "F10: ambiguity is permanent; expose assumptions before reasoning. "
+            "L10: ambiguity is permanent; expose assumptions before reasoning. "
             "Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable."
         ),
         "cognitive_axis": "reason",
@@ -527,7 +527,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_heart_critique": {
         "name": "arif_heart_critique",
-        "description": "666_HEART: Ethical critique and consequence assessment against F1-F13 floors. Call this before: irreversible actions, decisions affecting dignity or human welfare, forge execution, or any proposal that may violate constitutional floors. Do NOT call this to make the final decision — that belongs to arif_judge_deliberate. Parameters: mode (critique|simulate|redteam|maruah|deescalate|empathy), target (the item to critique), stakeholder_ids, session_id, actor_id.",  # noqa: E501
+        "description": "666_HEART: Ethical critique and consequence assessment against F1-L13 floors. Call this before: irreversible actions, decisions affecting dignity or human welfare, forge execution, or any proposal that may violate constitutional floors. Do NOT call this to make the final decision — that belongs to arif_judge_deliberate. Parameters: mode (critique|simulate|redteam|maruah|deescalate|empathy), target (the item to critique), stakeholder_ids, session_id, actor_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.FORGE,
         "lane": TrinityLane.ASI,
@@ -567,8 +567,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "eureka_insight": (
             "F1: Amanah — routing decisions must be auditable. "
             "F4: ΔS ≤ 0 (entropy must decrease). "
-            "F10: ambiguity is permanent; expose assumptions before routing. "
-            "F12: graceful degradation — if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution. "
+            "L10: ambiguity is permanent; expose assumptions before routing. "
+            "L12: graceful degradation — if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution. "
             "Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. "
             "Eureka: internal depth, external legibility."
         ),
@@ -588,7 +588,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "eureka_insight": (
             "F4: ΔS ≤ 0 — reply must reduce entropy, not add noise. "
             "F6: RASA protocol. F9: C_dark ≤ 0.30 — no dark patterns. "
-            "F10: ambiguity is permanent; expose assumptions before composing. "
+            "L10: ambiguity is permanent; expose assumptions before composing. "
             "Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable."
         ),
         "cognitive_axis": "reflect",
@@ -607,7 +607,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "eureka_insight": (
             "F1: recall must be auditable — no silent memory mutation. "
             "F8: G ≥ 0.80 — recall contributes to systemic continuity. "
-            "F8/F11: memory is power; recall/store requires purpose limits, stale-assumption checks, sensitive-data boundaries, and auditable consent."
+            "F8/L11: memory is power; recall/store requires purpose limits, stale-assumption checks, sensitive-data boundaries, and auditable consent."
         ),
         "cognitive_axis": "trace",
         "expose": True,
@@ -625,8 +625,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "eureka_insight": (
             "F1: cross-agent actions must be auditable. "
             "F3: W₃ ≥ 0.75 — cross-agent consensus required. "
-            "F11: cross-organ routing requires verified identity. "
-            "F12: graceful degradation — if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution."
+            "L11: cross-organ routing requires verified identity. "
+            "L12: graceful degradation — if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution."
         ),
         "cognitive_axis": "boundary",
         "expose": True,
@@ -642,9 +642,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "modes": ["judge", "validate", "hold", "rules", "armor", "probe", "notify"],
         "eureka_insight": (
-            "F01: irreversible downstream — judge verdicts authorize forge/vault actions. "
-            "F11: identity must be verified before judgment. "
-            "F13: human veto is absolute — no algorithm overrides sovereign."
+            "L01: irreversible downstream — judge verdicts authorize forge/vault actions. "
+            "L11: identity must be verified before judgment. "
+            "L13: human veto is absolute — no algorithm overrides sovereign."
         ),
         "cognitive_axis": "judge",
         "expose": True,
@@ -661,7 +661,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["seal", "verify", "ledger", "changelog", "audit"],
         "eureka_insight": (
             "F1: irreversible — ack_irreversible=True mandatory. "
-            "F11: author identity verified. F13: human approved."
+            "L11: author identity verified. L13: human approved."
         ),
         "cognitive_axis": "seal",
         "expose": True,
@@ -686,8 +686,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         ],
         "eureka_insight": (
             "F1: irreversible — ack_irreversible=True mandatory. "
-            "F11: actor verified. F12: fail safely; no unsafe continuation when substrate confidence drops. "
-            "F13: judge SEAL required before execution."
+            "L11: actor verified. L12: fail safely; no unsafe continuation when substrate confidence drops. "
+            "L13: judge SEAL required before execution."
         ),
         "cognitive_axis": "execute",
         "expose": True,
@@ -994,16 +994,16 @@ def build_tool_registry_manifest() -> dict[str, Any]:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SCHEMA I/O — CANONICAL INPUT SCHEMAS (F10 ONTOLOGY enforced)
+# SCHEMA I/O — CANONICAL INPUT SCHEMAS (L10 ONTOLOGY enforced)
 # ═══════════════════════════════════════════════════════════════════════════════
 #
 # INVARIANT: Every tool MUST have a corresponding entry in _TOOL_INPUT_SCHEMAS
 # and _TOOL_OUTPUT_SCHEMAS. Drift = CI failure.
 #
-# F12 INJECTION: all str | None fields are marked [F12: sanitized] for
+# L12 INJECTION: all str | None fields are marked [L12: sanitized] for
 #   injection scanning before processing.
-# F11 AUTH: authenticated tools MUST include actor_id in input schema.
-# F10 ONTOLOGY: every field has a type annotation — no dynamic types.
+# L11 AUTH: authenticated tools MUST include actor_id in input schema.
+# L10 ONTOLOGY: every field has a type annotation — no dynamic types.
 # ═══════════════════════════════════════════════════════════════════════════════
 
 _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
@@ -1017,17 +1017,17 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
     },
     "arif_sense_observe": {
         "mode": str,
-        "query": str | None,  # [F12: sanitized]
+        "query": str | None,  # [L12: sanitized]
         "session_id": str | None,
         "actor_id": str | None,
-        "url": str | None,  # [F12: sanitized]
+        "url": str | None,  # [L12: sanitized]
         "layers": list[str] | None,
         "result_limit": int,  # max results for search/ingest (default 10)
     },
     "arif_evidence_fetch": {
         "mode": str,
-        "url": str | None,  # [F12: sanitized]
-        "query": str | None,  # [F12: sanitized]
+        "url": str | None,  # [L12: sanitized]
+        "query": str | None,  # [L12: sanitized]
         "session_id": str | None,
         "actor_id": str | None,
         "thinking_depth": int,
@@ -1036,7 +1036,7 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
     },
     "arif_mind_reason": {
         "mode": str,
-        "query": str | None,  # [F12: sanitized]
+        "query": str | None,  # [L12: sanitized]
         "session_id": str | None,
         "actor_id": str | None,
         "plan_id": str | None,
@@ -1045,15 +1045,15 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
     },
     "arif_heart_critique": {
         "mode": str,
-        "target": str | None,  # [F12: sanitized]
+        "target": str | None,  # [L12: sanitized]
         "session_id": str | None,
         "actor_id": str | None,
         "stakeholder_ids": list[str] | None,
     },
     "arif_kernel_route": {
         "mode": str,
-        "target": str | None,  # [F12: sanitized]
-        "task": str | None,  # [F12: sanitized]
+        "target": str | None,  # [L12: sanitized]
+        "task": str | None,  # [L12: sanitized]
         "stage": str | None,
         "session_id": str | None,
         "actor_id": str | None,
@@ -1061,7 +1061,7 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
     },
     "arif_reply_compose": {
         "mode": str,
-        "message": str | None,  # [F12: sanitized]
+        "message": str | None,  # [L12: sanitized]
         "style": str | None,
         "citations": list[str] | None,
         "session_id": str | None,
@@ -1069,7 +1069,7 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
     },
     "arif_memory_recall": {
         "mode": str,
-        "query": str | None,  # [F12: sanitized]
+        "query": str | None,  # [L12: sanitized]
         "memory_id": str | None,
         "session_id": str | None,
         "actor_id": str | None,
@@ -1077,36 +1077,36 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
     },
     "arif_gateway_connect": {
         "mode": str,
-        "target_agent": str | None,  # [F12: sanitized]
+        "target_agent": str | None,  # [L12: sanitized]
         "session_id": str | None,
         "actor_id": str | None,
         "delegate_scope": dict | None,
     },
     "arif_judge_deliberate": {
         "mode": str,
-        "candidate": str | None,  # [F12: sanitized]
+        "candidate": str | None,  # [L12: sanitized]
         "session_id": str | None,
-        "actor_id": str,  # F11: authenticated — required
+        "actor_id": str,  # L11: authenticated — required
         "constitutional_chain_id": str | None,
         "domain_payload": dict | None,
     },
     "arif_vault_seal": {
         "mode": str,
-        "payload": str,  # F11: authenticated — required
+        "payload": str,  # L11: authenticated — required
         "session_id": str | None,
         "ack_irreversible": bool,  # F1: hard gate
-        "actor_id": str,  # F11: authenticated — required
+        "actor_id": str,  # L11: authenticated — required
         "constitutional_chain_id": str | None,
         "judge_state_hash": str | None,
     },
     "arif_forge_execute": {
         "mode": str,
-        "manifest": str,  # [F12: sanitized]
-        "query": str | None,  # [F12: sanitized]
+        "manifest": str,  # [L12: sanitized]
+        "query": str | None,  # [L12: sanitized]
         "artifact_id": str | None,
         "session_id": str | None,
         "ack_irreversible": bool,  # F1: hard gate
-        "actor_id": str,  # F11: authenticated — required
+        "actor_id": str,  # L11: authenticated — required
         "constitutional_chain_id": str | None,
         "judge_state_hash": str | None,
         "vault_entry_id": str | None,
@@ -1298,7 +1298,7 @@ def validate_tool_response_schema(tool_name: str, response: dict) -> tuple[bool,
     - Missing nine_signal block (Nine-Signal contract)
     - Missing reasons[] on HOLD/VOID/SABAR
     - output_policy absent when domain data present
-    - F10 Ontology: missing omega_ont field
+    - L10 Ontology: missing omega_ont field
     """
     violations: list[str] = []
     spec = CANONICAL_TOOLS.get(tool_name)
@@ -1310,22 +1310,22 @@ def validate_tool_response_schema(tool_name: str, response: dict) -> tuple[bool,
     if nine is None:
         violations.append(f"nine_signal block absent in {tool_name} response [KERNEL_EVALS]")
 
-    # F10 ONTOLOGY: all three nine-signal planes must be present with state + en
+    # L10 ONTOLOGY: all three nine-signal planes must be present with state + en
     if nine is not None:
         for plane in ("delta", "psi", "omega"):
             if plane not in nine:
-                violations.append(f"nine_signal missing {plane} plane [F10 ONTOLOGY]")
+                violations.append(f"nine_signal missing {plane} plane [L10 ONTOLOGY]")
             elif not isinstance(nine[plane], dict) or "state" not in nine[plane]:
-                violations.append(f"nine_signal.{plane} missing state [F10 ONTOLOGY]")
+                violations.append(f"nine_signal.{plane} missing state [L10 ONTOLOGY]")
             elif "en" not in nine[plane]:
-                violations.append(f"nine_signal.{plane} missing en [F10 ONTOLOGY]")
+                violations.append(f"nine_signal.{plane} missing en [L10 ONTOLOGY]")
         overall = nine.get("overall")
         if overall is None:
-            violations.append("nine_signal missing overall verdict [F10 ONTOLOGY]")
+            violations.append("nine_signal missing overall verdict [L10 ONTOLOGY]")
         elif isinstance(overall, str):
             pass  # flat string backward compat
         elif not isinstance(overall, dict) or "state" not in overall:
-            violations.append("nine_signal.overall missing state [F10 ONTOLOGY]")
+            violations.append("nine_signal.overall missing state [L10 ONTOLOGY]")
 
     # reasons[] check for non-SEAL verdicts
     verdict = response.get("verdict", "")
@@ -1350,9 +1350,9 @@ def generate_pydantic_models() -> dict[str, Any]:
     Returns: {tool_name: {"input_model": BaseModel, "output_model": BaseModel}}
 
     Enforces:
-    - F10 Ontology: all tool I/O must have type annotations
-    - F11 Auth: authenticated tools must have actor_id in schema
-    - F12 Injection: all string inputs must be annotated [F12: sanitized]
+    - L10 Ontology: all tool I/O must have type annotations
+    - L11 Auth: authenticated tools must have actor_id in schema
+    - L12 Injection: all string inputs must be annotated [L12: sanitized]
     """
     from pydantic import BaseModel, ConfigDict, Field
 
@@ -1369,12 +1369,12 @@ def generate_pydantic_models() -> dict[str, Any]:
         defaults: dict[str, Any] = {}
 
         for param, type_hint in input_spec.items():
-            # F12: all string inputs are treated as potentially unsanitized
+            # L12: all string inputs are treated as potentially unsanitized
             if type_hint is str | None:
                 annotations[param] = str
                 defaults[param] = Field(
                     default=None,
-                    description=f"[F12: sanitized] {param}",
+                    description=f"[L12: sanitized] {param}",
                 )
             elif type_hint in (int, float, bool, list, dict):
                 annotations[param] = type_hint
@@ -1383,10 +1383,10 @@ def generate_pydantic_models() -> dict[str, Any]:
                 annotations[param] = type_hint
                 defaults[param] = Field(default=None)
 
-        # F11: authenticated tools must include actor_id
+        # L11: authenticated tools must include actor_id
         if spec["access"] == "authenticated":
             if "actor_id" not in annotations:
-                violations.append(f"{tool_name}: authenticated tool missing actor_id field [F11]")
+                violations.append(f"{tool_name}: authenticated tool missing actor_id field [L11]")
 
         model_name = _to_model_name(tool_name) + "Input"
         model_dict = {"model_config": ConfigDict(arbitrary_types_allowed=True)}
@@ -1449,9 +1449,9 @@ def check_schema_coverage() -> dict[str, Any]:
         "output_coverage_pct": (
             (len(canonical & defined_output) / len(canonical) * 100) if canonical else 0
         ),
-        "floor_coverage": {f: len(t) for f, t in floor_cov.items()},
-        "thin_floors": thin_floors,  # floors with < 2 tools
-        "PASS": len(missing_input) == 0 and len(missing_output) == 0 and len(thin_floors) == 0,
+        "law_coverage": {f: len(t) for f, t in law_cov.items()},
+        "thin_laws": thin_laws,  # floors with < 2 tools
+        "PASS": len(missing_input) == 0 and len(missing_output) == 0 and len(thin_laws) == 0,
     }
 
 

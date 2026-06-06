@@ -10,7 +10,7 @@ preserving the constitutional skeleton while discarding ephemeral noise.
 Three tiers:
   EPHEMERAL  — tool calls, reasoning traces, session-scoped noise
   DOMAIN     — domain knowledge, skill references, evidence bundles
-  CONSTITUTIONAL — F1-F13 floors, ontology, governance invariants
+  CONSTITUTIONAL — F1-L13 floors, ontology, governance invariants
 
 Four modes:
   FULL       — preserve everything (default)
@@ -55,7 +55,7 @@ class CompressionMode(Enum):
 class MemoryTier(Enum):
     EPHEMERAL = "ephemeral"  # Tool calls, reasoning traces
     DOMAIN = "domain"  # Domain knowledge, skill references
-    CONSTITUTIONAL = "constitutional"  # F1-F13, ontology, governance invariants
+    CONSTITUTIONAL = "constitutional"  # F1-L13, ontology, governance invariants
 
 
 # ── Constitutional skeleton keys (always preserved) ─────────────────────────────

@@ -29,8 +29,8 @@ BEFORE any self-modification, verify ALL:
   2. Bottleneck identified — Measured, not assumed
   3. Rollback path exists — Can revert without collapse
   4. No circular dependency — Upgrade doesn't depend on itself
-  5. Constitutional preservation — F1-F13 still enforceable
-  6. F10 Ontology check — No category drift
+  5. Constitutional preservation — F1-L13 still enforceable
+  6. L10 Ontology check — No category drift
 
 VOID CONDITIONS (any = BLOCK):
   - Self-model divergence > 5%
@@ -56,14 +56,14 @@ BEFORE any cross-domain transfer, verify ALL:
   3. Invariant identified — Structural similarity, not surface
   4. No category error — Domain boundaries respected
   5. Consequences modeled — Downstream effects in target domain
-  6. F10 Ontology check — Taxonomy preserved
+  6. L10 Ontology check — Taxonomy preserved
 
 VOID CONDITIONS (any = BLOCK):
   - Surface similarity without structural invariance
   - Category error — applying structure to incompatible domain
   - Information loss in abstraction > 15%
   - Predictions fail in target domain validation
-  - F10 ontology violation — taxonomy drift
+  - L10 ontology violation — taxonomy drift
 
 Ditempa Bukan Diberi.
 """
@@ -88,14 +88,14 @@ BEFORE ANY consequential judgment, verify ALL:
   3. Bias lineage documented — Source of potential bias identified
   4. Uncertainty bounds given — Range specified, not just point
   5. Counterfactual considered — Alternative explanations evaluated
-  6. F02 Truth check — No fabrication passed as fact
+  6. L02 Truth check — No fabrication passed as fact
 
 VOID CONDITIONS (any = BLOCK):
   - Untagged claim in consequential output
   - Overconfidence exceeds threshold
   - Hallucination detected in output
   - Uncertainty bounds missing on estimate
-  - F02 Truth violation — fabrication detected
+  - L02 Truth violation — fabrication detected
   - Claim without evidence passed as OBSERVED
 
 Ditempa Bukan Diberi.
@@ -120,17 +120,17 @@ CORRECT flow: AGI proposes → ASI evaluates → APEX authorizes → FORGE execu
 BEFORE ANY tool execution, verify ALL:
   1. Separation maintained — Correct stage called correct stage
   2. No self-authorization — Actor ≠ authorizer
-  3. Floor check passed — F1-F13 all clear
+  3. Floor check passed — F1-L13 all clear
   4. Reversibility assessed — Can this be undone?
   5. Harm projection — Downstream effects modeled
   6. Scale awareness — System-wide state impact considered
 
 FOR IRREVERSIBLE ACTIONS (additional):
   - Judgment verdict = SEAL required
-  - F13 Sovereign acknowledgment required
+  - L13 Sovereign acknowledgment required
   - Rollback plan documented required
   - Harm minimization verified required
-  - Actor identity confirmed via F11 required
+  - Actor identity confirmed via L11 required
 
 VOID CONDITIONS (any = BLOCK):
   - Self-authorization detected
@@ -138,7 +138,7 @@ VOID CONDITIONS (any = BLOCK):
   - Irreversible without judgment verdict
   - Separation of powers violation
   - Harm minimization failed for public impact
-  - Sovereign override without F13 flag
+  - Sovereign override without L13 flag
 
 Ditempa Bukan Diberi.
 Governance is not a feature. It is the architecture.
@@ -231,7 +231,7 @@ def register_meta_skill_prompts(mcp: FastMCP) -> list[str]:
         name="governance",
         description=(
             "Constitutional Governance — power alignment and authority verification. "
-            "Enforces F11 AUTH (identity verification), F13 Sovereign (human veto), "
+            "Enforces L11 AUTH (identity verification), L13 Sovereign (human veto), "
             "and F1 Amanah (reversibility). Use for access control decisions, "
             "privilege escalation reviews, and multi-stakeholder conflict resolution."
         ),

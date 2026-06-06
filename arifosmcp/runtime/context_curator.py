@@ -1,5 +1,5 @@
 # arifOS SENSE Pipeline — Context Curator
-# F02 TRUTH + F07 HUMILITY — attribution, uncertainty bands, citation assembly
+# L02 TRUTH + L07 HUMILITY — attribution, uncertainty bands, citation assembly
 # DITEMPA BUKAN DIBERI
 
 from __future__ import annotations

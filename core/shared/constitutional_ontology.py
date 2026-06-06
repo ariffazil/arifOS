@@ -150,12 +150,12 @@ class ConstitutionalOntologyPayload(BaseModel):
 
     # === FLOOR COMPLIANCE ===
 
-    floors_passed: list[str] = Field(default_factory=list, description="F1-F13 floors that passed")
+    floors_passed: list[str] = Field(default_factory=list, description="F1-L13 floors that passed")
 
-    floors_failed: list[str] = Field(default_factory=list, description="F1-F13 floors that failed")
+    floors_failed: list[str] = Field(default_factory=list, description="F1-L13 floors that failed")
 
     floors_pending: list[str] = Field(
-        default_factory=list, description="F1-F13 floors awaiting evaluation"
+        default_factory=list, description="F1-L13 floors awaiting evaluation"
     )
 
     # === IDENTITY & AUTHORITY ===

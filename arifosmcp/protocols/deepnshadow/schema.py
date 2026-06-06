@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class EvidenceStrength(StrEnum):
-    """F02 TRUTH banding for behavioural observations."""
+    """L02 TRUTH banding for behavioural observations."""
 
     SINGLE = "single"
     REPEATED = "repeated"
@@ -52,7 +52,7 @@ class InferenceMode(StrEnum):
 
 
 class DignityStatus(StrEnum):
-    """F05 PEACE / F06 EMPATHY enforcement state."""
+    """L05 PEACE / L06 EMPATHY enforcement state."""
 
     SAFE = "safe"
     GUARDED = "guarded"
@@ -104,7 +104,7 @@ class BehaviourObservation(BaseModel):
         for phrase in banned:
             if phrase in lower:
                 raise ValueError(
-                    f"F05 dignity violation: observation contains diagnostic language '{phrase}'"
+                    f"L05 dignity violation: observation contains diagnostic language '{phrase}'"
                 )
         return v
 
@@ -141,7 +141,7 @@ class ShadowHypothesis(BaseModel):
     """Layer 3: MIND / DS-333 — generate hypotheses, not truths.
 
     Every shadow hypothesis must be labelled as such.
-    Confidence must be uncertainty-banded (F02 / F07).
+    Confidence must be uncertainty-banded (L02 / L07).
     Alternative explanations are mandatory.
     """
 
@@ -288,8 +288,8 @@ class RedactedVaultEntry(BaseModel):
 class DeepnShadowReport(BaseModel):
     """Terminal output of the DeepnShadow pipeline.
 
-    Governed by F02 (truth), F05 (peace), F06 (empathy),
-    F07 (humility), F09 (antihantu), F13 (sovereign).
+    Governed by L02 (truth), L05 (peace), L06 (empathy),
+    L07 (humility), L09 (antihantu), L13 (sovereign).
     """
 
     report_id: str = Field(..., description="UUID")

@@ -101,7 +101,7 @@ class ToolAuthContext(BaseModel):
     actor_id: str = Field(..., description="Verified actor identity")
     access_class: Literal["public", "authenticated", "sovereign"] = Field(default="authenticated")
     scopes: list[str] = Field(default_factory=list, description="Granted capability scopes")
-    human_approval_persisted: bool = Field(default=False, description="F13 human override")
+    human_approval_persisted: bool = Field(default=False, description="L13 human override")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

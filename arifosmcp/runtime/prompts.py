@@ -12,7 +12,7 @@ V2_PROMPT_SPECS = (
     {
         "name": "000_init",
         "description": "000_INIT — Session anchor and constitutional gateway. "
-        "Identity binding (F11), entropy baseline, session manifest, F1-F13 confirmation.",
+        "Identity binding (L11), entropy baseline, session manifest, F1-L13 confirmation.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
@@ -28,7 +28,7 @@ V2_PROMPT_SPECS = (
     {
         "name": "444_asi",
         "description": "444_ASI — Strategic judgment (ASI lane, stages 666-888). "
-        "JUDGE. Attestation chain + F1-F13 floor-by-floor + orthogonal transfer + deliberation.",
+        "JUDGE. Attestation chain + F1-L13 floor-by-floor + orthogonal transfer + deliberation.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",

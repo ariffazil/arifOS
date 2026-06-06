@@ -1,5 +1,5 @@
 """
-core/enforcement/auth_continuity.py — F11 Amanah Handshake
+core/enforcement/auth_continuity.py — L11 Amanah Handshake
 
 Strict session continuity through cryptographic chaining.
 Ensures that a session cannot be hijacked or forged between tool calls.

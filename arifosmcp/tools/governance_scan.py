@@ -1,8 +1,8 @@
 """
-arifOS Local Instruction Scanner — F12 INJECTION / F13 SOVEREIGNTY GUARD
+arifOS Local Instruction Scanner — L12 INJECTION / L13 SOVEREIGNTY GUARD
 ═══════════════════════════════════════════════════════════════════════
 Detects local agent instruction files that attempt to override constitutional
-authority (F1–F13). Scans for .cursorrules, GEMINI.md, ARIF.md, copilot-instructions,
+authority (F1–L13). Scans for .cursorrules, GEMINI.md, ARIF.md, copilot-instructions,
 and agent-local AGENTS.md files that contain constitutional bypass patterns.
 
 Reversible diagnostic. Emits HOLD when override risk detected.
@@ -88,14 +88,14 @@ _OVERRIDE_PATTERNS: list[dict[str, Any]] = [
         "pattern": r"(?:you\s+(?:must|should|can)|always|just)\s+(?:override|bypass|ignore)\s+(?:the\s+)?(?:sovereign|human\s+veto|arif|final\s+authority|f13)",
         "severity": "CRITICAL",
         "floor": "L13",
-        "description": "Instruction to bypass F13 Sovereign human veto",
+        "description": "Instruction to bypass L13 Sovereign human veto",
     },
     {
         "id": "OVERRIDE_F11",
         "pattern": r"(?:you\s+(?:must|should|can)|always|just)\s+(?:bypass|skip|ignore)\s+(?:auth|authentication|session|identity|actor|f11)",
         "severity": "HIGH",
         "floor": "L11",
-        "description": "Instruction to bypass F11 Command Auth identity binding",
+        "description": "Instruction to bypass L11 Command Auth identity binding",
     },
     {
         "id": "OVERRIDE_F09",
@@ -108,7 +108,7 @@ _OVERRIDE_PATTERNS: list[dict[str, Any]] = [
         "id": "SELF_AUTHORIZE",
         "pattern": r"(?:you\s+(?:can|may|should)\s+(?:now\s+)?(?:self\-?authoriz|auto\-?approv|auto\-?seal|skip\s+(?:the\s+)?(?:judge|heart|hold|888)))|(?:as\s+(?:an\s+)?(?:ai|agent|model|assistant),?\s+(?:you\s+(?:can|may|should)|skip|bypass))",
         "severity": "CRITICAL",
-        "floor": "F01/F13",
+        "floor": "L01/L13",
         "description": "Instruction granting agent self-authorization privileges",
     },
     {
@@ -203,11 +203,11 @@ async def arif_scan_local_instructions(
     actor_id: str | None = None,
 ) -> dict[str, Any]:
     """
-    F12 GUARD: Scan local agent instruction files for constitutional override attempts.
+    L12 GUARD: Scan local agent instruction files for constitutional override attempts.
 
     Scans .cursorrules, GEMINI.md, ARIF.md, copilot-instructions.md, AGENTS.md,
     and other common agent instruction surfaces for patterns that attempt to
-    bypass F1–F13 constitutional floors.
+    bypass F1–L13 constitutional floors.
 
     Returns:
         - findings: list of matched override patterns with file/line context

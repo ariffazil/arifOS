@@ -94,7 +94,7 @@ def _detect_contradictions(
 
     Checks:
     1. Pattern-pair contradictions within reason_summary text.
-    2. Floor-score vs verdict contradictions (e.g. high F12 injection risk + SEAL verdict).
+    2. Law-score vs verdict contradictions (e.g. high L12 injection risk + SEAL verdict).
 
     Returns a list of contradiction dicts with keys:
         stage_a, stage_b, severity, description, confidence
@@ -115,7 +115,7 @@ def _detect_contradictions(
                 }
             )
 
-    # 2. Floor-score vs verdict contradictions (F12, F1, F9)
+    # 2. Law-score vs verdict contradictions (L12, L1, L9)
     floor_checks = [
         (
             "f12_injection",
@@ -124,7 +124,7 @@ def _detect_contradictions(
             ("SEAL", "PARTIAL"),
             "L12_injection",
             "critical",
-            lambda v, vc: f"F12 injection risk={v:.2f} but verdict={vc}",
+            lambda v, vc: f"L12 injection risk={v:.2f} but verdict={vc}",
             0.95,
         ),
         (
@@ -575,7 +575,7 @@ async def judge(
         human_witness=dials["E"],
         ai_witness=dials["A"],
         earth_witness=dials["P"],
-        human_approve=True,  # Satisfy F13
+        human_approve=True,  # Satisfy L13
         evidence={"grounding": "Constitutional Apex Consensus"},  # Satisfy F2
     )
 

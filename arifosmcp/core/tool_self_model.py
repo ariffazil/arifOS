@@ -142,7 +142,7 @@ class ToolManifest(BaseModel):
         default_factory=list, description="Permissions needed to execute"
     )
     required_floors: list[str] = Field(
-        default_factory=list, description="F01-F13 floors that apply"
+        default_factory=list, description="L01-L13 floors that apply"
     )
 
     # Composition

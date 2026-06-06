@@ -83,7 +83,7 @@ class InitAnchorInput(BaseModel):
         max_length=128,
     )
     human_approval: bool = Field(
-        default=False, description="Human pre-approval flag (F13 Sovereign override)"
+        default=False, description="Human pre-approval flag (L13 Sovereign override)"
     )
     reason: str | None = Field(
         default=None,
@@ -128,7 +128,7 @@ class MegaToolInput(BaseModel):
     mode: str = Field(..., description="Operation mode for this tool")
     payload: dict[str, Any] = Field(default_factory=dict, description="Mode-specific payload data")
     auth_context: dict[str, Any] | None = Field(
-        default=None, description="Authentication context (F11)"
+        default=None, description="Authentication context (L11)"
     )
     caller_context: dict[str, Any] | None = Field(default=None, description="Caller metadata")
     risk_tier: Literal["low", "medium", "high", "critical"] = Field(default="medium")
@@ -463,7 +463,7 @@ class AgiReplyRACI(BaseModel):
         description="Agent/tool that produced this output (e.g. arifos.forge, arifos.mind)"
     )
     accountable: str = Field(
-        description="Constitutional authority — always arifos.judge + human:arif for F1/F13"
+        description="Constitutional authority — always arifos.judge + human:arif for F1/L13"
     )
     consulted: list[str] = Field(
         default_factory=list,
@@ -478,11 +478,11 @@ class AgiReplyRACI(BaseModel):
 class AgiReplyGovernanceTrace(BaseModel):
     """
     Typed governance trace — replaces raw dict[str, Any].
-    Populated when F1 or F13 is triggered (888 HOLD path).
+    Populated when F1 or L13 is triggered (888 HOLD path).
     Required for vault persistence and auditability.
     """
 
-    floors_triggered: list[str] = Field(description="F1-F13 floor codes that fired")
+    floors_triggered: list[str] = Field(description="F1-L13 floor codes that fired")
     verdict: Literal["888_HOLD", "SEAL", "PARTIAL", "VOID"] = Field(
         description="Constitutional verdict at time of governance check"
     )
@@ -498,7 +498,7 @@ class AgiReplyGovernanceTrace(BaseModel):
     )
     human_confirmed: bool = Field(
         default=False,
-        description="F13 gate: human ratification received (required before forge on F1/F13)",
+        description="L13 gate: human ratification received (required before forge on F1/L13)",
     )
 
 
@@ -522,7 +522,7 @@ class AgiReplySeal(BaseModel):
             "manual = caller-supplied override"
         ),
     )
-    floors_passed: list[str] = Field(default_factory=list, description="F1-F13 floors that passed")
+    floors_passed: list[str] = Field(default_factory=list, description="F1-L13 floors that passed")
     floors_triggered: list[str] = Field(default_factory=list, description="Floors that flagged")
     audit_hash: str = Field(description="sha256(TITLE + timestamp + forged_by + judge_verdict)")
     timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
@@ -561,7 +561,7 @@ class AgiReplyToolReturn(BaseModel):
     )
     floor_flags: list[str] = Field(
         default_factory=list,
-        description="F1-F13 floors triggered by this tool call",
+        description="F1-L13 floors triggered by this tool call",
     )
     reversible: Literal["YES", "NO", "PARTIAL"] = Field(
         default="YES",
@@ -694,7 +694,7 @@ class AgiReplyEnvelopeAgent(BaseModel):
     # Constitutional guard (STEP 3)
     governance_trace: AgiReplyGovernanceTrace | None = Field(
         default=None,
-        description="Typed governance trace — populated when F1 or F13 triggered",
+        description="Typed governance trace — populated when F1 or L13 triggered",
     )
 
     # Telemetry passthrough

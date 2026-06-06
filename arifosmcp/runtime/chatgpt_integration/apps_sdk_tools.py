@@ -198,7 +198,7 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
                                 ],
                             },
                         },
-                        "openai/widgetDescription": "arifOS constitutional seal — displays F1-F13 floor status, verdict, and tri-witness consensus.",
+                        "openai/widgetDescription": "arifOS constitutional seal — displays F1-L13 floor status, verdict, and tri-witness consensus.",
                     },
                 }
             ],
@@ -220,7 +220,7 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
         ] = "SEAL",
         floors: Annotated[
             dict[str, Any] | None,
-            Field(description="Floor scores F1-F13 as dict of float values."),
+            Field(description="Floor scores F1-L13 as dict of float values."),
         ] = None,
         witness: Annotated[
             dict[str, Any] | None,
@@ -304,11 +304,11 @@ def register_chatgpt_app_tools(mcp: FastMCP) -> None:
     @mcp.tool(
         name="get_constitutional_health",
         title="Get Constitutional Health",
-        description="Read-only constitutional health snapshot. Returns F1-F13 floor status, telemetry, and widget URI.",
+        description="Read-only constitutional health snapshot. Returns F1-L13 floor status, telemetry, and widget URI.",
         annotations={"readOnlyHint": True},
     )
     async def _get_constitutional_health(session_id: str = "global") -> dict[str, Any]:
-        """Get constitutional health snapshot - reads F1-F13 status."""
+        """Get constitutional health snapshot - reads F1-L13 status."""
         status = _build_governance_status_payload()
         return {
             "structuredContent": {

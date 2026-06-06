@@ -71,7 +71,7 @@ logger = logging.getLogger(__name__)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # JWT ENFORCEMENT — Phase 1 Observe Mode
-# F11 AUTH + F12 INJECTION hardening for vault writes
+# L11 AUTH + L12 INJECTION hardening for vault writes
 # Policy: log violations without blocking; collect telemetry for 24h minimum
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -108,7 +108,7 @@ async def _fetch_jwks() -> dict | None:
 
 
 def _log_jwt_violation(violation_type: str, detail: str, context: dict) -> None:
-    """Log JWT violation in observe mode. Escalates to error for F11/F12 severity.
+    """Log JWT violation in observe mode. Escalates to error for L11/L12 severity.
 
     Writes to BOTH container logs AND the telemetry-data volume so violations
     survive container restarts (fixes cron 24h observation window gap).

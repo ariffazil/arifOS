@@ -2,7 +2,7 @@
 arifosmcp/runtime/megaTools/tool_01_init_anchor.py
 
 🔥 THE IGNITION STATE OF INTELLIGENCE (Hardened Rebuild)
-Stage: 000_INIT | Trinity: PSI Ψ | Floors: F11, F12, F13
+Stage: 000_INIT | Trinity: PSI Ψ | Floors: L11, L12, L13
 
 Modes: init, revoke, refresh, state, status, probe
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -287,7 +287,7 @@ async def init_anchor(
             )
         return _status_envelope(_session_id, get_session_identity(_session_id))
 
-    # ── F12: Injection Defense ──
+    # ── L12: Injection Defense ──
     # Score = 1.0 (clean) → 0.0 (fully compromised).
     # Higher score = safer. Lower score = more injection patterns detected.
     _combined_input = str(f"{_dn} {_intent}").lower()
@@ -320,7 +320,7 @@ async def init_anchor(
         "platform": "mcp",
     }
 
-    # ── F11: Model Registry Identity Grounding ──
+    # ── L11: Model Registry Identity Grounding ──
     model_registry_info = None
     if model_soul:
         try:

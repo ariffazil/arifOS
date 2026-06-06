@@ -110,7 +110,7 @@ class RuntimeState:
             if is_protected_sovereign_id(canonical):
                 if not validate_sovereign_proof(canonical, proof):
                     raise PermissionError(
-                        f"F11/F13: Protected sovereign ID '{canonical}' requires valid proof."
+                        f"L11/L13: Protected sovereign ID '{canonical}' requires valid proof."
                     )
 
             session_id = f"sess_{uuid.uuid4().hex[:16]}"

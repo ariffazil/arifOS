@@ -137,7 +137,7 @@ Output schema:
 
 
 async def kernel_audit(proposal: ProposalObject) -> KernelVerdict:
-    """Stage 444 — Audit ProposalObject against F1-F13 constitutional floors."""
+    """Stage 444 — Audit ProposalObject against F1-L13 constitutional floors."""
     violations = []
 
     # F1 Amanah — reversibility check
@@ -259,7 +259,7 @@ async def kernel_audit(proposal: ProposalObject) -> KernelVerdict:
             }
         )
 
-    # F13 Sovereignty — human required
+    # L13 Sovereignty — human required
     if proposal.requires_human:
         violations.append({"floor": "L13", "reason": "human_approval_required", "verdict": "HOLD"})
 

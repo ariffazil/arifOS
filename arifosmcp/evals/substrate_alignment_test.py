@@ -2,7 +2,7 @@
 arifosmcp/evals/substrate_alignment_test.py — Constitutional Alignment Test
 
 Verifies that substrate bridges (Git, Fetch, Memory) correctly enforce
-constitutional floors (F2, F7, F8, F9, F11, F13).
+constitutional floors (F2, F7, F8, F9, L11, L13).
 
 DITEMPA BUKAN DIBERI — Alignment Witness
 """
@@ -22,17 +22,17 @@ logger = logging.getLogger(__name__)
 
 
 async def test_git_alignment():
-    print("📋 TESTING GIT ALIGNMENT (F11/F13)...")
+    print("📋 TESTING GIT ALIGNMENT (L11/L13)...")
 
-    # Test read (F11 audit only)
+    # Test read (L11 audit only)
     status = await arifos_repo_read(path="./")
     print(f"  Status Read: {'OK' if status.ok else 'FAIL'}")
 
-    # Test mutation without human (Should be VOID if F13 is not simulated)
+    # Test mutation without human (Should be VOID if L13 is not simulated)
     # Note: In a real test we'd mock the judge, but here we test the bridge logic
     commit = await arifos_repo_seal(message="Test commit", files=["README.md"], actor_id="tester")
     print(
-        f"  Mutation (F13): {'SEAL' if commit.verdict == Verdict.SEAL else 'VOID/HOLD'} (Result: {commit.verdict})"
+        f"  Mutation (L13): {'SEAL' if commit.verdict == Verdict.SEAL else 'VOID/HOLD'} (Result: {commit.verdict})"
     )
 
 

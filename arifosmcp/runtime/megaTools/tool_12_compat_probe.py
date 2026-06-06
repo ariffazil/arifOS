@@ -2,7 +2,7 @@
 arifosmcp/runtime/megaTools/12_compat_probe.py
 
 M-5_COMPAT: Multi-layer interoperability and contract validation
-Stage: M-5_COMPAT | Trinity: ALL | Floors: F11, F4
+Stage: M-5_COMPAT | Trinity: ALL | Floors: L11, F4
 
 Modes: audit, probe, ping
 """

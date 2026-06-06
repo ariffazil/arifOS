@@ -38,7 +38,7 @@ async def embodied_mind_reason_handler(
     Structural modes (plan, plan_review, plan_approve, axioms) are deterministic.
     Cognitive modes (reason, reflect, verify, critique, debate, socratic) use LLM.
 
-    F13 SOVEREIGN: plan_approve remains deterministic — LLM must never
+    L13 SOVEREIGN: plan_approve remains deterministic — LLM must never
     adjudicate sovereign approval.
     """
     if session_id is None and ctx is not None:

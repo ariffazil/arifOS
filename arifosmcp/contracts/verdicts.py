@@ -26,7 +26,7 @@ class GovernanceStatus(StrEnum):
     APPROVED = "APPROVED"  # Maps from SEAL
     PARTIAL = "PARTIAL"  # Limited approval
     PAUSE = "PAUSE"  # Maps from SABAR
-    HOLD = "HOLD"  # Awaiting human (F13)
+    HOLD = "HOLD"  # Awaiting human (L13)
     VOID = "VOID"  # Forbidden/Blocked
     PROVISIONAL = "PROVISIONAL"  # Preliminary approval
 

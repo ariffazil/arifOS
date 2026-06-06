@@ -53,7 +53,7 @@ META_SKILLS: dict[str, dict[str, Any]] = {
             "Category error in domain mapping",
             "Information loss > 15%",
             "Prediction validation failure",
-            "F10 ontology violation",
+            "L10 ontology violation",
         ],
     },
     "epistemic-integrity": {
@@ -69,7 +69,7 @@ META_SKILLS: dict[str, dict[str, Any]] = {
             "Overconfidence threshold exceeded",
             "Hallucination detected",
             "Uncertainty bounds missing",
-            "F02 Truth violation",
+            "L02 Truth violation",
         ],
     },
     "constitutional-governance": {
@@ -173,7 +173,7 @@ INVOKE BEFORE: Any self-modification or architecture upgrade
 2. Bottleneck identified: Measured, not assumed?
 3. Rollback path exists: Can revert without collapse?
 4. No circular dependency: Upgrade doesn't depend on itself?
-5. Constitutional preservation: F1-F13 still enforceable?
+5. Constitutional preservation: F1-L13 still enforceable?
 """,
             "orthogonal-abstraction": """
 INVOKE BEFORE: Any cross-domain structure transfer
@@ -189,13 +189,13 @@ INVOKE BEFORE: Any consequential judgment or output
 2. Confidence band specified: Ω₀ ∈ [0.03, 0.05]?
 3. Bias lineage documented: Source of bias identified?
 4. Uncertainty bounds given: Range specified?
-5. F02 Truth check: No fabrication passed as fact?
+5. L02 Truth check: No fabrication passed as fact?
 """,
             "constitutional-governance": """
 INVOKE BEFORE: Any tool execution
 1. Separation maintained: Correct stage called correct stage?
 2. No self-authorization: Actor ≠ authorizer?
-3. Floor check passed: F1-F13 all clear?
+3. Floor check passed: F1-L13 all clear?
 4. Reversibility assessed: Can this be undone?
 5. Harm projection: Downstream effects modeled?
 """,

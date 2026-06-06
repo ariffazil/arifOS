@@ -306,7 +306,7 @@ def _requires_explicit_kernel_auth(
     """Decide whether arifos_kernel must reject missing auth_context."""
     from core.enforcement.auth_continuity import _env_flag
 
-    # F11 Bootstrap Whitelist: These tools can run without prior auth
+    # L11 Bootstrap Whitelist: These tools can run without prior auth
     # They are the tools that ESTABLISH auth, so they cannot require it
     if canonical_tool in BOOTSTRAP_WHITELIST:
         return False
@@ -485,8 +485,8 @@ def _build_constitutional_audit(session_id: str) -> dict[str, Any]:
                 "runtime": "entropy tracking, office_forge_audit",
             },
             {"doctrine": "F6 Care", "runtime": "assess_heart_impact"},
-            {"doctrine": "F11 Command", "runtime": "init_anchor, auth_continuity"},
-            {"doctrine": "F13 Sovereign", "runtime": "888_HOLD, verify_vault_ledger"},
+            {"doctrine": "L11 Command", "runtime": "init_anchor, auth_continuity"},
+            {"doctrine": "L13 Sovereign", "runtime": "888_HOLD, verify_vault_ledger"},
         ],
         "status": "ACTIVE",
         "message": "13 Constitutional Floors loaded and enforced",
@@ -629,7 +629,7 @@ async def call_kernel(
 
     auth_ctx = _normalize_auth_context(payload, payload.get("auth_context"))
 
-    # F11: Resolve from session registry if missing in payload
+    # L11: Resolve from session registry if missing in payload
     if auth_ctx is None and session_id:
         stored = get_session_identity(session_id)
         if stored and stored.get("auth_context"):
@@ -657,7 +657,7 @@ async def call_kernel(
                 return _auth_failure_envelope(
                     tool=canonical_name,
                     session_id=session_id,
-                    error_message="F11: High-risk kernel calls require auth_context.",
+                    error_message="L11: High-risk kernel calls require auth_context.",
                     claimed_actor_id=claimed_actor_id,
                     identity_claim_status="UNVERIFIED_CLAIM",
                     identity_reason="Auto-bootstrap not allowed for this risk/mode.",
@@ -671,7 +671,7 @@ async def call_kernel(
                 return _auth_failure_envelope(
                     tool=canonical_name,
                     session_id=session_id,
-                    error_message=f"F11: Continuity failed: {reason}",
+                    error_message=f"L11: Continuity failed: {reason}",
                     claimed_actor_id=claimed_actor_id,
                     identity_claim_status="INVALID_AUTH_CONTEXT",
                     identity_reason=reason,
@@ -680,7 +680,7 @@ async def call_kernel(
                     dry_run=dry_run,
                 )
 
-            # F11: Authority and Scope Validation
+            # L11: Authority and Scope Validation
             # After token verification, check if actor has required scope for kernel execution
             authority_level = auth_ctx.get("authority_level", "anonymous")
             approval_scope = auth_ctx.get("approval_scope", [])
@@ -690,7 +690,7 @@ async def call_kernel(
                 return _auth_failure_envelope(
                     tool=canonical_name,
                     session_id=session_id,
-                    error_message="F11: Anonymous actors cannot execute kernel operations. Use a recognized actor_id.",
+                    error_message="L11: Anonymous actors cannot execute kernel operations. Use a recognized actor_id.",
                     claimed_actor_id=claimed_actor_id,
                     identity_claim_status="INSUFFICIENT_SCOPE",
                     identity_reason="Anonymous authority level",
@@ -710,7 +710,7 @@ async def call_kernel(
                 return _auth_failure_envelope(
                     tool=canonical_name,
                     session_id=session_id,
-                    error_message=f"F11: Actor '{authority_level}' lacks required scope for kernel execution.",
+                    error_message=f"L11: Actor '{authority_level}' lacks required scope for kernel execution.",
                     claimed_actor_id=claimed_actor_id,
                     identity_claim_status="INSUFFICIENT_SCOPE",
                     identity_reason=f"Missing {required_scope} or {required_scope_limited}",
@@ -724,7 +724,7 @@ async def call_kernel(
             return _auth_failure_envelope(
                 tool=canonical_name,
                 session_id=session_id,
-                error_message="F11: Missing auth_context.",
+                error_message="L11: Missing auth_context.",
                 claimed_actor_id=claimed_actor_id,
                 identity_claim_status="UNVERIFIED_CLAIM",
                 identity_reason="No auth_context.",
@@ -737,7 +737,7 @@ async def call_kernel(
             return _auth_failure_envelope(
                 tool=canonical_name,
                 session_id=session_id,
-                error_message=f"F11: Continuity failed: {reason}",
+                error_message=f"L11: Continuity failed: {reason}",
                 claimed_actor_id=claimed_actor_id,
                 identity_claim_status="INVALID_AUTH_CONTEXT",
                 identity_reason=reason,
@@ -881,7 +881,7 @@ async def call_kernel(
             )
             result = res.model_dump(mode="json")
 
-            # F11/F13: Persist human approval into the governance output
+            # L11/L13: Persist human approval into the governance output
             auth_level = res.governance.authority_level
             if ha_value or _can_auto_anchor_declared_identity(payload, actor_id):
                 if auth_level == "anonymous":
@@ -1137,7 +1137,7 @@ async def call_kernel(
             if isinstance(result, dict) and "meta" in result:
                 result["meta"]["temporal_contract"] = contract.model_dump(mode="json")
             if isinstance(result, dict) and result.get("verdict") != "VOID":
-                # F11: Ensure continuity even if we auto-bootstrapped this call
+                # L11: Ensure continuity even if we auto-bootstrapped this call
                 effective_actor = (
                     auth_ctx.get("actor_id", claimed_actor_id) if auth_ctx else claimed_actor_id
                 )

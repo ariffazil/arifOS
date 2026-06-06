@@ -59,7 +59,7 @@ class OrganContract(BaseModel):
     Federation contract for a single organ.
 
     Enforced by arifOS 888_JUDGE and 777_WITNESS gates.
-    Violations trigger constitutional floor alerts (F10 ONTOLOGY, F13 SOVEREIGN).
+    Violations trigger constitutional floor alerts (L10 ONTOLOGY, L13 SOVEREIGN).
     """
 
     organ: str = Field(..., description="Canonical organ name")
@@ -108,7 +108,7 @@ class OrganContract(BaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Canonical Federation Contracts — F1–F13 enforced
+# Canonical Federation Contracts — F1–L13 enforced
 # ═══════════════════════════════════════════════════════════════════════════════
 
 FEDERATION_CONTRACTS: dict[str, OrganContract] = {

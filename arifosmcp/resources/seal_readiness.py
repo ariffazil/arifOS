@@ -23,7 +23,7 @@ VAULT999:
 SEAL TYPES (disambiguated):
   KERNEL_SEAL_AWARENESS    — kernel knows about it (informational)
   DOMAIN_SEAL_VALIDITY     — calculation valid in domain (e.g. WEALTH NPV converged)
-  JUDGE_SEAL_AUTHORIZATION — action authorized (F1–F13 cleared, APEX present)
+  JUDGE_SEAL_AUTHORIZATION — action authorized (F1–L13 cleared, APEX present)
   VAULT999_SEAL_RECORD     — record written (immutable audit trail entry exists)
   PUBLIC_SEAL_READINESS    — candidate posture, not execution approval
 
@@ -33,8 +33,8 @@ SEAL GATE (what must pass before a SEAL):
   3. F3 WITNESS:    witness triad scores present
   4. F8 REVERSIBILITY: escape path documented
   5. F9 ANTIHANTU:  C_dark < 0.30
-  6. F11 AUTH:      actor identity verified
-  7. F13 SOVEREIGN: human ratifier = arif-fazil
+  6. L11 AUTH:      actor identity verified
+  7. L13 SOVEREIGN: human ratifier = arif-fazil
 
 NON-SEAL VERDICTS:
   SABAR — held, needs more evidence or human review

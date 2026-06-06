@@ -3,7 +3,7 @@ arifosmcp/runtime/sovereign_signer.py
 
 ED25519 SOVEREIGN IDENTITY BRIDGE
 
-Sign messages with Ed25519 sovereign key for arifOS MCP F11 AUTH.
+Sign messages with Ed25519 sovereign key for arifOS MCP L11 AUTH.
 
 Usage:
     python3 sovereign_signer.py <actor_id> <constitution_hash> <nonce>
@@ -31,7 +31,7 @@ def get_constitution_hash() -> str:
     FLOOR_SPEC = (
         "F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, "
         "F5: Peace, F6: Empathy, F7: Humility, F8: Genius, "
-        "F9: Anti-Hantu, F10: Ontology, F11: Auth, F12: Injection, F13: Sovereign"
+        "F9: Anti-Hantu, L10: Ontology, L11: Auth, L12: Injection, L13: Sovereign"
     )
     c_hash = hashlib.sha256(FLOOR_SPEC.encode()).hexdigest()[:16]
     return f"sha256:{c_hash}"  # Include sha256: prefix (MUST match verifier)

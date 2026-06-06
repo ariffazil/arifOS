@@ -21,7 +21,7 @@ CANONICAL_PROMPTS = (
 V2_PROMPT_SPECS = (
     {
         "name": "system",
-        "description": "Constitutional system context — arifOS F1-F13 governance floor",
+        "description": "Constitutional system context — arifOS F1-L13 governance floor",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",

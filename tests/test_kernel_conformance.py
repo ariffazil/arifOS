@@ -24,7 +24,7 @@ WEALTH_HOST = "http://localhost:18082"
 GEOX_HOST = "http://localhost:8081"
 WELL_HOST = "http://localhost:18083"
 
-REGISTRY_PATH = Path(__file__).parent.parent / "registry" / "federation_registry.json"
+REGISTRY_PATH = Path(__file__).parent.parent / "registry_DEPRECATED_2026-06-05" / "federation_registry.json"
 KERNEL_CONSTITUTION_PATH = Path(__file__).parent.parent / "blueprints" / "kernel_constitution.yaml"
 ROUTING_ENGINE_PATH = Path(__file__).parent.parent / "blueprints" / "routing_engine.yaml"
 VERDICT_CONTRACT_PATH = Path(__file__).parent.parent / "contracts" / "verdict_contract.json"
@@ -130,7 +130,7 @@ def test_registry_truth(result: AuditResult):
         ("WEALTH", WEALTH_HOST, expected_counts.get("WEALTH", 0)),
         ("GEOX", GEOX_HOST, expected_counts.get("GEOX", 0)),
         # WELL uses somatic_only count
-        ("WELL", WELL_HOST, 13),  # confirmed somatic tools = 13
+        ("WELL", WELL_HOST, 16),  # confirmed somatic tools = 16
     ]
 
     for name, host, expected in servers:

@@ -4,7 +4,7 @@ arifosmcp/runtime/sensing_protocol.py — Governed Sensing Protocol — 8-Stage 
 
 Constitutional sensing protocol for arifos.sense — CANONICAL SEAL VERSION.
 
-Stage: 111_SENSE | Trinity: DELTA Δ | Floors: F2, F3, F4, F7, F8, F10
+Stage: 111_SENSE | Trinity: DELTA Δ | Floors: F2, F3, F4, F7, F8, L10
 
 Implements the 8-stage constitutional sensing flow:
     1. PARSE    → Extract entities, intent, time-dependence, risk, jurisdiction

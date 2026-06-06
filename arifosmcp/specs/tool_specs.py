@@ -28,7 +28,7 @@ class ToolSpec:
         input_schema: JSON Schema for inputs
         stage: Constitutional stage (000_INIT, 444_ROUTER, etc.)
         trinity: PSI, DELTA, or OMEGA
-        floors: Tuple of F1-F13 floors enforced
+        floors: Tuple of F1-L13 floors enforced
         read_only_hint: If True, tool doesn't mutate state
         open_world_hint: If True, tool accesses external systems
         auth_required: Minimum authority level needed
@@ -340,7 +340,7 @@ CANONICAL_TOOL_SPECS: tuple[ToolSpec, ...] = (
         title="Apex Soul",
         description=(
             "Final constitutional verdict and hold logic. "
-            "Evaluates actions against F1-F13 floors. "
+            "Evaluates actions against F1-L13 floors. "
             "Returns SEAL, PARTIAL, VOID, SABAR, or 888_HOLD."
         ),
         input_schema=_build_input_schema(

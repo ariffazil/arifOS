@@ -8,7 +8,7 @@ Author: Muhammad Arif bin Fazil [ΔΩΨ | ARIF]
 This module implements the 5-Class Agent Parliament under arifOS v35O:
 - ValidatorAgent (Ψ - APEX): Final judge, verdict issuer
 - OrchestratorAgent (Δ - MIND): Task decomposition
-- EngineerAgent (Ω - HEART): Code execution with F11 gating
+- EngineerAgent (Ω - HEART): Code execution with L11 gating
 - AuditorAgent (Ω - HEART): Compliance review
 - ArchitectAgent (Δ - MIND): Strategy design
 

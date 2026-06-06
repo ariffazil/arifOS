@@ -2,7 +2,7 @@
 arifosmcp.core.governance_kernel — Constitutional Governance Kernel
 ════════════════════════════════════════════════════════════════════
 
-Wraps ALL tool executions with F1–F13 interceptors.
+Wraps ALL tool executions with F1–L13 interceptors.
 This is the sovereign boundary layer — no tool executes without passing through here.
 
 Ditempa Bukan Diberi — Intelligence is forged, not given.

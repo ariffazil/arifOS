@@ -91,7 +91,7 @@ class AnomalousContrast(BaseModel):
     # Manipulation detection
     manipulation_signal: bool = Field(
         default=False,
-        description="Does contrast suggest intentional manipulation (F09)?",
+        description="Does contrast suggest intentional manipulation (L09)?",
     )
     anti_hantu_score: float = Field(
         default=0.0,
@@ -324,7 +324,7 @@ class AmanahProof(BaseModel):
 
     # Floor compliance
     floors_checked: list[str] = Field(
-        default_factory=list, description="F1-F13 floors evaluated for this action"
+        default_factory=list, description="F1-L13 floors evaluated for this action"
     )
     floors_passed: list[str] = Field(default_factory=list, description="Floors that passed")
     floors_failed: list[str] = Field(
@@ -342,7 +342,7 @@ class AmanahProof(BaseModel):
 
     # Override
     override_acknowledged: bool = Field(
-        default=False, description="Did sovereign (F13) override any floor?"
+        default=False, description="Did sovereign (L13) override any floor?"
     )
     override_reason: str | None = Field(default=None, description="Why sovereign chose to override")
     override_authorizer: str | None = Field(
@@ -380,13 +380,13 @@ class FloorComplianceProof(BaseModel):
     """
     Constitutional floor enforcement proof.
 
-    F1-F13 are structural axioms, not post-processing.
+    F1-L13 are structural axioms, not post-processing.
     This proof shows each floor was evaluated and its result.
     """
 
     # Invocations
     floors_invoked: list[str] = Field(
-        default_factory=list, description="Which F1-F13 were relevant to this decision"
+        default_factory=list, description="Which F1-L13 were relevant to this decision"
     )
 
     # Per-floor results
@@ -408,8 +408,8 @@ class FloorComplianceProof(BaseModel):
         default=None, description="Which floor caused VOID/HOLD if any"
     )
 
-    # F13 Sovereign
-    f13_invoked: bool = Field(default=False, description="Was F13 (sovereign veto) triggered?")
+    # L13 Sovereign
+    f13_invoked: bool = Field(default=False, description="Was L13 (sovereign veto) triggered?")
     f13_veto_triggered: bool = Field(
         default=False, description="Did sovereign actually exercise veto?"
     )
@@ -709,15 +709,15 @@ class VerdictOutput(BaseModel):
     # These flags are set TRUE only when Arif has ratified the action.
     recommendation_only: bool = Field(
         default=True,
-        description="AI proposes only. Has not been ratified by human. True until F13 sign-off.",
+        description="AI proposes only. Has not been ratified by human. True until L13 sign-off.",
     )
     execution_authorized: bool = Field(
         default=False,
-        description="Has a human authorized execution? False until F13 SOVEREIGN sign-off.",
+        description="Has a human authorized execution? False until L13 SOVEREIGN sign-off.",
     )
     human_final_authority: str = Field(
         default="Arif",
-        description="Who has final say on this verdict? Always 'Arif' — F13 veto is absolute.",
+        description="Who has final say on this verdict? Always 'Arif' — L13 veto is absolute.",
     )
     requires_888_judge: bool = Field(
         default=False,
@@ -853,7 +853,7 @@ class SealOutput(BaseModel):
     - irreversibility_bond: determines if seal is allowed
     - entropy_delta: tracks thermodynamic cost of sealing
     - epistemic_snapshot: captures knowledge state at seal time
-    - ack_irreversible_required: F01 amanah enforcement
+    - ack_irreversible_required: L01 amanah enforcement
 
     Pillar: Thermodynamic + AKAL + Amanah Genius
     """
@@ -892,7 +892,7 @@ class SealOutput(BaseModel):
 
     # Constitutional compliance
     constitutional_compliance: ConstitutionalCompliance = Field(
-        default_factory=ConstitutionalCompliance, description="F1-F13 floor compliance"
+        default_factory=ConstitutionalCompliance, description="F1-L13 floor compliance"
     )
 
     # Epistemic state at seal time

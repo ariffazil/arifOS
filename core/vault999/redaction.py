@@ -7,8 +7,8 @@ Data Tiers:
   T0 PUBLIC       — No restriction
   T1 INTERNAL     — Redact if contains tokens/keys
   T2 CONFIDENTIAL — Auto-redact on detection. Human confirm for full delete.
-  T3 SENSITIVE    — Auto-redact. F13 required for any action.
-  T4 CRITICAL     — Auto-redact. F13 required. Cannot be fully deleted.
+  T3 SENSITIVE    — Auto-redact. L13 required for any action.
+  T4 CRITICAL     — Auto-redact. L13 required. Cannot be fully deleted.
 
 Redaction preserves hash chain integrity.
 """
@@ -125,7 +125,7 @@ def can_fully_delete(tier: str, has_f13_authority: bool) -> bool:
     Determine if full deletion is permitted.
 
     Rules per PARADOX_DOCTRINE_V1 Section 6:
-      - T0-T2: full deletion permitted with F13
+      - T0-T2: full deletion permitted with L13
       - T3-T4: cannot be fully deleted, only redacted
     """
     if not has_f13_authority:

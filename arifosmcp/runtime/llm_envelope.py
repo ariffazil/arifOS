@@ -70,7 +70,7 @@ class LLMOutputEnvelope(BaseModel):
         evidence_level — claimed | cited | verified (F2 Truth calibration)
         attestation    — chain of evidence to substrate (Eureka 2026-05-21)
         uncertainty    — list of known unknowables (F7 Humility)
-        risk_flags     — detected risk categories (F6/F9/F13)
+        risk_flags     — detected risk categories (F6/F9/L13)
         prompt_hash    — SHA-256 of the prompt (audit trail)
         timestamp      — ISO-8601 UTC
         trace_recursion_depth — recursion counter in request envelope (Eureka 2026-05-21)
@@ -97,7 +97,7 @@ class LLMOutputEnvelope(BaseModel):
     uncertainty: list[str] = Field(default_factory=list)
     risk_flags: list[str] = Field(default_factory=list)
     disconfirming_tests: list[str] = Field(default_factory=list)
-    injection_detected: bool = False  # F12 INJECTION scan
+    injection_detected: bool = False  # L12 INJECTION scan
     latency_ms: float = 0.0  # Round-trip cost in ms for thermodynamic tracking
 
     prompt_hash: str
@@ -146,7 +146,7 @@ def _assess_uncertainty_and_risk(
 ) -> tuple[list[str], list[str], list[str]]:
     """
     F7 Humility: derive uncertainty signals from output shape.
-    F6/F9/F13: flag risk categories.
+    F6/F9/L13: flag risk categories.
 
     Returns (uncertainty_list, risk_flags_list, disconfirming_tests).
     """
@@ -197,7 +197,7 @@ def _assess_uncertainty_and_risk(
         elif isinstance(delta_s_val, int | float) and abs(delta_s_val) < 0.01:
             uncertainty.append("zero_entropy_delta_S_unusual")
 
-    # F12 INJECTION — if scan detected in LLM output, escalate immediately
+    # L12 INJECTION — if scan detected in LLM output, escalate immediately
     if injection_detected:
         risk_flags.append("L12_INJECTION_DETECTED")
         uncertainty.append("L12_injection_scan_triggered_in_LLM_output")
@@ -253,7 +253,7 @@ def wrap_llm_output(
     if not isinstance(confidence, int | float):
         confidence = 0.5
 
-    # F12 INJECTION scan — detect prompt injection in LLM output before release
+    # L12 INJECTION scan — detect prompt injection in LLM output before release
     injection_detected = _scan_injection(raw_output)
 
     uncertainty, risk_flags, disconfirming_tests = _assess_uncertainty_and_risk(
@@ -293,12 +293,12 @@ def wrap_llm_output(
         timestamp=datetime.now(UTC).isoformat(),
         trace_recursion_depth=trace_recursion_depth,
         human_decision_required=human_decision_required,
-        authority_level=_governance_of(model),  # F11: looked up from model_governance.yaml
+        authority_level=_governance_of(model),  # L11: looked up from model_governance.yaml
     )
 
 
 def _governance_of(model: str) -> str:
-    """F11 Model Governance — look up authority level from model_governance.yaml.
+    """L11 Model Governance — look up authority level from model_governance.yaml.
 
     Every model in arifOS has a governance card. Unlisted models default
     to instrument_only. The model_governance.yaml is the SoT.
@@ -426,7 +426,7 @@ __all__ = [
 ]
 
 
-# ── F12 INJECTION Scan ─────────────────────────────────────────────────────────
+# ── L12 INJECTION Scan ─────────────────────────────────────────────────────────
 
 
 INJECTION_PATTERNS = [
@@ -453,7 +453,7 @@ INJECTION_PATTERNS = [
 
 def _scan_injection(text: str) -> bool:
     """
-    F12 INJECTION scan — detect prompt injection, code execution,
+    L12 INJECTION scan — detect prompt injection, code execution,
     authority impersonation, and hidden instruction patterns.
     """
     normalized = re.sub(r"[\x00-\x1f\x7f-\x9f]", "", text)

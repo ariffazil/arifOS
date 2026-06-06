@@ -13,7 +13,7 @@ arifOS Session Manifest
 ═══════════════════════
 Session ID: {session_id}
 Status:     ephemeral
-Binding:    pending F11 actor verification
+Binding:    pending L11 actor verification
 
 This is a stub. The live session manifest is maintained by
 the runtime session manager and bound to the canonical

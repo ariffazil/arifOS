@@ -128,7 +128,7 @@ class AntiBeautifulScorer:
 
     def __init__(self) -> None:
         # These weights are forged from observed failure modes, not tuned.
-        # They can be ratified by F13 if needed.
+        # They can be ratified by L13 if needed.
         self.confidence_weight = 0.20
         self.abstraction_weight = 0.15
         self.metaphor_weight = 0.20

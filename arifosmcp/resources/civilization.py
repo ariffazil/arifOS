@@ -16,7 +16,7 @@ arifOS Civilization — Organs, Strata, and Boundaries
 SEVEN FEDERATION ORGANS:
 
   1. arifOS (Ω) — DECIDES
-     Constitutional kernel. F1–F13 enforcement, judge verdicts, VAULT999.
+     Constitutional kernel. F1–L13 enforcement, judge verdicts, VAULT999.
      Port 8088. Tools: 13 canonical. The ONLY organ that issues SEAL/SABAR/HOLD/VOID.
 
   2. A-FORGE — EXECUTES

@@ -2,7 +2,7 @@
 arifosmcp/runtime/megaTools/07_engineering_memory.py
 
 555_MEMORY: Governed autonomous engineering and vector memory
-Stage: 555_MEMORY | Trinity: OMEGA Ω | Floors: F10, F11, F2
+Stage: 555_MEMORY | Trinity: OMEGA Ω | Floors: L10, L11, F2
 
 Modes: engineer, vector_query, vector_store, vector_forget, generate, query
 """

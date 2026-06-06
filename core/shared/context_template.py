@@ -79,7 +79,7 @@ class FullContextTemplate(BaseModel):
             "actor_id": ContextFieldSpec(
                 type="string",
                 required=True,
-                description="Authenticated actor identifier used by F11 authority checks.",
+                description="Authenticated actor identifier used by L11 authority checks.",
             ),
             "session_id": ContextFieldSpec(
                 type="string|null",

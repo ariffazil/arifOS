@@ -16,7 +16,7 @@ Validates:
 - Resource discovery (list_resources)
 - Prompt discovery (list_prompts)
 - Tool execution
-- Constitutional enforcement (F1-F13)
+- Constitutional enforcement (F1-L13)
 
 Usage:
   # Test all substrates

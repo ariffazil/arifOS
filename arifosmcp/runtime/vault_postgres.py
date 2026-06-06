@@ -527,7 +527,7 @@ async def log_tool_call(
 async def write_canon_record(
     record_type: str, reference_id: str, body: dict, verdict: str, witness: dict
 ):
-    """ARCHIVIST agent calls this for every ADR / F13 decision."""
+    """ARCHIVIST agent calls this for every ADR / L13 decision."""
     sb = get_supabase()
     if not sb:
         return
@@ -640,5 +640,5 @@ async def init_anchor_session(agent_id: str) -> dict:
         "prev_seal_id": last.get("seal_id"),
         "prev_seal_epoch": last.get("epoch"),
         "well_state": well,
-        "constitutional": {"peace2": 1.0, "shadow": False, "floors": "F01-F13 ACTIVE"},
+        "constitutional": {"peace2": 1.0, "shadow": False, "floors": "L01-L13 ACTIVE"},
     }

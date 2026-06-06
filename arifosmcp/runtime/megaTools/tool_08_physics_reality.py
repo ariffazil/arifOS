@@ -2,7 +2,7 @@
 arifosmcp/runtime/megaTools/08_physics_reality.py
 
 111_SENSE: Earth-Witness fact acquisition and mapping
-Stage: 111_SENSE | Trinity: DELTA Δ | Floors: F2, F3, F10
+Stage: 111_SENSE | Trinity: DELTA Δ | Floors: F2, F3, L10
 
 Modes: search, ingest, compass, atlas, time, governed
 

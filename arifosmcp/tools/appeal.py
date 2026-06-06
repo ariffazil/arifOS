@@ -154,7 +154,7 @@ def arif_appeal_raise(
         f"Review must complete by {review_deadline.isoformat()}",
     ]
     if reviewer == "human_888":
-        next_steps.append("F13 SOVEREIGN notification sent — human review required for irreversible action appeal")
+        next_steps.append("L13 SOVEREIGN notification sent — human review required for irreversible action appeal")
 
     # In production: write to VAULT999 appeal stream, trigger heart critique redteam mode
     # For now: log and return receipt

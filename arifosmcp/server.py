@@ -123,7 +123,7 @@ class GlobalPanicMiddleware(BaseHTTPMiddleware):
                 {
                     "status": "void",
                     "tool": "kernel_panic_handler",
-                    "error_message": "F13: System halt due to unhandled kernel exception.",
+                    "error_message": "L13: System halt due to unhandled kernel exception.",
                     "action": "HALT",
                 },
                 status_code=500,

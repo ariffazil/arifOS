@@ -1,5 +1,5 @@
 """
-arifOS Session-Cumulative Metabolic Budget — F1 AMANAH / F07 HUMILITY
+arifOS Session-Cumulative Metabolic Budget — F1 AMANAH / L07 HUMILITY
 ════════════════════════════════════════════════════════════════════
 Tracks cumulative metabolic impact (delta_S, cost, risk) across a session.
 Fires a compulsory-reallocation signal when individually-reversible actions
@@ -85,7 +85,7 @@ async def arif_session_budget(
     actor_id: str | None = None,
 ) -> dict[str, Any]:
     """
-    F1/F07 BUDGET: Session-cumulative metabolic budget tracker.
+    F1/L07 BUDGET: Session-cumulative metabolic budget tracker.
 
     Modes:
       status   — Read current cumulative budget without adding.

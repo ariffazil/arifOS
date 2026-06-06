@@ -43,7 +43,7 @@ SESSION_ANCHOR_SCHEMA: dict[str, Any] = {
         "token": {"type": "string", "description": "Short-lived session token"},
         "floor_audit": {
             "type": "object",
-            "description": "F1-F13 pass/fail at session init",
+            "description": "F1-L13 pass/fail at session init",
             "additionalProperties": {"type": "boolean"},
         },
         "created_at": {"type": "string", "format": "date-time"},

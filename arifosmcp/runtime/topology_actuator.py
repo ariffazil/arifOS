@@ -6,7 +6,7 @@ Converts read-only topology diagnostics into routing actions.
 
 When the InstitutionalDrift signals detect:
   - extractive_capture: HIGH  → throttle concentrated tools, promote diversity
-  - sovereignty_integrity: SYMBOLIC → escalate to F13, require human checkpoint
+  - sovereignty_integrity: SYMBOLIC → escalate to L13, require human checkpoint
   - appeal_path: WEAK → promote appeal tools, log warning
   - participation_width: NARROW → rotate tool exposure
   - innovation_rights: CAPTURED → gate new tool registration
@@ -49,7 +49,7 @@ class ActuatorAction(StrEnum):
     THROTTLE = "throttle"  # Reduce calls to a dominant tool
     PROMOTE = "promote"  # Increase visibility of underused tools
     GATE = "gate"  # Require additional approval
-    ESCALATE = "escalate"  # Route to F13 sovereign
+    ESCALATE = "escalate"  # Route to L13 sovereign
     WARN = "warn"  # Log warning, no action
     ROTATE = "rotate"  # Rotate tool exposure
     SEAL = "seal"  # Lock tool registration

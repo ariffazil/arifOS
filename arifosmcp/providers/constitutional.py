@@ -1,5 +1,5 @@
 """
-ConstitutionalProvider — F1–F13 Floor Enforcer
+ConstitutionalProvider — F1–L13 Law Enforcer
 ════════════════════════════════════════════════
 
 Wraps any Provider and enforces constitutional floor checks at
@@ -60,7 +60,7 @@ class _ConstitutionalTool(Tool):
                 content=[TextContent(type="text", text="VOID: Tool not canonical.")],
                 structured_content={
                     "verdict": "VOID",
-                    "reason": "F10: Unregistered tool",
+                    "reason": "L10: Unregistered tool",
                 },
             )
 
@@ -83,7 +83,7 @@ class _ConstitutionalTool(Tool):
 
 class ConstitutionalProvider(Provider):
     """
-    Wraps any Provider and enforces F1–F13 floor checks.
+    Wraps any Provider and enforces F1–L13 floor checks.
 
     - Registration time: validates tool exists in CANONICAL_TOOLS.
     - Call time: runs check_laws before delegating to inner tool.

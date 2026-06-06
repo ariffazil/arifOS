@@ -113,7 +113,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             },
             "actor_id": {
                 "type": "string",
-                "meaning": "Sovereign actor identifier (F11 AUTH). Required for init.",
+                "meaning": "Sovereign actor identifier (L11 AUTH). Required for init.",
                 "required_when": [{"mode": "init"}],
             },
             "ack_irreversible": {
@@ -439,7 +439,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         "stage_name": "MIND",
         "purpose": [
             "Symbolic constitutional reasoning kernel.",
-            "Evaluates claims using explicit F1–F13 axioms.",
+            "Evaluates claims using explicit F1–L13 axioms.",
             "Produces structured reasoning traces with confidence bands.",
         ],
         "use_when": [
@@ -703,12 +703,12 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "returns": ["composed", "tone"],
             },
             "cite": {
-                "purpose": "Inject F02-verified citations into an existing message.",
+                "purpose": "Inject L02-verified citations into an existing message.",
                 "required_parameters": ["message", "citations"],
                 "returns": ["composed", "citations_injected"],
             },
             "summary": {
-                "purpose": "Condense a long message while preserving constitutional intent (F07).",
+                "purpose": "Condense a long message while preserving constitutional intent (L07).",
                 "required_parameters": ["message"],
                 "returns": ["composed", "tone", "key_points"],
             },
@@ -718,7 +718,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "returns": ["composed", "delta_S"],
             },
             "nudge": {
-                "purpose": "Append F05 (Peace) / F06 (Empathy) guidance nudge without commanding.",
+                "purpose": "Append L05 (Peace) / L06 (Empathy) guidance nudge without commanding.",
                 "required_parameters": ["message"],
                 "returns": ["composed", "tone", "delta_S"],
             },
@@ -756,9 +756,9 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "meaning": "Applied tone tag (neutral, empathetic, terse, formal, technical)."
             },
             "delta_S": {"meaning": "Entropy change from composition (negative = clarity added)."},
-            "f02_score": {"meaning": "F02 Truth score (0.0–1.0)."},
-            "f04_score": {"meaning": "F04 Clarity score (0.0–1.0)."},
-            "f07_score": {"meaning": "F07 Humility score (0.0–1.0)."},
+            "f02_score": {"meaning": "L02 Truth score (0.0–1.0)."},
+            "f04_score": {"meaning": "L04 Clarity score (0.0–1.0)."},
+            "f07_score": {"meaning": "L07 Humility score (0.0–1.0)."},
             "citations_injected": {"meaning": "Citation sources added to the message."},
         },
         "risk": {"tier": "low", "irreversible": False, "requires_human_ack": False},

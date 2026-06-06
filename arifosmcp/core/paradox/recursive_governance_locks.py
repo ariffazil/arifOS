@@ -22,7 +22,7 @@ Usage:
         raise ConstitutionalViolation(receipt)
 
 Ratified: 2026-06-03
-Authority: F13 SOVEREIGN
+Authority: L13 SOVEREIGN
 
 DITEMPA BUKAN DIBERI — Intelligence is forged, not given.
 """

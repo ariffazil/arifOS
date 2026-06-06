@@ -1,8 +1,8 @@
 """
-arifOS Reversibility Engine — F01 AMANAH Implementation
+arifOS Reversibility Engine — L01 AMANAH Implementation
 ═══════════════════════════════════════════════════════════════════════════════
 
-F01 AMANAH: No irreversible action without explicit acknowledgment.
+L01 AMANAH: No irreversible action without explicit acknowledgment.
 
 This engine determines reversibility for every tool call:
 - TRIVIAL: read, search, query, list — always allowed
@@ -165,7 +165,7 @@ class ReversibilityEngine:
         engine = ReversibilityEngine()
         verdict = engine.assess(tool_id="filesystem_delete", params={"path": "/tmp/test"})
         if verdict.requires_888_hold:
-            return HOLD("F01: irreversible action")
+            return HOLD("L01: irreversible action")
     """
 
     def __init__(self):

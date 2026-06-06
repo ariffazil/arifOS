@@ -5,7 +5,7 @@ arifOS MCP ChatGPT Subset Adapter
 Apps SDK-safe subset of arifOS capabilities.
 
 Phase 1 (Current): Read-only health checks
-Phase 2 (Future): Write-path with explicit F11/F13 review
+Phase 2 (Future): Write-path with explicit L11/L13 review
 
 Principles:
 - Only read-only tools in Phase 1
@@ -65,18 +65,18 @@ CHATGPT_PROMPT_NAMES: tuple[str, ...] = (
 # (Option B) so legacy names still resolve during the transition.
 #
 # 4 phantom tools are INTENTIONALLY ABSENT (REFUSED) — they would be
-# F7 (no system destruction) or F13 (sovereign veto) violations:
+# F7 (no system destruction) or L13 (sovereign veto) violations:
 #   - arif_run        : would be an executor, F7 STEWARDSHIP
 #   - arif_exec       : would be an executor, F7 STEWARDSHIP
-#   - arif_sudo       : would bypass authority, F13 SOVEREIGN
-#   - arif_systemctl  : would mutate production, F7 + F13
+#   - arif_sudo       : would bypass authority, L13 SOVEREIGN
+#   - arif_systemctl  : would mutate production, F7 + L13
 
 CHATGPT_TOOL_ALIASES: dict[str, dict[str, str]] = {
     # floor_status → kernel_route with mode=floor_status (read-only)
     "arif_floor_status": {
         "canonical_tool": "arif_kernel_route",
         "mode": "floor_status",
-        "rationale": "Floor status is a read-only view of the F1-F13 kernel state.",
+        "rationale": "Floor status is a read-only view of the F1-L13 kernel state.",
     },
     # apex_judge → gateway_connect routing to APEX deliberation engine
     "arif_apex_judge": {
@@ -100,8 +100,8 @@ CHATGPT_REFUSED_TOOLS: frozenset[str] = frozenset(
     {
         "arif_run",  # F7 — would be an executor
         "arif_exec",  # F7 — would be an executor
-        "arif_sudo",  # F13 — would bypass authority
-        "arif_systemctl",  # F7 + F13 — would mutate production
+        "arif_sudo",  # L13 — would bypass authority
+        "arif_systemctl",  # F7 + L13 — would mutate production
     }
 )
 
@@ -120,7 +120,7 @@ def resolve_chatgpt_alias(tool_name: str) -> dict[str, str] | None:
         >>> resolve_chatgpt_alias("arif_floor_status")
         {"canonical_tool": "arif_kernel_route", "mode": "floor_status", ...}
         >>> resolve_chatgpt_alias("arif_run")
-        None  # refused by F7/F13
+        None  # refused by F7/L13
     """
     if tool_name in CHATGPT_REFUSED_TOOLS:
         return None
@@ -128,7 +128,7 @@ def resolve_chatgpt_alias(tool_name: str) -> dict[str, str] | None:
 
 
 def is_chatgpt_refused_tool(tool_name: str) -> bool:
-    """Check if a tool name is constitutionally refused (F7/F13)."""
+    """Check if a tool name is constitutionally refused (F7/L13)."""
     return tool_name in CHATGPT_REFUSED_TOOLS
 
 
@@ -325,7 +325,7 @@ def get_chatgpt_manifest() -> dict[str, Any]:
         "description": (
             "Constitutional AI governance health checks via arifOS. "
             "Inspect floor scores, verdicts, and attestation status. "
-            "Phase 1: Read-only. Phase 2: Write with F11/F13 review."
+            "Phase 1: Read-only. Phase 2: Write with L11/L13 review."
         ),
         "vendor": {"name": "Muhammad Arif bin Fazil", "url": "https://arif-fazil.com"},
         "capabilities": {

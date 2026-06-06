@@ -24,7 +24,7 @@ class RealityBridge:
         checkpoint_id: str | None = None,
     ) -> dict[str, Any]:
         """
-        Execute real system command with F1-F13 governance.
+        Execute real system command with F1-L13 governance.
 
         Args:
             tool: Tool type (docker, git, filesystem)
@@ -35,7 +35,7 @@ class RealityBridge:
         Returns:
             Execution result with F2 verification metadata
         """
-        # F12: Injection defense
+        # L12: Injection defense
         if self._detect_injection(command):
             return {
                 "status": "VOID",
@@ -84,7 +84,7 @@ class RealityBridge:
             result["status"] = "VOID"
             result["floor_failed"] = "F2_TRUTH"
 
-        # F10: Audit log
+        # L10: Audit log
         self.execution_log.append(
             {
                 "timestamp": datetime.utcnow().isoformat(),
@@ -186,11 +186,11 @@ class RealityBridge:
             return {"stdout": "", "stderr": str(e), "returncode": 1}
 
     def _exec_shell(self, command: str, params: dict) -> dict[str, Any]:
-        """Execute shell command with F12 protection."""
+        """Execute shell command with L12 protection."""
         if self._is_dangerous_shell(command):
             return {
                 "stdout": "",
-                "stderr": "F12: Dangerous shell command blocked",
+                "stderr": "L12: Dangerous shell command blocked",
                 "returncode": 1,
             }
         try:
@@ -204,7 +204,7 @@ class RealityBridge:
             return {"stdout": "", "stderr": str(e), "returncode": 1}
 
     def _detect_injection(self, command: str) -> bool:
-        """F12: Detect command injection attempts."""
+        """L12: Detect command injection attempts."""
         dangerous = [";", "&&", "||", "`", "$(", ">>", ">/"]
         return any(pattern in command for pattern in dangerous)
 

@@ -23,7 +23,7 @@ class ToolSpec:
     layer: Literal["GOVERNANCE", "INTELLIGENCE", "MACHINE", "EXECUTION", "SURFACE"] = "MACHINE"
     description: str = ""
     trinity: Literal["Δ", "Ω", "Ψ", "Δ/Ω", "Δ/Ψ", "Ω/Ψ", "ALL"] = "ALL"
-    floors: tuple[str, ...] = field(default_factory=tuple)  # F1-F13 that apply
+    floors: tuple[str, ...] = field(default_factory=tuple)  # F1-L13 that apply
     input_schema: dict[str, Any] = field(default_factory=dict)
     visibility: Literal["public", "internal"] = "internal"
     default_tier: str = "medium"
@@ -212,7 +212,7 @@ TOOLS: tuple[ToolSpec, ...] = (
             "- 'branch': Create a reasoning branch from a step "
             "- 'merge': Synthesize insights across branches "
             "- 'review': Review/export a thinking session "
-            "Sequential thinking enforces F1-F13 at each step, replacing external Sequential Thinking MCP "
+            "Sequential thinking enforces F1-L13 at each step, replacing external Sequential Thinking MCP "
             "with native constitutional governance. Runs the constitutional AGI pipeline producing "
             "a narrow decision_packet for the operator and a full audit_packet for the vault."
         ),
@@ -370,7 +370,7 @@ TOOLS: tuple[ToolSpec, ...] = (
                         "metabolism",
                     ],
                     "default": "cost",
-                    "description": "cost=Landauer gate cost estimate, health=system health gauge, vitals=metabolic telemetry, entropy=information-theoretic entropy analysis, economic_audit=WELL economic thermodynamic audit, metabolism=F1-F13 metabolic dashboard.",
+                    "description": "cost=Landauer gate cost estimate, health=system health gauge, vitals=metabolic telemetry, entropy=information-theoretic entropy analysis, economic_audit=WELL economic thermodynamic audit, metabolism=F1-L13 metabolic dashboard.",
                 },
                 "session_id": {
                     "type": "string",

@@ -437,7 +437,7 @@ def arif_cc_judge_action(candidate: str) -> dict:
 
     Routes through 444_KERNEL, then calls governed_judge_deliberate which:
       1. Validates session + identity
-      2. Calls real 888_JUDGE backend for F1-F13 verdict
+      2. Calls real 888_JUDGE backend for F1-L13 verdict
       3. Advances the session lifecycle (draft→planned→judged→approved/blocked)
       4. Appends the verdict to VAULT999 hash chain
 

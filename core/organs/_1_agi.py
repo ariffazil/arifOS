@@ -129,9 +129,9 @@ async def agi(
     from core.organs._0_init import scan_injection as _f12
 
     def _f12_scrub(text: str, phase: str) -> str:
-        """F12: scan LLM output before injecting into next phase prompt."""
+        """L12: scan LLM output before injecting into next phase prompt."""
         if _f12(text) >= 0.7:
-            logger.warning("[%s] F12 injection pattern in %s output — excised", session_id, phase)
+            logger.warning("[%s] L12 injection pattern in %s output — excised", session_id, phase)
             return f"[L12_EXCISED:{phase}]"
         return text
 

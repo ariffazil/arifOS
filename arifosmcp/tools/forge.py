@@ -13,8 +13,8 @@ from datetime import UTC, datetime
 
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _add_floor_compat, _arif_forge_execute
-from arifosmcp.schemas.forge import ForgeErrorCode, ForgeManifest, ForgeOutput, ManifestStatus, ToolManifest
-from arifosmcp.tools.forge_ladder import ARIF_FORGE_EXECUTE_MANIFEST, ALLOWED_COMMANDS, WORKSPACE_ROOT
+from arifosmcp.schemas.forge import ForgeErrorCode, ForgeManifest, ForgeOutput, ManifestStatus
+from arifosmcp.tools.forge_ladder import ARIF_FORGE_EXECUTE_MANIFEST
 
 
 def action_has_side_effects(mode: str, manifest: str, query: str | None) -> bool:
@@ -95,7 +95,7 @@ def arif_forge_execute(
             timestamp=datetime.now(UTC).isoformat(),
         )
 
-    # ── v3.1: actor_id REQUIRED for MUTATE/ATOMIC (F11 authority) ─────────────
+    # ── v3.1: actor_id REQUIRED for MUTATE/ATOMIC (L11 authority) ─────────────
     if not actor_id:
         _meta = {
             "error_code": ForgeErrorCode.E_JUDGE_STATE_HASH_REQUIRED,

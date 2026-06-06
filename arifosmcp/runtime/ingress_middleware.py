@@ -85,7 +85,7 @@ def _hold_envelope_dict(
     CANONICAL_OUTPUT_SCHEMA (so MCP SDK does not reject it as
     'outputSchema defined but no structured output returned').
 
-    F2 Truth + F13 SOVEREIGN: every HOLD is a real verdict, with a reason.
+    F2 Truth + L13 SOVEREIGN: every HOLD is a real verdict, with a reason.
     The reason is preserved verbatim so callers can act on it.
     """
     ts = datetime.now(UTC).isoformat()
@@ -623,7 +623,7 @@ if IS_FASTMCP_3:
                             ],
                             structured_content=_hold_envelope_dict(
                                 tool_name=tool_name,
-                                reason="Sovereignty checkpoint required (F13 SOVEREIGN gate)",
+                                reason="Sovereignty checkpoint required (L13 SOVEREIGN gate)",
                                 session_id=envelope.session_id,
                                 actor_id=envelope.actor_id,
                                 extra={

@@ -1,7 +1,7 @@
 """
 arifos.core/guards/ontology_guard.py
 
-F10: Ontology Guard (Symbolic Mode Enforcement)
+L10: Ontology Guard (Symbolic Mode Enforcement)
 
 Purpose:
     Prevents literalism drift by ensuring thermodynamic language (ΔΩΨ) is
@@ -16,7 +16,7 @@ Design:
     - Returns boolean: literalism detected or not
     - Triggers 888_HOLD when detected for human clarification
 
-Constitutional Floor: F10 (Ontology)
+Constitutional Floor: L10 (Ontology)
     - Type: Hypervisor (OS-level, cannot be bypassed by prompts)
     - Engine: AGI (Δ-Mind) is most prone to literalism
     - Failure Action: HOLD
@@ -32,6 +32,7 @@ import re
 import unicodedata
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 
 class OntologyRisk(str, Enum):
@@ -63,7 +64,7 @@ class OntologyGuardResult:
 
 class OntologyGuard:
     """
-    F10 Ontology Guard: Prevents literalism drift.
+    L10 Ontology Guard: Prevents literalism drift.
 
     Ensures that thermodynamic vocabulary (ΔΩΨ, entropy, Gibbs free energy, etc.)
     is recognized as **symbolic** compression, not **physical** constraints.
@@ -151,7 +152,7 @@ class OntologyGuard:
                 status="HOLD",
                 risk_level=OntologyRisk.LITERALISM,
                 detected_patterns=detected,
-                reason=f"F10 Ontology: Literalism detected. Found {len(detected)} pattern(s) treating symbolic language as physical constraints. Requires clarification: are these terms used symbolically or literally?",
+                reason=f"L10 Ontology: Literalism detected. Found {len(detected)} pattern(s) treating symbolic language as physical constraints. Requires clarification: are these terms used symbolically or literally?",
                 symbolic_mode=symbolic_mode,
             )
 
@@ -162,7 +163,7 @@ class OntologyGuard:
                 status="PASS",
                 risk_level=OntologyRisk.SYMBOLIC,
                 detected_patterns=detected,
-                reason="F10 Ontology: Symbolic mode enabled. Physics language understood as metaphor.",
+                reason="L10 Ontology: Symbolic mode enabled. Physics language understood as metaphor.",
                 symbolic_mode=symbolic_mode,
             )
 
@@ -171,7 +172,7 @@ class OntologyGuard:
             status="PASS",
             risk_level=OntologyRisk.SYMBOLIC,
             detected_patterns=[],
-            reason="F10 Ontology: No literalism detected. Output uses appropriate language.",
+            reason="L10 Ontology: No literalism detected. Output uses appropriate language.",
             symbolic_mode=symbolic_mode,
         )
 
@@ -251,11 +252,11 @@ class OntologyGuard:
         has_parallel = len(suspicious) > 0
         verdict = "HOLD" if has_parallel else "SEAL"
         reason = (
-            f"F10 Ontology: Found {len(suspicious)} parallel authority artifact(s). "
+            f"L10 Ontology: Found {len(suspicious)} parallel authority artifact(s). "
             "Canonical authority is identity.json + floors.py + ontology_guard.py. "
             "Do not create parallel constitutions."
             if has_parallel
-            else "F10 Ontology: No parallel authority artifacts detected."
+            else "L10 Ontology: No parallel authority artifacts detected."
         )
 
         return {

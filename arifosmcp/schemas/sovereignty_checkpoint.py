@@ -39,7 +39,7 @@ class CheckpointStatus(StrEnum):
     PENDING = "pending"  # Questions issued, awaiting human answers
     COMPLETED = "completed"  # Human answered all four questions
     EXPIRED = "expired"  # Checkpoint timed out (default: 300s)
-    WAIVED = "waived"  # Explicitly waived by sovereign (F13 only)
+    WAIVED = "waived"  # Explicitly waived by sovereign (L13 only)
     REJECTED = "rejected"  # Human declined to proceed
 
 
@@ -99,7 +99,7 @@ class SovereigntyCheckpoint(BaseModel):
     identity operation, external effect at scale, or ATOMIC action), the
     human must consciously engage with four questions.
 
-    This is the operational form of F13 SOVEREIGN — not a binary veto
+    This is the operational form of L13 SOVEREIGN — not a binary veto
     switch, but a ritual that keeps the human awake.
     """
 
@@ -188,7 +188,7 @@ class SovereigntyCheckpoint(BaseModel):
             }
             return False, f"Checkpoint incomplete — missing answers: {missing}"
         if self.status == CheckpointStatus.WAIVED:
-            return True, "WAIVED by F13 sovereign — bypassing checkpoint"
+            return True, "WAIVED by L13 sovereign — bypassing checkpoint"
         if self.status == CheckpointStatus.COMPLETED:
             return True, "SEAL"
         return False, f"Unknown checkpoint status: {self.status.value}"

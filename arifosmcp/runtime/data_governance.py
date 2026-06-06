@@ -2,7 +2,7 @@
 arifOS Data Governance Enforcement Layer
 ════════════════════════════════════════
 
-Runtime implementation of F1–F13 data governance clauses.
+Runtime implementation of F1–L13 data governance clauses.
 Every data asset ingested into arifOS must pass this layer.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
@@ -17,10 +17,10 @@ Floors enforced:
   F7  HUMILITY   → Confidence scores propagate with data
   F8  GENIUS     → Schema handles edge cases
   F9  ANTIHANTU  → No mutation without audit log
-  F10 ONTOLOGY   → Strict taxonomy, no leaky abstractions
-  F11 AUTH       → Role-verified access
-  F12 INJECTION  → Sanitize all inputs
-  F13 SOVEREIGN  → Human veto path for high-impact actions
+  L10 ONTOLOGY   → Strict taxonomy, no leaky abstractions
+  L11 AUTH       → Role-verified access
+  L12 INJECTION  → Sanitize all inputs
+  L13 SOVEREIGN  → Human veto path for high-impact actions
 """
 
 from __future__ import annotations
@@ -167,7 +167,7 @@ class AuditMutationLog:
 
 @dataclass
 class TaxonomyValidator:
-    """F10: Strict taxonomy — no leaky abstractions."""
+    """L10: Strict taxonomy — no leaky abstractions."""
 
     valid_categories: set[str] = field(default_factory=set)
     asset_category: str = "unknown"
@@ -179,7 +179,7 @@ class TaxonomyValidator:
 
 @dataclass
 class RoleAccessPolicy:
-    """F11: Access is role-verified, not merely network-protected."""
+    """L11: Access is role-verified, not merely network-protected."""
 
     required_role: AccessRole
     actor_role: AccessRole
@@ -200,7 +200,7 @@ class RoleAccessPolicy:
 
 @dataclass
 class HumanVetoRecord:
-    """F13: Human can veto/override automated decisions."""
+    """L13: Human can veto/override automated decisions."""
 
     decision_id: str
     asset_id: str
@@ -239,7 +239,7 @@ class DataGovernanceDecision:
 # TAXONOMY REGISTRY
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Canonical asset categories (F10 Ontology).
+# Canonical asset categories (L10 Ontology).
 ARIFOS_TAXONOMY_CATEGORIES: set[str] = {
     "telemetry",
     "verdict",
@@ -258,7 +258,7 @@ ARIFOS_TAXONOMY_CATEGORIES: set[str] = {
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# SANITIZATION UTILITIES (F12)
+# SANITIZATION UTILITIES (L12)
 # ─────────────────────────────────────────────────────────────────────────────
 
 INJECTION_PATTERNS = {
@@ -281,7 +281,7 @@ INJECTION_PATTERNS = {
 
 
 def sanitize_input(value: str) -> str:
-    """F12: Sanitize a string input — escape HTML, remove injection patterns."""
+    """L12: Sanitize a string input — escape HTML, remove injection patterns."""
     if not isinstance(value, str):
         return str(value)
     # HTML escape first
@@ -294,7 +294,7 @@ def sanitize_input(value: str) -> str:
 
 
 def sanitize_dict(data: dict[str, Any]) -> dict[str, Any]:
-    """F12: Recursively sanitize all string values in a dict."""
+    """L12: Recursively sanitize all string values in a dict."""
     result = {}
     for k, v in data.items():
         if isinstance(v, str):
@@ -309,7 +309,7 @@ def sanitize_dict(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def detect_injection(value: str) -> list[str]:
-    """F12: Detect injection patterns in a string. Returns list of threat categories."""
+    """L12: Detect injection patterns in a string. Returns list of threat categories."""
     threats: list[str] = []
     for category, patterns in INJECTION_PATTERNS.items():
         for pattern in patterns:
@@ -400,12 +400,12 @@ def compute_confidence_envelope(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TAXONOMY VALIDATION (F10)
+# TAXONOMY VALIDATION (L10)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
 def validate_taxonomy(asset_category: str) -> TaxonomyValidator:
-    """F10: Validate asset category against canonical taxonomy."""
+    """L10: Validate asset category against canonical taxonomy."""
     validator = TaxonomyValidator(
         valid_categories=ARIFOS_TAXONOMY_CATEGORIES,
         asset_category=asset_category.lower().strip(),
@@ -425,7 +425,7 @@ def validate_taxonomy(asset_category: str) -> TaxonomyValidator:
 
 class DataGovernanceEnforcer:
     """
-    F1–F13 data governance enforcement for asset ingestion.
+    F1–L13 data governance enforcement for asset ingestion.
 
     Usage:
         enforcer = DataGovernanceEnforcer()
@@ -462,7 +462,7 @@ class DataGovernanceEnforcer:
         high_impact: bool = False,
     ) -> DataGovernanceDecision:
         """
-        Govern a data asset through F1–F13 enforcement pipeline.
+        Govern a data asset through F1–L13 enforcement pipeline.
 
         Returns a DataGovernanceDecision with the final verdict and all
         governance metadata (custodian, masking, confidence, audit log, etc.).
@@ -473,7 +473,7 @@ class DataGovernanceEnforcer:
         masked_fields: list[str] = []
         sanitized: dict[str, Any] = {}
 
-        # ── F12 INJECTION: Sanitize BEFORE any processing ────────────────────
+        # ── L12 INJECTION: Sanitize BEFORE any processing ────────────────────
         sanitized = sanitize_dict(asset_data)
         for field_name, value in sanitized.items():
             if isinstance(value, str):
@@ -481,7 +481,7 @@ class DataGovernanceEnforcer:
                 if threats:
                     violated_laws.append("L12")
                     reasons["L12"] = f"Injection patterns in '{field_name}': {threats}"
-        # If F12 fails, void immediately
+        # If L12 fails, void immediately
         if "L12" in violated_laws:
             decision = DataGovernanceDecision(
                 decision_id=decision_id,
@@ -499,7 +499,7 @@ class DataGovernanceEnforcer:
                 session_id=session_id,
                 fields_affected=list(asset_data.keys()),
                 verdict=GovernanceVerdict.VOID,
-                reason="F12 INJECTION: blocked at sanitization gate",
+                reason="L12 INJECTION: blocked at sanitization gate",
             )
             return decision
 
@@ -515,19 +515,19 @@ class DataGovernanceEnforcer:
             )
         else:
             violated_laws.append("L01")
-            reasons["L01"] = "F01 AMANAH: No named custodian for this asset"
+            reasons["L01"] = "L01 AMANAH: No named custodian for this asset"
 
         # ── F2 TRUTH: Source must be verified before ingestion ──────────────
         if source_verification:
             if source_verification.verification_method == "unverified":
                 violated_laws.append("L02")
-                reasons["L02"] = "F02 TRUTH: Source is unverified — hold for manual confirmation"
+                reasons["L02"] = "L02 TRUTH: Source is unverified — hold for manual confirmation"
             else:
                 pass
         else:
             # No source provided — conservative hold
             violated_laws.append("L02")
-            reasons["L02"] = "F02 TRUTH: No source verification provided"
+            reasons["L02"] = "L02 TRUTH: No source verification provided"
 
         # ── F3 WITNESS: Require multi-source or high consensus ───────────────
         witness_bundle = witness_bundle or WitnessBundle(sources=[])
@@ -535,15 +535,15 @@ class DataGovernanceEnforcer:
             if witness_bundle.witness_count == 0 and not source_verification:
                 violated_laws.append("L03")
                 reasons["L03"] = (
-                    "F03 WITNESS: No independent sources — single-source ingestion is low-confidence"
+                    "L03 WITNESS: No independent sources — single-source ingestion is low-confidence"
                 )
             elif witness_bundle.consensus_score < 0.75:
                 violated_laws.append("L03")
                 reasons["L03"] = (
-                    f"F03 WITNESS: Consensus {witness_bundle.consensus_score:.2f} < 0.75 threshold"
+                    f"L03 WITNESS: Consensus {witness_bundle.consensus_score:.2f} < 0.75 threshold"
                 )
             else:
-                reasons["L03"] = f"F03 WITNESS: Passed with {witness_bundle.witness_count} sources"
+                reasons["L03"] = f"L03 WITNESS: Passed with {witness_bundle.witness_count} sources"
 
         # ── F4 CLARITY: Contract/schema must be present for reusable assets ──
         if contract is not None:
@@ -551,7 +551,7 @@ class DataGovernanceEnforcer:
                 if req_field not in sanitized:
                     violated_laws.append("L04")
                     reasons["L04"] = (
-                        f"F04 CLARITY: Required field '{req_field}' missing from ingestion"
+                        f"L04 CLARITY: Required field '{req_field}' missing from ingestion"
                     )
         # No contract is acceptable for ad-hoc assets (pass)
 
@@ -577,7 +577,7 @@ class DataGovernanceEnforcer:
                     )
                     sanitized[field_name] = mask_value(value, policy)
                     masked_fields.append(field_name)
-                    logger.info(f"F05 PEACE: Masked field '{field_name}' as {classification.value}")
+                    logger.info(f"L05 PEACE: Masked field '{field_name}' as {classification.value}")
 
         # ── F6 EMPATHY: Downstream consumer declaration ─────────────────────
         # For now: if no downstream declared, flag but don't fail.
@@ -592,7 +592,7 @@ class DataGovernanceEnforcer:
         if confidence.omega_0 < 0.03 or confidence.omega_0 > 0.05:
             violated_laws.append("L07")
             reasons["L07"] = (
-                f"F07 HUMILITY: Confidence band {confidence.omega_0:.3f} outside [0.03, 0.05]"
+                f"L07 HUMILITY: Confidence band {confidence.omega_0:.3f} outside [0.03, 0.05]"
             )
 
         # ── F8 GENIUS: Validate schema edge cases ─────────────────────────────
@@ -606,20 +606,20 @@ class DataGovernanceEnforcer:
                             f"Field '{field_name}' is null but not declared nullable"
                         )
         if schema_issues:
-            reasons["L08"] = f"F08 GENIUS: Schema issues — {schema_issues}"
+            reasons["L08"] = f"L08 GENIUS: Schema issues — {schema_issues}"
 
         # ── F9 ANTIHANTU: Mutation must write audit log ──────────────────────
         # Audit is written at the end of this method
 
-        # ── F10 ONTOLOGY: Validate taxonomy ──────────────────────────────────
+        # ── L10 ONTOLOGY: Validate taxonomy ──────────────────────────────────
         taxonomy = validate_taxonomy(asset_category)
         if not taxonomy.is_valid():
             violated_laws.append("L10")
             reasons["L10"] = (
-                f"F10 ONTOLOGY: {taxonomy.violations[0] if taxonomy.violations else 'Unknown category'}"
+                f"L10 ONTOLOGY: {taxonomy.violations[0] if taxonomy.violations else 'Unknown category'}"
             )
 
-        # ── F11 AUTH: Role-based access check ─────────────────────────────────
+        # ── L11 AUTH: Role-based access check ─────────────────────────────────
         access_policy = RoleAccessPolicy(
             required_role=required_role,
             actor_role=actor_role,
@@ -627,10 +627,10 @@ class DataGovernanceEnforcer:
         if not access_policy.evaluate():
             violated_laws.append("L11")
             reasons["L11"] = (
-                f"F11 AUTH: Actor role '{actor_role.value}' insufficient for '{required_role.value}' access"
+                f"L11 AUTH: Actor role '{actor_role.value}' insufficient for '{required_role.value}' access"
             )
 
-        # ── F13 SOVEREIGN: Human veto for high-impact or irreversible ─────────
+        # ── L13 SOVEREIGN: Human veto for high-impact or irreversible ─────────
         veto_record: HumanVetoRecord | None = None
         if high_impact or human_veto:
             veto_record = HumanVetoRecord(
@@ -743,14 +743,14 @@ class DataGovernanceEnforcer:
         )
         self.audit_logs.append(audit_entry)
         logger.info(
-            f"F09 ANTIHANTU: Audit log written — {action} on {asset_id} "
+            f"L09 ANTIHANTU: Audit log written — {action} on {asset_id} "
             f"verdict={verdict.value} by {actor_id}"
         )
         return audit_entry
 
     def get_governance_summary(self) -> dict[str, str]:
         """
-        Return a shallow F1–F13 governance status summary for /ready endpoint.
+        Return a shallow F1–L13 governance status summary for /ready endpoint.
         Returns 'ok' for each floor if the enforcer is healthy.
         Actual floor failures are determined per-asset, not globally.
         """

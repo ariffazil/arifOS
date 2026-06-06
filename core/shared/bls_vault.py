@@ -17,8 +17,8 @@ Architecture:
 Constitutional Compliance:
   F1  AMANAH     — Every seal is immutable and reversibility-checked
   F2  TRUTH      — payload_hash is canonical SHA-256 of the full verdict
-  F11 AUDITABILITY — juror_ids, timestamp, and quorum_fraction are logged
-  F13 ADAPTABILITY — all safety invariants preserved on every sign/verify
+  L11 AUDITABILITY — juror_ids, timestamp, and quorum_fraction are logged
+  L13 ADAPTABILITY — all safety invariants preserved on every sign/verify
 
 Juror Registry (Phase A — 5 Federation Members):
   DELTA_MIND   — Δ AGI reasoning organ
@@ -322,7 +322,7 @@ class BLSVaultSigner:
         e(G1, σ_agg) == e(pk_agg, H(msg))
 
         Returns True if valid, False otherwise.
-        F11 AUDITABILITY: also checks quorum_fraction meets minimum.
+        L11 AUDITABILITY: also checks quorum_fraction meets minimum.
         """
         try:
             if seal.quorum_fraction < SUPERMAJORITY_THRESHOLD / len(JUROR_IDS):

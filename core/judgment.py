@@ -385,7 +385,7 @@ class JudgmentKernel:
                     weight=0.20,
                     raw_value=combined_floors.f13_sovereign,
                     weighted_value=round(combined_floors.f13_sovereign * 0.20, 4),
-                    evidence=f"F13 human_approval={kernel.human_approval_status}",
+                    evidence=f"L13 human_approval={kernel.human_approval_status}",
                 ),
                 ScoreComponent(
                     name="empathy_kappa",

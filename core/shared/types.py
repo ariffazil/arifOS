@@ -397,7 +397,7 @@ class FloorScores(BaseModel):
     All 13 constitutional floor scores.
 
     Hard Floors (VOID if violated - immediate termination):
-    - F1, F2, F6, F7, F10, F11, F12, F13
+    - F1, F2, F6, F7, L10, L11, L12, L13
 
     Note: F6 Empathy is HARD - stakeholder harm is VOID offense
 
@@ -485,13 +485,13 @@ class ApexMetrics(BaseModel):
     """
     APEX Soul Engine output metrics.
 
-    Enforces: F3 (Tri-Witness), F8 (Genius), F10 (Ontology)
+    Enforces: F3 (Tri-Witness), F8 (Genius), L10 (Ontology)
     """
 
     tri_witness: float = Field(ge=0.0, le=1.0, description="F3: W₃ ≥ 0.95")
     quad_witness: float = Field(ge=0.0, le=1.0, default=0.75, description="F3: W₄ ≥ 0.75")
     genius_g: float = Field(ge=0.0, le=1.0, description="F8: G ≥ 0.80")
-    ontology_valid: bool = Field(description="F10: Category lock")
+    ontology_valid: bool = Field(description="L10: Category lock")
     # APEX Theorem Extension
     G_star: float = Field(default=0.0, description="APEX Potential (G*)")
     G_dagger: float = Field(default=0.0, description="Governed Intelligence Realized (G†)")
@@ -624,7 +624,7 @@ class AuthorityLevel(str, Enum):
     CLAIMED = "claimed"
     VERIFIED = "verified"
     APEX = "apex"
-    NONE = "none"  # F11: Default non-authorized state
+    NONE = "none"  # L11: Default non-authorized state
 
 
 class GovernanceMetadata(BaseModel):
@@ -859,7 +859,7 @@ class InitOutput(BaseOrganOutput):
     init_process_status: str = "ACTIVE"
     floors_failed: list[str] = Field(default_factory=list)
 
-    # P0: Human approval tracking (F13 Sovereign)
+    # P0: Human approval tracking (L13 Sovereign)
     human_approval: bool = False
     human_approval_persisted: bool = False
 
@@ -1089,7 +1089,7 @@ class RepoEvidence(BaseModel):
     """
     Δ Delta Sensory: GitIngest Codebase Digest.
 
-    Hardened with F12 (Injection) and F4 (Thermodynamic) budget.
+    Hardened with L12 (Injection) and F4 (Thermodynamic) budget.
     """
 
     repo_url: str = Field(description="Remote URL or local directory path")
@@ -1097,7 +1097,7 @@ class RepoEvidence(BaseModel):
     tree: str = Field(description="Directory structure representation")
     token_count: int = Field(description="F4: Calculated token usage")
     file_count: int = Field(description="Number of files ingested")
-    f12_risk_score: float = Field(ge=0.0, le=1.0, description="F12: Injection risk score")
+    f12_risk_score: float = Field(ge=0.0, le=1.0, description="L12: Injection risk score")
     verdict: Verdict = Verdict.SEAL
     taint_lineage: dict[str, Any] = Field(default_factory=dict)
 

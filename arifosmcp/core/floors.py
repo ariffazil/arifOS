@@ -3,7 +3,7 @@ arifosmcp/core/floors.py — Backward-compat shim to canonical /core/laws.py
 ────────────────────────────────────────────────────────────────────────
 DITEMPA BUKAN DIBERI
 
-Renamed 2026-06-06: Constitutional "Floors" → "Laws" (F01–F13).
+Renamed 2026-06-06: Constitutional "Floors" → "Laws" (L01–L13).
 This shim preserves legacy import paths for tools that import from
 arifosmcp.core.floors. New code should import from core.laws directly.
 """

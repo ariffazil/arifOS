@@ -2,7 +2,7 @@
 arifosmcp — The Sovereign Constitutional Intelligence Kernel
 ═════════════════════════════════════════════════════════════
 
-13 canonical MCP capability tools | 13 Floors (F1–F13) | Trinity ΔΩΨ
+13 canonical MCP capability tools | 13 Floors (F1–L13) | Trinity ΔΩΨ
 DITEMPA BUKAN DIBERI — Intelligence is forged, not given.
 """
 

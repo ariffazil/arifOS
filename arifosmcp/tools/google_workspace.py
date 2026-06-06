@@ -147,7 +147,7 @@ def google_gmail_send(
             "Rich context for understanding. Narrow capability for action."
     """
     if not actor_id:
-        return _result("HOLD", {}, error="actor_id is required for send operations (F11 AUTH)")
+        return _result("HOLD", {}, error="actor_id is required for send operations (L11 AUTH)")
 
     # ── CAPABILITY MEMBRANE: Exact scope enforcement ─────────────────────────────
     # Phase 1: If a permitted_scope is provided, validate exact recipient,
@@ -271,7 +271,7 @@ def google_calendar_create_event(
         actor_id: Sovereign actor identifier (required for audit).
     """
     if not actor_id:
-        return _result("HOLD", {}, error="actor_id is required for create operations (F11 AUTH)")
+        return _result("HOLD", {}, error="actor_id is required for create operations (L11 AUTH)")
     try:
         svc = _service("calendar", "v3")
         event = {
@@ -436,7 +436,7 @@ def google_sheets_append(
         actor_id: Sovereign actor identifier (required for audit).
     """
     if not actor_id:
-        return _result("HOLD", {}, error="actor_id is required for append operations (F11 AUTH)")
+        return _result("HOLD", {}, error="actor_id is required for append operations (L11 AUTH)")
     try:
         svc = _service("sheets", "v4")
         body = {"values": values}

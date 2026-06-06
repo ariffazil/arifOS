@@ -38,7 +38,7 @@ class HardenedShellForge:
     Enforces arifOS 13 Floors:
     - F1 Amanah: Pre-execution checkpointing via git-worktree/commit.
     - F7 Humility: Mandatory dry_run enforcement.
-    - F13 Sovereign: 888_HOLD logic for High/Critical risk commands.
+    - L13 Sovereign: 888_HOLD logic for High/Critical risk commands.
     """
 
     def __init__(self, default_cwd: str = None):
@@ -90,13 +90,13 @@ class HardenedShellForge:
                 "note": anchor_hold_registry.get_hold_reason(session_id),
             }
 
-        # 2. Risk Evaluation & F13 Calibration
+        # 2. Risk Evaluation & L13 Calibration
         if is_risk and not dry_run:
             # High risk + Not a dry run -> Force 888_HOLD unless explicit override
             return {
                 "ok": False,
                 "status": "888_HOLD",
-                "error": "F13 Sovereign: High-risk command detected. Approval required.",
+                "error": "L13 Sovereign: High-risk command detected. Approval required.",
                 "command_preview": command,
             }
 

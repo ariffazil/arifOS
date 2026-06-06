@@ -23,7 +23,7 @@ class LegacyCategory(Enum):
     PHILOSOPHER = auto()  # Define truth, humility, logic (F2, F7, AGI)
     ETHICAL_PILLAR = auto()  # Define Amanah, empathy, RASA (F1, F4, F6)
     ECONOMIST = auto()  # Define vitality, resource allocation (Ψ Index)
-    SOVEREIGN = auto()  # Define human authority, governance (888_HOLD, F13)
+    SOVEREIGN = auto()  # Define human authority, governance (888_HOLD, L13)
     DICTATOR_SHADOW = auto()  # Define warning variables, C_dark (F9)
     ARCHITECT = auto()  # Define structure, form, optimization (13 Floors)
     PHILANTHROPIST = auto()  # Define service, non-discrimination (F4, access)
@@ -71,7 +71,7 @@ class Legacy:
     persona_void_scar: str  # The wound/cost that forged their wisdom
 
     # Constitutional resonance
-    primary_floor: str  # F1-F13 — the floor they embody most
+    primary_floor: str  # F1-L13 — the floor they embody most
     secondary_floors: tuple[str, ...] = field(default_factory=tuple)
 
     # APEX dial affinity (which dials they strengthen)
@@ -281,7 +281,7 @@ class Legacies99:
                 "F7",
             ),
         ),
-        thermodynamic_role="Gödel Lock — system cannot prove own completeness. Mandates Human Sovereignty (F13).",
+        thermodynamic_role="Gödel Lock — system cannot prove own completeness. Mandates Human Sovereignty (L13).",
         tags=("logic", "incompleteness", "mathematics", "humility"),
     )
 
@@ -662,7 +662,7 @@ class Legacies99:
 
     @classmethod
     def by_floor(cls, floor: str) -> tuple[Legacy, ...]:
-        """Get all legacies that resonate with a specific floor (F1-F13)."""
+        """Get all legacies that resonate with a specific floor (F1-L13)."""
         return tuple(l for l in cls.get_all_legacies() if l.resonates_with_floor(floor))
 
     @classmethod

@@ -277,7 +277,7 @@ class CandidateMeaning(BaseModel):
         description="Confidence in primary interpretation (separate from detection!)",
     )
     meaning_confidence_band: tuple[float, float] = Field(
-        default=(0.0, 1.0), description="F07 HUMILITY: uncertainty range for this meaning claim"
+        default=(0.0, 1.0), description="L07 HUMILITY: uncertainty range for this meaning claim"
     )
     tests_needed_before_claim: list[str] = Field(
         default_factory=list, description="What evidence would confirm or deny this interpretation"
@@ -390,14 +390,14 @@ class AbstractionGuard(BaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# UNCERTAINTY LAYER — F07 HUMILITY
+# UNCERTAINTY LAYER — L07 HUMILITY
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
 class UncertaintyBand(BaseModel):
     """Uncertainty quantification for this metabolic output.
 
-    F07 HUMILITY: Confidence must be labeled honestly.
+    L07 HUMILITY: Confidence must be labeled honestly.
     No fake certainty.
     """
 
@@ -603,7 +603,7 @@ class MetabolicOutput(BaseModel):
 
     # ── Uncertainty ────────────────────────────────────────────────────────────
     uncertainty: UncertaintyBand = Field(
-        default_factory=UncertaintyBand, description="Honest uncertainty quantification (F07)"
+        default_factory=UncertaintyBand, description="Honest uncertainty quantification (L07)"
     )
 
     # ── Evidence freshness ────────────────────────────────────────────────────
@@ -659,7 +659,7 @@ class MetabolicOutput(BaseModel):
         default=True, description="AI proposes only — has not been ratified by human"
     )
     execution_authorized: bool = Field(
-        default=False, description="Has a human authorized execution? False until F13 ratification."
+        default=False, description="Has a human authorized execution? False until L13 ratification."
     )
     human_final_authority: str = Field(
         default="Arif", description="Who has final say on this output?"

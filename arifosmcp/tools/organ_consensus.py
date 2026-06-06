@@ -1,5 +1,5 @@
 """
-arifOS Cross-Organ Tri-Witness Consensus — F3 WITNESS / F13 SOVEREIGNTY
+arifOS Cross-Organ Tri-Witness Consensus — F3 WITNESS / L13 SOVEREIGNTY
 ═══════════════════════════════════════════════════════════════════════
 Calls WELL, WEALTH, and GEOX as independent organ witnesses for a proposed
 action, aggregates their verdicts, and returns a unified consensus score.

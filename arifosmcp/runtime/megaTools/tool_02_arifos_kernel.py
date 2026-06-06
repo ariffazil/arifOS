@@ -2,7 +2,7 @@
 arifosmcp/runtime/megaTools/02_arifos_kernel.py
 
 444_KERNEL: Primary metabolic conductor
-Stage: 444_KERNEL | Trinity: DELTA/PSI | Floors: F4, F11
+Stage: 444_KERNEL | Trinity: DELTA/PSI | Floors: F4, L11
 
 Modes: kernel, status
 

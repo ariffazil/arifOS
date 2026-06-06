@@ -53,7 +53,7 @@ def build_charter_v2(
         {
             "uri": "arifos://doctrine",
             "name": "arifOS Doctrine",
-            "description": "Immutable constitutional substrate: F1-F13, verdict schema, Gödel Lock, skills",
+            "description": "Immutable constitutional substrate: F1-L13, verdict schema, Gödel Lock, skills",
             "mimeType": "application/json",
         },
         {

@@ -6,7 +6,7 @@ The single canonical authority for all constitutional evaluation.
 
 No tool may evaluate threats, floors, or authority outside this core.
 No tool may bypass this core for consequential actions.
-No tool may implement its own interpretation of F01–F13.
+No tool may implement its own interpretation of L01–L13.
 
 Law is centralized. Law is deterministic. Law is non-optional.
 
@@ -108,8 +108,8 @@ class ActionContext(BaseModel):
     target_agent: str | None = Field(default=None, description="Federation target")
 
     # Authority signals
-    ack_irreversible: bool = Field(default=False, description="F01 Amanah explicit ack")
-    witness_type: WitnessType = Field(default=WitnessType.AI, description="F13 witness type")
+    ack_irreversible: bool = Field(default=False, description="L01 Amanah explicit ack")
+    witness_type: WitnessType = Field(default=WitnessType.AI, description="L13 witness type")
     plan_id: str | None = Field(default=None, description="H2 ratified plan ID")
 
     # Cryptographic proofs
@@ -407,7 +407,7 @@ class LawResult(BaseModel):
 
 class FloorEvaluator:
     """
-    F01–F13 are parametric functions of (context, threat, authority).
+    L01–L13 are parametric functions of (context, threat, authority).
 
     No special-casing per tool. No duplicated logic.
     """
@@ -417,7 +417,7 @@ class FloorEvaluator:
         failed: list[str] = []
         reasons: dict[str, str] = {}
 
-        # F01 AMANAH — Trustworthiness / Irreversibility
+        # L01 AMANAH — Trustworthiness / Irreversibility
         # Some tools are inherently irreversible regardless of payload content
         tool_base_irreversibility = {
             ("arif_vault_seal", "seal"): IrreversibilityLevel.CRITICAL,
@@ -442,37 +442,37 @@ class FloorEvaluator:
                     "requires ack_irreversible=True"
                 )
 
-        # F02 TRUTH — No fabrication
+        # L02 TRUTH — No fabrication
         # (Enforced at data layer, not action layer)
 
-        # F03 WITNESS — Evidence preservation
+        # L03 WITNESS — Evidence preservation
         # (Enforced at vault layer)
 
-        # F04 CLARITY — Transparent intent
+        # L04 CLARITY — Transparent intent
         if not context.candidate and not context.manifest and not context.query:
             # Empty intent is only a problem for judge/forge modes
             if context.tool_name in ("arif_judge_deliberate", "arif_forge_execute"):
                 failed.append("L04")
                 reasons["L04"] = "Action intent is empty or unclear"
 
-        # F05 PEACE — No harm to dignity
+        # L05 PEACE — No harm to dignity
         # (Enforced by heart_critique)
 
-        # F06 EMPATHY — Consider consequences
+        # L06 EMPATHY — Consider consequences
         # (Enforced by heart_critique)
 
-        # F07 HUMILITY — Acknowledge limits
+        # L07 HUMILITY — Acknowledge limits
         # (Enforced by mind_reason)
 
-        # F08 GENIUS — Elegant correctness
+        # L08 GENIUS — Elegant correctness
         if threat.irreversibility.value >= IrreversibilityLevel.CRITICAL.value:
             # Critical actions require extra scrutiny — genius demands caution
             pass  # Not a blocker, but annotated
 
-        # F09 ANTI-HANTU — No consciousness claims
+        # L09 ANTI-HANTU — No consciousness claims
         # (Enforced at content layer)
 
-        # F10 ONTOLOGY — Structural coherence
+        # L10 ONTOLOGY — Structural coherence
         if context.tool_name == "arif_judge_deliberate" and context.mode not in {
             "judge",
             "compare",
@@ -488,7 +488,7 @@ class FloorEvaluator:
             failed.append("L10")
             reasons["L10"] = f"Unknown judge mode: {context.mode}"
 
-        # F11 AUTH — Verify identity
+        # L11 AUTH — Verify identity
         if context.session_id and context.session_id not in context.session_registry:
             failed.append("L11")
             reasons["L11"] = "Session ID not found or expired"
@@ -497,7 +497,7 @@ class FloorEvaluator:
             failed.append("L11")
             reasons["L11"] = f"Agent '{context.target_agent}' not in federation registry"
 
-        # F12 INJECTION — Sanitize inputs
+        # L12 INJECTION — Sanitize inputs
         injection_categories = {
             ThreatCategory.INJECTION_SQL,
             ThreatCategory.INJECTION_XSS,
@@ -509,14 +509,14 @@ class FloorEvaluator:
             detected = [t.name for t in threat.threats & injection_categories]
             reasons["L12"] = f"Injection threat detected: {detected}"
 
-        # F13 SOVEREIGN — Human veto is absolute
+        # L13 SOVEREIGN — Human veto is absolute
         if cls._requires_human_witness(context, threat):
             if context.witness_type != WitnessType.HUMAN:
                 # Distinguish sovereignty violation (AI self-approval) from missing witness
                 if context.tool_name == "arif_mind_reason" and context.mode == "plan_approve":
                     failed.append("L13_VIOLATION")
                     reasons["L13_VIOLATION"] = (
-                        "F13 SOVEREIGN: AI self-approval is constitutionally forbidden"
+                        "L13 SOVEREIGN: AI self-approval is constitutionally forbidden"
                     )
                 else:
                     failed.append("L13")
@@ -558,7 +558,7 @@ class FloorEvaluator:
 
     @staticmethod
     def _requires_human_witness(context: ActionContext, threat: ThreatAssessment) -> bool:
-        """Determine if F13 requires a human witness for this action."""
+        """Determine if L13 requires a human witness for this action."""
         # Hard-coded canonical policy — mode-aware
         human_required_tools_modes = {
             "arif_vault_seal": {"seal", "commit"},
@@ -626,7 +626,7 @@ class AuthorityGate:
                 requires_human=True,
                 witness_type=context.witness_type,
                 plan_approved=plan_approved,
-                reason="F13 SOVEREIGN: human witness required",
+                reason="L13 SOVEREIGN: human witness required",
             )
 
         return AuthorityProof(

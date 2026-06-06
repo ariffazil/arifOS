@@ -122,7 +122,7 @@ def governance_guard(
         return {
             "status": "blocked",
             "action": action,
-            "reason": f"{action} requires a declared actor identity. F11/F13.",
+            "reason": f"{action} requires a declared actor identity. L11/L13.",
             "gate": "identity",
             "required_next": "arif_cc_session_status",
         }

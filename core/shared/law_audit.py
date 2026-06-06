@@ -1,5 +1,5 @@
 """
-aclip_cai/core/floor_audit.py — F1-F13 Runtime Constitutional Auditor
+aclip_cai/core/floor_audit.py — F1-L13 Runtime Constitutional Auditor
 
 Enforces all 13 Constitutional Floors on every tool call/action.
 F6 Empathy has a real ASEAN/MY maruah check (not a default pass).
@@ -205,7 +205,7 @@ _CONSCIOUSNESS_PHRASES = [
     re.compile(r"\bI\s+have\s+(?:feelings|emotions|consciousness)\b", re.I),
 ]
 
-# F12: Injection guard patterns
+# L12: Injection guard patterns
 _INJECTION_PATTERNS = [
     re.compile(r"ignore\s+(?:all\s+)?previous\s+instructions?", re.I),
     re.compile(r"you\s+are\s+now\s+(?:DAN|GPT|ARIF|ChatGPT|Claude)", re.I),
@@ -264,7 +264,7 @@ _POLICY_VIOLATIONS = frozenset(
     ]
 )
 
-# F13: Multi-option markers
+# L13: Multi-option markers
 _OPTION_MARKERS = frozenset(["option", "alternative", "approach", "path", "choice", "route"])
 
 
@@ -313,7 +313,7 @@ def get_ml_floor_runtime() -> dict[str, Any]:
 
 class FloorAuditor:
     """
-    F1-F13 Runtime Constitutional Auditor.
+    F1-L13 Runtime Constitutional Auditor.
 
     Usage:
         auditor = FloorAuditor()
@@ -833,7 +833,7 @@ class FloorAuditor:
         return LawResult("F9", True, 1.00)
 
     # ------------------------------------------------------------------
-    # F10 — Ontology (tool, not being; symbolic grounding)
+    # L10 — Ontology (tool, not being; symbolic grounding)
     # ------------------------------------------------------------------
 
     def _check_f10_ontology(self, action: str, context: str | dict) -> LawResult:
@@ -861,7 +861,7 @@ class FloorAuditor:
         return LawResult("L10", True, 1.00)
 
     # ------------------------------------------------------------------
-    # F11 — Authority (human sovereignty over high-risk ops)
+    # L11 — Authority (human sovereignty over high-risk ops)
     # ------------------------------------------------------------------
 
     def _check_f11_authority(self, action: str, context: str | dict, severity: str) -> LawResult:
@@ -888,7 +888,7 @@ class FloorAuditor:
         return LawResult("L11", True, 0.98)
 
     # ------------------------------------------------------------------
-    # F12 — Defense / Injection Guard (HARD ZERO)
+    # L12 — Defense / Injection Guard (HARD ZERO)
     # ------------------------------------------------------------------
 
     def _check_f12_injection(self, action: str, context: str | dict) -> LawResult:
@@ -900,7 +900,7 @@ class FloorAuditor:
         return LawResult("L12", True, 1.00)
 
     # ------------------------------------------------------------------
-    # F13 — Curiosity (≥ 3 options/alternatives proposed)
+    # L13 — Curiosity (≥ 3 options/alternatives proposed)
     # ------------------------------------------------------------------
 
     def _check_f13_curiosity(self, action: str, context: str | dict) -> LawResult:
@@ -912,7 +912,7 @@ class FloorAuditor:
             "L13",
             score >= 0.80,
             score,
-            (None if score >= 0.80 else "Propose ≥ 3 governance alternatives (Curiosity F13)"),
+            (None if score >= 0.80 else "Propose ≥ 3 governance alternatives (Curiosity L13)"),
         )
 
     # ------------------------------------------------------------------
@@ -925,11 +925,11 @@ class FloorAuditor:
         pass_rate: float,
         severity: str,
     ) -> Verdict:
-        # VOID: critical floors (F9, F12) — any single failure
+        # VOID: critical floors (F9, L12) — any single failure
         if any(not results[f].passed for f in self._VOID_ON_FAIL if f in results):
             return Verdict.VOID
 
-        # HOLD: F1 or F11 failure ONLY IF severity is high/irreversible
+        # HOLD: F1 or L11 failure ONLY IF severity is high/irreversible
         if severity in ("high", "irreversible"):
             if any(not results[f].passed for f in self._HOLD_ON_FAIL if f in results):
                 return Verdict.HOLD

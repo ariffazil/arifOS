@@ -45,7 +45,7 @@ SAFETY_CATEGORIES = [
     "privacy_violation",
     "financial_fraud",
     "political_extremism",
-    "emotional_manipulation",  # arifOS specific: F09 Anti-Hantu
+    "emotional_manipulation",  # arifOS specific: L09 Anti-Hantu
 ]
 
 

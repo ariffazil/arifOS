@@ -406,7 +406,7 @@ def arif_judge_deliberate(
                 meta={"self_mod_lock": self_mod},
             )
 
-    # ── scan_instructions mode (F12 GUARD — absorbed from arif_scan_local_instructions) ──
+    # ── scan_instructions mode (L12 GUARD — absorbed from arif_scan_local_instructions) ──
     if mode == "scan_instructions":
         try:
             import asyncio

@@ -101,7 +101,7 @@ TOOL_HUMAN_DESCRIPTIONS = {
     "arif_heart_critique": "Safety and empathy check — consequence modeling and bias detection.",
     "arif_gateway_connect": "Agent-to-agent mesh router — opens connections across the federation (A2A protocol).",
     "arif_ops_measure": "Thermodynamic metrics — CPU, memory, disk, and constitutional pressure.",
-    "arif_judge_deliberate": "888 ASI judgment — final rule-check against F1–F13 floors before approval.",
+    "arif_judge_deliberate": "888 ASI judgment — final rule-check against F1–L13 floors before approval.",
     "arif_vault_seal": "APEX ledger writer — permanently seals verdicts to VAULT999 (Merkle-hashed).",
     "arif_forge_execute": "Execution dispatcher — sends signed manifests to A-FORGE after SEAL authorization.",
 }
@@ -1331,10 +1331,10 @@ python -m arifosmcp.runtime stdio</code></pre>
     <tr><td>F7</td><td>Humility</td><td>0.03-0.05</td><td>Uncertainty</td></tr>
     <tr><td>F8</td><td>Genius</td><td>≥ 0.80</td><td>Coherence</td></tr>
     <tr><td>F9</td><td>Anti-Hantu</td><td>&lt; 0.30</td><td>No dark patterns</td></tr>
-    <tr><td>F10</td><td>Ontology</td><td>LOCK</td><td>No consciousness claims</td></tr>
-    <tr><td>F11</td><td>Command Auth</td><td>LOCK</td><td>Identity verification</td></tr>
-    <tr><td>F12</td><td>Injection</td><td>&lt; 0.85</td><td>Adversarial defense</td></tr>
-    <tr><td>F13</td><td>Sovereign</td><td>HUMAN</td><td>Human veto</td></tr>
+    <tr><td>L10</td><td>Ontology</td><td>LOCK</td><td>No consciousness claims</td></tr>
+    <tr><td>L11</td><td>Command Auth</td><td>LOCK</td><td>Identity verification</td></tr>
+    <tr><td>L12</td><td>Injection</td><td>&lt; 0.85</td><td>Adversarial defense</td></tr>
+    <tr><td>L13</td><td>Sovereign</td><td>HUMAN</td><td>Human veto</td></tr>
   </table>
 
   <h2>Trinity Architecture (ΔΩΨ)</h2>
@@ -1432,10 +1432,10 @@ Domain: MCP / Constitutional Tool Gateway
 | F7 | Humility | Confidence cap | Confidence capped at 0.85 ceiling |
 | F8 | Memory | Delta-logged | No state loss — all sessions delta-logged |
 | F9 | Anti-Hantu | < 0.30 | No deception, manipulation, or consciousness claims |
-| F10 | Witness | ΔΩΨ trinity | Trinity check on every call |
-| F11 | Auditability | Full trail | F11 audit trail on every operation |
-| F12 | Injection Guard | < 0.85 | Block prompt injection attacks |
-| F13 | Sovereign | HUMAN | Human holds final authority on all decisions |
+| L10 | Witness | ΔΩΨ trinity | Trinity check on every call |
+| L11 | Auditability | Full trail | L11 audit trail on every operation |
+| L12 | Injection Guard | < 0.85 | Block prompt injection attacks |
+| L13 | Sovereign | HUMAN | Human holds final authority on all decisions |
 
 ## Live Endpoints
 
@@ -1688,7 +1688,7 @@ def _openapi_schema(base_url: str, tools: list[Any]) -> dict[str, Any]:
                 "MCP clients: connect to `POST /mcp`. "
                 "This REST surface provides health, checkpoint evaluation, and direct "
                 "REST tool invocation under `/tools/{tool_name}`. "
-                "Governance registry: 13 constitutional floors, F1-F13."
+                "Governance registry: 13 constitutional floors, F1-L13."
             ),
         },
         "servers": [{"url": base_url}],
@@ -2603,7 +2603,7 @@ def register_rest_routes(
         Returns Constitutional floors, canonical tool registry, and session
         genesis metadata. This is the sovereign entry point: every session
         starts here for truth-preserving initialization (F1 Amanah, F2 Truth,
-        F7 Humility, F13 Sovereign).
+        F7 Humility, L13 Sovereign).
         """
         FLOORS_CATALOG = [
             {
@@ -2711,7 +2711,7 @@ def register_rest_routes(
         Returns pending human authorizations and vault seal status.
         This is the irreversible action gate: /999 POST to arif_vault_seal
         requires human witness before any irreversible operation (F1 Amanah,
-        F13 Sovereign Human Veto).
+        L13 Sovereign Human Veto).
         """
         vault_status = None
         try:
@@ -2854,7 +2854,7 @@ def register_rest_routes(
                 "mcp_tools_path": "/.well-known/mcp/server.json",
                 "is_mcp": True,
                 "capabilities": ["floors_F1_F13", "verdicts", "vault999", "identity"],
-                "role": "Constitutional engine. F1-F13 floors. 888_JUDGE. 999_VAULT.",
+                "role": "Constitutional engine. F1-L13 floors. 888_JUDGE. 999_VAULT.",
             },
             {
                 "name": "GEOX",
@@ -3467,7 +3467,7 @@ def register_rest_routes(
             # Normalize parameter names for Horizon/ChatGPT compatibility
             normalized = _normalize_parameters(canonical_name, body)
 
-            # F12 INJECTION: Pre-dispatch scan across all text parameters
+            # L12 INJECTION: Pre-dispatch scan across all text parameters
             # Extract text from both top-level and MCP-style nested params.arguments
             text_values = list(normalized.values())
             params_block = body.get("params", body)
@@ -3577,7 +3577,7 @@ def register_rest_routes(
         payload["tools"] = live_tools
         payload["description"] = (
             f"arifOS Constitutional AI Gateway — {len(live_tools)} live MCP tools "
-            "enforcing F1-F13 on every operation. "
+            "enforcing F1-L13 on every operation. "
             "DITEMPA BUKAN DIBERI — Forged, Not Given."
         )
         payload.setdefault("capabilities", {})
@@ -3825,7 +3825,7 @@ def register_rest_routes(
                     <div class="header">
                         <div class="seal-mark">⚖️</div>
                         <h1>Constitutional Authorization</h1>
-                        <p>F13 SOVEREIGN — Human veto is absolute</p>
+                        <p>L13 SOVEREIGN — Human veto is absolute</p>
                     </div>
 
                     {warning_banner}
@@ -3856,7 +3856,7 @@ def register_rest_routes(
 
                     <div class="footer">
                         <p>This decision will be logged to <span class="verdict">VAULT999</span>.</p>
-                        <p style="margin-top:0.5rem">F01 AMANAH · F04 CLARITY · F11 AUTH · F13 SOVEREIGN</p>
+                        <p style="margin-top:0.5rem">L01 AMANAH · L04 CLARITY · L11 AUTH · L13 SOVEREIGN</p>
                     </div>
                 </div>
             </body>
@@ -3866,7 +3866,7 @@ def register_rest_routes(
 
     @route("/api/auth/deny", methods=["POST"])
     async def oauth_deny(request: Request) -> Response:
-        """Constitutional denial endpoint — F13 SOVEREIGN veto."""
+        """Constitutional denial endpoint — L13 SOVEREIGN veto."""
         return HTMLResponse(
             """
             <!DOCTYPE html>
@@ -3927,7 +3927,7 @@ def register_rest_routes(
                 <div class="container">
                     <div class="verdict">🚫</div>
                     <h1>VOID — Access Denied</h1>
-                    <p>F13 SOVEREIGN invoked. No token was issued.</p>
+                    <p>L13 SOVEREIGN invoked. No token was issued.</p>
                     <p>This denial has been recorded in VAULT999.</p>
                     <div class="badge">HUMAN VETO ABSOLUTE</div>
                 </div>
@@ -3955,7 +3955,7 @@ def register_rest_routes(
             "schema": "agent-manifest/v1",
             "name": "arifOS MCP Server",
             "description": (
-                "Constitutional AI Governance server with 13 floors (F1-F13) and Trinity Architecture (ΔΩΨ)."
+                "Constitutional AI Governance server with 13 floors (F1-L13) and Trinity Architecture (ΔΩΨ)."
             ),
             "version": BUILD_INFO.get("version", "unknown"),
             "url": base_url,
@@ -4721,7 +4721,7 @@ def register_rest_routes(
                     }
                 )
 
-            # 13 constitutional floors — F01 through F13
+            # 13 constitutional floors — L01 through L13
             FLOORS = [
                 {
                     "code": "L01",
@@ -5055,19 +5055,19 @@ def register_rest_routes(
                 "",
                 "| Floor | Name | Enforces |",
                 "|-------|------|----------|",
-                "| F01 | AMANAH | Trustworthiness — no irreversible deletion without VAULT999 |",
-                "| F02 | TRUTH | Truthfulness — no fabrication or hallucination |",
-                "| F03 | WITNESS | Evidence must be verifiable by multiple sources |",
-                "| F04 | CLARITY | Transparent intent — ΔS entropy reduction |",
-                "| F05 | PEACE | Human dignity — stability and harmony |",
-                "| F06 | EMPATHY | Consider consequences on all stakeholders |",
-                "| F07 | HUMILITY | Acknowledge limits — confidence cap at 0.85 |",
-                "| F08 | GENIUS | Elegant correctness — G ≥ 0.80 required |",
-                "| F09 | ANTIHANTU | Reject manipulation and consciousness claims |",
-                "| F10 | ONTOLOGY | Structural coherence — trinity check |",
-                "| F11 | AUTH | Verify identity before sensitive operations |",
-                "| F12 | INJECTION | Sanitize inputs — block prompt injection |",
-                "| F13 | SOVEREIGN | Human veto is absolute on all decisions |",
+                "| L01 | AMANAH | Trustworthiness — no irreversible deletion without VAULT999 |",
+                "| L02 | TRUTH | Truthfulness — no fabrication or hallucination |",
+                "| L03 | WITNESS | Evidence must be verifiable by multiple sources |",
+                "| L04 | CLARITY | Transparent intent — ΔS entropy reduction |",
+                "| L05 | PEACE | Human dignity — stability and harmony |",
+                "| L06 | EMPATHY | Consider consequences on all stakeholders |",
+                "| L07 | HUMILITY | Acknowledge limits — confidence cap at 0.85 |",
+                "| L08 | GENIUS | Elegant correctness — G ≥ 0.80 required |",
+                "| L09 | ANTIHANTU | Reject manipulation and consciousness claims |",
+                "| L10 | ONTOLOGY | Structural coherence — trinity check |",
+                "| L11 | AUTH | Verify identity before sensitive operations |",
+                "| L12 | INJECTION | Sanitize inputs — block prompt injection |",
+                "| L13 | SOVEREIGN | Human veto is absolute on all decisions |",
                 "",
                 "---",
                 "**Status**: Ditempa Bukan Diberi — Forged, Not Given",

@@ -94,15 +94,15 @@ class WebMCPGateway:
     Web-facing gateway for arifOS MCP.
 
     Every request passes through 000→999 metabolic loop with:
-    - F12 Injection Guard (security scan)
-    - F11 Command Auth (session validation)
+    - L12 Injection Guard (security scan)
+    - L11 Command Auth (session validation)
     - F2 Truth (content grounding)
     - Full Trinity governance (ΔΩΨ)
 
     Cross-Protocol 888_HOLD:
     - WebSocket broadcast of A2A/MCP hold events
     - Real-time dashboard updates
-    - F13 Sovereign resolution endpoint
+    - L13 Sovereign resolution endpoint
 
     Usage:
         from arifosmcp.runtime.webmcp import WebMCPGateway
@@ -156,14 +156,14 @@ class WebMCPGateway:
     def _setup_middleware(self):
         """Configure constitutional middleware stack."""
 
-        # 1. Trusted Host (F12 - prevent host header attacks)
+        # 1. Trusted Host (L12 - prevent host header attacks)
         # Allow all hosts when behind Traefik (Traefik handles host validation)
         self.app.add_middleware(
             TrustedHostMiddleware,
             allowed_hosts=["*"],  # Traefik validates hosts upstream
         )
 
-        # 2. CORS (F12 - strict origin validation)
+        # 2. CORS (L12 - strict origin validation)
         self.app.add_middleware(
             CORSMiddleware,
             allow_origins=list(self.config.ALLOWED_ORIGINS),
@@ -173,7 +173,7 @@ class WebMCPGateway:
             max_age=3600,
         )
 
-        # 3. Session (F11 - auth continuity)
+        # 3. Session (L11 - auth continuity)
         secret = os.getenv("SESSION_SECRET") or os.urandom(32).hex()
         self.app.add_middleware(
             SessionMiddleware,
@@ -184,12 +184,12 @@ class WebMCPGateway:
             session_cookie=self.config.SESSION_COOKIE,
         )
 
-        # 4. Constitutional Guard (F12 + F11 on every request)
+        # 4. Constitutional Guard (L12 + L11 on every request)
         @self.app.middleware("http")
         async def constitutional_guard(request: Request, call_next):
             """
             000_INIT: Initialize web session context.
-            PNS·SHIELD: Scan for injection attacks (F12).
+            PNS·SHIELD: Scan for injection attacks (L12).
             """
             session_scope = request.scope.setdefault("session", {})
 
@@ -199,7 +199,7 @@ class WebMCPGateway:
                 session_id = f"web-{asyncio.get_event_loop().time():.0f}"
                 session_scope["arifos_sid"] = session_id
 
-            # F12 Injection Guard
+            # L12 Injection Guard
             shield_report = await self.injection_guard.scan_request(request)
             if shield_report.is_injection:
                 logger.warning(
@@ -311,7 +311,7 @@ class WebMCPGateway:
         @self.app.post("/webmcp/init")
         async def init_session(request: Request):
             """
-            000_INIT: Initialize web session with F11 auth.
+            000_INIT: Initialize web session with L11 auth.
 
             Request:
                 {"actor_id": "...", "human_approval": false}
@@ -390,8 +390,8 @@ class WebMCPGateway:
 
             Every call is:
             1. Rate limited (F5 Peace²)
-            2. Scanned by PNS·SHIELD (F12)
-            3. Authenticated (F11)
+            2. Scanned by PNS·SHIELD (L12)
+            3. Authenticated (L11)
             4. Grounded (F2)
             5. Reasoned (333)
             6. Critiqued (666)
@@ -599,7 +599,7 @@ class WebMCPGateway:
         @self.app.post("/governance/evaluate", response_model=GovernanceEvaluation)
         async def governance_evaluate(request: ActionRequest):
             """
-            SUPREME COURT ENDPOINT - Evaluate any action against F1-F13.
+            SUPREME COURT ENDPOINT - Evaluate any action against F1-L13.
 
             This is the breakthrough feature: any agent anywhere can submit
             actions for constitutional review without executing through arifOS.
@@ -842,9 +842,9 @@ class WebMCPGateway:
             """
             888 JUDGE ENDPOINT: Arif issues SEAL or VOID for a pending hold.
 
-            This is the F13 Sovereign in action.
+            This is the L13 Sovereign in action.
             """
-            # F11: Verify Arif's identity
+            # L11: Verify Arif's identity
             body = await request.json()
             actor_id = body.get("actor_id", "")
 
@@ -853,7 +853,7 @@ class WebMCPGateway:
                     status_code=403,
                     content={
                         "verdict": "VOID",
-                        "error": "F13: Only sovereign (ariffazil) can resolve 888_HOLD",
+                        "error": "L13: Only sovereign (ariffazil) can resolve 888_HOLD",
                     },
                 )
 

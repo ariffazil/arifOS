@@ -452,7 +452,7 @@ class EmbodiedToolEnvelope(BaseModel):
                     "risk_tier": "T1",
                     "reversibility": "reversible",
                     "authority_verified": True,
-                    "reasoning_summary": "Reasoned about query with F07 humility",
+                    "reasoning_summary": "Reasoned about query with L07 humility",
                     "execution_status": "executed",
                     "latency_ms": 234.5,
                 },

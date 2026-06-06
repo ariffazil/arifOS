@@ -100,5 +100,5 @@ def mind_metabolize(query: str) -> str:
 def mind_first_principles(problem: str) -> str:
     """Template for first-principles reasoning under F-floors."""
     return (
-        f"Break down this problem using first principles: {problem}. Ground every axiom in F1-F13."
+        f"Break down this problem using first principles: {problem}. Ground every axiom in F1-L13."
     )

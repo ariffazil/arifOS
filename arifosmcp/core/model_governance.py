@@ -1,5 +1,5 @@
 """
-arifosmcp/core/model_governance.py — F11 Model Governance Loader
+arifosmcp/core/model_governance.py — L11 Model Governance Loader
 ================================================================
 
 Loads model_governance.yaml as the single source of truth for
@@ -84,7 +84,7 @@ def get_governance_card(model_id: str) -> dict[str, Any]:
         if known.lower() == model_lower:
             return card
 
-    # Unknown model — return safe default (F11 F13 conservative fallback)
+    # Unknown model — return safe default (L11 L13 conservative fallback)
     log.debug("No governance card for model '%s', using default", model_id)
     return {
         "provider": "unknown",

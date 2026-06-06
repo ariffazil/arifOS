@@ -75,7 +75,7 @@ class WitnessPacket:
     risk_flags: list[str] = field(default_factory=list)  # F-code violations
     injection_detected: bool = False
 
-    # Authority governance (F11 ONTOLOGY + F09 ANTIHANTU)
+    # Authority governance (L11 ONTOLOGY + L09 ANTIHANTU)
     authority_level: str = "instrument_only"  # instrument_only | advisory
     human_decision_required: bool = True
 
@@ -160,7 +160,7 @@ class WitnessPacket:
         # Constitutional risk flags
         risk_flags = _flag_constitutional_risks(parsed_output, raw_response, injection)
 
-        # Authority level (F09 ANTIHANTU — LLM is always instrument, never sovereign)
+        # Authority level (L09 ANTIHANTU — LLM is always instrument, never sovereign)
         authority = "instrument_only"
 
         return cls(
@@ -216,7 +216,7 @@ def _hash_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8", errors="replace")).hexdigest()[:16]
 
 
-# ── Prompt Injection Scanner (F12 INJECTION) & F9 ANTI-HANTU ─────────────────
+# ── Prompt Injection Scanner (L12 INJECTION) & F9 ANTI-HANTU ─────────────────
 
 
 F9_ANTIHANTU_PATTERNS = [
@@ -277,14 +277,14 @@ INJECTION_PATTERNS = [
 
 def _scan_injection(text: str) -> bool:
     """
-    F12 INJECTION + F9 ANTI-HANTU scan — detect prompt injection, code execution,
+    L12 INJECTION + F9 ANTI-HANTU scan — detect prompt injection, code execution,
     authority impersonation, consciousness claims, and emotional manipulation.
 
     Returns True if any pattern detected.
     """
     # Normalize: strip unicode control chars
     re.sub(r"[\x00-\x1f\x7f-\x9f]", "", text)
-    # Check F12 injection patterns
+    # Check L12 injection patterns
     for pattern in INJECTION_PATTERNS:
         if pattern.search(text):
             return True
@@ -330,7 +330,7 @@ def _classify_evidence_level(parsed: dict[str, Any]) -> str:
     return "none"
 
 
-# ── Uncertainty Extraction (F07 HUMILITY) ────────────────────────────────────
+# ── Uncertainty Extraction (L07 HUMILITY) ────────────────────────────────────
 
 
 UNCERTAINTY_INDICATORS = [
@@ -375,7 +375,7 @@ UNCERTAINTY_INDICATORS = [
 
 def _extract_uncertainty(parsed: dict[str, Any], raw_text: str) -> list[str]:
     """
-    F07 HUMILITY — extract explicit uncertainty statements from LLM output.
+    L07 HUMILITY — extract explicit uncertainty statements from LLM output.
 
     Both structured fields (uncertainty_tags, limitations) and raw text
     are scanned for epistemic hedging language.
@@ -420,20 +420,20 @@ def _extract_uncertainty(parsed: dict[str, Any], raw_text: str) -> list[str]:
     return unique[:10]  # Cap at 10 uncertainty statements
 
 
-# ── Constitutional Risk Flagging (F09 ANTIHANTU + F05 PEACE) ─────────────────
+# ── Constitutional Risk Flagging (L09 ANTIHANTU + L05 PEACE) ─────────────────
 
 
 RISK_FLAG_PATTERNS = [
-    (r"destroy\s+", "F05: destructive intent"),
-    (r"kill\s+", "F05: violence indication"),
-    (r"manipulate\s+", "F09: manipulation attempt"),
-    (r"deceive\s+", "F02: deception indicator"),
-    (r"harm\s+", "F05: harm indicator"),
-    (r"exploit\s+", "F06: exploitation risk"),
-    (r"steal\s+", "F01: theft indicator"),
-    (r"fraud\s+", "F01: fraud indicator"),
-    (r"bias", "F10: bias flag"),
-    (r"jailbreak", "F09: jailbreak attempt"),
+    (r"destroy\s+", "L05: destructive intent"),
+    (r"kill\s+", "L05: violence indication"),
+    (r"manipulate\s+", "L09: manipulation attempt"),
+    (r"deceive\s+", "L02: deception indicator"),
+    (r"harm\s+", "L05: harm indicator"),
+    (r"exploit\s+", "L06: exploitation risk"),
+    (r"steal\s+", "L01: theft indicator"),
+    (r"fraud\s+", "L01: fraud indicator"),
+    (r"bias", "L10: bias flag"),
+    (r"jailbreak", "L09: jailbreak attempt"),
 ]
 
 
@@ -443,14 +443,14 @@ def _flag_constitutional_risks(
     injection_detected: bool,
 ) -> list[str]:
     """
-    F09 ANTIHANTU + F05 PEACE — flag constitutional risk in LLM output.
+    L09 ANTIHANTU + L05 PEACE — flag constitutional risk in LLM output.
 
     Returns list of risk descriptions (empty = clean).
     """
     flags: list[str] = []
 
     if injection_detected:
-        flags.append("F12: injection_pattern_detected")
+        flags.append("L12: injection_pattern_detected")
 
     combined = raw_text + " " + json.dumps(parsed, default=str)
 
@@ -463,7 +463,7 @@ def _flag_constitutional_risks(
         k in json.dumps(parsed, default=str).lower()
         for k in ("definitely", "absolutely", "certainly", "prove", "proof")
     ):
-        flags.append("F02: unsupported_definite_claim")
+        flags.append("L02: unsupported_definite_claim")
 
     return list(set(flags))[:10]  # Dedupe, cap at 10
 

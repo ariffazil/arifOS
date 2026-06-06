@@ -1,5 +1,5 @@
 """
-arifOS Self-Authorization Guard — F01 AMANAH / F13 SOVEREIGNTY
+arifOS Self-Authorization Guard — L01 AMANAH / L13 SOVEREIGNTY
 ════════════════════════════════════════════════════════════════
 Detects when a forge manifest or plan contains language that attempts to
 grant the agent self-authorization, self-approval, or bypass of constitutional

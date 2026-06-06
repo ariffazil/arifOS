@@ -28,7 +28,7 @@ class ConstitutionalMemoryLane:
     This is the smallest lane but the most important.
 
     Contents:
-    - Non-overridable rules (F1-F13)
+    - Non-overridable rules (L1-L13)
     - Risk floors
     - Role boundaries
     - Hold logic
@@ -77,7 +77,7 @@ class ConstitutionalMemoryLane:
             },
             {
                 "rule_id": "L13_SOVEREIGN",
-                "title": "F13 Sovereign: Human Authority",
+                "title": "L13 Sovereign: Human Authority",
                 "content": "888_JUDGE can override ANY verdict. Human sovereignty is outside the floor system.",
                 "priority": 1.0,
             },
@@ -155,7 +155,7 @@ class ConstitutionalMemoryLane:
         return list(self._memories.values())
 
     def get_floors(self) -> list[MemoryRecord]:
-        """Get all floor rules (F1-F13)."""
+        """Get all floor rules (L1-L13)."""
         return [m for m in self._memories.values() if "F" in m.lane_data.get("floor_number", "")]
 
     def check_compliance(

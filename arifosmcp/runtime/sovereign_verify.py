@@ -1,7 +1,7 @@
 """
 arifosmcp/runtime/sovereign_verify.py — Ed25519 Sovereign Identity Verification
 
-F11 AUTH: Cryptographic proof of sovereign actor identity.
+L11 AUTH: Cryptographic proof of sovereign actor identity.
 Replaces SHA-256 stub with real Ed25519 verification.
 
 Public key path: env ARIFOS_SOVEREIGN_PUBKEY_FILE → /run/sekrits/arifos_sovereign.pub
@@ -51,7 +51,7 @@ def verify_hmac_signature(
     sig: str,
 ) -> tuple[bool, str]:
     """
-    F11 AUTH via HMAC-rootkey (Telegram-native path).
+    L11 AUTH via HMAC-rootkey (Telegram-native path).
 
     Args:
         actor_id: Must be "ariffazil"
@@ -131,7 +131,7 @@ def _load_public_key():
     except FileNotFoundError:
         logger.warning(
             "Sovereign public key not found at %s — identity verification disabled",
-            _PUBKEY_PATH,
+            pubkey_path,
         )
         return None
     except Exception as exc:

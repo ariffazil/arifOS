@@ -172,13 +172,13 @@ def arif_sense_observe(
     if mode in ("geox_quantum_scope", "geox_molecular_target_scan", "geox_seismic_quantum_lint", "geox_pvt_quantum_opportunity", "geox_ccus_geochem_scan"):
         return {"status": "readonly", "message": f"{mode} activated based on GEOX quantum scale classifier."}
 
-    # ── F11 AUTH: Session Validation (Hardened) ───────────────────────────────
+    # ── L11 AUTH: Session Validation (Hardened) ───────────────────────────────
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
         # If it's a read-only SENSE operation and we have an actor_id,
         # allow a temporary "ephemeral" session for discovery if configured.
         if mode in ("hybrid_discovery", "vitals", "compass", "search") and actor_id:
-            logger.debug(f"F11 AUTH: session_id missing for {mode}, using ephemeral context.")
+            logger.debug(f"L11 AUTH: session_id missing for {mode}, using ephemeral context.")
             auth = {
                 "valid": True,
                 "session": {"actor_id": actor_id, "stage": "111", "ephemeral": True},
@@ -562,7 +562,7 @@ def arif_sense_observe(
         )
 
     if mode == "search":
-        # F12 INJECTION guard: scan query for destructive patterns before executing search
+        # L12 INJECTION guard: scan query for destructive patterns before executing search
         from arifosmcp.core.threat_engine import ThreatEngine
 
         scan_res = ThreatEngine.scan(query or "")
@@ -570,7 +570,7 @@ def arif_sense_observe(
             threat_names = [t.name for t in (scan_res.assessment.threats or [])]
             return _hold(
                 "arif_sense_observe",
-                f"F12 INJECTION: Destructive pattern detected — {', '.join(threat_names) or 'CRITICAL'}",
+                f"L12 INJECTION: Destructive pattern detected — {', '.join(threat_names) or 'CRITICAL'}",
                 ["L12"],
                 session_id=session_id,
             )

@@ -1,5 +1,5 @@
 """
-arifosmcp/integrations/memory_bridge.py — Governed Knowledge Graph Substrate (F2/F11)
+arifosmcp/integrations/memory_bridge.py — Governed Knowledge Graph Substrate (F2/L11)
 
 Bridges arifOS to the mcp_memory substrate, treating it as:
 - Crossing-session Entity Graph: services, repos, clusters, tools.
@@ -57,7 +57,7 @@ async def kg_upsert_entity(
 ) -> tuple[bool, str | None]:
     """Upsert an entity to the MCP memory KG via substrate_bridge."""
 
-    # F2/F11 Optimized Governance
+    # F2/L11 Optimized Governance
     gov = get_enforcer().evaluate_intent(
         tool_name="arifos_memory",
         action="memory_write",

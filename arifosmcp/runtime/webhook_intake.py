@@ -246,16 +246,16 @@ def _extract_approval_artifact(
         try:
             artifact = json.loads(raw_header)
         except json.JSONDecodeError:
-            return None, ["F11 AUTH: Approval artifact header is not valid JSON"]
+            return None, ["L11 AUTH: Approval artifact header is not valid JSON"]
         if not isinstance(artifact, dict):
-            return None, ["F11 AUTH: Approval artifact header must decode to an object"]
+            return None, ["L11 AUTH: Approval artifact header must decode to an object"]
         return artifact, []
 
     raw_payload = payload.get("approval_artifact")
     if raw_payload is None:
         return None, []
     if not isinstance(raw_payload, dict):
-        return None, ["F11 AUTH: approval_artifact must be an object"]
+        return None, ["L11 AUTH: approval_artifact must be an object"]
     return raw_payload, []
 
 
@@ -300,47 +300,47 @@ def verify_approval_artifact(
 
     if auth_method not in APPROVAL_REQUIRED_AUTH_METHODS:
         issues.append(
-            "F11 AUTH: Approval artifact must use passkey or WebAuthn step-up authentication"
+            "L11 AUTH: Approval artifact must use passkey or WebAuthn step-up authentication"
         )
 
     allowed_key_ids = _allowed_approval_key_ids()
     revoked_key_ids = _revoked_approval_key_ids()
     if not key_id:
-        issues.append("F11 AUTH: Approval artifact missing key_id")
+        issues.append("L11 AUTH: Approval artifact missing key_id")
     elif key_id in revoked_key_ids:
-        issues.append(f"F11 AUTH: Approval key '{key_id}' is revoked")
+        issues.append(f"L11 AUTH: Approval key '{key_id}' is revoked")
     elif key_id not in allowed_key_ids:
-        issues.append(f"F11 AUTH: Approval key '{key_id}' is not active")
+        issues.append(f"L11 AUTH: Approval key '{key_id}' is not active")
 
     if authority_level in {"", "anonymous"}:
-        issues.append("F13 SOVEREIGNTY: Approval artifact lacks non-anonymous authority")
+        issues.append("L13 SOVEREIGNTY: Approval artifact lacks non-anonymous authority")
 
     if not nonce:
-        issues.append("F12 INJECTION: Approval artifact missing nonce")
+        issues.append("L12 INJECTION: Approval artifact missing nonce")
     elif nonce in _seen_approval_nonces:
-        issues.append("F12 INJECTION: Approval nonce already used")
+        issues.append("L12 INJECTION: Approval nonce already used")
 
     if trace_id in _trace_approval_bindings:
-        issues.append("F12 INJECTION: Trace already bound to an approval artifact")
+        issues.append("L12 INJECTION: Trace already bound to an approval artifact")
 
     if not session_id:
-        issues.append("F11 AUTH: Approval artifact missing session_id")
+        issues.append("L11 AUTH: Approval artifact missing session_id")
     else:
         ok, reason = verify_auth_context_with_revocation(session_id, artifact)
         if not ok:
-            issues.append(f"F11 AUTH: Approval artifact rejected ({reason})")
+            issues.append(f"L11 AUTH: Approval artifact rejected ({reason})")
 
     iat = artifact.get("iat")
     if not isinstance(iat, int):
-        issues.append("F11 AUTH: Approval artifact missing integer iat")
+        issues.append("L11 AUTH: Approval artifact missing integer iat")
     else:
         now = int(time.time())
         age = now - iat
         if iat > (now + 30):
-            issues.append("F11 AUTH: Approval artifact issued in the future")
+            issues.append("L11 AUTH: Approval artifact issued in the future")
         elif age > APPROVAL_MAX_AGE_SECONDS:
             issues.append(
-                f"F11 AUTH: Approval artifact stale ({age}s > {APPROVAL_MAX_AGE_SECONDS}s)"
+                f"L11 AUTH: Approval artifact stale ({age}s > {APPROVAL_MAX_AGE_SECONDS}s)"
             )
 
     if artifact.get("parent_signature") != payload_hash:
@@ -403,15 +403,15 @@ def validate_github_payload(payload: dict[str, Any]) -> list[str]:
     """Validate GitHub webhook payload structure. Returns list of issue strings."""
     issues: list[str] = []
     if not isinstance(payload.get("repository"), dict):
-        issues.append("F02 TRUTH: Missing repository object")
+        issues.append("L02 TRUTH: Missing repository object")
     else:
         repo = payload["repository"]
         if not repo.get("full_name"):
-            issues.append("F02 TRUTH: Missing repository full_name")
+            issues.append("L02 TRUTH: Missing repository full_name")
         if not re.match(r"^[\w\-]+/[\w.\-]+$", repo.get("full_name", "")):
-            issues.append("F02 TRUTH: Invalid repository full_name format")
+            issues.append("L02 TRUTH: Invalid repository full_name format")
     if "ref" not in payload and "action" not in payload:
-        issues.append("F02 TRUTH: Missing ref or action")
+        issues.append("L02 TRUTH: Missing ref or action")
     return issues
 
 
@@ -419,9 +419,9 @@ def validate_grafana_payload(payload: dict[str, Any]) -> list[str]:
     """Validate Grafana alert payload structure."""
     issues: list[str] = []
     if not payload.get("title"):
-        issues.append("F02 TRUTH: Missing alert title")
+        issues.append("L02 TRUTH: Missing alert title")
     if payload.get("status") not in {"firing", "resolved", "no_data"}:
-        issues.append("F02 TRUTH: Unknown alert status")
+        issues.append("L02 TRUTH: Unknown alert status")
     return issues
 
 
@@ -429,12 +429,12 @@ def validate_manual_payload(payload: dict[str, Any]) -> list[str]:
     """Validate manual trigger payload structure."""
     issues: list[str] = []
     if not payload.get("actor"):
-        issues.append("F11 AUTH: Manual trigger missing actor")
+        issues.append("L11 AUTH: Manual trigger missing actor")
     if not payload.get("intent"):
-        issues.append("F04 CLARITY: Manual trigger missing intent")
+        issues.append("L04 CLARITY: Manual trigger missing intent")
     allowed_intents = {"deploy_signal", "health_check", "audit_request", "sovereign_veto"}
     if payload.get("intent") not in allowed_intents:
-        issues.append(f"F04 CLARITY: Intent must be one of {allowed_intents}")
+        issues.append(f"L04 CLARITY: Intent must be one of {allowed_intents}")
     return issues
 
 
@@ -472,43 +472,43 @@ def adjudicate_event(
     issues: list[str] = []
     approval_summary = approval or _approval_summary("not_evaluated")
 
-    # ── F11 AUTH: Source must be known ─────────────────────────────────
+    # ── L11 AUTH: Source must be known ─────────────────────────────────
     if source not in SOURCE_REGISTRY:
-        issues.append(f"F11 AUTH: Unknown source '{source}'")
+        issues.append(f"L11 AUTH: Unknown source '{source}'")
         return _build_void(trace_id, issues, payload)
 
     reg = SOURCE_REGISTRY[source]
 
-    # ── F02 TRUTH: Schema validation ───────────────────────────────────
+    # ── L02 TRUTH: Schema validation ───────────────────────────────────
     schema_name = reg.get("schema", "generic")
     validator = _SCHEMA_VALIDATORS.get(schema_name)
     if validator:
         schema_issues = validator(payload)
         issues.extend(schema_issues)
 
-    # ── F02 TRUTH: Evidence refs must exist ────────────────────────────
+    # ── L02 TRUTH: Evidence refs must exist ────────────────────────────
     evidence = payload.get("evidence") or payload.get("repository")
     if source == "github" and not evidence:
-        issues.append("F02 TRUTH: No repository context in GitHub payload")
+        issues.append("L02 TRUTH: No repository context in GitHub payload")
     elif source == "grafana" and not payload.get("title"):
-        issues.append("F02 TRUTH: No evidence context in Grafana payload")
+        issues.append("L02 TRUTH: No evidence context in Grafana payload")
 
-    # ── F12 INJECTION: Sanitize actor identifier ───────────────────────
+    # ── L12 INJECTION: Sanitize actor identifier ───────────────────────
     actor = _derive_actor(source, payload)
     if not actor or actor == "unknown":
-        issues.append("F12 INJECTION: Unidentifiable actor")
+        issues.append("L12 INJECTION: Unidentifiable actor")
 
-    # ── F01 AMANAH: Check for irreversible intent ──────────────────────
+    # ── L01 AMANAH: Check for irreversible intent ──────────────────────
     intent = payload.get("intent", event_type)
     irreversible = _classify_reversibility(source, event_type, payload)
     if approval_issues:
         issues.extend(approval_issues)
     if irreversible == "IRREVERSIBLE" and approval_summary.get("status") != "approved":
         issues.append(
-            "F01 AMANAH: Irreversible intent detected without fresh human approval artifact"
+            "L01 AMANAH: Irreversible intent detected without fresh human approval artifact"
         )
 
-    # ── F07 HUMILITY: Label confidence ─────────────────────────────────
+    # ── L07 HUMILITY: Label confidence ─────────────────────────────────
     confidence = "HIGH" if not issues else "LOW"
 
     # ── Verdict derivation ─────────────────────────────────────────────
@@ -657,11 +657,11 @@ def execute_routing(
                 "status": getattr(result, "status", "UNKNOWN"),
             }
         # arif_forge_execute is intentionally NOT auto-executed from webhooks
-        # F01 AMANAH: forge requires explicit sovereign ack
+        # L01 AMANAH: forge requires explicit sovereign ack
         return {
             "tool": target,
             "executed": False,
-            "reason": "F01 AMANAH: forge requires a fresh human approval artifact",
+            "reason": "L01 AMANAH: forge requires a fresh human approval artifact",
         }
     except Exception as e:
         logger.error(f"Webhook routing execution failed for {target}: {e}")
@@ -772,7 +772,7 @@ def process_webhook(
             "trace_id": trace_id,
             "event_id": event_id,
             "verdict": "VOID",
-            "issues": [f"F05 PEACE: Rate limit exceeded. Reset in {rl_meta['reset_in']}s"],
+            "issues": [f"L05 PEACE: Rate limit exceeded. Reset in {rl_meta['reset_in']}s"],
             "source": source,
             "event_type": headers.get("x-event-type", "unknown"),
             "policy_version": policy_version,
@@ -792,7 +792,7 @@ def process_webhook(
             "trace_id": trace_id,
             "event_id": event_id,
             "verdict": "VOID",
-            "issues": ["F11 AUTH: Signature verification failed"],
+            "issues": ["L11 AUTH: Signature verification failed"],
             "source": source,
             "event_type": headers.get("x-event-type", "unknown"),
             "policy_version": policy_version,
@@ -808,7 +808,7 @@ def process_webhook(
             "trace_id": trace_id,
             "event_id": event_id,
             "verdict": "VOID",
-            "issues": ["F12 INJECTION: Replay detected — event_id already processed"],
+            "issues": ["L12 INJECTION: Replay detected — event_id already processed"],
             "source": source,
             "event_type": headers.get("x-event-type", "unknown"),
             "policy_version": policy_version,
@@ -826,7 +826,7 @@ def process_webhook(
             "trace_id": trace_id,
             "event_id": event_id,
             "verdict": "VOID",
-            "issues": ["F02 TRUTH: Invalid JSON payload"],
+            "issues": ["L02 TRUTH: Invalid JSON payload"],
             "source": source,
             "event_type": headers.get("x-event-type", "unknown"),
             "policy_version": policy_version,
@@ -842,7 +842,7 @@ def process_webhook(
             "trace_id": trace_id,
             "event_id": event_id,
             "verdict": "VOID",
-            "issues": [f"F12 INJECTION: Stale webhook timestamp ({ts})"],
+            "issues": [f"L12 INJECTION: Stale webhook timestamp ({ts})"],
             "source": source,
             "event_type": headers.get("x-event-type", "unknown"),
             "policy_version": policy_version,
@@ -898,7 +898,7 @@ def process_webhook(
     except (OSError, ValueError) as exc:
         adjudication["issues"] = [
             *adjudication.get("issues", []),
-            f"F11 AUDIT: Vault append failed ({exc})",
+            f"L11 AUDIT: Vault append failed ({exc})",
         ]
         if adjudication.get("verdict") != "VOID":
             adjudication["verdict"] = "888-HOLD"

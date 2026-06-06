@@ -79,7 +79,7 @@ def _seal_tool(
     spss_syntax: Optional[str] = None,
     vp: Optional[governance.VerdictPacket] = None,
 ) -> governance.VerdictPacket:
-    """Run F1-F13 + seal the outcome to VAULT999."""
+    """Run F1-L13 + seal the outcome to VAULT999."""
     vp = vp or governance.govern(
         tool,
         input_data_hash=governance.hash_payload({"rows": len(df), "cols": list(df.columns)}),

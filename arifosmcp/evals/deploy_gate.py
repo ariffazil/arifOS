@@ -302,7 +302,7 @@ class DeployGateRunner:
         """
         Gate C: Floors (P0 Constitutional)
         - All P0 breach tests pass
-        - F1, F2, F7, F9, F11, F12 violations blocked
+        - F1, F2, F7, F9, L11, L12 violations blocked
         """
         print("[Gate C] Constitutional floors (P0)...")
 

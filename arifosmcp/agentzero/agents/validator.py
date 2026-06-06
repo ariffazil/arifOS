@@ -6,13 +6,13 @@ It serves as the final judge for all high-stakes decisions, issuing verdicts
 and triggering 888_HOLD escalations when necessary.
 
 Constitutional Role: A-VALIDATOR (Ψ - Vitality/Soul)
-Enforced Floors: F1, F3, F10, F11, F13
+Enforced Floors: F1, F3, L10, L11, L13
 
 Responsibilities:
 - Final verdict issuance (SEAL/SABAR/VOID/HOLD/PARTIAL)
 - 888_HOLD escalation triggers
-- F11 command authorization verification
-- F13 human sovereignty enforcement
+- L11 command authorization verification
+- L13 human sovereignty enforcement
 - Constitutional compliance validation
 - VAULT999 ledger integrity verification
 
@@ -37,7 +37,7 @@ class ValidatorAgent(ConstitutionalAgent):
     - Override other agents' decisions
     - Trigger 888_HOLD for human approval
     - Issue final SEAL or VOID verdicts
-    - Enforce F13 sovereign veto
+    - Enforce L13 sovereign veto
 
     It is the only agent that can invoke apex_judge from arifOS.
     """
@@ -111,10 +111,10 @@ class ValidatorAgent(ConstitutionalAgent):
 
         logger.info(f"[{execution_id}] Validating action from {agent_id}: {action_type}")
 
-        # === F11: Command Authorization Check ===
+        # === L11: Command Authorization Check ===
         f11_passed = await self._check_f11_audit(action, agent_id)
 
-        # === F10: Ontology Lock Check ===
+        # === L10: Ontology Lock Check ===
         f10_passed = await self._check_f10_ontology(action)
 
         # === F1: Reversibility Check ===
@@ -123,7 +123,7 @@ class ValidatorAgent(ConstitutionalAgent):
         # === F3: Tri-Witness Check (for critical actions) ===
         f3_passed = await self._check_f3_tri_witness(action, risk_level)
 
-        # === F13: Sovereign Check (always check for high-risk) ===
+        # === L13: Sovereign Check (always check for high-risk) ===
         f13_required = self._determine_f13_requirement(action, risk_level)
 
         # Build floor scores
@@ -186,7 +186,7 @@ class ValidatorAgent(ConstitutionalAgent):
                 execution_id=execution_id,
                 agent_id=self.agent_id,
                 action_type=action_type,
-                hold_reason=f"High-risk action ({risk_level}) requires F13 human sovereignty",
+                hold_reason=f"High-risk action ({risk_level}) requires L13 human sovereignty",
                 escalation_path="888_HOLD_F13_APPROVAL",
                 floor_scores=floor_scores,
             )
@@ -226,11 +226,11 @@ class ValidatorAgent(ConstitutionalAgent):
 
     async def _check_f11_audit(self, action: dict, agent_id: str) -> bool:
         """
-        F11: Command Authentication
+        L11: Command Authentication
 
         Verify that the agent is authorized to perform this action.
         """
-        # In production, this calls arifOS F11 verification
+        # In production, this calls arifOS L11 verification
         # For MVP, we implement basic checks
 
         dangerous_keywords = [
@@ -247,7 +247,7 @@ class ValidatorAgent(ConstitutionalAgent):
         is_dangerous = any(kw in action_str for kw in dangerous_keywords)
 
         if is_dangerous:
-            # Check if agent has F11 clearance
+            # Check if agent has L11 clearance
             # For now, only validator and authorized engineers
             authorized_agents = ["validator.apex", "engineer.authorized"]
             return agent_id in authorized_agents
@@ -256,7 +256,7 @@ class ValidatorAgent(ConstitutionalAgent):
 
     async def _check_f10_ontology(self, action: dict) -> bool:
         """
-        F10: Ontology Lock
+        L10: Ontology Lock
 
         Block any claims of consciousness, feelings, or subjective experience.
         """
@@ -313,11 +313,11 @@ class ValidatorAgent(ConstitutionalAgent):
 
     def _determine_f13_requirement(self, action: dict, risk_level: str) -> bool:
         """
-        F13: Sovereign
+        L13: Sovereign
 
         Determine if human approval is required.
         """
-        # High-risk or irreversible actions always require F13
+        # High-risk or irreversible actions always require L13
         if risk_level in ["high", "critical"]:
             return True
 
@@ -375,10 +375,10 @@ class ValidatorAgent(ConstitutionalAgent):
 
         if resolution == "APPROVED":
             self.f13_overrides += 1
-            logger.info(f"[{execution_id}] F13 approved hold {hold_id}")
+            logger.info(f"[{execution_id}] L13 approved hold {hold_id}")
             return {"status": "RESOLVED_APPROVED", "hold_id": hold_id}
         else:
-            logger.info(f"[{execution_id}] F13 denied hold {hold_id}")
+            logger.info(f"[{execution_id}] L13 denied hold {hold_id}")
             return {"status": "RESOLVED_DENIED", "hold_id": hold_id}
 
     def get_stats(self) -> dict[str, int]:

@@ -2,7 +2,7 @@
 arifosmcp/runtime/megaTools/04_vault_ledger.py
 
 999_VAULT: Permanent decision recording and integrity
-Stage: 999_VAULT | Trinity: PSI Ψ | Floors: F1, F13
+Stage: 999_VAULT | Trinity: PSI Ψ | Floors: F1, L13
 
 Modes: seal, verify
 """

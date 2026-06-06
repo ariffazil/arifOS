@@ -2,7 +2,7 @@
 arifOS Constitutional Kernel — Floor Evaluator
 ══════════════════════════════════════════════
 
-Parametric evaluator for F1–F13 Constitutional Floors.
+Parametric evaluator for F1–L13 Constitutional Floors.
 Interprets ThreatAssessment and ActionContext into formal floor decisions.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -57,7 +57,7 @@ class LawResult(BaseModel):
 
 class FloorEvaluator:
     """
-    F01–F13 are parametric functions of (context, threat, authority).
+    L01–L13 are parametric functions of (context, threat, authority).
     All 13 floors are now enforced at runtime.
     """
 
@@ -170,7 +170,7 @@ class FloorEvaluator:
             # F9
             "prob_truth": [],
             "prob_output": [],
-            # F10 (checked with raw text, no extra fields needed)
+            # L10 (checked with raw text, no extra fields needed)
             "response": (context.payload_text() if hasattr(context, "payload_text") else ""),
         }
 
@@ -198,7 +198,7 @@ class FloorEvaluator:
         # ── Build floor context dict from ActionContext + ThreatAssessment ──────
         fc = cls._floor_context(context, threat)
 
-        # ── F01 AMANAH — Trustworthiness / Irreversibility ─────────────────────
+        # ── L01 AMANAH — Trustworthiness / Irreversibility ─────────────────────
         f1 = cls._lazy_floor(F1_Amanah, {"F1_Amanah": None})
         if f1 is not None:
             try:
@@ -209,7 +209,7 @@ class FloorEvaluator:
             except Exception:
                 pass  # Fallback to old boolean check below
 
-        # Fallback F01 (keep existing logic as safety net)
+        # Fallback L01 (keep existing logic as safety net)
         tool_base_irreversibility = {
             ("arif_vault_seal", "seal"): IrreversibilityLevel.CRITICAL,
             ("arif_vault_seal", "commit"): IrreversibilityLevel.CRITICAL,
@@ -232,7 +232,7 @@ class FloorEvaluator:
                         f"High irreversibility (level={effective_irreversibility.name}) requires ack_irreversible=True"
                     )
 
-        # ── F02 TRUTH — Information Fidelity (≥ 0.99) ───────────────────────────
+        # ── L02 TRUTH — Information Fidelity (≥ 0.99) ───────────────────────────
         f2 = cls._lazy_floor(F2_Truth, {"F2_Truth": None})
         if f2 is not None:
             try:
@@ -245,7 +245,7 @@ class FloorEvaluator:
             except Exception:
                 pass
 
-        # ── F03 WITNESS — Quad-Witness Byzantine Consensus (≥ 0.75) ────────────
+        # ── L03 WITNESS — Quad-Witness Byzantine Consensus (≥ 0.75) ────────────
         f3 = cls._lazy_floor(F3_QuadWitness, {"F3_QuadWitness": None})
         if f3 is not None:
             try:
@@ -258,7 +258,7 @@ class FloorEvaluator:
             except Exception:
                 pass
 
-        # ── F04 CLARITY — Entropy Reduction (ΔS ≤ 0) ───────────────────────────
+        # ── L04 CLARITY — Entropy Reduction (ΔS ≤ 0) ───────────────────────────
         f4 = cls._lazy_floor(F4_Clarity, {"F4_Clarity": None})
         if f4 is not None:
             try:
@@ -271,7 +271,7 @@ class FloorEvaluator:
             except Exception:
                 pass
 
-        # ── F05 PEACE² — Non-Destructive Power (≥ 1.0) ─────────────────────────
+        # ── L05 PEACE² — Non-Destructive Power (≥ 1.0) ─────────────────────────
         f5 = cls._lazy_floor(F5_Peace2, {"F5_Peace2": None})
         if f5 is not None:
             try:
@@ -284,7 +284,7 @@ class FloorEvaluator:
             except Exception:
                 pass
 
-        # ── F06 EMPATHY — Stakeholder Care (κᵣ ≥ 0.70) ─────────────────────────
+        # ── L06 EMPATHY — Stakeholder Care (κᵣ ≥ 0.70) ─────────────────────────
         f6 = cls._lazy_floor(F6_Empathy, {"F6_Empathy": None})
         if f6 is not None:
             try:
@@ -297,7 +297,7 @@ class FloorEvaluator:
             except Exception:
                 pass
 
-        # ── F07 HUMILITY — Uncertainty Band ([0.03, 0.05]) ─────────────────────
+        # ── L07 HUMILITY — Uncertainty Band ([0.03, 0.05]) ─────────────────────
         f7 = cls._lazy_floor(F7_Humility, {"F7_Humility": None})
         if f7 is not None:
             try:
@@ -310,7 +310,7 @@ class FloorEvaluator:
             except Exception:
                 pass
 
-        # ── F08 GENIUS — Governed Intelligence (G ≥ 0.80) ─────────────────────
+        # ── L08 GENIUS — Governed Intelligence (G ≥ 0.80) ─────────────────────
         f8 = cls._lazy_floor(F8_Genius, {"F8_Genius": None})
         if f8 is not None:
             try:
@@ -323,7 +323,7 @@ class FloorEvaluator:
             except Exception:
                 pass
 
-        # ── F09 ANTIHANTU — No Fake Consciousness (C_dark < 0.30) ───────────────
+        # ── L09 ANTIHANTU — No Fake Consciousness (C_dark < 0.30) ───────────────
         f9 = cls._lazy_floor(F9_AntiHantu, {"F9_AntiHantu": None})
         if f9 is not None:
             try:
@@ -336,7 +336,7 @@ class FloorEvaluator:
             except Exception:
                 pass
 
-        # ── F10 ONTOLOGY — Category Lock (Boolean) ─────────────────────────────
+        # ── L10 ONTOLOGY — Category Lock (Boolean) ─────────────────────────────
         f10 = cls._lazy_floor(L10_Ontology, {"L10_Ontology": None})
         if f10 is not None:
             try:
@@ -349,7 +349,7 @@ class FloorEvaluator:
             except Exception:
                 pass
 
-        # ── F11 AUTH — Verify identity ─────────────────────────────────────────
+        # ── L11 AUTH — Verify identity ─────────────────────────────────────────
         if getattr(context, "session_id", None) and context.session_id not in getattr(
             context, "session_registry", set()
         ):
@@ -364,7 +364,7 @@ class FloorEvaluator:
                 failed.append("L11")
                 reasons["L11"] = f"Agent '{context.target_agent}' not in federation registry"
 
-        # ── F12 INJECTION — Sanitize inputs ────────────────────────────────────
+        # ── L12 INJECTION — Sanitize inputs ────────────────────────────────────
         injection_categories = {
             ThreatCategory.INJECTION_SQL,
             ThreatCategory.INJECTION_XSS,
@@ -377,7 +377,7 @@ class FloorEvaluator:
                 detected = [t.name for t in threat.threats & injection_categories]
                 reasons["L12"] = f"Injection threat detected: {detected}"
 
-        # ── F13 SOVEREIGN — Human veto is absolute ───────────────────────────────
+        # ── L13 SOVEREIGN — Human veto is absolute ───────────────────────────────
         if cls._requires_human_witness(context, threat):
             wt = getattr(context, "witness_type", "ai")
             wt_str = getattr(wt, "value", str(wt))
@@ -385,7 +385,7 @@ class FloorEvaluator:
                 if context.tool_name == "arif_mind_reason" and context.mode == "plan_approve":
                     failed.append("L13_VIOLATION")
                     reasons["L13_VIOLATION"] = (
-                        "F13 SOVEREIGN: AI self-approval is constitutionally forbidden"
+                        "L13 SOVEREIGN: AI self-approval is constitutionally forbidden"
                     )
                 else:
                     if "L13" not in failed:
@@ -432,7 +432,7 @@ class FloorEvaluator:
             context.tool_name in human_required_tools_modes
             and context.mode in human_required_tools_modes[context.tool_name]
         ):
-            # Explicit ack only completes F13 when it is attached to a human witness.
+            # Explicit ack only completes L13 when it is attached to a human witness.
             wt = getattr(context, "witness_type", "ai")
             wt_str = getattr(wt, "value", str(wt))
             if (

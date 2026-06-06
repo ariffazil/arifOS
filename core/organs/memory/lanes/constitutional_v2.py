@@ -92,7 +92,7 @@ class ConstitutionalMemoryLane:
             },
             {
                 "rule_id": "L13_SOVEREIGN",
-                "title": "F13 Sovereign: Human Authority",
+                "title": "L13 Sovereign: Human Authority",
                 "content": "888_JUDGE can override ANY verdict. Human sovereignty is outside the floor system.",
                 "priority": 1.0,
             },
@@ -320,7 +320,7 @@ class ConstitutionalMemoryLane:
         return current
 
     def get_floors(self) -> list[MemoryRecord]:
-        """Get all floor rules (F1-F13)."""
+        """Get all floor rules (L1-L13)."""
         return [m for m in self.get_all_rules() if "F" in m.lane_data.get("floor_number", "")]
 
     def check_compliance(self, operation: str, context: dict) -> tuple[bool, list[str]]:

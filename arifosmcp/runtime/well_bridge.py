@@ -125,7 +125,7 @@ def apply_metabolic_constraints(
 
     Per PARADOX_DOCTRINE_V1 Section 8:
       - LOW_CAPACITY (< 0.60): non-critical auto-HOLD, irreversible blocked,
-        min rest interval 30 min, F13 override only after rest interval
+        min rest interval 30 min, L13 override only after rest interval
       - DEGRADED: ALL operations auto-HOLD, only EMERGENCY_STOP and STATUS_REPORT accepted
     """
     readiness = get_biological_readiness()

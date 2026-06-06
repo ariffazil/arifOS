@@ -3,7 +3,7 @@ arifosmcp/runtime/webmcp/live_metrics.py — Real-time Dashboard Data Feed
 
 Three data groups:
 - MACHINE: VPS health (CPU, RAM, disk, network, Docker)
-- GOVERNANCE: arifOS constitutional metrics (F1-F13, vitals, VAULT999)
+- GOVERNANCE: arifOS constitutional metrics (F1-L13, vitals, VAULT999)
 - INTELLIGENCE: AI/LLM metrics (tokens, latency, model status, cost)
 
 This module provides live data aggregation for the APEX dashboard.

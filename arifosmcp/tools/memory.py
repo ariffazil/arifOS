@@ -263,12 +263,12 @@ def arif_memory_recall(
 
     Hard default: can_authorize_action = FALSE.
     """
-    # ── Floor F11 AUTH Gate ───────────────────────────────────────────────────
+    # ── Floor L11 AUTH Gate ───────────────────────────────────────────────────
     if mode in ("store", "import", "quarantine", "seal", "update"):
         if not actor_id or actor_id == "anonymous":
             return _hold(
                 "arif_memory_recall",
-                "F11 AUTH: actor_id is mandatory (WAJIB) for storage operations.",
+                "L11 AUTH: actor_id is mandatory (WAJIB) for storage operations.",
                 ["L11"],
             )
 

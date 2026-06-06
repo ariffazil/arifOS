@@ -3,7 +3,7 @@ AgentZero Escalation Module
 
 Sovereign safety mechanisms:
 - 888_HOLD state management
-- F13 human approval workflows
+- L13 human approval workflows
 - Escalation pathways
 """
 

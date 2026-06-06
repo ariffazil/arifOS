@@ -8,7 +8,7 @@ DELTA BUNDLE SPEC (from archive/333/README.md):
   Every arif_mind_reason output MUST include:
   - facts: F2 ≥ 0.99 verifiable claims
   - scars: unresolved contradictions blocking certainty
-  - floor_scores: F2, F4, F7, F13 self-check
+  - floor_scores: F2, F4, F7, L13 self-check
   - entropy: ΔS ≤ 0 (must decrease local entropy)
   - confidence: calibrated Ω₀ ∈ [0.03, 0.05] (F7 Humility band)
 
@@ -246,7 +246,7 @@ def _build_delta_bundle(
 def _run_reasoning_sync(coro: Any, timeout: float = 70.0) -> dict[str, Any]:
     """Run coroutine in sync context, including when caller already has an active event loop.
 
-    F13 TIMEOUT_SAFE: Hard timeout prevents indefinite hangs when LLM backends stall.
+    L13 TIMEOUT_SAFE: Hard timeout prevents indefinite hangs when LLM backends stall.
     Default 15s balances SEA-LION latency (~1-3s) against CPU-Ollama slowness.
     """
     try:

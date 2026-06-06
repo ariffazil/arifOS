@@ -1,11 +1,11 @@
 """
-core/floors.py — F1-F13 Constitutional Enforcement
+core/floors.py — F1-L13 Constitutional Enforcement
 
 This module implements the 13 Constitutional Floors that govern all
 AI-to-tool interactions within arifOS.
 
-CANONICAL FLOOR CLASSIFICATION (F13 RATIFIED 2026-06-03):
-  HARD    (9): F1, F2, F4, F7, F9, F10, F11, F12, F13
+CANONICAL FLOOR CLASSIFICATION (L13 RATIFIED 2026-06-03):
+  HARD    (9): F1, F2, F4, F7, F9, L10, L11, L12, L13
   SOFT    (2): F5, F6
   DERIVED (2): F3, F8
 
@@ -16,7 +16,7 @@ CANONICAL FLOOR CLASSIFICATION (F13 RATIFIED 2026-06-03):
               Python constant F9_ANTI_HANTU retained (underscore valid in Python).
 
 Author: Muhammad Arif bin Fazil
-Status: Constitutional Law (F13 RATIFIED 2026-06-03)
+Status: Constitutional Law (L13 RATIFIED 2026-06-03)
 """
 
 from __future__ import annotations
@@ -109,24 +109,24 @@ def get_law_threshold(law_id: str) -> float | tuple[float, float] | None:
 
 
 LAW_LEVELS: dict[str, LawLevel] = {
-    # F13 RATIFIED 2026-06-03 — DB-SOT is canonical. Corrections:
+    # L13 RATIFIED 2026-06-03 — DB-SOT is canonical. Corrections:
     #   F4: SOFT  → HARD   (Q2: HOLD enforcement, HARD classification — orthogonal)
     #   F6: HARD  → SOFT   (Q6 ratified: keep DB names; law_type derived from doctrine)
-    #   F9: SOFT  → HARD   (F12 override: HARD confirmed; runtime set {"F7","F9","L12"} requires HARD)
-    #   F13: VETO → HARD   (normalised to match DB; VETO semantics preserved in desc)
-    "F1":  LawLevel.HARD,     # AMANAH
-    "F2":  LawLevel.HARD,     # TRUTH
-    "F3":  LawLevel.DERIVED,  # WITNESS  (composite of F2 + F11)
-    "F4":  LawLevel.HARD,     # CLARITY
-    "F5":  LawLevel.SOFT,     # PEACE2
-    "F6":  LawLevel.SOFT,     # EMPATHY
-    "F7":  LawLevel.HARD,     # HUMILITY
-    "F8":  LawLevel.DERIVED,  # GENIUS   (composite of F2 + F4 + F7 + F10)
-    "F9":  LawLevel.HARD,     # ANTIHANTU
-    "L10": LawLevel.HARD,     # ONTOLOGY
-    "L11": LawLevel.HARD,     # AUTH
-    "L12": LawLevel.HARD,     # INJECTION
-    "L13": LawLevel.HARD,     # SOVEREIGN (VETO semantics — strongest floor)
+    #   F9: SOFT  → HARD   (L12 override: HARD confirmed; runtime set {"F7","F9","L12"} requires HARD)
+    #   L13: VETO → HARD   (normalised to match DB; VETO semantics preserved in desc)
+    "F1": LawLevel.HARD,  # AMANAH
+    "F2": LawLevel.HARD,  # TRUTH
+    "F3": LawLevel.DERIVED,  # WITNESS  (composite of F2 + L11)
+    "F4": LawLevel.HARD,  # CLARITY
+    "F5": LawLevel.SOFT,  # PEACE2
+    "F6": LawLevel.SOFT,  # EMPATHY
+    "F7": LawLevel.HARD,  # HUMILITY
+    "F8": LawLevel.DERIVED,  # GENIUS   (composite of F2 + F4 + F7 + L10)
+    "F9": LawLevel.HARD,  # ANTIHANTU
+    "L10": LawLevel.HARD,  # ONTOLOGY
+    "L11": LawLevel.HARD,  # AUTH
+    "L12": LawLevel.HARD,  # INJECTION
+    "L13": LawLevel.HARD,  # SOVEREIGN (VETO semantics — strongest floor)
 }
 
 IRREVERSIBILITY_COMPLEXITY: dict[str, int] = {
@@ -384,7 +384,7 @@ class ConstitutionalLaws:
         # Tension resolution (PARADOX_DOCTRINE_V1 Section 10.2)
         tension_msgs = self._resolve_floor_tensions(self.results)
 
-        # F01 IATT — Irreversible Action Time Tax (PARADOX_DOCTRINE_V1 Section 3)
+        # L01 IATT — Irreversible Action Time Tax (PARADOX_DOCTRINE_V1 Section 3)
         time_tax_ms = self._compute_irreversibility_time_tax_ms(action)
 
         return GovernanceResult(
@@ -401,7 +401,7 @@ class ConstitutionalLaws:
 
     def _compute_irreversibility_time_tax_ms(self, action: str) -> int:
         """
-        Compute F01 IATT (Irreversible Action Time Tax) in milliseconds.
+        Compute L01 IATT (Irreversible Action Time Tax) in milliseconds.
         Based on PARADOX_DOCTRINE_V1 Section 3 — P2 Speed vs Irreversibility.
         """
         action_lower = action.lower()
@@ -449,7 +449,7 @@ class ConstitutionalLaws:
 
         if f9 and f10 and not f9.passed and not f10.passed:
             tension_msgs.append(
-                "T5: Evolution vs Invariance → F9/F10 guard identity boundary. F13 override logged if applied."
+                "T5: Evolution vs Invariance → F9/L10 guard identity boundary. L13 override logged if applied."
             )
 
         return tension_msgs
@@ -513,9 +513,7 @@ class ConstitutionalLaws:
             details=f"Reversibility check: {'pass' if is_reversible else 'review required'}",
         )
 
-    def _check_f2_truth(
-        self, action: str, tool_name: str, parameters: dict[str, Any]
-    ) -> LawResult:
+    def _check_f2_truth(self, action: str, tool_name: str, parameters: dict[str, Any]) -> LawResult:
         threshold = THRESHOLDS["F2_TRUTH"]
 
         query = parameters.get("query", "") or parameters.get("prompt", "")
@@ -1047,7 +1045,7 @@ def evaluate_tool_call(
     actor_id: str,
     session_id: str | None = None,
 ) -> GovernanceResult:
-    floors = ConstitutionalFloors()
+    floors = ConstitutionalLaws()  # was ConstitutionalLaws() pre-rename
     return floors.evaluate(
         action=action,
         tool_name=tool_name,
@@ -1055,3 +1053,7 @@ def evaluate_tool_call(
         actor_id=actor_id,
         session_id=session_id,
     )
+
+
+# Backwards-compat alias: legacy imports `from core.laws import ConstitutionalFloors` still work.
+ConstitutionalFloors = ConstitutionalLaws

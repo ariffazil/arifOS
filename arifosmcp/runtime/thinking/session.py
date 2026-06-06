@@ -2,7 +2,7 @@
 Thinking Session Management for arifOS Sequential Thinking
 
 Replaces Sequential Thinking MCP session store with constitutional governance.
-Each step validated against F1-F13.
+Each step validated against F1-L13.
 """
 
 from __future__ import annotations

@@ -2,7 +2,7 @@
 arifOS Constitutional Kernel — Authority Gate
 ═══════════════════════════════════════════════
 
-Enforces F13 Sovereign Overrides and Authority Binding.
+Enforces L13 Sovereign Overrides and Authority Binding.
 Ensures irreversible actions require human-validated proof.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -64,7 +64,7 @@ class AuthorityGate:
                 authorized=False,
                 requires_human=True,
                 witness_type=getattr(context, "witness_type", WitnessType.AI),
-                reason="F13 SOVEREIGN: human witness required",
+                reason="L13 SOVEREIGN: human witness required",
             )
 
         return AuthorityProof(

@@ -89,7 +89,7 @@ class Provenance(BaseModel):
     meaning_source: Literal["human-attributed", "statistical-inference", "ungrounded"] = (
         "statistical-inference"
     )
-    human_equivalence_claimed: bool = False  # F9/F13: must remain False
+    human_equivalence_claimed: bool = False  # F9/L13: must remain False
 
 
 class MindState(BaseModel):
@@ -171,20 +171,20 @@ class RuntimeState(BaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SOVEREIGN BOUNDARY GUARD — F9, F13
+# SOVEREIGN BOUNDARY GUARD — F9, L13
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
 def boundary_guard(action: str) -> None:
     """
-    F13 Sovereign + F9 Anti-Hantu enforcement.
+    L13 Sovereign + F9 Anti-Hantu enforcement.
 
     Machine cannot assign value, claim equivalence, authorize irreversible
     actions, or override human judgment. Hard stop — raises PermissionError.
     """
     if action in PROHIBITED_MACHINE_ACTIONS:
         raise PermissionError(
-            f"SOVEREIGN BOUNDARY VIOLATION (F9/F13): '{action}' is prohibited. "
+            f"SOVEREIGN BOUNDARY VIOLATION (F9/L13): '{action}' is prohibited. "
             "Human authority is required for this class of action."
         )
 
@@ -380,7 +380,7 @@ def judge_stage(state: MindState) -> tuple[str, list[str]]:
             violations.append("F7 violation: Absolute certainty (>0.97) prohibited.")
 
     if state.provenance.human_equivalence_claimed:
-        violations.append("F9/F13 violation: human_equivalence_claimed is prohibited.")
+        violations.append("F9/L13 violation: human_equivalence_claimed is prohibited.")
 
     score = chaos_score(state)
     if score >= 2.0 and not state.decision_required:

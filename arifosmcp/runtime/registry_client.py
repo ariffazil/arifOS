@@ -250,7 +250,7 @@ class ModelRegistryClient:
         self._runtime_cache[deployment_id] = profile
         return profile
 
-    # ── Identity Verification (F11 grounding) ──
+    # ── Identity Verification (L11 grounding) ──
 
     def verify_identity(
         self, claimed_identity: str, claimed_provider: str | None = None
@@ -378,7 +378,7 @@ async def verify_model_identity(
     claimed_provider: str | None = None,
 ) -> IdentityVerification:
     """
-    Convenience function for F11 identity verification.
+    Convenience function for L11 identity verification.
 
     Usage:
         result = await verify_model_identity("claude-sonnet-4", "anthropic")

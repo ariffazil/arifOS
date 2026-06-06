@@ -1,5 +1,5 @@
 """
-F1–F13 Constitutional Floor Enforcer + F14 Semantic Gate
+F1–L13 Constitutional Law Enforcer + F14 Semantic Gate
 ════════════════════════════════════════════════════════
 
 Each floor is an interceptor axiom, not a callable tool.
@@ -194,7 +194,7 @@ LAW_DESCRIPTIONS: dict[Law, str] = {
 
 def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> dict[str, Any]:
     """
-    Run F1–F13 interceptors + F14 semantic gate for a tool call.
+    Run F1–L13 interceptors + F14 semantic gate for a tool call.
 
     Returns dict with:
       - verdict: SEAL | HOLD | VOID
@@ -366,16 +366,16 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
 
     failed: list[str] = []
 
-    # F12 Injection Guard — block injection patterns
+    # L12 Injection Guard — block injection patterns
     for key, value in params.items():
         if isinstance(value, str):
             risky = ["rm -rf", "eval(", "exec(", "__import__", "os.system"]
             if any(r in value for r in risky):
                 failed.append("L12")
-                logger.warning(f"F12 BLOCK: injection pattern in param '{key}' for {tool_name}")
+                logger.warning(f"L12 BLOCK: injection pattern in param '{key}' for {tool_name}")
                 break
 
-    # F11 Authority — only for EXECUTE/VAULT_WRITE, not for read-only modes
+    # L11 Authority — only for EXECUTE/VAULT_WRITE, not for read-only modes
     risk_tier = spec.get("risk_tier", "low")
     _f11_safe_modes = {"query", "recall", "dry_run"}
     if risk_tier in ("critical", "sovereign") and not actor_id:
@@ -383,24 +383,24 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
         if mode_val not in _f11_safe_modes:
             failed.append("L11")
             logger.warning(
-                "F11 HOLD: %s requires actor_id for mode=%r (actor_id=%r, params_keys=%r)",
+                "L11 HOLD: %s requires actor_id for mode=%r (actor_id=%r, params_keys=%r)",
                 tool_name,
                 mode_val,
                 actor_id,
                 (list(params.keys()) if isinstance(params, dict) else type(params).__name__),
             )
 
-    # F01 Amanah — irreversible tools need explicit ack
+    # L01 Amanah — irreversible tools need explicit ack
     if spec.get("irreversible") and not params.get("ack_irreversible"):
         failed.append("L01")
-        logger.warning(f"F01 HOLD: {tool_name} is irreversible without ack")
+        logger.warning(f"L01 HOLD: {tool_name} is irreversible without ack")
 
-    # F13 Sovereign — master veto
+    # L13 Sovereign — master veto
     if params.get("sovereign_veto"):
         failed.append("L13")
-        logger.critical("F13 SOVEREIGN VETO invoked")
+        logger.critical("L13 SOVEREIGN VETO invoked")
 
-    # F09 TAQWA — arif_heart_critique must precede arif_forge_execute
+    # L09 TAQWA — arif_heart_critique must precede arif_forge_execute
     if tool_name == "arif_forge_execute":
         sid = params.get("session_id")
         if sid:
@@ -410,12 +410,12 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
                 if not was_tool_called(sid, "arif_heart_critique"):
                     failed.append("L09")
                     logger.critical(
-                        f"F09 ANTIHANTU: arif_forge_execute blocked — "
+                        f"L09 ANTIHANTU: arif_forge_execute blocked — "
                         f"arif_heart_critique not called in session {sid}. "
                         f"PSI KHIANAT: Anti-Hantu prerequisite violated."
                     )
             except Exception as e:
-                logger.error(f"F09 TAQWA check failed: {e}")
+                logger.error(f"L09 TAQWA check failed: {e}")
 
     # ── 5. Build response ────────────────────────────────────────────────────
     if failed:

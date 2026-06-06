@@ -3,7 +3,7 @@
 Each tool execution produces a seal record appended to
 /root/VAULT999/outcomes.jsonl (or the path in VAULT999_OUTCOMES env).
 Records are SHA-256 hash-chained via `merkle_leaf` (current_hash +
-prev_hash). This is an out-of-band pattern for when the F13 SOVEREIGN
+prev_hash). This is an out-of-band pattern for when the L13 SOVEREIGN
 gate on arif_vault_seal is held (unverified actor). The shape is
 deliberately close to the canonical Supabase `vault_sealed_events`
 schema so a future migration is a straight port.

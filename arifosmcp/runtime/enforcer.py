@@ -33,8 +33,8 @@ class QueryClass(StrEnum):
     """Query classification for governance routing."""
 
     INFORMATIONAL = "informational"  # Class A: No state change, model can respond directly
-    GOVERNED = "governed"  # Class B: State mutation, full F1-F13 required
-    CRITICAL = "critical"  # Class C: Irreversible, requires F11 verified identity
+    GOVERNED = "governed"  # Class B: State mutation, full F1-L13 required
+    CRITICAL = "critical"  # Class C: Irreversible, requires L11 verified identity
     CAPITAL = "capital"  # C4: Money/investment/capital decision — session + WEALTH chain mandatory
 
 
@@ -223,7 +223,7 @@ class GovernanceEnforcer:
         session_id: str | None = None,
     ) -> RuntimeEnvelope:
         """
-        Fast-track intent evaluation for unified substrates (F2/F11).
+        Fast-track intent evaluation for unified substrates (F2/L11).
         Does NOT invoke the tool; only checks if the intent is constitutionally allowed.
         """
         from arifosmcp.runtime.model import RuntimeEnvelope, RuntimeStatus, Verdict
@@ -348,7 +348,7 @@ class GovernanceEnforcer:
             },
             PropagationDecision.BLOCKED_VOID: {
                 "error": "VOID: Constitutional violation detected",
-                "detail": "This action violates F1-F13 constitutional floors.",
+                "detail": "This action violates F1-L13 constitutional floors.",
                 "action_required": "Redesign action to satisfy constitutional constraints",
             },
             PropagationDecision.BLOCKED_SABAR: {
@@ -362,12 +362,12 @@ class GovernanceEnforcer:
                 "action_required": "Set irreversibility_acknowledged and provide rollback_plan",
             },
             PropagationDecision.BLOCKED_INJECTION: {
-                "error": "F13: Injection or malformed input detected",
+                "error": "L13: Injection or malformed input detected",
                 "detail": "Input failed ToM validation or constitutional schema check.",
                 "action_required": "Provide required ToM fields and retry",
             },
             PropagationDecision.BLOCKED_UNVERIFIED: {
-                "error": "F11: Unverified actor on critical action",
+                "error": "L11: Unverified actor on critical action",
                 "detail": "Critical tier actions require verified identity.",
                 "action_required": "Complete identity verification via init_anchor",
             },
@@ -560,7 +560,7 @@ def classify_decision_guard(
 
     Returns a classification receipt that downstream tools and the output firewall
     can validate. Every C4/C5 node independently checks this — not a single chokepoint
-    (F08 distributed intelligence). Each layer decides for itself.
+    (L08 distributed intelligence). Each layer decides for itself.
 
     Returns:
         dict with decision_class, domain, requires_* flags, direct_instruction_allowed

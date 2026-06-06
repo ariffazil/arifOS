@@ -95,7 +95,7 @@ class ConstitutionalMotto:
     negative: str  # BUKAN DI___KAN form
 
     # Constitutional mappings
-    primary_floor: str  # Main floor (F1-F13)
+    primary_floor: str  # Main floor (F1-L13)
     secondary_floors: list[str]  # Related floors
     paradox_cell: str  # Matrix position (e.g., "truth_care")
     trinity_tier: TrinityTier  # Which trinity

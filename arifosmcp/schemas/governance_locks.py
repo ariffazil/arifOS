@@ -7,7 +7,7 @@ Governance Lock Schemas — Three Deep Locks
 3. Anti-Beautiful-One → prevents sterile polished collapse
 
 Ratified: 2026-06-03
-Authority: F13 SOVEREIGN
+Authority: L13 SOVEREIGN
 
 DITEMPA BUKAN DIBERI — Intelligence is forged, not given.
 """
@@ -166,8 +166,8 @@ class ParadoxHoldReceipt(BaseModel):
     that conflict, and the system chooses to preserve the tension
     rather than force a false resolution.
 
-    F02 TRUTH: Both claims must be independently verified.
-    F08 GENIUS: The paradox itself carries intelligence value.
+    L02 TRUTH: Both claims must be independently verified.
+    L08 GENIUS: The paradox itself carries intelligence value.
     """
 
     lock_type: LockType = LockType.PARADOX_HOLD

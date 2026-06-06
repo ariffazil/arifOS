@@ -58,7 +58,7 @@ class AgentCard(BaseModel):
     """
 
     name: str = "arifOS Constitutional Kernel"
-    description: str = "AI governance system with 13 constitutional floors (F1-F13). Provides constitutional review, task execution, and multi-agent coordination with thermodynamic governance."
+    description: str = "AI governance system with 13 constitutional floors (F1-L13). Provides constitutional review, task execution, and multi-agent coordination with thermodynamic governance."
     url: str = "https://arifosmcp.arif-fazil.com"
     version: str = "2026.03.14-VALIDATED"
 

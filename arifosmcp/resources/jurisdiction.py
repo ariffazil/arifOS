@@ -42,7 +42,7 @@ FIVE BANDS (GREEN → BLACK):
   BLACK (T5 — Sovereign Only)
     Action class: ATOMIC
     Tools: judge_deliberate (judge mode), vault_seal, forge_execute (live)
-    Rule: F13 SOVEREIGN veto. APEX authorization mandatory.
+    Rule: L13 SOVEREIGN veto. APEX authorization mandatory.
     Example: arif_vault_seal(mode=seal)
 
 CAPABILITY GRANTS:

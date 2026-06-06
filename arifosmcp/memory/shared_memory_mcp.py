@@ -6,12 +6,12 @@ Multi-agent shared memory bridge — Redis-backed hot scratchpad.
 Provides cross-session state for Trinity swarm agents.
 
 Stage: 555_MEMORY | Trinity: OMEGA Ω
-Floors: F1 (Amanah/reversibility), F13 (Sovereign gate)
+Floors: F1 (Amanah/reversibility), L13 (Sovereign gate)
 Modes: get, set, list, clear, expire
 
 Constitutional rules:
 - F1 AMANAH: all 'set' writes require ttl_seconds > 0 (reversibility mandate)
-- F13 SOVEREIGN: operations are namespaced per agent_id + session_id
+- L13 SOVEREIGN: operations are namespaced per agent_id + session_id
 - Redis unavailable → degrade gracefully with SABAR verdict (no hard crash)
 """
 

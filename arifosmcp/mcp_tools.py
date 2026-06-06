@@ -354,7 +354,7 @@ GOVERNED LOOP (13):  [canonical arif_<noun>_<verb> surface — AGENTS.md SOT]
   111  arif_sense_observe      — Physical reality grounding (GEOX / Δ organ)
   222  arif_evidence_fetch     — Web / external evidence retrieval
   333  arif_mind_reason        — Constitutional reasoning (F2/F7/F8)
-  444h arif_heart_critique     — Ethical critique, F9/F12 safety gate
+  444h arif_heart_critique     — Ethical critique, F9/L12 safety gate
   444r arif_kernel_route       — Metabolic syscall routing (444_ROUTER)
        arif_reply_compose      — Dual-axis governed response composition
   555  arif_memory_recall      — Vector memory retrieval (Qdrant + bge-m3)

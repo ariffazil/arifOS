@@ -26,7 +26,7 @@ ARCHITECT_TOOL_SPEC = {
     "description": (
         "A-ARCHITECT: Ask for architectural guidance, system design, "
         "API contracts, and structural integrity checks. "
-        "Constitutional design review against F1-F13."
+        "Constitutional design review against F1-L13."
     ),
     "parameters": {
         "type": "object",
@@ -238,7 +238,7 @@ def _suggest_api_contracts(query: str) -> list[dict]:
 def _suggest_data_flow(query: str) -> list[dict]:
     """Suggest data flow."""
     return [
-        {"from": "Input", "to": "Governance", "description": "F1-F13 validation"},
+        {"from": "Input", "to": "Governance", "description": "F1-L13 validation"},
         {"from": "Governance", "to": "Logic", "description": "Approved operation"},
         {"from": "Logic", "to": "Output", "description": "Result + audit trail"},
     ]

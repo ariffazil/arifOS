@@ -45,7 +45,7 @@ class IdentityContext(BaseModel):
     status: IdentityStatus = IdentityStatus.ANONYMOUS
     degradation_reason: DegradationReason | None = None
 
-    # Audit trail fields (F11)
+    # Audit trail fields (L11)
     session_id: str
     iat: int | None = None
     exp: int | None = None

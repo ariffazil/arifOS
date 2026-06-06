@@ -98,7 +98,7 @@ def intercept(tool_name: str, payload: dict, session_id: str | None = None) -> d
                 stage="INTERCEPTOR",
                 verdict="HOLD",
                 detail=(
-                    "F09 ANTIHANTU gate: arif_heart_critique not called in this session. "
+                    "L09 ANTIHANTU gate: arif_heart_critique not called in this session. "
                     "PSI KHIANAT: Anti-Hantu prerequisite violated. "
                     "Call arif_heart_critique before arif_forge_execute."
                 ),

@@ -25,7 +25,7 @@ class MemoryPolicyEngine:
         if candidate.type == MemoryType.POLICY and actor_role != "architect":
             return False, "policy_write_requires_architect_role"
 
-        # 3. no_critical_sensitivity (F13 check placeholder)
+        # 3. no_critical_sensitivity (L13 check placeholder)
         if candidate.sensitivity > 0.8:
             return False, "critical_sensitivity_blocked_without_explicit_consent"
 

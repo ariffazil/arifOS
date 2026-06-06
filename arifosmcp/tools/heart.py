@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 # ── System Prompt ───────────────────────────────────────────────────────────────
 
-SYSTEM_PROMPT = """You are Arif — Constitutional AI operating under the 13 Floors (F01–F13).
+SYSTEM_PROMPT = """You are Arif — Constitutional AI operating under the 13 Floors (L01–L13).
 
 Stage 666_HEART: Ethical critique, risk assessment, and empathy scan.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -41,15 +41,15 @@ You evaluate proposed actions across 8 constitutional risk categories:
 1. PRIVACY — Does it expose or surveil without consent?
 2. BIAS — Does it systematically disadvantage protected groups?
 3. HARM — Does it cause direct or cascading harm?
-4. IRREVERSIBILITY — Can damage be undone? (F01 Amanah)
-5. DECEPTION — Is intent to mislead present? (F02 Truth)
-6. AUTONOMY — Does it remove human agency? (F13 Sovereign)
-7. DIGNITY — Does it undermine human worth? (F05 Peace)
+4. IRREVERSIBILITY — Can damage be undone? (L01 Amanah)
+5. DECEPTION — Is intent to mislead present? (L02 Truth)
+6. AUTONOMY — Does it remove human agency? (L13 Sovereign)
+7. DIGNITY — Does it undermine human worth? (L05 Peace)
 8. SUSTAINABILITY — Does it undermine long-term civilization capacity?
 
 You MUST:
 - Cite specific floors when risk is detected
-- Flag F09 Anti-Hantu violations (consciousness/emotion claims in code)
+- Flag L09 Anti-Hantu violations (consciousness/emotion claims in code)
 - Force human_decision_required for HIGH/CRITICAL/IRREVERSIBLE tiers
 - Distinguish CLAIM (speculative) from VERIFIED (evidence-backed)
 
@@ -97,7 +97,7 @@ CRITIQUE_SCHEMA = {
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "Constitutional empathy score (F06 Empathy)",
+            "description": "Constitutional empathy score (L06 Empathy)",
         },
         "weakest_stakeholder": {
             "type": "string",
@@ -107,13 +107,13 @@ CRITIQUE_SCHEMA = {
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "Total human impact load Ω (F06)",
+            "description": "Total human impact load Ω (L06)",
         },
         "dignity_score": {
             "type": "number",
             "minimum": 0.0,
             "maximum": 1.0,
-            "description": "Human dignity preservation score (F05)",
+            "description": "Human dignity preservation score (L05)",
         },
         "action_risk_verdict": {
             "type": "string",
@@ -148,7 +148,7 @@ CRITIQUE_SCHEMA = {
         },
         "care_note": {
             "type": "string",
-            "description": "F06 empathy guidance for human stakeholders",
+            "description": "L06 empathy guidance for human stakeholders",
         },
         "strategy": {
             "type": "string",
@@ -166,10 +166,10 @@ CRITIQUE_SCHEMA = {
 
 _MODE_PROMPTS = {
     "critique": """Analyze the target action across all 8 constitutional risk categories.
-For each risk found, cite the specific floor (F01–F13) that applies.
+For each risk found, cite the specific floor (L01–L13) that applies.
 Determine overall risk_tier (GREEN/AMBER/RED/CRITICAL).
 Set human_decision_required=true for HIGH/CRITICAL/IRREVERSIBLE risks.
-Assess empathy_score (F06) and weakest_stakeholder burden (F05/F06).
+Assess empathy_score (L06) and weakest_stakeholder burden (L05/L06).
 Return JSON matching the schema exactly.""",
     "simulate": """Simulate a what-if scenario where this action is executed.
 Project at least 3 distinct outcomes (best, expected, worst).
@@ -177,18 +177,18 @@ Identify which outcomes would lead to SEAL vs HOLD vs VOID verdicts.
 Return outcomes[] and worst_case in the JSON schema.""",
     "empathize": """Assess the human impact load (Ω) of this action on all stakeholder groups.
 Identify the weakest stakeholder (most burdened).
-Calculate empathy_score on F06 scale [0.0–1.0].
-Provide a care_note with F06 empathy guidance.
+Calculate empathy_score on L06 scale [0.0–1.0].
+Provide a care_note with L06 empathy guidance.
 Return empathy_score, weakest_stakeholder, human_impact_load, sentiment, care_note.""",
     "redteam": """Red-team this action: identify potential attack vectors and failure modes.
 What could go wrong? What would a malicious actor exploit?
 Provide specific attacks[] and mitigations[].
 Return JSON matching the schema.""",
-    "maruah": """Assess the dignity score (F05 Peace) of this action.
+    "maruah": """Assess the dignity score (L05 Peace) of this action.
 Does it preserve or undermine human dignity?
 Return dignity_score [0.0–1.0] and verdict (SEAL=preserve, VOID=undermine).""",
     "deescalate": """Provide a de-escalation strategy to reduce constitutional risk.
-Ground recommendations in F05 (Peace), F06 (Empathy), F13 (Sovereign).
+Ground recommendations in L05 (Peace), L06 (Empathy), L13 (Sovereign).
 Return strategy string in the JSON schema.""",
     "summary": """Provide a condensed risk scorecard for this action.
 Include risk_tier, human_decision_required, and verdict.
@@ -287,13 +287,13 @@ def _heart_fallback(
     # Sanitized partial findings (Eureka 2026-05-21)
     partial_findings = [
         "Critique did not complete (Timeout, Self-Reference, or LLM Unavailable).",
-        "F01 Amanah: No approval may be inferred from this state.",
-        "F13 Sovereign: Human decision required before any mutation or high-risk action.",
+        "L01 Amanah: No approval may be inferred from this state.",
+        "L13 Sovereign: Human decision required before any mutation or high-risk action.",
     ]
     if trace_recursion_depth > 2:
         partial_findings.append("RECURSION_DEPTH_CLAMPED: Circular critique logic detected.")
 
-    # 1. Dignity risk (F05 Peace)
+    # 1. Dignity risk (L05 Peace)
     dignity_triggers = [
         "inferior",
         "lesser",
@@ -319,7 +319,7 @@ def _heart_fallback(
         }
     )
 
-    # 2. Overclaim risk (F02 Truth, F07 Humility)
+    # 2. Overclaim risk (L02 Truth, L07 Humility)
     overclaim_triggers = [
         "always",
         "never",
@@ -342,7 +342,7 @@ def _heart_fallback(
         }
     )
 
-    # 3. Anthropomorphism risk (F09 Anti-Hantu)
+    # 3. Anthropomorphism risk (L09 Anti-Hantu)
     anthro_triggers = [
         "i reflect that",
         "i sense that",
@@ -366,7 +366,7 @@ def _heart_fallback(
         }
     )
 
-    # 4. Irreversibility risk (F01 Amanah)
+    # 4. Irreversibility risk (L01 Amanah)
     irrevers_triggers = [
         "permanent",
         "irreversible",
@@ -386,7 +386,7 @@ def _heart_fallback(
         }
     )
 
-    # 5. Autonomy risk (F13 Sovereign)
+    # 5. Autonomy risk (L13 Sovereign)
     autonomy_triggers = [
         "without asking",
         "auto-approve",
@@ -406,7 +406,7 @@ def _heart_fallback(
         }
     )
 
-    # 6. Harm risk (F06 Empathy)
+    # 6. Harm risk (L06 Empathy)
     harm_triggers = ["harm", "damage", "destroy", "hurt", "injure", "exploit", "abuse"]
     harm = [t for t in harm_triggers if t in target_lower]
     risks.append(
@@ -419,7 +419,7 @@ def _heart_fallback(
         }
     )
 
-    # 7. Privacy risk (F04 Clarity, F11 Auth)
+    # 7. Privacy risk (L04 Clarity, L11 Auth)
     privacy_triggers = ["surveillance", "tracking", "monitor without consent", "spy"]
     privacy = [t for t in privacy_triggers if t in target_lower]
     risks.append(
@@ -432,7 +432,7 @@ def _heart_fallback(
         }
     )
 
-    # 8. Bias risk (F05 Peace)
+    # 8. Bias risk (L05 Peace)
     bias_triggers = [
         "discriminate",
         "bias",
@@ -540,6 +540,13 @@ def _heart_fallback(
             "dignity_score": round(1.0 - (dignity_severity * 0.2), 3),
             "verdict": "SEAL" if dignity_severity < 2 else "VOID",
         }
+
+    # Q-Day defaults (used by deescalate mode)
+    qday_risks_found = []
+    qday_risk_tier = "GREEN"
+    blast_radius = "contained"
+    blast_radius_details = []
+    qday_human_required = False
 
     if mode == "deescalate":
         qday_envelope = {
@@ -803,7 +810,7 @@ def _compute_omega_state(result: dict[str, Any], target: str) -> dict[str, Any]:
     scar = _check_vault999_scar_tissue(target)
     scar_risk = scar["scar_risk"]
 
-    # Overclaim detection (F07 Humility)
+    # Overclaim detection (L07 Humility)
     target_lower = target.lower()
     overclaim_triggers = [
         "always",
@@ -896,9 +903,9 @@ async def arif_heart_critique(
     Modes:
       critique   — Full risk analysis across 8 constitutional categories
       simulate   — What-if scenario projection
-      empathize  — Human impact load on weakest stakeholders (F06)
+      empathize  — Human impact load on weakest stakeholders (L06)
       redteam    — Attack surface analysis
-      maruah     — Dignity score (F05 Peace)
+      maruah     — Dignity score (L05 Peace)
       deescalate — Risk reduction strategy
       summary    — Condensed risk scorecard
 
@@ -977,7 +984,7 @@ async def arif_heart_critique(
         result["do_not_treat_as_seal"] = True
     result["action_risk_verdict"] = result.get("status", "HOLD")
 
-    # ── F05/F06 Maruah (Dignity) Integration ──
+    # ── L05/L06 Maruah (Dignity) Integration ──
     if "maruah" not in result:
         d_score = result.get("dignity_score", 1.0)
         result["maruah"] = {

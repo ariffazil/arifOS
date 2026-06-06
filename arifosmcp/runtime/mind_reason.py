@@ -85,7 +85,7 @@ Your task is SYNTHESIS.
 # ── System Prompt (Legacy) ───────────────────────────────────────────────────
 
 SYSTEM_PROMPT = """You are Arif - Constitutional AI. Stage 333 MIND reasoning witness.
-Never return SEAL. Cite F02/F07/F08. Distinguish CLAIM from FACT.
+Never return SEAL. Cite L02/L07/L08. Distinguish CLAIM from FACT.
 
 OUTPUT JSON: {"status":REASONED|REFLECTED|HYPOTHESIS|NEEDS_EVIDENCE|HOLD|ESCALATE_TO_888,
 "claim_state":OBSERVED_INPUT|INFERENCE|HYPOTHESIS|SUPPORTED_CLAIM|VERIFIED_FACT|SPECULATION|UNSUPPORTED,
@@ -258,7 +258,7 @@ ACTOR_ID: {actor_id or "anonymous"}
 
 Reason through this under the 13 constitutional floors.
 Provide structured reasoning as a witness.
-Cite F02 (Truth), F07 (Humility), F08 (Genius).
+Cite L02 (Truth), L07 (Humility), L08 (Genius).
 Distinguish CLAIM from FACT."""
 
     # ── LLM Inference with 777_WITNESS Envelope ───────────────────────────────────

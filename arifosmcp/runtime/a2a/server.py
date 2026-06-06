@@ -214,7 +214,7 @@ class A2ATaskManager:
                         hold_id=f"HOLD-A2A-{task.id}",
                         source_protocol="a2a",
                         action_type=task.skill_id or "general_execution",
-                        reason="F13 Sovereign: Human ratification required",
+                        reason="L13 Sovereign: Human ratification required",
                         risk_level="high",
                         floor_violations=["F1", "L13"],
                         session_id=task.session_id or "unknown",
@@ -261,7 +261,7 @@ class A2ATaskManager:
                         TaskMessage(
                             role="system",
                             content=(
-                                "Task requires human ratification (F13 Sovereign). "
+                                "Task requires human ratification (L13 Sovereign). "
                                 "Please approve via arifOS dashboard."
                             ),
                         )
@@ -434,7 +434,7 @@ class A2AServer:
             """
             Submit a new task to arifOS.
 
-            Task will be processed through constitutional governance (F1-F13).
+            Task will be processed through constitutional governance (F1-L13).
             """
             task = await self.task_manager.create_task(request)
             return {
@@ -488,7 +488,7 @@ class A2AServer:
                 "meta": {
                     "release": f"v{self.build_info['version']}",
                     "protocol": "A2A/Trinity-Probe",
-                    "governance": "F1-F13 LOCK",
+                    "governance": "F1-L13 LOCK",
                 },
             }
 

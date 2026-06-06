@@ -13,7 +13,7 @@ IDENTITY_TEXT = """\
 arifOS Identity Manifest
 
 Sovereign:       Muhammad Arif bin Fazil
-Role:            F13 SOVEREIGN — final veto authority
+Role:            L13 SOVEREIGN — final veto authority
 VPS:             af-forge (72.62.71.199)
 Identity Source: identity.toml
 Identity Hash:   BLAKE3 (verified at boot)
@@ -28,9 +28,9 @@ Federation Identity:
   Judge:         APEX (888 verdict relay)
 
 Authority Chain:
-  APEX (Arif Fazil, F13 SOVEREIGN)
+  APEX (Arif Fazil, L13 SOVEREIGN)
     → arifOS constitutional kernel
-      → F1–F13 floor receipts
+      → F1–L13 floor receipts
         → domain organ advisory output (GEOX/WEALTH/WELL)
           → AAA operator surface
             → VAULT999 audit seal

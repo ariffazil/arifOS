@@ -232,23 +232,23 @@ def qc_verify_claim(
     refs = result.get("evidence_refs", [])
     if len(refs) < required_evidence_refs:
         issues.append(
-            f"F03 WITNESS: Only {len(refs)} evidence refs (required {required_evidence_refs})"
+            f"L03 WITNESS: Only {len(refs)} evidence refs (required {required_evidence_refs})"
         )
 
     # 2. Confidence
     actual_conf = result.get("confidence", "LOW")
     if confidence_order.get(actual_conf, 0) < confidence_order.get(min_confidence, 1):
-        issues.append(f"F07 HUMILITY: Confidence {actual_conf} below threshold {min_confidence}")
+        issues.append(f"L07 HUMILITY: Confidence {actual_conf} below threshold {min_confidence}")
 
     # 3. Physics-9
     physics_check = result.get("physics_check", {})
     if physics_check.get("valid") is False:
-        issues.append(f"F09 ANTIHANTU: Physics check failed — {physics_check.get('error')}")
+        issues.append(f"L09 ANTIHANTU: Physics check failed — {physics_check.get('error')}")
 
     # 4. Primary result
     primary = result.get("primary_result")
     if primary is None:
-        issues.append("F02 TRUTH: No primary result in claim")
+        issues.append("L02 TRUTH: No primary result in claim")
 
     if issues:
         return {

@@ -17,13 +17,13 @@ The Token-Plan MCP (2 tools: web_search + understand_image) is in
 minimax_bridge.py — this is the FULL multimodal MCP (`minimax-mcp`, not
 `minimax-coding-plan-mcp`).
 
-Constitutional binding (F1-F13):
+Constitutional binding (F1-L13):
 - F1 AMANAH: generated files go to MINIMAX_MCP_BASE_PATH (reversible dir).
 - F2 TRUTH: prompts are factual; no fabricated claims in TTS.
 - F9 ANTIHANTU: voice/TTS does not declare consciousness; image prompts
   are factual, not identity-claiming.
-- F11 AUTH: uses the same MINIMAX_API_KEY as the rest of the federation.
-- F13 SOVEREIGN: image generation of identifiable persons requires
+- L11 AUTH: uses the same MINIMAX_API_KEY as the rest of the federation.
+- L13 SOVEREIGN: image generation of identifiable persons requires
   explicit human ack — the calling layer must enforce, not the bridge.
 
 Sister file: minimax_bridge.py (Token-Plan variant, 2 tools).
@@ -240,7 +240,7 @@ class MinimaxMultimodalBridge:
     - Hermes: list_voices, text_to_audio (Telegram voice channel)
     - A-FORGE: text_to_image (UI mockups)
 
-    Constitutional enforcement (F1-F13) is at the CALLING layer.
+    Constitutional enforcement (F1-L13) is at the CALLING layer.
     This bridge is a transport + tool wrapper, not a judge.
     """
 
@@ -330,7 +330,7 @@ class MinimaxMultimodalBridge:
         output_directory: str | None = None,
         is_url: bool = False,
     ) -> dict[str, Any]:
-        """Clone a voice from an audio file. F11 AUTH: voice_id must be unique.
+        """Clone a voice from an audio file. L11 AUTH: voice_id must be unique.
 
         Constraints per doc: voice_id length [8,256], must start with letter,
         may contain digits/letters/-/_, must not end with - or _.
@@ -429,7 +429,7 @@ class MinimaxMultimodalBridge:
         """Generate a video from a prompt and/or a first frame image.
 
         At least one of prompt/first_frame_image required.
-        F13 SOVEREIGN: generating video of identifiable persons requires
+        L13 SOVEREIGN: generating video of identifiable persons requires
         explicit human ack — the CALLER must enforce.
         """
         if not prompt and not first_frame_image:
@@ -511,7 +511,7 @@ class MinimaxMultimodalBridge:
     ) -> dict[str, Any]:
         """Generate images from a text prompt.
 
-        F2 TRUTH: prompt is user-supplied verbatim. F13 SOVEREIGN:
+        F2 TRUTH: prompt is user-supplied verbatim. L13 SOVEREIGN:
         images of identifiable persons require explicit human ack
         (enforced at the calling layer).
         F1 AMANAH: file written to MINIMAX_MCP_BASE_PATH (reversible).

@@ -18,13 +18,13 @@ Architecture (from Claude Code analysis 2026-04-07):
                   ↓
     mind → [IntelligenceState + BeliefState]  ← second-order routing
 
-F12 Attack Surface Mitigations:
-    - Write-gated by F11: only the system updates beliefs, not the caller
+L12 Attack Surface Mitigations:
+    - Write-gated by L11: only the system updates beliefs, not the caller
     - Confidence decay: stale beliefs auto-expire
     - Audit trail: every update appended to VAULT999/SEALED_EVENTS.jsonl
 
-Constitutional Floors: F2 (Truth), F9 (Anti-Hantu), F11 (Command Auth),
-                       F12 (Injection Defense)
+Constitutional Floors: F2 (Truth), F9 (Anti-Hantu), L11 (Command Auth),
+                       L12 (Injection Defense)
 
 DITEMPA BUKAN DIBERI — Forged, Not Given [ΔΩΨ | ARIF]
 """
@@ -162,12 +162,12 @@ class BeliefUpdater:
         declared_intent  — what the actor said they want
         echo_debt        — how much the system is parroting the caller's framing
         shadow           — Hidden Assumption Load (F9 gap)
-        injection_score  — F12 adversarial signal
+        injection_score  — L12 adversarial signal
 
     Logic:
         divergence = echo_debt * 0.6 + shadow * 0.4
         If divergence > θ (0.50): inferred_intent diverges from declared
-        If injection_score > 0.6:  F12 false_belief flag added
+        If injection_score > 0.6:  L12 false_belief flag added
     """
 
     @staticmethod
@@ -193,7 +193,7 @@ class BeliefUpdater:
         else:
             inferred_intent = declared_intent or prior.inferred_intent
 
-        # F12: adversarial intent signal
+        # L12: adversarial intent signal
         if injection_score > 0.60 and "adversarial_intent" not in flags:
             flags.append("adversarial_intent")
         elif injection_score <= 0.30 and "adversarial_intent" in flags:
@@ -224,7 +224,7 @@ class BeliefRegistry:
     """
     Persistent cross-session belief store keyed by actor_id.
 
-    F11-gated: write access is system-only (callers cannot mutate directly).
+    L11-gated: write access is system-only (callers cannot mutate directly).
     Audit trail: every update appended to VAULT999/SEALED_EVENTS.jsonl.
     """
 
@@ -271,12 +271,12 @@ class BeliefRegistry:
         """
         Persist updated belief state.
 
-        F11 gate: _system_caller must be True. This flag is never exposed
+        L11 gate: _system_caller must be True. This flag is never exposed
         to callers — it is only set internally by the routing layer.
         """
         if not _system_caller:
             logger.warning(
-                "BeliefRegistry.save called without F11 system_caller flag for %s — rejected.",
+                "BeliefRegistry.save called without L11 system_caller flag for %s — rejected.",
                 state.actor_id,
             )
             return
@@ -371,7 +371,7 @@ def update_belief(
 ) -> BeliefState:
     """
     Top-level convenience: load → update → save → return new state.
-    This is the ONLY public write path (F11 enforced internally).
+    This is the ONLY public write path (L11 enforced internally).
     """
     registry = get_registry()
     prior = registry.load(actor_id)

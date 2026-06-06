@@ -6,7 +6,7 @@ Autonomy bands, capability grants, and jurisdiction envelopes.
 Every MCP call enters through jurisdiction before it touches tools.
 
 Ratified: 2026-06-03
-Authority: F13 SOVEREIGN
+Authority: L13 SOVEREIGN
 
 DITEMPA BUKAN DIBERI — Intelligence is forged, not given.
 """

@@ -96,7 +96,7 @@ STAGE_FAILURE_HANDLERS: dict[str, dict[str, Any]] = {
         "action": "await_human",
         "recoverable": True,
         "error_code": "JUDGE_UNDECIDED",
-        "description": "APEX judgment requires human ratification (F13).",
+        "description": "APEX judgment requires human ratification (L13).",
     },
     Stage.VAULT_999.value: {
         "verdict": Verdict.SABAR,
@@ -373,7 +373,7 @@ async def run_stage(
                         "source": "PNS_SEARCH",
                     }
 
-            # F12: Retrieve constitutional grounding context from session
+            # L12: Retrieve constitutional grounding context from session
             if session_id:
                 from arifosmcp.runtime.session import get_session_identity
 

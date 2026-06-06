@@ -303,7 +303,7 @@ class ConstitutionKernel:
     def evaluate(self, context: ActionContext) -> ConstitutionalVerdict:
         # ── session_seal bypass: F11S/F13S lightweight gate ──────────────
         # session_seal uses its own guards in _arif_vault_seal (tools.py).
-        # It bypasses F13 WELL-gate, WEALTH pre-flight, and F11/F13 full floor.
+        # It bypasses L13 WELL-gate, WEALTH pre-flight, and L11/L13 full floor.
         if context.tool_name == "arif_vault_seal" and context.mode == "session_seal":
             from arifosmcp.core.threat_engine import IrreversibilityLevel, ThreatAssessment
 
@@ -336,7 +336,7 @@ class ConstitutionKernel:
             )
 
         # ── Step -1: Biological Readiness Gate (WELL Mirror) ──────────────
-        # F13 SOVEREIGN: Mandatory physiological gate before any SEAL.
+        # L13 SOVEREIGN: Mandatory physiological gate before any SEAL.
         # This prevents autonomous action when the operator is degraded.
         try:
             well_state_path = "/root/WELL/state.json"
@@ -448,7 +448,7 @@ class ConstitutionKernel:
                 verdict="HOLD" if wg_status == "HOLD" else "VOID",
                 # WealthGovernance is a pre-constitutional gate; it gates on
                 # verification-state integrity (entropy, svs, anti_hantu).
-                # Map to F02 (Truth — information fidelity) and F10 (Ontology —
+                # Map to L02 (Truth — information fidelity) and L10 (Ontology —
                 # structural coherence of verification evidence).
                 violated_laws=["L02", "L10"],
                 floor_reasons={
@@ -528,8 +528,8 @@ class ConstitutionKernel:
                 print(decision.reason)
 
         Delegates to the constitutional_map.preflight() function which
-        implements the C0-C5 tier logic, F01 irreversibility guard,
-        F02 evidence gate, and F13 human confirmation requirement.
+        implements the C0-C5 tier logic, L01 irreversibility guard,
+        L02 evidence gate, and L13 human confirmation requirement.
 
         Returns a RiskDecision — the kernel's pre-flight judgment.
         """

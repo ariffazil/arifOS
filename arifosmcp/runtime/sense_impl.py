@@ -4,7 +4,7 @@ arifosmcp/runtime/governed_sense_impl.py — Canonical Governed Sensing Implemen
 
 8-stage constitutional sensing protocol implementation.
 
-Stage 111_SENSE | Trinity: DELTA Δ | Floors: F2, F3, F4, F7, F8, F10
+Stage 111_SENSE | Trinity: DELTA Δ | Floors: F2, F3, F4, F7, F8, L10
 
 Stages:
     1. PARSE    → Extract entities, intent, time-dependence, risk

@@ -77,7 +77,7 @@ class CapabilityGrant(BaseModel):
     @field_validator("agent_visible_secret", mode="before")
     @classmethod
     def _force_invisible(cls, v: Any) -> bool:
-        """F13-enforced: agents never see raw secrets."""
+        """L13-enforced: agents never see raw secrets."""
         if v is True:
             raise ValueError(
                 "agent_visible_secret cannot be true — agents must never see raw secrets"

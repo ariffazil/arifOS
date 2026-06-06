@@ -50,7 +50,7 @@ ACTOR_AUTHORITY: dict[str, AuthorityLevel] = {
 }
 
 # -----------------------------------------------------------------------------
-# F12: HARDENED INJECTION GUARD
+# L12: HARDENED INJECTION GUARD
 # -----------------------------------------------------------------------------
 
 
@@ -80,14 +80,14 @@ class InjectionGuard:
 _guard = InjectionGuard()
 
 # -----------------------------------------------------------------------------
-# F11: GROUNDED COMMAND AUTHORITY
+# L11: GROUNDED COMMAND AUTHORITY
 # -----------------------------------------------------------------------------
 
 
 def verify_auth(
     actor_id: str, auth_token: str | None = None, human_approval: bool = False
 ) -> tuple[bool, AuthorityLevel]:
-    """F11 Grounded: Aligned with Actor Registry Scopes.
+    """L11 Grounded: Aligned with Actor Registry Scopes.
 
     Phase 1: Delegates cryptographic verification to jwt_auth module.
     Hardcoded "IM ARIF" literal removed — identity must be JWT-verified.
@@ -139,7 +139,7 @@ async def init(
         return InitOutput(
             session_id="VOID",
             verdict=Verdict.VOID,
-            error_message="F12: Injection detected.",
+            error_message="L12: Injection detected.",
             intent=intent,
             math=math_dials or MathDials(),
             code=CodeState(session_id="VOID"),
@@ -154,7 +154,7 @@ async def init(
         return InitOutput(
             session_id="HOLD",
             verdict=Verdict.HOLD,
-            error_message="F13: Sovereign override required.",
+            error_message="L13: Sovereign override required.",
             intent=intent,
             math=math_dials or MathDials(),
             code=CodeState(session_id="HOLD"),

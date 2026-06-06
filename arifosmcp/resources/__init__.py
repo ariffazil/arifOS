@@ -4,7 +4,7 @@ arifOS Resources — Canonical URI Surface
 
 10 Canonical Resources (intelligence, not chaos):
 
-  arifos://doctrine       — Immutable law (F1–F13)
+  arifos://doctrine       — Immutable law (F1–L13)
   arifos://trinity        — AAA lane definitions and separation of powers
   arifos://schema         — Complete blueprint (tools, lanes, forge bridge)
   arifos://civilization   — Organs, strata, and constitutional boundaries

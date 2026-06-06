@@ -12,6 +12,7 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 import hashlib
 import os
 from pathlib import Path
+from typing import Any
 
 # Trusted hashes for the current sealed constitution (Example - should be updated on SEAL)
 _TRUSTED_CONSTITUTION_HASHES = {

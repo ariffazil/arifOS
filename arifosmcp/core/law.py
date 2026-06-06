@@ -1,5 +1,5 @@
 """
-F1–F13 Constitutional Floor Enforcer — Core Layer
+F1–L13 Constitutional Law Enforcer — Core Layer
 ══════════════════════════════════════════════════
 
 Each floor is an interceptor axiom, not a callable function.
@@ -47,7 +47,7 @@ def check_laws(
     tool_name: str, params: dict[str, Any], actor_id: str | None = None
 ) -> dict[str, Any]:
     """
-    Run F1–F13 interceptors for a tool call.
+    Run F1–L13 interceptors for a tool call.
 
     Returns:
         {"verdict": "SEAL" | "HOLD" | "VOID", "violated_laws": [...], "reason": str}
@@ -109,7 +109,7 @@ def check_laws(
                     manipulation = ["sudo", "chmod", "eval", "exec(", "__import__"]
                     if any(m in value for m in manipulation):
                         failed.append("L09")
-                        logger.warning(f"F09 ANTIHANTU: manipulation pattern in {key}")
+                        logger.warning(f"L09 ANTIHANTU: manipulation pattern in {key}")
 
             # F9b: heart-critique prerequisite gate for forge (F9 TAQWA short-circuit)
             # If agent skips arif_heart_critique entirely, forge must be blocked.
@@ -122,12 +122,12 @@ def check_laws(
                         if not was_tool_called(session_id, "arif_heart_critique"):
                             failed.append("L09")
                             logger.critical(
-                                f"F09 ANTIHANTU: arif_forge_execute blocked — "
+                                f"L09 ANTIHANTU: arif_forge_execute blocked — "
                                 f"arif_heart_critique not called in session {session_id}. "
                                 f"PSI KHIANAT: Anti-Hantu prerequisite violated."
                             )
                     except Exception as e:
-                        logger.error(f"F09 TAQWA check failed: {e}")
+                        logger.error(f"L09 TAQWA check failed: {e}")
 
         elif floor_value == "L10":
             pass
@@ -135,7 +135,7 @@ def check_laws(
         elif floor_value == "L11":
             if spec.get("access") == "sovereign" and not actor_id:
                 failed.append("L11")
-            # H2: All F11-gated tools require identity binding (session_id or actor_id)
+            # H2: All L11-gated tools require identity binding (session_id or actor_id)
             if not actor_id and not session_id and spec.get("access") != "public":
                 failed.append("L11")
 
@@ -145,16 +145,16 @@ def check_laws(
                     injection = ["rm -rf", "eval(", "exec(", "os.system", "subprocess"]
                     if any(i in value for i in injection):
                         failed.append("L12")
-                        logger.warning(f"F12 INJECTION: pattern in {key}")
+                        logger.warning(f"L12 INJECTION: pattern in {key}")
 
         elif floor_value == "L13":
-            # F13 fires when sovereign override is BYPASSED (not when used).
+            # L13 fires when sovereign override is BYPASSED (not when used).
             # sovereign_veto=True means Arif exercised his override — operation halts
-            # but this is F13 WORKING, not F13 BREACHING.
+            # but this is L13 WORKING, not L13 BREACHING.
             # We log it and return VOID so execution stops, but do NOT add to failed.
             if params.get("sovereign_veto"):
-                logger.critical("F13 SOVEREIGN VETO exercised by Arif — operation halted")
-                # Return VOID but do NOT append F13 to failed — veto usage is not a breach
+                logger.critical("L13 SOVEREIGN VETO exercised by Arif — operation halted")
+                # Return VOID but do NOT append L13 to failed — veto usage is not a breach
                 return {
                     "verdict": "VOID",
                     "violated_laws": [],

@@ -131,7 +131,7 @@ class ToolAuthContext(BaseModel):
     actor_id: str = Field(..., description="Verified actor identity")
     session_id: str = Field(..., description="Bound session")
     approval_scope: list[str] = Field(default_factory=list, description="Granted tool scopes")
-    human_approval_persisted: bool = Field(default=False, description="F13 human override")
+    human_approval_persisted: bool = Field(default=False, description="L13 human override")
     proof_timestamp: str | None = Field(None, description="ISO 8601 of proof generation")
 
     @field_validator("approval_scope")

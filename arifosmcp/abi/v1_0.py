@@ -81,7 +81,7 @@ class InitAnchorRequest(BaseRequest):
         max_length=128,
     )
     human_approval: bool = Field(
-        default=False, description="Whether human has pre-approved this action (F13)"
+        default=False, description="Whether human has pre-approved this action (L13)"
     )
 
     @field_validator("actor_id")

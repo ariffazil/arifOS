@@ -46,7 +46,7 @@ class Artifact(BaseModel):
     # Typed payload extensions
     answer_basis: AnswerBasis | None = None
 
-    # Audit trail (F1, F11)
+    # Audit trail (F1, L11)
     creator_id: str
     session_id: str
     timestamp: float

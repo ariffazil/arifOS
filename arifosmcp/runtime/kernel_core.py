@@ -76,7 +76,7 @@ class KernelCore:
 
         effective_query = payload.get("query") or query or ""
 
-        # ── Identity Resolution (F11 Hardening) ──
+        # ── Identity Resolution (L11 Hardening) ──
         from arifosmcp.runtime.session import get_session_identity
 
         _bound_actor = None

@@ -1,8 +1,8 @@
 # Runbook — arifOS Federation
 
 > **Purpose**: Restart, verify, rollback, and **deploy** per organ without guesswork.
-> **Last updated**: 2026-06-04 by Kimi — Cloudflare Tunnel deployed for arifOS MCP; GEOX Caddy 307 fix applied; all 4 public MCP endpoints verified.
-> **Sovereign law**: `F1–F13` active at `/root` — all agents are governed.
+> **Last updated**: 2026-06-06 by Ω — Entropy reduction sweep: renamed F1–F13 → L1–L13, documented public MCP status codes.
+> **Sovereign law**: `L1–L13` (was `F1–F13`) active at `/root` — all agents are governed. See [`000_CONSTITUTION.md`](https://github.com/ariffazil/arifos/blob/main/static/arifos/theory/000/000_CONSTITUTION.md).
 
 ---
 
@@ -639,10 +639,20 @@ echo "=== Done ==="
 
 **Expected:** All 4 return `OK: <server name>`.
 
-**Common failures:**
+**Expected behavior on raw HTTP probes (without proper JSON-RPC `initialize` payload):**
+| Endpoint | Expected status | Why |
+|----------|-----------------|-----|
+| `https://arifos.arif-fazil.com/mcp` | `406 Not Acceptable` | arifOS MCP enforces JSON-RPC over POST; raw GET/POST without `Accept: application/json` returns 406 |
+| `https://geox.arif-fazil.com/mcp` | `307 Temporary Redirect` → `/mcp/` | Caddy rewrites `/mcp` → `/mcp/` (FastMCP serves at trailing slash). Follow the redirect. |
+| `https://wealth.arif-fazil.com/mcp` | `200 OK` | Standard FastMCP — accepts POST JSON-RPC |
+| `https://well.arif-fazil.com/mcp` | `200 OK` | Standard FastMCP — accepts POST JSON-RPC |
+| `https://aaa.arif-fazil.com/mcp` (A2A) | `405 Method Not Allowed` | AAA is A2A protocol, not MCP JSON-RPC; use A2A envelope |
+
+**Common failures (real outages, not expected behavior above):**
 - `arifOS` 522 → Cloudflare Tunnel down; check `systemctl status cloudflared`
-- `GEOX` 307 → Caddy not rewriting `/mcp` → `/mcp/`; verify Caddyfile has `rewrite * /mcp/` in the `/mcp` handle block
+- `GEOX` 307 followed by 5xx → Caddy rewrite broken; verify Caddyfile has `rewrite * /mcp/` in the `/mcp` handle block
 - `WEALTH`/`WELL` timeout → organ service down; check `systemctl status wealth-organ` / `systemctl status well`
+- `Origin` 403 on `/mcp*` → expected; non-matching origin blocked by `OriginValidationMiddleware`. Use matching `Origin: https://<subdomain>.arif-fazil.com` or call from Tunnel.
 
 ---
 

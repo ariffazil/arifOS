@@ -128,23 +128,23 @@ _TOOL_CATEGORIES: dict[str, list[str]] = {
 # Hand-maintained — floor definitions. Keep in sync with constitutional_map.Floor.
 _FLOOR_TABLE = """\
 
-## Constitutional Floors (F1–F13)
+## Constitutional Floors (F1–L13)
 
 | Floor | Name | Type | Core Invariant |
 | :---- | :--- | :---- | :------------- |
-| F01 | AMANAH | HARD | Reversible-first; irreversible → 888 HOLD |
-| F02 | TRUTH | HARD | ≥0.99 accuracy or declare uncertainty band |
-| F03 | WITNESS | SOFT | Theory · constitution · intent must align |
-| F04 | CLARITY | SOFT | Every output reduces entropy (ΔS ≤ 0) |
-| F05 | PEACE | SOFT | Peace ≥ 1.0; de-escalate, guard maruah |
-| F06 | EMPATHY | SOFT | Dignity-first; ASEAN/MY context |
-| F07 | HUMILITY | SOFT | Uncertainty band 0.03–0.05; no fake certainty |
-| F08 | GENIUS | SOFT | Maintain intelligence quality, system health |
-| F09 | ANTIHANTU | HARD | Anti-Hallucination: C_dark < 0.30, no consciousness claims |
-| F10 | ONTOLOGY | HARD | AI-only ontology; no soul/feelings claims |
-| F11 | AUTH | HARD | Verify identity before sensitive ops |
-| F12 | INJECTION | HARD | Sanitize inputs; no prompt injection |
-| F13 | SOVEREIGN | HARD | Human veto absolute. |
+| L01 | AMANAH | HARD | Reversible-first; irreversible → 888 HOLD |
+| L02 | TRUTH | HARD | ≥0.99 accuracy or declare uncertainty band |
+| L03 | WITNESS | SOFT | Theory · constitution · intent must align |
+| L04 | CLARITY | SOFT | Every output reduces entropy (ΔS ≤ 0) |
+| L05 | PEACE | SOFT | Peace ≥ 1.0; de-escalate, guard maruah |
+| L06 | EMPATHY | SOFT | Dignity-first; ASEAN/MY context |
+| L07 | HUMILITY | SOFT | Uncertainty band 0.03–0.05; no fake certainty |
+| L08 | GENIUS | SOFT | Maintain intelligence quality, system health |
+| L09 | ANTIHANTU | HARD | Anti-Hallucination: C_dark < 0.30, no consciousness claims |
+| L10 | ONTOLOGY | HARD | AI-only ontology; no soul/feelings claims |
+| L11 | AUTH | HARD | Verify identity before sensitive ops |
+| L12 | INJECTION | HARD | Sanitize inputs; no prompt injection |
+| L13 | SOVEREIGN | HARD | Human veto absolute. |
 """
 
 _F9_DARKNESS = """\
@@ -204,7 +204,7 @@ _RESOURCE_URIS = """\
 | :--- | :------ |
 | `arifos://agents/skills` | This document |
 | `arifos://status/vitals` | System health |
-| `arifos://governance/floors` | F1-F13 thresholds |
+| `arifos://governance/floors` | F1-L13 thresholds |
 | `arifos://contracts/tools` | Tool risk contracts |
 """
 

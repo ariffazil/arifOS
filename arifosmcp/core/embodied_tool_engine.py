@@ -72,7 +72,7 @@ class EmbodiedToolEngine:
     3. BOUND — check domain boundary
     4. CLASSIFY — assign risk tier
     5. CHECK PERMISSIONS — authority verification
-    6. CHECK REVERSIBILITY — F01 AMANAH
+    6. CHECK REVERSIBILITY — L01 AMANAH
     7. ESTIMATE CONSEQUENCE — blast radius
     8. ACT OR HOLD — execute or escalate
     9. WITNESS — record audit trail
@@ -216,7 +216,7 @@ class EmbodiedToolEngine:
         entry: ToolSelfModelEntry,
     ) -> ReversibilityVerdict:
         """
-        Stage 6: CHECK REVERSIBILITY — F01 AMANAH.
+        Stage 6: CHECK REVERSIBILITY — L01 AMANAH.
 
         Returns ReversibilityVerdict with full assessment.
         """
@@ -280,7 +280,7 @@ class EmbodiedToolEngine:
             return EmbodiedDecision(
                 can_proceed=False,
                 status="VOID",
-                reason=f"F01 CRITICAL: {reversibility_verdict.reasoning}",
+                reason=f"L01 CRITICAL: {reversibility_verdict.reasoning}",
                 risk_tier=risk_tier,
                 reversibility=Reversibility.IRREVERSIBLE,
                 authority_required=True,
@@ -299,7 +299,7 @@ class EmbodiedToolEngine:
                 return EmbodiedDecision(
                     can_proceed=False,
                     status="HOLD",
-                    reason="F01 IRREVERSIBLE + no authority: requires 888_HOLD",
+                    reason="L01 IRREVERSIBLE + no authority: requires 888_HOLD",
                     risk_tier=risk_tier,
                     reversibility=Reversibility.IRREVERSIBLE,
                     authority_required=True,

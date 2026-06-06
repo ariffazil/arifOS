@@ -49,7 +49,7 @@ def evaluate_prospect(prospect_id: str) -> GeoxVerdict:
     """
     Final Earth Witness evaluation.
     F2 Truth: Is this grounded in evidence?
-    F13 Sovereign: Does it require 888_HOLD?
+    L13 Sovereign: Does it require 888_HOLD?
     """
     # Automatic 888_HOLD if evidence is weak (placeholder logic)
     confidence = 0.85

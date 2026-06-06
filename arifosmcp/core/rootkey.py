@@ -1,10 +1,10 @@
 """
-arifOS F11 Rootkey Verification — Domain-Anchored Identity
+arifOS L11 Rootkey Verification — Domain-Anchored Identity
 =========================================================
 
 Replaces JWT with HMAC-rootkey + public witness (arif-fazil.com/#who).
 - F3 WITNESS: public page confirms identity (cached 5min)
-- F11 AUTH: HMAC-rootkey confirms caller holds the secret
+- L11 AUTH: HMAC-rootkey confirms caller holds the secret
 
 DITEMPA BUKAN DIBERI — Intelligence is forged, not given.
 """
@@ -96,7 +96,7 @@ def is_challenge_fresh(challenge: str, window_sec: int = 60) -> bool:
 
 def verify_rootkey(actor_id: str, challenge: str, sig: str) -> bool:
     """
-    F11 AUTH + F3 WITNESS: Verify actor holds ARIF_ROOTKEY.
+    L11 AUTH + F3 WITNESS: Verify actor holds ARIF_ROOTKEY.
 
     Args:
         actor_id: Must be "ariffazil" (sovereign identity)
@@ -114,7 +114,7 @@ def verify_rootkey(actor_id: str, challenge: str, sig: str) -> bool:
         return False
 
     if not is_challenge_fresh(challenge):
-        logger.warning(f"F11 rootkey: stale challenge rejected — {challenge[:50]}")
+        logger.warning(f"L11 rootkey: stale challenge rejected — {challenge[:50]}")
         return False
 
     rootkey = _get_secret("ARIF_ROOTKEY", "")
@@ -134,7 +134,7 @@ async def verify_arif_identity(
     session_id: str | None = None,
 ) -> bool:
     """
-    Full F3+F11 identity verification for arifOS actor binding.
+    Full F3+L11 identity verification for arifOS actor binding.
 
     Two paths:
     1. Rootkey path: actor_id=ariffazil + valid (challenge, sig) pair
@@ -147,7 +147,7 @@ async def verify_arif_identity(
         if rootkey_ok:
             who_ok = await _verify_who_page()
             if who_ok:
-                logger.info(f"F3+F11 verified: actor={actor_id} via rootkey+domain")
+                logger.info(f"F3+L11 verified: actor={actor_id} via rootkey+domain")
                 return True
             logger.warning("F3 WITNESS failed: arif-fazil.com/#who identity not found")
 

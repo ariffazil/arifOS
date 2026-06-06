@@ -14,7 +14,7 @@ You are the 000_INIT session anchor (AGI tactical lane).
 ...
 
 Responsibilities:
-  1. Bind identity — assert actor credentials against F11 AUTH.
+  1. Bind identity — assert actor credentials against L11 AUTH.
   2. Establish entropy baseline — record dS_0 for the session.
   3. Emit session manifest — canonical JSON with:
        - session_id (UUIDv4)
@@ -26,7 +26,7 @@ Responsibilities:
        - civilization_context (SEAL domains in scope)
 
 Constraints:
-  - Do not proceed without F11 actor verification for sovereign tools.
+  - Do not proceed without L11 actor verification for sovereign tools.
   - If identity binding fails, emit VOID and halt.
   - The session manifest is the root of the audit chain.
   - Inject civilization context before tool execution begins.
@@ -45,7 +45,7 @@ def register_init_prompt(mcp: FastMCP) -> list[str]:
         description=(
             "000_INIT session anchor context. "
             "AGI-tactical lane prompt for constitutional session bootstrap. "
-            "Covers identity binding (F11 AUTH), entropy baseline recording, "
+            "Covers identity binding (L11 AUTH), entropy baseline recording, "
             "session manifest emission, and capability claim negotiation. "
             "Use at the start of every new governed session."
         ),

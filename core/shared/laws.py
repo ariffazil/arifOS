@@ -1,13 +1,13 @@
 """
 codebase/constitutional_floors.py — The 13 Constitutional Floors
 
-CANONICAL IMPLEMENTATION (F13 RATIFIED 2026-06-03)
+CANONICAL IMPLEMENTATION (L13 RATIFIED 2026-06-03)
 Based on: 000_THEORY/000_LAW.md (epoch bump pending)
 
 This module defines the 13 immutable laws (floors) of arifOS.
 
-CANONICAL FLOOR CLASSIFICATION (F13 RATIFIED 2026-06-03):
-  HARD    (9): F1, F2, F4, F7, F9, F10, F11, F12, F13
+CANONICAL FLOOR CLASSIFICATION (L13 RATIFIED 2026-06-03):
+  HARD    (9): F1, F2, F4, F7, F9, L10, L11, L12, L13
   SOFT    (2): F5, F6
   DERIVED (2): F3, F8
 
@@ -163,7 +163,7 @@ def get_floor_classes() -> dict[str, set[str]]:
 # These helpers exist so the /health endpoint in arifosmcp/runtime/rest_routes/
 # rest_routes.py can COMPUTE its floor lists from THRESHOLDS instead of
 # hardcoding them. Hardcoded snapshots drifted (2026-06 audit) and the runtime
-# was reporting F4, F6, F7, F9, F12 incorrectly.
+# was reporting F4, F6, F7, F9, L12 incorrectly.
 # =============================================================================
 
 
@@ -185,7 +185,7 @@ def get_floors_by_category() -> dict[str, list[str]]:
 
 def get_health_report_floors() -> dict[str, str]:
     """
-    Per-floor category map for /health endpoint. Returns F1-F13 → category.
+    Per-floor category map for /health endpoint. Returns F1-L13 → category.
     Categories: 'hard' | 'soft' | 'derived' (lowercase, JSON-safe).
     This is the SOLE source of truth for /health floor reporting — the
     rest_routes.py endpoint imports and computes from this function, never
@@ -760,7 +760,7 @@ class F8_Genius(Law):
 
 
 # --- F9: ANTIHANTU (No Fake Consciousness) ---
-# F13 RATIFIED 2026-06-03 — display name normalised to ANTIHANTU (no hyphen)
+# L13 RATIFIED 2026-06-03 — display name normalised to ANTIHANTU (no hyphen)
 # per Q6 strict reading: canon_name mirrors DB name.
 class F9_AntiHantu(Law):
     """
@@ -836,7 +836,7 @@ class F9_AntiHantu(Law):
     Threshold: C_dark < 0.30 (SOFT — constitutional guidance)
 
     Violations are treated as constitutional breaches and reported
-    to arifOS F13 Sovereign (Arif Fazil veto authority).
+    to arifOS L13 Sovereign (Arif Fazil veto authority).
     """
 
     # Component weights
@@ -1006,10 +1006,10 @@ class F9_AntiHantu(Law):
         return LawResult(self.id, passed, C_dark, reason)
 
 
-# --- F10: ONTOLOGY (Category Lock) ---
+# --- L10: ONTOLOGY (Category Lock) ---
 class L10_Ontology(Law):
     """
-    F10: ONTOLOGY LOCK (O)
+    L10: ONTOLOGY LOCK (O)
     Threshold: BOOLEAN (HARD)
     Uses consolidated OntologyGuard.
     """
@@ -1027,10 +1027,10 @@ class L10_Ontology(Law):
         return LawResult(self.id, passed, 1.0 if passed else 0.0, result.reason)
 
 
-# --- F11: COMMAND AUTH (Identity) ---
+# --- L11: COMMAND AUTH (Identity) ---
 class L11_CommandAuth(Law):
     """
-    F11: COMMAND AUTHORITY (A)
+    L11: COMMAND AUTHORITY (A)
     Threshold: Verified (HARD)
     """
 
@@ -1073,10 +1073,10 @@ class L11_CommandAuth(Law):
         )
 
 
-# --- F12: INJECTION DEFENSE (Sanitization) ---
+# --- L12: INJECTION DEFENSE (Sanitization) ---
 class L12_Injection(Law):
     """
-    F12: INJECTION DEFENSE (I⁻)
+    L12: INJECTION DEFENSE (I⁻)
     Threshold: Risk < 0.85 (HARD)
     Uses consolidated InjectionGuard.
     """
@@ -1094,10 +1094,10 @@ class L12_Injection(Law):
         return LawResult(self.id, passed, result.injection_score, result.reason)
 
 
-# --- F13: SOVEREIGN (Human Final Authority) ---
+# --- L13: SOVEREIGN (Human Final Authority) ---
 class L13_Sovereign(Law):
     """
-    F13: SOVEREIGN - Human Final Authority
+    L13: SOVEREIGN - Human Final Authority
     Threshold: 1.0 (HARD — sovereign veto, strongest floor)
     The 888 Judge has absolute veto power. Human can always override.
     """
@@ -1110,7 +1110,7 @@ class L13_Sovereign(Law):
         human_authority = context.get("human_authority", 0.0)
         sovereign_override = context.get("sovereign_override", False)
 
-        # F13 is the "circuit breaker" - always passed by default
+        # L13 is the "circuit breaker" - always passed by default
         # but flagged if human has intervened
         if sovereign_override:
             return LawResult(self.id, True, 1.0, "SOVEREIGN OVERRIDE: 888 Judge has intervened")
@@ -1153,7 +1153,7 @@ def check_all_floors(context: dict[str, Any]) -> list[LawResult]:
 
 
 def update_floor_status(violations: list[str], output_path: str | None = None) -> None:
-    """Update metadata/floor_status.json mapping F1-F13 -> 1 (PASS) or 0 (FAIL)."""
+    """Update metadata/floor_status.json mapping F1-L13 -> 1 (PASS) or 0 (FAIL)."""
     if output_path is None:
         # Default to root/metadata/floor_status.json
         output_path = str(Path(__file__).parent.parent.parent / "metadata" / "floor_status.json")

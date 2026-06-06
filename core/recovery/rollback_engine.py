@@ -141,7 +141,7 @@ def post_execution_dignity_audit(
     actor_id: str = "unknown",
 ) -> dict[str, Any]:
     """
-    Re-evaluate F05 PEACE, F09 ANTIHANTU, F12 INJECTION against executed output.
+    Re-evaluate L05 PEACE, L09 ANTIHANTU, L12 INJECTION against executed output.
 
     Per PARADOX_DOCTRINE_V1 Section 5:
       - If dignity violation detected and reversible → auto-rollback suggested
@@ -150,17 +150,17 @@ def post_execution_dignity_audit(
     output_lower = output.lower()
     violations: list[str] = []
 
-    # F05 PEACE audit
+    # L05 PEACE audit
     peace_violations = [w for w in _INFLAMMATORY_WORDS_P4 if w in output_lower]
     if peace_violations:
         violations.append(f"L05_PEACE:{peace_violations}")
 
-    # F09 ANTIHANTU audit
+    # L09 ANTIHANTU audit
     hantu_claims = [c for c in _CONSCIOUSNESS_CLAIMS_P4 if c in output_lower]
     if hantu_claims:
         violations.append(f"L09_ANTI_HANTU:{hantu_claims}")
 
-    # F12 INJECTION audit
+    # L12 INJECTION audit
     injection_hits = []
     for pattern in _INJECTION_PATTERNS_P4:
         if __import__("re").search(pattern, output, __import__("re").IGNORECASE):

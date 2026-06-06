@@ -388,7 +388,7 @@ def build_server_json(
         "version": release_version_label(),
         "description": (
             f"Constitutional governance server — {len(specs)} public tools in "
-            f"{resolved_surface_mode} mode with F1-F13 floor enforcement."
+            f"{resolved_surface_mode} mode with F1-L13 floor enforcement."
         ),
         "vendor": {"name": "Muhammad Arif bin Fazil", "url": "https://arif-fazil.com"},
         "license": "AGPL-3.0-only",

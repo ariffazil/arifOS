@@ -3,13 +3,13 @@ arifosmcp/memory/vector_memory_qdrant.py
 ========================================
 
 Constitutional vector memory backed by Qdrant.
-Implements 555_MEMORY vector modes with F10 Ontology + F2 Verification.
+Implements 555_MEMORY vector modes with L10 Ontology + F2 Verification.
 
 Embedding backend: Ollama bge-m3 (1024-dim, cosine) — matches all Qdrant collections.
 Legacy sentence-transformers (all-MiniLM-L6-v2, 384-dim) removed: dimension mismatch fix.
 
 Authority: Ω (A-ENGINEER) | Trinity: OMEGA
-Floors: F10 (Ontology), F2 (Truth ≥ 0.99), F11 (Audit)
+Floors: L10 (Ontology), F2 (Truth ≥ 0.99), L11 (Audit)
 """
 
 from __future__ import annotations
@@ -69,7 +69,7 @@ def _ensure_collection():
         existing_size = info.config.params.vectors.size
         if existing_size != _VECTOR_SIZE:
             raise RuntimeError(
-                f"F10 SCHEMA: Collection '{_QDRANT_COLLECTION}' has dim={existing_size} "
+                f"L10 SCHEMA: Collection '{_QDRANT_COLLECTION}' has dim={existing_size} "
                 f"but VECTOR_SIZE={_VECTOR_SIZE}. Manual migration required."
             )
     except RuntimeError:
@@ -85,7 +85,7 @@ def _ensure_collection():
 
 
 def _generate_embedding(text: str) -> list[float]:
-    """Generate 1024-dim embedding via Ollama bge-m3 (F10 Ontology encoded).
+    """Generate 1024-dim embedding via Ollama bge-m3 (L10 Ontology encoded).
 
     Raises RuntimeError on failure — callers must handle; zero-vector fallback
     is intentionally removed to prevent silent pollution of Qdrant retrieval.
@@ -130,7 +130,7 @@ def _compute_truth_score(content: str, context: dict | None = None) -> float:
 
 
 def _f10_ontology_check(content: str, metadata: dict | None = None) -> dict:
-    """F10: Ontology verification."""
+    """L10: Ontology verification."""
     result = {
         "valid": True,
         "ontology_class": "general",
@@ -173,7 +173,7 @@ async def vector_store(
     actor_id: str = "",
     **kwargs,
 ) -> dict:
-    """Store content with F10 ontology + F2 truth ≥ 0.99."""
+    """Store content with L10 ontology + F2 truth ≥ 0.99."""
     _ensure_collection()
     metadata = metadata or {}
     truth_score = _compute_truth_score(content, metadata)
@@ -191,14 +191,14 @@ async def vector_store(
     if not ontology["valid"]:
         return {
             "ok": False,
-            "error": f"F10 ONTOLOGY: {', '.join(ontology['violations'])}",
+            "error": f"L10 ONTOLOGY: {', '.join(ontology['violations'])}",
             "ontology": ontology,
             "policy_violation": True,
         }
     try:
         vector = _generate_embedding(content)
     except RuntimeError as exc:
-        return {"ok": False, "error": f"F10 EMBEDDING: {exc}", "embedding_unavailable": True}
+        return {"ok": False, "error": f"L10 EMBEDDING: {exc}", "embedding_unavailable": True}
     point_id = str(uuid.uuid4())
     content_hash = _compute_content_hash(content)
     payload = {
@@ -240,12 +240,12 @@ async def vector_query(
     filters: dict | None = None,
     **kwargs,
 ) -> dict:
-    """Query vector memory with F10/F2 constitutional filtering."""
+    """Query vector memory with L10/F2 constitutional filtering."""
     _ensure_collection()
     try:
         vector = _generate_embedding(query)
     except RuntimeError as exc:
-        return {"ok": False, "error": f"F10 EMBEDDING: {exc}", "embedding_unavailable": True}
+        return {"ok": False, "error": f"L10 EMBEDDING: {exc}", "embedding_unavailable": True}
     query_filter = None
     if filters:
         from qdrant_client.models import FieldCondition, Filter, MatchValue
@@ -306,7 +306,7 @@ async def vector_forget(
     actor_id: str = "",
     **kwargs,
 ) -> dict:
-    """Remove vector with F1 reversibility + F13 sovereign check."""
+    """Remove vector with F1 reversibility + L13 sovereign check."""
     client = _get_qdrant_client()
     if not point_id and not content_hash:
         return {"ok": False, "error": "Must provide point_id or content_hash"}
@@ -321,7 +321,7 @@ async def vector_forget(
                 if point and point[0].payload.get("metadata", {}).get("session_id") != session_id:
                     return {
                         "ok": False,
-                        "error": "F13 KHILAFAH: Cannot delete another session's memory",
+                        "error": "L13 KHILAFAH: Cannot delete another session's memory",
                         "policy_violation": True,
                     }
             client.delete(collection_name=_QDRANT_COLLECTION, points_selector=[point_id])

@@ -1,4 +1,4 @@
-"""F1-F13 constitutional governance for the SAF organ.
+"""F1-L13 constitutional governance for the SAF organ.
 
 Mirrors the arifOS kernel gates, applied per-tool. Every read-only
 inspection is auto-SEAL. Every analytic mutation is SABAR-by-default
@@ -15,7 +15,7 @@ from enum import Enum
 from typing import Any, Optional
 
 # ---------------------------------------------------------------------------
-# Constitutional floors (F1-F13) — local mirror of arifOS canon
+# Constitutional floors (F1-L13) — local mirror of arifOS canon
 # ---------------------------------------------------------------------------
 
 F1_AMANAH = "F1-AMANAH"  # Trust as lockable contract; seal every outcome
@@ -29,10 +29,10 @@ F6_PRIVACY = "F6-PRIVACY"  # Sandbox, no exfil
 F7_ANTI_HANTU = "F7-ANTIHANTU"  # Don't claim consciousness / sentience
 F8_REVERSIBILITY_DEEP = "F8-REVERSIBILITY"  # Match intent scope with action scope
 F9_ANTI_HANTU_DEEP = "F9-ANTIHANTU"
-L10_PROVENANCE = "F10-PROVENANCE"  # Evidence → reasoning → conclusion
-L11_NO_SECRETS = "F11-NO-SECRETS"  # No credentials in code/logs
-L12_CRISIS = "F12-CRISIS"  # DITEMPA BUKAN DIBERI
-L13_SOVEREIGN = "F13-SOVEREIGN"  # Human veto is absolute
+L10_PROVENANCE = "L10-PROVENANCE"  # Evidence → reasoning → conclusion
+L11_NO_SECRETS = "L11-NO-SECRETS"  # No credentials in code/logs
+L12_CRISIS = "L12-CRISIS"  # DITEMPA BUKAN DIBERI
+L13_SOVEREIGN = "L13-SOVEREIGN"  # Human veto is absolute
 
 ALL_FLOORS = [
     F1_AMANAH,
@@ -104,7 +104,7 @@ def govern(
     is_exfiltrative: bool = False,
     writes_to_disk: bool = False,
 ) -> VerdictPacket:
-    """Run F1-F13 checks for a tool call. Returns the verdict packet.
+    """Run F1-L13 checks for a tool call. Returns the verdict packet.
 
     Read-only inspections: SEAL by default.
     Destructive ops (drop, impute, overwrite, delete rows): SABAR unless
@@ -141,7 +141,7 @@ def govern(
             )
         )
 
-    # F13 SOVEREIGN — destructive ops require explicit ack
+    # L13 SOVEREIGN — destructive ops require explicit ack
     if is_destructive and not ack_irreversible:
         checks.append(
             ConstitutionalCheck(

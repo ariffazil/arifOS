@@ -243,7 +243,7 @@ VERDICT_TOTAL = _counter(
 # M3 LLM Token Usage (F2 TRUTH observability)
 # ---------------------------------------------------------------------------
 # Per F2 TRUTH: every LLM call must be measurable. Token counts surface in
-# Grafana so token-plan budget is never a surprise. F13 SOVEREIGN owns the
+# Grafana so token-plan budget is never a surprise. L13 SOVEREIGN owns the
 # decision to spend; the metric is the witness that we did.
 
 M3_TOKENS_TOTAL = _counter(
@@ -382,7 +382,7 @@ def record_m3_usage(
     Record M3 chat completion usage for token-plan budget observability.
 
     F2 TRUTH: every LLM call must be measurable.
-    F13 SOVEREIGN: the human owns the decision to spend; this metric is the
+    L13 SOVEREIGN: the human owns the decision to spend; this metric is the
     witness that we did.
 
     Args:
@@ -433,7 +433,7 @@ W3_SCORE = _histogram(
     buckets=[0.0, 0.25, 0.50, 0.70, 0.75, 0.85, 0.90, 0.95, 1.0],
 )
 
-# 888_HOLD queue depth (F13 Sovereign Gate backlog)
+# 888_HOLD queue depth (L13 Sovereign Gate backlog)
 HOLD_QUEUE_DEPTH = _gauge(
     "arifos_hold_queue_depth",
     "Number of 888_HOLD events pending sovereign ratification",
@@ -482,7 +482,7 @@ MACHINE_FAULTS = _counter(
 # VOID events (constitutional only — should be rare)
 VOID_EVENTS = _counter(
     "arifos_void_events_total",
-    "VOID verdicts issued — constitutional violations only (F2/F11/F12/F13)",
+    "VOID verdicts issued — constitutional violations only (F2/L11/L12/L13)",
     ["void_reason", "tool"],
 )
 

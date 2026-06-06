@@ -5,7 +5,7 @@ arifOS Witness Log — Append-Only Audit Trail
 Every tool call generates a WitnessEntry.
 WitnessLog is the append-only store of all entries.
 
-This is F03 WITNESS — evidence must be verifiable.
+This is L03 WITNESS — evidence must be verifiable.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """

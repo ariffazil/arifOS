@@ -108,7 +108,7 @@ async def arif_browser_observe(
     screenshot, get_cookies, go_back, go_forward, reload.
 
     Risk: LOW (OBSERVE). No human ack required.
-    Constitutional floors: F2 (truth), F9 (anti-hantu), F12 (injection guard).
+    Constitutional floors: F2 (truth), F9 (anti-hantu), L12 (injection guard).
     """
     actions = actions or ["navigate", "extract_dom"]
 
@@ -223,7 +223,7 @@ async def arif_browser_interact(
     Risk: HIGH (INTERACT). Requires explicit human ack via ack_irreversible=True.
 
     Constitutional floors: F1 (amanah/irreversible), F2 (truth), F6 (dignity),
-    F9 (anti-hantu), F12 (injection guard), F13 (sovereign veto).
+    F9 (anti-hantu), L12 (injection guard), L13 (sovereign veto).
 
     This tool MUST NOT be called without explicit human authorization.
     """

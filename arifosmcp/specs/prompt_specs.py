@@ -242,7 +242,7 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         title="Render Verdict",
         description=(
             "Produce final constitutional verdict with floor evaluation. "
-            "Comprehensive F1-F13 analysis."
+            "Comprehensive F1-L13 analysis."
         ),
         arguments=(
             _arg("candidate", True, "Action to evaluate"),
@@ -251,7 +251,7 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
         template_text=(
             "Please render constitutional verdict for: {{candidate}}. "
             "Risk tier: {{risk_tier}}. "
-            "Evaluate against all F1-F13 floors. "
+            "Evaluate against all F1-L13 floors. "
             "Return structured verdict with: "
             "(1) SEAL/PARTIAL/VOID/SABAR/HOLD, "
             "(2) floors passed/failed, "

@@ -100,6 +100,14 @@ __all__ = sorted(
 
 
 def __getattr__(name: str):
+    # Backwards-compat shims: Floors → Laws rename
+    # Legacy imports like `from core.shared import floor_audit` still work.
+    if name == "floor_audit":
+        return import_module(".law_audit", __name__)
+    if name == "floors":
+        return import_module(".laws", __name__)
+    if name == "sbert_floors":
+        return import_module(".sbert_laws", __name__)
     if name in _ATLAS_EXPORTS:
         return getattr(import_module(".atlas", __name__), name)
     if name in _PHYSICS_EXPORTS:

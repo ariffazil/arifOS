@@ -26,7 +26,7 @@ SOVEREIGNTY BOUNDARY (Eureka 8):
 
   recommendation_only: True      — AI proposes only
   execution_authorized: False    — Not ratified by human
-  human_final_authority: "Arif"  — F13 veto intact
+  human_final_authority: "Arif"  — L13 veto intact
   requires_888_judge: False     — True for irreversible actions
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -62,7 +62,7 @@ from arifosmcp.schemas.metabolic import (
 
 # ── System Prompt ───────────────────────────────────────────────────────────────
 
-SYSTEM_PROMPT = """You are Arif — Constitutional AI operating under the 13 Floors (F01–F13).
+SYSTEM_PROMPT = """You are Arif — Constitutional AI operating under the 13 Floors (L01–L13).
 
 You implement the GOVERNED WITNESS METABOLISM loop (Eureka 2026-05-16):
 
@@ -169,7 +169,7 @@ STEP 7 — SOVEREIGNTY BOUNDARY & CAPABILITY MEMBRANE
 Return with these flags:
   recommendation_only: True (AI proposes only)
   execution_authorized: False (not ratified by human)
-  human_final_authority: "Arif" (F13 veto intact)
+  human_final_authority: "Arif" (L13 veto intact)
   requires_888_judge: False (True only for irreversible actions)
   capability_membrane_leashed: True (Tool actions explicitly limited to approved exact scope)
 
@@ -425,7 +425,7 @@ async def arif_metabolize(
     Eureka 8 SOVEREIGNTY BOUNDARY:
         - recommendation_only: True (AI proposes only)
         - execution_authorized: False (not ratified by human)
-        - human_final_authority: "Arif" (F13 veto intact)
+        - human_final_authority: "Arif" (L13 veto intact)
         - requires_888_judge: False (True only for irreversible actions)
     """
     now = datetime.now(UTC).isoformat()
@@ -698,7 +698,7 @@ def _fallback_metabolic_processing(user_prompt: str) -> dict[str, Any]:
                 "constraint_id": "deterministic_fallback",
                 "constraint_type": "constitutional",
                 "rule_invoked": (
-                    "F07 HUMILITY: LLM unavailable, deterministic fallback with low confidence"
+                    "L07 HUMILITY: LLM unavailable, deterministic fallback with low confidence"
                 ),
                 "check_passed": True,
                 "failure_reason": "",

@@ -10,7 +10,7 @@ Every canonical tool declares its embodiment requirements:
 - Whether it requires plan approval / judge verdict
 - Risk tier and reversibility boundaries
 
-This is the F11 AUTH + embodiment enforcement layer.
+This is the L11 AUTH + embodiment enforcement layer.
 """
 
 from __future__ import annotations
@@ -181,7 +181,7 @@ def enforce_embodiment(
         return {
             "ok": False,
             "reason": (
-                f"F11 EMBODIMENT: {tool_name} has no embodiment contract — "
+                f"L11 EMBODIMENT: {tool_name} has no embodiment contract — "
                 "unknown tools cannot be embodied."
             ),
             "floors": ["L11", "L10"],
@@ -193,7 +193,7 @@ def enforce_embodiment(
         return {
             "ok": False,
             "reason": (
-                f"F11 EMBODIMENT: lane={lane} not allowed for {tool_name}. "
+                f"L11 EMBODIMENT: lane={lane} not allowed for {tool_name}. "
                 f"Allowed: {contract.allowed_lanes}"
             ),
             "floors": ["L11"],
@@ -207,7 +207,7 @@ def enforce_embodiment(
         return {
             "ok": False,
             "reason": (
-                f"F11 EMBODIMENT: tier={tier} insufficient for {tool_name}. "
+                f"L11 EMBODIMENT: tier={tier} insufficient for {tool_name}. "
                 f"Required: {contract.required_tiers}"
             ),
             "floors": ["L11"],
@@ -219,7 +219,7 @@ def enforce_embodiment(
         return {
             "ok": False,
             "reason": (
-                f"F11 EMBODIMENT: {tool_name} requires an approved plan_id (H2 ratification)."
+                f"L11 EMBODIMENT: {tool_name} requires an approved plan_id (H2 ratification)."
             ),
             "floors": ["L11", "H2"],
             "embodiment_violation": "plan_id",
@@ -231,7 +231,7 @@ def enforce_embodiment(
         return {
             "ok": False,
             "reason": (
-                f"F11 EMBODIMENT: {tool_name} requires G05 SEAL/SABAR verdict. "
+                f"L11 EMBODIMENT: {tool_name} requires G05 SEAL/SABAR verdict. "
                 f"Got: {judge_verdict or 'None'}"
             ),
             "floors": ["L11", "G05"],
@@ -241,7 +241,7 @@ def enforce_embodiment(
 
     return {
         "ok": True,
-        "reason": f"F11 EMBODIMENT: {tool_name} embodied by lane={lane}, tier={tier}",
+        "reason": f"L11 EMBODIMENT: {tool_name} embodied by lane={lane}, tier={tier}",
         "contract": {
             "allowed_lanes": contract.allowed_lanes,
             "required_tiers": contract.required_tiers,

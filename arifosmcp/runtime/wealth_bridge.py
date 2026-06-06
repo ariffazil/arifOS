@@ -228,7 +228,7 @@ async def wealth_c4_orchestrate(
     """
     C4 capital decision coordinator — not a single chokepoint.
 
-    F08 architecture: this function coordinates the receipt chain but each WEALTH
+    L08 architecture: this function coordinates the receipt chain but each WEALTH
     tool node validates independently. If this coordinator is unavailable, individual
     WEALTH tools still check for session_id. Defense-in-depth, not single gate.
 

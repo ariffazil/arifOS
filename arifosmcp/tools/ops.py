@@ -319,7 +319,7 @@ def arif_ops_measure(
             )
 
     if mode == "budget":
-        # F1/F07 BUDGET: Session-cumulative metabolic budget tracking.
+        # F1/L07 BUDGET: Session-cumulative metabolic budget tracking.
         # Delegates to tools/session_budget.py.
         # Modes: status | record | check | reset (passed via sub_mode param).
         try:

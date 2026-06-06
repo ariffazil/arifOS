@@ -87,7 +87,7 @@ class HardenedKernelRouter:
 
         # ═══════════════════════════════════════════════════════════════════════
         # STEP 3: CLASS B/C — GOVERNED/CRITICAL (State mutation)
-        # Must pass full F1-F13. Requires tool invocation.
+        # Must pass full F1-L13. Requires tool invocation.
         # ═══════════════════════════════════════════════════════════════════════
 
         # Determine which tool to invoke based on query

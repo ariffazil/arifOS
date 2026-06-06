@@ -39,7 +39,7 @@ class CharterLoader:
             try:
                 content = floor_file.read_text(encoding="utf-8")
 
-                # Match Floor ID (e.g., F1, F01)
+                # Match Floor ID (e.g., F1, L01)
                 floor_id_match = re.search(r"Floor:\s*F(\d+)", content)
                 if not floor_id_match:
                     # Fallback to filename

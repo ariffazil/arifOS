@@ -7,10 +7,10 @@ Author: Muhammad Arif bin Fazil [ΔΩΨ | ARIF]
 
 Tools:
 - agentzero_validate: ValidatorAgent (Ψ - APEX) constitutional verification
-- agentzero_engineer: EngineerAgent (Ω - HEART) F11-gated code execution
+- agentzero_engineer: EngineerAgent (Ω - HEART) L11-gated code execution
 - agentzero_hold_check: 888 HOLD state status query
 - agentzero_memory_query: Constitutional memory with F-floor filtering
-- agentzero_armor_scan: F12 injection detection
+- agentzero_armor_scan: L12 injection detection
 """
 
 from __future__ import annotations
@@ -230,7 +230,7 @@ async def agentzero_engineer(
     ctx: Context | None = None,
 ) -> RuntimeEnvelope:
     """
-    EngineerAgent (Ω - HEART): Code generation and execution with F11 gating.
+    EngineerAgent (Ω - HEART): Code generation and execution with L11 gating.
 
     Arg:
         task_description: The code or command to execute.
@@ -374,7 +374,7 @@ async def agentzero_armor_scan(
     caller_context: CallerContext | None = None,
     ctx: Context | None = None,
 ) -> RuntimeEnvelope:
-    """F12 security scan (PromptArmor) on content."""
+    """L12 security scan (PromptArmor) on content."""
     try:
         report = await _ARMOR.scan(content)
 

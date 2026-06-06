@@ -1,6 +1,6 @@
 """
 Web Session Management
-F11 Command Auth for browser sessions.
+L11 Command Auth for browser sessions.
 """
 
 from __future__ import annotations
@@ -54,7 +54,7 @@ class WebSession:
 
 class WebSessionManager:
     """
-    Manages browser sessions with F11 Command Auth.
+    Manages browser sessions with L11 Command Auth.
 
     Links browser cookies to arifOS auth_context with
     cryptographic continuity via VAULT999.
@@ -74,7 +74,7 @@ class WebSessionManager:
         human_approval: bool = False,
     ) -> WebSession:
         """
-        Mint new web session with F11 auth continuity.
+        Mint new web session with L11 auth continuity.
 
         Args:
             actor_id: Declared identity
@@ -88,7 +88,7 @@ class WebSessionManager:
         session_id = f"web-{uuid.uuid4().hex[:16]}"
         now = time.time()
 
-        # Mint F11-compliant auth_context
+        # Mint L11-compliant auth_context
         auth_context = mint_auth_context(
             session_id=session_id,
             actor_id=actor_id,
@@ -109,7 +109,7 @@ class WebSessionManager:
             ip_address=ip_address,
         )
 
-        # Store in Redis with TTL (F11 continuity)
+        # Store in Redis with TTL (L11 continuity)
         await asyncio.wait_for(
             self.redis.setex(
                 f"{self._key_prefix}{session_id}",
@@ -135,7 +135,7 @@ class WebSessionManager:
 
         session = WebSession.from_dict(json.loads(data))
 
-        # Check expiration (F11)
+        # Check expiration (L11)
         if session.is_expired:
             await self.revoke_session(session_id, "expired")
             return None
@@ -143,7 +143,7 @@ class WebSessionManager:
         return session
 
     async def refresh_session(self, session_id: str) -> WebSession | None:
-        """Extend session TTL (F11 continuity)."""
+        """Extend session TTL (L11 continuity)."""
         session = await self.get_session(session_id)
         if not session:
             return None
@@ -165,7 +165,7 @@ class WebSessionManager:
 
     async def revoke_session(self, session_id: str, reason: str) -> None:
         """
-        Revoke session (kill switch - F11).
+        Revoke session (kill switch - L11).
 
         Args:
             session_id: Session to revoke

@@ -7,7 +7,7 @@ This is a stub. The full A2A implementation requires:
   - AgentCard discovery endpoint
   - Task / Artifact message passing
   - SSE streaming for async tasks
-  - Federation-wide identity resolution (F11)
+  - Federation-wide identity resolution (L11)
 """
 
 from __future__ import annotations

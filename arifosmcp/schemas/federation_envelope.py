@@ -134,7 +134,7 @@ class ToolClass(StrEnum):
     observe   → read-only, no approval
     retrieve  → fetch from external source, attestation only
     decide    → judgment/routing/evaluation, floor check + receipt
-    mutate    → write/modify/execute/deploy, 888_JUDGE or F13
+    mutate    → write/modify/execute/deploy, 888_JUDGE or L13
     """
 
     OBSERVE = "observe"
@@ -285,7 +285,7 @@ class ActionReceipts(BaseModel):
         if action_class == ActionClass.MUTATE and not self.observe_receipt_id:
             return False, "MUTATE requires observe_receipt_id (observe-before-mutate)"
         if action_class == ActionClass.ATOMIC and not self.arif_ack_id:
-            return False, "ATOMIC requires arif_ack_id (F13 sovereign approval)"
+            return False, "ATOMIC requires arif_ack_id (L13 sovereign approval)"
         # PREPARE and OBSERVE do not require receipts
         return True, "OK"
 

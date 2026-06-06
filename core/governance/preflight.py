@@ -144,7 +144,7 @@ def main():
         print(f"PREFLIGHT: arifOS verdict = VOID — BLOCKED")
         sys.exit(2)
     else:
-        print(f"PREFLIGHT: arifOS verdict = HOLD — escalate to Arif (F13 SOVEREIGN)")
+        print(f"PREFLIGHT: arifOS verdict = HOLD — escalate to Arif (L13 SOVEREIGN)")
         sys.exit(1)
 
 

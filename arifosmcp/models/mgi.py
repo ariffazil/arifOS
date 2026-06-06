@@ -115,7 +115,7 @@ class GovernanceLayer(BaseModel):
 
     active_floors: list[int] = Field(
         default_factory=list,
-        description="Currently active floors (F1-F13)",
+        description="Currently active floors (F1-L13)",
         ge=1,
         le=13,
     )

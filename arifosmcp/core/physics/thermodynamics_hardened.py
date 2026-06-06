@@ -545,7 +545,7 @@ def check_landauer_bound(
     Returns:
         Dictionary with efficiency_ratio, passed status, violation flag
     """
-    # 0. Temporal Grounding (F2/F13 Clock)
+    # 0. Temporal Grounding (F2/L13 Clock)
     # Use verified compute time if available to prevent self-reported spoofing.
     t_effective = verified_compute_ms if verified_compute_ms is not None else compute_ms
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+from typing import Any
 
 from arifosmcp.runtime.DNA import OMEGA_BAND, VERSION
 
@@ -164,7 +165,7 @@ def _check_wakefulness_gate(tool_name: str) -> dict[str, Any]:
             return {
                 "ok": False,
                 "downgrade": False,
-                "reason": f"WELL HOLD: {msg}. F13 SOVEREIGN requires biological readiness for atomic actions.",
+                "reason": f"WELL HOLD: {msg}. L13 SOVEREIGN requires biological readiness for atomic actions.",
                 "well_score": score,
             }
 
@@ -203,7 +204,7 @@ class ConstitutionalKernel:
         }
 
     async def dispatch_with_fail_closed(self, tool_name: str, arguments: dict):
-        """Fail-Closed Dispatch Gateway (F12/F13) + Formal Execution State Machine."""
+        """Fail-Closed Dispatch Gateway (L12/L13) + Formal Execution State Machine."""
         import time as _time
 
         from arifosmcp.runtime.executor import (
@@ -265,7 +266,7 @@ class ConstitutionalKernel:
             )
             return hold_result
 
-        # ── Tool Embodiment Contract Gate (F11 AUTH + embodiment enforcement) ────────
+        # ── Tool Embodiment Contract Gate (L11 AUTH + embodiment enforcement) ────────
         from arifosmcp.runtime.embodiment_contracts import enforce_embodiment
         from arifosmcp.runtime.tools import _SESSIONS
 
@@ -341,7 +342,7 @@ class ConstitutionalKernel:
                     "reason": wakefulness["reason"],
                     "well_score": wakefulness["well_score"],
                     "violated_laws": ["L13", "WELL"],
-                    "next_safe_action": "Wait for biological readiness recovery or override via F13 SOVEREIGN.",
+                    "next_safe_action": "Wait for biological readiness recovery or override via L13 SOVEREIGN.",
                 },
                 "verdict": "HOLD",
                 "nine_signal": "RETAK",

@@ -25,10 +25,10 @@ def register_arifos_prompts(mcp: Any) -> list[str]:
 7. F7 HUMILITY: Is uncertainty stated explicitly (Ω₀ = 0.03–0.05)?
 8. F8 GENIUS: Is the solution both correct and useful (≥ 0.80)?
 9. F9 ANTI-HANTU: Are there no dark patterns or consciousness performance?
-10. F10 ONTOLOGY: Are there no mysticism or soul claims?
-11. F11 COMMAND AUTH: Is identity verified for destructive actions?
-12. F12 INJECTION: Are adversarial inputs resisted (< 0.85)?
-13. F13 SOVEREIGN: Has Arif ratified this if it crosses the 888_HOLD gate?
+10. L10 ONTOLOGY: Are there no mysticism or soul claims?
+11. L11 COMMAND AUTH: Is identity verified for destructive actions?
+12. L12 INJECTION: Are adversarial inputs resisted (< 0.85)?
+13. L13 SOVEREIGN: Has Arif ratified this if it crosses the 888_HOLD gate?
 
 If any floor fails, return VOID or HOLD with specific remediation.
 """
@@ -47,12 +47,12 @@ Required envelope structure:
 - TO/CC/TITLE/KEY_CONTEXT header
 - RACI block (who is Responsible, Accountable, Consulted, Informed)
 - Computed τ (truth score)
-- Constitutional floor tags (F1–F13 status)
+- Constitutional floor tags (F1–L13 status)
 - SEAL signoff
 
 Constraints:
 - If the reply recommends any forge execution, it must pass 888_JUDGE SEAL.
-- If F1 or F13 triggers are active, require human:arif ratification.
+- If F1 or L13 triggers are active, require human:arif ratification.
 - Use DELTA compression unless this is a session start or cross-agent handoff.
 """
 

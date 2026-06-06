@@ -4,7 +4,7 @@ arifosmcp/runtime/fault_codes.py — VOID Memanjang Elimination: Fault Code Taxo
 THE VOID MEMANJANG FAILURE MODE (what this module eliminates):
   Legacy behaviour: any network error, timeout, or missing dependency would
   cause the system to emit a VOID verdict. This is catastrophically wrong.
-  VOID means constitutional collapse (F2/F11/F12/F13 violation). It is terminal.
+  VOID means constitutional collapse (F2/L11/L12/L13 violation). It is terminal.
   A missing Qdrant collection is not a constitutional collapse. It is plumbing.
 
 THE HARD INVARIANT (from Grand Unified Technical Specification, FORGED-2026.03):

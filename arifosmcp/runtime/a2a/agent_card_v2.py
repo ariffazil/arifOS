@@ -7,7 +7,7 @@ A2A-aligned Agent Card for arifOS Constitutional Kernel v2.0.
 Key changes from v1:
 - 6-axis model (P/T/V/G/E/M) as primary skill taxonomy
 - G02 Layered Router as primary entry skill
-- Constitutional governance metadata (F1-F13, Ω_ortho, WELL gate)
+- Constitutional governance metadata (F1-L13, Ω_ortho, WELL gate)
 - Agent registry integration (23 agents across 6 axes)
 - Seal verification endpoint
 - Event-sourced state machine representation
@@ -142,7 +142,7 @@ class ArifOSAgentCard(BaseModel):
     # ── Identity ─────────────────────────────────────────────────────────────
     name: str = "arifOS Constitutional Kernel"
     description: str = (
-        "Constitutionally-governed sovereign AI kernel with 13 floors (F1-F13), "
+        "Constitutionally-governed sovereign AI kernel with 13 floors (F1-L13), "
         "6-axis orthogonal routing (P/T/V/G/E/M), G02 Layered Router, "
         "event-sourced metabolism, and VAULT999 cryptographic sealing. "
         "A2A connects minds. MCP connects hands. arifOS governs both."

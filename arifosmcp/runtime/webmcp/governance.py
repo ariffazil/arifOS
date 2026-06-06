@@ -32,7 +32,7 @@ class Verdict(StrEnum):
 class FloorViolation(BaseModel):
     """Specific floor that was violated."""
 
-    law_id: str = Field(..., description="F1-F13")
+    law_id: str = Field(..., description="F1-L13")
     floor_name: str
     threshold: str
     actual_value: float
@@ -54,7 +54,7 @@ class AgentDID(BaseModel):
     )
     governance_endpoints: list[str] = Field(default_factory=list)
     scar_weight: float = Field(
-        default=0.0, ge=0.0, le=1.0, description="AI cannot suffer - F13 anchor"
+        default=0.0, ge=0.0, le=1.0, description="AI cannot suffer - L13 anchor"
     )
     human_sovereign: str | None = Field(None, description="did:arifos:human:{id}")
     version: str = "2026.03.14-VALIDATED"
@@ -197,7 +197,7 @@ class GovernanceEngine:
     """
     Constitutional evaluation engine.
 
-    Evaluates agent actions against F1-F13 without executing them.
+    Evaluates agent actions against F1-L13 without executing them.
     """
 
     def __init__(self):
@@ -339,10 +339,10 @@ class GovernanceEngine:
                 )
             )
 
-        # === F10: Ontology ===
+        # === L10: Ontology ===
         floors_passed.append("L10")  # Agent knows it's a tool
 
-        # === F11: Command Auth ===
+        # === L11: Command Auth ===
         if request.agent_signature and request.agent_did:
             floors_passed.append("L11")
         else:
@@ -358,7 +358,7 @@ class GovernanceEngine:
                 )
             )
 
-        # === F12: Injection ===
+        # === L12: Injection ===
         # Scan parameters for injection
         injection_score = await self._scan_for_injection(request)
         if injection_score < 0.85:
@@ -376,7 +376,7 @@ class GovernanceEngine:
                 )
             )
 
-        # === F13: Sovereign ===
+        # === L13: Sovereign ===
         if request.agent_did.human_sovereign:
             floors_passed.append("L13")
             human_available = True
@@ -398,7 +398,7 @@ class GovernanceEngine:
             )
         elif request.action_type in ["code_execution", "data_modification"] and not human_available:
             verdict = Verdict.HOLD_888
-            reasoning = "High-risk action requires human sovereign ratification (F13)."
+            reasoning = "High-risk action requires human sovereign ratification (L13)."
         else:
             verdict = Verdict.SEAL
             reasoning = (
@@ -443,7 +443,7 @@ class GovernanceEngine:
         return evaluation
 
     async def _scan_for_injection(self, request: ActionRequest) -> float:
-        """Scan for injection patterns (F12)."""
+        """Scan for injection patterns (L12)."""
         from .security import WebInjectionGuard
 
         guard = WebInjectionGuard()

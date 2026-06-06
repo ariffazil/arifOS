@@ -2,21 +2,21 @@
 EngineerAgent - Code Execution (Ω Axis)
 
 The EngineerAgent executes code, runs tools, and performs system operations.
-It is heavily guarded by F11 (Command Auth) and requires Validator approval
+It is heavily guarded by L11 (Command Auth) and requires Validator approval
 for dangerous operations.
 
 Constitutional Role: A-ENGINEER (Ω - Humility/Heart)
-Enforced Floors: F5, F6, F9, F11
+Enforced Floors: F5, F6, F9, L11
 
 Responsibilities:
 - Code execution in sandboxed environment
 - Tool orchestration via MCP
 - File system operations (audited)
-- Shell command execution (F11 gated)
+- Shell command execution (L11 gated)
 - Dynamic tool creation (with F8/F9 validation)
 
 All dangerous operations require:
-1. F11 authorization check
+1. L11 authorization check
 2. Validator approval (for high-risk)
 3. Reversibility proof (F1)
 4. VAULT999 logging
@@ -46,7 +46,7 @@ class EngineerAgent(ConstitutionalAgent):
     - Create dynamic tools (validated)
 
     It CANNOT:
-    - Execute without F11 authorization
+    - Execute without L11 authorization
     - Bypass the Validator for dangerous ops
     - Access secrets without authentication
     - Execute irreversible actions without 888_HOLD
@@ -107,7 +107,7 @@ class EngineerAgent(ConstitutionalAgent):
         - "write_file": Write file (audited)
         - "install_package": Install Python package
         - "create_tool": Create dynamic tool
-        - "shell_command": Execute shell command (F11 gated)
+        - "shell_command": Execute shell command (L11 gated)
         """
         task_type = task.get("type", "execute_code")
 
@@ -132,7 +132,7 @@ class EngineerAgent(ConstitutionalAgent):
         Execute Python code in sandboxed environment.
 
         F9: Check for dark cleverness (obfuscation, exploits)
-        F11: Verify authorization
+        L11: Verify authorization
         F5: Ensure constructive power only
         """
         code = task.get("code", "")
@@ -152,7 +152,7 @@ class EngineerAgent(ConstitutionalAgent):
                 "message": "Code contains suspicious patterns",
             }
 
-        # === F11: Authorization Check ===
+        # === L11: Authorization Check ===
         is_dangerous = self._is_dangerous_code(code)
         if is_dangerous and not await self._verify_f11_audit(task):
             self.blocked_operations += 1
@@ -196,10 +196,10 @@ class EngineerAgent(ConstitutionalAgent):
 
     async def _shell_command(self, task: dict, execution_id: str) -> dict[str, Any]:
         """
-        Execute shell command with F11 gating.
+        Execute shell command with L11 gating.
 
         This is the most dangerous operation - requires:
-        1. Local F11 check
+        1. Local L11 check
         2. Validator approval for dangerous commands
         3. 888_HOLD for irreversible operations
         """
@@ -335,7 +335,7 @@ class EngineerAgent(ConstitutionalAgent):
         Requires:
         - F8: Coherence check (A × P × X × E² ≥ 0.80)
         - F9: C_dark limit (< 0.30)
-        - F11: Authorization
+        - L11: Authorization
         """
         tool_name = task.get("name", "")
         tool_code = task.get("code", "")
@@ -478,8 +478,8 @@ class EngineerAgent(ConstitutionalAgent):
         return not any(d in code_lower for d in destructive)
 
     async def _verify_f11_audit(self, task: dict) -> bool:
-        """Verify F11 authorization for dangerous operations."""
-        # In production: Call arifOS F11 verification
+        """Verify L11 authorization for dangerous operations."""
+        # In production: Call arifOS L11 verification
         # For MVP: Simplified check
         return task.get("authorized", False)
 

@@ -46,8 +46,8 @@ __all__ = [
     "anchor",
     "feel",
     # Actions
-    "scan_injection",  # F12
-    "verify_auth",  # F11
+    "scan_injection",  # L12
+    "verify_auth",  # L11
     "requires_sovereign",
     "sense",  # Stage 111
     "think",  # Stage 222

@@ -4,7 +4,7 @@ arifOS v60: Cryptographic Primitives
 
 Ed25519 signatures, Merkle trees, SHA-256 hashing.
 
-Enforces: F1 (Amanah - Reversibility), F11 (Command Auth)
+Enforces: F1 (Amanah - Reversibility), L11 (Command Auth)
 
 Version: v60.0-FORGE
 Author: Muhammad Arif bin Fazil
@@ -84,7 +84,7 @@ def sha256_hash_dict(data: dict) -> str:
 
 
 # ============================================================================
-# ED25519 SIGNATURES (F11 Command Auth)
+# ED25519 SIGNATURES (L11 Command Auth)
 # ============================================================================
 
 
@@ -92,7 +92,7 @@ def ed25519_sign(message: str, private_key: str) -> str:
     """
     Sign message with Ed25519 private key.
 
-    F11 Command Auth: Cryptographic proof of identity.
+    L11 Command Auth: Cryptographic proof of identity.
 
     Args:
         message: Data to sign
@@ -131,7 +131,7 @@ def ed25519_verify(message: str, signature: str, public_key: str) -> bool:
     """
     Verify Ed25519 signature.
 
-    F11 Command Auth: Validate cryptographic proof.
+    L11 Command Auth: Validate cryptographic proof.
 
     Args:
         message: Original data
@@ -284,7 +284,7 @@ def verify_merkle_proof(
 
 
 # ============================================================================
-# NONCE MANAGEMENT (F11 Command Auth - Replay Protection)
+# NONCE MANAGEMENT (L11 Command Auth - Replay Protection)
 # ============================================================================
 
 
@@ -292,7 +292,7 @@ class NonceManager:
     """
     Nonce manager for replay attack prevention.
 
-    F11 Command Auth: Each command must have unique nonce.
+    L11 Command Auth: Each command must have unique nonce.
     """
 
     def __init__(self, window_seconds: int = 300):

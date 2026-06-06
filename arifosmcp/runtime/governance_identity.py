@@ -1,5 +1,5 @@
 """
-governance_identities.py — Protected Sovereign Identity Registry (F11/F13)
+governance_identities.py — Protected Sovereign Identity Registry (L11/L13)
 
 Defines protected sovereign IDs that require cryptographic proof or explicit
 human approval before session anchoring is permitted.
@@ -11,7 +11,7 @@ import hashlib
 import re
 from typing import Any
 
-# P0: Protected Sovereign IDs (F11 Identity Hardening)
+# P0: Protected Sovereign IDs (L11 Identity Hardening)
 # These IDs cannot be claimed without:
 # 1. Valid cryptographic proof (signed token), OR
 # 2. Explicit human_approval flag with acknowledgment, OR
@@ -79,8 +79,8 @@ def validate_sovereign_proof(actor_id: str, proof: dict | str | Any | None) -> b
     """
     Validate cryptographic or semantic proof for protected sovereign ID.
 
-    F11: Command Authority
-    F13: Sovereign Override
+    L11: Command Authority
+    L13: Sovereign Override
     """
     if not proof:
         return False

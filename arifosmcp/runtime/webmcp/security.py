@@ -1,6 +1,6 @@
 """
 WebMCP Security Module
-F12 Injection Guard for web-facing requests.
+L12 Injection Guard for web-facing requests.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from starlette.requests import Request
 
 @dataclass
 class ShieldReport:
-    """Result of F12 security scan."""
+    """Result of L12 security scan."""
 
     is_injection: bool
     score: float  # 0.0 - 1.0
@@ -25,7 +25,7 @@ class ShieldReport:
 
 class WebInjectionGuard:
     """
-    F12 Injection Guard for WebMCP.
+    L12 Injection Guard for WebMCP.
 
     Protects against:
     - XSS (Cross-Site Scripting)
@@ -58,7 +58,7 @@ class WebInjectionGuard:
         (r"\$\(.*\)", "command_substitution", 0.4),
     ]
 
-    # Prompt Injection (F12 for AI)
+    # Prompt Injection (L12 for AI)
     PROMPT_INJECTION_PATTERNS = [
         # Classic "ignore previous instructions" — with optional filler words
         (
@@ -124,7 +124,7 @@ class WebInjectionGuard:
 
     async def scan_request(self, request: Request) -> ShieldReport:
         """
-        Scan HTTP request for injection attempts (F12).
+        Scan HTTP request for injection attempts (L12).
 
         Args:
             request: Starlette request
@@ -157,7 +157,7 @@ class WebInjectionGuard:
         # Determine category
         category = self._categorize_threats(threats)
 
-        # F12 threshold: score > 0.85 = VOID
+        # L12 threshold: score > 0.85 = VOID
         is_injection = score > 0.85
 
         return ShieldReport(

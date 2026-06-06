@@ -2,7 +2,7 @@
 arifOS WebMCP Extension
 The first AI-governed WebMCP environment on the internet.
 
-WebMCP extends MCP to browsers with constitutional enforcement (F1-F13).
+WebMCP extends MCP to browsers with constitutional enforcement (F1-L13).
 Every HTTP request passes through the 000→999 metabolic loop.
 
 Usage:

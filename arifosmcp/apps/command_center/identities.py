@@ -1,4 +1,4 @@
-"""Sovereign Identity Registry — F11/F13 Identity Hardening.
+"""Sovereign Identity Registry — L11/L13 Identity Hardening.
 
 Extracted from archive: _archived/root_runtime_pre_migration/governance_identities.py
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -10,7 +10,7 @@ import hashlib
 import re
 from typing import Any
 
-# P0: Protected Sovereign IDs (F11 Identity Hardening)
+# P0: Protected Sovereign IDs (L11 Identity Hardening)
 PROTECTED_SOVEREIGN_IDS: set[str] = {
     "arif",
     "ariffazil",

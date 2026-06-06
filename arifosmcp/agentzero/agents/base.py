@@ -6,7 +6,7 @@ All AgentZero agents inherit from this base class, which provides:
 - VAULT999 audit logging
 - Trinity role assignment
 - Verdict handling
-- F11 authorization gating
+- L11 authorization gating
 """
 
 from __future__ import annotations
@@ -46,7 +46,7 @@ class VerdictStatus(Enum):
 class FloorScore:
     """Score for a single constitutional floor."""
 
-    floor: str  # F1-F13
+    floor: str  # F1-L13
     score: float  # 0.0-1.0
     threshold: float  # Required threshold
     passed: bool  # Whether floor passed
@@ -179,7 +179,7 @@ class ArifOSClient(Protocol):
         ...
 
     async def request_human_approval(self, execution_id: str, reason: str) -> bool:
-        """Request F13 human approval for HOLD state."""
+        """Request L13 human approval for HOLD state."""
         ...
 
 
@@ -192,7 +192,7 @@ class ConstitutionalAgent(ABC):
     2. Declare which floors it enforces
     3. Get verdict before executing any action
     4. Log all actions to VAULT999
-    5. Support F13 human veto
+    5. Support L13 human veto
     """
 
     def __init__(
@@ -234,7 +234,7 @@ class ConstitutionalAgent(ABC):
         This is the main entry point - it wraps _execute_impl with:
         1. Pre-execution constitutional check
         2. VAULT999 logging
-        3. F13 human approval for HOLD states
+        3. L13 human approval for HOLD states
         4. Post-execution audit
         """
         execution_id = str(uuid4())
@@ -312,13 +312,13 @@ class ConstitutionalAgent(ABC):
         """
         Handle 888_HOLD escalation.
 
-        This implements the F13 human sovereignty pathway.
+        This implements the L13 human sovereignty pathway.
         """
         logger.info(f"[{verdict.execution_id}] Requesting human approval")
 
         approved = await self.arifos.request_human_approval(
             verdict.execution_id,
-            verdict.hold_reason or "High-risk action requires F13 approval",
+            verdict.hold_reason or "High-risk action requires L13 approval",
         )
 
         if approved:
@@ -341,7 +341,7 @@ class ConstitutionalAgent(ABC):
         return {
             "status": "DENIED",
             "execution_id": verdict.execution_id,
-            "message": "F13 human sovereignty exercised - action blocked",
+            "message": "L13 human sovereignty exercised - action blocked",
         }
 
     @abstractmethod

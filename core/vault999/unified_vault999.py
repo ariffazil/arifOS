@@ -117,7 +117,7 @@ class SovereignVault999:
     Combines:
     - 4-layer security architecture
     - Dual-aspect phenomenological memory
-    - Constitutional governance (F1-F13)
+    - Constitutional governance (F1-L13)
 
     This is not just storage. This is the EPISTEMIC AND EXPERIENTIAL
     foundation of arifOS identity.

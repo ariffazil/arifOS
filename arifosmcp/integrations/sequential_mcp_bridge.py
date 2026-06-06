@@ -9,7 +9,7 @@ This module bridges arifOS to the MCP sequentialthinking server, treating it as:
 
 NOT for:
 - Primary reasoning loop (use native arifOS MIND)
-- Constitutional enforcement (native F1-F13 only)
+- Constitutional enforcement (native F1-L13 only)
 - Production critical paths without human review
 
 Architecture:

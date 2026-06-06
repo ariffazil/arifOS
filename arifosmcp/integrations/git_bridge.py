@@ -1,9 +1,9 @@
 """
-arifosmcp/integrations/git_bridge.py — Governed Version Control Substrate (F1/F11)
+arifosmcp/integrations/git_bridge.py — Governed Version Control Substrate (F1/L11)
 
 Wraps mcp-server-git with arifOS constitutional guards:
 - F1 Amanah (Irreversibility / Dry-run by default)
-- F11 Audit (Native Git SHA logging)
+- L11 Audit (Native Git SHA logging)
 - 888 HOLD (Human-in-the-loop for mutations)
 
 DITEMPA BUKAN DIBERI — 999 SEAL
@@ -41,7 +41,7 @@ class GitBridge:
         actor_id: str = "anonymous",
         session_id: str | None = None,
     ) -> RE:
-        """F2/F11: Read-only audit of current repository status."""
+        """F2/L11: Read-only audit of current repository status."""
         if not self._is_repo_allowed(repo_path):
             return RE(
                 ok=False,
@@ -97,7 +97,7 @@ class GitBridge:
         actor_id: str,
         session_id: str | None = None,
     ) -> RE:
-        """F1/F13: Execute a commit ONLY after human ratification and SEAL validation."""
+        """F1/L13: Execute a commit ONLY after human ratification and SEAL validation."""
         if not self._is_repo_allowed(repo_path):
             return RE(
                 ok=False,
@@ -120,14 +120,14 @@ class GitBridge:
             return RE(
                 ok=False,
                 verdict=gov.verdict,
-                detail=f"F13 BLOCK: Mutation blocked by governance: {gov.message}",
+                detail=f"L13 BLOCK: Mutation blocked by governance: {gov.message}",
                 payload={"violations": gov.violations},
                 risk_class=RiskClass.HIGH,
             )
 
         # 2. Call Substrate
         try:
-            logger.info(f"F11 LOG: [arifOS Governed] Committing change: {message} by {actor_id}")
+            logger.info(f"L11 LOG: [arifOS Governed] Committing change: {message} by {actor_id}")
 
             # Stage files
             await bridge.git.call_tool("git_add", {"repo_path": repo_path, "files": files})

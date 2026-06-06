@@ -1,6 +1,6 @@
 """SAF — Statistical Analysis Forge (merged into arifOS kernel as shared lib).
 
-Migrated: 2026-06-02 per F13 SOVEREIGN directive
+Migrated: 2026-06-02 per L13 SOVEREIGN directive
 Origin:   /root/SAF/ sovereign organ (port 18084, decommissioned)
 Auth:     AGI OPENCLAW (agi@arif-fazil.com), Copilot co-author
 
@@ -38,7 +38,7 @@ The 7 SPSS read tools (pyreadstat):
 
 F1 AMANAH: every outcome seals to VAULT999/outcomes.jsonl
 F6 PRIVACY: all file I/O resolves under SAF_DATA_ROOT (sandbox)
-F13 SOVEREIGN: destructive ops (impute, overwrite) require ack_irreversible
+L13 SOVEREIGN: destructive ops (impute, overwrite) require ack_irreversible
 """
 
 from . import governance

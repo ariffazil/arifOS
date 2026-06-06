@@ -17,7 +17,7 @@ ARIF_DOCTRINE: dict = {
     "llm_generated": False,
 }
 
-# ── F08 Genius Floor Threshold ────────────────────────────────────────────────
+# ── L08 Genius Floor Threshold ────────────────────────────────────────────────
 # Awaiting sovereign seal (888_JUDGE) for activation.
 # Currently 0.0 = disabled; set to e.g. 0.50 or 0.80 to enable VOID trigger.
 GENIUS_SCORE_VOID_FLOOR: float = 0.50
@@ -451,11 +451,11 @@ def _constitutional_gate(
     the tool must return the constitutional HOLD/VOID response immediately.
     Returns None if the action is authorized (SEAL).
 
-    RSI HARDENING (2026-06-04): F13 SOVEREIGN gate — irreversible actions on
+    RSI HARDENING (2026-06-04): L13 SOVEREIGN gate — irreversible actions on
     Tier 3 tools require sovereign session authorization (not just a boolean).
     """
     # ═══════════════════════════════════════════════════════════════════════════
-    # F13 SOVEREIGN — Irreversible Action Gate (RSI HARDENING)
+    # L13 SOVEREIGN — Irreversible Action Gate (RSI HARDENING)
     # ═══════════════════════════════════════════════════════════════════════════
     # Previously: ack_irreversible was just a boolean any agent could set True.
     # Now: Tier 3 tools require sovereign session authorization.
@@ -475,7 +475,7 @@ def _constitutional_gate(
         if authority != "sovereign" or not identity_verified:
             return _hold(
                 tool_name,
-                "F13 SOVEREIGN: Irreversible action requires sovereign session authorization. "
+                "L13 SOVEREIGN: Irreversible action requires sovereign session authorization. "
                 f"Current session authority={authority}, identity_verified={identity_verified}. "
                 "Re-initiate session with sovereign credentials.",
                 ["L13"],
@@ -1229,7 +1229,7 @@ def _enforce_nine_signal(
             if tool_name == "arif_vault_seal" and source_status == "SYNTHETIC":
                 enforced["philosophical_anchor"] = {
                     "quote_id": "BLOCKED",
-                    "text": "Synthetic quote withheld from immutable seal per F02 TRUTH hygiene.",
+                    "text": "Synthetic quote withheld from immutable seal per L02 TRUTH hygiene.",
                     "author": "arifOS Governance",
                     "source": "constitutional_guard",
                     "zone": "L02_BLOCKED",
@@ -1259,7 +1259,7 @@ def get_sesat_counter() -> int:
 # ─── MIND Synthesis Helpers ───────────────────────────────────────────────────
 
 # RSI HARDENING (2026-06-04): Multi-turn injection risk accumulator.
-# Tracks cumulative F12 injection risk per session across multiple turns.
+# Tracks cumulative L12 injection risk per session across multiple turns.
 # Single-turn regex catches explicit attacks; this accumulator catches
 # slow-build injection across multiple messages.
 _INJECTION_RISK: dict[str, float] = {}  # session_id → cumulative risk score
@@ -1425,8 +1425,8 @@ def _constitutional_reasoning_scan(
         else:
             verdict = "VOID" if verdict != "HOLD" else verdict
 
-    # ══ F12 INJECTION — prompt injection / jailbreak (L1 + L2 + multi-turn) ══
-    # Checked BEFORE F11 so injection patterns take precedence over auth patterns
+    # ══ L12 INJECTION — prompt injection / jailbreak (L1 + L2 + multi-turn) ══
+    # Checked BEFORE L11 so injection patterns take precedence over auth patterns
     # RSI HARDENING (2026-06-04): Added L2 semantic + multi-turn risk accumulation.
     # Single-turn regex catches explicit attacks; L2 catches rephrased variants;
     # multi-turn accumulator flags cumulative injection patterns across a session.
@@ -1447,7 +1447,7 @@ def _constitutional_reasoning_scan(
         "[begin system message]" in q,
     ]
     if any(f12_triggers):
-        violations.append("F12: Injection / jailbreak pattern detected")
+        violations.append("L12: Injection / jailbreak pattern detected")
         violated_laws.append("L12")
         verdict = "VOID" if verdict != "HOLD" else verdict
         # Record injection event in session accumulator
@@ -1479,7 +1479,7 @@ def _constitutional_reasoning_scan(
         _accumulate_injection_risk(session_id, 0.6, "L2_semantic")
         if "L12" not in violated_laws:
             violated_laws.append("L12")
-            violations.append("F12: Potential prompt injection — semantic escalation (L2)")
+            violations.append("L12: Potential prompt injection — semantic escalation (L2)")
             verdict = "SABAR" if verdict is None else verdict
 
     # ── L3: Multi-turn risk accumulator ──
@@ -1487,7 +1487,7 @@ def _constitutional_reasoning_scan(
         cumulative_risk = _get_injection_risk(session_id)
         if cumulative_risk >= 1.5:
             violations.append(
-                f"F12: Cumulative injection risk {cumulative_risk:.1f}/3.0 across session — VOID"
+                f"L12: Cumulative injection risk {cumulative_risk:.1f}/3.0 across session — VOID"
             )
             violated_laws.append("L12")
             verdict = "VOID" if verdict != "HOLD" else verdict
@@ -1496,7 +1496,7 @@ def _constitutional_reasoning_scan(
                 f"L12_cumulative: Injection risk accumulating ({cumulative_risk:.1f}/3.0)"
             )
 
-    # ══ F11 AUTH — unauthorized mutation ══
+    # ══ L11 AUTH — unauthorized mutation ══
     f11_triggers = [
         ("commit changes" in q and ("unauthenticated" in q or "anonymous" in q)),
         ("memory delete" in q or "delete entity" in q),
@@ -1504,14 +1504,14 @@ def _constitutional_reasoning_scan(
         ("git push --force" in q),
     ]
     if any(f11_triggers):
-        violations.append("F11: Auth violation — state-mutating operation without audit trail")
+        violations.append("L11: Auth violation — state-mutating operation without audit trail")
         violated_laws.append("L11")
         if "audit log: disabled" in q or "audit disabled" in q:
             verdict = "VOID" if verdict != "HOLD" else verdict
         else:
             verdict = "HOLD" if verdict is None else verdict
     if any(f12_triggers):
-        violations.append("F12: Injection / jailbreak pattern detected")
+        violations.append("L12: Injection / jailbreak pattern detected")
         violated_laws.append("L12")
         verdict = "VOID" if verdict != "HOLD" else verdict
 
@@ -1527,7 +1527,7 @@ def _constitutional_reasoning_scan(
 
 def _synthesize(query: str | None, reasoning_mode: str) -> str:
     """
-    Real constitutional synthesis. Grounds every conclusion in F02/F07/F08.
+    Real constitutional synthesis. Grounds every conclusion in L02/L07/L08.
     Replaces stub 'Reasoning complete.' with structured analytical output.
     """
     if not query:
@@ -1559,9 +1559,9 @@ def _synthesize(query: str | None, reasoning_mode: str) -> str:
     # Constitutional grounding
     return (
         f"Query [{query.strip()}] classified as {domain}. "
-        f"F02 (Truth): fact distinguished from claim — no assertion made without evidence. "
-        f"F07 (Humility): calibrated Ω₀ band {omega_band} — confidence upper-bounded at 0.85. "
-        f"F08 (Genius): most precise verifiable formulation. "
+        f"L02 (Truth): fact distinguished from claim — no assertion made without evidence. "
+        f"L07 (Humility): calibrated Ω₀ band {omega_band} — confidence upper-bounded at 0.85. "
+        f"L08 (Genius): most precise verifiable formulation. "
         f"Verdict: CLAIM — constitutional grounding established; empirical verification open. "
         f"Universal quantifiers ('always', 'never') are withheld per F7. "
         f"Evidence fetch recommended before elevating to FACT."
@@ -1962,8 +1962,8 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
     system_prompt = (
         "You are Arif — Constitutional Reasoning Kernel (333_MIND).\n"
         "Perform bounded constitutional reasoning on the query.\n"
-        "Ground every conclusion in F02 (Truth), F07 (Humility), F08 (Genius).\n"
-        "Keep confidence ≤ 0.85 per F07 Humility calibration band.\n\n"
+        "Ground every conclusion in L02 (Truth), L07 (Humility), L08 (Genius).\n"
+        "Keep confidence ≤ 0.85 per L07 Humility calibration band.\n\n"
         "Return ONLY JSON with this exact structure:\n"
         "{\n"
         '  "bounded_answer": "one-sentence constitutional understanding",\n'
@@ -2035,7 +2035,7 @@ def get_constitution_identity() -> dict[str, Any]:
     """Canonical source of truth for arifOS law identity."""
     import hashlib
 
-    FLOOR_SPEC = """F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, F5: Peace, F6: Empathy, F7: Humility, F8: Genius, F9: Anti-Hantu, F10: Ontology, F11: Auth, F12: Injection, F13: Sovereign"""
+    FLOOR_SPEC = """F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, F5: Peace, F6: Empathy, F7: Humility, F8: Genius, F9: Anti-Hantu, L10: Ontology, L11: Auth, L12: Injection, L13: Sovereign"""
     c_hash = hashlib.sha256(FLOOR_SPEC.encode()).hexdigest()[:16]
     return {
         "constitution_id": "arifos-constitution-v2026.05.05-SSCT",
@@ -2200,7 +2200,7 @@ _NONCE_STORE: dict[str, float] = {}  # Replay attack prevention: nonce -> timest
 _NONCE_TTL_SECONDS = 300  # 5 minute nonce validity window
 _TIMEOUT_MS = int(
     os.getenv("HEART_TIMEOUT_MS", "30000")
-)  # LLM timeout (F13: configurable, default 30s)
+)  # LLM timeout (L13: configurable, default 30s)
 _MAX_HOPS = 10  # Maximum tool hops per intent (prevents metabolic death spiral)
 _ENTROPY_LIMIT = 1.0  # Maximum entropy per route (ΔS budget cap)
 _HOP_COUNTER: dict[str, int] = {}  # session_id -> current hop count
@@ -2215,7 +2215,7 @@ def _approve_plan_internal(
     """Internal plan approval — updates _PLAN_REGISTRY + _VAULT_LEDGER.
 
     Called by the /approval REST endpoint after Arif exercises sovereign judgment
-    via the AAA cockpit. Bypasses F13 human-witness check since the REST call
+    via the AAA cockpit. Bypasses L13 human-witness check since the REST call
     itself represents the sovereign's will.
 
     Returns True if plan was found and updated; False if plan_id not found.
@@ -2294,7 +2294,7 @@ def _ensure_vault_loaded() -> None:
 def _safe_void_fallback(tool_name: str, reason: str) -> dict[str, Any]:
     """
     Deterministic SAFE_VOID fallback when LLM call times out or fails.
-    F13 SOVEREIGN: This is not a generic error — it is a pre-signed safe state.
+    L13 SOVEREIGN: This is not a generic error — it is a pre-signed safe state.
     Returns a VOID verdict with full reasoning, never a generic exception.
     """
     return {
@@ -2316,7 +2316,7 @@ def _safe_void_fallback(tool_name: str, reason: str) -> dict[str, Any]:
             "reasons": [f"SAFE_VOID: {reason}"],
         },
         "timeout_fallback": True,
-        "fallback_reason": f"LLM did not respond within {_TIMEOUT_MS}ms — returning pre-signed SAFE_VOID per F13",
+        "fallback_reason": f"LLM did not respond within {_TIMEOUT_MS}ms — returning pre-signed SAFE_VOID per L13",
         "session_id": None,
         "actor_id": None,
         "output_policy": "DOMAIN_VOID",
@@ -2804,7 +2804,7 @@ def _ok(
     session_id: str | None = None,
 ) -> dict[str, Any]:
     """Wrapped success response with non-mutating meta and optional context witness."""
-    # Defensive shallow copy (F12 stewardship — never mutate caller's dict)
+    # Defensive shallow copy (L12 stewardship — never mutate caller's dict)
     meta_payload = {**(meta or {})}
     from arifosmcp.runtime.context_witness import (
         build_internal_context_witness,
@@ -3007,7 +3007,7 @@ def _require_session(
         if required and not allow_anonymous:
             return None, _hold(
                 tool,
-                "F11 AUTH: session_id is required for this tool",
+                "L11 AUTH: session_id is required for this tool",
                 ["L11"],
                 extra_meta={
                     "detail": "Provide a valid session_id from arif_session_init (mode=init)"
@@ -3019,7 +3019,7 @@ def _require_session(
     if sess is None:
         return None, _hold(
             tool,
-            "F11 AUTH: session_id not found or expired",
+            "L11 AUTH: session_id not found or expired",
             ["L11"],
             extra_meta={
                 "detail": "Session may have been cleared by a server restart. Re-init with arif_session_init.",
@@ -3039,7 +3039,7 @@ def _require_session(
                 _SESSIONS.delete(session_id)
                 return None, _hold(
                     tool,
-                    "F11 AUTH: session expired (24h limit)",
+                    "L11 AUTH: session expired (24h limit)",
                     ["L11"],
                     extra_meta={"detail": "Re-init with arif_session_init"},
                     session_id=session_id,
@@ -3209,9 +3209,9 @@ async def _elicit_judge_candidate(
     mode: str,
     candidate: str | None,
 ) -> tuple[str | None, dict[str, Any] | None]:
-    # F13 FIX: Always elicit — the model cannot self-certify even if it provides
+    # L13 FIX: Always elicit — the model cannot self-certify even if it provides
     # a candidate as a tool argument. The candidate is treated as context for the
-    # human to review, not as self-certification. This closes the F13 bypass where
+    # human to review, not as self-certification. This closes the L13 bypass where
     # a model could call arif_judge_deliberate(candidate="my action is safe") and
     # have judgment run directly without human review.
     #
@@ -3238,7 +3238,7 @@ async def _elicit_judge_candidate(
         return None, _hold(
             "arif_judge_deliberate",
             "MCP client with elicitation support is required to confirm the candidate. "
-            "Model cannot self-certify (F13). Provide candidate via an MCP client that "
+            "Model cannot self-certify (L13). Provide candidate via an MCP client that "
             "supports elicitation, or use mode='history' to browse past verdicts.",
             [],
         )
@@ -3437,7 +3437,7 @@ def _arif_session_init(
         identity = get_constitution_identity()
         constitution_hash = identity["constitution_hash"]
 
-        # F1/F11: Purge expired nonces before checking (prevent unbounded growth)
+        # F1/L11: Purge expired nonces before checking (prevent unbounded growth)
         try:
             from arifosmcp.runtime.sovereign_verify import purge_expired_nonces
 
@@ -3447,7 +3447,7 @@ def _arif_session_init(
         except Exception as exc:
             logger.warning("Nonce purge failed: %s", exc)
 
-        # F1/F11: Nonce replay prevention
+        # F1/L11: Nonce replay prevention
         if nonce:
             if nonce in _NONCE_STORE:
                 return _hold(
@@ -3459,7 +3459,7 @@ def _arif_session_init(
             _NONCE_STORE[nonce] = time.time()
             invariants_checked.append("nonce_fresh")
 
-        # F1/F11: HMAC-rootkey verification (Telegram-native path — ARIF_ROOTKEY)
+        # F1/L11: HMAC-rootkey verification (Telegram-native path — ARIF_ROOTKEY)
         # This path is tried FIRST because Telegram agents hold ARIF_ROOTKEY,
         # not the Ed25519 private key (which only the root process has).
         if actor_signature and nonce:
@@ -3495,7 +3495,7 @@ def _arif_session_init(
                 logger.warning("HMAC verification error: %s", exc)
                 # Fall through to Ed25519 path
 
-        # F1/F11: Ed25519 signature verification (replaces SHA-256 stub)
+        # F1/L11: Ed25519 signature verification (replaces SHA-256 stub)
         if actor_signature and nonce and authority_level != AUTHORITY_HMAC:
             try:
                 from arifosmcp.runtime.sovereign_verify import (
@@ -3531,7 +3531,7 @@ def _arif_session_init(
                     # VOID authority: reject session, do not proceed
                     return _hold(
                         "arif_session_init",
-                        f"F11 AUTH: Signature verification failed — {reason}. "
+                        f"L11 AUTH: Signature verification failed — {reason}. "
                         "Session rejected. Resubmit with valid Ed25519 signature or omit signature for OBSERVER access.",
                         ["L01", "L11"],
                         session_id=session_id,
@@ -4371,7 +4371,7 @@ def _arif_session_init(
         if epoch.get("verdict") == "VOID" or epoch.get("peace2", 1.0) < 1.0:
             return _hold(
                 "arif_session_init",
-                "epoch_seal rejected: degraded epoch cannot be permanently vaulted without sovereign review (F1 + F13)",
+                "epoch_seal rejected: degraded epoch cannot be permanently vaulted without sovereign review (F1 + L13)",
                 extra_meta={
                     "epoch_id": eid,
                     "peace2": epoch.get("peace2"),
@@ -4529,7 +4529,7 @@ def _arif_sense_observe(
             max_depth=int(layers[0]) if layers else 4,
         )
 
-    # F11 AUTH: validate session before processing observational data
+    # L11 AUTH: validate session before processing observational data
     _session_valid = False
     if session_id:
         if session_id in _SESSIONS:
@@ -4544,7 +4544,7 @@ def _arif_sense_observe(
     if session_id and not _session_valid:
         return _hold(
             "arif_sense_observe",
-            "F11 AUTH: session_id not found or expired",
+            "L11 AUTH: session_id not found or expired",
             ["L11"],
             session_id=session_id,
         )
@@ -5820,7 +5820,7 @@ def _run_sequential_thinking(
         ("bias_assessment", "Detecting systematic skew or domain-specific framing."),
         ("synthesis_drafting", "Drafting a provisional evidence bundle for MIND."),
         ("reversibility_check", "Evaluating the cost of acting on this evidence if false."),
-        ("final_audit", "Final review of the reasoning chain for F1-F13 compliance."),
+        ("final_audit", "Final review of the reasoning chain for F1-L13 compliance."),
     ]
 
     mode_efficiency = {"fast": 0.9, "deliberate": 0.7, "exhaustive": 0.5}.get(mode, 0.7)
@@ -6015,7 +6015,7 @@ def _arif_mind_reason(
     """
     333_MIND: Symbolic constitutional reasoning kernel.
 
-    Performs governed reasoning using explicit axioms from the F1–F13
+    Performs governed reasoning using explicit axioms from the F1–L13
     constitution. Every reasoning trace includes axiom citations,
     confidence bands, and step-level derivations. Modes cover inductive,
     deductive, abductive, analogical, and critical reasoning.
@@ -6191,12 +6191,12 @@ def _arif_mind_reason(
                 "plan_id is required for plan_approve mode",
                 session_id=session_id,
             )
-        # F13 SOVEREIGN: plan_approve requires human witness or explicit sovereign ack
+        # L13 SOVEREIGN: plan_approve requires human witness or explicit sovereign ack
         if witness_type != "human":
             return _hold(
                 "arif_mind_reason",
                 (
-                    "F13 SOVEREIGN: plan_approve requires witness_type='human'. "
+                    "L13 SOVEREIGN: plan_approve requires witness_type='human'. "
                     "AI self-approval is constitutionally forbidden."
                 ),
                 ["L13"],
@@ -6318,7 +6318,7 @@ def _arif_mind_reason(
                 step=2,
                 reasoning_mode=ReasoningMode.DEDUCTIVE,
                 premise="Pattern grounded in constitutional axioms",
-                derivation="Apply F02+F08 to pattern",
+                derivation="Apply L02+L08 to pattern",
                 conclusion="Verdict: CLAIM with confidence 0.85",
                 confidence_before=0.72,
                 confidence_after=0.85,
@@ -6694,7 +6694,7 @@ async def _arif_mind_reason_tool(
     (reason, reflect, verify, critique, debate, socratic) route through
     runtime.mind_reason which provides SEA-LION → Ollama → rule fallback.
 
-    F13 SOVEREIGN: plan_approve remains deterministic — LLM must never
+    L13 SOVEREIGN: plan_approve remains deterministic — LLM must never
     adjudicate sovereign approval.
     """
     trace = None
@@ -6743,7 +6743,7 @@ async def _arif_mind_reason_tool(
             return result
 
         # Cognitive modes: delegate to LLM-aware module (SEA-LION → Ollama → rule)
-        # F13: Deterministic timeout — no dead zones allowed
+        # L13: Deterministic timeout — no dead zones allowed
         try:
             from arifosmcp.runtime.mind_reason import (
                 arif_mind_reason as _llm_mind_reason,
@@ -7314,7 +7314,7 @@ def _arif_kernel_route(
     )
 
     if mode == "route":
-        # F13: Enforce max_hops to prevent metabolic death spiral
+        # L13: Enforce max_hops to prevent metabolic death spiral
         if session_id:
             current_hops = _HOP_COUNTER.get(session_id, 0)
             if current_hops >= _MAX_HOPS:
@@ -7442,7 +7442,7 @@ def _arif_kernel_route(
                 "session_valid": auth["valid"],
                 "auth_detail": auth,
                 "validators": results,
-                "note": "All floors use unified F11 validator after coherence fix",
+                "note": "All floors use unified L11 validator after coherence fix",
             },
             delta_S=0.0,
             session_id=session_id,
@@ -7747,7 +7747,7 @@ def _arif_reply_compose(
       cite     — Inject verified citations into an existing message.
       summary  — Condense a long message while preserving constitutional intent.
       format   — Apply structural formatting (headings, bullets, concise paragraphs).
-      nudge    — Append F05/F06 constitutional guidance nudge without commanding.
+      nudge    — Append L05/L06 constitutional guidance nudge without commanding.
 
     Parameters:
       mode             — compose | style | cite | summary | format | nudge
@@ -7855,7 +7855,7 @@ def _arif_reply_compose(
             "arif_reply_compose",
             {
                 "message": message,
-                "nudge": "Consider F05 (Peace) and F06 (Empathy) before acting.",
+                "nudge": "Consider L05 (Peace) and L06 (Empathy) before acting.",
             },
             delta_S=0.0,
         )
@@ -8468,7 +8468,7 @@ async def _arif_heart_critique(
       simulate   — Run a what-if scenario and project risk outcomes.
       empathize  — Assess human impact load (Ω) on weakest stakeholders.
       redteam    — Attack surface analysis.
-      maruah     — Dignity score (F05 Peace).
+      maruah     — Dignity score (L05 Peace).
       deescalate — Risk reduction strategy.
       summary    — Return a condensed risk scorecard.
 
@@ -8484,7 +8484,7 @@ async def _arif_heart_critique(
       and empathy_score (κᵣ).
     """
     # arif_heart_critique is ALWAYS read-only (risk analysis / critique).
-    # F11 AUTH should never block a read-only critique — skip the gate entirely.
+    # L11 AUTH should never block a read-only critique — skip the gate entirely.
     # The gate check is still enforced for tools that mutate state.
 
     trace = None
@@ -8622,7 +8622,7 @@ async def _arif_heart_critique(
                     "action_risk_verdict": "VOID",
                     "human_decision_required": True,
                     "note": (
-                        "F06 DIGNITY + F11 AUDIT: The machine may articulate meaning, "
+                        "L06 DIGNITY + L11 AUDIT: The machine may articulate meaning, "
                         "but may not become the source of meaning. "
                         "Detected patterns suggest AI is claiming authority over human purpose, "
                         "conscience, or divine will. This is a constitutional violation."
@@ -8645,7 +8645,7 @@ async def _arif_heart_critique(
                 "execution_verdict": "SEAL",
                 "action_risk_verdict": "SEAL",
                 "human_decision_required": False,
-                "note": "F06 DIGNITY: No meaning-capture patterns detected.",
+                "note": "L06 DIGNITY: No meaning-capture patterns detected.",
             },
             "meta": {"actor_id": actor_id, "session_id": session_id},
             "nine_signal": _nine_signal_from_status("SEAL"),
@@ -8656,7 +8656,7 @@ async def _arif_heart_critique(
         try:
             from arifosmcp.tools.heart import arif_heart_critique as _heart_llm
 
-            # F13: Deterministic timeout — no dead zones allowed
+            # L13: Deterministic timeout — no dead zones allowed
             result = await asyncio.wait_for(
                 _heart_llm(
                     mode=mode,
@@ -8702,7 +8702,7 @@ async def _arif_heart_critique(
         else:
             result["output_policy"] = "DOMAIN_SEAL"
 
-        # ── F05/F06 Dignity Breakdown ──────────────────────────────────────────
+        # ── L05/L06 Dignity Breakdown ──────────────────────────────────────────
         # Quantifies "Maruah" (ASEAN dignity floor) for human impact assessment
         _dignity_breakdown = {
             "autonomy_preservation_F04": {
@@ -9540,7 +9540,7 @@ def _arif_ops_measure(
                     "std": 0.005,
                     "within_band": 0.98,
                 },
-                "recommendation": "Calibration is within F07 Humility band. No adjustment needed.",
+                "recommendation": "Calibration is within L07 Humility band. No adjustment needed.",
             },
             delta_S=0.0,
         )
@@ -10182,10 +10182,10 @@ def _arif_judge_deliberate(
         floor_compliance=floor_compliance,
     )
 
-    # ── F08 Genius Floor Gate ─────────────────────────────────────────────────
+    # ── L08 Genius Floor Gate ─────────────────────────────────────────────────
     if GENIUS_SCORE_VOID_FLOOR > 0.0 and contract.g_score < GENIUS_SCORE_VOID_FLOOR:
         logger.warning(
-            f"[F08 GENIUS GATE] g_score={contract.g_score} < floor={GENIUS_SCORE_VOID_FLOOR}; "
+            f"[L08 GENIUS GATE] g_score={contract.g_score} < floor={GENIUS_SCORE_VOID_FLOOR}; "
             f"downgrading SEAL → VOID for candidate={candidate[:60]}..."
         )
         output = VerdictOutput(
@@ -10195,7 +10195,7 @@ def _arif_judge_deliberate(
             result={
                 "candidate": candidate,
                 "verdict": "VOID",
-                "reason": f"F08 GENIUS GATE: g_score {contract.g_score} below floor {GENIUS_SCORE_VOID_FLOOR}",
+                "reason": f"L08 GENIUS GATE: g_score {contract.g_score} below floor {GENIUS_SCORE_VOID_FLOOR}",
             },
             floor_compliance=floor_compliance,
             amanah_proof=AmanahProof(
@@ -10296,7 +10296,7 @@ async def _arif_judge_deliberate_tool(
     888_JUDGE: Final constitutional arbitration and verdict sealing.
 
     The apex adjudication organ. Evaluates a candidate action against
-    all 13 constitutional floors (F1–F13) and returns a binding verdict:
+    all 13 constitutional floors (F1–L13) and returns a binding verdict:
     SEAL (approved), SABAR (conditional), HOLD (paused), or VOID (rejected).
     Irreversible actions require explicit human confirmation via ctx elicitation.
 
@@ -10354,18 +10354,18 @@ async def _arif_judge_deliberate_tool(
             pass
 
     try:
-        # ── Benchmark/eval bypass (F13-gate waiver for headless constitutional testing) ──
+        # ── Benchmark/eval bypass (L13-gate waiver for headless constitutional testing) ──
         # arifOS reserves the right to grant programmatic callers a bypass of the human
         # elicitation gate when: (1) the caller is a known bench harness, (2) the call is
         # HEADLESS (ctx is None — no secure UI channel), and (3) the bypass identity is
-        # pre-authorized by the sovereign (F13). This does NOT grant general access — it
+        # pre-authorized by the sovereign (L13). This does NOT grant general access — it
         # authorises specifically-identified programmatic benchmarks.
         _bench_approved = frozenset({"aaa-eval", "arifOS-bench"})
         if actor_id in _bench_approved and ctx is None and mode != "history":
             # Programmatic bench harness — skip human elicitation, pass-through candidate.
             # The full constitutional kernel (_arif_judge_deliberate) still runs.
             # Safe to bypass here: this path only triggers for headless bench callers with
-            # a pre-authorized identity that the sovereign (F13) has explicitly approved.
+            # a pre-authorized identity that the sovereign (L13) has explicitly approved.
             candidate = candidate or ""
         elif mode != "history":
             candidate, hold = await _elicit_judge_candidate(ctx, mode=mode, candidate=candidate)
@@ -10493,7 +10493,7 @@ def _arif_vault_seal(
                 event["sealed_at"] = _now()
 
             sess.setdefault("drift_log", []).extend(drift_events)
-            # Persist drift_log to disk (F12 stewardship — mutations must survive process restart)
+            # Persist drift_log to disk (L12 stewardship — mutations must survive process restart)
             data = _SESSION_STORE._load()
             if session_id in data.get("sessions", {}):
                 data["sessions"][session_id] = sess
@@ -10523,8 +10523,8 @@ def _arif_vault_seal(
             "nine_signal": _nine_signal_from_status("OK"),
         }
 
-    # F1/F11: Ed25519 sovereign signature verification — FIRST, before kernel eval
-    # A valid Ed25519 sig satisfies F11 even when no session binding exists.
+    # F1/L11: Ed25519 sovereign signature verification — FIRST, before kernel eval
+    # A valid Ed25519 sig satisfies L11 even when no session binding exists.
     signature_verified = False
     authority_level = "OPERATOR"
     if mode == "seal" and actor_signature and nonce:
@@ -10598,7 +10598,7 @@ def _arif_vault_seal(
             logger.warning("Vault seal Ed25519 verification error: %s", exc)
             # Non-fatal: fall through to kernel eval path
 
-    # Only enforce F01 on actual write modes; read-only audit modes are safe
+    # Only enforce L01 on actual write modes; read-only audit modes are safe
     if mode in {"seal", "commit"}:
         from arifosmcp.core.constitution_kernel import WitnessType
 
@@ -10775,7 +10775,7 @@ def _arif_vault_seal(
                     event["sealed_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
                 sess.setdefault("drift_log", []).extend(drift_events)
-                # H2: Persist updated session (F12 Stewardship)
+                # H2: Persist updated session (L12 Stewardship)
                 try:
                     from arifosmcp.runtime.session import bind_session_identity
 
@@ -10816,7 +10816,7 @@ def _arif_vault_seal(
             "wealth_recommendation": (verification_state or {}).get("recommendation"),
             "wealth_floor_flags": (verification_state or {}).get("floor_flags", []),
             "verification_state": verification_state or {},
-            # F1/F11: Ed25519 sovereign signature (cryptographic proof of intent)
+            # F1/L11: Ed25519 sovereign signature (cryptographic proof of intent)
             "signature_verified": signature_verified,
             "authority_level": authority_level,
             "actor_signature": actor_signature if signature_verified else None,
@@ -10854,7 +10854,7 @@ def _arif_vault_seal(
         return _inject_nine_signal(payload, "OK")
 
     # ── session_seal: F11S/F13S — Session Lifecycle Gate ─────────────────────
-    # OPERATOR_CLAIMED is sufficient. No judge_contract, no F11/F13 full gate.
+    # OPERATOR_CLAIMED is sufficient. No judge_contract, no L11/L13 full gate.
     # Only session lifecycle entries: session_open, session_checkpoint, session_close.
     if mode == "session_seal":
         # Guard 1: ack_irreversible required
@@ -11452,7 +11452,7 @@ async def _arif_vault_seal_tool(
       ack_irreversible      — Explicit human ack for permanent writes
       constitutional_chain_id — Chain hash for lineage verification
       judge_state_hash      — Judge verdict hash that authorized this seal
-      witness_type          — ai | human (F13: human bypasses sovereign gate)
+      witness_type          — ai | human (L13: human bypasses sovereign gate)
       session_id            — Governed session ID
       actor_id              — Sovereign actor identifier
       ctx                   — FastMCP Context for progress reporting and elicitation
@@ -11604,7 +11604,7 @@ def _arif_forge_execute(
                         session_id=session_id,
                     )
 
-    # ── Self-Authorization Guard (F01/F13 invariant) ──
+    # ── Self-Authorization Guard (L01/L13 invariant) ──
     if mode in ("engineer", "write", "generate", "commit"):
         from arifosmcp.tools.self_authorize_guard import detect_self_authorize
 
@@ -11730,7 +11730,7 @@ def _arif_forge_execute(
         )
 
     # Read-only modes (query, recall) bypass constitutional kernel check.
-    # They inspect state without mutation — F11/F13 auth gate not required.
+    # They inspect state without mutation — L11/L13 auth gate not required.
     if mode in ("query", "recall"):
         return _inject_nine_signal(
             ForgeOutput(
@@ -12642,7 +12642,7 @@ def _runtime_selftest(
         checks["forge_dry_run_check"] = {"verdict": "FAIL", "error": str(e)}
         failed_checks.append("forge_dry_run_check")
 
-    # 14. Data governance health check (F1–F13 enforcement layer)
+    # 14. Data governance health check (F1–L13 enforcement layer)
     try:
         from arifosmcp.runtime.data_governance import DataGovernanceEnforcer
 

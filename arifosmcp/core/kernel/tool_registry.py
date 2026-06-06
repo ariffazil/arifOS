@@ -136,7 +136,7 @@ class ToolContractRegistry:
             Receipt with registry_truth, phantom_tools, callable_tools, broken_tools,
             deprecated_tools, and safe_surface_hash.
 
-        Design note (F08): This auditor is a read-only mirror — it does not block calls.
+        Design note (L08): This auditor is a read-only mirror — it does not block calls.
         Each tool should independently validate session/receipt. The audit flags phantom
         tools so agents don't build workflows around tools that don't exist (F2 violation).
         """
@@ -198,6 +198,6 @@ class ToolContractRegistry:
             "f2_violation": bool(phantom_tools),  # phantom tools = agents plan around ghosts
             "f08_note": (
                 "This audit is a read-only mirror. Each tool validates independently. "
-                "No single chokepoint — distributed receipt chain architecture (F08)."
+                "No single chokepoint — distributed receipt chain architecture (L08)."
             ),
         }

@@ -43,7 +43,7 @@ class ReasoningMode(StrEnum):
 class AxiomSource(StrEnum):
     """Where did the axiom come from?"""
 
-    CONSTITUTION = "constitution"  # F1-F13
+    CONSTITUTION = "constitution"  # F1-L13
     EMPIRICAL = "empirical"  # Observed data
     DERIVED = "derived"  # Inferred from other axioms
     HEURISTIC = "heuristic"  # Learned pattern
@@ -189,7 +189,7 @@ class MindAnomalousContrast(BaseModel):
         default=ContrastType.NONE, description="Classification of the contrast type"
     )
     manipulation_signal: bool = Field(
-        default=False, description="Does this suggest intentional manipulation (F09)?"
+        default=False, description="Does this suggest intentional manipulation (L09)?"
     )
     anti_hantu_score: float = Field(
         ge=0.0, le=1.0, default=0.0, description="Likelihood manipulation detected"

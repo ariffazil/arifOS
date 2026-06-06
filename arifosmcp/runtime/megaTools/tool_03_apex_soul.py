@@ -2,7 +2,7 @@
 arifosmcp/runtime/megaTools/03_apex_soul.py
 
 888_JUDGE: Final authority for verdicts and defense
-Stage: 888_JUDGE | Trinity: PSI Ψ | Floors: F3, F12, F13
+Stage: 888_JUDGE | Trinity: PSI Ψ | Floors: F3, L12, L13
 
 Modes: judge, rules, validate, hold, armor, notify, probe
 """

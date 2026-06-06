@@ -1,11 +1,11 @@
 """
 arifosmcp/runtime/llm_client.py — Shared LLM Cognition Client
 
-Tier 1: MiniMax M3 (https://api.minimax.io/v1) — PRIMARY frontier model (F13 directive 2026-06-02)
+Tier 1: MiniMax M3 (https://api.minimax.io/v1) — PRIMARY frontier model (L13 directive 2026-06-02)
 Tier 2: Ollama local fallback — qwen2.5:7b on VPS localhost:11434
 Tier 3: raises LLMUnavailableError — caller applies deterministic fallback
 
-Migration note: Replaced SEA-LION (unreachable) with MiniMax-M3 per F13 SOVEREIGN.
+Migration note: Replaced SEA-LION (unreachable) with MiniMax-M3 per L13 SOVEREIGN.
 SEA-LION env vars retained in /etc/arifos/arifos.env for potential future reactivation.
 
 ALL LLM output passes through 777_WITNESS envelope before reaching tool logic.
@@ -391,7 +391,7 @@ async def _call_ollama(
         payload["format"] = "json"
 
     try:
-        # F13 TIMEOUT_SAFE: CPU inference on 7B model is ~2 tok/s.
+        # L13 TIMEOUT_SAFE: CPU inference on 7B model is ~2 tok/s.
         # 10s allows ~20 tokens — enough for structured JSON stub.
         # Longer prompts should use SEA-LION (GPU-accelerated API).
         async with httpx.AsyncClient(timeout=50.0) as client:
@@ -570,7 +570,7 @@ async def call_llm(
             trace_recursion_depth,
         )
 
-    # Tier 1 — MiniMax M3 (PRIMARY frontier model, F13 directive 2026-06-02)
+    # Tier 1 — MiniMax M3 (PRIMARY frontier model, L13 directive 2026-06-02)
     try:
         t0 = time.monotonic()
         raw_output, parsed = await _call_minimax(

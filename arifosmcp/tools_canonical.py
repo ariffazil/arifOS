@@ -17,7 +17,7 @@ EXTENSION HOOKS PATTERN (from wiki/pages/RECURSIVE_IMPROVEMENT_LOG.md):
   class Extension:
       async def before_execution(self, **kwargs):  # F9 TAQWA constitutional check
           pass
-      async def after_execution(self, result, **kwargs):  # F11 AUDIT → VAULT999
+      async def after_execution(self, result, **kwargs):  # L11 AUDIT → VAULT999
           pass
   Maps cleanly to: before_execution → F9_TAQWA check; after_execution → L11_AUDIT logging.
 

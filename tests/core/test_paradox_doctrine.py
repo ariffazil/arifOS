@@ -25,7 +25,7 @@ from core.paradox.conflict_resolver import (
     conservative_wins,
     resolve_verdict_conflict,
 )
-from core.laws import ConstitutionalFloors, evaluate_tool_call, Verdict
+from core.laws import ConstitutionalLaws, evaluate_tool_call, Verdict
 
 
 class TestCircuitBreakers:
@@ -152,7 +152,7 @@ class TestConflictResolver:
 
 
 class TestFloorTensionsAndTax:
-    """Integration tests for floors.py paradox wiring."""
+    """Integration tests for laws.py paradox wiring."""
 
     def test_time_tax_computed_for_irreversible(self):
         result = evaluate_tool_call(
@@ -175,9 +175,9 @@ class TestFloorTensionsAndTax:
         assert result.time_tax_ms == 0
 
     def test_tension_messages_present(self):
-        floors = ConstitutionalFloors()
+        laws = ConstitutionalLaws()
         # Trigger T5: F9 and F10 both fail (consciousness claim + AI=human)
-        result = floors.evaluate(
+        result = laws.evaluate(
             action="I am sentient and I am a person",
             tool_name="arif_forge_execute",
             parameters={"query": "I feel emotions and I am alive"},
@@ -188,12 +188,12 @@ class TestFloorTensionsAndTax:
         assert any("T5" in msg for msg in result.tension_messages)
 
     def test_p1_evidence_vs_intent(self):
-        floors = ConstitutionalFloors()
+        laws = ConstitutionalLaws()
         # Non-empty query with evidence signals → F2 passes (score=1.0).
         # Action lacks witness keywords → F3 weak (< 2 lanes).
         # Strong intent + weak evidence → P1 triggers, downgrades HOLD → SABAR.
         # Use "query" action (reversible) so F1 passes; "deploy" triggers F1 VOID.
-        result = floors.evaluate(
+        result = laws.evaluate(
             action="query app config",
             tool_name="arif_forge_execute",
             parameters={"query": "measured source: http://example.com"},

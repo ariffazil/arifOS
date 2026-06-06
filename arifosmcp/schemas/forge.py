@@ -85,7 +85,7 @@ class DeltaSEvidence(BaseModel):
     Tracks entropy production across the execution.
 
     Fields affect behavior:
-    - delta_S_net determines if action is allowed (F13 entropy budget)
+    - delta_S_net determines if action is allowed (L13 entropy budget)
     - energy_cost determines if system can afford the action
     """
 
@@ -97,7 +97,7 @@ class DeltaSEvidence(BaseModel):
     energy_cost_joules: float | None = Field(default=None, description="Direct energy cost")
     landauer_optimal: bool = Field(default=True, description="Is action within Landauer bound?")
     entropy_budget_remaining: float | None = Field(
-        default=None, description="F13 entropy budget remaining"
+        default=None, description="L13 entropy budget remaining"
     )
 
 
@@ -147,12 +147,12 @@ class ForgeManifest(BaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# CONSTITUTIONAL COMPLIANCE — F1-F13 CHECK RESULTS
+# CONSTITUTIONAL COMPLIANCE — F1-L13 CHECK RESULTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
 class ConstitutionalCompliance(BaseModel):
-    """F1-F13 floor compliance for this forge action."""
+    """F1-L13 floor compliance for this forge action."""
 
     floors_invoked: list[str] = Field(default_factory=list)
     law_results: dict[str, str] = Field(default_factory=dict)
@@ -172,7 +172,7 @@ class ForgeOutput(BaseModel):
 
     Every field affects reasoning behavior:
     - irreversibility_bond: determines if actor can ack_irreversible
-    - delta_S_evidence: determines if F13 entropy budget allows action
+    - delta_S_evidence: determines if L13 entropy budget allows action
     - constitutional_compliance: determines if floors pass/fail
     - execution_trace: shows exactly what happened (accountability)
 
@@ -198,7 +198,7 @@ class ForgeOutput(BaseModel):
 
     # Constitutional compliance
     constitutional_compliance: ConstitutionalCompliance = Field(
-        default_factory=ConstitutionalCompliance, description="F1-F13 floor compliance"
+        default_factory=ConstitutionalCompliance, description="F1-L13 floor compliance"
     )
 
     # Execution trace

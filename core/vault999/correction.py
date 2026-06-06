@@ -40,7 +40,7 @@ _CORRECTION_TYPES = {
     "EVIDENCE_OVERTURNED": "Original evidence was wrong",
     "FLOOR_MISCALCULATED": "Floor score incorrectly computed",
     "AGENT_MISCONDUCT": "Agent fabricated or concealed evidence",
-    "HUMAN_OVERRIDE_MISTAKE": "F13 applied on incorrect understanding",
+    "HUMAN_OVERRIDE_MISTAKE": "L13 applied on incorrect understanding",
     "TEMPORAL_INVALIDATION": "Safe then, unsafe now",
 }
 

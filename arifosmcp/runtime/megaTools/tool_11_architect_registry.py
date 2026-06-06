@@ -2,7 +2,7 @@
 arifosmcp/runtime/megaTools/11_architect_registry.py
 
 M-4_ARCH: Tool and resource discovery
-Stage: M-4_ARCH | Trinity: DELTA Δ | Floors: F10
+Stage: M-4_ARCH | Trinity: DELTA Δ | Floors: L10
 
 Modes: register, list, read, model_catalog, model_profile, provider_soul, verify_identity
 """

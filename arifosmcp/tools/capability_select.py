@@ -42,7 +42,7 @@ async def arif_capability_select(
     Constraints:
         - Advisory only — tool availability does not grant execution authority
         - Governance filtering (floors) is handled by the arifOS kernel separately
-        - F13 SOVEREIGN: no tool discovery bypasses floor enforcement
+        - L13 SOVEREIGN: no tool discovery bypasses floor enforcement
     """
     async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
         # 1. Embed query

@@ -42,7 +42,7 @@ class WebMCPConfig:
     version: str = "2026.03.14-VALIDATED"
     enable_declarative: bool = True
     enable_imperative: bool = True
-    require_human_confirmation: bool = True  # F13 Sovereign
+    require_human_confirmation: bool = True  # L13 Sovereign
 
 
 class RealWebMCPGateway:
@@ -158,7 +158,7 @@ class RealWebMCPGateway:
             except Exception:
                 body = {}
 
-            # F13: Human confirmation for critical operations
+            # L13: Human confirmation for critical operations
             if (
                 tool_name in ["eureka_forge", "vault_seal"]
                 and self.config.require_human_confirmation
@@ -168,7 +168,7 @@ class RealWebMCPGateway:
                     content={
                         "verdict": "888_HOLD",
                         "error": "Human confirmation required for this operation",
-                        "instruction": "This tool requires explicit human approval (F13 Sovereign)",
+                        "instruction": "This tool requires explicit human approval (L13 Sovereign)",
                     },
                 )
 
@@ -396,10 +396,10 @@ class RealWebMCPGateway:
                 <div class="floor active" title="F7: Humility">F7</div>
                 <div class="floor active" title="F8: Genius">F8</div>
                 <div class="floor active" title="F9: Anti-Hantu">F9</div>
-                <div class="floor active" title="F10: Ontology">F10</div>
-                <div class="floor active" title="F11: Command Auth">F11</div>
-                <div class="floor active" title="F12: Injection">F12</div>
-                <div class="floor active" title="F13: Sovereign">F13</div>
+                <div class="floor active" title="L10: Ontology">L10</div>
+                <div class="floor active" title="L11: Command Auth">L11</div>
+                <div class="floor active" title="L12: Injection">L12</div>
+                <div class="floor active" title="L13: Sovereign">L13</div>
             </div>
         </header>
 

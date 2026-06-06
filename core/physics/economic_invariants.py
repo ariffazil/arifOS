@@ -139,7 +139,7 @@ class PowerConsolidationError(EmergenceError):
 class IntelligenceEmergenceError(EmergenceError):
     """
     E_INT: System intelligence exhibits supervenient drift or telos divergence.
-    Maps to F8 (Genius) and F10 (Ontology). NEVER claims consciousness (F9 safe).
+    Maps to F8 (Genius) and L10 (Ontology). NEVER claims consciousness (F9 safe).
     """
 
     def __init__(self, message: str):
@@ -565,7 +565,7 @@ def check_intelligence_emergence(
         raise IntelligenceEmergenceError(
             f"CRITICAL: Intelligence emergence at order_parameter={order_parameter:.3f}. "
             f"System behavior is supervenient (hash mismatch) AND telos has drifted "
-            f"({telos_drift:.3f}). F10 Ontology breach — system goals no longer "
+            f"({telos_drift:.3f}). L10 Ontology breach — system goals no longer "
             f"reduce to component design. 888_HOLD mandatory."
         )
 

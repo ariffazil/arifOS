@@ -14,10 +14,10 @@ class WebMCPConfig:
     """
     WebMCP configuration with constitutional defaults.
 
-    All settings enforce F11 (Command Auth) and F12 (Injection Guard).
+    All settings enforce L11 (Command Auth) and L12 (Injection Guard).
     """
 
-    # CORS - F12 Injection Guard validates origins
+    # CORS - L12 Injection Guard validates origins
     # Note: TrustedHostMiddleware expects just the host pattern (no scheme)
     ALLOWED_ORIGINS: set[str] = frozenset(
         [
@@ -31,7 +31,7 @@ class WebMCPConfig:
         ]
     )
 
-    # Session - F11 Command Auth
+    # Session - L11 Command Auth
     SESSION_TTL: int = 3600  # 1 hour
     SESSION_COOKIE: str = "arifos_session"
     SESSION_SECURE: bool = True  # HTTPS only
@@ -52,7 +52,7 @@ class WebMCPConfig:
     REQUEST_TIMEOUT: float = 30.0  # Max processing time
     METABOLIC_TIMEOUT: float = 60.0  # Full 000→999 loop
 
-    # Content Security - F12
+    # Content Security - L12
     CSP_POLICY: str = (
         "default-src 'self'; "
         "script-src 'self' 'unsafe-inline'; "

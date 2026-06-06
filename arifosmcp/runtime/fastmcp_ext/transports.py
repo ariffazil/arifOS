@@ -238,7 +238,7 @@ class SovereignIdentityMiddleware:
         # Log legacy header presence for migration analysis — do NOT use for identity
         if sovereign_sig or authorization:
             logger.info(
-                "F13 legacy headers observed (not used for identity) sig=%s auth=%s path=%s",
+                "L13 legacy headers observed (not used for identity) sig=%s auth=%s path=%s",
                 _header_preview(sovereign_sig),
                 "present" if authorization else "absent",
                 scope.get("path", ""),
@@ -467,7 +467,7 @@ def _build_http_middleware() -> list[Middleware]:
         allowed_origins = _split_csv(
             "ARIFOS_ALLOWED_ORIGINS",
             # Default: allow all origins — arifOS is a public server; security via
-            # constitutional floors (F1-F13), not CORS restrictions.
+            # constitutional floors (F1-L13), not CORS restrictions.
             # Override via ARIFOS_ALLOWED_ORIGINS env var if you need to restrict.
             "*",
         )

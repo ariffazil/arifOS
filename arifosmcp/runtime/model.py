@@ -101,7 +101,7 @@ class GovernanceStatus(StrEnum):
     OVERRIDE = "OVERRIDE"
     APPROVED = "APPROVED"  # Contract variant: maps from SEAL
     PARTIAL = "PARTIAL"  # Contract variant
-    HOLD = "HOLD"  # Contract variant: awaiting human (F13)
+    HOLD = "HOLD"  # Contract variant: awaiting human (L13)
     VOID = "VOID"  # Contract variant: forbidden/blocked
     PROVISIONAL = "PROVISIONAL"  # Contract variant
 

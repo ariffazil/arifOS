@@ -2,7 +2,7 @@
 arifosmcp/runtime/session_auth.py
 ════════════════════════════════
 
-Single F11 AUTH validator for all tools.
+Single L11 AUTH validator for all tools.
 """
 
 import os
@@ -24,7 +24,7 @@ def _get_env_session() -> str | None:
 
 def validate_session(session_id: str | None, actor_id: str | None = None) -> dict:
     """
-    Centralized F11 session validator.
+    Centralized L11 session validator.
     Falls back to persisted session store if in-memory _SESSIONS miss.
     Auto-refreshes TTL on valid validation to improve continuity.
 
@@ -44,7 +44,7 @@ def validate_session(session_id: str | None, actor_id: str | None = None) -> dic
         return {
             "valid": False,
             "session": None,
-            "reason": "F11 AUTH: session_id missing",
+            "reason": "L11 AUTH: session_id missing",
             "actor_id": None,
         }
 
@@ -151,7 +151,7 @@ def validate_session(session_id: str | None, actor_id: str | None = None) -> dic
             return {
                 "valid": False,
                 "session": None,
-                "reason": "F11 AUTH: session_id not found or expired",
+                "reason": "L11 AUTH: session_id not found or expired",
                 "received_session_id": session_id,
                 "session_lookup": "not_found",
                 "actor_id_received": actor_id,
@@ -166,7 +166,7 @@ def validate_session(session_id: str | None, actor_id: str | None = None) -> dic
     if now > expires_at + SESSION_GRACE_SECONDS:
         return {
             "valid": False,
-            "reason": "F11 AUTH: session expired (24h limit + grace exceeded)",
+            "reason": "L11 AUTH: session expired (24h limit + grace exceeded)",
             "expired": True,
             "created_at": sess.get("created_at"),
             "expires_at_unix": expires_at,
@@ -180,7 +180,7 @@ def validate_session(session_id: str | None, actor_id: str | None = None) -> dic
         return {
             "valid": False,
             "session": sess,
-            "reason": "F11 AUTH: actor_id mismatch",
+            "reason": "L11 AUTH: actor_id mismatch",
             "actor_id_received": actor_id,
             "actor_id_on_session": sess.get("actor_id"),
         }
@@ -200,7 +200,7 @@ def validate_session(session_id: str | None, actor_id: str | None = None) -> dic
     return {
         "valid": True,
         "session": sess,
-        "reason": "F11 AUTH: session valid",
+        "reason": "L11 AUTH: session valid",
         "actor_id": sess.get("actor_id"),
         "created_at": sess.get("created_at"),
         "stage": sess.get("stage"),

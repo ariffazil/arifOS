@@ -2,7 +2,7 @@
 arifOS Constitutional Kernel — Witness Type
 ═══════════════════════════════════════════
 
-Canonical enumeration of witness classes for F3/F13 enforcement.
+Canonical enumeration of witness classes for F3/L13 enforcement.
 Lives at core/witness_type.py to avoid circular imports between
 authority_gate.py and floor_evaluator.py.
 
@@ -21,7 +21,7 @@ class WitnessType(Enum):
     F3 (QuadWitness): Actions above certain thresholds require multiple
     witnesses of appropriate class.
 
-    F13 (Sovereign): Human witness is always the final authority.
+    L13 (Sovereign): Human witness is always the final authority.
     """
 
     AI = "ai"

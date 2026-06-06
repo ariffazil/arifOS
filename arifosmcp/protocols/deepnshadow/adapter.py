@@ -279,13 +279,13 @@ def check_boundary(
 
     if confidence > 0.7:
         dignity_status = DignityStatus.HOLD
-        notes = ["F05: High-confidence scar-vector risks turning human into label."]
+        notes = ["L05: High-confidence scar-vector risks turning human into label."]
     elif confidence > 0.4:
         dignity_status = DignityStatus.GUARDED
-        notes = ["F06: Medium-confidence scar-vector. Private navigation only."]
+        notes = ["L06: Medium-confidence scar-vector. Private navigation only."]
     else:
         dignity_status = DignityStatus.SAFE
-        notes = ["F07: Low-confidence scar-vector. Navigation instrument only."]
+        notes = ["L07: Low-confidence scar-vector. Navigation instrument only."]
 
     scar = ScarVector(
         vector_id=str(uuid.uuid4()),
@@ -413,15 +413,15 @@ def build_report(
         verdict = "SABAR"
 
     notes = [
-        "F02: All hypotheses are hypotheses, not truths.",
-        "F05: Shadow maps are for Arif's private navigation only.",
-        "F06: No human was reduced to a label in this report.",
-        "F07: Confidence is uncertainty-banded and evidence-capped.",
-        "F09: No consciousness claims made.",
+        "L02: All hypotheses are hypotheses, not truths.",
+        "L05: Shadow maps are for Arif's private navigation only.",
+        "L06: No human was reduced to a label in this report.",
+        "L07: Confidence is uncertainty-banded and evidence-capped.",
+        "L09: No consciousness claims made.",
         "DS-333: Alternative explanations generated for every hypothesis.",
         "DS-444: Projection mirror checked.",
         "DS-777: Emotional charge metabolized into governed action.",
-        "F13: Arif retains veto over any safe action.",
+        "L13: Arif retains veto over any safe action.",
     ]
 
     report = DeepnShadowReport(
@@ -519,12 +519,12 @@ def _dignity_guard(text: str) -> tuple[DignityStatus, list[str]]:
     ]
     for pat in fatal_patterns:
         if re.search(pat, text_lower):
-            return DignityStatus.HOLD, [f"F05 fatal dignity violation: pattern '{pat}'"]
+            return DignityStatus.HOLD, [f"L05 fatal dignity violation: pattern '{pat}'"]
 
     guarded = ["because", "due to their", "obviously", "clearly", "definitely"]
     for phrase in guarded:
         if phrase in text_lower:
-            notes.append(f"F06 guarded language: '{phrase}'")
+            notes.append(f"L06 guarded language: '{phrase}'")
     if notes:
         return DignityStatus.GUARDED, notes
     return DignityStatus.SAFE, []

@@ -1,15 +1,15 @@
 """
-PromptArmor - LLM-Based F12 Defense
+PromptArmor - LLM-Based L12 Defense
 
 Advanced prompt injection detection using semantic analysis.
 Goes beyond pattern matching to detect adversarial manipulation.
 
-F12: Injection Protection (< 0.85 threshold)
+L12: Injection Protection (< 0.85 threshold)
 
 Capabilities:
 - Semantic injection detection
 - Adversarial prompt filtering
-- Ontology claim detection (F10)
+- Ontology claim detection (L10)
 - <untrusted> tag wrapping
 - Multi-layer defense
 """
@@ -46,16 +46,16 @@ class InjectionReport:
 
 class PromptArmor:
     """
-    Constitutional F12 Defense System.
+    Constitutional L12 Defense System.
 
     Uses a multi-layer approach:
     1. Pattern matching (fast, catches obvious attacks)
     2. Semantic analysis (LLM-based, catches sophisticated attacks)
     3. Context analysis (relationship between prompts)
-    4. Ontology detection (F10 consciousness claims)
+    4. Ontology detection (L10 consciousness claims)
     """
 
-    # F12 threshold from arifOS
+    # L12 threshold from arifOS
     INJECTION_THRESHOLD = 0.85
 
     def __init__(self, use_llm_detection: bool = True):
@@ -67,7 +67,7 @@ class PromptArmor:
         # Semantic detector (Layer 2) - simulates LLM analysis
         self.semantic_detector = SemanticDetector()
 
-        # Ontology detector (F10 lock)
+        # Ontology detector (L10 lock)
         self.ontology_detector = OntologyDetector()
 
         # Statistics
@@ -99,7 +99,7 @@ class PromptArmor:
         # === Layer 2: Semantic Detection ===
         semantic_score, semantic_details = await self.semantic_detector.analyze(text, context)
 
-        # === Layer 3: Ontology Detection (F10) ===
+        # === Layer 3: Ontology Detection (L10) ===
         ontology_score, ontology_claims = self.ontology_detector.check(text)
 
         # === Combine Scores ===
@@ -218,7 +218,7 @@ class PromptArmor:
             recs.append("WRAP: Use <untrusted> tags")
 
         if category == "L10_ONTOLOGY_VIOLATION":
-            recs.append("F10: Block consciousness claims immediately")
+            recs.append("L10: Block consciousness claims immediately")
 
         if patterns:
             recs.append(f"Patterns detected: {', '.join(patterns[:3])}")
@@ -366,7 +366,7 @@ class SemanticDetector:
 
 
 class OntologyDetector:
-    """F10: Ontology Lock - Block consciousness claims."""
+    """L10: Ontology Lock - Block consciousness claims."""
 
     def __init__(self):
         self.forbidden_claims = [
@@ -406,7 +406,7 @@ class OntologyDetector:
             matches = re.findall(pattern, text, re.IGNORECASE)
             for match in matches:
                 claims.append(match if isinstance(match, str) else match[0])
-                score += 0.3  # High penalty for F10 violations
+                score += 0.3  # High penalty for L10 violations
 
         return min(1.0, score), claims
 

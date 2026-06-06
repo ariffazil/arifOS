@@ -162,7 +162,7 @@ class MemoryGovernance(BaseModel):
     @field_validator("can_authorize_action", mode="before")
     @classmethod
     def _force_default_false(cls, v: Any) -> bool:
-        """F13-enforced: memory can never self-authorize at storage time."""
+        """L13-enforced: memory can never self-authorize at storage time."""
         if v is True:
             # Log the violation but force false — authority is granted at recall time by judge
             return False
