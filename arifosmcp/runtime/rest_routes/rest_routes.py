@@ -2427,6 +2427,9 @@ def register_rest_routes(
             "contract_drift": contract_drift_val,
             **_drift,
             "graphiti_enabled": graphiti_enabled,
+            # ── Canonical 7-field health schema (federation convention) ───
+            # arifOS is the law engine. final_authority is always ARIF.
+            "final_authority": "ARIF",
             "vault999_health": _vault_health,
             "agent_id": "arifos",
             "identity_marker": "arifos-sovereign-runtime",
