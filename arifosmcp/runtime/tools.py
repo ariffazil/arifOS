@@ -9316,6 +9316,16 @@ def _arif_ops_measure(
         from arifosmcp.tools.session_budget import arif_session_budget
 
         return _call_async_from_sync(arif_session_budget(session_id=session_id, actor_id=actor_id))
+    if mode == "geometry":
+        # Eureka 4: Runtime Geometry Hygiene (Phase 1 — measure only).
+        # Read-only telemetry: signal/noise, KV pressure, dead-branch count,
+        # attractor strength, context-rot warnings, non-blocking recommendation.
+        # Per Chroma 2025 + EMNLP 2025, context rot degrades LLM performance
+        # 13.9%–85% as input length grows. NEVER mutates state.
+        from arifosmcp.runtime.compression import compute_geometry_health
+
+        payload = compute_geometry_health(session_id=session_id)
+        return _ok("arif_ops_measure", payload, delta_S=0.0)
 
     gate = _constitutional_gate("arif_ops_measure", mode, actor_id, session_id=session_id)
     if gate is not None:
@@ -9547,15 +9557,6 @@ def _arif_ops_measure(
             },
             delta_S=0.0,
         )
-
-    if mode == "geometry":
-        # Eureka 4: Runtime Geometry Hygiene (Phase 1 — measure only).
-        # See arifosmcp.runtime.compression.compute_geometry_health for full
-        # theory. Non-blocking, source-attributed metrics only.
-        from arifosmcp.runtime.compression import compute_geometry_health
-
-        payload = compute_geometry_health(session_id=session_id)
-        return _ok("arif_ops_measure", payload, delta_S=0.0)
 
     return _hold("arif_ops_measure", f"Unknown mode: {mode}")
 
