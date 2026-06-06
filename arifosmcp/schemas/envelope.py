@@ -80,12 +80,16 @@ class Reversibility(StrEnum):
 class SourceAttribution(BaseModel):
     """Provenance chain for the evidence."""
 
-    organ: str = Field(..., description="Federation organ that produced this (geox/wealth/well/a-forge/aaa)")
+    organ: str = Field(
+        ..., description="Federation organ that produced this (geox/wealth/well/a-forge/aaa)"
+    )
     tool: str = Field(..., description="Tool name within the organ")
     repo: Optional[str] = Field(None, description="Repo (e.g. ariffazil/geox)")
     commit_sha: Optional[str] = Field(None, description="Git commit at time of production")
     actor_id: Optional[str] = Field(None, description="Agent or human that triggered the call")
-    capability_grant_id: Optional[str] = Field(None, description="CapabilityGrant that authorized this")
+    capability_grant_id: Optional[str] = Field(
+        None, description="CapabilityGrant that authorized this"
+    )
     produced_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
@@ -223,6 +227,35 @@ class EvidenceEnvelope(BaseModel):
     # Contradiction
     contradictions: list[ContradictionEntry] = Field(default_factory=list)
 
+    # Runtime provenance (L11 AUTH + L13 SOVEREIGN — disambiguate model claim from runtime)
+    # Forged 2026-06-06 in response to the Royal Decree incident: a model can claim to be
+    # anything in its output, but the runtime that wrapped the output knows the truth.
+    # Required for any AGI-lane output bound for operator surfaces (Telegram/cockpit).
+    runtime_model: Optional[str] = Field(
+        None,
+        description=(
+            "The actual model id that produced the result (e.g. 'minimax/MiniMax-M3', "
+            "'ilmu-nemo-nano'). This is asserted by the runtime, not the model itself. "
+            "A claim of model identity inside `result` is non-authoritative."
+        ),
+    )
+    runtime_model_source: Optional[str] = Field(
+        None,
+        description=(
+            "How `runtime_model` was determined: 'config' (from openclaw.json) | "
+            "'journal' (from openclaw-gateway logs) | 'claimed' (from model self-report, "
+            "non-authoritative). Default null = unknown / not asserted."
+        ),
+    )
+    runtime_lane: Optional[str] = Field(
+        None,
+        description=(
+            "Constitutional lane that produced this output: 000/111/222/333/444/555/"
+            "666/777 (AGI/ASI/APEX). 888 = judge, 999 = vault. Mismatch between "
+            "`runtime_lane` and the verdict authority is an L11 violation."
+        ),
+    )
+
     # Timestamps
     produced_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     expires_at: Optional[datetime] = Field(
@@ -240,14 +273,10 @@ class EvidenceEnvelope(BaseModel):
         so it can produce a HOLD decision rather than a parse error.
         """
         if self.evidence_quality > 1.0 or self.evidence_quality < 0.0:
-            raise ValueError(
-                f"evidence_quality out of [0,1]: {self.evidence_quality}"
-            )
+            raise ValueError(f"evidence_quality out of [0,1]: {self.evidence_quality}")
         # L04 CLARITY
         if self.delta_S > 0.0:
-            raise ValueError(
-                f"L04 CLARITY: delta_S must be ≤ 0; got {self.delta_S}"
-            )
+            raise ValueError(f"L04 CLARITY: delta_S must be ≤ 0; got {self.delta_S}")
         return self
 
     def is_stale(self, now: Optional[datetime] = None) -> bool:
@@ -288,6 +317,9 @@ def wrap_envelope(
     repo: Optional[str] = None,
     commit_sha: Optional[str] = None,
     expires_at: Optional[datetime] = None,
+    runtime_model: Optional[str] = None,
+    runtime_model_source: Optional[str] = None,
+    runtime_lane: Optional[str] = None,
 ) -> EvidenceEnvelope:
     """Convenience: wrap a domain result in the standard envelope.
 
@@ -318,4 +350,7 @@ def wrap_envelope(
         ),
         reversibility=reversibility,
         expires_at=expires_at,
+        runtime_model=runtime_model,
+        runtime_model_source=runtime_model_source,
+        runtime_lane=runtime_lane,
     )

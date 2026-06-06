@@ -9,7 +9,7 @@
 [![CI](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml/badge.svg)](https://github.com/ariffazil/arifOS/actions/workflows/01-unified-ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/arifos?color=6e40c9&label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/arifos/)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://pypi.org/project/arifos/)
-[![Version](https://img.shields.io/badge/arifOS-v2026.05.05--SSCT-8b5cf6?logo=github)](https://github.com/ariffazil/arifOS/releases)
+[![Version](https://img.shields.io/badge/arifOS-v2026.06.06--LAW--SEAL-8b5cf6?logo=github)](https://github.com/ariffazil/arifOS/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-ef4444?logo=gnu)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-13%20tools-10b981?logo=anthropic&logoColor=white)](https://arifos.arif-fazil.com/mcp)
 [![Floors](https://img.shields.io/badge/floors-F1–F13-f59e0b)](docs/00_META/CONSTITUTION.md)
@@ -405,3 +405,7 @@ AGPL-3.0. See [LICENSE](LICENSE).
 
 > **Evidence Contract.** This organ emits the standard envelope (epistemic_tag, evidence_quality, source_attribution, uncertainty_band, delta_S) per [arifOS 000_CONSTITUTION.md](../../arifOS/static/arifos/theory/000/000_CONSTITUTION.md) Appendix B. arifOS reads the envelope and applies L01–L13. This organ does not self-judge.
 
+
+## Changelog
+
+- **v2026.06.06-LAW-SEAL** (2026-06-06): Constitution unified. 13 Laws (L01-L13) named canonically. Bare-metal deploy (9c161d4). runtime_drift=False. 12/12 federation ports green. entropy=13/100. F13 ack closed.
