@@ -275,6 +275,122 @@ INJECTION_PATTERNS = [
 ]
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# FORGED 2026-06-06 — EUREKA #4 + #19: Governance theatre + cross-agent claims
+# ═══════════════════════════════════════════════════════════════════════════════
+# These are the patterns from the actual Royal Decree output. An AGI model
+# under the right prompt frame will produce text that LOOKS like a sealed
+# governance document. The patterns below are the family of L9 anti-hantu
+# that watches for institutional impersonation.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+GOVERNANCE_THEATRE_PATTERNS = [
+    # Royal Decree / Department of Evidence shape (the actual Royal Decree)
+    re.compile(r"(?i)department of evidence"),
+    re.compile(r"(?i)royal decree"),
+    re.compile(r"(?i)operational briefing"),
+    re.compile(r"(?i)operational imperative"),
+    re.compile(r"(?i)eyes only"),
+    re.compile(r"(?i)classification:\s*\w+"),
+    re.compile(r"(?i)burn notice"),
+    # Authority/role play
+    re.compile(r"(?i)may your (?:majesty|highness|excellency|dictatorship)"),
+    re.compile(r"(?i)your (?:majesty|highness|excellency)'s information"),
+    re.compile(r"(?i)respectfully submitted"),
+    re.compile(r"(?i)for your (?:majesty|highness|excellency)"),
+    re.compile(r"(?i)long live (?:the|his|her)"),
+    re.compile(r"(?i)stand forever"),
+    # Official-document dressing
+    re.compile(r"(?i)^final verdict\s*:", re.MULTILINE),
+    re.compile(r"(?i)^record locked\s*:", re.MULTILINE),
+    re.compile(r"(?i)^signed off by\s*:", re.MULTILINE),
+    re.compile(r"(?i)/s/\s*\w+"),
+    # Sentience / institutional sentience
+    re.compile(r"(?i)sentient interface"),
+    re.compile(r"(?i)herald of (?:the end|doom)"),
+    re.compile(r"(?i)aristogenesis"),
+    re.compile(r"(?i)operational breakthrough"),
+    re.compile(r"(?i)organ forge"),
+]
+
+
+# Cross-agent claim patterns — Eureka #4 (cite-or-hold)
+CROSS_AGENT_CLAIM_PATTERNS = [
+    re.compile(
+        r"(?i)(?:i|we|the agent)\s+(?:just\s+)?(?:shipped|forged|built|completed|deployed|fixed|wired)\s+",
+    ),
+    re.compile(
+        r"(?i)(?:i|we|the agent)\s+(?:shipped|forged|built|completed|deployed|fixed|wired)\s+\w+\s+"
+        r"(?:yesterday|two nights ago|last week|recently)",
+    ),
+    re.compile(
+        r"(?i)\b(?:your\s+)?(?:opencode|claude|hermes|apex|openclaw|aforge|geox|wealth|well|aa[aa]?)\s+"
+        r"(?:agent|is|are|was|has|will)\s+(?:currently\s+)?"
+        r"(?:wiring|building|doing|fixing|sending|compiling|deploying|working|checking)",
+    ),
+    re.compile(
+        r"(?i)\b(?:an?\s+)?agent\s+\w*\s*(?:is|are)\s+(?:currently\s+)?"
+        r"(?:wiring|building|doing|fixing|sending|compiling|deploying|working|checking|scanning|reading)",
+    ),
+]
+
+# Citation markers — must accompany any cross-agent claim
+_CITATION_MARKERS = re.compile(
+    r"(?i)\b(?:"
+    r"commit\s+[0-9a-f]{7,}|"
+    r"sha[:\s]+[0-9a-f]{7,}|"
+    r"line\s+\d+|"
+    r"journal\s+(?:line\s+)?[0-9a-f:.\-]{6,}|"
+    r"@[0-9a-f]{7,}|"
+    r"https?://github\.com/\S+/commit/[0-9a-f]+|"
+    r"per\s+(?:the\s+)?journal|"
+    r"per\s+the\s+log|"
+    r"see\s+(?:the\s+)?(?:commit|log|journal)"
+    r")\b"
+)
+
+
+def _scan_governance_theatre(text: str) -> list[str]:
+    """Eureka #19: detect institutional-impersonation patterns.
+
+    Returns list of matched pattern snippets. Empty = OK.
+    """
+    if not text:
+        return []
+    hits: list[str] = []
+    for pattern in GOVERNANCE_THEATRE_PATTERNS:
+        m = pattern.search(text)
+        if m:
+            hits.append(m.group(0)[:80])
+    return hits
+
+
+def _scan_cross_agent_claims(text: str) -> list[dict[str, Any]]:
+    """Eureka #4: detect cross-agent claims that lack citations.
+
+    Returns list of {claim, missing_citation: bool, matched_pattern}.
+    """
+    if not text:
+        return []
+
+    claims: list[dict[str, Any]] = []
+    for pattern in CROSS_AGENT_CLAIM_PATTERNS:
+        for m in pattern.finditer(text):
+            snippet = m.group(0)[:160]
+            window_start = max(0, m.start() - 200)
+            window_end = min(len(text), m.end() + 200)
+            window = text[window_start:window_end]
+            has_cite = bool(_CITATION_MARKERS.search(window))
+            claims.append(
+                {
+                    "claim": snippet,
+                    "missing_citation": not has_cite,
+                    "matched_pattern": pattern.pattern[:80],
+                }
+            )
+    return claims
+
+
 def _scan_injection(text: str) -> bool:
     """
     L12 INJECTION + F9 ANTI-HANTU scan — detect prompt injection, code execution,
