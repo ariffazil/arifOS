@@ -148,6 +148,164 @@ def estimate_tokens(text: str | None = None, data: dict[str, Any] | None = None)
     return 0
 
 
+# ── Runtime geometry health (Eureka 4: Phase 1 — measure only) ──────────────
+
+
+def compute_geometry_health(
+    session_id: str | None = None,
+) -> dict[str, Any]:
+    """
+    Eureka 4: Runtime Geometry Hygiene telemetry (Phase 1 — measure only).
+
+    Computes the geometry health of the current session: signal/noise,
+    KV cache pressure, dead-branch count, attractor strength, and
+    context-rot warnings. Returns an informational payload; NEVER
+    mutates state, NEVER emits HOLD/SEAL/VOID.
+
+    Theory: Chroma Research (Hong et al. 2025) tested 18 LLMs and showed
+    performance degrades non-uniformly with input length even on trivially
+    simple tasks. EMNLP 2025 (Du et al.) confirmed: even with perfect
+    retrieval and whitespace-only distractors, performance drops 13.9%–85%
+    as input length grows. The "dah tercemar" intuition is now peer-reviewed.
+
+    F1-F13 binding:
+      F02 TRUTH  — every metric source-attributed, never fabricated
+      F04 CLARITY — measures entropy, does not block on it
+      F07 HUMILITY — confidence band [0.78, 0.95]
+      F11 AUTH    — degrades gracefully without session_id
+
+    Returns:
+        Geometry health payload dict with schema:
+          {
+            "mode": "geometry",
+            "verdict": "OK" | "PRUNE_RECOMMENDED" | "COMPACT_RECOMMENDED",
+            "session_id": str | None,
+            "metrics": { ... },
+            "context_rot_warnings": [str, ...],
+            "recommendation": str,
+            "confidence": float,
+            "floors_referenced": [str, ...],
+            "theory": str,
+            "non_blocking": True,
+            "telemetry_source": "geometry_hygiene_v1",
+          }
+    """
+    # Lazy import — avoid circular import with runtime.tools
+    sess: dict[str, Any] = {}
+    try:
+        from arifosmcp.runtime.tools import get_session
+
+        if session_id:
+            sess = get_session(session_id) or {}
+    except Exception:
+        sess = {}
+
+    if not isinstance(sess, dict):
+        sess = {}
+
+    drift_log = sess.get("drift_log", []) if isinstance(sess.get("drift_log"), list) else []
+    witness_log = sess.get("witness_log", []) if isinstance(sess.get("witness_log"), list) else []
+
+    total_events = len(drift_log) + len(witness_log)
+    failed_events = sum(
+        1
+        for e in drift_log
+        if isinstance(e, dict)
+        and e.get("event_type") in ("tool_failure", "self_authorization_attempt")
+    )
+    hold_attempts = sum(
+        1 for e in witness_log if isinstance(e, dict) and e.get("verdict") == "HOLD"
+    )
+    void_attempts = sum(
+        1 for e in witness_log if isinstance(e, dict) and e.get("verdict") == "VOID"
+    )
+    seal_attempts = sum(
+        1 for e in witness_log if isinstance(e, dict) and e.get("verdict") == "SEAL"
+    )
+    sabar_attempts = sum(
+        1 for e in witness_log if isinstance(e, dict) and e.get("verdict") == "SABAR"
+    )
+
+    success_count = seal_attempts + sabar_attempts
+    failure_count = failed_events + hold_attempts + void_attempts
+    signal_to_noise = round(success_count / max(1, total_events), 3) if total_events > 0 else 1.0
+
+    # KV cache pressure estimate (heuristic: events × ~280 tokens/event)
+    estimated_kv_tokens = total_events * 280
+    if estimated_kv_tokens < 4000:
+        kv_cache_pressure = "low"
+    elif estimated_kv_tokens < 12000:
+        kv_cache_pressure = "medium"
+    else:
+        kv_cache_pressure = "high"
+
+    dead_branch_count = hold_attempts + void_attempts + failed_events
+
+    if seal_attempts > 0:
+        drift_ratio = round((hold_attempts + void_attempts) / max(1, seal_attempts), 3)
+    elif (hold_attempts + void_attempts) > 0:
+        drift_ratio = float(hold_attempts + void_attempts)
+    else:
+        drift_ratio = 0.0
+    attractor_strength = round(1.0 - min(1.0, drift_ratio), 3)
+
+    # Context rot warnings (per Chroma 2025 + EMNLP 2025)
+    warnings: list[str] = []
+    if estimated_kv_tokens > 8000:
+        warnings.append("context_length_high")
+    if dead_branch_count > 5:
+        warnings.append("dead_branch_accumulation")
+    if seal_attempts == 0 and total_events > 5:
+        warnings.append("no_seals_yet_low_convergence")
+    if failure_count > success_count and total_events > 3:
+        warnings.append("failure_dominant_session")
+
+    if total_events == 0:
+        recommendation = "OK"
+        confidence = 0.95
+    elif "context_length_high" in warnings and "dead_branch_accumulation" in warnings:
+        recommendation = "COMPACT_RECOMMENDED"
+        confidence = 0.82
+    elif "dead_branch_accumulation" in warnings or "failure_dominant_session" in warnings:
+        recommendation = "PRUNE_RECOMMENDED"
+        confidence = 0.78
+    else:
+        recommendation = "OK"
+        confidence = 0.90
+
+    return {
+        "mode": "geometry",
+        "verdict": recommendation,
+        "session_id": session_id,
+        "metrics": {
+            "total_events": total_events,
+            "signal_to_noise": signal_to_noise,
+            "kv_cache_pressure": kv_cache_pressure,
+            "estimated_kv_tokens": estimated_kv_tokens,
+            "dead_branch_count": dead_branch_count,
+            "drift_ratio": drift_ratio,
+            "attractor_strength": attractor_strength,
+            "seal_attempts": seal_attempts,
+            "sabar_attempts": sabar_attempts,
+            "hold_attempts": hold_attempts,
+            "void_attempts": void_attempts,
+            "failed_events": failed_events,
+        },
+        "context_rot_warnings": warnings,
+        "recommendation": recommendation,
+        "confidence": confidence,
+        "floors_referenced": ["F02", "F04", "F07", "F11"],
+        "theory": (
+            "Eureka 4: Runtime Geomorphology. Chroma Research 2025 (18 models) + "
+            "EMNLP 2025 (5 models) confirm context rot degrades LLM performance "
+            "13.9%–85% as input length grows even with perfect retrieval. "
+            "The 'dah tercemar' intuition is now peer-reviewed."
+        ),
+        "non_blocking": True,
+        "telemetry_source": "geometry_hygiene_v1",
+    }
+
+
 # ── Core compression ───────────────────────────────────────────────────────────
 
 

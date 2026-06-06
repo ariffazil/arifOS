@@ -9290,6 +9290,9 @@ def _arif_ops_measure(
       predict   — Project resource trajectory based on current load.
       topology  — Anti-Sink: Calhoun-inspired inclusive topology diagnostic.
       drift     — Acemoglu-inspired institutional extractive drift diagnostic.
+      geometry  — Runtime geometry hygiene: signal/noise, KV pressure,
+                  dead-branch count, context-rot warnings, non-blocking
+                  recommendation. Eureka 4 (Phase 1, measure only).
 
     Parameters:
       mode       — health | vitals | cost | predict | topology | drift
@@ -9544,6 +9547,15 @@ def _arif_ops_measure(
             },
             delta_S=0.0,
         )
+
+    if mode == "geometry":
+        # Eureka 4: Runtime Geometry Hygiene (Phase 1 — measure only).
+        # See arifosmcp.runtime.compression.compute_geometry_health for full
+        # theory. Non-blocking, source-attributed metrics only.
+        from arifosmcp.runtime.compression import compute_geometry_health
+
+        payload = compute_geometry_health(session_id=session_id)
+        return _ok("arif_ops_measure", payload, delta_S=0.0)
 
     return _hold("arif_ops_measure", f"Unknown mode: {mode}")
 

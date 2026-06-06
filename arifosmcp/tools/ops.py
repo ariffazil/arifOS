@@ -303,8 +303,14 @@ def arif_ops_measure(
             return TelemetryBlock(
                 **_ok(
                     "arif_ops_measure",
-                    raw if isinstance(raw, dict) else (raw.__dict__ if hasattr(raw, "__dict__") else {"result": str(raw)}),
-                    meta={**drift_metrics, "source": "arif_stack_health_probe", "mode": "stack_health"},
+                    raw
+                    if isinstance(raw, dict)
+                    else (raw.__dict__ if hasattr(raw, "__dict__") else {"result": str(raw)}),
+                    meta={
+                        **drift_metrics,
+                        "source": "arif_stack_health_probe",
+                        "mode": "stack_health",
+                    },
                     session_id=session_id,
                 )
             )
@@ -401,9 +407,7 @@ def arif_ops_measure(
                         avg_ack_time_ms = 0.0
 
                         # Dignity holds from session
-                        dignity_holds = sum(
-                            1 for e in witness_log if e.get("stage") == "WELL_GATE"
-                        )
+                        dignity_holds = sum(1 for e in witness_log if e.get("stage") == "WELL_GATE")
 
             # Determine wakefulness verdict
             if well_score >= 80 and rubber_stamp_rate < 0.8:
@@ -447,10 +451,38 @@ def arif_ops_measure(
             )
 
     if mode in ("qday_dashboard", "qday_physics_dashboard"):
-        return {"status": "readonly", "message": f"{mode} activated based on qday_physics parameters."}
+        return {
+            "status": "readonly",
+            "message": f"{mode} activated based on qday_physics parameters.",
+        }
 
     if mode in ("geox_quantum_dashboard",):
-        return {"status": "readonly", "message": f"{mode} activated based on GEOX quantum scale classifier."}
+        return {
+            "status": "readonly",
+            "message": f"{mode} activated based on GEOX quantum scale classifier.",
+        }
+
+    if mode == "geometry":
+        # Eureka 4: Runtime Geometry Hygiene (Phase 1 — measure only).
+        # Per Chroma 2025 + EMNLP 2025: context rot degrades LLM performance
+        # 13.9%–85% as input length grows even with perfect retrieval. Returns
+        # signal/noise, KV pressure, dead-branch count, attractor strength,
+        # and a non-blocking action recommendation. NEVER mutates state.
+        from arifosmcp.runtime.compression import compute_geometry_health
+
+        payload = compute_geometry_health(session_id=session_id)
+        return TelemetryBlock(
+            **_ok(
+                "arif_ops_measure",
+                payload,
+                meta={
+                    **drift_metrics,
+                    "mode": "geometry",
+                    "source": "geometry_hygiene",
+                },
+                session_id=session_id,
+            )
+        )
 
     return TelemetryBlock(
         **_hold("arif_ops_measure", f"Unknown mode: {mode}", session_id=session_id)
