@@ -1,8 +1,8 @@
 # Runbook — arifOS Federation
 
 > **Purpose**: Restart, verify, rollback, and **deploy** per organ without guesswork.
-> **Last updated**: 2026-06-06 by Ω — Entropy reduction sweep: renamed F1–F13 → L1–L13, documented public MCP status codes.
-> **Sovereign law**: `L1–L13` (was `F1–F13`) active at `/root` — all agents are governed. See [`000_CONSTITUTION.md`](https://github.com/ariffazil/arifos/blob/main/static/arifos/theory/000/000_CONSTITUTION.md).
+> **Last updated**: 2026-06-06 by Ω — Entropy reduction sweep: renamed L1–L13 → L1–L13, documented public MCP status codes.
+> **Sovereign law**: `L1–L13` (was `L1–L13`) active at `/root` — all agents are governed. See [`000_CONSTITUTION.md`](https://github.com/ariffazil/arifos/blob/main/static/arifos/theory/000/000_CONSTITUTION.md).
 
 ---
 
@@ -647,6 +647,21 @@ echo "=== Done ==="
 | `https://wealth.arif-fazil.com/mcp` | `200 OK` | Standard FastMCP — accepts POST JSON-RPC |
 | `https://well.arif-fazil.com/mcp` | `200 OK` | Standard FastMCP — accepts POST JSON-RPC |
 | `https://aaa.arif-fazil.com/mcp` (A2A) | `405 Method Not Allowed` | AAA is A2A protocol, not MCP JSON-RPC; use A2A envelope |
+
+**Spec-correct behavior (per [MCP Streamable HTTP transport](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)):**
+
+For all 4 organs (arifOS, GEOX, WEALTH, WELL), the MCP endpoint must respond per spec:
+
+| HTTP Method | Headers | Expected Response | Status |
+|-------------|---------|-------------------|--------|
+| `POST /mcp` | `Content-Type: application/json`, `Accept: application/json, text/event-stream` | 200 (JSON or SSE) | ✓ All 4 organs |
+| `POST /mcp` | `Content-Type: application/json` (no Accept) | Server's choice — may be 200 (permissive) or 406 (strict). arifOS returns 406 (strict); others 200. | ✓ spec-compliant |
+| `GET /mcp` | `Accept: text/event-stream` | 200 (SSE stream) OR 405 (no SSE offered) | ✓ arifOS/GEOX/WELL=405, WEALTH=200 (informational JSON) |
+| `GET /mcp` | (no Accept) | 405 Method Not Allowed | ✓ arifOS/GEOX/WELL. WEALTH returns 200 (informational) — minor deviation |
+| `Origin: <untrusted>` | any | 403 Forbidden (DNS rebinding protection per SEP-2243) | ✓ All 4 organs |
+
+**Note (arifOS source has been updated 2026-06-06):**
+The arifOS live build returns `400` (with JSON-RPC "Missing session ID" error) on GET instead of the spec-correct 405. This is because the live runtime was deployed before the spec-compliance patch landed. **Source fix in commit `7facaeff` (applied 2026-06-06)**; live arifOS will return 405 after the next image rebuild + redeploy (F13 territory — see "Production deployment without verified build + test pass" in `AGENTS.md`).
 
 **Common failures (real outages, not expected behavior above):**
 - `arifOS` 522 → Cloudflare Tunnel down; check `systemctl status cloudflared`
