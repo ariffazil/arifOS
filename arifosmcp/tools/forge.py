@@ -12,7 +12,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from arifosmcp.runtime.law import check_laws
-from arifosmcp.runtime.tools import _arif_forge_execute
+from arifosmcp.runtime.tools import _add_floor_compat, _arif_forge_execute
 from arifosmcp.schemas.forge import ForgeErrorCode, ForgeManifest, ForgeOutput, ManifestStatus, ToolManifest
 from arifosmcp.tools.forge_ladder import ARIF_FORGE_EXECUTE_MANIFEST, ALLOWED_COMMANDS, WORKSPACE_ROOT
 
@@ -95,37 +95,82 @@ def arif_forge_execute(
             timestamp=datetime.now(UTC).isoformat(),
         )
 
-    # ── v3.1: judge_state_hash REQUIRED for MUTATE/ATOMIC ─────────────────────
-    if not judge_state_hash:
+    # ── v3.1: actor_id REQUIRED for MUTATE/ATOMIC (F11 authority) ─────────────
+    if not actor_id:
+        _meta = {
+            "error_code": ForgeErrorCode.E_JUDGE_STATE_HASH_REQUIRED,
+            "reason": (
+                "888 HOLD — actor_id is REQUIRED for MUTATE/ATOMIC forge modes. "
+                "Anonymous execution is prohibited."
+            ),
+            "violated_laws": ["L11"],
+            "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
+        }
+        _add_floor_compat(_meta)
         return ForgeOutput(
             status="HOLD",
             result={},
             manifest=ForgeManifest(status=ManifestStatus.HOLD),
-            meta={
-                "error_code": ForgeErrorCode.E_JUDGE_STATE_HASH_REQUIRED,
-                "reason": (
-                    "888 HOLD — judge_state_hash is REQUIRED for MUTATE/ATOMIC forge modes. "
-                    "Call arif_judge_deliberate first, then pass the returned state_hash."
-                ),
-                "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
-            },
+            meta=_meta,
+            timestamp=datetime.now(UTC).isoformat(),
+        )
+
+    # ── v3.1: vault_entry_id REQUIRED for commit mode ─────────────────────────
+    if mode == "commit" and not vault_entry_id:
+        _meta = {
+            "error_code": ForgeErrorCode.E_JUDGE_STATE_HASH_REQUIRED,
+            "reason": (
+                "888 HOLD — vault_entry_id is REQUIRED for commit mode. "
+                "Link the commit to a VAULT999 lineage entry."
+            ),
+            "violated_laws": ["L01", "L11"],
+            "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
+        }
+        _add_floor_compat(_meta)
+        return ForgeOutput(
+            status="HOLD",
+            result={},
+            manifest=ForgeManifest(status=ManifestStatus.HOLD),
+            meta=_meta,
+            timestamp=datetime.now(UTC).isoformat(),
+        )
+
+    # ── v3.1: judge_state_hash REQUIRED for MUTATE/ATOMIC ─────────────────────
+    if not judge_state_hash:
+        _meta = {
+            "error_code": ForgeErrorCode.E_JUDGE_STATE_HASH_REQUIRED,
+            "reason": (
+                "888 HOLD — judge_state_hash is REQUIRED for MUTATE/ATOMIC forge modes. "
+                "Call arif_judge_deliberate first, then pass the returned state_hash."
+            ),
+            "violated_laws": ["L01", "L11"],
+            "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
+        }
+        _add_floor_compat(_meta)
+        return ForgeOutput(
+            status="HOLD",
+            result={},
+            manifest=ForgeManifest(status=ManifestStatus.HOLD),
+            meta=_meta,
             timestamp=datetime.now(UTC).isoformat(),
         )
 
     # ── v3.1: plan_id REQUIRED for engineer/write/generate ────────────────────
     if mode in ("engineer", "write", "generate") and not plan_id:
+        _meta = {
+            "error_code": ForgeErrorCode.E_SYNTHESIS_EMPTY,
+            "reason": (
+                f"mode='{mode}' requires an approved plan_id from forge_plan. "
+                "Call forge_plan(goal=...) first, then pass the returned plan_id."
+            ),
+            "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
+        }
+        _add_floor_compat(_meta)
         return ForgeOutput(
             status="HOLD",
             result={},
             manifest=ForgeManifest(status=ManifestStatus.HOLD),
-            meta={
-                "error_code": ForgeErrorCode.E_SYNTHESIS_EMPTY,
-                "reason": (
-                    f"mode='{mode}' requires an approved plan_id from forge_plan. "
-                    "Call forge_plan(goal=...) first, then pass the returned plan_id."
-                ),
-                "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
-            },
+            meta=_meta,
             timestamp=datetime.now(UTC).isoformat(),
         )
 

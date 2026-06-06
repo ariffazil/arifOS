@@ -108,6 +108,14 @@ def arif_vault_seal(
     if cooldown_meta:
         result["meta"] = result.get("meta", {})
         result["meta"]["sabar_cooldown"] = cooldown_meta
+    # Backward-compat alias (deprecated 2026-06-06)
+    if "meta" in result:
+        _meta = result["meta"]
+        if "violated_laws" in _meta and "failed_floors" not in _meta:
+            _meta["failed_floors"] = [
+                f"F{int(v[1:]):02d}" if v.startswith("L") and v[1:].isdigit() else v
+                for v in _meta["violated_laws"]
+            ]
     return SealOutput(**result)
 
 

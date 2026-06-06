@@ -24,7 +24,7 @@ from arifos_types.agent_message import (
     SendAgentMessageOutput,
     validateAgentMessage,
 )
-from arifos_types.floor_result import (
+from arifos_types.law_result import (
     LawResult,
     FloorViolation,
     FLOOR_NAMES,

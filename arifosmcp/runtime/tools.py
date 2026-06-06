@@ -2882,6 +2882,15 @@ def _ok(
     )
 
 
+def _add_floor_compat(meta: dict[str, Any]) -> None:
+    """Add deprecated 'failed_floors' alias from 'violated_laws' (2026-06-06)."""
+    if "violated_laws" in meta and "failed_floors" not in meta:
+        meta["failed_floors"] = [
+            f"F{int(v[1:]):02d}" if v.startswith("L") and v[1:].isdigit() else v
+            for v in meta["violated_laws"]
+        ]
+
+
 def _hold(
     tool: str,
     reason: str,
@@ -2916,6 +2925,7 @@ def _hold(
         session_id = response_ctx.get("session_id")
     actor_id = _actor_for_response(session_id, meta.get("actor_id"))
     meta.setdefault("actor_id", actor_id)
+    _add_floor_compat(meta)
     response = {
         "status": "HOLD",
         "tool": tool,
