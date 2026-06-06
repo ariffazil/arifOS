@@ -116,7 +116,7 @@ Schemas: `arifosmcp/constitutional_map.py` · Registry: `APEX/ASF1/tool_registry
 
 ---
 
-## 🏛️ Constitutional Floors F1–F13
+## 🏛️ Constitutional Laws F1–F13
 
 > Hard invariants. Not heuristics. Derived from `EUREKA_INSIGHTS_SEAL_v2026.04.07`.
 >
@@ -143,7 +143,7 @@ Schemas: `arifosmcp/constitutional_map.py` · Registry: `APEX/ASF1/tool_registry
 - **SOFT (2):** F5, F6 — important concern; violations trigger CAUTION or HOLD, never silent
 - **DERIVED (2):** F3, F8 — composite floors; not independently stored as verdict triggers, label only
 
-**enforcement_level** (DB column, unchanged): `blocking` (F1, F2, F5, F9, F10, F11, F12, F13) or `required` (F3, F4, F6, F7, F8) — orthogonal to `floor_type` column.
+**enforcement_level** (DB column, unchanged): `blocking` (F1, F2, F5, F9, F10, F11, F12, F13) or `required` (F3, F4, F6, F7, F8) — orthogonal to `law_type` column.
 
 Implementation: `core/shared/floors.py` (runtime SOT) · DB SOT: `s000.constitutional_floors`
 
@@ -375,7 +375,7 @@ These terms appear throughout the arifOS federation. They are precise within the
 | Term | Meaning |
 |------|---------|
 | **DITEMPA BUKAN DIBERI** | "Forged, not given" (Malay). The system was built under real constraint, not handed down. |
-| **F1–F13 / Constitutional Floors** | Thirteen rules the AI cannot override — like physical laws, not suggestions. |
+| **F1–F13 / Constitutional Laws** | Thirteen rules the AI cannot override — like physical laws, not suggestions. |
 | **888 HOLD** | The condition where the AI refuses to decide and hands the question back to the human. |
 | **SEAL** | Constitutional approval — proceed. The system has verified that the action is lawful under the floors. |
 | **SABAR** | "Patient discipline" (Malay). Hold — wait for more evidence or human review. |
@@ -400,3 +400,8 @@ AGPL-3.0. See [LICENSE](LICENSE).
 ---
 
 **DITEMPA BUKAN DIBERI** — Forged, Not Given.
+
+
+
+> **Evidence Contract.** This organ emits the standard envelope (epistemic_tag, evidence_quality, source_attribution, uncertainty_band, delta_S) per [arifOS 000_CONSTITUTION.md](../../arifOS/static/arifos/theory/000/000_CONSTITUTION.md) Appendix B. arifOS reads the envelope and applies L01–L13. This organ does not self-judge.
+
