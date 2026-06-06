@@ -193,6 +193,35 @@ class OriginValidationMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+# ── MCP Transport spec compliance (modelcontextprotocol.io/specification/2025-11-25/basic/transports) ─
+# Per Streamable HTTP spec:
+#   POST with proper Accept: 200 OK (json or sse)
+#   POST without Accept: 406 (server requires specific Accept)
+#   GET: MUST return 200 (SSE stream) OR 405 (no SSE)
+#
+# The default FastMCP _check_accept_headers returns 400 + JSON-RPC error
+# "Missing session ID" on GET when sessionful, which violates the spec.
+# Mirror the GEOX + WELL patch so arifOS GET returns 405 (Method Not Allowed)
+# when JSON-response is enabled and no SSE stream is offered.
+try:
+    from mcp.server.streamable_http import StreamableHTTPServerTransport
+
+    _arifos_orig_check = StreamableHTTPServerTransport._check_accept_headers
+
+    def _arifos_patched_check(self, request):
+        # If server is in JSON-response mode (stateless_http=False +
+        # json_response=True), return 405 on GET instead of 400.
+        if getattr(self, "is_json_response_enabled", False) and request.method == "GET":
+            from starlette.responses import Response
+
+            return False, Response(status_code=405)
+        return _arifos_orig_check(self, request)
+
+    StreamableHTTPServerTransport._check_accept_headers = _arifos_patched_check
+except Exception as _e:
+    pass  # fail-soft — spec compliance patch is best-effort
+
+
 # ─── Deployment Identity ─────────────────────────────────────────────────────
 def _resolve_git_commit() -> str:
     """Resolve canonical git commit with same priority chain as build.py:_git_sha_short.
