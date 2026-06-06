@@ -215,7 +215,7 @@ async def run_full():
             print(f"  Error fetching seals: {seals[0].get('error', 'unknown')}")
 
         # Floor rules
-        print("\n── Constitutional Floors (F1–F13) ─────────────────────────────")
+        print("\n── Constitutional Laws (F1–F13) ─────────────────────────────")
         floors = await floor_rules(conn)
         if floors and "error" not in floors[0]:
             for f in floors:

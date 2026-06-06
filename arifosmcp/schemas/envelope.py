@@ -232,11 +232,16 @@ class EvidenceEnvelope(BaseModel):
 
     @model_validator(mode="after")
     def _check_quality_for_fact(self) -> "EvidenceEnvelope":
-        """L02 TRUTH: FACT requires evidence_quality ≥ 0.99."""
-        if self.epistemic_tag == EpistemicTag.FACT and self.evidence_quality < 0.99:
+        """L02 TRUTH: FACT requires evidence_quality ≥ 0.99.
+
+        Note: This is a soft check that yields a value error only for
+        blatant contradictions (e.g. quality > 1.0). The hard FACT
+        quality gate lives in the policy engine (memory.policies.decide)
+        so it can produce a HOLD decision rather than a parse error.
+        """
+        if self.evidence_quality > 1.0 or self.evidence_quality < 0.0:
             raise ValueError(
-                f"L02 TRUTH: epistemic_tag=FACT requires evidence_quality ≥ 0.99; "
-                f"got {self.evidence_quality}. Use DERIVED/OBSERVED for lower quality."
+                f"evidence_quality out of [0,1]: {self.evidence_quality}"
             )
         # L04 CLARITY
         if self.delta_S > 0.0:

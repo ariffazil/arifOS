@@ -1319,7 +1319,7 @@ python -m arifosmcp.runtime stdio</code></pre>
     <li><code>architect_registry</code> — System Definition (register, list, read)</li>
   </ul>
 
-  <h2>13 Constitutional Floors</h2>
+  <h2>13 Constitutional Laws</h2>
   <table>
     <tr><th>Floor</th><th>Name</th><th>Threshold</th><th>Enforces</th></tr>
     <tr><td>F1</td><td>Amanah</td><td>≥ 0.5</td><td>Reversibility</td></tr>
@@ -1419,7 +1419,7 @@ Domain: MCP / Constitutional Tool Gateway
 | memory_delta | M | Record state change with before/after |
 | vector_embed | V | Embed text/chunk into vector memory |
 
-## The 13 Constitutional Floors
+## The 13 Constitutional Laws
 
 | Floor | Name | Threshold | Enforces |
 |-------|------|-----------|----------|
@@ -5051,7 +5051,7 @@ def register_rest_routes(
                 f"- Tools JSON: {base}/tools",
                 f"- Server Card: {base}/.well-known/mcp/server-card.json",
                 "",
-                "## The 13 Constitutional Floors",
+                "## The 13 Constitutional Laws",
                 "",
                 "| Floor | Name | Enforces |",
                 "|-------|------|----------|",

@@ -1,5 +1,5 @@
 """
-codebase/constitutional_floors.py — The 13 Constitutional Floors
+codebase/constitutional_floors.py — The 13 Constitutional Laws
 
 CANONICAL IMPLEMENTATION (L13 RATIFIED 2026-06-03)
 Based on: 000_THEORY/000_LAW.md (epoch bump pending)
@@ -211,7 +211,7 @@ class LawResult:
 
 
 class Law:
-    """Base class for Constitutional Floors."""
+    """Base class for Constitutional Laws."""
 
     def __init__(self, law_id: str):
         self.id = law_id

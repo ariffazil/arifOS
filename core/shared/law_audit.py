@@ -1,7 +1,7 @@
 """
 aclip_cai/core/floor_audit.py — F1-L13 Runtime Constitutional Auditor
 
-Enforces all 13 Constitutional Floors on every tool call/action.
+Enforces all 13 Constitutional Laws on every tool call/action.
 F6 Empathy has a real ASEAN/MY maruah check (not a default pass).
 F7 Humility band aligned to Ω₀ ∈ [0.03, 0.05] per canonical spec.
 F2 Truth includes an axiomatic bypass for math/syntactic certainties.

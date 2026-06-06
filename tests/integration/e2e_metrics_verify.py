@@ -12,7 +12,7 @@ async def run_test():
     print("--- E2E EMPIRICAL VERIFICATION REPORT ---")
 
     # Scenario 1: Detailed Query -> Resulting in Clarity
-    query_1 = "Requesting logical analysis of the 13 Constitutional Floors specifically regarding F11 and F13 interaction."
+    query_1 = "Requesting logical analysis of the 13 Constitutional Laws specifically regarding F11 and F13 interaction."
     res_1 = await hardened_agi_mind_dispatch("reason", {"query": query_1})
 
     # Scenario 2: Minimal Query -> Higher relative entropy compared to input

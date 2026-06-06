@@ -1,7 +1,7 @@
 """
 core/floors.py — F1-L13 Constitutional Enforcement
 
-This module implements the 13 Constitutional Floors that govern all
+This module implements the 13 Constitutional Laws that govern all
 AI-to-tool interactions within arifOS.
 
 CANONICAL FLOOR CLASSIFICATION (L13 RATIFIED 2026-06-03):

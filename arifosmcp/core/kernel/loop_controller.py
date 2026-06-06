@@ -2,7 +2,7 @@
 core/kernel/loop_controller.py — The SabarLoop (Safe Autonomy Throttle).
 
 This module implements the execution loop that drives the Planner's DAG,
-governed by the Constitutional Floors and the Sabar Protocol.
+governed by the Constitutional Laws and the Sabar Protocol.
 
 Author: Muhammad Arif bin Fazil
 Status: Implementation (v2026.04.16-IGNITION)

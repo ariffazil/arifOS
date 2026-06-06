@@ -23,7 +23,7 @@ L12 Attack Surface Mitigations:
     - Confidence decay: stale beliefs auto-expire
     - Audit trail: every update appended to VAULT999/SEALED_EVENTS.jsonl
 
-Constitutional Floors: F2 (Truth), F9 (Anti-Hantu), L11 (Command Auth),
+Constitutional Laws: F2 (Truth), F9 (Anti-Hantu), L11 (Command Auth),
                        L12 (Injection Defense)
 
 DITEMPA BUKAN DIBERI — Forged, Not Given [ΔΩΨ | ARIF]

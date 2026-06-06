@@ -124,7 +124,7 @@ class WebMCPGateway:
         self.app = FastAPI(
             title="arifOS WebMCP",
             version=self.build_info["version"],
-            description="AI-governed WebMCP environment with 13 Constitutional Floors",
+            description="AI-governed WebMCP environment with 13 Constitutional Laws",
         )
 
         # Initialize components (resilient to Redis failure)

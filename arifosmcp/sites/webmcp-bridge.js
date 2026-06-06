@@ -26,7 +26,7 @@
         THEORY: [
             {
                 name: "explain_constitutional_floor",
-                description: "Explain one of the 13 Constitutional Floors of arifOS (F1-F13).",
+                description: "Explain one of the 13 Constitutional Laws of arifOS (F1-F13).",
                 parameters: {
                     type: "object",
                     properties: {

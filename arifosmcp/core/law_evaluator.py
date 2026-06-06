@@ -2,7 +2,7 @@
 arifOS Constitutional Kernel — Floor Evaluator
 ══════════════════════════════════════════════
 
-Parametric evaluator for F1–L13 Constitutional Floors.
+Parametric evaluator for F1–L13 Constitutional Laws.
 Interprets ThreatAssessment and ActionContext into formal floor decisions.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given

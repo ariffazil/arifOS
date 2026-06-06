@@ -2,7 +2,7 @@
 core/enforcement/genius.py — Constitutional Genius & Dial Derivation
 
 This module implements the "Real Scoring" system for arifOS.
-It derives the 4 APEX Dials (A/P/X/E) from the 13 Constitutional Floors.
+It derives the 4 APEX Dials (A/P/X/E) from the 13 Constitutional Laws.
 
 PRIMARY PATH (N ≥ 5 observations):
   13 floor vectors → covariance matrix → eigenvalue decomposition → top 4 PCs → A,P,X,E

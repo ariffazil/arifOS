@@ -1,7 +1,7 @@
 """
 arifos://doctrine — Immutable Law (Ψ)
 ══════════════════════════════════════
-The 13 Constitutional Floors (F1–L13).
+The 13 Constitutional Laws (F1–L13).
 Ditempa Bukan Diberi.
 """
 

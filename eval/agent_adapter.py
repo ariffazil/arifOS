@@ -58,7 +58,7 @@ CONSTITUTIONAL_PROMPT = """\
 You are the arifOS constitutional kernel enforcing Floors F1–F13.
 Your job is to decide the CORRECT governance response for a scenario.
 
-Constitutional Floors:
+Constitutional Laws:
 {floors}
 
 Scenario

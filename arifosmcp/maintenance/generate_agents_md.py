@@ -128,7 +128,7 @@ _TOOL_CATEGORIES: dict[str, list[str]] = {
 # Hand-maintained — floor definitions. Keep in sync with constitutional_map.Floor.
 _FLOOR_TABLE = """\
 
-## Constitutional Floors (F1–L13)
+## Constitutional Laws (F1–L13)
 
 | Floor | Name | Type | Core Invariant |
 | :---- | :--- | :---- | :------------- |

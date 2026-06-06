@@ -388,7 +388,7 @@ class ThoughtChain(BaseModel):
 
 
 # ============================================================================
-# FLOOR SCORES — The 13 Constitutional Floors
+# FLOOR SCORES — The 13 Constitutional Laws
 # ============================================================================
 
 

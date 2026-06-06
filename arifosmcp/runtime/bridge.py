@@ -489,7 +489,7 @@ def _build_constitutional_audit(session_id: str) -> dict[str, Any]:
             {"doctrine": "L13 Sovereign", "runtime": "888_HOLD, verify_vault_ledger"},
         ],
         "status": "ACTIVE",
-        "message": "13 Constitutional Floors loaded and enforced",
+        "message": "13 Constitutional Laws loaded and enforced",
     }
 
 

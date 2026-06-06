@@ -1,28 +1,51 @@
-from .audit_logger import MemoryAuditLogger
-from .hard_rules import MemoryHardRuleViolation, run_all_hard_rules
-from .ingestion_service import MemoryIngestionService
-from .revocation_manager import MemoryRevocationManager
-from .types import MemoryCandidate, MemoryRecord, MemoryType
-from .virtue_gates import (
-    gate_amanah,
-    gate_beradab,
-    gate_berakal,
-    gate_berhikmah,
-    run_all_virtue_gates,
+"""Memory package — typed memory, contradictions, lessons, write policies."""
+
+from arifosmcp.memory.contradictions import (
+    ContradictionEntry,
+    ContradictionRecord,
+    ContradictionSide,
+    ContradictionStore,
+    DisputedArtifact,
+    get_store as get_contradiction_store,
+)
+from arifosmcp.memory.lessons import (
+    Lesson,
+    LessonStatus,
+    LessonStore,
+    LessonType,
+    extract_from_confirmation,
+    extract_from_contradiction,
+    extract_from_failure,
+    get_store as get_lesson_store,
+)
+from arifosmcp.memory.policies import (
+    MemoryLayer,
+    MemoryPolicyEngine,
+    WriteAction,
+    WriteDecision,
+    WriteRequest,
+    get_engine as get_memory_policy_engine,
 )
 
 __all__ = [
-    "MemoryType",
-    "MemoryRecord",
-    "MemoryCandidate",
-    "MemoryIngestionService",
-    "MemoryAuditLogger",
-    "MemoryRevocationManager",
-    "run_all_virtue_gates",
-    "run_all_hard_rules",
-    "MemoryHardRuleViolation",
-    "gate_amanah",
-    "gate_beradab",
-    "gate_berhikmah",
-    "gate_berakal",
+    "ContradictionEntry",
+    "ContradictionRecord",
+    "ContradictionSide",
+    "ContradictionStore",
+    "DisputedArtifact",
+    "Lesson",
+    "LessonStatus",
+    "LessonStore",
+    "LessonType",
+    "MemoryLayer",
+    "MemoryPolicyEngine",
+    "WriteAction",
+    "WriteDecision",
+    "WriteRequest",
+    "extract_from_confirmation",
+    "extract_from_contradiction",
+    "extract_from_failure",
+    "get_contradiction_store",
+    "get_lesson_store",
+    "get_memory_policy_engine",
 ]
