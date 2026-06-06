@@ -52,6 +52,17 @@ from arifosmcp.schemas.forge import (
 # Gateway (666g_GATEWAY)
 from arifosmcp.schemas.gateway import GatewayBlock
 
+# Intent Envelope v1 — Atomic authorization object (F1/F11/F13 enforcement)
+# Ratified 2026-06-06. Kernel rule: "AI may generate. Humans must authorize consequence."
+from arifosmcp.schemas.intent_envelope import (
+    DisplayCard,
+    IntentEnvelopeV1,
+    ProvenanceClass,
+    Reversibility,
+    RiskClass,
+    SovereignProvenance,
+)
+
 # Verdict (888_JUDGE, 999_VAULT, 666_HEART)
 from arifosmcp.schemas.lineage import JudgeSealContract
 
@@ -202,6 +213,13 @@ __all__ = [
     "MemoryBlock",
     # Gateway (666g_GATEWAY)
     "GatewayBlock",
+    # Intent Envelope v1 (F1/F11/F13 atomic authorization)
+    "DisplayCard",
+    "IntentEnvelopeV1",
+    "ProvenanceClass",
+    "Reversibility",
+    "RiskClass",
+    "SovereignProvenance",
     # Sequential thinking (222_SENSE)
     "ThinkingStep",
     "ThinkingSequence",
