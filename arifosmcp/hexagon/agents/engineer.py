@@ -35,7 +35,7 @@ from .base import ConstitutionalAgent, TrinityRole, Verdict
 logger = logging.getLogger(__name__)
 
 
-class EngineerAgent(ConstitutionalAgent):
+class AGIAgent(ConstitutionalAgent):
     """
     Engineer Agent - Executes code with constitutional safeguards.
 
@@ -57,7 +57,7 @@ class EngineerAgent(ConstitutionalAgent):
 
     def __init__(
         self,
-        agent_id: str = "engineer.001",
+        agent_id: str = "agi.001",
         arifos_client=None,
         sandbox_config: dict | None = None,
     ):

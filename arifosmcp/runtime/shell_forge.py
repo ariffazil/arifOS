@@ -14,11 +14,11 @@ except ImportError:
 
 
 try:
-    from arifosmcp.agentzero.escalation.hold_state import anchor_hold_registry
+    from arifosmcp.hexagon.escalation.hold_state import anchor_hold_registry  # was agentzero
 except ImportError:
 
     class _StubHoldRegistry:
-        """Stub hold registry when agentzero escalation not available."""
+        """Stub hold registry when HEXAGON escalation not available (was: agentzero escalation)."""
 
         def is_held(self, session_id: str) -> bool:
             return False

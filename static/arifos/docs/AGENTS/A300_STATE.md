@@ -266,7 +266,6 @@ $ docker exec openclaw_gateway docker ps
 NAMES                 STATUS
 openclaw_gateway      Up 38 minutes (healthy)
 traefik_router        Up 3 hours
-agent_zero_reasoner   Up 3 hours
 headless_browser      Up 3 hours (healthy)
 arifosmcp_server      Up 3 hours (healthy)
 qdrant_memory         Up 3 hours

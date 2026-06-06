@@ -29,7 +29,7 @@ from .base import ConstitutionalAgent, FloorScore, TrinityRole, Verdict
 logger = logging.getLogger(__name__)
 
 
-class ValidatorAgent(ConstitutionalAgent):
+class APEXAgent(ConstitutionalAgent):
     """
     APEX Validator Agent - The constitutional judge.
 

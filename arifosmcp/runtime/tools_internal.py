@@ -37,20 +37,20 @@ from arifosmcp.runtime.schema import IntentType
 from arifosmcp.runtime.session import (
     get_session_identity,
 )
-from arifosmcp.tools.agentzero import (
-    agentzero_armor_scan as _az_armor_scan,
+from arifosmcp.tools.hexagon import (
+    hexagon_psi_armor as _hex_psi_armor,
 )
-from arifosmcp.tools.agentzero import (
-    agentzero_engineer as _az_engineer,
+from arifosmcp.tools.hexagon import (
+    hexagon_agi_execute as _hex_agi_execute,
 )
-from arifosmcp.tools.agentzero import (
-    agentzero_hold_check as _az_hold_check,
+from arifosmcp.tools.hexagon import (
+    hexagon_hold_status as _hex_hold_status,
 )
-from arifosmcp.tools.agentzero import (
-    agentzero_memory_query as _az_memory_query,
+from arifosmcp.tools.hexagon import (
+    hexagon_asi_recall as _hex_asi_recall,
 )
-from arifosmcp.tools.agentzero import (
-    agentzero_validate as _az_validate,
+from arifosmcp.tools.hexagon import (
+    hexagon_apex_validate as _hex_apex_validate,
 )
 
 from .bridge import call_kernel
@@ -740,13 +740,13 @@ async def apex_judge_dispatch_impl(
     elif mode == "rules":
         return await _wrap_call("audit_rules", Stage.INIT_000, session_id, payload, ctx)
     elif mode == "validate":
-        return await _az_validate(
+        return await _hex_apex_validate(
             input_to_validate=payload.get("candidate", ""), session_id=session_id
         )
     elif mode == "hold":
-        return await _az_hold_check(hold_id=payload.get("hold_id"), session_id=session_id)
+        return await _hex_hold_status(hold_id=payload.get("hold_id"), session_id=session_id)
     elif mode == "armor":
-        return await _az_armor_scan(content=payload.get("candidate", ""), session_id=session_id)
+        return await _hex_psi_armor(content=payload.get("candidate", ""), session_id=session_id)
     elif mode == "notify":
         message = payload.get("message", "High-stakes escalation triggered.")
         if ctx and hasattr(ctx, "info"):
@@ -1218,7 +1218,7 @@ def _get_constitutional_memory_store():
     global _constitutional_memory_store
     if _constitutional_memory_store is None:
         try:
-            from arifosmcp.agentzero.memory.constitutional_memory import (
+            from arifosmcp.hexagon.memory.constitutional_memory import (
                 ConstitutionalMemoryStore,
             )
 
@@ -1291,7 +1291,7 @@ async def engineering_memory_dispatch_impl(
 
     if mode == "engineer":
         try:
-            return await _az_engineer(
+            return await _hex_agi_execute(
                 task_description=payload.get("task") or payload.get("query") or "No task",
                 session_id=session_id,
             )
@@ -1313,7 +1313,7 @@ async def engineering_memory_dispatch_impl(
         store = _get_constitutional_memory_store()
         if store:
             try:
-                from arifosmcp.agentzero.memory.constitutional_memory import MemoryArea
+                from arifosmcp.hexagon.memory.constitutional_memory import MemoryArea
 
                 area = MemoryArea.from_string(area_str)
                 await store.initialize_project(project_id)
@@ -1502,7 +1502,7 @@ async def engineering_memory_dispatch_impl(
         store = _get_constitutional_memory_store()
         if store:
             try:
-                from arifosmcp.agentzero.memory.constitutional_memory import MemoryArea
+                from arifosmcp.hexagon.memory.constitutional_memory import MemoryArea
 
                 await store.initialize_project(project_id)
                 entries = await store.vector_query(query=query, project_id=project_id, k=k)
@@ -1558,7 +1558,7 @@ async def engineering_memory_dispatch_impl(
 
         # Fallback to legacy memory query
         try:
-            return await _az_memory_query(query=query, session_id=session_id)
+            return await _hex_asi_recall(query=query, session_id=session_id)
         except Exception as e:
             return _create_error_envelope(
                 tool_name="engineering_memory",
@@ -1605,7 +1605,7 @@ async def engineering_memory_dispatch_impl(
                     verdict=Verdict.SABAR,
                 )
         try:
-            return await _az_memory_query(query=query, session_id=session_id)
+            return await _hex_asi_recall(query=query, session_id=session_id)
         except Exception as e:
             return _create_error_envelope(
                 tool_name="engineering_memory",
@@ -1633,7 +1633,7 @@ async def engineering_memory_dispatch_impl(
         store = _get_constitutional_memory_store()
         if store:
             try:
-                from arifosmcp.agentzero.memory.constitutional_memory import MemoryArea
+                from arifosmcp.hexagon.memory.constitutional_memory import MemoryArea
 
                 area = MemoryArea.from_string(area_str)
                 await store.initialize_project(project_id)

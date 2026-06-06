@@ -84,7 +84,6 @@ The `docker-compose.yml` defines 12 production containers:
 - **qdrant_memory:** Vector embeddings (768-dim, BGE-M3)
 - **ollama_engine:** Local LLM inference
 - **openclaw_gateway:** Multi-channel I/O gateway
-- **agent_zero_reasoner:** AGI reasoning brain
 - **prometheus + grafana:** Observability stack
 - **n8n:** Workflow automation
 - **headless_browser:** Chromium for web scraping

@@ -395,7 +395,7 @@ class ConstitutionalAgent(ABC):
                 f"Cannot handoff unsealed action: verdict={getattr(self, '_last_verdict', 'UNKNOWN')}"
             )
 
-        from arifosmcp.agentzero.handoff.sealer import HandoffSealer
+        from arifosmcp.hexagon.handoff.sealer import HandoffSealer
 
         sealer = HandoffSealer(vault_manager=vault, secret_key=secret_key)
 
@@ -446,7 +446,7 @@ class ConstitutionalAgent(ABC):
         Returns:
             (is_valid, reason)
         """
-        from arifosmcp.agentzero.handoff.sealer import HandoffReceipt, HandoffSealer
+        from arifosmcp.hexagon.handoff.sealer import HandoffReceipt, HandoffSealer
 
         # Reconstruct receipt object
         try:

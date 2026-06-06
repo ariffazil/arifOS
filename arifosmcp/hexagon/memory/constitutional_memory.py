@@ -1,5 +1,5 @@
 """
-arifosmcp.agentzero.memory.constitutional_memory — Constitutional Memory Store
+arifosmcp.hexagon.memory.constitutional_memory — Constitutional Memory Store
 Production-grade Qdrant-backed memory engine.
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """

@@ -188,7 +188,7 @@ async def handle_pns_vision(content_type: str, data: bytes, session_id: str) -> 
 
 async def handle_pns_shield(content: str, session_id: str) -> RuntimeEnvelope:
     """PNS·SHIELD: Injection defense organ."""
-    from arifosmcp.agentzero.security.prompt_armor import PromptArmor
+    from arifosmcp.hexagon.security.prompt_armor import PromptArmor  # was agentzero
 
     armor = PromptArmor()
     report = await armor.scan(text=content, context="user_input")
@@ -225,9 +225,9 @@ async def handle_pns_health(session_id: str) -> RuntimeEnvelope:
 
 async def handle_pns_orchestrate(task: str, session_id: str) -> RuntimeEnvelope:
     """PNS·ORCHESTRATE: Tool routing mediation."""
-    from arifosmcp.tools.agentzero import agentzero_engineer
+    from arifosmcp.tools.hexagon import hexagon_agi_execute  # was agentzero_engineer
 
-    return await agentzero_engineer(task=task, action_type="execute_code", session_id=session_id)
+    return await hexagon_agi_execute(task=task, action_type="execute_code", session_id=session_id)
 
 
 async def handle_pns_floor(input_data: Any, session_id: str) -> RuntimeEnvelope:
@@ -239,9 +239,9 @@ async def handle_pns_floor(input_data: Any, session_id: str) -> RuntimeEnvelope:
 
 async def handle_pns_redteam(candidate: str, session_id: str) -> RuntimeEnvelope:
     """PNS·REDTEAM: Adversarial testing."""
-    from arifosmcp.tools.agentzero import agentzero_validate
+    from arifosmcp.tools.hexagon import hexagon_apex_validate  # was agentzero_validate
 
-    return await agentzero_validate(
+    return await hexagon_apex_validate(
         input_to_validate=candidate, validation_type="plan", session_id=session_id
     )
 
@@ -675,7 +675,7 @@ async def metabolic_loop(
         dag_result: dict[str, Any] | None = None
         if len(plan) >= 3:
             try:
-                from arifosmcp.agentzero.escalation.hold_state import HoldStateManager
+                from arifosmcp.hexagon.escalation.hold_state import HoldStateManager  # was agentzero
                 from arifosmcp.runtime.dag_executor import ConstitutionalDAGExecutor
                 from arifosmcp.runtime.irreversibility import (
                     AmanahIrreversibilityScorer,

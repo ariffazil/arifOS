@@ -29,7 +29,7 @@ VALID_ACTORS: set[str] = {
     "arif",
     "ariffazil",
     "openclaw",
-    "agentzero",
+    "hexagon",  # was agentzero (HEXAGON-NAME-CANON-20260606)
     "operator",
     "cli",
     "user",
@@ -41,7 +41,7 @@ ACTOR_AUTHORITY: dict[str, AuthorityLevel] = {
     "arif": AuthorityLevel.SOVEREIGN,
     "ariffazil": AuthorityLevel.SOVEREIGN,
     "openclaw": AuthorityLevel.AGENT,
-    "agentzero": AuthorityLevel.AGENT,
+    "hexagon": AuthorityLevel.AGENT,  # was agentzero (HEXAGON rename 2026-06-06)
     "operator": AuthorityLevel.OPERATOR,
     "cli": AuthorityLevel.OPERATOR,
     "user": AuthorityLevel.USER,

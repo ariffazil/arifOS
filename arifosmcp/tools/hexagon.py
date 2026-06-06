@@ -1,16 +1,18 @@
 """
-AgentZero MCP Tools — Constitutional Agent Parliament Interface
+HEXAGON MCP Tools — Constitutional Agent Parliament Interface (arifOS)
 
-Exposes AgentZero agents as MCP tools for governed autonomous operations.
-Version: 2026.03.13-H1
+Renamed from agentzero → hexagon on 2026-06-06 (HEXAGON-NAME-CANON-20260606).
+Canon: AAA/agents/HEXAGON.yaml v2.0.0 (sealed 2026-06-02, chain 2505).
+
+Exposes HEXAGON agents as MCP tools for governed autonomous operations.
 Author: Muhammad Arif bin Fazil [ΔΩΨ | ARIF]
 
-Tools:
-- agentzero_validate: ValidatorAgent (Ψ - APEX) constitutional verification
-- agentzero_engineer: EngineerAgent (Ω - HEART) L11-gated code execution
-- agentzero_hold_check: 888 HOLD state status query
-- agentzero_memory_query: Constitutional memory with F-floor filtering
-- agentzero_armor_scan: L12 injection detection
+Tools (HEXAGON canon names; agentzero_* aliases retained for backward compat):
+- hexagon_apex_validate: APEXAgent (ΦΙ JUDGE) constitutional verification
+- hexagon_agi_execute:   AGIAgent    (Δ MIND)     L11-gated code execution
+- hexagon_hold_status:   888 HOLD state status query
+- hexagon_asi_recall:    555-ASI     (Ω HEART)    Constitutional memory w/ F-floor filter
+- hexagon_psi_armor:     L12 injection detection (Ψ APEX armor)
 """
 
 from __future__ import annotations
@@ -23,15 +25,15 @@ from typing import Any
 
 from fastmcp import Context
 
-from arifosmcp.agentzero.agents.base import FloorScore
-from arifosmcp.agentzero.agents.base import Verdict as AZVerdict
+from arifosmcp.hexagon.agents.base import FloorScore
+from arifosmcp.hexagon.agents.base import Verdict as HexVerdict  # was AZVerdict
 
 # AgentZero Components
-from arifosmcp.agentzero.agents.engineer import EngineerAgent
-from arifosmcp.agentzero.agents.validator import ValidatorAgent
-from arifosmcp.agentzero.escalation.hold_state import HoldStateManager
-from arifosmcp.agentzero.memory.constitutional_memory import ConstitutionalMemoryStore
-from arifosmcp.agentzero.security.prompt_armor import PromptArmor
+from arifosmcp.hexagon.agents.engineer import AGIAgent  # was EngineerAgent (reclassified Δ MIND)
+from arifosmcp.hexagon.agents.validator import APEXAgent  # was ValidatorAgent (kept ΦΙ APEX)
+from arifosmcp.hexagon.escalation.hold_state import HoldStateManager
+from arifosmcp.hexagon.memory.constitutional_memory import ConstitutionalMemoryStore
+from arifosmcp.hexagon.security.prompt_armor import PromptArmor
 
 # arifOS runtime models
 from arifosmcp.runtime.model import (
@@ -46,11 +48,11 @@ logger = logging.getLogger(__name__)
 
 
 class SimpleArifOSClient:
-    """Mock client for AgentZero agents to interact with arifOS governance."""
+    """Mock client for HEXAGON agents to interact with arifOS governance."""
 
-    async def evaluate_action(self, action: dict[str, Any], floors: list[str]) -> AZVerdict:
+    async def evaluate_action(self, action: dict[str, Any], floors: list[str]) -> HexVerdict:
         # Default to SEAL for now as the tool wrapper provides the final governance envelope
-        return AZVerdict.seal(
+        return HexVerdict.seal(
             execution_id=action.get("execution_id", "ext-000"),
             agent_id=action.get("agent_id", "unknown"),
             action_type=action.get("agent_type", "task"),
@@ -67,16 +69,12 @@ class SimpleArifOSClient:
 # Singletons for performance and continuity
 _CLIENT = SimpleArifOSClient()
 _ARMOR = PromptArmor()
-_MEMORY = ConstitutionalMemoryStore()
+_ASI = ConstitutionalMemoryStore()  # 555-ASI (Ω HEART memory)
 _HOLD_MANAGER = HoldStateManager()
 
-_VALIDATOR = ValidatorAgent(agent_id="validator.mcp", arifos_client=_CLIENT)
-_ENGINEER = EngineerAgent(agent_id="engineer.mcp", arifos_client=_CLIENT)
-_ENGINEER.set_validator(_VALIDATOR)
-
-# ── HTTP Bridge to Agent Zero container (reabsorbed from agent_zero_mcp.py) ──
-_AZ_URL = os.environ.get("AGENT_ZERO_URL", "http://agent-zero:80")
-_AZ_API_KEY = os.environ.get("AGENT_ZERO_API_KEY", "")
+_APEX = APEXAgent(agent_id="apex.mcp", arifos_client=_CLIENT)  # 888-APEX (ΦΙ JUDGE)
+_AGI = AGIAgent(agent_id="agi.mcp", arifos_client=_CLIENT)  # 333-AGI (Δ MIND — was EngineerAgent Ω)
+_AGI.set_validator(_APEX)  # method name kept for backward compat
 
 
 def _nine_signal(status: str) -> dict:
@@ -96,68 +94,9 @@ def _nine_signal(status: str) -> dict:
     }
 
 
-def delegate_to_agent_zero(
-    task: str,
-    project: str | None = None,
-    lifetime_hours: int = 1,
-) -> dict[str, Any]:
-    """Delegate a task to Agent Zero via HTTP bridge.
-
-    Requires AGENT_ZERO_URL and AGENT_ZERO_API_KEY environment variables.
-    """
-    from datetime import datetime
-
-    try:
-        import httpx
-
-        headers = {"Content-Type": "application/json"}
-        if _AZ_API_KEY:
-            headers["X-API-KEY"] = _AZ_API_KEY
-
-        with httpx.Client(timeout=120) as client:
-            resp = client.post(
-                f"{_AZ_URL}/api_message",
-                json={
-                    "message": task,
-                    "lifetime_hours": lifetime_hours,
-                    **(project and {"project_name": project} or {}),
-                },
-                headers=headers,
-            )
-            if resp.status_code >= 400:
-                raise OSError(f"HTTP {resp.status_code}: {resp.text[:200]}")
-            result = resp.json()
-
-        return {
-            "status": "OK",
-            "tool": "agent_zero_delegate",
-            "result": {
-                "response": result.get("response", result),
-                "context_id": result.get("context_id"),
-            },
-            "meta": {"reason": "Task delegated to Agent Zero"},
-            "output_policy": "DOMAIN_SEAL",
-            "timestamp": datetime.now(UTC).isoformat(),
-            "nine_signal": _nine_signal("OK"),
-            "reasons": ["Agent Zero task completed successfully"],
-        }
-
-    except Exception as e:
-        from datetime import datetime
-
-        return {
-            "status": "HOLD",
-            "tool": "agent_zero_delegate",
-            "result": {"error": str(e)},
-            "meta": {"reason": f"Agent Zero unreachable: {e}"},
-            "output_policy": "DOMAIN_HOLD",
-            "timestamp": datetime.now(UTC).isoformat(),
-            "nine_signal": _nine_signal("HOLD"),
-            "reasons": [f"Agent Zero unreachable: {e}"],
-        }
 
 
-async def agentzero_validate(
+async def hexagon_apex_validate(
     input_to_validate: str,
     validation_type: str = "code",
     session_id: str = "global",
@@ -181,7 +120,7 @@ async def agentzero_validate(
             "risk_level": "medium",
         }
 
-        result = await _VALIDATOR.execute(task)
+        result = await _APEX.execute(task)
 
         az_status = result.get("verdict", "VOID")
         verdict_map = {
@@ -193,7 +132,7 @@ async def agentzero_validate(
         }
 
         return RuntimeEnvelope(
-            tool="agentzero_validate",
+            tool="hexagon_apex_validate",
             session_id=session_id,
             stage=Stage.JUDGE_888.value,
             verdict=verdict_map.get(az_status, Verdict.VOID),
@@ -202,15 +141,15 @@ async def agentzero_validate(
             ),
             payload={
                 "validation_result": result.get("result", result),
-                "agent_id": _VALIDATOR.agent_id,
+                "agent_id": _APEX.agent_id,
             },
             auth_context=auth_context,
         )
 
     except Exception as e:
-        logger.error(f"AgentZero validation failed: {e}")
+        logger.error(f"HEXAGON apex validation failed: {e}")
         return RuntimeEnvelope(
-            tool="agentzero_validate",
+            tool="hexagon_apex_validate",
             session_id=session_id,
             stage=Stage.JUDGE_888.value,
             verdict=Verdict.VOID,
@@ -220,7 +159,7 @@ async def agentzero_validate(
         )
 
 
-async def agentzero_engineer(
+async def hexagon_agi_execute(
     task_description: str,
     action_type: str = "execute_code",
     risk_tier: str = "medium",
@@ -245,29 +184,29 @@ async def agentzero_engineer(
             "authorized": True,
         }
 
-        result = await _ENGINEER.execute(task)
+        result = await _AGI.execute(task)
 
         is_err = result.get("status") in ["error", "VOID", "BLOCKED"]
         status = RuntimeStatus.ERROR if is_err else RuntimeStatus.SUCCESS
 
         return RuntimeEnvelope(
-            tool="agentzero_engineer",
+            tool="hexagon_agi_execute",
             session_id=session_id,
             stage=Stage.ROUTER_444.value,
             verdict=Verdict.SEAL if status == RuntimeStatus.SUCCESS else Verdict.VOID,
             status=status,
             payload={
                 "execution_result": result.get("result", result),
-                "agent_id": _ENGINEER.agent_id,
+                "agent_id": _AGI.agent_id,
                 "risk_tier": risk_tier,
             },
             auth_context=auth_context,
         )
 
     except Exception as e:
-        logger.error(f"AgentZero engineering failed: {e}")
+        logger.error(f"HEXAGON agi execution failed: {e}")
         return RuntimeEnvelope(
-            tool="agentzero_engineer",
+            tool="hexagon_agi_execute",
             session_id=session_id,
             stage=Stage.ROUTER_444.value,
             verdict=Verdict.VOID,
@@ -277,7 +216,7 @@ async def agentzero_engineer(
         )
 
 
-async def agentzero_hold_check(
+async def hexagon_hold_status(
     hold_id: str | None = None,
     session_id: str = "global",
     auth_context: dict[str, Any] | None = None,
@@ -297,7 +236,7 @@ async def agentzero_hold_check(
             }
 
         return RuntimeEnvelope(
-            tool="agentzero_hold_check",
+            tool="hexagon_hold_status",
             session_id=session_id,
             stage=Stage.VAULT_999.value,
             verdict=Verdict.SEAL,
@@ -307,9 +246,9 @@ async def agentzero_hold_check(
         )
 
     except Exception as e:
-        logger.error(f"AgentZero hold check failed: {e}")
+        logger.error(f"HEXAGON hold status failed: {e}")
         return RuntimeEnvelope(
-            tool="agentzero_hold_check",
+            tool="hexagon_hold_status",
             session_id=session_id,
             stage=Stage.VAULT_999.value,
             verdict=Verdict.VOID,
@@ -319,7 +258,7 @@ async def agentzero_hold_check(
         )
 
 
-async def agentzero_memory_query(
+async def hexagon_asi_recall(
     query: str,
     project_id: str = "default",
     session_id: str = "global",
@@ -329,9 +268,9 @@ async def agentzero_memory_query(
 ) -> RuntimeEnvelope:
     """autonomous memory search across Vault999 and session artifacts."""
     try:
-        await _MEMORY.initialize_project(project_id)
+        await _ASI.initialize_project(project_id)
 
-        memories = await _MEMORY.recall(
+        memories = await _ASI.recall(
             query=query,
             project_id=project_id,
             k=5,
@@ -345,7 +284,7 @@ async def agentzero_memory_query(
         }
 
         return RuntimeEnvelope(
-            tool="agentzero_memory_query",
+            tool="hexagon_asi_recall",
             session_id=session_id,
             stage=Stage.MEMORY_555.value,
             verdict=Verdict.SEAL,
@@ -355,9 +294,9 @@ async def agentzero_memory_query(
         )
 
     except Exception as e:
-        logger.error(f"AgentZero memory query failed: {e}")
+        logger.error(f"HEXAGON asi recall failed: {e}")
         return RuntimeEnvelope(
-            tool="agentzero_memory_query",
+            tool="hexagon_asi_recall",
             session_id=session_id,
             stage=Stage.MEMORY_555.value,
             verdict=Verdict.VOID,
@@ -367,7 +306,7 @@ async def agentzero_memory_query(
         )
 
 
-async def agentzero_armor_scan(
+async def hexagon_psi_armor(
     content: str,
     session_id: str = "global",
     auth_context: dict[str, Any] | None = None,
@@ -379,7 +318,7 @@ async def agentzero_armor_scan(
         report = await _ARMOR.scan(content)
 
         return RuntimeEnvelope(
-            tool="agentzero_armor_scan",
+            tool="hexagon_psi_armor",
             session_id=session_id,
             stage=Stage.SENSE_111.value,
             verdict=Verdict.VOID if report.is_injection else Verdict.SEAL,
@@ -389,9 +328,9 @@ async def agentzero_armor_scan(
         )
 
     except Exception as e:
-        logger.error(f"AgentZero armor scan failed: {e}")
+        logger.error(f"HEXAGON psi armor failed: {e}")
         return RuntimeEnvelope(
-            tool="agentzero_armor_scan",
+            tool="hexagon_psi_armor",
             session_id=session_id,
             stage=Stage.SENSE_111.value,
             verdict=Verdict.VOID,
@@ -401,13 +340,49 @@ async def agentzero_armor_scan(
         )
 
 
+# ════════════════════════════════════════════════════════════════
+# Backward-compat aliases (HEXAGON-NAME-CANON-20260606)
+# Old tool names still work — removed in future forge.
+# ════════════════════════════════════════════════════════════════
+
+async def agentzero_validate(*args, **kwargs):
+    """DEPRECATED: use hexagon_apex_validate (Ψ APEX → ΦΙ APEX)."""
+    return await hexagon_apex_validate(*args, **kwargs)
+
+async def agentzero_engineer(*args, **kwargs):
+    """DEPRECATED: use hexagon_agi_execute (was Ω HEART engineer, reclassified to Δ MIND)."""
+    return await hexagon_agi_execute(*args, **kwargs)
+
+async def agentzero_hold_check(*args, **kwargs):
+    """DEPRECATED: use hexagon_hold_status."""
+    return await hexagon_hold_status(*args, **kwargs)
+
+async def agentzero_memory_query(*args, **kwargs):
+    """DEPRECATED: use hexagon_asi_recall."""
+    return await hexagon_asi_recall(*args, **kwargs)
+
+async def agentzero_armor_scan(*args, **kwargs):
+    """DEPRECATED: use hexagon_psi_armor."""
+    return await hexagon_psi_armor(*args, **kwargs)
+
 # Export all tools
 __all__ = [
+    "hexagon_apex_validate",
+    "hexagon_agi_execute",
+    "hexagon_hold_status",
+    "hexagon_asi_recall",
+    "hexagon_psi_armor",
+    # Backward-compat aliases (deprecated 2026-06-06, remove in future forge)
     "agentzero_validate",
     "agentzero_engineer",
     "agentzero_hold_check",
     "agentzero_memory_query",
     "agentzero_armor_scan",
-    "delegate_to_agent_zero",
     "_nine_signal",
+    # Internal singletons (for advanced callers)
+    "_APEX",
+    "_AGI",
+    "_ASI",
+    "_ARMOR",
+    "_HOLD_MANAGER",
 ]

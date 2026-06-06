@@ -19,8 +19,6 @@ services:
       - SEA_LION_BASE_URL=https://api.sea-lion.ai/v1
       - MINIMAX_API_KEY=sk-cp-xL0YZe_eFlMBtT1FEjhkwpGzfzu6Y8aveXZNp1fX26CJsg2nIO8D6BxQOwj-rIm9jqqZVY0WwpbgEcxOs0YC0erEYBq0pe2S0v10YGlDZhxFavSaz2naD08
       - MINIMAX_API_HOST=https://api.minimax.io
-      - AGENT_ZERO_URL=http://agent-zero:80
-      - AGENT_ZERO_API_KEY=jPU8o7B0zxjgAOGz
       - OPERATOR_API_TOKEN=arif2026
       - HUMAN_ESCALATION_WEBHOOK_URL=
     env_file:

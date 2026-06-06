@@ -239,7 +239,7 @@ class E2EValidator:
 
         log_pass("ASI critique with counter-seal works correctly")
 
-    async def validate_agentzero_engineer(self):
+    async def validate_hexagon_agi_execute(self):  # was validate_agentzero_engineer
         """Test 6: Validate two-phase execution."""
         log_section("TEST 6: AgentZero Engineer (Plan→Commit)")
 
