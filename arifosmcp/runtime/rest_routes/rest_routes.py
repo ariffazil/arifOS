@@ -1322,15 +1322,15 @@ python -m arifosmcp.runtime stdio</code></pre>
   <h2>13 Constitutional Laws</h2>
   <table>
     <tr><th>Floor</th><th>Name</th><th>Threshold</th><th>Enforces</th></tr>
-    <tr><td>F1</td><td>Amanah</td><td>≥ 0.5</td><td>Reversibility</td></tr>
-    <tr><td>F2</td><td>Truth</td><td>≥ 0.99</td><td>Anti-hallucination</td></tr>
-    <tr><td>F3</td><td>Tri-Witness</td><td>≥ 0.95</td><td>Consensus</td></tr>
-    <tr><td>F4</td><td>ΔS Clarity</td><td>≤ 0</td><td>Entropy reduction</td></tr>
-    <tr><td>F5</td><td>Peace²</td><td>≥ 1.0</td><td>Stability</td></tr>
-    <tr><td>F6</td><td>Empathy</td><td>≥ 0.70</td><td>Weakest stakeholder</td></tr>
-    <tr><td>F7</td><td>Humility</td><td>0.03-0.05</td><td>Uncertainty</td></tr>
-    <tr><td>F8</td><td>Genius</td><td>≥ 0.80</td><td>Coherence</td></tr>
-    <tr><td>F9</td><td>Anti-Hantu</td><td>&lt; 0.30</td><td>No dark patterns</td></tr>
+    <tr><td>L01</td><td>Amanah</td><td>≥ 0.5</td><td>Reversibility</td></tr>
+    <tr><td>L02</td><td>Truth</td><td>≥ 0.99</td><td>Anti-hallucination</td></tr>
+    <tr><td>L03</td><td>Tri-Witness</td><td>≥ 0.95</td><td>Consensus</td></tr>
+    <tr><td>L04</td><td>ΔS Clarity</td><td>≤ 0</td><td>Entropy reduction</td></tr>
+    <tr><td>L05</td><td>Peace²</td><td>≥ 1.0</td><td>Stability</td></tr>
+    <tr><td>L06</td><td>Empathy</td><td>≥ 0.70</td><td>Weakest stakeholder</td></tr>
+    <tr><td>L07</td><td>Humility</td><td>0.03-0.05</td><td>Uncertainty</td></tr>
+    <tr><td>L08</td><td>Genius</td><td>≥ 0.80</td><td>Coherence</td></tr>
+    <tr><td>L09</td><td>Anti-Hantu</td><td>&lt; 0.30</td><td>No dark patterns</td></tr>
     <tr><td>L10</td><td>Ontology</td><td>LOCK</td><td>No consciousness claims</td></tr>
     <tr><td>L11</td><td>Command Auth</td><td>LOCK</td><td>Identity verification</td></tr>
     <tr><td>L12</td><td>Injection</td><td>&lt; 0.85</td><td>Adversarial defense</td></tr>

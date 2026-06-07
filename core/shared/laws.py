@@ -107,6 +107,37 @@ LAW_SPEC_KEYS: dict[str, str] = {
 }
 
 
+# Display translation: internal F-prefix → canonical L-prefix
+# Per ratification 2026-06-06 (000_LAWS_TRINITY_ANCHOR.md v2026.06.06-LAW-SEAL).
+# Internal class names + THRESHOLDS keys + LAW_SPEC_KEYS retain F-prefix
+# for backward compat (the core/floors.py shim and external importers).
+# Output surfaces (/health, /governance/floors, AAA cockpit) emit L-prefix
+# via this translation. F6 EMPATHY: the shim is a stakeholder, keep its path.
+_DISPLAY_ID_MAP: dict[str, str] = {
+    "F1": "L01",
+    "F2": "L02",
+    "F3": "L03",
+    "F4": "L04",
+    "F5": "L05",
+    "F6": "L06",
+    "F7": "L07",
+    "F8": "L08",
+    "F9": "L09",
+}
+
+
+def _display_id(fid: str) -> str:
+    """Translate internal F-prefix to canonical L-prefix for output surfaces.
+
+    Internal callers (enforcement code, THRESHOLDS lookups, class refs) use
+    the F-prefix unchanged. This function is applied at the OUTPUT boundary
+    only — /health, audit reports, UI badges.
+
+    Idempotent: L-prefix IDs pass through unchanged. Unknown IDs pass through.
+    """
+    return _DISPLAY_ID_MAP.get(fid, fid)
+
+
 def get_floor_spec(law_id: str) -> dict[str, Any]:
     """Return canonical floor specification for a short floor id (e.g., F2)."""
     spec_key = LAW_SPEC_KEYS.get(law_id)
@@ -174,24 +205,29 @@ def get_floors_by_category() -> dict[str, list[str]]:
       - 'hard'   : HARD floors (fail-closed enforcement)
       - 'soft'   : SOFT floors only (advisory; does NOT include DERIVED)
       - 'derived': DERIVED floors (computed from other floors)
+
+    Output is in canonical L-prefix (L01-L13). Internal callers that need
+    the F-prefix can use LAW_SPEC_KEYS directly.
     """
     classes = get_floor_classes()
     return {
-        "hard": sorted(classes["hard"]),
-        "soft": sorted(classes["soft"] - classes["derived"]),
-        "derived": sorted(classes["derived"]),
+        "hard": sorted(_display_id(fid) for fid in classes["hard"]),
+        "soft": sorted(_display_id(fid) for fid in (classes["soft"] - classes["derived"])),
+        "derived": sorted(_display_id(fid) for fid in classes["derived"]),
     }
 
 
 def get_health_report_floors() -> dict[str, str]:
     """
-    Per-floor category map for /health endpoint. Returns F1-L13 → category.
+    Per-floor category map for /health endpoint. Returns L01-L13 → category.
     Categories: 'hard' | 'soft' | 'derived' (lowercase, JSON-safe).
     This is the SOLE source of truth for /health floor reporting — the
     rest_routes.py endpoint imports and computes from this function, never
     from a hardcoded literal.
     """
-    return {fid: get_floor_spec(fid).get("type", "SOFT").lower() for fid in LAW_SPEC_KEYS}
+    return {
+        _display_id(fid): get_floor_spec(fid).get("type", "SOFT").lower() for fid in LAW_SPEC_KEYS
+    }
 
 
 # =============================================================================

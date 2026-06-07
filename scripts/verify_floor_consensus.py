@@ -18,41 +18,44 @@ import urllib.request
 
 
 # ──────────────────────────────────────────────────────────────
-# CANONICAL DOCTRINE (from patched core/shared/floors.py THRESHOLDS)
+# CANONICAL DOCTRINE (from core/shared/laws.py THRESHOLDS, L-prefix display)
+# Per 2026-06-06 ratification (000_LAWS_TRINITY_ANCHOR.md), output is L-prefix.
+# Internal class names retain F-prefix (backward compat); display layer
+# translates F→L. /health emits L01-L13 since this commit.
 # ──────────────────────────────────────────────────────────────
 CANONICAL = {
-    "F1":  ("AMANAH",        "HARD"),
-    "F2":  ("TRUTH",         "HARD"),
-    "F3":  ("QUAD_WITNESS",  "DERIVED"),
-    "F4":  ("CLARITY",       "HARD"),
-    "F5":  ("PEACE2",        "SOFT"),
-    "F6":  ("EMPATHY",       "SOFT"),
-    "F7":  ("HUMILITY",      "HARD"),
-    "F8":  ("GENIUS",        "DERIVED"),
-    "F9":  ("ANTI_HANTU",    "HARD"),      # FIX applied: was SOFT
-    "L10": ("ONTOLOGY",      "HARD"),
-    "L11": ("COMMAND_AUTH",  "HARD"),
-    "L12": ("INJECTION",     "HARD"),
-    "L13": ("SOVEREIGN",     "HARD"),
+    "L01": ("AMANAH", "HARD"),
+    "L02": ("TRUTH", "HARD"),
+    "L03": ("QUAD_WITNESS", "DERIVED"),
+    "L04": ("CLARITY", "HARD"),
+    "L05": ("PEACE2", "SOFT"),
+    "L06": ("EMPATHY", "SOFT"),
+    "L07": ("HUMILITY", "HARD"),
+    "L08": ("GENIUS", "DERIVED"),
+    "L09": ("ANTI_HANTU", "HARD"),  # FIX applied: was SOFT
+    "L10": ("ONTOLOGY", "HARD"),
+    "L11": ("COMMAND_AUTH", "HARD"),
+    "L12": ("INJECTION", "HARD"),
+    "L13": ("SOVEREIGN", "HARD"),
 }
 
 
 # ──────────────────────────────────────────────────────────────
-# PRE-FIX STATE (what /health USED to report)
+# PRE-FIX STATE (what /health USED to report — L-prefix display)
 # ──────────────────────────────────────────────────────────────
 PRE_FIX_HEALTH = {
-    "F1":  "hard",
-    "F2":  "hard",
-    "F3":  "soft",     # WRONG: should be derived
-    "F4":  "soft",     # WRONG: should be hard
-    "F5":  "soft",
-    "F6":  "hard",     # WRONG: should be soft
-    "F7":  "soft",     # WRONG: should be hard
-    "F8":  "soft",     # WRONG: should be derived
-    "F9":  "hard",     # kernel enforces hard; doctrine said soft
+    "L01": "hard",
+    "L02": "hard",
+    "L03": "soft",  # WRONG: should be derived
+    "L04": "soft",  # WRONG: should be hard
+    "L05": "soft",
+    "L06": "hard",  # WRONG: should be soft
+    "L07": "soft",  # WRONG: should be hard
+    "L08": "soft",  # WRONG: should be derived
+    "L09": "hard",  # kernel enforces hard; doctrine said soft
     "L10": "hard",
     "L11": "hard",
-    "L12": "soft",     # WRONG: should be hard
+    "L12": "soft",  # WRONG: should be hard
     "L13": "hard",
 }
 
@@ -104,14 +107,13 @@ def main() -> int:
         pre = PRE_FIX_HEALTH[fid]
         live = live_report.get(fid, "—")
         expected = canon_level.lower()
-        match = (live == expected)
+        match = live == expected
 
         if pre != expected:
             fixes_applied.append((fid, name, pre, expected))
 
         row = "  {:5} {:14} {:10} {:10} {:10} {:10}  {}".format(
-            fid, name, canon_level, pre, live, expected,
-            "✓" if match else "✗"
+            fid, name, canon_level, pre, live, expected, "✓" if match else "✗"
         )
         print(row)
 
@@ -155,7 +157,7 @@ def main() -> int:
     print(f"  Total floors      : {total}")
     print(f"  Fixed this patch  : {fixed}")
     print(f"  Already correct   : {clean}")
-    print(f"  Fail-closed (HARD): {fail_closed} / {total} ({100*fail_closed//total}%)")
+    print(f"  Fail-closed (HARD): {fail_closed} / {total} ({100 * fail_closed // total}%)")
     print()
 
     if fixes_applied:
@@ -164,7 +166,9 @@ def main() -> int:
             print(f"    * {fid} {name}: {pre} → {expected}")
         print()
 
-    print(f"  Runtime consensus : {'YES — all floors aligned with canonical doctrine' if all_match else 'NO — see mismatches above'}")
+    print(
+        f"  Runtime consensus : {'YES — all floors aligned with canonical doctrine' if all_match else 'NO — see mismatches above'}"
+    )
     print()
     print("  DITEMPA BUKAN DIBERI")
     print("=" * 90)
