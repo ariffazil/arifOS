@@ -7,7 +7,7 @@ prometheus-client>=0.25.0
 redis>=8.0.0
 itsdangerous>=2.1.0
 httpx>=0.24.0
-aiohttp>=3.13.5,<4
+aiohttp>=3.14.1,<4
 blake3==1.0.8
 asyncpg>=0.31.0
 langfuse>=4.7.1
