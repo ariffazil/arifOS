@@ -1,0 +1,68 @@
+# VAULT LIVENESS CONTRACT — arifOS Federation
+# Ratified: 2026-06-09
+# Purpose: Defines when VAULT999 audit state is fresh enough to trust.
+# This contract degrades readiness when the vault is stale — preventing
+# the kernel from claiming SEAL-grade authority on stale evidence.
+#
+# NO STATIC TRUTH — this contract is self-verifying against live vault state.
+
+schema_version: 2
+kind: arifos.vault_liveness
+status: contract
+last_verified: "2026-06-09"
+
+# ── Freshness Bands ──
+# These are the thresholds that determine readiness degradation.
+freshness_bands:
+  fresh:
+    max_age_seconds: 3600        # ≤1 hour: fully trusted
+    readiness: GREEN
+  warming:
+    max_age_seconds: 14400       # ≤4 hours: trusted with note
+    readiness: YELLOW
+  stale:
+    max_age_seconds: 86400       # ≤24 hours: degraded, HOLD on SEAL
+    readiness: RED
+  expired:
+    max_age_seconds: .inf         # >24 hours: VOID on SEAL, read-only
+    readiness: BLACK
+
+# ── Chain Integrity ──
+chain_requirements:
+  min_seals: 1                   # At least one seal must exist
+  max_gap_seals: 120             # Historical gap tolerance (pre-May-2026 migration)
+  require_merkle_chain: true     # Every seal must have prev_seal_id
+  verify_sha256: true            # Content hash must match
+
+# ── Readiness Degradation ──
+# When vault liveness degrades, these constitutional effects apply:
+degradation_effects:
+  GREEN:
+    seal_allowed: true
+    judge_allowed: true
+    forge_allowed: true
+    note: "Full authority — vault is fresh."
+  YELLOW:
+    seal_allowed: true
+    judge_allowed: true
+    forge_allowed: true
+    note: "Vault is warming. Proceed, but recent seals may not be reflected."
+  RED:
+    seal_allowed: false          # HOLD — cannot seal on stale vault
+    judge_allowed: true
+    forge_allowed: false         # HOLD — cannot execute on stale audit
+    note: "Vault is stale >4h. Audit trail is degraded. SEAL and FORGE are HOLD."
+  BLACK:
+    seal_allowed: false
+    judge_allowed: false
+    forge_allowed: false
+    note: "Vault is expired >24h. System is read-only. All writes are VOID."
+
+# ── Self-Verification ──
+self_verification:
+  endpoint: "http://localhost:5001/health"
+  probe_field: "vault_seals_count"
+  probe_field_chain: "chain_height"
+  probe_field_last_write: "last_seal_timestamp"
+  verify_interval_seconds: 300   # Check every 5 minutes
+  degradation_on_probe_failure: RED

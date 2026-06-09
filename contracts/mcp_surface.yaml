@@ -1,20 +1,36 @@
-schema_version: 1
+schema_version: 2
 kind: arifos.mcp_surface
 owner_repo: arifOS
 status: contract
-last_verified: "2026-05-22"
+last_verified: "2026-06-09"
 runtime_surface:
   primary_transport: streamable_http
-  primary_port: 8080
+  primary_port: 8088
+  secondary_ports:
+    arifosd: 18081
   public_domains:
     - https://arifos.arif-fazil.com/mcp
-    - https://mcp.arif-fazil.com/mcp
   verification_endpoint: https://arifos.arif-fazil.com/api/federation-probe
   verified_tool_counts:
     arifos: 13
-    geox: 22
-    wealth: 17
-    well: 15
+    geox: 31
+    wealth: 19
+    well: 17
+    a-forge: 1
+  verified_services:
+    - arifos.service:8088
+    - arifosd.service:18081
+    - wealth-organ.service:18082
+    - well.service:18083
+    - geox-mcp.service:8081
+    - a-forge.service:7071
+    - aaa-a2a.service:3001
+    - openclaw-gateway.service:18789
+    - cn-organ.service:18795
+    - apex-prime.service:3002
+    - vault999-api.service:8100
+    - vault999-writer.service:5001
+    - cloudflared.service
 authority:
   owns:
     - governance_primitives
@@ -50,21 +66,73 @@ canonical_modes:
     - atlas
     - entropy_dS
     - vitals
-non_canonical_utility_tools:
-  wiki:
-    status: helper_surface
-    tools:
-      - arif_wiki_ingest
-      - arif_wiki_map
-      - arif_wiki_search
-      - arif_wiki_ask
-    boundary: read_only_discovery_helpers_not_memory_or_judgment
-artifact_policy:
-  machine_readable: required
-  human_readable: required_for_judge_or_seal
-  vault_receipt: required_for_irreversible_or_sealed_actions
-hold_conditions:
-  - secret_rotation
-  - public_deploy_without_build_test_health
-  - cross_repo_architecture_change
-  - destructive_or_irreversible_action
+    - repo_map
+  arif_mind_reason:
+    - reason
+    - reflect
+    - verify
+    - critique
+    - plan
+    - plan_review
+    - plan_approve
+    - refactor_plan
+    - metabolize
+  arif_heart_critique:
+    - critique
+    - simulate
+    - empathize
+    - redteam
+    - maruah
+    - deescalate
+    - instruction_scan
+  arif_judge_deliberate:
+    - judge
+    - compare
+    - history
+    - explain
+    - floor_status
+    - witness_consensus
+  arif_vault_seal:
+    - seal
+    - sabar
+    - void
+    - read
+    - chain_verify
+  arif_forge_execute:
+    - engineer
+    - query
+    - dry_run
+    - revert
+  arif_gateway_connect:
+    - route
+    - discover
+    - status
+  arif_kernel_route:
+    - route
+    - stage
+    - lane
+    - list
+    - status
+    - surface_drift
+  arif_ops_measure:
+    - health
+    - vitals
+    - cost
+    - predict
+    - topology
+    - drift
+    - stack_health
+    - budget
+  arif_memory_recall:
+    - recall
+    - store
+    - get
+    - list
+    - context
+    - repo_ingest
+    - repo_search
+drift_detection:
+  enabled: true
+  check_interval_seconds: 300
+  max_tolerated_drift: 0
+  drift_response: DEGRADE_TO_HOLD
