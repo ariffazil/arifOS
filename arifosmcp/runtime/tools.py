@@ -2390,6 +2390,7 @@ def _new_session(
     epoch_id: str | None = None,
     declared_model_key: str | None = None,
     deployment_id: str = "vps_main_arifos",
+    agent_policy: dict | None = None,  # GAP-C: AgentPolicy integration
 ) -> dict[str, Any]:
     sid = f"SEAL-{uuid.uuid4().hex[:16]}"
 
@@ -2420,6 +2421,20 @@ def _new_session(
             "reversibility": "reversible",
             "model_governance_card_hash": None,
             "created_at": _now(),
+        },
+        # ── GAP-C: AgentPolicy binding (forged 2026-06-09 by Ω) ──
+        # Maps MXC SandboxPolicy onto arifOS session.
+        # When present, tool authorization enforces: allowed_tools, denied_tools,
+        # allowed_organs, irreversibility_threshold.
+        "agent_policy": agent_policy
+        or {
+            "agent_role": "anonymous",
+            "allowed_tools": [],
+            "denied_tools": [],
+            "allowed_organs": [],
+            "irreversibility_threshold": 0.0,
+            "policy_version": "1.0.0-forge",
+            "note": "DEFAULT_DENY — no policy provided. Tools must call session_init with agent_policy to gain access.",
         },
     }
 
@@ -3318,6 +3333,14 @@ def _arif_session_init(
     #    "uncertainty_required": bool}
     tooling: dict | None = None,
     #   {"requested_capabilities": [str], "declared_mcp_targets": [str]}
+    # ── GAP-C: AgentPolicy integration (forged 2026-06-09 by Ω) ──────────
+    agent_policy: dict | None = None,
+    #   {"agent_role": str, "allowed_tools": [str], "denied_tools": [str],
+    #    "allowed_organs": [str], "irreversibility_threshold": float,
+    #    "network_posture": str, "allowed_domains": [str],
+    #    "max_tokens_per_call": int, "max_runtime_seconds": int,
+    #    "policy_version": str}
+    #   Maps MXC SandboxPolicy concept onto arifOS session binding.
 ) -> dict[str, Any]:
     """
     000_INIT: Constitutional session bootstrap — three-phase binding.
@@ -3564,7 +3587,12 @@ def _arif_session_init(
             if "constitution_bound" not in invariants_checked:
                 invariants_checked.append("constitution_bound_default")
 
-        sess = _new_session(actor_id, epoch_id=epoch_id, declared_model_key=declared_model_key)
+        sess = _new_session(
+            actor_id,
+            epoch_id=epoch_id,
+            declared_model_key=declared_model_key,
+            agent_policy=agent_policy,
+        )
         sid = sess["session_id"]
 
         # Bind constitution hash and identity state to session at T=0
