@@ -251,6 +251,11 @@ __all__ = [
     "ReceiptSchema",
     "EvidenceLevel",
     "IngestStatus",
+    # Budget Contract (AAA-GOV-BUDGET-v1)
+    "BudgetContractSchema",
+    "BudgetDomain",
+    "DomainLimit",
+    "ViolationPolicy",
     # Vault Liveness (AAA-GOV-VAULT-LIVENESS-v1)
     "VaultLivenessContract",
     "VaultLivenessState",
