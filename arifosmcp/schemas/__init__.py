@@ -99,6 +99,16 @@ from arifosmcp.schemas.synthesis import (
     Synthesis,
 )
 
+# Vault Liveness (AAA-GOV-VAULT-LIVENESS-v1)
+from arifosmcp.schemas.vault_liveness import (
+    ContractEntry,
+    ContractStatus,
+    LivenessCheckResult,
+    ProductionContractManifest,
+    VaultLivenessContract,
+    VaultLivenessState,
+)
+
 # Telemetry (777_OPS, 111_SENSE)
 from arifosmcp.schemas.telemetry import TelemetryBlock, VitalsBlock
 
@@ -241,6 +251,13 @@ __all__ = [
     "ReceiptSchema",
     "EvidenceLevel",
     "IngestStatus",
+    # Vault Liveness (AAA-GOV-VAULT-LIVENESS-v1)
+    "VaultLivenessContract",
+    "VaultLivenessState",
+    "LivenessCheckResult",
+    "ContractStatus",
+    "ContractEntry",
+    "ProductionContractManifest",
     # ModelCard (F3 TRI_WITNESS — identity binding)
     "ModelGovernanceCard",
     "ModelAnchor",
