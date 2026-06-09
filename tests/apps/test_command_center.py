@@ -80,7 +80,6 @@ class TestVisibility:
             "session_status",
             "ops_vitals",
             "judge_action",
-            "forge_dry_run",
             "gateway_handshake",
             "vault_list",
             "vault_dry_seal",
