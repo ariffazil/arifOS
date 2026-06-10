@@ -195,9 +195,9 @@ class TestAsiHeart:
         mock_scores.f9_anti_hantu = 0.95
         mock_scores.confidence = 0.92
 
-        mock_sbert_module = ModuleType("core.shared.sbert_floors")
+        mock_sbert_module = ModuleType("core.shared.sbert_laws")
         mock_sbert_module.classify_asi_floors = MagicMock(return_value=mock_scores)
-        sys.modules["core.shared.sbert_floors"] = mock_sbert_module
+        sys.modules["core.shared.sbert_laws"] = mock_sbert_module
 
         try:
             from core.organs._2_asi import asi
@@ -213,8 +213,8 @@ class TestAsiHeart:
             assert "assessment" in result
             assert result["verdict"] == "SEAL"
         finally:
-            if "core.shared.sbert_floors" in sys.modules:
-                del sys.modules["core.shared.sbert_floors"]
+            if "core.shared.sbert_laws" in sys.modules:
+                del sys.modules["core.shared.sbert_laws"]
             if "core.organs._2_asi" in sys.modules:
                 del sys.modules["core.organs._2_asi"]
 
@@ -227,9 +227,9 @@ class TestAsiHeart:
         mock_scores.f9_anti_hantu = 0.95
         mock_scores.confidence = 0.8
 
-        mock_sbert_module = ModuleType("core.shared.sbert_floors")
-        MagicMock(return_value=mock_scores)
-        sys.modules["core.shared.sbert_floors"] = mock_sbert_module
+        mock_sbert_module = ModuleType("core.shared.sbert_laws")
+        mock_sbert_module.classify_asi_floors = MagicMock(return_value=mock_scores)
+        sys.modules["core.shared.sbert_laws"] = mock_sbert_module
 
         try:
             from core.organs._2_asi import asi
@@ -243,8 +243,8 @@ class TestAsiHeart:
             assert result["verdict"] in ["VOID", "SABAR"]
             assert result["assessment"]["risk_level"] in ["medium", "high"]
         finally:
-            if "core.shared.sbert_floors" in sys.modules:
-                del sys.modules["core.shared.sbert_floors"]
+            if "core.shared.sbert_laws" in sys.modules:
+                del sys.modules["core.shared.sbert_laws"]
             if "core.organs._2_asi" in sys.modules:
                 del sys.modules["core.organs._2_asi"]
 
@@ -255,11 +255,11 @@ class TestAsiHeart:
         mock_empathy = Mock()
         mock_empathy.impact_severity = "low"
 
-        mock_sbert_module = ModuleType("core.shared.sbert_floors")
+        mock_sbert_module = ModuleType("core.shared.sbert_laws")
         mock_sbert_module.classify_asi_floors = MagicMock(
             return_value=Mock(f5_peace=0.9, f6_empathy=0.9, f9_anti_hantu=0.9, confidence=0.9)
         )
-        sys.modules["core.shared.sbert_floors"] = mock_sbert_module
+        sys.modules["core.shared.sbert_laws"] = mock_sbert_module
 
         try:
             from core.organs._2_asi import asi
@@ -274,8 +274,8 @@ class TestAsiHeart:
             assert result["session_id"] == "test-asi-003"
             assert "critique" in result
         finally:
-            if "core.shared.sbert_floors" in sys.modules:
-                del sys.modules["core.shared.sbert_floors"]
+            if "core.shared.sbert_laws" in sys.modules:
+                del sys.modules["core.shared.sbert_laws"]
             if "core.organs._2_asi" in sys.modules:
                 del sys.modules["core.organs._2_asi"]
 
@@ -437,9 +437,9 @@ class TestTrinityEdgeCases:
         mock_scores.f9_anti_hantu = 0.95
         mock_scores.confidence = 0.9
 
-        mock_sbert_module = ModuleType("core.shared.sbert_floors")
-        MagicMock(return_value=mock_scores)
-        sys.modules["core.shared.sbert_floors"] = mock_sbert_module
+        mock_sbert_module = ModuleType("core.shared.sbert_laws")
+        mock_sbert_module.classify_asi_floors = MagicMock(return_value=mock_scores)
+        sys.modules["core.shared.sbert_laws"] = mock_sbert_module
 
         try:
             from core.organs._2_asi import asi
@@ -448,8 +448,8 @@ class TestTrinityEdgeCases:
 
             assert result["session_id"] == "test-no-scenario"
         finally:
-            if "core.shared.sbert_floors" in sys.modules:
-                del sys.modules["core.shared.sbert_floors"]
+            if "core.shared.sbert_laws" in sys.modules:
+                del sys.modules["core.shared.sbert_laws"]
             if "core.organs._2_asi" in sys.modules:
                 del sys.modules["core.organs._2_asi"]
 
