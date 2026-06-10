@@ -148,6 +148,7 @@ def forge_query(
     cwd: str = ".",
     session_id: str | None = None,
     actor_id: str | None = None,
+    _envelope: Any = None,
 ) -> ForgeQueryResult:
     """
     010_FORGE_QUERY: Read-only system introspection.
@@ -189,11 +190,13 @@ def forge_query(
     workspace_tree: list[dict[str, Any]] = []
     try:
         for entry in sorted(target_cwd.iterdir())[:50]:
-            workspace_tree.append({
-                "name": entry.name,
-                "type": "directory" if entry.is_dir() else "file",
-                "size": entry.stat().st_size if entry.is_file() else None,
-            })
+            workspace_tree.append(
+                {
+                    "name": entry.name,
+                    "type": "directory" if entry.is_dir() else "file",
+                    "size": entry.stat().st_size if entry.is_file() else None,
+                }
+            )
     except PermissionError:
         pass
 
@@ -229,6 +232,7 @@ def forge_plan(
     workspace: str = ".",
     session_id: str | None = None,
     actor_id: str | None = None,
+    _envelope: Any = None,
 ) -> ForgePlanResult:
     """
     010_FORGE_PLAN: Classify action, estimate blast radius, produce plan.
@@ -310,7 +314,11 @@ def forge_plan(
                 {"step": 1, "tool": "forge_query", "purpose": "introspect current state"},
                 {"step": 2, "tool": "forge_dry_run", "purpose": "simulate action"},
                 {"step": 3, "tool": "arif_heart_critique", "purpose": "ethical review"},
-                {"step": 4, "tool": "arif_judge_deliberate", "purpose": "constitutional authorization"},
+                {
+                    "step": 4,
+                    "tool": "arif_judge_deliberate",
+                    "purpose": "constitutional authorization",
+                },
                 {"step": 5, "tool": "arif_forge_execute", "purpose": "execute approved plan"},
             ],
             "notes": f"Action classified as {action_class}. Blast radius: {estimated_blast_radius}.",
@@ -331,6 +339,7 @@ def forge_dry_run(
     cwd: str = ".",
     session_id: str | None = None,
     actor_id: str | None = None,
+    _envelope: Any = None,
 ) -> ForgeDryRunResult:
     """
     010_FORGE_DRY_RUN: Simulate execution without mutation.
@@ -383,9 +392,9 @@ def forge_dry_run(
         files_to_delete.append("<file(s) from manifest>")
 
     # Diff preview (placeholder — real diff would need manifest parser)
-    diff_preview = f"""# Dry Run Plan: {plan_id or 'unnamed'}
+    diff_preview = f"""# Dry Run Plan: {plan_id or "unnamed"}
 # Workspace: {target_cwd}
-# Actor: {actor_id or 'anonymous'}
+# Actor: {actor_id or "anonymous"}
 # Manifest length: {len(manifest)} chars
 
 ## Planned Actions
@@ -394,10 +403,10 @@ def forge_dry_run(
 - Files to delete: {len(files_to_delete)}
 
 ## Commands (simulated)
-{chr(10).join('  $ ' + ' '.join(cmd) for cmd in commands) or '  (none parsed from manifest)'}
+{chr(10).join("  $ " + " ".join(cmd) for cmd in commands) or "  (none parsed from manifest)"}
 
 ## External Effects
-{chr(10).join('  - ' + e for e in external_effects) or '  (none detected)'}
+{chr(10).join("  - " + e for e in external_effects) or "  (none detected)"}
 
 ## Rollback Plan
   1. Identify modified files via git status
