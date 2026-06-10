@@ -721,6 +721,21 @@ if IS_FASTMCP_3:
                             for k in unknown:
                                 msg.arguments.pop(k)
 
+                # ── P1 Fix: Propagate actor identity to response context ─────────
+                # Without this, _actor_for_response() sees no candidate and
+                # no context, returning "anonymous" for every tool call.
+                # The envelope carries verified actor_id/session_id from the
+                # authenticated SSE session.
+                from arifosmcp.runtime.tools import _RESPONSE_CONTEXT
+
+                if hasattr(envelope, "actor_id") and envelope.actor_id:
+                    _RESPONSE_CONTEXT.set(
+                        {
+                            "actor_id": str(envelope.actor_id),
+                            "session_id": str(envelope.session_id) if envelope.session_id else None,
+                        }
+                    )
+
                 # Instrument: track latency and call count per tool
                 t0 = time.monotonic()
                 result = await call_next(context)
