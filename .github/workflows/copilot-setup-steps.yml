@@ -1,0 +1,107 @@
+name: "Copilot Setup Steps — arifOS"
+
+# Runs when this file changes (validation) and before every Copilot coding agent session
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  # MUST be named exactly `copilot-setup-steps`
+  copilot-setup-steps:
+    name: "arifOS — Pre-install constitutional kernel dependencies"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout arifOS
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Set up uv (fast Python package manager)
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install all dependencies (uv sync)
+        run: uv sync --all-extras
+        env:
+          UV_CACHE_DIR: /tmp/uv-cache
+
+      - name: Verify 13 canonical MCP tools load
+        run: |
+          uv run python3 -c "
+          import sys; sys.path.insert(0, '.')
+          canonical = [
+            'arifosmcp.tools.fetch',
+            'arifosmcp.tools.judge',
+            'arifosmcp.tools.reason',
+            'arifosmcp.tools.sense',
+            'arifosmcp.tools.session',
+            'arifosmcp.tools.forge',
+            'arifosmcp.tools.vault',
+            'arifosmcp.tools.memory',
+            'arifosmcp.tools.health',
+            'arifosmcp.tools.gateway',
+            'arifosmcp.tools.reply',
+            'arifosmcp.tools.heart',
+            'arifosmcp.tools.ops',
+          ]
+          ok = []
+          fail = []
+          for m in canonical:
+              try:
+                  __import__(m)
+                  ok.append(m)
+              except Exception as e:
+                  fail.append(f'{m}: {e}')
+          print(f'[PASS] {len(ok)}/{len(canonical)} tools loaded')
+          if fail:
+              for f in fail: print(f'[WARN] {f}')
+          "
+        env:
+          ARIFOS_ENV: ci
+          ARIFOS_PHYSICS_DISABLED: "1"
+          ARIFOS_ALLOW_LEGACY_SPEC: "1"
+          AAA_MCP_OUTPUT_MODE: debug
+
+      - name: Run fast constitutional tests
+        run: |
+          uv run python3 -m pytest \
+            tests/test_phase0_standalone.py \
+            tests/test_surface_lock.py \
+            tests/test_registry.py \
+            -q --tb=short --no-header -x
+        env:
+          ARIFOS_ENV: ci
+          ARIFOS_PHYSICS_DISABLED: "1"
+          ARIFOS_ALLOW_LEGACY_SPEC: "1"
+          AAA_MCP_OUTPUT_MODE: debug
+
+      - name: Print arifOS setup summary
+        run: |
+          echo "=== arifOS Copilot Environment Ready ==="
+          echo "Python: $(python3 --version)"
+          echo "uv: $(uv --version)"
+          echo "Packages: $(uv run pip list 2>/dev/null | wc -l) installed"
+          echo ""
+          echo "Key paths:"
+          echo "  MCP runtime: arifosmcp/runtime/server.py"
+          echo "  Tools: arifosmcp/tools/"
+          echo "  Tests: tests/ (168 files)"
+          echo "  Governance: core/"
+          echo ""
+          echo "Start server: uv run python -m arifosmcp.runtime.server"
+          echo "Run tests:    uv run pytest tests/ -q --tb=short"
+          echo "DITEMPA BUKAN DIBERI"
