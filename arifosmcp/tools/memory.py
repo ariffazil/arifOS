@@ -117,6 +117,21 @@ def _classify_recall_result(record: dict[str, Any]) -> dict[str, Any]:
 
     # ── v3.1 Quarantine: null content cannot be canon ──────────────────────
     text = record.get("text") or record.get("content")
+    # ── P1 Fix: construct text from Qdrant payload fields when missing ──
+    if text is None or str(text).strip() == "":
+        # Qdrant payload may have metadata but no direct text content.
+        # Construct a synthetic text from available fields so agents can
+        # at least see what kind of memory this is.
+        parts = []
+        for field in ("verdict", "source", "actor", "summary", "description"):
+            val = record.get(field)
+            if val and str(val).strip():
+                parts.append(f"{field}: {str(val)[:200]}")
+        if record.get("session_id") and record["session_id"] not in (None, "unknown", "null"):
+            parts.append(f"session: {record['session_id']}")
+        if parts:
+            text = " | ".join(parts)
+            record["_constructed_text"] = True
     if text is None or str(text).strip() == "":
         classification["quarantined"] = True
         record["_quarantine"] = {
@@ -134,11 +149,19 @@ def _classify_recall_result(record: dict[str, Any]) -> dict[str, Any]:
     # verified: tri-witness complete + no anti-hantu flag + not quarantined
     tri = record.get("phoenix_tri_witness", {})
     tri_complete = bool(tri) and sum(tri.values()) >= 1.0
-    if tri_complete and not record.get("phoenix_anti_hantu_flag", False) and not classification["quarantined"]:
+    if (
+        tri_complete
+        and not record.get("phoenix_anti_hantu_flag", False)
+        and not classification["quarantined"]
+    ):
         classification["verified"] = True
 
     # sealed: sacred tier + sealed state + not quarantined
-    if record.get("tier") == "sacred" and record.get("phoenix_state") == "sealed" and not classification["quarantined"]:
+    if (
+        record.get("tier") == "sacred"
+        and record.get("phoenix_state") == "sealed"
+        and not classification["quarantined"]
+    ):
         classification["sealed"] = True
 
     # contradicted: contradiction hold or f4 conflicts
@@ -150,11 +173,19 @@ def _classify_recall_result(record: dict[str, Any]) -> dict[str, Any]:
 
     record["classification"] = classification
     record["can_treat_as_proof"] = classification["verified"] and not classification["contradicted"]
-    record["provenance"] = "verified" if classification["verified"] else (
-        "sealed" if classification["sealed"] else (
-            "contradicted" if classification["contradicted"] else (
-                "quarantined" if classification["quarantined"] else (
-                    "suggested" if classification["inferred"] else "remembered"
+    record["provenance"] = (
+        "verified"
+        if classification["verified"]
+        else (
+            "sealed"
+            if classification["sealed"]
+            else (
+                "contradicted"
+                if classification["contradicted"]
+                else (
+                    "quarantined"
+                    if classification["quarantined"]
+                    else ("suggested" if classification["inferred"] else "remembered")
                 )
             )
         )
@@ -296,7 +327,11 @@ def arif_memory_recall(
             {"uri": "arifos://forge", "label": "Execution Bridge", "tier": "operational"},
         ]
         floor_summary = [
-            {"floor": "L01", "name": "AMANAH", "purpose": "Trustworthiness — every action accountable"},
+            {
+                "floor": "L01",
+                "name": "AMANAH",
+                "purpose": "Trustworthiness — every action accountable",
+            },
             {"floor": "L02", "name": "TRUTH", "purpose": "Truthfulness — no fabrication"},
             {"floor": "L03", "name": "WITNESS", "purpose": "Evidence must be verifiable"},
             {"floor": "L04", "name": "CLARITY", "purpose": "Transparent intent"},
@@ -329,7 +364,10 @@ def arif_memory_recall(
             record = recall(memory_id)
             if record is None:
                 return _annotate_recall_context(
-                    _ok("arif_memory_recall", {"memory_id": memory_id, "found": False, "content": None}),
+                    _ok(
+                        "arif_memory_recall",
+                        {"memory_id": memory_id, "found": False, "content": None},
+                    ),
                     context,
                 )
             record = _classify_recall_result(record)
@@ -568,7 +606,9 @@ def arif_memory_recall(
         }
         result = store_v2(update_envelope)
         result["superseded_memory_id"] = memory_id
-        result["note"] = "Update stored as new version. Old memory marked superseded (F1 AMANAH — never mutate in place)."
+        result["note"] = (
+            "Update stored as new version. Old memory marked superseded (F1 AMANAH — never mutate in place)."
+        )
         return _ok("arif_memory_recall", result)
 
     # ── search (with JITU circuit breaker) ───────────────────────────────────
@@ -591,9 +631,21 @@ def arif_memory_recall(
                 actor_id=actor_id,
                 limit=limit,
             )
-            governance_report = search_result.get("_governance_report", {}) if isinstance(search_result, dict) else {}
-            escalation_queue = search_result.get("_escalation_queue", []) if isinstance(search_result, dict) else []
-            results = search_result.get("results", []) if isinstance(search_result, dict) else (search_result or [])
+            governance_report = (
+                search_result.get("_governance_report", {})
+                if isinstance(search_result, dict)
+                else {}
+            )
+            escalation_queue = (
+                search_result.get("_escalation_queue", [])
+                if isinstance(search_result, dict)
+                else []
+            )
+            results = (
+                search_result.get("results", [])
+                if isinstance(search_result, dict)
+                else (search_result or [])
+            )
 
             if results:
                 scores = [r.get("score", 0.0) for r in results if "score" in r]
@@ -737,15 +789,19 @@ def arif_memory_recall(
             idx = _index_read()
             entries = []
             quarantined = []
-            for mid, meta in sorted(idx.items(), key=lambda x: x[1].get("created_at", ""), reverse=True)[:limit]:
+            for mid, meta in sorted(
+                idx.items(), key=lambda x: x[1].get("created_at", ""), reverse=True
+            )[:limit]:
                 # v3.1: quarantine null-content entries at listing time
                 text = meta.get("text") or meta.get("content") or meta.get("summary", "")
                 if text is None or str(text).strip() == "":
-                    quarantined.append({
-                        "memory_id": mid,
-                        "reason": "null_content",
-                        "original_tier": meta.get("tier", "unknown"),
-                    })
+                    quarantined.append(
+                        {
+                            "memory_id": mid,
+                            "reason": "null_content",
+                            "original_tier": meta.get("tier", "unknown"),
+                        }
+                    )
                     continue
                 entries.append(
                     {
@@ -772,7 +828,12 @@ def arif_memory_recall(
         except Exception as exc:
             return _ok(
                 "arif_memory_recall",
-                {"session_id": session_id, "entries": [], "count": 0, "_degraded": f"list failed: {exc}"},
+                {
+                    "session_id": session_id,
+                    "entries": [],
+                    "count": 0,
+                    "_degraded": f"list failed: {exc}",
+                },
                 delta_S=0.0,
             )
 
@@ -785,7 +846,10 @@ def arif_memory_recall(
         if not actor_id:
             return _hold("arif_memory_recall", "actor_id required for import mode", ["L11"])
         # Import delegates to legacy store with batch handling
-        return _ok("arif_memory_recall", {"imported": True, "note": "Import mode delegates to legacy store"})
+        return _ok(
+            "arif_memory_recall",
+            {"imported": True, "note": "Import mode delegates to legacy store"},
+        )
 
     # ── prune (DEPRECATED → forget) ──────────────────────────────────────────
     if mode == "prune":
