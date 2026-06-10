@@ -757,6 +757,13 @@ def _nine_signal_from_status(status: str) -> dict[str, str | dict]:
             "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
             "overall": {"state": "SELAMAT", "en": "SAFE"},
         }
+    if status == "DEGRADED":
+        return {
+            "delta": {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
+            "psi": {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
+            "omega": {"plane": "intelligence_discipline", "state": "BIJAK", "en": "SMART"},
+            "overall": {"state": "DEGRADED", "en": "DEGRADED"},
+        }
     if status in ("HOLD", "VOID"):
         return {
             "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
@@ -984,7 +991,41 @@ def _enforce_nine_signal(
         )
 
         status = str(out.get("status") or "OK")
-        verdict = str(out.get("verdict") or ("SEAL" if status == "OK" else status))
+        outer_verdict = str(out.get("verdict") or ("SEAL" if status == "OK" else status))
+
+        # ── REACTIVE WRAPPER (P0 fix): outer verdict must read inner state ─────
+        # Detect degradation in nested result payloads (e.g. mind_reason inner HOLD)
+        inner_final = result_payload.get("final_verdict")
+        inner_truth = result_payload.get("truth_verdict")
+        inner_reasoning = result_payload.get("reasoning_verdict")
+        inner_status = result_payload.get("status")
+        inner_confidence = None
+        if isinstance(result_payload.get("confidence"), dict):
+            inner_confidence = result_payload["confidence"].get("overall_confidence")
+        elif isinstance(result_payload.get("confidence"), (int, float)):
+            inner_confidence = result_payload["confidence"]
+
+        degradation = []
+        if inner_final in ("HOLD", "FAIL", "VOID", "SABAR"):
+            degradation.append(f"inner final_verdict={inner_final}")
+        if inner_truth == "FAIL":
+            degradation.append(f"inner truth_verdict=FAIL")
+        if inner_reasoning in ("HOLD", "FAIL"):
+            degradation.append(f"inner reasoning_verdict={inner_reasoning}")
+        if inner_status in ("HOLD", "FAIL", "SABAR"):
+            degradation.append(f"inner status={inner_status}")
+        if inner_confidence is not None and inner_confidence < 0.5:
+            degradation.append(f"inner confidence={inner_confidence:.2f}")
+
+        if degradation:
+            outer_verdict = "DEGRADED"
+            result_payload["_wrapper_degradation"] = degradation
+            result_payload["_wrapper_note"] = (
+                "Outer verdict downgraded to DEGRADED because inner result "
+                "signals failure that the static wrapper would otherwise mask as SEAL."
+            )
+
+        verdict = outer_verdict
 
         envelope_keys = {
             "status",
@@ -1022,14 +1063,19 @@ def _enforce_nine_signal(
 
         nine = out.get("nine_signal")
         if not isinstance(nine, dict) or not all(k in nine for k in ("delta", "psi", "omega")):
-            signal_status = status if status in ("OK", "SEAL", "HOLD", "VOID", "SABAR") else "HOLD"
+            if verdict == "DEGRADED":
+                signal_status = "DEGRADED"
+            else:
+                signal_status = (
+                    status if status in ("OK", "SEAL", "HOLD", "VOID", "SABAR") else "HOLD"
+                )
             nine = _nine_signal_from_status(signal_status)
         nine = _annotate_nine_signal(nine, _domain_for_tool(tool_name))
 
         reasons = _as_reason_list(
             out.get("reasons") or out.get("reason") or result_payload.get("reasons")
         )
-        if verdict in ("HOLD", "VOID", "SABAR") and not reasons:
+        if verdict in ("HOLD", "VOID", "SABAR", "DEGRADED") and not reasons:
             reasons = [f"{verdict} — constitutional gate activated"]
         if verdict == "SEAL" and not reasons:
             reasons = [
