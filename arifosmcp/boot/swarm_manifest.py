@@ -133,6 +133,84 @@ def build_swarm_manifest(
         {k: v for k, v in manifest.items() if k != "manifest_hash"}
     )
 
+    # ── Human Entropy Governance ─────────────────────────────
+    try:
+        from arifosmcp.boot.entropy_governor import get_entropy_governor
+
+        gov = get_entropy_governor()
+        entropy_score = gov.measure(manifest)
+        open_loops = gov.open_loop_register(manifest)
+        next_action = gov.choose_next_action(manifest, entropy_score)
+
+        manifest["human_entropy"] = {
+            "score": entropy_score.to_dict(),
+            "verdict": (
+                "CHAOS_REDUCED"
+                if entropy_score.ratio() < 0.3
+                else "CHAOS_MANAGEABLE"
+                if entropy_score.ratio() < 0.6
+                else "CHAOS_HIGH"
+            ),
+            "open_loops": open_loops,
+            "open_loop_count": len(open_loops),
+            "recommended_next_action": next_action,
+            "prime_directive": (
+                "Every session must reduce Arif's uncertainty, decision load, "
+                "coordination burden, operational chaos, or future recovery cost."
+            ),
+        }
+    except Exception:
+        manifest["human_entropy"] = {
+            "status": "DEGRADED",
+            "note": "EntropyGovernor unavailable",
+        }
+
+    # ── Theory of Mind ───────────────────────────────────────
+    try:
+        from arifosmcp.boot.theory_of_mind import get_tom_engine
+
+        tom_engine = get_tom_engine()
+        tom = tom_engine.build(input_context={"mode": mode}, state=manifest)
+        manifest["theory_of_mind"] = {
+            "human": {
+                "name": tom.human.name,
+                "role": tom.human.role,
+                "decision_burden": tom.human.decision_burden,
+                "context_familiarity": tom.human.context_familiarity,
+                "needs": tom.human.needs,
+                "avoid": tom.human.avoid,
+                "claim_state": tom.human.claim_state,
+            },
+            "agents_known": len(tom.agents),
+            "sovereignty_required": tom.sovereignty_required,
+            "entropy_sources": tom_engine.entropy_sources(tom, manifest),
+            "summary": tom.summary,
+            "note": "Theory of mind is operational modeling, not mind-reading. ToM aims the agent toward the human.",
+        }
+    except Exception:
+        manifest["theory_of_mind"] = {
+            "status": "DEGRADED",
+            "note": "TheoryOfMindEngine unavailable",
+        }
+
+    # ── Internal Rasa ────────────────────────────────────────
+    try:
+        from arifosmcp.boot.internal_rasa import get_rasa_engine
+
+        rasa_engine = get_rasa_engine()
+        rasa = rasa_engine.measure(manifest)
+        gate = rasa_engine.gate_action(rasa)
+        manifest["internal_rasa"] = {
+            "state": rasa.to_dict(),
+            "gate": gate,
+            "note": "Rasa is governed telemetry, not consciousness. Rasa is the brake system of intelligence.",
+        }
+    except Exception:
+        manifest["internal_rasa"] = {
+            "status": "DEGRADED",
+            "note": "InternalRasaEngine unavailable",
+        }
+
     return manifest
 
 

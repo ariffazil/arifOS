@@ -123,4 +123,36 @@ def run_swarm_ignition(
             "degraded": True,
         }
 
+    # ── Human Entropy: SESSION_CLOSE pattern ─────────────────
+    # Every session must end with less chaos, clearer truth,
+    # tighter risk, fewer open loops, and a sealed path forward.
+    try:
+        from arifosmcp.boot.entropy_governor import get_entropy_governor
+
+        gov = get_entropy_governor()
+        entropy_after = gov.measure(manifest)
+
+        manifest["session_close"] = {
+            "verdict": manifest.get("recursive_init", {}).get("next_safe_action", "OBSERVE_ONLY"),
+            "entropy_delta": "measured_at_boot",
+            "entropy_score": entropy_after.to_dict(),
+            "open_loop_count": len(gov.open_loop_register(manifest)),
+            "next_safe_action": gov.choose_next_action(manifest, entropy_after).get(
+                "action", "OBSERVE_ONLY"
+            ),
+            "arif_required": entropy_after.irreversible_exposure > 0
+            or entropy_after.decision_burden >= 3,
+            "vault999_seal_required": entropy_after.missing_provenance >= 2,
+            "prime_directive": (
+                "Every session must end with less chaos, clearer truth, "
+                "tighter risk, fewer open loops, and a sealed path forward."
+            ),
+        }
+    except Exception as exc:
+        logger.warning(f"EntropyGovernor failed (degraded): {exc}")
+        manifest["session_close"] = {
+            "verdict": "DEGRADED",
+            "note": f"EntropyGovernor unavailable: {exc}",
+        }
+
     return manifest
