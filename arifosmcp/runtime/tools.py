@@ -4230,6 +4230,53 @@ def _arif_session_init(
             # NO: empty warning lists (ceremony)
         }
 
+        # ── Swarm Ignition (AGI-level federated boot) ─────────────────
+        # Reads VAULT999 → reconstructs swarm state → builds SwarmManifest.
+        # Fail-closed: swarm unavailable = session continues, federation degraded.
+        _swarm_manifest = None
+        if normalized_mode in {"init", "resume"} or mode in {"swarm_ignite", "agentic_bootstrap"}:
+            try:
+                from arifosmcp.boot.swarm_ignition import run_swarm_ignition
+
+                _swarm_manifest = run_swarm_ignition(
+                    actor_receipt={
+                        "actor_id": actor_id,
+                        "identity_verified": identity_verified,
+                        "authority_level": authority_level,
+                    },
+                    constitution_receipt={
+                        "constitution_hash": constitution_hash,
+                        "floors_bound": True,
+                    },
+                    risk_leash={
+                        "max_action_class": _action_classifier.get("max_action_class", "OBSERVE"),
+                        "mutation_allowed": False,
+                        "external_side_effect_allowed": False,
+                        "secret_touching_allowed": False,
+                    },
+                    execution_policy=_init_response.get("execution_policy", {}),
+                    session_id=sid,
+                    actor_id=actor_id,
+                    mode="swarm_ignite",
+                )
+            except Exception as _swarm_exc:
+                _swarm_manifest = {
+                    "type": "SwarmIgnitionManifest",
+                    "status": "DEGRADED",
+                    "degraded": True,
+                    "reason": str(_swarm_exc),
+                }
+
+        if _swarm_manifest is not None:
+            _init_response["swarm_ignition"] = _swarm_manifest
+            _init_response["stage_progression"] = {
+                "current_stage": "000",
+                "next_stage": "111",
+                "next_tool": "arif_sense_observe",
+                "next_prompt": "111_agi",
+                "swarm_boot": True,
+            }
+
         # Override wisdom (decorative cruft — remove from meta)
         _response = _ok(
             "arif_session_init",
