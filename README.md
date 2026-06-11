@@ -46,6 +46,9 @@ scope: /root/arifOS
 # Install
 pip install arifos
 
+# Install Python substrates used by local GEOX/WEALTH/WELL development
+pip install "arifos[federation]"
+
 # Run (bare-metal — port 8088)
 python -m arifosmcp.server
 
@@ -89,6 +92,12 @@ Agent config example:
 In stdio mode the bridge discovers WEALTH/WELL/GEOX over `http://127.0.0.1:18082`, `:18083`, `:8081` — no Cloudflare, no TLS, works offline. Override via `WEALTH_BRIDGE_HOST`, `WELL_BRIDGE_HOST`, `GEOX_BRIDGE_HOST` env vars.
 
 > Systemd deployment: `deploy/arifos.service`
+
+### Python Install Contract
+
+`pip install arifos` installs the constitutional kernel, MCP runtime, memory bridge, and local federation connector surface. It does not install Node frontends, systemd units, secrets, databases, or production service state.
+
+Use `pip install "arifos[federation]"` when you need the Python library substrate for local GEOX, WEALTH, and WELL development in the same environment. The organs remain independent repos and services.
 
 ---
 

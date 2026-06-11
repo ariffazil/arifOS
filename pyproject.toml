@@ -1,7 +1,7 @@
 [project]
 name = "arifos"
-version = "2026.06.09"
-description = "arifOS Constitutional AI Kernel — 13 canonical MCP tools, VAULT999 ledger, F1–F13 floor enforcement"
+version = "2026.06.11"
+description = "arifOS Constitutional AI Kernel and federation bridge — 13 canonical MCP tools, VAULT999 ledger, F1–F13 floor enforcement"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "AGPL-3.0-only"
@@ -87,6 +87,30 @@ dev = [
     "hypothesis>=6.120.0",
     "ruff>=0.15.13",
     "mypy>=2.1.0",
+]
+geox = [
+    "lasio>=0.32",
+    "welly>=0.5.2",
+    "striplog>=0.9.2",
+    "segyio>=1.9.0",
+    "statsmodels>=0.14.6",
+    "setuptools<70",
+]
+wealth = [
+    "supabase>=2.10.0",
+    "numpy-financial>=1.0.0",
+    "psycopg[binary]>=3.1.0",
+]
+federation = [
+    "lasio>=0.32",
+    "welly>=0.5.2",
+    "striplog>=0.9.2",
+    "segyio>=1.9.0",
+    "statsmodels>=0.14.6",
+    "setuptools<70",
+    "supabase>=2.10.0",
+    "numpy-financial>=1.0.0",
+    "psycopg[binary]>=3.1.0",
 ]
 
 [project.urls]

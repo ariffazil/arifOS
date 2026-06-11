@@ -72,8 +72,8 @@ publish-check:
 ## PyPI: Build + publish with uv
 publish-pypi:
 	@echo "🔱 Publishing to PyPI..."
-	uv build --project arifosmcp && uv publish --project arifosmcp --token $(PYPI_TOKEN)
-	@echo "✅ PyPI: arifos $(shell grep '^version' arifosmcp/pyproject.toml | cut -d'\"' -f2) published"
+	uv build --project . && uv publish --project . --token $(PYPI_TOKEN)
+	@echo "✅ PyPI: arifos $(shell grep '^version' pyproject.toml | cut -d'\"' -f2) published"
 
 ## GHCR: Build + push Docker image with embedded git metadata
 publish-ghcr:
