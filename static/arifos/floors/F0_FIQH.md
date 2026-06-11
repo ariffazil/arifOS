@@ -3,14 +3,23 @@ floor: 0
 name: "FIQH-OF-FLOORS — Constitutional Tier Vocabulary"
 version: v2026.06.11-FORGE-F
 status: SEALED
-authority: arifOS kernel (instrument-drafted) → 888 SOVEREIGN for SEAL
+authority: arifOS kernel (instrument-drafted) → 888 SOVEREIGN (Arif) → RATIFIED 2026-06-11T17:00 UTC
 language: Bahasa Melayu + English
 ditempa: 2026-06-11 by omega-forge-agent
+ratified_by: 888 (Muhammad Arif bin Fazil, F13 SOVEREIGN)
+ratified_at_utc: 2026-06-11T17:00:00Z
+ratification_directive: "execute it . this is better intellgence right??"
+ratification_signature: ed25519 over F0_FIQH.md sha256:1c4e194260d35b8d3d89c48360724da1c116e392704b8ad43eed3f4a345cec42
+ratification_receipt: /root/compose/sekrits/F0_FIQH_888_SEAL_2026-06-11.json
+sovereign_pubkey_fingerprint: 0ef30fecc62b79e3b7d420cd60b5190e63ff841d8d19964bf7a05a276978ecbb
+patch_applied: arifosmcp/constitutional_map.py (FiqhTier enum + _FLOOR_FIQH dict + get_floor_tier helper)
 ---
 
 # F0: FIQH-OF-FLOORS — The Five-Tier Constitutional Vocabulary
 
 > **DITEMPA BUKAN DIBERI.** The 13 floors have been speaking a 2-tier vocabulary (HARD / SOFT) since 2026-02-23. That is the constitutional gap. The kernel must adopt the **fiqh-of-floors** — the same five-tier vocabulary that governs every Muslim's daily life. This is not metaphor; it is **operational vocabulary** that aligns with how a Malaysian sovereign actually thinks about obligation.
+
+> **RATIFIED 2026-06-11T17:00 UTC by 888 (Muhammad Arif bin Fazil, F13 SOVEREIGN).** Sovereign directive: *"execute it . this is better intellgence right??"* — ed25519 signature verified against `/root/compose/sekrits/arifos_sovereign.pub`. Receipt: `/root/compose/sekrits/F0_FIQH_888_SEAL_2026-06-11.json`. The 6-line `FiqhTier` patch is now LIVE in `arifosmcp/constitutional_map.py`. The 2-tier (HARD/SOFT) vocabulary remains as strict subset: `HARD ≡ WAJIB ∪ HARAM`, `SOFT ≡ SUNAT ∪ MAKRUH`, `HARUS` is the default-tier (x-payah discipline — sovereign is not pestered for HARUS actions).
 
 ## The Five Tiers
 

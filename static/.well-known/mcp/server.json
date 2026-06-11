@@ -5,7 +5,7 @@
   "serverInfo": {
     "name": "arifos-mcp",
     "title": "arifOS Constitutional MCP Server",
-    "version": "2026.04.26-KANON"
+    "version": "2026.06.11-SSCT"
   },
   "description": "Governed MCP server exposing 13 constitutional AI operations. Human approval gates on irreversible actions, VAULT999 immutable ledger, 888 Judge arbitration, and live thermodynamic telemetry.",
   "transport": {

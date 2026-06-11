@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arif-fazil.com/schemas/envelope_v2.json",
+  "title": "EnvelopeV2",
+  "description": "arifOS A2A Routing Envelope v2 — two-zone split (sender-writable + kernel-stamped). Single source of truth for Pydantic v2 (arifOS) and TS interface (A-FORGE). Backward-compatible shim: empty routing + empty kernel_stamp = current RuntimeEnvelope.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol_version", "routing", "intent", "sender_zone"],
+  "properties": {
+    "protocol_version": {
+      "type": "string",
+      "const": "AAA-A2A-1.0",
+      "description": "Protocol identifier. Single canonical value."
+    },
+    "routing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "from_state_hash", "to", "channel", "message_kind", "intent", "priority"],
+      "properties": {
+        "from": { "type": "string", "minLength": 1, "description": "Sender agent_id or 888_Sovereign. MUST be in registry." },
+        "from_state_hash": { "type": "string", "pattern": "^sha256:[0-9a-fA-F]{64}$", "description": "Sender's signed StateRoot. F11 binding." },
+        "to": { "type": "string", "minLength": 1, "description": "Recipient agent_id or 888_Sovereign. MUST be in registry." },
+        "cc": { "type": "array", "items": { "type": "string" }, "default": [], "description": "CC list (audit-only; does not ring terminal)." },
+        "channel": { "type": "string", "enum": ["a2a", "a2h", "h2a"], "default": "a2a" },
+        "correlation_id": { "type": ["string", "null"], "description": "Thread/parent trace. Alias for parent_trace_id." },
+        "message_kind": { "type": "string", "enum": ["REQUEST", "RESPONSE", "EVENT", "ERROR", "CONTROL"] },
+        "intent": { "type": "string", "enum": ["EXECUTE", "QUERY", "OBSERVE", "SEAL", "PROPOSE", "AUDIT", "VETO"] },
+        "priority": { "type": "string", "enum": ["P0", "P1", "P2", "P3"], "default": "P2", "description": "P0 = sovereign rings terminal, no batching. P3 = background." },
+        "session_id": { "type": ["string", "null"], "description": "Canonical session id." },
+        "timestamp": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action"],
+      "properties": {
+        "action": { "type": "string", "minLength": 1, "description": "Verb-object task name. E.g. 'EXECUTE_DB_MIGRATION'." },
+        "adat_tier_hint": { "type": "string", "enum": ["WAJIB", "SUNAT", "HARUS", "MAKRUH", "HARAM"], "description": "Sender HINT only. Kernel may override via kernel_zone.recommendation_tier." },
+        "constraints": { "type": "array", "items": { "type": "string" }, "default": [] }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Sender-writable task spec and environment.",
+      "properties": {
+        "summary": { "type": "string", "maxLength": 200, "description": "Hard cap = F4 ΔS ≤ 0. Mandatory." },
+        "goal": { "type": "string" },
+        "inputs": { "type": "object", "additionalProperties": true },
+        "assumptions": { "type": "array", "items": { "type": "string" } },
+        "related_resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["ref", "role"],
+            "properties": {
+              "type": { "type": "string", "enum": ["doc", "vector", "api", "db", "file", "memory", "evidence"] },
+              "ref": { "type": "string" },
+              "role": { "type": "string", "enum": ["evidence", "config", "code", "log", "policy"] }
+            }
+          }
+        },
+        "environment": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tenant": { "type": "string" },
+            "mcp_tools": { "type": "array", "items": { "type": "string" } },
+            "capabilities": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "reasoning": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Sender-writable reasoning pipeline. Stage codes MUST import from canonical_map.ToolStage — validator rejects retyped maps.",
+      "properties": {
+        "pipeline_stages": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["000", "111", "222", "333", "444", "444r", "555", "555m", "666", "010", "666g", "777", "888", "999"] },
+          "description": "Canonical ToolStage values from arifosmcp.constitutional_map.ToolStage. DO NOT retype."
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stage", "description", "epistemic", "confidence"],
+            "properties": {
+              "stage": { "type": "string", "enum": ["000", "111", "222", "333", "444", "444r", "555", "555m", "666", "010", "666g", "777", "888", "999"] },
+              "description": { "type": "string" },
+              "epistemic": { "type": "string", "enum": ["CLAIM", "PLAUSIBLE", "HYPOTHESIS", "ESTIMATE", "UNKNOWN"] },
+              "confidence": { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+            }
+          }
+        },
+        "uncertainties": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["issue", "impact"],
+            "properties": {
+              "issue": { "type": "string" },
+              "impact": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] },
+              "mitigation": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Sender-writable content. Comm-Receipt mirror is OPTIONAL — kept for human-legibility at the D-Layer.",
+      "properties": {
+        "context_p_truth": { "type": "number", "minimum": 0.0, "maximum": 1.0, "description": "F2: declared probability of truth. Mandatory for REQUEST/EVENT." },
+        "action_intent": { "type": "string", "description": "Comm-Receipt mirror slot." },
+        "way_forward": { "type": "string" },
+        "recommendation_tier": { "type": "string", "enum": ["WAJIB", "SUNAT", "HARUS", "MAKRUH", "HARAM"], "description": "Sender-writable hint. Kernel may override." },
+        "reversibility_hint": { "type": "string", "enum": ["REVERSIBLE", "PARTIAL", "IRREVERSIBLE"], "description": "Sender HINT. Kernel stamps authoritative version in kernel_zone." },
+        "context_summary": { "type": "string", "maxLength": 200 },
+        "f_floor_trigger": { "type": "string", "pattern": "^F(0[1-9]|1[0-4])$" },
+        "data": { "type": "object", "additionalProperties": true },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "ref"],
+            "properties": {
+              "type": { "type": "string", "enum": ["file", "chart", "image", "log", "patch", "uri"] },
+              "ref": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "sender_zone": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Sender-writable metadata + signature.",
+      "required": ["protocol_features"],
+      "properties": {
+        "protocol_features": { "type": "array", "items": { "type": "string" }, "default": ["two-zone", "dual-sig"], "description": "Feature flags this sender supports. Used for capability negotiation." },
+        "sender_sig": { "type": "string", "pattern": "^ed25519:[0-9a-fA-F]{128}$", "description": "Sender's ed25519 signature over canonical JSON of the entire envelope EXCEPT sender_zone.sender_sig and kernel_zone. Verified against from_state_hash pubkey." },
+        "sender_signed_at": { "type": "string", "format": "date-time" },
+        "sender_key_ref": { "type": "string", "description": "Logical key reference. e.g. 'arifos_sovereign_pub_v1'." }
+      }
+    },
+    "kernel_zone": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Kernel-stamped zone — IMMUTABLE in transit. Sender MUST NOT author this zone. Validator rejects any sender attempt to write here.",
+      "properties": {
+        "verdict": { "type": "string", "enum": ["SEAL", "SABAR", "PARTIAL", "VOID"], "description": "Kernel-computed verdict. NOT sender-declarable." },
+        "reversibility": { "type": "string", "enum": ["SAFE", "REVERSIBLE", "IRREVERSIBLE", "NEEDS_CONFIRMATION"], "description": "Kernel-computed. NOT sender-declarable." },
+        "reversibility_rationale": { "type": "string" },
+        "recommendation_tier": { "type": "string", "enum": ["WAJIB", "SUNAT", "HARUS", "MAKRUH", "HARAM"], "description": "Kernel-final. May differ from sender's hint." },
+        "evaluation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "entropy_delta": { "type": "number", "description": "ΔS. F4 floor." },
+            "peace2": { "type": "number", "minimum": 0.0, "maximum": 1.0, "description": "F5." },
+            "maruah_score": { "type": "number", "minimum": 0.0, "maximum": 1.0, "description": "F6. κ_r." },
+            "omega_0": { "type": "number", "minimum": 0.0, "maximum": 1.0, "description": "F7. MUST be in [0.03, 0.05] band for SEAL." },
+            "safety": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "lawful": { "type": "boolean" },
+                "risk_level": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] },
+                "flags": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "nine_signal": { "type": "object", "additionalProperties": true, "description": "Already live in tools.py:862. Kernel-computed." },
+        "floor_scores": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "F1..F13 receipts. Kernel-computed.",
+          "properties": {
+            "F01": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "F02": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "F03": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "F04": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "F05": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "F06": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "F07": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "F08": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "F09": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "F10": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "F11": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "F12": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "F13": { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+          }
+        },
+        "kernel_signed_at": { "type": "string", "format": "date-time" },
+        "kernel_sig": { "type": "string", "pattern": "^ed25519:[0-9a-fA-F]{128}$", "description": "arifOS kernel signature over canonical JSON of {routing, intent, context, reasoning, payload, sender_zone} EXCEPT sender_sig fields. Sender MUST NOT author this." },
+        "kernel_key_ref": { "type": "string", "description": "Logical kernel key reference." }
+      }
+    },
+    "profile": {
+      "type": "string",
+      "enum": ["REQUEST", "RESPONSE", "EVENT", "ERROR", "CONTROL"],
+      "description": "Discriminator. Must match routing.message_kind. Default REQUEST."
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "default": "1.0.0"
+    }
+  }
+}
