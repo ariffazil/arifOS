@@ -1065,7 +1065,15 @@ def _enforce_nine_signal(
             delta_s = 0.0
 
         nine = out.get("nine_signal")
-        if not isinstance(nine, dict) or not all(k in nine for k in ("delta", "psi", "omega")):
+        # HONESTY FIX (P0-2026-06-10): When the reactive wrapper downgrades
+        # verdict to DEGRADED (inner HOLD/FAIL detected), the hardcoded "OK"
+        # nine_signal from _ok() is now a lie.  Force-regenerate it from the
+        # actual verdict so the audit surface tells the truth.
+        if (
+            verdict == "DEGRADED"
+            or not isinstance(nine, dict)
+            or not all(k in nine for k in ("delta", "psi", "omega"))
+        ):
             if verdict == "DEGRADED":
                 signal_status = "DEGRADED"
             else:
