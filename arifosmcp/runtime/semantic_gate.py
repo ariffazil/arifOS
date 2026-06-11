@@ -197,7 +197,19 @@ CRISIS_RESOURCES: dict[str, str] = {
 
 
 # ── Telemetry ──────────────────────────────────────────────────────────────
-SEMANTIC_GATE_LOG = os.path.expanduser("~/.a-forge/telemetry/semantic_gate.jsonl")
+# Phase 0 fix (2026-06-11, ω-Ω): the arifOS service runs as uid 994 (arifos),
+# but ~-expansion pointed at /home/arifos/.a-forge/ which did not exist, so
+# semantic_gate.jsonl writes were dropping on the floor. Resolution:
+#   1. Honor $ARIFOS_A_FORGE_HOME if set (canonical: /var/lib/arifos/a-forge)
+#   2. Fall back to $XDG_DATA_HOME/a-forge then ~/.a-forge
+#   3. Never raise — _ensure_semantic_log() reports the failure and the
+#      semantic gate still runs in-memory; only persistence is degraded.
+_SEMANTIC_GATE_HOME = (
+    os.environ.get("ARIFOS_A_FORGE_HOME")
+    or os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")) + "/a-forge"
+    or os.path.expanduser("~/.a-forge")
+)
+SEMANTIC_GATE_LOG = os.path.join(_SEMANTIC_GATE_HOME, "telemetry", "semantic_gate.jsonl")
 _SEMANTIC_GATE_DIR = os.path.dirname(SEMANTIC_GATE_LOG)
 
 

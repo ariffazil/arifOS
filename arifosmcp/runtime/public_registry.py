@@ -72,7 +72,8 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_memory_recall": (
         "Search past sessions, assets, sealed events, or repositories. "
         "Use for retrieving historical context, prior decisions, and codebase knowledge. "
-        "Modes: recall | store | get | list | context | repo_ingest | repo_search."
+        "Modes: recall | store | get | list | context | repo_ingest | repo_search | "
+        "manage (snapshot|consolidate|forget|replay|restore — EUREKA-A KernelState OS resource manager)."
     ),
     "arif_heart_critique": (
         "Assess ethical risks and human impact before acting. "

@@ -1371,9 +1371,9 @@ def _enforce_nine_signal(
 
     if not ns.is_compliant:
         # Log violations but still return the enforced output
-        import logging
-
-        logger = logging.getLogger("arifosmcp.nine_signal")
+        # (Phase 0 fix 2026-06-11, ω-Ω: import moved to module top — see line 34.
+        # The in-function import shadowed `logging` as a local for the whole
+        # function, crashing any non-compliant or downstream code path.)
         for v in ns.violations:
             logger.warning(f"Nine-Signal violation: {v}")
 
@@ -5941,8 +5941,6 @@ def _arif_evidence_fetch(
         # FALLBACK: Qdrant search if enabled and rh failed
         if not _results and _has_search_backend:
             try:
-                from arifosmcp.evidence.store import get_evidence_store
-
                 store = get_evidence_store()
                 _search_results = store.search_sources(query, limit=20)
                 if _search_results:
@@ -8381,6 +8379,10 @@ def _arif_memory_recall(
       context — Session context window.
       context_restore — Restore compact state: sealed state, scars, risks, git, service truth.
       dry_run — Ephemeral write/recall/cleanup cycle.
+      manage  — EUREKA-A: KernelState OS resource manager.
+                Sub-verbs: snapshot | consolidate | forget | replay | restore
+                Operates on the persistent world-state graph (KernelState) and the
+                dual-layer L1+L4 store. F1 AMANAH: forget is soft-delete only.
     """
     # ── Absorbed wiki modes (PHOENIX-72 / canonical13) ───────────────────────
     # Short-circuit before the constitutional gate because they are read-only.
@@ -8401,6 +8403,32 @@ def _arif_memory_recall(
             repo_path=memory_id or query or ".",
             query=query or "",
             top_k=(metadata or {}).get("top_k", 8),
+        )
+
+    # ── manage (EUREKA-A: KernelState OS resource manager) ────────────────
+    # PHOENIX-72 pattern: absorbed as a mode of arif_memory_recall, not a
+    # 14th canonical tool. Surface delta = 0. Same pattern that absorbed
+    # arif_stack_health_probe into arif_ops_measure on 2026-06-03.
+    if mode == "manage":
+        from arifosmcp.runtime.memory_manage import arif_memory_manage as _manage_handler
+
+        _manage_sub = (metadata or {}).get("sub_mode") or (metadata or {}).get("verb") or "snapshot"
+        if _manage_sub not in ("snapshot", "consolidate", "forget", "replay", "restore"):
+            return _hold(
+                "arif_memory_recall",
+                f"manage mode sub-verb must be one of snapshot|consolidate|forget|replay|restore, got {_manage_sub!r}",
+            )
+        # 'forget' is the only irreversible sub-verb. F1 AMANAH: pass through
+        # constitutional gate via ack_irreversible flag.
+        _manage_payload = dict(metadata or {})
+        _manage_payload.pop("sub_mode", None)
+        _manage_payload.pop("verb", None)
+        return _manage_handler(
+            mode=_manage_sub,  # type: ignore[arg-type]
+            session_id=session_id,
+            actor_id=actor_id,
+            limit=(metadata or {}).get("limit", 10),
+            payload=_manage_payload or None,
         )
 
     gate = _constitutional_gate(
@@ -10685,6 +10713,16 @@ def _arif_judge_deliberate(
     seal_output["actor_id"] = _actor_for_response(session_id, actor_id)
     seal_output["output_policy"] = _output_policy_for_verdict("OK")
     seal_output["invariants_checked"] = _invariants_checked
+    seal_output["scar_recall"] = _SCAR_RECALL
+    # ── F0_FIQH.md: 5-tier fiqh voice (ratified 2026-06-11 by 888) ────────────
+    # Additive only: surfaces tier language in every judge verdict.
+    # Agents can read `_fiqh_voice` for F1..F13 human-language tier strings.
+    try:
+        from arifosmcp.runtime.fiqh_helper import tier_summary as _tier_sum
+
+        seal_output["_fiqh_voice"] = _tier_sum()
+    except Exception:  # pragma: no cover — never break verdict on helper import
+        pass
     return seal_output
 
 

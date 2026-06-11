@@ -375,16 +375,24 @@ async def _call_minimax(
     try:
         parsed = json.loads(raw_output)
     except json.JSONDecodeError:
-        # P1-20260610: When LLM fails to return valid JSON, do NOT dump raw
-        # text (including potential CoT remnants) into reasoning/answer.
-        # Instead return a structured error the caller can handle.
+        # DDD-20260611: When M3 returns free-form text instead of JSON, wrap
+        # the raw output into reasoning/answer so the kernel envelope can
+        # surface the LLM's actual response. The constitutional wrapper
+        # (F1-F13) will then metabolize the *real* M3 text, not a generic
+        # "unable to parse" placeholder. This mirrors the SEA-LION parser
+        # pattern at line 237-238. The L02 envelope is still issued
+        # (status=HOLD, verdict=HOLD) so the kernel's downstream contract
+        # is preserved — the difference is that the *raw LLM text* is now
+        # visible to the operator via reasoning/answer rather than thrown
+        # away. F1 AMANAH reversible: only the invalid-JSON path is
+        # affected; valid JSON paths are untouched.
         logger.warning("MiniMax M3 returned invalid JSON (first 100 chars): %s", raw_output[:100])
         parsed = {
             "status": "HOLD",
             "verdict": "HOLD",
             "reason": "llm_schema_violation",
-            "reasoning": "LLM returned non-JSON output. Raw output logged for debugging.",
-            "answer": "Unable to parse LLM response. Check server logs.",
+            "reasoning": raw_output,
+            "answer": raw_output,
             "_raw_output_hash": hashlib.sha256(raw_output.encode()).hexdigest()[:16],
         }
 

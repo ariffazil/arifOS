@@ -262,13 +262,24 @@ Cite L02 (Truth), L07 (Humility), L08 (Genius).
 Distinguish CLAIM from FACT."""
 
     # ── LLM Inference with 777_WITNESS Envelope ───────────────────────────────────
+    # DDD-20260611: bumped max_tokens 200→2000. M3 with thinking enabled
+    # spends ~900+ tokens on reasoning_tokens alone at temperature=0.3,
+    # so 800 cap truncates BEFORE the JSON answer is written (finish_reason=length).
+    # 2000 gives M3 room for the think block + the full JSON envelope:
+    # status, claim_state, synthesis, reasoning, confidence, uncertainty,
+    # axioms_used, next_safe_action. Verified via direct /v1/chat/completions
+    # with same SYSTEM_PROMPT at 800 (truncated) and 2000 (complete).
+    # F1 AMANAH reversible: only the budget is changed; the contract
+    # (JSON envelope) and tool origin are unchanged. The F11 AUTH rule
+    # (line 327-337) still prevents reasoning_content from leaking to
+    # the audit surface — only the final content field is used.
     try:
         envelope = await call_llm(
             system=SYSTEM_PROMPT,
             user=user_prompt,
             response_schema=RESPONSE_SCHEMA,
             temperature=0.3,
-            max_tokens=200,
+            max_tokens=2000,
             tool_origin="333_REASON",
             mode=mode,
         )
