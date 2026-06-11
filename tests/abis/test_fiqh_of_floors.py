@@ -223,7 +223,7 @@ class TestTierDeltas:
         # WAJIB fulfilled: maruah_delta from "on_fulfilled" field (0 for WAJIB)
         # So this should be 0, not negative. The point: WAJIB non-violation
         # doesn't reward; it's a baseline.
-        assert v.maruh_delta >= 0 if hasattr(v, "maruh_delta") else v.maruh_delta >= 0
+        assert v.maruah_delta >= 0 if hasattr(v, "maruah_delta") else v.maruah_delta >= 0
 
     def test_total_score_delta_sums_correctly(self) -> None:
         ctxs = [

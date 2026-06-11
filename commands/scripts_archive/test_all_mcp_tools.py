@@ -31,7 +31,7 @@ if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
 # ── Configuration ───────────────────────────────────────────────────────────
-LOCAL_HTTP_URL = "http://localhost:8080/mcp"
+LOCAL_HTTP_URL = "http://localhost:8088/mcp"
 REMOTE_HTTPS_URL = "https://arifos.arif-fazil.com/mcp"
 ACTOR_ID = "arif"
 
