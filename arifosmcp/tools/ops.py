@@ -8,6 +8,8 @@ Operations and economic thermodynamics telemetry.
 from __future__ import annotations
 
 import asyncio
+import time
+from datetime import UTC, datetime
 
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.session_auth import validate_session
@@ -479,6 +481,199 @@ def arif_ops_measure(
                     **drift_metrics,
                     "mode": "geometry",
                     "source": "geometry_hygiene",
+                },
+                session_id=session_id,
+            )
+        )
+
+    if mode == "capability":
+        # EUREKA Ω-2026-06-10: CapabilitySurface — The Honest Map
+        # The primary resource in a constitutional AGI system is honestly known
+        # capability. This mode probes every organ, computes per-tool status
+        # alignment (ALIGNED/OVERCLAIM/DARK), and derives the safe autonomy mode.
+        # A-FORGE must plan within this surface. AAA must display it.
+        from arifosmcp.schemas.capability_surface import (
+            AgentCapability,
+            AutonomyMode,
+            CapabilitySurface,
+            CapabilityTier,
+            OrganHealth,
+            StatusAlignment,
+            ToolCapability,
+        )
+
+        t0 = time.perf_counter()
+        organs: list[OrganHealth] = []
+        tools: list[ToolCapability] = []
+        now_ts = datetime.now(UTC).isoformat()
+
+        # ── Probe all federation organs ──────────────────────────────────
+        _ORGAN_MAP = {
+            "arifOS": ("arifos", 8088),
+            "arifosd": ("arifosd", 18081),
+            "WEALTH": ("wealth-organ", 18082),
+            "WELL": ("well", 18083),
+            "GEOX": ("geox-mcp", 8081),
+            "A-FORGE": ("a-forge", 7071),
+            "AAA": ("aaa-a2a", 3001),
+        }
+
+        for organ_name, (svc_name, port) in _ORGAN_MAP.items():
+            import subprocess
+
+            svc_active = False
+            health_ok = False
+            tools_count = 0
+            try:
+                cp = subprocess.run(
+                    ["systemctl", "is-active", svc_name],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                svc_active = cp.stdout.strip() == "active"
+            except Exception:
+                pass
+
+            try:
+                import urllib.request
+
+                req = urllib.request.Request(
+                    f"http://127.0.0.1:{port}/health",
+                    headers={"Accept": "application/json"},
+                )
+                resp = urllib.request.urlopen(req, timeout=3)
+                if resp.status == 200:
+                    import json as _json
+
+                    data = _json.loads(resp.read().decode())
+                    health_ok = True
+                    tools_count = (
+                        data.get("tools_loaded")
+                        or data.get("public_surface_count")
+                        or data.get("tool_count")
+                        or 0
+                    )
+            except Exception:
+                pass
+
+            organs.append(
+                OrganHealth(
+                    name=organ_name,
+                    port=port,
+                    systemd_active=svc_active,
+                    health_200=health_ok,
+                    tools_registered=tools_count,
+                    tools_callable=tools_count if health_ok else 0,
+                )
+            )
+
+        # ── Compute per-tool capability ──────────────────────────────────
+        from arifosmcp.constitutional_map import CANONICAL_TOOLS
+        from arifosmcp.runtime.tools import _CANONICAL_HANDLERS
+
+        for tool_name, tool_meta in CANONICAL_TOOLS.items():
+            organ = tool_meta.get("organ", "arifOS")
+            handler = _CANONICAL_HANDLERS.get(tool_name)
+            reachable = handler is not None
+
+            # Determine tier from risk classification
+            risk = tool_meta.get("risk", {})
+            tier_str = risk.get("tier", "T2")
+            try:
+                tier = CapabilityTier(tier_str)
+            except ValueError:
+                tier = CapabilityTier.T2_REASON
+
+            # Status alignment: probe-based now, verdict-aware later
+            if not reachable:
+                alignment = StatusAlignment.DARK
+            elif not health_ok and organ != "arifOS":
+                alignment = StatusAlignment.DARK
+            else:
+                alignment = StatusAlignment.UNKNOWN  # needs live call to verify
+
+            tools.append(
+                ToolCapability(
+                    name=tool_name,
+                    organ=organ,
+                    available=reachable,
+                    read_ok=reachable,
+                    write_ok=(tier not in (CapabilityTier.T5_ATOMIC,)),
+                    tier=tier,
+                    floors=list(tool_meta.get("floors", [])),
+                    status_alignment=alignment,
+                    last_probed_at=now_ts,
+                )
+            )
+
+        # ── Agent capability (current models) ────────────────────────────
+        agents: list[AgentCapability] = [
+            AgentCapability(
+                name="Omega",
+                model="deepseek-v4-pro",
+                tier=CapabilityTier.T2_REASON,
+                allowed_floors=[
+                    "F01",
+                    "F02",
+                    "F03",
+                    "F04",
+                    "F05",
+                    "F06",
+                    "F07",
+                    "F08",
+                    "F09",
+                    "F10",
+                    "F11",
+                    "F12",
+                ],
+                domains=["governance", "forge", "ops"],
+                status_alignment=StatusAlignment.UNKNOWN,
+            ),
+        ]
+
+        # ── Derive autonomy mode ─────────────────────────────────────────
+        dark_count = sum(1 for t in tools if t.status_alignment == StatusAlignment.DARK)
+        aligned_count = sum(1 for t in tools if t.status_alignment == StatusAlignment.ALIGNED)
+        total = len(tools)
+
+        if total == 0:
+            auto_mode = AutonomyMode.BLOCKED
+        elif dark_count > total * 0.3:
+            auto_mode = AutonomyMode.ASSIST
+        elif aligned_count < total * 0.5:
+            auto_mode = AutonomyMode.SHORT_CHAIN
+        else:
+            auto_mode = AutonomyMode.AGI_CHAIN
+
+        elapsed = (time.perf_counter() - t0) * 1000
+
+        surface = CapabilitySurface(
+            timestamp=now_ts,
+            compute_latency_ms=elapsed,
+            organs=organs,
+            tools=tools,
+            agents=agents,
+            autonomy_mode=auto_mode,
+            dark_tools=dark_count,
+            overclaim_tools=sum(
+                1 for t in tools if t.status_alignment == StatusAlignment.OVERCLAIM
+            ),
+            aligned_tools=aligned_count,
+            total_tools=total,
+            evidence_refs=[f"probe:{now_ts}"],
+        )
+
+        payload = surface.model_dump(mode="json")
+        return TelemetryBlock(
+            **_ok(
+                "arif_ops_measure",
+                payload,
+                meta={
+                    **drift_metrics,
+                    "mode": "capability",
+                    "source": "capability_surface_v1",
+                    "autonomy_mode": auto_mode.value,
                 },
                 session_id=session_id,
             )

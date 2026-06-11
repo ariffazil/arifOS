@@ -63,6 +63,17 @@ from arifosmcp.schemas.intent_envelope import (
     SovereignProvenance,
 )
 
+# CapabilitySurface — Honest map of what the system can actually do (Ω-2026-06-10)
+from arifosmcp.schemas.capability_surface import (
+    AgentCapability,
+    AutonomyMode,
+    CapabilitySurface,
+    CapabilityTier,
+    OrganHealth,
+    StatusAlignment,
+    ToolCapability,
+)
+
 # Verdict (888_JUDGE, 999_VAULT, 666_HEART)
 from arifosmcp.schemas.lineage import JudgeSealContract
 
