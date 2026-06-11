@@ -128,8 +128,9 @@ class NATSHeartbeatDaemon:
             # 2. JetStream — the attestation verifier reads this.
             try:
                 js = self.nc.jetstream()
+                # Note: JetStreamContext has no .flush(); the publish
+                # is acknowledged by the broker via the ACK protocol.
                 await js.publish("arifos.organ.arifos", payload)
-                await js.flush()
             except Exception as js_err:
                 # JS publish failure is non-fatal; the plain publish
                 # already succeeded. Log and continue.
