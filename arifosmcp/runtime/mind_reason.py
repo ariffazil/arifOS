@@ -235,14 +235,23 @@ async def arif_mind_reason(
     Updated to delegate to v2 for 'metabolize' mode.
     """
     if mode == "metabolize":
-        from arifosmcp.schemas.mind_metabolism import MindRequest
+        from arifosmcp.schemas.mind_metabolism import MindRequest, ReasoningControl
+
+        # DDD-20260611: build a typed ReasoningControl instead of a
+        # bare dict. Pydantic v2 accepts both, but the typed form
+        # (1) silences the LSP `dict[str, int]` mismatch warning,
+        # (2) makes the 9 ReasoningControl fields discoverable at
+        # this dispatch site, and (3) fails-closed at construction
+        # time if depth is out of [1, 10]. The other 8 fields
+        # use their declared defaults.
+        reasoning_control = ReasoningControl(depth=depth)
 
         request = MindRequest(
             query=query,
             mode=mode,
             session_id=session_id,
             actor_id=actor_id,
-            reasoning_control={"depth": depth},
+            reasoning_control=reasoning_control,
         )
         v2_resp = await arif_mind_reason_v2(request)
         return v2_resp.model_dump()
