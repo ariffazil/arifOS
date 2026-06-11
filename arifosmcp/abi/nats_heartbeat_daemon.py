@@ -2,8 +2,15 @@
 arifOS → NATS Heartbeat Daemon
 Sidecar that polls arifOS health and publishes events to the NATS event bus.
 
+Forged: 2026-06-11 — also publishes to the JetStream stream
+'arifos-organs' (subject: arifos.organ.arifos) so the attestation
+verifier can compute honesty_ratio from the live stream. The
+plain-NATS subject 'arifOS.health' is preserved for backward
+compatibility with any existing consumer.
+
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
+
 import asyncio
 import json
 import logging
@@ -14,6 +21,7 @@ from datetime import UTC, datetime
 try:
     import httpx
     import nats
+
     DEPS_AVAILABLE = True
 except ImportError:
     DEPS_AVAILABLE = False
@@ -21,7 +29,7 @@ except ImportError:
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s — %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger("arifOS.nats_heartbeat")
 
@@ -33,7 +41,7 @@ PUBLISH_INTERVAL = 60  # seconds between heartbeat publications
 class NATSHeartbeatDaemon:
     """
     Polls arifOS health endpoint and publishes events to NATS.
-    
+
     Published events:
     - arifOS.health      — heartbeat with organ status
     - arifOS.verdicts    — verdict counts from last health check
@@ -81,30 +89,55 @@ class NATSHeartbeatDaemon:
             return None
 
     async def publish_health_event(self, health_data: dict):
-        """Publish arifOS health as NATS event."""
+        """Publish arifOS health as NATS event.
+
+        Sends to two subjects:
+          1. 'arifOS.health' — plain NATS, preserved for legacy consumers.
+          2. 'arifos.organ.arifos' — JetStream stream 'arifos-organs' picks
+             this up via its subject filter 'arifos.organ.>'. The
+             attestation_verifier reads from this stream and computes
+             honesty_ratio.
+        """
         if not self.nc:
             return
 
-        verdict = health_data.get("verdict", "UNKNOWN")
-        organ = health_data.get("organ", "arifOS")
-        ml_floors = health_data.get("ml_floors", False)
-        federation = health_data.get("federation_epistemology", "disabled")
-        graphiti = health_data.get("graphiti_enabled", False)
+        # The /health payload uses 'status' as the top-level key, not
+        # 'verdict'. Read both for forward compatibility.
+        verdict = health_data.get("verdict") or health_data.get("status") or "UNKNOWN"
+        organ = "arifos"  # this daemon is for the kernel
+        tool_count = health_data.get("tools_loaded", 0)
+        registry_truth = health_data.get("registry_truth", "UNKNOWN")
 
         event = {
             "event": "ARIFOS_HEALTH",
             "organ": organ,
             "verdict": verdict,
-            "ml_floors": ml_floors,
-            "federation_epistemology": federation,
-            "graphiti_enabled": graphiti,
+            "tool_count": tool_count,
+            "registry_truth": registry_truth,
+            "ml_floors": health_data.get("ml_floors", False),
+            "federation_epistemology": health_data.get("federation_epistemology", "disabled"),
+            "graphiti_enabled": health_data.get("graphiti_enabled", False),
             "raw_health": health_data,
             "timestamp": datetime.now(UTC).isoformat(),
         }
+        payload = json.dumps(event, default=str).encode()
         try:
-            await self.nc.publish("arifOS.health", json.dumps(event, default=str).encode())
+            # 1. Plain NATS — preserved.
+            await self.nc.publish("arifOS.health", payload)
             await self.nc.flush()
-            logger.info(f"Published health event: verdict={verdict}, ml_floors={ml_floors}")
+            # 2. JetStream — the attestation verifier reads this.
+            try:
+                js = self.nc.jetstream()
+                await js.publish("arifos.organ.arifos", payload)
+                await js.flush()
+            except Exception as js_err:
+                # JS publish failure is non-fatal; the plain publish
+                # already succeeded. Log and continue.
+                logger.warning(f"JetStream publish failed (non-fatal): {js_err}")
+            logger.info(
+                f"Published health event: organ={organ}, verdict={verdict}, "
+                f"tool_count={tool_count}, registry_truth={registry_truth}"
+            )
         except Exception as e:
             logger.error(f"Failed to publish health event: {e}")
 
@@ -137,9 +170,7 @@ class NATSHeartbeatDaemon:
                 # Check for critical issues
                 if health.get("verdict") == "DEGRADED":
                     await self.publish_alert_event(
-                        "ARIFOS_DEGRADED",
-                        f"arifOS health degraded: {health}",
-                        "high"
+                        "ARIFOS_DEGRADED", f"arifOS health degraded: {health}", "high"
                     )
             else:
                 consecutive_failures += 1
@@ -148,7 +179,7 @@ class NATSHeartbeatDaemon:
                     await self.publish_alert_event(
                         "ARIFOS_UNREACHABLE",
                         f"arifOS unreachable for {consecutive_failures} consecutive checks",
-                        "critical"
+                        "critical",
                     )
 
             await asyncio.sleep(interval)
