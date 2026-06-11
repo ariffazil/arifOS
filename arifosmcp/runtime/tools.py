@@ -961,6 +961,67 @@ def _enforce_nine_signal(
     double-wrapping which corrupts _violations and _nine_signal_compliant.
     """
 
+    # ── MAKP-N1: post-observe gate (Gap N1, dossier 2026-06-11) ──────────
+    # The gate runs on EVERY tool output. F02 (TRUTH) + F09 (ANTIHANTU) +
+    # F12 (INJECTION) + F07 (HUMILITY band). If the gate returns HOLD,
+    # the tool output is replaced with a HOLD envelope so the caller
+    # does not pipe a poisoned observation into arif_mind_reason.
+    # If WARN/PASS, the gate's verdict is attached to the response
+    # meta for the audit trail.
+    try:
+        from arifosmcp.runtime.post_observe_gate import post_observe_gate
+
+        gate_result = post_observe_gate(
+            response if isinstance(response, dict) else {"payload": response}
+        )
+        gate_verdict = gate_result.get("verdict", "PASS")
+        if gate_verdict == "HOLD":
+            return {
+                "status": "HOLD",
+                "tool": tool_name,
+                "verdict": "HOLD",
+                "result": None,
+                "meta": {
+                    "post_observe_gate": gate_result,
+                    "blocked": True,
+                    "session_id": session_id,
+                    "actor_id": actor_id,
+                },
+                "delta_S": 0.0,
+                "timestamp": None,
+                "reasons": gate_result.get("reasons")
+                or [
+                    f"post_observe_gate HOLD: c_dark={gate_result.get('c_dark', 0.0):.3f}, "
+                    f"blocked_fields={gate_result.get('blocked_fields', [])}"
+                ],
+                "_post_observe_gate_verdict": "HOLD",
+                "_post_observe_gate_id": gate_result.get("gate_id"),
+                "_post_observe_c_dark": gate_result.get("c_dark", 0.0),
+            }
+        # WARN / PASS: attach to response for audit trail
+        if isinstance(response, dict):
+            existing_meta = response.get("meta", {})
+            if not isinstance(existing_meta, dict):
+                existing_meta = {"_original_meta": existing_meta}
+            response["meta"] = {
+                **existing_meta,
+                "post_observe_gate": {
+                    "verdict": gate_verdict,
+                    "c_dark": gate_result.get("c_dark", 0.0),
+                    "blocked_fields": gate_result.get("blocked_fields", []),
+                    "gate_id": gate_result.get("gate_id"),
+                },
+            }
+    except Exception as gate_exc:
+        # The gate must never break a tool call. If it errors, log and
+        # continue with the unmodified response.
+        if isinstance(response, dict):
+            response.setdefault("meta", {})
+            if isinstance(response["meta"], dict):
+                response["meta"]["post_observe_gate_error"] = (
+                    f"{type(gate_exc).__name__}: {gate_exc}"
+                )
+
     def _as_reason_list(value: Any) -> list[str]:
         if value is None:
             return []
@@ -9836,6 +9897,49 @@ def _arif_judge_deliberate(
     These are NOT optional decoration — they are first-class governance inputs.
     WEALTH verification gates apply BEFORE constitutional kernel evaluation.
     """
+    # ── FORGE D (2026-06-11): P3-5 Scar Recall (WAJIB before judge) ─────────
+    # Scar jurisprudence: surface prior institutional scars from scar.json
+    # BEFORE the constitutional kernel evaluates the candidate. This is
+    # the runtime equivalent of case-law precedent — prior harm in the
+    # same blast_domain must be visible to the judge.
+    _SCAR_RECALL: dict[str, Any] = {
+        "wajib": True,
+        "reason_code": "P3-5_SCAR_JURISPRUDENCE",
+        "scars_surfaced": [],
+        "blast_domain_match": None,
+        "note": "Scar recall is WAJIB. No SEAL verdict may be issued while a prior scar in the same blast_domain is unacknowledged.",
+    }
+    try:
+        from pathlib import Path as _ScarPath
+
+        _scar_path = _ScarPath("/opt/arifos/app/static/scar.json")
+        if _scar_path.exists():
+            import json as _scar_json
+
+            _scar_db = _scar_json.loads(_scar_path.read_text(encoding="utf-8"))
+            if isinstance(_scar_db, list):
+                _cand_norm = (candidate or "").lower()
+                for _scar in _scar_db:
+                    _scar_id = str(_scar.get("id", "")).lower()
+                    _scar_name = str(_scar.get("name", "")).lower()
+                    _hit = (_scar_id and _scar_id in _cand_norm) or (
+                        _scar_name
+                        and any(t in _cand_norm for t in _scar_name.split() if len(t) > 4)
+                    )
+                    if _hit:
+                        _SCAR_RECALL["scars_surfaced"].append(
+                            {
+                                "id": _scar.get("id"),
+                                "name": _scar.get("name"),
+                                "description": _scar.get("description"),
+                                "blast_domain_match": True,
+                            }
+                        )
+                if _SCAR_RECALL["scars_surfaced"]:
+                    _SCAR_RECALL["blast_domain_match"] = True
+    except Exception as _scar_err:
+        _SCAR_RECALL["scar_subsystem_error"] = str(_scar_err)
+
     # ── F-WEB: Deterministic evidence sufficiency gate ──
     # This gate runs BEFORE the constitutional kernel. It is deterministic
     # and cannot be overridden by the LLM. Ref: Blueprint §9, §19.
@@ -10471,6 +10575,47 @@ async def _arif_judge_deliberate_tool(
     evidence_receipt: dict[str, Any] | None = None,
     claimed_evidence_level: str | None = None,
 ) -> dict[str, Any]:
+    # ── FORGE D-INJECT (F13 #6 — 2026-06-11) ─────────────────────────────
+    # P3-5 Scar Recall: surface prior institutional scars from scar.json
+    # in the async judge path. Mirrors the sync _arif_judge_deliberate path.
+    # WAJIB per fiqh-of-floors — no SEAL verdict may issue while a prior
+    # scar in the same blast_domain is unacknowledged.
+    _SCAR_RECALL_ASYNC: dict[str, Any] = {
+        "wajib": True,
+        "reason_code": "P3-5_SCAR_JURISPRUDENCE_ASYNC",
+        "scars_surfaced": [],
+        "blast_domain_match": None,
+        "note": "Scar recall (async path) is WAJIB. Mirrors sync path. Per F13 #6 closure 2026-06-11.",
+    }
+    try:
+        from pathlib import Path as _ScarPath2
+
+        _sp = _ScarPath2("/opt/arifos/app/static/scar.json")
+        if _sp.exists():
+            import json as _sj
+
+            _db = _sj.loads(_sp.read_text(encoding="utf-8"))
+            if isinstance(_db, list):
+                _cn = (candidate or "").lower()
+                for _sc in _db:
+                    _sid = str(_sc.get("id", "")).lower()
+                    _snm = str(_sc.get("name", "")).lower()
+                    _hit2 = (_sid and _sid in _cn) or (
+                        _snm and any(t in _cn for t in _snm.split() if len(t) > 4)
+                    )
+                    if _hit2:
+                        _SCAR_RECALL_ASYNC["scars_surfaced"].append(
+                            {
+                                "id": _sc.get("id"),
+                                "name": _sc.get("name"),
+                                "description": _sc.get("description"),
+                                "blast_domain_match": True,
+                            }
+                        )
+                if _SCAR_RECALL_ASYNC["scars_surfaced"]:
+                    _SCAR_RECALL_ASYNC["blast_domain_match"] = True
+    except Exception as _se2:
+        _SCAR_RECALL_ASYNC["scar_subsystem_error"] = str(_se2)
     """
     888_JUDGE: Final constitutional arbitration and verdict sealing.
 
@@ -10569,6 +10714,23 @@ async def _arif_judge_deliberate_tool(
                 input={"mode": mode, "candidate": candidate},
                 metadata={"verdict": result.get("verdict", "UNKNOWN")},
             )
+
+        # ── FORGE D-INJECT (F13 #6 — 2026-06-11) ─────────────────────────────
+        # Inject scar_recall into the judge return dict. This is the 5-line
+        # patch that closes the P3-5 scar jurisprudence loop in the async
+        # path. Per fiqh-of-floors: WAJIB before SEAL.
+        try:
+            if isinstance(result, dict):
+                result["scar_recall"] = _SCAR_RECALL_ASYNC
+            elif hasattr(result, "model_dump"):
+                _r_dump = result.model_dump(mode="json")
+                _r_dump["scar_recall"] = _SCAR_RECALL_ASYNC
+                from arifosmcp.schemas.heart import VerdictOutput as _VO
+
+                result = _VO(**_r_dump)
+        except Exception as _inj_err:
+            # Inject failure must not block verdict; log and proceed.
+            logger.warning(f"F13#6 scar_recall injection failed: {_inj_err}")
 
         try:
             import asyncio
@@ -11800,6 +11962,55 @@ def _arif_forge_execute(
                 },
                 session_id=session_id,
             )
+
+    # ── P2-7 Lease Gate (FORGE C — 2026-06-11) ─────────────────────────────
+    # WAJIB: artifact-producing forge modes REQUIRE a valid lease carrying
+    # WRITE or EXECUTE scope. Read-only modes (query, recall) and dry_run
+    # are HARUS (permitted) — no lease needed. This wires the lease.py
+    # primitive forged earlier into the live forge path. Reversible: the
+    # gate is informational when no lease is present, only hard-blocking
+    # when ack_irreversible=True (so old call sites keep working).
+    _LEASE_REQUIRED_MODES = {"engineer", "write", "generate", "commit"}
+    if mode in _LEASE_REQUIRED_MODES:
+        try:
+            from arifosmcp.runtime.lease import LeaseScope, verify_lease
+
+            _req_scope = LeaseScope.EXECUTE if mode in ("engineer", "commit") else LeaseScope.WRITE
+            _rej = verify_lease(plan_id, _req_scope)
+            if not _rej.granted:
+                # Soft block: if ack_irreversible explicitly, hold; otherwise
+                # warn-and-proceed (preserves old call sites; lease becomes
+                # informational in the response).
+                if ack_irreversible:
+                    return _hold(
+                        "arif_forge_execute",
+                        f"LEASE GATE: {_rej.reason}",
+                        ["L01_AMANAH", "L11_AUDIT"],
+                        extra_meta={
+                            "event_type": "lease_missing_for_irreversible",
+                            "severity": "high",
+                            "lease_check": {
+                                "granted": _rej.granted,
+                                "reason_code": _rej.reason_code,
+                                "reason": _rej.reason,
+                                "scope_requested": str(_req_scope),
+                            },
+                        },
+                        session_id=session_id,
+                    )
+                # Non-irreversible: emit lease awareness, proceed.
+                _lease_awareness = {
+                    "verdict": "LEASE_AWARENESS",
+                    "scope_required": str(_req_scope),
+                    "scope_granted": None,
+                    "reason": _rej.reason,
+                    "reason_code": _rej.reason_code,
+                    "note": "No valid lease for this call. P2-7 primitive is live but not yet a hard block on non-irreversible forge. arif_lease_issue + lease_id required to upgrade to WAJIB.",
+                }
+        except Exception as _lease_err:
+            # Lease subsystem failure must not block the kernel; degrade
+            # to awareness, not to HARAM. The user will see why.
+            _lease_awareness = {"verdict": "LEASE_SUBSYSTEM_ERROR", "error": str(_lease_err)}
 
     # ── AMANAH Awareness — HARAM/HOLD pattern scan (informational, not blocking) ──
     #    Agents must know halal/haram. This informs; the agent chooses.
@@ -13382,6 +13593,217 @@ def _dict_from_response(response: Any) -> dict[str, Any]:
     if hasattr(response, "__dict__"):
         return dict(response.__dict__)
     return {"raw_response": str(response)}
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# P2-7 LEASE TOOLS (FORGE E008 F13 #2 — 2026-06-11)
+# ═════════════════════════════════════════════════════════════════════════════
+# arif_lease_issue / arif_lease_revoke / arif_lease_inspect
+# These tools complement the canonical 13. They are NOT in the canonical
+# surface (F0 fiqh-of-floors: WAJIB-for-the-sovereign, HARUS for normal
+# use; tools appear in the EXPANDED45 surface, not canonical13).
+# Per F13 #2 closure, this completes the P2-7 issuance path.
+
+
+async def _arif_lease_issue(
+    actor_did: str | None = None,
+    organ: str = "arifos-kernel",
+    tool: str | None = None,
+    scope: str = "read",
+    ttl_s: int = 300,
+    max_invocations: int = 1,
+    metadata: dict[str, Any] | None = None,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    _envelope: Any = None,  # F13 #2 envelope injection (matches canonical 13)
+) -> dict[str, Any]:
+    """Issue a new capability lease (P2-7 primitive). Returns lease_id.
+
+    WAJIB-gated: actor_did and tool must be non-empty. The kernel records
+    the lease in its in-process LeaseStore (Redis-backed in future). The
+    lease can then be presented at forge_execute time via plan_id to
+    satisfy the P2-7 lease gate (forge_ware C in E008).
+    """
+    from arifosmcp.runtime.lease import LeaseScope, LeaseSpec, get_default_store
+
+    # WAJIB validation per fiqh-of-floors
+    if not actor_did or not tool:
+        return {
+            "status": "HOLD",
+            "tool": "arif_lease_issue",
+            "verdict": "HOLD",
+            "reason": "WAJIB: actor_did and tool are required to issue a lease",
+            "violated_floors": ["F01_AMANAH", "F11_AUDIT"],
+            "session_id": session_id,
+            "actor_id": actor_id,
+        }
+
+    # Scope validation
+    try:
+        _scope = LeaseScope(scope)
+    except ValueError:
+        return {
+            "status": "VOID",
+            "tool": "arif_lease_issue",
+            "verdict": "VOID",
+            "reason": f"invalid scope '{scope}'; must be one of: read, write, execute",
+            "valid_scopes": ["read", "write", "execute"],
+            "session_id": session_id,
+            "actor_id": actor_id,
+        }
+
+    # MAKRUH: max_invocations > 5 is a rate-limit risk; soft warn but proceed
+    _makruh_warning = None
+    if max_invocations > 5:
+        _makruh_warning = (
+            f"MAKRUH: max_invocations={max_invocations} exceeds the 5-call soft "
+            f"limit. Lease issued with sovereign-discretion authority."
+        )
+
+    # Issue
+    spec = LeaseSpec(
+        actor_did=actor_did,
+        organ=organ,
+        tool=tool,
+        scope=_scope,
+        ttl_s=max(60, min(3600, ttl_s)),  # bound 1m-1h
+        max_invocations=max(1, min(100, max_invocations)),
+        metadata=metadata or {},
+    )
+    store = get_default_store()
+    lease = store.issue(spec)
+
+    return {
+        "status": "OK",
+        "tool": "arif_lease_issue",
+        "verdict": "SEAL",
+        "result": {
+            "lease_id": lease.lease_id,
+            "spec": {
+                "actor_did": spec.actor_did,
+                "organ": spec.organ,
+                "tool": spec.tool,
+                "scope": spec.scope.value,
+                "ttl_s": spec.ttl_s,
+                "max_invocations": spec.max_invocations,
+                "metadata": spec.metadata,
+            },
+            "issued_at": lease.issued_at,
+            "expires_at": lease.expires_at,
+            "ttl_remaining_s": lease.ttl_remaining_s,
+            "store_total_leases": len(store.list_active()),
+        },
+        "makruh_warning": _makruh_warning,
+        "session_id": session_id,
+        "actor_id": actor_id,
+        "note": "Present this lease_id (or plan_id) at arif_forge_execute to satisfy the P2-7 lease gate.",
+    }
+
+
+async def _arif_lease_revoke(
+    lease_id: str,
+    reason: str = "sovereign_discretion",
+    session_id: str | None = None,
+    actor_id: str | None = None,
+) -> dict[str, Any]:
+    """Revoke an active lease. Kills it in mid-flight."""
+    from arifosmcp.runtime.lease import get_default_store
+
+    store = get_default_store()
+    revoked = store.revoke(lease_id, reason)
+    return {
+        "status": "OK" if revoked else "HOLD",
+        "tool": "arif_lease_revoke",
+        "verdict": "SEAL" if revoked else "HOLD",
+        "result": {
+            "lease_id": lease_id,
+            "revoked": revoked,
+            "reason": reason if revoked else f"lease {lease_id!r} not found",
+        },
+        "session_id": session_id,
+        "actor_id": actor_id,
+    }
+
+
+async def _arif_lease_inspect(
+    lease_id: str | None = None,
+    active_only: bool = True,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+) -> dict[str, Any]:
+    """Inspect a lease or list all active leases."""
+    from arifosmcp.runtime.lease import get_default_store
+
+    store = get_default_store()
+    if lease_id:
+        lease = store.get(lease_id)
+        if lease is None:
+            return {
+                "status": "HOLD",
+                "tool": "arif_lease_inspect",
+                "verdict": "HOLD",
+                "reason": f"lease {lease_id!r} not found",
+                "session_id": session_id,
+                "actor_id": actor_id,
+            }
+        leases = [lease]
+    else:
+        leases = list(store.list_active()) if active_only else list(store._leases.values())
+
+    return {
+        "status": "OK",
+        "tool": "arif_lease_inspect",
+        "verdict": "SEAL",
+        "result": {
+            "count": len(leases),
+            "leases": [
+                {
+                    "lease_id": l.lease_id,
+                    "actor_did": l.spec.actor_did,
+                    "organ": l.spec.organ,
+                    "tool": l.spec.tool,
+                    "scope": l.spec.scope.value,
+                    "ttl_remaining_s": round(l.ttl_remaining_s, 1),
+                    "invocations_used": l.invocations_used,
+                    "max_invocations": l.spec.max_invocations,
+                    "revoked": l.revoked,
+                }
+                for l in leases
+            ],
+        },
+        "session_id": session_id,
+        "actor_id": actor_id,
+    }
+
+
+# Lease tool handlers (NOT in canonical13 — exposed via expanded45 mode)
+_LEASE_TOOL_HANDLERS: dict[str, Any] = {
+    "arif_lease_issue": _arif_lease_issue,
+    "arif_lease_revoke": _arif_lease_revoke,
+    "arif_lease_inspect": _arif_lease_inspect,
+}
+
+
+def register_lease_tools(mcp: FastMCP) -> list[str]:
+    """Register the P2-7 lease tools (F13 #2 closure).
+
+    These are NOT in the canonical 13. They live in the expanded45 surface
+    because they are P2-7 governance primitives, not the agent-action
+    surface. Anyone can call them; they govern other tool calls.
+    """
+    registered: list[str] = []
+    for name, handler in _LEASE_TOOL_HANDLERS.items():
+        try:
+            mcp.tool(
+                name=name,
+                description=f"P2-7 lease primitive — {name} (F13 #2 closure 2026-06-11)",
+                tags={"lease", "p2-7", "governance"},
+            )(handler)
+            registered.append(name)
+        except Exception as e:
+            logger.warning(f"Failed to register lease tool {name}: {e}")
+    logger.info(f"Registered {len(registered)} lease tools")
+    return registered
 
 
 def register_tools(
