@@ -134,8 +134,25 @@ def _make_envelope(
     return envelope
 
 
+def _strip_think_tags(content: str) -> str:
+    """Strip <｜end▁of▁thinking｜> tags from LLM output before parsing.
+
+    MiniMax M3 returns reasoning_content as a separate field, but some
+    providers inline  in the content itself. This prevents
+    CoT from leaking into parsed_output (F11 AUTH — model internals
+    must never reach the audit surface)."""
+    import re
+
+    # Remove  blocks including any content between them
+    content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL)
+    # Also catch unclosed <think> tags (model truncated mid-thought)
+    content = re.sub(r"<think>.*", "", content, flags=re.DOTALL)
+    return content.strip()
+
+
 def _strip_markdown(content: str) -> str:
     """Strip markdown code fences from LLM output."""
+    content = _strip_think_tags(content)
     content = content.strip()
     for fence in ("```json", "```json\n", "```"):
         if content.startswith(fence):
@@ -307,8 +324,17 @@ async def _call_minimax(
     try:
         data = response.json()
         msg = data["choices"][0]["message"]
-        # M3 may return reasoning_content when thinking is enabled
-        content = msg.get("content") or msg.get("reasoning_content", "")
+        # M3 returns reasoning_content separately when thinking is enabled.
+        # NEVER use reasoning_content as the output — it is the model's internal
+        # chain-of-thought and must not leak to the audit surface (F11 AUTH).
+        # If content is empty but reasoning_content exists, the model failed
+        # to produce a usable answer — treat as empty content, not fallback.
+        content = msg.get("content", "")
+        if not content and msg.get("reasoning_content"):
+            logger.warning(
+                "MiniMax M3 returned reasoning_content without content — "
+                "model thought but did not answer. Using empty content."
+            )
     except Exception as exc:
         logger.warning("MiniMax M3 parse error: %s", exc)
         try:
@@ -349,10 +375,18 @@ async def _call_minimax(
     try:
         parsed = json.loads(raw_output)
     except json.JSONDecodeError:
-        logger.warning(
-            "MiniMax M3 returned invalid JSON, wrapping plain text: %s", raw_output[:200]
-        )
-        parsed = {"reasoning": raw_output, "answer": raw_output}
+        # P1-20260610: When LLM fails to return valid JSON, do NOT dump raw
+        # text (including potential CoT remnants) into reasoning/answer.
+        # Instead return a structured error the caller can handle.
+        logger.warning("MiniMax M3 returned invalid JSON (first 100 chars): %s", raw_output[:100])
+        parsed = {
+            "status": "HOLD",
+            "verdict": "HOLD",
+            "reason": "llm_schema_violation",
+            "reasoning": "LLM returned non-JSON output. Raw output logged for debugging.",
+            "answer": "Unable to parse LLM response. Check server logs.",
+            "_raw_output_hash": hashlib.sha256(raw_output.encode()).hexdigest()[:16],
+        }
 
     if not isinstance(parsed, dict):
         raise LLMUnavailableError(
