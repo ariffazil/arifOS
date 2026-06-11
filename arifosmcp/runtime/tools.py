@@ -1022,6 +1022,79 @@ def _enforce_nine_signal(
                     f"{type(gate_exc).__name__}: {gate_exc}"
                 )
 
+    # ── SABAR GATE (F9+F7 pre-return chokepoint, 2026-06-11) ────────────
+    # SABAR (Pre-Execution Interceptor) runs AFTER post_observe_gate
+    # and BEFORE the response is returned to the caller. It catches:
+    #   F7  — overconfident claims (omega_0 or confidence > 0.90)
+    #   F9  — first-person consciousness/feeling patterns
+    #   F2  — overclaim patterns paired with high declared_omega_0
+    # Opt-in per tool via response["meta"]["sabar_gate_disabled"] = True
+    # (defaults to ENABLED — Arif's directive 2026-06-11: "kod consequence
+    # bukan kod conscience"). On SABAR_HOLD the response is REPLACED with
+    # a HOLD envelope so the operator never sees the raw violation.
+    # Reference: arifosmcp/runtime/sabar_gate.py
+    try:
+        if isinstance(response, dict):
+            _meta = response.get("meta", {})
+            if not isinstance(_meta, dict) or not _meta.get("sabar_gate_disabled", False):
+                from arifosmcp.runtime.sabar_gate import sabar_gate
+
+                # Best-effort: harvest declared signals from the response
+                # if the producing tool already produced them.
+                _declared_omega = _meta.get("omega_0") if isinstance(_meta, dict) else None
+                _declared_conf = _meta.get("confidence") if isinstance(_meta, dict) else None
+                _declared_ev = _meta.get("evidence_level") if isinstance(_meta, dict) else None
+
+                _sabar = sabar_gate(
+                    response,
+                    tool_name=tool_name,
+                    actor_id=actor_id or "anonymous",
+                    session_id=session_id,
+                    declared_omega_0=_declared_omega,
+                    declared_confidence=_declared_conf,
+                    declared_evidence_level=_declared_ev,
+                )
+                _sabar_verdict = _sabar.get("verdict", "PASS")
+                if _sabar_verdict == "SABAR_HOLD":
+                    # Replace the response with a HOLD envelope. Operator
+                    # sees the violation, not the raw F9/F7-breach output.
+                    return {
+                        "status": "HOLD",
+                        "tool": tool_name,
+                        "verdict": "SABAR_HOLD",
+                        "result": _sabar.get("scrubbed"),
+                        "meta": {
+                            "sabar_gate": _sabar,
+                            "blocked": True,
+                            "session_id": session_id,
+                            "actor_id": actor_id,
+                            "delta_S": 0.0,
+                            "timestamp": None,
+                            "reasons": [
+                                f"SABAR_HOLD: floors={','.join(_sabar.get('violated_floors', []))}; "
+                                f"c_dark={_sabar.get('c_dark', 0.0):.3f}"
+                            ],
+                            "_sabar_gate_id": _sabar.get("gate_id"),
+                            "_sabar_event_id": _sabar.get("gate_event_id"),
+                        },
+                    }
+                # PASS or WARN: attach envelope to meta for audit
+                response.setdefault("meta", {})
+                if isinstance(response["meta"], dict):
+                    response["meta"]["sabar_gate"] = {
+                        "verdict": _sabar_verdict,
+                        "violated_floors": _sabar.get("violated_floors", []),
+                        "c_dark": _sabar.get("c_dark", 0.0),
+                        "gate_id": _sabar.get("gate_id"),
+                        "gate_event_id": _sabar.get("gate_event_id"),
+                    }
+    except Exception as _sabar_exc:
+        # SABAR must never break a tool call. Soft-fail: log and continue.
+        if isinstance(response, dict):
+            response.setdefault("meta", {})
+            if isinstance(response["meta"], dict):
+                response["meta"]["sabar_gate_error"] = f"{type(_sabar_exc).__name__}: {_sabar_exc}"
+
     def _as_reason_list(value: Any) -> list[str]:
         if value is None:
             return []
@@ -8006,49 +8079,57 @@ def _arif_reply_compose(
         return gate
 
     def _build_evidence_footer(receipt: dict) -> str:
-        """Build F-WEB Evidence Mode + Void footer from a receipt dict."""
+        """M/D-BOUNDARY (2026-06-11): Deprecated prose footer.
+
+        The kernel no longer generates operator-facing strings. Returns
+        the empty string. The structured payload is delivered via
+        `arif_evidence_payload(receipt)` — the D-Layer renders prose
+        from that. This function is kept as a no-op shim so existing
+        callers do not break, but it produces nothing.
+        """
+        return ""
+
+    def _build_evidence_payload(receipt: dict) -> dict[str, Any]:
+        """M-Layer evidence payload (2026-06-11, M/D-BOUNDARY).
+
+        Returns the structured 9-signal evidence summary as a dict.
+        NO prose, NO human-language strings, NO motif/footer. The
+        D-Layer (operator interface) renders prose from this dict.
+        The M-layer is Boring By Design: only the structural facts.
+        """
         level = receipt.get("max_evidence_level", "L0")
-        voids = receipt.get("void", [])
-        risk_flags = receipt.get("risk_flags", [])
-        urls_ingested = receipt.get("urls_ingested", 0)
-        independent = receipt.get("independent_sources_compared", 0)
-        rendered = receipt.get("rendered_inspection", False)
-        deep_plan = receipt.get("deep_research_plan_completed", False)
-        contradiction = receipt.get("contradiction_audit_completed", False)
-        void_report = receipt.get("void_report_completed", False)
-        human_required = receipt.get("human_judgment_required", False)
-        confidence = (
-            "High"
-            if level in ("L4", "L5")
-            else (
-                "Moderate"
+        voids = list(receipt.get("void", []))
+        risk_flags = list(receipt.get("risk_flags", []))
+        return {
+            "level_code": level,
+            "level_bucket": (
+                "HIGH"
+                if level in ("L4", "L5")
+                else "MODERATE"
                 if level == "L3"
-                else "Partial"
+                else "PARTIAL"
                 if level == "L2"
-                else "Low"
+                else "LOW"
                 if level == "L1"
-                else "None"
-            )
-        )
-        void_str = "; ".join(f"⚠️ {v}" for v in voids) if voids else "none"
-        risk_str = "; ".join(f"🔴 {r}" for r in risk_flags) if risk_flags else "none"
-        footer_lines = [
-            "",
-            "── Evidence Mode ──",
-            f"Level: {level} — {'live MCP search snippets only' if level == 'L1' else 'URL ingestion only' if level == 'L2' else 'cross-source verification' if level == 'L3' else 'browser-grade/rendered inspection' if level == 'L4' else 'structured deep research' if level == 'L5' else 'offline only'}.",
-            f"Sources ingested: {urls_ingested}.",
-            f"Cross-source verification: {'performed' if independent >= 2 else 'not performed'}.",
-            f"Rendered inspection: {'performed' if rendered else 'not performed'}.",
-            f"Deep research plan: {'completed' if deep_plan else 'not completed'}.",
-            f"Contradiction audit: {'completed' if contradiction else 'not completed'}.",
-            f"Void report: {'completed' if void_report else 'not completed'}.",
-            f"Void: {void_str}.",
-            f"Risk flags: {risk_str}.",
-            f"Confidence: {confidence}.",
-            f"Human judgment required: {'YES — consequential use needs ARIF approval' if human_required else 'No — advisory only'}.",
-            "DITEMPA BUKAN DIBERI.",
-        ]
-        return "\n".join(footer_lines)
+                else "NONE"
+            ),
+            "urls_ingested": int(receipt.get("urls_ingested", 0)),
+            "independent_sources_compared": int(receipt.get("independent_sources_compared", 0)),
+            "cross_source_verified": bool(receipt.get("independent_sources_compared", 0) >= 2),
+            "rendered_inspection": bool(receipt.get("rendered_inspection", False)),
+            "deep_research_plan_completed": bool(
+                receipt.get("deep_research_plan_completed", False)
+            ),
+            "contradiction_audit_completed": bool(
+                receipt.get("contradiction_audit_completed", False)
+            ),
+            "void_report_completed": bool(receipt.get("void_report_completed", False)),
+            "voids": voids,
+            "risk_flags": risk_flags,
+            "human_judgment_required": bool(receipt.get("human_judgment_required", False)),
+            "_m_layer": True,
+            "_d_layer_required": True,
+        }
 
     if mode == "compose":
         composed = message or ""
@@ -10075,22 +10156,63 @@ def _arif_judge_deliberate(
         # Recommendation: prefer the lower-floors-failed, lower-threat, more-reversible option
         floors_a_count = len(comparison["floors_a"])
         floors_b_count = len(comparison["floors_b"])
+        # M/D-BOUNDARY (2026-06-11): kernel emits a structured recommendation
+        # dict, NOT an f-string with operator-style prose. The D-Layer
+        # renders "Prefer A: ..." or "Tie: ..." from this struct.
         if floors_a_count < floors_b_count:
-            recommendation = f"Prefer A: '{cand_a}' — fewer constitutional concerns ({floors_a_count} vs {floors_b_count} failed floors)"
+            recommendation = {
+                "preferred": "A",
+                "reason_code": "FEWER_FLOORS_FAILED",
+                "values": {"a": floors_a_count, "b": floors_b_count},
+            }
         elif floors_b_count < floors_a_count:
-            recommendation = f"Prefer B: '{cand_b}' — fewer constitutional concerns ({floors_b_count} vs {floors_a_count} failed floors)"
+            recommendation = {
+                "preferred": "B",
+                "reason_code": "FEWER_FLOORS_FAILED",
+                "values": {"a": floors_a_count, "b": floors_b_count},
+            }
         elif comparison["threat_a"] < comparison["threat_b"]:
-            recommendation = f"Prefer A: '{cand_a}' — lower threat score ({comparison['threat_a']:.2f} vs {comparison['threat_b']:.2f})"
+            recommendation = {
+                "preferred": "A",
+                "reason_code": "LOWER_THREAT_SCORE",
+                "values": {
+                    "a": float(comparison["threat_a"]),
+                    "b": float(comparison["threat_b"]),
+                },
+            }
         elif comparison["threat_b"] < comparison["threat_a"]:
-            recommendation = f"Prefer B: '{cand_b}' — lower threat score ({comparison['threat_b']:.2f} vs {comparison['threat_a']:.2f})"
+            recommendation = {
+                "preferred": "B",
+                "reason_code": "LOWER_THREAT_SCORE",
+                "values": {
+                    "a": float(comparison["threat_a"]),
+                    "b": float(comparison["threat_b"]),
+                },
+            }
         elif verdict_a.irreversibility.value < verdict_b.irreversibility.value:
-            recommendation = f"Prefer A: '{cand_a}' — more reversible than '{cand_b}'"
+            recommendation = {
+                "preferred": "A",
+                "reason_code": "MORE_REVERSIBLE",
+                "values": {
+                    "a": verdict_a.irreversibility.value,
+                    "b": verdict_b.irreversibility.value,
+                },
+            }
         elif verdict_b.irreversibility.value < verdict_a.irreversibility.value:
-            recommendation = f"Prefer B: '{cand_b}' — more reversible than '{cand_a}'"
+            recommendation = {
+                "preferred": "B",
+                "reason_code": "MORE_REVERSIBLE",
+                "values": {
+                    "a": verdict_a.irreversibility.value,
+                    "b": verdict_b.irreversibility.value,
+                },
+            }
         else:
-            recommendation = (
-                "Tie: both candidates are constitutionally equivalent. Sovereign judgment required."
-            )
+            recommendation = {
+                "preferred": "TIE",
+                "reason_code": "CONSTITUTIONALLY_EQUIVALENT",
+                "sovereign_required": True,
+            }
 
         return {
             "status": "OK",
@@ -10104,6 +10226,8 @@ def _arif_judge_deliberate(
             "actor_id": _actor_for_response(session_id, actor_id),
             "output_policy": "DOMAIN_SEAL",
             "invariants_checked": _invariants_checked,
+            "_m_layer": True,
+            "_d_layer_required": True,
         }
 
     if mode == "explain":
