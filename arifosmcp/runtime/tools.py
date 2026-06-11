@@ -1017,6 +1017,7 @@ def _enforce_nine_signal(
 
         # ── REACTIVE WRAPPER (P0 fix): outer verdict must read inner state ─────
         # Detect degradation in nested result payloads (e.g. mind_reason inner HOLD)
+        # Also scan recursively for any *_verdict, L0* floor tags, or status fields
         inner_final = result_payload.get("final_verdict")
         inner_truth = result_payload.get("truth_verdict")
         inner_reasoning = result_payload.get("reasoning_verdict")
@@ -1036,6 +1037,39 @@ def _enforce_nine_signal(
             degradation.append(f"inner reasoning_verdict={inner_reasoning}")
         if inner_status in ("HOLD", "FAIL", "SABAR"):
             degradation.append(f"inner status={inner_status}")
+        if inner_confidence is not None and inner_confidence < 0.5:
+            degradation.append(f"inner confidence={inner_confidence:.2f}")
+
+        # ── Deep scan: look for HOLD/FAIL/VOID in nested result fields ────────
+        # mind_reason, heart_critique, etc. bury inner verdicts in sub-dicts
+        def _find_degradation(obj: Any, prefix: str = "") -> list[str]:
+            found: list[str] = []
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    path = f"{prefix}.{k}" if prefix else k
+                    # Check for floor tags (L01_*, F01_*, etc.)
+                    if isinstance(k, str) and (k.startswith("L0") or k.startswith("F0")):
+                        if isinstance(v, str) and v.upper() in ("FAIL", "HOLD", "VOID"):
+                            found.append(f"{path}={v}")
+                    # Check for verdict-suffixed keys
+                    if isinstance(k, str) and k.endswith("_verdict"):
+                        if isinstance(v, str) and v.upper() in ("HOLD", "FAIL", "VOID", "SABAR"):
+                            found.append(f"{path}={v}")
+                    # Check nested status
+                    if (
+                        k == "status"
+                        and isinstance(v, str)
+                        and v.upper() in ("HOLD", "FAIL", "SABAR", "DEGRADED")
+                    ):
+                        found.append(f"{path}={v}")
+                    # Recurse one level deep
+                    if isinstance(v, dict):
+                        found.extend(_find_degradation(v, path))
+            return found
+
+        deep_degradation = _find_degradation(result_payload)
+        if deep_degradation:
+            degradation.extend(deep_degradation[:5])  # cap at 5 to avoid bloat
         if inner_confidence is not None and inner_confidence < 0.5:
             degradation.append(f"inner confidence={inner_confidence:.2f}")
 
