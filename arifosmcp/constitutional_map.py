@@ -89,6 +89,45 @@ class ToolStage(StrEnum):
     SEAL = "999"
 
 
+class FiqhTier(StrEnum):
+    """
+    F0: The constitutional fiqh-of-floors tier vocabulary.
+    Ratified by F13 SOVEREIGN (Arif) on 2026-06-11 with ed25519 signature
+    (see /root/compose/sekrits/F0_FIQH_888_SEAL_2026-06-11.json).
+    See: static/arifos/floors/F0_FIQH.md
+    DITEMPA BUKAN DIBERI.
+    """
+
+    WAJIB = "WAJIB"  # obligatory; kernel REJECTS if missing
+    SUNAT = "SUNAT"  # recommended; kernel RECORDS if observed
+    HARUS = "HARUS"  # permitted; kernel does not record (x-payah default)
+    MAKRUH = "MAKRUH"  # discouraged; kernel pings sovereign, requires ack
+    HARAM = "HARAM"  # forbidden; kernel REJECTS unconditionally
+
+
+# Per-floor tier (ratified 2026-06-11 by F13 SOVEREIGN ed25519 signature):
+_FLOOR_FIQH: dict[Law, FiqhTier] = {
+    Law.L01_AMANAH: FiqhTier.WAJIB,
+    Law.L02_TRUTH: FiqhTier.WAJIB,
+    Law.L03_WITNESS: FiqhTier.SUNAT,
+    Law.L04_CLARITY: FiqhTier.WAJIB,
+    Law.L05_PEACE: FiqhTier.MAKRUH,
+    Law.L06_EMPATHY: FiqhTier.WAJIB,  # ASEAN context (maruah-first)
+    Law.L07_HUMILITY: FiqhTier.WAJIB,
+    Law.L08_GENIUS: FiqhTier.SUNAT,
+    Law.L09_ANTIHANTU: FiqhTier.HARAM,
+    Law.L10_ONTOLOGY: FiqhTier.WAJIB,
+    Law.L11_AUDIT: FiqhTier.WAJIB,
+    Law.L12_INJECTION: FiqhTier.HARAM,
+    Law.L13_SOVEREIGN: FiqhTier.WAJIB,
+}
+
+
+def get_floor_tier(floor: Law) -> FiqhTier:
+    """Return the ratified fiqh tier for a given Law. F0 ratified 2026-06-11."""
+    return _FLOOR_FIQH.get(floor, FiqhTier.HARUS)  # default HARUS = no enforcement
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAGE PROGRESSION — Golden Path auto-chaining
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -829,21 +868,44 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
 CANONICAL_OUTPUT_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
-        "status": {"type": "string", "description": "Execution status: OK, ERROR, TIMEOUT, DRY_RUN"},
-        "tool": {"type": "string", "description": "Canonical tool name that produced this response"},
-        "verdict": {"type": "string", "description": "Constitutional verdict: SEAL, HOLD, VOID, SABAR, PROVISIONAL, PARTIAL"},
+        "status": {
+            "type": "string",
+            "description": "Execution status: OK, ERROR, TIMEOUT, DRY_RUN",
+        },
+        "tool": {
+            "type": "string",
+            "description": "Canonical tool name that produced this response",
+        },
+        "verdict": {
+            "type": "string",
+            "description": "Constitutional verdict: SEAL, HOLD, VOID, SABAR, PROVISIONAL, PARTIAL",
+        },
         "result": {"type": "object", "description": "Tool-specific payload"},
         "meta": {"type": "object", "description": "Metadata including actor_id, mode, circuit"},
         "delta_S": {"type": "number", "description": "Thermodynamic entropy change"},
         "timestamp": {"type": "string", "description": "ISO-8601 timestamp"},
         "session_id": {"type": ["string", "null"], "description": "Active session identifier"},
         "actor_id": {"type": ["string", "null"], "description": "Sovereign or agent actor ID"},
-        "output_policy": {"type": "string", "description": "Policy constraints: DOMAIN_SEAL, DOMAIN_HOLD, DOMAIN_VOID, SIMULATION_ONLY"},
+        "output_policy": {
+            "type": "string",
+            "description": "Policy constraints: DOMAIN_SEAL, DOMAIN_HOLD, DOMAIN_VOID, SIMULATION_ONLY",
+        },
         "nine_signal": {"type": "object", "description": "F2 addendum nine-signal block"},
-        "reasons": {"type": "array", "items": {"type": "string"}, "description": "Human-readable justification list"},
+        "reasons": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Human-readable justification list",
+        },
         "_nine_signal_compliant": {"type": "boolean", "description": "Internal compliance flag"},
-        "_violations": {"type": "array", "items": {"type": "string"}, "description": "Non-compliance audit trail"},
-        "stage_progression": {"type": ["object", "null"], "description": "Next stage auto-chain hint"},
+        "_violations": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Non-compliance audit trail",
+        },
+        "stage_progression": {
+            "type": ["object", "null"],
+            "description": "Next stage auto-chain hint",
+        },
     },
     "required": ["status", "tool", "verdict", "result", "nine_signal", "reasons"],
 }
