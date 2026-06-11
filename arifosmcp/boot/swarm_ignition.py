@@ -110,6 +110,48 @@ def run_swarm_ignition(
         session_id=session_id,
     )
 
+    # ── CapabilitySurface: honest live tool/agent/organs status ──
+    # Eureka: "The primary resource is not tokens or time;
+    # it is HONESTLY KNOWN CAPABILITY."
+    try:
+        from arifosmcp.boot.capability_surface import build_capability_surface
+
+        surface = build_capability_surface(force_refresh=False, probe_live=True)
+        manifest["capability_surface"] = {
+            "version": surface.version,
+            "timestamp": surface.timestamp,
+            "tools": {
+                name: {
+                    "available": ts.available,
+                    "status_alignment": ts.status_alignment,
+                    "read_ok": ts.read_ok,
+                    "write_ok": ts.write_ok,
+                    "last_error": ts.last_error,
+                    "note": ts.note,
+                }
+                for name, ts in surface.tools.items()
+            },
+            "agents": {
+                aid: {
+                    "tier": ag.tier,
+                    "domains": ag.domains,
+                    "status_alignment": ag.status_alignment,
+                    "note": ag.note,
+                }
+                for aid, ag in surface.agents.items()
+            },
+            "organs": surface.organs,
+            "summary": surface.summary,
+            "eureka": surface.eureka,
+            "invariant": surface.invariant,
+        }
+    except Exception as exc:
+        logger.warning(f"CapabilitySurface build failed (degraded): {exc}")
+        manifest["capability_surface"] = {
+            "status": "DEGRADED",
+            "note": f"CapabilitySurface unavailable: {exc}",
+        }
+
     # ── INIT_10: Seal boot receipt ───────────────────────────
     # Fail-soft: if sealing fails, manifest is still valid
     try:
