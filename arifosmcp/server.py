@@ -365,36 +365,55 @@ try:
         forge_plan as _forge_plan,
         forge_query as _forge_query,
     )
+    from arifosmcp.runtime.tools import _wrap_handler
 
-    mcp.tool(
-        name="forge_query",
-        description=(
-            "010_FORGE_QUERY: Read-only system introspection. Safe to call without approval. "
-            "Returns workspace tree, system state, and query result. "
-            "Use this instead of arif_forge_execute(mode='query')."
-        ),
-        tags={"forge", "read-only", "observe"},
-    )(_forge_query)
+    # Route through _wrap_handler so _envelope is accepted by Pydantic
+    # (Fix: P0-20260610 — forge_* tools were registered raw, bypassing
+    #  signature enrichment.  External MCP clients injecting _envelope
+    #  via ingress middleware were rejected by Pydantic validation.)
+    _q = _wrap_handler(_forge_query, "forge_query")
+    if _q is not None:
+        mcp.tool(
+            name="forge_query",
+            description=(
+                "010_FORGE_QUERY: Read-only system introspection. Safe to call without approval. "
+                "Returns workspace tree, system state, and query result. "
+                "Use this instead of arif_forge_execute(mode='query')."
+            ),
+            tags={"forge", "read-only", "observe"},
+        )(_q)
+    else:
+        mcp.tool(name="forge_query", tags={"forge", "read-only", "observe"})(_forge_query)
 
-    mcp.tool(
-        name="forge_plan",
-        description=(
-            "010_FORGE_PLAN: Classify action, estimate blast radius, produce plan. "
-            "Safe to call without approval. Returns action_class, risk_tier, required_tools. "
-            "Required before MUTATE/ATOMIC forge execution."
-        ),
-        tags={"forge", "read-only", "reason"},
-    )(_forge_plan)
+    _p = _wrap_handler(_forge_plan, "forge_plan")
+    if _p is not None:
+        mcp.tool(
+            name="forge_plan",
+            description=(
+                "010_FORGE_PLAN: Classify action, estimate blast radius, produce plan. "
+                "Safe to call without approval. Returns action_class, risk_tier, required_tools. "
+                "Required before MUTATE/ATOMIC forge execution."
+            ),
+            tags={"forge", "read-only", "reason"},
+        )(_p)
+    else:
+        mcp.tool(name="forge_plan", tags={"forge", "read-only", "reason"})(_forge_plan)
 
-    mcp.tool(
-        name="forge_dry_run",
-        description=(
-            "010_FORGE_DRY_RUN: Simulate execution without mutation. "
-            "Safe to call without approval. Returns diff preview, files touched, rollback plan. "
-            "Required before MUTATE/ATOMIC forge execution."
-        ),
-        tags={"forge", "read-only", "reason", "simulate"},
-    )(_forge_dry_run)
+    _d = _wrap_handler(_forge_dry_run, "forge_dry_run")
+    if _d is not None:
+        mcp.tool(
+            name="forge_dry_run",
+            description=(
+                "010_FORGE_DRY_RUN: Simulate execution without mutation. "
+                "Safe to call without approval. Returns diff preview, files touched, rollback plan. "
+                "Required before MUTATE/ATOMIC forge execution."
+            ),
+            tags={"forge", "read-only", "reason", "simulate"},
+        )(_d)
+    else:
+        mcp.tool(name="forge_dry_run", tags={"forge", "read-only", "reason", "simulate"})(
+            _forge_dry_run
+        )
 
     v2_tools_registered.extend(["forge_query", "forge_plan", "forge_dry_run"])
 

@@ -2782,8 +2782,8 @@ _DOMAIN_MEANINGS: dict[str, dict[str, str]] = {
         "delta_kukuh": "Risk surface scannable, evidence accessible, critique executable",
         "delta_retak": "Partial risk signal, incomplete audit trail, degraded evidence",
         "delta_rosak": "No risk surface detectable, evidence corrupted, audit trail broken",
-        "psi_amanah": "Risk disclosed, authority verified, irreversibility flagged",
-        "psi_syubhah": "Risk uncertain, authority unverified, irreversibility unclear",
+        "psi_amanah": "Risk disclosed, irreversibility flagged, authority claim present",
+        "psi_syubhah": "Risk uncertain, authority claim unverified, irreversibility unclear",
         "psi_khianat": "Risk concealed, authority overreach, irreversible without consent",
         "omega_bijaksana": "Risk assessed with humility, second-order effects, stakeholder burden considered",
         "omega_bijak": "Useful risk signal but needs sovereign judgment",
@@ -13072,15 +13072,17 @@ def _build_enriched_signature(handler):
             new_ann = ann
         new_params.append(param.replace(annotation=new_ann))
 
-    # Inject _envelope so FastMCP's Pydantic model accepts it.
-    # The wrapper strips it before calling the real handler.
-    envelope_param = inspect.Parameter(
-        "_envelope",
-        inspect.Parameter.KEYWORD_ONLY,
-        default=None,
-        annotation=Any,
-    )
-    new_params.append(envelope_param)
+    # Inject _envelope so FastMCP's Pydantic model accepts it.  Skip if the
+    # handler already declares _envelope (e.g. forge_ladder tools) to avoid
+    # "duplicate parameter name: '_envelope'" when building the Pydantic schema.
+    if "_envelope" not in {p.name for p in new_params}:
+        envelope_param = inspect.Parameter(
+            "_envelope",
+            inspect.Parameter.KEYWORD_ONLY,
+            default=None,
+            annotation=Any,
+        )
+        new_params.append(envelope_param)
 
     return sig.replace(parameters=new_params)
 
