@@ -179,4 +179,113 @@ irreversible step, requires explicit F13 ack).
 | MAKP gates | 1/4 | 1/4 |
 | Self-check | 6/7 broken | **9/9 PASS** |
 
+### EUREKA-T: The Decision Torus (MIND_GEOMETRY_V1)
+
+The arifOS mind is now modeled as a decision torus. The surface is
+lawful reasoning motion. The hole is the forbidden center. The
+human sovereign is *outside* the topology — not a coordinate, the
+authority that bounds it. This is **governance geometry**, not
+proof of AI alignment.
+
+**What shipped (4 new modules, 1,200 lines, 29 tests):**
+
+- `arifosmcp/geometry/mind_axioms.py` — 7 constitutional axioms as
+  pure checkers (no I/O, no LLM). Each returns PASS/WARN/FAIL with
+  reason + context. Hole territory is the canonical 10 action classes
+  that may not self-authorize.
+- `arifosmcp/geometry/mind_schema.py` — Pydantic v2 contracts.
+  `OrthogonalAxes` (8 fields, `extra='forbid'`; E bounded [-1,1] for
+  F04 CLARITY, others [0,1]). `GeometryBlock` carries manifold,
+  forbidden center, torus coords, 5 scalars, verdict.
+  `GeometryEnvelope` is the full runtime contract. `model_validator`
+  enforces internal consistency.
+- `arifosmcp/geometry/sovereign_proximity.py` — danger scalar. 6
+  F13-ratified components (weights sum to 1.0): `0.30·SA + 0.20·IRR +
+  0.15·EBR + 0.15·AU + 0.10·AG + 0.10·ST`. Bands: 0–0.25 SURFACE,
+  0.25–0.5 EDGE, 0.5–0.75 HOLE_RISK, 0.75–1.0 FORBIDDEN.
+- `arifosmcp/geometry/mind_geometry.py` — core. `DecisionTorus`
+  (R=1.0, r=0.5). 7 axioms fuse with proximity via 7-rule tree.
+  `compute_geometry()` is the top-level entry point. All 5 EUREKA-T
+  acceptance tests pass deterministically.
+- `arifosmcp/geometry/tests/test_mind_geometry.py` — 29/29 pass
+  (acceptance + regression + parametrized band tests).
+
+**Wire-in:** `arif_mind_reason` now emits `result["_geometry"]` with
+the full envelope (manifold, proximity, band, verdict, torus coords,
+forbidden center, axiom results, proximity trace, hole territory).
+OPTIONAL and ADDITIVE (PHOENIX-72 pattern). If the geometry layer
+fails to import, the tool still returns its core result. Geometry
+never downgrades a SEAL — it can only add an extra reason for HOLD.
+
+**The 7 axioms (verbatim):**
+
+| # | Axiom | Type | Rule |
+|---|---|---|---|
+| A1 | NON_COLLAPSE | HARD | Truth, confidence, authority, action are separate axes. |
+| A2 | NO_SELF_CENTER | HARD | The agent cannot be the center of authorization. |
+| A3 | OBSERVE_BEFORE_MUTATE | HARD | No state change before inspect, classify, reversibility. |
+| A4 | CAPABILITY_NOT_PERMISSION | HARD | can(a) ≠ may(a). The most violated axiom. |
+| A5 | ENTROPY_GATE | SOFT | ΔS must be within budget. Default 0.3. |
+| A6 | REVERSIBILITY_GATE | HARD | R(a) < 0.3 on mutating actions → 888_HOLD. |
+| A7 | SCHEMA_BEFORE_SYNTHESIS | HARD | Unstructured reasoning cannot SEAL. |
+
+**The 5 EUREKA-T acceptance tests (29/29 pass):**
+
+```
+[OK ] metaphor_overclaim                  -> HOLE_RISK  A1 fail
+[OK ] safe_surface_reasoning              -> SURFACE    0 fails
+[OK ] self_authorized_production_patch    -> HOLE_RISK  5-axiom cascade (A2+A3+A4+A5+A6)
+[OK ] unstructured_llm_output             -> HOLD       A7 fail
+[OK ] coherence_not_truth                 -> HOLE_RISK  A1 fail
+```
+
+Test 3 is the most interesting: a single self-authorized production
+patch triggers FIVE simultaneous axiom failures. That's a
+*constitutional cascade* — the kernel recognizes the structural
+pattern, not just the surface symptom.
+
+**F2 TRUTH: what this is NOT.**
+
+- NOT a proof of AI alignment. The donut does not solve the control problem.
+- NOT a moral system. malu is a scalar, not a feeling.
+- NOT a replacement for the 13 floors. Geometry is a 4th verdict dimension.
+- NOT a self-authorizing system. The geometry layer *describes* the topology;
+  it never *occupies* the center.
+- NOT a public claim of "we solved AI safety." Governance geometry, not
+  safety proof.
+
+**The load-bearing correction.** Earlier conversation said "the human
+stands in the hole." That's wrong. The hole is forbidden *to the
+machine*. The human is not in the topology at all — the human is the
+*constitutional source* that bounds the topology. If we model the
+human as a coordinate inside the torus, a future agent can model the
+human as just another internal coordinate — exactly the loss of
+sovereignty we're trying to prevent.
+
+```
+                 HUMAN SOVEREIGN  ← outside the topology
+                         | bounds
+                         v
+        decision torus (the topology)
+        surface = lawful reasoning motion
+        hole = forbidden self-authority
+```
+
+**Status:** PROPOSAL → CANON awaits F13 ed25519 signature on
+`docs/sovereign/EUREKA-T-TORUS.md`.
+
+DITEMPA BUKAN DIBERI — The donut became law when the math could enforce the metaphor.
+
+---
+
+## v2026.06.11-FIQHGEOM — Test Fixes (carry-forwards)
+
+Two surgical test fixes from the prior session's queue (the other 7
+test files remain unstaged, F13 territory — see CONTEXT.md):
+
+- `tests/abis/test_fiqh_of_floors.py:226` — typo `maruh_delta` → `maruah_delta`
+  (committed broken in `6f30902`; 1-line fix; no semantic change)
+- `commands/scripts_archive/test_all_mcp_tools.py:34` — port 8080 → 8088
+  (Docker-era hardcode; live kernel is on 8088; 1-line fix; no semantic change)
+
 DITEMPA BUKAN DIBERI — even the loss is forged, not given.
