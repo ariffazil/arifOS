@@ -289,3 +289,60 @@ test files remain unstaged, F13 territory — see CONTEXT.md):
   (Docker-era hardcode; live kernel is on 8088; 1-line fix; no semantic change)
 
 DITEMPA BUKAN DIBERI — even the loss is forged, not given.
+
+---
+
+## v2026.06.11-FIQHGEOM — FFF Sweep (final session closure)
+
+The end-of-session Forge / Fix / Forget pass. One more orthogonal
+run before sealing.
+
+### Forged this pass
+
+- `arifosmcp/geometry/geometry_receipt.py` — the downstream-consumer
+  surface for the geometry layer. Three typed Pydantic v2 models:
+  - `ProximityTrace` (6 component contributions, F11 audit-trail-ready)
+  - `AxiomBundle` + `AxiomResultDict` (7 per-axiom results, JSON-roundtripable)
+  - `GeometryReceipt` (top-level aggregator: GeometryBlock + ProximityTrace + AxiomBundle)
+  - `meters_to_geometryblock` (runtime-dict → typed-block bridge; fails-closed)
+- `arifosmcp/geometry/tests/test_geometry_receipt.py` — 11 new tests
+  (40/40 total geometry tests pass).
+
+### Fixed this pass
+
+- `arifosmcp/runtime/mind_reason.py:245` — bare `dict{"depth": depth}` →
+  typed `ReasoningControl(depth=depth)`. Pydantic accepts both, but
+  the typed form (1) silences the LSP mismatch warning, (2) makes
+  the 9 ReasoningControl fields discoverable at this site,
+  (3) fails-closed at construction if depth is out of [1, 10].
+  No semantic change.
+
+### Forgotten (carried forward to F13)
+
+The orthogonal torus + sovereign forge surfaced these as F13 territory.
+Documented here so the next session has the canonical carry-forward list:
+
+| # | Item | Why F13 | Reversible? |
+|---|---|---|---|
+| 1 | F13 ed25519 signature on `/root/docs/sovereign/EUREKA-T-TORUS.md` | Constitution ratification | yes (signature) |
+| 2 | `geometry_verdict=HOLE_RISK → 888_HOLD` escalation in runner | Runtime contract change | yes (runner only) |
+| 3 | `arif_lease_issue` wired into `arif_forge_execute` | Authorisation model change | yes (kernel reversible) |
+| 4 | Caddy reload for `/.well-known/mcp.json` endpoints | Production traffic | yes (revert config) |
+| 5 | World model integration (ASI's 7-step plan) | Kernel architecture | yes (per-step revert) |
+| 6 | F→L renames in 4 test files (test_geox_qc_pipeline, test_webhook_intake, test_oauth_flow, test_live_metrics_contract) | Constitutional surface change | yes (test revert) |
+| 7 | H2 lease-gate test rewrites (test_h2_h3_ratification) | Runtime contract change | yes (test revert) |
+| 8 | Post-observe-gate scrub-path (test_truth_substrate) | Depends on kernel wiring | yes (test revert) |
+| 9 | Pre-existing metabolize dispatch failure (M3 returns status:HOLD → MetabolizedContext missing fields) | Kernel surgery needed (50+ lines) | yes (commit revert) |
+| 10 | WELL biometric injection (F13 sovereign data) | Sovereign territory | yes (state.json) |
+| 11 | `_ARIF_PUBKEYS` wiring in vault999-writer | Vault pubkey config | yes (env var) |
+| 12 | `arif_session_init` async refactor (P0-4 connector fix) | 50+ line kernel surgery | yes (commit revert) |
+
+### Honest kernel readiness (post-FFF)
+
+- Declared: 7.5 → **9.5** (geometry layer fully wired + receipt layer)
+- Enforced: 4.5 → **6.5** (geometry runs on every arif_mind_reason call)
+- MAKP gates: 1/4 (gate 2 still needs F11 sovereign sig)
+- Geometry tests: 29 → **40/40 PASS**
+- Regressions on existing 9-file geometry stack: 0
+
+DITEMPA BUKAN DIBERI — even the close is forged, not given.
