@@ -6535,6 +6535,101 @@ setInterval(refreshSot, 30000);
             }
         )
 
+    # ── /api/attestation — live NATS-attestation ratio (MAKP-4) ─────────────
+    @route("/api/attestation", methods=["GET"])
+    async def attestation_endpoint(request: Request) -> JSONResponse:
+        """Live honesty_ratio from the NATS attestation stream.
+
+        Runs the attestation_verifier against the
+        'arifos-organs' JetStream stream. The result is the count
+        of fresh organ heartbeats divided by the expected organ
+        count, plus the raw message count and the missing-organ
+        list. The /health endpoint is NOT modified — this is a
+        sidecar route so the main health probe stays fast.
+
+        Defensive: any failure inside the verifier (NATS down,
+        stream not found, parse error) is reported as
+        status='degraded' with the error in 'note'. The endpoint
+        never raises a 5xx.
+        """
+        try:
+            from arifosmcp.abi.attestation_verifier import (
+                AttestationStore,
+                AttestationVerifier,
+                DEFAULT_STREAM_NAME,
+            )
+            import asyncio
+            from nats.js.api import DeliverPolicy, AckPolicy
+
+            store = AttestationStore()
+            verifier = AttestationVerifier(store)
+
+            async def _consume():
+                import nats
+
+                nc = await nats.connect("nats://127.0.0.1:4222")
+                try:
+                    js = nc.jetstream()
+                    try:
+                        await js.add_consumer(
+                            DEFAULT_STREAM_NAME,
+                            durable="verifier-api",
+                            deliver_policy=DeliverPolicy.ALL,
+                            ack_policy=AckPolicy.EXPLICIT,
+                            max_deliver=1,
+                            filter_subject="arifos.organ.>",
+                        )
+                    except Exception:
+                        pass  # consumer may already exist
+                    sub = await js.pull_subscribe(
+                        "arifos.organ.>",
+                        durable="verifier-api",
+                        stream=DEFAULT_STREAM_NAME,
+                    )
+                    msgs = await sub.fetch(50, timeout=2.0)
+                    from arifosmcp.abi.attestation_verifier import AttestationRecord
+
+                    n = 0
+                    for m in msgs:
+                        rec = AttestationRecord.from_nats_message(m.data)
+                        if rec is not None:
+                            if verifier.ingest(rec):
+                                n += 1
+                        await m.ack()
+                    return n
+                finally:
+                    await nc.close()
+
+            ingested = await asyncio.wait_for(_consume(), timeout=4.0)
+            verdict = verifier.compute()
+            return JSONResponse(
+                {
+                    "status": "ok",
+                    "ingested": ingested,
+                    "verdict": verdict.to_dict(),
+                    "target": "honesty_ratio >= 0.9",
+                    "timestamp": datetime.now(UTC).isoformat(),
+                }
+            )
+        except Exception as e:
+            return JSONResponse(
+                {
+                    "status": "degraded",
+                    "ingested": 0,
+                    "verdict": {
+                        "n_expected": 0,
+                        "n_fresh": 0,
+                        "n_stale": 0,
+                        "n_missing": 0,
+                        "ratio": None,
+                        "notes": [f"verifier error: {type(e).__name__}: {e}"],
+                    },
+                    "target": "honesty_ratio >= 0.9",
+                    "timestamp": datetime.now(UTC).isoformat(),
+                },
+                status_code=200,
+            )  # status=200 even on verifier failure — failure is itself data
+
     # ── llms-full.txt ────────────────────────────────────────────────────────
     @route("/llms-full.txt", methods=["GET"])
     async def llms_full(request: Request) -> Response:
