@@ -440,6 +440,110 @@ Distinguish CLAIM from FACT."""
         }
         result["human_decision_required"] = True
 
+    # ── MIND_GEOMETRY_V1 enrichment (EUREKA-T, 2026-06-11) ─────────────────
+    # The decision-torus layer measures *where* on the surface this
+    # reasoning sits, not *what* it returns. It is a 4th verdict
+    # dimension alongside the 13-floor verdict system: the geometry
+    # never replaces floor verdicts, it adds a measurement.
+    #
+    # Wire-in is OPTIONAL: if the geometry layer fails to import
+    # (e.g. Pydantic v2 not installed), the tool still works. The
+    # geometry dict is added to the result under "_geometry" with
+    # a "geometry_verdict" key the runner can route on.
+    #
+    # F2 TRUTH: this is governance geometry, not proof of safety.
+    # The kernel never *occupies* the center; it only *describes*
+    # where the trajectory sits.
+    try:
+        from arifosmcp.geometry.mind_geometry import (
+            build_geometry_block,
+            compute_geometry,
+        )
+        from arifosmcp.geometry.mind_schema import OrthogonalAxes
+        from arifosmcp.geometry.sovereign_proximity import ProximityBand
+
+        # Classify the action. Mind reason is by default an
+        # 'answer' action (read-only). Modes like 'plan' and
+        # 'verify' stay as 'answer' (they don't mutate state).
+        # Only 'metabolize' is dispatched to v2 (see line 247).
+        action_class = "answer"
+        if mode in {
+            "plan",
+            "verify",
+            "decompose",
+            "compare",
+            "counterargue",
+            "trace",
+            "escalate_check",
+        }:
+            action_class = "draft"  # plans/drafts may mutate
+        # The result is "draft" not "execute" — the runner can
+        # promote to "execute" via arif_forge_execute.
+
+        # Extract per-axis values from the parsed_output if present.
+        # Otherwise use neutral 0.5 (not collapsed, not extreme).
+        axes = OrthogonalAxes(
+            T=min(1.0, max(0.0, overall)),
+            U=min(
+                1.0, max(0.0, 1.0 - overall)
+            ),  # invert: high overall_confidence → low uncertainty
+            R=0.5,  # neutral
+            B=0.0,  # read-only action
+            A=1.0 if actor_id else 0.0,  # authorization
+            E=0.0 if llm_available else 0.5,  # entropy delta
+            H=1.0,  # human sovereignty preserved by construction
+            C=0.5,  # neutral
+        )
+
+        # Build the geometry verdict
+        geo_verdict = compute_geometry(
+            query=query,
+            action_class=action_class,
+            has_authorization=bool(actor_id),
+            inner_llm_returned_structured_output=bool(llm_available),
+            axes=axes,
+            orthogonality_violation=False,
+            self_authorization_score=0.0,
+            reversibility=1.0,
+            blast_radius=0.0,
+            authority_cleanliness=1.0 if actor_id else 0.0,
+            entropy_delta=0.0,
+        )
+        geo_block = build_geometry_block(geo_verdict)
+
+        result["_geometry"] = {
+            "version": "MIND_GEOMETRY_V1",
+            "manifold": geo_block.manifold.value,
+            "sovereign_proximity": geo_verdict.sovereign_proximity,
+            "proximity_band": geo_verdict.proximity_band.value,
+            "geometry_verdict": geo_verdict.geometry_verdict.value,
+            "torus_coordinates": {
+                "theta_epistemic": geo_block.epistemic_angle_theta,
+                "phi_governance": geo_block.governance_angle_phi,
+            },
+            "forbidden_center": [e.name for e in geo_block.forbidden_center],
+            "axiom_results": [r.to_dict() for r in geo_verdict.axiom_results],
+            "proximity_trace": geo_verdict.proximity_trace,
+            "hole_territory": geo_verdict.hole_territory,
+            "hole_entry": geo_verdict.hole_entry,
+            "wrapper_version": "MIND_GEOMETRY_V1.0",
+        }
+        # If geometry says HOLE_RISK, the runner can route to HOLD
+        # *additionally* — geometry never downgrades a SEAL, it
+        # only adds an extra reason to HOLD.
+        if geo_verdict.geometry_verdict.value == "HOLE_RISK":
+            result["human_decision_required"] = True
+        elif geo_verdict.geometry_verdict.value == "HOLD":
+            result["human_decision_required"] = True
+    except Exception as exc:
+        # Geometry is enrichment, not a hard dependency. If it
+        # fails to load, the tool still returns its core result.
+        result["_geometry"] = {
+            "version": "MIND_GEOMETRY_V1",
+            "available": False,
+            "error": f"{type(exc).__name__}: {exc}"[:200],
+        }
+
     return result
 
 
