@@ -93,9 +93,22 @@ class AttestationRecord:
             logger.warning("attestation parse failed: %s", e)
             return None
 
-        organ = d.get("organ") or d.get("agent") or d.get("service")
-        if not organ:
+        # Tolerate two historical shapes:
+        #   NEW: { organ, verdict, tool_count, registry_truth, timestamp }
+        #   OLD: { event: "ARIFOS_HEALTH", organ: "arifOS", verdict, ...,
+        #          timestamp } — no tool_count, no registry_truth
+        # In both, organ is the federation member.
+        organ_raw = d.get("organ") or d.get("agent") or d.get("service")
+        if not organ_raw:
             return None
+
+        # Subject may encode the organ. The historical subject was
+        # 'arifos.organ.arifOS.heartbeat' — organ=arifOS. We prefer
+        # the payload's 'organ' field; the subject is a fallback.
+        if organ_raw.lower() == "arifos":
+            organ = "arifos"
+        else:
+            organ = str(organ_raw).lower()
 
         ts = d.get("timestamp")
         if isinstance(ts, str):
@@ -106,13 +119,18 @@ class AttestationRecord:
         elif not isinstance(ts, (int, float)):
             ts = time.time()
 
-        # Try several shapes for tool_count
-        tool_count = d.get("tools_loaded") or d.get("tool_count") or d.get("canonical_tools") or 0
+        # tool_count: NEW shape has it directly; OLD shape doesn't.
+        # We try several field names and fall back to 0.
+        raw_count = d.get("tool_count") or d.get("tools_loaded") or d.get("canonical_tools")
+        try:
+            tool_count = int(raw_count) if raw_count is not None else 0
+        except (TypeError, ValueError):
+            tool_count = 0
 
         return cls(
             organ=organ,
             timestamp=float(ts),
-            tool_count=int(tool_count) if isinstance(tool_count, (int, float, str)) else 0,
+            tool_count=tool_count,
             registry_truth=str(d.get("registry_truth") or "UNKNOWN"),
             verdict=str(d.get("verdict") or d.get("status") or "UNKNOWN"),
             raw=d,
@@ -238,9 +256,16 @@ class AttestationVerifier:
 
 
 async def _consume_once(nats_url: str, stream: str, verifier: AttestationVerifier) -> int:
-    """Consume one batch from the stream. Returns the number of records ingested."""
+    """Consume one batch from the stream. Returns the number of records ingested.
+
+    Uses a durable consumer with DeliverPolicy.ALL so the verifier
+    reads from the beginning of the stream, not from "now" (which is
+    what a non-durable pull_subscribe does — and that returns empty
+    if there are no NEW messages).
+    """
     try:
-        import nats  # type: ignore
+        import nats
+        from nats.js.api import DeliverPolicy, AckPolicy
     except ImportError:
         logger.error("nats client not installed; cannot consume")
         return 0
@@ -248,10 +273,24 @@ async def _consume_once(nats_url: str, stream: str, verifier: AttestationVerifie
     nc = await nats.connect(nats_url)
     js = nc.jetstream()
     try:
-        sub = await js.pull_subscribe(stream, "verifier")
+        # Create or update the durable consumer with DeliverPolicy.ALL
+        # so the verifier reads historical messages on first run.
+        # filter='arifos.organ.>' matches the stream's existing filter.
+        try:
+            await js.add_consumer(
+                stream,
+                durable="verifier-probe",
+                deliver_policy=DeliverPolicy.ALL,
+                ack_policy=AckPolicy.EXPLICIT,
+                max_deliver=1,
+                filter_subject="arifos.organ.>",
+            )
+        except Exception:
+            # Consumer may already exist with different config; ignore.
+            pass
+        sub = await js.pull_subscribe("arifos.organ.>", durable="verifier-probe", stream=stream)
         msgs = await sub.fetch(50, timeout=2.0)
     except Exception as e:
-        # Empty stream or stream not found is fine
         logger.info("no messages on %s: %s", stream, e)
         await nc.close()
         return 0
