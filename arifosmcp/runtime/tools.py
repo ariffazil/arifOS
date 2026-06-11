@@ -993,6 +993,28 @@ def _enforce_nine_signal(
         status = str(out.get("status") or "OK")
         outer_verdict = str(out.get("verdict") or ("SEAL" if status == "OK" else status))
 
+        # ── Build result_payload from out dict ─────────────────────────────
+        envelope_keys = {
+            "status",
+            "tool",
+            "result",
+            "meta",
+            "delta_S",
+            "timestamp",
+            "session_id",
+            "actor_id",
+            "output_policy",
+            "nine_signal",
+            "reasons",
+            "_nine_signal_compliant",
+            "_violations",
+            "philosophical_anchor",
+        }
+        if isinstance(out.get("result"), dict):
+            result_payload = dict(out["result"])
+        else:
+            result_payload = {k: v for k, v in out.items() if k not in envelope_keys}
+
         # ── REACTIVE WRAPPER (P0 fix): outer verdict must read inner state ─────
         # Detect degradation in nested result payloads (e.g. mind_reason inner HOLD)
         inner_final = result_payload.get("final_verdict")
@@ -1027,26 +1049,7 @@ def _enforce_nine_signal(
 
         verdict = outer_verdict
 
-        envelope_keys = {
-            "status",
-            "tool",
-            "result",
-            "meta",
-            "delta_S",
-            "timestamp",
-            "session_id",
-            "actor_id",
-            "output_policy",
-            "nine_signal",
-            "reasons",
-            "_nine_signal_compliant",
-            "_violations",
-            "philosophical_anchor",
-        }
-        if isinstance(out.get("result"), dict):
-            result_payload = dict(out["result"])
-        else:
-            result_payload = {k: v for k, v in out.items() if k not in envelope_keys}
+        # result_payload already built above before reactive wrapper
 
         result_payload.setdefault("verdict", verdict)
         result_payload.setdefault(
@@ -2754,10 +2757,10 @@ def _domain_for_tool(tool: str) -> str:
 
 _DOMAIN_MEANINGS: dict[str, dict[str, str]] = {
     "governance": {
-        "delta_kukuh": "Tool surface alive, schema valid, memory reachable, forge/vault callable",
+        "delta_kukuh": "Tool surface registered, schema valid, constitutional floors active",
         "delta_retak": "Tool available but session, auth, schema, or dependency degraded",
         "delta_rosak": "Kernel/tooling broken, unavailable, corrupted, or unsafe to execute",
-        "psi_amanah": "Floors respected, authority boundary intact, evidence not overstated",
+        "psi_amanah": "Floors respected, authority boundary declared, evidence not overstated",
         "psi_syubhah": "Missing session, uncertain authority, incomplete chain, pending verification",
         "psi_khianat": "Floor violation, unauthorized action, false claim, unsafe escalation",
         "omega_bijaksana": "Reasoning constrained, humble, evidence-aware, consequence-aware",
