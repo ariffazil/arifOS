@@ -342,6 +342,9 @@ IS_FASTMCP_3 = fastmcp.__version__.startswith("3")
 try:
     from arifosmcp.prompts import register_prompts
     from arifosmcp.resources import register_resources
+    from arifosmcp.runtime.institutional_shadow import (
+        arif_detect_institutional_shadow_drift as _arif_detect_institutional_shadow_drift,
+    )
     from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, register_tools
     from arifosmcp.tools.embodied import register_all_arifos_tools
     from arifosmcp.tools.embodied_instances.arif_mind_reason_handler import (
@@ -399,6 +402,32 @@ try:
         )(_p)
     else:
         mcp.tool(name="forge_plan", tags={"forge", "read-only", "reason"})(_forge_plan)
+
+    # ── Institutional Shadow Drift (GENESIS/006 runtime sensor) ─────────────
+    _isd = _wrap_handler(
+        _arif_detect_institutional_shadow_drift,
+        "arif_detect_institutional_shadow_drift",
+    )
+    if _isd is not None:
+        mcp.tool(
+            name="arif_detect_institutional_shadow_drift",
+            description=(
+                "Detect when a sovereign institution's observed functions have outgrown "
+                "its declared name (GENESIS/006 Petronas Paradox). Returns drift_score, "
+                "sovereignty_score, risk_class, verdict, and cross-node routing hints. "
+                "Use before high-blast-radius deals involving national institutions."
+            ),
+            tags={"genesis", "shadow-drift", "sovereignty", "888-hold"},
+        )(_isd)
+    else:
+        mcp.tool(
+            name="arif_detect_institutional_shadow_drift",
+            description=(
+                "Detect when a sovereign institution's observed functions have outgrown "
+                "its declared name."
+            ),
+            tags={"genesis", "shadow-drift", "sovereignty", "888-hold"},
+        )(_arif_detect_institutional_shadow_drift)
 
     _d = _wrap_handler(_forge_dry_run, "forge_dry_run")
     if _d is not None:
