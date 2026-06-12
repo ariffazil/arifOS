@@ -40,6 +40,21 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any, Callable
 
+# ── Reality Engineering Bridge (Ω, 2026-06-12) ──────────────────────
+try:
+    from arifosmcp.runtime.reality_bridge import (
+        session_gate as _reality_session_gate,
+        envelope_gate as _reality_envelope_gate,
+        risk_gate as _reality_risk_gate,
+        classify_output as _reality_classify_output,
+        bridge_enabled as _reality_bridge_enabled,
+    )
+
+    _REALITY_BRIDGE_AVAILABLE = True
+except ImportError:
+    _REALITY_BRIDGE_AVAILABLE = False
+# ──────────────────────────────────────────────────────────────────────
+
 logger = logging.getLogger("arifosmcp.governance_pipeline")
 
 
