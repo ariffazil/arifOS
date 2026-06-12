@@ -1,0 +1,20 @@
+{
+  "version": "2026.06.12",
+  "kernel": "arifOS",
+  "sovereign": "Muhammad Arif bin Fazil",
+  "thresholds": {
+    "F1": { "name": "AMANAH", "value": 0.95 },
+    "F2": { "name": "TRUTH", "value": 0.99 },
+    "F3": { "name": "QUAD_WITNESS", "value": 0.75 },
+    "F4": { "name": "CLARITY", "value": 0.90 },
+    "F5": { "name": "PEACE", "value": 1.00 },
+    "F6": { "name": "FAIRNESS", "value": 0.70 },
+    "F7": { "name": "PRIVACY", "value": 1.00 },
+    "F8": { "name": "BOUNDARIES", "value": 0.95 },
+    "F9": { "name": "ANTI_HANTU", "value": 0.50 },
+    "F10": { "name": "ADAT_AGENTIK", "value": 0.85 },
+    "F11": { "name": "VAULT", "value": 0.99 },
+    "F12": { "name": "FALLBACK", "value": 0.00 },
+    "F13": { "name": "SOVEREIGN", "value": 1.00 }
+  }
+}
