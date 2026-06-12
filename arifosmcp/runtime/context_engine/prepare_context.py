@@ -53,6 +53,12 @@ from arifosmcp.runtime.context_engine.context_status import (
     arif_context_status as _arif_context_status_observer,
 )
 from arifosmcp.runtime.context_audit import POLICY_VERSION as _AUDIT_POLICY_VERSION
+from arifosmcp.runtime.context_engine.boundary_aware import (
+    BoundaryTag,
+    tag_segment as _boundary_tag_segment,
+    geometry_available as _boundary_geometry_available,
+    BOUNDARY_AWARE_POLICY_VERSION as _BOUNDARY_AWARE_VERSION,
+)
 from arifosmcp.runtime.token_pressure import (
     PressureBand,
     classify_pressure,
@@ -480,23 +486,90 @@ def prepare_context(
         )
         rec = mvp["recommendation"]
 
+        # ── Boundary-aware adjustment (EUREKA 1+2+3 unified forge) ──────────
+        # Segments near decision boundaries (EDGE, HOLE_RISK) have high
+        # marginal value even if they look boring. Don't drop them.
+        # SOVEREIGN-tagged segments are non-compressible.
+        _bmeta = _boundary_tag_segment(
+            segment_type=seg.type.value,
+            authority_class=seg.authority,
+            risk_class=seg.risk_class,
+            is_protected_type=False,  # already handled above
+        )
+        _boundary_tag = _bmeta.tag
+
         if rec == "include":
             if used_tokens + seg_tokens <= budget_tokens:
-                included.append(_seg_to_dict(seg, decision="include", reason=mvp["rationale"]))
+                included.append(
+                    _seg_to_dict(
+                        seg,
+                        decision="include",
+                        reason=f"{mvp['rationale']} | boundary={_boundary_tag.value}",
+                    )
+                )
                 included_segs.append(seg)
                 used_tokens += seg_tokens
             else:
                 # Budget pressure — demote
-                demoted.append(_seg_to_dict(seg, decision="demote", reason="BUDGET_PRESSURE"))
+                demoted.append(
+                    _seg_to_dict(
+                        seg,
+                        decision="demote",
+                        reason=f"BUDGET_PRESSURE | boundary={_boundary_tag.value}",
+                    )
+                )
                 demoted_segs.append(seg)
                 notes.append(f"Demoted {seg.id}: would exceed budget after include.")
         elif rec == "demote_to_lower_priority":
-            demoted.append(_seg_to_dict(seg, decision="demote", reason=mvp["rationale"]))
+            demoted.append(
+                _seg_to_dict(
+                    seg,
+                    decision="demote",
+                    reason=f"{mvp['rationale']} | boundary={_boundary_tag.value}",
+                )
+            )
             demoted_segs.append(seg)
-        else:  # "drop"
-            dropped.append(_seg_to_dict(seg, decision="drop", reason=mvp["rationale"]))
-            dropped_ids.append(seg.id)
-            dropped_reasons.append(f"low_value:{seg.id}")
+        else:  # "drop" — but boundary proximity may override
+            if _boundary_tag == BoundaryTag.SOVEREIGN:
+                # F10: never drop sovereign-tier segments
+                included.append(
+                    _seg_to_dict(
+                        seg,
+                        decision="include",
+                        reason="SOVEREIGN boundary override — non-compressible",
+                    )
+                )
+                included_segs.append(seg)
+                used_tokens += seg_tokens
+                notes.append(
+                    f"Boundary-aware: '{seg.id}' tagged SOVEREIGN, "
+                    f"override drop→include ({seg_tokens}t)"
+                )
+            elif _boundary_tag in (BoundaryTag.HOLE_RISK, BoundaryTag.EDGE):
+                # Don't drop boundary-proximate segments — demote instead
+                demoted.append(
+                    _seg_to_dict(
+                        seg,
+                        decision="demote",
+                        reason=f"boundary={_boundary_tag.value} override drop→demote | {mvp['rationale']}",
+                    )
+                )
+                demoted_segs.append(seg)
+                notes.append(
+                    f"Boundary-aware: '{seg.id}' tagged {_boundary_tag.value}, "
+                    f"override drop→demote ({seg_tokens}t)"
+                )
+            else:
+                # SAFE_SURFACE — safe to drop
+                dropped.append(
+                    _seg_to_dict(
+                        seg,
+                        decision="drop",
+                        reason=f"{mvp['rationale']} | boundary={_boundary_tag.value}",
+                    )
+                )
+                dropped_ids.append(seg.id)
+                dropped_reasons.append(f"low_value:{seg.id}")
 
     # ── Compute pressure AFTER (deterministic) ─────────────────────────────
     final_tokens = used_tokens
@@ -588,6 +661,8 @@ def prepare_context(
             "F10_ontology": "USER_INSTRUCTION + SYSTEM_CONSTITUTIONAL are non-compressible",
             "F11_audit": "ContextBuildReceipt emitted (no VAULT999 write)",
             "F13_sovereign": "no canonical mutation, no auto-compact, no policy change",
+            "boundary_aware_forge": "EUREKA 1+2+3 unified — segments near constitutional boundaries "
+            "preserved at higher pressure thresholds via torus geometry",
         },
     )
 
@@ -628,6 +703,11 @@ def prepare_context(
         "policy_version": PREPARE_CONTEXT_POLICY_VERSION,
         "audit_policy_version": _AUDIT_POLICY_VERSION,
         "context_status_policy_version": CONTEXT_STATUS_POLICY_VERSION,
+        "boundary_aware": {
+            "enabled": _boundary_geometry_available(),
+            "policy_version": _BOUNDARY_AWARE_VERSION,
+            "note": "Boundary-aware compression active. Segments near constitutional boundaries are preserved at higher pressure thresholds.",
+        },
         "auto_compact_observed": auto_compact_observed,
         "verdict": verdict,
         "notes": notes,
