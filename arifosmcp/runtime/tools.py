@@ -8015,6 +8015,42 @@ def _arif_kernel_route(
         except Exception as e:
             return _hold("arif_kernel_route", f"Bridge failed: {e}")
 
+    if mode == "context_runner":
+        # F13-safe: context_runner is a MODE on the canonical
+        # arif_kernel_route. No new tool. Bridges to Runner001 via
+        # arifosmcp.runtime.context_runner_bridge.context_runner_dispatch.
+        # F2 fail-closed, F8 auto_compact OFF, F13 no canonical mutation.
+        from arifosmcp.runtime.context_runner_bridge import (
+            BRIDGE_POLICY_VERSION,
+            context_runner_dispatch,
+        )
+
+        bridge_args = arguments or {}
+        bridge_intent = bridge_args.get("intent", "")
+        bridge_task_id = bridge_args.get("task_id", task)  # task from sig
+        bridge_query = bridge_args.get("query", "")
+        result = context_runner_dispatch(
+            bridge_intent,
+            session_id=session_id,
+            task_id=bridge_task_id,
+            query=bridge_query,
+            model_key=bridge_args.get("model_key", "minimax/MiniMax-M3"),
+            agent_id=bridge_args.get("agent_id", "context_runner_bridge"),
+            candidate_segments=bridge_args.get("candidate_segments"),
+            risk_class=bridge_args.get("risk_class", "routine"),
+            postflight_model_tokens=int(bridge_args.get("postflight_model_tokens", 0)),
+            receipt=bridge_args.get("receipt"),
+        )
+        return _ok(
+            "arif_kernel_route",
+            {
+                "mode": "context_runner",
+                "bridge_policy_version": BRIDGE_POLICY_VERSION,
+                "bridge_result": result,
+            },
+            session_id=session_id,
+        )
+
     return _hold("arif_kernel_route", f"Unknown mode: {mode}", session_id=session_id)
 
 
