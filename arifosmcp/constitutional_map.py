@@ -1364,8 +1364,7 @@ def validate_tool_response_schema(tool_name: str, response: dict) -> tuple[bool,
     """
     violations: list[str] = []
     spec = CANONICAL_TOOLS.get(tool_name)
-    if spec is None:
-        return False, [f"Unknown tool: {tool_name}"]
+    is_canonical = spec is not None
 
     # Nine-Signal block check
     nine = response.get("nine_signal")
@@ -1401,6 +1400,11 @@ def validate_tool_response_schema(tool_name: str, response: dict) -> tuple[bool,
     # output_policy check
     if response.get("domain_payload_present") and not response.get("output_policy"):
         violations.append(f"{tool_name}: domain payload without output_policy [F2 addendum]")
+
+    # Non-canonical tools are admitted if they satisfy the universal nine-signal contract.
+    # Tool-specific output schemas are enforced only for canonical CANONICAL_TOOLS entries.
+    if not is_canonical and not violations:
+        return True, [f"non-canonical tool {tool_name} admitted via nine-signal contract"]
 
     return len(violations) == 0, violations
 

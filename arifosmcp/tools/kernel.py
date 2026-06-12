@@ -214,7 +214,90 @@ def arif_kernel_route(
             },
         )
 
+    if mode == "discover":
+        # Semantic tool discovery across the federation.
+        # Searches all organs for tools matching the intent, returns top-k.
+        import asyncio
+
+        from arifosmcp.runtime.federation_registry import get_registry
+
+        registry = get_registry()
+        intent_query = intent or task or ""
+        top_k = int(arguments.get("top_k", 5)) if arguments else 5
+        organ_filter = arguments.get("organs") if arguments else None
+
+        result = asyncio.run(
+            registry.discover(
+                intent=intent_query,
+                top_k=top_k,
+                organ_filter=organ_filter,
+            )
+        )
+        return _ok("arif_kernel_route", {"mode": "discover", **result})
+
+    if mode == "attest":
+        # Live organ attestation route. Defaults to all organs if none specified.
+        import asyncio
+
+        from arifosmcp.runtime.heartbeat_registry import federation_liveness
+        from arifosmcp.runtime.organ_attestation import (
+            attest_all_organs,
+            attest_organ,
+        )
+
+        target_organ = organ or target
+        if target_organ and target_organ.upper() in ("GEOX", "WEALTH", "WELL", "arifOS"):
+            result = asyncio.run(
+                attest_organ(target_organ.upper(), actor_id=actor_id, session_id=session_id)
+            )
+            return _ok("arif_kernel_route", {"mode": "attest", **result})
+
+        result = asyncio.run(attest_all_organs(actor_id=actor_id, session_id=session_id))
+        liveness = federation_liveness()
+        return _ok(
+            "arif_kernel_route",
+            {
+                "mode": "attest_all",
+                "attestation": result,
+                "liveness": liveness,
+            },
+        )
+
+    if mode == "health":
+        # Federation liveness heartbeat snapshot.
+        from arifosmcp.runtime.heartbeat_registry import federation_liveness
+
+        liveness = federation_liveness()
+        return _ok(
+            "arif_kernel_route",
+            {"mode": "health", "liveness": liveness},
+        )
+
     return _hold("arif_kernel_route", f"Unknown mode: {mode}")
+
+
+def _assert_organ_attested(organ: str) -> dict[str, Any] | None:
+    """Fail-closed gate: require a recent ALIVE attestation before bridging."""
+    from arifosmcp.runtime.heartbeat_registry import is_organ_stale
+    from arifosmcp.runtime.organ_attestation import get_organ_attestation
+
+    rec = get_organ_attestation(organ.upper())
+    if rec is None:
+        return _hold(
+            "arif_kernel_route",
+            f"Organ {organ} has no live attestation. Call arif_kernel_route(mode='attest') first.",
+        )
+    if rec.status in ("REVOKED", "DEGRADED_CLAIM", "DEGRADED", "UNATTESTED"):
+        return _hold(
+            "arif_kernel_route",
+            f"Organ {organ} attestation status={rec.status}: {rec.reason}",
+        )
+    if is_organ_stale(organ.upper()):
+        return _hold(
+            "arif_kernel_route",
+            f"Organ {organ} heartbeat stale. Re-attest before bridging.",
+        )
+    return None
 
 
 async def _bridge_organ_call(
@@ -225,6 +308,10 @@ async def _bridge_organ_call(
     """Bridge a call to GEOX or WEALTH organ via their public MCP endpoints."""
     if not organ or not tool_name:
         return _hold("arif_kernel_route", "bridge mode requires organ and tool_name")
+
+    hold = _assert_organ_attested(organ)
+    if hold is not None:
+        return hold
 
     if organ == "geox":
         from arifosmcp.runtime.geox_bridge import call_geox_tool

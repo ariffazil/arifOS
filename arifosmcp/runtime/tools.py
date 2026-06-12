@@ -13675,12 +13675,15 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             if handler.__name__ in msg:
                 msg = msg.replace(handler.__name__, tool_name)
             logger.exception("Tool %s failed; returning schema-valid VOID fallback", tool_name)
-            return _enforce_nine_signal(
+            final_resp = _enforce_nine_signal(
                 tool_name,
                 _safe_void_fallback(tool_name, msg),
                 session_id=kwargs.get("session_id"),
                 actor_id=kwargs.get("actor_id"),
             )
+            _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+            _schedule_seal(final_resp, tool_name, kwargs)
+            return final_resp
         # Nine-Signal enforcement on every response
         final_resp = _enforce_nine_signal(
             tool_name,
@@ -13688,6 +13691,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             session_id=kwargs.get("session_id"),
             actor_id=kwargs.get("actor_id"),
         )
+        _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+        _schedule_seal(final_resp, tool_name, kwargs)
         try:
             import asyncio
 
@@ -13723,12 +13728,15 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             if handler.__name__ in msg:
                 msg = msg.replace(handler.__name__, tool_name)
             logger.exception("Tool %s failed; returning schema-valid VOID fallback", tool_name)
-            return _enforce_nine_signal(
+            final_resp = _enforce_nine_signal(
                 tool_name,
                 _safe_void_fallback(tool_name, msg),
                 session_id=kwargs.get("session_id"),
                 actor_id=kwargs.get("actor_id"),
             )
+            _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+            _schedule_seal(final_resp, tool_name, kwargs)
+            return final_resp
         # Nine-Signal enforcement on every response
         final_resp = _enforce_nine_signal(
             tool_name,
@@ -13736,6 +13744,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             session_id=kwargs.get("session_id"),
             actor_id=kwargs.get("actor_id"),
         )
+        _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+        _schedule_seal(final_resp, tool_name, kwargs)
         try:
             import asyncio
 
@@ -13758,6 +13768,37 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         except Exception as e:
             logger.debug(f"Supabase canonical receipt dispatch failed: {e}")
         return final_resp
+
+    def _attach_live_kernel_envelope(response: dict[str, Any], tool_name: str, kwargs: dict[str, Any]) -> None:
+        """Attach a conservative live-kernel envelope to every tool response."""
+        try:
+            from arifosmcp.runtime.live_kernel import build_kernel_envelope
+
+            envelope = build_kernel_envelope(
+                tool_name=tool_name,
+                response=response,
+                session_id=kwargs.get("session_id"),
+                actor_id=kwargs.get("actor_id"),
+            )
+            response["live_kernel_envelope"] = envelope.model_dump(mode="json")
+        except Exception:
+            # Envelope attachment must never crash a tool call.
+            pass
+
+    def _schedule_seal(response: dict[str, Any], tool_name: str, kwargs: dict[str, Any]) -> None:
+        """Best-effort VAULT999 audit receipt for consequential state transitions."""
+        try:
+            from arifosmcp.runtime.vault_sealer import schedule_state_transition_seal
+
+            schedule_state_transition_seal(
+                tool_name=tool_name,
+                response=response,
+                session_id=kwargs.get("session_id"),
+                actor_id=kwargs.get("actor_id"),
+            )
+        except Exception:
+            # Sealing must never crash a tool call.
+            pass
 
     _wrapped = async_wrapper if inspect.iscoroutinefunction(handler) else wrapper
     # Preserve signature so FastMCP schema generation sees actual parameters

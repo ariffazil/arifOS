@@ -342,8 +342,25 @@ IS_FASTMCP_3 = fastmcp.__version__.startswith("3")
 try:
     from arifosmcp.prompts import register_prompts
     from arifosmcp.resources import register_resources
+    from arifosmcp.runtime.heartbeat_registry import arif_heartbeat as _arif_heartbeat
     from arifosmcp.runtime.institutional_shadow import (
         arif_detect_institutional_shadow_drift as _arif_detect_institutional_shadow_drift,
+    )
+    from arifosmcp.runtime.lease_registry import (
+        arif_lease_inspect as _arif_lease_inspect,
+    )
+    from arifosmcp.runtime.lease_registry import (
+        arif_lease_issue as _arif_lease_issue,
+    )
+    from arifosmcp.runtime.lease_registry import (
+        arif_lease_revoke as _arif_lease_revoke,
+    )
+    from arifosmcp.runtime.live_kernel import arif_os_attest as _arif_os_attest
+    from arifosmcp.runtime.organ_attestation import (
+        attest_all_organs as _attest_all_organs,
+    )
+    from arifosmcp.runtime.organ_attestation import (
+        attest_organ as _attest_organ,
     )
     from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, register_tools
     from arifosmcp.tools.embodied import register_all_arifos_tools
@@ -364,12 +381,16 @@ try:
     _assert_registered_surface(v2_tools_registered)
 
     # ── Forge Ladder (v3.1) — governed execution surface ────────────────────
+    from arifosmcp.runtime.tools import _wrap_handler
     from arifosmcp.tools.forge_ladder import (
         forge_dry_run as _forge_dry_run,
+    )
+    from arifosmcp.tools.forge_ladder import (
         forge_plan as _forge_plan,
+    )
+    from arifosmcp.tools.forge_ladder import (
         forge_query as _forge_query,
     )
-    from arifosmcp.runtime.tools import _wrap_handler
 
     # Route through _wrap_handler so _envelope is accepted by Pydantic
     # (Fix: P0-20260610 — forge_* tools were registered raw, bypassing
@@ -428,6 +449,77 @@ try:
             ),
             tags={"genesis", "shadow-drift", "sovereignty", "888-hold"},
         )(_arif_detect_institutional_shadow_drift)
+
+    # ── Live Kernel Attestation (MCP state bus) ─────────────────────────────
+    _attest = _wrap_handler(_arif_os_attest, "arif_os_attest")
+    if _attest is not None:
+        mcp.tool(
+            name="arif_os_attest",
+            description=(
+                "arifOS organ.attest(): live self-attestation of the constitutional kernel. "
+                "Returns constitution_hash, schema_hash, tool_surface, health, and active "
+                "lease state. Required before any kernel-grade federation call."
+            ),
+            tags={"live-kernel", "attestation", "state-bus", "organ-attest"},
+        )(_attest)
+    else:
+        mcp.tool(
+            name="arif_os_attest",
+            description="arifOS organ.attest(): live self-attestation.",
+            tags={"live-kernel", "attestation", "state-bus", "organ-attest"},
+        )(_arif_os_attest)
+
+    # ── Federation organ attestation (live state bus) ────────────────────────
+    _organ_attest = _wrap_handler(_attest_organ, "arif_organ_attest")
+    if _organ_attest is not None:
+        mcp.tool(
+            name="arif_organ_attest",
+            description=(
+                "Probe and attest a federation organ (GEOX, WEALTH, WELL). "
+                "Returns organ heartbeat, schema hash, tool count, and kernel envelope."
+            ),
+            tags={"live-kernel", "attestation", "state-bus", "organ-attest"},
+        )(_organ_attest)
+
+    _organ_attest_all = _wrap_handler(_attest_all_organs, "arif_organ_attest_all")
+    if _organ_attest_all is not None:
+        mcp.tool(
+            name="arif_organ_attest_all",
+            description=(
+                "Attest arifOS plus all federation organs in one call. "
+                "Returns per-organ heartbeat and a degraded-organ list."
+            ),
+            tags={"live-kernel", "attestation", "state-bus", "organ-attest"},
+        )(_organ_attest_all)
+
+    # ── Bounded authority leases (live state bus) ────────────────────────────
+    for _lease_name, _lease_handler in (
+        ("arif_lease_issue", _arif_lease_issue),
+        ("arif_lease_inspect", _arif_lease_inspect),
+        ("arif_lease_revoke", _arif_lease_revoke),
+    ):
+        _lh = _wrap_handler(_lease_handler, _lease_name)
+        if _lh is not None:
+            mcp.tool(
+                name=_lease_name,
+                description=(
+                    "Issue, inspect, or revoke a bounded authority lease. "
+                    "Leases scope organ/agent tool access and action class."
+                ),
+                tags={"live-kernel", "lease", "state-bus", "authority"},
+            )(_lh)
+
+    # ── Federation heartbeat registry (live state bus) ───────────────────────
+    _hb = _wrap_handler(_arif_heartbeat, "arif_heartbeat")
+    if _hb is not None:
+        mcp.tool(
+            name="arif_heartbeat",
+            description=(
+                "Record or query federation heartbeats. "
+                "Returns liveness verdict for known organs."
+            ),
+            tags={"live-kernel", "heartbeat", "state-bus", "vitality"},
+        )(_hb)
 
     _d = _wrap_handler(_forge_dry_run, "forge_dry_run")
     if _d is not None:
@@ -877,15 +969,15 @@ if app:
     # Compute the canonical policy hash from the constitutional map
     # and register it with the envelope validator for runtime enforcement.
     try:
+        from arifosmcp.runtime.envelope_validator import (
+            set_kernel_manifest_hash,
+            set_kernel_policy_hash,
+        )
         from arifosmcp.runtime.policy_hash import (
             KERNEL_MANIFEST_HASH,
             KERNEL_POLICY_HASH,
             compute_manifest_hash,
             compute_policy_hash,
-        )
-        from arifosmcp.runtime.envelope_validator import (
-            set_kernel_manifest_hash,
-            set_kernel_policy_hash,
         )
 
         policy_hash = compute_policy_hash()
@@ -913,9 +1005,9 @@ if app:
     # Not a static number — computed at request time from actual state.
     async def agi_kernel_readiness(request: Request) -> JSONResponse:
         """GET /kernel/readiness — AGI kernel dynamic self-check."""
-        from datetime import UTC, datetime
         import os
         import time as _time
+        from datetime import UTC, datetime
 
         t0 = _time.perf_counter()
 
@@ -1012,8 +1104,10 @@ if app:
         # error band, falsifiability, decision threshold.
         # "A score is real when reality can punish it."
         from arifosmcp.runtime.reality_scoring import (
-            AnchoredScore,
             _DEFAULT_THRESHOLDS as THRESHOLDS,
+        )
+        from arifosmcp.runtime.reality_scoring import (
+            AnchoredScore,
             run_falsification_probes,
         )
 
