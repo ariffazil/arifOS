@@ -200,10 +200,14 @@ def arif_detect_institutional_shadow_drift(
     declared_function_keywords: list[str] | None = None,
     last_shadow_update: str | None = None,
     capital_exposure_myr: float | None = None,
+    actor_id: str | None = None,
+    session_id: str | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """
     Public MCP-style helper. Accepts plain dicts for observed_functions so it can
     be called from any node without importing the full Pydantic model.
+    Actor_id/session_id are accepted and ignored (MCP ingress metadata).
     """
     observed_models = [ObservedFunction.model_validate(o) for o in observed_functions]
     request = ShadowDriftRequest(
