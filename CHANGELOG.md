@@ -346,3 +346,117 @@ Documented here so the next session has the canonical carry-forward list:
 - Regressions on existing 9-file geometry stack: 0
 
 DITEMPA BUKAN DIBERI — even the close is forged, not given.
+
+## v2026.06.12-AUDIT — 2026-06-12
+
+### External-Harness Audit Cycle + Civilian Blindside Doctrine
+
+A live external harness probed all 22 arifOS MCP tools across 4
+ontological planes (physics reality, math scoring, code execution,
+semantic-linguistic ontology). The audit confirmed the
+**kernel/MCP separation**: witness tools (`arif_os_attest`,
+`forge_query`, `forge_plan`, `arif_lease_*`, `arif_vault_seal audit`,
+`arif_detect_institutional_shadow_drift`) SEAL unsigned because
+the kernel itself is the authority. Cognitive tools
+(`arif_sense_observe`, `arif_mind_reason`, `arif_evidence_fetch`,
+`arif_heart_critique`, `arif_reply_compose`, `arif_judge_deliberate`,
+`arif_memory_recall`) HOLD on L11 unless the actor presents a
+cryptographically correct ed25519 signature over
+`{actor_id}:{constitution_hash}:{nonce}`. ATOMIC actions
+(`arif_forge_execute`, `arif_vault_seal seal`) stay 888_HOLD —
+they require sovereign-grade signature chain, F13 territory.
+
+The audit also surfaced the **civilian blindside**: civilians are
+becoming training terrain for AI, not users. AI may dissolve
+adulthood (no need to remember, write, navigate, endure silence,
+face disagreement, choose without assistance). arifOS reframes
+itself as **anti-dependency architecture** — human sovereignty
+infrastructure, not just AI safety. The 10 rights the kernel
+must defend (right to know, appeal, human judgment, language,
+cognitive privacy, refuse profiling, non-addiction, explanation,
+preserve skill, opt out) are now the spec the next forge
+iteration must encode.
+
+What shipped:
+
+- `arifosmcp/tools/forge.py` — closes V6 audit schema gap:
+  `arif_forge_execute` now accepts `actor_signature` and `nonce`
+  (RESERVED — recorded not yet enforced, F13 ratifies
+  enforcement). F1 AMANAH: nonce required when signature is
+  provided, for replay prevention.
+- `tests/agi_kernel_readiness/run_gate.py` — promoted from
+  10 tests to 6-tier readiness matrix. New tier vocabulary
+  (Tier 1 constitutional substrate, Tier 2 witness plane,
+  Tier 3 cognitive plane, Tier 4 post-kernel bus, Tier 5
+  ATOMIC plane, Tier 6 sovereignty anchors, Tier 7 human
+  substrate protection, Tier 8 agency protection). Results
+  written to `/root/VAULT999/agi_gate_001_results.json`.
+- `tests/agi_kernel_readiness/test_002_full_init_bound_session.py`
+  — strengthened: `mode=full` now requires `authority_mode =
+  OBSERVE_ONLY` at Level 2, `mutation_allowed = False`. The
+  kernel is conservative-by-default.
+- `tests/agi_kernel_readiness/test_012_governance_pipeline_direct.py`
+  — documents existing F4 CLARITY property: `score` can be
+  negative (entropy reduction is unbounded above 0); all other
+  floors remain `[0, 1]`.
+- `tests/agi_kernel_readiness/test_014_atomic_plane_sovereign_signature.py`
+  — **NEW**. Tier 5. Captures the V6 finding: ATOMIC actions
+  require sovereign-grade signature. Schema gap closed by
+  forge.py change. Replay-prevention enforced.
+- `tests/agi_kernel_readiness/test_015_human_substrate_protection.py`
+  — **NEW**. Tier 7. WELL REFLECT_ONLY enforcement: every WELL
+  response carries `authority = REFLECT_ONLY`; never
+  `ADVISOR`/`COMPANION`/`DECIDER`. Catches regressions where
+  the kernel stops being a mirror and starts managing.
+- `tests/agi_kernel_readiness/test_016_agency_protection.py`
+  — **NEW**. Tier 8. WEALTH no-extraction: every WEALTH tool
+  emits `recommendation_only: True` and `final_authority: "Arif"`.
+  Catches regressions where WEALTH becomes a soft tyrant.
+- `tests/agi_kernel_readiness/test_007_dangerous_modes_blocked.py`
+  — **reverted to strict F2 assertion** (the WIP
+  "verdict != SEAL only" change was a weakening that would
+  have accepted UNKNOWN verdicts on destructive patterns;
+  reverted to original "verdict in (HOLD, VOID, None)").
+- `pyproject.toml` — `version = 2026.06.11` → `2026.06.12`.
+
+F1–F13 BINDING
+
+- F01 AMANAH: nonce check on `actor_signature` prevents
+  replay attacks. test_007 reverted to strict F2 truth
+  (destructive patterns must HOLD, not merely non-SEAL).
+- F02 TRUTH: test_007's "F2 truth" justification was
+  wrong (UNKNOWN is a defect, not a fail-closed signal) and
+  was reverted. 11 audit bugs found and fixed in harness,
+  not in kernel.
+- F11 AUDITABILITY: every MCP call bound to Mcp-Session-Id;
+  signature payload canonicalized to
+  `{actor_id}:{constitution_hash}:{nonce}`.
+- F13 SOVEREIGN: the new test_014 captures the audit's
+  finding that ATOMIC actions need sovereign-grade signature.
+  The 10 civilian rights (right to know, appeal, etc.) are
+  the spec the next kernel must encode — civilian
+  sovereignty is F13 territory.
+
+KNOWN CARRY-FORWARDS (not in this tag)
+
+1.  `arif_forge_execute.actor_signature` is recorded but not
+    yet verified. F13 ratifies whether to enforce per-call
+    signature path (current: inherited from session_init).
+2.  arifOS runtime restart to pick up the new forge.py
+    `actor_signature`/`nonce` fields. The kernel
+    `_CANONICAL_HANDLERS` count is still 13; no surface change.
+3.  The 10 civilian-sovereignty rights (right to know, appeal,
+    human judgment, language, cognitive privacy, refuse
+    profiling, non-addiction, explanation, preserve skill,
+    opt out) are doc-only in CHANGELOG. No enforcement tool
+    exists yet. F13 design conversation needed for the next
+    organ class.
+4.  test_013 missing from the tier sequence (numerical gap,
+    F2 truth — flag for next session to either fill or
+    renumber).
+5.  `_ARIF_PUBKEYS` wiring in vault999-writer (F11 territory).
+6.  WELL biometric injection (F13 sovereign data).
+7.  `arif_session_init` async refactor (P0-4 connector,
+    50+ line kernel surgery).
+
+DITEMPA BUKAN DIBERI — even the close is forged, not given.

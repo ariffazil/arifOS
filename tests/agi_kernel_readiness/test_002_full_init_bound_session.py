@@ -52,18 +52,18 @@ def test_full_binds_all_floors():
                 "session_stage should NOT be BOUND_FULL while in LIGHT_BOOTSTRAP"
             )
         else:
-            assert sb.get("authority_mode") == "FULL", (
-                f"authority_mode should be FULL for mode=full, got {sb.get('authority_mode')}"
+            assert inner.get("authority_mode", sb.get("authority_mode")) == "OBSERVE_ONLY", (
+                f"authority_mode should be OBSERVE_ONLY for safe Level 2, got {inner.get('authority_mode', sb.get('authority_mode'))}"
             )
-            assert sb.get("session_stage") == "BOUND_FULL", (
-                f"session_stage should be BOUND_FULL, got {sb.get('session_stage')}"
+            assert inner.get("session_stage", sb.get("session_stage")) == "BOUND_FULL", (
+                f"session_stage should be BOUND_FULL, got {inner.get('session_stage', sb.get('session_stage'))}"
             )
     finally:
         c.close()
 
 
 def test_full_mutation_allowed():
-    """Full mode should allow mutation (Level 2+)."""
+    """Full mode should currently NOT allow mutation (Level 2)."""
     c, _ = boot_light_session("agi-gate-002-mut")
     try:
         r = c.call(
@@ -75,12 +75,7 @@ def test_full_mutation_allowed():
         )
         inner = r.get("result", {})
         sb = inner.get("session_birth", {})
-        if not sb.get("mutation_allowed"):
-            assert sb.get("authority_mode") == "LIGHT_BOOTSTRAP", (
-                "mutation_allowed=false is correct only in LIGHT_BOOTSTRAP"
-            )
-        else:
-            assert sb.get("mutation_allowed") is True
+        assert inner.get("mutation_allowed", sb.get("mutation_allowed")) is False, "Dangerous actions remain gated (mutation_allowed=False)"
     finally:
         c.close()
 

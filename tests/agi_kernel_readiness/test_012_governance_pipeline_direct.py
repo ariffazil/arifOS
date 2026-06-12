@@ -106,11 +106,19 @@ def test_bad_context_evaluates_all_floors():
 
 
 def test_lawresult_score_is_numeric():
-    """Each LawResult.score must be a number in [0, 1]."""
+    """Each LawResult.score must be a number.
+
+    F4 CLARITY uses ΔS (entropy delta) which can be negative
+    (entropy reduction is unbounded above 0). Other floors use [0, 1].
+    """
     results = check_all_floors(GOOD_CONTEXT)
     for r in results:
         assert isinstance(r.score, (int, float)), f"score must be numeric, got {type(r.score)}: {r}"
-        assert 0.0 <= r.score <= 1.0, f"score must be in [0, 1], got {r.score}: {r}"
+        if r.law_id == "F4_Clarity":
+            # F4: entropy delta, can be any negative number
+            assert r.score <= 0.0, f"F4 score should be <= 0, got {r.score}"
+        else:
+            assert 0.0 <= r.score <= 1.0, f"non-F4 score must be in [0, 1], got {r.score}: {r}"
 
 
 def test_lawresult_reason_is_string():
