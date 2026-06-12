@@ -59,7 +59,7 @@ class FiqhVerdict:
             "floor_id": self.floor_id,
             "action_label": self.action_label,
             "malu_delta": self.malu_delta,
-            "maruah_delta": self.maruh_delta,
+            "maruah_delta": self.maruah_delta,
             "violated": self.violated,
             "reason": self.reason,
             "advice": self.advice,
@@ -325,7 +325,7 @@ def evaluate_all(ctxs: list[ActionContext]) -> list[FiqhVerdict]:
 
 def total_score_delta(verdicts: list[FiqhVerdict]) -> tuple[int, int]:
     malu = sum(v.malu_delta for v in verdicts)
-    maruah = sum(v.maruh_delta for v in verdicts)
+    maruah = sum(v.maruah_delta for v in verdicts)
     return malu, maruah
 
 
