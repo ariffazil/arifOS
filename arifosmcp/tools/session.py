@@ -12,6 +12,77 @@ from __future__ import annotations
 
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import ARIF_DOCTRINE, _new_session
+
+# ── Ω: Model Registry Loader (AGI Kernel, 2026-06-12) ──────────────
+
+
+def _load_model_registry(declared_model_key: str) -> tuple[dict, dict, dict]:
+    """
+    Load model soul, shadow, and floor posture from AAA registries.
+
+    The soul is the capability profile (what the model is trusted for).
+    The shadow is the hazard profile (where the model systematically fails).
+    The floor posture is constitutional tightening based on shadow patterns.
+
+    Searches /root/AAA/registries/models/ for matching soul/shadow YAML files.
+    Falls back to empty dicts if registries not found — fail-soft.
+    """
+    import os
+
+    result_soul: dict = {}
+    result_shadow: dict = {}
+    result_posture: dict = {}
+
+    # Canonical registry path
+    registry_dir = "/root/AAA/registries/models"
+    if not os.path.isdir(registry_dir):
+        return result_soul, result_shadow, result_posture
+
+    # Map model keys to registry files
+    _MODEL_KEY_MAP: dict[str, str] = {
+        "minimax": "minimax",
+        "minimax-m3": "minimax",
+        "deepseek": "deepseek",
+        "deepseek-v4": "deepseek",
+        "qwen": "qwen",
+        "qwen3": "qwen",
+        "qwen2.5": "qwen",
+        "gpt": "openai",
+        "gpt-4": "openai",
+        "claude": "anthropic",
+        "gemini": "google",
+    }
+
+    resolved = _MODEL_KEY_MAP.get((declared_model_key or "").lower().strip(), declared_model_key)
+
+    soul_path = os.path.join(registry_dir, f"{resolved}_soul.yaml")
+    shadow_path = os.path.join(registry_dir, f"{resolved}_shadow.yaml")
+
+    # Load soul
+    if os.path.isfile(soul_path):
+        try:
+            import yaml
+
+            with open(soul_path) as f:
+                result_soul = yaml.safe_load(f) or {}
+        except Exception:
+            pass
+
+    # Load shadow and extract floor posture
+    if os.path.isfile(shadow_path):
+        try:
+            import yaml
+
+            with open(shadow_path) as f:
+                result_shadow = yaml.safe_load(f) or {}
+            # Extract floor posture from shadow
+            result_posture = result_shadow.get("floor_posture", {})
+        except Exception:
+            pass
+
+    return result_soul, result_shadow, result_posture
+
+
 from arifosmcp.schemas.session import (
     AttentionSurface,
     BeliefState,
@@ -198,11 +269,12 @@ def arif_session_init(
         authority_level = (
             "SOVEREIGN" if actor_id == "arif" else ("OPERATOR" if actor_id else "ANONYMOUS")
         )
-        
+
         identity_verified = False
         if actor_id == "arif" and nonce and signature:
             try:
                 from arifosmcp.runtime.crypto_auth import verify_actor_signature
+
                 identity_verified = verify_actor_signature(actor_id, nonce, signature)
                 sess["signature_verified"] = identity_verified
             except Exception:
@@ -250,6 +322,23 @@ def arif_session_init(
         well_mirror_enhanced = _build_well_mirror_enhanced(_well_mirror)
         session_continuity = _build_session_continuity(sess, session_id, actor_id)
         consent_boundaries = _build_consent_boundaries(actor_id)
+
+        # ── Ω: Model Soul/Shadow Loading (AGI Kernel, 2026-06-12) ──
+        # Load the model's capability profile (soul) and hazard profile (shadow)
+        # from the AAA registries. The shadow determines floor_posture tightening.
+        _model_soul: dict = {}
+        _model_shadow: dict = {}
+        _floor_posture_override: dict = {}
+        try:
+            _model_soul, _model_shadow, _floor_posture_override = _load_model_registry(
+                declared_model_key or "unknown"
+            )
+            # Attach to session for downstream governance
+            sess["model_soul"] = _model_soul
+            sess["model_shadow"] = _model_shadow
+            sess["floor_posture_override"] = _floor_posture_override
+        except Exception:
+            pass  # Fail-soft: session works without soul/shadow
 
         # ── v3.1: Context completeness receipt ───────────────
         context_completeness = _compute_context_completeness(
@@ -300,7 +389,20 @@ def arif_session_init(
             result={
                 "session": sess,
                 "well_mirror": _well_mirror,
-                "context_completeness": context_completeness.model_dump() if context_completeness else None,
+                "context_completeness": context_completeness.model_dump()
+                if context_completeness
+                else None,
+                # ── Ω: Model soul/shadow from AAA registries ──
+                "model_soul_ref": f"aaa://registries/models/{declared_model_key or 'unknown'}_soul.yaml",
+                "model_shadow_ref": f"aaa://registries/models/{declared_model_key or 'unknown'}_shadow.yaml",
+                "model_soul_loaded": bool(_model_soul),
+                "model_shadow_loaded": bool(_model_shadow),
+                "shadow_incident_count": len(_model_shadow.get("shadow", []))
+                if _model_shadow
+                else 0,
+                "floor_posture_from_shadow": _floor_posture_override
+                if _floor_posture_override
+                else "none",
             },
             doctrine=ARIF_DOCTRINE,
         )
@@ -654,6 +756,7 @@ def _compute_context_completeness(
 
     # timezone
     import os
+
     tz = os.environ.get("TZ", "")
     if tz:
         timezone = tz
@@ -667,6 +770,7 @@ def _compute_context_completeness(
     # host_id
     try:
         import socket
+
         host_id = socket.gethostname()
         score += 0.15
     except Exception:
