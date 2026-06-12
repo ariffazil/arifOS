@@ -79,6 +79,7 @@ from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
 from starlette.middleware.cors import CORSMiddleware  # noqa: E402
 from starlette.requests import Request  # noqa: E402
 from starlette.responses import JSONResponse  # noqa: E402
+from starlette.staticfiles import StaticFiles  # noqa: E402
 
 from arifosmcp.constitutional_map import (  # noqa: E402
     CANONICAL_TOOLS,
@@ -1333,6 +1334,34 @@ if app:
         logger.info("Webhook + SSE routers mounted on ASGI app")
     except Exception as e:
         logger.warning(f"Webhook/SSE mount failed: {e}")
+
+    # ── Sovereign Knowledge Archive — full open per F13 directive 2026-06-12 ──
+    _SOVEREIGN_STATIC_DIR = "/opt/arifos/app/static"
+
+    async def _serve_agent_arif(request: Request) -> JSONResponse:
+        """Serve AGENT_ARIF.md — agent discovery landing page."""
+        from starlette.responses import PlainTextResponse
+
+        fp = os.path.join(_SOVEREIGN_STATIC_DIR, "AGENT_ARIF.md")
+        if os.path.isfile(fp):
+            return PlainTextResponse(open(fp).read(), media_type="text/markdown")
+        return JSONResponse({"error": "Not found"}, status_code=404)
+
+    async def _serve_sovereign_file(request: Request) -> JSONResponse:
+        """Serve any file from static/000/ via /arif/000/{filename}."""
+        from starlette.responses import PlainTextResponse
+
+        filename = request.path_params.get("filename", "")
+        if ".." in filename or "/" in filename:
+            return JSONResponse({"error": "Invalid path"}, status_code=400)
+        fp = os.path.join(_SOVEREIGN_STATIC_DIR, "000", filename)
+        if os.path.isfile(fp):
+            return PlainTextResponse(open(fp).read(), media_type="text/markdown")
+        return JSONResponse({"error": "Not found"}, status_code=404)
+
+    app.add_route("/arif", _serve_agent_arif, methods=["GET"])
+    app.add_route("/arif/000/{filename}", _serve_sovereign_file, methods=["GET"])
+    logger.info(f"Sovereign static routes registered at /arif and /arif/000/{{filename}}")
 
 
 def main() -> None:

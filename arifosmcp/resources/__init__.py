@@ -36,6 +36,7 @@ from .jurisdiction import register_jurisdiction
 from .memory import register_memory
 from .runner import register_runner_resources
 from .schema import register_schema
+from .sovereign import register_sovereign_resources
 from .seal_readiness import register_seal_readiness
 from .tree777 import register_tree777_resources
 from .trinity import register_trinity
@@ -100,4 +101,5 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_embodied_resources(mcp))
     registered.extend(register_tree777_resources(mcp))
     registered.extend(register_runner_resources(mcp))
+    registered.extend(register_sovereign_resources(mcp))
     return registered
