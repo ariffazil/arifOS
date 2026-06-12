@@ -6,9 +6,13 @@ Wants=vault999-writer.service
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/root/arifOS
+# Paths and sovereign IDs externalized — sourced from EnvironmentFile.
+# Defaults below match prior behavior when env vars are not set.
+Environment=ARIFOS_HOME=/root/arifOS
+Environment=HERMES_HOME=/root/HERMES
+WorkingDirectory=${ARIFOS_HOME}
 EnvironmentFile=/etc/arifOS/vault999.env
-ExecStart=/root/arifOS/.venv/bin/python /root/arifOS/f11_bridge.py
+ExecStart=${ARIFOS_HOME}/.venv/bin/python ${ARIFOS_HOME}/f11_bridge.py
 Restart=always
 RestartSec=5
 StartLimitInterval=60
@@ -16,8 +20,10 @@ StartLimitBurst=3
 
 Environment=VAULT999_WRITER_URL=http://127.0.0.1:5001
 Environment=BRIDGE_PORT=5002
-Environment=HERMES_DB=/root/HERMES/state.db
-Environment=ARIF_TELEGRAM_ID=267378578
+Environment=HERMES_DB=${HERMES_HOME}/state.db
+# ARIF_TELEGRAM_ID intentionally NOT hardcoded here.
+# Sourced from /etc/arifOS/vault999.env (F11 AUTH witness).
+# Bridge will fail-closed (423) if unset.
 Environment=SESSION_MAX_AGE_SEC=300
 Environment=MAX_SEALS_PER_HOUR=10
 Environment=ALLOWED_ACTION_PREFIXES=AAA_REGISTRY,CONTEXT_SYNC,FASTMCP_ALIGN,SESSION_CLOSE,AGENT_KICKSTART

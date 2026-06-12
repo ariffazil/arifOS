@@ -77,7 +77,16 @@ if not VAULT999_WRITER_TOKEN:
         VAULT999_WRITER_TOKEN = Path(VAULT999_WRITER_TOKEN_FILE).read_text().strip()
 BRIDGE_PORT = int(os.getenv("BRIDGE_PORT", "5002"))
 HERMES_DB = Path(os.getenv("HERMES_DB", "/root/HERMES/state.db"))
-ARIF_TELEGRAM_ID = os.getenv("ARIF_TELEGRAM_ID", "267378578")
+# F11 AUTH: ARIF_TELEGRAM_ID sourced from /etc/arifOS/vault999.env.
+# Default "0" = fail-closed. Bridge refuses all witnesses when unset.
+# Sovereign value must be injected via systemd EnvironmentFile.
+ARIF_TELEGRAM_ID = os.getenv("ARIF_TELEGRAM_ID", "0")
+if ARIF_TELEGRAM_ID == "0":
+    import logging as _logging
+
+    _logging.getLogger(__name__).warning(
+        "ARIF_TELEGRAM_ID not set — bridge will refuse all witnesses (F11 fail-closed)"
+    )
 SESSION_MAX_AGE_SEC = int(os.getenv("SESSION_MAX_AGE_SEC", "300"))  # 5 min pilot
 MAX_SEALS_PER_HOUR = int(os.getenv("MAX_SEALS_PER_HOUR", "10"))
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -413,9 +422,7 @@ async def seal(req: SealRequest, request: Request):
         f"Merkle: <code>{(result.merkle_leaf or '?')[:16]}</code>"
     )
 
-    logger.info(
-        f"SEALED: id={result.vault_id} leaf={(result.merkle_leaf or '?')[:16]}..."
-    )
+    logger.info(f"SEALED: id={result.vault_id} leaf={(result.merkle_leaf or '?')[:16]}...")
     return result
 
 
@@ -423,9 +430,7 @@ async def seal(req: SealRequest, request: Request):
 if __name__ == "__main__":
     import uvicorn
 
-    logger.info(
-        f"Seal bridge starting on :{BRIDGE_PORT} → vault999-writer {VAULT999_WRITER}"
-    )
+    logger.info(f"Seal bridge starting on :{BRIDGE_PORT} → vault999-writer {VAULT999_WRITER}")
     logger.info(f"Hermes DB: {HERMES_DB} (exists={HERMES_DB.exists()})")
     logger.info(f"Arif Telegram ID: {ARIF_TELEGRAM_ID}")
     logger.info(f"Allowed prefixes: {sorted(ALLOWED_ACTION_PREFIXES)}")

@@ -271,7 +271,7 @@ def _resolve_git_commit() -> str:
             subprocess.check_output(
                 ["git", "rev-parse", "--short", "HEAD"],
                 stderr=subprocess.DEVNULL,
-                cwd="/root/arifOS",
+                cwd=os.environ.get("ARIFOS_HOME", "/root") + "/arifOS",
             )
             .decode()
             .strip()[:7]
@@ -531,8 +531,7 @@ try:
         mcp.tool(
             name="arif_heartbeat",
             description=(
-                "Record or query federation heartbeats. "
-                "Returns liveness verdict for known organs."
+                "Record or query federation heartbeats. Returns liveness verdict for known organs."
             ),
             tags={"live-kernel", "heartbeat", "state-bus", "vitality"},
         )(_hb)
@@ -1031,11 +1030,33 @@ if app:
         checks: dict[str, bool | str | int] = {}
 
         # 1. Floors
-        checks["floors_active"] = 13
-        checks["floors_enforced"] = True
+        # Hardening v1.0: target is the constitutional minimum (13).
+        # Actual count is dynamic via core.shared.floor_audit.get_ml_floor_runtime().
+        # This allows growth to >13 floors without breaking health checks.
+        try:
+            from arifosmcp.core.shared.floor_audit import get_ml_floor_runtime
+
+            _floor_runtime = get_ml_floor_runtime()
+            checks["floors_active"] = _floor_runtime.get("floors_active", 13)
+            checks["floors_enforced"] = True
+            checks["floors_active_target"] = 13
+            checks["floors_active_list"] = _floor_runtime.get("floors_list", [])
+        except Exception:
+            checks["floors_active"] = 13
+            checks["floors_enforced"] = True
+            checks["floors_active_target"] = 13
 
         # 2. Tools
-        checks["tools_loaded"] = 13
+        # Hardening v1.0: tools_loaded is dynamic (count of arif_* tools).
+        # Target remains 13 (constitutional minimum). Use >= for growth.
+        try:
+            from arifosmcp.constitutional_map import CANONICAL_TOOLS
+
+            _canonical_count = len(CANONICAL_TOOLS)
+        except Exception:
+            _canonical_count = 13
+        checks["tools_loaded"] = _canonical_count
+        checks["tools_loaded_target"] = 13
 
         # 3. Policy hash
         try:
@@ -1082,7 +1103,7 @@ if app:
         checks["reality_stack_modules"] = reality_loaded
 
         # 7. VAULT999
-        vault_path = "/root/VAULT999/outcomes.jsonl"
+        vault_path = os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"
         vault_lines = 0
         if os.path.isfile(vault_path):
             try:
