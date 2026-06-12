@@ -1,3 +1,4 @@
+
 """
 arifosmcp/tools/evidence.py — 222_EVIDENCE (Reality-Wired)
 ════════════════════════════════════════════════════════════
@@ -13,8 +14,10 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
+import asyncio
 
 import logging
+
 from typing import Any, Literal
 
 from arifosmcp.runtime.law import check_laws
@@ -23,7 +26,7 @@ from arifosmcp.runtime.tools import _hold
 logger = logging.getLogger(__name__)
 
 
-def arif_evidence_fetch(
+async def arif_evidence_fetch(
 
     mode: Literal["fetch", "search", "archive", "verify", "void_audit"] = "fetch",
     url: str | None = None,

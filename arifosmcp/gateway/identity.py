@@ -291,3 +291,50 @@ class OidcAdapterStub:
 
     def resolve(self, token: str) -> StructuredSubject:
         return StructuredSubject()
+
+
+# ═══════════════════════════════════════════════════════
+# COMPAT SHIM — gateway/server.py expects these names
+# ═══════════════════════════════════════════════════════
+
+# Alias: server.py imports `Subject`; canonical class is `StructuredSubject`.
+Subject = StructuredSubject
+
+_GLOBAL_KEY_STORE = None
+_GLOBAL_RESOLVER = None
+
+
+def _ensure_resolver():
+    global _GLOBAL_KEY_STORE, _GLOBAL_RESOLVER
+    if _GLOBAL_KEY_STORE is None:
+        _GLOBAL_KEY_STORE = ApiKeyStore([
+            {
+                "key": "arifos-dev-key-2026",
+                "key_id": "dev-arif-001",
+                "human_id": "ARIF_FAZIL",
+                "agent_id": "arifOS-federation",
+                "org_id": "arifos-core",
+                "roles": ["sovereign", "operator"],
+            },
+        ])
+        _GLOBAL_RESOLVER = SignedHeaderIdentity(_GLOBAL_KEY_STORE)
+
+
+def resolve_subject(headers: dict) -> StructuredSubject:
+    """Resolve a StructuredSubject from request headers (compat shim).
+
+    Server.py imports `resolve_subject` as a module-level function. The
+    canonical class is SignedHeaderIdentity with a `.resolve(headers)`
+    method. This shim wraps that.
+    """
+    _ensure_resolver()
+    return _GLOBAL_RESOLVER.resolve(headers)
+
+
+def bootstrap_dev_keys() -> None:
+    """Bootstrap a dev API key in the in-memory store (compat shim).
+
+    Server.py calls this on startup. For v0.1 dev mode, registers a single
+    key for arifOS federation agents.
+    """
+    _ensure_resolver()
