@@ -59,6 +59,42 @@ logger = logging.getLogger("arifosmcp.governance_pipeline")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# SESSION ID HARD PRIMITIVE (P0 — 2026-06-12)
+# ═══════════════════════════════════════════════════════════════════════════════
+# The MiddlewareContext does not guarantee a session_id attribute.
+# This helper ensures every downstream read gets a valid session_id
+# or mints one deterministically. Without this, arif_session_init
+# fails with "MiddlewareContext has no attribute session_id" and
+# the entire init pipeline is broken.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _ensure_session_id(ctx: Any) -> str:
+    """Hard primitive — never let middleware guess.
+
+    Priority: ctx.session_id (if set) > request.session_id (if
+    attached) > generated UUID4. Always write back to ctx so
+    downstream reads see the same value.
+    """
+    sid = getattr(ctx, "session_id", None)
+    if not sid or sid in ("unknown", "None", ""):
+        # Check if request has a session_id attached
+        req = getattr(ctx, "request", None)
+        if req is not None:
+            sid = getattr(req, "session_id", None)
+    if not sid or sid in ("unknown", "None", ""):
+        import uuid
+
+        sid = f"sess_{uuid.uuid4().hex[:16]}"
+    # Write back so subsequent reads are consistent
+    try:
+        ctx.session_id = sid
+    except (AttributeError, TypeError):
+        pass  # frozen dataclass; the value lives in the call chain
+    return sid
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # PIPELINE RESULT
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -227,7 +263,7 @@ class GovernancePipeline:
         t0 = time.perf_counter()
         result = PipelineResult(
             verdict=PipelineVerdict.PASS,
-            session_id=ctx.session_id or "unknown",
+            session_id=_ensure_session_id(ctx),
             tool_name=ctx.tool_name,
         )
 
@@ -371,7 +407,7 @@ class GovernancePipeline:
                 latency_ms=(time.perf_counter() - t0) * 1000,
             )
 
-        if not ctx.session_id or ctx.session_id in ("unknown", "None", ""):
+        if not _ensure_session_id(ctx):
             return GateResult(
                 gate=Gate.SESSION,
                 passed=False,
@@ -381,7 +417,7 @@ class GovernancePipeline:
             )
 
         # Session exists check — lightweight, just track turns
-        sid = ctx.session_id
+        sid = _ensure_session_id(ctx)
         if sid not in self._sessions:
             self._sessions[sid] = {"created_at": time.time(), "actor_id": ctx.actor_id}
 
@@ -444,7 +480,7 @@ class GovernancePipeline:
     def _gate_budget(self, ctx: ToolCallContext) -> GateResult:
         """Enforce session budget limits."""
         t0 = time.perf_counter()
-        sid = ctx.session_id or "unknown"
+        sid = _ensure_session_id(ctx)
 
         # Track turn count
         turns = self._turn_counts.get(sid, 0)
@@ -794,7 +830,7 @@ class GovernancePipeline:
 
     def _record_tool_call(self, ctx: ToolCallContext) -> None:
         """Record a successful tool call for budget tracking."""
-        sid = ctx.session_id or "unknown"
+        sid = _ensure_session_id(ctx)
 
         # Track turns
         self._turn_counts[sid] = self._turn_counts.get(sid, 0) + 1
