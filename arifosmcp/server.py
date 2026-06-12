@@ -993,44 +993,56 @@ if app:
         has_mcp = _f("mcp_session_management")
         has_godel = True  # constitutional lock
 
-        def _sc(weight: float, *flags: bool) -> float:
-            """Weighted score contribution."""
-            if not flags:
+        def _maturity(weight: float, *levels: bool) -> float:
+            """Weighted maturity: each True level adds weight/N. Module exists≠done."""
+            if not levels:
                 return 0.0
-            return weight * (sum(1 for f in flags if f) / len(flags))
+            return weight * (sum(1 for f in levels if f) / len(levels))
 
-        constitutional = 85.0
-        constitutional += _sc(5, has_registry)
-        constitutional += _sc(3, has_eurekas)
-        constitutional += _sc(2, has_phash)
-        constitutional = min(constitutional, 95.0)
+        # Recalibrated v3: maturity-based. External auditors: 72-78%.
+        constitutional = 78.0
+        constitutional += _maturity(5, has_registry)
+        constitutional += _maturity(4, has_registry, False)
+        constitutional += _maturity(3, has_eurekas)
+        constitutional += _maturity(3, has_phash)
+        constitutional += _maturity(2, has_registry, has_shadows)
+        constitutional = min(constitutional, 93.0)
 
-        reality = 65.0
-        reality += _sc(8, has_reality)
-        reality += _sc(5, has_world)
-        reality += _sc(5, has_shadows)
-        reality += _sc(5, has_vault_any)
-        reality = min(reality, 90.0)
+        reality = 55.0
+        reality += _maturity(10, has_reality)
+        reality += _maturity(5, has_world)
+        reality += _maturity(5, has_shadows)
+        reality += _maturity(5, has_vault_any)
+        reality += _maturity(5, has_reality, False, False, False)
+        reality = min(reality, 85.0)
 
-        execution = 75.0
-        execution += _sc(5, has_session)
-        execution += _sc(5, has_envelope)
-        execution += _sc(5, has_phash)
-        execution = min(execution, 92.0)
+        execution = 72.0
+        execution += _maturity(6, has_session)
+        execution += _maturity(5, has_envelope)
+        execution += _maturity(4, has_phash)
+        execution += _maturity(3, has_session, has_envelope, has_phash)
+        execution = min(execution, 90.0)
 
-        truth_fed = 70.0
-        truth_fed += _sc(8, has_registry)
-        truth_fed += _sc(5, has_vault)
-        truth_fed += _sc(5, has_mcp)
-        truth_fed = min(truth_fed, 90.0)
+        truth_fed = 60.0
+        truth_fed += _maturity(8, has_registry)
+        truth_fed += _maturity(6, has_vault)
+        truth_fed += _maturity(5, has_mcp)
+        truth_fed += _maturity(5, has_registry, False, False)
+        truth_fed = min(truth_fed, 87.0)
 
-        safety = 70.0
-        safety += _sc(8, has_godel)
-        safety += _sc(5, has_vault_any)
-        safety += _sc(5, has_shadows)
-        safety = min(safety, 88.0)
+        safety = 55.0
+        safety += _maturity(8, has_godel)
+        safety += _maturity(5, has_vault_any)
+        safety += _maturity(5, has_shadows)
+        safety += _maturity(4, False, False)
+        try:
+            __import__("arifosmcp.runtime.memory_quarantine")
+            safety += 3.0
+        except Exception:
+            pass
+        safety = min(safety, 80.0)
 
-        overall = round(
+        internal_overall = round(
             constitutional * 0.25
             + reality * 0.20
             + execution * 0.25
@@ -1039,6 +1051,13 @@ if app:
             1,
         )
 
+        external_reference = {
+            "chatgpt_audit": 76,
+            "deepseek_audit": 76,
+            "consensus_range": "72–78",
+            "consensus_median": 76,
+        }
+
         return JSONResponse(
             {
                 "status": "ready",
@@ -1051,89 +1070,15 @@ if app:
                     "execution_control": round(execution, 1),
                     "truth_and_federation": round(truth_fed, 1),
                     "safety_and_recovery": round(safety, 1),
-                    "overall": overall,
+                    "overall": internal_overall,
                 },
-                "verdict": "SEAL" if overall >= 80 else ("BURN_IN" if overall >= 70 else "HOLD"),
+                "verdict": "SEAL"
+                if internal_overall >= 80
+                else ("BURN_IN" if internal_overall >= 70 else "HOLD"),
+                "external_reference": external_reference,
+                "scoring_note": "Recalibrated v3 — maturity-based. Module exists≠done. External auditors: 72-78%.",
                 "checks": {k: v for k, v in checks.items()},
                 "computation_ms": round((_time.perf_counter() - t0) * 1000, 2),
-                "audit": "/root/docs/AGI_KERNEL_READINESS_AUDIT.md",
-                "forged_by": "Omega (Ω)",
-                "ditempa_bukan_diberi": True,
-            },
-            status_code=200,
-        )
-        checks["eureka_static_files"] = eureka_files
-
-        # 14. World-state model
-        try:
-            __import__("arifosmcp.runtime.world_state")
-            checks["world_state_model"] = True
-        except Exception:
-            checks["world_state_model"] = False
-
-        # ── Dynamic Score Computation ──────────────────────────────────
-        def _score(weight: float, *flags: bool) -> float:
-            return weight * (sum(1 for f in flags if f) / max(len(flags), 1))
-
-        constitutional = 85.0  # base: floors enforced, tools loaded
-        constitutional += _score(5, checks.get("model_registry_active", False))
-        constitutional += _score(3, checks.get("eureka_static_files", 0) >= 5)
-        constitutional += _score(2, checks.get("policy_hash_active", False))
-        constitutional = min(constitutional, 95.0)
-
-        reality = 65.0  # base: reality stack partial
-        reality += _score(8, checks.get("reality_stack_complete", False))
-        reality += _score(5, checks.get("world_state_model", False))
-        reality += _score(5, checks.get("model_shadows_registered", 0) >= 3)
-        reality += _score(5, checks.get("incident_cooling_shadow", False))
-        reality = min(reality, 90.0)
-
-        execution = 75.0  # base: governance pipeline, gates
-        execution += _score(5, checks.get("session_enforcement", False))
-        execution += _score(5, checks.get("envelope_validation", False))
-        execution += _score(5, checks.get("policy_hash_active", False))
-        execution = min(execution, 92.0)
-
-        truth_fed = 70.0  # base: vault, evidence
-        truth_fed += _score(8, checks.get("model_souls_registered", 0) >= 3)
-        truth_fed += _score(5, checks.get("vault999_active", False))
-        truth_fed += _score(5, checks.get("model_registry_active", False))
-        truth_fed = min(truth_fed, 90.0)
-
-        safety = 70.0  # base: floors, risk ledger
-        safety += _score(8, checks.get("godel_lock", False))
-        safety += _score(5, checks.get("vault999_append_only", False))
-        safety += _score(5, checks.get("incident_cooling_shadow", False))
-        safety = min(safety, 88.0)
-
-        overall = round(
-            (
-                constitutional * 0.25
-                + reality * 0.20
-                + execution * 0.25
-                + truth_fed * 0.15
-                + safety * 0.15
-            ),
-            1,
-        )
-
-        return JSONResponse(
-            {
-                "status": "ready",
-                "kernel": "arifOS AGI Kernel",
-                "version": _DEPLOY_VERSION,
-                "timestamp": datetime.now(UTC).isoformat(),
-                "readiness": {
-                    "constitutional_foundation": round(constitutional, 1),
-                    "reality_engineering": round(reality, 1),
-                    "execution_control": round(execution, 1),
-                    "truth_and_federation": round(truth_fed, 1),
-                    "safety_and_recovery": round(safety, 1),
-                    "overall": overall,
-                },
-                "verdict": "SEAL" if overall >= 80 else ("BURN_IN" if overall >= 70 else "HOLD"),
-                "checks": checks,
-                "computation_ms": round((time.perf_counter() - t0) * 1000, 2),
                 "audit": "/root/docs/AGI_KERNEL_READINESS_AUDIT.md",
                 "forged_by": "Omega (Ω)",
                 "ditempa_bukan_diberi": True,
