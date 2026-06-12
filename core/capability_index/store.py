@@ -17,8 +17,8 @@ from capability_index.models import CapabilityRecord
 logger = logging.getLogger(__name__)
 
 COLLECTION_NAME = "mcp_capabilities"
-VECTOR_SIZE = 384  # all-MiniLM-L6-v2
-EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+VECTOR_SIZE = 1024  # BAAI/bge-m3 — aligned with arifOS L3 semantic memory
+EMBEDDING_MODEL = "BAAI/bge-m3"
 
 
 class CapabilityStore:
@@ -34,7 +34,7 @@ class CapabilityStore:
             from sentence_transformers import SentenceTransformer
 
             logger.info("Loading embedding model %s ...", EMBEDDING_MODEL)
-            self._encoder = SentenceTransformer(EMBEDDING_MODEL)
+            self._encoder = SentenceTransformer(EMBEDDING_MODEL, trust_remote_code=True)
         return self._encoder
 
     def create_collection(self, recreate: bool = False) -> None:
