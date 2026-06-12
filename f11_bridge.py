@@ -66,11 +66,15 @@ logger = logging.getLogger("seal-bridge")
 # ── Config ────────────────────────────────────────────────────────────
 VAULT999_WRITER = os.getenv("VAULT999_WRITER_URL", "http://127.0.0.1:5001")
 VAULT999_WRITER_TOKEN = os.getenv("VAULT999_WRITER_TOKEN")
+VAULT_WRITER_TOKEN = os.getenv("VAULT_WRITER_TOKEN")
 VAULT999_WRITER_TOKEN_FILE = os.getenv(
     "VAULT999_WRITER_TOKEN_FILE", "/run/secrets/vault_writer_token"
 )
-if not VAULT999_WRITER_TOKEN and Path(VAULT999_WRITER_TOKEN_FILE).exists():
-    VAULT999_WRITER_TOKEN = Path(VAULT999_WRITER_TOKEN_FILE).read_text().strip()
+if not VAULT999_WRITER_TOKEN:
+    if VAULT_WRITER_TOKEN:
+        VAULT999_WRITER_TOKEN = VAULT_WRITER_TOKEN
+    elif Path(VAULT999_WRITER_TOKEN_FILE).exists():
+        VAULT999_WRITER_TOKEN = Path(VAULT999_WRITER_TOKEN_FILE).read_text().strip()
 BRIDGE_PORT = int(os.getenv("BRIDGE_PORT", "5002"))
 HERMES_DB = Path(os.getenv("HERMES_DB", "/root/HERMES/state.db"))
 ARIF_TELEGRAM_ID = os.getenv("ARIF_TELEGRAM_ID", "267378578")

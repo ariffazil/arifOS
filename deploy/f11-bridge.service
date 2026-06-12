@@ -7,6 +7,7 @@ Wants=vault999-writer.service
 Type=simple
 User=root
 WorkingDirectory=/root/arifOS
+EnvironmentFile=/etc/arifOS/vault999.env
 ExecStart=/root/arifOS/.venv/bin/python /root/arifOS/f11_bridge.py
 Restart=always
 RestartSec=5
