@@ -325,7 +325,7 @@ def evaluate_all(ctxs: list[ActionContext]) -> list[FiqhVerdict]:
 
 def total_score_delta(verdicts: list[FiqhVerdict]) -> tuple[int, int]:
     malu = sum(v.malu_delta for v in verdicts)
-    maruah = sum(v.maruh_delta if hasattr(v, "maruh_delta") else v.maruh_delta for v in verdicts)
+    maruah = sum(v.maruh_delta for v in verdicts)
     return malu, maruah
 
 
