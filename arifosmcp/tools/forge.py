@@ -55,6 +55,15 @@ async def arif_forge_execute(
     action_tier: str = "standard",
     permitted_scope: dict | None = None,
     plan_id: str | None = None,
+    # ── F1 AMANAH: per-call sovereign signature (optional) ───────────────────
+    # The signature is currently bound at session_init and inherited via
+    # session_id; this field is reserved for a future per-call signature
+    # path. Accepting it now closes the schema gap surfaced by the
+    # 2026-06-12 external harness audit. F13 ratifies whether to
+    # actually enforce it; for now the field is recorded but not
+    # verified. AGI_KERNEL_READINESS_GATE_001 Tier 5.
+    actor_signature: str | None = None,
+    nonce: str | None = None,
 ) -> ForgeOutput:
     """
     010_FORGE_EXECUTE: Sovereign execution bridge to A-FORGE.
@@ -75,6 +84,11 @@ async def arif_forge_execute(
         plan_id: Approved plan_id from forge_plan (required for engineer/write/generate).
         action_tier: "standard" | "sovereign" | "c4" | "c5".
         permitted_scope: Bounding scope dict for the execution.
+        actor_signature: RESERVED — Ed25519 signature over
+            (actor_id + constitution_hash + nonce). Currently recorded
+            but not verified. F13 ratifies enforcement.
+        nonce: RESERVED — replay-prevention nonce. Must accompany
+            actor_signature if either is provided. F1 AMANAH.
     """
     # ── v3.1: Mode classification gate ────────────────────────────────────────
     if mode not in _FORGE_MUTATE_ATOMIC:
@@ -125,6 +139,30 @@ async def arif_forge_execute(
             ),
             "violated_laws": ["L01", "L11"],
             "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
+        }
+        _add_floor_compat(_meta)
+        return ForgeOutput(
+            status="HOLD",
+            result={},
+            manifest=ForgeManifest(status=ManifestStatus.HOLD),
+            meta=_meta,
+            timestamp=datetime.now(UTC).isoformat(),
+        )
+
+    # ── v3.1: F1 AMANAH nonce/signature consistency (RESERVED) ───────────────
+    # If actor_signature is provided without nonce, reject for replay
+    # prevention. If both are provided, log receipt but do not enforce
+    # until F13 ratifies the per-call signature path.
+    if actor_signature and not nonce:
+        _meta = {
+            "error_code": ForgeErrorCode.E_SYNTHESIS_EMPTY,
+            "reason": (
+                "F1 AMANAH: actor_signature requires nonce for replay prevention. "
+                "Provide both, or omit both to inherit from session_init."
+            ),
+            "violated_laws": ["F01"],
+            "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
+            "f13_status": "RESERVED — per-call signature path not yet enforced",
         }
         _add_floor_compat(_meta)
         return ForgeOutput(
@@ -241,7 +279,7 @@ async def arif_forge_execute(
                         "error_code": ForgeErrorCode.E_SIDE_EFFECTS_BLOCKED,
                         "reason": f"888 HOLD — side_effects_allowed=False in runtime_truth. "
                         f"Shadow: {shadow_val}. "
-                        f"Required: human_ack before proceeding."
+                        f"Required: human_ack before proceeding.",
                     },
                     timestamp=datetime.now(UTC).isoformat(),
                 )
@@ -320,7 +358,7 @@ async def arif_forge_execute(
             )
 
     import asyncio
-    
+
     def _run_forge():
         return _arif_forge_execute(
             mode=mode,
@@ -335,10 +373,25 @@ async def arif_forge_execute(
             vault_entry_id=vault_entry_id,
             witness_type=witness_type,
         )
-        
+
     result_dict = await asyncio.to_thread(_run_forge)
     result = ForgeOutput(**result_dict)
     _register_forge_cooldown(result, mode, manifest, artifact_id, session_id)
+    # ── v3.1: surface reserved signature in receipt (recorded, not enforced) ──
+    if actor_signature and nonce:
+        # F13 territory — log receipt only, do not act
+        sig_receipt = {
+            "actor_signature_provided": True,
+            "nonce_provided": True,
+            "actor_signature_preview": actor_signature[:16] if actor_signature else None,
+            "f13_status": "RESERVED — per-call signature path not yet enforced; "
+            "signature inherited from session_init until F13 ratifies.",
+        }
+        # Attach to result.meta if present, else to result.result
+        if hasattr(result, "meta") and result.meta is not None:
+            result.meta["per_call_signature_receipt"] = sig_receipt
+        elif hasattr(result, "result") and isinstance(result.result, dict):
+            result.result["per_call_signature_receipt"] = sig_receipt
     return result
 
 
