@@ -159,6 +159,30 @@ def arif_session_init(
             doctrine=ARIF_DOCTRINE,
         )
 
+    if mode in ("light", "full"):
+        sess = _new_session(actor_id or "light_client", declared_model_key=declared_model_key, deployment_id=deployment_id)
+        sid = sess.get("session_id", "UNKNOWN")
+        return SessionManifest(
+            status="OK",
+            tool="arif_session_init",
+            mode=mode,
+            session=SessionState(session_id=sid, actor_id=actor_id, stage="000", lane="AGI", constitution_bound=True),
+            actor={"claimed_id": actor_id, "identity_verified": False, "authority_level": "LIGHT_BOOTSTRAP"},
+            constitution={"id": "arifos-constitution-v2026.05.05-SSCT", "human_judge_required": True},
+            result={
+                "session_id": sid, "mode": mode, "status": "READY",
+                "model_soul_loaded": False, "model_shadow_loaded": False,
+                "next_actions": [
+                    "call arif_os_attest for kernel self-attestation",
+                    "call arif_organ_attest_all for federation organ liveness",
+                    "call arif_lease_issue before governed tool use",
+                    "call arif_heartbeat for federation heartbeat registry",
+                    "call arif_session_init(mode='init') for full constitutional binding",
+                ],
+            },
+            doctrine=ARIF_DOCTRINE,
+        )
+
     if mode == "challenge":
         if actor_id != "arif":
             return SessionManifest(
@@ -307,38 +331,52 @@ def arif_session_init(
             constitution_bound=True,
         )
 
-        # ── ToM-1 upgrade: Operator theory-of-mind scaffold ───
-        operator_identity = _build_operator_identity(
-            actor_id=actor_id,
-            nonce=nonce,
-            signature=signature,
-            identity_verified=identity_verified,
-            authority_level=authority_level,
-        )
-        intent_model = _build_intent_model(sess, actor_id)
-        belief_state = _build_belief_state(actor_id)
-        preference_memory = _build_preference_memory(actor_id)
-        false_belief_flags = _build_false_belief_flags(actor_id)
-        well_mirror_enhanced = _build_well_mirror_enhanced(_well_mirror)
-        session_continuity = _build_session_continuity(sess, session_id, actor_id)
-        consent_boundaries = _build_consent_boundaries(actor_id)
-
-        # ── Ω: Model Soul/Shadow Loading (AGI Kernel, 2026-06-12) ──
-        # Load the model's capability profile (soul) and hazard profile (shadow)
-        # from the AAA registries. The shadow determines floor_posture tightening.
-        _model_soul: dict = {}
-        _model_shadow: dict = {}
-        _floor_posture_override: dict = {}
-        try:
-            _model_soul, _model_shadow, _floor_posture_override = _load_model_registry(
-                declared_model_key or "unknown"
+        # ── LIGHT MODE: Skip heavy loading (ToM-1, well mirrors, model registry) ──
+        if mode == "light":
+            operator_identity = OperatorIdentity(claimed_id=actor_id, identity_verified=False)
+            intent_model = {}
+            belief_state = {}
+            preference_memory = {}
+            false_belief_flags = {}
+            well_mirror_enhanced = WellMirrorEnhanced(
+                status="skipped_light_mode",
+                degradation_flags=["light_mode_no_well_mirror"],
             )
-            # Attach to session for downstream governance
-            sess["model_soul"] = _model_soul
-            sess["model_shadow"] = _model_shadow
-            sess["floor_posture_override"] = _floor_posture_override
-        except Exception:
-            pass  # Fail-soft: session works without soul/shadow
+            session_continuity = _build_session_continuity(sess, session_id, actor_id)
+            consent_boundaries = ConsentBoundaries(consent_mode="light_mode_deferred")
+            _model_soul = {}
+            _model_shadow = {}
+            _floor_posture_override = {}
+        else:
+            # ── ToM-1 upgrade: Operator theory-of-mind scaffold ───
+            operator_identity = _build_operator_identity(
+                actor_id=actor_id,
+                nonce=nonce,
+                signature=signature,
+                identity_verified=identity_verified,
+                authority_level=authority_level,
+            )
+            intent_model = _build_intent_model(sess, actor_id)
+            belief_state = _build_belief_state(actor_id)
+            preference_memory = _build_preference_memory(actor_id)
+            false_belief_flags = _build_false_belief_flags(actor_id)
+            well_mirror_enhanced = _build_well_mirror_enhanced(_well_mirror)
+            session_continuity = _build_session_continuity(sess, session_id, actor_id)
+            consent_boundaries = _build_consent_boundaries(actor_id)
+
+            # ── Ω: Model Soul/Shadow Loading (AGI Kernel, 2026-06-12) ──
+            _model_soul: dict = {}
+            _model_shadow: dict = {}
+            _floor_posture_override: dict = {}
+            try:
+                _model_soul, _model_shadow, _floor_posture_override = _load_model_registry(
+                    declared_model_key or "unknown"
+                )
+                sess["model_soul"] = _model_soul
+                sess["model_shadow"] = _model_shadow
+                sess["floor_posture_override"] = _floor_posture_override
+            except Exception:
+                pass
 
         # ── v3.1: Context completeness receipt ───────────────
         context_completeness = _compute_context_completeness(

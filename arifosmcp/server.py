@@ -356,6 +356,9 @@ try:
         arif_lease_revoke as _arif_lease_revoke,
     )
     from arifosmcp.runtime.live_kernel import arif_os_attest as _arif_os_attest
+    from arifosmcp.runtime.narrative_tension import (
+        arif_detect_narrative_tension as _arif_detect_narrative_tension,
+    )
     from arifosmcp.runtime.organ_attestation import (
         attest_all_organs as _attest_all_organs,
     )
@@ -449,6 +452,19 @@ try:
             ),
             tags={"genesis", "shadow-drift", "sovereignty", "888-hold"},
         )(_arif_detect_institutional_shadow_drift)
+
+    # ── Narrative Tension / Perception Kernel (frame geometry) ───────────────
+    _nt = _wrap_handler(_arif_detect_narrative_tension, "arif_detect_narrative_tension")
+    if _nt is not None:
+        mcp.tool(
+            name="arif_detect_narrative_tension",
+            description=(
+                "Detect paradox tension, power asymmetry, and implicit frames in news "
+                "articles or institutional text. Returns a FrameGraph with actors, claims, "
+                "tensions, and a kernel verdict. Golden case: Putra Heights Kosmo 2026-06-12."
+            ),
+            tags={"perception-kernel", "narrative-tension", "frame-geometry", "shadow-drift"},
+        )(_nt)
 
     # ── Live Kernel Attestation (MCP state bus) ─────────────────────────────
     _attest = _wrap_handler(_arif_os_attest, "arif_os_attest")

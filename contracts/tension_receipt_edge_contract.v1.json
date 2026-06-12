@@ -1,0 +1,123 @@
+{
+  "$id": "https://arifos.org/schema/tension-receipt-edge-contract.v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TensionNode ↔ ReceiptNode Edge Contract",
+  "description": "PROV-aligned event-sourcing bridge: tension node = stateful epistemic object, receipt node = immutable event artifact proving each state transition. One activity produces both: a new version of the tension node + a receipt sealing that version. DITEMPA BUKAN DIBERI.",
+  "definitions": {
+    "TensionReceiptRef": {
+      "type": "object",
+      "required": ["receipt_id", "receipt_type", "subject_version", "stream_position"],
+      "properties": {
+        "receipt_id": { "type": "string", "description": "Stable receipt identifier" },
+        "receipt_type": {
+          "type": "string",
+          "enum": [
+            "TENSION_DETECTED", "TENSION_REVIEW_STARTED", "TENSION_RESCORING",
+            "TENSION_ESCALATED", "TENSION_LINKED_TO_REPORT_VERSION",
+            "TENSION_RESOLVED", "TENSION_REOPENED"
+          ]
+        },
+        "subject_version": { "type": "integer", "minimum": 1 },
+        "stream_position": { "type": "integer", "minimum": 0 },
+        "global_sequence": { "type": "integer", "minimum": 0 },
+        "activity_ref": { "type": "string" },
+        "actor_ref": { "type": "string" },
+        "prior_receipt_ref": { "type": ["string", "null"] },
+        "subject_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "Content hash of the tension node version this receipt witnesses"
+        },
+        "evidence_refs": { "type": "array", "items": { "type": "string" } },
+        "merkle_leaf_index": { "type": ["integer", "null"] },
+        "merkle_leaf_hash": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "reason_code": { "type": "string" },
+        "receipt_context": {
+          "type": "object",
+          "properties": {
+            "floor_bindings": { "type": "array", "items": { "type": "string" } },
+            "pipeline_stage": { "type": "string" },
+            "trigger_kind": { "type": "string" },
+            "shadow_delta": { "type": "number", "minimum": -1, "maximum": 1 },
+            "maruah_delta": { "type": "number", "minimum": -1, "maximum": 1 }
+          }
+        },
+
+        "signature_ref": { "type": "string" }
+      }
+    },
+    "TensionActivity": {
+      "type": "object",
+      "required": ["activity_id", "activity_type", "generated_at"],
+      "properties": {
+        "activity_id": { "type": "string" },
+        "activity_type": {
+          "type": "string",
+          "enum": ["detect", "review", "rescore", "escalate", "resolve", "reopen", "link_to_report"]
+        },
+        "description": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "actor_ref": { "type": "string" },
+        "used_refs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Entities used as input (evidence, prior tension version, policy)"
+        },
+        "produced_refs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Entities produced (new tension version hash, receipt)"
+        },
+        "reason_code": { "type": "string" }
+      }
+    }
+  },
+  "type": "object",
+  "required": ["contract_id", "tension_node", "receipt_refs", "activities", "invariants"],
+  "properties": {
+    "contract_id": { "type": "string", "const": "tension-receipt-edge-contract-v1" },
+    "tension_node": {
+      "type": "object",
+      "required": ["tension_id", "status", "receipt_refs", "latest_receipt_ref"],
+      "properties": {
+        "tension_id": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["open", "under_review", "escalated", "partially_resolved", "resolved", "archived"]
+        },
+        "receipt_refs": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/TensionReceiptRef" },
+          "description": "Ordered event log for this tension node"
+        },
+        "latest_receipt_ref": {
+          "type": "string",
+          "description": "Points to receipt with highest stream_position"
+        },
+        "resolution_receipt_ref": {
+          "type": ["string", "null"],
+          "description": "Required when status=resolved"
+        },
+        "subject_hash": {
+          "type": "string",
+          "description": "Current canonical hash of the tension node"
+        },
+        "subject_version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Monotonic version counter"
+        }
+      }
+    },
+    "activities": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/TensionActivity" }
+    },
+    "invariants": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Invariants that this contract enforces"
+    }
+  }
+}

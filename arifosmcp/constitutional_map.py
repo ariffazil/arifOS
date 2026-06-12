@@ -472,14 +472,14 @@ def preflight(
 CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_session_init": {
         "name": "arif_session_init",
-        "description": "000_INIT: Session bootstrap + identity binding. CALL FIRST on every agentic session — no audit trail, no floor enforcement, no actor binding without this. Do NOT call GEOX/WEALTH/WELL tools before calling this. Parameters: mode (init|resume|validate|epoch_open|epoch_seal), actor_id, session_id.",  # noqa: E501
+        "description": "000_INIT: Session bootstrap + identity binding. CALL FIRST on every agentic session — no audit trail, no floor enforcement, no actor binding without this. Do NOT call GEOX/WEALTH/WELL tools before calling this. Parameters: mode (init|light|resume|validate|epoch_open|epoch_seal), actor_id, session_id. Use mode='light' for fast (<1s) bootstrap with tool pointers; mode='init' for full constitutional binding (slow, ~60s).",  # noqa: E501
         "access": "public",
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
         "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L12_INJECTION],
         "risk_tier": "medium",
         "irreversible": False,
-        "modes": ["init", "resume", "validate", "epoch_open", "epoch_seal"],
+        "modes": ["init", "light", "resume", "validate", "epoch_open", "epoch_seal"],
         "eureka_insight": "F1: ∃ undo(a) — irreversibility requires explicit human ack.",
         "cognitive_axis": "identity",
         "expose": True,

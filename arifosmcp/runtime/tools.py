@@ -3583,14 +3583,16 @@ def _arif_session_init(
       (STABLE / DEGRADED_*). Produces the full session receipt.
 
     Modes:
-      init        — Create a new session with full constitutional binding.
+      init        — Create a new session with full constitutional binding (slow, ~60s).
+      light       — Lightweight bootstrap: returns kernel identity + tool pointers. <1s.
+                    Agent must call attest/lease/heartbeat tools on-demand after this.
       resume      — Reattach to an existing session by session_id.
       validate    — Check session health and constitutional alignment.
       epoch_open  — Open a new epoch, binding epoch_id to session_id.
       epoch_seal  — Seal the current epoch, writing Epoch Seal JSON to vault.
 
     Parameters:
-      mode              — init | resume | validate | epoch_open | epoch_seal
+      mode              — init | light | resume | validate | epoch_open | epoch_seal
       actor_id          — Sovereign actor identifier (required for init)
       ack_irreversible  — Explicit human ack for irreversible operations (F1 Amanah)
       session_id        — Existing session UUID (required for resume/validate/epoch_*)
@@ -3620,7 +3622,7 @@ def _arif_session_init(
             session_id=session_id,
         )
 
-    allowed_modes = ["init", "resume", "validate", "epoch_open", "epoch_seal"]
+    allowed_modes = ["init", "light", "resume", "validate", "epoch_open", "epoch_seal"]
     legacy_aliases = {
         "status": "validate",
         "discover": "ping",
@@ -3675,6 +3677,22 @@ def _arif_session_init(
 
     if normalized_mode == "ping":
         return _runtime_ping(mode="probe", session_id=session_id, actor_id=actor_id)
+
+    if normalized_mode in ("light", "full"):
+        # Delegate to canonical session.py implementation (light-mode aware)
+        from arifosmcp.tools.session import arif_session_init as _delegate_init
+        try:
+            return _delegate_init(
+                mode=normalized_mode,
+                actor_id=actor_id,
+                ack_irreversible=ack_irreversible,
+                session_id=session_id,
+                declared_model_key=declared_model_key,
+                nonce=nonce,
+                signature=actor_signature,
+            )
+        except Exception as e:
+            return _hold("arif_session_init", f"Delegate init failed: {e}", ["L01"], session_id=session_id)
 
     if normalized_mode == "init":
         signature_verified = False

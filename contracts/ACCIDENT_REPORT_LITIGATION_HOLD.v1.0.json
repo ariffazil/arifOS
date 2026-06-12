@@ -1,0 +1,70 @@
+{
+  "$id": "ACCIDENT_REPORT_LITIGATION_HOLD.v1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "arifOS RCA Gateway — Accident Report Litigation Hold Protocol",
+  "description": "Constitutional governance for post-disaster investigation reports under active litigation. DITEMPA BUKAN DIBERI.",
+  "type": "object",
+  "definitions": {
+    "Incident": {
+      "type": "object",
+      "required": ["incident_id", "title", "occurred_at", "jurisdiction", "affected_parties"],
+      "properties": {
+        "incident_id": { "type": "string", "pattern": "^INC-[0-9]{8}-[A-Z0-9]{6}$" },
+        "title": { "type": "string" },
+        "occurred_at": { "type": "string", "format": "date-time" },
+        "jurisdiction": { "type": "string", "enum": ["federal", "state", "joint", "international"] },
+        "affected_parties": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "infrastructure_type": { "type": "string", "enum": ["pipeline", "dam", "grid", "plant", "transport", "other"] },
+        "operator_entity": { "type": "string" },
+        "regulatory_bodies": { "type": "array", "items": { "type": "string" } },
+        "state": { "type": "string", "enum": ["INCIDENT","INVESTIGATING","REPORT_DRAFTED","REPORT_SUBMITTED","NO_LITIGATION","LITIGATION_ACTIVE","LEGAL_REVIEW","REVIEW_COMPLETE","REVIEW_STALLED","SOVEREIGN_OVERRIDE","DISCLOSED"] }
+      }
+    },
+    "ReportVersion": {
+      "type": "object",
+      "required": ["report_id", "incident_id", "version_id", "parent_version_id", "hash", "created_at", "created_by_role", "classification"],
+      "properties": {
+        "report_id": { "type": "string" },
+        "incident_id": { "type": "string" },
+        "version_id": { "type": "string", "pattern": "^v[0-9]+\\.[0-9]+$" },
+        "parent_version_id": { "type": ["string", "null"] },
+        "hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "created_by_role": { "type": "string" },
+        "classification": { "type": "string", "enum": ["PUBLIC", "CONFIDENTIAL", "RESTRICTED", "SECRET"] },
+        "content_uri": { "type": "string", "format": "uri" },
+        "merkle_leaf_hash": { "type": "string" }
+      }
+    },
+    "ReviewAction": {
+      "type": "object",
+      "required": ["action_id", "report_id", "version_id", "actor_role", "action_type", "reason_code", "started_at"],
+      "properties": {
+        "action_id": { "type": "string" },
+        "report_id": { "type": "string" },
+        "version_id": { "type": "string" },
+        "actor_role": { "type": "string" },
+        "action_type": { "type": "string", "enum": ["REDACT","MASK","DELAY","APPROVE","REJECT","ESCALATE","OVERRIDE","DISCLOSE"] },
+        "reason_code": { "type": "string", "enum": ["LITIGATION_RISK","PERSONAL_DATA","NATIONAL_SECURITY","COMMERCIAL_SENSITIVITY","CONTEMPT_RISK","PUBLIC_INTEREST","SOVEREIGN_OVERRIDE"] },
+        "legal_basis": { "type": "string" },
+        "diff_ref": { "type": "string" },
+        "started_at": { "type": "string", "format": "date-time" },
+        "deadline_at": { "type": "string", "format": "date-time" },
+        "decided_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "DisclosureReceipt": {
+      "type": "object",
+      "required": ["receipt_id", "report_id", "disclosed_version_id", "audience", "redaction_log_hash", "signed_by_role", "signed_at"],
+      "properties": {
+        "receipt_id": { "type": "string", "pattern": "^RCPT-DISC-[A-Z0-9]{12}$" },
+        "report_id": { "type": "string" },
+        "disclosed_version_id": { "type": "string" },
+        "audience": { "type": "string", "enum": ["PUBLIC","COURT","REGULATOR","PARLIAMENT","AFFECTED_PARTIES","SOVEREIGN"] },
+        "redaction_log_hash": { "type": "string" },
+        "signed_by_role": { "type": "string" },
+        "signed_at": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

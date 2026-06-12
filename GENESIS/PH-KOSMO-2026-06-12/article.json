@@ -1,0 +1,27 @@
+{
+  "node_type": "ArticleNode",
+  "node_id": "NODE-ARTICLE-KOSMO-PUTRA-001",
+  "article_id": "ARTICLE-kosmo-putra-2026-06-12",
+  "title": "Laporan kebakaran paip gas Putra Heights: MB Selangor nafi sorok, dedah kekangan undang-undang",
+  "source": "Kosmo",
+  "author": "Iskandar Shah Mohamed",
+  "published_at": "2026-06-12T08:00:00+08:00",
+  "url": null,
+  "full_text_hash": "ee4681c250ae4b9b",
+  "tags": [
+    "Putra Heights",
+    "gas pipeline",
+    "fire",
+    "Selangor",
+    "Petronas",
+    "investigation",
+    "litigation"
+  ],
+  "public_interest": "HIGH",
+  "created_at": "2026-06-12T19:58:45.798918+00:00",
+  "created_by": "arifOS-paradox-engine",
+  "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+  "epistemic_tag": "EVIDENCE",
+  "provenance": "Kosmo article, 12 June 2026 \u2014 ingested for constitutional frame analysis",
+  "receipt_refs": []
+}

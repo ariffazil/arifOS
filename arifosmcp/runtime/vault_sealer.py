@@ -33,6 +33,7 @@ CONSEQUENTIAL_TOOLS: set[str] = {
     "arif_lease_revoke",
     "arif_organ_attest",
     "arif_organ_attest_all",
+    "arif_detect_narrative_tension",
 }
 
 VAULT_WRITER_URL = os.getenv("VAULT999_WRITER_URL", "http://127.0.0.1:5001")

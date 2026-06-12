@@ -30,6 +30,14 @@ class ExecutionState(StrEnum):
     SEAL = "SEAL"
 
 
+class RiskClass(StrEnum):
+    """Constitutional risk classification for tool actions."""
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
+
 class ClaimStatus(StrEnum):
     ANONYMOUS = "anonymous"
     CLAIMED = "claimed"

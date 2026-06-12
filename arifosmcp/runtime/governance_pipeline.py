@@ -7,7 +7,8 @@ declarations — a single pipeline that intercepts every tool call and
 runs all contract checks in sequence. No agent brain required. No
 scattered copy-paste. One pipe. Every call. Always.
 
-The 8-Gate Sequence:
+The 9-Gate Sequence:
+  Gate -1: Kaparinyo Scan         — "Apa rupanya?" — pre-floor simulation check
   Gate 0: Session Binding       — session_id must be valid and active
   Gate 1: Identity & Authority  — actor must be verified for this action class
   Gate 2: Budget Enforcement    — session must have remaining budget
@@ -53,6 +54,17 @@ try:
     _REALITY_BRIDGE_AVAILABLE = True
 except ImportError:
     _REALITY_BRIDGE_AVAILABLE = False
+# ──────────────────────────────────────────────────────────────────────
+
+# ── Kaparinyo Gate (F0 pre-floor, Ω 2026-06-12) ─────────────────────
+try:
+    from arifosmcp.core.kernel.kaparinyo_gate import (
+        tanya_apa_rupanya as _kaparinyo_scan,
+    )
+
+    _KAPARINYO_GATE_AVAILABLE = True
+except ImportError:
+    _KAPARINYO_GATE_AVAILABLE = False
 # ──────────────────────────────────────────────────────────────────────
 
 logger = logging.getLogger("arifosmcp.governance_pipeline")
@@ -101,13 +113,15 @@ def _ensure_session_id(ctx: Any) -> str:
 
 class PipelineVerdict(StrEnum):
     PASS = "PASS"  # All gates cleared
+    WARN = "WARN"  # Advisory — simulation detected, but not blocked (Kaparinyo Gate)
     HOLD = "HOLD"  # Blocked at a gate — needs sovereign review
     VOID = "VOID"  # Blocked permanently — action is invalid
 
 
 class Gate(StrEnum):
-    """The 8 gates every tool call passes through, in order."""
+    """The 9 gates every tool call passes through, in order."""
 
+    KAPARINYO = "GATE_-1_KAPARINYO"  # Pre-floor: "Apa rupanya?"
     SESSION = "GATE_0_SESSION"
     IDENTITY = "GATE_1_IDENTITY"
     BUDGET = "GATE_2_BUDGET"
@@ -142,6 +156,9 @@ class PipelineResult:
     total_latency_ms: float = 0.0
     session_id: str = ""
     tool_name: str = ""
+    # Kaparinyo Gate (F0 pre-floor)
+    kaparinyo_score: float = 0.0
+    kaparinyo_advice: str = ""
 
     @property
     def all_clear(self) -> bool:
@@ -209,6 +226,11 @@ class GovernancePipeline:
     def __init__(
         self,
         *,
+        # ── Kaparinyo Gate (F0 pre-floor) ──
+        kaparinyo_enabled: bool = True,
+        kaparinyo_warn_threshold: float = 0.50,
+        kaparinyo_hold_threshold: float = 0.75,
+        # ── Standard gates ──
         budget_enabled: bool = True,
         vault_liveness_enabled: bool = True,
         drift_enabled: bool = True,
@@ -233,6 +255,11 @@ class GovernancePipeline:
         self.drift_enabled = drift_enabled
         self.floor_enabled = floor_enabled
         self.envelope_enabled = envelope_enabled
+
+        # Kaparinyo Gate (F0 pre-floor)
+        self.kaparinyo_enabled = kaparinyo_enabled and _KAPARINYO_GATE_AVAILABLE
+        self.kaparinyo_warn_threshold = kaparinyo_warn_threshold
+        self.kaparinyo_hold_threshold = kaparinyo_hold_threshold
 
         # Budget limits (can be overridden per-session)
         self.max_turns = max_turns
@@ -266,6 +293,19 @@ class GovernancePipeline:
             session_id=_ensure_session_id(ctx),
             tool_name=ctx.tool_name,
         )
+
+        # Gate -1: Kaparinyo (F0 pre-floor — "Apa rupanya?")
+        if _KAPARINYO_GATE_AVAILABLE and self.kaparinyo_enabled:
+            gate = self._gate_kaparinyo(ctx)
+            result.gate_results.append(gate)
+            if gate.metadata.get("kaparinyo_hold"):
+                # KAPARINYO_HOLD — simulation detected; advisory escalation
+                result.verdict = PipelineVerdict.WARN
+                result.reasons.append(f"KAPARINYO: {gate.reason}")
+                result.kaparinyo_score = gate.metadata.get("kaparinyo_score", 0.0)
+                result.kaparinyo_advice = gate.metadata.get("advice_bm", "")
+                # Does NOT block — advisory only (F1 reversible)
+                # Falls through to Gate 0
 
         # Gate 0: Session
         gate = self._gate_session(ctx)
@@ -383,6 +423,69 @@ class GovernancePipeline:
         self._record_tool_call(ctx)
         result.total_latency_ms = (time.perf_counter() - t0) * 1000
         return result
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # GATE -1: KAPARINYO (F0 pre-floor — "Apa rupanya?")
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _gate_kaparinyo(self, ctx: ToolCallContext) -> GateResult:
+        """F0 pre-floor: scan tool call arguments for simulation markers.
+
+        This gate runs BEFORE any constitutional floor. It asks the one question
+        that precedes all law: "Apa rupanya?" — what does it actually look like?
+
+        The gate is ADVISORY only (F1 AMANAH reversible). It never blocks
+        execution. It injects a WARN verdict into the pipeline result.
+        The caller can escalate to 888_HOLD if needed.
+        """
+        t0 = time.perf_counter()
+        # Build scan text from tool call parameters
+        scan_text = " ".join(
+            str(v) for v in ctx.params.values() if isinstance(v, (str, int, float, bool))
+        )
+        if not scan_text:
+            return GateResult(
+                gate=Gate.KAPARINYO,
+                passed=True,
+                reason="No text to scan",
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+
+        try:
+            kv = _kaparinyo_scan(
+                scan_text,
+                threshold_warn=self.kaparinyo_warn_threshold,
+                threshold_hold=self.kaparinyo_hold_threshold,
+            )
+        except Exception:
+            # Fail-soft: gate failure must never block the pipeline
+            return GateResult(
+                gate=Gate.KAPARINYO,
+                passed=True,
+                reason="Gate error — fail-soft",
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+
+        latency_ms = (time.perf_counter() - t0) * 1000
+        is_hold = kv.verdict == "KAPARINYO_HOLD"
+
+        return GateResult(
+            gate=Gate.KAPARINYO,
+            passed=not is_hold,  # WARN passes through; HOLD sets passed=False
+            reason=kv.advice_bm if is_hold else "PASS — output names reality",
+            latency_ms=latency_ms,
+            metadata={
+                "kaparinyo_verdict": kv.verdict,
+                "kaparinyo_score": kv.score,
+                "kaparinyo_hold": is_hold,
+                "advice_bm": kv.advice_bm,
+                "advice_en": kv.advice_en,
+                "markers_found": len(kv.markers_found),
+                "honesty_markers_found": len(kv.honesty_markers_found),
+                "gate_id": kv.gate_id,
+                "sha256": kv.sha256,
+            },
+        )
 
     # ═══════════════════════════════════════════════════════════════════════
     # GATE 0: SESSION BINDING

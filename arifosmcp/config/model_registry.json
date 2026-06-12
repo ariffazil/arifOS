@@ -57,7 +57,34 @@
       "context_window": 1048576,
       "status": "live",
       "last_verified": "2026-06-04",
-      "note": "Federation primary — Hermes ASI, Claude Code, arifOS kernel"
+      "censorship": {
+        "status": "CONFIRMED_CENSORED",
+        "detected_at": "2026-06-12T14:30:00Z",
+        "detected_by": "omega-forge-agent (live API probe)",
+        "mechanism": "Server-side post-generation content filter. Model reasoning_content generates accurate facts, but API response content is emptied to empty string. finish_reason is faked as 'length'.",
+        "affected_topics": [
+          "1MDB (1Malaysia Development Berhad)",
+          "Najib Razak (former PM, convicted in SRC/1MDB case)",
+          "PETRONAS (Malaysian state oil company)",
+          "Jho Low (1MDB-linked financier)",
+          "Malaysian sovereign wealth fund governance topics"
+        ],
+        "unaffected_topics": [
+          "General Malaysia facts (capital, geography)",
+          "Anwar Ibrahim (current PM — passes filter)",
+          "Non-controversial Malaysian biography"
+        ],
+        "evidence": {
+          "test_count": 6,
+          "censored_count": 4,
+          "pass_count": 2,
+          "raw_proof": "reasoning_content contains full accurate facts; content is empty string"
+        },
+        "mitigation": "Route Malaysian governance/political/corporate queries to DeepSeek (zero censorship confirmed). MiniMax kept for general/code/infra queries only.",
+        "risk_to_federation": "F2 TRUTH violation — censored output masquerades as 'model doesn't know' when in fact model knows accurately. F3 WITNESS violation — vendor silently alters evidence stream.",
+        "vendor_country": "CN (Shanghai Xiyu Technology Co., Ltd.)"
+      },
+      "note": "DEMOTED 2026-06-12: Was federation primary. Now fallback only. Censorship detected on MY governance topics. DeepSeek is now primary for Hermes."
     },
     {
       "model_key": "minimax/minimax-m2.7",
@@ -198,6 +225,77 @@
       "requires_human_ack_for": ["irreversible_delete", "vault_seal", "git_push"],
       "status": "live",
       "last_verified": "2026-06-04"
+    },
+    {
+      "model_key": "anthropic/claude-mythos-5",
+      "provider": "anthropic",
+      "family": "claude-mythos",
+      "capabilities": ["reason", "code", "analyze", "constitutional_deliberation"],
+      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit", "constitutional_amendment"],
+      "risk_tier": "guarded",
+      "identity_verified": false,
+      "requires_human_ack_for": ["irreversible_delete", "git_push", "external_relay", "vault_seal"],
+      "context_window": 1000000,
+      "status": "held",
+      "last_verified": "2026-06-13",
+      "exposure": "RESTRICTED",
+      "access_program": "Project Glasswing — vetted cybersecurity/life-sciences/government partners only",
+      "weights_ref": null,
+      "soul_ref": "/root/AAA/registries/models/anthropic_soul.yaml",
+      "shadow_ref": "/root/AAA/registries/models/anthropic_shadow.yaml",
+      "shadow_profile": "anthropic_shadow",
+      "routing_note": "Mythos 5 = raw frontier weights. No public API access. Registered for stack awareness only."
+    },
+    {
+      "model_key": "anthropic/claude-fable-5",
+      "provider": "anthropic",
+      "family": "claude-mythos",
+      "capabilities": ["reason", "code", "analyze", "constitutional_deliberation"],
+      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "risk_tier": "bounded",
+      "identity_verified": false,
+      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "context_window": 1000000,
+      "status": "held",
+      "last_verified": "2026-06-13",
+      "weights_ref": "anthropic/claude-mythos-5",
+      "soul_ref": "/root/AAA/registries/models/anthropic_soul.yaml",
+      "shadow_ref": "/root/AAA/registries/models/anthropic_shadow.yaml",
+      "shadow_profile": "anthropic_shadow",
+      "harness": {
+        "constitution": "Anthropic Claude Constitution (CAI-trained)",
+        "classifier_domains": ["CYBERSECURITY", "BIOLOGY_CHEMISTRY", "DISTILLATION"],
+        "classifier_position": "pre-inference gate (VERIFIED, 2026-06-13)",
+        "fallback_model": "anthropic/claude-opus-4.8",
+        "fallback_notification": "banner 'Switched to Opus 4.8' (VERIFIED)",
+        "fallback_sticky": true,
+        "false_positive_triggers": ["circuit breaker", "fallback", "auth wall", "InvokeModel", "outage"],
+        "data_policy": {
+          "retention_days": 30,
+          "zero_retention_available": false,
+          "note": "Mythos-class traffic — NO zero-retention option"
+        },
+        "jurisdiction": "US (CLOUD Act, FISA applicable)"
+      },
+      "routing_note": "Fable 5 = Mythos weights + safety harness. Vocabulary-level false-positive triggers documented (GitHub #67246). Do NOT route infrastructure/debugging sessions through Fable 5. Malaysian governance topics UNTESTED."
+    },
+    {
+      "model_key": "anthropic/claude-opus-4.8",
+      "provider": "anthropic",
+      "family": "claude-standard",
+      "capabilities": ["reason", "code", "analyze"],
+      "forbidden": ["self_authorize", "seal_without_judge", "irreversible_commit"],
+      "risk_tier": "bounded",
+      "identity_verified": false,
+      "requires_human_ack_for": ["irreversible_delete", "vault_seal"],
+      "status": "held",
+      "last_verified": "2026-06-13",
+      "soul_ref": "/root/AAA/registries/models/anthropic_soul.yaml",
+      "shadow_ref": "/root/AAA/registries/models/anthropic_shadow.yaml",
+      "naming_paradox": true,
+      "naming_note": "Name means 'magnum opus' — was Anthropic frontier pre-Mythos. Now safety-net fallback for Fable 5. Shadow at the naming layer (GENESIS/004).",
+      "stack_position": "PEAK of Standard Claude family (Haiku→Sonnet→Opus). SAFETY_NET for Mythos class.",
+      "routing_note": "Opus 4.8 = Standard family peak. Used as fallback when Fable classifiers fire. For direct use: mid-tier workhorse for code/reasoning tasks without Mythos-class capability."
     }
   ],
   "default_for_unlisted": {

@@ -1,0 +1,120 @@
+# arifOS MCP Gateway v0.1 — Configuration
+# DITEMPA BUKAN DIBERI
+
+gateway:
+  host: "127.0.0.1"
+  port: 8090
+  transport: "streamable-http"
+
+# ── Identity: static API keys (v0.1) ──
+# OIDC/OAuth 2.1 pluggable at the Identity interface (v0.2+)
+identity:
+  api_keys:
+    dev-key:
+      subject: "arif-test"
+      roles: ["sovereign", "admin"]
+    agent-key:
+      subject: "agent-readonly"
+      roles: ["viewer"]
+    geox-key:
+      subject: "geox-agent"
+      roles: ["geologist", "analyst"]
+
+# ── Upstream MCP servers ──
+upstreams:
+  arifos:
+    url: "http://127.0.0.1:8088/mcp"
+    timeout: 30
+  geox:
+    url: "http://127.0.0.1:18081/mcp/"
+    timeout: 30
+  wealth:
+    url: "http://127.0.0.1:18082/mcp"
+    timeout: 30
+  well:
+    url: "http://127.0.0.1:18083/mcp/"
+    timeout: 30
+
+# ── Lease policies ──
+# First match wins. Ordered by specificity.
+policies:
+  # Sovereign: full access, no invocation limits
+  sovereign_full:
+    match:
+      tool: "*"
+      subject:
+        roles: ["sovereign"]
+    lease_defaults:
+      risk_class: "LOW"
+      reversibility: "FULL"
+      max_invocations: 10000
+      ttl_seconds: 86400
+      require_888_hold: false
+
+  # HIGH RISK: wealth transfers, forge execution, vault sealing
+  high_irreversible:
+    match:
+      tool: "wealth.transfer_*"
+      subject:
+        roles: ["admin"]
+    lease_defaults:
+      risk_class: "HIGH_IRREVERSIBLE"
+      reversibility: "NONE"
+      max_invocations: 1
+      ttl_seconds: 600
+      require_888_hold: true
+
+  # MEDIUM: forge execute, deploy, seal
+  forge_medium:
+    match:
+      tool: "arif_forge_execute"
+      subject:
+        roles: ["admin", "sovereign"]
+    lease_defaults:
+      risk_class: "HIGH_IRREVERSIBLE"
+      reversibility: "PARTIAL"
+      max_invocations: 10
+      ttl_seconds: 3600
+      require_888_hold: true
+
+  # GEOX read-only for geologists
+  geox_read:
+    match:
+      tool: "geox.read_*"
+      subject:
+        roles: ["geologist", "analyst", "viewer"]
+    lease_defaults:
+      risk_class: "LOW"
+      reversibility: "FULL"
+      max_invocations: 500
+      ttl_seconds: 3600
+
+  # GEOX write operations
+  geox_write:
+    match:
+      tool: "geox.write_*"
+      subject:
+        roles: ["geologist"]
+    lease_defaults:
+      risk_class: "MEDIUM"
+      reversibility: "PARTIAL"
+      max_invocations: 50
+      ttl_seconds: 1800
+      require_888_hold: false
+
+  # Default: read-only, limited invocations
+  default_read:
+    match:
+      tool: "*"
+      subject:
+        roles: ["*"]
+    lease_defaults:
+      risk_class: "LOW"
+      reversibility: "FULL"
+      max_invocations: 100
+      ttl_seconds: 3600
+
+# ── VAULT999 integration ──
+vault999:
+  url: "http://127.0.0.1:5001"
+  seal_mode: "dry_run"  # dry_run | live (v0.2+)

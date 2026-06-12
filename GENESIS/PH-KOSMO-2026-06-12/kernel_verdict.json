@@ -1,0 +1,68 @@
+{
+  "kernel_verdict_id": "VERDICT-KOSMO-PUTRA-2026-06-12",
+  "article_id": "ARTICLE-kosmo-putra-2026-06-12",
+  "timestamp": "2026-06-12T19:58:45.798918+00:00",
+  "shadow_drift_risk": 0.75,
+  "max_severity": 0.95,
+  "smoking_gun": "PH-T3",
+  "smoking_gun_severity": 0.95,
+  "overall_verdict": "ESCALATE",
+  "governance_patterns_detected": [
+    "JURISDICTION_TRAP_MAPPING",
+    "NAMED_ACTOR_SLIP_ESCALATION",
+    "DEADLINE_VOID_ESCALATION",
+    "CONTRADICTORY_NARRATIVE_HOLD",
+    "VOICE_ASYMMETRY_CORRECTION",
+    "PASSIVE_OBSTACLE_DETECTION",
+    "ACCIDENT_REPORT_LITIGATION_HOLD"
+  ],
+  "auto_tags": [
+    "CONTRADICTORY_NARRATIVE",
+    "DEADLINE_VOID",
+    "INSTITUTIONAL_DELAY",
+    "INSTITUTIONAL_OPACITY_DETECTED",
+    "JURISDICTION_TRAP",
+    "MARUAH_RISK",
+    "MULTI_AGENCY_AMBIGUITY",
+    "NAMED_ACTOR_SLIP",
+    "PASSIVE_AGENCY",
+    "PUBLIC_INTEREST_HIGH",
+    "REQUIRES_VAULT999_PATTERN",
+    "TIMELINE_DRIFT",
+    "VOICE_ASYMMETRY"
+  ],
+  "detected_actors": 5,
+  "detected_claims": 6,
+  "detected_tensions": 7,
+  "voice_asymmetry": "MB Selangor: 4 quotes. Residents: 0 quotes.",
+  "epistemic_isolation_flag": true,
+  "epistemic_isolation_note": "Reporter cannot state the tension explicitly; geometry carries the truth.",
+  "vault_uris": [
+    "vault://article/kosmo-putra-2026-06-12",
+    "vault://article/kosmo-putra-2026-06-12/tensions",
+    "vault://tension/PH-T3",
+    "vault://receipt/RCPT-PH-T3"
+  ],
+  "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+  "nine_signal": {
+    "delta": {
+      "plane": "machine_physical_state",
+      "state": "KUKUH",
+      "en": "STABLE"
+    },
+    "psi": {
+      "plane": "governance_integrity",
+      "state": "AMANAH",
+      "en": "TRUSTWORTHY"
+    },
+    "omega": {
+      "plane": "intelligence_discipline",
+      "state": "BIJAKSANA",
+      "en": "WISE"
+    },
+    "overall": {
+      "state": "SELAMAT",
+      "en": "SAFE"
+    }
+  }
+}

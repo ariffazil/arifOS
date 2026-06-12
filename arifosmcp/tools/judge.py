@@ -426,12 +426,16 @@ def arif_judge_deliberate(
                 except RuntimeError:
                     raw = {"status": "async_context_required", "verdict": "HOLD"}
             scan_verdict = raw.get("verdict", "SEAL") if isinstance(raw, dict) else "HOLD"
-            verdict_code = VerdictCode.SEAL if scan_verdict == "SEAL" else (
-                VerdictCode.VOID if scan_verdict == "VOID" else VerdictCode.HOLD
+            verdict_code = (
+                VerdictCode.SEAL
+                if scan_verdict == "SEAL"
+                else (VerdictCode.VOID if scan_verdict == "VOID" else VerdictCode.HOLD)
             )
             return VerdictOutput(
                 verdict=verdict_code,
-                reasons=[raw.get("summary", "Scan complete.")] if isinstance(raw, dict) else ["Scan complete."],
+                reasons=[raw.get("summary", "Scan complete.")]
+                if isinstance(raw, dict)
+                else ["Scan complete."],
                 next_safe_action=(
                     "Review findings and remediate override patterns before continuing."
                     if scan_verdict in ("HOLD", "VOID")
@@ -512,6 +516,39 @@ def arif_judge_deliberate(
                 result.reasons.extend(reasons)
         else:
             track_judge(overclaim=False, attested=(evidence_level != "L0"))
+
+    # ── SIMULATIVE DETECTION GATE (RSI EUREKA 2026-06-12, Forge #3) ──
+    # F8 advisory: checks whether agent output is DESCRIBING or PERFORMING.
+    # Never blocks — only attaches an advisory question to the result.
+    # "Are you describing or performing?"
+    try:
+        from arifosmcp.runtime.simulative_detector import simulative_check
+
+        _sim_text = candidate if isinstance(candidate, str) else str(candidate)
+        _sim_result = simulative_check(_sim_text)
+        if _sim_result and _sim_result.get("advisory_question"):
+            if isinstance(result, dict):
+                result.setdefault("meta", {})["simulative_check"] = {
+                    "simulation_index": _sim_result["simulation_index"],
+                    "verdict": _sim_result["verdict"],
+                    "advisory_question": _sim_result["advisory_question"],
+                    "gate_id": _sim_result.get("gate_id", "simulative_detector_N2"),
+                }
+                # F8 advisory: surface the question in reasons
+                result.setdefault("reasons", []).append(
+                    f"F8_SIMULATIVE: {_sim_result['advisory_question']}"
+                )
+            else:
+                result.meta.setdefault("simulative_check", {})["simulation_index"] = _sim_result[
+                    "simulation_index"
+                ]
+                result.meta.setdefault("simulative_check", {})["verdict"] = _sim_result["verdict"]
+                result.meta.setdefault("simulative_check", {})["advisory_question"] = _sim_result[
+                    "advisory_question"
+                ]
+                result.reasons.append(f"F8_SIMULATIVE: {_sim_result['advisory_question']}")
+    except Exception:
+        pass  # fail-soft: simulative detection never blocks deliberation
 
     # ── Attach WELL substrate to result ──
     # Every judge verdict now carries biological readiness evidence.

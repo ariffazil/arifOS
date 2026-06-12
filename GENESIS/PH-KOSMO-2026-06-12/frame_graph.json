@@ -1,0 +1,812 @@
+{
+  "node_type": "ArticleFrameGraph",
+  "node_id": "NODE-FRAMEGRAPH-KOSMO-PUTRA-001",
+  "article": {
+    "node_type": "ArticleNode",
+    "node_id": "NODE-ARTICLE-KOSMO-PUTRA-001",
+    "article_id": "ARTICLE-kosmo-putra-2026-06-12",
+    "title": "Laporan kebakaran paip gas Putra Heights: MB Selangor nafi sorok, dedah kekangan undang-undang",
+    "source": "Kosmo",
+    "author": "Iskandar Shah Mohamed",
+    "published_at": "2026-06-12T08:00:00+08:00",
+    "url": null,
+    "full_text_hash": "ee4681c250ae4b9b",
+    "tags": [
+      "Putra Heights",
+      "gas pipeline",
+      "fire",
+      "Selangor",
+      "Petronas",
+      "investigation",
+      "litigation"
+    ],
+    "public_interest": "HIGH",
+    "created_at": "2026-06-12T19:58:45.798918+00:00",
+    "created_by": "arifOS-paradox-engine",
+    "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+    "epistemic_tag": "EVIDENCE",
+    "provenance": "Kosmo article, 12 June 2026 \u2014 ingested for constitutional frame analysis",
+    "receipt_refs": []
+  },
+  "actors": [
+    {
+      "node_type": "ActorNode",
+      "node_id": "NODE-ACTOR-REPORTER-001",
+      "name": "Iskandar Shah Mohamed",
+      "actor_type": "individual",
+      "role_in_frame": "observer",
+      "quote_count": 0,
+      "agency_score": 0.3,
+      "protection_level": 0.0,
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Article byline",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ActorNode",
+      "node_id": "NODE-ACTOR-MB-SELANGOR-001",
+      "name": "MB Selangor (Dato' Seri Amirudin Shari)",
+      "actor_type": "government",
+      "role_in_frame": "hero",
+      "quote_count": 4,
+      "agency_score": 0.85,
+      "protection_level": 0.2,
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Quoted extensively in article",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ActorNode",
+      "node_id": "NODE-ACTOR-PETRONAS-001",
+      "name": "Petronas",
+      "actor_type": "corporation",
+      "role_in_frame": "villain_implicit",
+      "quote_count": 0,
+      "agency_score": 0.9,
+      "protection_level": 0.85,
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "PLAUSIBLE",
+      "provenance": "Named once \u2014 'melibatkan agensi persekutuan seperti Petronas'",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ActorNode",
+      "node_id": "NODE-ACTOR-RESIDENTS-001",
+      "name": "Penduduk Putra Heights (36 plaintif)",
+      "actor_type": "group",
+      "role_in_frame": "victim",
+      "quote_count": 0,
+      "agency_score": 0.15,
+      "protection_level": 0.0,
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Referenced as 'mangsa', 'penduduk', '36 plaintif'",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ActorNode",
+      "node_id": "NODE-ACTOR-FEDERAL-001",
+      "name": "Kerajaan Persekutuan",
+      "actor_type": "government",
+      "role_in_frame": "gatekeeper",
+      "quote_count": 0,
+      "agency_score": 0.8,
+      "protection_level": 0.7,
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "PLAUSIBLE",
+      "provenance": "Referred to as 'agensi persekutuan', implied authority holder",
+      "receipt_refs": []
+    }
+  ],
+  "claims": [
+    {
+      "node_type": "ClaimNode",
+      "node_id": "NODE-CLAIM-001",
+      "claim_text": "Kerajaan negeri bersedia mendedahkan laporan siasatan kebakaran paip gas",
+      "claimer": "MB Selangor",
+      "claimer_type": "government",
+      "evidence_support": 0.3,
+      "hedging_detected": false,
+      "hedging_phrases": [],
+      "contradicts": [
+        "NODE-CLAIM-002",
+        "NODE-CLAIM-006"
+      ],
+      "supported_by": [],
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "CLAIM",
+      "provenance": "Article headline and lead paragraph",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ClaimNode",
+      "node_id": "NODE-CLAIM-002",
+      "claim_text": "Terdapat kekangan undang-undang yang menghalang pendedahan segera",
+      "claimer": "MB Selangor",
+      "claimer_type": "government",
+      "evidence_support": 0.7,
+      "hedging_detected": true,
+      "hedging_phrases": [
+        "kekangan undang-undang",
+        "perlu diteliti semula"
+      ],
+      "contradicts": [
+        "NODE-CLAIM-001"
+      ],
+      "supported_by": [
+        "NODE-CLAIM-003"
+      ],
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "CLAIM",
+      "provenance": "Body of article \u2014 MB's explanation",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ClaimNode",
+      "node_id": "NODE-CLAIM-003",
+      "claim_text": "Laporan melibatkan agensi persekutuan seperti Petronas perlu diteliti semula",
+      "claimer": "MB Selangor",
+      "claimer_type": "government",
+      "evidence_support": 0.95,
+      "hedging_detected": true,
+      "hedging_phrases": [
+        "perlu diteliti semula"
+      ],
+      "contradicts": [],
+      "supported_by": [],
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "CLAIM",
+      "provenance": "Body \u2014 the SLIP_PHRASE naming Petronas",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ClaimNode",
+      "node_id": "NODE-CLAIM-004",
+      "claim_text": "Laporan siasatan tidak mendapati unsur kecuaian atau jenayah",
+      "claimer": "MB Selangor (merujuk laporan siasatan)",
+      "claimer_type": "government",
+      "evidence_support": 0.4,
+      "hedging_detected": false,
+      "hedging_phrases": [],
+      "contradicts": [
+        "NODE-CLAIM-005"
+      ],
+      "supported_by": [],
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "CLAIM",
+      "provenance": "Article \u2014 MB citing investigation findings",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ClaimNode",
+      "node_id": "NODE-CLAIM-005",
+      "claim_text": "36 penduduk fail tuntutan undang-undang \u2014 dakwa insiden boleh dicegah",
+      "claimer": "Penduduk Putra Heights (melalui peguam)",
+      "claimer_type": "group",
+      "evidence_support": 0.85,
+      "hedging_detected": false,
+      "hedging_phrases": [],
+      "contradicts": [
+        "NODE-CLAIM-004"
+      ],
+      "supported_by": [],
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Article \u2014 legal action reported",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ClaimNode",
+      "node_id": "NODE-CLAIM-006",
+      "claim_text": "Laporan telah diserah kepada kerajaan negeri April lalu tetapi masih belum boleh didedahkan",
+      "claimer": "MB Selangor",
+      "claimer_type": "government",
+      "evidence_support": 0.6,
+      "hedging_detected": true,
+      "hedging_phrases": [
+        "masih belum boleh didedahkan"
+      ],
+      "contradicts": [
+        "NODE-CLAIM-001"
+      ],
+      "supported_by": [],
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "CLAIM",
+      "provenance": "Article \u2014 timeline reference",
+      "receipt_refs": []
+    }
+  ],
+  "tensions": [
+    {
+      "node_type": "ParadoxTensionNode",
+      "node_id": "NODE-TENSION-PH-T1",
+      "tension_id": "PH-T1",
+      "tension_class": "PROMISE_VS_OUTCOME",
+      "trigger_kind": "contradictory_timeline",
+      "severity": 0.85,
+      "shadow_score": 0.78,
+      "article_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+      "actor_refs": [
+        "NODE-ACTOR-MB-SELANGOR-001"
+      ],
+      "claim_refs": [
+        "NODE-CLAIM-001",
+        "NODE-CLAIM-006"
+      ],
+      "description": "Headline: 'bersedia dedah'. Body: laporan diserah April, Jun masih 'tak boleh didedahkan'. 3 minggu dari 'bersedia' ke 'tak boleh'.",
+      "what_reporter_couldnt_say": "Dah 3 minggu dari 'bersedia dedah' ke 'tak boleh dedah'. Someone stopped it.",
+      "evidence_snippets": [
+        "MB Selangor nafi sorok, dedah kekangan undang-undang",
+        "laporan telah diserah April lalu",
+        "masih belum boleh didedahkan"
+      ],
+      "recommended_action": "REPORT",
+      "governance_pattern": "ACCIDENT_REPORT_LITIGATION_HOLD",
+      "auto_tags": [
+        "PUBLIC_INTEREST_HIGH",
+        "INSTITUTIONAL_OPACITY_DETECTED",
+        "TIMELINE_DRIFT"
+      ],
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "PLAUSIBLE",
+      "provenance": "Kernel frame analysis of Kosmo article",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ParadoxTensionNode",
+      "node_id": "NODE-TENSION-PH-T2",
+      "tension_id": "PH-T2",
+      "tension_class": "PASSIVE_OBSTACLE",
+      "trigger_kind": "passive_agency_removal",
+      "severity": 0.75,
+      "shadow_score": 0.68,
+      "article_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+      "actor_refs": [
+        "NODE-ACTOR-MB-SELANGOR-001",
+        "NODE-ACTOR-FEDERAL-001"
+      ],
+      "claim_refs": [
+        "NODE-CLAIM-002"
+      ],
+      "description": "MB kata 'tiada halangan' dari negeri, tapi ada 'kekangan undang-undang'. Halangan dinamakan tanpa agensi spesifik \u2014 kecuali Petronas.",
+      "what_reporter_couldnt_say": "MB kata tiada halangan... tapi ada halangan. The obstacle is passive, unnamed, institutional.",
+      "evidence_snippets": [
+        "Kerajaan negeri tiada halangan untuk mendedahkan",
+        "terdapat kekangan undang-undang",
+        "melibatkan agensi persekutuan"
+      ],
+      "recommended_action": "REPORT",
+      "governance_pattern": "PASSIVE_OBSTACLE_DETECTION",
+      "auto_tags": [
+        "INSTITUTIONAL_OPACITY_DETECTED",
+        "PASSIVE_AGENCY"
+      ],
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "PLAUSIBLE",
+      "provenance": "Kernel frame analysis of Kosmo article",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ParadoxTensionNode",
+      "node_id": "NODE-TENSION-PH-T3",
+      "tension_id": "PH-T3",
+      "tension_class": "SLIP_PHRASE",
+      "trigger_kind": "named_actor_slip_under_hedged_frame",
+      "severity": 0.95,
+      "shadow_score": 0.91,
+      "article_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+      "actor_refs": [
+        "NODE-ACTOR-PETRONAS-001",
+        "NODE-ACTOR-MB-SELANGOR-001"
+      ],
+      "claim_refs": [
+        "NODE-CLAIM-003"
+      ],
+      "description": "Satu-satunya sebutan nama spesifik: 'agensi persekutuan SEPERTI PETRONAS'. Bukan 'agensi berkaitan'. Bukan 'pihak tertentu'. NAMA disebut. Reporter letak bendera.",
+      "what_reporter_couldnt_say": "Petronas disebut NAMA \u2014 ini bukan 'agensi persekutuan' generik. Reporter sengaja letak nama. This is the smoking gun.",
+      "evidence_snippets": [
+        "melibatkan agensi persekutuan seperti Petronas perlu diteliti semula"
+      ],
+      "recommended_action": "ESCALATE",
+      "governance_pattern": "NAMED_ACTOR_SLIP_ESCALATION",
+      "auto_tags": [
+        "PUBLIC_INTEREST_HIGH",
+        "INSTITUTIONAL_OPACITY_DETECTED",
+        "NAMED_ACTOR_SLIP",
+        "REQUIRES_VAULT999_PATTERN"
+      ],
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "PLAUSIBLE",
+      "provenance": "Kernel frame analysis of Kosmo article \u2014 highest severity tension",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ParadoxTensionNode",
+      "node_id": "NODE-TENSION-PH-T4",
+      "tension_id": "PH-T4",
+      "tension_class": "VOICE_ASYMMETRY",
+      "trigger_kind": "quote_asymmetry",
+      "severity": 0.7,
+      "shadow_score": 0.62,
+      "article_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+      "actor_refs": [
+        "NODE-ACTOR-MB-SELANGOR-001",
+        "NODE-ACTOR-RESIDENTS-001"
+      ],
+      "claim_refs": [
+        "NODE-CLAIM-001",
+        "NODE-CLAIM-005"
+      ],
+      "description": "MB dapat 4 petikan langsung + parafrasa. Penduduk: dirujuk sebagai 'mangsa', '36 plaintif' \u2014 sifar petikan langsung. Geometry = power.",
+      "what_reporter_couldnt_say": "MB dapat 4 petikan. Penduduk: sifar. Geometry = power. The victims have no voice in this article.",
+      "evidence_snippets": [
+        "MB Selangor menjelaskan...",
+        "Katanya...",
+        "Tambah beliau...",
+        "36 penduduk... mendakwa insiden boleh dicegah"
+      ],
+      "recommended_action": "REPORT",
+      "governance_pattern": "VOICE_ASYMMETRY_CORRECTION",
+      "auto_tags": [
+        "MARUAH_RISK",
+        "VOICE_ASYMMETRY"
+      ],
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Kernel frame analysis \u2014 quote count analysis",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ParadoxTensionNode",
+      "node_id": "NODE-TENSION-PH-T5",
+      "tension_id": "PH-T5",
+      "tension_class": "EXPLICIT_VS_IMPLICIT",
+      "trigger_kind": "hedging_vs_hard_fact_collision",
+      "severity": 0.8,
+      "shadow_score": 0.74,
+      "article_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+      "actor_refs": [
+        "NODE-ACTOR-MB-SELANGOR-001",
+        "NODE-ACTOR-RESIDENTS-001"
+      ],
+      "claim_refs": [
+        "NODE-CLAIM-004",
+        "NODE-CLAIM-005"
+      ],
+      "description": "Laporan rasmi: 'tiada kecuaian'. Mangsa melalui peguam: 'boleh dicegah'. Dua naratif bertembung tanpa resolusi.",
+      "what_reporter_couldnt_say": "Laporan kata tiada kecuaian. Mangsa kata boleh dicegah. Dua naratif bertembung. Siapa benar?",
+      "evidence_snippets": [
+        "tidak mendapati unsur kecuaian atau jenayah",
+        "36 penduduk fail tuntutan \u2014 dakwa insiden boleh dicegah"
+      ],
+      "recommended_action": "HOLD",
+      "governance_pattern": "CONTRADICTORY_NARRATIVE_HOLD",
+      "auto_tags": [
+        "PUBLIC_INTEREST_HIGH",
+        "CONTRADICTORY_NARRATIVE"
+      ],
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Kernel frame analysis \u2014 claim contradiction",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ParadoxTensionNode",
+      "node_id": "NODE-TENSION-PH-T6",
+      "tension_id": "PH-T6",
+      "tension_class": "DEADLINE_VOID",
+      "trigger_kind": "deadline_without_closure",
+      "severity": 0.9,
+      "shadow_score": 0.85,
+      "article_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+      "actor_refs": [
+        "NODE-ACTOR-MB-SELANGOR-001",
+        "NODE-ACTOR-FEDERAL-001"
+      ],
+      "claim_refs": [
+        "NODE-CLAIM-002",
+        "NODE-CLAIM-006"
+      ],
+      "description": "Laporan diserah April. Kini Jun. 'Masih diteliti semula.' Tiada tarikh tamat. Tiada siapa bertanggungjawab bagi tarikh.",
+      "what_reporter_couldnt_say": "Laporan diserah April. Jun masih 'diteliti semula'. Tiada tarikh tamat. This is institutional delay, not legal review.",
+      "evidence_snippets": [
+        "laporan telah diserah April lalu",
+        "masih belum boleh didedahkan",
+        "perlu diteliti semula"
+      ],
+      "recommended_action": "ESCALATE",
+      "governance_pattern": "DEADLINE_VOID_ESCALATION",
+      "auto_tags": [
+        "PUBLIC_INTEREST_HIGH",
+        "DEADLINE_VOID",
+        "INSTITUTIONAL_DELAY"
+      ],
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Kernel frame analysis \u2014 timeline analysis",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ParadoxTensionNode",
+      "node_id": "NODE-TENSION-PH-T7",
+      "tension_id": "PH-T7",
+      "tension_class": "JURISDICTION_TRAP",
+      "trigger_kind": "multi_jurisdiction_ping_pong",
+      "severity": 0.75,
+      "shadow_score": 0.68,
+      "article_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+      "actor_refs": [
+        "NODE-ACTOR-MB-SELANGOR-001",
+        "NODE-ACTOR-FEDERAL-001",
+        "NODE-ACTOR-PETRONAS-001"
+      ],
+      "claim_refs": [
+        "NODE-CLAIM-002",
+        "NODE-CLAIM-003"
+      ],
+      "description": "Negeri kata nak dedah. Persekutuan pegang kunci. Petronas dinamakan sebagai agensi spesifik. Tiga lapis kuasa \u2014 siapa yang sekat?",
+      "what_reporter_couldnt_say": "Negeri nak dedah, persekutuan pegang kunci, Petronas ada dalam frame. Siapa yang sekat? It's a jurisdiction ping-pong.",
+      "evidence_snippets": [
+        "kerajaan negeri bersedia mendedahkan",
+        "kekangan undang-undang",
+        "agensi persekutuan seperti Petronas"
+      ],
+      "recommended_action": "REPORT",
+      "governance_pattern": "JURISDICTION_TRAP_MAPPING",
+      "auto_tags": [
+        "JURISDICTION_TRAP",
+        "MULTI_AGENCY_AMBIGUITY"
+      ],
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "PLAUSIBLE",
+      "provenance": "Kernel frame analysis \u2014 jurisdiction mapping",
+      "receipt_refs": []
+    }
+  ],
+  "activities": [
+    {
+      "node_type": "TensionActivity",
+      "node_id": "NODE-ACT-PH-T1",
+      "activity_id": "ACT-PH-T1",
+      "tension_ref": "NODE-TENSION-PH-T1",
+      "action": "OBSERVE",
+      "performed_by": "arifOS-paradox-engine",
+      "result": "Tension PH-T1 detected \u2014 PROMISE_VS_OUTCOME",
+      "new_severity": 0.85,
+      "new_shadow_score": 0.78,
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Automated frame graph analysis",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "TensionActivity",
+      "node_id": "NODE-ACT-PH-T2",
+      "activity_id": "ACT-PH-T2",
+      "tension_ref": "NODE-TENSION-PH-T2",
+      "action": "OBSERVE",
+      "performed_by": "arifOS-paradox-engine",
+      "result": "Tension PH-T2 detected \u2014 PASSIVE_OBSTACLE",
+      "new_severity": 0.75,
+      "new_shadow_score": 0.68,
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Automated frame graph analysis",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "TensionActivity",
+      "node_id": "NODE-ACT-PH-T3",
+      "activity_id": "ACT-PH-T3",
+      "tension_ref": "NODE-TENSION-PH-T3",
+      "action": "OBSERVE",
+      "performed_by": "arifOS-paradox-engine",
+      "result": "Tension PH-T3 detected \u2014 SLIP_PHRASE",
+      "new_severity": 0.95,
+      "new_shadow_score": 0.91,
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Automated frame graph analysis",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "TensionActivity",
+      "node_id": "NODE-ACT-PH-T4",
+      "activity_id": "ACT-PH-T4",
+      "tension_ref": "NODE-TENSION-PH-T4",
+      "action": "OBSERVE",
+      "performed_by": "arifOS-paradox-engine",
+      "result": "Tension PH-T4 detected \u2014 VOICE_ASYMMETRY",
+      "new_severity": 0.7,
+      "new_shadow_score": 0.62,
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Automated frame graph analysis",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "TensionActivity",
+      "node_id": "NODE-ACT-PH-T5",
+      "activity_id": "ACT-PH-T5",
+      "tension_ref": "NODE-TENSION-PH-T5",
+      "action": "OBSERVE",
+      "performed_by": "arifOS-paradox-engine",
+      "result": "Tension PH-T5 detected \u2014 EXPLICIT_VS_IMPLICIT",
+      "new_severity": 0.8,
+      "new_shadow_score": 0.74,
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Automated frame graph analysis",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "TensionActivity",
+      "node_id": "NODE-ACT-PH-T6",
+      "activity_id": "ACT-PH-T6",
+      "tension_ref": "NODE-TENSION-PH-T6",
+      "action": "OBSERVE",
+      "performed_by": "arifOS-paradox-engine",
+      "result": "Tension PH-T6 detected \u2014 DEADLINE_VOID",
+      "new_severity": 0.9,
+      "new_shadow_score": 0.85,
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Automated frame graph analysis",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "TensionActivity",
+      "node_id": "NODE-ACT-PH-T7",
+      "activity_id": "ACT-PH-T7",
+      "tension_ref": "NODE-TENSION-PH-T7",
+      "action": "OBSERVE",
+      "performed_by": "arifOS-paradox-engine",
+      "result": "Tension PH-T7 detected \u2014 JURISDICTION_TRAP",
+      "new_severity": 0.75,
+      "new_shadow_score": 0.68,
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Automated frame graph analysis",
+      "receipt_refs": []
+    }
+  ],
+  "receipts": [
+    {
+      "node_type": "ReceiptNode",
+      "node_id": "NODE-RCPT-ARTICLE-ROOT",
+      "receipt_id": "RCPT-ARTICLE-KOSMO-PUTRA-ROOT",
+      "activity_ref": "",
+      "tension_ref": "",
+      "node_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+      "action": "INGEST_ARTICLE",
+      "verdict": "SEAL",
+      "merkle_leaf_index": 0,
+      "merkle_root": "",
+      "content_hash": "d644d09cb4b415b3",
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Article ingestion receipt",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ReceiptNode",
+      "node_id": "NODE-RCPT-PH-T1",
+      "receipt_id": "RCPT-PH-T1",
+      "activity_ref": "NODE-ACT-PH-T1",
+      "tension_ref": "NODE-TENSION-PH-T1",
+      "node_ref": "NODE-TENSION-PH-T1",
+      "action": "DETECT_TENSION",
+      "verdict": "SEAL",
+      "merkle_leaf_index": null,
+      "merkle_root": "",
+      "content_hash": "f908e0c0bcceb720",
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Automated receipt generation",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ReceiptNode",
+      "node_id": "NODE-RCPT-PH-T2",
+      "receipt_id": "RCPT-PH-T2",
+      "activity_ref": "NODE-ACT-PH-T2",
+      "tension_ref": "NODE-TENSION-PH-T2",
+      "node_ref": "NODE-TENSION-PH-T2",
+      "action": "DETECT_TENSION",
+      "verdict": "SEAL",
+      "merkle_leaf_index": null,
+      "merkle_root": "",
+      "content_hash": "689d8db49f4283b6",
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Automated receipt generation",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ReceiptNode",
+      "node_id": "NODE-RCPT-PH-T3",
+      "receipt_id": "RCPT-PH-T3",
+      "activity_ref": "NODE-ACT-PH-T3",
+      "tension_ref": "NODE-TENSION-PH-T3",
+      "node_ref": "NODE-TENSION-PH-T3",
+      "action": "DETECT_TENSION",
+      "verdict": "ESCALATE",
+      "merkle_leaf_index": null,
+      "merkle_root": "",
+      "content_hash": "ed64674c74a1055e",
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Automated receipt generation",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ReceiptNode",
+      "node_id": "NODE-RCPT-PH-T4",
+      "receipt_id": "RCPT-PH-T4",
+      "activity_ref": "NODE-ACT-PH-T4",
+      "tension_ref": "NODE-TENSION-PH-T4",
+      "node_ref": "NODE-TENSION-PH-T4",
+      "action": "DETECT_TENSION",
+      "verdict": "SEAL",
+      "merkle_leaf_index": null,
+      "merkle_root": "",
+      "content_hash": "fa014f2902f4c947",
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Automated receipt generation",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ReceiptNode",
+      "node_id": "NODE-RCPT-PH-T5",
+      "receipt_id": "RCPT-PH-T5",
+      "activity_ref": "NODE-ACT-PH-T5",
+      "tension_ref": "NODE-TENSION-PH-T5",
+      "node_ref": "NODE-TENSION-PH-T5",
+      "action": "DETECT_TENSION",
+      "verdict": "SEAL",
+      "merkle_leaf_index": null,
+      "merkle_root": "",
+      "content_hash": "42923cbea59ba85f",
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Automated receipt generation",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ReceiptNode",
+      "node_id": "NODE-RCPT-PH-T6",
+      "receipt_id": "RCPT-PH-T6",
+      "activity_ref": "NODE-ACT-PH-T6",
+      "tension_ref": "NODE-TENSION-PH-T6",
+      "node_ref": "NODE-TENSION-PH-T6",
+      "action": "DETECT_TENSION",
+      "verdict": "ESCALATE",
+      "merkle_leaf_index": null,
+      "merkle_root": "",
+      "content_hash": "8d3ee7783510b496",
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Automated receipt generation",
+      "receipt_refs": []
+    },
+    {
+      "node_type": "ReceiptNode",
+      "node_id": "NODE-RCPT-PH-T7",
+      "receipt_id": "RCPT-PH-T7",
+      "activity_ref": "NODE-ACT-PH-T7",
+      "tension_ref": "NODE-TENSION-PH-T7",
+      "node_ref": "NODE-TENSION-PH-T7",
+      "action": "DETECT_TENSION",
+      "verdict": "SEAL",
+      "merkle_leaf_index": null,
+      "merkle_root": "",
+      "content_hash": "66d78bc27e19095f",
+      "created_at": "2026-06-12T19:58:45.798918+00:00",
+      "created_by": "arifOS-paradox-engine",
+      "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+      "epistemic_tag": "EVIDENCE",
+      "provenance": "Automated receipt generation",
+      "receipt_refs": []
+    }
+  ],
+  "shadow_drift_risk": 0.75,
+  "overall_verdict": "ESCALATE",
+  "auto_tags": [
+    "CONTRADICTORY_NARRATIVE",
+    "DEADLINE_VOID",
+    "INSTITUTIONAL_DELAY",
+    "INSTITUTIONAL_OPACITY_DETECTED",
+    "JURISDICTION_TRAP",
+    "MARUAH_RISK",
+    "MULTI_AGENCY_AMBIGUITY",
+    "NAMED_ACTOR_SLIP",
+    "PASSIVE_AGENCY",
+    "PUBLIC_INTEREST_HIGH",
+    "REQUIRES_VAULT999_PATTERN",
+    "TIMELINE_DRIFT",
+    "VOICE_ASYMMETRY"
+  ],
+  "vault_uri": "vault://article/kosmo-putra-2026-06-12",
+  "created_at": "2026-06-12T19:58:45.798918+00:00",
+  "created_by": "arifOS-paradox-engine",
+  "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+  "epistemic_tag": "EVIDENCE",
+  "provenance": "First live specimen of arifOS constitutional perception kernel \u2014 Kosmo Putra Heights article, 12 June 2026",
+  "receipt_refs": [
+    "RCPT-ARTICLE-KOSMO-PUTRA-ROOT",
+    "RCPT-PH-T1",
+    "RCPT-PH-T2",
+    "RCPT-PH-T3",
+    "RCPT-PH-T4",
+    "RCPT-PH-T5",
+    "RCPT-PH-T6",
+    "RCPT-PH-T7"
+  ]
+}

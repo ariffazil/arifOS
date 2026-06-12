@@ -1,0 +1,130 @@
+[
+  {
+    "node_type": "ClaimNode",
+    "node_id": "NODE-CLAIM-001",
+    "claim_text": "Kerajaan negeri bersedia mendedahkan laporan siasatan kebakaran paip gas",
+    "claimer": "MB Selangor",
+    "claimer_type": "government",
+    "evidence_support": 0.3,
+    "hedging_detected": false,
+    "hedging_phrases": [],
+    "contradicts": [
+      "NODE-CLAIM-002",
+      "NODE-CLAIM-006"
+    ],
+    "supported_by": [],
+    "created_at": "2026-06-12T19:58:45.798918+00:00",
+    "created_by": "arifOS-paradox-engine",
+    "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+    "epistemic_tag": "CLAIM",
+    "provenance": "Article headline and lead paragraph",
+    "receipt_refs": []
+  },
+  {
+    "node_type": "ClaimNode",
+    "node_id": "NODE-CLAIM-002",
+    "claim_text": "Terdapat kekangan undang-undang yang menghalang pendedahan segera",
+    "claimer": "MB Selangor",
+    "claimer_type": "government",
+    "evidence_support": 0.7,
+    "hedging_detected": true,
+    "hedging_phrases": [
+      "kekangan undang-undang",
+      "perlu diteliti semula"
+    ],
+    "contradicts": [
+      "NODE-CLAIM-001"
+    ],
+    "supported_by": [
+      "NODE-CLAIM-003"
+    ],
+    "created_at": "2026-06-12T19:58:45.798918+00:00",
+    "created_by": "arifOS-paradox-engine",
+    "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+    "epistemic_tag": "CLAIM",
+    "provenance": "Body of article \u2014 MB's explanation",
+    "receipt_refs": []
+  },
+  {
+    "node_type": "ClaimNode",
+    "node_id": "NODE-CLAIM-003",
+    "claim_text": "Laporan melibatkan agensi persekutuan seperti Petronas perlu diteliti semula",
+    "claimer": "MB Selangor",
+    "claimer_type": "government",
+    "evidence_support": 0.95,
+    "hedging_detected": true,
+    "hedging_phrases": [
+      "perlu diteliti semula"
+    ],
+    "contradicts": [],
+    "supported_by": [],
+    "created_at": "2026-06-12T19:58:45.798918+00:00",
+    "created_by": "arifOS-paradox-engine",
+    "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+    "epistemic_tag": "CLAIM",
+    "provenance": "Body \u2014 the SLIP_PHRASE naming Petronas",
+    "receipt_refs": []
+  },
+  {
+    "node_type": "ClaimNode",
+    "node_id": "NODE-CLAIM-004",
+    "claim_text": "Laporan siasatan tidak mendapati unsur kecuaian atau jenayah",
+    "claimer": "MB Selangor (merujuk laporan siasatan)",
+    "claimer_type": "government",
+    "evidence_support": 0.4,
+    "hedging_detected": false,
+    "hedging_phrases": [],
+    "contradicts": [
+      "NODE-CLAIM-005"
+    ],
+    "supported_by": [],
+    "created_at": "2026-06-12T19:58:45.798918+00:00",
+    "created_by": "arifOS-paradox-engine",
+    "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+    "epistemic_tag": "CLAIM",
+    "provenance": "Article \u2014 MB citing investigation findings",
+    "receipt_refs": []
+  },
+  {
+    "node_type": "ClaimNode",
+    "node_id": "NODE-CLAIM-005",
+    "claim_text": "36 penduduk fail tuntutan undang-undang \u2014 dakwa insiden boleh dicegah",
+    "claimer": "Penduduk Putra Heights (melalui peguam)",
+    "claimer_type": "group",
+    "evidence_support": 0.85,
+    "hedging_detected": false,
+    "hedging_phrases": [],
+    "contradicts": [
+      "NODE-CLAIM-004"
+    ],
+    "supported_by": [],
+    "created_at": "2026-06-12T19:58:45.798918+00:00",
+    "created_by": "arifOS-paradox-engine",
+    "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+    "epistemic_tag": "EVIDENCE",
+    "provenance": "Article \u2014 legal action reported",
+    "receipt_refs": []
+  },
+  {
+    "node_type": "ClaimNode",
+    "node_id": "NODE-CLAIM-006",
+    "claim_text": "Laporan telah diserah kepada kerajaan negeri April lalu tetapi masih belum boleh didedahkan",
+    "claimer": "MB Selangor",
+    "claimer_type": "government",
+    "evidence_support": 0.6,
+    "hedging_detected": true,
+    "hedging_phrases": [
+      "masih belum boleh didedahkan"
+    ],
+    "contradicts": [
+      "NODE-CLAIM-001"
+    ],
+    "supported_by": [],
+    "created_at": "2026-06-12T19:58:45.798918+00:00",
+    "created_by": "arifOS-paradox-engine",
+    "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+    "epistemic_tag": "CLAIM",
+    "provenance": "Article \u2014 timeline reference",
+    "receipt_refs": []
+  }
+]

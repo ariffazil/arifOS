@@ -1,0 +1,21 @@
+[Unit]
+Description=arifOS MCP Gateway v0.1 — Constitutional Governance Proxy
+After=network-online.target arifos.service
+Wants=network-online.target arifos.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/arifOS
+Environment=ARIFOS_GATEWAY_PORT=8090
+Environment=ARIFOS_UPSTREAM_URL=http://127.0.0.1:8088/mcp
+Environment=GEOX_UPSTREAM_URL=http://127.0.0.1:8081/mcp
+Environment=WEALTH_UPSTREAM_URL=http://127.0.0.1:18082/mcp
+Environment=WELL_UPSTREAM_URL=http://127.0.0.1:18083/mcp
+Environment=ARIFOS_GATEWAY_API_KEY=arifos-gateway-dev-key
+ExecStart=/root/arifOS/.venv/bin/python -m arifosmcp.gateway.server
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,261 @@
+[
+  {
+    "node_type": "ParadoxTensionNode",
+    "node_id": "NODE-TENSION-PH-T1",
+    "tension_id": "PH-T1",
+    "tension_class": "PROMISE_VS_OUTCOME",
+    "trigger_kind": "contradictory_timeline",
+    "severity": 0.85,
+    "shadow_score": 0.78,
+    "article_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+    "actor_refs": [
+      "NODE-ACTOR-MB-SELANGOR-001"
+    ],
+    "claim_refs": [
+      "NODE-CLAIM-001",
+      "NODE-CLAIM-006"
+    ],
+    "description": "Headline: 'bersedia dedah'. Body: laporan diserah April, Jun masih 'tak boleh didedahkan'. 3 minggu dari 'bersedia' ke 'tak boleh'.",
+    "what_reporter_couldnt_say": "Dah 3 minggu dari 'bersedia dedah' ke 'tak boleh dedah'. Someone stopped it.",
+    "evidence_snippets": [
+      "MB Selangor nafi sorok, dedah kekangan undang-undang",
+      "laporan telah diserah April lalu",
+      "masih belum boleh didedahkan"
+    ],
+    "recommended_action": "REPORT",
+    "governance_pattern": "ACCIDENT_REPORT_LITIGATION_HOLD",
+    "auto_tags": [
+      "PUBLIC_INTEREST_HIGH",
+      "INSTITUTIONAL_OPACITY_DETECTED",
+      "TIMELINE_DRIFT"
+    ],
+    "created_at": "2026-06-12T19:58:45.798918+00:00",
+    "created_by": "arifOS-paradox-engine",
+    "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+    "epistemic_tag": "PLAUSIBLE",
+    "provenance": "Kernel frame analysis of Kosmo article",
+    "receipt_refs": []
+  },
+  {
+    "node_type": "ParadoxTensionNode",
+    "node_id": "NODE-TENSION-PH-T2",
+    "tension_id": "PH-T2",
+    "tension_class": "PASSIVE_OBSTACLE",
+    "trigger_kind": "passive_agency_removal",
+    "severity": 0.75,
+    "shadow_score": 0.68,
+    "article_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+    "actor_refs": [
+      "NODE-ACTOR-MB-SELANGOR-001",
+      "NODE-ACTOR-FEDERAL-001"
+    ],
+    "claim_refs": [
+      "NODE-CLAIM-002"
+    ],
+    "description": "MB kata 'tiada halangan' dari negeri, tapi ada 'kekangan undang-undang'. Halangan dinamakan tanpa agensi spesifik \u2014 kecuali Petronas.",
+    "what_reporter_couldnt_say": "MB kata tiada halangan... tapi ada halangan. The obstacle is passive, unnamed, institutional.",
+    "evidence_snippets": [
+      "Kerajaan negeri tiada halangan untuk mendedahkan",
+      "terdapat kekangan undang-undang",
+      "melibatkan agensi persekutuan"
+    ],
+    "recommended_action": "REPORT",
+    "governance_pattern": "PASSIVE_OBSTACLE_DETECTION",
+    "auto_tags": [
+      "INSTITUTIONAL_OPACITY_DETECTED",
+      "PASSIVE_AGENCY"
+    ],
+    "created_at": "2026-06-12T19:58:45.798918+00:00",
+    "created_by": "arifOS-paradox-engine",
+    "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+    "epistemic_tag": "PLAUSIBLE",
+    "provenance": "Kernel frame analysis of Kosmo article",
+    "receipt_refs": []
+  },
+  {
+    "node_type": "ParadoxTensionNode",
+    "node_id": "NODE-TENSION-PH-T3",
+    "tension_id": "PH-T3",
+    "tension_class": "SLIP_PHRASE",
+    "trigger_kind": "named_actor_slip_under_hedged_frame",
+    "severity": 0.95,
+    "shadow_score": 0.91,
+    "article_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+    "actor_refs": [
+      "NODE-ACTOR-PETRONAS-001",
+      "NODE-ACTOR-MB-SELANGOR-001"
+    ],
+    "claim_refs": [
+      "NODE-CLAIM-003"
+    ],
+    "description": "Satu-satunya sebutan nama spesifik: 'agensi persekutuan SEPERTI PETRONAS'. Bukan 'agensi berkaitan'. Bukan 'pihak tertentu'. NAMA disebut. Reporter letak bendera.",
+    "what_reporter_couldnt_say": "Petronas disebut NAMA \u2014 ini bukan 'agensi persekutuan' generik. Reporter sengaja letak nama. This is the smoking gun.",
+    "evidence_snippets": [
+      "melibatkan agensi persekutuan seperti Petronas perlu diteliti semula"
+    ],
+    "recommended_action": "ESCALATE",
+    "governance_pattern": "NAMED_ACTOR_SLIP_ESCALATION",
+    "auto_tags": [
+      "PUBLIC_INTEREST_HIGH",
+      "INSTITUTIONAL_OPACITY_DETECTED",
+      "NAMED_ACTOR_SLIP",
+      "REQUIRES_VAULT999_PATTERN"
+    ],
+    "created_at": "2026-06-12T19:58:45.798918+00:00",
+    "created_by": "arifOS-paradox-engine",
+    "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+    "epistemic_tag": "PLAUSIBLE",
+    "provenance": "Kernel frame analysis of Kosmo article \u2014 highest severity tension",
+    "receipt_refs": []
+  },
+  {
+    "node_type": "ParadoxTensionNode",
+    "node_id": "NODE-TENSION-PH-T4",
+    "tension_id": "PH-T4",
+    "tension_class": "VOICE_ASYMMETRY",
+    "trigger_kind": "quote_asymmetry",
+    "severity": 0.7,
+    "shadow_score": 0.62,
+    "article_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+    "actor_refs": [
+      "NODE-ACTOR-MB-SELANGOR-001",
+      "NODE-ACTOR-RESIDENTS-001"
+    ],
+    "claim_refs": [
+      "NODE-CLAIM-001",
+      "NODE-CLAIM-005"
+    ],
+    "description": "MB dapat 4 petikan langsung + parafrasa. Penduduk: dirujuk sebagai 'mangsa', '36 plaintif' \u2014 sifar petikan langsung. Geometry = power.",
+    "what_reporter_couldnt_say": "MB dapat 4 petikan. Penduduk: sifar. Geometry = power. The victims have no voice in this article.",
+    "evidence_snippets": [
+      "MB Selangor menjelaskan...",
+      "Katanya...",
+      "Tambah beliau...",
+      "36 penduduk... mendakwa insiden boleh dicegah"
+    ],
+    "recommended_action": "REPORT",
+    "governance_pattern": "VOICE_ASYMMETRY_CORRECTION",
+    "auto_tags": [
+      "MARUAH_RISK",
+      "VOICE_ASYMMETRY"
+    ],
+    "created_at": "2026-06-12T19:58:45.798918+00:00",
+    "created_by": "arifOS-paradox-engine",
+    "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+    "epistemic_tag": "EVIDENCE",
+    "provenance": "Kernel frame analysis \u2014 quote count analysis",
+    "receipt_refs": []
+  },
+  {
+    "node_type": "ParadoxTensionNode",
+    "node_id": "NODE-TENSION-PH-T5",
+    "tension_id": "PH-T5",
+    "tension_class": "EXPLICIT_VS_IMPLICIT",
+    "trigger_kind": "hedging_vs_hard_fact_collision",
+    "severity": 0.8,
+    "shadow_score": 0.74,
+    "article_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+    "actor_refs": [
+      "NODE-ACTOR-MB-SELANGOR-001",
+      "NODE-ACTOR-RESIDENTS-001"
+    ],
+    "claim_refs": [
+      "NODE-CLAIM-004",
+      "NODE-CLAIM-005"
+    ],
+    "description": "Laporan rasmi: 'tiada kecuaian'. Mangsa melalui peguam: 'boleh dicegah'. Dua naratif bertembung tanpa resolusi.",
+    "what_reporter_couldnt_say": "Laporan kata tiada kecuaian. Mangsa kata boleh dicegah. Dua naratif bertembung. Siapa benar?",
+    "evidence_snippets": [
+      "tidak mendapati unsur kecuaian atau jenayah",
+      "36 penduduk fail tuntutan \u2014 dakwa insiden boleh dicegah"
+    ],
+    "recommended_action": "HOLD",
+    "governance_pattern": "CONTRADICTORY_NARRATIVE_HOLD",
+    "auto_tags": [
+      "PUBLIC_INTEREST_HIGH",
+      "CONTRADICTORY_NARRATIVE"
+    ],
+    "created_at": "2026-06-12T19:58:45.798918+00:00",
+    "created_by": "arifOS-paradox-engine",
+    "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+    "epistemic_tag": "EVIDENCE",
+    "provenance": "Kernel frame analysis \u2014 claim contradiction",
+    "receipt_refs": []
+  },
+  {
+    "node_type": "ParadoxTensionNode",
+    "node_id": "NODE-TENSION-PH-T6",
+    "tension_id": "PH-T6",
+    "tension_class": "DEADLINE_VOID",
+    "trigger_kind": "deadline_without_closure",
+    "severity": 0.9,
+    "shadow_score": 0.85,
+    "article_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+    "actor_refs": [
+      "NODE-ACTOR-MB-SELANGOR-001",
+      "NODE-ACTOR-FEDERAL-001"
+    ],
+    "claim_refs": [
+      "NODE-CLAIM-002",
+      "NODE-CLAIM-006"
+    ],
+    "description": "Laporan diserah April. Kini Jun. 'Masih diteliti semula.' Tiada tarikh tamat. Tiada siapa bertanggungjawab bagi tarikh.",
+    "what_reporter_couldnt_say": "Laporan diserah April. Jun masih 'diteliti semula'. Tiada tarikh tamat. This is institutional delay, not legal review.",
+    "evidence_snippets": [
+      "laporan telah diserah April lalu",
+      "masih belum boleh didedahkan",
+      "perlu diteliti semula"
+    ],
+    "recommended_action": "ESCALATE",
+    "governance_pattern": "DEADLINE_VOID_ESCALATION",
+    "auto_tags": [
+      "PUBLIC_INTEREST_HIGH",
+      "DEADLINE_VOID",
+      "INSTITUTIONAL_DELAY"
+    ],
+    "created_at": "2026-06-12T19:58:45.798918+00:00",
+    "created_by": "arifOS-paradox-engine",
+    "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+    "epistemic_tag": "EVIDENCE",
+    "provenance": "Kernel frame analysis \u2014 timeline analysis",
+    "receipt_refs": []
+  },
+  {
+    "node_type": "ParadoxTensionNode",
+    "node_id": "NODE-TENSION-PH-T7",
+    "tension_id": "PH-T7",
+    "tension_class": "JURISDICTION_TRAP",
+    "trigger_kind": "multi_jurisdiction_ping_pong",
+    "severity": 0.75,
+    "shadow_score": 0.68,
+    "article_ref": "NODE-ARTICLE-KOSMO-PUTRA-001",
+    "actor_refs": [
+      "NODE-ACTOR-MB-SELANGOR-001",
+      "NODE-ACTOR-FEDERAL-001",
+      "NODE-ACTOR-PETRONAS-001"
+    ],
+    "claim_refs": [
+      "NODE-CLAIM-002",
+      "NODE-CLAIM-003"
+    ],
+    "description": "Negeri kata nak dedah. Persekutuan pegang kunci. Petronas dinamakan sebagai agensi spesifik. Tiga lapis kuasa \u2014 siapa yang sekat?",
+    "what_reporter_couldnt_say": "Negeri nak dedah, persekutuan pegang kunci, Petronas ada dalam frame. Siapa yang sekat? It's a jurisdiction ping-pong.",
+    "evidence_snippets": [
+      "kerajaan negeri bersedia mendedahkan",
+      "kekangan undang-undang",
+      "agensi persekutuan seperti Petronas"
+    ],
+    "recommended_action": "REPORT",
+    "governance_pattern": "JURISDICTION_TRAP_MAPPING",
+    "auto_tags": [
+      "JURISDICTION_TRAP",
+      "MULTI_AGENCY_AMBIGUITY"
+    ],
+    "created_at": "2026-06-12T19:58:45.798918+00:00",
+    "created_by": "arifOS-paradox-engine",
+    "constitution_hash": "sha256:arifos-constitution-v2026.05.05-SSCT",
+    "epistemic_tag": "PLAUSIBLE",
+    "provenance": "Kernel frame analysis \u2014 jurisdiction mapping",
+    "receipt_refs": []
+  }
+]
