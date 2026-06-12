@@ -17,11 +17,12 @@ root_dir = Path(__file__).parents[1].resolve()
 
 # Force root and root/core to the very top of sys.path
 # This ensures 'import core' hits /root/arifOS/core/ and NOT arifosmcp/core/
-sys.path = [str(root_dir), str(root_dir / "core")] + [p for p in sys.path if p not in (str(root_dir), str(root_dir / "core"))]
+sys.path = [str(root_dir), str(root_dir / "core")] + [
+    p for p in sys.path if p not in (str(root_dir), str(root_dir / "core"))
+]
 
 
 # Pre-import core package to lock it in sys.modules and prevent collision with arifosmcp/core
-
 
 
 # Load .env for tests if available
@@ -29,6 +30,7 @@ env_path = root_dir / ".env"
 if env_path.exists():
     try:
         from dotenv import load_dotenv
+
         load_dotenv(env_path)
     except ImportError:
         # Manual fallback if python-dotenv missing
@@ -36,7 +38,9 @@ if env_path.exists():
             for line in f:
                 if line.strip() and not line.startswith("#"):
                     key, _, val = line.partition("=")
-                    os.environ[key.strip().replace("export ", "")] = val.strip().strip('"').strip("'")
+                    os.environ[key.strip().replace("export ", "")] = (
+                        val.strip().strip('"').strip("'")
+                    )
 
 
 # Silence langsmith/pydantic v1 warning on Python 3.14 (benign in this env)
@@ -203,6 +207,17 @@ def pytest_ignore_collect(collection_path, config):
 
     if collection_path.suffix != ".py":
         return False
+
+    # ── Skip tests with missing optional deps at collection time ─────
+    # prefab_ui is a UI-builder dep used by arifosmcp.apps.*. The root
+    # pyproject doesn't declare it; only the inner arifosmcp/ venv has it
+    # (and that's a 3.12 venv with a broken pydantic_core wheel). Until
+    # the root deps are reconciled, the apps-tree tests cannot import.
+    if collection_path.name == "test_wealth_invariant_surface.py":
+        try:
+            import prefab_ui  # noqa: F401
+        except ImportError:
+            return True
 
     return False
 
