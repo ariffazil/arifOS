@@ -320,6 +320,24 @@ def _ensure_resolver():
         _GLOBAL_RESOLVER = SignedHeaderIdentity(_GLOBAL_KEY_STORE)
 
 
+
+def _to_caller_dict(s: "StructuredSubject") -> dict[str, Any]:
+    """Map StructuredSubject to the dict shape server.py expects.
+
+    Server code uses keys: "human", "agent", "org", "session".
+    StructuredSubject stores: human_id, agent_id, org_id, session_id.
+    """
+    return {
+        "human": getattr(s, "human_id", "") or "anonymous",
+        "agent": getattr(s, "agent_id", "") or "anonymous",
+        "org": getattr(s, "org_id", "") or "default",
+        "session": getattr(s, "session_id", "") or "",
+        "key_id": getattr(s, "key_id", "") or "",
+        "roles": getattr(s, "roles", []) or [],
+        "authenticated": getattr(s, "authenticated", False),
+    }
+
+
 def resolve_subject(headers: dict) -> StructuredSubject:
     """Resolve a StructuredSubject from request headers (compat shim).
 
@@ -328,7 +346,7 @@ def resolve_subject(headers: dict) -> StructuredSubject:
     method. This shim wraps that.
     """
     _ensure_resolver()
-    return _GLOBAL_RESOLVER.resolve(headers)
+    return _to_caller_dict(_GLOBAL_RESOLVER.resolve(headers)), None
 
 
 def bootstrap_dev_keys() -> None:
