@@ -20,13 +20,13 @@ Each right is a Pydantic v2 model with:
 
 from __future__ import annotations
 
-from enum import Enum
-from typing import Any, Optional
+from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class SovereignRightId(str, Enum):
+class SovereignRightId(StrEnum):
     """10 rights.  Each maps to a civilian-sovereignty concern."""
 
     RIGHT_TO_KNOW = "right_to_know_when_AI_is_involved"
@@ -41,7 +41,7 @@ class SovereignRightId(str, Enum):
     RIGHT_TO_OPT_OUT = "right_to_opt_out_without_second_class"
 
 
-class RightStatus(str, Enum):
+class RightStatus(StrEnum):
     """Lifecycle status of a right's protection."""
 
     GRANTED = "granted"  # the kernel can enforce this right
@@ -57,12 +57,12 @@ class RightInvocation(BaseModel):
 
     right_id: SovereignRightId
     actor_id: str
-    session_id: Optional[str] = None
+    session_id: str | None = None
     context: dict[str, Any] = Field(default_factory=dict)
     # F02 truth: invocation carries uncertainty_band, never 1.0
     confidence_claim: float = Field(default=0.95, ge=0.0, le=0.95)
-    actor_signature: Optional[str] = None  # F11
-    nonce: Optional[str] = None  # F01 AMANAH replay prevention
+    actor_signature: str | None = None  # F11
+    nonce: str | None = None  # F01 AMANAH replay prevention
 
 
 class SovereignRight(BaseModel):

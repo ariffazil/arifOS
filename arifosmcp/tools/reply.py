@@ -14,6 +14,32 @@ from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _hold, _ok
 
 
+# ── F14 stamping helpers (Right #1 + #4) ──────────────────────────────
+def _stamp_f14_reply(
+    result: dict[str, Any],
+    ai_involvement: str = "full",
+    language: str = "en",
+) -> dict[str, Any]:
+    """Stamp every arif_reply_compose response with F14 metadata.
+
+    Right #1: every AI-generated response carries ai_involvement.
+    Right #4: every reply declares the language register.
+    """
+    try:
+        from arifosmcp.runtime.civilian_sovereignty.enforce import (
+            stamp_ai_involvement,
+            stamp_language,
+        )
+
+        result = stamp_ai_involvement(result, involvement=ai_involvement, confidence=0.95)
+        result = stamp_language(result, language=language)
+    except Exception:
+        # F07: never fail a reply because rights stamping failed.
+        # The reply is still valid; we just couldn't enrich it.
+        pass
+    return result
+
+
 def arif_reply_compose(
     mode: str = "compose",
     message: str | None = None,
@@ -21,6 +47,14 @@ def arif_reply_compose(
     citations: list[str] | None = None,
     actor_id: str | None = None,
     session_id: str | None = None,
+    # ── F14 — Right #1 (know) + #4 (language) ────────────────────────
+    # These parameters are stamped onto the reply metadata, not
+    # used to filter the reply content. ai_involvement: how
+    # much of this reply is AI-generated. language: civilian's
+    # preferred response language. Both default to safe
+    # values; no new surface.
+    ai_involvement: str = "full",
+    language: str = "en",
 ) -> dict[str, Any]:
     # ── Reply Boundary Check (v2 Deepening — Task 4) ──
     from arifosmcp.runtime.tools import _arif_vault_seal, get_session
@@ -192,24 +226,38 @@ def arif_reply_compose(
         return _hold("arif_reply_compose", floor_check["reason"], floor_check["violated_laws"])
 
     if mode == "compose":
-        return _ok(
+        result = _ok(
             "arif_reply_compose",
             {"message": message, "formatted": message, "tone": "neutral"},
         )
+        return _stamp_f14_reply(result, ai_involvement, language)
     if mode == "format":
-        return _ok("arif_reply_compose", {"message": message, "style": style or "markdown"})
+        result = _ok("arif_reply_compose", {"message": message, "style": style or "markdown"})
+        return _stamp_f14_reply(result, ai_involvement, language)
     if mode == "nudge":
-        return _ok(
+        result = _ok(
             "arif_reply_compose",
             {"message": message, "nudge": "Consider F5 (Peace) before acting."},
         )
+        return _stamp_f14_reply(result, ai_involvement, language)
     if mode == "cite":
-        return _ok("arif_reply_compose", {"message": message, "citations": citations or []})
+        result = _ok("arif_reply_compose", {"message": message, "citations": citations or []})
+        return _stamp_f14_reply(result, ai_involvement, language)
 
     if mode in ("qday_engineering_report", "qday_executive_summary", "qday_physics_brief"):
-        return {"status": "readonly", "message": f"{mode} activated based on qday_physics parameters."}
+        return {
+            "status": "readonly",
+            "message": f"{mode} activated based on qday_physics parameters.",
+        }
 
-    if mode in ("geox_quantum_brief", "geox_quantum_anti_hype_report", "geox_quantum_opportunity_map"):
-        return {"status": "readonly", "message": f"{mode} activated based on GEOX quantum scale classifier."}
+    if mode in (
+        "geox_quantum_brief",
+        "geox_quantum_anti_hype_report",
+        "geox_quantum_opportunity_map",
+    ):
+        return {
+            "status": "readonly",
+            "message": f"{mode} activated based on GEOX quantum scale classifier.",
+        }
 
     return _hold("arif_reply_compose", f"Unknown mode: {mode}")

@@ -37,13 +37,13 @@ Sister modules:
 """
 
 from arifosmcp.runtime.civilian_sovereignty.rights_registry import (
-    SOVEREIGN_RIGHTS,
     RIGHT_REGISTRY,
+    SOVEREIGN_RIGHTS,
+    RightInvocation,
+    RightStatus,
+    SovereignRightId,
     get_right,
     list_rights,
-    SovereignRightId,
-    RightStatus,
-    RightInvocation,
 )
 
 __all__ = [

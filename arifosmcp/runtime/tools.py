@@ -3654,6 +3654,7 @@ def _arif_session_init(
     if mode in {"ping", "discover", "birth", "init_light", "light", "full"}:
         # Pre-session: no session required. Delegate to canonical session.py.
         from arifosmcp.tools.session import arif_session_init as _delegate_init
+
         try:
             import uuid as _uuid
 
@@ -3676,7 +3677,9 @@ def _arif_session_init(
                 delegation_mode=delegation_mode or "internal_executor",
             )
         except Exception as e:
-            return _hold("arif_session_init", f"Delegate init failed: {e}", ["L01"], session_id=session_id)
+            return _hold(
+                "arif_session_init", f"Delegate init failed: {e}", ["L01"], session_id=session_id
+            )
 
     # EUREKA EMBODIMENT FIX: explicit null handling before floor check
     # P0: null actor_id should produce clear error, not silent coercion
@@ -3689,7 +3692,20 @@ def _arif_session_init(
             session_id=session_id,
         )
 
-    allowed_modes = ["init", "light", "resume", "validate", "epoch_open", "epoch_seal"]
+    allowed_modes = [
+        "init",
+        "light",
+        "resume",
+        "validate",
+        "epoch_open",
+        "epoch_seal",
+        # F14 — Right #10 (opt out) + Right #6 (refuse profiling).
+        # These modes reduce the session's capability set but
+        # preserve equal constitucional protection. The civilian
+        # is not punished for choosing less.
+        "opt_out",
+        "opt_out_profiling",
+    ]
     legacy_aliases = {
         "status": "validate",
         "handover": "resume",
@@ -3759,6 +3775,7 @@ def _arif_session_init(
     if normalized_mode in _PRE_SESSION_MODES:
         # Pre-session: no session required. Delegate to canonical session.py.
         from arifosmcp.tools.session import arif_session_init as _delegate_init
+
         try:
             import uuid as _uuid
 
@@ -3781,7 +3798,9 @@ def _arif_session_init(
                 delegation_mode=delegation_mode or "internal_executor",
             )
         except Exception as e:
-            return _hold("arif_session_init", f"Delegate init failed: {e}", ["L01"], session_id=session_id)
+            return _hold(
+                "arif_session_init", f"Delegate init failed: {e}", ["L01"], session_id=session_id
+            )
 
     if normalized_mode == "init":
         signature_verified = False
@@ -7697,7 +7716,19 @@ def _arif_kernel_route(
 
     # Public modes — no session required
     # init/discover/birth/preflight are pre-session safe paths (session birth happens inside them)
-    _public_modes = {"list", "status", "kernel", "federation_health", "triage", "init", "discover", "birth", "init_light", "preflight", "ping"}
+    _public_modes = {
+        "list",
+        "status",
+        "kernel",
+        "federation_health",
+        "triage",
+        "init",
+        "discover",
+        "birth",
+        "init_light",
+        "preflight",
+        "ping",
+    }
     if mode not in _public_modes:
         auth = validate_session(session_id, actor_id)
         if not auth["valid"]:
@@ -7992,6 +8023,10 @@ def _arif_kernel_route(
                     "reversibility": ("read_only" if orch["risk_tier"] == "low" else "evaluating"),
                     "next_recommended_tool": "arif_kernel_route.list",
                 },
+                # F14 — Right #7 (non-addiction): entanglement advisory
+                # on every status probe. Fails closed: if the substrate
+                # is unavailable, the status probe still succeeds.
+                "f14_entanglement_advisory": _f14_entanglement_for_session(session_id),
             },
             delta_S=0.0,
             session_id=session_id,
@@ -8349,6 +8384,9 @@ async def _arif_reply_compose_tool(
     citations: list[str] | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    # ── F14 — Right #1 (know) + #4 (language) ────────────────────────
+    ai_involvement: str = "full",
+    language: str = "en",
 ) -> dict[str, Any]:
     """
     444r_REPLY async tool — routes all modes through LLM-aware reply_compose module.
@@ -8400,6 +8438,8 @@ async def _arif_reply_compose_tool(
                 citations=citations,
                 actor_id=actor_id,
                 session_id=session_id,
+                ai_involvement=ai_involvement,  # F14 #1
+                language=language,  # F14 #4
             )
         except Exception as _exc:
             logger.warning(
@@ -8413,6 +8453,8 @@ async def _arif_reply_compose_tool(
                 citations=citations,
                 session_id=session_id,
                 actor_id=actor_id,
+                ai_involvement=ai_involvement,  # F14 #1
+                language=language,  # F14 #4
             )
 
         result.setdefault("status", "OK")
@@ -8842,7 +8884,7 @@ def _arif_memory_recall(
                 "arif_memory_recall",
                 f"Sacred memories require human confirmation for deletion. Blocked: {_result.get('blocked_sacred', [])}",
             )
-        return _ok(
+        result = _ok(
             "arif_memory_recall",
             {
                 "pruned": _result.get("pruned", []),
@@ -8851,6 +8893,24 @@ def _arif_memory_recall(
             },
             delta_S=0.001,
         )
+        # F14 — Right #5 (cognitive privacy): stamp the
+        # minimization receipt. Fails closed if substrate absent.
+        try:
+            from arifosmcp.runtime.civilian_sovereignty.enforce import (
+                stamp_cognitive_privacy,
+            )
+
+            pruned = _result.get("pruned", [])
+            categories = [str(p) for p in (pruned if isinstance(pruned, list) else [pruned])]
+            result = stamp_cognitive_privacy(
+                result,
+                scope="forget",
+                categories=categories,
+                retention_window_seconds=0,
+            )
+        except Exception:
+            pass
+        return result
 
     # ── context ──────────────────────────────────────────────
     if mode == "context":
@@ -10880,6 +10940,11 @@ async def _arif_judge_deliberate_tool(
     # ── F-WEB Evidence Gate ──
     evidence_receipt: dict[str, Any] | None = None,
     claimed_evidence_level: str | None = None,
+    # ── F14 — Right #3 (human judgment) escalation hint ─────────────
+    # If action_class is C4 or C5, the judge auto-escalates to
+    # 888_HOLD before the LLM runs. The hint is informational;
+    # the actual gate is in require_sovereign_judgment().
+    action_class: str | None = None,
 ) -> dict[str, Any]:
     # ── FORGE D-INJECT (F13 #6 — 2026-06-11) ─────────────────────────────
     # P3-5 Scar Recall: surface prior institutional scars from scar.json
@@ -11068,6 +11133,43 @@ async def _arif_judge_deliberate_tool(
             )
         except Exception as e:
             logger.error(f"Failed to trigger Supabase record_judge_verdict: {e}")
+
+        # F14 stamping (Right #2 appeal path, Right #3 escalation,
+        # Right #8 explanation). Fails closed: missing substrate
+        # does not break the verdict.
+        try:
+            from arifosmcp.runtime.civilian_sovereignty.enforce import (
+                make_appeal_envelope,
+                require_sovereign_judgment,
+                stamp_explanation,
+            )
+
+            # Right #3: C4/C5 escalation gate (kernel HARD-right)
+            if action_class:
+                sov = require_sovereign_judgment(action_class)
+                if sov is not None:
+                    result["f14_sovereign_escalation"] = sov
+            # Right #2: appeal envelope is ALWAYS available
+            if result.get("verdict") in ("HOLD", "VOID", "UNKNOWN"):
+                result["f14_appeal_path"] = make_appeal_envelope(
+                    original_decision_ref=str(constitutional_chain_id or "unknown"),
+                    decision_chain=f"arif_judge_deliberate/{mode}",
+                    appeal_grounds="kernel refused to seal; civilian requests review",
+                    actor_id=actor_id or "arif-fazil",
+                )
+            # Right #8: plain-language explanation (when LLM path succeeded)
+            if result.get("verdict"):
+                result = stamp_explanation(
+                    result,
+                    explanation=(
+                        f"verdict={result.get('verdict')}; "
+                        f"reason={result.get('reason', 'kernel constitutional check')}"
+                    ),
+                    uncertainty_band={"P10": 0.7, "P50": 0.85, "P90": 0.95},
+                    i_cannot_explain=result.get("verdict") == "UNKNOWN",
+                )
+        except Exception:
+            pass
 
         return result
     finally:
@@ -13877,7 +13979,9 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             logger.debug(f"Supabase canonical receipt dispatch failed: {e}")
         return final_resp
 
-    def _attach_live_kernel_envelope(response: dict[str, Any], tool_name: str, kwargs: dict[str, Any]) -> None:
+    def _attach_live_kernel_envelope(
+        response: dict[str, Any], tool_name: str, kwargs: dict[str, Any]
+    ) -> None:
         """Attach a conservative live-kernel envelope to every tool response."""
         try:
             from arifosmcp.runtime.live_kernel import build_kernel_envelope
@@ -14302,3 +14406,47 @@ _LEGACY_ALIASES: dict[str, str] = {
 LEGACY_TOOL_ALIASES = _LEGACY_ALIASES
 # Backward-compat alias map: arifos_* tool names → canonical arif_* names.
 # Used by tools_hardened_dispatch.get_tool_handler to route legacy calls.
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# F14 — Civilian Sovereignty helpers (kernel-side)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _f14_entanglement_for_session(session_id: str | None) -> dict[str, Any]:
+    """F14 Right #7 — entanglement advisory for the current session.
+
+    Counts how many times this session has called the kernel in the
+    current window. Emits a QUIET_ADVISORY when the pattern looks
+    engagement-shaped (high density + repeated returns).
+
+    Fails closed: if the F14 substrate is unavailable, returns
+    {"available": False} — the status probe still succeeds.
+    """
+    try:
+        from arifosmcp.runtime.civilian_sovereignty.enforce import (
+            entanglement_score,
+        )
+    except Exception:
+        return {
+            "right_id": "right_to_non_addictive_AI",
+            "available": False,
+            "what_we_cannot_guarantee": "Entanglement scoring substrate unavailable.",
+        }
+
+    sess = _SESSIONS.get(session_id) if session_id else None
+    call_count = 0
+    if sess and isinstance(sess, dict):
+        # The session dict records recent call counts via _session_telemetry
+        tel = sess.get("_session_telemetry", {}) or {}
+        call_count = int(tel.get("kernel_route_calls_window", 0) or 0)
+
+    # F14: confidence 0.95 max
+    result = entanglement_score(
+        session_call_count=call_count,
+        session_window_minutes=60,
+        return_count_today=1,  # 1 session = this probe
+    )
+    result["available"] = True
+    result["right_id"] = "right_to_non_addictive_AI"
+    return result

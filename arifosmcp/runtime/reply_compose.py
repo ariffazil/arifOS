@@ -123,6 +123,8 @@ async def _compose_with_llm(
     citations: list[str] | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    ai_involvement: str = "full",  # F14 #1
+    language: str = "en",  # F14 #4
 ) -> dict[str, Any]:
     """Tier 1/2: Use SEA-LION or Ollama for constitutional reply composition."""
     mode_prompt = _MODE_PROMPTS.get(mode, _MODE_PROMPTS["compose"])
@@ -165,38 +167,42 @@ async def _compose_with_llm(
         f04 = max(0.0, min(1.0, float(result.get("f04_score", 0.90))))
         f07 = max(0.0, min(1.0, float(result.get("f07_score", 0.90))))
 
-        return {
-            # Tool result fields
-            "composed": composed,
-            "tone": tone,
-            "delta_S": delta_s,
-            "f02_score": f02,
-            "f04_score": f04,
-            "f07_score": f07,
-            "citations": result.get("citations") or citations or [],
-            "caveats": result.get("caveats") or [],
-            # Metadata
-            "_llm_tier": envelope.provider,
-            "_llm_available": True,
-            "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
-            # 777_WITNESS envelope metadata (for judge/vault)
-            "_envelope": {
-                "provider": envelope.provider,
-                "model": envelope.model,
-                "tool_origin": envelope.tool_origin,
-                "mode": envelope.mode,
-                "raw_output_hash": envelope.raw_output_hash,
-                "schema_valid": envelope.schema_valid,
-                "confidence_claimed": envelope.confidence_claimed,
-                "evidence_level": envelope.evidence_level,
-                "uncertainty": envelope.uncertainty,
-                "risk_flags": envelope.risk_flags,
-                "human_decision_required": envelope.human_decision_required,
-                "authority_level": envelope.authority_level,
-                "timestamp": envelope.timestamp,
-                "wrapper_version": "777_WITNESS_v1.0",
+        return _stamp_f14_reply(
+            {
+                # Tool result fields
+                "composed": composed,
+                "tone": tone,
+                "delta_S": delta_s,
+                "f02_score": f02,
+                "f04_score": f04,
+                "f07_score": f07,
+                "citations": result.get("citations") or citations or [],
+                "caveats": result.get("caveats") or [],
+                # Metadata
+                "_llm_tier": envelope.provider,
+                "_llm_available": True,
+                "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
+                # 777_WITNESS envelope metadata (for judge/vault)
+                "_envelope": {
+                    "provider": envelope.provider,
+                    "model": envelope.model,
+                    "tool_origin": envelope.tool_origin,
+                    "mode": envelope.mode,
+                    "raw_output_hash": envelope.raw_output_hash,
+                    "schema_valid": envelope.schema_valid,
+                    "confidence_claimed": envelope.confidence_claimed,
+                    "evidence_level": envelope.evidence_level,
+                    "uncertainty": envelope.uncertainty,
+                    "risk_flags": envelope.risk_flags,
+                    "human_decision_required": envelope.human_decision_required,
+                    "authority_level": envelope.authority_level,
+                    "timestamp": envelope.timestamp,
+                    "wrapper_version": "777_WITNESS_v1.0",
+                },
             },
-        }
+            ai_involvement=ai_involvement,
+            language=language,
+        )
 
     except Exception as exc:
         logger.warning("444r_REPLY LLM call failed: %s", exc)
@@ -359,6 +365,9 @@ async def arif_reply_compose(
     citations: list[str] | None = None,
     actor_id: str | None = None,
     session_id: str | None = None,
+    # ── F14 — Right #1 (know) + #4 (language) ────────────────────────
+    ai_involvement: str = "full",
+    language: str = "en",
 ) -> dict[str, Any]:
     """
     444r_REPLY: Constitutional governed response composition.
@@ -448,12 +457,45 @@ async def arif_reply_compose(
             citations=citations,
             session_id=session_id,
             actor_id=actor_id,
+            ai_involvement=ai_involvement,
+            language=language,
         )
     except LLMUnavailableError:
         pass
 
     logger.info("arif_reply_compose: using deterministic fallback (no LLM)")
-    return _compose_fallback(mode=mode, message=msg, style=style, citations=citations)
+    return _stamp_f14_reply(
+        _compose_fallback(mode=mode, message=msg, style=style, citations=citations),
+        ai_involvement=ai_involvement,
+        language=language,
+    )
+
+
+def _stamp_f14_reply(
+    result: dict[str, Any],
+    ai_involvement: str = "full",
+    language: str = "en",
+) -> dict[str, Any]:
+    """F14 — stamp every arif_reply_compose response with rights metadata.
+
+    Right #1: ai_involvement disclosure (full | partial | advisory | observed)
+    Right #4: language register (en | bm | ta | zh | ar | id | ms | tl | ja | ko)
+
+    Fails closed: if the F14 substrate fails to import, the reply
+    is still returned (F07 HUMILITY — never break a reply to add
+    rights metadata).
+    """
+    try:
+        from arifosmcp.runtime.civilian_sovereignty.enforce import (
+            stamp_ai_involvement,
+            stamp_language,
+        )
+
+        result = stamp_ai_involvement(result, involvement=ai_involvement, confidence=0.95)
+        result = stamp_language(result, language=language)
+    except Exception:
+        pass
+    return result
 
 
 __all__ = ["arif_reply_compose", "RESPONSE_SCHEMA"]

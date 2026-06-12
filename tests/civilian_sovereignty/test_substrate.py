@@ -9,11 +9,9 @@ import pytest
 
 from arifosmcp.runtime.civilian_sovereignty import (
     SOVEREIGN_RIGHTS,
-    RIGHT_REGISTRY,
     get_right,
     list_rights,
     SovereignRightId,
-    RightStatus,
 )
 from arifosmcp.runtime.civilian_sovereignty.enforce import (
     stamp_ai_involvement,

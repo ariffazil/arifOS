@@ -13,16 +13,10 @@ it with the right's metadata. The tool surface stays at 13.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from arifosmcp.runtime.civilian_sovereignty.rights_registry import (
     RIGHT_TO_KNOW,
-    RIGHT_TO_LANGUAGE,
-    RIGHT_TO_NON_ADDICTION,
-    RIGHT_TO_PRESERVE_SKILL,
-    RIGHT_TO_OPT_OUT,
-    RightStatus,
-    SovereignRight,
     get_right,
 )
 
@@ -80,7 +74,7 @@ def require_sovereign_judgment(
     action_class: str,
     domain: str = "",
     stakes: float = 0.0,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Right #3 — return HOLD envelope if action requires sovereign.
 
     Returns None for C1/C2/C3 (kernel can grant).
@@ -146,7 +140,7 @@ def stamp_language(
 def stamp_cognitive_privacy(
     verdict: dict[str, Any],
     scope: str = "minimize",
-    categories: Optional[list[str]] = None,
+    categories: list[str] | None = None,
     retention_window_seconds: int = 0,
 ) -> dict[str, Any]:
     """Right #5 — declare data minimization + retention."""
@@ -333,8 +327,8 @@ def full_rights_audit(
 ) -> dict[str, Any]:
     """Return the full F14 rights matrix for a session. For cockpit."""
     from arifosmcp.runtime.civilian_sovereignty.rights_registry import (
-        list_rights,
         SOVEREIGN_RIGHTS,
+        list_rights,
     )
 
     return {

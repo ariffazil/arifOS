@@ -479,7 +479,17 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L12_INJECTION],
         "risk_tier": "medium",
         "irreversible": False,
-        "modes": ["init", "light", "resume", "validate", "epoch_open", "epoch_seal"],
+        "modes": [
+            "init",
+            "light",
+            "resume",
+            "validate",
+            "epoch_open",
+            "epoch_seal",
+            # F14 — Right #10 (opt out) + Right #6 (refuse profiling).
+            "opt_out",
+            "opt_out_profiling",
+        ],
         "eureka_insight": "F1: ∃ undo(a) — irreversibility requires explicit human ack.",
         "cognitive_axis": "identity",
         "expose": True,

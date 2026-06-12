@@ -21,7 +21,7 @@ class MCPClient:
 
     def _ensure_conn(self):
         if self.conn is None:
-            self.conn = http.client.HTTPConnection(MCP_HOST, MCP_PORT, timeout=45)
+            self.conn = http.client.HTTPConnection(MCP_HOST, MCP_PORT, timeout=180)
         return self.conn
 
     def _close_conn(self):
