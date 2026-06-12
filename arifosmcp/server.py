@@ -1513,14 +1513,14 @@ def main() -> None:
     Transport selection:
       - stdin is a pipe (not a TTY) → stdio transport for MCP clients
         (Claude Desktop, Cursor, Codex, OpenCode, etc.)
-      - stdin is a TTY (terminal)  → SSE server on ARIFOS_PORT (default 8080)
+      - stdin is a TTY (terminal)  → SSE server on ARIFOS_PORT (default 8088)
         (uvicorn, for VPS deployment)
     """
     if sys.stdin.isatty():
         # ── SSE transport: human in terminal / systemd service ────────────
         import uvicorn
 
-        port = int(os.getenv("ARIFOS_PORT", "8080"))
+        port = int(os.getenv("ARIFOS_PORT", "8088"))
         host = os.getenv("ARIFOS_HOST", "127.0.0.1")
         uvicorn.run(app, host=host, port=port, log_level="info")  # nosec B104
     else:
