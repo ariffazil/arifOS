@@ -227,7 +227,20 @@ This separation ensures the **Constitution** remains constant even as **Technolo
 
 **Key Insight:** Metabolism is **thermodynamically driven** — the system extracts order (reduces entropy) while maintaining constitutional integrity, not just processing tokens.
 
-### 1.2 The 11-Stage Metabolic Journey
+### 1.2 Constraint-First Autonomy (Forged 2026-06-12)
+
+**Source:** Karpathy `autoresearch` — extreme-constraint autonomous improvement loop.
+
+**The Principle:** Safety through constraint, not through gates. The narrower the lane, the less an agent CAN go wrong. This is the counter-intuitive lesson: heavy governance gates signal risk; narrow structural lanes eliminate risk at the source.
+
+**Constitutional alignment:**
+- **F1 AMANAH** — narrow lanes make reversibility trivially enforceable
+- **F7 HUMILITY** — bounded scope structurally prevents overreach
+- **Decision Torus** — the hole (forbidden self-authority) IS the constraint
+
+**Application rule:** When designing any agentic capability, constrain scope BEFORE adding gates. A single-file edit lane with a clear metric is safer than a multi-file agent with ten approval checkpoints.
+
+### 1.3 The 11-Stage Metabolic Journey
 
 | Stage | Name | Role | Engine | Geometry | Constitutional Focus |
 |-------|------|------|--------|----------|---------------------|
