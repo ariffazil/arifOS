@@ -210,7 +210,7 @@ class TestConstitutionalBreaches:
         """C2: amanah_locked=False must demote PROCEED to HOLD."""
         import sys
 
-        sys.path.insert(0, "/root/geox")
+        sys.path.insert(0, os.environ.get("ARIFOS_HOME", "/root") + "/geox")
         from geox.core.ac_risk import compute_ac_risk_governed
 
         result = compute_ac_risk_governed(
@@ -232,7 +232,7 @@ class TestConstitutionalBreaches:
         """C2 inverse: amanah_locked=True with low risk may PROCEED."""
         import sys
 
-        sys.path.insert(0, "/root/geox")
+        sys.path.insert(0, os.environ.get("ARIFOS_HOME", "/root") + "/geox")
         from geox.core.ac_risk import compute_ac_risk_governed
 
         result = compute_ac_risk_governed(
@@ -257,7 +257,7 @@ class TestConstitutionalBreaches:
         """
         import sys
 
-        sys.path.insert(0, "/root/geox")
+        sys.path.insert(0, os.environ.get("ARIFOS_HOME", "/root") + "/geox")
         from geox.core.ac_risk import compute_ac_risk_governed
 
         result = compute_ac_risk_governed(

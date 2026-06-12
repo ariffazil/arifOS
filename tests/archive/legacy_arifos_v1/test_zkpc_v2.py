@@ -181,7 +181,7 @@ async def test_vault_zkpc_v2_success(monkeypatch):
     import importlib
     import sys
 
-    sys.path.insert(0, "/root/arifOS")
+    sys.path.insert(0, os.environ.get("ARIFOS_HOME", "/root") + "/arifOS")
     from arifosmcp.security.zkpc_v2 import generate_zkpc_proof
 
     monkeypatch.setenv("ARIFOS_DEV_MODE", "0")
@@ -248,7 +248,7 @@ async def test_vault_zkpc_v2_success(monkeypatch):
 
 import sys
 
-sys.path.insert(0, "/root/arifOS")
+sys.path.insert(0, os.environ.get("ARIFOS_HOME", "/root") + "/arifOS")
 
 from arifosmcp.security.zkpc_v2 import (
     verify_zkpc_v2_epoch,

@@ -12,6 +12,7 @@ the judge output is automatically routed to arif_vault_seal for immutable anchor
 """
 
 from __future__ import annotations
+import asyncio
 
 import json as json_lib
 import os
@@ -186,7 +187,7 @@ def _read_well_governance(state_path_candidates: list | None = None) -> dict[str
     }
 
 
-def arif_judge_deliberate(
+async def arif_judge_deliberate(
     mode: str = "judge",
     candidate: str | None = None,
     session_id: str | None = None,

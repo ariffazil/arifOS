@@ -1,3 +1,4 @@
+
 """
 arifosmcp/tools/vault_seal.py — 999_VAULT
 ═════════════════════════════════════════
@@ -6,6 +7,7 @@ Immutable ledger and audit engine.
 """
 
 from __future__ import annotations
+import asyncio
 
 import hashlib
 from typing import Literal
@@ -14,7 +16,7 @@ from arifosmcp.runtime.tools import _arif_vault_seal
 from arifosmcp.schemas.verdict import SealOutput
 
 
-def arif_vault_seal(
+async def arif_vault_seal(
     mode: Literal["seal", "verify", "chain", "list", "dry_run", "seal_card", "render"] = "seal",
     payload: str = "",
     session_id: str | None = None,

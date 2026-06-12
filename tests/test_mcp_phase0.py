@@ -4,6 +4,7 @@ Phase 0 MCP Protocol Test
 Tests the hardened tools via actual MCP protocol calls (like MCP Inspector would).
 """
 
+import os
 import asyncio
 import json
 import sys
@@ -90,7 +91,7 @@ async def test_phase0_hardening():
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        cwd="/root/arifOS",
+        cwd=os.environ.get("ARIFOS_HOME", "/root") + "/arifOS",
         env=env,
     )
 

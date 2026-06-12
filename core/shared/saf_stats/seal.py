@@ -20,7 +20,7 @@ from dataclasses import dataclass, asdict, field
 from pathlib import Path
 from typing import Optional
 
-DEFAULT_VAULT_PATH = "/root/VAULT999/outcomes.jsonl"
+DEFAULT_VAULT_PATH = os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"
 
 
 def _vault_path() -> Path:

@@ -23,10 +23,10 @@ TOKEN_RE = re.compile(r"[A-Za-z0-9_./:-]+")
 # ── Cross-organ federation roots (used by grep fallback) ────────────────────────
 _FEDERATION_ROOTS: dict[str, Path] = {
     "aaa": Path("/root/AAA/wiki"),
-    "arifos": Path("/root/arifOS"),
-    "geox": Path("/root/geox"),
+    "arifos": Path(os.environ.get("ARIFOS_HOME", "/root") + "/arifOS"),
+    "geox": Path(os.environ.get("ARIFOS_HOME", "/root") + "/geox"),
     "wealth": Path("/root/WEALTH/wiki"),
-    "well": Path("/root/WELL"),
+    "well": Path(os.environ.get("ARIFOS_HOME", "/root") + "/WELL"),
 }
 
 # ── Grep fallback skip dirs ─────────────────────────────────────────────────

@@ -31,7 +31,7 @@ from datetime import datetime, timezone
 
 import asyncpg
 
-sys.path.insert(0, "/root/arifOS")
+sys.path.insert(0, os.environ.get("ARIFOS_HOME", "/root") + "/arifOS")
 
 from arifOS.supabase_adapter import (
     record_evidence,

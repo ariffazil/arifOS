@@ -289,7 +289,7 @@ def probe_federation() -> FederationProbe:
 
 
 def log_to_vault999(
-    probe: FederationProbe, vault_path: str = "/root/VAULT999/outcomes.jsonl"
+    probe: FederationProbe, vault_path: str = os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"
 ) -> int:
     """Append the probe to VAULT999 outcomes.jsonl. Returns line number written.
 

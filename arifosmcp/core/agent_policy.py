@@ -50,6 +50,7 @@ COMPARISON TABLE:
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
+import os
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -188,7 +189,7 @@ class AgentPolicy(BaseModel):
             "/etc/shadow",
             "/etc/passwd",
             "/root/.secrets",
-            "/root/VAULT999",
+            os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999",
         ],
         description="Paths ALWAYS denied regardless of posture.",
     )

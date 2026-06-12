@@ -40,7 +40,7 @@ _ATOMIC_MODES = {"commit", "deploy"}
 _FORGE_MUTATE_ATOMIC = _MUTATE_MODES | _ATOMIC_MODES
 
 
-def arif_forge_execute(
+async def arif_forge_execute(
     mode: str = "engineer",
     manifest: str = "",
     query: str | None = None,
@@ -319,8 +319,10 @@ def arif_forge_execute(
                 timestamp=datetime.now(UTC).isoformat(),
             )
 
-    result = ForgeOutput(
-        **_arif_forge_execute(
+    import asyncio
+    
+    def _run_forge():
+        return _arif_forge_execute(
             mode=mode,
             manifest=manifest,
             query=query,
@@ -333,7 +335,9 @@ def arif_forge_execute(
             vault_entry_id=vault_entry_id,
             witness_type=witness_type,
         )
-    )
+        
+    result_dict = await asyncio.to_thread(_run_forge)
+    result = ForgeOutput(**result_dict)
     _register_forge_cooldown(result, mode, manifest, artifact_id, session_id)
     return result
 

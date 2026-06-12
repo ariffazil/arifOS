@@ -15,7 +15,7 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
-VAULT_PATH = Path(os.environ.get("VAULT999_PATH", "/root/VAULT999/outcomes.jsonl"))
+VAULT_PATH = Path(os.environ.get("VAULT999_PATH", os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"))
 
 
 def _compute_hash(data: str) -> str:

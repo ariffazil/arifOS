@@ -11,6 +11,7 @@ Sovereign: arif
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
+import os
 from __future__ import annotations
 
 import asyncio
@@ -388,7 +389,7 @@ async def test_stdio_interface() -> None:
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        cwd="/root/arifOS",
+        cwd=os.environ.get("ARIFOS_HOME", "/root") + "/arifOS",
         env=env,
     )
 

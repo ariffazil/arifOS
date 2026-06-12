@@ -5,7 +5,7 @@ import subprocess
 import json
 from datetime import datetime, timezone
 
-VAULT_PATH = "/root/.agent-workbench/vault999.jsonl"
+VAULT_PATH = os.environ.get("ARIFOS_HOME", "/root") + "/.agent-workbench/vault999.jsonl"
 
 
 def log_event(agent_id, action, target, status, message):

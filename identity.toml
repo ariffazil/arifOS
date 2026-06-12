@@ -1,10 +1,15 @@
 # Canonical identity source for arifOS
 # DITEMPA BUKAN DIBERI — Forged, Not Given
 # All identity surfaces derive from this file. No duplicate identity strings elsewhere.
+#
+# PII NOTE 2026-06-12: owner field masked to public handle.
+# Full legal name preserved at /root/.secrets/sovereign_identity.toml (mode 600)
+# and in git history. To restore: copy from backup or .secrets file.
+# Reversible: see /root/backups/identity.toml.2026-06-12T214500Z.bak
 
 agent_id = "arifos"
 display_name = "arifOS"
-owner = "Muhammad Arif bin Fazil"
+owner = "arifOS-sovereign-operator"  # masked from public /identity endpoint
 domain = "aaa.arif-fazil.com"
 
 canonical_commit = "04fe657"

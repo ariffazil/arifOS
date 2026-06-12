@@ -12,6 +12,7 @@ See docs/CORE_INVARIANTS.md, docs/AUTHORITY_MODEL.md, and
 docs/VERDICT_SEMANTICS.md.
 """
 
+import os
 from __future__ import annotations
 
 import json
@@ -170,7 +171,7 @@ class TestDegradedContextBlocksExecution:
                 "verdict": "DEGRADED_CONTEXT",
                 "timezone": "UTC",
                 "host": "test",
-                "workspace": "/root/arifOS",
+                "workspace": os.environ.get("ARIFOS_HOME", "/root") + "/arifOS",
             },
             "authority": {
                 "self_approval_allowed": False,

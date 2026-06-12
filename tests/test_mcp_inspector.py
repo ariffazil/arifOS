@@ -3,6 +3,7 @@
 MCP Inspector Test - Validates Phase 0 hardening via MCP protocol
 """
 
+import os
 import subprocess
 import json
 import sys
@@ -17,7 +18,7 @@ def run_mcp_test():
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        cwd="/root/arifOS",
+        cwd=os.environ.get("ARIFOS_HOME", "/root") + "/arifOS",
         env={
             **dict(subprocess.os.environ),
             "ARIFOS_MINIMAL_STDIO": "1",

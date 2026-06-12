@@ -15,6 +15,7 @@ Output:
   - safety assessment
 """
 
+import os
 import hashlib
 import json
 import sys
@@ -23,7 +24,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-SOURCE_FILE = Path("/root/VAULT999/outcomes.jsonl")
+SOURCE_FILE = Path(os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl")
 
 
 def compute_hash(entry: dict) -> str:

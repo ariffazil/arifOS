@@ -31,7 +31,7 @@ ROLLING_WINDOW_DAYS = 30  # Baseline window
 
 
 def vault999_path() -> Path:
-    return Path(os.getenv("SENTINEL_VAULT999", "/root/.agent-workbench/vault999.jsonl"))
+    return Path(os.getenv("SENTINEL_VAULT999", os.environ.get("ARIFOS_HOME", "/root") + "/.agent-workbench/vault999.jsonl"))
 
 
 def read_vault999(limit: Optional[int] = None) -> list[dict]:

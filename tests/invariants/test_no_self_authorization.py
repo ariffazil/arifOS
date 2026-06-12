@@ -11,6 +11,7 @@ Forged 2026-06-02 18:41 UTC under F13 SOVEREIGN ratification.
 See docs/CORE_INVARIANTS.md and docs/VERDICT_SEMANTICS.md.
 """
 
+import os
 from __future__ import annotations
 
 import json
@@ -42,7 +43,7 @@ def _valid_base_mission() -> dict:
             "verdict": "STABLE",
             "timezone": "UTC",
             "host": "test",
-            "workspace": "/root/arifOS",
+            "workspace": os.environ.get("ARIFOS_HOME", "/root") + "/arifOS",
         },
         "authority": {
             "self_approval_allowed": False,

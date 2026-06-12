@@ -11,6 +11,7 @@ Verifies:
 Ditempa Bukan Diberi — Forged, Not Given.
 """
 
+import os
 from __future__ import annotations
 
 import pytest
@@ -101,7 +102,7 @@ async def test_heart_critique_instruction_scan_mode():
     """arif_heart_critique mode='instruction_scan' must scan for local directives."""
     from arifosmcp.runtime.tools import _arif_heart_critique
 
-    result = await _arif_heart_critique(mode="instruction_scan", target="/root/arifOS")
+    result = await _arif_heart_critique(mode="instruction_scan", target=os.environ.get("ARIFOS_HOME", "/root") + "/arifOS")
     assert result.get("status") == "CLEAR"
     assert "findings" in result
 

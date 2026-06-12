@@ -150,7 +150,7 @@ class AAAGuardPlugin:
     def __init__(
         self,
         enforce: bool = False,
-        audit_path: str = "/root/VAULT999/outcomes.jsonl",
+        audit_path: str = os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl",
         workspace_root: str = "/root/AAA/ops/hermes",
         floor_policy_path: str = "/root/arifOS/000/FLOORS",
         approval_token: str = "888_HOLD",
@@ -346,7 +346,7 @@ def register(ctx):
     enforce = os.environ.get("AAA_ENFORCE", "false").lower() == "true"
     AAAGuardPlugin(
         enforce=enforce,
-        audit_path=os.environ.get("AAA_AUDIT_PATH", "/root/VAULT999/outcomes.jsonl"),
+        audit_path=os.environ.get("AAA_AUDIT_PATH", os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"),
         workspace_root=os.environ.get("AAA_WORKSPACE_ROOT", "/root/AAA/ops/hermes"),
         floor_policy_path=os.environ.get("AAA_FLOOR_PATH", "/root/arifOS/000/FLOORS"),
         approval_token=os.environ.get("AAA_APPROVAL_TOKEN", "888_HOLD"),
@@ -361,7 +361,7 @@ def _on_pre_tool_call(tool_name: str, args: dict, task_id: str = "", **kwargs) -
         enforce = os.environ.get("AAA_ENFORCE", "false").lower() == "true"
         plugin = AAAGuardPlugin(
             enforce=enforce,
-            audit_path=os.environ.get("AAA_AUDIT_PATH", "/root/VAULT999/outcomes.jsonl"),
+            audit_path=os.environ.get("AAA_AUDIT_PATH", os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"),
             workspace_root=os.environ.get("AAA_WORKSPACE_ROOT", "/root/AAA/ops/hermes"),
             floor_policy_path=os.environ.get("AAA_FLOOR_PATH", "/root/arifOS/000/FLOORS"),
             approval_token=os.environ.get("AAA_APPROVAL_TOKEN", "888_HOLD"),
@@ -383,7 +383,7 @@ def _on_pre_llm_call(session_id: str, user_message: str, conversation_history: l
         enforce = os.environ.get("AAA_ENFORCE", "false").lower() == "true"
         plugin = AAAGuardPlugin(
             enforce=enforce,
-            audit_path=os.environ.get("AAA_AUDIT_PATH", "/root/VAULT999/outcomes.jsonl"),
+            audit_path=os.environ.get("AAA_AUDIT_PATH", os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"),
             workspace_root=os.environ.get("AAA_WORKSPACE_ROOT", "/root/AAA/ops/hermes"),
             floor_policy_path=os.environ.get("AAA_FLOOR_PATH", "/root/arifOS/000/FLOORS"),
             approval_token=os.environ.get("AAA_APPROVAL_TOKEN", "888_HOLD"),

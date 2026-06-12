@@ -33,7 +33,7 @@ def vault(tmp_path, monkeypatch):
     """Create a SovereignVault999 with mocked architectural seal."""
     monkeypatch.setenv("ARIFOS_VAULT_DIR", str(tmp_path))
     
-    with patch("core.organs._4_vault.seal", new=mock_seal_fn):
+    with patch("core.vault999.unified_vault999.architectural_seal", new=mock_seal_fn):
         v = SovereignVault999(vault_path=tmp_path / "vault")
     return v
 
@@ -42,7 +42,7 @@ def vault(tmp_path, monkeypatch):
 async def test_seal_with_phenomenology_basic(vault):
     """Test the main sealing path without execution envelope."""
     with patch.object(vault.anchor_client, "anchor_seal", new_callable=AsyncMock) as mock_anchor, \
-         patch("core.organs._4_vault.seal", new=mock_seal_fn):
+         patch("core.vault999.unified_vault999.architectural_seal", new=mock_seal_fn):
 
         mock_anchor.return_value = MagicMock()
 
@@ -69,7 +69,7 @@ async def test_seal_with_execution_envelope(vault):
     """Test sealing with requires_execution=True generates an envelope."""
     with patch.object(vault.anchor_client, "anchor_seal", new_callable=AsyncMock) as mock_anchor, \
          patch.object(vault.attestor, "sign_envelope", new_callable=AsyncMock) as mock_sign, \
-         patch("core.organs._4_vault.seal", new=mock_seal_fn):
+         patch("core.vault999.unified_vault999.architectural_seal", new=mock_seal_fn):
 
         mock_anchor.return_value = MagicMock()
         mock_sign.side_effect = lambda e: e  # return envelope unchanged
@@ -89,7 +89,7 @@ async def test_seal_with_execution_envelope(vault):
 async def test_seal_anchor_failure_doesnt_crash(vault):
     """Blockchain anchoring failure must be non-fatal."""
     with patch.object(vault.anchor_client, "anchor_seal", new_callable=AsyncMock) as mock_anchor, \
-         patch("core.organs._4_vault.seal", new=mock_seal_fn):
+         patch("core.vault999.unified_vault999.architectural_seal", new=mock_seal_fn):
 
         mock_anchor.side_effect = Exception("Polygon down")
 

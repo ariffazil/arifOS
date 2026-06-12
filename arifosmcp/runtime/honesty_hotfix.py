@@ -141,7 +141,7 @@ def min_verdict(inner: str, wrapper: str) -> str:
 
 
 _KNOWN_REPO_PATHS: tuple[Path, ...] = (
-    Path("/root/arifOS"),
+    Path(os.environ.get("ARIFOS_HOME", "/root") + "/arifOS"),
     Path("/opt/arifos/app"),
 )
 

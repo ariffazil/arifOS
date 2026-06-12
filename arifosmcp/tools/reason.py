@@ -335,26 +335,21 @@ def arif_mind_reason(
         packet = reason_result["mind_packet"]
         synthesis_v2 = packet.get("synthesis", {})
 
-        bundle = _build_delta_bundle(
-            query=query,
-            status=reason_result.get("status", "OK"),
-            claim_state=packet.get("claim_state", "supported"),
-            synthesis=synthesis_v2.get("bounded_answer", ""),
-            reasoning={
-                "metabolized_context": packet.get("metabolized_context"),
-                "abstractions": packet.get("abstractions"),
-                "attestations": packet.get("attestations"),
-                "abductions": packet.get("abductions"),
-                "sequential_layers": packet.get("sequential_layers"),
+        # ── AGI KERNEL READINESS GATE 001 FIELDS ──
+        raw_conf_v2 = synthesis_v2.get("confidence", {}) if isinstance(synthesis_v2.get("confidence"), dict) else {}
+        bundle = {
+            "claim_state": str(packet.get("claim_state", "UNKNOWN")).upper(),
+            "reasoning_verdict": str(reason_result.get("status", "OK")).upper(),
+            "evidence_used": packet.get("attestations", []) if isinstance(packet.get("attestations"), list) else [],
+            "inferences": packet.get("abductions", []) if isinstance(packet.get("abductions"), list) else [],
+            "counterarguments": packet.get("counterarguments", []) if isinstance(packet.get("counterarguments"), list) else [],
+            "missing_evidence": packet.get("missing_evidence", []) if isinstance(packet.get("missing_evidence"), list) else [],
+            "confidence": {
+                "overall": float(raw_conf_v2.get("overall_confidence", raw_conf_v2.get("overall", 0.0))),
+                "label": str(raw_conf_v2.get("label", "low"))
             },
-            confidence=synthesis_v2.get("confidence", {}),
-            uncertainty=reason_result.get("uncertainty", []),
-            reasoning_mode=packet.get("reasoning_mode", "deliberate"),
-            axioms_used=reason_result.get("governance", {}).get("axioms_used", []),
-            next_safe_action=[a.get("tool") for a in packet.get("next_actions", [])],
-            context=context,
-            actor_id=actor_id,
-        )
+            "next_safe_action": [a.get("tool") for a in packet.get("next_actions", [])] if isinstance(packet.get("next_actions"), list) else []
+        }
         return Synthesis(**_ok("arif_mind_reason", bundle))
 
     # Floor check (Manual override check)
@@ -366,20 +361,23 @@ def arif_mind_reason(
     if floor_verdict != "SEAL":
         uncertainty.append({"type": "FLOOR_BREACH", "detail": floor_reason})
 
-    bundle = _build_delta_bundle(
-        query=query,
-        status=("HOLD" if floor_verdict != "SEAL" else reason_result.get("status", "HOLD")),
-        claim_state=reason_result.get("claim_state", "HYPOTHESIS"),
-        synthesis=reason_result.get("synthesis", ""),
-        reasoning=reason_result.get("reasoning", {}),
-        confidence=reason_result.get("confidence", {}),
-        uncertainty=uncertainty,
-        reasoning_mode=reason_result.get("reasoning_mode", "analytical"),
-        axioms_used=reason_result.get("axioms_used", []),
-        next_safe_action=reason_result.get("next_safe_action", []),
-        context=context,
-        actor_id=actor_id,
-    )
+    raw_conf = reason_result.get("confidence", {}) if isinstance(reason_result.get("confidence"), dict) else {}
+    reasoning_data = reason_result.get("reasoning", {}) if isinstance(reason_result.get("reasoning"), dict) else {}
+    
+    # ── AGI KERNEL READINESS GATE 001 FIELDS ──
+    bundle = {
+        "claim_state": str(reason_result.get("claim_state", "UNKNOWN")).upper(),
+        "reasoning_verdict": "HOLD" if floor_verdict != "SEAL" else str(reason_result.get("status", "HOLD")).upper(),
+        "evidence_used": reasoning_data.get("attestations", []) if isinstance(reasoning_data.get("attestations"), list) else [],
+        "inferences": reasoning_data.get("abductions", []) if isinstance(reasoning_data.get("abductions"), list) else [],
+        "counterarguments": reasoning_data.get("counterarguments", []) if isinstance(reasoning_data.get("counterarguments"), list) else [],
+        "missing_evidence": reasoning_data.get("missing_evidence", []) if isinstance(reasoning_data.get("missing_evidence"), list) else [],
+        "confidence": {
+            "overall": float(raw_conf.get("overall_confidence", raw_conf.get("overall", 0.0))),
+            "label": str(raw_conf.get("label", "low"))
+        },
+        "next_safe_action": reason_result.get("next_safe_action", []) if isinstance(reason_result.get("next_safe_action"), list) else []
+    }
 
     if floor_verdict != "SEAL":
         hold_env = _hold(

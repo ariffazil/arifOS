@@ -66,7 +66,7 @@ HOSTNAME: str = socket.gethostname()
 # Organ definitions (localhost ports on VPS compose stack)
 ORGANS: dict[str, dict] = {
     "arifOS": {
-        "port": 8080,
+        "port": 8088,
         "health_path": "/health",
         "label": "arifOS MCP Kernel",
     },

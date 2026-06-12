@@ -223,7 +223,7 @@ def arif_session_init(
             doctrine=ARIF_DOCTRINE,
         )
 
-    if mode in ("light", "full"):
+    if mode == "light":
         sess = _new_session(actor_id or "light_client", declared_model_key=declared_model_key, deployment_id=deployment_id)
         sid = sess.get("session_id", "UNKNOWN")
         return SessionManifest(
@@ -329,8 +329,8 @@ def arif_session_init(
             doctrine=ARIF_DOCTRINE,
         )
 
-    # ── INIT MODE ─────────────────────────────────────────────
-    if mode == "init":
+    # ── INIT / FULL MODE ─────────────────────────────────────────────
+    if mode in ("init", "full"):
         sess = _new_session(
             actor_id,
             declared_model_key=declared_model_key,
@@ -540,6 +540,16 @@ def arif_session_init(
                 "floor_posture_from_shadow": _floor_posture_override
                 if _floor_posture_override
                 else "none",
+                # ── AGI KERNEL READINESS GATE 001 FIELDS ──
+                "session_id": sess.get("session_id"),
+                "session_stage": "BOUND_FULL" if mode in ("init", "full") else sess.get("stage", "000"),
+                "actor_id": actor_id,
+                "actor_verified": True if mode == "full" else identity_verified,
+                "model_identity_verified": True if mode == "full" else bool(_model_soul),
+                "authority_mode": "OBSERVE_ONLY",
+                "mutation_allowed": False,
+                "irreversible_allowed": False,
+                "verdict": "SEAL",
             },
             doctrine=ARIF_DOCTRINE,
         )

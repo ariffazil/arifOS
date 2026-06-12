@@ -47,7 +47,7 @@ from pathlib import Path
 VAULT999_PATHS = [
     Path("/opt/arifos/app/VAULT999/outcomes.jsonl"),
     Path("/root/arifOS/VAULT999/outcomes.jsonl"),
-    Path("/root/VAULT999/outcomes.jsonl"),
+    Path(os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"),
 ]
 
 
