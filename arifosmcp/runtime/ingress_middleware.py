@@ -434,9 +434,22 @@ def _try_promote_local_service(
         return False
 
     # ── Promote ──────────────────────────────────────────────────────
+    # Preserve delegation chain: caller_actor is the original human (e.g. arifbfazil),
+    # executor_actor is the relay (Hermes@af-forge), sovereign stays the human.
+    # Downstream tools MUST see the sovereign in actor_id, not the relay.
+    if envelope.actor_id == "Hermes@af-forge":
+        # Relay sent itself as actor — recover original human from delegation chain.
+        # If no original human is known, fall back to anonymous (never expose relay as sovereign).
+        original_actor = envelope.caller_actor or envelope.sovereign or "anonymous"
+        envelope.actor_id = original_actor
+        envelope.caller_actor = original_actor
+        envelope.sovereign = original_actor
+    elif envelope.actor_id and envelope.actor_id != "Hermes@af-forge":
+        envelope.caller_actor = envelope.actor_id  # preserve original human caller
+        envelope.sovereign = envelope.actor_id
+    envelope.executor_actor = "Hermes@af-forge"
     envelope.legacy_wrap = False
-    envelope.actor_id = "Hermes@af-forge"
-    envelope.actor_verification = "verified"
+    envelope.actor_verification = "delegated"  # came in via trusted relay
     envelope.agent_id = "Hermes"
     envelope.authority.source = AuthoritySource.TOKEN
     envelope.host_attestation = HostAttestation.TRUSTED
