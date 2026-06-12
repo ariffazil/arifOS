@@ -163,8 +163,8 @@ class SovereignSealRequest(BaseModel):
     epoch: str
     verdict: str = Field(pattern="^(SEAL|VOID)$")
     human_ratifier: str = Field(pattern="^arif$")
-    human_signature: Optional[str] = None  # Legacy ceremonial sig (deprecated)
-    ed25519_signature: str  # Base64 Ed25519 signature over canonical payload
+    human_signature: Optional[str] = None  # Witness string for presence-based seals
+    ed25519_signature: Optional[str] = None  # Base64 Ed25519 signature over canonical payload
     ratified_at: str
     irreversibility_ack: bool = True
     irreversibility_class: Optional[str] = None

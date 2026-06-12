@@ -1,0 +1,28 @@
+[Unit]
+Description=F13 Sovereign Witness Bridge — arifOS Federation
+After=network.target vault999-writer.service
+Wants=vault999-writer.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/arifOS
+ExecStart=/root/arifOS/.venv/bin/python /root/arifOS/f11_bridge.py
+Restart=always
+RestartSec=5
+StartLimitInterval=60
+StartLimitBurst=3
+
+Environment=VAULT999_WRITER_URL=http://127.0.0.1:5001
+Environment=BRIDGE_PORT=5002
+Environment=HERMES_DB=/root/HERMES/state.db
+Environment=ARIF_TELEGRAM_ID=267378578
+Environment=SESSION_MAX_AGE_SEC=300
+Environment=MAX_SEALS_PER_HOUR=10
+Environment=ALLOWED_ACTION_PREFIXES=AAA_REGISTRY,CONTEXT_SYNC,FASTMCP_ALIGN,SESSION_CLOSE,AGENT_KICKSTART
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
