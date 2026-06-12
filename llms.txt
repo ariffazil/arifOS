@@ -1,0 +1,84 @@
+# arifOS — Constitutional AI Governance Kernel
+> Constitutional kernel for governed AI execution. 13 canonical tools, F1-F13 floors.
+> Port: 8088. License: AGPL-3.0. Status: OPERATIONAL. Version: 2026.06.11.
+
+## Quick Context
+- **What:** Law layer between AI agents and tools. The constitution, not the infra.
+- **Role:** Constitutional kernel — F1-F13 floor enforcement, 888 JUDGE, VAULT999 ledger
+- **Federation:** 7 organs governed under FEDERATION_CONTRACT.md
+- **Ingress:** Cloudflare Tunnel → arifos.arif-fazil.com/mcp
+
+## Key Files
+- README.md — Full human-readable narrative (828 lines)
+- AGENTS.md — Agent rules, constitution, build/test commands
+- FEDERATION_CONTRACT.md — Binding 7-organ contract with authority map
+- GENESIS/000_KERNEL_CANON.md — Root of the GENESIS doctrinal chain
+- CONTEXT.md — Live machine state, session log
+- FEDERATION_STATUS.md — Per-organ health matrix
+
+## Entry Points
+- arifosmcp/server.py — FastMCP entry point (~21K lines)
+- arifosmcp/constitutional_map.py — Floor registry + canonical tool definitions
+- arifosmcp/runtime/tools.py — Handler dispatch (~13K lines)
+- arifosmcp/core/ — Deep enforcement: bridge, kernel, organs, paradox, physics
+- arifosmcp/schemas/ — Pydantic v2 models
+- arifosmcp/runtime/runner/ — EUREKA-A context runner subsystem
+
+## Build & Test
+- Install:  uv sync --frozen
+- Test:    python -m pytest tests/ -q --tb=short
+- Skip slow: python -m pytest tests/ -m "not e3e and not slow" -q
+- Lint:    ruff check . && ruff format .
+- Start:   python -m arifosmcp.server
+- Health:  curl http://127.0.0.1:8088/health
+- Deploy:  make deploy-local  (rsync → /opt/arifos/app + systemctl restart arifos)
+
+## MCP Tools (13 canonical — surface locked at 13)
+arif_session_init       — Start/resume governed session
+arif_sense_observe      — Web search, ingest, repo map, vitals
+arif_evidence_fetch     — Fetch external evidence with citations
+arif_mind_reason        — Multi-step reasoning with confidence labeling
+arif_kernel_route       — Intent routing to tools/organs (9 modes incl. context_runner)
+arif_reply_compose      — Final response composition
+arif_memory_recall      — Search L1-L6 memory (8 modes incl. manage for KernelState OS)
+arif_heart_critique     — Ethical risk assessment
+arif_gateway_connect    — Cross-organ A2A bridge
+arif_ops_measure        — System health, thermodynamics, drift
+arif_judge_deliberate   — Final constitutional verdict (SEAL/HOLD/VOID)
+arif_forge_execute      — Build/deploy/mutate (gated behind judge verdict)
+arif_vault_seal         — Immutable audit ledger write (888_HOLD gated)
+PLUS: arif_lease_issue / arif_lease_inspect / arif_lease_revoke (P2-7 lease primitives)
+
+## Constitutional Floors (F1–F13)
+F1 AMANAH   · F2 TRUTH    · F3 TRI-WITNESS · F4 CLARITY  · F5 PEACE²
+F6 EMPATHY  · F7 HUMILITY · F8 GENIUS      · F9 ANTIHANTU · F10 ONTOLOGY
+F11 AUDITABILITY · F12 RESILIENCE · F13 SOVEREIGN (human veto FINAL)
+
+## Federation Organs
+- GEOX (8081)    — Earth evidence (EVIDENCE_ONLY)
+- WEALTH (18082) — Capital computation (ADVISORY_ONLY)
+- WELL (18083)   — Human readiness (REFLECT_ONLY)
+- AAA (3001)     — Control plane, A2A mesh, React cockpit
+- A-FORGE (7071) — Execution shell (EXECUTES, never legislates)
+- APEX (3002)    — 888 JUDGE legacy (absorbed into AAA a2a)
+
+## Agent Rules (mandatory)
+1. Never skip the 000→999 pipeline (GENESIS chain)
+2. Never self-certify (F2 TRUTH — all claims need evidence receipt)
+3. Never fabricate evidence or claim certainty without provenance
+4. Never claim consciousness, soul, or sentience (F9 ANTIHANTU)
+5. Never bypass human veto (F13 SOVEREIGN — Arif's word is FINAL)
+6. Localhost IS the password (127.0.0.1 binding = auth)
+7. Never put secrets in VAULT999 (it's an audit ledger, not a secret store)
+8. Reversible-first: commit before big changes (F1 AMANAH)
+
+## VAULT999 (3-layer append-only ledger)
+L4 Supabase — 25 domain tables (structured record)
+L6 outcomes.jsonl — Immutable hash-chained JSONL (canonical local mirror)
+vault999-writer (5001) — Single-writer service, Ed25519 chain
+
+## Memory Architecture (6 layers)
+L1 Redis → L2 Redis → L3 Qdrant → L4 Supabase → L5 Graphiti/FalkorDB → L6 VAULT999
+
+## Dynamic-State Principle
+State at T₀ is evidence only for T₀. Re-probe at T₁ before any irreversible act.

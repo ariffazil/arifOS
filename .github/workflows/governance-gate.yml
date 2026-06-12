@@ -1,0 +1,104 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# arifOS Federation — Governance Gate
+# Constitutional audit on every push to main
+# DITEMPA BUKAN DIBERI 🧠✨🌏
+# ═══════════════════════════════════════════════════════════════════════════
+
+name: "🛡️ Federation Governance Gate"
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: governance-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  governance-audit:
+    name: "Constitutional Audit"
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run Governance Gate
+        run: |
+          chmod +x scripts/governance-gate.sh
+          bash scripts/governance-gate.sh
+
+      - name: Upload Audit Report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: governance-audit-${{ github.sha }}
+          path: |
+            audit_report.json
+            audit_report.txt
+          retention-days: 30
+
+  rsi-scorecard:
+    name: "RSI Readiness Score"
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    needs: governance-audit
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Compute RSI Score
+        run: |
+          echo "=== RSI SCORECARD ==="
+          SCORE=0
+
+          # Check required files
+          for f in README.md AGENTS.md FEDERATION_CONTRACT.md CONTEXT.md RUNBOOK.md LICENSE; do
+            if [ -f "$f" ]; then
+              SCORE=$((SCORE + 2))
+              echo "  ✅ $f (+2)"
+            else
+              echo "  ❌ $f missing (0)"
+            fi
+          done
+
+          # README lines
+          LINES=$(wc -l < README.md 2>/dev/null || echo 0)
+          if [ "$LINES" -ge 777 ]; then
+            SCORE=$((SCORE + 10))
+            echo "  ✅ README ${LINES} lines (+10)"
+          elif [ "$LINES" -ge 500 ]; then
+            SCORE=$((SCORE + 5))
+            echo "  ⚠️  README ${LINES} lines (+5)"
+          else
+            echo "  ❌ README ${LINES} lines (0)"
+          fi
+
+          # GENESIS chain
+          if [ -d "GENESIS" ] && [ "$(find GENESIS -name '*.md' 2>/dev/null | wc -l)" -gt 0 ]; then
+            SCORE=$((SCORE + 5))
+            echo "  ✅ GENESIS/ canon chain (+5)"
+          fi
+
+          # No chaos
+          if ! grep -rq "gospel\|GOSPEL" README.md FEDERATION_CONTRACT.md 2>/dev/null; then
+            SCORE=$((SCORE + 3))
+            echo "  ✅ No 'gospel' term (+3)"
+          fi
+
+          # Max score depends on repo
+          MAX=30
+          echo ""
+          echo "  RSI Score: $SCORE / $MAX"
+
+          if [ "$SCORE" -ge 20 ]; then
+            echo "  VERDICT: GOVERNED — Next horizon ready"
+          elif [ "$SCORE" -ge 12 ]; then
+            echo "  VERDICT: WARNING — Below governance threshold"
+          else
+            echo "  VERDICT: DEGRADED — Needs forge intervention"
+          fi
