@@ -25,6 +25,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
+from arifosmcp.runtime.heartbeat_registry import record_heartbeat as _record_heartbeat
 from arifosmcp.runtime.live_kernel import (
     AuditReceipt,
     AuthorityLease,
@@ -247,6 +248,17 @@ async def attest_organ(
         constitution_hash=constitution_hash,
         tool_count=len(tools),
         heartbeat_at=now,
+        degraded=degraded,
+        reason=reason,
+        load={"health_status": health.get("status", "unknown")},
+    )
+    _record_heartbeat(
+        organ_id=organ_id,
+        status=status,
+        version=record.version,
+        schema_hash=schema_hash,
+        constitution_hash=constitution_hash,
+        tool_count=len(tools),
         degraded=degraded,
         reason=reason,
         load={"health_status": health.get("status", "unknown")},

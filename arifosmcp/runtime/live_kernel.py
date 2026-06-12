@@ -321,6 +321,22 @@ def arif_os_attest(
             "failed_calls_5m": 0,
         },
     )
+    try:
+        from arifosmcp.runtime.heartbeat_registry import record_heartbeat
+
+        record_heartbeat(
+            organ_id="arifOS",
+            status=status,
+            version=heartbeat.version,
+            schema_hash=envelope_schema_hash,
+            constitution_hash=constitution_hash,
+            tool_count=tool_count,
+            degraded=degraded,
+            reason=reason,
+            load=heartbeat.load,
+        )
+    except Exception:
+        pass
 
     envelope = LiveKernelEnvelope(
         kernel=KernelIdentity(
