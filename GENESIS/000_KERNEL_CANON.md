@@ -12,7 +12,8 @@
 GENESIS is the **numbered canon chain** that defines what each organ IS, why it EXISTS, and what it MUST NEVER become.
 
 - `000` — **Kernel Canon** (this file). The root. What arifOS is and how the federation works.
-- `001-002` — **Reserved for kernel doctrine** (Three Kernels, Sole Witness).
+- `001` — **Muhammad-Mode ASI** (`GENESIS/001_MUHAMMAD_MODE_ASI.md`). Kernel design doctrine: low-spectacle, high-institution, human sovereignty.
+- `002` — **Reserved for kernel doctrine** (Three Kernels, Sole Witness).
 - `003+` — **Organ canons** (GEOX, WEALTH, WELL, A-FORGE, AAA).
 
 Every GENESIS document is numbered. Every organ that has GENESIS must point back to 000. No organ may redefine what is already written here.
