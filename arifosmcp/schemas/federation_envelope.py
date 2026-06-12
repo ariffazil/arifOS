@@ -316,7 +316,7 @@ class FederationEnvelope(BaseModel):
     parent_trace_id: str | None = Field(default=None, description="Parent trace for nested calls")
 
     # Identity
-    actor_id: str = Field(description="Who triggered this call")
+    actor_id: str = Field(description="Who triggered this call (the human sovereign, after delegation chain)")
     actor_verification: str = Field(
         default="claimed",
         description="claimed | verified | delegated — how the actor was verified",
@@ -325,6 +325,22 @@ class FederationEnvelope(BaseModel):
     agent_id: str | None = Field(default=None, description="Which agent is acting")
     tool_id: str | None = Field(default=None, description="Which tool is being invoked")
     organ: FederationOrgan = Field(description="Which organ this call targets")
+
+    # ── v3: Delegation Chain (preserved across A2A bridges) ──────────
+    # The original human caller, preserved through relay hops so
+    # downstream tools see the sovereign, not the relay.
+    caller_actor: str | None = Field(
+        default=None,
+        description="Original human caller — preserved through A2A relay (e.g. arifbfazil)",
+    )
+    executor_actor: str | None = Field(
+        default=None,
+        description="Agent/relay executing this call on behalf of caller (e.g. Hermes@af-forge)",
+    )
+    sovereign: str | None = Field(
+        default=None,
+        description="Human sovereign — always the human, never the relay. Used for F13 floor.",
+    )
 
     # Niat / Matlamat separation
     niat: str | None = Field(default=None, description="Moral intent: why this action exists")

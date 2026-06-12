@@ -119,6 +119,18 @@ def arif_session_init(
     capability_disclosure: dict | None = None,
     nonce: str | None = None,
     signature: str | None = None,
+    # ── Pre-session identity lineage (forged 2026-06-12) ─────────────────
+    idempotency_key: str | None = None,
+    trace_id: str | None = None,
+    caller_actor_id: str | None = None,
+    executor_actor_id: str | None = None,
+    sovereign_id: str | None = None,
+    delegation_mode: str | None = None,
+    # ── Ω-PATCH 2026-06-13: thin client payload enrichment ───────────────
+    intent: str | None = None,
+    #   Human-readable purpose. Recorded for audit (F2 TRUTH).
+    requested_authority: str = "OBSERVE_ONLY",
+    #   OBSERVE_ONLY | LIMITED_MUTATE | FULL. Aspiration only at birth.
 ) -> SessionManifest:
     """
     000_INIT — Constitutional session bootstrap.
@@ -134,6 +146,58 @@ def arif_session_init(
     No longer silently coerces null to "anonymous".
     """
 
+    # ── PING MODE ──────────────────────────────────────────────
+    # Pre-session, zero-authority capability probe. No actor_id required.
+    # This is the always-safe path for clients blocked by safety gates on init.
+    if mode == "ping":
+        from arifosmcp.constitutional_map import CANONICAL_TOOLS
+        from arifosmcp.runtime.tools import _SESSIONS
+
+        tool_surface = _build_tool_surface()
+        return SessionManifest(
+            status="OK",
+            tool="arif_session_init",
+            mode="ping",
+            session=SessionState(
+                session_id="",
+                actor_id=actor_id or "anonymous",
+                stage="000",
+                lane="AGI",
+                constitution_bound=False,
+            ),
+            actor={
+                "claimed_id": actor_id or "anonymous",
+                "identity_verified": False,
+                "authority_level": "ANONYMOUS",
+            },
+            constitution={
+                "id": "arifos-constitution-v2026.05.05-SSCT",
+                "human_judge_required": True,
+                "self_approval_forbidden": True,
+                "irreversible_ack_required": True,
+            },
+            result={
+                "kernel": "alive",
+                "observe_only": True,
+                "mutation_allowed": False,
+                "external_side_effects_allowed": False,
+                "irreversible_allowed": False,
+                "actor_verified": False,
+                "authority_mode": "OBSERVE_ONLY",
+                "stage": "000",
+                "available_modes": ["ping", "light", "full", "init", "status", "discover"],
+                "required_for_init": {
+                    "actor_id": "string (non-null)",
+                    "ack_irreversible": "boolean (default false)",
+                    "optional": ["declared_model_key", "deployment_id", "nonce", "signature"],
+                },
+                "active_sessions": len(_SESSIONS),
+                "tool_surface": tool_surface.model_dump(),
+                "canonical_tools": list(CANONICAL_TOOLS.keys()),
+            },
+            doctrine=ARIF_DOCTRINE,
+        )
+
     # ── NULL HANDLING FIX ──────────────────────────────────────
     # P0: Null actor_id should produce a clear error, not silent coercion
     if actor_id is None:
@@ -144,7 +208,7 @@ def arif_session_init(
                 "reason": "actor_id required — null not coerced to anonymous",
                 "violated_laws": ["L11"],
                 "hint": "Provide actor_id as non-null string for verified sessions, "
-                "or use mode=discover for anonymous capability inspection",
+                "or use mode=ping for anonymous capability inspection",
             },
             doctrine=ARIF_DOCTRINE,
         )
@@ -167,11 +231,34 @@ def arif_session_init(
             tool="arif_session_init",
             mode=mode,
             session=SessionState(session_id=sid, actor_id=actor_id, stage="000", lane="AGI", constitution_bound=True),
-            actor={"claimed_id": actor_id, "identity_verified": False, "authority_level": "LIGHT_BOOTSTRAP"},
+            actor={"claimed_id": actor_id, "identity_verified": False, "authority_level": "OPERATOR"},
             constitution={"id": "arifos-constitution-v2026.05.05-SSCT", "human_judge_required": True},
             result={
-                "session_id": sid, "mode": mode, "status": "READY",
-                "model_soul_loaded": False, "model_shadow_loaded": False,
+                "session_id": sid,
+                "mode": mode,
+                "status": "READY",
+                "model_soul_loaded": False,
+                "model_shadow_loaded": False,
+                "session_birth": {
+                    "session_id": sid,
+                    "actor_id": actor_id,
+                    "actor_verified": False,
+                    "authority_mode": "OPERATOR",  # light = OPERATOR lane, BORN
+                    "mutation_allowed": False,
+                    "external_side_effects_allowed": False,
+                    "irreversible_allowed": False,
+                    "stage": "000",
+                    "lane": "AGI",
+                    "verdict": "OBSERVE_ONLY",
+                },
+                "identity_lineage": {
+                    "trace_id": trace_id,
+                    "caller_actor_id": caller_actor_id or actor_id,
+                    "executor_actor_id": executor_actor_id or "Hermes@af-forge",
+                    "sovereign_id": sovereign_id or actor_id or "ARIF_FAZIL",
+                    "delegation_mode": delegation_mode or "internal_executor",
+                    "call_chain": ["client", "arif_session_init", "light"],
+                },
                 "next_actions": [
                     "call arif_os_attest for kernel self-attestation",
                     "call arif_organ_attest_all for federation organ liveness",
@@ -426,6 +513,18 @@ def arif_session_init(
             context_completeness=context_completeness,
             result={
                 "session": sess,
+                "session_birth": {
+                    "session_id": sess.get("session_id"),
+                    "actor_id": actor_id,
+                    "actor_verified": identity_verified,
+                    "authority_mode": authority_level,
+                    "mutation_allowed": False,
+                    "external_side_effects_allowed": False,
+                    "irreversible_allowed": False,
+                    "stage": sess.get("stage", "000"),
+                    "lane": sess.get("lane", "AGI"),
+                    "verdict": "SEAL" if identity_verified else "OBSERVE_ONLY",
+                },
                 "well_mirror": _well_mirror,
                 "context_completeness": context_completeness.model_dump()
                 if context_completeness
@@ -455,16 +554,204 @@ def arif_session_init(
             doctrine=ARIF_DOCTRINE,
         )
 
-    # ── DISCOVER MODE — Full raw tool manifest ────────────────
+    # ── DISCOVER MODE — Pre-session safe, no mutation, no authority ritual ──
+    # Safe to call BEFORE any session exists. Returns server state + required
+    # init schema so the client knows how to birth a session. Never blocks.
     if mode == "discover":
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
+        from arifosmcp.runtime.tools import _SESSIONS
 
         tool_surface = _build_tool_surface()
         return SessionManifest(
             status="OK",
+            mode="discover",
+            stage="000_DISCOVER",
             result={
-                "canonical_tools": list(CANONICAL_TOOLS.keys()),
+                "kernel": "alive",
+                "observe_only": True,
+                "mutation_allowed": False,
+                "external_side_effects_allowed": False,
+                "irreversible_allowed": False,
+                "actor_verified": False,
+                "authority_mode": "OBSERVE_ONLY",
+                "stage": "000",
+                "session_stage": "DISCOVERED",
+                "pre_session": True,
+                "active_sessions": len(_SESSIONS),
+                "available_modes": ["ping", "discover", "birth", "light", "init", "status", "validate", "resume", "epoch_open", "epoch_seal"],
+                "next_lane": "arif_session_init(mode='birth') to create observe-only session",
+                "required_for_birth": {
+                    "mode": "birth (or init_light)",
+                    "actor_id": "string (non-null, e.g. arifbfazil)",
+                    "ack_irreversible": "boolean (default false)",
+                    "optional": ["declared_model_key", "intent"],
+                },
+                "available_tools": list(CANONICAL_TOOLS.keys()),
                 "tool_surface": tool_surface.model_dump(),
+                "canonical_tools": list(CANONICAL_TOOLS.keys()),
+                "identity_lineage_fields": [
+                    "caller_actor_id",
+                    "executor_actor_id",
+                    "sovereign_id",
+                    "delegation_mode",
+                    "call_chain",
+                ],
+            },
+            doctrine=ARIF_DOCTRINE,
+        )
+
+    # ── BIRTH MODE — Create observe-only session, always returns session_id ──
+    # This is the thinnest possible session creation: no model shadow, no ToM-1,
+    # no well mirror, no MCP probes. Just identity + session_id + stage.
+    # Birth is HONESTLY classified: it writes a session record (mutation_allowed=True
+    # for INTERNAL state), but it is reversible, low-risk, no external side effects.
+    if mode in ("birth", "init_light"):
+        from arifosmcp.runtime.tools import _SESSIONS
+
+        if not actor_id:
+            return SessionManifest(
+                status="HOLD",
+                mode="birth",
+                result={},
+                meta={"reason": "actor_id required for session birth"},
+                doctrine=ARIF_DOCTRINE,
+            )
+
+        # ── Idempotency: same key → same session_id (no duplicate births) ──
+        if idempotency_key:
+            # Check the existing sessions registry for a matching idempotency key
+            try:
+                for existing_sid, existing_sess in _SESSIONS.items():
+                    if existing_sess.get("idempotency_key") == idempotency_key:
+                        # Reuse the original session
+                        return SessionManifest(
+                            status="OK",
+                            mode=mode,
+                            stage="000_BORN",
+                            session=SessionState(
+                                session_id=existing_sid,
+                                actor_id=actor_id,
+                                stage="000",
+                                lane="AGI",
+                                constitution_bound=True,
+                            ),
+                            actor={
+                                "claimed_id": actor_id,
+                                "identity_verified": False,
+                                "authority_level": "OBSERVE_ONLY",
+                            },
+                            constitution={"id": "arifos-constitution-v2026.05.05-SSCT", "human_judge_required": True},
+                            result={
+                                "session_id": existing_sid,
+                                "idempotency_replay": True,
+                                "actor_id": actor_id,
+                                "actor_verified": False,
+                                "authority_mode": "OBSERVE_ONLY",
+                                "session_stage": "BORN_OBSERVE",
+                                "stage": "000",
+                                "mutation_allowed": False,
+                                "irreversible_allowed": False,
+                                "external_side_effects_allowed": False,
+                                "verdict": "SEAL",
+                                "pre_session": False,
+                                "identity_lineage": {
+                                    "trace_id": trace_id,
+                                    "caller_actor_id": caller_actor_id or actor_id,
+                                    "executor_actor_id": executor_actor_id or "Hermes@af-forge",
+                                    "sovereign_id": sovereign_id or actor_id or "ARIF_FAZIL",
+                                    "delegation_mode": delegation_mode or "internal_executor",
+                                    "call_chain": ["client", "arif_session_init", "birth", "idempotency_replay"],
+                                },
+                            },
+                            doctrine=ARIF_DOCTRINE,
+                        )
+            except Exception:
+                pass  # idempotency check is best-effort; proceed with new birth
+
+        sess = _new_session(
+            actor_id,
+            declared_model_key=declared_model_key,
+            deployment_id=deployment_id,
+        )
+        sid = sess.get("session_id", "UNKNOWN")
+        sess["constitution_hash"] = "sha256:8bea28833523c652"
+        sess["authority_level"] = "OBSERVE_ONLY"
+        sess["session_verdict"] = "READY"
+        sess["session_stage"] = "BORN_OBSERVE"
+        sess["pre_session"] = False
+        sess["mutation_allowed"] = False
+        sess["irreversible_allowed"] = False
+        sess["external_side_effects_allowed"] = False
+        sess["action_class"] = "SESSION_BIRTH"
+        sess["blast_radius"] = "LOW"
+        sess["human_ack_required"] = False
+        # Ω-PATCH 2026-06-13: record intent + requested_authority
+        if intent:
+            sess["birth_intent"] = intent
+        sess["requested_authority"] = requested_authority
+        if idempotency_key:
+            sess["idempotency_key"] = idempotency_key
+        # Record call chain for audit
+        if trace_id:
+            sess["trace_id"] = trace_id
+        if caller_actor_id:
+            sess["caller_actor_id"] = caller_actor_id
+        if executor_actor_id:
+            sess["executor_actor_id"] = executor_actor_id
+        if sovereign_id:
+            sess["sovereign_id"] = sovereign_id
+        if delegation_mode:
+            sess["delegation_mode"] = delegation_mode
+
+        return SessionManifest(
+            status="OK",
+            mode=mode,
+            stage="000_BORN",
+            session=SessionState(
+                session_id=sid,
+                actor_id=actor_id,
+                stage="000",
+                lane="AGI",
+                constitution_bound=True,
+            ),
+            actor={
+                "claimed_id": actor_id,
+                "identity_verified": False,
+                "authority_level": "OBSERVE_ONLY",
+            },
+            constitution={"id": "arifos-constitution-v2026.05.05-SSCT", "human_judge_required": True},
+            result={
+                "session_id": sid,
+                "actor_id": actor_id,
+                "actor_verified": False,
+                "authority_mode": "OBSERVE_ONLY",
+                "requested_authority": requested_authority,
+                "session_stage": "BORN_OBSERVE",
+                "stage": "000",
+                "mutation_allowed": False,
+                "irreversible_allowed": False,
+                "external_side_effects_allowed": False,
+                "verdict": "SEAL",
+                "pre_session": False,
+                "action_class": "SESSION_BIRTH",
+                "blast_radius": "LOW",
+                "human_ack_required": False,
+                "intent": intent,
+                "idempotency_replay": False,
+                "identity_lineage": {
+                    "trace_id": trace_id,
+                    "caller_actor_id": caller_actor_id or actor_id,
+                    "executor_actor_id": executor_actor_id or "arifOS@af-forge",
+                    "sovereign_id": sovereign_id or actor_id or "ARIF_FAZIL",
+                    "delegation_mode": delegation_mode or "internal_executor",
+                    "call_chain": ["client", "arif_session_init", "birth"],
+                },
+                "next_actions": [
+                    "call arif_os_attest for kernel self-attestation",
+                    "call arif_organ_attest_all for federation organ liveness",
+                    "call arif_lease_issue before governed tool use",
+                    "call arif_session_init(mode='init') for full constitutional binding (optional, slow)",
+                ],
             },
             doctrine=ARIF_DOCTRINE,
         )

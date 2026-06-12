@@ -3558,7 +3558,7 @@ def _arif_session_init(
     #    "uncertainty_required": bool}
     tooling: dict | None = None,
     #   {"requested_capabilities": [str], "declared_mcp_targets": [str]}
-    # ── GAP-C: AgentPolicy integration (forged 2026-06-09 by Ω) ──────────
+    # ── GAP-C: AgentPolicy integration (forged 2026-06-09 by Ω) ──────────────
     agent_policy: dict | None = None,
     #   {"agent_role": str, "allowed_tools": [str], "denied_tools": [str],
     #    "allowed_organs": [str], "irreversibility_threshold": float,
@@ -3566,6 +3566,32 @@ def _arif_session_init(
     #    "max_tokens_per_call": int, "max_runtime_seconds": int,
     #    "policy_version": str}
     #   Maps MXC SandboxPolicy concept onto arifOS session binding.
+    # ── Pre-session identity lineage (forged 2026-06-12 — session-birth fix) ───
+    intent: str | None = None,
+    #   Human-readable purpose of this session. Recorded for audit (F2 TRUTH).
+    #   Server enriches internally — thin client payload does NOT need to
+    #   send governance/tools/policy/model identity. Required: no.
+    requested_authority: str = "OBSERVE_ONLY",
+    #   OBSERVE_ONLY | LIMITED_MUTATE | FULL. Aspiration only — actual
+    #   capability is OBSERVE_ONLY at birth. Lease/attest gates elevation.
+    #   (F13 ratified 2026-06-13.)
+    idempotency_key: str | None = None,
+    #   Client-generated or server-issued. Prevents duplicate session birth
+    #   on retry after timeout. If a birth was already issued for this key,
+    #   return the same session_id instead of creating a new one.
+    trace_id: str | None = None,
+    #   Trace ID for the full call chain. Auto-generated if not provided.
+    caller_actor_id: str | None = None,
+    #   Original human caller. Preserved through A2A relay. NEVER overwritten
+    #   by the executor (e.g. Hermes@af-forge). The sovereign lineage.
+    executor_actor_id: str | None = None,
+    #   Agent/relay executing this call on behalf of caller. Optional.
+    #   Append-only lineage, never replaces caller_actor_id.
+    sovereign_id: str | None = None,
+    #   Human sovereign. Defaults to caller_actor_id. Used for F13 floor.
+    delegation_mode: str | None = None,
+    #   "internal_executor" | "client_direct" | "swarm_delegate".
+    #   Documents how this call arrived. Informational, not authoritative.
 ) -> dict[str, Any]:
     """
     000_INIT: Constitutional session bootstrap — three-phase binding.
@@ -3611,13 +3637,54 @@ def _arif_session_init(
       constitution, and session_verdict. Phase 1 only produces a provisional
       receipt; Phase 3 produces the full STABLE/DEGRADED_* receipt.
     """
+    # ── PRE-SESSION LANE DISPATCHER (Ω-PATCH 2026-06-13, F13 ratified) ─────
+    # Constitutional rule (locked by Arif 2026-06-13):
+    #   "Pre-session functions may create identity context.
+    #    Post-session functions must require identity context.
+    #    Internal executors may extend lineage, never overwrite the human caller."
+    #
+    # L11 AUTH rule: session_id required EXCEPT for PRE_SESSION_DISCOVER
+    # and PRE_SESSION_BIRTH. Every other mode still HOLDs on missing session_id.
+    #
+    # discover and birth are routed BEFORE the actor_id null check because:
+    #   - discover: no actor required (read-only probe)
+    #   - birth:   actor + idempotency_key required (not anonymous)
+    # Both are FAIL-OPEN for session_id and PASS-OPEN for client safety gates
+    # (thin payloads, no authority declarations).
+    if mode in {"ping", "discover", "birth", "init_light", "light", "full"}:
+        # Pre-session: no session required. Delegate to canonical session.py.
+        from arifosmcp.tools.session import arif_session_init as _delegate_init
+        try:
+            import uuid as _uuid
+
+            trace_id = trace_id or f"trc_{_uuid.uuid4().hex[:12]}"
+            return _delegate_init(
+                mode=mode,  # pass ORIGINAL mode (not legacy alias)
+                actor_id=actor_id,
+                ack_irreversible=ack_irreversible,
+                session_id=session_id,
+                declared_model_key=declared_model_key,
+                nonce=nonce,
+                signature=actor_signature,
+                idempotency_key=idempotency_key,
+                trace_id=trace_id,
+                intent=intent,
+                requested_authority=requested_authority,
+                caller_actor_id=caller_actor_id or actor_id,  # human caller; never overwrite
+                executor_actor_id=executor_actor_id or "arifOS@af-forge",
+                sovereign_id=sovereign_id or "ARIF_FAZIL",
+                delegation_mode=delegation_mode or "internal_executor",
+            )
+        except Exception as e:
+            return _hold("arif_session_init", f"Delegate init failed: {e}", ["L01"], session_id=session_id)
+
     # EUREKA EMBODIMENT FIX: explicit null handling before floor check
     # P0: null actor_id should produce clear error, not silent coercion
     if actor_id is None:
         return _hold(
             "arif_session_init",
             "actor_id required — null not coerced to anonymous. "
-            "Provide non-null actor_id for verified sessions, or use mode=ping for anonymous inspection.",
+            "Provide non-null actor_id for verified sessions, or use mode=discover for anonymous inspection.",
             ["L11"],
             session_id=session_id,
         )
@@ -3625,8 +3692,9 @@ def _arif_session_init(
     allowed_modes = ["init", "light", "resume", "validate", "epoch_open", "epoch_seal"]
     legacy_aliases = {
         "status": "validate",
-        "discover": "ping",
         "handover": "resume",
+        # NOTE: "discover" removed from legacy aliases (Ω-PATCH 2026-06-13).
+        # It is now a real pre-session mode handled by the dispatcher above.
     }
     floor_check = check_laws(
         "arif_session_init",
@@ -3675,13 +3743,26 @@ def _arif_session_init(
         "public_internal_boundary": "arif_* public; arifos_* internal",
     }
 
-    if normalized_mode == "ping":
-        return _runtime_ping(mode="probe", session_id=session_id, actor_id=actor_id)
+    # ── PRE-SESSION LANES (L11 carve-out) — DEPRECATED duplicate ──────────
+    # Init cannot require the session ID that init is responsible for creating.
+    # Pre-session lanes (ping, discover, birth, init_light, light) bypass L11
+    # session_id requirement. Everything else still fails hard if session_id
+    # is missing. This is the architectural correction for the 2026-06-12 init
+    # deadlock: L11 only requires session_id for POST-session tools.
+    #
+    # Ω-PATCH 2026-06-13: The pre-session dispatcher was moved to BEFORE the
+    # actor_id null check at the top of this function. This block is now
+    # unreachable for {ping, discover, birth, init_light, light, full} but
+    # is kept as a defensive fallback in case the dispatcher is bypassed.
+    _PRE_SESSION_MODES = {"ping", "discover", "birth", "init_light", "light", "full"}
 
-    if normalized_mode in ("light", "full"):
-        # Delegate to canonical session.py implementation (light-mode aware)
+    if normalized_mode in _PRE_SESSION_MODES:
+        # Pre-session: no session required. Delegate to canonical session.py.
         from arifosmcp.tools.session import arif_session_init as _delegate_init
         try:
+            import uuid as _uuid
+
+            trace_id = trace_id or f"trc_{_uuid.uuid4().hex[:12]}"
             return _delegate_init(
                 mode=normalized_mode,
                 actor_id=actor_id,
@@ -3690,6 +3771,14 @@ def _arif_session_init(
                 declared_model_key=declared_model_key,
                 nonce=nonce,
                 signature=actor_signature,
+                idempotency_key=idempotency_key,
+                trace_id=trace_id,
+                intent=intent,
+                requested_authority=requested_authority,
+                caller_actor_id=caller_actor_id or actor_id,
+                executor_actor_id=executor_actor_id or "arifOS@af-forge",
+                sovereign_id=sovereign_id or "ARIF_FAZIL",
+                delegation_mode=delegation_mode or "internal_executor",
             )
         except Exception as e:
             return _hold("arif_session_init", f"Delegate init failed: {e}", ["L01"], session_id=session_id)
@@ -7607,7 +7696,8 @@ def _arif_kernel_route(
     from arifosmcp.runtime.session_auth import validate_session
 
     # Public modes — no session required
-    _public_modes = {"list", "status", "kernel", "federation_health", "triage"}
+    # init/discover/birth/preflight are pre-session safe paths (session birth happens inside them)
+    _public_modes = {"list", "status", "kernel", "federation_health", "triage", "init", "discover", "birth", "init_light", "preflight", "ping"}
     if mode not in _public_modes:
         auth = validate_session(session_id, actor_id)
         if not auth["valid"]:

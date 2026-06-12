@@ -43,7 +43,8 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_selftest": "Constitutional integrity probe — verifies the floor stack is intact.",
     "arif_session_init": (
         "Start or resume a governed constitutional session. "
-        "Call this FIRST before any other tool in a new conversation."
+        "Call this FIRST before any other tool in a new conversation. "
+        "Modes: init (full binding, ~60s) | light (<1s bootstrap with tool pointers)."
     ),
     "arif_sense_observe": (
         "Search the web, ingest URLs, check system vitals, or map a repository. "

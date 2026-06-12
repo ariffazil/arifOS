@@ -153,6 +153,35 @@ def arif_kernel_route(
             },
         )
 
+    if mode == "preflight":
+        # Always-safe pre-session probe. No session_id required.
+        from arifosmcp.constitutional_map import CANONICAL_TOOLS
+        from arifosmcp.runtime.tools import _SESSIONS
+
+        return _ok(
+            "arif_kernel_route",
+            {
+                "kernel": "alive",
+                "observe_only": True,
+                "mutation_allowed": False,
+                "external_side_effects_allowed": False,
+                "irreversible_allowed": False,
+                "session_required": True,
+                "session_id_present": bool(session_id),
+                "actor_id_present": bool(actor_id),
+                "actor_verified": False,
+                "authority_mode": "OBSERVE_ONLY",
+                "stage": stage or "000",
+                "available_modes": [
+                    "route", "status", "preflight", "telemetry", "discover",
+                    "attest", "health", "intent",
+                ],
+                "canonical_tools": list(CANONICAL_TOOLS.keys()),
+                "active_sessions": len(_SESSIONS),
+                "next_safe_action": "Call arif_session_init(mode='ping' | 'light' | 'full') to birth a session.",
+            },
+        )
+
     if mode == "intent":
         return _route_by_axis(
             axis=axis or "vitality",
