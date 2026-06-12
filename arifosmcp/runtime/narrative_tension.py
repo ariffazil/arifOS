@@ -561,7 +561,7 @@ def _analyze_request(request: NarrativeTensionRequest) -> NarrativeTensionRespon
     )
 
 
-def detect_narrative_tension(
+async def detect_narrative_tension(
     request: NarrativeTensionRequest,
 ) -> NarrativeTensionResponse:
     """
@@ -577,7 +577,7 @@ def detect_narrative_tension(
     return _analyze_request(request)
 
 
-def arif_detect_narrative_tension(
+async def arif_detect_narrative_tension(
     title: str,
     text: str,
     article_id: str | None = None,
@@ -630,7 +630,7 @@ def arif_detect_narrative_tension(
         public_interest=public_interest,
         actor_hints=actor_hints or [],
     )
-    response = detect_narrative_tension(request)
+    response = await detect_narrative_tension(request)
     return response.model_dump(mode="json")
 
 

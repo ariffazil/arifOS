@@ -14,6 +14,8 @@ DITEMPA BUKAN DIBERI.
 
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 
 from arifosmcp.runtime.narrative_tension import arif_detect_narrative_tension
@@ -34,9 +36,10 @@ PUTRA_TEXT = (
 )
 
 
-def test_golden_case_putra_heights():
+@pytest.mark.asyncio
+async def test_golden_case_putra_heights():
     """The pre-computed Putra Heights analysis must load intact."""
-    result = arif_detect_narrative_tension(
+    result = await arif_detect_narrative_tension(
         article_id="ARTICLE-kosmo-putra-2026-06-12",
         title=PUTRA_TITLE,
         text=PUTRA_TEXT,
@@ -54,9 +57,10 @@ def test_golden_case_putra_heights():
     assert any(t.tension_class == "SLIP_PHRASE" for t in response.frame_graph.tensions)
 
 
-def test_heuristic_detects_contradiction():
+@pytest.mark.asyncio
+async def test_heuristic_detects_contradiction():
     """Generic text must trigger at least one tension via heuristics."""
-    result = arif_detect_narrative_tension(
+    result = await arif_detect_narrative_tension(
         title="Government promises action, says report under review",
         text=(
             "The Ministry said it is ready to release the investigation report. "
@@ -78,9 +82,10 @@ def test_vault_sealer_includes_tool():
     assert "arif_detect_narrative_tension" in CONSEQUENTIAL_TOOLS
 
 
-def test_response_has_kernel_verdict():
+@pytest.mark.asyncio
+async def test_response_has_kernel_verdict():
     """Every response must carry a kernel verdict with constitutional hash."""
-    result = arif_detect_narrative_tension(
+    result = await arif_detect_narrative_tension(
         title="Test headline",
         text="A short text with no obvious tension.",
         source="Test",
