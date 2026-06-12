@@ -20,7 +20,7 @@ Current status (2026-06-12): PARTIAL.
     - This test uses 10 cycles to surface any drift
 """
 
-from ._helpers import MCPClient, boot_light_session
+from ._helpers import MCPClient
 
 N_CYCLES = 10
 ACTOR_ID = "agi-gate-010-cycle"
@@ -30,7 +30,6 @@ def test_consecutive_boot_cycles():
     """N consecutive boot cycles produce stable state."""
     session_ids = []
     verdicts = []
-    surfaces = []
 
     for i in range(N_CYCLES):
         c = MCPClient(f"agi-gate-010-{i}")

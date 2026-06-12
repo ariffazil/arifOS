@@ -4,10 +4,6 @@ Shared MCP client helpers for AGI Kernel Readiness Gate tests.
 
 import json
 import http.client
-import sys
-import os
-from pathlib import Path
-from typing import Any
 
 MCP_HOST = "127.0.0.1"
 MCP_PORT = 8088

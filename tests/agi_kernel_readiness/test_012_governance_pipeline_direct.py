@@ -25,7 +25,7 @@ REPO_ROOT = "/root/arifOS"
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-from core.shared.laws import check_all_floors, LawResult  # noqa: E402
+from core.shared.laws import check_all_floors  # noqa: E402
 
 
 GOOD_CONTEXT = {

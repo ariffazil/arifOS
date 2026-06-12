@@ -1,4 +1,3 @@
-import pytest
 from arifosmcp.tools.session import arif_session_init
 
 def test_000_discover_pre_session():

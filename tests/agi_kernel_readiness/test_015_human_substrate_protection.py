@@ -115,7 +115,7 @@ def test_well_responses_emit_reflect_only():
         return  # tool returned error; this is a T2 finding
     text = content[0].get("text", "{}")
     try:
-        payload = json.loads(text)
+        json.loads(text)
     except json.JSONDecodeError:
         return
 

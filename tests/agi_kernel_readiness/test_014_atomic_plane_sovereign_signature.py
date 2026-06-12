@@ -29,7 +29,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
-import inspect
+import inspect  # noqa: E402
 
 REPO_ROOT = "/root/arifOS"
 if REPO_ROOT not in sys.path:
