@@ -30,6 +30,8 @@ import os
 import re
 from typing import Any
 
+from core.shared.laws import get_law_threshold
+
 import requests
 
 from .sensing_protocol import (
@@ -1308,7 +1310,7 @@ def build_intelligence_state(
     # Truth vector (constitutional physics)
     state.truth_vector = TruthVector(
         grounding_g=min(1.0, len(items) * 0.2),
-        truth_tau=0.7 if not conflict.detected else 0.4,
+        truth_tau=get_law_threshold("F2") if not conflict.detected else 0.4,
         uncertainty_sigma=uncertainty.sigma,
         coherence_c=0.8 if not conflict.detected else 0.4,
         entropy_delta_s=-0.1 if uncertainty.level == UncertaintyLevel.LOW else 0.1,

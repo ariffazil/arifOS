@@ -12,6 +12,7 @@ import logging
 import os
 from typing import Any
 
+from core.shared.laws import get_law_threshold
 import httpx
 
 logger = logging.getLogger(__name__)
@@ -164,7 +165,7 @@ class ExaBridge:
                 "results": data,
                 "hits": [],
                 "result_count": 0,
-                "metrics": {"f2_truth_score": 0.95, "f3_earth_witness": 0.7},
+                "metrics": {"f2_truth_score": 0.95, "f3_earth_witness": get_law_threshold("F3")},
                 "witness_debug": {
                     "human": True,
                     "ai": True,
@@ -175,7 +176,7 @@ class ExaBridge:
 
         hit_count = len(results)
         f2 = 0.99 if hit_count >= 5 else 0.95 if hit_count >= 1 else 0.33
-        f3 = 0.95 if hit_count >= 5 else 0.7 if hit_count >= 1 else 0.33
+        f3 = 0.95 if hit_count >= 5 else get_law_threshold("F3") if hit_count >= 1 else 0.33
 
         hits = []
         for r in results[:num_results]:

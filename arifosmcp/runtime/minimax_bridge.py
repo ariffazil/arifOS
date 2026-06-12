@@ -16,6 +16,8 @@ import shutil
 import subprocess  # nosec B404
 from typing import Any
 
+from core.shared.laws import get_law_threshold
+
 logger = logging.getLogger(__name__)
 
 _MINIMAX_API_KEY = os.getenv("MINIMAX_API_KEY", "")
@@ -276,7 +278,7 @@ class MinimaxMCPBridge:
 
         hit_count = len(organic)
         f2 = 0.99 if hit_count >= 5 else 0.95 if hit_count >= 1 else 0.33
-        f3 = 0.95 if hit_count >= 5 else 0.7 if hit_count >= 1 else 0.33
+        f3 = 0.95 if hit_count >= 5 else get_law_threshold("F3") if hit_count >= 1 else 0.33
 
         return {
             "status": "success",

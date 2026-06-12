@@ -33,6 +33,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from core.shared.laws import get_law_threshold
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -267,7 +269,7 @@ async def compare_native_vs_mcp(
         # F9 violation in MCP - reject
         result.recommended_path = "native"
         result.confidence = 0.9
-    elif result.f2_agreement > 0.7:
+    elif result.f2_agreement >= get_law_threshold("F2"):
         # High agreement - native is sufficient
         result.recommended_path = "native"
         result.confidence = result.f2_agreement

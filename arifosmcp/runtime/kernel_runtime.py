@@ -16,6 +16,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from core.shared.laws import get_law_threshold
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONSTANTS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -82,7 +84,7 @@ class ToolContract:
     # {
     #   "entropy": {"max_delta": 0.0, "target": "decrease"},
     #   "uncertainty": {"band": "low", "omega_range": [0.03, 0.05]},
-    #   "confidence": {"min": 0.7, "proxy": "evidence_weighted"}
+    #   "confidence": {"min": get_law_threshold("F2"), "proxy": "evidence_weighted"}
     # }
 
     # Risk classification
@@ -242,7 +244,7 @@ class ContractRegistry:
                 physics={
                     "entropy": {"max_delta": 0.0, "target": "decrease"},
                     "uncertainty": {"band": "low", "omega_range": [0.03, 0.05]},
-                    "confidence": {"min": 0.7, "proxy": "evidence_weighted"},
+                    "confidence": {"min": get_law_threshold("F2"), "proxy": "evidence_weighted"},
                 },
                 risk_level=RiskLevel.GUARDED,
                 side_effect_class=SideEffectClass.NONE,
