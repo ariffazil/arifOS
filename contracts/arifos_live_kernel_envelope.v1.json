@@ -1,0 +1,132 @@
+{
+  "$id": "arifos_live_kernel_envelope.v1",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "arifOS Live Sovereign AGI Kernel Envelope",
+  "description": "Mandatory envelope for every kernel-grade MCP call. Transforms MCP from a tool bus into a governed state bus carrying identity, authority, memory provenance, risk, and audit continuity.",
+  "type": "object",
+  "required": [
+    "kernel",
+    "organ",
+    "authority",
+    "state",
+    "risk",
+    "audit",
+    "verdict"
+  ],
+  "properties": {
+    "kernel": {
+      "type": "object",
+      "required": [
+        "kernel_id",
+        "constitution_id",
+        "constitution_hash",
+        "session_id",
+        "epoch_id",
+        "actor_id",
+        "actor_verified",
+        "sovereign"
+      ],
+      "properties": {
+        "kernel_id": { "type": "string" },
+        "constitution_id": { "type": "string" },
+        "constitution_hash": { "type": "string", "pattern": "^(sha256|blake3):[a-f0-9]+$" },
+        "session_id": { "type": "string" },
+        "epoch_id": { "type": "string" },
+        "actor_id": { "type": "string" },
+        "actor_verified": { "type": "boolean" },
+        "sovereign": { "type": "string" }
+      }
+    },
+    "organ": {
+      "type": "object",
+      "required": [
+        "organ_id",
+        "organ_role",
+        "organ_version",
+        "tool_name",
+        "tool_schema_hash",
+        "attestation_status"
+      ],
+      "properties": {
+        "organ_id": { "type": "string" },
+        "organ_role": { "type": "string" },
+        "organ_version": { "type": "string" },
+        "tool_name": { "type": "string" },
+        "tool_schema_hash": { "type": "string", "pattern": "^(sha256|blake3):[a-f0-9]+$" },
+        "attestation_status": {
+          "type": "string",
+          "enum": ["ALIVE", "DEGRADED_CLAIM", "DEGRADED", "UNATTESTED", "REVOKED"]
+        }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "required": [
+        "action_class",
+        "lease_id",
+        "lease_scope",
+        "mutation_allowed",
+        "external_side_effect_allowed",
+        "irreversible_allowed"
+      ],
+      "properties": {
+        "action_class": {
+          "type": "string",
+          "enum": ["OBSERVE", "REASON", "CRITIQUE", "DRY_RUN", "MUTATE", "EXTERNAL", "IRREVERSIBLE"]
+        },
+        "lease_id": { "type": "string" },
+        "lease_scope": { "type": "array", "items": { "type": "string" } },
+        "mutation_allowed": { "type": "boolean" },
+        "external_side_effect_allowed": { "type": "boolean" },
+        "irreversible_allowed": { "type": "boolean" }
+      }
+    },
+    "state": {
+      "type": "object",
+      "required": [
+        "input_hash",
+        "memory_refs",
+        "prior_state_hash",
+        "current_state_hash"
+      ],
+      "properties": {
+        "input_hash": { "type": "string", "pattern": "^(sha256|blake3):[a-f0-9]+$" },
+        "memory_refs": { "type": "array", "items": { "type": "string" } },
+        "prior_state_hash": { "type": "string", "pattern": "^(sha256|blake3):[a-f0-9]+$" },
+        "current_state_hash": { "type": "string", "pattern": "^(sha256|blake3):[a-f0-9]+$" }
+      }
+    },
+    "risk": {
+      "type": "object",
+      "required": [
+        "reversibility_score",
+        "blast_radius",
+        "secret_touching",
+        "human_ack_required"
+      ],
+      "properties": {
+        "reversibility_score": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "blast_radius": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+        "secret_touching": { "type": "boolean" },
+        "human_ack_required": { "type": "boolean" }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "required": [
+        "vault_required",
+        "audit_pointer",
+        "seal_mode"
+      ],
+      "properties": {
+        "vault_required": { "type": "boolean" },
+        "audit_pointer": { "type": ["string", "null"] },
+        "seal_mode": { "type": "string", "enum": ["dry_run", "observe", "ratify", "seal"] }
+      }
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["SEAL", "DEGRADED", "OBSERVE_ONLY", "HOLD", "DENY"]
+    }
+  }
+}
