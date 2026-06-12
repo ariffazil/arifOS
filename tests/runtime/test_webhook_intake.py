@@ -128,7 +128,7 @@ def _mint_approval_artifact(
 
 
 class TestSignatureVerification:
-    """F11 AUTH: Only correctly signed payloads may enter."""
+    """L11 AUTH: Only correctly signed payloads may enter."""
 
     def test_valid_signature(self, github_payload):
         body = json.dumps(github_payload).encode()
@@ -166,7 +166,7 @@ class TestSignatureVerification:
 
 
 class TestReplayProtection:
-    """F12 INJECTION: Same event_id must be rejected on second arrival."""
+    """L12 INJECTION: Same event_id must be rejected on second arrival."""
 
     def test_first_seen_ok(self):
         assert is_replay("evt-001") is False
@@ -195,7 +195,7 @@ class TestReplayProtection:
 
 
 class TestRateLimiting:
-    """F05 PEACE: Prevent abuse through rate limiting."""
+    """L05 PEACE: Prevent abuse through rate limiting."""
 
     def test_within_limit(self):
         allowed, meta = check_rate_limit("ip-1")
@@ -219,7 +219,7 @@ class TestRateLimiting:
 
 
 class TestSchemaValidation:
-    """F02 TRUTH + F10 ONTOLOGY: Payloads must match expected structure."""
+    """L02 TRUTH + L10 ONTOLOGY: Payloads must match expected structure."""
 
     def test_github_valid(self, github_payload):
         issues = wi.validate_github_payload(github_payload)
@@ -247,18 +247,18 @@ class TestSchemaValidation:
 
     def test_manual_missing_actor(self):
         issues = wi.validate_manual_payload({"intent": "health_check"})
-        assert any("F11 AUTH" in i for i in issues)
+        assert any("L11 AUTH" in i for i in issues)
 
     def test_manual_invalid_intent(self):
         issues = wi.validate_manual_payload({"actor": "arif", "intent": "destroy"})
-        assert any("F04 CLARITY" in i for i in issues)
+        assert any("L04 CLARITY" in i for i in issues)
 
 
 # ── Constitutional Adjudication ───────────────────────────────────────────────
 
 
 class TestAdjudication:
-    """F01–F13: The core governance evaluation of every webhook event."""
+    """L01–L13: The core governance evaluation of every webhook event."""
 
     def test_github_push_qualifies(self, github_payload):
         result = adjudicate_event("github", "push", github_payload, {})
@@ -269,13 +269,13 @@ class TestAdjudication:
     def test_unknown_source_void(self):
         result = adjudicate_event("hacker", "exploit", {}, {})
         assert result["verdict"] == "VOID"
-        assert any("F11 AUTH" in i for i in result["issues"])
+        assert any("L11 AUTH" in i for i in result["issues"])
 
     def test_missing_actor_void(self, github_payload):
         bad = {**github_payload, "pusher": {}}
         result = adjudicate_event("github", "push", bad, {})
         assert result["verdict"] == "VOID"
-        assert any("F12 INJECTION" in i for i in result["issues"])
+        assert any("L12 INJECTION" in i for i in result["issues"])
 
     def test_manual_veto_routing(self, manual_payload):
         veto = {**manual_payload, "intent": "sovereign_veto"}
@@ -290,7 +290,7 @@ class TestAdjudication:
         # The system should flag this
         assert result["verdict"] in ("QUALIFY", "888-HOLD")
         # Actually our logic flags it as HOLD if ack_irreversible missing
-        assert any("F01 AMANAH" in i for i in result["issues"]) or result["verdict"] == "QUALIFY"
+        assert any("L01 AMANAH" in i for i in result["issues"]) or result["verdict"] == "QUALIFY"
 
     def test_actor_sanitization(self):
         raw_actor = "arif<script>alert(1)</script>"
@@ -351,7 +351,7 @@ class TestProcessWebhook:
         }
         result = process_webhook("github", body, headers, "ip-10")
         assert result["verdict"] == "888-HOLD"
-        assert any("F01 AMANAH" in i for i in result["issues"])
+        assert any("L01 AMANAH" in i for i in result["issues"])
         assert result["trace_id"].startswith("wh-")
         assert "vault_record" in result
         assert result["vault_record"]["entry_id"].startswith("VAULT-")
@@ -367,7 +367,7 @@ class TestProcessWebhook:
         }
         result = process_webhook("github", body, headers, "ip-11")
         assert result["verdict"] == "VOID"
-        assert any("F11 AUTH" in i for i in result["issues"])
+        assert any("L11 AUTH" in i for i in result["issues"])
 
     def test_void_replay(self, github_payload):
         body = json.dumps(github_payload).encode()

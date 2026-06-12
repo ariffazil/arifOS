@@ -148,6 +148,99 @@ When governance kernel returns 0.0 for witness scores, these defaults are applie
 - **MCP Endpoint**: <https://mcp.arif-fazil.com/mcp>
 - **Code**: <https://github.com/ariffazil/arifOS>
 
+---
+
+## Canonical Tool-Count Truth Table (F2)
+
+This section resolves a known public-doc drift. The MCP `tools/list` endpoint
+exposes 19 tools total; the 13/14/15/39 figures in various docs and READMEs
+refer to different scopes. **This table is the F2 truth.**
+
+| Scope | Count | Tools | Source |
+| :---  | :---: | :---  | :---   |
+| **Canonical constitutional surface** | **13** | The 13 `arif_*` organs above, listed in `CANONICAL_TOOLS` (the auto-generated table) | `arifosmcp.constitutional_map.CANONICAL_TOOLS` |
+| **Public MCP `arif_*` exposed** | **16** | 13 canonical + 3 lease primitives (`arif_lease_issue`, `arif_lease_revoke`, `arif_lease_inspect` — F13 closure 2026-06-11) | live `tools/list` on `127.0.0.1:8088/mcp` |
+| **Public MCP total** | **19** | 16 `arif_*` + 3 `forge_*` (`forge_query`, `forge_plan`, `forge_dry_run`) | live `tools/list` on `127.0.0.1:8088/mcp` |
+| **"Total Tools" in generated README** | 39 | Includes `a2a-server` agent cards, internal helpers, probe tools, etc. | non-canonical, doc-side enumeration only |
+
+**The 13 canonical organs are the constitutional contract.** The 16 `arif_*`
+and 19 total are the *current public MCP surface*. The 39 figure is doc-side
+enumeration of every helper in the runtime, not a contract surface.
+
+When in doubt, query the live kernel:
+
+```bash
+curl -s http://127.0.0.1:8088/mcp -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-25","capabilities":{},"clientInfo":{"name":"audit","version":"1.0"}}}'
+# capture mcp-session-id from response header, then:
+curl -s http://127.0.0.1:8088/mcp -X POST \
+  -H "mcp-session-id: $SID" -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
+```
+
+The 13 figure is constitutionally sacred. The 16/19 are operational truth.
+The 39 is doc inflation.
+
+---
+
+## Live Runtime Evidence (Verified 2026-06-12)
+
+This section closes the **"runtime liveness"** and **"enforcement proof"** gaps
+from external audits. All claims below are reproducible by curl.
+
+### 1. Runtime liveness
+
+```bash
+curl -s http://127.0.0.1:8088/health
+# Returns: status=healthy, tools_loaded=13, floors_active=13,
+#          live_commit=023e73d, build_commit=52fccbb,
+#          vault999_health=healthy, graphiti_enabled=true,
+#          ml_floors.ml_floors_enabled=true,
+#          contract_drift=false, registry_truth=VERIFIED
+```
+
+### 2. SEAL-gated forge — fail-closed proof
+
+`arif_forge_execute` with **empty session_id** returns HOLD via the
+LEGACY_WRAP gate (F11 AUTH fail-closed). Verified by direct call:
+
+```bash
+# Expected response:
+#   verdict: HOLD
+#   result_text: "888_HOLD: LEGACY_WRAP cannot execute ATOMIC on
+#                  arif_forge_execute. Upgrade client to send
+#                  FederationEnvelope with verified authority."
+#   failed_floors: ["F11"]
+#   output_policy: DOMAIN_HOLD
+```
+
+This is **enforcement proof**, not design claim. The substrate rejects
+unsigned FORGE at runtime.
+
+### 3. Tool surface (live enumeration)
+
+```bash
+SID=$(curl -s -i -X POST http://127.0.0.1:8088/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize",
+       "params":{"protocolVersion":"2024-11-25",
+                "capabilities":{},"clientInfo":{"name":"audit","version":"1.0"}}}' \
+  | grep -i "mcp-session-id" | head -1 | tr -d '\r' | awk '{print $2}')
+
+curl -s -X POST http://127.0.0.1:8088/mcp \
+  -H "mcp-session-id: $SID" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
+# Returns: 19 tools (16 arif_* + 3 forge_*), matches the truth table.
+```
+
+### 4. Compile-time authority (constitutional_map.py)
+
+The 13 canonical tools are defined in `arifosmcp/constitutional_map.py:CANONICAL_TOOLS`
+and bound to floor enforcement at module import. This is the SOT; anything
+not in CANONICAL_TOOLS is not part of the constitutional contract.
 
 ---
 

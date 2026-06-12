@@ -15,7 +15,7 @@ from arifosmcp.runtime.geox_bridge import (
 
 
 class TestConfidenceBands:
-    """F07 HUMILITY + F09 ANTIHANTU: Statistical confidence from geoscience series."""
+    """L07 HUMILITY + L09 ANTIHANTU: Statistical confidence from geoscience series."""
 
     def test_basic_p10_p50_p90(self):
         values = [2.1, 2.3, 2.5, 2.7, 2.9, 3.1, 3.3, 3.5, 3.7, 3.9]
@@ -46,7 +46,7 @@ class TestConfidenceBands:
 
 
 class TestPhysicsConstraint:
-    """F09 ANTIHANTU: GeoX computations must respect Earth physics bounds."""
+    """L09 ANTIHANTU: GeoX computations must respect Earth physics bounds."""
 
     def test_density_valid(self):
         r = validate_physics_constraint({"rhob": 2.45}, "density")
@@ -96,7 +96,7 @@ class TestPhysicsConstraint:
 
 
 class TestQcVerifyClaim:
-    """F02 TRUTH + F03 WITNESS + F07 HUMILITY + F09 ANTIHANTU: Claim state machine."""
+    """L02 TRUTH + L03 WITNESS + L07 HUMILITY + L09 ANTIHANTU: Claim state machine."""
 
     def _base_claim(self, overrides: dict | None = None) -> dict:
         c = {
@@ -123,25 +123,25 @@ class TestQcVerifyClaim:
         result = qc_verify_claim(claim, required_evidence_refs=3)
         assert result["claim_state"] == "QC_HOLD"
         assert result["verdict"] == "VOID"
-        assert any("F03 WITNESS" in i for i in result["issues"])
+        assert any("L03 WITNESS" in i for i in result["issues"])
 
     def test_low_confidence(self):
         claim = self._base_claim({"confidence": "LOW"})
         result = qc_verify_claim(claim, min_confidence="MEDIUM")
         assert result["claim_state"] == "QC_HOLD"
-        assert any("F07 HUMILITY" in i for i in result["issues"])
+        assert any("L07 HUMILITY" in i for i in result["issues"])
 
     def test_physics_failure(self):
         claim = self._base_claim({"physics_check": {"valid": False, "error": "rhob out of range"}})
         result = qc_verify_claim(claim)
         assert result["claim_state"] == "QC_HOLD"
-        assert any("F09 ANTIHANTU" in i for i in result["issues"])
+        assert any("L09 ANTIHANTU" in i for i in result["issues"])
 
     def test_missing_primary_result(self):
         claim = self._base_claim({"primary_result": None})
         result = qc_verify_claim(claim)
         assert result["claim_state"] == "QC_HOLD"
-        assert any("F02 TRUTH" in i for i in result["issues"])
+        assert any("L02 TRUTH" in i for i in result["issues"])
 
     def test_multiple_issues(self):
         claim = self._base_claim(

@@ -521,17 +521,19 @@ async def metabolic_loop(
     start_time = time.perf_counter()
 
     if dry_run:
-        from arifosmcp.runtime.model import AuthContext
+        from arifosmcp.runtime.model import IdentityContext, AuthorityLevel
 
         _actual_session = session_id or "dry-run-session"
         _actual_actor = actor_id or "anonymous"
 
-        ctx = AuthContext(
+        ctx = IdentityContext(
             session_id=_actual_session,
             actor_id=_actual_actor,
-            authority_level="declared",
-            approval_scope=["*"],
+            authority_level=AuthorityLevel.OPERATOR,
         )
+        # approval_scope is a runtime auth concern, not a model field.
+        # Attach it as a private attribute for downstream _extract_auth_context.
+        ctx._approval_scope = ["*"]  # type: ignore[attr-defined]
 
         return {
             "ok": True,

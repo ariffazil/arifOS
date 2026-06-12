@@ -284,11 +284,13 @@ class EvidenceStore:
 
             model = SentenceTransformer("all-MiniLM-L6-v2")
             vector = model.encode(query).tolist()
-            results = client.search(
+            response = client.query_points(
                 collection_name=_QDRANT_COLLECTION,
-                vector=vector,
+                query=vector,
                 limit=limit,
+                with_payload=True,
             )
+            results = response.points
             out = []
             for r in results:
                 source = self.get_source(r.payload["source_hash"])

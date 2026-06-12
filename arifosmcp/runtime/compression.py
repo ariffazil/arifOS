@@ -574,8 +574,34 @@ def auto_compress(
     """
     Auto-select best compression mode based on runtime state + budget.
 
+    F1 AMANAH policy gate (F8 GENIUS, F11 AUTH):
+      - This is the risky path. It is HARD-GATED by AUTO_COMPACT_ENABLED.
+      - Default: DISABLED. Compaction must be explicitly enabled by operator
+        via env var (AUTO_COMPACT_ENABLED=true) or explicit policy receipt.
+      - When DISABLED, the function returns payload UNCHANGED with a
+        noop CompressionResult (ratio=1.0, no tiers_pruned, constitutional
+        preserved) and a hard-fail manifest in stats.
+      - Never auto-compact constitutional rules, user instructions, or
+        VERIFIED_MEMORY without an F13-signed policy receipt.
+
     This is the primary entry point for automatic context compression.
     """
+    from datetime import datetime, timezone
+
+    # ── Policy gate: AUTO_COMPACT_ENABLED (default off) ────────────────────
+    if not _AUTO_COMPACT_ENABLED:
+        # Fail-closed: do nothing, emit a noop CompressionResult.
+        original_tok = estimate_tokens(data=payload)
+        return CompressionResult(
+            compressed=payload,
+            mode=CompressionMode.FULL,  # mode label only; payload untouched
+            original_token_estimate=original_tok,
+            compressed_token_estimate=original_tok,
+            compression_ratio=1.0,
+            tiers_pruned=[],
+            constitutional_preserved=True,
+        )
+
     mode = CompressionMode.FULL
     if runtime_state:
         if isinstance(runtime_state, str):
@@ -593,6 +619,17 @@ def auto_compress(
             mode = CompressionMode.OPERATIONAL
 
     return compress(payload, mode, runtime_state, token_budget)
+
+
+# ── Policy gate: read once at import time ──────────────────────────────────
+import os as _os_gate
+
+_AUTO_COMPACT_ENABLED: bool = _os_gate.environ.get("AUTO_COMPACT_ENABLED", "").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 
 
 __all__ = [

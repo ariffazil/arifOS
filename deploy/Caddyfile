@@ -32,6 +32,9 @@ arifos.arif-fazil.com {
     import shared_assets
     encode zstd gzip
     root * /var/www/html/arifos
+    handle /mcp* {
+        redir https://mcp.arif-fazil.com{uri} permanent
+    }
     file_server
     try_files {path} /index.html
 }
@@ -158,13 +161,13 @@ wealth.arif-fazil.com {
     encode zstd gzip
     root * /var/www/html/wealth
     handle /mcp* {
-        reverse_proxy wealth-organ:8000
+        reverse_proxy localhost:18082
     }
     handle /health {
-        reverse_proxy wealth-organ:8000
+        reverse_proxy localhost:18082
     }
     handle /ready {
-        reverse_proxy wealth-organ:8000
+        reverse_proxy localhost:18082
     }
     handle {
         file_server

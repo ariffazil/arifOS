@@ -2396,6 +2396,35 @@ def register_rest_routes(
         # Single source of truth — no hardcoded snapshots in /health.
         _floor_cats = get_floors_by_category()
 
+        # ── Token pressure telemetry (Phase 1, context engine A) ──
+        # Additive, read-only, F1-reversible. NO autonomous mutation.
+        # Provides visibility for Phase 2 pressure trigger (NOT yet enabled).
+        try:
+            from arifosmcp.runtime.token_pressure import get_session_singleton as _tps
+
+            _tp_singleton = _tps()
+            _tp_global = _tp_singleton.snapshot_global()
+            # Per-session: try to read most-recent session from any context
+            # For now, return global + advisory; per-session wired in Phase 2
+            # when session_id is available in the request context.
+            _token_pressure_payload = {
+                "phase": "1.A — telemetry only",
+                "autonomous_compaction_enabled": False,  # F8 sovereign to enable
+                "default_action": "observe_only",
+                "global": _tp_global,
+                "advisory": (
+                    "Token pressure telemetry is LIVE (Phase 1). "
+                    "Auto-compaction is DISABLED by default. "
+                    "F8+F13 sovereign to enable Phase 2 trigger."
+                ),
+            }
+        except Exception as _tp_err:
+            _token_pressure_payload = {
+                "phase": "1.A — telemetry only",
+                "status": "telemetry_unavailable",
+                "error": str(_tp_err)[:200],
+            }
+
         payload = {
             "status": "healthy",
             "identity_hash": identity_hash,
@@ -2427,6 +2456,8 @@ def register_rest_routes(
             "contract_drift": contract_drift_val,
             **_drift,
             "graphiti_enabled": graphiti_enabled,
+            # ── Token pressure telemetry (Phase 1.A — additive, F1 reversible) ──
+            "token_pressure": _token_pressure_payload,
             # ── Canonical 7-field health schema (federation convention) ───
             # arifOS is the law engine. final_authority is always ARIF.
             "final_authority": "ARIF",

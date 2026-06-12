@@ -49,7 +49,7 @@ def test_oauth_auth_flow_simulation(client):
     assert "Constitutional Authorization" in auth_res.text
     assert "SEAL — Grant" in auth_res.text
     assert "VOID — Deny" in auth_res.text
-    assert "F13 SOVEREIGN" in auth_res.text
+    assert "L13 SOVEREIGN" in auth_res.text
     assert "VAULT999" in auth_res.text
 
     # 2. Token (POST)
@@ -66,7 +66,7 @@ def test_oauth_deny_flow(client):
     deny_res = client.post("/api/auth/deny")
     assert deny_res.status_code == 200
     assert "VOID — Access Denied" in deny_res.text
-    assert "F13 SOVEREIGN" in deny_res.text
+    assert "L13 SOVEREIGN" in deny_res.text
     assert "VAULT999" in deny_res.text
 
 
