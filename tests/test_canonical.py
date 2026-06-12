@@ -21,6 +21,7 @@ from arifosmcp.resources import (
     CANONICAL_RESOURCES,
     EMBODIED_RESOURCES,
     EVIDENCE_RESOURCES,
+    RUNNER_RESOURCES,
     TREE777_RESOURCES,
     register_resources,
 )
@@ -88,9 +89,12 @@ def test_register_resources_matches_canonical_resource_surface():
     mcp = FastMCP("test-arifos-resources")
     registered = register_resources(mcp)
     registered_tuple = tuple(registered)
+    # Note: SOVEREIGN_RESOURCES tuple documents all named keys for discovery,
+    # but registration uses ONE parameterized URI (sovereign://{file}) that
+    # serves all keys. Compare against the parameterized form only.
     assert (
         registered_tuple
-        == CANONICAL_RESOURCES + EVIDENCE_RESOURCES + EMBODIED_RESOURCES + TREE777_RESOURCES
+        == CANONICAL_RESOURCES + EVIDENCE_RESOURCES + EMBODIED_RESOURCES + TREE777_RESOURCES + RUNNER_RESOURCES + ("sovereign://{file}",)
     )
 
 

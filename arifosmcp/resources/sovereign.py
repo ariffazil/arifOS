@@ -64,7 +64,7 @@ _SOVEREIGN_FILES: dict[str, str] = {
 }
 
 SOVEREIGN_RESOURCES = tuple(f"sovereign://{key}" for key in _SOVEREIGN_FILES) + (
-    "sovereign://{filename}",
+    "sovereign://{file}",
 )
 
 
