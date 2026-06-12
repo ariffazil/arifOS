@@ -27,6 +27,7 @@ CANONICAL_PROMPTS = (
     "444_asi",
     "888_apex",
     "999_seal",
+    "runner_dry_run",
 )
 
 
@@ -319,6 +320,55 @@ The chain is unbroken. The record is immutable. The forge is accountable.
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# 666_RUNNER_DRY_RUN — Context Engine Runner dry-run pattern (F13-safe burn-in)
+# 2026-06-12: extends the existing 5-prompt surface to 6. The canonical
+# 13-tool surface is unchanged (prompts are a separate MCP concept).
+# ══════════════════════════════════════════════════════════════════════════════
+
+RUNNER_DRY_RUN_PROMPT = """\
+You are invoking the Context Engine Runner in DRY-RUN mode.
+
+The 8-step flow:
+  1. Resolve session_id (F2 fail-closed if empty)
+  2. arif_kernel_route(mode="context_runner", arguments={"intent": "preflight"})
+     → returns pressure_band, tokens_used, auto_compact_enabled (always False)
+  3. If pressure_band == HOLD → stop, report, do not call the model
+  4. arif_kernel_route(mode="context_runner", arguments={
+         "intent": "prepare",
+         "task_id": "...", "query": "...",
+         "candidate_segments": [...],
+         "risk_class": "routine",
+     })
+     → returns the ContextPacket (deterministic, no LLM, no canonical write)
+  5. Inspect the packet:
+     - included_segments: USER_INSTRUCTION + SYSTEM_CONSTITUTIONAL protected
+     - untrusted_quarantined: UNTRUSTED is NEVER in segments
+     - audit_mode: TRACE | DIGEST | SEAL based on risk_class
+  6. arif_kernel_route(mode="context_runner", arguments={
+         "intent": "inspect",
+         "receipt": <captured receipt>,
+     })
+     → returns shape_ok, hash_match, f_compliance (F1/F2/F4/F8/F9/F10/F11/F13)
+  7. Read the policy at runner://policy/v1 to confirm F-binding is honored
+  8. Stop. Do not call the model. The dry-run is observation-only.
+
+F-bound (each is checked at the bridge boundary):
+  F1 AMANAH:    no canonical mutation (postflight.canonical_mutation = False)
+  F2 TRUTH:     deterministic; F2 fail-closed on empty session_id/task_id/query/intent
+  F4 CLARITY:   included < input; dropped/demoted reduce entropy
+  F7 HUMILITY:  HOLD gate refuses; receipt is honest about failure
+  F8 GENIUS:    auto_compact REJECTED at the bridge; default OFF honored
+  F9 ANTIHANTU: UNTRUSTED never in prompt (quarantined by prepare_context)
+  F10 ONTOLOGY: USER_INSTRUCTION + SYSTEM_CONSTITUTIONAL non-compressible
+  F11 AUDIT:    ContextRunReceipt emitted; receipt_hash + ts_utc present; no VAULT999 write
+  F13 SOVEREIGN: no canonical mutation, no vault_seal call, no policy change
+
+The runner is a bridge, not a tool. The 13-tool canonical surface is unchanged.
+DITEMPA BUKAN DIBERI.
+"""
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # Registration
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -413,5 +463,28 @@ def register_prompts(mcp: FastMCP) -> list[str]:
         return SEAL_PROMPT
 
     registered.append("999_seal")
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # runner_dry_run — Context Engine Runner dry-run template (F13-safe burn-in)
+    # 2026-06-12: extends the existing 5-prompt surface to 6, but the canonical
+    # 13-tool surface is unchanged (prompts are a separate MCP concept).
+    # ─────────────────────────────────────────────────────────────────────────
+    @mcp.prompt(
+        name="runner_dry_run",
+        description=(
+            "RUNNER_DRY_RUN — Context Engine Runner 8-step dry-run pattern. "
+            "Burn-in template for the context_runner bridge. Walks the runner flow "
+            "without invoking the model: preflight → HOLD-gate → prepare → "
+            "introspect receipt. F11: dry-run receipts carry a clear `intent: prepare` "
+            "in the bridge_result so the audit trail distinguishes dry-run from live run. "
+            "F-bound: F1, F2, F7, F8, F9, F10, F11, F13. "
+            "Use this when you want to test the runner flow without spending tokens."
+        ),
+    )
+    def runner_dry_run_prompt() -> str:
+        """8-step dry-run pattern using arif_kernel_route(mode='context_runner')."""
+        return RUNNER_DRY_RUN_PROMPT
+
+    registered.append("runner_dry_run")
 
     return registered

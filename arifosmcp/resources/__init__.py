@@ -34,6 +34,7 @@ from .evidence import register_evidence_resources
 from .identity import register_identity
 from .jurisdiction import register_jurisdiction
 from .memory import register_memory
+from .runner import register_runner_resources
 from .schema import register_schema
 from .seal_readiness import register_seal_readiness
 from .tree777 import register_tree777_resources
@@ -75,9 +76,16 @@ EVIDENCE_RESOURCES = (
     "void://{id}",
 )
 
+# Context Engine Runner (F13-safe burn-in surface, 2026-06-12)
+# Resources, not tools. Do not count toward the 13-tool surface.
+RUNNER_RESOURCES = (
+    "runner://receipt/{run_id}",
+    "runner://policy/v1",
+)
+
 
 def register_resources(mcp: FastMCP) -> list[str]:
-    """Register 10 canonical resources + evidence, embodied, and TREE777 families."""
+    """Register 10 canonical resources + evidence, embodied, TREE777, and runner families."""
     registered: list[str] = []
     registered.extend(register_doctrine(mcp))
     registered.extend(register_trinity(mcp))
@@ -91,4 +99,5 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_evidence_resources(mcp))
     registered.extend(register_embodied_resources(mcp))
     registered.extend(register_tree777_resources(mcp))
+    registered.extend(register_runner_resources(mcp))
     return registered
