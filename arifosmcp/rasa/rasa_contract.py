@@ -31,6 +31,8 @@ import re
 
 from arifosmcp.rasa.rasa_schemas import (
     ConstitutionPosture,
+    ExistentialPosture,
+    ExistentialTag,
     RasaContext,
     RasaContractResult,
     RasaDetection,
@@ -765,6 +767,72 @@ class RasaContract:
             f"Immediate human professional escalation required. "
             f"Hati dan Tuhan as the final court."
         )
+
+    # ── Phase 2: Existential Posture Classifier ────────────────────────
+
+    def _detect_existential_posture(self, message: str) -> ExistentialPosture:
+        """Detect existential/identity-level disturbance from language markers.
+
+        Phase 2 simple keyword classifier.
+        DITEMPA BUKAN DIBERI — no neural simulation, no machine qualia.
+        """
+        existential_markers = {
+            ExistentialTag.IDENTITY_RUPTURE: [
+                "aku dah tak kenal diri aku", "siapa aku sekarang",
+                "identity crisis",
+            ],
+            ExistentialTag.LOSS_OF_MEANING: [
+                "apa guna hidup aku", "kosong", "meaningless", "pointless",
+                "no purpose",
+            ],
+            ExistentialTag.MORAL_INJURY: [
+                "aku rasa bersalah sangat", "aku khianat", "dosa aku",
+                "moral injury",
+            ],
+            ExistentialTag.LIFE_TRANSITION: [
+                "aku nak ubah hidup", "transition", "new chapter",
+                "leaving behind",
+            ],
+            ExistentialTag.LEGACY_CONCERN: [
+                "apa yang aku tinggalkan", "legacy", "warisan",
+                "kenangan aku",
+            ],
+            ExistentialTag.SPIRITUAL_BURDEN: [
+                "jauh dengan Tuhan", "iman aku lemah", "spiritual dryness",
+                "solat kosong",
+            ],
+            ExistentialTag.MORTALITY_AWARENESS: [
+                "aku nak mati", "hidup aku tak lama", "mortality", "fana",
+            ],
+            ExistentialTag.SOVEREIGNTY_THREAT: [
+                "aku hilang kawalan", "tak ada kuasa", "orang control aku",
+                "powerless",
+            ],
+        }
+        detected_tags: list[ExistentialTag] = []
+        msg_lower = message.lower()
+        for tag, markers in existential_markers.items():
+            for marker in markers:
+                if marker.lower() in msg_lower:
+                    detected_tags.append(tag)
+                    break
+
+        if detected_tags:
+            return ExistentialPosture(
+                detected=True,
+                tags=detected_tags,
+                verdict_modifier=(
+                    "HOLD"
+                    if ExistentialTag.MORTALITY_AWARENESS in detected_tags
+                    else "SABAR"
+                ),
+                confidence=0.6,
+                note=(
+                    f"Detected existential markers: "
+                    f"{[t.value for t in detected_tags]}"
+                ),
+            )
+        return ExistentialPosture()
 
 
 __all__ = ["RasaContract"]

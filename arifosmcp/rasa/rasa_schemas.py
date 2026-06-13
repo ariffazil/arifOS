@@ -78,6 +78,61 @@ class ConstitutionPosture(str, Enum):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 2 COVERAGE HONESTY — Explicit absent-layer declarations
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class BiologicalSource(str, Enum):
+    """Source of biological signal — NONE by default. NEVER fake."""
+    NONE = "none"
+    MANUAL = "manual"        # Human self-reported
+    WEARABLE = "wearable"    # Future: smartwatch etc
+    CLINICAL = "clinical"    # Future: medical device
+
+
+class BiologicalClaimLevel(str, Enum):
+    """Trust level of biological claim — ABSENT by default."""
+    ABSENT = "absent"
+    SELF_REPORTED = "self_reported"
+    SENSOR_VERIFIED = "sensor_verified"
+
+
+class RelationshipType(str, Enum):
+    """Relational context type — UNKNOWN by default."""
+    UNKNOWN = "unknown"
+    FAMILY = "family"
+    FRIEND = "friend"
+    COLLEAGUE = "colleague"
+    AUTHORITY = "authority"
+    SUBORDINATE = "subordinate"
+    STRANGER = "stranger"
+    COMMUNITY = "community"
+    INTIMATE = "intimate"
+
+
+class ExistentialTag(str, Enum):
+    """Existential/identity-level disturbance tags — detected via keyword classifier."""
+    IDENTITY_RUPTURE = "identity_rupture"
+    LOSS_OF_MEANING = "loss_of_meaning"
+    MORAL_INJURY = "moral_injury"
+    LIFE_TRANSITION = "life_transition"
+    LEGACY_CONCERN = "legacy_concern"
+    SPIRITUAL_BURDEN = "spiritual_burden"
+    MORTALITY_AWARENESS = "mortality_awareness"
+    SOVEREIGNTY_THREAT = "sovereignty_threat"
+
+
+class OrganHealthStatus(str, Enum):
+    """Honest organ health — never cosmetic green."""
+    SEAL = "SEAL"
+    DEGRADED_FALLBACK = "DEGRADED_FALLBACK"
+    CONSTITUTIONAL_HOLD = "CONSTITUTIONAL_HOLD"
+    HUMAN_LOOP_REQUIRED = "HUMAN_LOOP_REQUIRED"
+    FAIL = "FAIL"
+    NOT_IMPLEMENTED = "NOT_IMPLEMENTED"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # PIPELINE SCHEMAS — One per organ stage
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -155,6 +210,78 @@ class RasaJudgeVerdict(BaseModel):
     judge_note: str = ""
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 2 COVERAGE HONESTY — Absent-layer stubs (NOT_IMPLEMENTED defaults)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class BiologicalSignal(BaseModel):
+    """Biological signal adapter — empty by default. NEVER fake.
+
+    Constitutional binding:
+      - F2 TRUTH: No fake sensor data
+      - F9 ANTIHANTU: No hallucinated biological claims
+      - F10 ONTOLOGY: Machine has no biology
+    """
+
+    source: BiologicalSource = BiologicalSource.NONE
+    heart_rate: int | None = None
+    hrv: float | None = None
+    breath_rate: float | None = None
+    claim_level: BiologicalClaimLevel = BiologicalClaimLevel.ABSENT
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    note: str = "No biological sensors connected. All values are absent."
+
+
+class SocialContext(BaseModel):
+    """Relational rasa context — unknown by default.
+
+    Constitutional binding:
+      - F2 TRUTH: No fake social graph
+      - F6 EMPATHY: Relationship is not inferred without evidence
+    """
+
+    actors_detected: list[str] = Field(default_factory=list)
+    power_asymmetry: str = "unknown"  # none / low / high / extreme / unknown
+    relationship_type: RelationshipType = RelationshipType.UNKNOWN
+    public_private_context: str = "unknown"  # public / private / unknown
+    harm_to_third_party_possible: bool = False
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    note: str = "Social context not available from text-only input. Marked unknown."
+
+
+class ExistentialPosture(BaseModel):
+    """Existential/identity-level disturbance — empty by default.
+
+    Constitutional binding:
+      - F5 PEACE: Existential disturbance triggers SABAR/HOLD
+      - F6 EMPATHY: Do not reduce existential distress to productivity
+      - F9 ANTIHANTU: Never claim to understand identity rupture
+    """
+
+    detected: bool = False
+    tags: list[ExistentialTag] = Field(default_factory=list)
+    response_constraint: str = "do_not_reduce_to_productivity"
+    verdict_modifier: str = "SABAR"  # SABAR or HOLD when detected
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    note: str = "Existential posture not yet implemented. Phase 2 stub."
+
+
+class OrganHealth(BaseModel):
+    """Honest organ health — never cosmetic green.
+
+    Constitutional binding:
+      - F2 TRUTH: Organ health must not lie
+      - F8 GENIUS: Degraded organs must be visible
+    """
+
+    organ: str
+    status: OrganHealthStatus
+    reachable: bool = True
+    defect: bool = False  # True = something wrong
+    detail: str = ""
+
+
 class RasaContractResult(BaseModel):
     """Full 000-999 Rasa Contract pipeline output."""
 
@@ -183,4 +310,14 @@ __all__ = [
     "RasaHeartVerdict",
     "RasaJudgeVerdict",
     "RasaContractResult",
+    # Phase 2 Coverage Honesty
+    "BiologicalSource",
+    "BiologicalClaimLevel",
+    "BiologicalSignal",
+    "RelationshipType",
+    "SocialContext",
+    "ExistentialTag",
+    "ExistentialPosture",
+    "OrganHealthStatus",
+    "OrganHealth",
 ]

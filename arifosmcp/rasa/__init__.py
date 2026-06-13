@@ -38,7 +38,14 @@ from arifosmcp.rasa.rasa_integration import (
     rasa_sense_hook,
 )
 from arifosmcp.rasa.rasa_schemas import (
+    BiologicalClaimLevel,
+    BiologicalSignal,
+    BiologicalSource,
     ConstitutionPosture,
+    ExistentialPosture,
+    ExistentialTag,
+    OrganHealth,
+    OrganHealthStatus,
     RasaContext,
     RasaContractResult,
     RasaDetection,
@@ -48,7 +55,9 @@ from arifosmcp.rasa.rasa_schemas import (
     RasaJudgeVerdict,
     RasaMemoryPattern,
     RasaRiskBand,
+    RelationshipType,
     RasaUncertaintyBand,
+    SocialContext,
 )
 from arifosmcp.rasa.rasa_telemetry import RasaTelemetry
 from arifosmcp.rasa.rasa_wiring import (
@@ -84,6 +93,16 @@ __all__ = [
     "RasaHeartVerdict",
     "RasaJudgeVerdict",
     "RasaContractResult",
+    # Phase 2 Coverage Honesty schemas
+    "BiologicalSource",
+    "BiologicalClaimLevel",
+    "BiologicalSignal",
+    "RelationshipType",
+    "SocialContext",
+    "ExistentialTag",
+    "ExistentialPosture",
+    "OrganHealthStatus",
+    "OrganHealth",
     # Integration hooks
     "rasa_sense_hook",
     "rasa_mind_hook",
