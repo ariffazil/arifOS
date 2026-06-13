@@ -8,9 +8,9 @@
 #
 # DITEMPA BUKAN DIBERI
 
-# Guard: only define once per shell
+# Guard: only define once per shell (P1 fix, 2026-06-13)
 if [[ -n "${_ARIFOS_GOVERNANCE_ACTIVE:-}" ]]; then
-    return 0 2>/dev/null || exit 0
+    return 0
 fi
 _ARIFOS_GOVERNANCE_ACTIVE=1
 
