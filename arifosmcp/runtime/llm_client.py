@@ -1,12 +1,15 @@
 """
 arifosmcp/runtime/llm_client.py — Shared LLM Cognition Client
 
-Tier 1: MiniMax M3 (https://api.minimax.io/v1) — PRIMARY frontier model (L13 directive 2026-06-02)
-Tier 2: Ollama local fallback — qwen2.5:7b on VPS localhost:11434
-Tier 3: raises LLMUnavailableError — caller applies deterministic fallback
+Tier 1: MiniMax M3 (https://api.minimax.io/v1) — frontier agentic, rate-limited 2026-06-13
+Tier 2: ILMU hosted (ilmu-nemo-nano, https://api.ilmu.ai/v1) — primary active provider
+Tier 3: SEA-LION v4 (https://api.sea-lion.ai/v1) — GPU API, intermittent
+Tier 4: Ollama local — llava:7b on VPS localhost:11434, CPU (~2 tok/s), 15s timeout
+Tier 5: raises LLMUnavailableError — caller applies deterministic fallback
 
-Migration note: Replaced SEA-LION (unreachable) with MiniMax-M3 per L13 SOVEREIGN.
-SEA-LION env vars retained in /etc/arifos/arifos.env for potential future reactivation.
+Cascade reordered 2026-06-13: ILMU promoted to Tier 2 because MiniMax is
+rate-limited (429) and SEA-LION is intermittent. ILMU is the first reliable
+provider — confirmed working with valid JSON for complex schemas.
 
 ALL LLM output passes through 777_WITNESS envelope before reaching tool logic.
 Raw LLM text never enters judgment, memory, vault, or external action directly.
@@ -46,7 +49,7 @@ MINIMAX_MODEL = os.getenv("MINIMAX_MODEL", "MiniMax-M3")
 
 # Tier 2 — Ollama local fallback (qwen2.5:7b, free, no API cost)
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_URL", "http://localhost:11434")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")  # Only 7b is installed on ollama-engine-prod
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llava:7b")  # llava:7b confirmed running 2026-06-13 (replaces qwen2.5:7b)
 
 # Tier 2.5 — ILMU hosted fallback (2026-06-03, replaces ollama as Tier 2)
 # ILMU is OpenAI-compatible. Faster than ollama on CPU. Wired per 888_HOLD.
@@ -162,6 +165,139 @@ def _strip_markdown(content: str) -> str:
     return content.strip()
 
 
+def _repair_truncated_json(raw: str, min_viable_keys: set[str] | None = None) -> dict[str, Any] | None:
+    """Attempt to repair truncated/incomplete JSON from LLM output.
+
+    LLMs (especially via slower tiers like SEA-LION) often truncate complex
+    structured JSON at the max_tokens boundary. This function attempts to
+    salvage partial results by closing unterminated strings, objects, and arrays.
+
+    Returns a parsed dict if repair succeeds AND the result contains at least
+    the min_viable_keys (if specified). Returns None if repair is impossible
+    or the result is too degraded.
+
+    F2 TRUTH: Repaired JSON is always marked with _json_repaired=True so
+    downstream consumers can adjust confidence accordingly.
+    """
+    if min_viable_keys is None:
+        min_viable_keys = set()
+
+    raw = raw.strip()
+    if not raw:
+        return None
+
+    # Strategy 1: If the JSON ends with an unclosed string (trailing quote missing),
+    # try appending the closing quote + any missing structural close tokens.
+    strategies: list[str] = []
+
+    # Detect trailing state
+    in_string = False
+    escape_next = False
+    depth_brace = 0  # {
+    depth_bracket = 0  # [
+    for ch in raw:
+        if escape_next:
+            escape_next = False
+            continue
+        if ch == "\\":
+            escape_next = True
+            continue
+        if ch == '"' and not escape_next:
+            in_string = not in_string
+        elif not in_string:
+            if ch == "{":
+                depth_brace += 1
+            elif ch == "}":
+                depth_brace -= 1
+            elif ch == "[":
+                depth_bracket += 1
+            elif ch == "]":
+                depth_bracket -= 1
+
+    # Build repair suffixes
+    suffixes: list[str] = []
+
+    # If we're inside a string, close it
+    if in_string:
+        suffixes.append('"')
+
+    # Close any open structures
+    if depth_bracket > 0:
+        suffixes.append("]" * depth_bracket)
+    if depth_brace > 0:
+        suffixes.append("}" * depth_brace)
+
+    if suffixes:
+        strategies.append(raw + "".join(suffixes))
+
+    # Strategy 2: Also try with a trailing quote before structural closure
+    # (for cases where both string AND structure are unterminated)
+    if in_string and (depth_bracket > 0 or depth_brace > 0):
+        alt = raw + '"' + "]" * depth_bracket + "}" * depth_brace
+        if alt not in strategies:
+            strategies.append(alt)
+
+    # Strategy 3: Truncate to last valid comma and close structures
+    # Find the last comma that's at structural depth
+    last_comma = raw.rfind(",")
+    if last_comma > len(raw) // 2:  # Only if we're keeping more than half
+        truncated = raw[:last_comma]
+        # Close any structures that were open at that point
+        # Recompute depth up to truncation point
+        b_depth = 0
+        bk_depth = 0
+        in_s = False
+        esc = False
+        for ch in truncated:
+            if esc:
+                esc = False
+                continue
+            if ch == "\\":
+                esc = True
+                continue
+            if ch == '"' and not esc:
+                in_s = not in_s
+            elif not in_s:
+                if ch == "{":
+                    b_depth += 1
+                elif ch == "}":
+                    b_depth -= 1
+                elif ch == "[":
+                    bk_depth += 1
+                elif ch == "]":
+                    bk_depth -= 1
+        repair = truncated
+        if in_s:
+            repair += '"'
+        repair += "]" * max(0, bk_depth) + "}" * max(0, b_depth)
+        if repair not in strategies:
+            strategies.append(repair)
+
+    for attempt in strategies:
+        try:
+            parsed = json.loads(attempt)
+            if isinstance(parsed, dict):
+                missing = min_viable_keys - set(parsed.keys())
+                if not missing:
+                    parsed["_json_repaired"] = True
+                    logger.info(
+                        "Repaired truncated JSON (strategy %d chars added). "
+                        "Keys recovered: %s",
+                        len(attempt) - len(raw),
+                        list(parsed.keys()),
+                    )
+                    return parsed
+                else:
+                    logger.debug(
+                        "Repaired JSON parses but missing critical keys: %s",
+                        sorted(missing),
+                    )
+        except json.JSONDecodeError:
+            continue
+
+    return None
+
+
 def _validate_schema(parsed: dict[str, Any], required_fields: set[str]) -> None:
     """Log warning if required schema fields are missing; do not fail the envelope."""
     missing = required_fields - set(parsed.keys())
@@ -203,7 +339,7 @@ async def _call_sea_lion(
     }
 
     try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=25.0) as client:
             response = await client.post(
                 f"{SEA_LION_BASE_URL}/chat/completions",
                 headers={
@@ -234,8 +370,15 @@ async def _call_sea_lion(
     try:
         parsed = json.loads(raw_output)
     except json.JSONDecodeError:
-        logger.warning("SEA-LION returned invalid JSON, wrapping plain text: %s", raw_output[:200])
-        parsed = {"reasoning": raw_output, "answer": raw_output}
+        # Attempt to repair truncated JSON before giving up
+        repaired = _repair_truncated_json(raw_output)
+        if repaired is not None:
+            logger.info("SEA-LION JSON repaired after truncation (keys: %s)", list(repaired.keys()))
+            parsed = repaired
+            raw_output = json.dumps(repaired)  # Align raw with repaired for hash integrity
+        else:
+            logger.warning("SEA-LION returned invalid JSON, wrapping plain text: %s", raw_output[:200])
+            parsed = {"reasoning": raw_output, "answer": raw_output}
 
     if not isinstance(parsed, dict):
         raise LLMUnavailableError(
@@ -375,26 +518,33 @@ async def _call_minimax(
     try:
         parsed = json.loads(raw_output)
     except json.JSONDecodeError:
-        # DDD-20260611: When M3 returns free-form text instead of JSON, wrap
-        # the raw output into reasoning/answer so the kernel envelope can
-        # surface the LLM's actual response. The constitutional wrapper
-        # (F1-F13) will then metabolize the *real* M3 text, not a generic
-        # "unable to parse" placeholder. This mirrors the SEA-LION parser
-        # pattern at line 237-238. The L02 envelope is still issued
-        # (status=HOLD, verdict=HOLD) so the kernel's downstream contract
-        # is preserved — the difference is that the *raw LLM text* is now
-        # visible to the operator via reasoning/answer rather than thrown
-        # away. F1 AMANAH reversible: only the invalid-JSON path is
-        # affected; valid JSON paths are untouched.
-        logger.warning("MiniMax M3 returned invalid JSON (first 100 chars): %s", raw_output[:100])
-        parsed = {
-            "status": "HOLD",
-            "verdict": "HOLD",
-            "reason": "llm_schema_violation",
-            "reasoning": raw_output,
-            "answer": raw_output,
-            "_raw_output_hash": hashlib.sha256(raw_output.encode()).hexdigest()[:16],
-        }
+        # Attempt to repair truncated JSON before giving up
+        repaired = _repair_truncated_json(raw_output)
+        if repaired is not None:
+            logger.info("MiniMax M3 JSON repaired after truncation (keys: %s)", list(repaired.keys()))
+            parsed = repaired
+            raw_output = json.dumps(repaired)
+        else:
+            # DDD-20260611: When M3 returns free-form text instead of JSON, wrap
+            # the raw output into reasoning/answer so the kernel envelope can
+            # surface the LLM's actual response. The constitutional wrapper
+            # (F1-F13) will then metabolize the *real* M3 text, not a generic
+            # "unable to parse" placeholder. This mirrors the SEA-LION parser
+            # pattern at line 237-238. The L02 envelope is still issued
+            # (status=HOLD, verdict=HOLD) so the kernel's downstream contract
+            # is preserved — the difference is that the *raw LLM text* is now
+            # visible to the operator via reasoning/answer rather than thrown
+            # away. F1 AMANAH reversible: only the invalid-JSON path is
+            # affected; valid JSON paths are untouched.
+            logger.warning("MiniMax M3 returned invalid JSON (first 100 chars): %s", raw_output[:100])
+            parsed = {
+                "status": "HOLD",
+                "verdict": "HOLD",
+                "reason": "llm_schema_violation",
+                "reasoning": raw_output,
+                "answer": raw_output,
+                "_raw_output_hash": hashlib.sha256(raw_output.encode()).hexdigest()[:16],
+            }
 
     if not isinstance(parsed, dict):
         raise LLMUnavailableError(
@@ -434,9 +584,11 @@ async def _call_ollama(
 
     try:
         # L13 TIMEOUT_SAFE: CPU inference on 7B model is ~2 tok/s.
-        # 10s allows ~20 tokens — enough for structured JSON stub.
+        # 15s allows ~30 tokens — enough for structured JSON stub.
         # Longer prompts should use SEA-LION (GPU-accelerated API).
-        async with httpx.AsyncClient(timeout=50.0) as client:
+        # Previously 50s; reduced 2026-06-13 to prevent Ollama from
+        # blocking faster upstream providers in the cascade.
+        async with httpx.AsyncClient(timeout=15.0) as client:
             response = await client.post(
                 f"{OLLAMA_BASE_URL}/api/generate",
                 json=payload,
@@ -459,7 +611,13 @@ async def _call_ollama(
                 if not isinstance(parsed, dict):
                     parsed = {"reasoning": raw_output, "answer": raw_output}
             except json.JSONDecodeError:
-                parsed = {"reasoning": raw_output, "answer": raw_output}
+                repaired = _repair_truncated_json(raw_output)
+                if repaired is not None:
+                    logger.info("Ollama JSON repaired after truncation (keys: %s)", list(repaired.keys()))
+                    parsed = repaired
+                    raw_output = json.dumps(repaired)
+                else:
+                    parsed = {"reasoning": raw_output, "answer": raw_output}
         elif isinstance(parsed, dict) and "message" in parsed:
             content = parsed["message"].get("content", "")
             raw_output = _strip_markdown(content)
@@ -468,7 +626,13 @@ async def _call_ollama(
                 if not isinstance(parsed, dict):
                     parsed = {"reasoning": raw_output, "answer": raw_output}
             except json.JSONDecodeError:
-                parsed = {"reasoning": raw_output, "answer": raw_output}
+                repaired = _repair_truncated_json(raw_output)
+                if repaired is not None:
+                    logger.info("Ollama JSON repaired after truncation (keys: %s)", list(repaired.keys()))
+                    parsed = repaired
+                    raw_output = json.dumps(repaired)
+                else:
+                    parsed = {"reasoning": raw_output, "answer": raw_output}
         else:
             raw_output = _strip_markdown(json.dumps(parsed))
     except Exception as exc:
@@ -514,8 +678,8 @@ async def _call_ilmu(
     }
 
     try:
-        # ILMU is a hosted API — 50s is generous; typical responses are <5s.
-        async with httpx.AsyncClient(timeout=50.0) as client:
+        # ILMU is a hosted API — 20s is generous; typical responses are <5s.
+        async with httpx.AsyncClient(timeout=20.0) as client:
             response = await client.post(
                 f"{ILMU_BASE_URL}/chat/completions",
                 headers={
@@ -572,7 +736,10 @@ async def call_llm(
     trace_recursion_depth: int = 0,
 ) -> LLMOutputEnvelope:
     """
-    Call MiniMax M3 (Tier 1, frontier agentic) with Ollama fallback (Tier 2).
+    Call MiniMax M3 (Tier 1) → ILMU (Tier 2) → SEA-LION (Tier 3) → Ollama (Tier 4).
+
+    Cascade reordered 2026-06-13: ILMU promoted to Tier 2 as first reliable provider
+    after MiniMax rate-limiting. SEA-LION is intermittent; Ollama is slow CPU.
 
     Returns LLMOutputEnvelope — the single legal form of LLM output in arifOS.
     The envelope is the ONLY thing that should reach tool logic, judgment, or memory.
@@ -612,7 +779,7 @@ async def call_llm(
             trace_recursion_depth,
         )
 
-    # Tier 1 — MiniMax M3 (PRIMARY frontier model, L13 directive 2026-06-02)
+    # Tier 1 — MiniMax M3 (frontier agentic model, best at structured JSON)
     try:
         t0 = time.monotonic()
         raw_output, parsed = await _call_minimax(
@@ -633,8 +800,11 @@ async def call_llm(
     except LLMUnavailableError:
         pass
 
-    # Tier 2 — ILMU hosted fallback (ilmu-nemo-nano, OpenAI-compatible, added 2026-06-03)
-    # Replaces ollama for text generation — CPU ollama was 0.076 tok/s, ILMU is fast.
+    # Tier 2 — ILMU hosted (ilmu-nemo-nano, OpenAI-compatible)
+    # Promoted to Tier 2 on 2026-06-13. MiniMax M3 is rate-limited (429),
+    # SEA-LION is intermittent, and Ollama is CPU-slow. ILMU is the first
+    # reliable provider in the cascade — confirmed working with valid JSON
+    # for complex schemas including CRITIQUE_SCHEMA.
     try:
         t0 = time.monotonic()
         raw_output, parsed = await _call_ilmu(
@@ -655,8 +825,29 @@ async def call_llm(
     except LLMUnavailableError:
         pass
 
-    # Tier 2b — Ollama local fallback (qwen2.5:7b on VPS localhost:11434, free)
-    # Last-resort before Tier 3. Kept for the rare case both MiniMax and ILMU are down.
+    # Tier 3 — SEA-LION v4 (GPU-accelerated API, intermittent as of 2026-06-13)
+    try:
+        t0 = time.monotonic()
+        raw_output, parsed = await _call_sea_lion(
+            system, user, response_schema, temperature, max_tokens
+        )
+        return _make_envelope(
+            raw_output,
+            parsed,
+            "sea_lion",
+            SEA_LION_MODEL,
+            tool_origin,
+            mode,
+            combined_prompt,
+            (time.monotonic() - t0) * 1000,
+            response_schema,
+            trace_recursion_depth,
+        )
+    except LLMUnavailableError:
+        pass
+
+    # Tier 4 — Ollama local (llava:7b on VPS localhost:11434)
+    # CPU inference (~2 tok/s), 15s timeout — last resort for complex schemas.
     try:
         t0 = time.monotonic()
         raw_output, parsed = await _call_ollama(
@@ -676,15 +867,34 @@ async def call_llm(
         )
     except LLMUnavailableError:
         pass
+    try:
+        t0 = time.monotonic()
+        raw_output, parsed = await _call_ilmu(
+            system, user, response_schema, temperature, max_tokens
+        )
+        return _make_envelope(
+            raw_output,
+            parsed,
+            "ilmu",
+            ILMU_MODEL,
+            tool_origin,
+            mode,
+            combined_prompt,
+            (time.monotonic() - t0) * 1000,
+            response_schema,
+            trace_recursion_depth,
+        )
+    except LLMUnavailableError:
+        pass
 
-    # Tier 3 — no LLM available
+    # Tier 5 — no LLM available
     return wrap_llm_error(
         provider="none",
         model="none",
         tool_origin=tool_origin,
         mode=mode,
         prompt=combined_prompt,
-        error_message="All LLM tiers exhausted (MiniMax M3 + ILMU + Ollama)",
+        error_message="All LLM tiers exhausted (SEA-LION + MiniMax M3 + ILMU + Ollama)",
     )
 
 
@@ -702,26 +912,42 @@ async def check_provider_health() -> dict[str, Any]:
         "errors": [],
     }
 
-    # Check MiniMax M3 (Tier 1)
+    # Check MiniMax M3 (Tier 1 — primary)
     if not MINIMAX_API_KEY:
         status["primary"] = "unconfigured"
         status["errors"].append("MINIMAX_API_KEY not set")
     else:
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
-                # Lightweight health-like probe: list models endpoint
                 r = await client.get(
                     f"{MINIMAX_BASE_URL}/v1/models",
                     headers={"Authorization": f"Bearer {MINIMAX_API_KEY}"},
                 )
                 if r.status_code in (200, 401):
-                    # 401 means auth works but endpoint may not support /models
                     status["primary"] = "reachable"
                 else:
                     status["primary"] = f"http_{r.status_code}"
         except Exception as exc:
             status["primary"] = "unreachable"
             status["errors"].append(f"MiniMax M3: {exc}")
+
+    # Check SEA-LION v4 (Tier 2 — reactivated fallback)
+    if not SEA_LION_API_KEY:
+        status["sea_lion"] = "unconfigured"
+    else:
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                r = await client.get(
+                    f"{SEA_LION_BASE_URL}/models",
+                    headers={"Authorization": f"Bearer {SEA_LION_API_KEY}"},
+                )
+                if r.status_code in (200, 401):
+                    status["sea_lion"] = "reachable"
+                else:
+                    status["sea_lion"] = f"http_{r.status_code}"
+        except Exception as exc:
+            status["sea_lion"] = "unreachable"
+            status["errors"].append(f"SEA-LION: {exc}")
 
     # Check Ollama (Tier 2)
     try:
@@ -737,10 +963,14 @@ async def check_provider_health() -> dict[str, Any]:
         status["fallback"] = "unreachable"
         status["errors"].append(f"Ollama: {exc}")
 
-    # Determine active provider
+    # Determine active provider (match cascade: MiniMax → SEA-LION → ILMU → Ollama)
     if status["primary"] == "reachable":
         status["active_provider"] = "minimax"
-    elif status["fallback"] == "reachable":
+    elif status.get("sea_lion") == "reachable":
+        status["active_provider"] = "sea_lion"
+    elif status.get("ilmu") == "reachable":
+        status["active_provider"] = "ilmu"
+    elif status.get("fallback") == "reachable":
         status["active_provider"] = "ollama"
     else:
         status["active_provider"] = "none"

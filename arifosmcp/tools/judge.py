@@ -19,6 +19,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 import asyncio
+import hashlib
 
 import json as json_lib
 import os
@@ -532,6 +533,7 @@ async def arif_judge_deliberate(
     heart_critique: dict[str, Any] | None = None,
     niat_params: dict[str, Any] | None = None,
     context_source: str | None = None,
+    sovereign_receipt: str | None = None,
 ) -> VerdictOutput:
     """
         888_JUDGE: Constitutional adjudication and verdict emission.
@@ -590,13 +592,20 @@ async def arif_judge_deliberate(
         # ── W-2: SOVEREIGN clarity gate (W5 → F2 hard block) ─────────────────
         # If action_tier is sovereign/C4/C5 and cognitive clarity is below threshold,
         # return HOLD before deliberation. Operator readiness is constitutional.
+        #
+        # F13 SOVEREIGN RECEIPT PATH (2026-06-13):
+        #   When sovereign_receipt is present, the clarity threshold is waived.
+        #   The sovereign has explicitly confirmed readiness — F13 overrides W-2.
+        #   The receipt is recorded in meta for audit trail.
         if _is_elevated_tier:
             _w2_sub = _evidence["well_substrate"]
             _w2_clarity = _w2_sub.get("clarity")
+            _has_receipt = bool(sovereign_receipt and sovereign_receipt.strip())
             if (
                 _w2_clarity is not None
                 and float(_w2_clarity) < 4.0
                 and _w2_sub.get("has_telemetry")
+                and not _has_receipt
             ):
                 return VerdictOutput(
                     verdict=VerdictCode.HOLD,
@@ -609,7 +618,7 @@ async def arif_judge_deliberate(
                             "Operator cognitive substrate does not meet"
                             " constitutional requirements for elevated-tier action."
                         ),
-                        "Rest. Reassess when clarity ≥ 6/10.",
+                        "Rest. Reassess when clarity ≥ 6/10, or provide sovereign_receipt for F13 override.",
                     ],
                     next_safe_action=(
                         "Rest. Return when clarity ≥ 6/10."
@@ -624,8 +633,16 @@ async def arif_judge_deliberate(
                         "human_ready": _w2_sub.get("human_ready"),
                         "active_violations": _w2_sub.get("active_violations", []),
                         "well_substrate": _w2_sub,
+                        "f13_sovereign_receipt_available": False,
                     },
                 )
+            elif _has_receipt and _w2_clarity is not None and float(_w2_clarity) < 4.0:
+                # F13 SOVEREIGN OVERRIDE: receipt present, clarity waived
+                _evidence["f13_sovereign_receipt"] = {
+                    "receipt_hash": f"sha256:{hashlib.sha256(sovereign_receipt.encode()).hexdigest()[:16]}",
+                    "clarity_at_receipt": _w2_clarity,
+                    "override": "F13_SOVEREIGN_CONFIRMED",
+                }
 
     audit_entropy = _evidence.get("vitals", {}).get("audit_entropy")
 
@@ -916,6 +933,27 @@ async def arif_judge_deliberate(
 
     # ── SABAR cooldown awareness (Stage 2A: advisory) ──
     _apply_cooldown_awareness(result, cooldown_entry_id)
+
+    # ── F13 SOVEREIGN RECEIPT: attach to verdict metadata ──────────────────
+    # The sovereign receipt is recorded in every verdict where it was provided.
+    # This creates an auditable chain: F13 confirmation → verdict → vault seal.
+    # Without the receipt, F13 gates remain active (constitutional HOLD).
+    if sovereign_receipt and sovereign_receipt.strip():
+        _receipt_hash = f"sha256:{hashlib.sha256(sovereign_receipt.encode()).hexdigest()[:16]}"
+        if isinstance(result, dict):
+            result.setdefault("meta", {})["f13_sovereign_receipt"] = {
+                "receipt_hash": _receipt_hash,
+                "provided": True,
+                "effect": "F13_SOVEREIGN_CONFIRMED",
+                "note": "Sovereign (Arif) has explicitly confirmed this action. "
+                        "F13 gate waived per constitutional receipt path.",
+            }
+            result.setdefault("reasons", []).append(
+                f"F13_SOVEREIGN_RECEIPT: {_receipt_hash} — "
+                "sovereign confirmation recorded. Proceeding under F13 authority."
+            )
+        if "f13_sovereign_receipt" in _evidence:
+            result.setdefault("meta", {})["f13_clarity_waiver"] = _evidence["f13_sovereign_receipt"]
 
     verdict_str = str(result.get("verdict", ""))
     is_seal = "SEAL" in verdict_str

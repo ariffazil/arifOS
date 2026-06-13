@@ -898,7 +898,19 @@ CONTEXT_TYPE: {context_type or "external_action"}
 
 {mode_prompt}
 
-Return JSON exactly matching the schema. Cite specific constitutional floors for each risk."""
+CRITICAL — Your JSON response MUST include ALL of these fields:
+- "status": one of OK/HOLD/VOID
+- "risks_found": array of risk objects (even if empty: [])
+- "risk_tier": one of GREEN/AMBER/RED/CRITICAL
+- "human_decision_required": boolean
+- "empathy_score": 0.0-1.0
+- "weakest_stakeholder": string
+- "human_impact_load": 0.0-1.0
+- "dignity_score": 0.0-1.0
+- "action_risk_verdict": one of SEAL/HOLD/VOID
+
+A response without "risks_found" will be REJECTED. Return ONLY valid JSON, no markdown."""
+
 
     try:
         # call_llm returns LLMOutputEnvelope (777_WITNESS)
@@ -907,13 +919,28 @@ Return JSON exactly matching the schema. Cite specific constitutional floors for
             user=user,
             response_schema=CRITIQUE_SCHEMA,
             temperature=0.3,
-            max_tokens=1200,
+            max_tokens=2500,  # Increased from 1200 — CRITIQUE_SCHEMA is large (8 risk
+            # categories × nested objects + metadata). SEA-LION truncates at lower limits.
             tool_origin="666_HEART",
             mode=mode,
             trace_recursion_depth=trace_recursion_depth,
         )
 
         result = envelope.parsed_output
+
+        # Post-validate: if the provider returned valid JSON but missing critical
+        # schema fields (common with weaker models like SEA-LION for complex schemas),
+        # raise LLMUnavailableError so the cascade falls through to the next tier
+        # rather than silently accepting degraded output.
+        if "risks_found" not in result or not isinstance(result.get("risks_found"), list):
+            logger.warning(
+                "666_HEART provider %s returned JSON without 'risks_found' — "
+                "cascading to next tier",
+                envelope.provider,
+            )
+            raise LLMUnavailableError(
+                f"Provider {envelope.provider} returned incomplete schema (missing risks_found)"
+            )
 
         # Attach 777_WITNESS envelope metadata
         result["_llm_tier"] = envelope.provider
@@ -1655,8 +1682,11 @@ async def arif_heart_critique(
 
     risk_tier = result.get("risk_tier", "GREEN")
 
-    if use_fractal and risk_tier in ("AMBER", "RED", "CRITICAL"):
-        # Only recurse if risk is non-trivial — GREEN doesn't need meta-critique
+    if use_fractal and risk_tier in ("RED", "CRITICAL") and result.get("_llm_tier") not in ("ilmu",):
+        # Only recurse when (a) risk is high AND (b) we're on a strong provider.
+        # If we already fell through to ILMU (Tier 4), the cascade is degraded
+        # and a second LLM call risks MCP timeout (2026-06-13).
+        # RED/CRITICAL with ILMU → deterministic meta-critique via _heart_fallback.
         max_fractal_depth = 3
         prev_result = result
         fractal_dry = 0

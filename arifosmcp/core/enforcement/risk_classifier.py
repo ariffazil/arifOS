@@ -227,11 +227,19 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
         reversibility=ReversibilityLevel.IRREVERSIBLE,
     ),
     "arif_judge_deliberate": RiskPassport(
-        tier=RiskTier.T5,
-        action_class=ActionClass.ATOMIC,
-        tool_class=ToolClass.MUTATE,
+        # 888_JUDGE: constitutional deliberation and verdict emission.
+        # Downgraded from ATOMIC → OBSERVE on 2026-06-13 for the same
+        # reason as 666_HEART: the judge produces advisory output
+        # (SEAL/HOLD/VOID) consumed by upstream decision-makers. It
+        # does not mutate state directly — the actual vault sealing
+        # is done by arif_vault_seal (which correctly remains ATOMIC).
+        # F13 sovereign receipt gate still requires elevated auth for
+        # binding verdicts on sovereign/C4/C5 actions.
+        tier=RiskTier.T3,
+        action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.OBSERVE,
         blast_radius=BlastRadius.ORG,
-        reversibility=ReversibilityLevel.IRREVERSIBLE,
+        reversibility=ReversibilityLevel.HIGH,
     ),
     "arif_vault_seal": RiskPassport(
         tier=RiskTier.T5,

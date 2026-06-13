@@ -55,7 +55,15 @@ class OrganAttestationRecord:
     tool_count: int
     schema_hash: str
     constitution_hash: str = "sha256:missing"
-    status: str = "UNATTESTED"  # ALIVE | DEGRADED_CLAIM | DEGRADED | UNATTESTED | REVOKED
+    status: str = "UNATTESTED"  # ALIVE | DEGRADED_NOT_FAILED | DEGRADED_CLAIM | CONSTITUTIONAL_HOLD | DEGRADED | UNATTESTED | REVOKED
+    # ── Status Semantics (2026-06-13) ──
+    # ALIVE                  — organ fully operational, all providers optimal
+    # DEGRADED_NOT_FAILED    — organ operational but on fallback tier (e.g. HEART via ILMU instead of MiniMax)
+    # DEGRADED_CLAIM         — organ responding but surface/tools incomplete or unhealthy
+    # CONSTITUTIONAL_HOLD    — organ correctly holding at constitutional gate (e.g. JUDGE at F13 — constitution working)
+    # DEGRADED               — organ unreachable or non-responsive
+    # UNATTESTED             — organ not yet attested
+    # REVOKED                — organ attestation explicitly revoked
     reason: str | None = None
     heartbeat_at: float = field(default_factory=time.time)
     raw_health: dict[str, Any] = field(default_factory=dict)
