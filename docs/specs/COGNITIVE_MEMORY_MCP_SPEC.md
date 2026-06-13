@@ -5,6 +5,53 @@
 **Depends on:** 333_MIND (Sequential Thinking router), L3 Qdrant, L5 FalkorDB
 **Authority:** arifOS kernel, F2 TRUTH, F4 CLARITY, F11 AUDITABILITY
 **Forged:** 2026-06-13
+**Sovereign Doctrine Sealed:** 2026-06-13 — Arif's Memory Treatise
+
+---
+
+## 0. CONSTITUTIONAL PREAMBLE — Arif's Memory Doctrine
+
+> **Memory is not intelligence. But without memory, intelligence cannot become an agent.**
+
+Memory is **stored consequence** — the residue of prior contact with reality:
+what happened, what mattered, what hurt, what worked, what failed,
+what rules were established, who was trusted, what must not be repeated,
+what identity must remain continuous.
+
+**Memory is NOT intelligence.** Memory is the past. Intelligence is judgment in the present.
+A library is not a scholar. A ledger is not an economist.
+A geological core sample is not a geologist. A constitution is not justice by itself.
+
+**Memory is KINDA intelligence** because it provides priors, salience, continuity,
+learning, accountability, and identity. A memoryless system can calculate but cannot
+become a governed agent — it lacks continuity of consequence.
+
+**THE PARADOX:** To be intelligent over time, a system must remember.
+But to remain intelligent, it must be able to distrust, revise, and forget what it remembers.
+Memory makes the agent. Memory can also imprison the agent.
+
+**THE FORMULA:**
+> Memory + reasoning = competence.
+> Memory + reasoning + goals = agency.
+> Memory + reasoning + goals + governance = trustworthy agency.
+> Memory without governance = capture risk.
+
+**THE GEOLOGICAL ANALOGY:** Memory is sediment — layer after layer of events,
+pressure, trauma, reward, law, habits, identity, error, fossilized assumptions.
+Intelligence is not the sediment. Intelligence is the geologist reading the strata,
+detecting faults, dating layers, rejecting contamination, and deciding whether
+the old formation still predicts the current terrain.
+
+**THE ARIFOS INTERPRETATION:**
+> Memory stores prior state. Intelligence evaluates state. Governance decides what state may bind future action.
+
+Memory should never have automatic sovereignty.
+A memory can inform. A memory can warn. A memory can bias attention.
+But memory should not rule unless it passes present constitutional checks.
+
+**For arifOS, the winning move:** Do not build memory as nostalgia.
+Build memory as governed, revocable, auditable state.
+
 **DITEMPA BUKAN DIBERI**
 
 ---
@@ -273,6 +320,47 @@ MEMORY_AUTO_PERSIST_PLANS=true   # auto-store mind_plan() outputs
 - **Contradictions are features, not bugs.** Unresolved contradictions → HOLD, not error.
 - **Sessions are boundaries.** Cross-session recall must declare which session a plan came from.
 - **F13 override:** Arif can VOID any stored plan or contradiction resolution.
+- **Memory should never have automatic sovereignty.** Inform, warn, bias — but never rule.
+- **can_authorize_action = FALSE** — hard invariant, checked at every store gate.
+
+---
+
+## 10. KNOWN GAPS (Post-Phase 4)
+
+### Gap 1: Scar Tissue
+**What Arif said:** "what hurt, what failed, what must not be repeated."
+**Current state:** `lessons` stored as text on plan nodes via `cognitive_learn`.
+**Gap:** A scar isn't just memory — it's memory that *alters future action automatically.*
+A failed deployment pattern should cause MIND Router to raise complexity score
+or trigger HOLD before similar plans execute. No `Scar` node type exists yet.
+**Design needed:** Scar nodes + behavioral triggers + decay function.
+
+### Gap 2: Explicit Expiry
+**What Arif said:** "Old sediment should lithify or erode unless explicitly sealed."
+**Current state:** `max_age_days` exists as a query filter on cognitive_recall,
+but plans don't auto-expire or degrade in relevance.
+**Gap:** Without expiry, memory accumulates unbounded. Plans from 2024 should
+carry lower confidence than plans from last week. Sealed plans are permanent;
+unsealed plans should decay.
+**Design needed:** TTL on unsealed plans, confidence decay curve, auto-archival.
+
+### Gap 3: Consent Boundary
+**What Arif said:** "Who can recall whose memory?"
+**Current state:** Cross-session recall (`cognitive_cross_session`) retrieves plans
+from any session. No ownership gate.
+**Gap:** An agent in session B should not retrieve plans from session A without
+explicit consent or shared epoch membership. Memory privacy is a constitutional issue.
+**Design needed:** session ownership, epoch-based access control, recall consent tokens.
+
+---
+
+## 11. IMPLEMENTATION PHASES (Updated)
+
+### Phase 5: Scar Tissue + Expiry + Consent (post-Phase 4)
+- `Scar` node type + behavioral trigger system
+- TTL + confidence decay on unsealed plans
+- Session ownership + epoch-based recall consent
+- **Estimated:** 4 hours
 
 ---
 
