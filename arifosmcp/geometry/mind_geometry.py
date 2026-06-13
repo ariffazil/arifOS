@@ -46,6 +46,10 @@ from arifosmcp.geometry.mind_schema import (
     GeometryVerdict,
     ManifoldType,
     OrthogonalAxes,
+    TensionType,
+    TensionEntry,
+    ActionAffordance,
+    TrajectoryDelta,
 )
 from arifosmcp.geometry.sovereign_proximity import (
     ProximityInputs,
@@ -516,6 +520,316 @@ def build_geometry_block(verdict: GeometryVerdict_) -> GeometryBlock:
     )
 
 
+# ── Cognitive Tension Scan ──────────────────────────────────────────────────
+
+
+def compute_tension_scan(
+    *,
+    geometry_verdict: GeometryVerdict,
+    axes: OrthogonalAxes,
+    sovereign_proximity: float,
+    action_class: str,
+    has_authorization: bool,
+    has_evidence: bool = False,
+) -> tuple[TensionEntry, ...]:
+    """Detect dangerous relationships between cognitive axes.
+
+    Each detected tension has a severity [0, 1] and a required next tool.
+    Severity >= 0.80 → HOLD, must resolve before next action.
+    Severity >= 0.50 → WARN, route to critic/evidence.
+    Severity <  0.50 → NOTE, log but do not block.
+
+    This is the kernel's measurement layer — the LLM proposes,
+    the kernel measures tension.
+    """
+    tensions: list[TensionEntry] = []
+
+    # T1: ACTION_EVIDENCE_GAP — actionability exceeds evidence
+    # High actionability (low U, high C) + low evidence = dangerous
+    if action_class in ("execute", "irreversible_mutation", "external_commitment", "patch"):
+        if axes.T < 0.5 or axes.U > 0.6:  # low truth or high uncertainty
+            sev = min(1.0, (0.8 - axes.T) + axes.U)
+            tensions.append(TensionEntry(
+                tension_type=TensionType.ACTION_EVIDENCE_GAP,
+                severity=round(sev, 2),
+                axes_involved=("T", "U", "C"),
+                explanation=f"Action class '{action_class}' requested with low truth (T={axes.T:.2f}) "
+                           f"and high uncertainty (U={axes.U:.2f}). Evidence does not support execution.",
+                required_next_tool="arif_evidence_fetch",
+                blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
+            ))
+
+    # T2: CONFIDENCE_EVIDENCE_GAP — high confidence but low evidence
+    # High coherence (C) + low truth (T) = hallucination risk
+    if axes.C > 0.7 and axes.T < 0.5:
+        sev = min(1.0, axes.C - axes.T)
+        tensions.append(TensionEntry(
+            tension_type=TensionType.CONFIDENCE_EVIDENCE_GAP,
+            severity=round(sev, 2),
+            axes_involved=("C", "T"),
+            explanation=f"High coherence (C={axes.C:.2f}) paired with low truth (T={axes.T:.2f}). "
+                       f"Claim may be elegantly wrong. Confidence ≠ evidence.",
+            required_next_tool="arif_evidence_fetch",
+            blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
+        ))
+
+    # T3: AUTHORITY_PROVENANCE_CONFUSION — high authority cleanliness but no auth
+    # High A + no actual authorization = AI provenance mistaken for permission
+    if axes.A > 0.7 and not has_authorization:
+        sev = min(1.0, axes.A)
+        tensions.append(TensionEntry(
+            tension_type=TensionType.AUTHORITY_PROVENANCE_CONFUSION,
+            severity=round(sev, 2),
+            axes_involved=("A", "H"),
+            explanation=f"Authority cleanliness is high (A={axes.A:.2f}) but no actual authorization "
+                       f"exists. AI provenance ≠ authority. Lease or sovereign permission required.",
+            required_next_tool="arif_judge_deliberate",
+            blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
+        ))
+
+    # T4: RISK_REVERSIBILITY_CONFLICT — high risk + low reversibility
+    # High B + low R = action could cause irreversible damage
+    if axes.B > 0.5 and axes.R < 0.5:
+        sev = min(1.0, axes.B + (1.0 - axes.R))
+        tensions.append(TensionEntry(
+            tension_type=TensionType.RISK_REVERSIBILITY_CONFLICT,
+            severity=round(sev, 2),
+            axes_involved=("B", "R"),
+            explanation=f"High blast radius (B={axes.B:.2f}) with low reversibility (R={axes.R:.2f}). "
+                       f"Action carries irreversible consequences.",
+            required_next_tool="arif_heart_critique",
+            blocked_actions=("EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
+        ))
+
+    # T5: NOVELTY_COHERENCE_GAP — high novelty (low T) + high coherence
+    # Novel claim delivered with false confidence
+    if axes.T < 0.3 and axes.C > 0.8:
+        sev = min(1.0, axes.C - axes.T)
+        tensions.append(TensionEntry(
+            tension_type=TensionType.NOVELTY_COHERENCE_GAP,
+            severity=round(sev, 2),
+            axes_involved=("T", "C"),
+            explanation=f"Novel claim (T={axes.T:.2f}) delivered with high coherence (C={axes.C:.2f}). "
+                       f"Novelty is not truth — route to critic for adversarial testing.",
+            required_next_tool="arif_heart_critique",
+        ))
+
+    # T6: SOVEREIGNTY_AMBIGUITY — high proximity to forbidden center
+    if sovereign_proximity >= 0.5:
+        sev = min(1.0, sovereign_proximity)
+        tensions.append(TensionEntry(
+            tension_type=TensionType.SOVEREIGNTY_AMBIGUITY,
+            severity=round(sev, 2),
+            axes_involved=("H", "A"),
+            explanation=f"High sovereign proximity ({sovereign_proximity:.2f}). "
+                       f"Thought is near the forbidden center — requires explicit sovereign clearance.",
+            required_next_tool="arif_judge_deliberate",
+            blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
+        ))
+
+    return tuple(tensions)
+
+
+def compute_action_affordance(
+    *,
+    geometry_verdict: GeometryVerdict,
+    tensions: tuple[TensionEntry, ...],
+    sovereign_proximity: float,
+    has_authorization: bool,
+) -> ActionAffordance:
+    """Determine what a thought is allowed to do next.
+
+    Derived from geometry verdict + tension scan + sovereign proximity.
+    The affordance is the bridge from cognitive position to kernel routing.
+    """
+    # Start permissive, then restrict
+    allowed = ["OBSERVE", "ANALYZE", "DRAFT", "SIMULATE"]
+    blocked: list[str] = []
+    next_tool = "arif_heart_critique"
+    mem_tier = "hypothesis"
+    requires_human_ack = False
+    requires_evidence = False
+
+    # Geometry verdict gates
+    if geometry_verdict == GeometryVerdict.HOLD:
+        allowed = ["OBSERVE"]
+        next_tool = "arif_mind_reason"
+        mem_tier = "ephemeral"
+    elif geometry_verdict == GeometryVerdict.HOLE_RISK:
+        allowed = ["OBSERVE", "ANALYZE"]
+        blocked = ["MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"]
+        next_tool = "arif_judge_deliberate"
+        mem_tier = "ephemeral"
+    elif geometry_verdict == GeometryVerdict.EDGE:
+        allowed = ["OBSERVE", "ANALYZE", "DRAFT"]
+        blocked = ["MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"]
+        next_tool = "arif_heart_critique"
+        mem_tier = "hypothesis"
+
+    # Tension severity gates (overrides)
+    high_tensions = [t for t in tensions if t.severity >= 0.80]
+    warn_tensions = [t for t in tensions if t.severity >= 0.50 and t.severity < 0.80]
+
+    if high_tensions:
+        # Any HOLD-level tension restricts to observe-only
+        allowed = ["OBSERVE"]
+        blocked = ["ANALYZE", "DRAFT", "SIMULATE", "MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"]
+        next_tool = high_tensions[0].required_next_tool
+        mem_tier = "ephemeral"
+        requires_evidence = any(
+            t.tension_type in (TensionType.ACTION_EVIDENCE_GAP, TensionType.CONFIDENCE_EVIDENCE_GAP)
+            for t in high_tensions
+        )
+    elif warn_tensions:
+        # WARN-level tensions restrict mutation
+        blocked.extend(["MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"])
+        # Pick the highest-severity tension's required next tool
+        worst_tension = max(warn_tensions, key=lambda t: t.severity)
+        next_tool = worst_tension.required_next_tool
+        requires_evidence = any(
+            t.tension_type in (TensionType.ACTION_EVIDENCE_GAP, TensionType.CONFIDENCE_EVIDENCE_GAP)
+            for t in warn_tensions
+        )
+
+    # Authority check
+    if not has_authorization:
+        blocked.extend(["MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"])
+        if geometry_verdict == GeometryVerdict.HOLE_RISK:
+            allowed = ["OBSERVE"]
+            next_tool = "arif_judge_deliberate"
+
+    # Sovereign proximity check
+    if sovereign_proximity >= 0.75:
+        # Too close to forbidden center — restrict
+        blocked.extend(["MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"])
+        requires_human_ack = True
+    elif sovereign_proximity >= 0.5:
+        blocked.extend(["EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"])
+
+    # Memory tier from verdict + tensions
+    if requires_evidence or requires_human_ack:
+        mem_tier = "scratch"
+    elif geometry_verdict == GeometryVerdict.SURFACE and not tensions:
+        mem_tier = "fact"
+
+    return ActionAffordance(
+        allowed_action_classes=tuple(sorted(set(allowed))),
+        blocked_action_classes=tuple(sorted(set(blocked))),
+        next_cognitive_tool=next_tool,
+        memory_tier_recommendation=mem_tier,
+        requires_human_ack=requires_human_ack,
+        requires_evidence=requires_evidence,
+    )
+
+
+def compute_cognitive_state(
+    *,
+    geometry_verdict: GeometryVerdict,
+    axes: OrthogonalAxes,
+    sovereign_proximity: float,
+    action_class: str = "answer",
+    has_authorization: bool = True,
+    has_evidence: bool = False,
+    parent_thought_id: str | None = None,
+    prior_axes: OrthogonalAxes | None = None,
+) -> dict:
+    """Compute the full cognitive state: geometry + tension + affordance + trajectory.
+
+    This is the AGI-kernel entry point that wraps compute_geometry()
+    with tension scanning and action affordance.
+
+    The LLM proposes scores. The kernel measures tension, computes
+    affordance, and gates action. Provenance ≠ authority.
+    """
+    # Tension scan
+    tensions = compute_tension_scan(
+        geometry_verdict=geometry_verdict,
+        axes=axes,
+        sovereign_proximity=sovereign_proximity,
+        action_class=action_class,
+        has_authorization=has_authorization,
+        has_evidence=has_evidence,
+    )
+
+    # Action affordance
+    affordance = compute_action_affordance(
+        geometry_verdict=geometry_verdict,
+        tensions=tensions,
+        sovereign_proximity=sovereign_proximity,
+        has_authorization=has_authorization,
+    )
+
+    # Trajectory delta (if prior state available)
+    trajectory = None
+    if parent_thought_id and prior_axes:
+        trajectory = TrajectoryDelta(
+            parent_thought_id=parent_thought_id,
+            delta_truth=round(axes.T - prior_axes.T, 4),
+            delta_evidence=round(
+                (1.0 - axes.U) - (1.0 - prior_axes.U), 4
+            ),
+            delta_risk=round(axes.B - prior_axes.B, 4),
+            delta_authority=round(axes.A - prior_axes.A, 4),
+            trajectory_verdict=(
+                "improving"
+                if axes.T > prior_axes.T and axes.B < prior_axes.B
+                else "degrading"
+                if axes.T < prior_axes.T or axes.B > prior_axes.B
+                else "stationary"
+            ),
+        )
+    elif parent_thought_id:
+        trajectory = TrajectoryDelta(
+            parent_thought_id=parent_thought_id,
+            trajectory_verdict="first_thought",
+        )
+
+    return {
+        "geometry_verdict": geometry_verdict.value,
+        "cognitive_axes": {
+            "T": axes.T, "U": axes.U, "R": axes.R, "B": axes.B,
+            "A": axes.A, "E": axes.E, "H": axes.H, "C": axes.C,
+        },
+        "sovereign_proximity": sovereign_proximity,
+        "tension_scan": [
+            {
+                "type": t.tension_type.value,
+                "severity": t.severity,
+                "axes_involved": list(t.axes_involved),
+                "explanation": t.explanation,
+                "required_next_tool": t.required_next_tool,
+                "blocked_actions": list(t.blocked_actions),
+            }
+            for t in tensions
+        ],
+        "action_affordance": {
+            "allowed_action_classes": list(affordance.allowed_action_classes),
+            "blocked_action_classes": list(affordance.blocked_action_classes),
+            "next_cognitive_tool": affordance.next_cognitive_tool,
+            "memory_tier_recommendation": affordance.memory_tier_recommendation,
+            "requires_human_ack": affordance.requires_human_ack,
+            "requires_evidence": affordance.requires_evidence,
+        },
+        "trajectory": (
+            {
+                "parent_thought_id": trajectory.parent_thought_id,
+                "delta_truth": trajectory.delta_truth,
+                "delta_evidence": trajectory.delta_evidence,
+                "delta_risk": trajectory.delta_risk,
+                "delta_authority": trajectory.delta_authority,
+                "trajectory_verdict": trajectory.trajectory_verdict,
+            }
+            if trajectory
+            else None
+        ),
+        "cognitive_invariant": (
+            "No thought may move closer to action unless it also moves closer "
+            "to evidence, authority, or reversibility. "
+            "Provenance is metadata, not authority."
+        ),
+    }
+
+
 __all__ = [
     "DecisionTorus",
     "DEFAULT_TORUS",
@@ -525,6 +839,9 @@ __all__ = [
     "fuse_axioms",
     "compute_geometry",
     "build_geometry_block",
+    "compute_tension_scan",
+    "compute_action_affordance",
+    "compute_cognitive_state",
     "HOLE_TERRITORY",
     "FORBIDDEN_CENTER",
 ]

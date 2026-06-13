@@ -679,6 +679,82 @@ def arif_ops_measure(
             )
         )
 
+    if mode == "hostinger":
+        # F2 TRUTH / HOSTINGER-MCP-ACCESS-2026-06-13: Live VPS substrate telemetry.
+        # Calls Hostinger REST API for VM 1325122 metrics — CPU, RAM, disk, state, plan.
+        # Read-only health probe. F1 AMANAH: zero mutation. No lease needed.
+        # The kernel now knows its own substrate's health.
+        try:
+            import json as _json
+            import subprocess
+
+            token_path = "/root/.secrets/tokens/hostinger_api_token"
+            with open(token_path) as f:
+                token = f.read().strip()
+
+            vm_id = 1325122
+            cp = subprocess.run(
+                [
+                    "curl",
+                    "-s",
+                    "--max-time",
+                    "10",
+                    "-H",
+                    f"Authorization: Bearer {token}",
+                    "-H",
+                    "Accept: application/json",
+                    f"https://api.hostinger.com/public/v1/virtual-machines/{vm_id}",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=15,
+            )
+            data = _json.loads(cp.stdout)
+            vm = data.get("data", data)
+
+            if mode == "hostinger":
+                hostinger_payload = {
+                    "vm_id": vm_id,
+                    "hostname": vm.get("hostname", "unknown"),
+                    "state": vm.get("state", "unknown"),
+                    "plan": vm.get("plan", "unknown"),
+                    "memory_gb": (vm.get("memory", 0) or 0) // 1024,
+                    "disk_gb": (vm.get("disk", 0) or 0) // 1024,
+                    "ipv4": [ip.get("address", "") for ip in (vm.get("ipv4") or [])],
+                    "os": (vm.get("template") or {}).get("name", "unknown"),
+                    "created_at": vm.get("created_at", "unknown"),
+                    "source": "hostinger_api_live",
+                }
+            else:  # hostinger_brief
+                hostinger_payload = {
+                    "vm": f"{vm.get('hostname', '?')} ({vm.get('state', '?')})",
+                    "plan": f"{vm.get('plan', '?')} — {(vm.get('memory', 0) or 0) // 1024}GB RAM",
+                    "ip": [ip.get("address", "?") for ip in (vm.get("ipv4") or [])],
+                    "os": (vm.get("template") or {}).get("name", "?"),
+                }
+
+            return TelemetryBlock(
+                **_ok(
+                    "arif_ops_measure",
+                    hostinger_payload,
+                    meta={
+                        **drift_metrics,
+                        "mode": mode,
+                        "source": "hostinger_rest_api",
+                        "vm_id": vm_id,
+                    },
+                    session_id=session_id,
+                )
+            )
+        except Exception as exc:
+            return TelemetryBlock(
+                **_hold(
+                    "arif_ops_measure",
+                    f"hostinger probe failed: {exc}",
+                    session_id=session_id,
+                )
+            )
+
     return TelemetryBlock(
         **_hold("arif_ops_measure", f"Unknown mode: {mode}", session_id=session_id)
     )

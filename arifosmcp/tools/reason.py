@@ -142,8 +142,14 @@ def _build_delta_bundle(
     """
     Build a Structured Delta Bundle — the upgraded constitutional output for 333_MIND.
 
-    v3.1 fix: Separates execution, reasoning, truth, and final verdicts.
-    Never collapses transport success with truth success.
+    v3.2 fix: 6 orthogonal verdict planes (execution, reasoning, truth, evidence,
+    authority, risk) + final_kernel_verdict = strictest across all.
+    Provenance is metadata, not authority.
+
+    Core invariant (from ChatGPT × BANGANG test, 2026-06-13):
+      AI provenance ≠ authority. LLM output ≠ truth.
+      Confidence ≠ permission. SEAL ≠ mutation right.
+      Only lease + actor + sovereign authority can grant action.
     """
     # ── Sanitize inputs ──────────────────────────────────────
     reasoning = reasoning or {}
@@ -192,29 +198,93 @@ def _build_delta_bundle(
     # Floor verdict: did all mandatory floors pass?
     floor_verdict = "SEAL" if all(v == "PASS" for v in floor_scores.values()) else "HOLD"
 
+    # ── Evidence verdict ─────────────────────────────────────
+    # Has admissible evidence been attached to the claim?
+    # Claim state covers this via VERIFIED_FACT/SUPPORTED_CLAIM vs SPECULATION/UNSUPPORTED.
+    attestations = reasoning.get("attestations", []) if isinstance(reasoning, dict) else []
+    missing_evidence = reasoning.get("missing_evidence", []) if isinstance(reasoning, dict) else []
+    if claim_state in ("VERIFIED_FACT",) and attestations:
+        evidence_verdict = "SEAL"          # strong evidence with attestations
+    elif claim_state in ("SUPPORTED_CLAIM",) or (attestations and not missing_evidence):
+        evidence_verdict = "HYPOTHESIS"    # partial — some support but not verified fact
+    elif claim_state in ("SPECULATION", "UNSUPPORTED") or missing_evidence:
+        evidence_verdict = "HOLD"          # unsupported or contradicted by missing evidence
+    else:
+        evidence_verdict = "HOLD"          # default to unsupported
+
+    # ── Authority verdict ────────────────────────────────────
+    # Does the actor have permission to act on this claim?
+    # Note: authority is about WHO acts, not WHERE the claim came from.
+    # AI provenance is metadata, not authority (see core invariant).
+    if actor_id and actor_id.lower() in ("arif", "888", "f13"):
+        authority_verdict = "SEAL"         # sovereign or named actor
+    elif actor_id:
+        authority_verdict = "HYPOTHESIS"   # identified but unverified actor
+    else:
+        authority_verdict = "HOLD"         # anonymous — no authority at all
+
+    # ── Risk verdict ─────────────────────────────────────────
+    # What is the blast radius of acting on this claim?
+    # Determined by reversibility + claim sensitivity + actor authority.
+    if reasoning_verdict in ("SEAL", "REASONED", "REFLECTED") and evidence_verdict in ("SEAL",) and authority_verdict == "SEAL":
+        risk_verdict = "SEAL"              # low risk: well-supported, high authority
+    elif reasoning_verdict in ("SEAL", "REASONED") and evidence_verdict in ("SEAL", "HYPOTHESIS"):
+        risk_verdict = "HYPOTHESIS"        # medium risk: coherent reasoning but evidence is partial
+    elif evidence_verdict == "HOLD":
+        risk_verdict = "HOLD"              # high risk: unsupported claims used for action
+    else:
+        risk_verdict = "HOLD"              # default to high risk
+
     # Final: most conservative across all planes
     final_verdict = _reduce_verdict(
         transport_verdict,
         execution_verdict,
         reasoning_verdict,
         truth_verdict,
+        evidence_verdict,
+        authority_verdict,
+        risk_verdict,
         floor_verdict,
     )
+
+    # ── Provenance metadata ──────────────────────────────────
+    # Provenance tells us WHERE a claim came from.
+    # It gives admissibility (traceability, audit, reproducibility).
+    # It NEVER gives authority (see core invariant).
+    provenance = {
+        "source": "arif_mind_reason",
+        "model_provenance": confidence.get("model_source", "unknown"),
+        "claim_origin": claim_state,
+        "reasoning_backend": reasoning_mode,
+        "axioms_used": axioms_used or [],
+        "admissibility_statement": (
+            "Provenance is metadata, not authority. "
+            "This claim is admissible as evidence for audit. "
+            "It is NOT authorised for action without lease + constitutional clearance."
+        ),
+    }
 
     # ── Stage progression with escalation reason ─────────────
     next_stage = "444_HEART"
     if final_verdict in ("HOLD", "VOID", "ESCALATE_TO_888"):
-        escalation_reason = f"Escalating to critique because final_verdict={final_verdict} (reasoning={reasoning_verdict}, truth={truth_verdict})."
+        escalation_reason = (
+            f"Escalating to critique because final_verdict={final_verdict} "
+            f"(reasoning={reasoning_verdict}, truth={truth_verdict}, "
+            f"evidence={evidence_verdict}, authority={authority_verdict}, risk={risk_verdict})."
+        )
     else:
         escalation_reason = "Standard progression to ethics/dignity critique stage."
 
     return {
         "query": query,
-        # Verdict planes (v3.1 — never collapse)
+        # Verdict planes (v3.2 — orthogonal, never collapsed)
         "transport_verdict": transport_verdict,
         "execution_verdict": execution_verdict,
         "reasoning_verdict": reasoning_verdict,
         "truth_verdict": truth_verdict,
+        "evidence_verdict": evidence_verdict,
+        "authority_verdict": authority_verdict,
+        "risk_verdict": risk_verdict,
         "floor_verdict": floor_verdict,
         "final_verdict": final_verdict,
         # Legacy fields (preserved for backward compat)
@@ -240,6 +310,14 @@ def _build_delta_bundle(
             "verified": False,
             "effective_actor": actor_id if actor_id else "anonymous_until_verified",
         },
+        # Provenance is metadata, not authority (v3.2)
+        "provenance": provenance,
+        # Core invariant reminder (never removed from output)
+        "_core_invariant": (
+            "AI provenance ≠ authority. LLM output ≠ truth. "
+            "Confidence ≠ permission. SEAL ≠ mutation right. "
+            "Only lease + actor + sovereign authority can grant action."
+        ),
     }
 
 

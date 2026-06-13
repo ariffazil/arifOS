@@ -15,7 +15,7 @@ fi
 _ARIFOS_GOVERNANCE_ACTIVE=1
 
 ARIFOS_MCP_URL="${ARIFOS_MCP_URL:-http://127.0.0.1:8088/mcp}"
-GOVERNANCE_LOG="/root/.agent-workbench/governance-sidecar.jsonl"
+GOVERNANCE_LOG="/var/lib/arifos/vault/governance-sidecar.jsonl"  # P3: canonical path (symlinked to shell_events.jsonl)
 GOVERNANCE_CACHE="/tmp/.arifos_governance_cache.$$"
 mkdir -p "$(dirname "$GOVERNANCE_LOG")"
 touch "$GOVERNANCE_CACHE"

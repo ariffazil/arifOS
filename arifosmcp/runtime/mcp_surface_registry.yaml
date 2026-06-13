@@ -1,0 +1,197 @@
+# MCP Surface Registry — arifOS Federation
+# ════════════════════════════════════════════════════════════════════════════
+# Doctrine (per amendment_001.md, 2026-06-12):
+#   "Use MCP for exposure. Use arifOS for authority."
+#   "Does it need model-mediated invocation? If yes, MCP-shaped. If no, don't."
+#
+# This registry defines the 4-tier visibility governance for the entire
+# arifOS federation. It is the SINGLE SOURCE OF TRUTH for what the model
+# is allowed to see. Constitutional surface (the 13 canonical arif_*
+# tools + 13 floors) is NEVER mutated by this file.
+#
+# Author: @integrator (session 2026-06-12-mcp-governor-and-minimax-forge)
+# Forged: 2026-06-12
+# Reversibility: full (yaml + git revert)
+# ════════════════════════════════════════════════════════════════════════════
+
+version: 1
+forge_session: "2026-06-12-mcp-governor-and-minimax-forge"
+actor_id: "mcp-governor-forge"
+session_id: "2026-06-12-mcp-governor-and-minimax-forge"
+
+tiers:
+  core:
+    description: >
+      Constitutional kernel tools. Always exposed when organ_health=healthy.
+      These are the SAFE surface the model is allowed to see by default.
+    expose_by_default: true
+    max_tools: 12
+    requires:
+      constitution_hash: true
+      health: "healthy"
+      schema_hash: true
+      version: true
+    examples:
+      - "arifOS 13 canonical arif_* tools (when arifOS=healthy)"
+      - "WEALTH public surface when WEALTH=healthy"
+      - "GEOX canonical when GEOX=healthy"
+
+  organ:
+    description: >
+      Domain organ tools. Exposed only after explicit intent match.
+      Each organ contributes up to 8 tools in the visible set.
+    expose_by_default: false
+    expose_only_after_intent_match: true
+    max_tools_per_organ: 8
+    requires:
+      constitution_hash: true
+      health: "healthy"
+      schema_hash: true
+      version: true
+    examples:
+      - "minimax-media: 9 media tools when intent=media"
+      - "minimax-code: web_search+understand_image when intent=search"
+      - "minimax_search: search+browse when intent=search (F12-gated)"
+      - "WELL somatic when intent=wellness"
+
+  lab:
+    description: >
+      Experimental tools. Exposed only when explicitly routed by an
+      Intent+Authority pair. Default TTL 30 days.
+    expose_by_default: false
+    requires_explicit_route: true
+    ttl_days: 30
+    examples:
+      - "minimax_search until F12 hardening complete"
+      - "Any new tool that has not yet cleared 7-day burn-in"
+
+  deprecated:
+    description: >
+      Tools that exist but are no longer callable. Removed from MCP
+      surface but kept in registry for audit trail.
+    expose_by_default: false
+    callable: false
+    examples:
+      - "minimax-mcp-code alias (replaced by minimax-code)"
+
+entropy_budget:
+  description: >
+    Hard ceilings on the visible surface to prevent tool-vector crowding.
+    Per amendment_001: "Fix the visibility layer. Keep the full federation.
+    Show the model only the tools that are healthy, authorized, and relevant."
+
+  default_visible_tools_max: 15
+  per_organ_visible_tools_max: 8
+  degraded_organ_visible_tools_max: 3
+  max_schema_tokens_per_tool: 700
+  max_description_chars: 480
+  duplicate_similarity_threshold: 0.82
+  stale_tool_days: 45
+
+  shortlist_targets:
+    default_visible: "9-15"
+    task_routed: "3-7"
+    emergency: "1-3"
+
+authority:
+  description: >
+    Constitutional authority boundaries. Authority is SEPARATE from
+    exposure: a tool may be visible (MCP) but not callable (arifOS lease).
+  expose_decision: "MCP (this registry + visibility_policy.py)"
+  call_decision: "arifOS (lease + judge verdict)"
+  state_decision: "arifOS (KernelState)"
+  sealing_decision: "arifOS (VAULT999)"
+
+organs:
+  - id: arifOS
+    transport: streamable-http
+    endpoint: "http://127.0.0.1:8088/mcp"
+    tier: core
+    status: healthy
+    tool_count_observed: 19
+    canonical_count: 13
+    extra_tools: 6  # forge_query, forge_plan, arif_detect_*, arif_*_attest*
+    constitution_hash: "c01c70fdfa3c4dce9c1391c47fc4f4f685c854f782b52f761b9b2566ae24c4da"
+    schema_hash: "kanon-4d49da3"
+
+  - id: geox
+    transport: streamable-http
+    endpoint: "http://127.0.0.1:8081/mcp"
+    tier: organ
+    status: healthy  # /health says healthy; constitution file MISSING (Fix 1)
+    tool_count_observed: 37
+    constitution_hash: "MISSING"  # SG-2 Fix 1 will repair
+    schema_hash: "geox-014d3e33"
+
+  - id: wealth
+    transport: streamable-http
+    endpoint: "http://127.0.0.1:18082/mcp"
+    tier: organ
+    status: healthy  # /health returns all 6 fields (Fix 2 not needed)
+    tool_count_observed: 20
+    hidden_alias_count: 34
+    schema_hash: "wealth.physics_economics.v1"
+
+  - id: well
+    transport: streamable-http
+    endpoint: "http://127.0.0.1:18083/mcp"
+    tier: organ
+    status: healthy
+    tool_count_observed: 17
+    schema_hash: "v2026.05.15-ΩWELL+GWELL+FEDERATION"
+    authority: REFLECT_ONLY
+
+  - id: minimax-media
+    transport: streamable-http
+    endpoint: "http://127.0.0.1:18090/mcp"
+    tier: core  # 9 tools always useful, intent-agnostic
+    status: healthy
+    tool_count_observed: 9
+    notes: "9 tools (architect said 8 — verified live: text_to_audio, list_voices, voice_clone, play_audio, generate_video, query_video_generation, text_to_image, music_generation, voice_design)"
+
+  - id: minimax-code
+    transport: streamable-http
+    endpoint: "http://127.0.0.1:18091/mcp"
+    tier: organ  # 2 tools, web_search has web_provenance=true (F12 territory)
+    status: healthy
+    tool_count_observed: 2  # web_search, understand_image
+    f12_hardening: pending
+
+  - id: minimax-search
+    transport: streamable-http
+    endpoint: "http://127.0.0.1:18092/mcp"  # to-be-deployed
+    tier: lab  # stays in lab tier until F12 hardening + 7-day burn-in
+    status: not_deployed
+    tool_count_observed: 0
+    f12_hardening: required
+    vendor_keys_required:
+      - SERPER_API_KEY  # MISSING from vault
+      - JINA_API_KEY    # present in /root/.secrets/env/research.env
+
+# F2 truth corrections to architect's framing (verified live 2026-06-12):
+f2_corrections:
+  - id: FC-01
+    claim: "Transport is SSE at /sse"
+    reality: "Transport is streamable-http at /mcp (MCP 2025-11-25)"
+    impact: "opencode.json needs url=http://127.0.0.1:18090/mcp, not /sse"
+  - id: FC-02
+    claim: "10 MiniMax tools unreachable"
+    reality: "Tools ARE reachable via streamable-http at /mcp; opencode config is wrong"
+    impact: "Fix is opencode transport, not server-side"
+  - id: FC-03
+    claim: "minimax-media has 8 tools"
+    reality: "Has 9 tools (play_audio is the 9th)"
+  - id: FC-04
+    claim: "WEALTH /health unhealthy"
+    reality: "/health returns all 6 expected fields (status, version, schema_hash, identity_hash, freshness, owner_summary); healthy"
+  - id: FC-05
+    claim: "WELL has 0 tools (phantom organ)"
+    reality: "Has 17 tools, /health is fresh, state.json is fresh (6.3h)"
+  - id: FC-06
+    claim: "GEOX needs constitution file"
+    reality: "CONFIRMED: /root/geox/src/geox_mcp/constitutional_map.py does not exist"
+    impact: "SG-2 Fix 1 is real and needed"
+  - id: FC-07
+    claim: "JINA_API_KEY needs vendor signup"
+    reality: "JINA_API_KEY already in /root/.secrets/env/research.env and providers.env"
+    impact: "P3.D3.1 partially unblocked (SERPER still needed)"

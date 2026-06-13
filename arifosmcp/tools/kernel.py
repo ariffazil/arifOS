@@ -105,6 +105,38 @@ def arif_kernel_route(
                 delta_surprise=contradicted.get("max_surprise", 0.0),
                 actor_id=actor_id,
             )
+        # HOSTINGER-MCP-ACCESS-2026-06-13: kernel exposes VPS action graph
+        if target == "hostinger":
+            return _ok(
+                "arif_kernel_route",
+                {
+                    "target": "hostinger",
+                    "substrate": {
+                        "provider": "Hostinger",
+                        "vm_id": 1325122,
+                        "hostname": "srv1325122.hstgr.cloud",
+                    },
+                    "available_tools": {
+                        "OBSERVE": [
+                            "arif_ops_measure(mode=hostinger)",
+                            "arif_ops_measure(mode=hostinger_brief)",
+                        ],
+                        "MUTATE_REVERSIBLE": [
+                            "VPS_restartVirtualMachineV1 (requires lease)",
+                            "VPS_snapshotCreateV1 (requires lease)",
+                        ],
+                        "MUTATE_IRREVERSIBLE": [
+                            "VPS_resizeVirtualMachineV1 (requires 888_HOLD)",
+                        ],
+                        "BLOCKED": [
+                            "VPS_deleteVirtualMachineV1 (HARAM — F5 PEACE²)",
+                            "Billing_* (F13 SOVEREIGN only)",
+                        ],
+                    },
+                    "lease_required_for": ["MUTATE_REVERSIBLE", "MUTATE_IRREVERSIBLE"],
+                    "authority_required": "lease:hostinger-vps for MUTATE; 888_HOLD for IRREVERSIBLE",
+                },
+            )
         return _ok(
             "arif_kernel_route",
             {"target": target, "path": ["init", "sense", "mind"], "hops": 3},
@@ -173,8 +205,14 @@ def arif_kernel_route(
                 "authority_mode": "OBSERVE_ONLY",
                 "stage": stage or "000",
                 "available_modes": [
-                    "route", "status", "preflight", "telemetry", "discover",
-                    "attest", "health", "intent",
+                    "route",
+                    "status",
+                    "preflight",
+                    "telemetry",
+                    "discover",
+                    "attest",
+                    "health",
+                    "intent",
                 ],
                 "canonical_tools": list(CANONICAL_TOOLS.keys()),
                 "active_sessions": len(_SESSIONS),

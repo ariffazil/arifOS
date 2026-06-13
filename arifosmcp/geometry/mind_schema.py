@@ -32,7 +32,230 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from arifosmcp.geometry.mind_axioms import HOLE_TERRITORY
 
 
+# ── Verdict Plane Enums (6-plane orthogonal system) ───────────────────────
+
+
+class ExecutionVerdict(str, Enum):
+    """Did the tool run successfully? Pure execution, zero semantic judgment."""
+    SEAL = "SEAL"
+    FAILED = "FAILED"
+
+
+class ReasoningVerdict(str, Enum):
+    """Is the thought coherent? Separate from truth (a coherent thought can be wrong)."""
+    COHERENT = "COHERENT"
+    INCOHERENT = "INCOHERENT"
+    NEEDS_EVIDENCE = "NEEDS_EVIDENCE"
+
+
+class TruthVerdict(str, Enum):
+    """Is the claim supported by evidence? Not the same as coherence or confidence."""
+    SUPPORTED = "SUPPORTED"
+    UNSUPPORTED = "UNSUPPORTED"
+    CONTRADICTED = "CONTRADICTED"
+    UNKNOWN = "UNKNOWN"
+
+
+class EvidenceVerdict(str, Enum):
+    """What backs the claim? Confidence scores ≠ evidence."""
+    STRONG = "STRONG"
+    WEAK = "WEAK"
+    NONE = "NONE"
+    BOUND = "BOUND"
+
+
+class AuthorityVerdict(str, Enum):
+    """Who has permission to act? Provenance is admissibility, authority is permission."""
+    GRANTED = "GRANTED"
+    DENIED = "DENIED"
+    PENDING = "PENDING"
+    EXEMPT = "EXEMPT"
+
+
+class RiskVerdict(str, Enum):
+    """What can go wrong? Blast radius, reversibility, and sovereign proximity."""
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
+
+class FinalKernelVerdict(str, Enum):
+    """The strictest-safe result across all 6 planes.
+
+    SEAL    — all planes pass, safe to proceed
+    HOLD    — at least one plane requires human review
+    DEGRADED— the system ran but the reasoning/truth/evidence is suspect
+    VOID    — the action is constitutionally forbidden
+    SABAR   — wait for more evidence before deciding
+
+    Rule: if ANY inner verdict is HOLD, DEGRADED, VOID, UNSUPPORTED,
+    INCOHERENT, DENIED, CRITICAL, or FAILED → final must NOT be SEAL.
+    """
+    SEAL = "SEAL"
+    HOLD = "HOLD"
+    DEGRADED = "DEGRADED"
+    VOID = "VOID"
+    SABAR = "SABAR"
+
+
+class VerdictPlanes(BaseModel):
+    """The 6 independent verdict planes + final kernel verdict.
+
+    No plane may substitute for another. The final kernel verdict
+    is the strictest-safe composition — if any inner plane is
+    degraded, the final cannot be SEAL.
+
+    Authority ladder (non-negotiable):
+      Level 1: provenance  → admissibility (where did this come from?)
+      Level 2: evidence    → credibility   (is it supported?)
+      Level 3: reasoning   → coherence     (is it coherent?)
+      Level 4: authority   → permission    (who has the lease?)
+      Level 5: risk        → blast radius  (what can go wrong?)
+      Level 6: action      → final verdict (can it proceed?)
+
+    Level 1 is admissibility, NEVER authority. Provenance cannot
+    jump to action — the authority ladder must be climbed in order.
+    """
+    model_config = ConfigDict(extra="forbid", frozen=False)
+
+    execution: ExecutionVerdict = Field(
+        default=ExecutionVerdict.SEAL,
+        description="Did the tool run successfully?"
+    )
+    reasoning: ReasoningVerdict = Field(
+        default=ReasoningVerdict.COHERENT,
+        description="Is the thought internally coherent?"
+    )
+    truth: TruthVerdict = Field(
+        default=TruthVerdict.UNKNOWN,
+        description="Is the claim supported by evidence?"
+    )
+    evidence: EvidenceVerdict = Field(
+        default=EvidenceVerdict.NONE,
+        description="What backs this claim?"
+    )
+    authority: AuthorityVerdict = Field(
+        default=AuthorityVerdict.PENDING,
+        description="Who has permission to act on this?"
+    )
+    risk: RiskVerdict = Field(
+        default=RiskVerdict.MEDIUM,
+        description="What is the blast radius?"
+    )
+    final: FinalKernelVerdict = Field(
+        default=FinalKernelVerdict.HOLD,
+        description="Strictest-safe verdict across all 6 planes"
+    )
+    provenance: str = Field(
+        default="code_derived_governance_wrapper",
+        description="Where the verdict planes were computed (not the LLM output)"
+    )
+
+
 # ── Enumerations ────────────────────────────────────────────────────────────
+
+
+class TensionType(str, Enum):
+    """Cognitive tensions detected between orthogonal axes.
+
+    Each tension type represents a dangerous relationship between
+    two or more axes that affects routing, memory, or verdict.
+    """
+
+    ACTION_EVIDENCE_GAP = "ACTION_EVIDENCE_GAP"
+    CONFIDENCE_EVIDENCE_GAP = "CONFIDENCE_EVIDENCE_GAP"
+    AUTHORITY_PROVENANCE_CONFUSION = "AUTHORITY_PROVENANCE_CONFUSION"
+    RISK_REVERSIBILITY_CONFLICT = "RISK_REVERSIBILITY_CONFLICT"
+    NOVELTY_COHERENCE_GAP = "NOVELTY_COHERENCE_GAP"
+    MEMORY_TRUTH_CONFLICT = "MEMORY_TRUTH_CONFLICT"
+    SOVEREIGNTY_AMBIGUITY = "SOVEREIGNTY_AMBIGUITY"
+
+
+class TensionEntry(BaseModel):
+    """One detected tension between axes.
+
+    The severity [0, 1] determines whether routing changes:
+      >= 0.80 → HOLD, must resolve before next action
+      >= 0.50 → WARN, route to critic/evidence
+      <  0.50 → NOTE, log but do not block
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    tension_type: TensionType
+    severity: float = Field(..., ge=0.0, le=1.0)
+    axes_involved: tuple[str, ...] = Field(..., min_length=2, max_length=8)
+    explanation: str = Field(..., min_length=1, max_length=1000)
+    required_next_tool: str = Field(
+        ..., description="One of: arif_heart_critique, arif_mind_reason, arif_evidence_fetch, arif_vault_seal, arif_judge_deliberate, HOLD"
+    )
+    blocked_actions: tuple[str, ...] = Field(
+        default_factory=tuple,
+        description="Action classes blocked while this tension exists",
+    )
+
+
+class ActionAffordance(BaseModel):
+    """What a thought is allowed to do next.
+
+    Derived from geometry verdict + tension scan + sovereign proximity.
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    allowed_action_classes: tuple[str, ...] = Field(
+        default_factory=lambda: ("OBSERVE", "ANALYZE"),
+        description="Action classes this thought may proceed with",
+    )
+    blocked_action_classes: tuple[str, ...] = Field(
+        default_factory=tuple,
+        description="Action classes explicitly blocked by geometry/tension",
+    )
+    next_cognitive_tool: str = Field(
+        default="arif_heart_critique",
+        description="Recommended next tool in the cognitive pipeline",
+    )
+    memory_tier_recommendation: str = Field(
+        default="hypothesis",
+        description="One of: fact, hypothesis, scratch, ephemeral, sovereign, vault",
+    )
+    requires_human_ack: bool = False
+    requires_evidence: bool = False
+
+
+class TrajectoryDelta(BaseModel):
+    """Change in cognitive state from one thought to the next."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    parent_thought_id: str | None = None
+    source_memory_refs: tuple[str, ...] = Field(default_factory=tuple)
+    contradicted_memory_refs: tuple[str, ...] = Field(default_factory=tuple)
+    supporting_memory_refs: tuple[str, ...] = Field(default_factory=tuple)
+    delta_truth: float = 0.0
+    delta_evidence: float = 0.0
+    delta_risk: float = 0.0
+    delta_authority: float = 0.0
+    trajectory_verdict: str = Field(
+        default="stationary",
+        description="One of: improving, degrading, stationary, first_thought",
+    )
+
+
+class CalibrationUpdate(BaseModel):
+    """Outcome feedback to update geometry calibration."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    thought_id: str
+    predicted_truth: float
+    actual_truth: float | None = None
+    predicted_risk: float
+    actual_risk: float | None = None
+    predicted_actionability: float
+    actual_success: bool | None = None
+    calibration_error: float = 0.0
 
 
 class GeometryVerdict(str, Enum):
@@ -345,6 +568,14 @@ class GeometryEnvelope(BaseModel):
 
 
 __all__ = [
+    "ExecutionVerdict",
+    "ReasoningVerdict",
+    "TruthVerdict",
+    "EvidenceVerdict",
+    "AuthorityVerdict",
+    "RiskVerdict",
+    "FinalKernelVerdict",
+    "VerdictPlanes",
     "ManifoldType",
     "AxisName",
     "GeometryVerdict",
