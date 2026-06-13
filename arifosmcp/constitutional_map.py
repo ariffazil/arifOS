@@ -645,18 +645,19 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_memory_recall": {
         "name": "arif_memory_recall",
-        "description": "555m_MEMORY: Associative memory — Postgres+Qdrant vector recall across sessions. Call this for: retrieving past decisions, querying stored assets (geoscience prospects, financial models), or restoring session context. Do NOT use this for live web data (use arif_evidence_fetch) or permanent ledger sealing (use arif_vault_seal). Parameters: mode (recall|asset_query|asset_store|context_restore), query, memory_id, session_id, actor_id.",  # noqa: E501
+        "description": "555_MEMORY v4: Unified cognitive memory — 8 canonical modes (recall|store|seal|forget|update|audit|stats|learn). Backward-compat aliases: init_recall→recall, search→recall, context→recall, quarantine→store, import→store, graph_*→store/recall, contradict_*→audit. 666_MEMORY v2 cognitive layer: graph-backed plan persistence (FalkorDB+Qdrant), contradiction detection, cross-session recall, learning loop. Parameters: mode, query, memory_id, session_id, actor_id, content, tags, plan_object, outcome, lessons, resolution.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.MEMORY,
         "lane": TrinityLane.AGI,
-        "floors": [Law.L01_AMANAH, Law.L08_GENIUS],
+        "floors": [Law.L01_AMANAH, Law.L08_GENIUS, Law.L02_TRUTH],
         "risk_tier": "low",
         "irreversible": False,
-        "modes": ["recall", "asset_query", "asset_store", "context_restore"],
+        "modes": ["recall", "store", "seal", "forget", "update", "audit", "stats", "learn"],
         "eureka_insight": (
             "F1: recall must be auditable — no silent memory mutation. "
-            "F8: G ≥ 0.80 — recall contributes to systemic continuity. "
-            "F8/L11: memory is power; recall/store requires purpose limits, stale-assumption checks, sensitive-data boundaries, and auditable consent."
+            "F2: contradiction detection gates SEAL verdicts. "
+            "F8: G ≥ 0.80 — cognitive memory enables cumulative intelligence. "
+            "666_MEMORY v2: plans persist as graph objects; contradictions surface before SEAL."
         ),
         "cognitive_axis": "trace",
         "expose": True,

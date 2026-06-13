@@ -1,28 +1,25 @@
 """
-arifosmcp/tools/memory.py — 555_MEMORY v3
+arifosmcp/tools/memory.py — 555_MEMORY v4
 ═══════════════════════════════════════════════════════════════════════════════
 
-Constitutional memory gate — ONE public tool, many modes, strong receipts.
+Constitutional memory gate — ONE public tool, 8 canonical modes, strong receipts.
 
-Modes:
-  init_recall   — Load sacred constitutional context at session boot.
-  recall        — Retrieve memory by ID or semantic query.
-  store         — Persist with virtue gates + hard rules + envelope.
-  quarantine    — Store unproven memory with warning flag.
-  seal          — Store constitutional verdict to L4 + VAULT999 witness.
-  forget        — Soft-delete (M0–M2) or tombstone (M3–M4).
-  update        — Create new version, mark old superseded (never mutate in place).
-  audit         — Check stale, contradiction, missing_provenance, over_authorized.
-  search        — Full-text + tag + semantic search.
-  context       — Load all memories for a given session.
-  stats         — Return memory store statistics.
-  import        — Batch ingestion (Phoenix-72 legacy).
-  prune         — DEPRECATED — use forget.
+Modes (consolidated from 12 → 8):
+  recall  — Unified retrieval: by-ID, semantic search, cognitive recall,
+            cross-session, graph query, full-text, session context, init.
+  store   — Unified persistence: standard store, quarantine, import,
+            graph-backed plan storage (666_MEMORY v2).
+  seal    — Constitutional verdict → L4 + VAULT999 witness (F1 gated).
+  forget  — Soft-delete (M0–M2) or tombstone (M3–M4).
+  update  — Create new version, mark old superseded (never mutate in place).
+  audit   — Check stale, contradiction, missing_provenance, over_authorized.
+            Also: contradict_scan + contradict_status (666_MEMORY v2).
+  stats   — Memory store statistics.
+  learn   — Cognitive learning loop: attach outcome+lessons to plan,
+            resolve contradictions (666_MEMORY v2).
 
-MOBA PATTERN (v3): Block-gated memory retrieval.
-  Partition memory into blocks (time/topic/source). Use cheap top-k gating
-  to select which blocks to search before deep retrieval. Full-scan fallback
-  for high-risk contexts. Pattern credit: MoonshotAI MoBA (2024).
+Backward compat: init_recall→recall, search→recall, context→recall,
+  quarantine→store, import→store, graph_*→store or recall, contradict_*→audit.
 
 Hard law:
   - can_authorize_action defaults to FALSE.
@@ -645,6 +642,16 @@ def arif_memory_recall(
     target: str | None = None,
     # ── Seal ──
     ack_irreversible: bool = False,
+    # ── 666_MEMORY v2: Cognitive / Graph params ──
+    plan_object: dict | None = None,         # plan dict for graph_store
+    task_type: str | None = None,            # task_type filter for graph_query
+    include_plans: bool = True,              # include plans in cognitive_recall
+    include_contradictions: bool = True,     # include contradictions in cognitive_recall
+    max_age_days: int = 90,                  # max age for cognitive_recall
+    max_sessions: int = 5,                   # max sessions for cognitive_cross_session
+    outcome: str | None = None,              # SEAL|HOLD|VOID for cognitive_learn
+    lessons: str | None = None,              # lessons text for cognitive_learn
+    resolution: str | None = None,           # OVERRIDE|MERGE|VOID_A|VOID_B|ACKNOWLEDGE
 ) -> dict[str, Any]:
     """
     555_MEMORY v2: Governed persistent memory — ONE GATE, MANY MODES.
@@ -655,6 +662,29 @@ def arif_memory_recall(
 
     Hard default: can_authorize_action = FALSE.
     """
+    # ── Backward-Compat Mode Aliasing (12 → 8 canonical modes) ──────────────
+    _mode_aliases: dict[str, str] = {
+        "init_recall": "recall",
+        "search": "recall",
+        "context": "recall",
+        "quarantine": "store",
+        "import": "store",
+        "prune": "forget",
+        # 666_MEMORY v2 cognitive modes → consolidated
+        "graph_store": "store",
+        "graph_query": "recall",
+        "graph_get": "recall",
+        "contradict_scan": "audit",
+        "contradict_resolve": "learn",
+        "contradict_status": "audit",
+        "cognitive_recall": "recall",
+        "cognitive_cross_session": "recall",
+        "cognitive_learn": "learn",
+    }
+    _original_mode = mode
+    if mode in _mode_aliases:
+        mode = _mode_aliases[mode]
+
     # ── Floor L11 AUTH Gate ───────────────────────────────────────────────────
     if mode in ("store", "import", "quarantine", "seal", "update"):
         if not actor_id or actor_id == "anonymous":
@@ -719,8 +749,83 @@ def arif_memory_recall(
             },
         )
 
-    # ── recall (enhanced v2.1 — quarantine + calibrated confidence) ──────────
+    # ── recall (v4 — unified: by-ID, semantic, cognitive, cross-session, graph) ──
     if mode == "recall":
+        # ── init_recall (legacy alias — sacred constitutional context) ──
+        if _original_mode in ("init_recall",):
+            from arifosmcp.constitutional_map import CANONICAL_TOOLS
+            sacred_resources = [
+                {"uri": "arifos://doctrine", "label": "Immutable Law (Ψ)", "tier": "sacred"},
+                {"uri": "arifos://vitals", "label": "Living Pulse (Ω)", "tier": "sacred"},
+                {"uri": "arifos://schema", "label": "Complete Blueprint (Δ)", "tier": "sacred"},
+                {"uri": "arifos://session/" + (session_id or "new"), "label": "Ephemeral Instance", "tier": "ephemeral"},
+                {"uri": "arifos://forge", "label": "Execution Bridge", "tier": "operational"},
+            ]
+            floor_summary = [
+                {"floor": "L01", "name": "AMANAH", "purpose": "Trustworthiness — every action accountable"},
+                {"floor": "L02", "name": "TRUTH", "purpose": "Truthfulness — no fabrication"},
+                {"floor": "L03", "name": "WITNESS", "purpose": "Evidence must be verifiable"},
+                {"floor": "L04", "name": "CLARITY", "purpose": "Transparent intent"},
+                {"floor": "L05", "name": "PEACE", "purpose": "Human dignity"},
+                {"floor": "L06", "name": "EMPATHY", "purpose": "Consider consequence"},
+                {"floor": "L07", "name": "HUMILITY", "purpose": "Acknowledge limits"},
+                {"floor": "L08", "name": "GENIUS", "purpose": "Elegant correctness (G ≥ 0.80)"},
+                {"floor": "L09", "name": "ANTIHANTU", "purpose": "Reject manipulation"},
+                {"floor": "L10", "name": "ONTOLOGY", "purpose": "Structural coherence"},
+                {"floor": "L11", "name": "AUTH", "purpose": "Verify identity before sensitive ops"},
+                {"floor": "L12", "name": "INJECTION", "purpose": "Sanitize inputs"},
+                {"floor": "L13", "name": "SOVEREIGN", "purpose": "Human veto is absolute"},
+            ]
+            return _ok("arif_memory_recall", {
+                "init_recall": True, "session_id": session_id,
+                "sacred_resources": sacred_resources, "floor_summary": floor_summary,
+                "tool_surface": list(CANONICAL_TOOLS.keys()),
+                "tool_count": len(CANONICAL_TOOLS),
+                "memory_contract_version": "v4",
+            })
+
+        # ── context (legacy alias — load all memories for session) ──
+        if _original_mode in ("context",) and session_id:
+            entries = context_for_session(session_id, limit=limit)
+            return _ok("arif_memory_recall", {
+                "session_id": session_id, "entries": entries, "count": len(entries),
+            })
+
+        # ── 666_MEMORY v2: cognitive recall (unified Qdrant + FalkorDB + contradictions) ──
+        if _original_mode in ("cognitive_recall",):
+            from arifosmcp.memory.cognitive_memory import cognitive_recall as _cog_recall
+            result = _cog_recall(
+                query=query, session_id=session_id, limit=limit,
+                include_plans=include_plans, include_contradictions=include_contradictions,
+                max_age_days=max_age_days,
+            )
+            return _ok("arif_memory_recall", result)
+
+        # ── 666_MEMORY v2: cross-session recall ──
+        if _original_mode in ("cognitive_cross_session",):
+            from arifosmcp.memory.cognitive_memory import cognitive_cross_session as _cog_xsession
+            result = _cog_xsession(
+                query=query, session_id=session_id, limit=limit,
+                max_sessions=max_sessions,
+            )
+            return _ok("arif_memory_recall", result)
+
+        # ── 666_MEMORY v2: graph query ──
+        if _original_mode in ("graph_query",):
+            from arifosmcp.memory.cognitive_memory import graph_query as _gq
+            result = _gq(
+                query=query, limit=limit, task_type=task_type,
+                session_id=session_id,
+            )
+            return _ok("arif_memory_recall", result)
+
+        # ── 666_MEMORY v2: graph get ──
+        if _original_mode in ("graph_get",):
+            from arifosmcp.memory.cognitive_memory import graph_get as _gg
+            result = _gg(plan_id=query or memory_id, memory_id=memory_id)
+            return _ok("arif_memory_recall", result)
+
+        # ── Standard recall (by memory_id or semantic) ──
         if memory_id:
             record = recall(memory_id)
             if record is None:
@@ -843,8 +948,20 @@ def arif_memory_recall(
 
         return _hold("arif_memory_recall", "recall mode requires memory_id or query")
 
-    # ── store (v2 with envelope) ─────────────────────────────────────────────
+    # ── store (v4 — unified: standard, quarantine, import, graph_store) ─────
     if mode == "store":
+        # ── 666_MEMORY v2: graph store (plan → FalkorDB + Qdrant) ──
+        if _original_mode in ("graph_store",) or plan_object:
+            from arifosmcp.memory.cognitive_memory import graph_store as _gs
+            result = _gs(
+                plan_object=plan_object, content=str(content) if content else None,
+                memory_id=memory_id, session_id=session_id, actor_id=actor_id,
+                tags=tags,
+            )
+            if result.get("ok"):
+                return _ok("arif_memory_recall", result)
+            return _hold("arif_memory_recall", result.get("error", "graph_store failed"))
+
         if content is None and query is None:
             return _hold("arif_memory_recall", "content or query required for store mode")
 
@@ -1139,8 +1256,22 @@ def arif_memory_recall(
             context,
         )
 
-    # ── audit (enhanced v2) ──────────────────────────────────────────────────
+    # ── audit (v4 — audit + contradiction scan/status) ─────────────────────
     if mode == "audit":
+        # ── 666_MEMORY v2: contradiction scan ──
+        if _original_mode in ("contradict_scan",) or (checks and "contradiction" in checks):
+            from arifosmcp.memory.cognitive_memory import contradict_scan as _cs
+            result = _cs(
+                claim_text=query, claim_id=memory_id, content=str(content) if content else None,
+            )
+            return _ok("arif_memory_recall", result)
+
+        # ── 666_MEMORY v2: contradiction status ──
+        if _original_mode in ("contradict_status",):
+            from arifosmcp.memory.cognitive_memory import contradict_status as _cstat
+            result = _cstat()
+            return _ok("arif_memory_recall", result)
+
         result = audit_governance(
             target=target,
             actor_id=actor_id,
@@ -1235,6 +1366,30 @@ def arif_memory_recall(
                 },
                 delta_S=0.0,
             )
+
+    # ── learn (666_MEMORY v2 — cognitive learning loop + contradiction resolution) ──
+    if mode == "learn":
+        # ── Contradiction resolution (aliased from contradict_resolve) ──
+        if _original_mode in ("contradict_resolve",) or resolution:
+            from arifosmcp.memory.cognitive_memory import contradict_resolve as _cr
+            result = _cr(
+                contradiction_id=memory_id, resolution=resolution or "ACKNOWLEDGE",
+                reason=reason, actor_id=actor_id,
+            )
+            if result.get("ok"):
+                return _ok("arif_memory_recall", result)
+            return _hold("arif_memory_recall", result.get("error", "contradict_resolve failed"))
+
+        # ── Cognitive learn (close the learning loop) ──
+        from arifosmcp.memory.cognitive_memory import cognitive_learn as _cl
+        result = _cl(
+            plan_id=memory_id, outcome=outcome or "SEAL",
+            lessons=lessons, content=str(content) if content else None,
+            session_id=session_id, actor_id=actor_id,
+        )
+        if result.get("ok"):
+            return _ok("arif_memory_recall", result)
+        return _hold("arif_memory_recall", result.get("error", "cognitive_learn failed"))
 
     # ── stats ────────────────────────────────────────────────────────────────
     if mode == "stats":
