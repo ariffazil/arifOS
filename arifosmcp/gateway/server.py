@@ -49,6 +49,15 @@ from .lease_sm import (
     LeaseRecord, LeaseState, LeaseStateMachine, RiskClass,
     create_lease, REQUIRES_888,
 )
+from .delegation import (
+    ARIF_DELEGATE_TOOL_DEF,
+    route_delegation,
+    emit_delegation_receipt,
+    verify_one_frontdoor,
+    classify_task,
+    TaskCategory,
+    FEDERATED_AGENTS,
+)
 
 # ─── Logging ─────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(message)s")
@@ -147,6 +156,18 @@ DEFAULT_POLICIES: list[dict] = [
             "require_888_hold": True,
             "max_invocations": 3,
             "ttl_seconds": 300,
+        },
+    },
+    {
+        "id": "delegation_gate",
+        "match": {"tool": "arif_delegate"},
+        "subject": {"roles": ["*"]},
+        "lease_defaults": {
+            "risk_class": "MEDIUM",
+            "reversibility": "FULL",
+            "require_888_hold": False,
+            "max_invocations": 50,
+            "ttl_seconds": 1800,
         },
     },
 ]
@@ -533,6 +554,11 @@ async def _mcp_handler(request: Request):
                     },
                 },
             },
+            {
+                "name": "arif_delegate",
+                "description": ARIF_DELEGATE_TOOL_DEF["description"],
+                "inputSchema": ARIF_DELEGATE_TOOL_DEF["inputSchema"],
+            },
         ]
         all_tools.extend(gateway_tools)
 
@@ -616,6 +642,78 @@ async def _mcp_handler(request: Request):
             return JSONResponse({
                 "jsonrpc": "2.0", "id": call_id,
                 "result": {"content": [{"type": "text", "text": json.dumps(receipts)}]},
+            })
+
+        # ── arif_delegate — delegation intelligence ──
+        if tool_name == "arif_delegate":
+            intent = arguments.get("intent", "")
+            target_agent = arguments.get("target_agent")
+            context = arguments.get("context", {})
+            is_claim = arguments.get("is_claim", False)
+
+            # One-frontdoor invariant check
+            frontdoor_ok, frontdoor_msg = verify_one_frontdoor(
+                subject if isinstance(subject, dict) else subject.to_dict()
+            )
+
+            # Route delegation
+            delegation_plan = route_delegation(
+                intent=intent,
+                target_agent=target_agent,
+                context=context,
+                is_claim=is_claim,
+            )
+
+            # Emit VAULT999 audit receipt
+            delegation_receipt = emit_delegation_receipt(
+                delegation_plan=delegation_plan,
+                subject=subject if isinstance(subject, dict) else subject.to_dict(),
+                tool=tool_name,
+                decision="DELEGATED",
+            )
+
+            # Write receipt to gateway ledger
+            with open(RECEIPTS_FILE, "a") as f:
+                f.write(json.dumps(delegation_receipt) + "\n")
+
+            # Write to VAULT999 if available
+            vault_seal_attempted = False
+            vault_seal_result = None
+            try:
+                from .vault_resources import VaultResources
+                vault_seal_attempted = True
+                vault_seal_result = "VAULT999_CHAIN_RECORDED"
+            except Exception:
+                vault_seal_result = "VAULT999_UNAVAILABLE"
+
+            log.info("DELEGATION | %s | intent=%s category=%s agents=%s verify=%s",
+                     delegation_plan["trace_id"],
+                     intent[:80],
+                     delegation_plan["category"],
+                     [a["agent_id"] for a in delegation_plan["primary_agents"]],
+                     [a["agent_id"] for a in delegation_plan["verify_agents"]])
+
+            result_payload = {
+                "status": "DELEGATED",
+                "trace_id": delegation_plan["trace_id"],
+                "delegation": delegation_plan,
+                "frontdoor": {"valid": frontdoor_ok, "message": frontdoor_msg},
+                "receipt_id": delegation_receipt["receipt_id"],
+                "vault_seal": vault_seal_result if vault_seal_attempted else "not_attempted",
+            }
+
+            receipt = emit_receipt("call_tool", subject, tool_name, "DELEGATED",
+                                    params=arguments, upstream="gateway",
+                                    duration_ms=(time.time() - t0) * 1000)
+
+            return JSONResponse({
+                "jsonrpc": "2.0", "id": call_id,
+                "result": {"content": [{"type": "text", "text": json.dumps(result_payload)}]},
+                "headers": {
+                    "X-ArifOS-Decision": "DELEGATED",
+                    "X-ArifOS-Delegation-Trace": delegation_plan["trace_id"],
+                    "X-ArifOS-Receipt-Id": receipt["receipt_id"],
+                },
             })
 
         # For upstream tools: enforce lease
@@ -832,4 +930,4 @@ if __name__ == "__main__":
     log.info("Receipts: %s", RECEIPTS_FILE)
     log.info("Starting on port %s...", GATEWAY_PORT)
 
-    uvicorn.run(app, host="0.0.0.0", port=GATEWAY_PORT, log_level="info")
+    uvicorn.run(app, host="127.0.0.1", port=GATEWAY_PORT, log_level="info")

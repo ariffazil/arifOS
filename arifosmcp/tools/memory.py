@@ -1,5 +1,5 @@
 """
-arifosmcp/tools/memory.py — 555_MEMORY v2
+arifosmcp/tools/memory.py — 555_MEMORY v3
 ═══════════════════════════════════════════════════════════════════════════════
 
 Constitutional memory gate — ONE public tool, many modes, strong receipts.
@@ -19,12 +19,22 @@ Modes:
   import        — Batch ingestion (Phoenix-72 legacy).
   prune         — DEPRECATED — use forget.
 
+MOBA PATTERN (v3): Block-gated memory retrieval.
+  Partition memory into blocks (time/topic/source). Use cheap top-k gating
+  to select which blocks to search before deep retrieval. Full-scan fallback
+  for high-risk contexts. Pattern credit: MoonshotAI MoBA (2024).
+
 Hard law:
   - can_authorize_action defaults to FALSE.
   - Memory can guide. Memory can remind. Memory must not silently authorize.
   - No raw API key enters any memory layer.
   - No contradiction overwrite. Create conflict record.
   - No sealed memory deletion. Only tombstone/revoke.
+  - Evidence served to MUTATE/SEAL tools MUST pass provenance gate (M7 Bacon).
+
+PARADOX ANCHORS (v3): 11 linguistic invariants fire at decision points:
+  M1 (Plato) — coverage ≠ correctness | M7 (Bacon) — knowledge is power → restraint
+  M9 (Plato) — knowledge vs. belief gap | M10 (Socrates) — epistemic humility
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -57,6 +67,7 @@ from arifosmcp.runtime.memory_store import (
     store as legacy_store,
 )
 from arifosmcp.runtime.tools import _hold, _ok
+from arifosmcp.paradox import register_organ, build_organ_anchors
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SABAR COOLDOWN ANNOTATION
@@ -191,6 +202,356 @@ def _classify_recall_result(record: dict[str, Any]) -> dict[str, Any]:
         )
     )
     return record
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MOBA PATTERN — Block-Gated Memory Retrieval
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _memory_block_gate(
+    query: str,
+    available_blocks: list[dict] | None = None,
+    top_k: int = 3,
+    risk_level: str = "standard",
+) -> list[str]:
+    """
+    MoBA-style block-gated memory routing.
+
+    Partition memory into blocks by time/topic/source. Use cheap parameter-less
+    top-k gating to select which blocks to search before deep retrieval.
+
+    Pattern credit: MoonshotAI MoBA (2024) — divides context into blocks,
+    uses parameter-less top-k gating to select relevant KV blocks per query.
+
+    Returns list of block_ids to search. Risk_level='high' triggers full-scan.
+    """
+    # Full-scan fallback for high-risk contexts (MoBA's "seamless transition")
+    if risk_level in ("high", "critical", "irreversible"):
+        return []  # empty = search all blocks
+
+    if not available_blocks:
+        return []
+
+    query_words = set(query.lower().split())
+    scored_blocks: list[tuple[str, float]] = []
+
+    for block in available_blocks:
+        score = 0.1  # base relevance
+        block_tags = set(block.get("tags", []))
+        block_topic = block.get("topic", "")
+
+        # Keyword overlap with block tags
+        tag_overlap = len(query_words & {t.lower() for t in block_tags})
+        score += 0.15 * tag_overlap
+
+        # Topic word overlap
+        if block_topic:
+            topic_words = set(block_topic.lower().split())
+            topic_overlap = len(query_words & topic_words)
+            score += 0.25 * topic_overlap / max(len(query_words), 1)
+
+        # Recency boost
+        recency_hours = block.get("age_hours", 168)  # default 1 week
+        if recency_hours < 24:
+            score += 0.3  # last day
+        elif recency_hours < 168:
+            score += 0.15  # last week
+
+        # Trust boost: higher-trust blocks get priority
+        trust = block.get("avg_trust", 0.5)
+        score += 0.2 * trust
+
+        scored_blocks.append((block.get("block_id", ""), min(score, 1.0)))
+
+    # Select top-k blocks
+    scored_blocks.sort(key=lambda x: x[1], reverse=True)
+    return [b[0] for b in scored_blocks[:top_k] if b[1] > 0.2]
+
+
+def _compute_memory_bloat(
+    retrieved_count: int,
+    used_in_trace: int,
+) -> float:
+    """
+    Memory bloat ratio (M_b).
+
+    M_b = N_retrieved / (N_used + ε)
+
+    High M_b means retrieval is noisy — probably MAKRUH.
+    Thresholds: M_b < 2.0 = tight, 2.0–5.0 = acceptable, > 5.0 = bloated.
+    """
+    epsilon = 0.01
+    return round(retrieved_count / (used_in_trace + epsilon), 2)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PARADOX ANCHORS — 3×3 Orthogonal Matrix for Memory
+# ═══════════════════════════════════════════════════════════════════════════════
+# Rows: TRUTH / CLARITY / HUMILITY   Columns: CARE / PEACE / JUSTICE
+# Each anchor separates QUOTE (verified human philosophy) from BINDING
+# (firing policy). Policy evolves faster than canon — keep them distinct.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+MEMORY_PARADOX_ANCHORS: list[dict] = [
+    # ── TRUTH ROW ──────────────────────────────────────────────────────────────
+    {
+        "id": "M_TxC", "matrix_cell": "truth_care", "matrix_row": "TRUTH", "matrix_col": "CARE",
+        "motto_binding": "DIKAJI, BUKAN DISUAPI",
+        "quote": {
+            "text": "All enquiry and all learning is but recollection.",
+            "author": "Plato",
+            "work": "Meno 81c–d",
+            "year": "c. 385 BCE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "If all learning is recollection, nothing new can ever be discovered — only what was already known and forgotten. Completeness is not correctness.",
+        "axis": "recollection vs. discovery",
+        "binding": {
+            "event": "coverage_high",
+            "trigger": "coverage C_e > 0.8 — completeness ≠ correctness",
+            "effect": "warn_judge",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "memory",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "M_TxP", "matrix_cell": "truth_peace", "matrix_row": "TRUTH", "matrix_col": "PEACE",
+        "motto_binding": "DIJELASKAN, BUKAN DIKABURKAN",
+        "quote": {
+            "text": "Knowledge differs from correct opinion in being tied down.",
+            "author": "Plato",
+            "work": "Meno 97e–98a",
+            "year": "c. 385 BCE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "What is tied down cannot move — knowledge that cannot adapt to new evidence becomes dogma.",
+        "axis": "stability vs. rigidity",
+        "binding": {
+            "event": "contradiction_detected",
+            "trigger": "conflict detector finds contradiction between stored claim and new observation",
+            "effect": "create_conflict_record",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "memory",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "M_TxJ", "matrix_cell": "truth_justice", "matrix_row": "TRUTH", "matrix_col": "JUSTICE",
+        "motto_binding": "DISEDARKAN, BUKAN DIYAKINKAN",
+        "quote": {
+            "text": "Knowledge is power.",
+            "author": "Francis Bacon",
+            "work": "Meditationes Sacrae",
+            "year": "1597",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "Power without restraint is destruction — knowledge ungoverned is danger, not wisdom.",
+        "axis": "power vs. restraint",
+        "binding": {
+            "event": "sensitive_evidence_transfer",
+            "trigger": "evidence served to MUTATE or SEAL class tool — provenance gate",
+            "effect": "block_unless_verified",
+        },
+        "severity_on_fire": "hard_gate",
+        "risk_bias": "conservative",
+        "authority_scope": "cross_organ",
+        "norm": "WAJIB",
+    },
+    # ── CLARITY ROW ────────────────────────────────────────────────────────────
+    {
+        "id": "M_CxC", "matrix_cell": "clarity_care", "matrix_row": "CLARITY", "matrix_col": "CARE",
+        "motto_binding": "DIJELAJAH, BUKAN DISEKATI",
+        "quote": {
+            "text": "Great is this power of memory, exceedingly great — a vast and boundless inner chamber. Who has plumbed its depths?",
+            "author": "Augustine of Hippo",
+            "work": "Confessions X.8.15",
+            "year": "c. 397–400 CE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "A vast chamber is also a dark one — depth unplumbed is depth ungoverned.",
+        "axis": "vastness vs. opacity",
+        "binding": {
+            "event": "memory_health_dashboard",
+            "trigger": "memory health dashboard display — humility anchor",
+            "effect": "display_header",
+        },
+        "severity_on_fire": "info",
+        "risk_bias": "neutral",
+        "authority_scope": "memory",
+        "norm": "SUNAT",
+    },
+    {
+        "id": "M_CxP", "matrix_cell": "clarity_peace", "matrix_row": "CLARITY", "matrix_col": "PEACE",
+        "motto_binding": "DIHADAPI, BUKAN DITANGGUHI",
+        "quote": {
+            "text": "By the word 'unhistorical' I mean the power, the art of forgetting, and of drawing a limited horizon round one's self.",
+            "author": "Friedrich Nietzsche",
+            "work": "On the Use and Abuse of History for Life, §1",
+            "year": "1874",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "A horizon drawn too tightly blinds — to forget too much is to be ignorant of the forces that shape the present.",
+        "axis": "horizon vs. blindness",
+        "binding": {
+            "event": "retrieval_budget_enforced",
+            "trigger": "retrieval budget limits enforced — horizon justified but must not exclude critical evidence",
+            "effect": "budget_rationale",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "neutral",
+        "authority_scope": "memory",
+        "norm": "HARUS",
+    },
+    {
+        "id": "M_CxJ", "matrix_cell": "clarity_justice", "matrix_row": "CLARITY", "matrix_col": "JUSTICE",
+        "motto_binding": "DIUSAHAKAN, BUKAN DIHARAPI",
+        "quote": {
+            "text": "If true belief and knowledge were the same thing, the best of jurymen could never have a correct belief without knowledge. They must be two different things.",
+            "author": "Plato",
+            "work": "Theaetetus 201c",
+            "year": "c. 369 BCE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "Most decisions are made on true belief, not knowledge — demanding knowledge for every action paralyzes the system.",
+        "axis": "knowledge vs. belief",
+        "binding": {
+            "event": "gap_report_emitted",
+            "trigger": "GAP_REPORT emitted — system has belief without knowledge",
+            "effect": "flag_gap_and_allow_action",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "action_bias",
+        "authority_scope": "cross_organ",
+        "norm": "WAJIB",
+    },
+    # ── HUMILITY ROW ───────────────────────────────────────────────────────────
+    {
+        "id": "M_HxC", "matrix_cell": "humility_care", "matrix_row": "HUMILITY", "matrix_col": "CARE",
+        "motto_binding": "DIJAGA, BUKAN DIABAIKAN",
+        "quote": {
+            "text": "To think is to forget differences, to generalize, to abstract.",
+            "author": "Jorge Luis Borges",
+            "work": "Funes the Memorious, Ficciones",
+            "year": "1944",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "To think is also to remember connections, to trace the specific thread that generalization would sever.",
+        "axis": "forgetting vs. remembering",
+        "binding": {
+            "event": "consolidation_job",
+            "trigger": "consolidation jobs about to compress stored facts — pruning justified but over-pruning warned",
+            "effect": "consolidation_rationale",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "neutral",
+        "authority_scope": "memory",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "M_HxP", "matrix_cell": "humility_peace", "matrix_row": "HUMILITY", "matrix_col": "PEACE",
+        "motto_binding": "DIDAMAIKAN, BUKAN DIPANASKAN",
+        "quote": {
+            "text": "Memory, then, is neither perception nor conception, but a state or affection of one of these, when time has elapsed.",
+            "author": "Aristotle",
+            "work": "De Memoria 449b24–25",
+            "year": "4th century BCE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "If memory requires elapsed time, the most recent evidence is not yet 'memory' at all — it is still perception, with all the freshness and error of the immediate.",
+        "axis": "temporal distance vs. epistemic quality",
+        "binding": {
+            "event": "freshness_scoring",
+            "trigger": "freshness scoring — recent items tagged PERCEPTION_GRADE vs MEMORY_GRADE",
+            "effect": "apply_differentiated_trust",
+        },
+        "severity_on_fire": "info",
+        "risk_bias": "neutral",
+        "authority_scope": "memory",
+        "norm": "HARUS",
+    },
+    {
+        "id": "M_HxJ", "matrix_cell": "humility_justice", "matrix_row": "HUMILITY", "matrix_col": "JUSTICE",
+        "motto_binding": "DITEMPA, BUKAN DIBERI",
+        "quote": {
+            "text": "I am wiser than this man: for neither of us really knows anything fine and good, but he thinks he knows something when he does not, whereas I, as I do not know, do not think I know.",
+            "author": "Socrates (via Plato)",
+            "work": "Apology 21d",
+            "year": "c. 399 BCE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "The man who refuses to claim any knowledge is also the man who refuses to act — and inaction in the face of urgency is a decision too.",
+        "axis": "epistemic humility vs. decisional paralysis",
+        "binding": {
+            "event": "coverage_gap",
+            "trigger": "COVERAGE_REPORT shows large UNKNOWN regions — ignorance acknowledged, action not authorized",
+            "effect": "annotate_coverage_footer",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "action_bias",
+        "authority_scope": "cross_organ",
+        "norm": "WAJIB",
+    },
+]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MATRIX LOOKUP — O(1) access by cell or ID
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_MEMORY_BY_CELL: dict[str, dict] = {a["matrix_cell"]: a for a in MEMORY_PARADOX_ANCHORS}
+_MEMORY_BY_ID: dict[str, dict] = {a["id"]: a for a in MEMORY_PARADOX_ANCHORS}
+
+# ── Register with global paradox registry (Phase 1 wiring) ──────────────────
+_memory_anchors = build_organ_anchors("memory", MEMORY_PARADOX_ANCHORS)
+_memory_registry = register_organ("memory", _memory_anchors)
+
+
+def _memory_paradox_for_cell(matrix_cell: str) -> dict | None:
+    """Get the paradox anchor for a given matrix cell."""
+    return _MEMORY_BY_CELL.get(matrix_cell)
+
+
+def _memory_provenance_gate(
+    evidence: dict, target_tool_class: str = "OBSERVE"
+) -> dict:
+    """
+    M_TxJ Bacon: Knowledge is power — provenance gate before serving evidence
+    to high-authority tools. Bound to truth_justice matrix cell.
+
+    Triggers additional provenance check before serving evidence to
+    ADJUDICATE or SEAL class tools. Returns {passed: bool, anchor: str|None}.
+    """
+    if target_tool_class in ("ADJUDICATE", "SEAL", "MUTATE"):
+        provenance = evidence.get("provenance", "remembered")
+        verified = evidence.get("can_treat_as_proof", False)
+
+        if not verified and provenance not in ("verified", "sealed"):
+            anchor = _MEMORY_BY_ID.get("M_TxJ", {})
+            aq = anchor.get("quote", {})
+            return {
+                "passed": False,
+                "blocked": True,
+                "reason": (
+                    f"M_TxJ BACON GATE [truth_justice]: Evidence provenance='{provenance}' "
+                    f"insufficient for {target_tool_class}-class tool. "
+                    "Knowledge is power — unverified evidence must not "
+                    "authorize high-agency action."
+                ),
+                "paradox_anchor": {
+                    "id": "M_TxJ",
+                    "matrix_cell": "truth_justice",
+                    "quote": aq.get("text", "Knowledge is power."),
+                    "author": aq.get("author", "Francis Bacon"),
+                    "verification_level": aq.get("verification_level", ""),
+                    "antithesis": anchor.get("antithesis", ""),
+                    "axis": anchor.get("axis", "power vs. restraint"),
+                    "severity_on_fire": anchor.get("severity_on_fire", "hard_gate"),
+                },
+            }
+
+    return {"passed": True, "blocked": False}
 
 
 def _compute_memory_confidence(
@@ -426,6 +787,37 @@ def arif_memory_recall(
                     quarantined_hits.append(hit)
 
             confidence = _compute_memory_confidence(all_classified)
+            memory_bloat = _compute_memory_bloat(len(results), len(usable_hits))
+
+            # ── Coverage gap detection with paradox anchor ──
+            _m_gap = None
+            _humility_justice = _MEMORY_BY_CELL.get("humility_justice", {})
+            _hj_quote = _humility_justice.get("quote", {})
+            if len(usable_hits) == 0 and query:
+                _m_gap = {
+                    "detected": True,
+                    "paradox_anchor": {
+                        "id": "M_HxJ",
+                        "matrix_cell": "humility_justice",
+                        "quote": _hj_quote.get("text", ""),
+                        "author": _hj_quote.get("author", "Socrates"),
+                        "verification_level": _hj_quote.get("verification_level", ""),
+                        "axis": _humility_justice.get("axis", ""),
+                        "severity_on_fire": _humility_justice.get("severity_on_fire", "warn"),
+                    },
+                    "note": (
+                        "Socratic wisdom: acknowledge ignorance. "
+                        "But ignorance acknowledged is not action authorized — "
+                        "Judge must resolve this tension."
+                    ),
+                }
+            elif memory_bloat > 5.0:
+                _m_gap = {
+                    "detected": False,
+                    "warning": f"Memory bloat M_b={memory_bloat} — retrieval is noisy (MAKRUH)",
+                    "recommendation": "Tighten query or increase min_confidence",
+                }
+
             return _ok(
                 "arif_memory_recall",
                 {
@@ -437,7 +829,14 @@ def arif_memory_recall(
                         "usable_recall_hits": len(usable_hits),
                         "quarantined_hits": len(quarantined_hits),
                         "quarantine_reason": "null_content" if quarantined_hits else None,
+                        "memory_bloat_ratio": memory_bloat,
+                        "bloat_assessment": (
+                            "tight" if memory_bloat < 2.0
+                            else "acceptable" if memory_bloat < 5.0
+                            else "bloated"
+                        ),
                     },
+                    "coverage_gap": _m_gap,
                     "confidence": confidence,
                 },
             )

@@ -24,6 +24,7 @@ SOVEREIGN_MODULES: dict[str, str] = {
     "state_machine": "sha256:rca-state-machine-v0.1.0",
     "rca_tools": "sha256:rca-mcp-tools-v0.1.0",
     "vault_resources": "sha256:vault-resources-mcp-v0.1.0",
+    "delegation": "sha256:delegation-v0.1.0-20260613",
 }
 
 

@@ -1,5 +1,5 @@
 """
-arifosmcp/tools/judge_deliberate.py — 888_JUDGE
+arifosmcp/tools/judge_deliberate.py — 888_JUDGE v3
 ═══════════════════════════════════════════════
 
 Constitutional verdict engine.
@@ -9,6 +9,12 @@ before adjudication so epistemic confidence is grounded in actual system state.
 
 Post-SEAL auto-hook: When verdict is SEAL and vault_entry_id is provided,
 the judge output is automatically routed to arif_vault_seal for immutable anchoring.
+
+PARADOX ANCHORS (v3): 11 linguistic invariants fire at verdict decision points:
+  J1 (Parker/MLK) — SABAR carries deadline | J4 (Aristotle) — SEAL is incomplete justice
+  J6 (Marcus Aurelius) — irreversible gate | J7 (Glaucon) — power asymmetry detection
+
+DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
@@ -25,6 +31,333 @@ from arifosmcp.runtime.niat_gate import check_niat_gate
 from arifosmcp.runtime.self_mod_lock import is_self_modification_attempt
 from arifosmcp.runtime.tools import _arif_judge_deliberate
 from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
+from arifosmcp.paradox import (
+    register_organ, build_organ_anchors, get_registry,
+    inject_paradox_anchor, verdict_to_cell,
+)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PARADOX ANCHORS — 3×3 Orthogonal Matrix for Judge
+# ═══════════════════════════════════════════════════════════════════════════════
+# Rows: TRUTH / CLARITY / HUMILITY   Columns: CARE / PEACE / JUSTICE
+# Each anchor separates QUOTE (verified human philosophy) from BINDING
+# (firing policy). Policy evolves faster than canon — keep them distinct.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+JUDGE_PARADOX_ANCHORS: list[dict] = [
+    # ── TRUTH ROW ──────────────────────────────────────────────────────────────
+    {
+        "id": "J_TxC", "matrix_cell": "truth_care", "matrix_row": "TRUTH", "matrix_col": "CARE",
+        "motto_binding": "DIKAJI, BUKAN DISUAPI",
+        "quote": {
+            "text": "If it is not right, do not do it; if it is not true, do not say it.",
+            "author": "Marcus Aurelius",
+            "work": "Meditations",
+            "year": "c. 170–180 CE",
+            "verification_level": "traditional_attribution",
+            "translation_note": "Multiple translations exist; exact wording varies. Core meaning stable.",
+        },
+        "antithesis": "Rightness and truth are not always visible in the moment of decision — sometimes what is right can only be known after the action is taken.",
+        "axis": "ex ante clarity vs. ex post knowledge",
+        "binding": {
+            "event": "irreversible_action_gate",
+            "trigger": "irreversible-action gate — if not sure it's right, HOLD",
+            "effect": "hard_requirement",
+        },
+        "severity_on_fire": "hard_gate",
+        "risk_bias": "conservative",
+        "authority_scope": "judge",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "J_TxP", "matrix_cell": "truth_peace", "matrix_row": "TRUTH", "matrix_col": "PEACE",
+        "motto_binding": "DIJELASKAN, BUKAN DIKABURKAN",
+        "quote": {
+            "text": "In justice is every virtue comprehended.",
+            "author": "Aristotle",
+            "work": "Nicomachean Ethics 1129b29–30",
+            "year": "4th century BCE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "No single verdict can comprehend every virtue simultaneously — every SEAL is partial justice, the best approximation under available evidence.",
+        "axis": "comprehensiveness vs. decidability",
+        "binding": {
+            "event": "seal_verdict",
+            "trigger": "SEAL verdict — audit bundle annotation",
+            "effect": "annotate_seal_as_partial_justice",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "judge",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "J_TxJ", "matrix_cell": "truth_justice", "matrix_row": "TRUTH", "matrix_col": "JUSTICE",
+        "motto_binding": "DISEDARKAN, BUKAN DIYAKINKAN",
+        "quote": {
+            "text": "About the just and the unjust… we should consider not what the many but what the man who knows shall say to us — that single man and the truth.",
+            "author": "Socrates (via Plato)",
+            "work": "Crito 48a5-7",
+            "year": "c. 399 BCE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "Who is the man who knows? Every claimant to knowledge is also a claimant to authority — wisdom and tyranny wear the same robes.",
+        "axis": "expertise vs. authoritarianism",
+        "binding": {
+            "event": "human_gate_escalation",
+            "trigger": "HUMAN_GATE / F13 SOVEREIGN escalation — verify the knowledge claim",
+            "effect": "verify_claim_with_evidence",
+        },
+        "severity_on_fire": "hard_gate",
+        "risk_bias": "conservative",
+        "authority_scope": "cross_organ",
+        "norm": "WAJIB",
+    },
+    # ── CLARITY ROW ────────────────────────────────────────────────────────────
+    {
+        "id": "J_CxC", "matrix_cell": "clarity_care", "matrix_row": "CLARITY", "matrix_col": "CARE",
+        "motto_binding": "DIJELAJAH, BUKAN DISEKATI",
+        "quote": {
+            "text": "One must never repay injustice with injustice, as the many think, since one must never do injustice.",
+            "author": "Socrates (via Plato)",
+            "work": "Crito 49b–c",
+            "year": "c. 399 BCE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "But what of defensive action? To restrain an aggressor is to do something they did not consent to — the principle requires a theory of justified coercion, not a simple prohibition.",
+        "axis": "non-retaliation vs. justified coercion",
+        "binding": {
+            "event": "coercive_action_evaluation",
+            "trigger": "coercive or restrictive action evaluation — protection or retaliation?",
+            "effect": "surface_justification_requirement",
+        },
+        "severity_on_fire": "hold_bias",
+        "risk_bias": "conservative",
+        "authority_scope": "judge",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "J_CxP", "matrix_cell": "clarity_peace", "matrix_row": "CLARITY", "matrix_col": "PEACE",
+        "motto_binding": "DIHADAPI, BUKAN DITANGGUHI",
+        "quote": {
+            "text": "At his best, man is the noblest of all animals; separated from law and justice he is the worst.",
+            "author": "Aristotle",
+            "work": "Politics 1253a31–33",
+            "year": "4th century BCE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "Law and justice are human constructs — made by the same creature they are supposed to restrain. The worst in man writes the laws too.",
+        "axis": "law as civilizer vs. law as weapon",
+        "binding": {
+            "event": "policy_gate_applied",
+            "trigger": "policy-as-code gate applied — gate must be reviewable",
+            "effect": "annotate_reviewability",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "judge",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "J_CxJ", "matrix_cell": "clarity_justice", "matrix_row": "CLARITY", "matrix_col": "JUSTICE",
+        "motto_binding": "DIUSAHAKAN, BUKAN DIHARAPI",
+        "quote": {
+            "text": "The arc of the moral universe is long, but it bends toward justice.",
+            "author": "Theodore Parker (adapted by Martin Luther King Jr.)",
+            "work": "Of Justice and the Conscience, Ten Sermons of Religion",
+            "year": "1853",
+            "verification_level": "verified_exact",
+            "adaptation_note": "MLK's 1968 version is the most widely known formulation.",
+        },
+        "antithesis": "The arc bends only if we bend it — gravity is not justice. Justice requires action, not faith. The arc bends only through human hands.",
+        "axis": "providence vs. agency",
+        "binding": {
+            "event": "sabar_verdict",
+            "trigger": "SABAR verdict — must carry deadline, cannot be indefinite",
+            "effect": "attach_deadline",
+        },
+        "severity_on_fire": "hold_bias",
+        "risk_bias": "action_bias",
+        "authority_scope": "cross_organ",
+        "norm": "WAJIB",
+    },
+    # ── HUMILITY ROW ───────────────────────────────────────────────────────────
+    {
+        "id": "J_HxC", "matrix_cell": "humility_care", "matrix_row": "HUMILITY", "matrix_col": "CARE",
+        "motto_binding": "DIJAGA, BUKAN DIABAIKAN",
+        "quote": {
+            "text": "Those who are unable to escape suffering injustice determine that it is profitable to make a compact neither to do nor to suffer injustice.",
+            "author": "Glaucon (via Plato)",
+            "work": "Republic 358e–359a",
+            "year": "c. 375 BCE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "The compact is fragile — the strong who can escape suffering injustice while doing it will break the compact unless enforced by something stronger than self-interest.",
+        "axis": "social contract vs. power asymmetry",
+        "binding": {
+            "event": "power_asymmetry_detected",
+            "trigger": "power-asymmetry detected — is the compact being honored or exploited?",
+            "effect": "bias_toward_hold_or_void",
+        },
+        "severity_on_fire": "hold_bias",
+        "risk_bias": "conservative",
+        "authority_scope": "judge",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "J_HxP", "matrix_cell": "humility_peace", "matrix_row": "HUMILITY", "matrix_col": "PEACE",
+        "motto_binding": "DIDAMAIKAN, BUKAN DIPANASKAN",
+        "quote": {
+            "text": "Two things fill the mind with ever new and increasing admiration and awe: the starry heavens above me and the moral law within me.",
+            "author": "Immanuel Kant",
+            "work": "Critique of Practical Reason, Conclusion, Ak. 5:161",
+            "year": "1788",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "The moral law within is not universally legible — different minds read different laws there. Internal conviction is not external validity.",
+        "axis": "universal moral sense vs. moral diversity",
+        "binding": {
+            "event": "floor_tension_maruah",
+            "trigger": "FLOOR_TENSION between F12 MARUAH and other floors — verify shared moral ground",
+            "effect": "check_shared_moral_ground",
+        },
+        "severity_on_fire": "info",
+        "risk_bias": "neutral",
+        "authority_scope": "judge",
+        "norm": "SUNAT",
+    },
+    {
+        "id": "J_HxJ", "matrix_cell": "humility_justice", "matrix_row": "HUMILITY", "matrix_col": "JUSTICE",
+        "motto_binding": "DITEMPA, BUKAN DIBERI",
+        "quote": {
+            "text": "Act only according to that maxim whereby you can at the same time will that it should become a universal law.",
+            "author": "Immanuel Kant",
+            "work": "Groundwork of the Metaphysics of Morals, Ak. 4:421",
+            "year": "1785",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "Universality is not computable — we cannot simulate all possible worlds to verify a maxim. The categorical imperative is a direction of thought, not an executable function.",
+        "axis": "universalizability vs. computability",
+        "binding": {
+            "event": "seal_sovereign_scope",
+            "trigger": "SEAL verdicts for actions with systemic scope — test cannot be computed with certainty",
+            "effect": "verify_with_f13",
+        },
+        "severity_on_fire": "hard_gate",
+        "risk_bias": "conservative",
+        "authority_scope": "cross_organ",
+        "norm": "WAJIB",
+    },
+]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MATRIX LOOKUP — O(1) access by cell or ID
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_JUDGE_BY_CELL: dict[str, dict] = {a["matrix_cell"]: a for a in JUDGE_PARADOX_ANCHORS}
+_JUDGE_BY_ID: dict[str, dict] = {a["id"]: a for a in JUDGE_PARADOX_ANCHORS}
+
+# ── Register with global paradox registry (Phase 1 wiring) ──────────────────
+_judge_anchors = build_organ_anchors("judge", JUDGE_PARADOX_ANCHORS)
+_judge_registry = register_organ("judge", _judge_anchors)
+
+
+def _judge_paradox_for_verdict(
+    verdict_str: str, action_tier: str = "standard"
+) -> dict | None:
+    """
+    Resolve the correct paradox anchor for a given verdict.
+
+    Uses shared verdict_to_cell() from arifosmcp.paradox.matrix for
+    deterministic verdict → matrix cell routing, then looks up the
+    anchor in the global judge registry.
+    """
+    cell = verdict_to_cell(verdict_str, action_tier)
+    if cell:
+        return _judge_registry.get_legacy_by_cell(cell)
+    return None
+
+
+def _inject_judge_paradox(
+    result: dict, verdict_str: str, action_tier: str = "standard"
+) -> dict:
+    """
+    Inject paradox anchors into judge verdict output via 3×3 matrix resolution.
+
+    Each anchor fires at a specific decision point, resolved by verdict type
+    and action tier through the orthogonal matrix geometry:
+    - SABAR → clarity_justice: arc bends only if we bend it (deadline required)
+    - SEAL → truth_peace: every SEAL is partial justice
+    - SEAL (sovereign) → humility_justice: universality not computable
+    - HOLD (elevated) → truth_care: can't know rightness ex ante
+    """
+    anchor = _judge_paradox_for_verdict(verdict_str, action_tier)
+
+    if anchor:
+        if "meta" not in result:
+            result["meta"] = {}
+        q = anchor["quote"]
+        b = anchor.get("binding", {})
+        result["meta"]["paradox_anchor"] = {
+            "quote_id": anchor["id"],
+            "organ": "judge",
+            "matrix_cell": anchor["matrix_cell"],
+            "matrix_row": anchor["matrix_row"],
+            "matrix_col": anchor["matrix_col"],
+            "motto_binding": anchor["motto_binding"],
+            "quote": q["text"],
+            "author": q["author"],
+            "work": q["work"],
+            "year": q["year"],
+            "verification_level": q["verification_level"],
+            "antithesis": anchor["antithesis"],
+            "axis": anchor["axis"],
+            "norm": anchor["norm"],
+            "severity_on_fire": anchor.get("severity_on_fire", "warn"),
+            "risk_bias": anchor.get("risk_bias", "conservative"),
+            "authority_scope": anchor.get("authority_scope", "judge"),
+            "binding_event": b.get("event", ""),
+            "_matrix_note": (
+                f"Cell [{anchor['matrix_row']}×{anchor['matrix_col']}] — "
+                f"Connected to arifOS PARADOX_MATRIX in core/shared/mottos.py"
+            ),
+        }
+
+        # SABAR → clarity_justice: deadline enforcement
+        if anchor["id"] == "J_CxJ":
+            result["meta"]["sabar_deadline_note"] = (
+                "SABAR is not indefinite. The arc does not bend by itself. "
+                "If evidence remains incomplete past the SABAR timeout, "
+                "escalate to HUMAN_GATE (F13) rather than waiting forever."
+            )
+
+        # SEAL → truth_peace: audit annotation
+        if anchor["id"] == "J_TxP":
+            result.setdefault("reasons", []).append(
+                "J_TxP ARISTOTLE ANCHOR [truth_peace]: This SEAL is not perfectly "
+                "just — it comprehends only the virtues that evidence and reasoning "
+                "could capture. It is the best approximation available."
+            )
+
+        # SEAL sovereign → humility_justice: computability warning
+        if anchor["id"] == "J_HxJ":
+            result.setdefault("reasons", []).append(
+                "J_HxJ KANT ANCHOR [humility_justice]: Universality is not "
+                "computable. The categorical imperative is a direction of thought, "
+                "not an executable function. This SEAL carries systemic scope — "
+                "verify with F13 SOVEREIGN."
+            )
+
+        # HOLD elevated → truth_care: irreversibility gate
+        if anchor["id"] == "J_TxC":
+            result.setdefault("reasons", []).append(
+                "J_TxC MARCUS AURELIUS ANCHOR [truth_care]: If it is not right, "
+                "do not do it. Rightness cannot be fully known ex ante for "
+                "irreversible actions. HOLD is the correct posture."
+            )
+
+    return result
 
 # WELL state file candidates — covers docker-compose path, manual-start path, env override
 _WELL_STATE_CANDIDATES = [
@@ -586,6 +919,9 @@ async def arif_judge_deliberate(
 
     verdict_str = str(result.get("verdict", ""))
     is_seal = "SEAL" in verdict_str
+
+    # ── Paradox anchor injection (v3) ──
+    result = _inject_judge_paradox(result, verdict_str, action_tier)
 
     if vault_entry_id and is_seal:
         try:

@@ -1537,6 +1537,11 @@ def main() -> None:
       - stdin is a TTY (terminal)  → SSE server on ARIFOS_PORT (default 8088)
         (uvicorn, for VPS deployment)
     """
+    # ── RASA WIRING: Feature-flagged human rasa governance ──────────────
+    # Activated by RASA_WIRING_ENABLED=1 env var. Defaults to SHADOW mode
+    # (telemetry only, no output modification). See arifosmcp/rasa/.
+    _init_rasa_wiring()
+
     if sys.stdin.isatty():
         # ── SSE transport: human in terminal / systemd service ────────────
         import uvicorn
@@ -1549,6 +1554,28 @@ def main() -> None:
         # Claude Desktop config:
         #   { "mcpServers": { "arifOS": { "command": "uvx", "args": ["arifos"] } } }
         mcp.run(transport="stdio")
+
+
+def _init_rasa_wiring() -> None:
+    """Initialize rasa wiring at server startup (if enabled).
+
+    Safe to call — catches all exceptions, never blocks server startup.
+    """
+    try:
+        from arifosmcp.rasa.rasa_wiring_config import is_rasa_wiring_enabled
+
+        if not is_rasa_wiring_enabled():
+            return
+
+        from arifosmcp.rasa.rasa_wiring import activate_rasa_wiring
+
+        activate_rasa_wiring()
+    except Exception:
+        # Rasa wiring failure must never prevent kernel startup
+        import logging
+        logging.getLogger(__name__).debug(
+            "Rasa wiring initialization skipped (non-fatal)", exc_info=True
+        )
 
 
 if __name__ == "__main__":

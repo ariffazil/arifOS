@@ -1,5 +1,5 @@
 """
-arifosmcp/tools/reason.py — 333_MIND
+arifosmcp/tools/reason.py — 333_MIND v3.3
 ════════════════════════════════════════
 
 Inductive reasoning engine and synthesis.
@@ -12,10 +12,21 @@ DELTA BUNDLE SPEC (from archive/333/README.md):
   - entropy: ΔS ≤ 0 (must decrease local entropy)
   - confidence: calibrated Ω₀ ∈ [0.03, 0.05] (F7 Humility band)
 
-Context injection (P2): When context is provided, the tool pre-loads
-  session state (session_id, G-score, vitals) and prior tool results
-  into the reasoning trace before synthesis. This grounds every
-  reasoning call in actual system state rather than abstract axioms.
+ATTNRES PATTERN (v3.3): Depth-wise block attention over reasoning state.
+  Not all prior thoughts are equal. Each new reasoning step selectively
+  re-attends to the most relevant prior blocks rather than blind
+  accumulation. Block summaries reduce O(L²) → O(B²) where B ≪ L.
+  Pattern credit: MoonshotAI Attention-Residuals (2024).
+
+STOP RULES (v3.3): Mind MUST stop or refresh when:
+  - G_r ≈ 0 for 3+ consecutive steps (ornamental reasoning)
+  - Branch entropy B_e exceeds budget (coordination overhead)
+  - Confidence rises while support density U_d falls (hallucinated certainty)
+  - Identical evidence hash with no declared revision (circular reasoning)
+
+PARADOX ANCHORS (v3.3): 11 linguistic invariants fire at decision points:
+  R1 (Russell) — confidence/evidence mismatch | R4 (Socrates) — examination exhaustion
+  R5 (Descartes) — coherence ≠ truth | R8 (Confucius) — UNKNOWN tagging
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -30,6 +41,10 @@ from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.llm_client import LLMUnavailableError
 from arifosmcp.runtime.tools import _hold, _ok
 from arifosmcp.schemas.synthesis import Synthesis
+from arifosmcp.paradox import (
+    register_organ, build_organ_anchors, get_registry,
+    inject_paradox_anchor, check_desensitization,
+)
 
 
 def _reduce_verdict(*verdicts: str) -> str:
@@ -57,6 +72,435 @@ def _reduce_verdict(*verdicts: str) -> str:
     if not mapped:
         return "HOLD"
     return min(mapped, key=lambda x: x[0])[1]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ATTNRES PATTERN — Depth-Wise Block Attention for Reasoning State
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _compute_thought_relevance(
+    prior_thoughts: list[dict],
+    current_query: str,
+    evidence_ids: list[str] | None = None,
+) -> list[float]:
+    """
+    AttnRes-style selective re-attention over prior reasoning blocks.
+
+    Not all prior thoughts are equal. This lightweight scoring function
+    computes relevance weights so Mind can selectively feed the most
+    relevant prior blocks into each new reasoning step.
+
+    Pattern credit: MoonshotAI Attention-Residuals (2024) —
+    layers selectively aggregate earlier representations instead of
+    blind uniform accumulation.
+    """
+    if not prior_thoughts:
+        return []
+
+    evidence_ids = evidence_ids or []
+    weights = []
+    query_words = set(current_query.lower().split())
+
+    for thought in prior_thoughts:
+        score = 0.3  # base relevance
+
+        # Boost: evidence overlap
+        thought_evidence = set(thought.get("evidence_ids", []))
+        if thought_evidence and set(evidence_ids):
+            overlap = len(thought_evidence & set(evidence_ids))
+            score += 0.2 * min(overlap / max(len(evidence_ids), 1), 1.0)
+
+        # Boost: query word overlap with thought text
+        thought_text = thought.get("text", "")
+        if thought_text:
+            thought_words = set(thought_text.lower().split())
+            word_overlap = len(query_words & thought_words) / max(len(query_words), 1)
+            score += 0.3 * word_overlap
+
+        # Boost: recency (newer thoughts tend to be more relevant)
+        recency = thought.get("thought_id", 0) / max(
+            max(t.get("thought_id", 1) for t in prior_thoughts), 1
+        )
+        score += 0.2 * recency
+
+        weights.append(min(score, 1.0))
+
+    return weights
+
+
+def _compute_block_summary(thoughts: list[dict], block_id: str = "") -> dict:
+    """
+    Block AttnRes: compress a chunk of reasoning steps into a block summary.
+
+    Inside a block: normal sequential updates. Between blocks: attend only
+    over summaries, not every micro-thought. Reduces O(L²) → O(B²).
+
+    Pattern credit: MoonshotAI Block AttnRes — groups layers into blocks,
+    stores block summaries for cross-block attention.
+    """
+    if not thoughts:
+        return {"block_id": block_id, "thought_count": 0, "empty": True}
+
+    all_evidence = set()
+    all_tags: set[str] = set()
+    all_claims: list[str] = []
+    confidences: list[float] = []
+
+    for t in thoughts:
+        all_evidence.update(t.get("evidence_ids", []))
+        tag = t.get("epistemic_tag", "UNKNOWN")
+        if tag:
+            all_tags.add(tag)
+        text = t.get("text", "")
+        if text:
+            all_claims.append(text[:200])
+        conf = t.get("confidence", 0.5)
+        if isinstance(conf, (int, float)):
+            confidences.append(float(conf))
+
+    avg_confidence = sum(confidences) / len(confidences) if confidences else 0.5
+
+    return {
+        "block_id": block_id,
+        "thought_count": len(thoughts),
+        "primary_claims": all_claims[:5],
+        "epistemic_tags": sorted(all_tags),
+        "evidence_ids": sorted(all_evidence),
+        "avg_confidence": round(avg_confidence, 3),
+        "thought_range": (
+            f"{thoughts[0].get('thought_id', '?')}-{thoughts[-1].get('thought_id', '?')}"
+        ),
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STOP RULES — Prevent Ornamental Reasoning and Hallucinated Certainty
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _check_stop_rules(
+    thought_history: list[dict],
+    branch_count: int = 0,
+    max_branches: int = 6,
+    confidence_trend: list[float] | None = None,
+    support_density_trend: list[float] | None = None,
+) -> dict:
+    """
+    Evaluate stop rules for Mind reasoning chains.
+
+    Returns a dict with should_stop, stop_reason, and paradox_anchor if triggered.
+    """
+    triggers: list[str] = []
+    paradox_id: str | None = None
+
+    # ── Rule 1: Ornamental reasoning (G_r ≈ 0 for N consecutive steps) ──
+    if len(thought_history) >= 3:
+        recent = thought_history[-3:]
+        gains = []
+        for i in range(1, len(recent)):
+            prev_conf = recent[i - 1].get("confidence", 0.5) or 0.5
+            curr_conf = recent[i].get("confidence", 0.5) or 0.5
+            gains.append(abs(curr_conf - prev_conf))
+
+        if gains and all(g <= 0.01 for g in gains):
+            triggers.append("G_r ≈ 0 for 3+ consecutive steps — ornamental reasoning detected")
+            paradox_id = "R_CxC"  # Socrates [clarity_care]: endlessly examined life is not lived
+
+    # ── Rule 2: Branch entropy exceeding budget ──
+    active_branches = branch_count
+    if active_branches > max_branches:
+        triggers.append(
+            f"Branch entropy B_e = {active_branches} exceeds budget {max_branches}"
+        )
+        paradox_id = paradox_id or "R_CxJ"  # Sextus [clarity_justice]: suspension isn't governance
+
+    # ── Rule 3: Confidence rising while support density falling (hallucinated certainty) ──
+    if (
+        confidence_trend
+        and support_density_trend
+        and len(confidence_trend) >= 2
+        and len(support_density_trend) >= 2
+    ):
+        conf_rising = confidence_trend[-1] > confidence_trend[-2]
+        support_falling = support_density_trend[-1] < support_density_trend[-2]
+        if conf_rising and support_falling:
+            triggers.append(
+                "Confidence rising while support density falling — hallucinated certainty"
+            )
+            paradox_id = "R_HxC"  # Russell [humility_care]: the stupid are cocksure
+
+    # ── Rule 4: Circular — identical evidence, no declared revision ──
+    if len(thought_history) >= 2:
+        last_two = thought_history[-2:]
+        ev0 = set(last_two[0].get("evidence_ids", []))
+        ev1 = set(last_two[1].get("evidence_ids", []))
+        is_revision = last_two[-1].get("is_revision", False)
+        if ev0 == ev1 and not is_revision and ev0:
+            triggers.append(
+                "Identical evidence hash on consecutive thoughts with no declared revision"
+            )
+            paradox_id = paradox_id or "R_CxP"  # Descartes [clarity_peace]: coherence ≠ truth
+
+    should_stop = len(triggers) > 0
+    return {
+        "should_stop": should_stop,
+        "stop_reason": "; ".join(triggers) if triggers else None,
+        "paradox_anchor": paradox_id,
+        "recommendation": (
+            "Emit ABSTAIN or refresh evidence before continuing" if should_stop else "Continue"
+        ),
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PARADOX ANCHORS — 3×3 Orthogonal Matrix for Mind
+# ═══════════════════════════════════════════════════════════════════════════════
+# Rows: TRUTH / CLARITY / HUMILITY   Columns: CARE / PEACE / JUSTICE
+# Each anchor separates QUOTE (verified human philosophy) from BINDING
+# (firing policy). Policy evolves faster than canon — keep them distinct.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+MIND_PARADOX_ANCHORS: list[dict] = [
+    # ── TRUTH ROW ──────────────────────────────────────────────────────────────
+    {
+        "id": "R_TxC", "matrix_cell": "truth_care", "matrix_row": "TRUTH", "matrix_col": "CARE",
+        "motto_binding": "DIKAJI, BUKAN DISUAPI",
+        "quote": {
+            "text": "A wise man, therefore, proportions his belief to the evidence.",
+            "author": "David Hume",
+            "work": "An Enquiry Concerning Human Understanding, Section X",
+            "year": "1748",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "Evidence is never complete — we cannot calculate the exact proportion, only approximate it with models that are themselves uncertain.",
+        "axis": "proportionality vs. calculability",
+        "binding": {
+            "event": "confidence_estimation",
+            "trigger": "confidence estimation — Bayesian posterior is an estimate, not a measurement",
+            "effect": "annotate_confidence_metadata",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "mind",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "R_TxP", "matrix_cell": "truth_peace", "matrix_row": "TRUTH", "matrix_col": "PEACE",
+        "motto_binding": "DIJELASKAN, BUKAN DIKABURKAN",
+        "quote": {
+            "text": "Doubt is not a pleasant condition, but certainty is an absurd one.",
+            "author": "Voltaire",
+            "work": "Letter to Frederick the Great",
+            "year": "1770-11-28",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "Every bridge crossed, every airplane boarded — these are acts of practical certainty. Absurd or not, we live as if certain because the alternative is paralysis.",
+        "axis": "epistemic certainty vs. pragmatic certainty",
+        "binding": {
+            "event": "claim_tag_assigned",
+            "trigger": "CLAIM tag assigned — highest epistemic confidence",
+            "effect": "warn_and_bias_to_plausible",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "mind",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "R_TxJ", "matrix_cell": "truth_justice", "matrix_row": "TRUTH", "matrix_col": "JUSTICE",
+        "motto_binding": "DISEDARKAN, BUKAN DIYAKINKAN",
+        "quote": {
+            "text": "To know what you know and to know what you do not know — that is true knowledge.",
+            "author": "Confucius",
+            "work": "Analects 2.17",
+            "year": "c. 5th century BCE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "The boundary between what you know and what you do not know is itself uncertain — you can be wrong about both.",
+        "axis": "metacognition vs. meta-uncertainty",
+        "binding": {
+            "event": "unknown_tag_assigned",
+            "trigger": "UNKNOWN tag assigned — validate it is truly unknown",
+            "effect": "second_order_check",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "mind",
+        "norm": "WAJIB",
+    },
+    # ── CLARITY ROW ────────────────────────────────────────────────────────────
+    {
+        "id": "R_CxC", "matrix_cell": "clarity_care", "matrix_row": "CLARITY", "matrix_col": "CARE",
+        "motto_binding": "DIJELAJAH, BUKAN DISEKATI",
+        "quote": {
+            "text": "The unexamined life is not worth living.",
+            "author": "Socrates (via Plato)",
+            "work": "Apology 38a",
+            "year": "c. 399 BCE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "The endlessly examined life is not lived — reflection without terminus is not wisdom, it is the refusal to exist.",
+        "axis": "examination vs. action",
+        "binding": {
+            "event": "reasoning_exhaustion",
+            "trigger": "nextThoughtNeeded:true for > N consecutive steps without convergence",
+            "effect": "stop_or_refresh",
+        },
+        "severity_on_fire": "hold_bias",
+        "risk_bias": "conservative",
+        "authority_scope": "mind",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "R_CxP", "matrix_cell": "clarity_peace", "matrix_row": "CLARITY", "matrix_col": "PEACE",
+        "motto_binding": "DIJELASKAN, BUKAN DIKABURKAN",
+        "quote": {
+            "text": "I think, therefore I am.",
+            "author": "René Descartes",
+            "work": "Discourse on Method, Part IV",
+            "year": "1637",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "The cogito proves bare existence — it proves nothing about whether thoughts correspond to anything beyond themselves. A coherent chain can be entirely wrong.",
+        "axis": "existence vs. knowledge",
+        "binding": {
+            "event": "coherence_without_evidence",
+            "trigger": "R_c > 0.9 and C_e < 0.5 — internal coherence ≠ truth",
+            "effect": "warn_and_flag",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "mind",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "R_CxJ", "matrix_cell": "clarity_justice", "matrix_row": "CLARITY", "matrix_col": "JUSTICE",
+        "motto_binding": "DIUSAHAKAN, BUKAN DIHARAPI",
+        "quote": {
+            "text": "Skepticism is an ability to set out oppositions among things which appear and are thought of in any way at all, an ability by which, because of the equipollence in the opposed objects and accounts, we come first to suspension of judgment and afterwards to tranquillity.",
+            "author": "Sextus Empiricus",
+            "work": "Outlines of Pyrrhonism I.8",
+            "year": "c. 160–210 CE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "Governance is not philosophy — suspension of judgment when action is required is abdication, not wisdom.",
+        "axis": "ataraxia vs. responsibility",
+        "binding": {
+            "event": "equipollent_evidence",
+            "trigger": "equipollent evidence detected — suspension path vs. action path both available",
+            "effect": "surface_both_paths",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "neutral",
+        "authority_scope": "mind",
+        "norm": "HARUS",
+    },
+    # ── HUMILITY ROW ───────────────────────────────────────────────────────────
+    {
+        "id": "R_HxC", "matrix_cell": "humility_care", "matrix_row": "HUMILITY", "matrix_col": "CARE",
+        "motto_binding": "DIJAGA, BUKAN DIABAIKAN",
+        "quote": {
+            "text": "The fundamental cause of the trouble is that in the modern world the stupid are cocksure while the intelligent are full of doubt.",
+            "author": "Bertrand Russell",
+            "work": "The Triumph of Stupidity, Mortals and Others",
+            "year": "1931–1935",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "Yet endless self-doubt in the competent leaves the field entirely to the cocksure — doubt without eventual decision cedes power to those who never doubted at all.",
+        "axis": "confidence vs. competence",
+        "binding": {
+            "event": "confidence_evidence_mismatch",
+            "trigger": "confidence > 0.7 and C_e < 0.5 — Russell's observation hardwired",
+            "effect": "warn_in_omega_plane",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "mind",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "R_HxP", "matrix_cell": "humility_peace", "matrix_row": "HUMILITY", "matrix_col": "PEACE",
+        "motto_binding": "DIDAMAIKAN, BUKAN DIPANASKAN",
+        "quote": {
+            "text": "Whereof one cannot speak, thereof one must be silent.",
+            "author": "Ludwig Wittgenstein",
+            "work": "Tractatus Logico-Philosophicus, Proposition 7",
+            "year": "1922",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "The boundary of the speakable is not marked — we discover it only by trying to speak and failing. Silence is the destination, not the starting point.",
+        "axis": "silence vs. attempt",
+        "binding": {
+            "event": "abstain_emitted",
+            "trigger": "ABSTAIN output emitted — must include evidence of the attempt",
+            "effect": "annotate_abstain_rationale",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "mind",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "R_HxJ", "matrix_cell": "humility_justice", "matrix_row": "HUMILITY", "matrix_col": "JUSTICE",
+        "motto_binding": "DITEMPA, BUKAN DIBERI",
+        "quote": {
+            "text": "If I want the door to turn, the hinges must stay put.",
+            "author": "Ludwig Wittgenstein",
+            "work": "On Certainty §§341–343",
+            "year": "1949–1951 (pub. 1969)",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "What happens when a hinge that must stay put turns out to be false — when the door still turns but around a broken axis?",
+        "axis": "foundational certainty vs. foundational fallibility",
+        "binding": {
+            "event": "floor_proximity",
+            "trigger": "reasoning chain approaches a constitutional floor — only F13 SOVEREIGN may question a hinge",
+            "effect": "protect_hinge_with_f13_gate",
+        },
+        "severity_on_fire": "hard_gate",
+        "risk_bias": "conservative",
+        "authority_scope": "cross_organ",
+        "norm": "WAJIB",
+    },
+]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MATRIX LOOKUP — O(1) access via shared paradox registry (Phase 1)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_mind_anchors = build_organ_anchors("mind", MIND_PARADOX_ANCHORS)
+_mind_registry = register_organ("mind", _mind_anchors)
+
+# Backward-compat aliases — delegate to registry
+_MIND_BY_CELL = _mind_registry._legacy_by_cell
+_MIND_BY_ID = _mind_registry._legacy_by_id
+
+
+def _inject_paradox_anchor(
+    output: dict, trigger_context: str, anchor_id: str | None = None,
+    matrix_cell: str | None = None, state_changed: bool = True,
+) -> dict:
+    """
+    Inject a paradox anchor into reasoning output at a decision point.
+
+    Delegates to shared arifosmcp.paradox.inject_paradox_anchor().
+    Resolution order (determinism first):
+      1. explicit ID → O(1) registry lookup
+      2. explicit cell → O(1) registry lookup
+      3. keyword auto-detect (last resort)
+
+    Each injection logs to the shared desensitization detector.
+    """
+    return inject_paradox_anchor(
+        output=output,
+        registry=_mind_registry,
+        trigger_context=trigger_context,
+        anchor_id=anchor_id,
+        matrix_cell=matrix_cell,
+        state_changed=state_changed,
+        guard_existing=True,
+    )
 
 
 def _sanitize_observed_inputs(inputs: list[str]) -> list[str]:
@@ -212,6 +656,14 @@ def _build_delta_bundle(
     else:
         evidence_verdict = "HOLD"          # default to unsupported
 
+    # ── Paradox anchor: R_HxC Russell — confidence/evidence mismatch ──
+    _paradox_anchor = None
+    evidence_conf = confidence.get("evidence_confidence", 0.3)
+    if overall_conf > 0.7 and evidence_conf < 0.5:
+        _paradox_anchor = "R_HxC"  # Russell: cocksure vs. doubtful [humility_care]
+    elif claim_state == "SPECULATION" and not missing_evidence:
+        _paradox_anchor = "R_TxJ"  # Confucius: know what you don't know [truth_justice]
+
     # ── Authority verdict ────────────────────────────────────
     # Does the actor have permission to act on this claim?
     # Note: authority is about WHO acts, not WHERE the claim came from.
@@ -318,7 +770,29 @@ def _build_delta_bundle(
             "Confidence ≠ permission. SEAL ≠ mutation right. "
             "Only lease + actor + sovereign authority can grant action."
         ),
+        # ── AttnRes block tracking (v3.3) ──
+        "_block_state": {
+            "thought_count": len(reasoning.get("observed_inputs", [])),
+            "evidence_bound_claims": sum(
+                1 for c in reasoning.get("claims", [])
+                if isinstance(c, dict) and c.get("evidence_ids")
+            ),
+            "stop_check": None,  # populated by handler
+        },
     }
+
+    # ── Inject paradox anchor at decision point ──
+    if _paradox_anchor:
+        bundle = _inject_paradox_anchor(
+            bundle,
+            trigger_context=(
+                f"confidence={overall_conf:.2f} vs evidence={evidence_conf:.2f}"
+                if _paradox_anchor == "R1" else "epistemic tag boundary"
+            ),
+            anchor_id=_paradox_anchor,
+        )
+
+    return bundle
 
 
 def _run_reasoning_sync(coro: Any, timeout: float = 70.0) -> dict[str, Any]:

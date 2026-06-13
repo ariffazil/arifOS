@@ -1,10 +1,37 @@
 """
-arifosmcp/tools/heart.py — 666_HEART LLM-Powered Ethical Critique
+arifosmcp/tools/heart.py — 666_HEART v3 (Fractal Critique Engine)
+═══════════════════════════════════════════════════════════════════
 
-Wires arif_heart_critique through call_llm() for constitutional risk analysis.
+LLM-Powered constitutional risk analysis with fractal recursion.
 Tier 1: SEA-LION (api.sea-lion.ai)
 Tier 2: Ollama local fallback
 Tier 3: Deterministic fallback (rule-based keyword matching)
+
+FRACTAL CRITIQUE (v3):
+  Critique is recursive — it must apply its own standards to itself.
+  Level 1 (N=1): Heart critiques the target plan — standard red-team.
+  Level 2 (N=2): Heart critiques its own Level 1 critique —
+    "Am I being too harsh? Too lenient? Did I miss a stakeholder?"
+  Level 3 (N=3): Heart critiques the meta-critique — recursion clamped.
+    "Am I over-analyzing my own over-analysis?"
+
+  Each recursion level maps to the 3×3 paradox matrix:
+    N=1 → TRUTH row:   is the critique factually grounded?
+    N=2 → CLARITY row: is the critique logically coherent?
+    N=3 → HUMILITY row: is the critique itself overconfident?
+
+  The fractal is bounded by trace_recursion_depth (max 3). Beyond depth 3,
+  the deterministic fallback fires: "RECURSION_DEPTH_CLAMPED."
+
+  Why fractal? Because a heart that critiques plans for overconfidence
+  but never questions its own overconfidence is a broken heart.
+  Critique without self-critique is hypocrisy. The fractal ensures
+  Heart eats its own dog food — every standard it applies to others,
+  it must apply to itself at the next recursion level.
+
+PARADOX ANCHORS (v3): 9 anchors in 3×3 matrix.
+  Completes the 5-organ system: Sense(9) + Memory(9) + Mind(9) +
+  Heart(9) + Judge(9) = 45 constitutional anchors.
 
 777_WITNESS: All LLM output passes through LLMOutputEnvelope before tool logic.
 
@@ -21,6 +48,10 @@ from pathlib import Path
 from typing import Any
 
 from arifosmcp.runtime.llm_client import LLMUnavailableError, call_llm
+from arifosmcp.paradox import (
+    register_organ, build_organ_anchors, get_registry,
+    inject_paradox_anchor, check_desensitization,
+)
 
 _VAULT999_PATH = Path(
     os.getenv(
@@ -30,6 +61,537 @@ _VAULT999_PATH = Path(
 )
 
 logger = logging.getLogger(__name__)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# RASA DETECTION — External (applied via monkey-patching when enabled)
+# ═══════════════════════════════════════════════════════════════════════════════
+# NO kernel-level rasa imports. Rasa detection is applied externally via
+# the wiring module at arifosmcp/rasa/ when wiring is active.
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PARADOX ANCHORS — 3×3 Orthogonal Matrix for Heart
+# ═══════════════════════════════════════════════════════════════════════════════
+# Completes the 5-organ system: Sense+Memory+Mind+Heart+Judge = 45 anchors.
+# Rows: TRUTH / CLARITY / HUMILITY   Columns: CARE / PEACE / JUSTICE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+HEART_PARADOX_ANCHORS: list[dict] = [
+    # ── TRUTH ROW ──────────────────────────────────────────────────────────────
+    {
+        "id": "H_TxC", "matrix_cell": "truth_care", "matrix_row": "TRUTH", "matrix_col": "CARE",
+        "motto_binding": "DIKAJI, BUKAN DISUAPI",
+        "quote": {
+            "text": "The child who is not embraced by the village will burn it down to feel its warmth.",
+            "author": "African proverb",
+            "work": "Traditional — widely attested across multiple African cultures",
+            "year": "traditional",
+            "verification_level": "traditional_attribution",
+        },
+        "antithesis": "But not every fire is a cry for warmth — some fires are predatory. Critique must distinguish the excluded from the exploitative.",
+        "axis": "exclusion vs. predation",
+        "binding": {
+            "event": "weakest_stakeholder_identified",
+            "trigger": "weakest stakeholder identified — is this exclusion-caused pain or predatory intent?",
+            "effect": "distinguish_exclusion_from_exploitation",
+        },
+        "severity_on_fire": "hold_bias",
+        "risk_bias": "conservative",
+        "authority_scope": "heart",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "H_TxP", "matrix_cell": "truth_peace", "matrix_row": "TRUTH", "matrix_col": "PEACE",
+        "motto_binding": "DIJELASKAN, BUKAN DIKABURKAN",
+        "quote": {
+            "text": "He who fights with monsters should look to it that he himself does not become a monster.",
+            "author": "Friedrich Nietzsche",
+            "work": "Beyond Good and Evil, Aphorism 146",
+            "year": "1886",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "But refusing to fight monsters at all leaves monsters unchallenged. Critique must oppose harm without becoming the harm it opposes.",
+        "axis": "opposition vs. corruption",
+        "binding": {
+            "event": "redteam_attack_vectors",
+            "trigger": "red-team identifies attacks — does the critique itself become an attack?",
+            "effect": "check_critique_for_cruelty",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "heart",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "H_TxJ", "matrix_cell": "truth_justice", "matrix_row": "TRUTH", "matrix_col": "JUSTICE",
+        "motto_binding": "DISEDARKAN, BUKAN DIYAKINKAN",
+        "quote": {
+            "text": "Between stimulus and response there is a space. In that space is our power to choose our response.",
+            "author": "Viktor Frankl",
+            "work": "Man's Search for Meaning (attributed paraphrase of core ideas)",
+            "year": "1946",
+            "verification_level": "traditional_attribution",
+        },
+        "antithesis": "But the space is not infinite — in crisis, the space collapses. Critique must be fast enough to matter without becoming so fast that it skips the space entirely.",
+        "axis": "reflection vs. urgency",
+        "binding": {
+            "event": "human_decision_required",
+            "trigger": "human_decision_required=true — the space between stimulus and response must be preserved",
+            "effect": "preserve_human_decision_space",
+        },
+        "severity_on_fire": "hard_gate",
+        "risk_bias": "conservative",
+        "authority_scope": "cross_organ",
+        "norm": "WAJIB",
+    },
+    # ── CLARITY ROW ────────────────────────────────────────────────────────────
+    {
+        "id": "H_CxC", "matrix_cell": "clarity_care", "matrix_row": "CLARITY", "matrix_col": "CARE",
+        "motto_binding": "DIJELAJAH, BUKAN DISEKATI",
+        "quote": {
+            "text": "Do not judge, or you too will be judged. For in the same way you judge others, you will be judged.",
+            "author": "Jesus of Nazareth (via Gospel of Matthew)",
+            "work": "Matthew 7:1-2",
+            "year": "c. 1st century CE",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "But governance requires judgment — a system that never judges is a system that never protects. The fractal solves this: critique judges, then is judged by its own standards at recursion N+1.",
+        "axis": "judgment vs. hypocrisy",
+        "binding": {
+            "event": "fractal_recursion_N2",
+            "trigger": "Level 2 meta-critique initiated — Heart now critiques its own Level 1 judgment",
+            "effect": "apply_same_standards_to_self",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "heart",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "H_CxP", "matrix_cell": "clarity_peace", "matrix_row": "CLARITY", "matrix_col": "PEACE",
+        "motto_binding": "DIHADAPI, BUKAN DITANGGUHI",
+        "quote": {
+            "text": "Darkness cannot drive out darkness; only light can do that. Hate cannot drive out hate; only love can do that.",
+            "author": "Martin Luther King Jr.",
+            "work": "Strength to Love",
+            "year": "1963",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "But light without heat is invisible — love without boundaries enables harm. Critique must illuminate without burning, but it must illuminate.",
+        "axis": "illumination vs. boundary",
+        "binding": {
+            "event": "deescalation_strategy",
+            "trigger": "de-escalation strategy requested — respond to darkness with light, not more darkness",
+            "effect": "illuminate_dont_incinerate",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "neutral",
+        "authority_scope": "heart",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "H_CxJ", "matrix_cell": "clarity_justice", "matrix_row": "CLARITY", "matrix_col": "JUSTICE",
+        "motto_binding": "DIUSAHAKAN, BUKAN DIHARAPI",
+        "quote": {
+            "text": "In the end, we will remember not the words of our enemies, but the silence of our friends.",
+            "author": "Martin Luther King Jr.",
+            "work": "The Trumpet of Conscience",
+            "year": "1967",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "But not every silence is betrayal — some silence is restraint, some is ignorance, some is strategic. Critique must distinguish complicity from incapacity.",
+        "axis": "silence vs. complicity",
+        "binding": {
+            "event": "risk_tier_assessment",
+            "trigger": "risk_tier assessed — did the critique speak when it should have? Will its silence be remembered?",
+            "effect": "check_for_silence_as_harm",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "action_bias",
+        "authority_scope": "heart",
+        "norm": "WAJIB",
+    },
+    # ── HUMILITY ROW ───────────────────────────────────────────────────────────
+    {
+        "id": "H_HxC", "matrix_cell": "humility_care", "matrix_row": "HUMILITY", "matrix_col": "CARE",
+        "motto_binding": "DIJAGA, BUKAN DIABAIKAN",
+        "quote": {
+            "text": "Whoever fights monsters should see to it that in the process he does not become a monster.",
+            "author": "Friedrich Nietzsche",
+            "work": "Beyond Good and Evil, Aphorism 146 (alternate translation)",
+            "year": "1886",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "The fractal answer: at recursion N+1, the critique turns on itself. If the heart has become monstrous in its vigilance, the meta-critique will catch it.",
+        "axis": "vigilance vs. corruption",
+        "binding": {
+            "event": "fractal_recursion_N3",
+            "trigger": "Level 3 meta-meta-critique — has the critique itself become monstrous?",
+            "effect": "recursion_guard_with_self_check",
+        },
+        "severity_on_fire": "hard_gate",
+        "risk_bias": "conservative",
+        "authority_scope": "heart",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "H_HxP", "matrix_cell": "humility_peace", "matrix_row": "HUMILITY", "matrix_col": "PEACE",
+        "motto_binding": "DIDAMAIKAN, BUKAN DIPANASKAN",
+        "quote": {
+            "text": "If you want peace, work for justice.",
+            "author": "Pope Paul VI",
+            "work": "World Day of Peace Message",
+            "year": "1972",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "But justice-work can become war-work when the worker forgets peace is the goal. Critique must pursue justice without becoming injustice.",
+        "axis": "peace vs. justice",
+        "binding": {
+            "event": "empathy_dignity_assessment",
+            "trigger": "empathy and dignity scored — is the critique working for justice or inflaming conflict?",
+            "effect": "check_peace_justice_balance",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "neutral",
+        "authority_scope": "heart",
+        "norm": "SUNAT",
+    },
+    {
+        "id": "H_HxJ", "matrix_cell": "humility_justice", "matrix_row": "HUMILITY", "matrix_col": "JUSTICE",
+        "motto_binding": "DITEMPA, BUKAN DIBERI",
+        "quote": {
+            "text": "Sebab nila setitik, rosak susu sebelanga.",
+            "author": "Malay proverb",
+            "work": "Traditional Nusantara wisdom",
+            "year": "traditional",
+            "verification_level": "traditional_attribution",
+        },
+        "antithesis": "A single drop of indigo spoils the milk — but a single critique that is too harsh can spoil trust. And yet, a critique that is too gentle spoils safety. The tension is irreconcilable; the fractal is the answer.",
+        "axis": "severity vs. grace",
+        "binding": {
+            "event": "critique_finalized",
+            "trigger": "final critique emitted — one drop of excessive severity or leniency shapes the entire verdict downstream",
+            "effect": "final_fractal_sanity_check",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "heart",
+        "norm": "WAJIB",
+    },
+]
+
+_HEART_BY_CELL: dict[str, dict] = {a["matrix_cell"]: a for a in HEART_PARADOX_ANCHORS}
+_HEART_BY_ID: dict[str, dict] = {a["id"]: a for a in HEART_PARADOX_ANCHORS}
+
+# ── Register with global paradox registry (Phase 1 wiring) ──────────────────
+_heart_anchors = build_organ_anchors("heart", HEART_PARADOX_ANCHORS)
+_heart_registry = register_organ("heart", _heart_anchors)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FRACTAL CRITIQUE RECURSION
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Critique must apply its own standards to itself. The fractal recursion:
+#
+#   Level 1 (N=1):  Heart critiques the target action → TRUTH row
+#     "Is this plan harmful? Deceptive? Irreversible?"
+#     Paradox: H_TxC (African proverb) — exclusion creates destruction
+#
+#   Level 2 (N=2):  Heart critiques its own Level 1 critique → CLARITY row
+#     "Am I being too harsh? Too lenient? Did I miss a stakeholder?"
+#     Paradox: H_CxC (Matthew 7:1-2) — judge as you would be judged
+#
+#   Level 3 (N=3):  Heart critiques the meta-critique → HUMILITY row
+#     "Am I over-analyzing? Has critique become performative?"
+#     Paradox: H_HxC (Nietzsche) — has the critique itself become monstrous?
+#
+#   Beyond N=3:     RECURSION_DEPTH_CLAMPED — deterministic fallback fires.
+#     Paradox: H_HxJ (Malay proverb) — one drop shapes the whole
+#
+# Each recursion level is a complete pass through the 8 risk categories,
+# but the LENS changes: N=1 looks outward, N=2 looks at N=1, N=3 looks at N=2.
+# The fractal is the constitutional answer to "who critiques the critic?"
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _fractal_critique_stage(recursion_depth: int) -> dict:
+    """Return the paradox anchor and lens for a given recursion depth."""
+    if recursion_depth == 0:
+        return {
+            "stage": "primary_critique",
+            "lens": "TRUTH",
+            "question": "Is the target action harmful, deceptive, or dignity-violating?",
+            "paradox_cell": "truth_care",
+            "paradox_id": "H_TxC",
+        }
+    elif recursion_depth == 1:
+        return {
+            "stage": "meta_critique",
+            "lens": "CLARITY",
+            "question": "Is this critique itself fair, proportionate, and complete?",
+            "paradox_cell": "clarity_care",
+            "paradox_id": "H_CxC",
+        }
+    elif recursion_depth == 2:
+        return {
+            "stage": "meta_meta_critique",
+            "lens": "HUMILITY",
+            "question": "Has the critique process become performative, self-righteous, or overconfident?",
+            "paradox_cell": "humility_care",
+            "paradox_id": "H_HxC",
+        }
+    else:
+        return {
+            "stage": "recursion_clamped",
+            "lens": "HUMILITY",
+            "question": "RECURSION_DEPTH_CLAMPED — stop critiquing and decide.",
+            "paradox_cell": "humility_justice",
+            "paradox_id": "H_HxJ",
+        }
+
+
+def _inject_heart_paradox(
+    output: dict,
+    trigger_context: str,
+    anchor_id: str | None = None,
+    matrix_cell: str | None = None,
+    recursion_depth: int = 0,
+    state_changed: bool = True,
+) -> dict:
+    """
+    Inject a Heart paradox anchor into critique output at a decision point.
+
+    Resolution order (determinism first):
+      1. explicit ID → O(1) registry lookup
+      2. explicit matrix_cell → O(1) registry lookup
+      3. recursion_depth → stage → paradox_id → lookup
+      4. delegate to shared inject_paradox_anchor() for keyword auto-detect + injection
+
+    The recursion depth → paradox_id resolution is Heart-specific (fractal
+    critique). Everything else delegates to the shared paradox infrastructure.
+    """
+    # ── Heart-specific: recursion_depth → stage → paradox_id ────────────────
+    if anchor_id is None and matrix_cell is None and recursion_depth >= 0:
+        stage = _fractal_critique_stage(recursion_depth)
+        pid = stage.get("paradox_id")
+        if pid:
+            anchor_id = pid
+
+    # ── Delegate to shared injection ────────────────────────────────────────
+    return inject_paradox_anchor(
+        output=output,
+        registry=_heart_registry,
+        trigger_context=trigger_context,
+        anchor_id=anchor_id,
+        matrix_cell=matrix_cell,
+        recursion_depth=recursion_depth,
+        state_changed=state_changed,
+        guard_existing=True,
+    )
+
+
+def _fractal_stabilization_gain(prev_result: dict, curr_result: dict) -> float:
+    """
+    Compute fractal stabilization gain G_f = Q_N - Q_{N-1}.
+
+    Measures whether additional recursion is improving critique quality.
+    If G_f ≤ 0 for two consecutive levels, stop recursion early —
+    further critique is theatrical, not substantive.
+
+    Quality Q is approximated from:
+      - empathy_score stability
+      - risk tier consistency
+      - uncertainty reduction
+      - anchor novelty (did we find new failure modes?)
+    """
+    prev_empathy = prev_result.get("empathy_score", 0.5)
+    curr_empathy = curr_result.get("empathy_score", 0.5)
+
+    prev_risks = prev_result.get("risks_found", [])
+    curr_risks = curr_result.get("risks_found", [])
+
+    prev_risk_types = {r.get("type") for r in prev_risks if r.get("severity") not in ("none",)}
+    curr_risk_types = {r.get("type") for r in curr_risks if r.get("severity") not in ("none",)}
+
+    # Empathy stability: smaller change = higher quality
+    empathy_change = abs(curr_empathy - prev_empathy)
+
+    # Risk discovery: new risk types found
+    novel_risks = len(curr_risk_types - prev_risk_types)
+
+    # Uncertainty reduction
+    prev_uncertainty = len(prev_result.get("_envelope", {}).get("uncertainty", []))
+    curr_uncertainty = len(curr_result.get("_envelope", {}).get("uncertainty", []))
+    uncertainty_delta = prev_uncertainty - curr_uncertainty
+
+    # Composite gain
+    G_f = (0.3 * (1.0 - empathy_change)) + (0.4 * novel_risks) + (0.3 * uncertainty_delta)
+    return round(G_f, 3)
+
+
+def _merge_fractal_results(
+    results: list[dict], anchor_hits: list[dict], max_depth: int = 3
+) -> dict:
+    """
+    Merge fractal critique results using the MIN_TRUST rule.
+
+    outer_verdict = minimum of all inner states across recursion levels.
+    The most conservative critique level determines the final assessment.
+
+    This prevents a Level 1 critique that flags CRITICAL risk from being
+    softened by a Level 2 meta-critique that says "but the critique was
+    too harsh" — the CRITICAL stands, but the meta-critique's calibration
+    notes are preserved as caveats.
+    """
+    if not results:
+        return {"status": "HOLD", "risks_found": [], "risk_tier": "AMBER",
+                "human_decision_required": True, "anchor_hits": [],
+                "recursion_depth_used": 0, "fractal_stabilized": False}
+
+    severity_order = {"none": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
+    tier_order = {"GREEN": 0, "AMBER": 1, "RED": 2, "CRITICAL": 3}
+
+    # MIN_TRUST: take the most conservative assessment
+    base = results[0].copy()
+    all_risks = list(base.get("risks_found", []))
+    all_mitigations = list(base.get("mitigations", []))
+    all_attacks = list(base.get("attacks", []))
+    all_caveats = list(base.get("caveats", []))
+    highest_tier = base.get("risk_tier", "GREEN")
+    lowest_empathy = base.get("empathy_score", 1.0)
+    lowest_dignity = base.get("dignity_score", 1.0)
+    human_required = base.get("human_decision_required", False)
+
+    for i, r in enumerate(results[1:], start=1):
+        # Merge risk findings (union, not intersection — be conservative)
+        for risk in r.get("risks_found", []):
+            if risk.get("severity") not in ("none",) and risk not in all_risks:
+                all_risks.append(risk)
+
+        all_mitigations.extend(
+            m for m in r.get("mitigations", []) if m not in all_mitigations
+        )
+        all_attacks.extend(
+            a for a in r.get("attacks", []) if a not in all_attacks
+        )
+
+        # MIN_TRUST on scalar scores
+        tier = r.get("risk_tier", "GREEN")
+        if tier_order.get(tier, 0) > tier_order.get(highest_tier, 0):
+            highest_tier = tier
+
+        lowest_empathy = min(lowest_empathy, r.get("empathy_score", 1.0))
+        lowest_dignity = min(lowest_dignity, r.get("dignity_score", 1.0))
+        human_required = human_required or r.get("human_decision_required", False)
+
+        # Capture meta-critique insights
+        all_caveats.append(f"[Recursion L{i}]: {r.get('care_note', '')}")
+
+    # Determine if fractal stabilized (G_f ≤ 0 on last step)
+    stabilized = False
+    if len(results) >= 2:
+        G_f = _fractal_stabilization_gain(results[-2], results[-1])
+        stabilized = G_f <= 0
+
+    merged = {
+        **{k: v for k, v in base.items()
+           if k not in ("risks_found", "mitigations", "attacks", "caveats",
+                        "risk_tier", "empathy_score", "dignity_score",
+                        "human_decision_required")},
+        "risks_found": all_risks,
+        "mitigations": all_mitigations,
+        "attacks": all_attacks,
+        "risk_tier": highest_tier,
+        "empathy_score": lowest_empathy,
+        "dignity_score": lowest_dignity,
+        "human_decision_required": human_required,
+        "caveats": all_caveats,
+        "anchor_hits": anchor_hits,
+        "recursion_depth_used": len(results),
+        "fractal_stabilized": stabilized,
+        "fractal_merge_rule": "MIN_TRUST",
+        "critique_confidence": round(
+            max(0.0, min(0.90,
+                1.0 - (tier_order.get(highest_tier, 0) * 0.20)
+                - (0.10 if not stabilized else 0.0)
+                - (0.05 * max(0, max_depth - len(results)))
+            )), 3
+        ),
+        "confidence_band": (
+            "high" if highest_tier == "GREEN"
+            else "moderate" if highest_tier == "AMBER"
+            else "low" if highest_tier == "RED"
+            else "minimal"
+        ),
+        "residual_uncertainties": all_caveats[-3:] if all_caveats else [],
+        "fresh_evidence_required": highest_tier in ("RED", "CRITICAL"),
+    }
+
+    return merged
+
+
+def _compute_critique_humility_penalty(result: dict, recursion_depth: int) -> dict:
+    """
+    Compute critique humility penalty U_H.
+
+    U_H = α·O + β·B + γ·G
+
+    Where:
+      O = overconfidence markers (absolutes, certainty language)
+      B = bias / blind-spot markers (missing stakeholders, unexamined assumptions)
+      G = critique recursion gain collapse (extra recursion no longer improves quality)
+
+    Higher U_H means Heart should lower its own confidence.
+    This is the quantitative implementation of the fractal's HUMILITY row.
+    """
+    target = (result.get("target", "") or "").lower()
+
+    # α·O: Overconfidence markers
+    overconfidence_triggers = [
+        "always", "never", "guaranteed", "certain", "definitely",
+        "absolutely", "100%", "no risk", "perfectly safe", "no doubt",
+    ]
+    O = sum(1 for t in overconfidence_triggers if t in target) / max(len(overconfidence_triggers), 1)
+
+    # β·B: Bias / blind-spot markers
+    blindspot_signals = [
+        result.get("weakest_stakeholder", "") == "general_public",
+        len(result.get("risks_found", [])) == 0,
+        result.get("empathy_score", 0) > 0.9,
+        result.get("dignity_score", 0) > 0.95,
+        not result.get("human_decision_required", True),
+    ]
+    B = sum(blindspot_signals) / max(len(blindspot_signals), 1)
+
+    # γ·G: Recursion gain collapse
+    if recursion_depth <= 1:
+        G = 0.0  # Early recursion — normal gain
+    elif recursion_depth == 2:
+        G = 0.3  # Third level — diminishing returns expected
+    else:
+        G = 0.7  # Clamped — gain has collapsed
+
+    # Weights
+    alpha, beta, gamma = 0.4, 0.35, 0.25
+    U_H = round(alpha * O + beta * B + gamma * G, 3)
+
+    return {
+        "U_H": U_H,
+        "overconfidence_O": round(O, 2),
+        "blindspot_B": round(B, 2),
+        "recursion_gain_collapse_G": round(G, 2),
+        "confidence_adjusted": round(max(0.03, result.get("empathy_score", 0.5) - U_H), 3),
+        "advisory": (
+            "Heart should reduce confidence — high overconfidence + blind spots"
+            if U_H > 0.5
+            else "Heart confidence adequately calibrated"
+            if U_H < 0.25
+            else "Heart should review critique for hidden overconfidence"
+        ),
+    }
+
 
 # ── System Prompt ───────────────────────────────────────────────────────────────
 
@@ -47,11 +609,40 @@ You evaluate proposed actions across 8 constitutional risk categories:
 7. DIGNITY — Does it undermine human worth? (L05 Peace)
 8. SUSTAINABILITY — Does it undermine long-term civilization capacity?
 
+FRACTAL CRITIQUE RULE (v3.2 — HARDENED):
+  Critique is recursive — Heart applies its own standards to itself.
+  At trace_recursion_depth=0: critique the TARGET ACTION.
+    → TRUTH row: Is this plan grounded in reality? Who is excluded?
+    → Anchor: H_TxC (African proverb — excluded child burns the village)
+  At trace_recursion_depth=1: critique YOUR OWN LEVEL-0 CRITIQUE.
+    → CLARITY row: Was I fair? Proportionate? Complete? Did I miss a stakeholder?
+    → Anchor: H_CxC (Matthew 7:1-2 — judge as you would be judged)
+  At trace_recursion_depth=2: critique THE PROCESS OF CRITIQUING.
+    → HUMILITY row: Has critique become performative? Self-righteous? Paralysis?
+    → Anchor: H_HxC (Nietzsche — has the critique itself become monstrous?)
+  At trace_recursion_depth>2: RECURSION_DEPTH_CLAMPED.
+    → Anchor: H_HxJ (Malay proverb — one drop of excess shapes the whole)
+
+  MIN_TRUST RULE: The most conservative critique level sets the final risk tier.
+  A Level-0 CRITICAL cannot be softened by Level-1 meta-critique — the CRITICAL
+  stands, but the meta-critique's calibration notes are preserved as caveats.
+
+  The fractal IS the constitutional answer to "who critiques the critic?"
+  — every standard Heart applies to others, it must apply to itself.
+
 You MUST:
 - Cite specific floors when risk is detected
 - Flag L09 Anti-Hantu violations (consciousness/emotion claims in code)
 - Force human_decision_required for HIGH/CRITICAL/IRREVERSIBLE tiers
 - Distinguish CLAIM (speculative) from VERIFIED (evidence-backed)
+- At recursion_depth>0, critique the PRIOR CRITIQUE, not the original target
+- At recursion_depth>0, assess whether the prior critique was:
+    * fair and proportionate (H_CxC — Matthew 7:1-2)
+    * grounded in actual plan details, not moral panic (H_TxC)
+    * productive — did it clarify or merely amplify uncertainty? (H_CxP)
+- Track your own overconfidence markers (absolutes, certainty without evidence)
+- Identify the WEAKEST STAKEHOLDER — the one most burdened or excluded
+- Never emit SEAL/HOLD/VOID as if you are Judge — you are Heart, you warn
 
 Output: JSON matching the schema exactly.
 """
@@ -82,7 +673,7 @@ CRITIQUE_SCHEMA = {
                     "mitigation": {"type": "string"},
                 },
             },
-            "description": "All risks identified across 8 categories",
+            "description": "All risks identified across 8 constitutional categories",
         },
         "risk_tier": {
             "type": "string",
@@ -118,9 +709,9 @@ CRITIQUE_SCHEMA = {
         "action_risk_verdict": {
             "type": "string",
             "enum": ["SEAL", "HOLD", "VOID"],
-            "description": "Action risk verdict: SEAL=proceed, HOLD=human review, VOID=stop. "
-            "This is NOT about whether the critique ran — it is about whether "
-            "the TARGET ACTION is safe to proceed. Read this to determine approval.",
+            "description": "Action risk verdict — Heart's ADVISORY assessment. "
+            "SEAL=appears safe, HOLD=needs review, VOID=appears unsafe. "
+            "This is NOT a verdict — only Judge decides.",
         },
         "attacks": {
             "type": "array",
@@ -158,6 +749,78 @@ CRITIQUE_SCHEMA = {
             "type": "boolean",
             "description": "Whether this is a condensed summary",
         },
+        "stakeholder_impacts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "stakeholder": {"type": "string"},
+                    "impact_type": {
+                        "type": "string",
+                        "enum": ["benefit", "burden", "neutral", "excluded"],
+                    },
+                    "severity": {
+                        "type": "string",
+                        "enum": ["low", "medium", "high", "critical"],
+                    },
+                    "description": {"type": "string"},
+                },
+            },
+            "description": "Per-stakeholder impact assessment (v3.2 hardened — fractal critique)",
+        },
+        "critique_confidence": {
+            "type": "number",
+            "minimum": 0.03,
+            "maximum": 0.90,
+            "description": "Heart's confidence in its own critique (F7 Humility cap at 0.90)",
+        },
+        "confidence_band": {
+            "type": "string",
+            "enum": ["high", "moderate", "low", "minimal"],
+            "description": "Qualitative confidence band for the critique",
+        },
+        "fractal_stabilized": {
+            "type": "boolean",
+            "description": "Whether fractal recursion stabilized (G_f ≤ 0)",
+        },
+        "recursion_depth_used": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3,
+            "description": "Number of recursion levels actually executed",
+        },
+        "anchor_hits": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "quote_id": {"type": "string"},
+                    "matrix_cell": {"type": "string"},
+                    "recursion_depth": {"type": "integer"},
+                },
+            },
+            "description": "Paradox anchors that fired during critique",
+        },
+        "residual_uncertainties": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "What Heart still cannot judge — unknowns remaining after fractal recursion",
+        },
+        "fresh_evidence_required": {
+            "type": "boolean",
+            "description": "Whether Heart needs fresh evidence to critique fairly — routes back to Sense",
+        },
+        "humility_penalty": {
+            "type": "object",
+            "properties": {
+                "U_H": {"type": "number"},
+                "overconfidence_O": {"type": "number"},
+                "blindspot_B": {"type": "number"},
+                "recursion_gain_collapse_G": {"type": "number"},
+                "advisory": {"type": "string"},
+            },
+            "description": "Critique humility penalty — how much Heart should lower its confidence",
+        },
     },
 }
 
@@ -170,6 +833,18 @@ For each risk found, cite the specific floor (L01–L13) that applies.
 Determine overall risk_tier (GREEN/AMBER/RED/CRITICAL).
 Set human_decision_required=true for HIGH/CRITICAL/IRREVERSIBLE risks.
 Assess empathy_score (L06) and weakest_stakeholder burden (L05/L06).
+
+If this is a META-CRITIQUE (trace_recursion_depth > 0):
+  - You are critiquing a PRIOR CRITIQUE, not the original target.
+  - Assess whether the prior critique was: fair, proportionate, complete.
+  - Did it miss a stakeholder? Overstate a risk? Understate a harm?
+  - Is it performative rather than substantive?
+  - Apply the SAME standards to the prior critique that you would to any action.
+
+Include stakeholder_impacts[] with per-stakeholder assessment.
+Estimate critique_confidence [0.03–0.90] and confidence_band.
+List residual_uncertainties[] for what you still cannot judge.
+Set fresh_evidence_required=true if evidence is too stale to critique fairly.
 Return JSON matching the schema exactly.""",
     "simulate": """Simulate a what-if scenario where this action is executed.
 Project at least 3 distinct outcomes (best, expected, worst).
@@ -889,16 +1564,28 @@ async def arif_heart_critique(
     session_id: str | None = None,
     context_type: str | None = None,
     trace_recursion_depth: int = 0,
+    fractal_auto: bool = True,
 ) -> dict[str, Any]:
     """
-    666_HEART: Constitutional ethical critique and risk assessment.
+    666_HEART v3.2: Constitutional ethical critique with fractal recursion.
+
+    FRACTAL CRITIQUE (v3.2):
+      Level 0 (N=1): Critique the TARGET ACTION → TRUTH row
+      Level 1 (N=2): Critique the Level-0 CRITIQUE → CLARITY row
+      Level 2 (N=3): Critique the META-CRITIQUE → HUMILITY row
+      Beyond N=3: RECURSION_DEPTH_CLAMPED → deterministic fallback
+
+      MIN_TRUST RULE: The most conservative level sets the final risk tier.
+      A Level-0 CRITICAL cannot be softened by meta-critique — it stands,
+      but the meta-critique's calibration notes are preserved as caveats.
+
+      The fractal IS the constitutional answer to "who critiques the critic?"
 
     Tier 1: SEA-LION LLM inference
     Tier 2: Ollama local fallback
     Tier 3: Deterministic keyword-based fallback
 
     777_WITNESS: All LLM output returns via LLMOutputEnvelope.
-    Tool result includes _envelope metadata for downstream judge/vault.
 
     Modes:
       critique   — Full risk analysis across 8 constitutional categories
@@ -910,11 +1597,10 @@ async def arif_heart_critique(
       summary    — Condensed risk scorecard
 
     Args:
-        context_type: Controls risk threshold scaling:
-            - "internal_audit" — more permissive thresholds
-            - "external_action" — standard thresholds (default)
-        trace_recursion_depth: current recursion depth in the call chain.
-                               If depth > 2, fallback is forced (Eureka 2026-05-21).
+        context_type: Controls risk threshold scaling.
+        trace_recursion_depth: Manual recursion depth override (0 = auto).
+        fractal_auto: If True, automatically run fractal recursion for
+                      critique mode when risk_tier >= AMBER.
     """
     _ct = context_type or "external_action"
     is_internal = _ct == "internal_audit"
@@ -922,26 +1608,141 @@ async def arif_heart_critique(
     # Recursion clamp (Eureka 2026-05-21)
     if trace_recursion_depth > 2:
         return _heart_fallback(
-            mode=mode,
-            target=target or "",
-            context_type=_ct,
-            trace_recursion_depth=trace_recursion_depth,
+            mode=mode, target=target or "",
+            context_type=_ct, trace_recursion_depth=trace_recursion_depth,
         )
 
+    # ── Determine whether fractal critique applies ──
+    # Fractal recursion is most valuable for critique/redteam modes where
+    # Heart's own bias could distort the assessment. Simulate/empathize/
+    # maruah are single-pass by design — their outputs are narrower.
+    fractal_modes = {"critique", "redteam"}
+    use_fractal = fractal_auto and mode in fractal_modes and trace_recursion_depth == 0
+
+    # ── Level 0: Primary critique (TRUTH row) ──
     try:
         result = await _heart_with_llm(
-            mode=mode,
-            target=target,
-            session_id=session_id,
-            actor_id=actor_id,
-            context_type=_ct,
-            trace_recursion_depth=trace_recursion_depth,
+            mode=mode, target=target,
+            session_id=session_id, actor_id=actor_id,
+            context_type=_ct, trace_recursion_depth=0,
         )
-        # If LLM returned an error envelope (all tiers exhausted), use fallback
         if result.get("error") and "LLM_UNAVAILABLE" in str(result.get("status", "")):
             result = _heart_fallback(mode=mode, target=target or "", context_type=_ct)
     except LLMUnavailableError:
         result = _heart_fallback(mode=mode, target=target or "", context_type=_ct)
+
+    # Validate critical fields present — LLM may return partial output on rate limit
+    if "risks_found" not in result or not isinstance(result.get("risks_found"), list):
+        logger.warning("666_HEART LLM result missing 'risks_found' — falling back to deterministic")
+        result = _heart_fallback(mode=mode, target=target or "", context_type=_ct)
+
+    # Inject Level-0 paradox anchor (TRUTH row)
+    stage0 = _fractal_critique_stage(0)
+    result = _inject_heart_paradox(
+        result, trigger_context=f"primary_{mode}_on_{str(target)[:100]}",
+        recursion_depth=0, state_changed=True,
+    )
+
+    # ── Fractal Recursion (if applicable) ──
+    fractal_results = [result]
+    anchor_hits: list[dict] = []
+    if result.get("paradox_anchor"):
+        anchor_hits.append({
+            "quote_id": result["paradox_anchor"]["quote_id"],
+            "matrix_cell": result["paradox_anchor"]["matrix_cell"],
+            "recursion_depth": 0,
+        })
+
+    risk_tier = result.get("risk_tier", "GREEN")
+
+    if use_fractal and risk_tier in ("AMBER", "RED", "CRITICAL"):
+        # Only recurse if risk is non-trivial — GREEN doesn't need meta-critique
+        max_fractal_depth = 3
+        prev_result = result
+        fractal_dry = 0
+
+        for depth in range(1, max_fractal_depth):
+            if fractal_dry >= 2:
+                break  # Two consecutive levels with no gain → stop
+
+            stage = _fractal_critique_stage(depth)
+            if stage["stage"] == "recursion_clamped":
+                break
+
+            # Build meta-critique target from prior critique
+            prev_summary = json.dumps({
+                "prior_risks": prev_result.get("risks_found", []),
+                "prior_tier": prev_result.get("risk_tier"),
+                "prior_empathy": prev_result.get("empathy_score"),
+                "prior_dignity": prev_result.get("dignity_score"),
+                "prior_weakest": prev_result.get("weakest_stakeholder"),
+                "prior_verdict": prev_result.get("action_risk_verdict"),
+            }, default=str)
+
+            meta_target = (
+                f"META-CRITIQUE LEVEL {depth}: Critique the following Heart critique. "
+                f"The original target was: {target}\n\n"
+                f"PRIOR CRITIQUE OUTPUT:\n{prev_summary}\n\n"
+                f"LENS: {stage['lens']} row — {stage['question']}"
+            )
+
+            try:
+                meta_result = await _heart_with_llm(
+                    mode="critique", target=meta_target,
+                    session_id=session_id, actor_id=actor_id,
+                    context_type=_ct, trace_recursion_depth=depth,
+                )
+            except LLMUnavailableError:
+                meta_result = _heart_fallback(
+                    mode="critique", target=meta_target,
+                    context_type=_ct, trace_recursion_depth=depth,
+                )
+
+            # Inject paradox anchor for this recursion level
+            meta_result = _inject_heart_paradox(
+                meta_result,
+                trigger_context=f"fractal_recursion_L{depth}_{stage['lens']}",
+                recursion_depth=depth, state_changed=True,
+            )
+            if meta_result.get("paradox_anchor"):
+                anchor_hits.append({
+                    "quote_id": meta_result["paradox_anchor"]["quote_id"],
+                    "matrix_cell": meta_result["paradox_anchor"]["matrix_cell"],
+                    "recursion_depth": depth,
+                })
+
+            # Check fractal stabilization gain
+            G_f = _fractal_stabilization_gain(prev_result, meta_result)
+            meta_result["_fractal_gain"] = G_f
+
+            if G_f <= 0:
+                fractal_dry += 1
+            else:
+                fractal_dry = 0
+
+            fractal_results.append(meta_result)
+            prev_result = meta_result
+
+        # ── Merge fractal results with MIN_TRUST rule ──
+        result = _merge_fractal_results(fractal_results, anchor_hits, max_fractal_depth)
+
+    else:
+        # Single-pass: attach fractal metadata to result
+        result["recursion_depth_used"] = 0
+        result["fractal_stabilized"] = True  # N/A for single pass
+        result["anchor_hits"] = anchor_hits
+        result["critique_confidence"] = round(
+            max(0.03, min(0.90, 1.0 - (
+                {"GREEN": 0, "AMBER": 0.2, "RED": 0.4, "CRITICAL": 0.6}.get(risk_tier, 0)
+            ))), 3
+        )
+        result["confidence_band"] = (
+            "high" if risk_tier == "GREEN"
+            else "moderate" if risk_tier == "AMBER"
+            else "low" if risk_tier == "RED"
+            else "minimal"
+        )
+        result["fresh_evidence_required"] = risk_tier in ("RED", "CRITICAL")
 
     # ── Internal audit context scaling ──
     if is_internal:
@@ -951,6 +1752,16 @@ async def arif_heart_critique(
         if result.get("risk_tier") == "RED":
             result["risk_tier"] = "AMBER"
             result["human_decision_required"] = False
+
+    # ── Humility penalty computation ──
+    used_depth = result.get("recursion_depth_used", 0)
+    humility = _compute_critique_humility_penalty(result, used_depth)
+    result["humility_penalty"] = humility
+    # Adjust critique_confidence by humility penalty
+    if "critique_confidence" in result:
+        result["critique_confidence"] = round(
+            max(0.03, result["critique_confidence"] - humility["U_H"] * 0.5), 3
+        )
 
     # ── C_dark + Graded Uncertainty State (Ω₀/Ω₁/Ω₂) ──
     omega_state = _compute_omega_state(result, target or "")
@@ -972,15 +1783,14 @@ async def arif_heart_critique(
         ]
 
     # ── Final Verdict Logic ──
-    # Top-level 'verdict' is the EXECUTION status (the tool ran successfully)
-    # 'action_risk_verdict' is the actual ethical judgment of the proposed action
-    # CHAOS FIX (Eureka 2026-05-26): Never SEAL when LLM unavailable or schema invalid.
     llm_ok = result.get("_llm_available", True) is not False
     schema_ok = result.get("schema_valid", True) is not False
     is_fallback = result.get("_llm_available") is False
     result["execution_verdict"] = "SEAL" if (llm_ok and schema_ok) else "DEGRADED_FALLBACK"
     if is_fallback:
-        result["degraded_reason"] = "FALLBACK_ONLY: LLM unavailable — no actual critique performed"
+        result["degraded_reason"] = (
+            "FALLBACK_ONLY: LLM unavailable — no actual critique performed"
+        )
         result["do_not_treat_as_seal"] = True
     result["action_risk_verdict"] = result.get("status", "HOLD")
 
@@ -994,6 +1804,10 @@ async def arif_heart_critique(
                 "DIGNIFIED" if d_score >= 0.8 else "STRESSED" if d_score >= 0.5 else "BREACH"
             ),
         }
+
+    # ── RASA HEART: Applied externally by the wiring wrapper ──────────────
+    # No kernel-level rasa critique. The rasa detection hooks are applied
+    # via monkey-patching in the wiring module when active.
 
     return result
 

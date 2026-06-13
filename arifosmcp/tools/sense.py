@@ -1,15 +1,40 @@
 """
-arifosmcp/tools/sense.py — 111_SENSE (Reality-Wired)
+arifosmcp/tools/sense.py — 111_SENSE v3 (Reality-Wired)
 ═══════════════════════════════════════════════════════════════
 
-Reality-grounded observation and telemetry, wired to RealityHandler
-for live web search (Brave → DDGS fallback) and URL fetch with
-browserless render fallback.
+Reality-grounded observation and agentic sensing — the epistemic actuator
+that converts uncertainty into planned sensing trajectories under budget,
+policy, and dignity constraints.
 
-QUANTUM SABAR PROTOCOL:
-  Byzantine continuity when W1 (human/singular) or W3 (Earth/plural)
-  is unreachable. Partition handling: if witness is unreachable within
-  timeout, route to PURGATORY_LEDGER instead of hanging.
+TRINITY FLOW (v3):
+  Sense is the eye that moves on purpose. It sits between Memory ("what is
+  already known"), Mind ("what can be inferred"), and Judge ("what may be
+  authorized"). Sense answers: "what should we look at next, how, and why?"
+
+  Memory ──coverage gaps──→ SENSE ←──NEED_EVIDENCE── Mind
+                              │
+                              ▼
+                         SENSE_PLAN → OBSERVATION_PACKET → Memory (store)
+                              │                              │
+                              └──────── Judge (authorize) ←──┘
+
+THREE SUBMODES:
+  A. Recall-first sensing  — ask Memory first, escalate to active if stale
+  B. External agentic search — decompose, search, fetch, verify, replan
+  C. Active sensing — probe environment (logs, metrics, screen, DOM)
+
+FIVE LAYERS:
+  1. Trigger — NEED_EVIDENCE, low coverage, stale memory, operator request
+  2. Plan — decompose query, estimate VOI, select sources, set budget
+  3. Select — route to web/repo/graph/API/vision based on plan
+  4. Verify — provenance, freshness, conflict check, sufficiency grade
+  5. Emit — OBSERVATION_PACKET, SENSE_PLAN, SENSE_GAP (never verdict)
+
+STOP RULES:
+  Stop when: coverage ≥ τ_c, trust ≥ τ_t, VOI ≤ τ_v, or budget exhausted.
+
+PARADOX ANCHORS (v3): 9 anchors in 3×3 matrix, completing the 4-organ system:
+  Sense + Memory + Mind + Judge = 36 anchors across the constitutional matrix.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -26,8 +51,379 @@ from arifosmcp.runtime.reality_handlers import handler as reality_handler
 from arifosmcp.runtime.reality_models import BundleInput
 from arifosmcp.runtime.session_auth import validate_session
 from arifosmcp.runtime.tools import _hold, _ok, _sabar
+from arifosmcp.paradox import register_organ, build_organ_anchors
 
 logger = logging.getLogger(__name__)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# RASA DETECTION — External (applied via monkey-patching when enabled)
+# ═══════════════════════════════════════════════════════════════════════════════
+# NO kernel-level rasa imports. Rasa detection is applied externally via
+# the wiring module at arifosmcp/rasa/ when wiring is active.
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PARADOX ANCHORS — 3×3 Orthogonal Matrix for Sense
+# ═══════════════════════════════════════════════════════════════════════════════
+# Completes the 4-organ system: Sense + Memory + Mind + Judge = 36 anchors.
+# Rows: TRUTH / CLARITY / HUMILITY   Columns: CARE / PEACE / JUSTICE
+# Each anchor separates QUOTE (verified) from BINDING (firing policy).
+# ═══════════════════════════════════════════════════════════════════════════════
+
+SENSE_PARADOX_ANCHORS: list[dict] = [
+    # ── TRUTH ROW ──────────────────────────────────────────────────────────────
+    {
+        "id": "S_TxC", "matrix_cell": "truth_care", "matrix_row": "TRUTH", "matrix_col": "CARE",
+        "motto_binding": "DIKAJI, BUKAN DISUAPI",
+        "quote": {
+            "text": "In God we trust; all others bring data.",
+            "author": "W. Edwards Deming",
+            "work": "Attributed — quality management principle",
+            "year": "c. 1980s",
+            "verification_level": "traditional_attribution",
+        },
+        "antithesis": "But data is not truth — it is measured reality through a specific instrument under specific conditions. The map is not the territory.",
+        "axis": "evidence vs. truth",
+        "binding": {
+            "event": "search_launched",
+            "trigger": "external search initiated — evidence must be grounded, not assumed",
+            "effect": "attach_provenance_requirement",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "sense",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "S_TxP", "matrix_cell": "truth_peace", "matrix_row": "TRUTH", "matrix_col": "PEACE",
+        "motto_binding": "DIJELASKAN, BUKAN DIKABURKAN",
+        "quote": {
+            "text": "The first principle is that you must not fool yourself — and you are the easiest person to fool.",
+            "author": "Richard Feynman",
+            "work": "Cargo Cult Science, Caltech commencement address",
+            "year": "1974",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "Complete self-skepticism paralyzes observation — you must trust your instruments enough to look, while doubting enough to verify.",
+        "axis": "self-skepticism vs. observational trust",
+        "binding": {
+            "event": "observation_normalized",
+            "trigger": "raw observation normalized into claim — verify before trusting",
+            "effect": "require_corroboration",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "sense",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "S_TxJ", "matrix_cell": "truth_justice", "matrix_row": "TRUTH", "matrix_col": "JUSTICE",
+        "motto_binding": "DISEDARKAN, BUKAN DIYAKINKAN",
+        "quote": {
+            "text": "What I cannot create, I do not understand.",
+            "author": "Richard Feynman",
+            "work": "Written on his blackboard at Caltech at time of death",
+            "year": "1988",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "But sensing is not creating — you can observe what you cannot build. Observation precedes construction; construction confirms observation.",
+        "axis": "observation vs. understanding",
+        "binding": {
+            "event": "observation_packet_emitted",
+            "trigger": "observation complete — observation ≠ understanding, Mind must still reason",
+            "effect": "annotate_observation_not_conclusion",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "cross_organ",
+        "norm": "WAJIB",
+    },
+    # ── CLARITY ROW ────────────────────────────────────────────────────────────
+    {
+        "id": "S_CxC", "matrix_cell": "clarity_care", "matrix_row": "CLARITY", "matrix_col": "CARE",
+        "motto_binding": "DIJELAJAH, BUKAN DISEKATI",
+        "quote": {
+            "text": "The important thing is not to stop questioning. Curiosity has its own reason for existing.",
+            "author": "Albert Einstein",
+            "work": "Statement to William Miller, LIFE magazine",
+            "year": "1955",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "Curiosity without budget is chaos — the sensing system must stop questioning when the expected gain falls below the cost of asking.",
+        "axis": "curiosity vs. discipline",
+        "binding": {
+            "event": "replan_loop",
+            "trigger": "sensing replan triggered — curiosity is engine, budget is brake",
+            "effect": "check_voi_before_replan",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "neutral",
+        "authority_scope": "sense",
+        "norm": "HARUS",
+    },
+    {
+        "id": "S_CxP", "matrix_cell": "clarity_peace", "matrix_row": "CLARITY", "matrix_col": "PEACE",
+        "motto_binding": "DIHADAPI, BUKAN DITANGGUHI",
+        "quote": {
+            "text": "We don't see things as they are, we see them as we are.",
+            "author": "Anaïs Nin",
+            "work": "Seduction of the Minotaur",
+            "year": "1961",
+            "verification_level": "verified_exact",
+        },
+        "antithesis": "But instruments see differently than humans — the whole point of sensing is to escape the limitations of the observer. Triangulate across instruments.",
+        "axis": "observer bias vs. instrumental objectivity",
+        "binding": {
+            "event": "single_source_observation",
+            "trigger": "only one source found — single-perspective risk",
+            "effect": "flag_single_source_and_request_triangulation",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "sense",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "S_CxJ", "matrix_cell": "clarity_justice", "matrix_row": "CLARITY", "matrix_col": "JUSTICE",
+        "motto_binding": "DIUSAHAKAN, BUKAN DIHARAPI",
+        "quote": {
+            "text": "It is the mark of an educated mind to be able to entertain a thought without accepting it.",
+            "author": "Aristotle",
+            "work": "Nicomachean Ethics (paraphrase tradition)",
+            "year": "4th century BCE",
+            "verification_level": "traditional_attribution",
+            "translation_note": "Widely attributed; exact wording varies across translations of Metaphysics and NE.",
+        },
+        "antithesis": "Entertaining a thought indefinitely without accepting or rejecting it is the refusal to sense — observation must eventually settle into a claim, even if tentative.",
+        "axis": "openness vs. closure",
+        "binding": {
+            "event": "sufficiency_grading",
+            "trigger": "observation sufficiency graded — enough observation to claim, or must keep looking?",
+            "effect": "grade_and_decide",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "neutral",
+        "authority_scope": "cross_organ",
+        "norm": "HARUS",
+    },
+    # ── HUMILITY ROW ───────────────────────────────────────────────────────────
+    {
+        "id": "S_HxC", "matrix_cell": "humility_care", "matrix_row": "HUMILITY", "matrix_col": "CARE",
+        "motto_binding": "DIJAGA, BUKAN DIABAIKAN",
+        "quote": {
+            "text": "The greatest enemy of knowledge is not ignorance, it is the illusion of knowledge.",
+            "author": "Stephen Hawking",
+            "work": "Attributed — widely cited public statement",
+            "year": "c. 1990s",
+            "verification_level": "traditional_attribution",
+        },
+        "antithesis": "But the illusion of ignorance is also dangerous — refusing to observe because you think you know nothing is as paralyzing as observing because you think you know everything.",
+        "axis": "illusion of knowledge vs. illusion of ignorance",
+        "binding": {
+            "event": "coverage_check",
+            "trigger": "pre-search coverage check — don't search if memory already knows, but don't assume memory is complete",
+            "effect": "check_memory_first_then_decide",
+        },
+        "severity_on_fire": "warn",
+        "risk_bias": "conservative",
+        "authority_scope": "cross_organ",
+        "norm": "WAJIB",
+    },
+    {
+        "id": "S_HxP", "matrix_cell": "humility_peace", "matrix_row": "HUMILITY", "matrix_col": "PEACE",
+        "motto_binding": "DIDAMAIKAN, BUKAN DIPANASKAN",
+        "quote": {
+            "text": "It is better to know some of the questions than all of the answers.",
+            "author": "James Thurber",
+            "work": "Attributed — American humorist",
+            "year": "c. 1940s",
+            "verification_level": "traditional_attribution",
+        },
+        "antithesis": "But governance requires answers, not questions — Sense must eventually produce observations that can ground decisions, not just a longer list of unknowns.",
+        "axis": "questions vs. answers",
+        "binding": {
+            "event": "gap_report_emitted",
+            "trigger": "SENSE_GAP emitted — acknowledge unknowns but don't celebrate them",
+            "effect": "annotate_gap_with_next_action",
+        },
+        "severity_on_fire": "info",
+        "risk_bias": "neutral",
+        "authority_scope": "sense",
+        "norm": "SUNAT",
+    },
+    {
+        "id": "S_HxJ", "matrix_cell": "humility_justice", "matrix_row": "HUMILITY", "matrix_col": "JUSTICE",
+        "motto_binding": "DITEMPA, BUKAN DIBERI",
+        "quote": {
+            "text": "Measure what is measurable, and make measurable what is not so.",
+            "author": "Galileo Galilei",
+            "work": "Attributed — paraphrase of principles from The Assayer and other works",
+            "year": "c. 1623",
+            "verification_level": "traditional_attribution",
+        },
+        "antithesis": "Not everything that matters can be measured — dignity, justice, and truth resist quantification. Sense must observe what it can and name what it cannot.",
+        "axis": "measurability vs. meaning",
+        "binding": {
+            "event": "sensing_complete",
+            "trigger": "sensing cycle complete — what was measured and what remains unmeasurable",
+            "effect": "report_measured_and_unmeasurable",
+        },
+        "severity_on_fire": "info",
+        "risk_bias": "neutral",
+        "authority_scope": "sense",
+        "norm": "SUNAT",
+    },
+]
+
+_SENSE_BY_CELL: dict[str, dict] = {a["matrix_cell"]: a for a in SENSE_PARADOX_ANCHORS}
+_SENSE_BY_ID: dict[str, dict] = {a["id"]: a for a in SENSE_PARADOX_ANCHORS}
+
+# ── Register with global paradox registry (Phase 1 wiring) ──────────────────
+_sense_anchors = build_organ_anchors("sense", SENSE_PARADOX_ANCHORS)
+_sense_registry = register_organ("sense", _sense_anchors)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AGENTIC SEARCH PLANNER — VOI-Driven Sensing
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _agentic_search_plan(
+    need_evidence: dict | None = None,
+    prior_coverage: float = 0.0,
+    prior_trust: float = 0.0,
+    budget_steps: int = 4,
+) -> dict:
+    """
+    Build an agentic sensing plan from NEED_EVIDENCE or query context.
+
+    This is the planner layer — converts "we need to know X" into
+    "look at Y using tool Z, stop when conditions met."
+
+    Returns SENSE_PLAN dict with subquestions, candidate tools, budget,
+    and stop conditions. Does NOT execute — that's the router's job.
+    """
+    query = ""
+    urgency = "MEDIUM"
+    required_quality = 0.7
+
+    if need_evidence and isinstance(need_evidence, dict):
+        topics = need_evidence.get("topics", [])
+        query = topics[0].get("topic", "") if topics else ""
+        urgency = need_evidence.get("urgency", "MEDIUM")
+        required_quality = need_evidence.get("min_trust", 0.7)
+
+    # ── Decompose query into subquestions ──
+    subquestions = []
+    if query:
+        subquestions.append({"id": "sq1", "text": f"What is the ground truth about: {query[:120]}?"})
+        subquestions.append({"id": "sq2", "text": f"What sources are authoritative for: {query[:120]}?"})
+        if urgency == "HIGH":
+            subquestions.append({"id": "sq3", "text": "Are there contradictory claims that need triangulation?"})
+
+    # ── VOI estimate: is sensing worth it? ──
+    coverage_gap = max(0.0, required_quality - prior_coverage)
+    trust_gap = max(0.0, required_quality - prior_trust)
+    voi = round(0.5 * coverage_gap + 0.3 * trust_gap + 0.2 * (1.0 if urgency == "HIGH" else 0.5), 3)
+
+    # ── Select candidate tools ──
+    candidate_tools = ["memory"]  # always check memory first
+    if voi > 0.3:
+        candidate_tools.append("web")
+    if "repo" in query.lower() or "code" in query.lower() or "file" in query.lower():
+        candidate_tools.append("repo")
+    if "log" in query.lower() or "metrics" in query.lower() or "health" in query.lower():
+        candidate_tools.append("inspect")
+
+    # ── Budget and stop conditions ──
+    max_steps = budget_steps
+    if urgency == "HIGH":
+        max_steps = min(budget_steps + 2, 8)
+    elif urgency == "LOW":
+        max_steps = max(budget_steps - 1, 1)
+
+    stop_conditions = [
+        f"coverage >= {required_quality}",
+        f"trust >= {required_quality}",
+        f"voi <= 0.05",
+        f"budget_exhausted: steps >= {max_steps}",
+    ]
+
+    plan = {
+        "type": "SENSE_PLAN",
+        "goal": f"Reduce uncertainty about: {query[:200]}" if query else "General sensing",
+        "subquestions": subquestions,
+        "candidate_tools": candidate_tools,
+        "voi_estimate": voi,
+        "budget": {
+            "max_steps": max_steps,
+            "current_step": 0,
+        },
+        "stop_conditions": stop_conditions,
+        "prior_state": {
+            "coverage_before": prior_coverage,
+            "trust_before": prior_trust,
+        },
+    }
+
+    # ── Attach paradox anchor ──
+    if voi < 0.1:
+        plan["paradox_hint"] = "S_HxC"  # Hawking: illusion of knowledge — memory might be enough
+    elif urgency == "HIGH":
+        plan["paradox_hint"] = "S_TxC"  # Deming: bring data — urgent gap demands evidence
+
+    return plan
+
+
+def _grade_sensing_sufficiency(
+    observations: list[dict],
+    prior_coverage: float,
+    prior_trust: float,
+    required_quality: float = 0.7,
+) -> dict:
+    """
+    Grade whether sensing has gathered enough evidence.
+
+    Returns {sufficient: bool, coverage_delta, trust_delta, recommendation}.
+    """
+    if not observations:
+        return {
+            "sufficient": False,
+            "coverage_delta": 0.0,
+            "trust_delta": 0.0,
+            "recommendation": "REPLAN",
+            "paradox_hint": "S_HxP",  # Thurber: better to know questions than all answers
+        }
+
+    # Compute post-sensing metrics
+    trust_scores = [o.get("trust", 0.5) for o in observations if isinstance(o, dict)]
+    avg_trust = sum(trust_scores) / len(trust_scores) if trust_scores else 0.5
+    source_count = len(set(o.get("source_type", "unknown") for o in observations if isinstance(o, dict)))
+
+    # Coverage: simple heuristic — more sources = broader coverage
+    coverage_gain = min(source_count * 0.15, 0.4)
+    new_coverage = min(prior_coverage + coverage_gain, 1.0)
+    trust_gain = max(0.0, avg_trust - prior_trust)
+
+    sufficient = new_coverage >= required_quality and avg_trust >= required_quality
+
+    # Paradox anchor for sufficiency decision
+    paradox_hint = None
+    if not sufficient and source_count == 1:
+        paradox_hint = "S_CxP"  # Nin: single perspective — need triangulation
+    elif sufficient:
+        paradox_hint = "S_HxJ"  # Galileo: measure what is measurable — cycle complete
+
+    return {
+        "sufficient": sufficient,
+        "coverage_after": round(new_coverage, 3),
+        "trust_after": round(avg_trust, 3),
+        "coverage_delta": round(coverage_gain, 3),
+        "trust_delta": round(trust_gain, 3),
+        "source_count": source_count,
+        "recommendation": "STOP" if sufficient else "REPLAN",
+        "paradox_hint": paradox_hint,
+    }
 
 
 def _calculate_discovery_physics(
@@ -190,6 +586,14 @@ def arif_sense_observe(
             return _hold("arif_sense_observe", auth["reason"], ["L11"], session_id=session_id)
 
     q = query or url or ""
+
+    # ── RASA DETECTION: Applied externally by the wiring wrapper ────────────
+    # No kernel-level rasa detection. The rasa detection hooks are applied
+    # via monkey-patching in the wiring module when active.
+
+    def _inject_rasa(result: dict) -> dict:
+        """Placeholder — rasa injection is done by the wiring wrapper."""
+        return result
 
     if mode == "compass":
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
@@ -521,7 +925,7 @@ def arif_sense_observe(
 
         return _ok(
             "arif_sense_observe",
-            {
+            _inject_rasa({
                 "status": "OK",
                 "tool": "arif_sense_observe",
                 "mode": "hybrid_discovery",
@@ -558,7 +962,7 @@ def arif_sense_observe(
                 "next_safe_action": next_safe_action,
                 "contradictions": contradictions,
                 "unknowns": unknowns,
-            },
+            }),
         )
 
     if mode == "search":
@@ -580,7 +984,7 @@ def arif_sense_observe(
             omega_0 = 0.05 + min(len(results) * 0.02, 0.20)
             return _ok(
                 "arif_sense_observe",
-                {
+                _inject_rasa({
                     "query": query,
                     "results": results,
                     "source": s_res.engine,
@@ -589,13 +993,13 @@ def arif_sense_observe(
                     "partition": "ONLINE",
                     "latency_ms": round(s_res.latency_ms, 1),
                     "note": None if results else "No results — check query or API keys",
-                },
+                }),
             )
         except Exception as e:
             logger.warning(f"RealityHandler failure in arif_sense_observe ({mode}): {e}")
             return _ok(
                 "arif_sense_observe",
-                {
+                _inject_rasa({
                     "query": query,
                     "results": [],
                     "source": "fallback_stub",
@@ -603,7 +1007,7 @@ def arif_sense_observe(
                     "omega_0": 0.04,
                     "partition": "ONLINE",
                     "note": f"RealityHandler fallback failed: {e}",
-                },
+                }),
             )
 
     if mode == "ingest" and url:
@@ -619,7 +1023,7 @@ def arif_sense_observe(
             )
             return _ok(
                 "arif_sense_observe",
-                {
+                _inject_rasa({
                     "url": url,
                     "ingested": bundle.status.state == "SUCCESS",
                     "bundle_id": bundle.id,
@@ -628,19 +1032,19 @@ def arif_sense_observe(
                     "results_count": len(bundle.results),
                     "partition": "ONLINE",
                     "errors": [{"code": e.code, "detail": e.detail} for e in bundle.status.errors],
-                },
+                }),
             )
         except Exception as e:
             logger.warning(f"RealityHandler failure in arif_sense_observe ({mode}): {e}")
             return _ok(
                 "arif_sense_observe",
-                {
+                _inject_rasa({
                     "url": url,
                     "ingested": False,
                     "verdict": "SABAR",
                     "partition": "ONLINE",
                     "note": f"RealityHandler fallback failed: {e}",
-                },
+                }),
             )
 
     if mode == "compass":
