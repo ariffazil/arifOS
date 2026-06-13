@@ -39,6 +39,7 @@ from typing import Any
 
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.llm_client import LLMUnavailableError
+from arifosmcp.runtime.mind_router import build_routing_envelope
 from arifosmcp.runtime.tools import _hold, _ok
 from arifosmcp.schemas.synthesis import Synthesis
 from arifosmcp.paradox import (
@@ -880,6 +881,15 @@ def arif_mind_reason(
 
     session_id = context.get("session_id") if context else None
 
+    # ── MIND ROUTING: complexity score + path recommendation ──
+    _routing = build_routing_envelope(
+        query=query or "",
+        mode=mode,
+        context=context,
+        session_id=session_id,
+        actor_id=actor_id,
+    )
+
     reason_result = _run_reasoning_sync(run_reasoning(query or "", mode, session_id, actor_id))
 
     # If v2 metabolic mode, handle the nested mind_packet structure
@@ -900,7 +910,8 @@ def arif_mind_reason(
                 "overall": float(raw_conf_v2.get("overall_confidence", raw_conf_v2.get("overall", 0.0))),
                 "label": str(raw_conf_v2.get("label", "low"))
             },
-            "next_safe_action": [a.get("tool") for a in packet.get("next_actions", [])] if isinstance(packet.get("next_actions"), list) else []
+            "next_safe_action": [a.get("tool") for a in packet.get("next_actions", [])] if isinstance(packet.get("next_actions"), list) else [],
+            "_mind_routing": _routing["_mind_routing"],
         }
         return Synthesis(**_ok("arif_mind_reason", bundle))
 
@@ -928,7 +939,8 @@ def arif_mind_reason(
             "overall": float(raw_conf.get("overall_confidence", raw_conf.get("overall", 0.0))),
             "label": str(raw_conf.get("label", "low"))
         },
-        "next_safe_action": reason_result.get("next_safe_action", []) if isinstance(reason_result.get("next_safe_action"), list) else []
+        "next_safe_action": reason_result.get("next_safe_action", []) if isinstance(reason_result.get("next_safe_action"), list) else [],
+        "_mind_routing": _routing["_mind_routing"],
     }
 
     if floor_verdict != "SEAL":

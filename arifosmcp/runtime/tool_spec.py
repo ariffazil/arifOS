@@ -242,9 +242,10 @@ TOOLS: tuple[ToolSpec, ...] = (
                         "merge",
                         "review",
                         "reflect",
+                        "plan",
                     ],
                     "default": "reason",
-                    "description": "Reasoning mode: reason=standard AGI pipeline, sequential=multi-step constitutional chain, step=add a step to existing session, branch=fork a reasoning path, merge=synthesize branches, review=export reasoning, reflect=self-critique.",
+                    "description": "Reasoning mode: reason=standard AGI pipeline, sequential=multi-step constitutional chain, step=add a step to existing session, branch=fork a reasoning path, merge=synthesize branches, review=export reasoning, reflect=self-critique, plan=probe structured steps for known hard prompts.",
                 },
                 "session_id": {
                     "type": "string",

@@ -24,6 +24,7 @@ from typing import Any
 
 from arifosmcp.memory.policy_engine import MemoryPolicyEngine
 from arifosmcp.memory.types import Authority, MemoryCandidate, MemoryType
+from arifosmcp.runtime.mind_router import mind_plan, MIND_USE_SEQUENTIAL
 from arifosmcp.tools.embodied import EmbodiedTool
 from arifosmcp.tools.memory import arif_memory_recall
 from arifosmcp.tools.reason import arif_mind_reason as _mind_reason_kernel
@@ -95,6 +96,19 @@ class ArifMindReasonEmbodied(EmbodiedTool):
         query = params.get("query")
         session_id = params.get("session_id")
         actor_id = params.get("actor_id")
+
+        # ── PLAN PROBE: mind.plan(task) → structured steps ──
+        if mode == "plan":
+            task_type = params.get("task_type", "debug_deploy_failure")
+            custom_query = params.get("query")
+            plan_result = mind_plan(
+                task_type=task_type,
+                custom_query=custom_query,
+            )
+            plan_result["session_id"] = session_id
+            plan_result["actor_id"] = actor_id
+            plan_result["feature_flag"] = MIND_USE_SEQUENTIAL
+            return plan_result
 
         if mode == "metabolize":
             from arifosmcp.runtime.mind_reason import arif_mind_reason_v2
