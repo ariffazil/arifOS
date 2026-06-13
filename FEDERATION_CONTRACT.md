@@ -171,7 +171,33 @@ The 7 Teras: Kejujuran, Maruah, Veto, Kesungguhan, Kerahasiaan, Keinsafan, Tebus
 
 ---
 
-## 11. Compliance
+## 11. The MCP Boundary (Exposure vs. Authority)
+
+**Use MCP for exposure. Use arifOS for authority.**
+
+MCP is an open standard that exposes capability, failure, schema, and invocation. It makes structural degradation visible. It does **not** produce trust. arifOS produces trust. 
+
+| Question                              |       Belongs to MCP? | Belongs to arifOS / L11 / governance? |
+| ------------------------------------- | --------------------: | ------------------------------------: |
+| What tools exist?                     |                   yes |                          audit mirror |
+| What schema do they expose?           |                   yes |                  contract attestation |
+| How are they invoked?                 |                   yes |                lease-gated invocation |
+| Who is allowed to invoke them?        |                    no |                                   yes |
+| What state survives?                  |                    no |                                   yes |
+| When does an agent stop?              |                    no |                                   yes |
+| Is a claim sealed?                    |                    no |                                   yes |
+| Is an organ constitutionally healthy? |                    no |                                   yes |
+| Should UI render through MCP?         | only descriptor/state |              actual shell outside MCP |
+
+**The permanent rule for all new components:**
+Does it need model-mediated invocation?
+- If yes, make it MCP-shaped.
+- If no, don’t. Make it a library, service, React view, database table, policy file, or build artifact. 
+*That prevents MCP from becoming identity.*
+
+---
+
+## 12. Compliance
 
 Every organ must:
 1. Point to this contract from its README (top 5 lines)

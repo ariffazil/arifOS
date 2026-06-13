@@ -718,6 +718,7 @@ docker push ghcr.io/ariffazil/arifos:latest
 | Federation Contract | `FEDERATION_CONTRACT.md` | Binding organ contract |
 | Federation Status | `FEDERATION_STATUS.md` | Live health matrix |
 | Kernel Canon | `GENESIS/000_KERNEL_CANON.md` | Root of all GENESIS numbering |
+| MCP Boundary | `GENESIS/009_MCP_BOUNDARY.md` | Exposure vs. Authority doctrine |
 | Constitution | `static/arifos/theory/000/000_CONSTITUTION.md` | F1-F13 full spec |
 | Adat Agentik | `docs/sovereign/three-layers.md` | Fiqh + Adat layer |
 | Decision Torus | `docs/sovereign/EUREKA-T-TORUS.md` | MIND_GEOMETRY spec |
