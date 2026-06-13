@@ -582,7 +582,7 @@ const <span class="key">agentCard</span> = await discovery.json();
         function connectWebMCP() {
             if (eventSource) eventSource.close();
 
-            eventSource = new EventSource(`${MCP_BASE_URL}/webmcp`);
+            eventSource = new EventSource(`${MCP_BASE_URL}/mcp`);
 
             eventSource.onopen = () => {
                 updateConnectionStatus(true);
