@@ -202,3 +202,9 @@ arifosmcp/ARIFOS_MCP_FINAL_SEAL.md
 
 # Temporary status docs
 docs/PHOENIX_*_STATUS.md
+
+# ── RSI / Forge ephemeral artifacts — regenerated on every entropy pass ──
+entropy-report.json
+
+# ── LSP cache (Serena) — local IDE state, not source ──
+.serena/

@@ -11,8 +11,8 @@ Forged 2026-06-02 18:41 UTC under F13 SOVEREIGN ratification.
 See docs/CORE_INVARIANTS.md and docs/VERDICT_SEMANTICS.md.
 """
 
-import os
 from __future__ import annotations
+import os
 
 import json
 from pathlib import Path

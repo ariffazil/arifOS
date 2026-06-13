@@ -12,8 +12,8 @@ See docs/CORE_INVARIANTS.md, docs/AUTHORITY_MODEL.md, and
 docs/VERDICT_SEMANTICS.md.
 """
 
-import os
 from __future__ import annotations
+import os
 
 import json
 from pathlib import Path

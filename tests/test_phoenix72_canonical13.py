@@ -11,8 +11,8 @@ Verifies:
 Ditempa Bukan Diberi — Forged, Not Given.
 """
 
-import os
 from __future__ import annotations
+import os
 
 import pytest
 
