@@ -55,6 +55,7 @@ def _alias_public_name(alias_name: str) -> str:
 # Diagnostic tools — reversible governance inspectors, not canonical constitutional tools.
 # These are the ONLY non-canonical tools that have live FastMCP handlers.
 DIAGNOSTIC_TOOLS: tuple[str, ...] = (
+    "arif_ping",
     "arif_stack_health_probe",
     "arif_scan_local_instructions",
     "arif_organ_consensus",

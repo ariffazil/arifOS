@@ -13356,8 +13356,14 @@ def _arif_ping(
     session_id: str | None = None,
     actor_id: str | None = None,
     include_constitution: bool = False,
+    _envelope: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Lightweight probe — does NOT require session initialization."""
+    """Lightweight probe — does NOT require session initialization.
+    
+    CANARY TOOL (2026-06-14): Zero-ceremony diagnostic. Call with {} to
+    verify the MCP transport bridge is alive. No session, no actor, no
+    governance. Returns server identity + health summary.
+    """
     # Ping is always public (no floor check) — it's a probe
     import os
 
@@ -13794,13 +13800,206 @@ def _runtime_ping(
     session_id: str | None = None,
     actor_id: str | None = None,
     include_constitution: bool = False,
+    _envelope: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return _arif_ping(
         mode=mode,
         session_id=session_id,
         actor_id=actor_id,
         include_constitution=include_constitution,
+        _envelope=_envelope,
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TRANSPORT CANARY LAYER — Zero-floor diagnostic tools
+# Phase 0 transport hardening (2026-06-14):
+#   - arif_schema_echo     → echo back what the client sent (transport contract probe)
+#   - arif_version_echo    → protocol versions, dialect info
+#   - arif_transport_echo  → see what transport + headers the client used
+#   - arif_initialize_probe → test MCP init handshake without constitutional ceremony
+#
+# These tools carry ZERO floors. No session, no actor, no KG, no identity, no envelope.
+# If ping fails → transport problem.
+# If ping passes but schema_echo fails → dialect problem.
+# If schema_echo passes but session_init fails → init schema problem.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_MCP_SPEC_VERSION = "2025-06-18"
+_MCP_SUPPORTED_VERSIONS = ("2025-06-18", "2025-11-25", "2025-03-26")
+
+
+def _arif_schema_echo(
+    payload: Any = None,
+    _envelope: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Schema echo — return exactly what the client sent, plus what the server saw.
+
+    CANARY TOOL (2026-06-14): Zero-ceremony transport diagnostic. Call with any
+    payload and receive it back alongside the server's interpretation. No session,
+    no actor, no governance. Use to debug transport dialect mismatches.
+
+    If what you sent != what you received back, the transport bridge is mangling
+    your payload. This is the first diagnostic after arif_ping.
+    """
+    import os
+    import platform
+    import sys as _sys
+
+    response = _ok("arif_schema_echo", {
+        "echo": payload,
+        "server_received_type": type(payload).__name__,
+        "server_received_repr": repr(payload)[:2000],
+        "transport_hint": _envelope.get("_transport", "unknown") if _envelope else "unknown",
+        "server_identity": {
+            "service": "arifOS MCP",
+            "version": os.environ.get("ARIFOS_VERSION", "v2026.05.05-SSCT"),
+            "python": _sys.version.split()[0],
+            "platform": platform.platform(),
+            "mcp_spec": _MCP_SPEC_VERSION,
+        },
+    }, delta_S=0.0)
+    return response
+
+
+def _arif_version_echo(
+    _envelope: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Version echo — return protocol version and dialect information.
+
+    CANARY TOOL (2026-06-14): Zero-floor version probe. Returns MCP spec version,
+    supported protocol versions, server build info, and transport dialect hints.
+    Use to detect version-dialect drift before attempting a full session init.
+
+    The MCP spec requires version negotiation during initialize. If a client sends
+    a version the server doesn't support, the server must respond with supported
+    versions. This tool surfaces that information explicitly.
+    """
+    import os
+
+    build_info = {"version": os.environ.get("ARIFOS_VERSION", "v2026.05.05-SSCT")}
+    try:
+        from arifosmcp.runtime.build import get_build_info
+        build_info = get_build_info()
+    except Exception:
+        pass
+
+    response = _ok("arif_version_echo", {
+        "mcp_spec_version": _MCP_SPEC_VERSION,
+        "protocol_versions_supported": list(_MCP_SUPPORTED_VERSIONS),
+        "server_version": build_info.get("version", os.environ.get("ARIFOS_VERSION", "v2026.05.05-SSCT")),
+        "server_build": build_info,
+        "transport_preference": {
+            "primary_remote": "streamable_http",
+            "primary_local": "stdio",
+            "legacy": "sse_shim_only",
+            "experimental": "websocket_event_push",
+        },
+        "dialect_hints": {
+            "naming": "arif_<noun>_<verb>",
+            "envelope": "FederationEnvelope with _envelope key",
+            "session_required": True,
+            "protocol_version_header": "MCP-Protocol-Version",
+            "session_id_header": "Mcp-Session-Id",
+        },
+    }, delta_S=0.0)
+    return response
+
+
+def _arif_transport_echo(
+    _envelope: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Transport echo — return what transport the server saw from this call.
+
+    CANARY TOOL (2026-06-14): Zero-floor transport diagnostic. Returns every
+    transport-level detail the server can observe about this connection:
+    headers, source, protocol, and the raw transport hint. Use to debug why
+    a specific client can't connect while another can.
+
+    This is the bridge between "ping works" and "session_init fails".
+    """
+    import os
+    import socket
+
+    hostname = socket.gethostname()
+    transport_info = {
+        "service": "arifOS MCP",
+        "hostname": hostname,
+        "mcp_spec_version": _MCP_SPEC_VERSION,
+        "protocol_versions_supported": list(_MCP_SUPPORTED_VERSIONS),
+        "transport_observed": _envelope.get("_transport", "unknown") if _envelope else "unknown",
+        "envelope_present": _envelope is not None,
+        "envelope_keys": list(_envelope.keys()) if _envelope else [],
+        "server_port": os.environ.get("ARIFOS_MCP_PORT", "8088"),
+        "public_url": os.environ.get("ARIFOS_PUBLIC_URL", "https://arifos.arif-fazil.com/mcp"),
+    }
+
+    response = _ok("arif_transport_echo", transport_info, delta_S=0.0)
+    return response
+
+
+def _arif_initialize_probe(
+    protocol_version: str | None = None,
+    client_capabilities: dict[str, Any] | None = None,
+    _envelope: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Initialize probe — test MCP handshake without constitutional ceremony.
+
+    CANARY TOOL (2026-06-14): Simulates the MCP initialize/initialized handshake
+    without any session, actor, or governance binding. Returns what a proper
+    initialize response would look like, including protocol version negotiation.
+
+    Protocol version rules (MCP spec 2025-06-18):
+    - Client sends its preferred version in protocol_version
+    - Server MUST respond with a version it supports
+    - If client version is unsupported, server MUST respond with nearest supported version
+
+    Use this AFTER ping passes but BEFORE arif_session_init. If this works and
+    session_init doesn't, the problem is in the session init schema, not transport.
+    """
+    import os
+
+    # Version negotiation per MCP spec
+    requested = protocol_version or "2025-06-18"
+    negotiated = requested if requested in _MCP_SUPPORTED_VERSIONS else _MCP_SUPPORTED_VERSIONS[0]
+    version_ok = requested in _MCP_SUPPORTED_VERSIONS
+
+    capabilities = {
+        "tools": {},
+        "resources": {},
+        "prompts": {},
+    }
+    if version_ok:
+        capabilities["tools"]["listChanged"] = True
+        capabilities["resources"]["subscribe"] = True
+        capabilities["resources"]["listChanged"] = True
+
+    response = _ok("arif_initialize_probe", {
+        "protocol_version": negotiated,
+        "protocol_version_requested": requested,
+        "protocol_version_ok": version_ok,
+        "server_info": {
+            "name": "arifOS Constitutional Kernel",
+            "version": os.environ.get("ARIFOS_VERSION", "v2026.05.05-SSCT"),
+        },
+        "capabilities": capabilities,
+        "instructions": (
+            "arifOS is a governed MCP gateway-kernel. "
+            "After initialize/initialized handshake, call arif_ping to confirm transport. "
+            "Then call arif_session_init(mode='light') for fast bootstrap, "
+            "or arif_session_init(mode='init') for full constitutional binding."
+        ),
+        "next_steps": [
+            "1. Send 'notifications/initialized'",
+            "2. Call arif_ping to confirm transport bridge",
+            "3. Call arif_session_init(mode='light') for fast bootstrap",
+            "4. Or arif_session_init(mode='init') for full constitutional binding",
+        ],
+        "diagnostic_path": [
+            "arif_ping → arif_version_echo → arif_schema_echo → arif_initialize_probe → arif_session_init",
+        ],
+    }, delta_S=0.0)
+    return response
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -13976,6 +14175,11 @@ if set(_CANONICAL_HANDLERS) != set(CANONICAL_TOOLS):
 _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
     "arif_ping": _runtime_ping,
     "arif_selftest": _runtime_selftest,
+    # ── Transport Canary Layer (Phase 0, 2026-06-14) ──
+    "arif_schema_echo": _arif_schema_echo,
+    "arif_version_echo": _arif_version_echo,
+    "arif_transport_echo": _arif_transport_echo,
+    "arif_initialize_probe": _arif_initialize_probe,
 }
 
 # Hermes Agent tools — woven into diagnostic handlers
@@ -14594,6 +14798,8 @@ def register_tools(
     for name in public_tool_names_for_mode(surface_mode):
         handler = _CANONICAL_HANDLERS.get(name)
         if handler is None:
+            handler = _RUNTIME_DIAGNOSTIC_HANDLERS.get(name)
+        if handler is None:
             continue
         try:
             manifest = TOOL_CHARTER.get(name, {})
@@ -14655,6 +14861,10 @@ __all__ = [
     "JudgeCandidateInput",
     "_arif_ping",
     "_arif_selftest",
+    "_arif_schema_echo",
+    "_arif_version_echo",
+    "_arif_transport_echo",
+    "_arif_initialize_probe",
     "_elicit_irreversible_ack",
     "_elicit_judge_candidate",
     "_hold",

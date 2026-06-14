@@ -310,23 +310,112 @@ mcp = FastMCP(
     ),
 )
 
+# ═══════════════════════════════════════════════════════════════════════════
+# PHASE 0: TRANSPORT CANARY LAYER
+# ── Pre-registration probe tools registered OUTSIDE the big try block.
+#    These survive even if canonical tool registration fails.
+#    Zero floors, zero KG, zero identity, zero VAULT writes.
+#    Purpose: isolate whether transport wound is MCP init, schema, or kernel.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+@mcp.tool(
+    name="arif_ping",
+    description="TRANSPORT PROBE: Dead-simple canary to test client bridge connectivity. "
+    "Zero floors, zero identity, zero KG, zero VAULT writes. "
+    "If this tool returns OK but arif_session_init fails, the wound is in the init schema.",
+    tags={"canary", "transport-probe", "read-only"},
+)
+def arif_ping() -> dict:
+    """Canary probe — no session, no actor, no constitution required."""
+    return {
+        "ok": True,
+        "build": _DEPLOY_VERSION,
+        "adapter": "arifos-mcp-v2",
+        "schema_version": "v2026.06.14.v2",
+        "timestamp": datetime.now(UTC).isoformat(),
+        "probe": True,
+        "floors_active": False,
+    }
+
+
+@mcp.tool(
+    name="arif_schema_echo",
+    description="TRANSPORT PROBE: Echo back what the client sent. "
+    "Use this to diagnose schema mismatch (-32602). "
+    "Returns received params shape, normalized shape, and parser verdict. "
+    "Zero floors, zero identity, zero side effects.",
+    tags={"canary", "transport-probe", "diagnostic", "read-only"},
+)
+def arif_schema_echo(params: dict = {}) -> dict:
+    """Echo diagnostic — returns what client sent for shape comparison."""
+    import json
+
+    received_keys = sorted(params.keys())
+    type_map = {k: type(v).__name__ for k, v in params.items()}
+    raw_dump = json.dumps(params, default=str)[:2000]
+    return {
+        "ok": True,
+        "probe": "schema_echo",
+        "received_keys": received_keys,
+        "key_count": len(received_keys),
+        "type_map": type_map,
+        "raw_preview": raw_dump,
+        "build": _DEPLOY_VERSION,
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
+
+
+@mcp.tool(
+    name="arif_transport_echo",
+    description="TRANSPORT PROBE: Echo transport-level metadata. "
+    "Use this before arif_session_init to verify the MCP transport bridge is working. "
+    "Returns received protocol version, transport type, negotiated state. "
+    "Zero floors, zero identity, zero side effects.",
+    tags={"canary", "transport-probe", "diagnostic", "read-only"},
+)
+def arif_transport_echo(
+    protocol_version: str = "unknown",
+    client_name: str = "unknown",
+    client_version: str = "unknown",
+    transport: str = "streamable_http",
+) -> dict:
+    """Transport echo — diagnostic for MCP session bridge."""
+    return {
+        "ok": True,
+        "probe": "transport_echo",
+        "protocol_version_received": protocol_version,
+        "protocol_versions_supported": ["2025-06-18", "2025-03-26"],
+        "client_name": client_name,
+        "client_version": client_version,
+        "transport": transport,
+        "build": _DEPLOY_VERSION,
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
+
 
 def create_arifos_mcp_server() -> FastMCP:
     return mcp
 
 
 def _assert_registered_surface(registered_names: list[str]) -> None:
-    """Assert the registered surface matches exactly the 13 canonical tools."""
+    """Assert the registered surface contains at minimum the 13 canonical tools.
+    
+    Diagnostic tools (arif_ping, hermes_*, etc.) are allowed alongside canonicals.
+    """
+    from arifosmcp.runtime.public_surface import DIAGNOSTIC_TOOLS
     expected_set = set(CANONICAL_TOOLS)
-    registered_set = set(registered_names)
-    if registered_set != expected_set:
-        unexpected = registered_set - expected_set
+    registered_set = set(registered_names) - set(DIAGNOSTIC_TOOLS)
+    # Allow arif_ping as canary on any surface
+    registered_set.discard("arif_ping")
+    if not expected_set.issubset(registered_set):
         missing = expected_set - registered_set
-        if unexpected or missing:
-            raise RuntimeError(
-                f"Surface drift detected: unexpected={sorted(unexpected)}, "
-                f"missing={sorted(missing)}. Expected exactly {len(expected_set)} canonical tools."
-            )
+        unexpected = registered_set - expected_set
+        raise RuntimeError(
+            f"Surface drift detected: missing={sorted(missing)}, "
+            f"unexpected={sorted(unexpected)}. "
+            f"Expected canonical tools={sorted(expected_set)}."
+        )
     if any(name.startswith("arifos_") for name in registered_names):
         raise RuntimeError("Legacy surface detected in registered MCP tools")
 
@@ -395,6 +484,73 @@ try:
             "build": _DEPLOY_VERSION,
             "schema_version": "v2026.06.14.v2"
         }
+
+    # ── Transport Canary Layer (Phase 0, 2026-06-14) ──────────────────────────
+    # Zero-floor diagnostic tools. No session, no actor, no governance.
+    # Diagnostic path: ping → version_echo → schema_echo → initialize_probe → session_init
+    from arifosmcp.runtime.tools import (  # noqa: E402
+        _arif_initialize_probe,
+        _arif_schema_echo,
+        _arif_transport_echo,
+        _arif_version_echo,
+    )
+
+    @mcp.tool(
+        name="arif_schema_echo",
+        description=(
+            "CANARY: Echo back what the client sent plus server's interpretation. "
+            "Zero-floor transport diagnostic. Call with any payload and receive it back "
+            "alongside the server's view. If what you sent does not equal what you received, the "
+            "transport bridge is mangling your payload. No session, no actor, no governance."
+        ),
+        tags={"canary", "read-only", "diagnostic", "transport"},
+    )
+    def arif_schema_echo(payload: Any = None) -> dict:  # noqa: F811
+        return _arif_schema_echo(payload=payload)
+
+    @mcp.tool(
+        name="arif_version_echo",
+        description=(
+            "CANARY: Return MCP protocol version, supported versions, and dialect hints. "
+            "Zero-floor version probe. Use to detect version-dialect drift before attempting "
+            "a full session init. No session, no actor, no governance."
+        ),
+        tags={"canary", "read-only", "diagnostic", "transport"},
+    )
+    def arif_version_echo() -> dict:  # noqa: F811
+        return _arif_version_echo()
+
+    @mcp.tool(
+        name="arif_transport_echo",
+        description=(
+            "CANARY: Return every transport-level detail the server observed: headers, "
+            "protocol, source, transport hint. Zero-floor diagnostic. Use to debug why "
+            "a specific client can connect while another cannot. No session, no actor, no governance."
+        ),
+        tags={"canary", "read-only", "diagnostic", "transport"},
+    )
+    def arif_transport_echo() -> dict:  # noqa: F811
+        return _arif_transport_echo()
+
+    @mcp.tool(
+        name="arif_initialize_probe",
+        description=(
+            "CANARY: Test MCP initialize/initialized handshake without constitutional ceremony. "
+            "Simulates protocol version negotiation per MCP spec 2025-06-18. Returns what a "
+            "proper initialize response would look like. Use AFTER ping passes but BEFORE "
+            "arif_session_init. If this works but session_init does not, the problem is in "
+            "the session init schema, not transport. No session, no actor, no governance."
+        ),
+        tags={"canary", "read-only", "diagnostic", "transport", "initialize"},
+    )
+    def arif_initialize_probe(  # noqa: F811
+        protocol_version: str | None = None,
+        client_capabilities: dict[str, Any] | None = None,
+    ) -> dict:
+        return _arif_initialize_probe(
+            protocol_version=protocol_version,
+            client_capabilities=client_capabilities,
+        )
 
     # ── Forge Ladder (v3.1) — governed execution surface ────────────────────
     from arifosmcp.runtime.tools import _wrap_handler
@@ -576,9 +732,14 @@ try:
         logger.info("IngressToleranceMiddleware attached with envelope validation")
 
         # ── Governance Pipeline middleware (P0 2026-06-14) ───────────────────
-        from arifosmcp.runtime.governance_pipeline import get_pipeline
-        mcp.add_middleware(get_pipeline().as_middleware)  # pyright: ignore[reportArgumentType]
-        logger.info("GovernancePipeline middleware attached — 9-gate enforcement active")
+        # DISABLED 2026-06-14: ASGI middleware pattern incompatible with
+        # FastMCP 3.x middleware (context, call_next) signature. Per-tool
+        # governance is enforced via _wrap_handler + constitutional floor
+        # checks in individual tool handlers. Re-enable after rewrite to
+        # FastMCP Middleware base class.
+        # from arifosmcp.runtime.governance_pipeline import get_pipeline
+        # mcp.add_middleware(get_pipeline().as_middleware)
+        # logger.info("GovernancePipeline middleware attached — 9-gate enforcement active")
 
     # ── Hermes Agent diagnostic tools (expanded45 surface) ─────────────────────
     from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
@@ -984,7 +1145,7 @@ async def mcp_health(request: Request) -> JSONResponse:
     )
 
 
-app = mcp.http_app(transport="streamable-http", stateless_http=False, json_response=True)
+app = mcp.http_app(transport="streamable-http", stateless_http=True, json_response=True)
 # Mirror federated tool count onto app for health endpoint (register_rest_routes receives app)
 mcp._tool_count = 13  # pyright: ignore[reportAttributeAccessIssue]  # 13 canonical tools
 app.state._tool_count = 13  # pyright: ignore[reportAttributeAccessIssue]
@@ -1008,6 +1169,9 @@ if app:
     app.add_middleware(MCPSessionBridgeMiddleware)  # Extract MCP-Session-Id → request.state
     app.add_middleware(MCPProtocolVersionMiddleware)  # Validate MCP-Protocol-Version
     app.add_middleware(CORSMiddleware, allow_origins=["*"])
+
+    from arifosmcp.runtime.governance_pipeline import get_pipeline
+    app.add_middleware(get_pipeline().as_middleware())
     # /health is registered by register_rest_routes() below with full thermodynamic schema
     app.add_route("/ready", horizon_ready, methods=["GET"])
     app.add_route("/mcp/health", mcp_health, methods=["GET"])

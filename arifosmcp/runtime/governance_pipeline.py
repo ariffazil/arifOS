@@ -1290,7 +1290,7 @@ class GovernancePipeline:
     # MIDDLEWARE WRAPPER — for FastMCP/Starlette integration
     # ═══════════════════════════════════════════════════════════════════════
 
-    def as_middleware(self):
+    def as_middleware(self, **kwargs: Any):
         """
         Return an ASGI middleware that intercepts every MCP request.
 
@@ -1347,7 +1347,7 @@ class GovernancePipeline:
                     arguments = {}
 
                 # ── Run governance pipeline for tools/call ─────────────────
-                if method == "tools/call" and tool_name:
+                if method == "tools/call" and tool_name and tool_name != "arif_ping":
                     from arifosmcp.runtime.governance_pipeline import ToolCallContext, PipelineVerdict
                     from arifosmcp.runtime.blast_radius_registry import (
                         get_enforcement_mode,

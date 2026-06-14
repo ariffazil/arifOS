@@ -220,6 +220,16 @@ def _tool_result_schema(name: str) -> dict[str, Any]:
 
 
 def _tool_output_schema(name: str) -> dict[str, Any]:
+    if name == "arif_ping":
+        return {
+            "type": "object",
+            "properties": {
+                "ok": {"type": "boolean"},
+                "build": {"type": "string"},
+                "schema_version": {"type": "string"},
+            },
+            "required": ["ok", "build", "schema_version"],
+        }
     return {
         "type": "object",
         "additionalProperties": True,

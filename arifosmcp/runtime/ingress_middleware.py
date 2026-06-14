@@ -661,6 +661,10 @@ if IS_FASTMCP_3:
                 msg = context.message
                 tool_name = msg.name
 
+                # ── Bypass for Canary Ping Tool (no actor, no envelope, no policy) ──
+                if tool_name == "arif_ping":
+                    return await call_next(context)
+
                 # ── FEDERATION ENVELOPE EXTRACTION & VALIDATION ───────────────
                 envelope = _extract_envelope_from_arguments(dict(msg.arguments or {}), tool_name)
                 if envelope is None:
