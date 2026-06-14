@@ -23,15 +23,15 @@ All constitutional floors (F1-F13) derive from his sovereignty. No organ, agent,
 
 ## 2. The Federation Organs
 
-| # | Organ | Repo | Port | Role | Authority |
-|---|-------|------|------|------|-----------|
-| Ω | **arifOS** | `ariffazil/arifos` | 8088 | Constitutional kernel | F1-F13 enforcement, 888 JUDGE, VAULT999 |
-| Ψ | **A-FORGE** | `ariffazil/A-FORGE` | 7071 | Execution shell | Execute only under SEAL verdict |
-| Δ | **AAA** | `ariffazil/AAA` | 3001 | Control plane | Display, route, queue — never adjudicate |
-| 🌍 | **GEOX** | `ariffazil/geox` | 8081 | Earth intelligence | Evidence-only — never authorize drilling |
-| 💰 | **WEALTH** | `ariffazil/wealth` | 18082 | Capital intelligence | Compute-only — never allocate capital |
-| 🫀 | **WELL** | `ariffazil/well` | 18083 | Human readiness | Reflect-only — never judge strategic action |
-| ⚖️ | **APEX** | `ariffazil/apex` | 3002 | 888 JUDGE (legacy) | Decommissioned — deliberation in AAA a2a |
+| # | Organ | Repo | Port | MCP Endpoint | Role | Authority |
+|---|-------|------|------|-------------|------|-----------|
+| Ω | **arifOS** | `ariffazil/arifos` | 8088 | `https://arifos.arif-fazil.com/mcp` | Governance kernel | F1-F13 enforcement, 888 JUDGE, VAULT999, routing |
+| Ψ | **A-FORGE** | `ariffazil/A-FORGE` | 7071 | `https://forge.arif-fazil.com/mcp` | Engineering actuator | Plan, simulate, execute, rollback — only under SEAL |
+| Δ | **AAA** | `ariffazil/AAA` | 3001 | — | Cockpit / identity / A2A | Display, route, queue — never adjudicate |
+| 🌍 | **GEOX** | `ariffazil/geox` | 8081 | `https://geox.arif-fazil.com/mcp` | Earth intelligence | Evidence-only — never authorize drilling |
+| 💰 | **WEALTH** | `ariffazil/wealth` | 18082 | `https://wealth.arif-fazil.com/mcp` | Capital intelligence | Compute-only — never allocate capital |
+| 🫀 | **WELL** | `ariffazil/well` | 18083 | `https://well.arif-fazil.com/mcp` | Vitality guard | Reflect-only — never judge or diagnose |
+| ⚖️ | **APEX** | `ariffazil/apex` | 3002 | — | 888 JUDGE (legacy) | Decommissioned — deliberation in AAA a2a |
 
 ---
 
@@ -59,27 +59,41 @@ Every organ, every tool, every agent is governed by these:
 
 ---
 
-## 4. The Authority Chain
+## 4. The Authority Chain (Substrate Flow)
 
 ```
 Arif (F13 SOVEREIGN)
-  → arifOS constitutional kernel
+  → arifOS kernel (governance — judges)
     → F1–F13 floor receipts
-      → Domain organ advisory output (GEOX / WEALTH / WELL)
-        → AAA operator surface
-          → A-FORGE execution (gated by 888 JUDGE)
-            → VAULT999 audit seal
+      → Domain organs (GEOX / WEALTH / WELL — compute evidence)
+        → AAA cockpit (display, not adjudicate)
+          → arifOS SEAL verdict (constitutional judgment)
+            → A-FORGE (engineering actuator — executes)
+              → HERMES cross-verify
+                → VAULT999 audit seal (immutable record)
 ```
 
-No organ may authorize its own execution. Only `arif_judge_deliberate → arif_forge_execute → arif_vault_seal` completes the chain.
+**The engineering rule:** arifOS does not directly perform engineering mutation.
+
+> arifOS judges → A-FORGE plans + dry-runs → arifOS issues SEAL/HOLD/VOID → A-FORGE mutates
+
+No organ may authorize its own execution. Only `arif_judge_deliberate → arif_forge_execute → arif_vault_seal` completes the chain. `forge_*` tools on arifOS are deprecated proxies — canonical home is A-FORGE (`https://forge.arif-fazil.com/mcp`).
 
 ---
 
 ## 5. Organ Boundaries (Non-Negotiable)
 
-### arifOS — The Kernel
-- **OWNS:** Constitutional judgment, F1-F13 enforcement, tool registry, session identity, VAULT999
-- **NEVER:** Domain computation (geoscience, finance, biometrics)
+### arifOS — Governance Kernel
+- **OWNS:** Constitutional judgment, F1-F13 enforcement, tool registry, session identity, VAULT999, routing, leases
+- **NEVER:** Domain computation (geoscience, finance, biometrics), direct engineering mutation
+
+### A-FORGE — Engineering Actuator
+- **OWNS:** Engineering plans, dry-runs, build pipelines, deploy orchestration, code execution, shell, filesystem
+- **NEVER:** Self-authorize (requires arifOS SEAL), issue constitutional verdicts, compute domain logic (NumPy/Pandas)
+
+### AAA — Cockpit / Identity
+- **OWNS:** UX surface, agent identity, A2A gateway, approval queue, cockpit dashboard
+- **NEVER:** Issue constitutional verdicts, execute engineering mutations
 
 ### GEOX — Earth Intelligence
 - **OWNS:** Well logs, seismic, petrophysics, prospect evaluation, basin screening
@@ -89,7 +103,7 @@ No organ may authorize its own execution. Only `arif_judge_deliberate → arif_f
 - **OWNS:** NPV, IRR, EMV, DSCR, risk scores, portfolio allocation, market data
 - **NEVER:** Move capital, authorize trades, adjudicate constitution
 
-### WELL — Human Readiness
+### WELL — Vitality Guard
 - **OWNS:** Sleep, fatigue, stress, cognitive clarity, dignity metrics
 - **NEVER:** Make medical diagnoses, judge fitness for duty, adjudicate constitution
 
