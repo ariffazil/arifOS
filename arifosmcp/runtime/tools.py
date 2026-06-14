@@ -13817,59 +13817,14 @@ def _runtime_ping(
 
 
 # ── Transport Canary runtime wrappers ──────────────────────────────────────
-# Zero-floor diagnostic tools. No session, no actor, no governance.
-# Phase 0 transport hardening (2026-06-14).
-# **kwargs absorbs _envelope and any other ingress-middleware injections
-# that FastMCP's Pydantic validation would otherwise reject.
-
-def _runtime_schema_echo(
-    payload: str | None = None,
-    session_id: str | None = None,
-    actor_id: str | None = None,
-    **kwargs: Any,
-) -> dict[str, Any]:
-    return _arif_schema_echo(payload=payload, _envelope=kwargs.get("_envelope"))
-
-
-def _runtime_version_echo(
-    session_id: str | None = None,
-    actor_id: str | None = None,
-    **kwargs: Any,
-) -> dict[str, Any]:
-    return _arif_version_echo(_envelope=kwargs.get("_envelope"))
-
-
-def _runtime_transport_echo(
-    session_id: str | None = None,
-    actor_id: str | None = None,
-    **kwargs: Any,
-) -> dict[str, Any]:
-    return _arif_transport_echo(_envelope=kwargs.get("_envelope"))
-
-
-def _runtime_initialize_probe(
-    protocol_version: str | None = None,
-    client_capabilities: str | None = None,
-    session_id: str | None = None,
-    actor_id: str | None = None,
-    **kwargs: Any,
-) -> dict[str, Any]:
-    return _arif_initialize_probe(
-        protocol_version=protocol_version,
-        client_capabilities=client_capabilities,
-        _envelope=kwargs.get("_envelope"),
-    )
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# TRANSPORT CANARY LAYER — Zero-floor diagnostic tools
-# Phase 0 transport hardening (2026-06-14):
-#   - arif_schema_echo     → echo back what the client sent (transport contract probe)
-#   - arif_version_echo    → protocol versions, dialect info
-#   - arif_transport_echo  → see what transport + headers the client used
-#   - arif_initialize_probe → test MCP init handshake without constitutional ceremony
-#
-# These tools carry ZERO floors. No session, no actor, no KG, no identity, no envelope.
+# ── Normalized diagnostic tool argument contract ─────────────────────────────
+# All Phase 0 canary tools share the same public signature:
+#   payload: Any = None
+#   _envelope: dict[str, Any] | None = None
+#   client_capabilities: dict[str, Any] | None = None
+# Extra parameters are carried inside payload (e.g. payload["protocol_version"]).
+# **kwargs absorbs ingress-middleware injections that FastMCP Pydantic would reject.
+# Zero floors. No session, no actor, no KG, no identity, no envelope.
 # If ping fails → transport problem.
 # If ping passes but schema_echo fails → dialect problem.
 # If schema_echo passes but session_init fails → init schema problem.
@@ -13877,6 +13832,78 @@ def _runtime_initialize_probe(
 
 _MCP_SPEC_VERSION = "2025-11-25"
 _MCP_SUPPORTED_VERSIONS = ("2025-11-25", "2025-03-26")
+
+
+def _server_version() -> str:
+    """Resolve a single canonical server version string (no legacy env fallbacks)."""
+    try:
+        from arifosmcp.runtime.build import get_build_info
+        info = get_build_info()
+        version = info.get("version") or info.get("server_version")
+        if version:
+            return str(version)
+    except Exception:
+        pass
+    return "v2026.06.12"
+
+
+def _extract_payload_field(payload: Any, field: str, default: Any = None) -> Any:
+    """Extract a named field from a dict payload, else return default."""
+    if isinstance(payload, dict):
+        return payload.get(field, default)
+    return default
+
+
+def _runtime_schema_echo(
+    payload: Any = None,
+    _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    return _arif_schema_echo(
+        payload=payload,
+        _envelope=_envelope,
+        client_capabilities=client_capabilities,
+    )
+
+
+def _runtime_version_echo(
+    payload: Any = None,
+    _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    return _arif_version_echo(
+        payload=payload,
+        _envelope=_envelope,
+        client_capabilities=client_capabilities,
+    )
+
+
+def _runtime_transport_echo(
+    payload: Any = None,
+    _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    return _arif_transport_echo(
+        payload=payload,
+        _envelope=_envelope,
+        client_capabilities=client_capabilities,
+    )
+
+
+def _runtime_initialize_probe(
+    payload: Any = None,
+    _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    return _arif_initialize_probe(
+        payload=payload,
+        _envelope=_envelope,
+        client_capabilities=client_capabilities,
+    )
 
 
 def _arif_schema_echo(
@@ -13890,10 +13917,8 @@ def _arif_schema_echo(
     payload and receive it back alongside the server's interpretation. No session,
     no actor, no governance. Use to debug transport dialect mismatches.
 
-    If what you sent != what you received back, the transport bridge is mangling
-    your payload. This is the first diagnostic after arif_ping.
+    Normalized arguments: payload, _envelope, client_capabilities.
     """
-    import os
     import platform
     import sys as _sys
 
@@ -13901,10 +13926,12 @@ def _arif_schema_echo(
         "echo": payload,
         "server_received_type": type(payload).__name__,
         "server_received_repr": repr(payload)[:2000],
+        "received_keys": sorted(payload.keys()) if isinstance(payload, dict) else [],
+        "key_count": len(payload) if isinstance(payload, dict) else 0,
         "transport_hint": _envelope.get("_transport", "unknown") if _envelope else "unknown",
         "server_identity": {
             "service": "arifOS MCP",
-            "version": os.environ.get("ARIFOS_VERSION", "v2026.05.05-SSCT"),
+            "version": _server_version(),
             "python": _sys.version.split()[0],
             "platform": platform.platform(),
             "mcp_spec": _MCP_SPEC_VERSION,
@@ -13924,13 +13951,9 @@ def _arif_version_echo(
     supported protocol versions, server build info, and transport dialect hints.
     Use to detect version-dialect drift before attempting a full session init.
 
-    The MCP spec requires version negotiation during initialize. If a client sends
-    a version the server doesn't support, the server must respond with supported
-    versions. This tool surfaces that information explicitly.
+    Normalized arguments: payload, _envelope, client_capabilities.
     """
-    import os
-
-    build_info = {"version": os.environ.get("ARIFOS_VERSION", "v2026.05.05-SSCT")}
+    build_info = {}
     try:
         from arifosmcp.runtime.build import get_build_info
         build_info = get_build_info()
@@ -13940,7 +13963,7 @@ def _arif_version_echo(
     response = _ok("arif_version_echo", {
         "mcp_spec_version": _MCP_SPEC_VERSION,
         "protocol_versions_supported": list(_MCP_SUPPORTED_VERSIONS),
-        "server_version": build_info.get("version", os.environ.get("ARIFOS_VERSION", "v2026.05.05-SSCT")),
+        "server_version": _server_version(),
         "server_build": build_info,
         "transport_preference": {
             "primary_remote": "streamable_http",
@@ -13971,7 +13994,8 @@ def _arif_transport_echo(
     headers, source, protocol, and the raw transport hint. Use to debug why
     a specific client can't connect while another can.
 
-    This is the bridge between "ping works" and "session_init fails".
+    Normalized arguments: payload, _envelope, client_capabilities.
+    Payload may contain protocol_version, client_name, client_version, transport.
     """
     import os
     import socket
@@ -13982,6 +14006,10 @@ def _arif_transport_echo(
         "hostname": hostname,
         "mcp_spec_version": _MCP_SPEC_VERSION,
         "protocol_versions_supported": list(_MCP_SUPPORTED_VERSIONS),
+        "protocol_version_received": _extract_payload_field(payload, "protocol_version", "unknown"),
+        "client_name": _extract_payload_field(payload, "client_name", "unknown"),
+        "client_version": _extract_payload_field(payload, "client_version", "unknown"),
+        "transport_reported": _extract_payload_field(payload, "transport", "unknown"),
         "transport_observed": _envelope.get("_transport", "unknown") if _envelope else "unknown",
         "envelope_present": _envelope is not None,
         "envelope_keys": list(_envelope.keys()) if _envelope else [],
@@ -13994,7 +14022,6 @@ def _arif_transport_echo(
 
 
 def _arif_initialize_probe(
-    protocol_version: str | None = None,
     payload: Any = None,
     _envelope: dict[str, Any] | None = None,
     client_capabilities: dict[str, Any] | None = None,
@@ -14005,18 +14032,16 @@ def _arif_initialize_probe(
     without any session, actor, or governance binding. Returns what a proper
     initialize response would look like, including protocol version negotiation.
 
+    Normalized arguments: payload, _envelope, client_capabilities.
+    Payload may contain protocol_version and client_capabilities.
+
     Protocol version rules (MCP spec 2025-11-25):
     - Client sends its preferred version in protocol_version
     - Server MUST respond with a version it supports
     - If client version is unsupported, server MUST respond with nearest supported version
-
-    Use this AFTER ping passes but BEFORE arif_session_init. If this works and
-    session_init doesn't, the problem is in the session init schema, not transport.
     """
-    import os
-
-    # Version negotiation per MCP spec
-    requested = protocol_version or _MCP_SPEC_VERSION
+    requested = _extract_payload_field(payload, "protocol_version") or _MCP_SPEC_VERSION
+    client_caps = _extract_payload_field(payload, "client_capabilities") or client_capabilities or {}
     negotiated = requested if requested in _MCP_SUPPORTED_VERSIONS else _MCP_SUPPORTED_VERSIONS[0]
     version_ok = requested in _MCP_SUPPORTED_VERSIONS
 
@@ -14036,9 +14061,10 @@ def _arif_initialize_probe(
         "protocol_version_ok": version_ok,
         "server_info": {
             "name": "arifOS Constitutional Kernel",
-            "version": os.environ.get("ARIFOS_VERSION", "v2026.05.05-SSCT"),
+            "version": _server_version(),
         },
         "capabilities": capabilities,
+        "client_capabilities_received": client_caps,
         "instructions": (
             "arifOS is a governed MCP gateway-kernel. "
             "After initialize/initialized handshake, call arif_ping to confirm transport. "
@@ -14048,8 +14074,10 @@ def _arif_initialize_probe(
         "next_steps": [
             "1. Send 'notifications/initialized'",
             "2. Call arif_ping to confirm transport bridge",
-            "3. Call arif_session_init(mode='light') for fast bootstrap",
-            "4. Or arif_session_init(mode='init') for full constitutional binding",
+            "3. Call arif_version_echo to verify protocol version metadata",
+            "4. Call arif_schema_echo to verify payload fidelity",
+            "5. Call arif_session_init(mode='light') for fast bootstrap",
+            "6. Or arif_session_init(mode='init') for full constitutional binding",
         ],
         "diagnostic_path": [
             "arif_ping → arif_version_echo → arif_schema_echo → arif_initialize_probe → arif_session_init",

@@ -4,7 +4,7 @@
 PYTHON = uv run python
 DIR := /root/arifOS
 
-.PHONY: status forge seal health sync sot-check deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public security-audit
+.PHONY: status forge seal health conformance sync sot-check deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public security-audit
 
 status:
 	@echo "--- arifOS Status (ΔΩΨ) ---"
@@ -27,6 +27,10 @@ health:
 	@echo "Verifying 111_SENSE..."
 	@curl -s http://localhost:8088/health | jq .  # live VPS port; use PORT=8080 for local Docker dev
 
+conformance:
+	@echo "Running ARIF Conformance Spine v0.1..."
+	@$(PYTHON) -m arifosmcp.transport.conformance_spine
+
 deploy-local:
 	@echo "Deploying current arifOS HEAD to native bare-metal runtime..."
 	@cd $(DIR) && git fetch origin main
@@ -41,7 +45,9 @@ deploy-local:
 	systemctl restart arifos.service; \
 	echo "Deployment complete. Verifying health..."; \
 	sleep 3; \
-	curl -s http://localhost:8088/health | jq .
+	curl -s http://localhost:8088/health | jq .; \
+	echo "Running conformance spine post-deploy..."; \
+	$(PYTHON) -m arifosmcp.transport.conformance_spine
 
 sot-check: security-audit
 	@echo "Auditing arifOS source-of-truth alignment..."

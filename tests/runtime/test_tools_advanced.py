@@ -6,10 +6,17 @@ from arifosmcp.runtime.tools import _arif_ping, _arif_session_init
 def test_ping_reports_canonical13_surface() -> None:
     result = _arif_ping()["result"]
 
-    assert result["tools_registered"] == 13
+    # canonical13 public surface = 13 kernel tools + 5 transport canary diagnostics
+    assert result["tools_registered"] == 18
     assert result["public_surface"]["mode"] == "canonical13"
     assert result["public_surface"]["kernel_tools"] == 13
-    assert result["public_surface"]["diagnostic_tools"] == []
+    assert set(result["public_surface"]["diagnostic_tools"]) == {
+        "arif_ping",
+        "arif_schema_echo",
+        "arif_version_echo",
+        "arif_transport_echo",
+        "arif_initialize_probe",
+    }
     assert result["constitution"]["kernel"] == "canonical13"
 
 

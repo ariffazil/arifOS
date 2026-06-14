@@ -132,8 +132,8 @@ def get_build_info() -> dict[str, Any]:
             "(doctrine, vitals, schema, session, forge), and eliminated identity confusion."
         ),
         # MCP protocol compatibility
-        "protocol_version": "2025-03-26",
-        "supported_protocol_versions": ["2025-03-26", "2024-11-05"],
+        "protocol_version": "2025-11-25",
+        "supported_protocol_versions": ["2025-11-25", "2025-03-26", "2024-11-05"],
         # Governance layer
         "governance_version": "registry-1.3.0",
         "policy_version": "arifOS.constitution.v1",

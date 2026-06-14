@@ -415,6 +415,7 @@ def classify_reversibility(normalized: CanonicalEnvelope) -> str:
         "destroy",
         "format_disk",
         "wipe",
+        "purge",
         "reset_system",
         "expunge_logs",
         "terminate_process",
@@ -547,7 +548,7 @@ class AirlockASGIMiddleware:
 
         headers_dict = dict(scope.get("headers", []))
         mcp_session_id = ""
-        protocol_version = "2025-03-26"
+        protocol_version = "2025-11-25"
         for key, value in headers_dict.items():
             key_lower = key.lower()
             if key_lower in (b"mcp-session-id", b"x-mcp-session-id"):

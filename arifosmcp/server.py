@@ -322,42 +322,47 @@ mcp = FastMCP(
 
 @mcp.tool(
     name="arif_conformance_report",
-    description="TRANSPORT PROBE: Return the baseline conformance report for Transport Airlock v0.1.",
-    tags={"canary", "transport-probe", "read-only", "conformance"},
+    description=(
+        "PROOF MACHINE: Run the ARIF Conformance Spine v0.1 against the live kernel. "
+        "Every verdict is earned from a real response — no mocks, no hardcoded PASS. "
+        "Checks: kernel alive, MCP initialize, protocol version, schema echo, session start, "
+        "authority classification, 888_HOLD mutation refusal, VAULT replay verification. "
+        "substrate_gate=GREEN means arifOS is a governed runtime, not a concept."
+    ),
+    tags={"canary", "transport-probe", "read-only", "conformance", "proof-machine"},
 )
 def arif_conformance_report(
     payload: Any = None,
     _envelope: dict[str, Any] | None = None,
     client_capabilities: dict[str, Any] | None = None,
 ) -> dict:
-    """Return the baseline conformance report for Transport Airlock v0.1."""
-    from arifosmcp.transport import get_airlock_metrics
+    """
+    Run the live Conformance Spine and return a structured proof report.
 
-    metrics = get_airlock_metrics()
-    return {
-        "server": "arifOS MCP",
-        "version": "v2026.05.05-SSCT",
-        "mcp_spec": "2025-11-25",
-        "session_required": True,
-        "airlock_modes": ["shadow", "partial_enforce", "enforce"],
-        "checks": {
-            "ping": "PASS",
-            "version_echo": "PASS",
-            "initialize_probe": "PASS",
-            "schema_echo": "PASS",
-            "transport_echo": "PASS",
-            "session_init_light": "PASS",
-            "vault_ready": "PASS",
-            "forge_dry_run_only": "PASS",
-        },
-        "airlock_metrics": metrics,
-        "residue": [
-            "schema tolerance mismatch",
-            "external-client conformance still pending",
-            "vault replay proof still pending",
-        ],
-        "substrate_gate": "AMBER",
+    No mocks. No hardcoded results. Every check fires against the running kernel.
+    substrate_gate GREEN = governed intelligence runtime proven.
+    substrate_gate AMBER = partial proof, residues remain.
+    substrate_gate RED   = critical failures, do not claim governance.
+    """
+    from arifosmcp.transport.conformance_spine import run_spine
+
+    report = run_spine()
+
+    # Annotate each check with a plain-English description
+    descriptions = {
+        "arifos_alive":        "arifOS alive?               kernel /health returns healthy",
+        "mcp_initialize":      "MCP initialize works?       protocol handshake returns serverInfo",
+        "protocol_version":    "protocol version clear?     2025-11-25 or supported variant present",
+        "schema_echo_stable":  "schema echo stable?         arif_schema_echo returns what was sent",
+        "session_starts":      "session starts?             arif_session_init returns READY",
+        "authority_checked":   "authority checked?          classify_authority fires SOVEREIGN/HIGH/MEDIUM/LOW",
+        "hold_blocks_mutation":"888_HOLD blocks mutation?   irreversible intents return 888_HOLD_REQUIRED",
+        "vault_replay":        "VAULT replay verifies?      vault file readable, last entry valid JSON",
     }
+    for check in report["checks"]:
+        check["description"] = descriptions.get(check["check"], "")
+
+    return report
 
 
 @mcp.tool(
@@ -421,30 +426,23 @@ def arif_schema_echo(
     description="TRANSPORT PROBE: Echo transport-level metadata. "
     "Use this before arif_session_init to verify the MCP transport bridge is working. "
     "Returns received protocol version, transport type, negotiated state. "
+    "Normalized arguments: payload, _envelope, client_capabilities. "
     "Zero floors, zero identity, zero side effects.",
     tags={"canary", "transport-probe", "diagnostic", "read-only"},
 )
 def arif_transport_echo(
-    protocol_version: str = "unknown",
-    client_name: str = "unknown",
-    client_version: str = "unknown",
-    transport: str = "streamable_http",
     payload: Any = None,
     _envelope: dict[str, Any] | None = None,
     client_capabilities: dict[str, Any] | None = None,
 ) -> dict:
-    """Transport echo — diagnostic for MCP session bridge."""
-    return {
-        "ok": True,
-        "probe": "transport_echo",
-        "protocol_version_received": protocol_version,
-        "protocol_versions_supported": ["2025-11-25", "2025-03-26"],
-        "client_name": client_name,
-        "client_version": client_version,
-        "transport": transport,
-        "build": _DEPLOY_VERSION,
-        "timestamp": datetime.now(UTC).isoformat(),
-    }
+    """Transport echo — diagnostic for MCP session bridge (normalized canary)."""
+    from arifosmcp.runtime.tools import _arif_transport_echo
+
+    return _arif_transport_echo(
+        payload=payload,
+        _envelope=_envelope,
+        client_capabilities=client_capabilities,
+    )
 
 
 def create_arifos_mcp_server() -> FastMCP:
@@ -599,16 +597,14 @@ try:
         tags={"canary", "read-only", "diagnostic", "transport", "initialize"},
     )
     def arif_initialize_probe(  # noqa: F811
-        protocol_version: str | None = None,
         payload: Any = None,
         _envelope: dict[str, Any] | None = None,
         client_capabilities: dict[str, Any] | None = None,
     ) -> dict:
         return _arif_initialize_probe(
-            protocol_version=protocol_version,
-            client_capabilities=client_capabilities,
-            _envelope=_envelope,
             payload=payload,
+            _envelope=_envelope,
+            client_capabilities=client_capabilities,
         )
 
     # ── Forge Ladder (v3.1) — governed execution surface ────────────────────
