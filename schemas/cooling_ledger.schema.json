@@ -1,0 +1,19 @@
+{
+  "cooling_id": "string",
+  "timestamp": "datetime",
+  "trigger": "string",
+  "source": "arifOS | WELL | AAA | A-FORGE | human | external",
+  "related_intent": "string",
+  "reason_for_cooling": "string",
+  "temperature": "LOW | MEDIUM | HIGH | CRITICAL",
+  "cooldown_until": "datetime",
+  "recheck_condition": "string",
+  "required_witnesses": [
+    "GEOX",
+    "WEALTH",
+    "WELL",
+    "arifOS"
+  ],
+  "human_review_required": true,
+  "status": "COOLING | EXPIRED | ESCALATED | RELEASED"
+}

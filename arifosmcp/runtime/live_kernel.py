@@ -319,6 +319,8 @@ def arif_os_attest(
         version=os.getenv("ARIFOS_DEPLOY_VERSION", "v2026.05.05-SSCT"),
         schema_hash=envelope_schema_hash,
         constitution_hash=constitution_hash,
+        identity_anchor_type="constitution_hash",
+        identity_anchor_hash=constitution_hash if constitution_hash != "sha256:missing" else "sha256:pending",
         tool_count=tool_count,
         heartbeat_at=now,
         last_vault_seal="sha256:pending",  # Filled by vault organ

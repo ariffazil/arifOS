@@ -1,0 +1,54 @@
+# substrate-manifest.yml
+name: arifos-substrate
+version: "2026.06.14"
+description: "arifOS Installable Civilization Node"
+
+services:
+  state:
+    - name: postgres
+      port: 5432
+      type: database
+    - name: qdrant
+      port: 6333
+      type: vector-store
+    - name: redis
+      port: 6379
+      type: cache
+    - name: temporal
+      port: 7233
+      type: workflow
+    - name: nats
+      port: 4222
+      type: message-broker
+
+  kernel:
+    - name: arifos-mcp
+      port: 8088
+      type: fastmcp
+      floors: ["F1-F13"]
+      env:
+        - ARIFOS_ENV=production
+
+  control_plane:
+    - name: aaa-a2a
+      port: 3001
+      type: nodejs
+    - name: a-forge
+      port: 7071
+      type: nodejs
+      cli: true
+
+  organs:
+    - name: geox-mcp
+      port: 8081
+      type: fastmcp
+    - name: wealth-organ
+      port: 18082
+      type: fastmcp
+    - name: well
+      port: 18083
+      type: fastmcp
+
+bootstrap:
+  script: "scripts/bootstrap-arifos.sh"
+  env_matrix: "/root/.arifos/env"

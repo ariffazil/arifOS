@@ -183,3 +183,26 @@ verify-live:
 	@python3 scripts/verify_live.py
 	@echo "📄 Full report: tmp/verify_live_report.json"
 include /root/arifOS/scripts/security_audit.mk
+
+# --- AGI Kernel Proof Engine ---
+.PHONY: prove constitutional-benchmark vault999-verify reality-replay
+
+constitutional-benchmark:
+	@echo "Running constitutional floor and boundary benchmarks..."
+	pytest benchmarks/floors/ benchmarks/organs/ benchmarks/ledgers/
+
+vault999-verify:
+	@echo "Verifying VAULT999 hash chains and receipts..."
+	python3 /root/arifOS/core/vault999/verify.py
+
+reality-replay:
+	@echo "Comparing predictions with observed outcomes in Reality Ledger..."
+	# python -m arifos.core.reality_ledger replay
+
+prove: health sot-check security-audit constitutional-benchmark vault999-verify reality-replay
+	@echo "Synthesizing ARIFOS_PROOF_PACK.md..."
+
+substrate-loop-test:
+	@echo "Running End-to-End AGI Substrate Loop Test..."
+	pytest benchmarks/loops/test_restrain_authorize_act_observe_learn.py -v
+

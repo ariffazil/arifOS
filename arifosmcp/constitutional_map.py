@@ -1176,19 +1176,41 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
     },
     "mcp_drift_check": {
         "name": "mcp_drift_check",
-        "description": "DIAGNOSTIC: Cross-reference registered MCP tools against canonical registry — detect phantom tools, missing declarations, schema drift.",
+        "description": "MCP Protocol Drift Check — detect drift between declared MCP protocol version, registered surface, and actual runtime. Every tool registered must be enumerated. Every enumerated tool must be callable.",
         "access": "public",
-        "tier": "diagnostic",
-        "namespace": "mcp_* (utility namespace)",
+        "stage": ToolStage.OBSERVE,
+        "lane": TrinityLane.AGI,
         "risk_tier": "low",
         "irreversible": False,
-        "floors": [Law.L02_TRUTH, Law.L04_CLARITY],
-        "modes": ["check"],
-        "tags": ["diagnostic", "drift"],
+        "floors": [Law.L02_TRUTH, Law.L07_HUMILITY],
+        "modes": ["status", "info", "health"],
+        "tags": ["diagnostic", "paradox", "epistemic"],
+    },
+
+    # ── MCP Gate v0 — Constitutional Gate (2026-06-14) ─────────────────
+    # The wedge: determines whether MCP-powered agents may touch the world.
+    "arif_gate_judge": {
+        "name": "arif_gate_judge",
+        "description": (
+            "MCP GATE v0: Constitutional gate for MCP tool calls. "
+            "Determines whether an action is ALLOW, ALLOW_WITH_LOG, REQUIRE_APPROVAL, "
+            "SIMULATE_FIRST, BLOCK, or HOLD_888. "
+            "Input: tool_name, action_class (8-tier), risk dimensions. "
+            "Output: verdict with one-line summary (Lapisan 1) and five-line detail (Lapisan 2). "
+            "This is the wedge — arifOS as the constitutional runtime for MCP."
+        ),
+        "access": "public",
+        "stage": ToolStage.OBSERVE,
+        "lane": TrinityLane.AGI,
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L01_AMANAH, Law.L04_CLARITY, Law.L08_GENIUS, Law.L11_AUDIT, Law.L13_SOVEREIGN],
+        "modes": ["judge"],
+        "tags": ["gate", "constitutional", "mcp", "infrastructure"],
     },
 }
 
-# Full surface: canonical (13) + diagnostic (31) = 44 declared tools
+# Full surface: canonical (13) + diagnostic (32) = 45 declared tools
 # Note: actual MCP registration count may differ slightly from this dict
 # due to runtime-only registrations. The /health contract_status.tool_count
 # is authoritative for the live wire surface.

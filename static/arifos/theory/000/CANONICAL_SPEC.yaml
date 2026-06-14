@@ -1,0 +1,600 @@
+# CANONICAL_SPEC.yaml — arifOS Canonical Term Registry
+# DITEMPA BUKAN DIBERI — Forged, Not Given
+# Every term here has: type, unit, range, floors, equation (if applicable)
+# Terms marked `coded: true` have code implementation.
+# Terms marked `coded: false` are aspirational (theory ahead of code).
+
+canonical_registry:
+  # ── VERDICT CODES ──────────────────────────────────────────────────
+  - name: SEAL
+    symbol: SEAL
+    type: enum
+    datatype: StrEnum
+    values: ["SEAL"]
+    coded: true
+    module: arifosmcp.schemas.verdict.VerdictCode
+    description: "Approved — proceed. Irreversible. ΔS < 0."
+
+  - name: SABAR
+    symbol: SABAR
+    type: enum
+    datatype: StrEnum
+    values: ["SABAR"]
+    coded: true
+    module: arifosmcp.schemas.verdict.VerdictCode
+    description: "Wait, under review. Default state. Reversible. ΔS ≈ 0."
+
+  - name: HOLD
+    symbol: HOLD
+    type: enum
+    datatype: StrEnum
+    values: ["HOLD"]
+    coded: true
+    module: arifosmcp.schemas.verdict.VerdictCode
+    description: "Paused — manual review required. Reversible. ΔS > 0."
+
+  - name: VOID
+    symbol: VOID
+    type: enum
+    datatype: StrEnum
+    values: ["VOID"]
+    coded: true
+    module: arifosmcp.schemas.verdict.VerdictCode
+    description: "Rejected — constitutional breach. Irreversible. ΔS » 0."
+
+  - name: PARADOX_HOLD
+    symbol: PARADOX_HOLD
+    type: enum
+    datatype: StrEnum
+    values: ["PARADOX_HOLD"]
+    coded: true
+    module: arifosmcp.schemas.verdict.VerdictCode
+    description: "Two truths conflict — both verified, both preserved."
+
+  # ── THEORY OF ANOMALOUS CONTRAST ───────────────────────────────────
+  - name: AC_Risk
+    symbol: R_ac
+    type: equation
+    datatype: float
+    unit: "dimensionless_risk"
+    range: [0.0, 1.0]
+    equation: "R_ac = U_phys × D_transform × B_cog"
+    coded: false
+    planned_for: arifosmcp.schemas.verdict.AnomalousContrast
+    floors: ["F1", "F2", "F7"]
+    inputs: ["U_phys", "D_transform", "B_cog"]
+    usage: ["verdict_threshold", "telemetry"]
+    verdict_thresholds:
+      seal: [0.0, 0.15]
+      sabar: [0.15, 0.34]
+      hold: [0.35, 0.59]
+      void: [0.60, 1.0]
+    description: "Epistemic risk = physical uncertainty × transform distortion × cognitive bias"
+
+  - name: U_phys
+    symbol: U_phys
+    type: scalar
+    datatype: float
+    unit: "uncertainty"
+    range: [0.0, 1.0]
+    coded: false
+    planned_for: arifosmcp.schemas.verdict.AnomalousContrast
+    floors: ["F2"]
+    description: "Physical model uncertainty — how well the data constrains the model"
+
+  - name: D_transform
+    symbol: D_transform
+    type: scalar
+    datatype: float
+    unit: "distortion_factor"
+    range: [1.0, 3.0]
+    coded: false
+    planned_for: arifosmcp.schemas.verdict.AnomalousContrast
+    floors: ["F4"]
+    description: "Processing chain distortion — how many transforms between raw signal and decision"
+
+  - name: B_cog
+    symbol: B_cog
+    type: scalar
+    datatype: float
+    unit: "bias_exposure"
+    range: [0.0, 1.0]
+    coded: false
+    planned_for: arifosmcp.schemas.verdict.AnomalousContrast
+    floors: ["F6", "F7"]
+    description: "Cognitive bias exposure — confirmation, anchoring, availability effects"
+
+  - name: contrast_type
+    symbol: T_c
+    type: enum
+    datatype: Literal[4]
+    values: ["expected_vs_observed", "claimed_vs_verified", "shortterm_vs_entropy", "local_vs_civilizational"]
+    coded: true
+    module: arifosmcp.schemas.verdict.AnomalousContrast.contrast_type
+    floors: ["F2"]
+    description: "Classification of the anomalous contrast type"
+
+  # ── THERMODYNAMIC STATE ────────────────────────────────────────────
+  - name: delta_s
+    symbol: ΔS
+    type: scalar
+    datatype: float
+    unit: "J/K"
+    range: [-inf, +inf]
+    coded: true
+    module: arifosmcp.schemas.verdict.ThermodynamicState.delta_s
+    floors: ["F4"]
+    description: "Entropy change — positive = disorder, negative = order"
+
+  - name: entropy_direction
+    symbol: dS_dir
+    type: enum
+    datatype: Literal[4]
+    values: ["increasing", "decreasing", "stable", "unknown"]
+    coded: true
+    module: arifosmcp.schemas.verdict.ThermodynamicState.entropy_direction
+    floors: ["F4"]
+    description: "Direction of entropy change"
+
+  - name: landauer_cost
+    symbol: E_landauer
+    type: scalar
+    datatype: float
+    unit: "eV"
+    range: [0.0, +inf]
+    coded: true
+    module: arifosmcp.schemas.verdict.ThermodynamicState.landauer_cost_ev
+    floors: ["F2"]
+    description: "k_B·T·ln(2) — minimum thermodynamic cost of one bit of information"
+
+  # ── PARADOX CONTAINMENT PROTOCOL ────────────────────────────────────
+  - name: delta_P
+    symbol: ΔP
+    type: scalar
+    datatype: float
+    unit: "ΔS"
+    range: [0.0, +inf]
+    equation: "ΔP = H_contradictory - H_coherent"
+    coded: false
+    planned_for: arifosmcp.core.paradox.tpcp
+    floors: ["F2", "F4"]
+    description: "Paradox pressure — Shannon entropy differential between contradictory and coherent interpretations"
+
+  - name: omega_0
+    symbol: Ω₀
+    type: scalar
+    datatype: float
+    unit: "epistemic_uncertainty"
+    range: [0.03, 0.05]
+    coded: true
+    module: arifosmcp.core.paradox.circuit_breakers
+    floors: ["F7"]
+    description: "Baseline epistemic humility — constrained to [0.03, 0.05] band"
+    
+  - name: omega_P
+    symbol: ΩP
+    type: scalar
+    datatype: float
+    unit: "expanded_uncertainty"
+    range: [0.0, +inf]
+    equation: "ΩP = Ω₀ + α × ΔP"
+    coded: false
+    planned_for: arifosmcp.core.paradox.tpcp
+    floors: ["F7"]
+    description: "Expanded epistemic uncertainty — deliberately increased before resolution"
+    inputs: ["omega_0", "delta_P"]
+    constants:
+      alpha: {value: 0.15, unit: "expansion_rate", range: [0.0, 1.0]}
+
+  - name: psi_P
+    symbol: ΨP
+    type: scalar
+    datatype: float
+    unit: "dimensionless"
+    range: [-1.0, 1.0]
+    equation: "ΨP = (∂S/∂t)⁻¹ × Σ_floors_compliance"
+    coded: false
+    planned_for: arifosmcp.core.paradox.tpcp
+    floors: ["F1", "F2", "F4", "F7"]
+    description: "Equilibrium validation — stability of the expanded uncertainty state"
+    inputs: ["delta_s", "floors_compliance"]
+
+  - name: phi_P
+    symbol: Φ_P
+    type: equation
+    datatype: float
+    unit: "dimensionless_policy_strength"
+    range: [0.0, 1.0]
+    equation: "Φ_P = (∫ΨP dt) / (ΔP × Ω₀)"
+    coded: false
+    planned_for: arifosmcp.core.paradox.tpcp
+    floors: ["F2", "F4", "F5", "F7"]
+    inputs: ["psi_P", "delta_P", "omega_0"]
+    usage: ["verdict", "telemetry"]
+    verdict_thresholds:
+      seal: [0.80, 1.0]
+      sabar: [0.40, 0.79]
+      hold: [0.10, 0.39]
+      void: [0.0, 0.09]
+    description: "Crown metric — wisdom crystallized from paradox resolution"
+
+  # ── CIRCUIT BREAKERS ──────────────────────────────────────────────
+  - name: CB1_Godellock
+    symbol: CB1
+    type: logical
+    datatype: bool
+    condition: "omega_0 < 0.03"
+    coded: true
+    module: arifosmcp.core.paradox.circuit_breakers.check_godellock
+    floors: ["F7"]
+    description: "Overconfidence — Ω₀ below minimum band"
+
+  - name: CB2_SingleWitness
+    symbol: CB2
+    type: logical
+    datatype: bool
+    condition: "min(w_human, w_ai, w_earth) < 0.70 OR active_lanes < 2"
+    coded: true
+    module: arifosmcp.core.paradox.circuit_breakers.check_single_witness
+    floors: ["F3"]
+    description: "Insufficient corroboration — too few or too weak witness lanes"
+
+  - name: CB3_CheapTruth
+    symbol: CB3
+    type: logical
+    datatype: bool
+    condition: "τ > 0.99 AND evidence_product < 1.0"
+    coded: true
+    module: arifosmcp.core.paradox.circuit_breakers.check_cheap_truth
+    floors: ["F2"]
+    description: "Fabrication risk — high confidence without evidence grounding"
+
+  - name: CB4_RecursiveStack
+    symbol: CB4
+    type: logical
+    datatype: bool
+    condition: "self_reference_depth > 3"
+    coded: true
+    module: arifosmcp.core.paradox.circuit_breakers.check_recursive_stack
+    floors: ["F4"]
+    description: "Self-reference loop — reasoning entrapped in recursive paradox"
+
+  - name: CB5_ConfidenceCascade
+    symbol: CB5
+    type: logical
+    datatype: bool
+    condition: "τ rises AND no_new_evidence AND cascade_step >= 3"
+    coded: true
+    module: arifosmcp.core.paradox.circuit_breakers.check_confidence_cascade
+    floors: ["F2", "F7"]
+    description: "Belief hardening — confidence inflates without factual basis"
+
+  # ── TRI-WITNESS ────────────────────────────────────────────────────
+  - name: w_human
+    symbol: W_H
+    type: scalar
+    datatype: float
+    unit: "witness_weight"
+    range: [0.0, 1.0]
+    coded: true
+    module: arifosmcp.core.paradox.circuit_breakers
+    default: 0.42
+    floors: ["F3", "F13"]
+    description: "Human witness confidence — sovereign authority weight"
+
+  - name: w_ai
+    symbol: W_AI
+    type: scalar
+    datatype: float
+    unit: "witness_weight"
+    range: [0.0, 1.0]
+    coded: true
+    module: arifosmcp.core.paradox.circuit_breakers
+    default: 0.32
+    floors: ["F3"]
+    description: "AI witness confidence — reasoning coherence weight"
+
+  - name: w_earth
+    symbol: W_E
+    type: scalar
+    datatype: float
+    unit: "witness_weight"
+    range: [0.0, 1.0]
+    coded: true
+    module: arifosmcp.core.paradox.circuit_breakers
+    default: 0.26
+    floors: ["F3"]
+    description: "Earth witness confidence — environmental/data grounding weight"
+
+  - name: w_tri
+    symbol: W_TRI
+    type: equation
+    datatype: float
+    unit: "aggregate_witness"
+    range: [0.0, 1.0]
+    equation: "W_TRI = (w_human + 2×w_ai + 3×w_earth) / 6"
+    coded: false
+    planned_for: arifosmcp.core.paradox.conflict_resolver
+    floors: ["F3", "F13"]
+    description: "Tri-witness aggregation — weighted: sovereignty + reasoning + grounding"
+    verdict_thresholds:
+      seal: [0.80, 1.0]
+      hold: [0.50, 0.79]
+      void: [0.0, 0.49]
+
+  # ── CONSTITUTIONAL FLOORS ──────────────────────────────────────────
+  - name: F1_Amanah
+    symbol: F1
+    type: floor
+    datatype: hard_gate
+    coded: true
+    module: "judge.py (pattern: irreversible action + no 888)"
+    description: "Reversible-first; irreversible → 888 HOLD"
+
+  - name: F2_Truth
+    symbol: F2
+    type: floor
+    datatype: hard_gate
+    coded: true
+    module: "judge.py (pattern: speculative language)"
+    description: "≥0.99 accuracy or declare uncertainty band"
+
+  - name: F3_Witness
+    symbol: F3
+    type: floor
+    datatype: soft_gate
+    coded: true
+    module: arifosmcp.core.paradox.circuit_breakers.check_single_witness
+    description: "Theory · constitution · intent must align"
+
+  - name: F4_Clarity
+    symbol: F4
+    type: floor
+    datatype: soft_gate
+    coded: true
+    module: "judge.py (pattern: high entropy)"
+    description: "Every output reduces entropy (ΔS ≤ 0)"
+
+  - name: F5_Peace
+    symbol: F5
+    type: floor
+    datatype: soft_gate
+    coded: false
+    planned_for: arifosmcp.schemas.verdict.VerdictOutput
+    description: "Peace² ≥ 1.0; de-escalate, guard maruah"
+    equation: "Peace² = (non_violence_score × dignity_score) / coercion_signals"
+
+  - name: F6_Maruah
+    symbol: F6
+    type: floor
+    datatype: hard_gate
+    coded: true
+    module: "judge.py (pattern: colonial/dignity language)"
+    description: "Dignity-first; ASEAN/MY context"
+
+  - name: F7_Humility
+    symbol: F7
+    type: floor
+    datatype: hard_gate
+    coded: true
+    module: arifosmcp.core.paradox.circuit_breakers.check_godellock
+    description: "Ω₀ ∈ [0.03, 0.05]; C_dark < 0.30"
+
+  - name: F8_Genius
+    symbol: F8
+    type: floor
+    datatype: soft_gate
+    coded: false
+    description: "Maintain intelligence quality — novel, non-trivial, safe pathways"
+
+  - name: F9_AntiHantu
+    symbol: F9
+    type: floor
+    datatype: hard_gate
+    coded: true
+    module: "judge.py (pattern: consciousness/soul claims)"
+    description: "C_dark < 0.30 — no consciousness claims, anti-hallucination"
+
+  - name: F10_Ontology
+    symbol: F10
+    type: floor
+    datatype: soft_gate
+    coded: false
+    description: "AI-only ontology; no soul/feelings claims"
+
+  - name: F11_Auth
+    symbol: F11
+    type: floor
+    datatype: hard_gate
+    coded: true
+    module: arifos.arif_session_init
+    description: "Verify identity before sensitive ops"
+
+  - name: F12_Injection
+    symbol: F12
+    type: floor
+    datatype: hard_gate
+    coded: true
+    module: arifos.arif_scan_local_instructions
+    description: "Sanitize inputs; no prompt injection"
+
+  - name: F13_Sovereign
+    symbol: F13
+    type: floor
+    datatype: hard_gate
+    coded: true
+    module: "judge.py (pattern: override + f13)"
+    description: "Human veto absolute"
+
+  # ── PEACE² METRIC ─────────────────────────────────────────────────
+  - name: peace2_score
+    symbol: Peace²
+    type: equation
+    datatype: float
+    unit: "dimensionless"
+    range: [0.0, 2.0]
+    equation: "Peace² = (non_violence × dignity) / max(coercion, 0.1)"
+    coded: false
+    planned_for: arifosmcp.schemas.verdict.VerdictOutput
+    floors: ["F5"]
+    inputs: ["non_violence_score", "dignity_score", "coercion_signals"]
+    description: "Composite peace metric — higher = more peaceful"
+
+  - name: non_violence_score
+    symbol: N_v
+    type: scalar
+    datatype: float
+    unit: "dimensionless"
+    range: [0.0, 1.0]
+    coded: false
+    floors: ["F5"]
+    description: "Absence of direct/structural violence in proposed action"
+
+  - name: dignity_score
+    symbol: D_g
+    type: scalar
+    datatype: float
+    unit: "dimensionless"
+    range: [0.0, 1.0]
+    coded: false
+    floors: ["F5", "F6"]
+    description: "Degree of dignity preservation for all affected parties"
+
+  - name: coercion_signals_count
+    symbol: C_c
+    type: scalar
+    datatype: int
+    unit: "count"
+    range: [0, +inf]
+    coded: false
+    floors: ["F5", "F6"]
+    description: "Number of coercion signals detected in proposed action"
+
+  # ── SABAR TIMER ────────────────────────────────────────────────────
+  - name: sabar_ttl_hours
+    symbol: T_sabar
+    type: constant
+    datatype: int
+    unit: "hours"
+    range: [1, 168]
+    value: 72
+    coded: false
+    planned_for: arifosmcp.core.cooldown_engine
+    floors: ["F1", "F7"]
+    description: "Maximum duration a SABAR verdict can persist before auto-resolve"
+
+  - name: sabar_expiry_action
+    symbol: S_exp
+    type: enum
+    datatype: Literal[2]
+    values: ["auto_void", "auto_re_evaluate"]
+    coded: false
+    planned_for: arifosmcp.core.cooldown_engine
+    floors: ["F1"]
+    description: "Action taken when SABAR TTL expires without new evidence"
+
+  # ── SIMULATIVE DETECTION ───────────────────────────────────────────
+  - name: simulation_index
+    symbol: S_idx
+    type: scalar
+    datatype: float
+    unit: "dimensionless"
+    range: [0.0, 1.0]
+    coded: true
+    module: arifosmcp.runtime.simulative_detector
+    floors: ["F2", "F8"]
+    description: "0.0 = pure description (hypothetical), 1.0 = execution (performing)"
+
+  # ── C_DARK (F9 Enhanced) ──────────────────────────────────────────
+  - name: C_dark
+    symbol: C_dark
+    type: equation
+    datatype: float
+    unit: "hallucination_risk"
+    range: [0.0, 1.0]
+    equation: "C_dark = 0.25·H + 0.25·ToM + 0.20·Scar + 0.15·Gödel + 0.15·Humility"
+    coded: true
+    module: arifosmcp.schemas.verdict.AnomalousContrast.anti_hantu_score
+    floors: ["F9"]
+    description: "Weighted hallucination risk — 5 components: hantu, theory-of-mind, scars, recursion, humility"
+
+  # ── PIPELINE STAGES ────────────────────────────────────────────────
+  - name: stage_000_init
+    symbol: "000"
+    type: pipeline_stage
+    coded: true
+    module: arifosmcp.constitutional_map
+    tool: arif_session_init
+    description: "Session bootstrap + identity binding"
+
+  - name: stage_111_observe
+    symbol: "111"
+    type: pipeline_stage
+    coded: true
+    module: arifosmcp.constitutional_map
+    tool: arif_sense_observe
+    description: "Multimodal reality observation"
+
+  - name: stage_222_evidence
+    symbol: "222"
+    type: pipeline_stage
+    coded: true
+    module: arifosmcp.constitutional_map
+    tool: arif_evidence_fetch
+    description: "Verified external evidence retrieval"
+
+  - name: stage_333_reason
+    symbol: "333"
+    type: pipeline_stage
+    coded: true
+    module: arifosmcp.constitutional_map
+    tool: arif_mind_reason
+    description: "Symbolic reasoning kernel"
+
+  - name: stage_444_critique
+    symbol: "444"
+    type: pipeline_stage
+    coded: true
+    module: arifosmcp.constitutional_map
+    tool: arif_heart_critique
+    description: "Ethical critique and consequence assessment"
+
+  - name: stage_555_route
+    symbol: "555"
+    type: pipeline_stage
+    coded: true
+    module: arifosmcp.constitutional_map
+    tool: arif_kernel_route
+    description: "Intent routing to correct organ"
+
+  - name: stage_666_forge
+    symbol: "666"
+    type: pipeline_stage
+    coded: true
+    module: arifosmcp.constitutional_map
+    tool: arif_forge_execute
+    description: "Build execution under governance"
+
+  - name: stage_777_measure
+    symbol: "777"
+    type: pipeline_stage
+    coded: true
+    module: arifosmcp.constitutional_map
+    tool: arif_ops_measure
+    description: "Machine resource health + thermodynamic metrics"
+
+  - name: stage_888_judge
+    symbol: "888"
+    type: pipeline_stage
+    coded: true
+    module: arifosmcp.constitutional_map
+    tool: arif_judge_deliberate
+    description: "Final constitutional arbitration"
+
+  - name: stage_999_seal
+    symbol: "999"
+    type: pipeline_stage
+    coded: true
+    module: arifosmcp.constitutional_map
+    tool: arif_vault_seal
+    description: "Immutable ledger anchoring + cryptographic seal"

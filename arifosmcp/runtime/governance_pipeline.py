@@ -43,6 +43,29 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any, Callable
 
+# ── F0_ROOTKEY Gate (Gate -2 — constitutional prerequisite) ─────────
+try:
+    from arifosmcp.core.f0_rootkey import (
+        check_f0_rootkey as _f0_rootkey_check,
+        F0GateVerdict as _F0Verdict,
+        get_rootkey_anchor_status as _f0_anchor_status,
+    )
+
+    _F0_ROOTKEY_AVAILABLE = True
+except ImportError:
+    _F0_ROOTKEY_AVAILABLE = False
+    _F0Verdict = None
+# ──────────────────────────────────────────────────────────────────────
+
+# ── F13 Non-Delegable Gate (Eureka 5) ─────────────────────────────
+try:
+    from arifosmcp.runtime.f13_gate import check_f13_integrity as _f13_gate_check
+
+    _F13_GATE_AVAILABLE = True
+except ImportError:
+    _F13_GATE_AVAILABLE = False
+# ──────────────────────────────────────────────────────────────────────
+
 # ── Reality Engineering Bridge (Ω, 2026-06-12) ──────────────────────
 try:
     from arifosmcp.runtime.reality_bridge import (
@@ -151,11 +174,27 @@ class PipelineVerdict(StrEnum):
 
 
 class Gate(StrEnum):
-    """The 10 gates every tool call passes through, in order."""
+    """The 12 gates every tool call passes through, in order.
 
+    Gate -2: F0_ROOTKEY   — Is the sovereign anchored? (constitutional prerequisite)
+    Gate -1: KAPARINYO    — "Apa rupanya?" (pre-floor simulation detection)
+    Gate  0: SESSION      — Is there a valid session?
+    Gate  1: IDENTITY     — Who is calling?
+    Gate 1.5: F13        — Is F13 non-delegable? (sovereign authority integrity)
+    Gate 1.5: PRINCIPAL_PARADOX — E7: autonomy contracts as risk expands
+    Gate  2: BUDGET       — Does the session have remaining budget?
+    Gate  3: RISK         — Does the action exceed the risk ceiling?
+    Gate  4: VAULT        — Is the audit trail fresh enough?
+    Gate  5: FLOORS       — Do F1-F13 constitutional floors pass?
+    Gate  6: DRIFT        — Does the tool surface match the manifest?
+    Gate  7: ENVELOPE     — Is the FederationEnvelope v2 valid?
+    """
+
+    ROOTKEY = "GATE_-2_ROOTKEY"  # F0: constitutional prerequisite
     KAPARINYO = "GATE_-1_KAPARINYO"  # Pre-floor: "Apa rupanya?"
     SESSION = "GATE_0_SESSION"
     IDENTITY = "GATE_1_IDENTITY"
+    F13_SOVEREIGN = "GATE_1.5_F13_SOVEREIGN"  # E5: F13 non-delegable gate
     PRINCIPAL_PARADOX = "GATE_1.5_PRINCIPAL_PARADOX"  # E7: autonomy contracts as risk expands
     BUDGET = "GATE_2_BUDGET"
     RISK = "GATE_3_RISK"
@@ -189,9 +228,14 @@ class PipelineResult:
     total_latency_ms: float = 0.0
     session_id: str = ""
     tool_name: str = ""
+    # F0_ROOTKEY Gate (Gate -2)
+    f0_rootkey_verdict: str = ""
+    f0_rootkey_public_key_loaded: bool = False
     # Kaparinyo Gate (F0 pre-floor)
     kaparinyo_score: float = 0.0
     kaparinyo_advice: str = ""
+    # F13 Gate (Gate 1.5)
+    f13_authority_verified: bool = False
 
     @property
     def all_clear(self) -> bool:
@@ -263,10 +307,14 @@ class GovernancePipeline:
     def __init__(
         self,
         *,
+        # ── F0_ROOTKEY Gate (Gate -2 — constitutional prerequisite) ──
+        f0_rootkey_enabled: bool = True,
         # ── Kaparinyo Gate (F0 pre-floor) ──
         kaparinyo_enabled: bool = True,
         kaparinyo_warn_threshold: float = 0.50,
         kaparinyo_hold_threshold: float = 0.75,
+        # ── F13 Non-Delegable Gate (Gate 1.5) ──
+        f13_gate_enabled: bool = True,
         # ── E7 Principal Paradox (Gate 1.5) ──
         principal_paradox_enabled: bool = True,
         # ── Enforcement mode ──
@@ -297,10 +345,16 @@ class GovernancePipeline:
         self.floor_enabled = floor_enabled
         self.envelope_enabled = envelope_enabled
 
+        # F0_ROOTKEY Gate (Gate -2 — constitutional prerequisite)
+        self.f0_rootkey_enabled = f0_rootkey_enabled and _F0_ROOTKEY_AVAILABLE
+
         # Kaparinyo Gate (F0 pre-floor)
         self.kaparinyo_enabled = kaparinyo_enabled and _KAPARINYO_GATE_AVAILABLE
         self.kaparinyo_warn_threshold = kaparinyo_warn_threshold
         self.kaparinyo_hold_threshold = kaparinyo_hold_threshold
+
+        # F13 Non-Delegable Gate (Gate 1.5 — sovereign authority integrity)
+        self.f13_gate_enabled = f13_gate_enabled and _F13_GATE_AVAILABLE
 
         # E7 Principal Paradox (Gate 1.5)
         self.principal_paradox_enabled = principal_paradox_enabled and _E7_AVAILABLE
@@ -340,6 +394,52 @@ class GovernancePipeline:
             session_id=_ensure_session_id(ctx),
             tool_name=ctx.tool_name,
         )
+
+        # Gate -2: F0_ROOTKEY — constitutional prerequisite
+        # "Is the sovereign anchored?" — runs before ANY other gate
+        if _F0_ROOTKEY_AVAILABLE and self.f0_rootkey_enabled:
+            gate = self._gate_f0_rootkey(ctx)
+            result.gate_results.append(gate)
+            result.f0_rootkey_verdict = gate.metadata.get("f0_verdict", "UNKNOWN")
+            result.f0_rootkey_public_key_loaded = gate.metadata.get(
+                "public_key_loaded", False
+            )
+            if not gate.passed:
+                if self.enforcement_mode == "simulate":
+                    logger.warning(
+                        "F0 SIMULATE: would have blocked %s — %s",
+                        ctx.tool_name, gate.reason,
+                    )
+                    # Override: mark passed in simulation mode
+                    gate = GateResult(
+                        gate=gate.gate,
+                        passed=True,
+                        reason=f"[SIMULATE] F0 would have failed: {gate.reason}",
+                        latency_ms=gate.latency_ms,
+                        metadata={
+                            **gate.metadata,
+                            "enforcement_mode": "simulate",
+                            "would_have_blocked": True,
+                        },
+                    )
+                    result.gate_results[-1] = gate
+                elif gate.metadata.get("f0_verdict") == "FAIL":
+                    result.verdict = PipelineVerdict.VOID
+                    result.blocked_at = gate.gate
+                    result.reasons.append(
+                        f"F0_ROOTKEY FAIL: {gate.reason} — "
+                        "constitutional prerequisite not met. "
+                        "Seal root anchor before proceeding."
+                    )
+                    result.violated_laws.append("F0")
+                    result.next_safe_action = (
+                        "Seal F0_ROOTKEY anchor: run arif_vault_seal with "
+                        "f0_rootkey anchor payload, or set ARIF_ROOTKEY env var."
+                    )
+                    result.total_latency_ms = (time.perf_counter() - t0) * 1000
+                    self._publish_to_mesh(ctx, result)
+                    return result
+                # HOLD — key exists but caller not verified; observer access only
 
         # Gate -1: Kaparinyo (F0 pre-floor — "Apa rupanya?")
         if _KAPARINYO_GATE_AVAILABLE and self.kaparinyo_enabled:
@@ -381,6 +481,42 @@ class GovernancePipeline:
             result.total_latency_ms = (time.perf_counter() - t0) * 1000
             self._publish_to_mesh(ctx, result)
             return result
+
+        # Gate 1.5: F13 Non-Delegable Gate (E5 — sovereign authority integrity)
+        if _F13_GATE_AVAILABLE and self.f13_gate_enabled:
+            gate = self._gate_f13_sovereign(ctx)
+            result.gate_results.append(gate)
+            result.f13_authority_verified = gate.passed
+            if not gate.passed:
+                if self.enforcement_mode == "simulate":
+                    logger.warning(
+                        "F13 SIMULATE: would have blocked %s — %s",
+                        ctx.tool_name, gate.reason,
+                    )
+                    gate = GateResult(
+                        gate=gate.gate,
+                        passed=True,
+                        reason=f"[SIMULATE] F13 would have failed: {gate.reason}",
+                        latency_ms=gate.latency_ms,
+                        metadata={
+                            **gate.metadata,
+                            "enforcement_mode": "simulate",
+                            "would_have_blocked": True,
+                        },
+                    )
+                    result.gate_results[-1] = gate
+                else:
+                    result.verdict = PipelineVerdict.HOLD
+                    result.blocked_at = gate.gate
+                    result.reasons.append(gate.reason)
+                    result.violated_laws.extend(gate.metadata.get("violated_laws", ["F13"]))
+                    result.next_safe_action = (
+                        "F13 non-delegable. Only Yang Arif (ARIF / Muhammad Arif bin Fazil) "
+                        "may perform F13-gated actions. Delegation attempts are blocked."
+                    )
+                    result.total_latency_ms = (time.perf_counter() - t0) * 1000
+                    self._publish_to_mesh(ctx, result)
+                    return result
 
         # Gate 1.5: Principal Paradox (E7)
         if self.principal_paradox_enabled:
@@ -598,6 +734,132 @@ class GovernancePipeline:
 
         t = _thr.Thread(target=_publish_sync, daemon=True, name=f"gov-publish-{result.verdict.value}")
         t.start()
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # GATE -2: F0_ROOTKEY — Constitutional Prerequisite
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _gate_f0_rootkey(self, ctx: ToolCallContext) -> GateResult:
+        """F0_ROOTKEY gate: is the sovereign anchored?
+
+        This gate runs BEFORE all others. If the rootkey is not anchored,
+        no action can proceed — the system does not know its sovereign.
+
+        Three-tier verdict:
+          PASS — Ed25519 key exists and caller is verified sovereign
+          HOLD — Key exists but caller is not verified (observer mode)
+          FAIL — No Ed25519 key found at all (constitutional prerequisite not met)
+
+        F0 is WAJIB-tier. FAIL is system-critical.
+        """
+        t0 = time.perf_counter()
+
+        # Extract actor identity from context for F0 verification
+        actor_id = getattr(ctx, "actor_id", None)
+        challenge = getattr(ctx, "params", {}).get("challenge", None)
+        sig = getattr(ctx, "params", {}).get("sig", None)
+
+        f0_verdict = _f0_rootkey_check(
+            actor_id=actor_id,
+            challenge=challenge,
+            sig=sig,
+        )
+
+        latency_ms = (time.perf_counter() - t0) * 1000
+        status = _f0_anchor_status()
+        key_loaded = status["f0_rootkey_anchor"]["public_key_loaded"]
+
+        if f0_verdict == _F0Verdict.PASS:
+            return GateResult(
+                gate=Gate.ROOTKEY,
+                passed=True,
+                reason="F0_ROOTKEY PASS — sovereign anchored and verified",
+                latency_ms=latency_ms,
+                metadata={
+                    "f0_verdict": "PASS",
+                    "public_key_loaded": key_loaded,
+                    "public_key_fingerprint": status["f0_rootkey_anchor"]["public_key_fingerprint"],
+                },
+            )
+
+        elif f0_verdict == _F0Verdict.FAIL:
+            return GateResult(
+                gate=Gate.ROOTKEY,
+                passed=False,
+                reason=(
+                    "F0_ROOTKEY FAIL — sovereign public key not found. "
+                    "The system has no constitutional anchor. "
+                    "Action cannot proceed."
+                ),
+                latency_ms=latency_ms,
+                metadata={
+                    "f0_verdict": "FAIL",
+                    "public_key_loaded": key_loaded,
+                    "violated_laws": ["F0"],
+                },
+            )
+
+        else:
+            # HOLD — key exists but caller not verified
+            return GateResult(
+                gate=Gate.ROOTKEY,
+                passed=False,
+                reason=(
+                    f"F0_ROOTKEY HOLD — sovereign key exists but caller "
+                    f"'{actor_id or 'anonymous'}' not verified. "
+                    "Observer access only. Provide Ed25519 signature for sovereign access."
+                ),
+                latency_ms=latency_ms,
+                metadata={
+                    "f0_verdict": "HOLD",
+                    "public_key_loaded": key_loaded,
+                    "violated_laws": ["F0", "F11"],
+                },
+            )
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # GATE 1.5: F13 SOVEREIGN — Non-Delegable Authority Gate
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _gate_f13_sovereign(self, ctx: ToolCallContext) -> GateResult:
+        """F13 Non-Delegable gate: verify sovereign authority integrity.
+
+        This gate runs at Gate 1.5 (alongside E7 Principal Paradox).
+        It checks that:
+          1. If the action claims F13 authority, the caller is actually Yang Arif
+          2. No delegation terms appear in F13-gated actions
+          3. No sub-agent or automation layer claims F13 authority
+
+        F13 is WAJIB-tier and HARAM to delegate.
+        """
+        t0 = time.perf_counter()
+
+        # Only check F13 for irreversible/mutate actions
+        action_class = getattr(ctx, "action_class", "OBSERVE")
+        if action_class not in ("MUTATE", "ATOMIC"):
+            return GateResult(
+                gate=Gate.F13_SOVEREIGN,
+                passed=True,
+                reason=f"F13 not required for {action_class} actions",
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+
+        action_params = getattr(ctx, "params", {})
+        caller = getattr(ctx, "actor_id", "anonymous") or "anonymous"
+
+        passed, reason = _f13_gate_check(action_params, caller)
+
+        return GateResult(
+            gate=Gate.F13_SOVEREIGN,
+            passed=passed,
+            reason=reason,
+            latency_ms=(time.perf_counter() - t0) * 1000,
+            metadata={
+                "violated_laws": ["F13"] if not passed else [],
+                "caller": caller,
+                "action_class": action_class,
+            },
+        )
 
     # ═══════════════════════════════════════════════════════════════════════
     # GATE -1: KAPARINYO (F0 pre-floor — "Apa rupanya?")

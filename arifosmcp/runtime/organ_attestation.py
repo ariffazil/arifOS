@@ -82,6 +82,22 @@ _ORGAN_REGISTRY: dict[str, OrganAttestationRecord] = {}
 #   WEALTH  → capital_manifest_hash       (value law)
 #   WELL    → substrate_manifest_hash     (vitality law)
 _ORGAN_CONFIG: dict[str, dict[str, Any]] = {
+    "arifOS": {
+        "role": "constitutional_kernel",
+        "health_module": "arifosmcp.runtime.self_bridge",
+        "health_fn": "arifos_health_check",
+        "list_fn": "list_arifos_tools",
+        "identity_anchor_type": "constitution_hash",
+        "identity_anchor_candidates": [
+            "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+            "/opt/arifos/app/static/arifos/theory/000/000_CONSTITUTION.md",
+        ],
+        # kept for backward compat — sameness check only
+        "constitution_candidates": [
+            "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+            "/opt/arifos/app/static/arifos/theory/000/000_CONSTITUTION.md",
+        ],
+    },
     "GEOX": {
         "role": "earth_intelligence",
         "health_module": "arifosmcp.runtime.geox_bridge",

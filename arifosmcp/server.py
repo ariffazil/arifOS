@@ -516,6 +516,10 @@ try:
 
     _CANONICAL_HANDLERS["arif_mind_reason"] = embodied_mind_reason_handler
 
+    # Note: arif_gate_judge handler is registered in tools.py
+    # _RUNTIME_DIAGNOSTIC_HANDLERS, not in _CANONICAL_HANDLERS.
+    # DO NOT add here — it will break the CANONICAL_HANDLERS invariant.
+
     # ── Ingress tolerance middleware with envelope validation ──────────────
     from arifosmcp.runtime.ingress_middleware import IngressToleranceMiddleware
 
@@ -1296,6 +1300,50 @@ if app:
     app.add_route("/version", _airlock_version, methods=["GET"])
     app.add_route("/probe", _airlock_probe, methods=["GET", "POST"])
 
+    # ── MCP Gate v0 — Constitutional Gate (Σ, 2026-06-14) ───────────────
+    # The wedge: determines whether MCP-powered agents may touch the world.
+    # POST /gate/v0 with tool_name, action_class, risk dimensions → verdict.
+    from arifosmcp.gate.mcp_gate_v0 import judge_action as _gate_judge
+
+    async def mcp_gate_v0(request: Request) -> JSONResponse:
+        """POST /gate/v0 — Constitutional MCP Gate.
+
+        Input: tool request + risk profile
+        Output: verdict (ALLOW | ALLOW_WITH_LOG | REQUIRE_APPROVAL | SIMULATE_FIRST | BLOCK | HOLD_888)
+        """
+        from starlette.responses import JSONResponse
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse(
+                {"error": "Invalid JSON body", "verdict": "BLOCK"},
+                status_code=400,
+            )
+
+        result = _gate_judge(
+            tool_name=body.get("tool_name", "unknown"),
+            actor_id=body.get("actor_id", "anonymous"),
+            action_class=body.get("action_class", "OBSERVE"),
+            reversible=body.get("reversible", True),
+            data_sensitivity=body.get("data_sensitivity", "public"),
+            physical_impact=body.get("physical_impact", False),
+            financial_impact=body.get("financial_impact", False),
+            dignity_impact=body.get("dignity_impact", False),
+            blast_radius=body.get("blast_radius", "low"),
+            session_active=body.get("session_active", False),
+            lease_active=body.get("lease_active", False),
+            tool_args=body.get("tool_args"),
+        )
+
+        status = 200
+        if result["verdict"] in ("BLOCK",):
+            status = 403
+        elif result["verdict"] == "HOLD_888":
+            status = 202  # Accepted for review
+
+        return JSONResponse(result, status_code=status)
+
+    app.add_route("/gate/v0", mcp_gate_v0, methods=["POST"])
 
     # ── Policy Hash Initialization (Ω, 2026-06-12) ──────────────────────
     # Compute the canonical policy hash from the constitutional map

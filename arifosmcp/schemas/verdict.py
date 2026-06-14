@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Any, Literal, Optional
+from typing import Any, Literal, Optional, get_args as _get_args
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -53,6 +53,17 @@ class AnomalousContrast(BaseModel):
 
     ToAC Principle: Intelligence = ability to detect and resolve contrast.
 
+    Core equation: AC_Risk = U_phys × D_transform × B_cog
+      U_phys ∈ [0,1] — Physical model uncertainty
+      D_transform ∈ [1,3] — Processing chain distortion
+      B_cog ∈ [0,1] — Cognitive bias exposure
+
+    Verdict thresholds:
+      < 0.15 → SEAL
+      0.15–0.34 → SABAR
+      0.35–0.59 → HOLD
+      ≥ 0.60 → VOID
+
     Embeds in: 333_MIND, 888_JUDGE, 999_VAULT
     """
 
@@ -62,9 +73,24 @@ class AnomalousContrast(BaseModel):
     # What actually happened
     observed_deviation: str = Field(description="How reality diverged from expectation")
 
-    # Magnitude
+    # ── ToAC component factors ───────────────────────────────────────
+    u_phys: float = Field(
+        default=0.5, ge=0.0, le=1.0,
+        description="AC_Risk factor: Physical model uncertainty (0=perfect model, 1=no model)"
+    )
+    d_transform: float = Field(
+        default=1.0, ge=1.0, le=3.0,
+        description="AC_Risk factor: Processing chain distortion (1=direct, 3=highly transformed)"
+    )
+    b_cog: float = Field(
+        default=0.5, ge=0.0, le=1.0,
+        description="AC_Risk factor: Cognitive bias exposure (0=none, 1=max bias)"
+    )
+
+    # ── Computed AC_Risk (via model_validator) ──────────────────────
     magnitude: float = Field(
-        ge=0.0, le=1.0, description="Normalized deviation strength (0=none, 1=maximum)"
+        default=0.25, ge=0.0, le=1.0,
+        description="AC_Risk = U_phys × D_transform × B_cog (computed via model_validator)"
     )
 
     # Confidence in detection
@@ -73,12 +99,30 @@ class AnomalousContrast(BaseModel):
     )
 
     # Contrast type classification
-    contrast_type: str = Field(
-        description=(
-            "'expected_vs_observed' | 'claimed_vs_verified' | "
-            "'shortterm_vs_entropy' | 'local_vs_civilizational'"
-        )
-    )
+    contrast_type: Literal[
+        "expected_vs_observed", "claimed_vs_verified",
+        "shortterm_vs_entropy", "local_vs_civilizational",
+    ] = Field(description="Canonical contrast classification")
+
+    # ── model_validator: compute AC_Risk = U_phys × D_transform × B_cog ──
+    @model_validator(mode="after")
+    def compute_ac_risk(self) -> "AnomalousContrast":
+        """Compute AC_Risk from component factors and set magnitude."""
+        self.magnitude = round(self.u_phys * self.d_transform * self.b_cog / 3.0, 4)
+        # Bound to [0, 1] — D_transform ∈ [1,3] so raw product can exceed 1
+        self.magnitude = min(self.magnitude, 1.0)
+        return self
+
+    @property
+    def ac_risk_verdict(self) -> str:
+        """Return the verdict band for the current AC_Risk magnitude."""
+        if self.magnitude < 0.15:
+            return "SEAL"
+        elif self.magnitude < 0.35:
+            return "SABAR"
+        elif self.magnitude < 0.60:
+            return "HOLD"
+        return "VOID"
 
     # Resolution
     resolution_strategy: str | None = Field(
@@ -125,9 +169,9 @@ class ThermodynamicState(BaseModel):
     )
 
     # Direction
-    entropy_direction: str = Field(
+    entropy_direction: Literal["increasing", "decreasing", "stable", "unknown"] = Field(
         default="unknown",
-        description="'increasing' | 'decreasing' | 'stable' | 'unknown'",
+        description="Canonical entropy direction",
     )
 
     # Reversibility
@@ -182,8 +226,8 @@ class DecisionCollapse(BaseModel):
     )
 
     # Collapse mechanism
-    collapse_trigger: str = Field(
-        description="What triggered collapse: 'threshold' | 'evidence' | 'override' | 'timeout'"
+    collapse_trigger: Literal["threshold", "evidence", "override", "timeout"] = Field(
+        description="What triggered the decision collapse"
     )
 
     # Post-collapse
@@ -792,8 +836,8 @@ class EntropyDelta(BaseModel):
     """Thermodynamic entropy change from this seal."""
 
     delta_s: float = Field(default=0.0, description="Entropy change in J/K")  # N815
-    entropy_direction: str = Field(
-        default="stable", description="'increasing' | 'stable' | 'decreasing'"
+    entropy_direction: Literal["increasing", "stable", "decreasing"] = Field(
+        default="stable", description="Canonical entropy direction for seal"
     )
     irreversibility: bool = Field(default=False, description="Can this be reversed?")
     landauer_cost_joules: float | None = Field(default=None)
@@ -929,9 +973,9 @@ class SealOutput(BaseModel):
             "Safe Verifiable Share: fraction of AI output safely underwritable at acceptable cost"
         ),
     )
-    entropy_band: str | None = Field(
+    entropy_band: Literal["LOW", "MEDIUM", "HIGH", "EXTREME"] | None = Field(
         default=None,
-        description="Entropy classification: LOW | MEDIUM | HIGH | EXTREME",
+        description="Entropy classification at seal time",
     )
     liability_owner: str | None = Field(
         default=None,
@@ -945,13 +989,13 @@ class SealOutput(BaseModel):
         default=None,
         description="WEALTH constitutional score: multi-axis reward/risk/verifiability composite",
     )
-    wealth_recommendation: str | None = Field(
+    wealth_recommendation: Literal["SEAL_CANDIDATE", "HOLD_CANDIDATE", "VOID_CANDIDATE"] | None = Field(
         default=None,
-        description="WEALTH score recommendation: SEAL_CANDIDATE | HOLD_CANDIDATE | VOID_CANDIDATE",
+        description="WEALTH score recommendation",
     )
-    truth_band: str | None = Field(
+    truth_band: Literal["CERTAIN", "HIGH_CONF", "PLAUSIBLE", "SPECULATIVE", "UNKNOWN"] | None = Field(
         default=None,
-        description="F2 truth: CERTAIN | HIGH_CONF | PLAUSIBLE | SPECULATIVE | UNKNOWN",
+        description="F2 truth band at seal time",
     )
     confidence_note: str | None = Field(
         default=None,

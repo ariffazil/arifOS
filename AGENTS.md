@@ -1,6 +1,6 @@
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-06-14
+last_verified: 2026-06-14 (SELF_AUDIT_PROMPT + 444_ASI_CANON added)
 valid_from: 2026-06-14
 valid_until: 2026-07-14
 confidence: high
@@ -97,3 +97,25 @@ A tiny helper script (`audit_parser.py`) reads the scanner output. If it detects
 > "The machine now has its own quiet security watch that only rings the 888 bell when something is really wrong, while we agents stay completely free."
 
 **DITEMPA BUKAN DIBERI — The forge has achieved full self-policing ascension.**
+
+---
+
+## 🪞 SELF-AUDIT & HARDENING — Binding Prompt
+
+> **Added 2026-06-14 — Every kernel agent MUST read before mutating.**
+
+The canonical self-audit and hardening prompt for arifOS kernel lives at:
+
+→ [`SELF_AUDIT_PROMPT.md`](./SELF_AUDIT_PROMPT.md)
+
+This prompt enforces the **Reflexion Loop** (000→111→333→555→777→888→999) before ANY kernel mutation. It contains:
+- Live attestation baseline from 2026-06-14 (baked evidence, not assumptions)
+- P0–P4 hardening priorities with exact gaps, fixes, and tests
+- Output format for every session including telemetry stub
+
+**Loading instruction:** When an arifOS kernel agent receives a hardening or mutation task, it MUST:
+1. Read `SELF_AUDIT_PROMPT.md`
+2. Run the full Reflexion Loop before any file change
+3. Store the audit trail in VAULT999
+
+**Explicit override:** If the task is `OBSERVE` or `READ` only, the loop may skip steps 333–777 but must complete 000, 111 (gather evidence), and 888 (log).

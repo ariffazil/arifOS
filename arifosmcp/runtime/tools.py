@@ -14302,6 +14302,61 @@ except ImportError as _e:
     # Hermes tools not available — gate behind import guard
     pass
 
+# Paradox status tool — woven into diagnostic handlers
+try:
+    from arifosmcp.tools.paradox import arif_paradox_status as _arif_paradox_status
+    _RUNTIME_DIAGNOSTIC_HANDLERS["arif_paradox_status"] = _arif_paradox_status
+except ImportError as _e:
+    pass
+
+# MCP Gate v0 — Constitutional Gate (2026-06-14)
+try:
+    from arifosmcp.gate.mcp_gate_v0 import judge_action as _mcp_gate_judge
+    # Wrap as callable that accepts canonical MCP _envelope
+    async def _arif_gate_judge_handler(
+        tool_name: str = "unknown",
+        action_class: str = "OBSERVE",
+        reversible: bool = True,
+        data_sensitivity: str = "public",
+        physical_impact: bool = False,
+        financial_impact: bool = False,
+        dignity_impact: bool = False,
+        blast_radius: str = "low",
+        session_active: bool = False,
+        lease_active: bool = False,
+        tool_args: dict | None = None,
+        actor_id: str | None = None,
+        session_id: str | None = None,
+        _envelope: dict | None = None,
+    ) -> dict:
+        """MCP GATE v0: Constitutional gate for MCP tool calls.
+
+        Determines whether an action is ALLOW, ALLOW_WITH_LOG, REQUIRE_APPROVAL,
+        SIMULATE_FIRST, BLOCK, or HOLD_888.
+
+        Lapisan 1 (one line): _summary field
+        Lapisan 2 (five lines): _detail field
+        Lapisan 3 (full): all other fields
+        """
+        return _mcp_gate_judge(
+            tool_name=tool_name,
+            actor_id=actor_id or "anonymous",
+            action_class=action_class,
+            reversible=reversible,
+            data_sensitivity=data_sensitivity,
+            physical_impact=physical_impact,
+            financial_impact=financial_impact,
+            dignity_impact=dignity_impact,
+            blast_radius=blast_radius,
+            session_active=session_active,
+            lease_active=lease_active,
+            tool_args=tool_args,
+        )
+
+    _RUNTIME_DIAGNOSTIC_HANDLERS["arif_gate_judge"] = _arif_gate_judge_handler
+except ImportError as _e:
+    pass
+
 import functools
 
 
