@@ -258,6 +258,17 @@ def _tool_output_schema(name: str) -> dict[str, Any]:
             },
             "required": ["ok", "build", "schema_version"],
         }
+    if name in {"arif_schema_echo", "arif_version_echo", "arif_transport_echo", "arif_initialize_probe"}:
+        return {
+            "type": "object",
+            "additionalProperties": True,
+            "properties": {
+                "ok": {"type": "boolean"},
+                "verdict": {"type": "string"},
+                "payload": {"type": "object"},
+                "delta_S": {"type": "number"},
+            },
+        }
     return {
         "type": "object",
         "additionalProperties": True,
