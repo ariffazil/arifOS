@@ -56,6 +56,12 @@ def _alias_public_name(alias_name: str) -> str:
 # These are the ONLY non-canonical tools that have live FastMCP handlers.
 DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arif_ping",
+    # ── Transport Canary Layer (Phase 0, 2026-06-14) ──
+    "arif_schema_echo",
+    "arif_version_echo",
+    "arif_transport_echo",
+    "arif_initialize_probe",
+    # ── Legacy diagnostics ──
     "arif_stack_health_probe",
     "arif_scan_local_instructions",
     "arif_organ_consensus",
@@ -123,7 +129,15 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     if resolved == "expanded45":
         candidates = EXPANDED_45
     else:
-        candidates = CANONICAL_13
+        # Expose transport canary tools on the public surface (Phase 0, 2026-06-14)
+        # arif_ping + the 4 canary tools are zero-floor diagnostics
+        candidates = CANONICAL_13 + (
+            "arif_ping",
+            "arif_schema_echo",
+            "arif_version_echo",
+            "arif_transport_echo",
+            "arif_initialize_probe",
+        )
     # Filter out internal_only tools regardless of mode.
     return tuple(
         name
