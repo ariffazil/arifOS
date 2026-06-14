@@ -51,7 +51,7 @@ VAULT999/AAA_HUMAN/rootkey.json
 ```
 arifosmcp/runtime/
 ├── sovereign_anchor.py    ← EUREKA 1: Session → /000 trace enforcement
-├── zkpc_verifier.py       ← EUREKA 2: 7-dimension coherence check
+├── context_coherence.py   ← EUREKA 2: Context Coherence Verifier (7 dims)
 ├── seal_chain.py          ← EUREKA 3: SEAL → genesis trace validation
 ├── entropy_gate.py        ← EUREKA 4: Anti-behavior-sink entropy gate
 ├── f13_gate.py            ← EUREKA 5: Non-delegable sovereignty gate
@@ -73,7 +73,7 @@ EUREKA 5: f13_gate.check() — non-delegable sovereignty enforced
     ↓
 000_init (Step 0 Root Key Ignition)
     ↓
-EUREKA 2: zkpc_verifier.verify() — context claims verified (7 dims)
+EUREKA 2: context_coherence.verify_context_coherence() — context claims verified (7 dims)
     ↓
 EUREKA 4: entropy_gate.check() — anti-behavior-sink enforced
     ↓
@@ -127,9 +127,9 @@ def verify_sovereign_anchor(session_context: dict) -> tuple[bool, str]:
 - Invalid anchor → False, "Sovereign key does not match /000 attestation"  
 - Missing anchor → False, "No sovereign anchor in session context"
 
-### EUREKA 2: ZKPC Verifier
+### EUREKA 2: Context Coherence Verifier
 
-**File:** `arifosmcp/runtime/zkpc_verifier.py`
+**File:** `arifosmcp/runtime/context_coherence.py`
 
 ```python
 def verify_zkpc(
@@ -294,7 +294,7 @@ Step 0: Root Key Ignition
     └─ Store session_key in context (encrypted)
     ↓
 Session proceeds with cryptographic authority
-    ├─ EUREKA 2: zkpc_verifier.verify() — context claims
+    ├─ EUREKA 2: context_coherence.verify_context_coherence() — context claims
     ├─ EUREKA 4: entropy_gate.check() — anti-behavior-sink
     └─ F1-F13 enforcement throughout
     ↓
@@ -507,7 +507,7 @@ python scripts/create_genesis_block.py
 # 4. Verify Eureka modules loaded
 python -c "
 from arifosmcp.runtime.sovereign_anchor import verify_sovereign_anchor
-from arifosmcp.runtime.zkpc_verifier import verify_zkpc
+from arifosmcp.runtime.context_coherence import verify_context_coherence
 from arifosmcp.runtime.seal_chain import validate_seal_chain
 from arifosmcp.runtime.entropy_gate import check_entropy
 from arifosmcp.runtime.f13_gate import check_f13_integrity
