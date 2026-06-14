@@ -7,10 +7,11 @@ declarations — a single pipeline that intercepts every tool call and
 runs all contract checks in sequence. No agent brain required. No
 scattered copy-paste. One pipe. Every call. Always.
 
-The 9-Gate Sequence:
+The 10-Gate Sequence:
   Gate -1: Kaparinyo Scan         — "Apa rupanya?" — pre-floor simulation check
   Gate 0: Session Binding       — session_id must be valid and active
   Gate 1: Identity & Authority  — actor must be verified for this action class
+  Gate 1.5: Principal Paradox   — E7: autonomy contracts as risk expands
   Gate 2: Budget Enforcement    — session must have remaining budget
   Gate 3: Risk Passport         — action must not exceed risk ceiling
   Gate 4: Vault Liveness        — audit trail must be fresh enough
@@ -23,12 +24,13 @@ On HOLD at any gate:
   - Returns structured HOLD verdict with reasons[], violated_laws[],
     next_safe_action, and the gate that blocked.
   - Logs to budget violations ledger
-  - Fires NATS event for monitoring
+  - Fires NATS event for monitoring (via nats_event_bus)
 
 On PASS through all gates:
   - Execution proceeds
   - After execution: seal to VAULT999 (if MUTATE/ATOMIC)
   - Update budget consumption
+  - Publishes PASS event to NATS governance stream
 
 DITEMPA BUKAN DIBERI — The pipe is forged, not given.
 """
@@ -65,6 +67,36 @@ try:
     _KAPARINYO_GATE_AVAILABLE = True
 except ImportError:
     _KAPARINYO_GATE_AVAILABLE = False
+# ──────────────────────────────────────────────────────────────────────
+
+# ── NATS Event Bus (mesh wiring, P0 2026-06-14) ─────────────────────
+try:
+    from arifosmcp.runtime.nats_event_bus import event_bus as _nats_event_bus
+
+    _NATS_AVAILABLE = True
+except ImportError:
+    _NATS_AVAILABLE = False
+# ──────────────────────────────────────────────────────────────────────
+
+# ── E7 Principal Paradox (Gate 1.5, 2026-06-14) ──────────────────────
+try:
+    from arifosmcp.runtime.principal_paradox import (
+        gate_1_5_principal_paradox as _e7_gate,
+        AutonomyTier as _E7AutonomyTier,
+        MAX_OVERRIDES_PER_HOUR as _E7_MAX_OVERRIDES,
+    )
+
+    _E7_AVAILABLE = True
+except ImportError:
+    _E7_AVAILABLE = False
+
+# ── Tool Risk Registry (E7 bridge, 2026-06-14) ─────────────────────
+try:
+    from arifosmcp.runtime.tool_risk_registry import classify_tool_call as _classify_risk
+
+    _RISK_REGISTRY_AVAILABLE = True
+except ImportError:
+    _RISK_REGISTRY_AVAILABLE = False
 # ──────────────────────────────────────────────────────────────────────
 
 logger = logging.getLogger("arifosmcp.governance_pipeline")
@@ -119,11 +151,12 @@ class PipelineVerdict(StrEnum):
 
 
 class Gate(StrEnum):
-    """The 9 gates every tool call passes through, in order."""
+    """The 10 gates every tool call passes through, in order."""
 
     KAPARINYO = "GATE_-1_KAPARINYO"  # Pre-floor: "Apa rupanya?"
     SESSION = "GATE_0_SESSION"
     IDENTITY = "GATE_1_IDENTITY"
+    PRINCIPAL_PARADOX = "GATE_1.5_PRINCIPAL_PARADOX"  # E7: autonomy contracts as risk expands
     BUDGET = "GATE_2_BUDGET"
     RISK = "GATE_3_RISK"
     VAULT = "GATE_4_VAULT_LIVENESS"
@@ -201,7 +234,11 @@ class ToolCallContext:
     actor_verification: str = "claimed"  # claimed | verified | delegated
     params: dict[str, Any] = field(default_factory=dict)
     action_class: str = "OBSERVE"  # OBSERVE | PREPARE | MUTATE | ATOMIC
-    risk_tier: str = "T0"  # T0-T5
+    risk_tier: str = "LOW"  # LOW | MEDIUM | HIGH | ATOMIC (also accepts legacy T0-T5)
+    blast_radius: str = "LOCAL"  # LOCAL | ORGAN | FEDERATION | EXTERNAL (E7)
+    reversibility: float = 1.0  # 1.0 (fully reversible) → 0.0 (irreversible) (E7)
+    caller_is_principal: bool = False  # True if human sovereign (F13) is direct caller
+    caller_has_lease: bool = False  # True if caller holds active authority lease
     envelope: Any = None  # FederationEnvelope if provided
 
 
@@ -230,6 +267,10 @@ class GovernancePipeline:
         kaparinyo_enabled: bool = True,
         kaparinyo_warn_threshold: float = 0.50,
         kaparinyo_hold_threshold: float = 0.75,
+        # ── E7 Principal Paradox (Gate 1.5) ──
+        principal_paradox_enabled: bool = True,
+        # ── Enforcement mode ──
+        enforcement_mode: str = "enforce",  # "enforce" | "simulate"
         # ── Standard gates ──
         budget_enabled: bool = True,
         vault_liveness_enabled: bool = True,
@@ -260,6 +301,12 @@ class GovernancePipeline:
         self.kaparinyo_enabled = kaparinyo_enabled and _KAPARINYO_GATE_AVAILABLE
         self.kaparinyo_warn_threshold = kaparinyo_warn_threshold
         self.kaparinyo_hold_threshold = kaparinyo_hold_threshold
+
+        # E7 Principal Paradox (Gate 1.5)
+        self.principal_paradox_enabled = principal_paradox_enabled and _E7_AVAILABLE
+
+        # Enforcement mode — "enforce" (hard block) or "simulate" (log only)
+        self.enforcement_mode = enforcement_mode
 
         # Budget limits (can be overridden per-session)
         self.max_turns = max_turns
@@ -317,6 +364,7 @@ class GovernancePipeline:
             result.violated_laws.extend(gate.metadata.get("violated_laws", []))
             result.next_safe_action = "Restart session with arif_session_init(mode='init')"
             result.total_latency_ms = (time.perf_counter() - t0) * 1000
+            self._publish_to_mesh(ctx, result)
             return result
 
         # Gate 1: Identity
@@ -331,7 +379,64 @@ class GovernancePipeline:
                 "Verify identity with arif_session_init(mode='init', actor_id='...')"
             )
             result.total_latency_ms = (time.perf_counter() - t0) * 1000
+            self._publish_to_mesh(ctx, result)
             return result
+
+        # Gate 1.5: Principal Paradox (E7)
+        if self.principal_paradox_enabled:
+            gate = self._gate_principal_paradox(ctx)
+            result.gate_results.append(gate)
+            if not gate.passed:
+                e7_verdict = gate.metadata.get("e7_verdict", "SABAR")
+
+                # ── Simulation mode: log what WOULD have been blocked ──
+                if self.enforcement_mode == "simulate":
+                    logger.warning(
+                        "E7 SIMULATE: would have issued %s for %s — %s",
+                        e7_verdict, ctx.tool_name, gate.reason,
+                    )
+                    # Override gate result — mark passed but carry WARN annotation
+                    gate = GateResult(
+                        gate=gate.gate,
+                        passed=True,
+                        reason=f"[SIMULATE] Would have been {e7_verdict}: {gate.reason}",
+                        latency_ms=gate.latency_ms,
+                        metadata={
+                            **gate.metadata,
+                            "shadow_verdict": e7_verdict,
+                            "enforcement_mode": "simulate",
+                            "would_have_blocked": True,
+                        },
+                    )
+                    result.gate_results[-1] = gate
+                    # Fall through — do not block
+
+                elif e7_verdict == "HOLD":
+                    result.verdict = PipelineVerdict.HOLD
+                    result.blocked_at = gate.gate
+                    result.reasons.append(gate.reason)
+                    result.violated_laws.extend(gate.metadata.get("violated_laws", ["E7"]))
+                    result.next_safe_action = gate.metadata.get(
+                        "next_safe_action",
+                        "Escalate to principal (F13 SOVEREIGN) or reduce risk tier.",
+                    )
+                    result.total_latency_ms = (time.perf_counter() - t0) * 1000
+                    self._publish_to_mesh(ctx, result)
+                    return result
+
+                else:
+                    # SABAR — principal approval required, advisory escalation
+                    result.verdict = PipelineVerdict.WARN
+                    result.reasons.append(gate.reason)
+                    result.violated_laws.extend(gate.metadata.get("violated_laws", []))
+                    result.next_safe_action = gate.metadata.get(
+                        "next_safe_action",
+                        "Await principal approval or downgrade action_class.",
+                    )
+                    result.total_latency_ms = (time.perf_counter() - t0) * 1000
+                    self._publish_to_mesh(ctx, result)
+                    # SABAR falls through — advisory, not hard block
+                    # (F1 AMANAH: autonomy contraction is reversible policy)
 
         # Gate 2: Budget
         if self.budget_enabled:
@@ -346,6 +451,7 @@ class GovernancePipeline:
                     "888_HOLD: session budget exhausted. Wait for sovereign review."
                 )
                 result.total_latency_ms = (time.perf_counter() - t0) * 1000
+                self._publish_to_mesh(ctx, result)
                 return result
 
         # Gate 3: Risk
@@ -358,6 +464,7 @@ class GovernancePipeline:
             result.violated_laws.extend(gate.metadata.get("violated_laws", []))
             result.next_safe_action = "Downgrade action class or increase risk ceiling."
             result.total_latency_ms = (time.perf_counter() - t0) * 1000
+            self._publish_to_mesh(ctx, result)
             return result
 
         # Gate 4: Vault Liveness
@@ -373,6 +480,7 @@ class GovernancePipeline:
                     "Wait for vault to become fresh (next seal or chain repair)."
                 )
                 result.total_latency_ms = (time.perf_counter() - t0) * 1000
+                self._publish_to_mesh(ctx, result)
                 return result
 
         # Gate 5: Floor Compliance
@@ -386,6 +494,7 @@ class GovernancePipeline:
                 result.violated_laws.extend(gate.metadata.get("violated_laws", []))
                 result.next_safe_action = "Address floor violations before retrying."
                 result.total_latency_ms = (time.perf_counter() - t0) * 1000
+                self._publish_to_mesh(ctx, result)
                 return result
 
         # Gate 6: Drift
@@ -401,6 +510,7 @@ class GovernancePipeline:
                     "Reconcile tool surface: check drift report for missing/extra tools."
                 )
                 result.total_latency_ms = (time.perf_counter() - t0) * 1000
+                self._publish_to_mesh(ctx, result)
                 return result
 
         # Gate 7: Envelope
@@ -416,13 +526,78 @@ class GovernancePipeline:
                     "Fix envelope: ensure valid FederationEnvelope v2 with authority."
                 )
                 result.total_latency_ms = (time.perf_counter() - t0) * 1000
+                self._publish_to_mesh(ctx, result)
                 return result
 
         # ── All gates passed ──────────────────────────────────────────────
         # Record consumption
         self._record_tool_call(ctx)
         result.total_latency_ms = (time.perf_counter() - t0) * 1000
+
+        # ── Publish PASS to NATS governance stream ─────────────────────
+        self._publish_to_mesh(ctx, result)
+
         return result
+
+    def _publish_to_mesh(self, ctx: ToolCallContext, result: PipelineResult) -> None:
+        """Publish pipeline verdict to the NATS governance stream.
+
+        Short-lived connection per event (connect → publish → disconnect).
+        Runs in a daemon thread — never blocks the governance pipeline.
+        Fails silently — governance must never break because NATS is down.
+        """
+        if not _NATS_AVAILABLE:
+            return
+
+        import json as _json
+        import threading as _thr
+        from datetime import UTC, datetime as _dt
+
+        # Map pipeline verdict to correct NATS subject (matching stream config)
+        if result.verdict == PipelineVerdict.PASS:
+            subject = "arifos.gate.8.pass"
+        else:
+            gate_num = result.blocked_at.value.split("_")[1] if result.blocked_at else "unknown"
+            subject = f"arifos.gate.{gate_num}.hold"
+
+        payload = _json.dumps({
+            "event": "PIPELINE_VERDICT",
+            "verdict": result.verdict.value,
+            "session_id": _ensure_session_id(ctx),
+            "tool_name": ctx.tool_name,
+            "action_class": getattr(ctx, "action_class", "OBSERVE"),
+            "blocked_at": result.blocked_at.value if result.blocked_at else None,
+            "reasons": result.reasons,
+            "violated_laws": result.violated_laws,
+            "total_latency_ms": result.total_latency_ms,
+            "timestamp": _dt.now(UTC).isoformat(),
+        }).encode()
+
+        def _publish_sync() -> None:
+            """Thread worker: connect, publish, disconnect."""
+            import asyncio as _aio
+            import nats as _nats_mod
+
+            async def _do() -> None:
+                try:
+                    nc = await _nats_mod.connect("nats://127.0.0.1:4222", connect_timeout=3)
+                    await nc.publish(subject, payload)
+                    await nc.flush(timeout=2)
+                    await nc.close()
+                except Exception:
+                    pass  # Mesh unreachable — governance continues
+
+            loop = _aio.new_event_loop()
+            _aio.set_event_loop(loop)
+            try:
+                loop.run_until_complete(_do())
+            except Exception:
+                pass
+            finally:
+                loop.close()
+
+        t = _thr.Thread(target=_publish_sync, daemon=True, name=f"gov-publish-{result.verdict.value}")
+        t.start()
 
     # ═══════════════════════════════════════════════════════════════════════
     # GATE -1: KAPARINYO (F0 pre-floor — "Apa rupanya?")
@@ -577,6 +752,163 @@ class GovernancePipeline:
         )
 
     # ═══════════════════════════════════════════════════════════════════════
+    # GATE 1.5: PRINCIPAL PARADOX (E7)
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _gate_principal_paradox(self, ctx: ToolCallContext) -> GateResult:
+        """E7: Autonomy contracts as risk expands.
+
+        When task criticality, irreversibility, or blast radius rises,
+        blind delegation becomes invalid. The agent may retain proposal
+        authority, but execution authority reverts to the principal.
+
+        This gate evaluates the autonomy ceiling and returns:
+          - PASS (FULL_AUTO/PROPOSE_ONLY): proceed
+          - WARN (PRINCIPAL_APPROVAL_REQUIRED): SABAR — advisory escalation
+          - HOLD: blocked — principal override required
+        """
+        t0 = time.perf_counter()
+
+        # Derive E7 parameters — registry first, fall back to generic mapping
+        if _RISK_REGISTRY_AVAILABLE:
+            try:
+                profile = _classify_risk(ctx)
+                action_class = profile.action_class
+                risk_tier = profile.risk_tier
+                blast_radius = profile.blast_radius
+                reversibility = profile.reversibility
+                autonomy_floor = profile.autonomy_floor
+            except Exception:
+                # Registry failed — fall through to generic mapping
+                profile = None
+
+        if not _RISK_REGISTRY_AVAILABLE or profile is None:
+            # Generic fallback: map action_class → risk parameters
+            action_class = getattr(ctx, "action_class", "OBSERVE")
+            risk_tier = getattr(ctx, "risk_tier", "LOW")
+            blast_radius = getattr(ctx, "blast_radius", "LOCAL")
+            reversibility = getattr(ctx, "reversibility", 1.0)
+            autonomy_floor = "FULL_AUTO"
+
+            # Generic blast radius mapping (conservative)
+            if not getattr(ctx, "blast_radius", None):
+                blast_map = {
+                    "OBSERVE": "LOCAL",
+                    "PREPARE": "ORGAN",
+                    "COMPUTE": "ORGAN",
+                    "PROPOSE": "FEDERATION",
+                    "MUTATE": "FEDERATION",
+                    "ATOMIC": "EXTERNAL",
+                }
+                blast_radius = blast_map.get(action_class, "LOCAL")
+
+            # Generic reversibility mapping (conservative)
+            if not getattr(ctx, "reversibility", None):
+                rev_map = {
+                    "OBSERVE": 1.0,
+                    "COMPUTE": 1.0,
+                    "PREPARE": 0.9,
+                    "PROPOSE": 0.7,
+                    "MUTATE": 0.5,
+                    "ATOMIC": 0.1,
+                }
+                reversibility = rev_map.get(action_class, 0.5)
+
+        # Determine if caller is principal (F13 sovereign)
+        caller_is_principal = getattr(ctx, "caller_is_principal", False)
+
+        # Determine if caller has lease
+        caller_has_lease = getattr(ctx, "caller_has_lease", False) or getattr(ctx, "actor_id", None) is not None
+
+        session_id = _ensure_session_id(ctx)
+
+        if not _E7_AVAILABLE:
+            return GateResult(
+                gate=Gate.PRINCIPAL_PARADOX,
+                passed=True,
+                reason="E7 module not available — soft pass (degraded mode)",
+                latency_ms=(time.perf_counter() - t0) * 1000,
+                metadata={"degraded": True},
+            )
+
+        try:
+            e7_result = _e7_gate(
+                action_class=action_class,
+                risk_tier=risk_tier,
+                blast_radius=blast_radius,
+                reversibility=reversibility,
+                caller_is_principal=caller_is_principal,
+                caller_has_lease=caller_has_lease,
+                session_id=session_id,
+            )
+        except Exception as e:
+            logger.warning(f"E7 gate evaluation failed: {e}")
+            return GateResult(
+                gate=Gate.PRINCIPAL_PARADOX,
+                passed=True,
+                reason=f"E7 evaluation error — soft pass: {e}",
+                latency_ms=(time.perf_counter() - t0) * 1000,
+                metadata={"degraded": True, "error": str(e)},
+            )
+
+        e7_verdict = e7_result.get("verdict", "PROCEED")
+        autonomy_tier = e7_result.get("autonomy_tier", "FULL_AUTO")
+        rationale = e7_result.get("rationale", "")
+        envelope = e7_result.get("envelope", {})
+
+        latency_ms = (time.perf_counter() - t0) * 1000
+
+        if e7_verdict == "HOLD":
+            return GateResult(
+                gate=Gate.PRINCIPAL_PARADOX,
+                passed=False,
+                reason=rationale,
+                latency_ms=latency_ms,
+                metadata={
+                    "violated_laws": ["E7"],
+                    "e7_verdict": "HOLD",
+                    "autonomy_tier": autonomy_tier,
+                    "envelope": envelope,
+                    "next_safe_action": e7_result.get(
+                        "next_safe_action",
+                        "Escalate to principal (F13 SOVEREIGN) or reduce risk tier.",
+                    ),
+                },
+            )
+
+        if e7_verdict == "SABAR":
+            return GateResult(
+                gate=Gate.PRINCIPAL_PARADOX,
+                passed=False,
+                reason=rationale,
+                latency_ms=latency_ms,
+                metadata={
+                    "violated_laws": [],
+                    "e7_verdict": "SABAR",
+                    "autonomy_tier": autonomy_tier,
+                    "envelope": envelope,
+                    "next_safe_action": e7_result.get(
+                        "next_safe_action",
+                        "Await principal approval or downgrade action_class.",
+                    ),
+                    "principal_approval_required": True,
+                },
+            )
+
+        # PROCEED — FULL_AUTO or PROPOSE_ONLY within ceiling
+        return GateResult(
+            gate=Gate.PRINCIPAL_PARADOX,
+            passed=True,
+            reason=rationale,
+            latency_ms=latency_ms,
+            metadata={
+                "e7_verdict": "PROCEED",
+                "autonomy_tier": autonomy_tier,
+                "envelope": envelope,
+            },
+        )
+
+    # ═══════════════════════════════════════════════════════════════════════
     # GATE 2: BUDGET ENFORCEMENT
     # ═══════════════════════════════════════════════════════════════════════
 
@@ -637,30 +969,36 @@ class GovernancePipeline:
         """Verify risk tier does not exceed ceiling."""
         t0 = time.perf_counter()
 
-        # Default ceilings per action class
-        ceilings = {
-            "OBSERVE": "T5",
-            "PREPARE": "T4",
-            "MUTATE": "T3",
-            "ATOMIC": "T2",
+        # Map named risk tiers to numeric for comparison
+        _RISK_TIER_NUMERIC = {
+            "LOW": 0, "MEDIUM": 1, "HIGH": 2, "ATOMIC": 3,
+            # Legacy T0-T5 format
+            "T0": 0, "T1": 1, "T2": 2, "T3": 3, "T4": 4, "T5": 5,
         }
-        ceiling = ceilings.get(ctx.action_class, "T0")
-        tier_num = int(ctx.risk_tier[1])  # "T3" → 3
-        ceiling_num = int(ceiling[1])
+        tier_num = _RISK_TIER_NUMERIC.get(ctx.risk_tier.upper(), 0)
+
+        # Default ceilings per action class (numeric)
+        ceilings = {
+            "OBSERVE": 5,
+            "PREPARE": 4,
+            "MUTATE": 2,
+            "ATOMIC": 1,
+        }
+        ceiling_num = ceilings.get(ctx.action_class, 0)
 
         if tier_num > ceiling_num:
             return GateResult(
                 gate=Gate.RISK,
                 passed=False,
-                reason=f"Risk {ctx.risk_tier} exceeds ceiling {ceiling} for {ctx.action_class}",
+                reason=f"Risk {ctx.risk_tier} exceeds ceiling for {ctx.action_class}",
                 latency_ms=(time.perf_counter() - t0) * 1000,
-                metadata={"violated_laws": [], "risk_tier": ctx.risk_tier, "ceiling": ceiling},
+                metadata={"violated_laws": [], "risk_tier": ctx.risk_tier, "ceiling": ceiling_num},
             )
 
         return GateResult(
             gate=Gate.RISK,
             passed=True,
-            reason=f"Risk {ctx.risk_tier} within ceiling {ceiling}",
+            reason=f"Risk {ctx.risk_tier} within ceiling for {ctx.action_class}",
             latency_ms=(time.perf_counter() - t0) * 1000,
         )
 
@@ -960,8 +1298,12 @@ class GovernancePipeline:
             app = FastMCP("arifOS")
             app.add_middleware(GovernancePipeline().as_middleware)
 
-        This wraps the entire app so every tool call passes through
-        the pipeline before reaching the handler.
+        For every MCP tool call, this middleware:
+        1. Extracts tool name and arguments from the JSON-RPC body
+        2. Runs the governance pipeline (9 gates: session, identity, budget,
+           risk, vault, floors, drift, envelope)
+        3. If PASS: forwards to the handler
+        4. If HOLD: returns a JSON-RPC error with the hold_receipt
         """
         pipeline = self
 
@@ -970,14 +1312,138 @@ class GovernancePipeline:
                 self.app = app
 
             async def __call__(self, scope, receive, send):
-                if scope["type"] == "http":
-                    # Only intercept MCP tool calls
-                    path = scope.get("path", "")
-                    if "/mcp" in path or "/tools" in path:
-                        # Attach pipeline to scope for downstream handlers
-                        scope["arifos_governance_pipeline"] = pipeline
+                if scope["type"] != "http":
+                    await self.app(scope, receive, send)
+                    return
 
-                await self.app(scope, receive, send)
+                path = scope.get("path", "")
+                is_mcp = "/mcp" in path or "/tools" in path
+
+                if not is_mcp:
+                    await self.app(scope, receive, send)
+                    return
+
+                # ── Read the request body to inspect the MCP call ──────────
+                body_chunks = []
+                more_body = True
+                while more_body:
+                    message = await receive()
+                    if message["type"] == "http.request":
+                        body_chunks.append(message.get("body", b""))
+                        more_body = message.get("more_body", False)
+
+                body = b"".join(body_chunks)
+
+                # Parse JSON-RPC to extract tool name and args
+                try:
+                    import json as _json
+                    rpc = _json.loads(body)
+                    method = rpc.get("method", "")
+                    params = rpc.get("params", {}) if isinstance(rpc.get("params"), dict) else {}
+                    tool_name = params.get("name", "")
+                    arguments = params.get("arguments", {}) if isinstance(params.get("arguments"), dict) else {}
+                except Exception:
+                    tool_name = ""
+                    arguments = {}
+
+                # ── Run governance pipeline for tools/call ─────────────────
+                if method == "tools/call" and tool_name:
+                    from arifosmcp.runtime.governance_pipeline import ToolCallContext, PipelineVerdict
+                    from arifosmcp.runtime.blast_radius_registry import (
+                        get_enforcement_mode,
+                        get_risk_profile,
+                        EnforcementMode,
+                    )
+
+                    # Resolve enforcement mode for this tool
+                    enf_mode = get_enforcement_mode(tool_name)
+                    risk = get_risk_profile(tool_name)
+
+                    ctx = ToolCallContext(
+                        tool_name=tool_name,
+                        session_id=arguments.get("session_id"),
+                        actor_id=arguments.get("actor_id"),
+                        action_class=(
+                            risk.action_class.value if risk
+                            else arguments.get("action_class", "OBSERVE")
+                        ),
+                        risk_tier=risk.risk_tier.value if risk else "T1",
+                        params=arguments,
+                    )
+                    result = pipeline.run(ctx)
+
+                    # ── SIMULATE mode: log shadow verdict, never block ────
+                    if enf_mode == EnforcementMode.SIMULATE:
+                        # Log the shadow verdict to NATS with a shadow marker
+                        import json as _json
+                        shadow_event = _json.dumps({
+                            "event": "SHADOW_VERDICT",
+                            "mode": "SIMULATE",
+                            "would_have_been": result.verdict.value,
+                            "blocked_at": result.blocked_at.value if result.blocked_at else None,
+                            "tool_name": tool_name,
+                            "reasons": result.reasons,
+                            "session_id": arguments.get("session_id", "?")[:16],
+                            "timestamp": __import__('datetime').datetime.now(__import__('datetime').UTC).isoformat(),
+                        }).encode()
+                        try:
+                            import nats as _nats_shadow
+                            async def _shadow_publish():
+                                nc = await _nats_shadow.connect("nats://127.0.0.1:4222", connect_timeout=3)
+                                await nc.publish("arifos.governance.shadow", shadow_event)
+                                await nc.flush(timeout=2)
+                                await nc.close()
+                            import asyncio as _aio_shadow
+                            loop = _aio_shadow.get_running_loop()
+                            loop.create_task(_shadow_publish())
+                        except Exception:
+                            pass
+                        # NEVER block in SIMULATE — always forward
+                        # Fall through to forward below
+
+                    # ── ENFORCE / PROPOSE mode: real blocking ─────────────
+                    elif result.verdict != PipelineVerdict.PASS:
+                        error_body = _json.dumps({
+                            "jsonrpc": "2.0",
+                            "id": rpc.get("id"),
+                            "error": {
+                                "code": -32001,
+                                "message": f"Governance HOLD [{enf_mode.value}]",
+                                "data": result.hold_receipt(),
+                            },
+                        }).encode()
+
+                        await send({
+                            "type": "http.response.start",
+                            "status": 200,
+                            "headers": [
+                                (b"content-type", b"application/json"),
+                                (b"x-arifos-governance", b"hold"),
+                                (b"x-arifos-enforcement", enf_mode.value.encode()),
+                            ],
+                        })
+                        await send({
+                            "type": "http.response.body",
+                            "body": error_body,
+                        })
+                        return  # Blocked — do not forward
+
+                # ── Forward the original request body ──────────────────────
+                # Reconstruct receive for the downstream app
+                body_sent = False
+
+                async def _receive():
+                    nonlocal body_sent
+                    if not body_sent:
+                        body_sent = True
+                        return {
+                            "type": "http.request",
+                            "body": body,
+                            "more_body": False,
+                        }
+                    return await receive()
+
+                await self.app(scope, _receive, send)
 
         return GovernanceASGIMiddleware
 

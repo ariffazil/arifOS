@@ -61,6 +61,13 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arif_session_budget",
     "arif_floor_status",
     "mcp_drift_check",
+    "hermes_system_status",
+    "hermes_vault_query",
+    "hermes_epistemic_check",
+    "hermes_fact_check",
+    "hermes_cross_verify",
+    "hermes_plan_review",
+    "hermes_memory_steward",
 )
 
 # EXPANDED_45 — the honest expanded public surface.

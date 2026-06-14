@@ -562,6 +562,29 @@ try:
         mcp.add_middleware(_ingress_middleware)  # pyright: ignore[reportArgumentType]
         logger.info("IngressToleranceMiddleware attached with envelope validation")
 
+        # ── Governance Pipeline middleware (P0 2026-06-14) ───────────────────
+        from arifosmcp.runtime.governance_pipeline import get_pipeline
+        mcp.add_middleware(get_pipeline().as_middleware)  # pyright: ignore[reportArgumentType]
+        logger.info("GovernancePipeline middleware attached — 9-gate enforcement active")
+
+    # ── Hermes Agent diagnostic tools (expanded45 surface) ─────────────────────
+    from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
+    for _hermes_name, _hermes_handler in HERMES_TOOL_HANDLERS.items():
+        _hw = _wrap_handler(_hermes_handler, _hermes_name)
+        if _hw is not None:
+            mcp.tool(
+                name=_hermes_name,
+                description=_hermes_handler.__doc__,
+                tags={"hermes", "diagnostic", "read-only"},
+            )(_hw)
+        else:
+            # fallback for non-async handlers
+            mcp.tool(
+                name=_hermes_name,
+                tags={"hermes", "diagnostic", "read-only"},
+            )(_hermes_handler)
+    v2_tools_registered.extend(list(HERMES_TOOL_HANDLERS.keys()))
+
     # Refresh the public registry cache after all canonical tools are registered
     from arifosmcp.runtime.public_registry import _runtime_contracts
 
@@ -1522,6 +1545,63 @@ if app:
     app.add_route("/arif", _serve_agent_arif, methods=["GET"])
     app.add_route("/arif/000/{filename}", _serve_sovereign_file, methods=["GET"])
     logger.info(f"Sovereign static routes registered at /arif and /arif/000/{{filename}}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# NATS MESH WIRING — module-level, fires on `import app` by any entry point
+# ═══════════════════════════════════════════════════════════════════════════════
+# The systemd service imports `app` from this module, then runs uvicorn.
+# The SSE entrypoint (server.py:main) also uses `app`. Both paths share
+# this single initialization. We use Starlette lifespan events which uvicorn
+# invokes on server start/stop regardless of entry point.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _wire_nats_to_app(_app: Any) -> None:
+    """Attach NATS startup/shutdown handlers to a Starlette app instance."""
+    try:
+        _app.add_event_handler("startup", _startup_nats_event_bus)
+        _app.add_event_handler("shutdown", _shutdown_nats_event_bus)
+        logger.info("NATS mesh event handlers wired to Starlette app")
+    except AttributeError:
+        # Starlette < 0.21 — try lifespan approach
+        logger.debug("add_event_handler not available for NATS wiring", exc_info=True)
+
+
+# Wire to the main app (top-level Starlette app from FastMCP)
+_wire_nats_to_app(app)
+
+
+async def _startup_nats_event_bus() -> None:
+    """Connect the NATS event bus at server startup (non-blocking).
+
+    Fails silently — the kernel must never fail to start because NATS is down.
+    Governance events will simply not be published until NATS recovers.
+    """
+    try:
+        from arifosmcp.runtime.nats_event_bus import init_nats_event_bus, event_bus
+
+        connected = await init_nats_event_bus()
+        if connected:
+            logger.info("NATS event bus connected — governance events will flow")
+            # Publish initial heartbeat so the mesh knows arifOS is alive
+            await event_bus.publish_heartbeat("arifOS", "alive")
+        else:
+            logger.warning(
+                "NATS event bus not connected — governance events will be "
+                "logged locally but not published to federation mesh"
+            )
+    except Exception:
+        logger.debug("NATS event bus init skipped (non-fatal)", exc_info=True)
+
+
+async def _shutdown_nats_event_bus() -> None:
+    """Gracefully disconnect the NATS event bus."""
+    try:
+        from arifosmcp.runtime.nats_event_bus import event_bus
+
+        await event_bus.disconnect()
+    except Exception:
+        pass
 
 
 def main() -> None:

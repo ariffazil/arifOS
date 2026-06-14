@@ -13978,6 +13978,14 @@ _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
     "arif_selftest": _runtime_selftest,
 }
 
+# Hermes Agent tools — woven into diagnostic handlers
+try:
+    from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
+    _RUNTIME_DIAGNOSTIC_HANDLERS.update(HERMES_TOOL_HANDLERS)
+except ImportError as _e:
+    # Hermes tools not available — gate behind import guard
+    pass
+
 import functools
 
 
