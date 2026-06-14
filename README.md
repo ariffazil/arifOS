@@ -20,7 +20,7 @@
 > Intelligence is built through work, muscle, and scar tissue. It is not handed out.
 > This is not a startup. This is not a product. This is the constitution for an agentic civilization.
 
-[![CI](https://img.shields.io/badge/CI-passing-brightgreen)](https://github.com/ariffazil/arifos/actions)
+[![CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg)](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://pypi.org/project/arifos/)
 [![MCP Tools](https://img.shields.io/badge/MCP-13%20canonical%20tools-10b981?logo=anthropic)](https://arifos.arif-fazil.com/mcp)
 [![Floors](https://img.shields.io/badge/floors-F1–F13%20active%20(F14%20DEAD)-f59e0b)](arifosmcp/CONSTITUTIONAL_EXTENSION_v2026.06.11-SELH.py)
