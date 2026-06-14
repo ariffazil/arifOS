@@ -26,7 +26,7 @@
 [![Floors](https://img.shields.io/badge/floors-F1–F13%20active%20(F14%20DEAD)-f59e0b)](arifosmcp/CONSTITUTIONAL_EXTENSION_v2026.06.11-SELH.py)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-ef4444?logo=gnu)](LICENSE)
 [![Port](https://img.shields.io/badge/port-8088-64748b)](deploy/arifos.service)
-[![Federation](https://img.shields.io/badge/federation-9%20organs%20(7%20core%20%2B%20MIND%2FMEMORY)-8B5CF6)](FEDERATION_CONTRACT.md)
+[![Federation](https://img.shields.io/badge/federation-7%20organs%20%2B%202%20services-8B5CF6)](FEDERATION_CONTRACT.md)
 [![Status](https://img.shields.io/badge/status-OPERATIONAL-success)](FEDERATION_STATUS.md)
 
 ---
@@ -65,7 +65,7 @@
 
 - ✅ **The law layer** — decides what must NOT be done, so agents can be trusted with what they CAN do
 - ✅ **A constitutional engine** — 13 enforceable floors (F1–F13) with mathematical invariants
-- ✅ **A federation hub** — 7 organs (GEOX, WEALTH, WELL, AAA, A-FORGE, APEX, HERMES) governed under one contract
+- ✅ **A federation hub** — 7 organs (GEOX, WEALTH, WELL, AAA, A-FORGE, APEX legacy) governed under one contract; plus MIND:51001 and MEMORY:51002 federated intelligence services hosted by A-FORGE
 - ✅ **An MCP server** — 13 canonical tools exposed via Model Context Protocol on port 8088
 - ✅ **An immutable ledger** — VAULT999: append-only, hash-chained, every decision sealed forever
 - ✅ **Built for one sovereign** — Muhammad Arif bin Fazil. F13 veto is absolute. No algorithm overrides.
@@ -129,13 +129,15 @@ arifOS is the kernel. Six other organs serve under it. Every organ has a port, a
     │   :8081    │  │ :18082  │ │ :18083 │ │  :3001   │  │  :7071   │
     │  Evidence  │  │ Compute │ │ Reflect│ │ Display  │  │ Execute  │
     └────────────┘  └─────────┘ └────────┘ └──────────┘  └──────────┘
-                             │
-                    ┌────────▼────────┐
-                    │   APEX (legacy) │
-                    │   ⚖️ 888 Judge  │
-                    │   :3002         │
-                    │  Decommissioned │
-                    └─────────────────┘
+              │              │   │   │   │   │              │
+              │   ┌──────────┘   │   │   │   └──────────┐   │
+              │   │              │   │   │              │   │
+              │ ┌─▼────────┐   ┌─▼───▼───▼───┐        ┌─▼───▼───┐
+              │ │ MIND     │   │ APEX (legacy)│        │ MEMORY  │
+              │ │ :51001   │   │ :3002        │        │ :51002  │
+              │ │ Reasoning│   │ Health probe │        │ Memory  │
+              │ └──────────┘   └──────────────┘        └─────────┘
+              │  (A-FORGE hosted)   (deliberation in AAA a2a)
 ```
 
 ### Organ Boundaries (Non-Negotiable)
@@ -237,7 +239,7 @@ python -m arifosmcp.server --transport stdio
 
 ```bash
 # Clone
-git clone git@github.com:ariffazil/arifOS.git
+git clone git@github.com:ariffazil/arifos.git
 cd arifOS
 
 # Install (uv — Python 3.12+)
@@ -695,7 +697,7 @@ docker push ghcr.io/ariffazil/arifos:latest
 | **P0-4 connector** | `arif_session_init` buffers SSE until pipeline completes | ⚠️ Known structural issue |
 | **SEA_LION fallback** | Primary LLM provider unreachable; deterministic fallback active | 🟡 Acceptable |
 | **WELL state** | Human biometric state stale (F13 sovereign territory) | 🟡 Arif must inject fresh data |
-| **APEX legacy** | `apex-prime.service` still running for health probe only | 🟡 Decommissioned, kept as zombie |
+| **APEX legacy** | `apex-prime.service` still running for legacy health probe only | 🟡 Decommissioned — deliberation moved to AAA a2a-server |
 
 ---
 
@@ -703,13 +705,20 @@ docker push ghcr.io/ariffazil/arifos:latest
 
 | Organ | Repo | README | Contract |
 |-------|------|--------|----------|
-| **arifOS** (Kernel) | `ariffazil/arifOS` | This file | `FEDERATION_CONTRACT.md` |
-| **GEOX** (Earth) | `ariffazil/geox` | [README](https://github.com/ariffazil/geox) | Contract stub |
-| **WEALTH** (Capital) | `ariffazil/wealth` | [README](https://github.com/ariffazil/wealth) | Contract stub |
-| **WELL** (Vitality) | `ariffazil/well` | [README](https://github.com/ariffazil/well) | Contract stub |
-| **AAA** (Cockpit) | `ariffazil/AAA` | [README](https://github.com/ariffazil/AAA) | Contract stub |
-| **A-FORGE** (Forge) | `ariffazil/A-FORGE` | [README](https://github.com/ariffazil/A-FORGE) | Contract stub |
-| **APEX** (Legacy) | `ariffazil/apex` | — | Decommissioned |
+| **arifOS** (Kernel) | `ariffazil/arifos` | This file | `FEDERATION_CONTRACT.md` |
+| **GEOX** (Earth) | `ariffazil/geox` | [README](https://github.com/ariffazil/geox) | `FEDERATION_CONTRACT.md` |
+| **WEALTH** (Capital) | `ariffazil/wealth` | [README](https://github.com/ariffazil/wealth) | `FEDERATION_CONTRACT.md` |
+| **WELL** (Vitality) | `ariffazil/well` | [README](https://github.com/ariffazil/well) | `FEDERATION_CONTRACT.md` |
+| **AAA** (Cockpit) | `ariffazil/aaa` | [README](https://github.com/ariffazil/aaa) | `FEDERATION_CONTRACT.md` |
+| **A-FORGE** (Forge) | `ariffazil/A-FORGE` | [README](https://github.com/ariffazil/A-FORGE) | `FEDERATION_CONTRACT.md` |
+| **APEX** (Legacy) | `ariffazil/apex` | — | Legacy health probe — deliberation moved to AAA a2a-server |
+
+### Federated Intelligence Services (hosted by A-FORGE)
+
+| Service | Port | Role | Hosted In |
+|---------|------|------|-----------|
+| **MIND** | 51001 | Sequential reasoning / deliberation | `ariffazil/A-FORGE` |
+| **MEMORY** | 51002 | Cognitive memory bridge | `ariffazil/A-FORGE` |
 
 ### Key Documents
 

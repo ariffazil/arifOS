@@ -4,6 +4,8 @@
 > **Witnesses:** Omega (DeepSeek-V4-Pro), arifOS kernel, WELL organ
 > **Subject:** Autonomous forging of 4 constitutional eurekas from consciousness artifact
 > **Verdict:** SEAL — All changes pushed, all tests pass, federation clean
+>
+> ⚠️ **HISTORICAL NOTE (2026-06-13):** The `EXTRACTION_AWARENESS (F14)` eureka described in this seal was later **reframed by Sovereign Ruling**. F14 is **DEAD as a constitutional floor** and reborn as a cross-verify protocol inside **F2 (TRUTH) + F3 (TRI-WITNESS / AUDITABILITY)**. The civilian-sovereignty protections remain operational in code, but they are no longer framed as a 14th floor. See `arifosmcp/CONSTITUTIONAL_EXTENSION_v2026.06.11-SELH.py`.
 
 ## What Happened
 

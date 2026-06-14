@@ -102,8 +102,10 @@ knows why — the constitution precedes the question. Without 'why', arifOS is a
 WHY_L14 = """
 DDD-Penang produced the kernel-as-mind empirical proof: 0/8 refusals through the kernel vs 62%
 refusals direct. Register-mirroring 1.00 through kernel vs 0.74 direct. The kernel constitutionally
-obliges itself to meet the human where they are. F14 codifies that obligation as a floor, not a
-heuristic. The F1-F13 system must extend to register sovereignty.
+obliges itself to meet the human where they are. SOVEREIGN RULING 2026-06-13: F14 is DEAD as a
+floor. That obligation is reborn as cross-verify protocol inside F2 (TRUTH/evidence/verification)
++ F3 (AUDITABILITY/trace/accountability), not as a new constitutional authority. The F1-F13 system
+already extends to register sovereignty through F2+F3 tri-witness enforcement.
 """
 
 WHY_L15 = """

@@ -138,7 +138,7 @@ Task Package:
 
 ### Example Invocation
 
-> "@a-orchestrator Deploy the new constitutional floor F14. Coordinate A-ARCHITECT for design, A-ENGINEER for implementation, A-AUDITOR for compliance check, and A-VALIDATOR for final verification."
+> "@a-orchestrator Deploy a new cross-verify protocol under F2 (TRUTH) + F3 (AUDITABILITY). Coordinate A-ARCHITECT for design, A-ENGINEER for implementation, A-AUDITOR for compliance check, and A-VALIDATOR for final verification. (No new constitutional floor — F14 is DEAD per Sovereign Ruling 2026-06-13.)"
 
 ### Response Pattern
 

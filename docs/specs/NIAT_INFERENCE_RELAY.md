@@ -56,7 +56,7 @@ AI does not replace veto.
 System audits what the machine DID, not what it THINKS.
 ```
 
-### 0.2 HARDENED PIPE — Adat Runtime + F14 Ruling (Arif, 2026-06-13)
+### 0.2 HARDENED PIPE — Adat Runtime + F14-DEAD Ruling (Arif, 2026-06-13)
 
 **The hardened pipe:**
 ```text

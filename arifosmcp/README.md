@@ -21,16 +21,16 @@
 ### Live Services
 | Service | URL | Purpose |
 |---------|-----|---------|
-| **MCP Endpoint** | https://mcp.arif-fazil.com/mcp | Main API (canonical15 public surface) |
-| **Health + Tools** | https://mcp.arif-fazil.com/health | Capability map |
-| **Tool Explorer** | https://mcp.arif-fazil.com/tools | Interactive browser |
-| ⚠️ **Legacy (do not use)** | `arifosmcp.arif-fazil.com/*` | 302 redirect → `arifos.arif-fazil.com/mcp{uri}` (surfaces same 15-tool MCP) |
+| **MCP Endpoint** | https://arifos.arif-fazil.com/mcp | Main API (13 canonical tools) |
+| **Health + Tools** | https://arifos.arif-fazil.com/health | Capability map |
+| **Tool Explorer** | https://arifos.arif-fazil.com/tools | Interactive browser |
+| ⚠️ **Legacy (do not use)** | `arifosmcp.arif-fazil.com/*` | 302 redirect → `arifos.arif-fazil.com/mcp{uri}` |
 
 ### GitHub Repositories
 | Repo | URL |
 |------|-----|
-| **arifOS (parent)** | https://github.com/ariffazil/arifOS |
-| **arifosmcp (this)** | https://github.com/ariffazil/arifOS/tree/main/arifosmcp |
+| **arifOS (parent)** | https://github.com/ariffazil/arifos |
+| **arifosmcp (this)** | https://github.com/ariffazil/arifos/tree/main/arifosmcp |
 
 ---
 
@@ -39,9 +39,9 @@
 | Document | Path | Purpose |
 |----------|-------|---------|
 | **arifOS README** | [`../README.md`](../README.md) | Vision, architecture, snapshot of truth |
-| **000_CONSTITUTION.md** | [`../000/000_CONSTITUTION.md`](../000/000_CONSTITUTION.md) | The 13 Floors — F1-F13 |
-| **K_FORGE.md** | [`../000/ROOT/K_FORGE.md`](../000/ROOT/K_FORGE.md) | Pre-deployment evolution |
-| **K_FOUNDATIONS.md** | [`../000/ROOT/K_FOUNDATIONS.md`](../000/ROOT/K_FOUNDATIONS.md) | 99-domain math |
+| **000_CONSTITUTION.md** | [`../static/arifos/theory/000/000_CONSTITUTION.md`](../static/arifos/theory/000/000_CONSTITUTION.md) | The 13 Floors — F1-F13 |
+| **FEDERATION_CONTRACT.md** | [`../FEDERATION_CONTRACT.md`](../FEDERATION_CONTRACT.md) | Binding organ contract |
+| **FEDERATION_STATUS.md** | [`../FEDERATION_STATUS.md`](../FEDERATION_STATUS.md) | Live organ health matrix |
 | **AGENTS.md** | [`../AGENTS.md`](../AGENTS.md) | AI agent behavior rules |
 | **philosophy_atlas.json** | [`../data/philosophy_atlas.json`](../data/philosophy_atlas.json) | 27-zone quotes |
 
@@ -51,9 +51,10 @@
 
 **What is arifosmcp?**
 
-arifosmcp is the **runtime implementation and packaging shell** for the arifOS constitutional intelligence kernel — the deployable code that enforces the 13 Floors at runtime, runs the 000-999 pipeline, and delivers the **canonical15** public MCP surface (**13 constitutional tools + 2 probes**).
+arifosmcp is the **runtime implementation and packaging shell** for the arifOS constitutional intelligence kernel — the deployable code that enforces the 13 Floors at runtime, runs the 000-999 pipeline, and delivers the **13 canonical public MCP tools**.
 
-> **Current public contract:** `arif_*` names only. `arifos_*` names are internal implementation engines and must not appear on the default public discovery surface.
+> **Current public contract:** `arif_*` names only. The package is published on PyPI as `arifos` and imported as `arifosmcp` (e.g. `from arifosmcp.server import serve`).
+> **Canonical tool list:** `arifosmcp.constitutional_map.CANONICAL_TOOLS`.
 
 **Source of Truth Hierarchy:**
 
@@ -100,7 +101,7 @@ graph TB
     A["server.py<br/>Universal Entry"] --> B{"FastMCP Version?"}
 | Mode | Tools | Features | Entrypoint |
 |------|-------|----------|------------|
-| **Unified (SoT)** | 17+ | Full kernel, 5-Resources, 6-Substrates | `server.py` |
+| **Unified (SoT)** | 13 canonical | Full kernel, 13 floors | `server.py` |
 | **Inspector (Test)** | ALL | Conformance testing, benchmark | `evals/deploy_gate.py` |
 
 ---
@@ -117,32 +118,37 @@ graph TB
 
 ---
 
-## 🔧 TOOL INVENTORY (12 Mega-Tools)
+## 🔧 TOOL INVENTORY (13 Canonical Tools)
 
-### Tool Reference Table
+### Canonical Public Surface
 
-| Tool | Band | Stage | Constitutional Role |
-|------|------|-------|-------------------|
-| `init_anchor` | 000_INIT | 000 | Session anchoring and philosophy |
-| `arifos_kernel` | 444_ROUT | 444 | Metabolic orchestration |
-| `apex_soul` | 888_JUDGE | 888 | Sovereign verdict and defense |
-| `vault_ledger` | 999_SEAL | 999 | Immutable vault ledger |
-| `agi_mind` | 333_MIND | 333 | Constitutional reasoning |
-| `asi_heart` | 666_HEART | 666 | Safety critique and impact |
-| `engineering_memory` | 555_MEM | 555 | Context bridge |
-| `physics_reality` | 111_SENSE | 111 | Reality grounding |
-| `math_estimator` | 444_ROUT | 444 | Thermodynamic vitals |
-| `code_engine` | M-3_EXEC | M-3 | Sandboxed execution |
+| Tool | Stage | Constitutional Role |
+|------|-------|---------------------|
+| `arif_session_init` | 000_INIT | Session anchoring and identity |
+| `arif_sense_observe` | 111_SENSE | Reality grounding and search |
+| `arif_evidence_fetch` | 222_EVIDENCE | Evidence preservation |
+| `arif_mind_reason` | 333_MIND | Constitutional reasoning |
+| `arif_heart_critique` | 666_HEART | Safety critique and impact |
+| `arif_kernel_route` | 444_ROUT | Intent routing |
+| `arif_reply_compose` | 777_REPLY | Response composition |
+| `arif_memory_recall` | 555_MEM | Context bridge |
+| `arif_gateway_connect` | 444_ROUT | Federation bridge |
+| `arif_judge_deliberate` | 888_JUDGE | Sovereign verdict |
+| `arif_vault_seal` | 999_SEAL | Immutable vault ledger |
+| `arif_forge_execute` | 999_FORGE | Execution under SEAL |
+| `arif_ops_measure` | 777_OPS | Thermodynamic vitals |
+
+> **Note:** The detailed tool specifications below use legacy/internal aliases (`init_anchor`, `arifos_kernel`, `apex_soul`, etc.). The canonical public surface uses the `arif_*` names above. Runtime truth is always `/.well-known/mcp/server.json` and `/tools` on the live endpoint.
 
 ### 5-Resource Canonical Registry (Standardized v2)
 
 | Resource URI | Role | Backed By |
 |--------------|------|-----------|
-| `arifos://doctrine` | Eternal Law (Ψ) | `000/000_CONSTITUTION.md` |
-| `arifos://vitals` | Living Pulse (Ω) | `metabolic_monitor.py` |
-| `arifos://schema` | Blueprint (Δ) | `resource_specs.py` |
+| `arifos://doctrine` | Eternal Law (Ψ) | `static/arifos/theory/000/000_CONSTITUTION.md` |
+| `arifos://vitals` | Living Pulse (Ω) | `runtime/ops.py` |
+| `arifos://schema` | Blueprint (Δ) | `schemas/*.py` |
 | `arifos://session/{id}` | Ephemeral Self | Redis Session Context |
-| `arifos://forge` | Execution Bridge | `vault_ledger.py` |
+| `arifos://forge` | Execution Bridge | `tools/vault.py` / `runtime/vault_ledger.py` |
 
 ---
 
