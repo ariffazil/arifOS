@@ -1018,7 +1018,56 @@ def _read_receipts(limit: int = 50, decision_filter: str | None = None) -> list[
 # APPLICATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# ─── Canary / Airlock routes ────────────────────────────────────────────────
+
+async def _ping_handler(request: Request):
+    """Dumb liveness check. No auth, no floors, no envelope."""
+    return JSONResponse({"status": "ok", "ts": datetime.now(timezone.utc).isoformat(), "service": "arifos-airlock"})
+
+
+async def _schema_handler(request: Request):
+    """Protocol and capability advertisement."""
+    return JSONResponse({
+        "protocol_versions_supported": ["2025-11-25", "2025-03-26"],
+        "tools_count": 19,
+        "organs": list(UPSTREAM_ORGANS.keys()),
+        "DITEMPA_BUKAN_DIBERI": True,
+    })
+
+
+async def _version_handler(request: Request):
+    """Version info for client compatibility."""
+    return JSONResponse({
+        "version": "v2026.06.11-FIQHGEOM",
+        "gateway": "v0.1.0",
+        "python": sys.version.split()[0],
+        "protocol": "MCP 2025-11-25",
+    })
+
+
+async def _probe_handler(request: Request):
+    """Echo back request body for transport debugging."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {"raw": "non-json body"}
+    return JSONResponse({
+        "probe_ok": True,
+        "echoed": body,
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "DITEMPA_BUKAN_DIBERI": True,
+    })
+
+
+# ─── Routes ─────────────────────────────────────────────────────────────────
+
 routes = [
+    # Canary layer (no auth, no floors, no envelope)
+    Route("/ping", _ping_handler, methods=["GET"]),
+    Route("/schema", _schema_handler, methods=["GET"]),
+    Route("/version", _version_handler, methods=["GET"]),
+    Route("/probe", _probe_handler, methods=["POST"]),
+    # Existing routes
     Route("/health", _health_handler, methods=["GET"]),
     Route("/mcp", _mcp_handler, methods=["GET", "POST"]),
     Route("/receipts", _receipts_handler, methods=["GET"]),

@@ -16,6 +16,7 @@ except ImportError:
     pass  # Windows / dev fallback
 
 import logging
+from typing import Any
 import os
 import sys
 import traceback
@@ -494,8 +495,11 @@ try:
         ),
         tags={"canary", "read-only", "diagnostic", "transport"},
     )
-    def arif_schema_echo(payload: Any = None) -> dict:  # noqa: F811
-        return _arif_schema_echo(payload=payload)
+    def arif_schema_echo(  # noqa: F811
+        payload: Any = None,
+        _envelope: dict[str, Any] | None = None,
+    ) -> dict:
+        return _arif_schema_echo(payload=payload, _envelope=_envelope)
 
     @mcp.tool(
         name="arif_version_echo",
@@ -506,8 +510,10 @@ try:
         ),
         tags={"canary", "read-only", "diagnostic", "transport"},
     )
-    def arif_version_echo() -> dict:  # noqa: F811
-        return _arif_version_echo()
+    def arif_version_echo(  # noqa: F811
+        _envelope: dict[str, Any] | None = None,
+    ) -> dict:
+        return _arif_version_echo(_envelope=_envelope)
 
     @mcp.tool(
         name="arif_transport_echo",
@@ -518,8 +524,10 @@ try:
         ),
         tags={"canary", "read-only", "diagnostic", "transport"},
     )
-    def arif_transport_echo() -> dict:  # noqa: F811
-        return _arif_transport_echo()
+    def arif_transport_echo(  # noqa: F811
+        _envelope: dict[str, Any] | None = None,
+    ) -> dict:
+        return _arif_transport_echo(_envelope=_envelope)
 
     @mcp.tool(
         name="arif_initialize_probe",
@@ -535,10 +543,12 @@ try:
     def arif_initialize_probe(  # noqa: F811
         protocol_version: str | None = None,
         client_capabilities: dict[str, Any] | None = None,
+        _envelope: dict[str, Any] | None = None,
     ) -> dict:
         return _arif_initialize_probe(
             protocol_version=protocol_version,
             client_capabilities=client_capabilities,
+            _envelope=_envelope,
         )
 
     # ── Forge Ladder (v3.1) — governed execution surface ────────────────────

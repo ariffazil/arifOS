@@ -1343,6 +1343,7 @@ class GovernancePipeline:
                     tool_name = params.get("name", "")
                     arguments = params.get("arguments", {}) if isinstance(params.get("arguments"), dict) else {}
                 except Exception:
+                    method = ""
                     tool_name = ""
                     arguments = {}
 

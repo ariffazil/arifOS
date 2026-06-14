@@ -82,6 +82,54 @@ class ConstitutionalFaultCode(StrEnum):
     L13_SOVEREIGN_VETO = "L13_SOVEREIGN_VETO"  # Human rejected via ratify
 
 
+class TransportFaultCode(StrEnum):
+    """Transport-layer faults. ALWAYS → 888_HOLD, NEVER → VOID. Retryable.
+    Phase 0 transport hardening (2026-06-14): structured JSON-RPC error semantics.
+
+    Every transport fault includes stage, transport type, protocol versions,
+    expected vs received shape, retryable flag, and recommended next_probe.
+
+    Principle: every failure must reduce uncertainty about WHERE the break is.
+    """
+
+    ARIF_SCHEMA_MISMATCH = "ARIF_SCHEMA_MISMATCH"
+    # Tool call arguments don't match expected schema. The transport bridge
+    # delivered the call but the payload shape is wrong. jsonrpc_code: -32602.
+    # Next probe: arif_schema_echo
+
+    ARIF_TRANSPORT_DIALECT_MISMATCH = "ARIF_TRANSPORT_DIALECT_MISMATCH"
+    # Client sent a call in a dialect the kernel can't parse (e.g. OpenAI-style
+    # function call instead of MCP tools/call). jsonrpc_code: -32602.
+    # Next probe: arif_transport_echo
+
+    ARIF_VERSION_NEGOTIATION_FAILED = "ARIF_VERSION_NEGOTIATION_FAILED"
+    # Client requested a protocol version the server doesn't support.
+    # jsonrpc_code: -32602. Server advertises supported versions.
+    # Next probe: arif_version_echo
+
+    ARIF_INIT_DIALECT_MISMATCH = "ARIF_INIT_DIALECT_MISMATCH"
+    # arif_session_init received args that don't match any supported mode.
+    # Transport works, but the init schema is wrong.
+    # Next probe: arif_initialize_probe
+
+    ARIF_SESSION_NOT_FOUND = "ARIF_SESSION_NOT_FOUND"
+    # The Mcp-Session-Id doesn't resolve to an active session. Either the session
+    # expired, the worker restarted (lost in-memory state), or the client sent a
+    # stale ID. jsonrpc_code: -32001.
+    # Next probe: arif_session_init(mode='resume')
+
+    ARIF_ENVELOPE_MISSING = "ARIF_ENVELOPE_MISSING"
+    # A governed tool was called without the required FederationEnvelope.
+    # The transport bridge must inject the envelope via ingress middleware.
+    # jsonrpc_code: -32602.
+    # Next probe: arif_ping (then ensure ingress middleware is configured)
+
+    ARIF_LEASE_EXPIRED = "ARIF_LEASE_EXPIRED"
+    # The authority lease has expired. Must re-issue before mutation.
+    # jsonrpc_code: -32000.
+    # Next probe: arif_lease_issue
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # CLASSIFICATION RESULT
 # ─────────────────────────────────────────────────────────────────────────────
@@ -231,7 +279,88 @@ __all__ = [
     "FaultClass",
     "FaultClassification",
     "MechanicalFaultCode",
+    "TransportFaultCode",
     "ConstitutionalFaultCode",
     "classify_exception",
     "classify_network_errors",
+    "build_transport_error_envelope",
+    "ARIF_JSONRPC_ERROR_MAP",
 ]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# JSON-RPC ERROR CODE MAP — transport fault → JSON-RPC error code
+# ═══════════════════════════════════════════════════════════════════════════════
+
+ARIF_JSONRPC_ERROR_MAP: dict[str, int] = {
+    TransportFaultCode.ARIF_SCHEMA_MISMATCH: -32602,
+    TransportFaultCode.ARIF_TRANSPORT_DIALECT_MISMATCH: -32602,
+    TransportFaultCode.ARIF_VERSION_NEGOTIATION_FAILED: -32602,
+    TransportFaultCode.ARIF_INIT_DIALECT_MISMATCH: -32602,
+    TransportFaultCode.ARIF_ENVELOPE_MISSING: -32602,
+    TransportFaultCode.ARIF_SESSION_NOT_FOUND: -32001,
+    TransportFaultCode.ARIF_LEASE_EXPIRED: -32000,
+}
+
+_MCP_SPEC_VERSION = "2025-06-18"
+_MCP_SUPPORTED_VERSIONS = ("2025-06-18", "2025-11-25", "2025-03-26")
+
+
+def build_transport_error_envelope(
+    fault_code: TransportFaultCode,
+    *,
+    stage: str = "000_INIT",
+    transport: str = "unknown",
+    protocol_version_received: str | None = None,
+    protocol_versions_supported: tuple[str, ...] = _MCP_SUPPORTED_VERSIONS,
+    expected_shape: str = "",
+    received_shape: str = "",
+    retryable: bool = True,
+    next_probe: str = "arif_ping",
+    detail: str = "",
+    session_id: str | None = None,
+    trace_id: str | None = None,
+) -> dict:
+    """
+    Build a structured JSON-RPC error envelope for transport faults.
+
+    Every failure must reduce uncertainty. This envelope tells the client:
+    1. WHAT went wrong (fault_code + message)
+    2. WHERE in the protocol stack (stage + transport)
+    3. WHY (expected vs received shapes)
+    4. WHAT to do next (next_probe + retryable)
+    5. HOW to correlate (session_id + trace_id)
+
+    Use this instead of bare -32602 "Invalid request parameters".
+    """
+    jsonrpc_code = ARIF_JSONRPC_ERROR_MAP.get(fault_code, -32602)
+
+    error_data: dict = {
+        "arif_fault_code": fault_code.value,
+        "stage": stage,
+        "transport": transport,
+        "protocol_versions_supported": list(protocol_versions_supported),
+        "retryable": retryable,
+        "next_probe": next_probe,
+    }
+
+    if protocol_version_received:
+        error_data["protocol_version_received"] = protocol_version_received
+    if expected_shape:
+        error_data["expected_shape"] = expected_shape
+    if received_shape:
+        error_data["received_shape"] = received_shape
+    if session_id:
+        error_data["session_id"] = session_id
+    if trace_id:
+        error_data["trace_id"] = trace_id
+    if detail:
+        error_data["detail"] = detail
+
+    return {
+        "jsonrpc": "2.0",
+        "error": {
+            "code": jsonrpc_code,
+            "message": str(fault_code.value),
+            "data": error_data,
+        },
+    }

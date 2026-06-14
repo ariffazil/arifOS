@@ -35,6 +35,7 @@ deploy-local:
 	@cd $(DIR) && GIT_SHA=$$(git rev-parse --short=7 HEAD); \
 	echo "Syncing canonical code to /opt/arifos/app..."; \
 	rsync -av --exclude='.git' --exclude='.venv' $(DIR)/ /opt/arifos/app/; \
+	chmod -R u+rwX,go+rX /opt/arifos/app/arifosmcp/; \
 	echo "$$GIT_SHA" > /opt/arifos/app/.git_commit; \
 	echo "Restarting arifOS bare-metal service..."; \
 	systemctl restart arifos.service; \

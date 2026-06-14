@@ -13811,6 +13811,51 @@ def _runtime_ping(
     )
 
 
+# ── Transport Canary runtime wrappers ──────────────────────────────────────
+# Zero-floor diagnostic tools. No session, no actor, no governance.
+# Phase 0 transport hardening (2026-06-14).
+# **kwargs absorbs _envelope and any other ingress-middleware injections
+# that FastMCP's Pydantic validation would otherwise reject.
+
+def _runtime_schema_echo(
+    payload: str | None = None,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    return _arif_schema_echo(payload=payload, _envelope=kwargs.get("_envelope"))
+
+
+def _runtime_version_echo(
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    return _arif_version_echo(_envelope=kwargs.get("_envelope"))
+
+
+def _runtime_transport_echo(
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    return _arif_transport_echo(_envelope=kwargs.get("_envelope"))
+
+
+def _runtime_initialize_probe(
+    protocol_version: str | None = None,
+    client_capabilities: str | None = None,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    return _arif_initialize_probe(
+        protocol_version=protocol_version,
+        client_capabilities=client_capabilities,
+        _envelope=kwargs.get("_envelope"),
+    )
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # TRANSPORT CANARY LAYER — Zero-floor diagnostic tools
 # Phase 0 transport hardening (2026-06-14):
@@ -14175,11 +14220,10 @@ if set(_CANONICAL_HANDLERS) != set(CANONICAL_TOOLS):
 _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
     "arif_ping": _runtime_ping,
     "arif_selftest": _runtime_selftest,
-    # ── Transport Canary Layer (Phase 0, 2026-06-14) ──
-    "arif_schema_echo": _arif_schema_echo,
-    "arif_version_echo": _arif_version_echo,
-    "arif_transport_echo": _arif_transport_echo,
-    "arif_initialize_probe": _arif_initialize_probe,
+    "arif_schema_echo": _runtime_schema_echo,
+    "arif_version_echo": _runtime_version_echo,
+    "arif_transport_echo": _runtime_transport_echo,
+    "arif_initialize_probe": _runtime_initialize_probe,
 }
 
 # Hermes Agent tools — woven into diagnostic handlers
