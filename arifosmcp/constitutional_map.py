@@ -140,7 +140,7 @@ STAGE_PROGRESSION: dict[str, dict[str, str | None]] = {
     "111": {"next": "222", "tool": "arif_evidence_fetch", "prompt": None},
     "222": {"next": "333", "tool": "arif_mind_reason", "prompt": None},
     # v3.1: 333 reason → 666 heart (ontology-aligned: 666 = HEART)
-    "333": {"next": "666", "tool": "arif_heart_critique", "prompt": "666_asi"},
+    "333": {"next": "666", "tool": "arif_heart_critique", "prompt": "444_asi"},
     # Stage suffixes: "r" = reply (refinement of critique), "m" = memory
     # (refinement of route), "g" = gateway (refinement of forge). These
     # encode parent-child relationships, not independent stage numbers.
@@ -150,8 +150,9 @@ STAGE_PROGRESSION: dict[str, dict[str, str | None]] = {
     # Constitutionally: critique MUST precede forge. Never skip heart.
     "555": {"next": "666", "tool": "arif_heart_critique", "prompt": "666_critique"},
     "555m": {"next": "666", "tool": "arif_heart_critique", "prompt": "666_critique"},
-    # 666 critique → 010 forge (dry_run mandatory)
+    # 666 critique pre-forge ethical check — heart before hammer
     "666": {"next": "010", "tool": "arif_forge_execute", "prompt": "010_dry_run"},
+    "010": {"next": "777", "tool": "arif_ops_measure", "prompt": None},
     "666g": {"next": "010", "tool": "arif_forge_execute", "prompt": "010_dry_run"},
     # 010 forge → 777 measure (verify before judge)
     "010": {"next": "777", "tool": "arif_ops_measure", "prompt": None},
@@ -777,6 +778,424 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
 PROBE_TOOLS: tuple[str, ...] = ()
 CONSTITUTIONAL_TOOLS: tuple[str, ...] = tuple(CANONICAL_TOOLS.keys())
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# DIAGNOSTIC & FEDERATION TOOLS — non-canonical operational surface
+# ═══════════════════════════════════════════════════════════════════════════════
+# These tools are registered on the arifOS MCP surface but are NOT part of
+# the 13-tool canonical kernel (CANONICAL_TOOLS). They serve operational,
+# diagnostic, federation-attestation, and lease-management roles.
+#
+# TIERS:
+#   hermes     — Cross-verification, fact-checking, vault query, epistemic checks
+#   canary     — Transport/protocol diagnostics (ping, echo, version, init probe)
+#   lease      — Capability lease lifecycle (inspect, issue, revoke)
+#   attest     — Federation organ attestation (self + peer heartbeat verification)
+#   forge-sub  — Pre-execution forge planning (dry_run, plan, query)
+#   narrative  — Institutional shadow drift + narrative tension detection
+#   diagnostic — Health probes, floor status, drift checks, budget telemetry, instruction scanner
+#
+# NAMESPACE RULING (F13 SOVEREIGN, 2026-06-14):
+#   arif_*   — Canonical prefix for all kernel + diagnostic tools  (sanctioned)
+#   hermes_* — Sanctioned non-arif_ namespace for Hermes ASI tools (sanctioned)
+#   forge_*  — Sanctioned non-arif_ namespace for A-FORGE sub-tools (sanctioned)
+#   arifos_* — BLOCKED public prefix (internal-only, never exposed)
+#   mcp_*    — Utility namespace for operational diagnostics (mcp_drift_check)
+# 
+# DECISION: Rename NOT required. hermes_* and forge_* are FIAT-sanctioned
+# non-arif_ namespaces by F13 SOVEREIGN. Prefixing to arif_hermes_* or
+# arif_forge_* would add entropy with zero governance benefit.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
+    # ── Hermes Tools (7) — Cross-verification, fact-check, vault, epistemic ──
+    "hermes_system_status": {
+        "name": "hermes_system_status",
+        "description": "HERMES: Federation-wide system status snapshot — organ health, vault seal count, memory stats, NATS event count.",
+        "access": "public",
+        "tier": "hermes",
+        "namespace": "hermes_* (sanctioned non-arif_ prefix — F13 SOVEREIGN 2026-06-14)",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH],
+        "modes": ["brief", "full", "organs", "events"],
+        "tags": ["hermes", "diagnostic"],
+    },
+    "hermes_vault_query": {
+        "name": "hermes_vault_query",
+        "description": "HERMES: Query VAULT999 audit ledger — recent entries, keyword search, organ filter, date filter.",
+        "access": "public",
+        "tier": "hermes",
+        "namespace": "hermes_* (sanctioned)",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L11_AUDIT],
+        "modes": ["recent", "search", "organ", "date"],
+        "tags": ["hermes", "vault"],
+    },
+    "hermes_epistemic_check": {
+        "name": "hermes_epistemic_check",
+        "description": "HERMES: Pre-flight epistemic confidence check — evaluates claim against evidence, returns CONFIDENCE_LEVEL + GAPS.",
+        "access": "public",
+        "tier": "hermes",
+        "namespace": "hermes_* (sanctioned)",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L07_HUMILITY],
+        "modes": ["quick", "vault", "full"],
+        "tags": ["hermes", "epistemic"],
+    },
+    "hermes_fact_check": {
+        "name": "hermes_fact_check",
+        "description": "HERMES: Verify factual claims against web search + VAULT999 + available tools. Returns CONFIRMED/REFUTED/MIXED/UNKNOWN.",
+        "access": "public",
+        "tier": "hermes",
+        "namespace": "hermes_* (sanctioned)",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L03_WITNESS, Law.L07_HUMILITY],
+        "modes": ["quick", "web", "deep"],
+        "tags": ["hermes", "verification"],
+    },
+    "hermes_cross_verify": {
+        "name": "hermes_cross_verify",
+        "description": "HERMES: Cross-agent claim verification — delegates fact-check to a second agent for independent corroboration (F3 TRI-WITNESS).",
+        "access": "public",
+        "tier": "hermes",
+        "namespace": "hermes_* (sanctioned)",
+        "risk_tier": "medium",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L03_WITNESS],
+        "modes": ["verify"],
+        "tags": ["hermes", "cross-verify"],
+    },
+    "hermes_plan_review": {
+        "name": "hermes_plan_review",
+        "description": "HERMES: Review multi-step plans for safety and completeness — missing verify steps, floor violations, unclear success criteria.",
+        "access": "public",
+        "tier": "hermes",
+        "namespace": "hermes_* (sanctioned)",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L01_AMANAH, Law.L05_PEACE, Law.L12_INJECTION],
+        "modes": ["quick", "full"],
+        "tags": ["hermes", "plan-review"],
+    },
+    "hermes_memory_steward": {
+        "name": "hermes_memory_steward",
+        "description": "HERMES: Classify content for memory storage tier — STORE_IN_VAULT, STORE_IN_GRAPHITI, STORE_IN_MEMORY, DISCARD, TODO_FOR_ARIF.",
+        "access": "public",
+        "tier": "hermes",
+        "namespace": "hermes_* (sanctioned)",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L01_AMANAH, Law.L02_TRUTH],
+        "modes": ["classify", "compact"],
+        "tags": ["hermes", "memory"],
+    },
+    # ── Canary / Transport Tools (6) — Protocol diagnostics, zero-floor probes ──
+    "arif_ping": {
+        "name": "arif_ping",
+        "description": "CANARY: Lightweight liveness probe — confirms kernel reachability. No session, no actor, no governance required.",
+        "access": "public",
+        "tier": "canary",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [],
+        "modes": ["probe"],
+        "tags": ["canary", "diagnostic"],
+    },
+    "arif_schema_echo": {
+        "name": "arif_schema_echo",
+        "description": "CANARY: Echo back client payload + server interpretation. Zero-floor transport diagnostic — no session, no actor, no governance.",
+        "access": "public",
+        "tier": "canary",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [],
+        "modes": ["echo"],
+        "tags": ["canary", "diagnostic"],
+    },
+    "arif_version_echo": {
+        "name": "arif_version_echo",
+        "description": "CANARY: Return MCP protocol version, supported versions, dialect hints. Zero-floor version probe — detect version-dialect drift before session init.",
+        "access": "public",
+        "tier": "canary",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [],
+        "modes": ["echo"],
+        "tags": ["canary", "diagnostic"],
+    },
+    "arif_transport_echo": {
+        "name": "arif_transport_echo",
+        "description": "CANARY: Return every transport-level detail observed — headers, protocol, source, transport hint. Zero-floor diagnostic for client-specific connection issues.",
+        "access": "public",
+        "tier": "canary",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [],
+        "modes": ["echo"],
+        "tags": ["canary", "diagnostic"],
+    },
+    "arif_initialize_probe": {
+        "name": "arif_initialize_probe",
+        "description": "CANARY: Test MCP initialize/initialized handshake without constitutional ceremony. Use AFTER ping passes but BEFORE arif_session_init.",
+        "access": "public",
+        "tier": "canary",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [],
+        "modes": ["probe"],
+        "tags": ["canary", "diagnostic"],
+    },
+    "arif_conformance_report": {
+        "name": "arif_conformance_report",
+        "description": "CANARY: Run ARIF Conformance Spine v0.1 against live kernel — kernel alive, MCP initialize, protocol version, schema echo, session start, authority classification, 888_HOLD mutation refusal, VAULT replay verification.",
+        "access": "public",
+        "tier": "canary",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH],
+        "modes": ["report"],
+        "tags": ["canary", "conformance"],
+    },
+    # ── Lease Tools (3) — Capability lease lifecycle ──
+    "arif_lease_inspect": {
+        "name": "arif_lease_inspect",
+        "description": "LEASE: Inspect an existing capability lease — organ_id, actor_id, scope, action_class, TTL, forbidden list.",
+        "access": "public",
+        "tier": "lease",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L01_AMANAH, Law.L11_AUDIT],
+        "modes": ["inspect"],
+        "tags": ["lease", "diagnostic"],
+    },
+    "arif_lease_issue": {
+        "name": "arif_lease_issue",
+        "description": "LEASE: Issue a new bounded authority lease — scopes organ/agent tool access and action class. Max TTL, scope, forbidden list.",
+        "access": "authenticated",
+        "tier": "lease",
+        "namespace": "arif_*",
+        "risk_tier": "medium",
+        "irreversible": False,
+        "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
+        "modes": ["issue"],
+        "tags": ["lease", "mutation-gated"],
+    },
+    "arif_lease_revoke": {
+        "name": "arif_lease_revoke",
+        "description": "LEASE: Revoke an existing capability lease — requires lease_id + reason. Irreversible scope change.",
+        "access": "authenticated",
+        "tier": "lease",
+        "namespace": "arif_*",
+        "risk_tier": "medium",
+        "irreversible": True,
+        "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
+        "modes": ["revoke"],
+        "tags": ["lease", "mutation-gated"],
+    },
+    # ── Organ Attestation Tools (4) — Federation health heartbeat verification ──
+    "arif_os_attest": {
+        "name": "arif_os_attest",
+        "description": "ATTEST: arifOS self-attestation — returns constitution_hash, schema_hash, tool_surface, health, active lease state. Required before any kernel-grade federation call.",
+        "access": "public",
+        "tier": "attest",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH],
+        "modes": ["attest"],
+        "tags": ["attest", "federation"],
+    },
+    "arif_organ_attest": {
+        "name": "arif_organ_attest",
+        "description": "ATTEST: Probe and attest a single federation organ (GEOX, WEALTH, WELL) — returns organ heartbeat, schema hash, tool count, kernel envelope.",
+        "access": "public",
+        "tier": "attest",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L03_WITNESS],
+        "modes": ["attest"],
+        "tags": ["attest", "federation"],
+    },
+    "arif_organ_attest_all": {
+        "name": "arif_organ_attest_all",
+        "description": "ATTEST: Attest arifOS plus all federation organs in one call — returns per-organ heartbeat + degraded-organ list.",
+        "access": "public",
+        "tier": "attest",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L03_WITNESS],
+        "modes": ["attest"],
+        "tags": ["attest", "federation"],
+    },
+    "arif_heartbeat": {
+        "name": "arif_heartbeat",
+        "description": "ATTEST: Record or query federation heartbeats — returns liveness verdict for known organs.",
+        "access": "public",
+        "tier": "attest",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH],
+        "modes": ["record", "query"],
+        "tags": ["attest", "federation"],
+    },
+    # ── Forge Sub-Tools (3) — Pre-execution planning (A-FORGE namespace) ──
+    "forge_dry_run": {
+        "name": "forge_dry_run",
+        "description": "FORGE-SUB: Simulate forge execution without mutation — returns diff preview, files touched, rollback plan. Safe to call without approval. Required before MUTATE/ATOMIC forge execution.",
+        "access": "public",
+        "tier": "forge-sub",
+        "namespace": "forge_* (sanctioned non-arif_ prefix — F13 SOVEREIGN 2026-06-14)",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L01_AMANAH],
+        "modes": ["dry_run"],
+        "tags": ["forge", "pre-execution"],
+    },
+    "forge_plan": {
+        "name": "forge_plan",
+        "description": "FORGE-SUB: Classify action, estimate blast radius, produce execution plan. Safe to call without approval. Required before MUTATE/ATOMIC forge execution.",
+        "access": "public",
+        "tier": "forge-sub",
+        "namespace": "forge_* (sanctioned)",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L01_AMANAH, Law.L04_CLARITY],
+        "modes": ["plan"],
+        "tags": ["forge", "pre-execution"],
+    },
+    "forge_query": {
+        "name": "forge_query",
+        "description": "FORGE-SUB: Read-only system introspection — workspace tree, system state, query result. Safe to call without approval.",
+        "access": "public",
+        "tier": "forge-sub",
+        "namespace": "forge_* (sanctioned)",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L04_CLARITY],
+        "modes": ["query"],
+        "tags": ["forge", "pre-execution"],
+    },
+    # ── Narrative / Institutional Detection Tools (2) ──
+    "arif_detect_institutional_shadow_drift": {
+        "name": "arif_detect_institutional_shadow_drift",
+        "description": "NARRATIVE: Detect when a sovereign institution's observed functions have outgrown its declared name (GENESIS/006 Petronas Paradox). Returns drift_score, sovereignty_score, risk_class, verdict.",
+        "access": "public",
+        "tier": "narrative",
+        "namespace": "arif_*",
+        "risk_tier": "medium",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L05_PEACE],
+        "modes": ["detect"],
+        "tags": ["narrative", "institutional"],
+    },
+    "arif_detect_narrative_tension": {
+        "name": "arif_detect_narrative_tension",
+        "description": "NARRATIVE: Detect paradox tension, power asymmetry, and implicit frames in news articles or institutional text. Returns FrameGraph with actors, claims, tensions, kernel verdict.",
+        "access": "public",
+        "tier": "narrative",
+        "namespace": "arif_*",
+        "risk_tier": "medium",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L05_PEACE, Law.L06_EMPATHY],
+        "modes": ["detect"],
+        "tags": ["narrative", "media"],
+    },
+    # ── Additional Diagnostic Tools (6) — Health probes, drift checks, budget, floor status, instructions ──
+    "arif_stack_health_probe": {
+        "name": "arif_stack_health_probe",
+        "description": "DIAGNOSTIC: Deep health probe across the full arifOS stack — MCP, runtime, bridges, memory tiers, vault. Heavier than /health.",
+        "access": "public",
+        "tier": "diagnostic",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L04_CLARITY],
+        "modes": ["probe"],
+        "tags": ["diagnostic", "health"],
+    },
+    "arif_scan_local_instructions": {
+        "name": "arif_scan_local_instructions",
+        "description": "DIAGNOSTIC: Scan local filesystem for agent instruction files (CLAUDE.md, AGENTS.md, etc.) and report findings. Used by arif_judge_deliberate scan_instructions mode (folded — kept as standalone for direct access).",
+        "access": "public",
+        "tier": "diagnostic",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L04_CLARITY],
+        "modes": ["scan"],
+        "tags": ["diagnostic", "instructions"],
+    },
+    "arif_organ_consensus": {
+        "name": "arif_organ_consensus",
+        "description": "DIAGNOSTIC: Cross-organ consensus check — queries all available organs and compares responses for drift. Used by arif_gateway_connect consensus mode (folded — kept as standalone for direct access).",
+        "access": "public",
+        "tier": "diagnostic",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L03_WITNESS],
+        "modes": ["consensus"],
+        "tags": ["diagnostic", "consensus"],
+    },
+    "arif_session_budget": {
+        "name": "arif_session_budget",
+        "description": "DIAGNOSTIC: Query session token budget and consumption. Used by arif_ops_measure budget mode (folded — kept as standalone for direct access).",
+        "access": "public",
+        "tier": "diagnostic",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L04_CLARITY],
+        "modes": ["budget"],
+        "tags": ["diagnostic", "budget"],
+    },
+    "arif_floor_status": {
+        "name": "arif_floor_status",
+        "description": "DIAGNOSTIC: Query live status of all 13 constitutional floors — active, enforcement state, recent violations. Folded into arif_judge_deliberate floor_status mode (kept as standalone for direct access).",
+        "access": "public",
+        "tier": "diagnostic",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L11_AUDIT],
+        "modes": ["status"],
+        "tags": ["diagnostic", "floors"],
+    },
+    "mcp_drift_check": {
+        "name": "mcp_drift_check",
+        "description": "DIAGNOSTIC: Cross-reference registered MCP tools against canonical registry — detect phantom tools, missing declarations, schema drift.",
+        "access": "public",
+        "tier": "diagnostic",
+        "namespace": "mcp_* (utility namespace)",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L04_CLARITY],
+        "modes": ["check"],
+        "tags": ["diagnostic", "drift"],
+    },
+}
+
+# Full surface: canonical (13) + diagnostic (31) = 44 declared tools
+# Note: actual MCP registration count may differ slightly from this dict
+# due to runtime-only registrations. The /health contract_status.tool_count
+# is authoritative for the live wire surface.
+FULL_SURFACE_TOOLS: tuple[str, ...] = (
+    CONSTITUTIONAL_TOOLS + tuple(DIAGNOSTIC_TOOLS.keys())
+)
+
 # MCP Spec 2025-11-25 tool annotations (SEP-1862/1913/1984/2417)
 # title + readOnlyHint + destructiveHint + idempotentHint + openWorldHint
 _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
@@ -1031,37 +1450,82 @@ get_floor_coverage = get_law_coverage
 def build_tool_registry_manifest() -> dict[str, Any]:
     """
     Generate the canonical tool registry manifest.
-    Single source: CANONICAL_TOOLS only. No legacy aliases.
+    Merges CANONICAL_TOOLS (13 kernel) + DIAGNOSTIC_TOOLS (24 diagnostic/hermes/canary/lease/attest/forge-sub/narrative).
+    Single source: CANONICAL_TOOLS + DIAGNOSTIC_TOOLS dicts. No legacy aliases.
     """
+    all_tools: dict[str, dict[str, Any]] = {}
+
+    # ── Canonical 13 ──
+    for name, spec in CANONICAL_TOOLS.items():
+        all_tools[name] = {
+            "stage": spec["stage"].value,
+            "lane": spec["lane"].value,
+            "floors": [floor.value for floor in spec["floors"]],
+            "risk_tier": spec["risk_tier"],
+            "irreversible": spec["irreversible"],
+            "access": spec["access"],
+            "requires_auth": spec["access"] != "public",
+            "modes": spec.get("modes", []),
+            "eureka_insight": spec.get("eureka_insight", ""),
+            "tier": "canonical",
+            "namespace": "arif_* (canonical prefix)",
+            "tags": ["canonical"],
+        }
+
+    # ── Diagnostic + Federation tools ──
+    for name, spec in DIAGNOSTIC_TOOLS.items():
+        all_tools[name] = {
+            "tier": spec.get("tier", "diagnostic"),
+            "namespace": spec.get("namespace", "arif_*"),
+            "floors": [floor.value for floor in spec.get("floors", [])],
+            "risk_tier": spec.get("risk_tier", "low"),
+            "irreversible": spec.get("irreversible", False),
+            "access": spec.get("access", "public"),
+            "requires_auth": spec.get("access", "public") != "public",
+            "modes": spec.get("modes", []),
+            "tags": spec.get("tags", []),
+        }
+
+    # ── Tier summary ──
+    tier_counts: dict[str, int] = {}
+    for t in all_tools.values():
+        tier = t.get("tier", "unknown")
+        tier_counts[tier] = tier_counts.get(tier, 0) + 1
+
     return {
-        "_schema": "arifos-ssct-v2026.05.05-kanon-ssct",
-        "_source": "arifosmcp.constitutional_map.CANONICAL_TOOLS",
+        "_schema": "arifos-ssct-v2026.06.14-kanon-ssct",
+        "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
         "_note": (
             "SOLE SOURCE OF TRUTH. "
-            "Generated from CANONICAL_TOOLS dict. "
-            "Do not hand-edit — edit CANONICAL_TOOLS and regenerate."
+            "Generated from CANONICAL_TOOLS (13 kernel) + DIAGNOSTIC_TOOLS (31 operational). "
+            "Do not hand-edit — edit the source dicts in constitutional_map.py and regenerate."
         ),
+        "_namespace_ruling": {
+            "arif_*": "Sanctioned — canonical prefix for all kernel + diagnostic tools",
+            "hermes_*": "Sanctioned — Hermes ASI cross-verification, fact-check, vault tools (F13 SOVEREIGN 2026-06-14)",
+            "forge_*": "Sanctioned — A-FORGE pre-execution sub-tools (dry_run, plan, query) (F13 SOVEREIGN 2026-06-14)",
+            "arifos_*": "BLOCKED — internal-only prefix, never exposed on public MCP surface",
+            "mcp_*": "Utility namespace — operational diagnostics (drift_check)",
+        },
         "canonical_count": len(CONSTITUTIONAL_TOOLS),
-        "probe_count": len(PROBE_TOOLS),
-        "total_surface": len(CANONICAL_TOOLS),
+        "diagnostic_count": len(DIAGNOSTIC_TOOLS),
+        "total_surface": len(all_tools),
+        "tier_summary": tier_counts,
+        "tier_legend": {
+            "canonical": "13 kernel tools — F1-F13 constitutional pipeline (000→999 golden path)",
+            "hermes": "7 cross-verification, fact-checking, vault query, epistemic checks",
+            "canary": "6 transport/protocol diagnostics — zero-floor probes (no session required)",
+            "lease": "3 capability lease lifecycle tools (inspect, issue, revoke)",
+            "attest": "4 federation organ attestation tools (self + peer heartbeat)",
+            "forge-sub": "3 pre-execution forge planning tools (dry_run, plan, query)",
+            "narrative": "2 institutional shadow drift + narrative tension detection tools",
+            "diagnostic": "6 health probes, drift checks, floor status, budget telemetry, instruction scanner",
+        },
         "canonical_order": list(CONSTITUTIONAL_TOOLS),
+        "diagnostic_order": list(DIAGNOSTIC_TOOLS.keys()),
         "laws": [f.value for f in Law],
         "floors": [f.value for f in Law],  # deprecated alias
-        "tools": {
-            name: {
-                "stage": spec["stage"].value,
-                "lane": spec["lane"].value,
-                "floors": [floor.value for floor in spec["floors"]],
-                "risk_tier": spec["risk_tier"],
-                "irreversible": spec["irreversible"],
-                "access": spec["access"],
-                "requires_auth": spec["access"] != "public",
-                "modes": spec.get("modes", []),
-                "eureka_insight": spec.get("eureka_insight", ""),
-                "tags": ["canonical"],
-            }
-            for name, spec in CANONICAL_TOOLS.items()
-        },
+        "tools": all_tools,
         "motto": "DITEMPA BUKAN DIBERI — Forged, Not Given",
     }
 
@@ -1588,6 +2052,8 @@ __all__ = [
     "CANONICAL_TOOLS",
     "CONSTITUTIONAL_TOOLS",
     "PROBE_TOOLS",
+    "DIAGNOSTIC_TOOLS",
+    "FULL_SURFACE_TOOLS",
     "get_tool_spec",
     "list_canonical_tools",
     "list_constitutional_tools",

@@ -120,15 +120,31 @@ def _compute_consensus(
     all_healthy = True
     for r in reachable:
         status = r.get("status", "").lower()
-        verdict = r.get("verdict", "").lower()
-        if status in ("healthy", "verified", "pass") or verdict in ("seal", "pass", "well_pass"):
-            base = 1.0
-        elif status in ("degraded", "hold", "warning") or verdict in ("hold", "sabar"):
-            base = 0.5
+        verdict = r.get("verdict", "")
+
+        # Machine health — what the machine report says (machine-level vocabulary)
+        if status in ("healthy", "verified"):
+            health_score = 1.0
+        elif status in ("degraded",):
+            health_score = 0.5
             all_healthy = False
         else:
-            base = 0.0
+            health_score = 0.0
             all_healthy = False
+
+        # Constitutional verdict — only from arif_judge_deliberate (constitutional vocabulary)
+        gov_verdict = verdict.upper().strip()
+        if gov_verdict in ("SEAL", "OBSERVE"):
+            gov_score = 1.0
+        elif gov_verdict in ("HOLD", "SABAR", "CAUTION"):
+            gov_score = 0.5
+            all_healthy = False
+        else:
+            gov_score = 0.0
+            all_healthy = False
+
+        # Strictest wins: both machine AND constitution must agree
+        base = min(health_score, gov_score)
 
         if is_constitutionally_staged:
             base *= 0.7

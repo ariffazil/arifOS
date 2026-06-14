@@ -9900,7 +9900,7 @@ def _compute_topology_diagnostics(session_id: str | None = None) -> dict[str, An
     elif feedback_integrity == "absent":
         verdict = "revise"
     else:
-        verdict = "pass"
+        verdict = "SEAL"
 
     # 13. Confidence: more data = higher confidence
     if len(records) >= 50:

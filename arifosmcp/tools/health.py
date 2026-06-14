@@ -293,13 +293,13 @@ async def arif_stack_health_probe(
 
     if all_ok and registry_ok and leash_ok and tools_ok:
         overall = "SELAMAT"
-        verdict = "pass"
+        verdict = "SEAL"
     elif registry_ok and leash_ok and tools_ok:
         overall = "AMANAH"
-        verdict = "partial"
+        verdict = "CAUTION"
     else:
         overall = "VOID"
-        verdict = "hold"
+        verdict = "HOLD"
 
     warnings: list[str] = []
     if not registry_ok:

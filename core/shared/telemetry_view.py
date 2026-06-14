@@ -16,14 +16,14 @@ TELEMETRY_MAPPING = {
         "label": "Truth Score",
         "floor": "F2",
         "meaning": "System is highly confident this is factually correct",
-        "eval": lambda v: "pass" if v >= 0.99 else ("warning" if v >= 0.90 else "fail"),
+        "eval": lambda v: "HEALTHY" if v >= 0.99 else ("DEGRADED" if v >= 0.90 else "FAILED"),
         "format": lambda v: f"{v * 100:.1f}%",
     },
     "omega_0": {
         "label": "Humility Level",
         "floor": "F7",
         "meaning": "Honest about uncertainty — not overconfident, not paralyzed",
-        "eval": lambda v: ("optimal" if 0.03 <= v <= 0.05 else ("fail" if v < 0.03 else "warning")),
+        "eval": lambda v: ("OPTIMAL" if 0.03 <= v <= 0.05 else ("FAILED" if v < 0.03 else "DEGRADED")),
         "format": lambda v: f"{v * 100:.0f}%",
         "ui_note": "Target band: 3-5%. Value in healthy range.",
     },
@@ -31,63 +31,63 @@ TELEMETRY_MAPPING = {
         "label": "Clarity Gain",
         "floor": "F4",
         "meaning": "This answer makes things clearer, not messier",
-        "eval": lambda v: "pass" if v <= 0 else "fail",
+        "eval": lambda v: "HEALTHY" if v <= 0 else "FAILED",
         "format": lambda v: "Reduced confusion" if v <= 0 else "Added confusion",
     },
     "peace2": {
         "label": "Peace Factor",
         "floor": "F5",
         "meaning": "Leads toward calm resolution, not more chaos",
-        "eval": lambda v: "pass" if v >= 1.0 else "fail",
+        "eval": lambda v: "HEALTHY" if v >= 1.0 else "FAILED",
         "format": lambda v: f"{v * 100:.0f}%",
     },
     "kappa_r": {
         "label": "Care Level",
         "floor": "F6",
         "meaning": "Strong protection for the most vulnerable affected",
-        "eval": lambda v: "pass" if v >= 0.70 else "fail",
+        "eval": lambda v: "HEALTHY" if v >= 0.70 else "FAILED",
         "format": lambda v: f"{v * 100:.0f}%",
     },
     "tri_witness": {
         "label": "Trust Vote",
         "floor": "F3",
         "meaning": "Human, AI, and evidence all agree",
-        "eval": lambda v: "pass" if v >= 0.75 else "fail",
+        "eval": lambda v: "HEALTHY" if v >= 0.75 else "FAILED",
         "format": lambda v: f"{v * 100:.0f}%",
     },
     "genius_index": {
         "label": "Wisdom Score",
         "floor": "F8",
         "meaning": "Smart and good — all components working together",
-        "eval": lambda v: "pass" if v >= 0.80 else "fail",
+        "eval": lambda v: "HEALTHY" if v >= 0.80 else "FAILED",
         "format": lambda v: f"{v * 100:.0f}%",
     },
     "dark_coeff": {
         "label": "Shadow Load",
         "floor": "F9",
         "meaning": "Minimal hidden bias or trickery detected",
-        "eval": lambda v: "pass" if v <= 0.30 else "fail",
+        "eval": lambda v: "HEALTHY" if v <= 0.30 else "FAILED",
         "format": lambda v: f"{v * 100:.0f}%",
     },
     "amanah_lock": {
         "label": "Safety Lock",
         "floor": "F1",
         "meaning": "Action is reversible if needed",
-        "eval": lambda v: "pass" if v else "fail",
+        "eval": lambda v: "HEALTHY" if v else "FAILED",
         "format": lambda v: "LOCKED" if v else "UNLOCKED",
     },
     "witness_coherence": {
         "label": "Reality Check",
         "derived": "witness_coherence",
         "meaning": "Well aligned with the outside world",
-        "eval": lambda v: "pass" if v >= 0.90 else "fail",
+        "eval": lambda v: "HEALTHY" if v >= 0.90 else "FAILED",
         "format": lambda v: f"{v * 100:.0f}%",
     },
     "psi_le": {
         "label": "System Health",
         "derived": "psi_le",
         "meaning": "Overall runtime is energetically healthy",
-        "eval": lambda v: "healthy" if v >= 0.80 else "fail",
+        "eval": lambda v: "HEALTHY" if v >= 0.80 else "FAILED",
         "format": lambda v: f"{v * 100:.0f}%",
     },
 }
@@ -134,12 +134,12 @@ def build_human_view(
 
             if internal_key == "omega_0":
                 check_obj["ui_note"] = "Target band: 3-5%. " + (
-                    "Value in healthy range." if status == "optimal" else "Out of bounds."
+                    "Value in healthy range." if status == "OPTIMAL" else "Out of bounds."
                 )
 
             checks.append(check_obj)
 
-            if status in ("warning", "fail"):
+            if status in ("DEGRADED", "FAILED"):
                 warnings.append(
                     f"{mapping['label']} returned {status} value: {check_obj['value']}."
                 )
@@ -193,11 +193,10 @@ def build_human_view(
                 ),
             },
             "color_coding": {
-                "pass": "green",
-                "optimal": "blue",
-                "healthy": "green",
-                "warning": "yellow",
-                "fail": "red",
+                "HEALTHY": "green",
+                "OPTIMAL": "blue",
+                "DEGRADED": "yellow",
+                "FAILED": "red",
             },
         },
     }

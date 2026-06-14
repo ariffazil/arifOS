@@ -231,14 +231,17 @@ def arif_ops_measure(
     if mode == "constitutional_health":
         from arifosmcp.runtime.rest_routes import _build_governance_status_payload
 
+        _VALID_CONSTITUTIONAL_VERDICTS = {"SEAL", "HOLD", "VOID", "SABAR", "OBSERVE_ONLY", "OBSERVE", "CAUTION"}
         payload = _build_governance_status_payload()
+        raw_verdict = payload.get("telemetry", {}).get("verdict", "UNKNOWN")
+        verdict = raw_verdict if raw_verdict in _VALID_CONSTITUTIONAL_VERDICTS else "UNKNOWN"
         return TelemetryBlock(
             **_ok(
                 "arif_ops_measure",
                 {
                     "floors": payload.get("floors", {}),
                     "witness": payload.get("witness", {}),
-                    "verdict": payload.get("telemetry", {}).get("verdict", "UNKNOWN"),
+                    "verdict": verdict,
                     "telemetry": payload.get("telemetry", {}),
                 },
                 session_id=session_id,
@@ -278,7 +281,9 @@ def arif_ops_measure(
             "governance": {
                 "drift_total": drift_metrics.get("drift_total", 0),
                 "floor_violations": len(gov.get("violated_laws", [])),
-                "session_verdict": gov.get("telemetry", {}).get("verdict", "SEAL"),
+                "session_verdict": gov.get("telemetry", {}).get("verdict", "SEAL")
+                if gov.get("telemetry", {}).get("verdict", "SEAL") in {"SEAL", "HOLD", "VOID", "SABAR", "OBSERVE_ONLY", "CAUTION"}
+                else "SEAL",
             },
         }
         return TelemetryBlock(

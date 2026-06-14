@@ -4030,15 +4030,15 @@ def register_rest_routes(
         from arifosmcp.runtime.tools import _runtime_selftest
 
         readiness = _runtime_selftest()
-        verdict = str(readiness.get("verdict", "FAIL")).lower()
+        verdict = str(readiness.get("verdict", "FAIL"))  # "PASS", "PARTIAL", or "FAIL" — machine-level selftest
         payload = {
-            "status": verdict,
+            "machine_status": verdict,  # machine health, not constitutional verdict
             "checks": readiness.get("checks", {}),
             "failures": readiness.get("failed_checks", []),
             "warnings": readiness.get("warnings", []),
             "timestamp": readiness.get("timestamp"),
         }
-        status_code = 200 if verdict in {"pass", "partial"} else 503
+        status_code = 200 if verdict in {"PASS", "PARTIAL"} else 503
         return JSONResponse(payload, status_code=status_code)
 
     @route("/.well-known/mcp/internal-server.json", methods=["GET"])
