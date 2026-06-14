@@ -60,7 +60,7 @@ sot-check: security-audit
 
 reality-replay:
 	@echo "Replaying Reality Ledger..."
-	@python -m arifosmcp.core.vault999.reality_ledger
+	@python -m core.vault999.reality_ledger
 
 constitutional-benchmark:
 	@echo "Running Constitutional Agent Benchmark..."

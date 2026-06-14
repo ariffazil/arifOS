@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "2026.06.12"
+version = "2026.06.14"
 description = "arifOS Constitutional AI Kernel and federation bridge — 13 canonical MCP tools, VAULT999 ledger, F1–F13 floor enforcement"
 readme = "README.md"
 requires-python = ">=3.12"

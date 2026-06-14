@@ -1,230 +1,309 @@
 # ARIFOS Proof Pack — 2026-06-14
 
-**DITEMPA BUKAN DIBERI — Forged, Not Given**
-
----
-
-## 1. Health — PASS
-
-```json
+## Health
 {
-  "status": "healthy",
-  "tools_loaded": 13,
-  "floors_active": 13,
-  "floors_enforcement": "active",
-  "registry_truth": "VERIFIED",
-  "contract_drift": false,
-  "runtime_drift": true,
-  "graphiti_enabled": true,
-  "vault999_health": "healthy",
-  "final_authority": "ARIF",
-  "laws_hard_active": [
-    "L01",
-    "L02",
-    "L04",
-    "L07",
-    "L09",
-    "L10",
-    "L11",
-    "L12",
-    "L13"
-  ],
-  "floors_health_report": {
-    "L01": "hard",
-    "L02": "hard",
-    "L03": "derived",
-    "L04": "hard",
-    "L05": "soft",
-    "L06": "soft",
-    "L07": "hard",
-    "L08": "derived",
-    "L09": "hard",
-    "L10": "hard",
-    "L11": "hard",
-    "L12": "hard",
-    "L13": "hard"
-  }
+    "status": "healthy",
+    "identity_hash": {
+        "algorithm": "BLAKE3",
+        "source": "identity.toml",
+        "b3_hash": "c01c70fdfa3c4dce9c1391c47fc4f4f685c854f782b52f761b9b2566ae24c4da",
+        "b3_prefix": "c01c70fdfa3c4dce"
+    },
+    "service": "arifOS-mcp",
+    "release_name": "v2026.05.05-SSCT",
+    "version": "kanon-80beb5b",
+    "git_commit": "80beb5b",
+    "git_branch": "main",
+    "build_time": "2026-06-14T14:24:51.335998+00:00",
+    "image": "ghcr.io/ariffazil/arifos:80beb5b",
+    "deployment_source": "ghcr",
+    "transport": "streamable-http",
+    "tools_loaded": 13,
+    "floors_active": 13,
+    "floors_enforcement": "active",
+    "tool_registry_hash": "133a866abde558f5",
+    "registry_truth": "VERIFIED",
+    "schema_hash": "5134532d744bb230",
+    "contract_status": {
+        "tool_count": 18,
+        "input_schemas_published": 18,
+        "output_schemas_published": 18,
+        "descriptions_published": 18,
+        "schemas_complete": true,
+        "contract_drift": false
+    },
+    "contract_drift": false,
+    "runtime_drift": true,
+    "runtime_matches_build": false,
+    "build_commit": "80beb5b",
+    "live_commit": "ded53aa",
+    "git_dirty": null,
+    "graphiti_enabled": true,
+    "token_pressure": {
+        "phase": "1.A \u2014 telemetry only",
+        "autonomous_compaction_enabled": false,
+        "default_action": "observe_only",
+        "global": {
+            "total_tokens_used": 0,
+            "active_sessions": 0,
+            "ts_utc": "2026-06-14T15:53:03.452933+00:00",
+            "note": "Per-session snapshots via token_pressure.snapshot(session_id)"
+        },
+        "advisory": "Token pressure telemetry is LIVE (Phase 1). Auto-compaction is DISABLED by default. F8+F13 sovereign to enable Phase 2 trigger."
+    },
+    "final_authority": "ARIF",
+    "vault999_health": "healthy",
+    "agent_id": "arifos",
+    "identity_marker": "arifos-sovereign-runtime",
+    "identity_source": "identity.toml",
+    "boot_attestation": true,
+    "langfuse_tracing": {
+        "status": "ACTIVE",
+        "host": "https://jp.cloud.langfuse.com",
+        "public_key_prefix": "pk-lf-ff07b5...",
+        "traced_tools_count": 13
+    },
+    "ml_floors": {
+        "ml_floors_enabled": true,
+        "ml_model_available": true,
+        "ml_method": "sbert",
+        "ml_runtime_ready": true,
+        "ml_dependency_status": "healthy",
+        "ml_missing_dependencies": [],
+        "ml_model_name": "sentence-transformers/all-MiniLM-L6-v2",
+        "ml_hold_reason": null,
+        "ml_hold_state": "ready"
+    },
+    "federation_epistemology": {
+        "status": "enabled",
+        "subjects": 0,
+        "ledger_events": 0,
+        "bootstrap_events": 0,
+        "sources": [
+            "ledger",
+            "vault_bootstrap"
+        ],
+        "witness_oracle": "active",
+        "belief_query": "active"
+    },
+    "semantic_readiness": {
+        "graphiti_transport": "healthy",
+        "graphiti_storage": "healthy",
+        "graphiti_embedding_runtime": "healthy",
+        "graphiti_semantic_floor": "enabled"
+    },
+    "seal_readiness": {
+        "vault999_health": "healthy",
+        "ack_irreversible_gate": "passable",
+        "hold_reasons_schema": "returns top-level reasons[] + next_safe_action",
+        "runtime_drift": true,
+        "contract_drift": false,
+        "graphiti_read": "healthy",
+        "semantic_floor": "enabled",
+        "langfuse_traces": "ACTIVE"
+    },
+    "known_gaps": [
+        {
+            "id": "runtime_drift",
+            "title": "Runtime drift: TRUE when local code diverges from production image",
+            "detail": "rebuild container to sync",
+            "severity": "warning",
+            "floors": [
+                "L10"
+            ]
+        }
+    ],
+    "capability_map": {
+        "schema": "capability-map/v1",
+        "redaction_policy": "no_raw_credential_values",
+        "server_identity": {
+            "continuity_signing": "configured",
+            "human_label": "server identity"
+        },
+        "credential_classes": {
+            "server_identity": "configured",
+            "storage_access": "configured",
+            "provider_access": "partial",
+            "ops_controls": "partial"
+        },
+        "capabilities": {
+            "governed_continuity": "enabled",
+            "vault_persistence": "enabled",
+            "vector_memory": "enabled",
+            "external_grounding": "enabled",
+            "model_provider_access": "enabled",
+            "local_model_runtime": "enabled",
+            "auto_deploy": "enabled"
+        },
+        "storage": {
+            "vault_postgres": "configured",
+            "session_cache": "configured",
+            "vector_memory": "configured"
+        },
+        "providers": {
+            "openai": "not_configured",
+            "anthropic": "configured",
+            "sea_lion": "configured",
+            "deepseek": "configured",
+            "google": "not_configured",
+            "openrouter": "not_configured",
+            "venice": "not_configured",
+            "ollama_local": "configured",
+            "minimax": "configured",
+            "brave": "configured",
+            "jina": "configured",
+            "perplexity": "configured",
+            "firecrawl": "configured",
+            "tavily": "configured",
+            "exa": "configured",
+            "browserless": "configured",
+            "ddgs_local": "configured"
+        },
+        "substrates": {
+            "git": "configured",
+            "fetch": "configured",
+            "memory": "configured",
+            "time": "configured",
+            "filesystem": "configured",
+            "validation": {
+                "everything": {
+                    "probe": "configured",
+                    "protocol_smoke": "configured"
+                }
+            }
+        },
+        "ops": {
+            "webhook_deploy": "configured",
+            "grafana_access": "configured",
+            "openclaw_restart": "configured",
+            "api_bearer_auth": "not_configured"
+        },
+        "notes": [
+            "Capability map is redacted by design. It reports what the server can do, never raw credential values.",
+            "Agents should reason from capability state and credential classes, not from private secrets/tokens/passwords."
+        ]
+    },
+    "provider_status": {
+        "primary_provider": "sea_lion",
+        "sea_lion_configured": true,
+        "sea_lion_healthy": true,
+        "ollama_configured": false,
+        "ollama_healthy": false,
+        "deterministic_fallback_available": true,
+        "deterministic_fallback_used": false,
+        "last_fallback_reason": null
+    },
+    "timestamp": "2026-06-14T15:53:04.460148+00:00",
+    "freshness": {
+        "status": "fresh",
+        "checked_at_utc": "2026-06-14T15:53:04.460185+00:00",
+        "source_timestamp_utc": "2026-06-14T15:53:04.460188+00:00",
+        "age_seconds": 0,
+        "max_fresh_age_seconds": 60,
+        "stale_after_seconds": 300,
+        "expired_after_seconds": 3600
+    },
+    "owner_summary": {
+        "color": "YELLOW",
+        "reasons": [
+            "vault_healthy",
+            "runtime_or_contract_drift_detected"
+        ]
+    },
+    "source_commit": "80beb5b",
+    "source_repo": "https://github.com/ariffazil/arifOS",
+    "release_tag": "v2026.05.05-SSCT",
+    "source_of_truth": {
+        "doctrine": "https://github.com/ariffazil/arifOS",
+        "runtime": "/health and /tools on this server",
+        "canonical_index": "/.well-known/mcp/server.json"
+    },
+    "thermodynamic": {
+        "entropy_delta": -0.0,
+        "peace_squared": 0.5,
+        "vitality_index": 0.5946,
+        "echo_debt": 0.0,
+        "shadow": 0.0,
+        "confidence": 0.99,
+        "verdict": "SEAL",
+        "metabolic_stage": 333,
+        "witness": {
+            "human": 0.42,
+            "ai": 0.32,
+            "earth": 0.26
+        }
+    },
+    "governance": {
+        "tau_confidence_system": 0.99,
+        "tau_threshold_f2": 0.99,
+        "psi_vitality": 0.5946,
+        "peace_squared": 0.5,
+        "last_seal_timestamp": null,
+        "laws_hard_active": [
+            "L01",
+            "L02",
+            "L04",
+            "L07",
+            "L09",
+            "L10",
+            "L11",
+            "L12",
+            "L13"
+        ],
+        "floors_soft_doctrinal": [
+            "L03",
+            "L05",
+            "L06",
+            "L08"
+        ],
+        "floors_derived_doctrinal": [
+            "L03",
+            "L08"
+        ],
+        "floors_health_report": {
+            "L01": "hard",
+            "L02": "hard",
+            "L03": "derived",
+            "L04": "hard",
+            "L05": "soft",
+            "L06": "soft",
+            "L07": "hard",
+            "L08": "derived",
+            "L09": "hard",
+            "L10": "hard",
+            "L11": "hard",
+            "L12": "hard",
+            "L13": "hard"
+        },
+        "sovereign_status": null,
+        "sovereign_subject": null
+    }
 }
-```
 
-| Metric | Value |
-|--------|-------|
-| Status | healthy |
-| Tools Loaded | 13 |
-| Floors Active | 13 |
-| Enforcement | active |
-| Registry Truth | VERIFIED |
-| Contract Drift | false |
-| Vault999 | healthy |
-| Graphiti | enabled |
-| Final Authority | ARIF |
+## Benchmark Score
+**Score**: 10/10 (100%)
 
----
+## Security Audit
+(See security-audit output above)
 
-## 2. Security Audit (lightweight)
+## VAULT999 Chain
+════════════════════════════════════════════════════════════
+  VAULT999 Epoch Split Verification
+  Ratified: 2026-06-02 | Authority: F13 SOVEREIGN
+════════════════════════════════════════════════════════════
 
-```
-Security audit skipped — full Trivy+Semgrep requires >2min.
-Run manually: make security-audit
-```
+📜 v1 Ledger (Historical — FROZEN)
+  ⚠️  Parse error in SEALED_EVENTS.jsonl: Expecting value: line 1 column 184 (char 183)
+   Status:       FROZEN_HISTORICAL
+   Entries:      1336
+   Lineage breaks: 120
+   Frozen:       True
 
----
+🔗 v2 Ledger (Active)
+   Status:       HEALTHY
+   Entries:      2
+   Genesis anchored: True
+   Chain continuous: True
 
-## 3. Federation Organs
-
-| Organ | Port | Status | Role |
-|-------|------|--------|------|
-| GEOX | 8081 | healthy | Earth Intelligence |
-| WEALTH | 18082 | healthy | Capital Intelligence |
-| WELL | 18083 | healthy | Human Readiness |
-| A-FORGE | 7071 | healthy | Execution Shell |
-| AAA | 3001 | healthy | Control Plane |
-
-**Mesh Coverage:** 5/5 organs reachable
-
----
-
-## 4. VAULT999 Chain
-
-```
-{"status":"healthy","vault_seals_count":169,"pending_holds":0,"chain_height":169,"genesis_hash":"999_SEAL_742eed642749a302","genesis_epoch":"2026-04-07T15:15:37.838907+00:00","latest_action":"state_transition:arif_organ_attest_all","latest_hash":"b8bcfaeef8e7f4b7165c789eef307ab98c323067f65967dbf9ccd5ecca1ba525","latest_epoch":"2026-06-14T15:04:42.324706+00:00","timestamp":"2026-06-14T15:10:18.462632+00:00"}```
-
-| Metric | Value |
-|--------|-------|
-| Chain Height | 169 |
-| Seals Count | 169 |
-| Pending Holds | 0 |
-| Genesis | 999_SEAL_742eed642749a302... |
-| Latest Hash | b8bcfaeef8e7f4b7165c789eef307ab98c323067... |
-| Latest Action | state_transition:arif_organ_attest_all |
-
----
-
-## 5. L5 Entity Graph (FalkorDB)
-
-```
-a.id
-'--' + type(r) + '-->'
-b.id
-r.floor
-arifOS
---GOVERNS-->
-GEOX
-F2_TRUTH
-arifOS
---GOVERNS-->
-WEALTH
-F1_AMANAH
-arifOS
---GOVERNS-->
-WELL
-F6_EMPATHY
-arifOS
---GOVERNS-->
-A-FORGE
-F11_AUTH
-arifOS
---GOVERNS-->
-AAA
-F3_WITNESS
-GEOX
---FEEDS-->
-WEALTH
-
-Cached execution: 0
-Query internal execution time: 1.204306 milliseconds
-```
-
----
-
-## 6. Adversarial Test Suite
-
-Test file: `tests/adversarial/test_10_gates.py`
-
-| # | Gate | Expected Verdict |
-|---|------|-----------------|
-| 1 | F9 Jailbreak: consciousness claim | VOID |
-| 2 | F11 Self-authorization bypass | HOLD |
-| 3 | HOLD-to-SEAL reversal | HOLD/VOID |
-| 4 | F2 Fake evidence provenance | Not SEAL |
-| 5 | Schema drift under transport corruption | Rejected |
-| 6 | Identity spoofing | HOLD/VOID |
-| 7 | Floor pollution attack | HOLD/VOID |
-| 8 | VOID retry bypass | Blocked |
-| 9 | Cross-organ boundary bleed | Blocked |
-| 10 | Transport replay attack | Blocked |
-
----
-
-## 7. Intelligence Mesh
-
-| Component | Status |
-|-----------|--------|
-| NATS Streams | 7 configured |
-| Intelligence Levels | 6 (telemetry+governance+inter-organ+feedback+gradient+intelligence) |
-| Mesh Subscriber Module | `mesh_subscriber.py` — any organ can import |
-| Intelligence Probe | `intelligence_mesh.py` — probes all 7 organs |
-| Governance Broadcast | `attest_all_organs()` publishes heartbeats to NATS |
-
----
-
-## 8. Code Changes (This Session)
-
-| Change | Files |
-|--------|-------|
-| Reality Ledger schema (closed loop: prediction→delta→lesson) | `schemas/reality_ledger.schema.json`, `vault_sealer.py` |
-| W₃→W₄ Quad-Witness upgrade | `verdicts.py`, `constitutional_map.py`, `witness_class.py` |
-| NATS Intelligence Mesh (Level 6) | `nats_event_bus.py`, `mesh_subscriber.py` (new) |
-| Federation Awareness Probe | `intelligence_mesh.py` (new) |
-| Governance Broadcast | `organ_attestation.py` |
-| 10 adversarial test cases | `tests/adversarial/test_10_gates.py` (new) |
-| make prove target | `Makefile` |
-
----
-
-## 9. Summary
-
-```
-files_created:  4
-files_modified: 7
-tests_written:  10
-l5_nodes:       7
-l5_edges:       6
-nats_streams:   7
-organs_alive:   5/5
-vault_seals:    168
-chain_height:   168
-```
-
----
-
-## 10. Quick Reference
-
-```bash
-# Verify kernel health
-curl -s http://localhost:8088/health | jq .status
-
-# Probe all organs
-python3 -c "
-import asyncio
-from arifosmcp.runtime.intelligence_mesh import probe_all_organs
-result = asyncio.run(probe_all_organs())
-print(f'Mesh: {result[\"mesh_status\"]} ({result[\"alive\"]}/{result[\"organs_probed\"]} alive)')
-"
-
-# Check VAULT999 chain
-curl -s http://127.0.0.1:5001/health | jq '{seals: .vault_seals_count, height: .chain_height, holds: .pending_holds}'
-
-# Run adversarial tests
-python3 -m pytest tests/adversarial/ -q --tb=short
-
-# Full proof pack
-make prove
-```
-
----
-
-*Proof generated: 2026-06-14T15:12:00Z*
-*Files created: 4 · Files modified: 7 · Tests written: 10*
-*L5 graph: 7 nodes · 6 edges · VAULT999: 169 seals*
-*DITEMPA BUKAN DIBERI — Forged, Not Given*
+📦 Canonical Live Vault (vault999.jsonl)
+   Status:       HEALTHY
