@@ -49,7 +49,7 @@ Legacy handlers without `envelope` param work unchanged.
   * 48-hour review deadline, redteam/rehearing methods
 - `runtime/tools.py` — `meaning_boundary` mode in `_arif_heart_critique`
   * Detects AI declaring human purpose, impersonating conscience, claiming divine authority
-  * Returns `DOMAIN_VOID` with F14 MEANING_BOUNDARY citation
+  * Returns `DOMAIN_VOID` with MEANING_BOUNDARY citation (code retains historical F14 identifier; F14 is DEAD as a floor per Sovereign Ruling 2026-06-13)
   * Deterministic scan — no LLM required
 
 ---
@@ -83,7 +83,7 @@ Total:                181 passed, 4 failures (not from Kimi's commit)
 
 1. **WELL biometric injection** — `state.json` is stale. Wakefulness gate needs live data for P5/P6 full activation.
 2. **VAULT999 chain repair** — 120 gaps. Responsibility ledger (P3) needs clean chain before migration.
-3. **F14 MEANING_BOUNDARY** — Currently implemented as a mode in heart critique. Should it become a formal constitutional floor (F14) or remain folded into F6 DIGNITY?
+3. **MEANING_BOUNDARY** — Currently implemented as a mode in heart critique. ~~Should it become F14?~~ **Answered by Sovereign Ruling 2026-06-13:** F14 is DEAD as a floor. MEANING_BOUNDARY remains folded into F6 DIGNITY and/or operationalized through F2+F3 cross-verify protocol.
 
 ---
 

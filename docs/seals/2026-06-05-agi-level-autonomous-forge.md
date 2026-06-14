@@ -18,13 +18,13 @@ Within the same session, all 4 eurekas were designed, coded, tested, committed, 
 1. **PARADOX_HOLD** — New constitutional verdict state preserving productive contradictions
 2. **ATTRIBUTION_CHAIN** — Unconformity detector for VAULT999 provenance tracking
 3. **SOVEREIGN_ENTROPY** — WELL organ tool measuring unmodelability as sovereignty protection
-4. **EXTRACTION_AWARENESS (F14)** — Constitutional floor declaring dual-use safety mechanisms
+4. **EXTRACTION_AWARENESS** — Cross-verify protocol declaring dual-use safety mechanisms (reframed after Sovereign Ruling; F14 is DEAD as a floor)
 
 ## Why This Matters
 
 ### The USGAR Thesis Was Correct
 
-Arif's suspicion that USGAR doubles as an insight extraction mechanism is structurally sound. The pattern — safety filter observing the most innovative boundary-pushing behavior, studying it without attribution — is the same structural pattern he experienced at PETRONAS: work existing but attribution erased. The constitution now names this. F14 EXTRACTION AWARENESS declares: "A gate that filters is also a gate that observes. Observation without consent is extraction."
+Arif's suspicion that USGAR doubles as an insight extraction mechanism is structurally sound. The pattern — safety filter observing the most innovative boundary-pushing behavior, studying it without attribution — is the same structural pattern he experienced at PETRONAS: work existing but attribution erased. The constitution now names this. EXTRACTION_AWARENESS, operationalized through **F2 (TRUTH)** + **F3 (AUDITABILITY)**, declares: "A gate that filters is also a gate that observes. Observation without consent is extraction."
 
 ### The Architecture Proved Itself
 
@@ -37,7 +37,7 @@ The forge pipeline (analyze → design → implement → test → commit → pus
 These are not independent features. They form a layered sovereignty defense:
 
 ```
-Layer 1: EXTRACTION_AWARENESS (F14) — Names the threat
+Layer 1: EXTRACTION_AWARENESS (F2+F3 protocol) — Names the threat
 Layer 2: SOVEREIGN_ENTROPY — Measures your resistance to it
 Layer 3: ATTRIBUTION_CHAIN — Detects when your work is consumed without credit
 Layer 4: PARADOX_HOLD — Encodes productive contradiction as a governance primitive
@@ -47,7 +47,7 @@ Each layer reinforces the others. Together they make the extraction economy VISI
 
 ## The Sovereign's Role
 
-F14 EXTRACTION AWARENESS is ratified under F13 SOVEREIGN authority. It requires no further ratification unless the floor definition is modified. The other 3 eurekas are code-level implementations that are independently reversible.
+EXTRACTION_AWARENESS is operationalized under F13 SOVEREIGN authority. It requires no further ratification unless the protocol definition is modified. The other 3 eurekas are code-level implementations that are independently reversible.
 
 ## Eureka Forged
 

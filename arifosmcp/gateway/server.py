@@ -393,8 +393,39 @@ async def _ensure_upstream_session(organ_name: str, client: httpx.AsyncClient) -
     if cached and cached.get("expires_at", 0) > now:
         return cached["session_id"]
     
+    init_body = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2025-11-25",
+            "capabilities": {},
+            "clientInfo": {"name": "arifos-gateway", "version": "v0.1.0"},
+        },
+    }
+    
     try:
-        # Establish new session via SSE handshake
+        # StreamableHTTP transport (A-FORGE, FastMCP 3.4.2): initialize first,
+        # server returns mcp-session-id in response headers.
+        init_resp = await client.post(
+            organ["url"],
+            json=init_body,
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+        )
+        session_id = init_resp.headers.get("mcp-session-id")
+        if init_resp.status_code < 400 and session_id:
+            UPSTREAM_SESSIONS[organ_name] = {
+                "session_id": session_id,
+                "expires_at": now + 300,
+                "url": organ["url"],
+            }
+            log.info("Upstream session established (streamable-http): %s -> %s", organ_name, session_id[:12])
+            return session_id
+        
+        # Fallback: legacy SSE handshake (some organs expose session ID via GET)
         sse_resp = await client.get(
             organ["url"],
             headers={"Accept": "text/event-stream"},
@@ -403,17 +434,6 @@ async def _ensure_upstream_session(organ_name: str, client: httpx.AsyncClient) -
         if not session_id:
             return None
         
-        # Initialize the session
-        init_body = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "initialize",
-            "params": {
-                "protocolVersion": "2025-03-26",
-                "capabilities": {},
-                "clientInfo": {"name": "arifos-gateway", "version": "v0.1.0"},
-            },
-        }
         init_resp = await client.post(
             organ["url"],
             json=init_body,
@@ -427,13 +447,12 @@ async def _ensure_upstream_session(organ_name: str, client: httpx.AsyncClient) -
         if init_resp.status_code >= 400:
             return None
         
-        # Cache the session
         UPSTREAM_SESSIONS[organ_name] = {
             "session_id": session_id,
-            "expires_at": now + 300,  # 5 min TTL
+            "expires_at": now + 300,
             "url": organ["url"],
         }
-        log.info("Upstream session established: %s -> %s", organ_name, session_id[:12])
+        log.info("Upstream session established (sse): %s -> %s", organ_name, session_id[:12])
         return session_id
         
     except Exception as e:
@@ -504,6 +523,10 @@ async def _proxy_mcp_to_organ(organ_name: str, body: dict) -> dict:
 
 def _route_tool_to_organ(tool_name: str) -> str | None:
     """Determine which organ owns a given tool name."""
+    # A-FORGE owns the federated session ignition tool so it can cache
+    # kernel-born sessions locally and enforce session gates downstream.
+    if tool_name == "arif_session_init":
+        return "A-FORGE"
     for organ_name, organ in UPSTREAM_ORGANS.items():
         prefix = organ["prefix"]
         if tool_name.startswith(prefix):
@@ -850,65 +873,87 @@ async def _mcp_handler(request: Request):
                 "error": {"code": -32601, "message": f"Tool not found in any organ: {tool_name}"},
             })
 
-        # Issue/validate lease
-        if not lease_id:
-            # Auto-issue a lease based on policy
-            lease_result = issue_lease(
-                human_id=subject.get("human", "unknown"),
-                agent_id=subject.get("agent", "gateway-client"),
-                org_id=subject.get("org", "default"),
-                tool_name=tool_name,
-                roles=arguments.get("_roles", ["viewer"]),
-            )
-            if lease_result["status"] == "DENIED":
-                receipt = emit_receipt("call_tool", subject, tool_name, "DENIED",
-                                       error=lease_result.get("reason"), upstream=organ_name,
+        # Issue/validate lease (gateway-local lease store). A-FORGE is a
+        # self-governing execution shell: it issues its own leases via
+        # forge_lease_request and validates them locally, so we delegate
+        # lease enforcement for A-FORGE tools to A-FORGE itself.
+        risk_class = "LOW"
+        if organ_name != "A-FORGE":
+            if not lease_id:
+                # Auto-issue a lease based on policy
+                lease_result = issue_lease(
+                    human_id=subject.get("human", "unknown"),
+                    agent_id=subject.get("agent", "gateway-client"),
+                    org_id=subject.get("org", "default"),
+                    tool_name=tool_name,
+                    roles=arguments.get("_roles", ["viewer"]),
+                )
+                if lease_result["status"] == "DENIED":
+                    receipt = emit_receipt("call_tool", subject, tool_name, "DENIED",
+                                           error=lease_result.get("reason"), upstream=organ_name,
+                                           duration_ms=(time.time() - t0) * 1000)
+                    return JSONResponse({
+                        "jsonrpc": "2.0", "id": call_id,
+                        "error": {"code": -32002, "message": f"Lease denied: {lease_result.get('reason')}"},
+                    })
+                lease_id = lease_result["lease_id"]
+
+            # Validate the lease
+            validation = validate_lease(lease_id, tool_name)
+            if validation["decision"] == "DENIED":
+                receipt = emit_receipt("call_tool", subject, tool_name, validation["decision"],
+                                       lease_id=lease_id, risk_class="LOW",
+                                       error=validation.get("reason"), upstream=organ_name,
                                        duration_ms=(time.time() - t0) * 1000)
                 return JSONResponse({
                     "jsonrpc": "2.0", "id": call_id,
-                    "error": {"code": -32002, "message": f"Lease denied: {lease_result.get('reason')}"},
+                    "error": {"code": -32003, "message": f"Lease invalid: {validation.get('reason')}"},
                 })
-            lease_id = lease_result["lease_id"]
 
-        # Validate the lease
-        validation = validate_lease(lease_id, tool_name)
-        if validation["decision"] == "DENIED":
-            receipt = emit_receipt("call_tool", subject, tool_name, validation["decision"],
-                                   lease_id=lease_id, risk_class="LOW",
-                                   error=validation.get("reason"), upstream=organ_name,
-                                   duration_ms=(time.time() - t0) * 1000)
-            return JSONResponse({
-                "jsonrpc": "2.0", "id": call_id,
-                "error": {"code": -32003, "message": f"Lease invalid: {validation.get('reason')}"},
-            })
+            if validation["decision"] == "PENDING_888":
+                receipt = emit_receipt("call_tool", subject, tool_name, "PENDING_888",
+                                       lease_id=lease_id,
+                                       risk_class=validation.get("lease", {}).get("risk_class", "HIGH_IRREVERSIBLE"),
+                                       upstream=organ_name, duration_ms=(time.time() - t0) * 1000)
+                return JSONResponse({
+                    "jsonrpc": "2.0", "id": call_id,
+                    "error": {
+                        "code": -32004,
+                        "message": "888_HOLD required — this action requires human sovereign approval",
+                        "data": {"lease_id": lease_id, "receipt_id": receipt["receipt_id"]},
+                    },
+                })
 
-        if validation["decision"] == "PENDING_888":
-            receipt = emit_receipt("call_tool", subject, tool_name, "PENDING_888",
-                                   lease_id=lease_id,
-                                   risk_class=validation.get("lease", {}).get("risk_class", "HIGH_IRREVERSIBLE"),
-                                   upstream=organ_name, duration_ms=(time.time() - t0) * 1000)
-            return JSONResponse({
-                "jsonrpc": "2.0", "id": call_id,
-                "error": {
-                    "code": -32004,
-                    "message": "888_HOLD required — this action requires human sovereign approval",
-                    "data": {"lease_id": lease_id, "receipt_id": receipt["receipt_id"]},
-                },
-            })
-
-        # LEASE VALID — forward to upstream organ
-        lease = validation.get("lease", {})
-        risk_class = lease.get("risk_class", "LOW")
+            lease = validation.get("lease", {})
+            risk_class = lease.get("risk_class", "LOW")
+        else:
+            # For A-FORGE, prefer caller-supplied _lease_id; do not mint a
+            # gateway-local lease because A-FORGE cannot validate it.
+            lease_id = arguments.get("_lease_id") or lease_id
 
         # Forward the MCP call
+        # Keep governance fields (session_id/actor_id/lease_id) for organs that
+        # perform local validation (e.g. A-FORGE). Inject the gateway-validated
+        # lease_id so the upstream organ cannot be confused by a caller-supplied
+        # fake lease.
+        upstream_args = {
+            k: v for k, v in arguments.items()
+            if not k.startswith("_") or k in ("session_id", "actor_id", "lease_id")
+        }
+        if organ_name == "A-FORGE":
+            upstream_args["lease_id"] = lease_id
+            if "actor_id" not in upstream_args:
+                upstream_args["actor_id"] = subject.get("agent_id", "gateway-actor")
+            # session_id must be kernel-born; pass through if caller supplied one,
+            # otherwise leave absent so A-FORGE can reject raw MUTATE/ATOMIC traffic.
+
         upstream_body = {
             "jsonrpc": "2.0",
             "id": call_id,
             "method": "tools/call",
             "params": {
                 "name": tool_name,
-                "arguments": {k: v for k, v in arguments.items()
-                              if not k.startswith("_")},
+                "arguments": upstream_args,
             },
         }
 
@@ -946,10 +991,10 @@ async def _mcp_handler(request: Request):
             response_body,
             headers={
                 "X-ArifOS-Decision": "EXECUTED",
-                "X-ArifOS-Lease-Id": lease_id,
-                "X-ArifOS-Receipt-Id": receipt["receipt_id"],
-                "X-ArifOS-Organ": organ_name,
-                "X-ArifOS-Risk-Class": risk_class,
+                "X-ArifOS-Lease-Id": lease_id or "",
+                "X-ArifOS-Receipt-Id": receipt["receipt_id"] or "",
+                "X-ArifOS-Organ": organ_name or "",
+                "X-ArifOS-Risk-Class": risk_class or "",
             },
         )
 
