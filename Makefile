@@ -43,9 +43,13 @@ deploy-local:
 	echo "$$GIT_SHA" > /opt/arifos/app/.git_commit; \
 	echo "Restarting arifOS bare-metal service..."; \
 	systemctl restart arifos.service; \
-	echo "Deployment complete. Verifying health..."; \
-	sleep 3; \
-	curl -s http://localhost:8088/health | jq .; \
+	echo "Waiting for kernel health..."; \
+	for i in $$(seq 1 30); do \
+		status=$$(curl -s -m 2 http://localhost:8088/health 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('status',''))" 2>/dev/null); \
+		if [ "$$status" = "healthy" ]; then echo "Kernel healthy after $${i}s"; break; fi; \
+		sleep 2; \
+	done; \
+	if [ "$$status" != "healthy" ]; then echo "888_HOLD: kernel did not become healthy"; exit 1; fi; \
 	echo "Running conformance spine post-deploy..."; \
 	$(PYTHON) -m arifosmcp.transport.conformance_spine
 

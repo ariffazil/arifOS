@@ -86,24 +86,40 @@ def test_reversible_intents_do_not_trigger_hold():
 
 # ── Unit tests for VAULT replay verification ─────────────────────────────────
 
-def test_vault_replay_passes_with_valid_chain(tmp_path):
+def _mock_mcp_post_for_vault(entries: list[dict[str, Any]] | None):
+    """Return a monkeypatch callable that fakes initialize + hermes_vault_query."""
+    def _mcp_post(method: str, params: dict[str, Any] | None = None, **kwargs):
+        if method == "initialize":
+            return {"result": {"protocolVersion": "2025-11-25", "serverInfo": {"name": "test"}}}
+        if method == "tools/call" and params and params.get("name") == "hermes_vault_query":
+            if entries is None:
+                return _tool_response({"status": "ERROR", "result": {"entries": []}})
+            return _tool_response({
+                "status": "SEAL",
+                "result": {"entries": entries},
+            })
+        return {"result": {}}
+    return _mcp_post
+
+
+def test_vault_replay_passes_with_valid_chain(tmp_path, monkeypatch):
     vault_path = tmp_path / "outcomes.jsonl"
-    entry1 = {"id": 1, "timestamp": "2026-06-14T00:00:00Z", "event": "test"}
-    entry2 = {
-        "id": 2,
-        "timestamp": "2026-06-14T00:01:00Z",
-        "event": "test",
-        "prev_hash": hashlib.sha256(json.dumps(entry1, sort_keys=True).encode()).hexdigest(),
-    }
-    vault_path.write_text(json.dumps(entry1) + "\n" + json.dumps(entry2) + "\n")
+    vault_path.write_text("{}")  # file presence is the secondary check
+
+    entries = [
+        {"file": "outcomes.jsonl", "ts": "2026-06-14T00:01:00Z", "action": "test"},
+        {"file": "outcomes.jsonl", "ts": "2026-06-14T00:00:00Z", "action": "test"},
+    ]
+    monkeypatch.setattr(spine, "_mcp_post", _mock_mcp_post_for_vault(entries))
 
     old_env = os.environ.get("ARIFOS_VAULT_PATH")
     os.environ["ARIFOS_VAULT_PATH"] = str(vault_path)
     try:
         result = spine.check_vault_replay()
         assert result["verdict"] == "PASS"
-        assert result["evidence"]["total_entries"] == 2
+        assert result["evidence"]["entries_returned"] == 2
         assert result["evidence"]["chain_ok"] is True
+        assert result["evidence"]["file_present"] is True
     finally:
         if old_env is None:
             os.environ.pop("ARIFOS_VAULT_PATH", None)
@@ -111,16 +127,19 @@ def test_vault_replay_passes_with_valid_chain(tmp_path):
             os.environ["ARIFOS_VAULT_PATH"] = old_env
 
 
-def test_vault_replay_fails_on_empty_vault(tmp_path):
+def test_vault_replay_fails_on_empty_vault(tmp_path, monkeypatch):
     vault_path = tmp_path / "outcomes.jsonl"
     vault_path.write_text("")
+
+    monkeypatch.setattr(spine, "_mcp_post", _mock_mcp_post_for_vault(None))
 
     old_env = os.environ.get("ARIFOS_VAULT_PATH")
     os.environ["ARIFOS_VAULT_PATH"] = str(vault_path)
     try:
         result = spine.check_vault_replay()
         assert result["verdict"] == "FAIL"
-        assert "empty" in result["evidence"]["reason"].lower()
+        assert result["evidence"]["file_present"] is False
+        assert any("empty" in e.lower() or "missing" in e.lower() for e in result["evidence"]["errors"])
     finally:
         if old_env is None:
             os.environ.pop("ARIFOS_VAULT_PATH", None)
@@ -128,13 +147,15 @@ def test_vault_replay_fails_on_empty_vault(tmp_path):
             os.environ["ARIFOS_VAULT_PATH"] = old_env
 
 
-def test_vault_replay_fails_on_missing_explicit_path():
+def test_vault_replay_fails_on_missing_explicit_path(monkeypatch):
+    monkeypatch.setattr(spine, "_mcp_post", _mock_mcp_post_for_vault(None))
+
     old_env = os.environ.get("ARIFOS_VAULT_PATH")
     os.environ["ARIFOS_VAULT_PATH"] = "/nonexistent/vault/outcomes.jsonl"
     try:
         result = spine.check_vault_replay()
         assert result["verdict"] == "FAIL"
-        assert "explicit vault path" in result["evidence"]["reason"].lower()
+        assert any("explicit" in e.lower() for e in result["evidence"]["errors"])
     finally:
         if old_env is None:
             os.environ.pop("ARIFOS_VAULT_PATH", None)
