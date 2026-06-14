@@ -131,14 +131,51 @@ async def list_geox_tools() -> list[dict[str, Any]]:
 
 async def geox_health_check() -> dict[str, Any]:
     """
-    Check GEOX server health via the geox_health_check tool.
-    Raw ping is not supported by GEOX (returns 404).
+    Check GEOX server health via the /health REST endpoint AND tool surface.
+
+    The REST /health endpoint carries domain identity fields
+    (domain_law, physics_manifest_hash, identity) that the
+    geox_health_check tool may not include. We merge both sources
+    so organ attestation can verify GEOX's NATURAL_LAW anchor.
     """
+    result: dict[str, Any] = {
+        "status": "unhealthy",
+        "organ": "GEOX",
+        "host": GEOX_HOST,
+    }
+
+    # ── REST health endpoint (carries domain identity) ──────────────
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(f"{GEOX_BASE}/health")
+            if resp.status_code == 200:
+                health_data = resp.json()
+                result["status"] = health_data.get("status", "healthy")
+                result["version"] = health_data.get("version", "unknown")
+                result["identity"] = health_data.get("identity", False)
+                result["git_version"] = health_data.get("git_version", "unknown")
+                # Domain identity — GEOX answers to NATURAL_LAW, not constitution
+                result["domain_law"] = health_data.get("domain_law", "NATURAL_LAW")
+                result["physics_manifest_hash"] = health_data.get(
+                    "physics_manifest_hash", "sha256:missing"
+                )
+                result["identity_anchor_type"] = "physics_manifest"
+                result["identity_anchor_hash"] = result["physics_manifest_hash"]
+    except Exception as e:
+        result["health_endpoint_error"] = str(e)
+
+    # ── Tool surface check (verifies MCP tools are callable) ────────
     try:
         await call_geox_tool("geox_health_check", {})
-        return {"status": "healthy", "organ": "GEOX", "host": GEOX_HOST}
+        if result.get("status") == "unhealthy":
+            result["status"] = "healthy"  # tool works even if /health failed
+        result["tool_surface"] = "reachable"
     except Exception as e:
-        return {"status": "unhealthy", "organ": "GEOX", "error": str(e)}
+        result["tool_surface_error"] = str(e)
+        if result.get("status") != "unhealthy":
+            result["status"] = "degraded"
+
+    return result
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

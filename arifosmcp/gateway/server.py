@@ -100,6 +100,18 @@ UPSTREAM_ORGANS: dict[str, dict] = {
         "role": "human_vitality",
         "tools_cache": None,
     },
+    "MIND": {
+        "url": os.getenv("MIND_UPSTREAM_URL", "http://127.0.0.1:51001/mcp"),
+        "prefix": "mind_",
+        "role": "cognitive_intelligence",
+        "tools_cache": None,
+    },
+    "MEMORY": {
+        "url": os.getenv("MEMORY_UPSTREAM_URL", "http://127.0.0.1:51002/mcp"),
+        "prefix": "mem_",
+        "role": "cognitive_memory",
+        "tools_cache": None,
+    },
 }
 
 # ─── Risk Classification ────────────────────────────────────────────────────
@@ -351,27 +363,133 @@ def emit_receipt(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# MCP PROXY
+# MCP PROXY (with upstream session pool)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# Session pool: organ_name -> {session_id, expires_at, url}
+UPSTREAM_SESSIONS: dict[str, dict] = {}
+
+
+async def _ensure_upstream_session(organ_name: str, client: httpx.AsyncClient) -> str | None:
+    """Ensure a valid MCP session exists with an upstream organ.
+    
+    Some organs (FastMCP 3.4.2 streamable-http) require session IDs.
+    This pool maintains one session per organ, auto-refreshing as needed.
+    """
+    organ = UPSTREAM_ORGANS.get(organ_name)
+    if not organ:
+        return None
+    
+    now = time.time()
+    cached = UPSTREAM_SESSIONS.get(organ_name)
+    
+    # Return cached session if still valid (TTL: 5 min)
+    if cached and cached.get("expires_at", 0) > now:
+        return cached["session_id"]
+    
+    try:
+        # Establish new session via SSE handshake
+        sse_resp = await client.get(
+            organ["url"],
+            headers={"Accept": "text/event-stream"},
+        )
+        session_id = sse_resp.headers.get("mcp-session-id")
+        if not session_id:
+            return None
+        
+        # Initialize the session
+        init_body = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-03-26",
+                "capabilities": {},
+                "clientInfo": {"name": "arifos-gateway", "version": "v0.1.0"},
+            },
+        }
+        init_resp = await client.post(
+            organ["url"],
+            json=init_body,
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+                "mcp-session-id": session_id,
+            },
+        )
+        
+        if init_resp.status_code >= 400:
+            return None
+        
+        # Cache the session
+        UPSTREAM_SESSIONS[organ_name] = {
+            "session_id": session_id,
+            "expires_at": now + 300,  # 5 min TTL
+            "url": organ["url"],
+        }
+        log.info("Upstream session established: %s -> %s", organ_name, session_id[:12])
+        return session_id
+        
+    except Exception as e:
+        log.warning("Failed to establish upstream session for %s: %s", organ_name, e)
+        return None
+
+
 async def _proxy_mcp_to_organ(organ_name: str, body: dict) -> dict:
-    """Forward an MCP request to a specific upstream organ."""
+    """Forward an MCP request to a specific upstream organ with session management."""
     organ = UPSTREAM_ORGANS.get(organ_name)
     if not organ:
         return {"error": f"Unknown organ: {organ_name}"}
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         try:
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+                "MCP-Protocol-Version": "2025-11-25",
+            }
+            
+            # Try to attach upstream session for organs that need it
+            session_id = await _ensure_upstream_session(organ_name, client)
+            if session_id:
+                headers["mcp-session-id"] = session_id
+            
             resp = await client.post(
                 organ["url"],
                 json=body,
-                headers={
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                    "MCP-Protocol-Version": "2025-11-25",
-                },
+                headers=headers,
             )
-            return {"status_code": resp.status_code, "body": resp.json() if resp.content else {}}
+            
+            # If session rejected, clear cache and retry once
+            if resp.status_code == 400 and session_id:
+                body_str = resp.content.decode() if resp.content else ""
+                if "Missing session ID" in body_str or "session" in body_str.lower():
+                    UPSTREAM_SESSIONS.pop(organ_name, None)
+                    session_id = await _ensure_upstream_session(organ_name, client)
+                    if session_id:
+                        headers["mcp-session-id"] = session_id
+                        resp = await client.post(organ["url"], json=body, headers=headers)
+            
+            # Parse response body — handle both raw JSON and SSE-wrapped
+            body_data = {}
+            if resp.content:
+                raw = resp.content.decode()
+                # Try SSE format first (streamable-http)
+                if "event:" in raw or "data:" in raw:
+                    for line in raw.split("\n"):
+                        if line.startswith("data: "):
+                            try:
+                                body_data = json.loads(line[6:])
+                            except json.JSONDecodeError:
+                                pass
+                else:
+                    # Plain JSON
+                    try:
+                        body_data = json.loads(raw)
+                    except json.JSONDecodeError:
+                        pass
+            
+            return {"status_code": resp.status_code, "body": body_data}
         except httpx.TimeoutException:
             return {"status_code": 504, "error": f"Upstream {organ_name} timeout"}
         except httpx.ConnectError:

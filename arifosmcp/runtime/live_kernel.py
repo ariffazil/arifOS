@@ -89,14 +89,23 @@ class LiveKernelEnvelope(BaseModel):
 
 
 class OrganHeartbeat(BaseModel):
-    """Periodic self-report from a federation organ."""
+    """Periodic self-report from a federation organ.
+
+    Each organ carries its own identity anchor type:
+      - arifOS  → constitution_hash          (human constitutional law)
+      - GEOX    → physics_manifest_hash       (natural law / kuasa alam)
+      - WEALTH  → capital_manifest_hash       (value law)
+      - WELL    → substrate_manifest_hash     (vitality law)
+    """
 
     event_type: str = "ORGAN_HEARTBEAT"
     organ_id: str
     status: str = "ALIVE"
     version: str = "0.0.0"
     schema_hash: str = "sha256:pending"
-    constitution_hash: str = "sha256:pending"
+    constitution_hash: str = "sha256:pending"  # arifOS only — kept for backward compat
+    identity_anchor_type: str = "constitution_hash"  # constitution_hash | physics_manifest | capital_manifest | substrate_manifest
+    identity_anchor_hash: str = "sha256:pending"
     tool_count: int = 0
     heartbeat_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     last_vault_seal: str = "sha256:0"

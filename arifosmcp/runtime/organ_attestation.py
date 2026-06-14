@@ -54,7 +54,9 @@ class OrganAttestationRecord:
     version: str
     tool_count: int
     schema_hash: str
-    constitution_hash: str = "sha256:missing"
+    constitution_hash: str = "sha256:missing"  # arifOS only — kept for backward compat
+    identity_anchor_type: str = "constitution_hash"  # constitution_hash | physics_manifest | capital_manifest | substrate_manifest
+    identity_anchor_hash: str = "sha256:missing"
     status: str = "UNATTESTED"  # ALIVE | DEGRADED_NOT_FAILED | DEGRADED_CLAIM | CONSTITUTIONAL_HOLD | DEGRADED | UNATTESTED | REVOKED
     # ── Status Semantics (2026-06-13) ──
     # ALIVE                  — organ fully operational, all providers optimal
@@ -74,15 +76,26 @@ _ORGAN_REGISTRY: dict[str, OrganAttestationRecord] = {}
 
 
 # Known federation organs and their local bridge modules
+# P6 — per-organ identity anchor types (Arif 2026-06-13):
+#   arifOS  → constitution_hash          (human constitutional law)
+#   GEOX    → physics_manifest_hash       (natural law / kuasa alam)
+#   WEALTH  → capital_manifest_hash       (value law)
+#   WELL    → substrate_manifest_hash     (vitality law)
 _ORGAN_CONFIG: dict[str, dict[str, Any]] = {
     "GEOX": {
         "role": "earth_intelligence",
         "health_module": "arifosmcp.runtime.geox_bridge",
         "health_fn": "geox_health_check",
         "list_fn": "list_geox_tools",
+        "identity_anchor_type": "physics_manifest",
+        "identity_anchor_candidates": [
+            "/root/geox/GENESIS/004_PHYSICS_MANIFEST.md",
+            "/opt/geox/app/GENESIS/004_PHYSICS_MANIFEST.md",
+        ],
+        # kept for backward compat — sameness check only
         "constitution_candidates": [
-            "/root/geox/GENESIS/000_KERNEL_CANON.md",
-            "/opt/geox/app/GENESIS/000_KERNEL_CANON.md",
+            "/root/geox/GENESIS/004_PHYSICS_MANIFEST.md",
+            "/opt/geox/app/GENESIS/004_PHYSICS_MANIFEST.md",
         ],
     },
     "WEALTH": {
@@ -90,19 +103,29 @@ _ORGAN_CONFIG: dict[str, dict[str, Any]] = {
         "health_module": "arifosmcp.runtime.wealth_bridge",
         "health_fn": "wealth_health_check",
         "list_fn": "list_wealth_tools",
+        "identity_anchor_type": "capital_manifest",
+        "identity_anchor_candidates": [
+            "/root/WEALTH/canon/001_CAPITAL_MANIFEST.md",
+            "/opt/wealth/app/canon/001_CAPITAL_MANIFEST.md",
+        ],
         "constitution_candidates": [
-            "/root/WEALTH/canon/000_KERNEL_CANON.md",
-            "/opt/wealth/app/canon/000_KERNEL_CANON.md",
+            "/root/WEALTH/canon/001_CAPITAL_MANIFEST.md",
+            "/opt/wealth/app/canon/001_CAPITAL_MANIFEST.md",
         ],
     },
     "WELL": {
         "role": "human_readiness",
         "health_module": "arifosmcp.runtime.well_bridge",
-        "health_fn": "get_biological_readiness",  # synchronous fallback
-        "list_fn": None,
+        "health_fn": "well_health_check",  # async HTTP + file-based readiness
+        "list_fn": "list_well_tools",
+        "identity_anchor_type": "substrate_manifest",
+        "identity_anchor_candidates": [
+            "/root/WELL/GENESIS/012_SUBSTRATE_MANIFEST.md",
+            "/opt/well/app/GENESIS/012_SUBSTRATE_MANIFEST.md",
+        ],
         "constitution_candidates": [
-            "/root/WELL/GENESIS/000_KERNEL_CANON.md",
-            "/opt/well/app/GENESIS/000_KERNEL_CANON.md",
+            "/root/WELL/GENESIS/012_SUBSTRATE_MANIFEST.md",
+            "/opt/well/app/GENESIS/012_SUBSTRATE_MANIFEST.md",
         ],
     },
 }
@@ -125,12 +148,30 @@ def _sha256_of_file(path: str) -> str:
         return "sha256:unavailable"
 
 
-def _load_organ_constitution_hash(organ_id: str) -> str:
+def _load_organ_identity_anchor(organ_id: str) -> tuple[str, str]:
+    """Return (identity_anchor_type, identity_anchor_hash) for an organ.
+
+    Per-organ identity anchors:
+      - arifOS  → constitution_hash          (human constitutional law)
+      - GEOX    → physics_manifest           (natural law / kuasa alam)
+      - WEALTH  → capital_manifest           (value law)
+      - WELL    → substrate_manifest         (vitality law)
+    """
     cfg = _ORGAN_CONFIG.get(organ_id, {})
-    for p in cfg.get("constitution_candidates", []):
+    anchor_type = cfg.get("identity_anchor_type", "constitution_hash")
+    for p in cfg.get("identity_anchor_candidates", []):
         if __import__("os").path.exists(p):
-            return _sha256_of_file(p)
-    return "sha256:missing"
+            return (anchor_type, _sha256_of_file(p))
+    return (anchor_type, "sha256:missing")
+
+
+def _load_organ_constitution_hash(organ_id: str) -> str:
+    """DEPRECATED — use _load_organ_identity_anchor instead.
+    Kept for backward compatibility with existing heartbeat records.
+    For GEOX, this now reads the physics manifest, not a constitution file.
+    """
+    _, anchor_hash = _load_organ_identity_anchor(organ_id)
+    return anchor_hash
 
 
 def _schema_hash_from_tools(tools: list[dict[str, Any]]) -> str:
@@ -214,7 +255,19 @@ async def attest_organ(
     health = await _call_organ_health(organ_id)
     tools = await _list_organ_tools(organ_id)
     schema_hash = _schema_hash_from_tools(tools)
-    constitution_hash = _load_organ_constitution_hash(organ_id)
+
+    # P6 — per-organ identity anchor (NOT just constitution_hash)
+    identity_anchor_type, identity_anchor_hash = _load_organ_identity_anchor(organ_id)
+    # Backward compat: constitution_hash still tracked for arifOS, set to identity hash for others
+    constitution_hash = identity_anchor_hash
+
+    # Read health response for domain-specific identity fields if available
+    if isinstance(health, dict):
+        # GEOX health now carries domain_law + physics_manifest_hash
+        if organ_id == "GEOX" and health.get("domain_law") == "NATURAL_LAW":
+            health_anchor = health.get("physics_manifest_hash")
+            if health_anchor and health_anchor != "sha256:missing":
+                identity_anchor_hash = health_anchor
 
     status = "ALIVE"
     reason = None
@@ -228,10 +281,22 @@ async def attest_organ(
         status = "DEGRADED_CLAIM"
         reason = "Tool surface empty or unreachable"
         degraded = True
-    elif constitution_hash == "sha256:missing":
-        status = "DEGRADED_CLAIM"
-        reason = "Constitution file unavailable"
-        degraded = True
+    elif identity_anchor_hash == "sha256:missing":
+        # Correct language: not "constitution file unavailable" but anchor-type-aware
+        reason = f"Identity anchor ({identity_anchor_type}) unavailable"
+        # For GEOX: physics_manifest missing ≠ DEGRADED if physics_guard passes
+        if organ_id == "GEOX" and health.get("domain_law") == "NATURAL_LAW":
+            # GEOX answers to alam, not to floors. Registry PASS is sufficient.
+            # Only degrade if tools are also empty (already caught above).
+            if health.get("identity") is True:
+                # GEOX identity invariant passes — don't degrade on missing manifest file alone
+                pass
+            else:
+                status = "DEGRADED_CLAIM"
+                degraded = True
+        else:
+            status = "DEGRADED_CLAIM"
+            degraded = True
 
     record = OrganAttestationRecord(
         organ_id=organ_id,
@@ -239,7 +304,9 @@ async def attest_organ(
         version=health.get("version") or health.get("schema_version") or "unknown",
         tool_count=len(tools),
         schema_hash=schema_hash,
-        constitution_hash=constitution_hash,
+        constitution_hash=constitution_hash,  # backward compat
+        identity_anchor_type=identity_anchor_type,
+        identity_anchor_hash=identity_anchor_hash,
         status=status,
         reason=reason,
         heartbeat_at=time.time(),
@@ -253,7 +320,9 @@ async def attest_organ(
         status=status,
         version=record.version,
         schema_hash=schema_hash,
-        constitution_hash=constitution_hash,
+        constitution_hash=constitution_hash,  # backward compat
+        identity_anchor_type=identity_anchor_type,
+        identity_anchor_hash=identity_anchor_hash,
         tool_count=len(tools),
         heartbeat_at=now,
         degraded=degraded,
@@ -265,7 +334,7 @@ async def attest_organ(
         status=status,
         version=record.version,
         schema_hash=schema_hash,
-        constitution_hash=constitution_hash,
+        constitution_hash=constitution_hash,  # backward compat
         tool_count=len(tools),
         degraded=degraded,
         reason=reason,

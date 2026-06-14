@@ -155,7 +155,7 @@ class VerdictCode(str, Enum):
 
 _SHA256_RE = re.compile(r"^sha256:[0-9a-fA-F]{64}$")
 _ED25519_RE = re.compile(r"^ed25519:[0-9a-fA-F]{128}$")
-_FLOOR_RE = re.compile(r"^F(0[1-9]|1[0-4])$")
+_FLOOR_RE = re.compile(r"^F(0[1-9]|1[0-3])$")
 
 
 class RoutingBlock(BaseModel):

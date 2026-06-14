@@ -8617,6 +8617,33 @@ def _arif_memory_recall(
             payload=_manage_payload or None,
         )
 
+    # ══════════════════════════════════════════════════════════════════════════
+    # F1 AMANAH: Mutating memory modes require MUTATE authority.
+    # A store/forget/update/seal is NOT an OBSERVE operation.
+    # This closes the "store under OBSERVE envelope" constitutional gap.
+    # ══════════════════════════════════════════════════════════════════════════
+    _MUTATING_MEMORY_MODES: frozenset[str] = frozenset(
+        {"store", "forget", "update", "seal", "prune", "quarantine"}
+    )
+    if mode in _MUTATING_MEMORY_MODES:
+        sess = _SESSIONS.get(session_id) if session_id else None
+        mutation_allowed = sess.get("mutation_allowed", False) if sess else False
+        if not mutation_allowed:
+            return _hold(
+                "arif_memory_recall",
+                f"F1 AMANAH: mode='{mode}' is a MUTATE operation but session "
+                f"has mutation_allowed={mutation_allowed}. "
+                "Issue a MUTATE-level lease before storing memory.",
+                ["F1"],
+                session_id=session_id,
+                extra_meta={
+                    "event_type": "mutation_not_allowed",
+                    "severity": "high",
+                    "required_action_class": "MUTATE",
+                    "actual_mutation_allowed": mutation_allowed,
+                },
+            )
+
     gate = _constitutional_gate(
         "arif_memory_recall", mode, actor_id, session_id=session_id, query=query
     )
@@ -8732,6 +8759,246 @@ def _arif_memory_recall(
                 "correction_loop": correction_loop,
             },
             delta_S=0.001,
+        )
+
+    # ── agentic ─────────────────────────────────────────────
+    # AGENTIC SEARCH v0.1 — FSM-driven multi-source retrieval
+    # Intelligence = knowing WHAT/WHERE/WHY/HOW/WHEN to search
+    # States: PLAN → RETRIEVE → EVAL → (REFINE)* → SYNTHESISE → STOP
+    # Sources: memory (Qdrant/Postgres) + web (Brave)
+    # MAX_LOOPS: 3  |  F7 HUMILITY: confidence capped at 0.90
+    # Vector embeddings are OPTIONAL — the intelligence is the POLICY, not the vector.
+    # ═══════════════════════════════════════════════════════════════════
+    if mode == "agentic":
+        import datetime as _dt
+        import re as _re
+
+        MAX_LOOPS = 3
+        COVERAGE_MIN = 0.6
+        CONFLICT_MAX = 0.4
+
+        # ── Telemetry scaffold ──────────────────────────
+        telemetry = {
+            "spec_version": "v0.1",
+            "epoch": _dt.datetime.now(_dt.UTC).isoformat(),
+            "qdf": query or "",
+            "loops": 0,
+            "tools_used": [],
+            "states_visited": [],
+            "coverage_score": 0.0,
+            "conflict_score": 0.0,
+            "confidence": 0.0,
+            "verdict": "PENDING",
+            "witness": {
+                "human": False,
+                "ai": actor_id or "anonymous",
+                "earth": [],
+            },
+        }
+
+        # ── STATE 1: PLAN (WHAT + WHY) ───────────────────
+        telemetry["states_visited"].append("PLAN")
+        sub_questions = []
+        try:
+            plan_prompt = (
+                "Decompose this research question into 2-4 specific sub-questions "
+                "that cover different angles. Return ONLY a JSON array of strings, "
+                "no explanation:\n\n"
+                f"Question: {query}\n\nSub-questions (JSON array):"
+            )
+            import urllib.request as _ur
+            _pl = json.dumps(
+                {
+                    "model": "qwen2.5:7b",
+                    "prompt": plan_prompt,
+                    "stream": False,
+                    "options": {"num_predict": 200, "temperature": 0.3},
+                }
+            ).encode()
+            _pr = _ur.Request(
+                f"{os.getenv('OLLAMA_URL', 'http://localhost:11434')}/api/generate",
+                data=_pl,
+                headers={"Content-Type": "application/json"},
+            )
+            _resp = _ur.urlopen(_pr, timeout=10)
+            _data = json.loads(_resp.read())
+            _raw = _data.get("response", "[]").strip()
+            _match = _re.search(r"\[.*\]", _raw, _re.DOTALL)
+            if _match:
+                sub_questions = json.loads(_match.group())
+        except Exception as exc:
+            logger.warning("agentic PLAN phase failed: %s — using raw query", exc)
+            sub_questions = [query]
+        if not sub_questions or not isinstance(sub_questions, list):
+            sub_questions = [query]
+        # Deduplicate
+        sub_questions = list(dict.fromkeys(sub_questions))
+
+        # ── STATES 2-3: RETRIEVE ↔ EVAL loop ─────────────
+        all_evidence = []
+
+        for loop_idx in range(MAX_LOOPS):
+            telemetry["states_visited"].append(f"RETRIEVE_{loop_idx}")
+            telemetry["loops"] = loop_idx + 1
+
+            # RETRIEVE: multi-source fetch per sub-question
+            for sq in sub_questions:
+
+                # ▸ MEMORY retrieval (Qdrant + Postgres)
+                try:
+                    from arifosmcp.runtime.memory_store import search as _ms_search
+                    _raw = _ms_search(query=sq, limit=5)
+                    _results = (
+                        _raw.get("results", [])
+                        if isinstance(_raw, dict)
+                        else (_raw or [])
+                    )
+                    for r in _results:
+                        all_evidence.append(
+                            {
+                                "source": "memory",
+                                "sub_q": sq,
+                                "content": r.get("summary", str(r.get("content", ""))),
+                                "relevance": float(r.get("score", 0.5)),
+                                "url": None,
+                                "memory_id": r.get("memory_id"),
+                                "tier": r.get("tier", "unknown"),
+                            }
+                        )
+                    if "memory" not in telemetry["tools_used"]:
+                        telemetry["tools_used"].append("memory")
+                except Exception as exc:
+                    logger.warning("agentic: memory search failed for '%s': %s", sq, exc)
+
+                # ▸ WEB retrieval via arif_sense_observe (111 cascade)
+                # Routes through: Minimax → Brave → Tavily → local DDGS
+                # Includes F2 TRUTH gate, F7 HUMILITY cap, Langfuse trace
+                try:
+                    _sense_result = _arif_sense_observe(
+                        mode="search", query=sq, result_limit=3,
+                        session_id=session_id, actor_id=actor_id,
+                    )
+                    _sense_data = _sense_result.get("result", _sense_result)
+                    _hits = _sense_data.get("results", [])
+                    for hit in _hits:
+                        all_evidence.append(
+                            {
+                                "source": "web",
+                                "sub_q": sq,
+                                "content": (
+                                    f"{hit.get('title', '')}: {hit.get('snippet', '')}"
+                                ),
+                                "relevance": 0.7,
+                                "url": hit.get("link", ""),
+                                "title": hit.get("title", ""),
+                            }
+                        )
+                        if hit.get("link"):
+                            telemetry["witness"]["earth"].append(hit["link"])
+                    if "web" not in telemetry["tools_used"]:
+                        telemetry["tools_used"].append("web")
+                    # Carry forward cascade metadata
+                    if _sense_data.get("cascade"):
+                        telemetry.setdefault("web_cascade", _sense_data["cascade"])
+                    if _sense_data.get("evidence_receipt"):
+                        telemetry.setdefault("evidence_receipt", _sense_data["evidence_receipt"])
+                except Exception as exc:
+                    logger.warning("agentic: web search via arif_sense_observe failed for '%s': %s", sq, exc)
+
+            # EVAL — score coverage and conflict
+            telemetry["states_visited"].append(f"EVAL_{loop_idx}")
+            covered = set(e["sub_q"] for e in all_evidence)
+            coverage = len(covered) / max(len(sub_questions), 1)
+            telemetry["coverage_score"] = round(coverage, 3)
+
+            # Conflict = 1 - uniqueness ratio (simplified proxy)
+            snippets = [e.get("content", "")[:300] for e in all_evidence if e.get("content")]
+            if len(snippets) > 1:
+                unique_ratio = len(set(snippets)) / len(snippets)
+                conflict = round(1.0 - unique_ratio, 3)
+            else:
+                conflict = 0.0
+            telemetry["conflict_score"] = conflict
+
+            # STOP check
+            if coverage >= COVERAGE_MIN and conflict <= CONFLICT_MAX:
+                break
+
+            # REFINE — if more loops allowed, reformulate weakest sub-q
+            if loop_idx < MAX_LOOPS - 1:
+                telemetry["states_visited"].append(f"REFINE_{loop_idx}")
+                sq_counts = {sq: 0 for sq in sub_questions}
+                for e in all_evidence:
+                    sq_counts[e["sub_q"]] = sq_counts.get(e["sub_q"], 0) + 1
+                weakest = min(sq_counts, key=sq_counts.get)
+                try:
+                    _refd = _try_reformulate_query(weakest)
+                    if _refd and _refd != weakest:
+                        sub_questions = [
+                            _refd if s == weakest else s for s in sub_questions
+                        ]
+                except Exception:
+                    pass
+
+        # ── STATE 4: SYNTHESISE ─────────────────────────
+        telemetry["states_visited"].append("SYNTHESISE")
+
+        # Group evidence by sub-question
+        evidence_by_sub_q: dict[str, list[dict]] = {}
+        for e in all_evidence:
+            evidence_by_sub_q.setdefault(e["sub_q"], []).append(e)
+
+        # Confidence: weighted blend of coverage, uniqueness, relevance
+        avg_rel = (
+            sum(e["relevance"] for e in all_evidence) / len(all_evidence)
+            if all_evidence
+            else 0.0
+        )
+        telemetry["confidence"] = round(
+            (coverage * 0.4) + ((1.0 - conflict) * 0.3) + (avg_rel * 0.3), 3
+        )
+        telemetry["confidence"] = min(0.90, telemetry["confidence"])  # F7 HUMILITY cap
+
+        # Verdict
+        if telemetry["coverage_score"] >= 0.8 and telemetry["conflict_score"] <= 0.2:
+            telemetry["verdict"] = "OK"
+        elif telemetry["coverage_score"] >= COVERAGE_MIN:
+            telemetry["verdict"] = "PARTIAL"
+        elif telemetry["conflict_score"] > CONFLICT_MAX:
+            telemetry["verdict"] = "DISPUTED"
+        else:
+            telemetry["verdict"] = "FAIL"
+
+        # ── STATE 5: STOP ───────────────────────────────
+        telemetry["states_visited"].append("STOP")
+
+        return _ok(
+            "arif_memory_recall",
+            {
+                "mode": "agentic",
+                "query": query,
+                "sub_questions": sub_questions,
+                "evidence": all_evidence,
+                "evidence_by_sub_q": {
+                    sq: evidence_by_sub_q[sq] for sq in sub_questions if sq in evidence_by_sub_q
+                },
+                "telemetry": telemetry,
+                "summary": {
+                    "total_evidence": len(all_evidence),
+                    "sub_questions_covered": len(covered),
+                    "total_sub_questions": len(sub_questions),
+                    "loops_executed": telemetry["loops"],
+                    "search_governance": {
+                        "WHAT": f"decomposed into {len(sub_questions)} sub-questions",
+                        "WHERE": f"sources used: {telemetry['tools_used']}",
+                        "WHY": "reduce uncertainty via multi-source corroboration",
+                        "HOW": "parallel retrieval + relevance scoring + reformulation",
+                        "WHEN": f"searched on loop {telemetry['loops']} of {MAX_LOOPS}",
+                        "STOP": f"verdict={telemetry['verdict']} (coverage={telemetry['coverage_score']}, conflict={telemetry['conflict_score']})",
+                    },
+                },
+            },
+            delta_S=-0.005,  # agentic search should reduce entropy
         )
 
     # ── store ────────────────────────────────────────────────
@@ -12371,13 +12638,17 @@ def _arif_forge_execute(
                 session_id=session_id,
             )
 
-    # ── P2-7 Lease Gate (FORGE C — 2026-06-11) ─────────────────────────────
+    # ── P2-7 Lease Gate (FORGE D — 2026-06-14 RATIFIED HARD-BLOCK) ────────
     # WAJIB: artifact-producing forge modes REQUIRE a valid lease carrying
-    # WRITE or EXECUTE scope. Read-only modes (query, recall) and dry_run
-    # are HARUS (permitted) — no lease needed. This wires the lease.py
-    # primitive forged earlier into the live forge path. Reversible: the
-    # gate is informational when no lease is present, only hard-blocking
-    # when ack_irreversible=True (so old call sites keep working).
+    # WRITE or EXECUTE scope. This is the constitutional circuit breaker:
+    # no mutation without bounded, witnessed, time-limited authority.
+    # Read-only modes (query, recall) and dry_run are HARUS — no lease needed.
+    #
+    # RATIFIED 2026-06-14: The gate is now a HARD BLOCK for all mutation-
+    # class modes. The previous warn-and-proceed path (LEASE_AWARENESS)
+    # is removed. If the lease subsystem itself fails, the gate fails
+    # closed — a broken circuit breaker is worse than no circuit breaker.
+    # Reversible: comment out this block and redeploy to restore soft-gate.
     _LEASE_REQUIRED_MODES = {"engineer", "write", "generate", "commit"}
     if mode in _LEASE_REQUIRED_MODES:
         try:
@@ -12386,39 +12657,68 @@ def _arif_forge_execute(
             _req_scope = LeaseScope.EXECUTE if mode in ("engineer", "commit") else LeaseScope.WRITE
             _rej = verify_lease(plan_id, _req_scope)
             if not _rej.granted:
-                # Soft block: if ack_irreversible explicitly, hold; otherwise
-                # warn-and-proceed (preserves old call sites; lease becomes
-                # informational in the response).
-                if ack_irreversible:
-                    return _hold(
-                        "arif_forge_execute",
-                        f"LEASE GATE: {_rej.reason}",
-                        ["L01_AMANAH", "L11_AUDIT"],
-                        extra_meta={
-                            "event_type": "lease_missing_for_irreversible",
-                            "severity": "high",
-                            "lease_check": {
-                                "granted": _rej.granted,
-                                "reason_code": _rej.reason_code,
-                                "reason": _rej.reason,
-                                "scope_requested": str(_req_scope),
-                            },
+                return _hold(
+                    "arif_forge_execute",
+                    f"LEASE GATE: {_rej.reason}",
+                    ["F11_AUTH"],
+                    extra_meta={
+                        "event_type": "lease_required_for_mutation",
+                        "severity": "high",
+                        "lease_check": {
+                            "granted": _rej.granted,
+                            "reason_code": _rej.reason_code,
+                            "reason": _rej.reason,
+                            "scope_requested": str(_req_scope),
                         },
-                        session_id=session_id,
-                    )
-                # Non-irreversible: emit lease awareness, proceed.
-                _lease_awareness = {
-                    "verdict": "LEASE_AWARENESS",
-                    "scope_required": str(_req_scope),
-                    "scope_granted": None,
-                    "reason": _rej.reason,
-                    "reason_code": _rej.reason_code,
-                    "note": "No valid lease for this call. P2-7 primitive is live but not yet a hard block on non-irreversible forge. arif_lease_issue + lease_id required to upgrade to WAJIB.",
-                }
+                        "next_safe_action": (
+                            "Issue a valid lease via arif_lease_issue with "
+                            f"{_req_scope.value.upper()} scope, or route through "
+                            "arif_judge_deliberate for SEAL-based authorization."
+                        ),
+                    },
+                    session_id=session_id,
+                )
+            # Lease valid — consume one invocation and proceed.
+            from arifosmcp.runtime.lease import get_default_store
+
+            _consumed = get_default_store().consume(plan_id, _req_scope)
+            if _consumed is None:
+                # Defensive: if consume fails despite verify_lease passing
+                # (race condition), block — don't proceed without a consumed lease.
+                return _hold(
+                    "arif_forge_execute",
+                    "LEASE GATE: consume failed after verification passed (possible race)",
+                    ["F11_AUTH"],
+                    extra_meta={
+                        "event_type": "lease_consume_race",
+                        "severity": "high",
+                        "lease_check": {
+                            "granted": _rej.granted,
+                            "reason_code": _rej.reason_code,
+                            "lease_id": plan_id,
+                        },
+                    },
+                    session_id=session_id,
+                )
         except Exception as _lease_err:
-            # Lease subsystem failure must not block the kernel; degrade
-            # to awareness, not to HARAM. The user will see why.
-            _lease_awareness = {"verdict": "LEASE_SUBSYSTEM_ERROR", "error": str(_lease_err)}
+            # Lease subsystem failure is a hard block.
+            # A broken circuit breaker is worse than no circuit breaker.
+            return _hold(
+                "arif_forge_execute",
+                f"LEASE SUBSYSTEM ERROR: {_lease_err}",
+                ["F11_AUTH", "F04_CLARITY"],
+                extra_meta={
+                    "event_type": "lease_subsystem_failure",
+                    "severity": "critical",
+                    "error": str(_lease_err),
+                    "next_safe_action": (
+                        "Lease subsystem is not operational. All mutation-class "
+                        "forge operations are blocked. Verify arif_lease_issue "
+                        "works, then retry with a valid lease."
+                    ),
+                },
+                session_id=session_id,
+            )
 
     # ── AMANAH Awareness — HARAM/HOLD pattern scan (informational, not blocking) ──
     #    Agents must know halal/haram. This informs; the agent chooses.

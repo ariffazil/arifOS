@@ -2,16 +2,18 @@
 arifosmcp/runtime/lease.py — Capability Lease Primitive
 
 Forged: 2026-06-11 by omega-forge-agent
-Status: STAGED — NOT WIRED into the live tool path. Loaded only by
-direct import. Reversible-first per F1 AMANAH.
+Status: LIVE (2026-06-14) — Hard-block wired into _arif_forge_execute.
+  Mutation-class forge modes (engineer, write, generate, commit) now
+  REQUIRE a valid lease. No warn-and-proceed path remains.
+  Reversible: comment out lease gate block in runtime/tools.py.
 
 Addresses Roadmap P2-7:
   Lease primitive — no cross-organ action without
   {lease_id, scope, ttl, max_invocations}.
 
-The init payload declares `lease_required_for_action` as a rule, but
-the rule was unimplemented. This module provides the primitive and
-the gate; wiring into the live tool path is a separate, gated change.
+The lease is now wired as a hard gate in `_arif_forge_execute` (runtime/tools.py).
+All mutation-class forge modes require a valid lease. Read-only modes (query,
+recall, dry_run) are exempt.
 
 Design:
   Lease is issued by the kernel (acting as the sovereign ledger) and

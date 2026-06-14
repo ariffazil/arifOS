@@ -582,8 +582,8 @@ class TestParadoxAndRasaIntegration:
         for organ in ("sense", "mind", "memory", "heart", "judge"):
             registry = get_registry(organ=organ)
             assert registry is not None, f"No registry for organ '{organ}'"
-            assert len(registry.anchors) == 9, \
-                f"Organ '{organ}' has {len(registry.anchors)} anchors, expected 9"
+            assert len(registry) == 9, \
+                f"Organ '{organ}' has {len(registry)} anchors, expected 9"
 
     def test_paradox_anchors_importable(self):
         """All 5 organ paradox anchors must be importable."""

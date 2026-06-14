@@ -252,7 +252,9 @@ class TestH2PlanningOrgan:
             actor_id="test_actor",
             witness_type="human",
         )
-        # Missing ack_irreversible will trigger floor check HOLD for commit mode
+        # Inject a valid lease so we pass the lease hard-block gate
+        # and reach the constitution kernel (which will return HOLD).
+        _inject_lease_for_plan(pid)
         result = _arif_forge_execute(
             mode="commit", manifest="test", plan_id=pid, actor_id="test_actor"
         )
@@ -260,6 +262,76 @@ class TestH2PlanningOrgan:
         assert _PLAN_REGISTRY[pid]["status"] == "aborted"
         history = _PLAN_REGISTRY[pid]["state_history"]
         assert any(h["to"] == "aborted" for h in history)
+
+    def test_lease_hard_block_commit_without_lease(self):
+        """FORGE D (2026-06-14): Mutation without lease must fail closed
+        even when ack_irreversible=False. The Lease Gate is the
+        constitutional circuit breaker."""
+        plan = _arif_mind_reason(mode="plan", query="Test", actor_id="test_actor")
+        pid = plan["result"]["plan_receipt"]["plan_id"]
+        _arif_mind_reason(
+            mode="plan_approve",
+            plan_id=pid,
+            actor_id="test_actor",
+            witness_type="human",
+        )
+        result = _arif_forge_execute(
+            mode="commit", manifest="test", plan_id=pid, actor_id="test_actor"
+        )
+        assert result["status"] == "HOLD"
+        reason = result.get("meta", {}).get("reason", "")
+        assert "LEASE GATE" in reason, (
+            f"Expected LEASE GATE in reason, got: {reason}"
+        )
+        # Plan should NOT have transitioned — lease gate stops before
+        # constitution kernel evaluation.
+        assert _PLAN_REGISTRY[pid]["status"] == "approved", (
+            f"Plan should remain 'approved' when blocked by lease gate, "
+            f"got: {_PLAN_REGISTRY[pid]['status']}"
+        )
+
+    def test_lease_hard_block_write_without_lease(self):
+        """FORGE D (2026-06-14): mode='write' must also hard-block without lease."""
+        plan = _arif_mind_reason(mode="plan", query="Test", actor_id="test_actor")
+        pid = plan["result"]["plan_receipt"]["plan_id"]
+        _arif_mind_reason(
+            mode="plan_approve",
+            plan_id=pid,
+            actor_id="test_actor",
+            witness_type="human",
+        )
+        result = _arif_forge_execute(
+            mode="write", manifest="test", plan_id=pid,
+            actor_id="test_actor", judge_state_hash="abc123",
+        )
+        assert result["status"] == "HOLD"
+        reason = result.get("meta", {}).get("reason", "")
+        assert "LEASE GATE" in reason, (
+            f"Expected LEASE GATE in reason for write mode, got: {reason}"
+        )
+
+    def test_lease_success_with_valid_lease(self):
+        """FORGE D (2026-06-14): With a valid lease, mutation proceeds to
+        constitution kernel (which may still HOLD for other reasons)."""
+        plan = _arif_mind_reason(mode="plan", query="Test", actor_id="test_actor")
+        pid = plan["result"]["plan_receipt"]["plan_id"]
+        _arif_mind_reason(
+            mode="plan_approve",
+            plan_id=pid,
+            actor_id="test_actor",
+            witness_type="human",
+        )
+        _inject_lease_for_plan(pid)
+        result = _arif_forge_execute(
+            mode="engineer",
+            manifest="test",
+            plan_id=pid,
+            ack_irreversible=True,
+            actor_id="test_actor",
+            witness_type="human",
+        )
+        assert result["status"] == "OK"
+        assert _PLAN_REGISTRY[pid]["status"] in ("completed", "in_execution")
 
     def test_plan_approve_logs_witness_to_vault(self):
         plan = _arif_mind_reason(mode="plan", query="Test", actor_id="test_actor")

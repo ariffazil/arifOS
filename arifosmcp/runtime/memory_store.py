@@ -64,9 +64,11 @@ TIER_SACRED = "sacred"
 TIER_CANONICAL = "canon"
 TIER_SESSION = "session"
 TIER_EPHEMERAL = "ephemeral"
+TIER_TEST = "test"  # F2 TRUTH: harmless probe tier — never becomes canon
 _SACRED_TIERS = {TIER_SACRED}
 
 # Normalise incoming tier labels → DB tier strings
+# SAFE TIERS: known, validated, no side effects
 _TIER_MAP = {
     "sacred": TIER_SACRED,
     "SACRED": TIER_SACRED,
@@ -78,13 +80,40 @@ _TIER_MAP = {
     "SESSION": TIER_SESSION,
     "ephemeral": TIER_EPHEMERAL,
     "EPHEMERAL": TIER_EPHEMERAL,
+    "test": TIER_TEST,
+    "TEST": TIER_TEST,
+    "probe": TIER_TEST,
+    "PROBE": TIER_TEST,
+    "debug": TIER_TEST,
+    "DEBUG": TIER_TEST,
 }
+# Tiers that map to ephemeral TTL for safe cleanup
+_NON_PERSISTENT_TIERS = {TIER_EPHEMERAL, TIER_TEST, TIER_SESSION}
+# Tiers that explicitly require sovereign attestation (sacred gate)
+_SOVEREIGN_REQUIRED_TIERS = {TIER_SACRED}
 
 
 def _normalise_tier(tier: str | None) -> str:
+    """
+    Normalise incoming tier label to a canonical DB tier string.
+
+    F2 TRUTH: Unknown tiers are NOT silently elevated to canon.
+    They are logged and downgraded to ephemeral for safe cleanup.
+    Only known tiers pass through unchanged.
+    """
     if not tier:
         return TIER_CANONICAL
-    return _TIER_MAP.get(tier, TIER_CANONICAL)
+    normalised = _TIER_MAP.get(tier)
+    if normalised is not None:
+        return normalised
+    # Unknown/unmapped tier → ephemeral with warning (F2 TRUTH)
+    # This is the fix for: test→canon silent elevation bug
+    logger.warning(
+        "F2 TRUTH: tier '%s' is not a known tier. Downgrading to '%s' "
+        "to prevent silent canon pollution. Known tiers: %s",
+        tier, TIER_EPHEMERAL, sorted(_TIER_MAP.keys()),
+    )
+    return TIER_EPHEMERAL
 
 
 # =============================================================================

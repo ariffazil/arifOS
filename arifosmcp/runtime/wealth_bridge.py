@@ -164,18 +164,56 @@ async def list_wealth_tools() -> list[dict[str, Any]]:
 
 
 async def wealth_health_check() -> dict[str, Any]:
-    """Check WEALTH server health via MCP ping."""
-    payload = {
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "ping",
-        "params": {},
+    """
+    Check WEALTH server health via REST /health endpoint AND tool surface.
+
+    The REST /health endpoint carries domain identity fields
+    (domain_law, capital_manifest_hash, identity) that the
+    MCP tools/list alone may not include. We merge both sources
+    so organ attestation can verify WEALTH's CAPITAL_LAW anchor.
+    """
+    result: dict[str, Any] = {
+        "status": "unhealthy",
+        "organ": "WEALTH",
+        "host": WEALTH_HOST,
     }
+
+    # ── REST health endpoint (carries domain identity) ──────────────
     try:
-        await _post_json_rpc(payload)
-        return {"status": "healthy", "organ": "WEALTH", "host": WEALTH_HOST}
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(f"{WEALTH_BASE}/health")
+            if resp.status_code == 200:
+                health_data = resp.json()
+                result["status"] = health_data.get("status", "healthy")
+                result["version"] = health_data.get("version", "unknown")
+                result["identity"] = health_data.get("identity", False)
+                result["identity_hash"] = health_data.get("identity_hash", "sha256:missing")
+                # Domain identity — WEALTH answers to CAPITAL_LAW
+                result["domain_law"] = health_data.get("domain_law", "CAPITAL_LAW")
+                result["capital_manifest_hash"] = health_data.get(
+                    "capital_manifest_hash", "sha256:missing"
+                )
+                result["identity_anchor_type"] = "capital_manifest"
+                result["identity_anchor_hash"] = result["capital_manifest_hash"]
     except Exception as e:
-        return {"status": "unhealthy", "organ": "WEALTH", "error": str(e)}
+        result["health_endpoint_error"] = str(e)
+
+    # ── Tool surface check (verifies MCP tools are callable) ────────
+    try:
+        tools = await list_wealth_tools()
+        if tools:
+            if result.get("status") == "unhealthy":
+                result["status"] = "healthy"  # tools work even if /health failed
+            result["tool_surface"] = "reachable"
+            result["tool_count"] = len(tools)
+        else:
+            result["tool_surface_error"] = "empty tool list"
+    except Exception as e:
+        result["tool_surface_error"] = str(e)
+        if result.get("status") != "unhealthy":
+            result["status"] = "degraded"
+
+    return result
 
 
 def reset_session() -> None:

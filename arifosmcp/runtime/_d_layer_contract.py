@@ -34,6 +34,16 @@ WHAT THIS IS
   not what the operator wanted to hear.
 
 DITEMPA BUKAN DIBERI — Forged, not given.
+
+SCAR AWARENESS HOOK (v2026.06.13):
+  This decoder contract operates on OBSERVABLE SIGNALS, not inferred niat.
+  The decoder MUST NOT claim to know the human's internal intention (F9/F10).
+  See runtime/niat_gate.py for scar detection, formalization lock, and
+  capability membrane — these operate on what is OBSERVABLE, not inferred.
+  The decoder is a SIGNAL DETECTOR, not a niat-inference engine.
+  RasaContract detects signals ("You report feeling X").
+  Niat_gate detects scars ("scared", "don't tell anyone").
+  Neither claims to know WHY the human spoke — only WHAT was said.
 """
 
 from __future__ import annotations

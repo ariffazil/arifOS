@@ -1,0 +1,456 @@
+/* PETRONAS DOSSIER — Visual Identity System */
+/* Palette: Merah Maruah #CC0000 | Emas PETRONAS #D4A847 | Hitam #1A1A1A | Putih #F5F0E8 */
+
+@page {
+    size: A4;
+    margin: 0;
+}
+
+@font-face {
+    font-family: 'SuisseIntl';
+    src: local('Segoe UI'), local('Arial');
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'SuisseIntl', 'Segoe UI', Arial, sans-serif;
+    color: #1A1A1A;
+    background: #F5F0E8;
+    line-height: 1.6;
+}
+
+/* ===== COVER PAGE ===== */
+.cover {
+    width: 210mm;
+    height: 297mm;
+    background: linear-gradient(135deg, #1A1A1A 0%, #2A1A1A 40%, #1A0A0A 100%);
+    color: #F5F0E8;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    page-break-after: always;
+    padding: 40mm 30mm;
+}
+
+.cover::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(212, 168, 71, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(204, 0, 0, 0.06) 0%, transparent 50%);
+}
+
+.cover-stripe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 8mm;
+    height: 100%;
+    background: linear-gradient(180deg, #CC0000, #8B0000, #CC0000);
+}
+
+.cover .class-mark {
+    position: absolute;
+    top: 20mm;
+    right: 20mm;
+    font-size: 9pt;
+    color: rgba(245, 240, 232, 0.3);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+}
+
+.cover h1 {
+    font-size: 36pt;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 12mm;
+    letter-spacing: -0.5px;
+}
+
+.cover h1 .gold { color: #D4A847; }
+.cover h1 .red { color: #FF3333; }
+
+.cover .subtitle {
+    font-size: 14pt;
+    color: rgba(245, 240, 232, 0.7);
+    margin-bottom: 8mm;
+    max-width: 140mm;
+    font-weight: 300;
+    line-height: 1.5;
+}
+
+.cover .stat-block {
+    display: flex;
+    gap: 15mm;
+    margin-top: 10mm;
+}
+
+.cover .stat-item {
+    text-align: center;
+}
+
+.cover .stat-number {
+    font-size: 28pt;
+    font-weight: 800;
+    color: #D4A847;
+}
+
+.cover .stat-label {
+    font-size: 8pt;
+    color: rgba(245, 240, 232, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 3mm;
+}
+
+.cover .byline {
+    position: absolute;
+    bottom: 20mm;
+    font-size: 9pt;
+    color: rgba(245, 240, 232, 0.35);
+    letter-spacing: 1px;
+}
+
+.cover .motto {
+    position: absolute;
+    bottom: 12mm;
+    font-size: 7pt;
+    color: rgba(245, 240, 232, 0.2);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+/* ===== CONTENT PAGES ===== */
+.page {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 20mm 25mm 15mm 25mm;
+    page-break-after: always;
+    position: relative;
+    background: #F5F0E8;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 4mm;
+    margin-bottom: 8mm;
+    border-bottom: 1px solid rgba(26, 26, 26, 0.1);
+}
+
+.page-header .doc-title {
+    font-size: 8pt;
+    color: #CC0000;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+
+.page-header .page-num {
+    font-size: 8pt;
+    color: rgba(26, 26, 26, 0.4);
+    letter-spacing: 1px;
+}
+
+.page h2 {
+    font-size: 22pt;
+    font-weight: 800;
+    color: #1A1A1A;
+    margin-bottom: 6mm;
+    line-height: 1.2;
+}
+
+.page h2 .highlight {
+    color: #CC0000;
+}
+
+.page h3 {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #1A1A1A;
+    margin-top: 6mm;
+    margin-bottom: 3mm;
+}
+
+.page p {
+    font-size: 10.5pt;
+    line-height: 1.7;
+    margin-bottom: 4mm;
+    color: #333;
+}
+
+.page .callout {
+    background: linear-gradient(135deg, #1A1A1A 0%, #2A1A1A 100%);
+    color: #F5F0E8;
+    padding: 8mm 10mm;
+    margin: 6mm -5mm;
+    border-radius: 2mm;
+    font-size: 14pt;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.page .callout .small {
+    font-size: 9pt;
+    font-weight: 400;
+    color: rgba(245, 240, 232, 0.6);
+    margin-top: 3mm;
+}
+
+/* ===== DATA VIS BLOCKS ===== */
+.data-block {
+    background: white;
+    border-radius: 2mm;
+    padding: 6mm;
+    margin: 5mm -5mm;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.data-block h4 {
+    font-size: 10pt;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 4mm;
+}
+
+.data-block .big-number {
+    font-size: 36pt;
+    font-weight: 800;
+    color: #CC0000;
+    line-height: 1;
+}
+
+.data-block .big-number .currency {
+    font-size: 18pt;
+    color: #D4A847;
+}
+
+.data-block .annotation {
+    font-size: 9pt;
+    color: #888;
+    margin-top: 2mm;
+}
+
+/* ===== THREE-COLUMN STAT ROW ===== */
+.stat-row {
+    display: flex;
+    gap: 4mm;
+    margin: 5mm -5mm;
+}
+
+.stat-card {
+    flex: 1;
+    background: white;
+    border-radius: 2mm;
+    padding: 5mm;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-top: 3px solid #CC0000;
+}
+
+.stat-card .value {
+    font-size: 24pt;
+    font-weight: 800;
+    color: #1A1A1A;
+}
+
+.stat-card .value.red { color: #CC0000; }
+.stat-card .value.gold { color: #D4A847; }
+
+.stat-card .label {
+    font-size: 8pt;
+    color: #888;
+    margin-top: 2mm;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ===== HIERARCHY DIAGRAM ===== */
+.hierarchy {
+    margin: 6mm -5mm;
+    font-size: 9pt;
+}
+
+.hierarchy .worthy {
+    background: linear-gradient(135deg, #1A6B3C, #2A8B5C);
+    color: white;
+    padding: 4mm 6mm;
+    border-radius: 2mm 2mm 0 0;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-size: 8pt;
+}
+
+.hierarchy .worthy-item {
+    background: rgba(26, 107, 60, 0.08);
+    padding: 3mm 6mm;
+    border-left: 3px solid #1A6B3C;
+    margin: 1mm 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.hierarchy .divider {
+    text-align: center;
+    padding: 3mm;
+    color: #CC0000;
+    font-weight: 700;
+    font-size: 11pt;
+    background: rgba(204, 0, 0, 0.05);
+    border-left: 3px solid #CC0000;
+    border-right: 3px solid #CC0000;
+}
+
+.hierarchy .unworthy-item {
+    background: rgba(204, 0, 0, 0.06);
+    padding: 3mm 6mm;
+    border-left: 3px solid #CC0000;
+    margin: 1mm 0;
+    display: flex;
+    justify-content: space-between;
+    color: #8B0000;
+}
+
+.hierarchy .unworthy {
+    background: linear-gradient(135deg, #8B0000, #CC0000);
+    color: white;
+    padding: 4mm 6mm;
+    border-radius: 0 0 2mm 2mm;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-size: 8pt;
+}
+
+/* ===== TWO-COLUMN LAYOUT ===== */
+.two-col {
+    display: flex;
+    gap: 6mm;
+    margin: 5mm -5mm;
+}
+
+.two-col .col {
+    flex: 1;
+    background: white;
+    border-radius: 2mm;
+    padding: 5mm;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.two-col .col-title {
+    font-size: 10pt;
+    font-weight: 700;
+    margin-bottom: 3mm;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.two-col .col-title.good { color: #1A6B3C; }
+.two-col .col-title.bad { color: #CC0000; }
+
+.two-col ul {
+    list-style: none;
+    padding: 0;
+}
+
+.two-col li {
+    padding: 2mm 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    font-size: 9.5pt;
+    color: #444;
+}
+
+.two-col li:last-child { border: none; }
+
+/* ===== CHART CONTAINER ===== */
+.chart-container {
+    width: 100%;
+    margin: 5mm 0;
+    text-align: center;
+}
+
+.chart-container img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ===== CALL-TO-ACTION PAGE ===== */
+.cta-page {
+    background: linear-gradient(135deg, #1A1A1A 0%, #2A1010 100%);
+    color: #F5F0E8;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30mm;
+}
+
+.cta-page h2 {
+    color: #F5F0E8;
+    font-size: 28pt;
+    margin-bottom: 8mm;
+}
+
+.cta-page .cta-item {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(212, 168, 71, 0.3);
+    border-radius: 2mm;
+    padding: 5mm 8mm;
+    margin: 2mm 0;
+    width: 140mm;
+    text-align: left;
+    font-size: 10pt;
+    line-height: 1.5;
+}
+
+.cta-page .cta-item .num {
+    display: inline-block;
+    color: #D4A847;
+    font-weight: 800;
+    margin-right: 4mm;
+}
+
+/* ===== ENGLISH BRIEF PAGE ===== */
+.eng-brief {
+    background: white;
+}
+
+.eng-brief h2 {
+    color: #1A1A1A;
+    font-size: 18pt;
+}
+
+.eng-brief .key-fact {
+    border-left: 3px solid #CC0000;
+    padding: 3mm 5mm;
+    margin: 3mm 0;
+    background: rgba(204, 0, 0, 0.03);
+}
+
+.eng-brief .key-fact strong {
+    color: #CC0000;
+}
+
+/* ===== QUIET PAGE ===== */
+.page-footer {
+    position: absolute;
+    bottom: 10mm;
+    left: 25mm;
+    right: 25mm;
+    font-size: 7pt;
+    color: rgba(26, 26, 26, 0.3);
+    text-align: center;
+    border-top: 1px solid rgba(26, 26, 26, 0.06);
+    padding-top: 3mm;
+}

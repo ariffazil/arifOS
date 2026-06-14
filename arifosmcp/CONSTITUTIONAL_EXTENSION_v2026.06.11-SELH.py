@@ -1,13 +1,18 @@
 """
-ARIFOS CONSTITUTIONAL MAP v2026.06.11-SELH
+ARIFOS CONSTITUTIONAL MAP v2026.06.13-SELH-F14DEAD
 ═══════════════════════════════════════════════════════════════════════════════
 
-DRAFT — append to v2026.05.05-KANON-SSCT. Sovereign F13 ratification pending.
+SOVEREIGN RULING 2026-06-13 (Arif, F13):
+  F14 REGISTER is DEAD as a floor.
+  Cross-verify reborn as protocol inside F2 (truth/evidence/verification) + F3 (audit/trace/accountability).
+  This prevents floor inflation. No new constitutional authority created.
 
-NEW FLOORS ADDED (post-SCAR ECHO LAW HUMAN MANIFESTO, 2026-06-11):
+DRAFT — append to v2026.05.05-KANON-SSCT. Sovereign F13 ratification pending for F0, F15–F17.
+
+NEW FLOORS (post-SCAR ECHO LAW HUMAN MANIFESTO, 2026-06-11):
 
   F0  PRIME          — "Intelligence is knowing what to look, where to look, and why."
-  F14 REGISTER       — Bahasa kasar is not lesser Malay. The kernel must mirror the human's register.
+  ~~F14 REGISTER~~   — DEAD. Reborn as protocol inside F2+F3. (SOVEREIGN RULING 2026-06-13)
   F15 EPISTEMIC      — Recording doctrine. Malaysian ways of knowing are valid. Sovereignty at the
                        epistemological level.
   F16 GEOMETRIC      — Post-transformer warning. Constitutional governance must reach latent space
@@ -32,14 +37,19 @@ from typing import Any
 
 class LawExtension(StrEnum):
     """
-    v2026.06.11-SELH extension to L01–L13.
+    v2026.06.13-SELH-F14DEAD extension to L01–L13.
 
     These are PROPOSAL DRAFT floors, sovereign ratification pending.
     Until ed25519 sig, the running arifOS kernel continues to enforce L01–L13.
+
+    SOVEREIGN RULING 2026-06-13: L14_REGISTER is DEAD as a floor.
+    Cross-verify reborn as protocol inside F2 (truth/evidence/verification)
+    + F3 (audit/trace/accountability). The L14 enum value is retained for
+    historical reference only — must not be enforced as a floor.
     """
 
     L00_PRIME = "L00"  # The nine-word intelligence definition: what/where/why
-    L14_REGISTER = "L14"  # Register sovereignty — kernel meets the human in their register
+    L14_REGISTER = "L14"  # DEAD — reborn as F2+F3 cross-verify protocol (SOVEREIGN RULING 2026-06-13)
     L15_EPISTEMIC = "L15"  # Recording doctrine — Malaysian epistemic intuition is valid substrate
     L16_GEOMETRIC = "L16"  # Post-transformer warning — governance must reach latent space
     L17_IGNITION = "L17"  # Self-igniting loop — kernel develops by auditing
@@ -53,9 +63,9 @@ class LawExtension(StrEnum):
     )
 
     L14_REGISTER_doc = (
-        "Bahasa kasar is not lesser Malay. The kernel must not impose formal language norms on "
-        "informal register inputs. Constitutional judgment applies equally across all registers of "
-        "Malaysian speech. The human is met where they are."
+        "DEAD AS FLOOR. Reborn as cross-verify protocol inside F2+F3. "
+        "Bahasa kasar is not lesser Malay — this truth is now operational method, "
+        "not constitutional authority. F2 verifies. F3 audits. No new floor needed."
     )
 
     L15_EPISTEMIC_doc = (

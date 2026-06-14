@@ -5,6 +5,10 @@ arifOS WELL Bridge — Biological Substrate Connector
 Connects the arifOS Governance Kernel to the WELL Human Substrate Layer.
 Provides biological readiness signals (Sleep, Stress, Cognitive) to JUDGE.
 
+Two data sources:
+  1. WELL MCP server (HTTP) — live health, tool surface, domain identity
+  2. WELL state.json (file) — biometric readings injected by Arif (F13)
+
 Axiom: W0 — Sovereignty Invariant. WELL informs, JUDGE considers.
 """
 
@@ -12,15 +16,21 @@ from __future__ import annotations
 
 import json
 import logging
+import os as _os
 from pathlib import Path
 from typing import Any
+
+import httpx
 
 logger = logging.getLogger(__name__)
 
 # Topology: WELL State Path
-import os as _os
-
 WELL_STATE_PATH = Path(_os.environ.get("WELL_STATE_PATH", "/root/WELL/state.json"))
+
+# WELL MCP server (HTTP)
+WELL_HOST = _os.environ.get("WELL_BRIDGE_HOST", "localhost")
+WELL_PORT = int(_os.environ.get("WELL_BRIDGE_PORT", "18083"))
+WELL_BASE = f"http://{WELL_HOST}:{WELL_PORT}"
 
 
 def get_biological_readiness() -> dict[str, Any]:
@@ -263,3 +273,100 @@ async def anchor_well_to_vault(
     except Exception as e:
         logger.error(f"VAULT ANCHOR FAILED: {e}")
         return {"ok": False, "error": str(e)}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# WELL MCP HTTP Bridge (2026-06-13 — organ attestation)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+async def _post_json_rpc_well(payload: dict[str, Any]) -> dict[str, Any]:
+    """Send a JSON-RPC request to WELL MCP and return the result."""
+    async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+        resp = await client.post(
+            f"{WELL_BASE}/mcp",
+            json=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+        )
+        if resp.status_code >= 400:
+            raise ConnectionError(f"WELL HTTP {resp.status_code}: {resp.text[:200]}")
+        parsed = resp.json()
+        if parsed.get("error"):
+            raise ConnectionError(f"WELL JSON-RPC error: {parsed['error']}")
+        return parsed.get("result", {})
+
+
+async def list_well_tools() -> list[dict[str, Any]]:
+    """List all tools available from WELL MCP server."""
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/list",
+        "params": {},
+    }
+    try:
+        result = await _post_json_rpc_well(payload)
+        return result.get("tools", [])
+    except Exception as e:
+        logger.warning(f"list_well_tools failed: {e}")
+        return []
+
+
+async def well_health_check() -> dict[str, Any]:
+    """
+    Check WELL server health via REST /health endpoint AND tool surface.
+
+    Returns domain identity fields (domain_law, substrate_manifest_hash)
+    for organ attestation. Also falls back to file-based readiness.
+    """
+    result: dict[str, Any] = {
+        "status": "unhealthy",
+        "organ": "WELL",
+        "host": WELL_HOST,
+    }
+
+    # ── REST health endpoint (carries domain identity) ──────────────
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(f"{WELL_BASE}/health")
+            if resp.status_code == 200:
+                health_data = resp.json()
+                result["status"] = health_data.get("status", "healthy")
+                result["version"] = health_data.get("version", "unknown")
+                result["identity"] = health_data.get("identity", False)
+                result["tool_count"] = health_data.get("tool_count", 0)
+                # Domain identity — WELL answers to SUBSTRATE_LAW
+                result["domain_law"] = health_data.get("domain_law", "SUBSTRATE_LAW")
+                result["substrate_manifest_hash"] = health_data.get(
+                    "substrate_manifest_hash", "sha256:missing"
+                )
+                result["identity_anchor_type"] = "substrate_manifest"
+                result["identity_anchor_hash"] = result["substrate_manifest_hash"]
+    except Exception as e:
+        result["health_endpoint_error"] = str(e)
+
+    # ── File-based readiness (backward compat) ──────────────────────
+    try:
+        readiness = get_biological_readiness()
+        if readiness.get("ok"):
+            result["well_score"] = readiness.get("well_score")
+            result["well_verdict"] = readiness.get("verdict")
+    except Exception:
+        pass
+
+    # ── Tool surface check ──────────────────────────────────────────
+    try:
+        tools = await list_well_tools()
+        if tools:
+            if result.get("status") == "unhealthy":
+                result["status"] = "healthy"
+            result["tool_surface"] = "reachable"
+    except Exception as e:
+        result["tool_surface_error"] = str(e)
+        if result.get("status") != "unhealthy":
+            result["status"] = "degraded"
+
+    return result
