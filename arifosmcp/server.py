@@ -383,6 +383,19 @@ try:
     v2_tools_registered = register_tools(mcp, ingress_middleware=_ingress_middleware)
     _assert_registered_surface(v2_tools_registered)
 
+    # ── Canary Ping Tool (No actor, no envelope, no policy) ──────────────────
+    @mcp.tool(
+        name="arif_ping",
+        description="Dead-simple canary tool to test client tool bridge connectivity. No actor, no envelope, no policy, no ceremony.",
+        tags={"canary", "read-only", "observe"},
+    )
+    def arif_ping() -> dict:
+        return {
+            "ok": True,
+            "build": _DEPLOY_VERSION,
+            "schema_version": "v2026.06.14.v2"
+        }
+
     # ── Forge Ladder (v3.1) — governed execution surface ────────────────────
     from arifosmcp.runtime.tools import _wrap_handler
     from arifosmcp.tools.forge_ladder import (

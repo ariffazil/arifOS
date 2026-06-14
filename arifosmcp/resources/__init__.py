@@ -2,7 +2,7 @@
 arifOS Resources — Canonical URI Surface
 ════════════════════════════════════════
 
-10 Canonical Resources (intelligence, not chaos):
+11 Canonical Resources (intelligence, not chaos):
 
   arifos://doctrine       — Immutable law (F1–L13)
   arifos://trinity        — AAA lane definitions and separation of powers
@@ -13,6 +13,7 @@ arifOS Resources — Canonical URI Surface
   arifos://identity       — Sovereign identity manifest and authority chain
   arifos://memory         — 6-layer memory architecture (L1–L6)
   arifos://vitals         — Metric reference and thresholds
+  arifos://bootstrap      — Full federation knowledge-graph context (v2026.06.14)
   tree777://index         — TREE777 wiki index
 
 REMOVED (chaos reduction):
@@ -27,6 +28,7 @@ from __future__ import annotations
 
 from fastmcp import FastMCP
 
+from .bootstrap import register_bootstrap
 from .civilization import register_civilization
 from .doctrine import register_doctrine
 from .embodied_resources import register_embodied_resources
@@ -52,6 +54,7 @@ CANONICAL_RESOURCES = (
     "arifos://identity",
     "arifos://memory",
     "arifos://vitals",
+    "arifos://bootstrap",
 )
 
 TREE777_RESOURCES = (
@@ -86,7 +89,7 @@ RUNNER_RESOURCES = (
 
 
 def register_resources(mcp: FastMCP) -> list[str]:
-    """Register 10 canonical resources + evidence, embodied, TREE777, and runner families."""
+    """Register 11 canonical resources + evidence, embodied, TREE777, runner, and bootstrap families."""
     registered: list[str] = []
     registered.extend(register_doctrine(mcp))
     registered.extend(register_trinity(mcp))
@@ -97,6 +100,7 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_identity(mcp))
     registered.extend(register_memory(mcp))
     registered.extend(register_vitals(mcp))
+    registered.extend(register_bootstrap(mcp))
     registered.extend(register_evidence_resources(mcp))
     registered.extend(register_embodied_resources(mcp))
     registered.extend(register_tree777_resources(mcp))
