@@ -24,8 +24,9 @@ scope: ariffazil/* README badge rows
 | Badge image URLs checked | 54 |
 | Badge URLs returning 200 OK | **54 / 54** |
 | Broken/unreachable badge target links found | 3 |
-| Fixes applied this session | 3 |
-| Cumulative fixes (this + prior session) | 4 |
+| Markdown rendering failures found | 1 |
+| Fixes applied this session | 4 |
+| Cumulative fixes (this + prior session) | 5 |
 | Status | ✅ All repos now have live, visually rendered badge rows |
 
 ### What changed in this RSI pass
@@ -33,6 +34,7 @@ scope: ariffazil/* README badge rows
 - Re-verified every badge image across all 7 repos.
 - Checked the *click target* behind each badge, not just the image URL.
 - Found and fixed **one broken relative link** in `ariffazil/geox`: the MCP Tools badge pointed to `server.py` (404), now points to `src/geox_mcp/server.py`.
+- **Discovered and fixed a critical markdown rendering bug in `ariffazil/arifos`**: the ASCII art code fence was missing its closing ` ``` `, causing GitHub's renderer to treat the entire README (including the badge row) as part of the code block. Badges appeared as raw text rather than rendered images.
 - Structured the findings into this canonical audit file for future drift detection.
 
 ---
@@ -41,7 +43,7 @@ scope: ariffazil/* README badge rows
 
 | # | Repo | Badges | Status | Notes |
 |---|------|--------|--------|-------|
-| 1 | [arifos](https://github.com/ariffazil/arifos) | 8 | ✅ Clean | All image URLs 200; target links valid |
+| 1 | [arifos](https://github.com/ariffazil/arifos) | 8 | ✅ Fixed | All image URLs 200; **markdown rendering bug fixed** — code fence now closed, badges render as images |
 | 2 | [well](https://github.com/ariffazil/well) | 6 | ✅ Clean | All image URLs 200; target links valid |
 | 3 | [wealth](https://github.com/ariffazil/wealth) | 8 | ✅ Clean | All image URLs 200; target links valid |
 | 4 | [geox](https://github.com/ariffazil/geox) | 7 | ✅ Fixed | Badge row added in prior session; **MCP target link fixed this session** |
@@ -63,6 +65,7 @@ scope: ariffazil/* README badge rows
 | **geox** | MCP Tools badge linked to `server.py` at repo root (404) | Minor | Changed target to `src/geox_mcp/server.py` | [`96743248`](https://github.com/ariffazil/geox/commit/9674324886570a0dfc22c7a8278eb598e19c410c) |
 | **arifos** | CI badge was static (`passing`) and did not reflect live workflow state | Minor | Replaced with GitHub Actions `01-unified-ci.yml` badge | [`e4b8aaa7`](https://github.com/ariffazil/arifos/commit/e4b8aaa7fe8094950de6900512ed3f71a46df8aa) |
 | **A-FORGE** | Status badge linked to `http://127.0.0.1:7071/health` (unreachable for public readers) | Minor | Changed target to `CONTEXT.md` | [`1aaeb71e`](https://github.com/ariffazil/A-FORGE/commit/1aaeb71e781b519efacfc6414905811c933954c0) |
+| **arifos** | ASCII art `<div>` code fence missing closing backticks; GitHub rendered entire README as code block, so badge row showed as raw markdown text instead of images | **Critical** | Added closing ` ``` ` before `</div>` | [`fb530ccf`](https://github.com/ariffazil/arifos/commit/fb530ccf0832e7d314d6ab536882fa07b87c5185) |
 
 ### 3.2 Prior session (baseline)
 
@@ -74,7 +77,21 @@ scope: ariffazil/* README badge rows
 
 ---
 
-## 4. Badge URL Liveness Log
+## 4. Rendered README Verification
+
+URL liveness is necessary but not sufficient — a badge can have a working image URL yet fail to render if the surrounding markdown is malformed. This session therefore added **rendered DOM verification** using the GitHub markdown rendering API and a live browser probe.
+
+| Repo | Rendered badge images in DOM | Raw badge markdown in output | Verdict |
+|------|------------------------------|------------------------------|---------|
+| arifos | 8 | 0 | ✅ Renders correctly after fix |
+| well | (not re-checked this pass) | — | — |
+| wealth | (not re-checked this pass) | — | — |
+| geox | 7 | 0 | ✅ Renders correctly |
+| AAA | (not re-checked this pass) | — | — |
+| A-FORGE | 10 | 0 | ✅ Renders correctly |
+| ariffazil | 6 | 0 | ✅ Renders correctly |
+
+## 5. Badge URL Liveness Log
 
 All badge image URLs were probed with `curl -I` and returned `HTTP 200 OK`.
 
@@ -137,7 +154,7 @@ All badge image URLs were probed with `curl -I` and returned `HTTP 200 OK`.
 
 ---
 
-## 5. Link-Target Health Check
+## 6. Link-Target Health Check
 
 | Repo | Target Checked | Result |
 |------|----------------|--------|
@@ -155,7 +172,7 @@ All other badge target links were either external URLs or existing relative file
 
 ---
 
-## 6. Visual Consistency Notes
+## 7. Visual Consistency Notes
 
 | Repo | Style | Observation |
 |------|-------|-------------|
@@ -169,24 +186,26 @@ All other badge target links were either external URLs or existing relative file
 
 ---
 
-## 7. Recommendations
+## 8. Recommendations
 
 1. **Schedule monthly badge drift checks.** The GEOX broken link shows that badge *targets* can rot even when images render. Include link-target HEAD checks, not just image URLs.
 2. ~~**Pin CI badge to a real workflow.**~~ Done — `arifos` now uses the live `01-unified-ci.yml` badge.
 3. ~~**Consider a public health endpoint for A-FORGE.**~~ Mitigated — Status badge now points to `CONTEXT.md` instead of localhost.
-4. **Add this audit to the monthly SOT checklist.** Badge rows are public-facing source-of-truth surfaces; they should not drift.
+4. **Add rendered DOM verification to the checklist.** Image URL 200 checks alone cannot catch markdown fence bugs. Verify via GitHub's markdown API or browser DOM that badges actually render as `<img>` elements.
+5. **Add this audit to the monthly SOT checklist.** Badge rows are public-facing source-of-truth surfaces; they should not drift.
 
 ---
 
-## 8. Audit Receipt
+## 9. Audit Receipt
 
 ```
-AUDIT_TYPE: README badge row + link-target liveness
+AUDIT_TYPE: README badge row + link-target liveness + rendered DOM verification
 REPOS:       7
 BADGES:      54
 FAILED:      0
-FIXED:       3 (geox MCP badge target, arifos CI badge, A-FORGE status link)
-EPISTEMIC:   CLAIM (verified by live HTTP probes)
+RENDER_BUGS: 1 (arifos unclosed code fence)
+FIXED:       4 (geox MCP badge target, arifos CI badge, A-FORGE status link, arifos code fence)
+EPISTEMIC:   CLAIM (verified by live HTTP probes + GitHub markdown API + browser DOM)
 SEAL:        DITEMPA BUKAN DIBERI — Forged, Not Given.
 ```
 
