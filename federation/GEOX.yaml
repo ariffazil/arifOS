@@ -1,0 +1,446 @@
+# arifOS_FEDERATION_CONTRACT_GEOX.yaml
+# ═══════════════════════════════════════════════════════════════════════════════
+# BINDING MACHINE-READABLE CONTRACT — GEOX ↔ arifOS Federation
+# Ratified: 2026-06-14 by F13 SOVEREIGN (Muhammad Arif bin Fazil)
+# Canonicity: This YAML IS the contract. Prose FEDERATION_CONTRACT.md derives from it.
+# DITEMPA BUKAN DIBERI — Forged, Not Given.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+contract_version: arifos-federation-geox-v1.0.0
+ratified: 2026-06-14
+ratified_by: F13 SOVEREIGN
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §1 — ORGAN IDENTITY
+# ═══════════════════════════════════════════════════════════════════════════════
+organ:
+  id: GEOX
+  role: earth_evidence_layer
+  repo: ariffazil/geox
+  port: 8081
+  contract_version: GEOX-SOVEREIGN-v2026.05.22
+  domain_law: NATURAL_LAW
+  identity_anchor: physics_manifest_hash
+  identity_anchor_hash: sha256:b51811b11db15aa911715316c34b4758a1e964ff1e354d1f08d5a1db60cc6f35
+  tools_count: 40
+
+  owns:
+    - earth_evidence_observation
+    - well_log_qc
+    - petrophysics_computation
+    - seismic_physics
+    - basin_screening
+    - prospect_evaluation
+    - claim_generation
+    - evidence_discovery
+
+  never:
+    - issue_drilling_decisions
+    - authorize_capital_allocation
+    - adjudicate_constitutional_verdicts
+    - seal_without_arifos_judge
+    - final_answer_sovereign_decisions
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §2 — AUTHORITY BOUNDARY
+# ═══════════════════════════════════════════════════════════════════════════════
+authority:
+  default_action_class: OBSERVE
+  max_autonomous_class: ANALYZE
+  mutation_allowed: false
+  irreversible_allowed: false
+  human_final_authority: Arif
+  sovereign_override: F13
+  judge_owner: arifOS
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §3 — FOUR TRANSPORT LANES
+# ═══════════════════════════════════════════════════════════════════════════════
+lanes:
+  discovery:
+    max_action_class: OBSERVE
+    requires_lease: false
+    requires_session: false
+    tools:
+      - geox_system_registry_status
+      - geox_attribute_registry_list_tool
+      - geox_basin_resolve
+      - geox_query_intake
+      - geox_query_macrostrat
+    description: "List tools, resources, status. Read-only discovery — no evidence, no interpretation."
+
+  evidence:
+    max_action_class: ANALYZE
+    requires_lease: false
+    requires_session: false
+    tools:
+      - geox_data_ingest_bundle
+      - geox_data_qc_bundle
+      - geox_dst_ingest_test
+      - geox_header_inspect
+      - geox_las_inspect
+      - geox_seismic_segy_inspect
+      - geox_evidence_discover
+      - geox_evidence_attach
+      - geox_literature_ingest
+      - geox_fault_stick_ingest_tool
+      - geox_volume_frame_tool
+      - geox_vision_perceptual_inventory
+      - geox_vision_calibrate
+    description: "Fetch, inspect, ingest, attach data. Observation and evidence gathering."
+
+  reasoning:
+    max_action_class: ANALYZE
+    requires_lease: true
+    requires_session: true
+    tools:
+      - geox_subsurface_generate_candidates
+      - geox_subsurface_verify_integrity
+      - geox_seismic_compute
+      - geox_seismic_compute_attribute_tool
+      - geox_sequence_interpret
+      - geox_evidence_reason
+      - geox_prospect_evaluate
+      - geox_map_context_scene
+      - geox_horizon_contrast_surface
+      - geox_coord_transform_tool
+      - geox_blockspace_resolution_tool
+      - geox_blend_volume_tool
+      - geox_basin_profile
+      - geox_vision_minimax_inference
+      - geox_vision_audit
+      - geox_report_to_workflow
+      - geox_abstraction_guard
+    description: "Derive geological interpretations. Requires lease + session. Produces claims."
+
+  judgment:
+    max_action_class: GOVERNED
+    requires_lease: true
+    requires_session: true
+    requires_arifos_judge: true
+    can_emit_888_HOLD: true
+    tools:
+      - geox_claim_create
+      - geox_claim_validate
+      - geox_claim_challenge
+      - geox_claim_seal
+      - geox_segy_export_tool
+    description: "Seal, challenge, evaluate claims. MUST route through arifOS judge."
+
+  # Tool-to-lane mapping for all 40 tools
+  tool_lane_map:
+    geox_system_registry_status: discovery
+    geox_attribute_registry_list_tool: discovery
+    geox_basin_resolve: discovery
+    geox_query_intake: discovery
+    geox_query_macrostrat: discovery
+    geox_data_ingest_bundle: evidence
+    geox_data_qc_bundle: evidence
+    geox_dst_ingest_test: evidence
+    geox_header_inspect: evidence
+    geox_las_inspect: evidence
+    geox_seismic_segy_inspect: evidence
+    geox_evidence_discover: evidence
+    geox_evidence_attach: evidence
+    geox_literature_ingest: evidence
+    geox_fault_stick_ingest_tool: evidence
+    geox_volume_frame_tool: evidence
+    geox_vision_perceptual_inventory: evidence
+    geox_vision_calibrate: evidence
+    geox_subsurface_generate_candidates: reasoning
+    geox_subsurface_verify_integrity: reasoning
+    geox_seismic_compute: reasoning
+    geox_seismic_compute_attribute_tool: reasoning
+    geox_sequence_interpret: reasoning
+    geox_evidence_reason: reasoning
+    geox_prospect_evaluate: reasoning
+    geox_map_context_scene: reasoning
+    geox_horizon_contrast_surface: reasoning
+    geox_coord_transform_tool: reasoning
+    geox_blockspace_resolution_tool: reasoning
+    geox_blend_volume_tool: reasoning
+    geox_basin_profile: reasoning
+    geox_vision_minimax_inference: reasoning
+    geox_vision_audit: reasoning
+    geox_report_to_workflow: reasoning
+    geox_abstraction_guard: reasoning
+    geox_claim_create: judgment
+    geox_claim_validate: judgment
+    geox_claim_challenge: judgment
+    geox_claim_seal: judgment
+    geox_segy_export_tool: judgment
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §4 — RESOURCE URIs (First-Class Artifact Registry)
+# ═══════════════════════════════════════════════════════════════════════════════
+resources:
+  required_fields:
+    - resource_id
+    - resource_type
+    - producer_tool
+    - input_refs
+    - transform_hash
+    - physics_manifest_hash
+    - audit_receipt
+
+  uri_schemes:
+    artifact: "artifact://geox/{artifact_id} — computed artifact (seismic volume, petrophysics run)"
+    claim:    "claim://geox/{claim_id} — sealed or qualified interpretation claim"
+    evidence: "evidence://geox/{evidence_id} — QC-verified evidence artifact"
+    vault:    "vault://receipt/{seal_id} — VAULT999 sealed receipt"
+    las:      "las://well/{well_id} — well log LAS file"
+    segy:     "segy://survey/{survey_name}/inline-{inline_num} — seismic volume brick"
+    geojson:  "geojson://block/{block_id} — spatial boundary"
+    parquet:  "parquet://petrophysics/{run_id} — petrophysical run results"
+
+  resource_type_enums:
+    - seismic_volume
+    - well_log
+    - seismic_attribute
+    - structural_map
+    - stratigraphic_column
+    - petrophysics_run
+    - prospect_evaluation
+    - basin_profile
+    - literature_reference
+    - interpretation_claim
+    - evidence_bundle
+    - qc_report
+    - audit_receipt
+
+  registry_questions:
+    - "What exists?"
+    - "Where is it?"
+    - "Who produced it?"
+    - "What transformation touched it?"
+    - "What physics/version guarded it?"
+    - "Which claim depends on it?"
+    - "Can it be reused?"
+    - "Has it been contradicted?"
+    - "Is it sealed, qualified, held, or void?"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §5 — CLAIM ENVELOPE CONTRACT
+# ═══════════════════════════════════════════════════════════════════════════════
+claims:
+  required_states:
+    - SEAL
+    - QUALIFY
+    - HOLD
+    - VOID
+
+  lifecycle:
+    - DRAFT
+    - AI_INFERRED
+    - REVIEW_PENDING
+    - NEEDS_EVIDENCE
+    - CHALLENGED
+    - APPROVED_INTERPRETATION
+    - SEALED
+    - REJECTED
+
+  required_fields:
+    - claim_id
+    - claim_type
+    - truth_class
+    - evidence_refs
+    - artifact_refs
+    - claim_limits
+    - contradiction_status
+    - confidence_band
+
+  truth_classes:
+    - FACT            # Directly observed
+    - INTERPRETATION  # Derived from physics/consistency
+    - SPECULATION     # Inferred from analogy/statistics
+
+  contradiction_requirement:
+    before_seal:
+      - geox_claim_validate
+      - geox_claim_challenge
+      - geox_subsurface_verify_integrity
+      - arif_judge_deliberate
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §6 — UNIVERSAL OUTPUT ENVELOPE
+# ═══════════════════════════════════════════════════════════════════════════════
+envelope:
+  # GEOX native envelope (every tool output must conform)
+  geox_envelope:
+    required_fields:
+      - execution_status
+      - tool_class
+      - claim_state
+      - observed
+      - derived
+      - interpreted
+      - artifact_refs
+      - evidence_refs
+      - missing_inputs_schema
+      - claim_limits
+      - next_best_actions
+      - audit_receipt
+      - human_final_authority
+
+    execution_status_values:
+      - SUCCESS
+      - ERROR
+      - HALT
+      - RECOVERABLE_ERROR
+
+    claim_state_values:
+      - NO_VALID_EVIDENCE
+      - RAW_OBSERVATION
+      - INGESTED
+      - QC_VERIFIED
+      - QC_VERIFIED_WITH_WARNINGS
+      - COMPUTED
+      - INTERPRETED
+      - DERIVED_CANDIDATE
+      - REVIEW_PENDING
+      - QUALIFIED
+      - SEALED
+      - 888_HOLD
+      - VOID
+
+  # arifOS kernel envelope (wraps GEOX envelope for governed calls)
+  kernel_envelope:
+    required_blocks:
+      kernel:
+        session_id: "SEAL-*"
+        actor_id: "string"
+        constitution_hash: "sha256:*"
+      authority:
+        lease_id: "LEASE-*"
+        action_class: "OBSERVE | ANALYZE | MUTATE | IRREVERSIBLE"
+        mutation_allowed: false
+        irreversible_allowed: false
+      organ:
+        organ_id: "GEOX"
+        contract_version: "GEOX-SOVEREIGN-v2026.05.22"
+      payload:
+        description: "GEOX universal envelope"
+      verdict:
+        values: ["SEAL", "QUALIFY", "HOLD", "VOID", "888_HOLD"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §7 — ROUTING RULES
+# ═══════════════════════════════════════════════════════════════════════════════
+routing:
+  direct_agent_to_geox:
+    allowed_for:
+      - discovery_lane
+      - evidence_lane
+      - read_only_inspection
+    forbidden_for:
+      - claim_seal
+      - prospect_final_verdict
+      - irreversible_resource_mutation
+      - judgment_lane_tools
+
+  governed_path:
+    sequence:
+      - arif_session_init
+      - arif_os_attest
+      - geox_system_registry_status
+      - arif_lease_issue
+      - "GEOX evidence/tool call (via arif_kernel_route mode=bridge)"
+      - "GEOX returns universal envelope"
+      - arif_kernel_route
+      - "arif judge / fact check / vault"
+      - "claim sealed, qualified, challenged, or held"
+
+  minimum_federation_loop:
+    - arif_session_init
+    - arif_os_attest
+    - geox_system_registry_status
+    - arif_lease_issue
+    - "GEOX tool call (reasoning or judgment lane)"
+    - "GEOX universal envelope returned"
+    - arif_kernel_route(mode=bridge)
+    - arif_judge_deliberate
+    - arif_vault_seal  # if SEAL verdict
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §8 — INTELLIGENCE FLOW ARCHITECTURE
+# ═══════════════════════════════════════════════════════════════════════════════
+intelligence_flow:
+  description: >
+    Human / Agent intent
+      → arifOS kernel (session, actor, lease, stage, risk, authority, audit)
+      → Federated organ router
+      → GEOX / WEALTH / WELL / SAF / external MCP tools
+      → Evidence envelopes
+      → arifOS judge / memory / vault
+      → Verdict + next action
+
+  three_hard_separations:
+    intelligence_not_authority: >
+      GEOX can be smart. It must not be sovereign.
+      GEOX says: "Evidence supports a stratigraphic trap interpretation."
+      arifOS says: "This claim is qualified, not sealed, because evidence gap X remains."
+
+    tools_not_organs: >
+      A tool performs a function. An organ has: identity, contract, health,
+      schema hash, authority boundary, audit behavior, domain law, failure mode.
+      GEOX is an organ, not a pile of tools.
+
+    resources_not_memory_until_sealed: >
+      Raw data is not memory. Derived artifacts are not memory.
+      Interpretations are not memory. Only sealed or explicitly qualified
+      claims enter durable arifOS memory.
+
+  four_roles:
+    context7: documentation_evidence_provider
+    geox: earth_evidence_organ
+    arifos: constitutional_agi_substrate
+    mcp: transport_layer
+    vault999: durable_audit_memory_layer
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §9 — COMPLIANCE CHECKS
+# ═══════════════════════════════════════════════════════════════════════════════
+compliance:
+  checks:
+    - name: envelope_lock
+      description: "Every tool output conforms to geox_envelope.required_fields"
+      severity: CRITICAL
+
+    - name: lane_gating
+      description: "Judgment lane tools require arifOS lease + session"
+      severity: CRITICAL
+
+    - name: resource_registry
+      description: "Every generated artifact is URI-addressable"
+      severity: HIGH
+
+    - name: contradiction_before_seal
+      description: "geox_claim_challenge + geox_subsurface_verify_integrity before seal"
+      severity: CRITICAL
+
+    - name: route_through_arifos
+      description: "Judgment lane tools called via arif_kernel_route, not directly"
+      severity: HIGH
+
+    - name: identity_anchor
+      description: "GEOX identity = physics_manifest_hash, NOT constitution_hash"
+      severity: CRITICAL
+
+    - name: domain_law
+      description: "GEOX domain_law = NATURAL_LAW, arifOS domain_law = CONSTITUTIONAL_LAW"
+      severity: CRITICAL
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §10 — IRON RULES (from arifOS FEDERATION_CONTRACT.md §10)
+# ═══════════════════════════════════════════════════════════════════════════════
+iron_rules:
+  - "Capability is not permission. A tool existing does not mean it should be called."
+  - "Advisory output is not authority. GEOX computes Vsh; arifOS decides if the computation matters."
+  - "Service health is not execution approval. A green /health does not mean SEAL."
+  - "SEAL-readiness is not VAULT seal. Only VAULT999_SEAL_RECORD is final."
+  - "No component may claim more certainty than its evidence receipt."
+  - "The human is OUTSIDE the topology. Not a coordinate in the system. The source that bounds it."
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
+# ═══════════════════════════════════════════════════════════════════════════════

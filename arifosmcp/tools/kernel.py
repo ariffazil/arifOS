@@ -382,19 +382,36 @@ async def _bridge_organ_call(
 
     if organ == "geox":
         from arifosmcp.runtime.geox_bridge import call_geox_tool
+        from arifosmcp.federation.kernel_envelope import wrap_geox_output
 
         try:
             result = await call_geox_tool(tool_name, arguments or {})
             validated = validate_organ_output("geox", result)
+
+            # ── KERNEL ENVELOPE WRAP (Federation Contract §6) ──────────────
+            # Wrap GEOX universal envelope inside arifOS kernel envelope.
+            # This provides session identity, authority lease, lane context,
+            # and constitutional verdict — the AGI substrate contract.
+            # Without this, the bridge is just a proxy, not governance.
+            wrapped = wrap_geox_output(
+                validated["output"],
+                tool_name=tool_name,
+                session_id=arguments.get("session_id") if arguments else None,
+                actor_id=arguments.get("actor_id") if arguments else None,
+                lease_id=arguments.get("lease_id") if arguments else None,
+            )
+
             return _ok(
                 "arif_kernel_route",
                 {
                     "organ": "GEOX",
                     "tool": tool_name,
-                    "result": validated["output"],
+                    "result": wrapped,  # kernel-wrapped, not raw organ output
+                    "raw_output": validated["output"],  # original for debugging
                     "status": "bridged",
                     "boundary_enforced": validated["boundary_enforced"],
                     "violations": validated["violations"],
+                    "envelope": "kernel-wrapped",  # signal to agent: this is governed
                 },
             )
         except Exception as e:
