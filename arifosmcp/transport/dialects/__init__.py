@@ -1,11 +1,12 @@
-"""Transport dialect adapters — each normalizes one client format into CanonicalTransaction."""
+"""Transport dialect adapters — each normalizes one client format into CanonicalEnvelope."""
 
-from arifosmcp.transport.dialects.raw_jsonrpc import RawJSONRPCDialect
-from arifosmcp.transport.dialects.streamable_http import StreamableHTTPDialect
-from arifosmcp.transport.dialects.stdio import StdioDialect
+from arifosmcp.transport.dialects.raw_jsonrpc import raw_jsonrpc_adapter
+from arifosmcp.transport.dialects.streamable_http import streamable_http_adapter
+from arifosmcp.transport.dialects.stdio import stdio_adapter
 
 __all__ = [
-    "RawJSONRPCDialect",
-    "StreamableHTTPDialect",
-    "StdioDialect",
+    "raw_jsonrpc_adapter",
+    "streamable_http_adapter",
+    "stdio_adapter",
 ]
+

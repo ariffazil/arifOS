@@ -3592,6 +3592,9 @@ def _arif_session_init(
     delegation_mode: str | None = None,
     #   "internal_executor" | "client_direct" | "swarm_delegate".
     #   Documents how this call arrived. Informational, not authoritative.
+    payload: Any = None,
+    _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     000_INIT: Constitutional session bootstrap — three-phase binding.
@@ -13356,7 +13359,9 @@ def _arif_ping(
     session_id: str | None = None,
     actor_id: str | None = None,
     include_constitution: bool = False,
+    payload: Any = None,
     _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Lightweight probe — does NOT require session initialization.
     
@@ -13870,13 +13875,14 @@ def _runtime_initialize_probe(
 # If schema_echo passes but session_init fails → init schema problem.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_MCP_SPEC_VERSION = "2025-06-18"
-_MCP_SUPPORTED_VERSIONS = ("2025-06-18", "2025-11-25", "2025-03-26")
+_MCP_SPEC_VERSION = "2025-11-25"
+_MCP_SUPPORTED_VERSIONS = ("2025-11-25", "2025-03-26")
 
 
 def _arif_schema_echo(
     payload: Any = None,
     _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Schema echo — return exactly what the client sent, plus what the server saw.
 
@@ -13908,7 +13914,9 @@ def _arif_schema_echo(
 
 
 def _arif_version_echo(
+    payload: Any = None,
     _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Version echo — return protocol version and dialect information.
 
@@ -13952,7 +13960,9 @@ def _arif_version_echo(
 
 
 def _arif_transport_echo(
+    payload: Any = None,
     _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Transport echo — return what transport the server saw from this call.
 
@@ -13985,8 +13995,9 @@ def _arif_transport_echo(
 
 def _arif_initialize_probe(
     protocol_version: str | None = None,
-    client_capabilities: dict[str, Any] | None = None,
+    payload: Any = None,
     _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Initialize probe — test MCP handshake without constitutional ceremony.
 
@@ -13994,7 +14005,7 @@ def _arif_initialize_probe(
     without any session, actor, or governance binding. Returns what a proper
     initialize response would look like, including protocol version negotiation.
 
-    Protocol version rules (MCP spec 2025-06-18):
+    Protocol version rules (MCP spec 2025-11-25):
     - Client sends its preferred version in protocol_version
     - Server MUST respond with a version it supports
     - If client version is unsupported, server MUST respond with nearest supported version
@@ -14005,7 +14016,7 @@ def _arif_initialize_probe(
     import os
 
     # Version negotiation per MCP spec
-    requested = protocol_version or "2025-06-18"
+    requested = protocol_version or _MCP_SPEC_VERSION
     negotiated = requested if requested in _MCP_SUPPORTED_VERSIONS else _MCP_SUPPORTED_VERSIONS[0]
     version_ok = requested in _MCP_SUPPORTED_VERSIONS
 

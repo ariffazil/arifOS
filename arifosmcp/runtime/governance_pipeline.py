@@ -1349,6 +1349,65 @@ class GovernancePipeline:
 
                 # ── Run governance pipeline for tools/call ─────────────────
                 if method == "tools/call" and tool_name and tool_name != "arif_ping":
+                    import os as _os
+                    _airlock_mode = _os.getenv("ARIF_AIRLOCK_MODE", "shadow").lower().strip()
+                    if _airlock_mode == "enforce":
+                        _envelope = scope.get("airlock_envelope")
+                        if _envelope is None:
+                            from arifosmcp.transport.errors import arif_error
+                            error_body = _json.dumps(
+                                arif_error(
+                                    "ARIF_ENVELOPE_INCOMPLETE",
+                                    "Direct JSON-RPC payload bypasses Airlock.",
+                                    stage="000_INIT",
+                                    jsonrpc_code=-32602,
+                                )
+                            ).encode()
+                            await send({
+                                "type": "http.response.start",
+                                "status": 200,
+                                "headers": [
+                                    (b"content-type", b"application/json"),
+                                    (b"x-arifos-airlock-bypass", b"reject"),
+                                ],
+                            })
+                            await send({
+                                "type": "http.response.body",
+                                "body": error_body,
+                            })
+                            return
+
+                        # Validate CanonicalEnvelope required fields
+                        _required_fields = [
+                            "trace_id", "transport", "intent", "normalized_input",
+                            "action_class", "reversibility", "risk_level", "requires_hold"
+                        ]
+                        for _field in _required_fields:
+                            _val = getattr(_envelope, _field, None)
+                            if _val is None or _val == "":
+                                from arifosmcp.transport.errors import arif_error
+                                error_body = _json.dumps(
+                                    arif_error(
+                                        "ARIF_ENVELOPE_INCOMPLETE",
+                                        f"CanonicalEnvelope field missing: '{_field}'",
+                                        stage="000_INIT",
+                                        jsonrpc_code=-32602,
+                                    )
+                                ).encode()
+                                await send({
+                                    "type": "http.response.start",
+                                    "status": 200,
+                                    "headers": [
+                                        (b"content-type", b"application/json"),
+                                        (b"x-arifos-envelope-validation", b"fail"),
+                                    ],
+                                })
+                                await send({
+                                    "type": "http.response.body",
+                                    "body": error_body,
+                                })
+                                return
+
                     from arifosmcp.runtime.governance_pipeline import ToolCallContext, PipelineVerdict
                     from arifosmcp.runtime.blast_radius_registry import (
                         get_enforcement_mode,

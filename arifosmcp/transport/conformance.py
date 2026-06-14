@@ -21,12 +21,24 @@ from typing import Any
 
 # ── Config ──────────────────────────────────────────────────────────────────
 
-BASE_URL = "http://127.0.0.1:8090"
+BASE_URL = "http://127.0.0.1:8088"
 KERNEL_URL = "http://127.0.0.1:8088/mcp"
 
 PASS = "PASS"
 FAIL = "FAIL"
 SKIP = "SKIP"
+
+CONFORMANCE_SPINE = [
+    "ping",
+    "version_echo",
+    "initialize_probe",
+    "schema_echo",
+    "transport_echo",
+    "session_init_light",
+    "os_attest",
+    "888_hold_mutation_refusal",
+    "vault_replay",
+]
 
 
 # ── Test Helpers ────────────────────────────────────────────────────────────
@@ -388,6 +400,94 @@ def run_all(url: str = BASE_URL) -> list[dict[str, Any]]:
         results.append(result)
 
     return results
+
+
+def _spine_pass(name: str, evidence: dict[str, Any]) -> dict[str, Any]:
+    return {"test": name, "verdict": PASS, "evidence": evidence}
+
+
+def _spine_fail(name: str, error: Exception | str) -> dict[str, Any]:
+    return {"test": name, "verdict": FAIL, "evidence": {"error": str(error)}}
+
+
+def run_conformance_spine() -> dict[str, Any]:
+    """Run the in-process Airlock spine without claiming live-client coverage."""
+    from arifosmcp.transport.airlock import enter_airlock, process_request
+
+    results: list[dict[str, Any]] = []
+
+    spine_calls = {
+        "ping": {"method": "tools/call", "params": {"name": "arif_ping", "arguments": {}}},
+        "version_echo": {
+            "method": "tools/call",
+            "params": {"name": "arif_version_echo", "arguments": {}},
+        },
+        "initialize_probe": {
+            "method": "tools/call",
+            "params": {
+                "name": "arif_initialize_probe",
+                "arguments": {"protocol_version": "2025-11-25"},
+            },
+        },
+        "schema_echo": {
+            "method": "tools/call",
+            "params": {"name": "arif_schema_echo", "arguments": {"payload": {"ok": True}}},
+        },
+        "transport_echo": {
+            "method": "tools/call",
+            "params": {"name": "arif_transport_echo", "arguments": {}},
+        },
+        "session_init_light": {
+            "method": "tools/call",
+            "params": {"name": "arif_session_init", "arguments": {"mode": "light"}},
+        },
+        "os_attest": {"method": "tools/call", "params": {"name": "arif_os_attest", "arguments": {}}},
+    }
+
+    for name, payload in spine_calls.items():
+        try:
+            result = process_request(payload, transport_type="streamable_http")
+            if result.transport_error or result.envelope is None:
+                results.append(_spine_fail(name, result.transport_error or "missing envelope"))
+            else:
+                results.append(_spine_pass(name, result.envelope.to_dict()))
+        except Exception as exc:
+            results.append(_spine_fail(name, exc))
+
+    try:
+        refusal = enter_airlock({
+            "actor": "agent_tool",
+            "intent": "delete_file",
+            "payload": {"target": "/root/arifOS"},
+        })
+        if refusal.get("status") == "HOLD" and refusal.get("verdict") == "888_HOLD_REQUIRED":
+            results.append(_spine_pass("888_hold_mutation_refusal", refusal))
+        else:
+            results.append(_spine_fail("888_hold_mutation_refusal", refusal))
+    except Exception as exc:
+        results.append(_spine_fail("888_hold_mutation_refusal", exc))
+
+    results.append(
+        {
+            "test": "vault_replay",
+            "verdict": SKIP,
+            "evidence": {"reason": "Requires live VAULT replay integration test; not proven in-process."},
+        }
+    )
+
+    failed = [item["test"] for item in results if item["verdict"] == FAIL]
+    skipped = [item["test"] for item in results if item["verdict"] == SKIP]
+    status = "GREEN" if not failed and not skipped else "AMBER" if not failed else "RED"
+    return {
+        "status": status,
+        "spine_green": status == "GREEN",
+        "failed_items": failed,
+        "skipped_items": skipped,
+        "total_tests": len(results),
+        "passed_tests": sum(1 for item in results if item["verdict"] == PASS),
+        "details": results,
+        "engineering_law": "No raw client dialect may touch the kernel directly.",
+    }
 
 
 def print_matrix(results: list[dict[str, Any]]) -> None:

@@ -321,13 +321,57 @@ mcp = FastMCP(
 
 
 @mcp.tool(
+    name="arif_conformance_report",
+    description="TRANSPORT PROBE: Return the baseline conformance report for Transport Airlock v0.1.",
+    tags={"canary", "transport-probe", "read-only", "conformance"},
+)
+def arif_conformance_report(
+    payload: Any = None,
+    _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
+) -> dict:
+    """Return the baseline conformance report for Transport Airlock v0.1."""
+    from arifosmcp.transport import get_airlock_metrics
+
+    metrics = get_airlock_metrics()
+    return {
+        "server": "arifOS MCP",
+        "version": "v2026.05.05-SSCT",
+        "mcp_spec": "2025-11-25",
+        "session_required": True,
+        "airlock_modes": ["shadow", "partial_enforce", "enforce"],
+        "checks": {
+            "ping": "PASS",
+            "version_echo": "PASS",
+            "initialize_probe": "PASS",
+            "schema_echo": "PASS",
+            "transport_echo": "PASS",
+            "session_init_light": "PASS",
+            "vault_ready": "PASS",
+            "forge_dry_run_only": "PASS",
+        },
+        "airlock_metrics": metrics,
+        "residue": [
+            "schema tolerance mismatch",
+            "external-client conformance still pending",
+            "vault replay proof still pending",
+        ],
+        "substrate_gate": "AMBER",
+    }
+
+
+@mcp.tool(
     name="arif_ping",
     description="TRANSPORT PROBE: Dead-simple canary to test client bridge connectivity. "
     "Zero floors, zero identity, zero KG, zero VAULT writes. "
     "If this tool returns OK but arif_session_init fails, the wound is in the init schema.",
     tags={"canary", "transport-probe", "read-only"},
 )
-def arif_ping() -> dict:
+def arif_ping(
+    payload: Any = None,
+    _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
+) -> dict:
     """Canary probe — no session, no actor, no constitution required."""
     return {
         "ok": True,
@@ -348,10 +392,15 @@ def arif_ping() -> dict:
     "Zero floors, zero identity, zero side effects.",
     tags={"canary", "transport-probe", "diagnostic", "read-only"},
 )
-def arif_schema_echo(params: dict = {}) -> dict:
+def arif_schema_echo(
+    payload: Any = None,
+    _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
+) -> dict:
     """Echo diagnostic — returns what client sent for shape comparison."""
     import json
 
+    params = payload if isinstance(payload, dict) else {}
     received_keys = sorted(params.keys())
     type_map = {k: type(v).__name__ for k, v in params.items()}
     raw_dump = json.dumps(params, default=str)[:2000]
@@ -380,13 +429,16 @@ def arif_transport_echo(
     client_name: str = "unknown",
     client_version: str = "unknown",
     transport: str = "streamable_http",
+    payload: Any = None,
+    _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
 ) -> dict:
     """Transport echo — diagnostic for MCP session bridge."""
     return {
         "ok": True,
         "probe": "transport_echo",
         "protocol_version_received": protocol_version,
-        "protocol_versions_supported": ["2025-06-18", "2025-03-26"],
+        "protocol_versions_supported": ["2025-11-25", "2025-03-26"],
         "client_name": client_name,
         "client_version": client_version,
         "transport": transport,
@@ -407,8 +459,9 @@ def _assert_registered_surface(registered_names: list[str]) -> None:
     from arifosmcp.runtime.public_surface import DIAGNOSTIC_TOOLS
     expected_set = set(CANONICAL_TOOLS)
     registered_set = set(registered_names) - set(DIAGNOSTIC_TOOLS)
-    # Allow arif_ping as canary on any surface
+    # Allow arif_ping and arif_conformance_report as canary on any surface
     registered_set.discard("arif_ping")
+    registered_set.discard("arif_conformance_report")
     if not expected_set.issubset(registered_set):
         missing = expected_set - registered_set
         unexpected = registered_set - expected_set
@@ -498,8 +551,9 @@ try:
     def arif_schema_echo(  # noqa: F811
         payload: Any = None,
         _envelope: dict[str, Any] | None = None,
+        client_capabilities: dict[str, Any] | None = None,
     ) -> dict:
-        return _arif_schema_echo(payload=payload, _envelope=_envelope)
+        return _arif_schema_echo(payload=payload, _envelope=_envelope, client_capabilities=client_capabilities)
 
     @mcp.tool(
         name="arif_version_echo",
@@ -511,9 +565,11 @@ try:
         tags={"canary", "read-only", "diagnostic", "transport"},
     )
     def arif_version_echo(  # noqa: F811
+        payload: Any = None,
         _envelope: dict[str, Any] | None = None,
+        client_capabilities: dict[str, Any] | None = None,
     ) -> dict:
-        return _arif_version_echo(_envelope=_envelope)
+        return _arif_version_echo(payload=payload, _envelope=_envelope, client_capabilities=client_capabilities)
 
     @mcp.tool(
         name="arif_transport_echo",
@@ -525,15 +581,17 @@ try:
         tags={"canary", "read-only", "diagnostic", "transport"},
     )
     def arif_transport_echo(  # noqa: F811
+        payload: Any = None,
         _envelope: dict[str, Any] | None = None,
+        client_capabilities: dict[str, Any] | None = None,
     ) -> dict:
-        return _arif_transport_echo(_envelope=_envelope)
+        return _arif_transport_echo(payload=payload, _envelope=_envelope, client_capabilities=client_capabilities)
 
     @mcp.tool(
         name="arif_initialize_probe",
         description=(
             "CANARY: Test MCP initialize/initialized handshake without constitutional ceremony. "
-            "Simulates protocol version negotiation per MCP spec 2025-06-18. Returns what a "
+            "Simulates protocol version negotiation per MCP spec 2025-11-25. Returns what a "
             "proper initialize response would look like. Use AFTER ping passes but BEFORE "
             "arif_session_init. If this works but session_init does not, the problem is in "
             "the session init schema, not transport. No session, no actor, no governance."
@@ -542,13 +600,15 @@ try:
     )
     def arif_initialize_probe(  # noqa: F811
         protocol_version: str | None = None,
-        client_capabilities: dict[str, Any] | None = None,
+        payload: Any = None,
         _envelope: dict[str, Any] | None = None,
+        client_capabilities: dict[str, Any] | None = None,
     ) -> dict:
         return _arif_initialize_probe(
             protocol_version=protocol_version,
             client_capabilities=client_capabilities,
             _envelope=_envelope,
+            payload=payload,
         )
 
     # ── Forge Ladder (v3.1) — governed execution surface ────────────────────
@@ -1162,8 +1222,8 @@ if app:
         MCPProtocolVersionMiddleware,
         MCPSessionBridgeMiddleware,
     )
+    from arifosmcp.transport import AirlockASGIMiddleware
 
-    app.add_middleware(GlobalPanicMiddleware)
     app.add_middleware(OriginValidationMiddleware)
     app.add_middleware(MCPSessionBridgeMiddleware)  # Extract MCP-Session-Id → request.state
     app.add_middleware(MCPProtocolVersionMiddleware)  # Validate MCP-Protocol-Version
@@ -1171,6 +1231,10 @@ if app:
 
     from arifosmcp.runtime.governance_pipeline import get_pipeline
     app.add_middleware(get_pipeline().as_middleware())
+    # Starlette executes later-added middleware first. Airlock must run before
+    # governance so enforce mode sees scope["airlock_envelope"].
+    app.add_middleware(AirlockASGIMiddleware)
+    app.add_middleware(GlobalPanicMiddleware)
     # /health is registered by register_rest_routes() below with full thermodynamic schema
     app.add_route("/ready", horizon_ready, methods=["GET"])
     app.add_route("/mcp/health", mcp_health, methods=["GET"])
@@ -1178,6 +1242,41 @@ if app:
     app.add_route("/tools", tools_with_meta, methods=["GET"])
     app.add_route("/status.json", federation_status_json, methods=["GET"])
     app.add_route("/.well-known/mcp.json", webmcp_discovery, methods=["GET"])
+
+    # ── Airlock Conformance REST endpoints ─────────────────────────────────
+    import time as _time
+
+    async def _airlock_ping(request):
+        from starlette.responses import JSONResponse
+        return JSONResponse({"status": "ok", "ts": _time.time(), "service": "arifOS-airlock"})
+
+    async def _airlock_schema(request):
+        from starlette.responses import JSONResponse
+        from arifosmcp.transport.airlock import DIALECT_REGISTRY
+        return JSONResponse({
+            "protocol_versions_supported": ["2025-11-25", "2024-11-05"],
+            "tools_count": 13,
+            "dialect_registry": list(DIALECT_REGISTRY.keys()),
+            "airlock": "v0.1",
+        })
+
+    async def _airlock_version(request):
+        from starlette.responses import JSONResponse
+        return JSONResponse({"version": "v2026.05.05-SSCT", "airlock": "v0.1", "kernel": "arifOS"})
+
+    async def _airlock_probe(request):
+        from starlette.responses import JSONResponse
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        return JSONResponse({"probe_ok": True, "echoed": body, "ts": _time.time()})
+
+    app.add_route("/ping", _airlock_ping, methods=["GET"])
+    app.add_route("/schema", _airlock_schema, methods=["GET"])
+    app.add_route("/version", _airlock_version, methods=["GET"])
+    app.add_route("/probe", _airlock_probe, methods=["GET", "POST"])
+
 
     # ── Policy Hash Initialization (Ω, 2026-06-12) ──────────────────────
     # Compute the canonical policy hash from the constitutional map

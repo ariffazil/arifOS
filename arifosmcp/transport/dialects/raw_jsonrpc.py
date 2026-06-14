@@ -1,72 +1,88 @@
 """
-Raw JSON-RPC 2.0 dialect adapter — the base layer all MCP transports share.
-
-Handles: initialize handshake, tools/call, tools/list, notifications/initialized.
-Normalizes JSON-RPC envelope differences (Claude/OpenAI/FastMCP all use JSON-RPC
-but with slightly different envelope shapes).
-
-DITEMPA BUKAN DIBERI — Forged, Not Given.
+Raw JSON-RPC 2.0 Dialect Adapter — fallback.
 """
-
 from __future__ import annotations
 
-import json
 import uuid
-from datetime import UTC, datetime
 from typing import Any
-
 from arifosmcp.transport.canonical_envelope import (
+    CanonicalEnvelope,
     ActionClass,
-    CanonicalTransaction,
-    TransportIdentity,
-    TransportResult,
-    TransportVerdict,
+    _classify_method,
+    _build_split_session_state,
 )
-from arifosmcp.transport.errors import (
-    AirlockError,
-    AirlockErrorCode,
-    AirlockStage,
-    schema_mismatch,
-    protocol_mismatch,
-)
+from arifosmcp.transport.errors import build_transport_error_envelope, TransportFaultCode
+from arifosmcp.transport.canonical_envelope import AirlockResult
 
-# ── MCP Protocol Constants ─────────────────────────────────────────────────
-
-MCP_PROTOCOL_VERSION = "2025-06-18"
-MCP_SUPPORTED_VERSIONS = ["2025-06-18", "2025-03-26", "2025-11-25"]
-
-# Known MCP method prefixes for dialect detection
-MCP_LIFECYCLE_METHODS = {"initialize", "notifications/initialized", "ping"}
-MCP_TOOL_METHODS = {"tools/call", "tools/list"}
-MCP_RESOURCE_METHODS = {"resources/list", "resources/read", "resources/templates/list"}
-MCP_PROMPT_METHODS = {"prompts/list", "prompts/get"}
-
-
-class RawJSONRPCDialect:
-    """Base dialect adapter for JSON-RPC 2.0 — the shared foundation.
-
-    All MCP transports (stdio, Streamable HTTP, SSE) use JSON-RPC 2.0.
-    Claude, OpenAI, and FastMCP clients all speak JSON-RPC but may differ
-    in how they structure tool call arguments. This adapter handles:
-    - initialize handshake + protocol version negotiation
-    - tools/call → CanonicalTransaction normalization
-    - tools/list → tool discovery with search_tools support
-    - Structured error responses with retryability hints
+def raw_jsonrpc_adapter(request: dict[str, Any]) -> AirlockResult:
     """
+    Accept bare JSON-RPC request bodies.
+    Normalize broken/unknown dialects into structured ARIF_* errors instead of silent fallthrough.
+    """
+    trace_id = uuid.uuid4().hex[:16]
+    method = request.get("method", "unknown")
+    params = request.get("params", {})
 
-    name: str = "raw_jsonrpc"
-    protocol_version: str = MCP_PROTOCOL_VERSION
+    if not method or method == "unknown":
+        return AirlockResult(
+            transport_error=build_transport_error_envelope(
+                TransportFaultCode.ARIF_TRANSPORT_DIALECT_MISMATCH,
+                "JSON-RPC method is missing or unknown.",
+                transport="raw_jsonrpc",
+                request_id=request.get("id"),
+                trace_id=trace_id,
+            ),
+            envelope=None,
+            dialect_used="raw_jsonrpc",
+            trace_id=trace_id,
+        )
 
-    # ── Lifecycle ───────────────────────────────────────────────────────────
+    # Check for dialect mismatch if dialect key is provided but unsupported
+    dialect = request.get("dialect")
+    if dialect and dialect not in ("raw_jsonrpc", "fastmcp", "openai_agents", "claude", "chatgpt", "stdio"):
+        return AirlockResult(
+            transport_error=build_transport_error_envelope(
+                TransportFaultCode.ARIF_TRANSPORT_DIALECT_MISMATCH,
+                f"Unsupported dialect: {dialect}",
+                transport="raw_jsonrpc",
+                request_id=request.get("id"),
+                trace_id=trace_id,
+            ),
+            envelope=None,
+            dialect_used="raw_jsonrpc",
+            trace_id=trace_id,
+        )
 
-    def handle_initialize(
-        self, params: dict[str, Any], headers: dict[str, str] | None = None
-    ) -> dict[str, Any]:
-        """Handle MCP initialize request — protocol negotiation."""
-        client_version = params.get("protocolVersion", "unknown")
-        client_info = params.get("clientInfo", {})
-        client_capabilities = params.get("capabilities", {})
+    if isinstance(params, dict):
+        tool_args = params
+    elif isinstance(params, list):
+        tool_args = {"args": params}
+    else:
+        tool_args = {}
 
-        # Negotiate protocol version
-        if client_version not in MCP_SUPPORTED_VERSIONS and client_version != "unknown":
-            # Dont
+    envelope = CanonicalEnvelope(
+        trace_id=trace_id,
+        actor=request.get("actor", "anonymous"),
+        intent=method,
+        evidence={},
+        authority={},
+        action_class=_classify_method(method),
+        reversibility="irreversible" not in method.lower(),
+        session_state=_build_split_session_state(
+            request,
+            protocol_version="2025-11-25",
+            extra_transport={"jsonrpc_id": request.get("id")},
+        ),
+        protocol_version="2025-11-25",
+        transport="stdio" if "stdio" in str(request.get("_transport", "")) else "http",
+        tool_name=method,
+        tool_args=tool_args,
+        client_info=request.get("client_info", {"name": "raw-jsonrpc", "version": "0.0"}),
+        dialect="raw_jsonrpc",
+    )
+    return AirlockResult(
+        transport_error=None,
+        envelope=envelope,
+        dialect_used="raw_jsonrpc",
+        trace_id=trace_id,
+    )

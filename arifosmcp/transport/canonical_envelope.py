@@ -33,6 +33,14 @@ class ActionClass(str, Enum):
     PROBE = "probe"
     UNKNOWN = "unknown"
 
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, str):
+            return self.value.lower() == other.lower() or self.name.lower() == other.lower()
+        return super().__eq__(other)
+
+    def __hash__(self) -> int:
+        return hash(self.value)
+
 
 class AuthLevel(str, Enum):
     NONE = "none"
@@ -65,25 +73,42 @@ class CanonicalEnvelope:
         client_info:      Client name + version for audit
         ts:               Timestamp of envelope creation
     """
-    trace_id: str
-    actor: str
-    intent: str
-    evidence: dict[str, Any]
-    authority: dict[str, Any]
-    action_class: ActionClass
-    reversibility: bool
-    session_state: dict[str, Any]
-    protocol_version: str
-    transport: str
-    tool_name: str
-    tool_args: dict[str, Any]
-    client_info: dict[str, str]
+    trace_id: str = field(default_factory=lambda: uuid.uuid4().hex[:16])
+    actor: str = "anonymous"
+    intent: str = ""
+    evidence: dict[str, Any] = field(default_factory=dict)
+    authority: Any = field(default_factory=dict)
+    action_class: ActionClass = field(default_factory=lambda: ActionClass.UNKNOWN)
+    reversibility: Any = "REVERSIBLE"
+    session_state: dict[str, Any] = field(default_factory=dict)
+    protocol_version: str = "2025-11-25"
+    transport: str = "unknown"
+    tool_name: str = ""
+    tool_args: dict[str, Any] = field(default_factory=dict)
+    client_info: dict[str, str] = field(default_factory=dict)
 
     # Metadata (set by airlock, not by dialect adapter)
     dialect: str = "raw"
     envelope_version: str = "1.0"
     ts: float = field(default_factory=time.time)
     _arif_transport_domain: bool = True  # marker: this is internal, not client-visible
+
+    @property
+    def normalized_input(self) -> dict[str, Any]:
+        """Map tool_args to normalized_input for protocol compliance."""
+        return self.tool_args
+
+    @property
+    def risk_level(self) -> str:
+        """Map action_class to risk_level."""
+        return self.action_class.value
+
+    @property
+    def requires_hold(self) -> bool:
+        """True if the action requires a sovereign confirmation hold."""
+        if self.reversibility in ("IRREVERSIBLE", False):
+            return True
+        return self.action_class in (ActionClass.IRREVERSIBLE, ActionClass.FORGE, ActionClass.GOVERN)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -92,7 +117,7 @@ class CanonicalEnvelope:
             "intent": self.intent,
             "evidence": self.evidence,
             "authority": self.authority,
-            "action_class": self.action_class.value,
+            "action_class": self.action_class.value if hasattr(self.action_class, "value") else str(self.action_class),
             "reversibility": self.reversibility,
             "session_state": self.session_state,
             "protocol_version": self.protocol_version,
@@ -103,8 +128,12 @@ class CanonicalEnvelope:
             "dialect": self.dialect,
             "envelope_version": self.envelope_version,
             "ts": self.ts,
+            "normalized_input": self.normalized_input,
+            "risk_level": self.risk_level,
+            "requires_hold": self.requires_hold,
             "DITEMPA_BUKAN_DIBERI": True,
         }
+
 
 
 # ── Airlock Result ──────────────────────────────────────────────────────────
@@ -159,3 +188,66 @@ def new_envelope(
         client_info=client_info or {"name": "unknown", "version": "0.0"},
         dialect=dialect,
     )
+
+
+def _classify_method(method: str) -> ActionClass:
+    m = method.lower()
+    if "ping" in m or "probe" in m or "echo" in m:
+        return ActionClass.PROBE
+    if "session_init" in m or "initialize" in m:
+        return ActionClass.QUERY
+    if "forg" in m or "execut" in m or "deploy" in m:
+        return ActionClass.FORGE
+    if "seal" in m or "judge" in m or "deliberate" in m:
+        return ActionClass.GOVERN
+    if "write" in m or "create" in m or "update" in m or "delete" in m:
+        return ActionClass.IRREVERSIBLE if "delete" in m else ActionClass.MUTATE
+    if (
+        "read" in m
+        or "list" in m
+        or "get" in m
+        or "query" in m
+        or "recall" in m
+        or "observe" in m
+        or "analyz" in m
+        or "status" in m
+        or "measure" in m
+        or "inspect" in m
+        or "attest" in m
+        or "version" in m
+    ):
+        return ActionClass.READ
+    return ActionClass.UNKNOWN
+
+
+def _build_split_session_state(
+    request: dict[str, Any],
+    mcp_session_id: str | None = None,
+    protocol_version: str = "2025-11-25",
+    client_capabilities: dict[str, Any] | None = None,
+    extra_transport: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    if not mcp_session_id:
+        mcp_session_id = (
+            request.get("_session_id")
+            or request.get("mcp_session_id")
+            or request.get("session_id")
+            or ""
+        )
+    t_state = {
+        "mcp_session_id": mcp_session_id,
+        "protocol_version": protocol_version,
+        "client_capabilities": client_capabilities or {},
+    }
+    if extra_transport:
+        t_state.update(extra_transport)
+    return {
+        "transport": t_state,
+        "constitutional": {
+            "session_id": None,
+            "lease_id": None,
+            "authority_lease": None,
+            "actor_id": None,
+            "floor_state": {},
+        },
+    }
