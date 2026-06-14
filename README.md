@@ -50,8 +50,9 @@
 15. [Known Limitations](#15-known-limitations)
 16. [Federation Cross-Reference](#16-federation-cross-reference)
 17. [VAULT999 & Audit Trail](#17-vault999--audit-trail)
-18. [How to Contribute](#18-how-to-contribute)
-19. [License & Sovereignty](#19-license--sovereignty)
+18. [MCP Connection Guide](#18-mcp-connection-guide)
+19. [How to Contribute](#19-how-to-contribute)
+20. [License & Sovereignty](#20-license--sovereignty)
 
 ---
 
@@ -770,7 +771,129 @@ VAULT999 is the immutable, append-only, hash-chained ledger at the bottom of the
 
 ---
 
-## 18. How to Contribute
+## 18. MCP Connection Guide
+
+arifOS is an MCP-native governed agent federation. Each organ exposes a separate MCP endpoint according to its role.
+
+### Primary MCP Endpoints
+
+| Organ | Endpoint | Role | Use When |
+|-------|----------|------|----------|
+| **arifOS** | `https://arifos.arif-fazil.com/mcp` | Constitutional governance kernel | Session, routing, judgment, leases, attestation, safety gates |
+| **A-FORGE** | `https://forge.arif-fazil.com/mcp` | Engineering actuator | Planning, dry-runs, repo/file/system work, tests, benchmarks, execution |
+| **GEOX** | `https://geox.arif-fazil.com/mcp` | Geoscience organ | Earth intelligence, spatial/geology workflows |
+| **WEALTH** | `https://wealth.arif-fazil.com/mcp` | Capital/economic organ | Finance, economics, capital intelligence |
+| **WELL** | `https://well.arif-fazil.com/mcp` | Wellness organ | Health, wellness, vitality intelligence |
+
+### Recommended Connection Order
+
+1. Connect to **arifOS** first.
+2. Call `tools/list` to discover governance tools and routing instructions.
+3. Use arifOS for constitutional decisions: observe, evidence, reason, critique, route, judge, seal.
+4. For engineering work, connect to **A-FORGE**.
+5. Use A-FORGE for `forge_*`, `eureka_*`, filesystem, git, docker, postgres, shell, log, and job tools.
+6. Use **GEOX**, **WEALTH**, or **WELL** directly for domain-specific work.
+7. Do not treat all MCP tools as equal. Each organ has a separate authority boundary.
+
+### Tool Surface Semantics
+
+arifOS distinguishes between canonical constitutional tools and operational support tools.
+
+```json
+{
+  "canonical_tools_loaded": 13,
+  "tools_exposed_via_mcp": 39,
+  "canonical_tools": 13,
+  "operational_tools": 26
+}
+```
+
+The **13 canonical tools** are the constitutional core.
+The remaining **operational tools** support leases, attestation, diagnostics, verification, routing, and organ coordination.
+
+### Organ Responsibilities
+
+| Organ | Responsibility |
+|-------|---------------|
+| **arifOS** | governance, authority, judgment, routing, audit |
+| **A-FORGE** | engineering planning, simulation, execution, rollback |
+| **GEOX** | geoscience intelligence |
+| **WEALTH** | capital and economic intelligence |
+| **WELL** | wellness intelligence |
+| **AAA** | identity / cockpit / A2A authority layer |
+| **VAULT999** | immutable audit memory |
+
+### Engineering Rule
+
+**arifOS does not directly perform engineering mutation.**
+
+Correct flow:
+
+> arifOS judges → A-FORGE engineers → HERMES verifies → VAULT999 records
+
+For any engineering action:
+
+1. arifOS classifies and routes the request.
+2. A-FORGE produces a plan and dry-run.
+3. The change must include tests and rollback.
+4. arifOS issues `SEAL`, `HOLD`, or `VOID`.
+5. A-FORGE mutates only after valid authority, rollback, and judgment requirements are satisfied.
+
+### A-FORGE Authority Classes
+
+| Class | Meaning | Mutation |
+|-------|---------|----------|
+| `READ` | Inspect files, registry, logs, repo state | No |
+| `PLAN` | Generate engineering plan | No |
+| `SIMULATE` | Dry-run, test, benchmark, regression check | No lasting mutation |
+| `MUTATE` | Apply patch, commit, deploy, restart, migrate | **Yes; requires strongest gate** |
+
+### Backward Compatibility
+
+Some `forge_*` tools may still appear on arifOS as deprecated proxies during migration.
+
+If a tool returns:
+
+```json
+{
+  "status": "DEPRECATED_PROXY",
+  "canonical_endpoint": "https://forge.arif-fazil.com/mcp"
+}
+```
+
+connect to **A-FORGE** directly and call the tool there.
+
+### Discovery Files
+
+LLM-readable federation manifest:
+
+> `https://arifos.arif-fazil.com/llms.txt`
+
+Health endpoint:
+
+> `https://arifos.arif-fazil.com/health`
+
+The manifest and health endpoint are auto-generated from the live registry. Do not infer tool counts from README badges alone.
+
+### Transport
+
+Production MCP endpoints use **HTTPS Streamable HTTP** transport.
+
+Expected MCP path:
+
+> `/mcp`
+
+Agents should initialize the MCP session before calling tools. Clients should preserve session, protocol, trace, and lease metadata when available.
+
+### Security Boundary
+
+**Mutation-capable tools are never considered safe by default.**
+
+Any action that writes files, changes infrastructure, mutates data, commits code, deploys services, restarts containers, or seals irreversible records requires the appropriate lease, dry-run, rollback plan, and constitutional judgment.
+
+---
+
+## 19. How to Contribute
 
 ### For Federation Agents
 
@@ -803,7 +926,7 @@ VAULT999 is the immutable, append-only, hash-chained ledger at the bottom of the
 
 ---
 
-## 19. License & Sovereignty
+## 20. License & Sovereignty
 
 ### License
 
