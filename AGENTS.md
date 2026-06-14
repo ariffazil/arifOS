@@ -1,6 +1,6 @@
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-06-14 (SELF_AUDIT_PROMPT + 444_ASI_CANON added)
+last_verified: 2026-06-14 18:08 UTC (999_SEAL — MCP Gate v0 deployed + schema adapter + epistemic extension)
 valid_from: 2026-06-14
 valid_until: 2026-07-14
 confidence: high
