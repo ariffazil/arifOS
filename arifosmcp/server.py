@@ -600,7 +600,13 @@ try:
         payload: Any = None,
         _envelope: dict[str, Any] | None = None,
         client_capabilities: dict[str, Any] | None = None,
+        protocol_version: str | None = None,
     ) -> dict:
+        # Merge explicit protocol_version into payload for downstream extraction
+        if protocol_version and isinstance(payload, dict):
+            payload.setdefault("protocol_version", protocol_version)
+        elif protocol_version and not isinstance(payload, dict):
+            payload = {"protocol_version": protocol_version}
         return _arif_initialize_probe(
             payload=payload,
             _envelope=_envelope,

@@ -764,6 +764,13 @@ def _nine_signal_from_status(status: str) -> dict[str, str | dict]:
             "omega": {"plane": "intelligence_discipline", "state": "BIJAK", "en": "SMART"},
             "overall": {"state": "DEGRADED", "en": "DEGRADED"},
         }
+    if status == "UNBOUND_SESSION":
+        return {
+            "delta": {"plane": "machine_physical_state", "state": "TIDAK_PASTI", "en": "UNMEASURED"},
+            "psi": {"plane": "governance_integrity", "state": "BELUM_IKAT", "en": "UNBOUND"},
+            "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
+            "overall": {"state": "BELUM_SAH", "en": "UNAUTHENTICATED"},
+        }
     if status in ("HOLD", "VOID"):
         return {
             "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
@@ -902,7 +909,14 @@ class NineSignalOutput:
         if not nine:
             # Auto-generate from verdict — three-plane nine-signal contract
             verdict = self.verdict
-            if verdict in ("VOID", "HOLD"):
+            if verdict == "UNBOUND_SESSION":
+                nine = {
+                    "delta": {"plane": "machine_physical_state", "state": "TIDAK_PASTI", "en": "UNMEASURED"},
+                    "psi": {"plane": "governance_integrity", "state": "BELUM_IKAT", "en": "UNBOUND"},
+                    "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
+                    "overall": {"state": "BELUM_SAH", "en": "UNAUTHENTICATED"},
+                }
+            elif verdict in ("VOID", "HOLD"):
                 nine = {
                     "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
                     "psi": {"plane": "governance_integrity", "state": "KHIANAT", "en": "BETRAYED"},
@@ -3155,9 +3169,18 @@ def _hold(
             if epoch is not None and epoch.get("status") == "open":
                 epoch["verdict"] = "VOID"
                 epoch["peace2"] = min(epoch.get("peace2", 1.0), 0.0)
-    # F2 / Nine-Signal: inject nine_signal into HOLD payload (status=HOLD → RETAK)
+    # F2 / Nine-Signal: inject nine_signal into HOLD payload.
+    # Distinguish: identity/session HOLDs → UNBOUND_SESSION (not system failure).
+    _identity_floors = {"L11", "F11", "L13", "F13"}
+    _identity_keywords = ("identity", "actor_verified", "unverified", "session binding", "sovereign session", "F11_AUDIT")
+    _is_identity_hold = False
+    if floors:
+        _is_identity_hold = bool(set(floors) & _identity_floors)
+    if not _is_identity_hold and reason:
+        _is_identity_hold = any(kw in reason.lower() for kw in _identity_keywords)
+    _nine_status = "UNBOUND_SESSION" if _is_identity_hold else "HOLD"
     meta["nine_signal"] = _annotate_nine_signal(
-        _nine_signal_from_status("HOLD"),
+        _nine_signal_from_status(_nine_status),
         _domain_for_tool(tool),
     )
     response_ctx = _RESPONSE_CONTEXT.get() or {}
@@ -14025,6 +14048,7 @@ def _arif_initialize_probe(
     payload: Any = None,
     _envelope: dict[str, Any] | None = None,
     client_capabilities: dict[str, Any] | None = None,
+    protocol_version: str | None = None,
 ) -> dict[str, Any]:
     """Initialize probe — test MCP handshake without constitutional ceremony.
 
@@ -14040,6 +14064,11 @@ def _arif_initialize_probe(
     - Server MUST respond with a version it supports
     - If client version is unsupported, server MUST respond with nearest supported version
     """
+    # Merge explicit protocol_version into payload (P3 fix — schema drift 2026-06-14)
+    if protocol_version and isinstance(payload, dict):
+        payload.setdefault("protocol_version", protocol_version)
+    elif protocol_version and not isinstance(payload, dict):
+        payload = {"protocol_version": protocol_version}
     requested = _extract_payload_field(payload, "protocol_version") or _MCP_SPEC_VERSION
     client_caps = _extract_payload_field(payload, "client_capabilities") or client_capabilities or {}
     negotiated = requested if requested in _MCP_SUPPORTED_VERSIONS else _MCP_SUPPORTED_VERSIONS[0]
