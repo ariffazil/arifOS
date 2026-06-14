@@ -1569,6 +1569,10 @@ if app:
 # invokes on server start/stop regardless of entry point.
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# ── Anomaly scorer singleton — lives for the server lifetime ──────────────
+_anomaly_subscriber: Any = None
+
+
 def _wire_nats_to_app(_app: Any) -> None:
     """Attach NATS startup/shutdown handlers to a Starlette app instance."""
     try:
@@ -1598,6 +1602,24 @@ async def _startup_nats_event_bus() -> None:
             logger.info("NATS event bus connected — governance events will flow")
             # Publish initial heartbeat so the mesh knows arifOS is alive
             await event_bus.publish_heartbeat("arifOS", "alive")
+
+            # ── Start anomaly scorer — consumes NATS governance/feedback/gradient/e7 streams ──
+            # Produces AnomalyScore → arifos.anomaly.score every 15s for cockpit + agents
+            global _anomaly_subscriber
+            try:
+                from arifosmcp.anomaly import AnomalyNATSSubscriber
+
+                _anomaly_subscriber = AnomalyNATSSubscriber()
+                anomaly_ok = await _anomaly_subscriber.start()
+                if anomaly_ok:
+                    logger.info(
+                        "Anomaly scorer active — 5 detectors listening on NATS, "
+                        "publishing to arifos.anomaly.score every 15s"
+                    )
+                else:
+                    logger.warning("Anomaly scorer started in offline mode (nats-py not available)")
+            except Exception:
+                logger.debug("Anomaly scorer init skipped (non-fatal)", exc_info=True)
         else:
             logger.warning(
                 "NATS event bus not connected — governance events will be "
@@ -1608,7 +1630,15 @@ async def _startup_nats_event_bus() -> None:
 
 
 async def _shutdown_nats_event_bus() -> None:
-    """Gracefully disconnect the NATS event bus."""
+    """Gracefully disconnect the NATS event bus + anomaly scorer."""
+    global _anomaly_subscriber
+    if _anomaly_subscriber is not None:
+        try:
+            await _anomaly_subscriber.stop()
+        except Exception:
+            pass
+        _anomaly_subscriber = None
+
     try:
         from arifosmcp.runtime.nats_event_bus import event_bus
 
