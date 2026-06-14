@@ -50,9 +50,9 @@ class TestSovereignAnchor:
 
 
 # ──────────────────────────────────────────────
-# E2: ZKPC Verifier
+# E2: Context Coherence Verifier (was "ZKPC Verifier")
 # ──────────────────────────────────────────────
-from arifosmcp.runtime.zkpc_verifier import verify_zkpc
+from arifosmcp.runtime.context_coherence import verify_context_coherence as verify_zkpc
 
 
 class TestZKPCVerifier:

@@ -150,36 +150,41 @@ When governance kernel returns 0.0 for witness scores, these defaults are applie
 
 ---
 
-## Canonical Tool-Count Truth Table (F2)
+## Canonical Tool-Count Truth Table (F2) — Updated 2026-06-14
 
-This section resolves a known public-doc drift. The MCP `tools/list` endpoint
-exposes 19 tools total; the 13/14/15/39 figures in various docs and READMEs
-refer to different scopes. **This table is the F2 truth.**
+This section is the F2 truth for the 44-tool arifOS MCP surface.
+All counts are auto-generated from `constitutional_map.py` CANONICAL_TOOLS (13)
++ DIAGNOSTIC_TOOLS (31) = 44 declared tools across 8 tiers.
 
-| Scope | Count | Tools | Source |
-| :---  | :---: | :---  | :---   |
-| **Canonical constitutional surface** | **13** | The 13 `arif_*` organs above, listed in `CANONICAL_TOOLS` (the auto-generated table) | `arifosmcp.constitutional_map.CANONICAL_TOOLS` |
-| **Public MCP `arif_*` exposed** | **16** | 13 canonical + 3 lease primitives (`arif_lease_issue`, `arif_lease_revoke`, `arif_lease_inspect` — F13 closure 2026-06-11) | live `tools/list` on `127.0.0.1:8088/mcp` |
-| **Public MCP total** | **19** | 16 `arif_*` + 3 `forge_*` (`forge_query`, `forge_plan`, `forge_dry_run`) | live `tools/list` on `127.0.0.1:8088/mcp` |
-| **"Total Tools" in generated README** | 39 | Includes `a2a-server` agent cards, internal helpers, probe tools, etc. | non-canonical, doc-side enumeration only |
+| Scope | Count | Description | Source |
+| :---  | :---: | :---        | :---   |
+| **Canonical constitutional surface** | **13** | 13 `arif_*` kernel tools, 000→999 pipeline, F1-F13 floor binding | `CANONICAL_TOOLS` |
+| **Hermes cross-verification** | **7** | `hermes_system_status`, `hermes_vault_query`, `hermes_epistemic_check`, `hermes_fact_check`, `hermes_cross_verify`, `hermes_plan_review`, `hermes_memory_steward` | `DIAGNOSTIC_TOOLS` tier=hermes |
+| **Canary transport diagnostics** | **6** | `arif_ping`, `arif_schema_echo`, `arif_version_echo`, `arif_transport_echo`, `arif_initialize_probe`, `arif_conformance_report` | `DIAGNOSTIC_TOOLS` tier=canary |
+| **Lease lifecycle** | **3** | `arif_lease_inspect`, `arif_lease_issue`, `arif_lease_revoke` | `DIAGNOSTIC_TOOLS` tier=lease |
+| **Federation attestation** | **4** | `arif_os_attest`, `arif_organ_attest`, `arif_organ_attest_all`, `arif_heartbeat` | `DIAGNOSTIC_TOOLS` tier=attest |
+| **A-FORGE pre-execution** | **3** | `forge_dry_run`, `forge_plan`, `forge_query` | `DIAGNOSTIC_TOOLS` tier=forge-sub |
+| **Narrative detection** | **2** | `arif_detect_institutional_shadow_drift`, `arif_detect_narrative_tension` | `DIAGNOSTIC_TOOLS` tier=narrative |
+| **General diagnostics** | **6** | `arif_stack_health_probe`, `arif_scan_local_instructions`, `arif_organ_consensus`, `arif_session_budget`, `arif_floor_status`, `mcp_drift_check` | `DIAGNOSTIC_TOOLS` tier=diagnostic |
+| **TOTAL SURFACE** | **44** | All tools declared in `build_tool_registry_manifest()` | `tool_registry.json` |
 
-**The 13 canonical organs are the constitutional contract.** The 16 `arif_*`
-and 19 total are the *current public MCP surface*. The 39 figure is doc-side
-enumeration of every helper in the runtime, not a contract surface.
+**Namespace ruling (F13 SOVEREIGN 2026-06-14):**
+- `arif_*` — Canonical prefix for all kernel + diagnostic tools (sanctioned)
+- `hermes_*` — Sanctioned non-arif_ namespace for Hermes ASI tools
+- `forge_*` — Sanctioned non-arif_ namespace for A-FORGE pre-execution tools
+- `arifos_*` — BLOCKED; internal-only prefix, never exposed on public MCP
+- `mcp_*` — Utility namespace for operational diagnostics (mcp_drift_check)
+
+**The 13 canonicals are the constitutional contract.** The 44 are the full
+declared surface. Drift between declared and live `/health` tool_count is
+a HOLD condition.
 
 When in doubt, query the live kernel:
 
 ```bash
-curl -s http://127.0.0.1:8088/mcp -X POST -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-25","capabilities":{},"clientInfo":{"name":"audit","version":"1.0"}}}'
-# capture mcp-session-id from response header, then:
-curl -s http://127.0.0.1:8088/mcp -X POST \
-  -H "mcp-session-id: $SID" -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
+curl -s http://127.0.0.1:8088/health | python3 -m json.tool
+# contract_status.tool_count = authoritative wire surface
 ```
-
-The 13 figure is constitutionally sacred. The 16/19 are operational truth.
-The 39 is doc inflation.
 
 ---
 

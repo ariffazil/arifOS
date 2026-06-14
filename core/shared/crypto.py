@@ -21,7 +21,7 @@ import blake3
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
-from core.shared.types import ZKPCReceipt
+from core.shared.types import HashCommitmentReceipt
 
 # ============================================================================
 # SESSION ID GENERATION (F1 Amanah - Traceable)
@@ -411,15 +411,18 @@ class VaultSigner:
 SYSTEM_SIGNER = VaultSigner()
 
 
-def generate_zkpc_receipt(
+def generate_hash_commitment_receipt(
     verdict: str, floors: dict[str, Any], hash_commitment: str, signature: str
-) -> ZKPCReceipt:
+) -> HashCommitmentReceipt:
     """
-    Generate a Zero-Knowledge Peace Chain (zkPC) receipt.
-    Proves computational constraints (ΔΩΨ+TPCP) were met without leaking inputs.
+    Generate a BLAKE3 hash-chain commitment receipt.
+    Records floor compliance trace without leaking inputs.
+
+    Formerly generate_zkpc_receipt — renamed 2026-06-14 (ZKPC-REALITY-ALIGN).
+    This is a hash commitment, NOT a zero-knowledge proof.
     """
-    return ZKPCReceipt(
-        zkpc_version="v1-alpha",
+    return HashCommitmentReceipt(
+        receipt_version="v2-hash-commitment",
         verdict=verdict,
         floors=floors,
         hash_commitment=hash_commitment,
@@ -428,6 +431,9 @@ def generate_zkpc_receipt(
         program_id="arifOS-TPCP-Circuit-v1",
         output_commitment=blake3.blake3(f"out-{hash_commitment}".encode()).hexdigest(),
     )
+
+# Backward-compat alias
+generate_zkpc_receipt = generate_hash_commitment_receipt
 
 
 # ============================================================================
@@ -444,9 +450,10 @@ __all__ = [
     "ed25519_sign",
     "ed25519_verify",
     "generate_ed25519_keypair",
-    # VaultSigner (BLS / zkPC)
+    # VaultSigner + Hash Commitment Receipt
     "VaultSigner",
-    "generate_zkpc_receipt",
+    "generate_hash_commitment_receipt",
+    "generate_zkpc_receipt",  # backward-compat alias
     "SYSTEM_SIGNER",
     # Merkle
     "merkle_root",

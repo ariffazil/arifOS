@@ -112,6 +112,12 @@ UPSTREAM_ORGANS: dict[str, dict] = {
         "role": "cognitive_memory",
         "tools_cache": None,
     },
+    "A-FORGE": {
+        "url": os.getenv("AFORGE_UPSTREAM_URL", "http://127.0.0.1:7071/mcp"),
+        "prefix": "forge_",
+        "role": "execution_shell",
+        "tools_cache": None,
+    },
 }
 
 # ─── Risk Classification ────────────────────────────────────────────────────

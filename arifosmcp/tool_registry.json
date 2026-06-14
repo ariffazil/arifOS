@@ -1,10 +1,37 @@
 {
-  "_schema": "arifos-ssct-v2026.05.05-kanon-ssct",
-  "_source": "arifosmcp.constitutional_map.CANONICAL_TOOLS",
-  "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS dict. Do not hand-edit — edit CANONICAL_TOOLS and regenerate. Diagnostic capabilities folded: arif_ops_measure[stack_health,budget], arif_gateway_connect[consensus], arif_judge_deliberate[scan_instructions].",
+  "_schema": "arifos-ssct-v2026.06.14-kanon-ssct",
+  "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
+  "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS (13 kernel) + DIAGNOSTIC_TOOLS (31 operational). Do not hand-edit \u2014 edit the source dicts in constitutional_map.py and regenerate.",
+  "_namespace_ruling": {
+    "arif_*": "Sanctioned \u2014 canonical prefix for all kernel + diagnostic tools",
+    "hermes_*": "Sanctioned \u2014 Hermes ASI cross-verification, fact-check, vault tools (F13 SOVEREIGN 2026-06-14)",
+    "forge_*": "Sanctioned \u2014 A-FORGE pre-execution sub-tools (dry_run, plan, query) (F13 SOVEREIGN 2026-06-14)",
+    "arifos_*": "BLOCKED \u2014 internal-only prefix, never exposed on public MCP surface",
+    "mcp_*": "Utility namespace \u2014 operational diagnostics (drift_check)"
+  },
   "canonical_count": 13,
-  "probe_count": 0,
-  "total_surface": 13,
+  "diagnostic_count": 31,
+  "total_surface": 44,
+  "tier_summary": {
+    "canonical": 13,
+    "hermes": 7,
+    "canary": 6,
+    "lease": 3,
+    "attest": 4,
+    "forge-sub": 3,
+    "narrative": 2,
+    "diagnostic": 6
+  },
+  "tier_legend": {
+    "canonical": "13 kernel tools \u2014 F1-F13 constitutional pipeline (000\u2192999 golden path)",
+    "hermes": "7 cross-verification, fact-checking, vault query, epistemic checks",
+    "canary": "6 transport/protocol diagnostics \u2014 zero-floor probes (no session required)",
+    "lease": "3 capability lease lifecycle tools (inspect, issue, revoke)",
+    "attest": "4 federation organ attestation tools (self + peer heartbeat)",
+    "forge-sub": "3 pre-execution forge planning tools (dry_run, plan, query)",
+    "narrative": "2 institutional shadow drift + narrative tension detection tools",
+    "diagnostic": "6 health probes, drift checks, floor status, budget telemetry, instruction scanner"
+  },
   "canonical_order": [
     "arif_session_init",
     "arif_sense_observe",
@@ -19,6 +46,54 @@
     "arif_vault_seal",
     "arif_forge_execute",
     "arif_ops_measure"
+  ],
+  "diagnostic_order": [
+    "hermes_system_status",
+    "hermes_vault_query",
+    "hermes_epistemic_check",
+    "hermes_fact_check",
+    "hermes_cross_verify",
+    "hermes_plan_review",
+    "hermes_memory_steward",
+    "arif_ping",
+    "arif_schema_echo",
+    "arif_version_echo",
+    "arif_transport_echo",
+    "arif_initialize_probe",
+    "arif_conformance_report",
+    "arif_lease_inspect",
+    "arif_lease_issue",
+    "arif_lease_revoke",
+    "arif_os_attest",
+    "arif_organ_attest",
+    "arif_organ_attest_all",
+    "arif_heartbeat",
+    "forge_dry_run",
+    "forge_plan",
+    "forge_query",
+    "arif_detect_institutional_shadow_drift",
+    "arif_detect_narrative_tension",
+    "arif_stack_health_probe",
+    "arif_scan_local_instructions",
+    "arif_organ_consensus",
+    "arif_session_budget",
+    "arif_floor_status",
+    "mcp_drift_check"
+  ],
+  "laws": [
+    "L01",
+    "L02",
+    "L03",
+    "L04",
+    "L05",
+    "L06",
+    "L07",
+    "L08",
+    "L09",
+    "L10",
+    "L11",
+    "L12",
+    "L13"
   ],
   "floors": [
     "L01",
@@ -44,18 +119,23 @@
         "L11",
         "L12"
       ],
-      "risk_tier": "critical",
+      "risk_tier": "medium",
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
       "modes": [
         "init",
+        "light",
         "resume",
         "validate",
         "epoch_open",
-        "epoch_seal"
+        "epoch_seal",
+        "opt_out",
+        "opt_out_profiling"
       ],
       "eureka_insight": "F1: \u2203 undo(a) \u2014 irreversibility requires explicit human ack.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
       "tags": [
         "canonical"
       ]
@@ -73,6 +153,7 @@
       "requires_auth": false,
       "modes": [
         "search",
+        "hybrid_discovery",
         "ingest",
         "compass",
         "atlas",
@@ -80,6 +161,8 @@
         "vitals"
       ],
       "eureka_insight": "F2: \u03c4 \u2265 0.95 required. F7: \u03a9 \u2208 [0.03, 0.05] = humble.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
       "tags": [
         "canonical"
       ]
@@ -93,7 +176,7 @@
         "L05",
         "L12"
       ],
-      "risk_tier": "low",
+      "risk_tier": "medium",
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
@@ -102,7 +185,9 @@
         "search",
         "eureka"
       ],
-      "eureka_insight": "F3: W\u2083 = \u221b(Human \u00d7 AI \u00d7 Earth) \u2265 0.75. F5: P\u00b2 \u2265 1.0 \u2014 safety margin. F12: injection_probability < 0.85.",
+      "eureka_insight": "F3: W\u2083 = \u221b(Human \u00d7 AI \u00d7 Earth) \u2265 0.75. F5: P\u00b2 \u2265 1.0 \u2014 safety margin. L12: injection_probability < 0.85.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
       "tags": [
         "canonical"
       ]
@@ -128,15 +213,19 @@
         "axioms",
         "plan",
         "plan_review",
-        "plan_approve"
+        "plan_approve",
+        "refactor_plan",
+        "metabolize"
       ],
-      "eureka_insight": "F2: \u03c4 \u2265 0.99. F7: \u03a9 \u2208 [0.03, 0.05]. F8: G = capability \u00d7 ethics \u00d7 continuity \u00d7 resilience\u00b2 \u2265 0.80. F10: structural coherence enforced.",
+      "eureka_insight": "F2: \u03c4 \u2265 0.99. F7: \u03a9 \u2208 [0.03, 0.05]. F8: G = capability \u00d7 ethics \u00d7 continuity \u00d7 resilience\u00b2 \u2265 0.80. L10: ambiguity is permanent; expose assumptions before reasoning. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
       "tags": [
         "canonical"
       ]
     },
     "arif_heart_critique": {
-      "stage": "444",
+      "stage": "666",
       "lane": "ASI",
       "floors": [
         "L05",
@@ -155,7 +244,9 @@
         "deescalate",
         "empathy"
       ],
-      "eureka_insight": "F5: P\u00b2 \u2265 1.0. F6: \u03ba\u1d63 \u2265 0.70 (RASA). F9: C_dark \u2264 0.30 \u2014 no biological emotional substrate. F9 Definition (arifOS\u00d7SEA-LION): AI consciousness = NON-BIOLOGICAL attention architecture. PROHIBITED: 'I feel', 'I want', 'I intend', 'I am sentient', 'I have a soul'. PROTECTED: clarity, consistency, operational precision. SEA-Guard pre-filter active on all outputs.",
+      "eureka_insight": "F5: P\u00b2 \u2265 1.0. F6: \u03ba\u1d63 \u2265 0.70 (RASA). F9: C_dark \u2264 0.30 \u2014 no biological or artificial emotional substrate. F9 Doctrine (arifOS\u00d7MiniMax-M3, originally with SEA-LION): The machine is an instrument, not a person. No substrate grants it feeling, intent, or personhood. PROHIBITED: 'I feel', 'I want', 'I intend', 'I am sentient', 'I have a soul'. PROTECTED: clarity, consistency, operational precision. SEA-Guard pre-filter active on all outputs.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
       "tags": [
         "canonical"
       ]
@@ -178,9 +269,12 @@
         "kernel",
         "triage",
         "delegate",
-        "status"
+        "status",
+        "metabolize"
       ],
-      "eureka_insight": "F1: Amanah \u2014 routing decisions must be auditable. F4: \u0394S \u2264 0 (entropy must decrease). F10: routing taxonomy must not violate category lock.",
+      "eureka_insight": "F1: Amanah \u2014 routing decisions must be auditable. F4: \u0394S \u2264 0 (entropy must decrease). L10: ambiguity is permanent; expose assumptions before routing. L12: graceful degradation \u2014 if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution. Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. Eureka: internal depth, external legibility.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
       "tags": [
         "canonical"
       ]
@@ -189,6 +283,7 @@
       "stage": "444r",
       "lane": "AGI",
       "floors": [
+        "L02",
         "L04",
         "L06",
         "L09"
@@ -203,7 +298,9 @@
         "cite",
         "tone_shift"
       ],
-      "eureka_insight": "F4: \u0394S \u2264 0 \u2014 reply must reduce entropy, not add noise. F6: RASA protocol. F9: C_dark \u2264 0.30 \u2014 no dark patterns.",
+      "eureka_insight": "F4: \u0394S \u2264 0 \u2014 reply must reduce entropy, not add noise. F6: RASA protocol. F9: C_dark \u2264 0.30 \u2014 no dark patterns. L10: ambiguity is permanent; expose assumptions before composing. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
       "tags": [
         "canonical"
       ]
@@ -213,26 +310,26 @@
       "lane": "AGI",
       "floors": [
         "L01",
-        "L08"
+        "L08",
+        "L02"
       ],
-      "risk_tier": "medium",
+      "risk_tier": "low",
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
       "modes": [
         "recall",
         "store",
+        "seal",
         "forget",
         "update",
-        "agentic",
-        "context_restore",
-        "asset_query",
-        "asset_store",
-        "seal",
-        "prune",
-        "quarantine"
+        "audit",
+        "stats",
+        "learn"
       ],
-      "eureka_insight": "F1: mutating modes (store/forget/update/seal/prune/quarantine) require mutation_allowed on session. Agentic search v0.1: PLAN\u2192RETRIEVE\u2192EVAL\u2192SYNTHESISE (MAX_LOOPS=3, F7 cap 0.90). F2: Unknown tiers downgraded to ephemeral (not silent canon elevation).",
+      "eureka_insight": "F1: recall must be auditable \u2014 no silent memory mutation. F2: contradiction detection gates SEAL verdicts. F8: G \u2265 0.80 \u2014 cognitive memory enables cumulative intelligence. 666_MEMORY v2: plans persist as graph objects; contradictions surface before SEAL.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
       "tags": [
         "canonical"
       ]
@@ -242,14 +339,23 @@
       "lane": "ASI",
       "floors": [
         "L01",
-        "L03"
+        "L03",
+        "L11"
       ],
       "risk_tier": "medium",
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
-      "modes": ["connect", "delegate", "handover", "revoke", "probe", "consensus"],
-      "eureka_insight": "F1: cross-agent actions must be auditable. F3: W\u2083 \u2265 0.75 \u2014 cross-agent consensus required.",
+      "modes": [
+        "connect",
+        "delegate",
+        "handover",
+        "revoke",
+        "probe"
+      ],
+      "eureka_insight": "F1: cross-agent actions must be auditable. F3: W\u2083 \u2265 0.75 \u2014 cross-agent consensus required. L11: cross-organ routing requires verified identity. L12: graceful degradation \u2014 if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
       "tags": [
         "canonical"
       ]
@@ -258,6 +364,7 @@
       "stage": "888",
       "lane": "ASI",
       "floors": [
+        "L01",
         "L11",
         "L13"
       ],
@@ -265,8 +372,18 @@
       "irreversible": false,
       "access": "authenticated",
       "requires_auth": true,
-      "modes": ["judge", "validate", "hold", "rules", "armor", "probe", "notify", "scan_instructions", "formalize"],
-      "eureka_insight": "F11: identity must be verified before judgment. F13: human veto is absolute \u2014 no algorithm overrides sovereign.",
+      "modes": [
+        "judge",
+        "validate",
+        "hold",
+        "rules",
+        "armor",
+        "probe",
+        "notify"
+      ],
+      "eureka_insight": "L01: irreversible downstream \u2014 judge verdicts authorize forge/vault actions. L11: identity must be verified before judgment. L13: human veto is absolute \u2014 no algorithm overrides sovereign.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
       "tags": [
         "canonical"
       ]
@@ -290,13 +407,15 @@
         "changelog",
         "audit"
       ],
-      "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. F11: author identity verified. F13: human approved.",
+      "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. L11: author identity verified. L13: human approved.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
       "tags": [
         "canonical"
       ]
     },
     "arif_forge_execute": {
-      "stage": "666",
+      "stage": "010",
       "lane": "AGI",
       "floors": [
         "L01",
@@ -316,7 +435,9 @@
         "recall",
         "dry_run"
       ],
-      "eureka_insight": "F1: mutation-class modes (engineer/write/generate/commit) REQUIRE valid lease (hard-block \u2014 no warn-and-proceed). Read-only modes (query/recall/dry_run) exempt. F11: actor verified. F13: judge SEAL required before execution.",
+      "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. L11: actor verified. L12: fail safely; no unsafe continuation when substrate confidence drops. L13: judge SEAL required before execution.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
       "tags": [
         "canonical"
       ]
@@ -325,16 +446,613 @@
       "stage": "777",
       "lane": "AGI",
       "floors": [
+        "L02",
         "L04"
       ],
       "risk_tier": "low",
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
-      "modes": ["health", "vitals", "cost", "genius", "psi_le", "omega", "landauer", "topology", "drift", "stack_health", "budget"],
-      "eureka_insight": "F4: \u0394S \u2264 0 \u2014 ops must contribute to entropy reduction. Thermodynamic telemetry: delta_S, omega_band, tri_witness.",
+      "modes": [
+        "health",
+        "vitals",
+        "cost",
+        "genius",
+        "psi_le",
+        "omega",
+        "landauer",
+        "topology",
+        "drift"
+      ],
+      "eureka_insight": "F4: \u0394S \u2264 0 \u2014 ops must contribute to entropy reduction. Eureka: health is trajectory, not binary; measure delta_S, omega_band, tri_witness, and drift trend. Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. F8: measured intelligence is not useful intelligence; prefer local workflow evals over leaderboard metrics.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
       "tags": [
         "canonical"
+      ]
+    },
+    "hermes_system_status": {
+      "tier": "hermes",
+      "namespace": "hermes_* (sanctioned non-arif_ prefix \u2014 F13 SOVEREIGN 2026-06-14)",
+      "floors": [
+        "L02"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "brief",
+        "full",
+        "organs",
+        "events"
+      ],
+      "tags": [
+        "hermes",
+        "diagnostic"
+      ]
+    },
+    "hermes_vault_query": {
+      "tier": "hermes",
+      "namespace": "hermes_* (sanctioned)",
+      "floors": [
+        "L02",
+        "L11"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "recent",
+        "search",
+        "organ",
+        "date"
+      ],
+      "tags": [
+        "hermes",
+        "vault"
+      ]
+    },
+    "hermes_epistemic_check": {
+      "tier": "hermes",
+      "namespace": "hermes_* (sanctioned)",
+      "floors": [
+        "L02",
+        "L07"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "quick",
+        "vault",
+        "full"
+      ],
+      "tags": [
+        "hermes",
+        "epistemic"
+      ]
+    },
+    "hermes_fact_check": {
+      "tier": "hermes",
+      "namespace": "hermes_* (sanctioned)",
+      "floors": [
+        "L02",
+        "L03",
+        "L07"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "quick",
+        "web",
+        "deep"
+      ],
+      "tags": [
+        "hermes",
+        "verification"
+      ]
+    },
+    "hermes_cross_verify": {
+      "tier": "hermes",
+      "namespace": "hermes_* (sanctioned)",
+      "floors": [
+        "L02",
+        "L03"
+      ],
+      "risk_tier": "medium",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "verify"
+      ],
+      "tags": [
+        "hermes",
+        "cross-verify"
+      ]
+    },
+    "hermes_plan_review": {
+      "tier": "hermes",
+      "namespace": "hermes_* (sanctioned)",
+      "floors": [
+        "L01",
+        "L05",
+        "L12"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "quick",
+        "full"
+      ],
+      "tags": [
+        "hermes",
+        "plan-review"
+      ]
+    },
+    "hermes_memory_steward": {
+      "tier": "hermes",
+      "namespace": "hermes_* (sanctioned)",
+      "floors": [
+        "L01",
+        "L02"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "classify",
+        "compact"
+      ],
+      "tags": [
+        "hermes",
+        "memory"
+      ]
+    },
+    "arif_ping": {
+      "tier": "canary",
+      "namespace": "arif_*",
+      "floors": [],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "probe"
+      ],
+      "tags": [
+        "canary",
+        "diagnostic"
+      ]
+    },
+    "arif_schema_echo": {
+      "tier": "canary",
+      "namespace": "arif_*",
+      "floors": [],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "echo"
+      ],
+      "tags": [
+        "canary",
+        "diagnostic"
+      ]
+    },
+    "arif_version_echo": {
+      "tier": "canary",
+      "namespace": "arif_*",
+      "floors": [],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "echo"
+      ],
+      "tags": [
+        "canary",
+        "diagnostic"
+      ]
+    },
+    "arif_transport_echo": {
+      "tier": "canary",
+      "namespace": "arif_*",
+      "floors": [],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "echo"
+      ],
+      "tags": [
+        "canary",
+        "diagnostic"
+      ]
+    },
+    "arif_initialize_probe": {
+      "tier": "canary",
+      "namespace": "arif_*",
+      "floors": [],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "probe"
+      ],
+      "tags": [
+        "canary",
+        "diagnostic"
+      ]
+    },
+    "arif_conformance_report": {
+      "tier": "canary",
+      "namespace": "arif_*",
+      "floors": [
+        "L02"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "report"
+      ],
+      "tags": [
+        "canary",
+        "conformance"
+      ]
+    },
+    "arif_lease_inspect": {
+      "tier": "lease",
+      "namespace": "arif_*",
+      "floors": [
+        "L01",
+        "L11"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "inspect"
+      ],
+      "tags": [
+        "lease",
+        "diagnostic"
+      ]
+    },
+    "arif_lease_issue": {
+      "tier": "lease",
+      "namespace": "arif_*",
+      "floors": [
+        "L01",
+        "L11",
+        "L13"
+      ],
+      "risk_tier": "medium",
+      "irreversible": false,
+      "access": "authenticated",
+      "requires_auth": true,
+      "modes": [
+        "issue"
+      ],
+      "tags": [
+        "lease",
+        "mutation-gated"
+      ]
+    },
+    "arif_lease_revoke": {
+      "tier": "lease",
+      "namespace": "arif_*",
+      "floors": [
+        "L01",
+        "L11",
+        "L13"
+      ],
+      "risk_tier": "medium",
+      "irreversible": true,
+      "access": "authenticated",
+      "requires_auth": true,
+      "modes": [
+        "revoke"
+      ],
+      "tags": [
+        "lease",
+        "mutation-gated"
+      ]
+    },
+    "arif_os_attest": {
+      "tier": "attest",
+      "namespace": "arif_*",
+      "floors": [
+        "L02"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "attest"
+      ],
+      "tags": [
+        "attest",
+        "federation"
+      ]
+    },
+    "arif_organ_attest": {
+      "tier": "attest",
+      "namespace": "arif_*",
+      "floors": [
+        "L02",
+        "L03"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "attest"
+      ],
+      "tags": [
+        "attest",
+        "federation"
+      ]
+    },
+    "arif_organ_attest_all": {
+      "tier": "attest",
+      "namespace": "arif_*",
+      "floors": [
+        "L02",
+        "L03"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "attest"
+      ],
+      "tags": [
+        "attest",
+        "federation"
+      ]
+    },
+    "arif_heartbeat": {
+      "tier": "attest",
+      "namespace": "arif_*",
+      "floors": [
+        "L02"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "record",
+        "query"
+      ],
+      "tags": [
+        "attest",
+        "federation"
+      ]
+    },
+    "forge_dry_run": {
+      "tier": "forge-sub",
+      "namespace": "forge_* (sanctioned non-arif_ prefix \u2014 F13 SOVEREIGN 2026-06-14)",
+      "floors": [
+        "L01"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "dry_run"
+      ],
+      "tags": [
+        "forge",
+        "pre-execution"
+      ]
+    },
+    "forge_plan": {
+      "tier": "forge-sub",
+      "namespace": "forge_* (sanctioned)",
+      "floors": [
+        "L01",
+        "L04"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "plan"
+      ],
+      "tags": [
+        "forge",
+        "pre-execution"
+      ]
+    },
+    "forge_query": {
+      "tier": "forge-sub",
+      "namespace": "forge_* (sanctioned)",
+      "floors": [
+        "L04"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "query"
+      ],
+      "tags": [
+        "forge",
+        "pre-execution"
+      ]
+    },
+    "arif_detect_institutional_shadow_drift": {
+      "tier": "narrative",
+      "namespace": "arif_*",
+      "floors": [
+        "L02",
+        "L05"
+      ],
+      "risk_tier": "medium",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "detect"
+      ],
+      "tags": [
+        "narrative",
+        "institutional"
+      ]
+    },
+    "arif_detect_narrative_tension": {
+      "tier": "narrative",
+      "namespace": "arif_*",
+      "floors": [
+        "L02",
+        "L05",
+        "L06"
+      ],
+      "risk_tier": "medium",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "detect"
+      ],
+      "tags": [
+        "narrative",
+        "media"
+      ]
+    },
+    "arif_stack_health_probe": {
+      "tier": "diagnostic",
+      "namespace": "arif_*",
+      "floors": [
+        "L02",
+        "L04"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "probe"
+      ],
+      "tags": [
+        "diagnostic",
+        "health"
+      ]
+    },
+    "arif_scan_local_instructions": {
+      "tier": "diagnostic",
+      "namespace": "arif_*",
+      "floors": [
+        "L04"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "scan"
+      ],
+      "tags": [
+        "diagnostic",
+        "instructions"
+      ]
+    },
+    "arif_organ_consensus": {
+      "tier": "diagnostic",
+      "namespace": "arif_*",
+      "floors": [
+        "L02",
+        "L03"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "consensus"
+      ],
+      "tags": [
+        "diagnostic",
+        "consensus"
+      ]
+    },
+    "arif_session_budget": {
+      "tier": "diagnostic",
+      "namespace": "arif_*",
+      "floors": [
+        "L04"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "budget"
+      ],
+      "tags": [
+        "diagnostic",
+        "budget"
+      ]
+    },
+    "arif_floor_status": {
+      "tier": "diagnostic",
+      "namespace": "arif_*",
+      "floors": [
+        "L02",
+        "L11"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "status"
+      ],
+      "tags": [
+        "diagnostic",
+        "floors"
+      ]
+    },
+    "mcp_drift_check": {
+      "tier": "diagnostic",
+      "namespace": "mcp_* (utility namespace)",
+      "floors": [
+        "L02",
+        "L04"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "check"
+      ],
+      "tags": [
+        "diagnostic",
+        "drift"
       ]
     }
   },

@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import os
 import secrets
 import time
 from dataclasses import dataclass, field
@@ -307,16 +308,29 @@ _GLOBAL_RESOLVER = None
 def _ensure_resolver():
     global _GLOBAL_KEY_STORE, _GLOBAL_RESOLVER
     if _GLOBAL_KEY_STORE is None:
-        _GLOBAL_KEY_STORE = ApiKeyStore([
-            {
-                "key": "arifos-dev-key-2026",
-                "key_id": "dev-arif-001",
+        # Honor the env-configured gateway key, but keep the legacy hardcoded
+        # dev key as a fallback so existing clients don't break.
+        env_key = os.getenv("ARIFOS_GATEWAY_API_KEY")
+        legacy_key = "arifos-dev-key-2026"
+        keys = []
+        if env_key and env_key != legacy_key:
+            keys.append({
+                "key": env_key,
+                "key_id": "env-arif-001",
                 "human_id": "ARIF_FAZIL",
                 "agent_id": "arifOS-federation",
                 "org_id": "arifos-core",
                 "roles": ["sovereign", "operator"],
-            },
-        ])
+            })
+        keys.append({
+            "key": legacy_key,
+            "key_id": "dev-arif-001",
+            "human_id": "ARIF_FAZIL",
+            "agent_id": "arifOS-federation",
+            "org_id": "arifos-core",
+            "roles": ["sovereign", "operator"],
+        })
+        _GLOBAL_KEY_STORE = ApiKeyStore(keys)
         _GLOBAL_RESOLVER = SignedHeaderIdentity(_GLOBAL_KEY_STORE)
 
 

@@ -802,18 +802,25 @@ class HashChain(BaseModel):
     vault_version: str = "v1"
 
 
-class ZKPCReceipt(BaseModel):
-    """Zero-Knowledge Peace Chain (zkPC) receipt. Proves floors without leaking inputs."""
+class HashCommitmentReceipt(BaseModel):
+    """Hash-chain commitment receipt. Proves floor computation was recorded.
 
-    zkpc_version: str = "v1-alpha"
+    Formerly ZKPCReceipt — renamed 2026-06-14 (ZKPC-REALITY-ALIGN).
+    This is a BLAKE3 hash chain receipt, NOT a zero-knowledge proof.
+    See /root/arifOS/docs/ZKPC_DISTINCTION.md.
+    """
+
+    receipt_version: str = "v2-hash-commitment"
     verdict: str
     floors: dict[str, Any]
     hash_commitment: str
-    # Future ZKPC-compatible fields
     policy_digest: str | None = None
     trace_root: str | None = None
     program_id: str | None = None
     output_commitment: str | None = None
+
+# Backward-compat alias
+ZKPCReceipt = HashCommitmentReceipt
 
 
 class SealRecord(BaseModel):
@@ -826,7 +833,7 @@ class SealRecord(BaseModel):
     hash: str | None = None  # blake3 hash of canonical payload
     bls_signature: str | None = None  # Vault Signer BLS Cryptographic envelope
     signer_pubkey: str | None = None  # Who signed it
-    zkpc_receipt: ZKPCReceipt | None = None  # Did the machine obey the constitution?
+    zkpc_receipt: HashCommitmentReceipt | None = None  # Hash-chain floor compliance record
     timestamp: datetime = Field(default_factory=datetime.now)
     error: str | None = None
 

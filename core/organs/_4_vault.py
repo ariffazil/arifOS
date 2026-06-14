@@ -439,12 +439,12 @@ async def seal(
 
     entry_hash = compute_vault_seal_hash(entry_data)
 
-    from core.shared.crypto import SYSTEM_SIGNER, generate_zkpc_receipt
+    from core.shared.crypto import SYSTEM_SIGNER, generate_hash_commitment_receipt
 
     signature = SYSTEM_SIGNER.sign_hash(entry_hash)
     pubkey = SYSTEM_SIGNER.public_key_hex
 
-    zkpc_receipt = generate_zkpc_receipt(
+    zkpc_receipt = generate_hash_commitment_receipt(
         verdict=verdict,
         floors=floors,
         hash_commitment=entry_hash,
