@@ -98,6 +98,11 @@ async def write_audit_receipt(
         "session_id": session_id,
         "actor_id": actor_id,
         "response_hash": _sha256_of_text(json.dumps(response, sort_keys=True, default=str)),
+        "prediction": response.get("prediction"),
+        "observed_result": response.get("observed_result"),
+        "delta_from_prediction": response.get("delta_from_prediction"),
+        "delta_numeric": response.get("delta_numeric"),
+        "lesson": response.get("lesson"),
     }
 
     request_body = {
@@ -111,6 +116,14 @@ async def write_audit_receipt(
         "claim_state": "OBSERVED",
         "binding": False,
         "irreversible": False,
+        "tearframe_metrics": {
+            "truth_doubt_margin": response.get("truth_doubt_margin", 0.0),
+            "echo_delta_s": response.get("echo_delta_s", 0.0),
+            "amanah_irreversible_blocked": response.get("amanah_irreversible_blocked", False),
+            "rasa_kappa_r": response.get("rasa_kappa_r", 0.0),
+            "peace_squared": response.get("peace_squared", 0.0),
+        },
+        "entropy_total": response.get("entropy_total", 0.0),
         "tags": ["live-kernel", "state-transition", tool_name],
         "metadata": {"source": "arifosmcp.runtime.vault_sealer"},
         "created_at": datetime.now(UTC).isoformat(),

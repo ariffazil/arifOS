@@ -106,6 +106,13 @@ SUBJECT_E7_ATTESTATION = "arifos.e7.attestation"  # attestation receipts
 SUBJECT_PUBLIC_000 = "arifos.public.000"  # authority boundary surface
 SUBJECT_PUBLIC_999 = "arifos.public.999"  # execution proof surface
 
+# ── Level 6: Intelligence Diffusion (new — kernel state broadcast to all organs) ──
+SUBJECT_INTELLIGENCE_FLOORS = "arifos.intelligence.floors"  # F1-F13 state snapshot
+SUBJECT_INTELLIGENCE_ENTROPY = "arifos.intelligence.entropy"  # pipeline ΔS
+SUBJECT_INTELLIGENCE_VERDICT = "arifos.intelligence.verdict"  # 888 verdict broadcast
+SUBJECT_INTELLIGENCE_LEASE = "arifos.intelligence.lease"  # active lease changes
+SUBJECT_INTELLIGENCE_ALL = "arifos.intelligence.>"
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ALL SUBJECTS — for stream configuration
@@ -891,6 +898,88 @@ class NATSEventBus:
         except Exception as e:
             logger.error(f"Failed to publish /999 surface: {e}")
 
+    # ── Level 6: Intelligence Diffusion ────────────────────────────────────
+
+    async def publish_intelligence_broadcast(
+        self,
+        floors_snapshot: dict[str, Any] | None = None,
+        entropy_delta: float | None = None,
+        verdict_summary: dict[str, Any] | None = None,
+        lease_summary: dict[str, Any] | None = None,
+        organ_heartbeats: dict[str, str] | None = None,
+    ) -> None:
+        """
+        Broadcast current kernel intelligence state to all federation organs.
+
+        This is the dynamic intelligence flow that organs need to operate
+        with awareness of the kernel's constitutional state. Called after
+        every 888_JUDGE verdict or on timer for continuous diffusion.
+
+        Organs subscribe to 'arifos.intelligence.>' to receive these updates.
+        """
+        if not self.connected:
+            return
+
+        event = {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "source": "arifOS-kernel",
+        }
+
+        # Floor snapshot
+        if floors_snapshot:
+            event["floors"] = floors_snapshot
+            try:
+                await self._nc.publish(
+                    SUBJECT_INTELLIGENCE_FLOORS,
+                    json.dumps(event).encode(),
+                )
+            except Exception as e:
+                logger.error(f"Failed to publish intelligence floors: {e}")
+
+        # Entropy delta
+        if entropy_delta is not None:
+            event["entropy_delta"] = entropy_delta
+            try:
+                await self._nc.publish(
+                    SUBJECT_INTELLIGENCE_ENTROPY,
+                    json.dumps(event).encode(),
+                )
+            except Exception as e:
+                logger.error(f"Failed to publish intelligence entropy: {e}")
+
+        # Verdict summary
+        if verdict_summary:
+            event["verdict"] = verdict_summary
+            try:
+                await self._nc.publish(
+                    SUBJECT_INTELLIGENCE_VERDICT,
+                    json.dumps(event).encode(),
+                )
+            except Exception as e:
+                logger.error(f"Failed to publish intelligence verdict: {e}")
+
+        # Lease summary
+        if lease_summary:
+            event["leases"] = lease_summary
+            try:
+                await self._nc.publish(
+                    SUBJECT_INTELLIGENCE_LEASE,
+                    json.dumps(event).encode(),
+                )
+            except Exception as e:
+                logger.error(f"Failed to publish intelligence lease: {e}")
+
+        # Organ heartbeats (broadcast so every organ knows every other organ)
+        if organ_heartbeats:
+            event["heartbeats"] = organ_heartbeats
+            try:
+                await self._nc.publish(
+                    SUBJECT_BROADCAST,
+                    json.dumps(event).encode(),
+                )
+            except Exception as e:
+                logger.error(f"Failed to publish broadcast: {e}")
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SINGLETON
@@ -1029,6 +1118,12 @@ __all__ = [
     "SUBJECT_E7_ATTESTATION",
     "SUBJECT_PUBLIC_000",
     "SUBJECT_PUBLIC_999",
+    # Intelligence Diffusion (Level 6)
+    "SUBJECT_INTELLIGENCE_FLOORS",
+    "SUBJECT_INTELLIGENCE_ENTROPY",
+    "SUBJECT_INTELLIGENCE_VERDICT",
+    "SUBJECT_INTELLIGENCE_LEASE",
+    "SUBJECT_INTELLIGENCE_ALL",
     # Federation
     "FEDERATION_ORGANS",
     "organ_subject",

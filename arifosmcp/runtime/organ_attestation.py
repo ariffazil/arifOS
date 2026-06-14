@@ -438,8 +438,13 @@ async def attest_all_organs(
     actor_id: str | None = None,
     session_id: str | None = None,
 ) -> dict[str, Any]:
-    """Attest every known federation organ plus arifOS itself."""
+    """Attest every known federation organ plus arifOS itself.
+    
+    Also broadcasts organ heartbeats to the NATS intelligence mesh
+    so every organ is aware of every other organ's liveness.
+    """
     from arifosmcp.runtime.live_kernel import arif_os_attest
+    from arifosmcp.runtime.nats_event_bus import event_bus
 
     results: dict[str, Any] = {"arifOS": arif_os_attest(actor_id, session_id)}
     degraded: list[str] = []
@@ -451,6 +456,19 @@ async def attest_all_organs(
         results[organ_id] = res
         if res.get("verdict") != "SEAL":
             degraded.append(organ_id)
+
+    # Broadcast organ states to intelligence mesh
+    heartbeats: dict[str, str] = {}
+    for organ_id, res in results.items():
+        verdict = res.get("verdict", "UNKNOWN") if isinstance(res, dict) else "UNKNOWN"
+        heartbeats[organ_id] = "alive" if verdict == "SEAL" else "degraded"
+
+    try:
+        await event_bus.publish_intelligence_broadcast(
+            organ_heartbeats=heartbeats,
+        )
+    except Exception:
+        pass  # F1 AMANAH: mesh failure must never block governance
 
     return {
         "status": "OK" if not degraded else "DEGRADED",

@@ -68,7 +68,7 @@ class FloorName(StrEnum):
 
     F1_REVERSIBILITY = "F1_REVERSIBILITY"  # κᵣ — Can we undo this?
     F2_TRUTH = "F2_TRUTH"  # Λ2 — Physical grounding
-    F3_TRI_WITNESS = "F3_TRI_WITNESS"  # W³ — H·A·E alignment
+    F3_QUAD_WITNESS = "F3_QUAD_WITNESS"  # W⁴ — human · ai · earth · system (H·A·E·S alignment)
     F4_CLARITY = "F4_CLARITY"  # ΔS — Entropy reduction
     F5_ORTHOGONALITY = "F5_ORTHOGONALITY"  # Ω — Lane independence
     F6_MARUAH = "F6_MARUAH"  # Peace² — Human dignity
@@ -144,7 +144,7 @@ class KernelMetrics(BaseModel):
     shadow_score: float = Field(default=0.0, ge=0.0, le=1.0)
 
     witness_vector: dict[str, float] = Field(
-        default_factory=lambda: {"human": 1.0, "ai": 1.0, "earth": 1.0}
+        default_factory=lambda: {"human": 1.0, "ai": 1.0, "earth": 1.0, "system": 1.0}
     )
 
     floors_passed: list[FloorName] = Field(default_factory=list)

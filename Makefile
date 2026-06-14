@@ -4,7 +4,7 @@
 PYTHON = uv run python
 DIR := /root/arifOS
 
-.PHONY: status forge seal health conformance sync sot-check deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public security-audit
+.PHONY: status forge seal health conformance sync sot-check prove deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public security-audit
 
 status:
 	@echo "--- arifOS Status (ΔΩΨ) ---"
@@ -67,6 +67,44 @@ sync:
 	@git push origin main
 
 # security-audit: moved to include
+
+# ============================================================
+# PROOF PACK — Single command to prove substrate health
+# ============================================================
+
+prove:
+	@echo "╔═══════════════════════════════════════════════════╗"
+	@echo "║     ARIFOS PROOF PACK — $$(date +%Y-%m-%d)        ║"
+	@echo "║     DITEMPA BUKAN DIBERI                         ║"
+	@echo "╚═══════════════════════════════════════════════════╝"
+	@mkdir -p reports
+	@echo ""
+	@echo "--- 1. make health ---"; make health 2>&1 || echo "FAIL"
+	@echo ""
+	@echo "--- 2. make sot-check ---"; make sot-check 2>&1 || echo "FAIL"
+	@echo ""
+	@echo "--- 3. make security-audit ---"; make security-audit 2>&1 || echo "FAIL"
+	@echo ""
+	@echo "--- 4. pytest adversarial ---"; python -m pytest tests/adversarial/ -q --tb=short 2>&1 || echo "FAIL"
+	@echo ""
+	@echo "--- 5. vault999-verify ---"; python scripts/vault999_status.py 2>&1 || echo "FAIL"
+	@echo ""
+	@echo "--- 6. conformance ---"; make conformance 2>&1 || echo "FAIL"
+	@echo ""
+	@echo "--- Generating proof pack ---"; \
+	PROOF_FILE="reports/ARIFOS_PROOF_PACK_$$(date +%Y-%m-%d).md"; \
+	{ \
+	  echo "# ARIFOS Proof Pack — $$(date +%Y-%m-%d)"; \
+	  echo ""; \
+	  echo "## Health"; curl -s http://localhost:8088/health | python3 -m json.tool 2>/dev/null || echo "FAIL"; \
+	  echo ""; \
+	  echo "## Security Audit"; echo "(See security-audit output above)"; \
+	  echo ""; \
+	  echo "## Adversarial Tests"; python -m pytest tests/adversarial/ -q --tb=short 2>&1 | tail -5; \
+	  echo ""; \
+	  echo "## VAULT999 Chain"; python scripts/vault999_status.py 2>&1 | head -20; \
+	} > "$$PROOF_FILE"; \
+	echo "Proof pack: $$PROOF_FILE"
 
 # ============================================================
 # SOVEREIGN PUBLISH PIPELINE — arifOS Federation

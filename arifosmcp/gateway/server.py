@@ -564,6 +564,10 @@ def _route_tool_to_organ(tool_name: str) -> str | None:
         "wealth_evaluate_ROI",
         "wealth_compute_EMV",
         "wealth_thermodynamic_scan",
+        "minimax_web_search",
+        "minimax_understand_image",
+        "request_amanah_lock",
+        "release_amanah_lock",
     }
     if tool_name in AFORGE_OWNED:
         return "A-FORGE"

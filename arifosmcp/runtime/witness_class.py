@@ -318,6 +318,82 @@ def reject_narrative_seal(
     )
 
 
+# ──────────────────────────────────────────────────────────────────────
+# W₄ Quad-Witness — 4th witness: system/machine state
+# ──────────────────────────────────────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class QuadWitnessState:
+    """W₄ state: human · ai · earth · system (H·A·E·S)."""
+
+    human_ok: bool
+    ai_ok: bool
+    earth_ok: bool
+    system_ok: bool
+    position_debt: int
+    w4_score: float  # 0.0-1.0 — fraction of witnesses present
+    w4_verdict: str  # W4_OK | W4_DEGRADED | W4_FAILED
+    notes: tuple[str, ...]
+
+
+# System witness — the 4th witness: machine state self-attestation
+# Always present when the kernel is alive. The system is always watching,
+# always attesting. This is the "silent witness" that makes W₄ fundamentally
+# different from W₃: the system cannot be silenced by a lack of human/earth input.
+SYSTEM_WITNESS_ALIVE = True  # constant — system is always self-aware
+
+
+def compute_quad_witness(
+    human_ok: bool,
+    ai_ok: bool,
+    earth_ok: bool,
+    receipts: Iterable[tuple[ReceiptContext, WitnessPosition]],
+) -> QuadWitnessState:
+    """
+    Compute W₄ Quad-Witness state. The 4th witness (system) is always
+    present when the kernel is alive. Positional debt reduces the
+    effective witness count the same way as W₃.
+
+    W₄ score = (human + ai + earth + system) / 4
+    Positional debt subtracts from the denominator: effective_w4 = (present - debt) / max(1, 4 - debt)
+    """
+    n_substantive = sum([human_ok, ai_ok, earth_ok, SYSTEM_WITNESS_ALIVE])
+    debt = narrator_debt(receipts)
+
+    effective_n = max(0, n_substantive - debt)
+    effective_max = max(1, 4 - debt)
+    w4_score = effective_n / effective_max
+
+    if w4_score >= 0.75:
+        w4_verdict = "W4_OK"
+    elif w4_score >= 0.40:
+        w4_verdict = "W4_DEGRADED"
+    else:
+        w4_verdict = "W4_FAILED"
+
+    notes: list[str] = []
+    if not human_ok:
+        notes.append("human witness missing")
+    if not ai_ok:
+        notes.append("ai witness missing")
+    if not earth_ok:
+        notes.append("earth witness missing")
+    if debt > 0:
+        notes.append(f"{debt} receipt(s) from SELF or INTERNAL position")
+
+    return QuadWitnessState(
+        human_ok=human_ok,
+        ai_ok=ai_ok,
+        earth_ok=earth_ok,
+        system_ok=SYSTEM_WITNESS_ALIVE,
+        position_debt=debt,
+        w4_score=round(w4_score, 3),
+        w4_verdict=w4_verdict,
+        notes=tuple(notes),
+    )
+
+
 __all__ = [
     "WitnessPosition",
     "ReceiptContext",
@@ -325,6 +401,8 @@ __all__ = [
     "narrator_debt",
     "TriWitnessPositionState",
     "tri_witness_position_state",
+    "QuadWitnessState",
+    "compute_quad_witness",
     "NarrativeSealRejection",
     "reject_narrative_seal",
     "NARRATIVE_SEAL_PATTERNS",

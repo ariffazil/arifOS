@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "arifos://schemas/reality_ledger/v1",
+  "title": "Reality Ledger Entry",
+  "description": "Closed-loop reality feedback record. Every non-trivial claim carries prediction, observed result, delta, and lesson. F2 TRUTH: delta_from_prediction is a mandatory field for SEAL-grade entries.",
+  "type": "object",
+  "required": [
+    "claim_id", "claim_text", "source_type", "confidence",
+    "action_taken", "observed_result", "delta_from_prediction",
+    "vault999_seal", "timestamp", "actor"
+  ],
+  "properties": {
+    "claim_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9-]{36}$",
+      "description": "UUID v4 — unique claim identifier"
+    },
+    "claim_text": {
+      "type": "string",
+      "description": "Natural language claim being evaluated"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": ["earth", "capital", "human", "code", "web", "operator", "model"],
+      "description": "Origin domain of the claim"
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Artifact IDs, URLs, or VAULT999 hashes backing this claim"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "What the system believed before action"
+    },
+    "uncertainty_band": {
+      "type": "object",
+      "properties": {
+        "lower": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "upper": { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+      },
+      "description": "P10-P90 range at time of prediction"
+    },
+    "prediction": {
+      "type": "string",
+      "description": "What the system predicted would happen — the counterfactual ground"
+    },
+    "action_taken": {
+      "type": "string",
+      "description": "What was actually executed or blocked (include tool + args hash)"
+    },
+    "observed_result": {
+      "type": "string",
+      "description": "What actually happened — observed outcome or error state"
+    },
+    "delta_from_prediction": {
+      "type": "string",
+      "enum": ["match", "better", "worse", "catastrophic", "unknown"],
+      "description": "Qualitative delta between prediction and observation"
+    },
+    "delta_numeric": {
+      "type": "number",
+      "description": "Quantified delta magnitude (0.0 = exact match, 1.0 = complete miss)"
+    },
+    "lesson": {
+      "type": "string",
+      "description": "What policy, threshold, or heuristic changes as a result"
+    },
+    "vault999_seal": {
+      "type": "string",
+      "description": "VAULT999 entry ID or hash anchoring this record"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC"
+    },
+    "actor": {
+      "type": "string",
+      "description": "Agent or system ID that generated this claim"
+    },
+    "floor_context": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Which F1-F13 floors were engaged"
+    },
+    "tearframe_metrics": {
+      "type": "object",
+      "properties": {
+        "truth_doubt_margin": { "type": "number" },
+        "echo_delta_s": { "type": "number" },
+        "amanah_irreversible_blocked": { "type": "boolean" },
+        "rasa_kappa_r": { "type": "number" },
+        "peace_squared": { "type": "number" }
+      },
+      "description": "TEARFRAME thermodynamic metrics at seal time"
+    },
+    "entropy_total": {
+      "type": "number",
+      "description": "Total ΔS across the 000-999 pipeline"
+    }
+  }
+}

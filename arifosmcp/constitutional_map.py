@@ -40,7 +40,7 @@ class Law(StrEnum):
 
     L01_AMANAH = "L01"  # Reversibility as conservation law (∃ undo)
     L02_TRUTH = "L02"  # Uncertainty as first-class citizen (τ ≥ 0.99)
-    L03_WITNESS = "L03"  # Tri-witness consensus (W₃ ≥ 0.75)
+    L03_WITNESS = "L03"  # Quad-witness consensus (W₄ ≥ 0.75) — human · ai · earth · system (H·A·E·S)
     L04_CLARITY = "L04"  # Entropy reduction as progress (ΔS ≤ 0)
     L05_PEACE = "L05"  # Non-destruction as baseline (P² ≥ 1.0)
     L06_EMPATHY = "L06"  # RASA as protocol (κᵣ ≥ 0.70)
