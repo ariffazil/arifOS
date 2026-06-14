@@ -540,13 +540,15 @@ OPENCLAW, OMEGA, and other agents operate on the same machine and same git trees
 
 | Service | Port | Status | HEAD / Note |
 |---------|------|--------|-------------|
-| arifOS MCP | 8088 | ✅ healthy | `5be88518` · **Ingress: Cloudflare Tunnel** |
-| arifosd | 18081 | ✅ healthy | runtime `5be88518` |
-| WEALTH | 18082 | ✅ healthy (44 tools) | `508dcd8` |
-| WELL | 18083 | ✅ live (state stale, sovereign) | `c612f10` |
-| GEOX MCP | 8081 | ✅ healthy (20 tools) | `b42b8015` |
-| A-FORGE | 7071 | ✅ healthy | `26f9cab` |
-| AAA a2a | 3001 | ✅ healthy (vault=CONNECTED) | `39a59c2e` |
+| arifOS MCP | 8088 | ✅ healthy | `0f887477c` · **Ingress: Cloudflare Tunnel** |
+| arifosd | 18081 | ✅ healthy | runtime `0f887477c` |
+| WEALTH | 18082 | ✅ healthy | `efdb305` |
+| WELL | 18083 | ✅ live (state stale, sovereign) | `dfd8dbe` |
+| GEOX MCP | 8081 | ✅ healthy (20 tools) | `7d56d117` |
+| A-FORGE | 7071 | ✅ healthy | `fca41c9` (MIND+MEMORY) |
+| MIND | 51001 | 🟡 committed — systemd pending | `fca41c9` |
+| MEMORY | 51002 | 🟡 committed — systemd pending | `fca41c9` |
+| AAA a2a | 3001 | ✅ healthy (vault=CONNECTED) | `9fb5371c` |
 | OpenClaw | 18789 | ✅ ready (eventLoop p99=23.8ms) | host systemd |
 | APEX | 3002 | ✅ healthy | host systemd |
 | Hermes A2A | 18001 | ✅ healthy | host systemd |

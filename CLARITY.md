@@ -1,7 +1,7 @@
 # CLARITY — Naming, Repositories, and Canonical Surfaces
 
 > **One source of truth for the arifOS naming situation.**
-> Updated: 2026-06-05
+> Updated: 2026-06-14
 
 ---
 
@@ -37,10 +37,10 @@ There is **one repository** and **one package**. Capitalization varies by surfac
 
 | Surface | Current Version | Source |
 |---------|----------------|--------|
-| Git repo HEAD | `main` @ `2b169aac` | `git rev-parse HEAD` |
+| Git repo HEAD | `main` @ `0f887477c` | `git rev-parse --short=7 HEAD` |
 | PyPI package | `2026.5.26` | `pip show arifos` |
-| Constitutional version | `2026.03.12--FORGED` | `core/shared/floors.py` |
-| Build tag | `v2026.05.05-SSCT` | `make health` output |
+| Constitutional version | `v2026.05.05-SSCT` (F1–F13 active) + `v2026.06.13-SELH-F14DEAD` (F0 PRIME, F14 DEAD, F15-F17 draft) | `arifosmcp/CONSTITUTIONAL_EXTENSION_*.py` |
+| Build tag | `v2026.05.05-SSCT` (live: `kanon-0f88747`) | `curl :8088/health` |
 
 The PyPI version lags the git HEAD because releases are cut manually. The constitutional version is the slowest-moving — it only changes when F1–F13 floors are ratified or amended.
 

@@ -215,17 +215,24 @@
         "L01",
         "L08"
       ],
-      "risk_tier": "low",
+      "risk_tier": "medium",
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
       "modes": [
         "recall",
+        "store",
+        "forget",
+        "update",
+        "agentic",
+        "context_restore",
         "asset_query",
         "asset_store",
-        "context_restore"
+        "seal",
+        "prune",
+        "quarantine"
       ],
-      "eureka_insight": "F1: recall must be auditable \u2014 no silent memory mutation. F8: G \u2265 0.80 \u2014 recall contributes to systemic continuity.",
+      "eureka_insight": "F1: mutating modes (store/forget/update/seal/prune/quarantine) require mutation_allowed on session. Agentic search v0.1: PLAN\u2192RETRIEVE\u2192EVAL\u2192SYNTHESISE (MAX_LOOPS=3, F7 cap 0.90). F2: Unknown tiers downgraded to ephemeral (not silent canon elevation).",
       "tags": [
         "canonical"
       ]
@@ -309,7 +316,7 @@
         "recall",
         "dry_run"
       ],
-      "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. F11: actor verified. F13: judge SEAL required before execution.",
+      "eureka_insight": "F1: mutation-class modes (engineer/write/generate/commit) REQUIRE valid lease (hard-block \u2014 no warn-and-proceed). Read-only modes (query/recall/dry_run) exempt. F11: actor verified. F13: judge SEAL required before execution.",
       "tags": [
         "canonical"
       ]

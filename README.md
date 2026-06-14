@@ -23,10 +23,10 @@
 [![CI](https://img.shields.io/badge/CI-passing-brightgreen)](https://github.com/ariffazil/arifOS/actions)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://pypi.org/project/arifos/)
 [![MCP Tools](https://img.shields.io/badge/MCP-13%20canonical%20tools-10b981?logo=anthropic)](https://arifos.arif-fazil.com/mcp)
-[![Floors](https://img.shields.io/badge/floors-F1–F13-f59e0b)](static/arifos/theory/000/000_CONSTITUTION.md)
+[![Floors](https://img.shields.io/badge/floors-F1–F13%20active%20(F14%20DEAD)-f59e0b)](arifosmcp/CONSTITUTIONAL_EXTENSION_v2026.06.11-SELH.py)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-ef4444?logo=gnu)](LICENSE)
 [![Port](https://img.shields.io/badge/port-8088-64748b)](deploy/arifos.service)
-[![Federation](https://img.shields.io/badge/federation-7%20organs-8B5CF6)](FEDERATION_CONTRACT.md)
+[![Federation](https://img.shields.io/badge/federation-9%20organs%20(7%20core%20%2B%20MIND%2FMEMORY)-8B5CF6)](FEDERATION_CONTRACT.md)
 [![Status](https://img.shields.io/badge/status-OPERATIONAL-success)](FEDERATION_STATUS.md)
 
 ---
@@ -519,7 +519,7 @@ On top of the 13 constitutional floors sits the **Adat Agentik** — a normative
 - **Darjat** (Citizen Tier) — BIRTH → APPRENTICE → WARGA → ELDER. Auto-demoted on HARAM. Only F13 promotes.
 - **Tebus-Salah** (Restitution) — The agent must DEMONSTRATE change through consistent action, not just apologize.
 
-> **"The mirror speaks. The void is silent. F14 stands."** — The kill-switch doctrine. When software governance fails, the human hand on the physical power cord is the floor that holds.
+> **"The mirror speaks. The void is silent."** — F14 REGISTER is DEAD as a floor (Sovereign Ruling 2026-06-13). The kill-switch truth — that the human hand on the physical power cord is the floor that holds — is reborn as operational protocol inside F2 (TRUTH/evidence) + F3 (AUDIT/trace). No new constitutional authority was created. The human veto was always F13.
 
 ---
 
