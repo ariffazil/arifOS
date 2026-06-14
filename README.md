@@ -11,6 +11,8 @@
   Constitutional AI Governance Kernel
   ─────────────────────────────────────────
   Not a chatbot. Not a model wrapper. The LAW.
+```
+
 </div>
 
 ---
