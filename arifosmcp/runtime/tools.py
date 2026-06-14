@@ -14945,7 +14945,7 @@ def register_tools(
 ) -> list[str]:
     """Register the active canonical public surface with the MCP server."""
     from arifosmcp.core.enforcement.risk_classifier import classify_tool
-    from arifosmcp.constitutional_map import _TOOL_ANNOTATIONS
+    from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS, _TOOL_ANNOTATIONS
     from arifosmcp.runtime.public_registry import public_tool_spec_by_name
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
     from arifosmcp.tool_charter import TOOL_CHARTER
@@ -15006,6 +15006,34 @@ def register_tools(
                     },
                 },
             )(wrapped)
+
+            # ── Inject JSON Schema enums and required fields ─────────────────
+            # Patch the registered tool's parameters with enum values from the
+            # constitutional_map registry. This gives MCP clients machine-readable
+            # mode constraints instead of forcing them to parse prose descriptions.
+            _registry = {**CANONICAL_TOOLS, **DIAGNOSTIC_TOOLS}
+            _spec = _registry.get(name)
+            if _spec:
+                _modes = _spec.get("modes", [])
+                try:
+                    _provider = getattr(mcp, "_local_provider", None)
+                    if _provider is not None:
+                        _components = getattr(_provider, "_components", {})
+                        _tool_key = f"tool:{name}@"
+                        _ft = _components.get(_tool_key)
+                        if _ft is not None and hasattr(_ft, "parameters"):
+                            _params = _ft.parameters
+                            if _modes and "properties" in _params and "mode" in _params["properties"]:
+                                _params["properties"]["mode"]["enum"] = _modes
+                                logger.info("INJECTED enum for %s: %s", name, _modes)
+                            else:
+                                logger.warning("INJECTION FAILED: %s has mode=%s, props=%s", name, _modes, list(_params.get("properties", {}).keys()))
+                        else:
+                            logger.warning("INJECTION FAILED: tool key '%s' not found. Available: %s", _tool_key, list(_components.keys())[:5])
+                    else:
+                        logger.warning("INJECTION FAILED: no _local_provider")
+                except Exception:
+                    logger.warning("Schema enum injection exception for %s", name, exc_info=True)
 
             # Register tool params with ingress middleware for unknown-field absorption
             if ingress_middleware is not None:

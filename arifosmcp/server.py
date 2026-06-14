@@ -16,7 +16,7 @@ except ImportError:
     pass  # Windows / dev fallback
 
 import logging
-from typing import Any
+from typing import Any, Callable
 import os
 import sys
 import traceback
@@ -617,66 +617,47 @@ try:
             client_capabilities=client_capabilities,
         )
 
-    # ── Forge Ladder (v3.1) — governed execution surface ────────────────────
     from arifosmcp.runtime.tools import _wrap_handler
-    from arifosmcp.tools.forge_ladder import (
-        forge_dry_run as _forge_dry_run,
-    )
-    from arifosmcp.tools.forge_ladder import (
-        forge_plan as _forge_plan,
-    )
-    from arifosmcp.tools.forge_ladder import (
-        forge_query as _forge_query,
-    )
-    from arifosmcp.tools.planner import (
-        arif_plan_and_simulate as _arif_plan_and_simulate,
-    )
 
-    # Route through _wrap_handler so _envelope is accepted by Pydantic
-    # (Fix: P0-20260610 — forge_* tools were registered raw, bypassing
-    #  signature enrichment.  External MCP clients injecting _envelope
-    #  via ingress middleware were rejected by Pydantic validation.)
-    _q = _wrap_handler(_forge_query, "forge_query")
-    if _q is not None:
-        mcp.tool(
-            name="forge_query",
-            description=(
-                "010_FORGE_QUERY: Read-only system introspection. Safe to call without approval. "
-                "Returns workspace tree, system state, and query result. "
-                "Use this instead of arif_forge_execute(mode='query')."
-            ),
-            tags={"forge", "read-only", "observe"},
-        )(_q)
-    else:
-        mcp.tool(name="forge_query", tags={"forge", "read-only", "observe"})(_forge_query)
+    # ── Forge Ladder — DEPRECATED PROXY (engineering tools moved to A-FORGE) ─
+    # forge_query, forge_plan, forge_dry_run, forge_plan_and_simulate now
+    # live on A-FORGE MCP (forge.arif-fazil.com/mcp, port 7071).
+    # arifOS retains a thin deprecation proxy that redirects agents to A-FORGE.
+    # Hard removal target: 2026-07-15.
+    _FORGE_MCP_ENDPOINT = "https://forge.arif-fazil.com/mcp"
+    _FORGE_DEPRECATION_MSG = (
+        "forge_* tools have moved to A-FORGE MCP. "
+        "Connect to forge.arif-fazil.com/mcp for engineering tools. "
+        "This arifOS endpoint will be removed 2026-07-15."
+    )
+    _FORGE_DEPRECATION_META = {
+        "status": "DEPRECATED_PROXY",
+        "forwarded_to": _FORGE_MCP_ENDPOINT,
+        "removal_after": "2026-07-15",
+        "migration": "Connect to forge.arif-fazil.com/mcp for forge_query, forge_plan, forge_dry_run, forge_plan_and_simulate, filesystem, git, docker, postgres, and all engineering tools.",
+    }
 
-    _p = _wrap_handler(_forge_plan, "forge_plan")
-    if _p is not None:
-        mcp.tool(
-            name="forge_plan",
-            description=(
-                "010_FORGE_PLAN: Classify action, estimate blast radius, produce plan. "
-                "Safe to call without approval. Returns action_class, risk_tier, required_tools. "
-                "Required before MUTATE/ATOMIC forge execution."
-            ),
-            tags={"forge", "read-only", "reason"},
-        )(_p)
-    else:
-        mcp.tool(name="forge_plan", tags={"forge", "read-only", "reason"})(_forge_plan)
+    def _make_forge_deprecated_proxy(tool_name: str) -> Callable:
+        """Return a handler that returns deprecation metadata (no **kwargs, FastMCP compat)."""
+        if tool_name == "forge_query":
+            def _h1(manifest: str = "", query: str = "", cwd: str = ".", session_id: str | None = None, actor_id: str | None = None, _envelope: dict | None = None) -> dict[str, Any]:
+                return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
+            return _h1
+        elif tool_name == "forge_plan":
+            def _h2(goal: str = "", workspace: str = ".", session_id: str | None = None, actor_id: str | None = None, _envelope: dict | None = None) -> dict[str, Any]:
+                return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
+            return _h2
+        elif tool_name == "forge_dry_run":
+            def _h3(plan_id: str = "", manifest: str = "", cwd: str = ".", session_id: str | None = None, actor_id: str | None = None, _envelope: dict | None = None) -> dict[str, Any]:
+                return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
+            return _h3
+        else:
+            def _h4(intent: str = "", context: dict | None = None, risk_tier: str = "medium", force_simulation: bool = True, _envelope: dict | None = None) -> dict[str, Any]:
+                return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
+            return _h4
 
-    _ps = _wrap_handler(_arif_plan_and_simulate, "forge_plan_and_simulate")
-    if _ps is not None:
-        mcp.tool(
-            name="forge_plan_and_simulate",
-            description=(
-                "FORGE_SIMULATE: Planner and Simulator Service. "
-                "Search-based planner with alternative plans and rollback paths. "
-                "Generates simulation artifacts before high-risk execution."
-            ),
-            tags={"forge", "simulator", "reason", "planning"},
-        )(_ps)
-    else:
-        mcp.tool(name="forge_plan_and_simulate", tags={"forge", "simulator", "reason", "planning"})(_arif_plan_and_simulate)
+    for _fn in ("forge_query", "forge_plan", "forge_dry_run", "forge_plan_and_simulate"):
+        mcp.tool(name=_fn, description=_FORGE_DEPRECATION_MSG, tags={"forge", "deprecated", "proxy"})(_make_forge_deprecated_proxy(_fn))
 
     # ── Institutional Shadow Drift (GENESIS/006 runtime sensor) ─────────────
     _isd = _wrap_handler(
@@ -787,23 +768,8 @@ try:
             tags={"live-kernel", "heartbeat", "state-bus", "vitality"},
         )(_hb)
 
-    _d = _wrap_handler(_forge_dry_run, "forge_dry_run")
-    if _d is not None:
-        mcp.tool(
-            name="forge_dry_run",
-            description=(
-                "010_FORGE_DRY_RUN: Simulate execution without mutation. "
-                "Safe to call without approval. Returns diff preview, files touched, rollback plan. "
-                "Required before MUTATE/ATOMIC forge execution."
-            ),
-            tags={"forge", "read-only", "reason", "simulate"},
-        )(_d)
-    else:
-        mcp.tool(name="forge_dry_run", tags={"forge", "read-only", "reason", "simulate"})(
-            _forge_dry_run
-        )
-
-    v2_tools_registered.extend(["forge_query", "forge_plan", "forge_dry_run"])
+    # forge_dry_run removed — moved to A-FORGE MCP (forge.arif-fazil.com/mcp).
+    # Deprecation proxy registered above.
 
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
@@ -840,6 +806,24 @@ try:
                 tags={"hermes", "diagnostic", "read-only"},
             )(_hermes_handler)
     v2_tools_registered.extend(list(HERMES_TOOL_HANDLERS.keys()))
+
+    # ── Inject JSON Schema enums for Hermes tools ──────────────────────────
+    from arifosmcp.constitutional_map import DIAGNOSTIC_TOOLS as _DIAG_TOOLS
+    for _hn in HERMES_TOOL_HANDLERS:
+        _spec = _DIAG_TOOLS.get(_hn)
+        _modes = _spec.get("modes", []) if _spec else []
+        if _modes:
+            try:
+                _provider = getattr(mcp, "_local_provider", None)
+                if _provider:
+                    _ft = getattr(_provider, "_components", {}).get(f"tool:{_hn}@")
+                    if _ft and hasattr(_ft, "parameters"):
+                        _params = _ft.parameters
+                        if "properties" in _params and "mode" in _params["properties"]:
+                            _params["properties"]["mode"]["enum"] = _modes
+                            logger.info("INJECTED enum for %s: %s", _hn, _modes)
+            except Exception:
+                logger.debug("Schema enum injection skipped for %s", _hn, exc_info=True)
 
     # Refresh the public registry cache after all canonical tools are registered
     from arifosmcp.runtime.public_registry import _runtime_contracts
@@ -1835,7 +1819,7 @@ if app:
         from arifosmcp.runtime.rest_routes import register_rest_routes
         from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS
 
-        register_rest_routes(app, CANONICAL_TOOL_HANDLERS)
+        register_rest_routes(app, CANONICAL_TOOL_HANDLERS, mcp)
         logger.info("REST routes registered on ASGI app")
     except Exception as e:
         logger.warning(f"REST routes registration failed: {e}")

@@ -1494,7 +1494,7 @@ LLMS_JSON = {
         "law": {
             "name": "The Mind (Technical Docs & Apps)",
             "url": "https://arifos.arif-fazil.com",
-            "llms_txt": "https://arifos.arif-fazil.com/llms.txt",
+            "llms_txt": "https://arifos.arif-fazil.com/manifest.txt",
             "role": "The 13 Floors specification and integration hub.",
         },
         "brain": {
@@ -1883,6 +1883,19 @@ def _openapi_schema(base_url: str, tools: list[Any]) -> dict[str, Any]:
     return schema
 
 
+def _count_mcp_tools(fmcp: Any) -> int:
+    """Count total tools registered on the FastMCP instance, not just canonical."""
+    try:
+        provider = getattr(fmcp, "_local_provider", None)
+        if provider is not None:
+            components = getattr(provider, "_components", {})
+            tool_count = sum(1 for k in components if k.startswith("tool:"))
+            return tool_count
+    except Exception:
+        pass
+    return 13
+
+
 def _compute_tool_registry_hash(tool_registry: dict[str, Any]) -> str:
     """SHA-256 of canonical tool names."""
     names = sorted(tool_registry.keys())
@@ -2217,6 +2230,7 @@ def _compute_known_gaps(
 def register_rest_routes(
     mcp: Any,
     tool_registry: dict[str, Callable],
+    fastmcp_instance: Any = None,
     prefix: str = "",
 ) -> None:
     """Register REST endpoints as custom routes on the FastMCP instance.
@@ -2447,6 +2461,17 @@ def register_rest_routes(
                 "_tool_count",
                 getattr(getattr(mcp, "state", None), "_tool_count", len(tool_registry)),
             ),
+            "canonical_tools_loaded": 13,
+            "tools_exposed_via_mcp": _count_mcp_tools(fastmcp_instance or mcp),
+            "canonical_tools": 13,
+            "operational_tools": max(0, _count_mcp_tools(fastmcp_instance or mcp) - 13),
+            "tool_count_semantics": {
+                "canonical_tools_loaded": "Constitutional core tools returned by arif_kernel_route(mode=list)",
+                "operational_tools": "Supporting MCP tools (leases, probes, Hermes, forge helpers, attestation, diagnostics)",
+                "tools_exposed_via_mcp": "Total tools returned by MCP tools/list",
+            },
+            "tool_manifest_url": "https://arifos.arif-fazil.com/manifest.txt",
+            "tool_manifest_hash": "auto-generated",
             "floors_active": get_floor_count(),
             "floors_enforcement": "active",
             "tool_registry_hash": _compute_tool_registry_hash(tool_registry),

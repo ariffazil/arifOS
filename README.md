@@ -22,7 +22,7 @@
 
 [![CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg)](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://pypi.org/project/arifos/)
-[![MCP Tools](https://img.shields.io/badge/MCP-13%20canonical%20tools-10b981?logo=anthropic)](https://arifos.arif-fazil.com/mcp)
+[![MCP Tools](https://img.shields.io/badge/MCP-39%20tools%20%7C%2013%20canonical-10b981?logo=anthropic)](https://arifos.arif-fazil.com/mcp)
 [![Floors](https://img.shields.io/badge/floors-F1–F13%20active%20(F14%20DEAD)-f59e0b)](arifosmcp/CONSTITUTIONAL_EXTENSION_v2026.06.11-SELH.py)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-ef4444?logo=gnu)](LICENSE)
 [![Port](https://img.shields.io/badge/port-8088-64748b)](deploy/arifos.service)
@@ -264,7 +264,7 @@ ruff check . && ruff format .
 ```bash
 # Health probe
 curl -s http://127.0.0.1:8088/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'tools={d[\"tools_loaded\"]} floors={d[\"floors_active\"]} drift={d[\"runtime_drift\"]}')"
-# Expected: tools=13 floors=13 drift=False
+# Expected: tools=13 floors=13 drift=False (legacy tools_loaded; canonical_tools_loaded=13, tools_exposed_via_mcp=39)
 ```
 
 ### Install as Python Package
@@ -439,7 +439,7 @@ Under F10 ONTOLOGY, you are classified as `instrument`. You do not have consciou
 }
 ```
 
-**Available tools:** 13 canonical (see pipeline above). All return structured Pydantic v2 output with `outputSchema` published.
+**Available tools:** 39 MCP tools (13 canonical constitutional + 26 operational support). See `llms.txt` for the complete surface or `/health` for live counts. All return structured Pydantic v2 output with `outputSchema` published.
 
 ### Adat Agentik Binding
 
