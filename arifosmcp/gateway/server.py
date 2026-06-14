@@ -551,19 +551,37 @@ async def _proxy_mcp_to_organ(organ_name: str, body: dict) -> dict:
 
 def _route_tool_to_organ(tool_name: str) -> str | None:
     """Determine which organ owns a given tool name."""
-    # A-FORGE owns the federated session ignition tool so it can cache
-    # kernel-born sessions locally and enforce session gates downstream.
-    if tool_name == "arif_session_init":
+    # A-FORGE owns several federated/arif_ and wealth_ tools because it wraps
+    # upstream organs with local session/lease gating and telemetry.
+    AFORGE_OWNED = {
+        "arif_session_init",
+        "arif_health_check",
+        "arif_sense_observe",
+        "arif_mind_reason",
+        "arif_heart_critique",
+        "arif_forge_execute",
+        "arif_vault_seal",
+        "wealth_evaluate_ROI",
+        "wealth_compute_EMV",
+        "wealth_thermodynamic_scan",
+    }
+    if tool_name in AFORGE_OWNED:
         return "A-FORGE"
+    # Prefer cached tool catalog when available (most accurate)
+    for organ_name, organ in UPSTREAM_ORGANS.items():
+        cache = organ.get("tools_cache")
+        if cache and any(t.get("name") == tool_name for t in cache):
+            return organ_name
+    # Prefix routing fallback
     for organ_name, organ in UPSTREAM_ORGANS.items():
         prefix = organ["prefix"]
         if tool_name.startswith(prefix):
             return organ_name
-    # Fallback: arif_ prefixed tools go to arifOS
+    # Legacy fallbacks
     if tool_name.startswith("arif_"):
         return "arifOS"
     if tool_name.startswith("forge_"):
-        return "arifOS"
+        return "A-FORGE"
     return None
 
 
@@ -969,7 +987,8 @@ async def _mcp_handler(request: Request):
             if not k.startswith("_") or k in ("session_id", "actor_id", "lease_id")
         }
         if organ_name == "A-FORGE":
-            upstream_args["lease_id"] = lease_id
+            if lease_id:
+                upstream_args["lease_id"] = lease_id
             if "actor_id" not in upstream_args:
                 upstream_args["actor_id"] = subject.get("agent_id", "gateway-actor")
             # session_id must be kernel-born; pass through if caller supplied one,
