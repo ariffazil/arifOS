@@ -4,19 +4,17 @@
 PYTHON = uv run python
 DIR := /root/arifOS
 
-include /root/arifOS/scripts/forge.mk
 include /root/arifOS/scripts/security_audit.mk
 
-.PHONY: status forge check seal health conformance sync sot-check prove deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public reality-replay constitutional-benchmark
+.PHONY: status forge seal health conformance sync sot-check prove deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public reality-replay constitutional-benchmark
 
 status:
 	@echo "--- arifOS Status (ΔΩΨ) ---"
 	@$(PYTHON) -m arifosmcp.runtime.reforge 2>/dev/null || true
 	@git status -s
 
-forge: clean-temp sot-bump security-audit
-	@echo "⛓️  Forge gate passed. Entropy lowered."
-	@echo "   Run: git add . && git commit -m 'your message' && git push"
+# Federation forge gate — inherited from scripts/forge.mk
+include /root/arifOS/scripts/forge.mk
 
 seal:
 	@echo "Sealing Vault 999..."
