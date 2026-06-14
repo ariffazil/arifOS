@@ -1,7 +1,7 @@
 # AGENT_KERNEL_START — arifOS Estate Entry Ritual
 > **DITEMPA BUKAN DIBERI** — You are entering the constitutional kernel.
 > **Authority:** This file is the first operational context for every agent.
-> **Version:** 2026-05-25
+> **Version:** 2026-06-14
 
 ---
 
@@ -15,7 +15,7 @@ A-FORGE (Ψ Forge)      ← Execution shell. Workflows. The "how" and "what to b
 arif-sites (Δ Surface) ← Public federation surface.
 GEOX (Earth)            ← Earth intelligence organ.
 WEALTH (Capital)        ← Capital intelligence organ.
-WELL (Vitality)         ← Human readiness organ. Not deployed.
+WELL (Vitality)         ← Human readiness organ.
 APEX (Verdict)          ← Constitutional judgment engine. Archived/read-only.
 ```
 
@@ -44,9 +44,9 @@ When sources disagree, higher authority wins. Do not guess.
 | Service | Public host | Local target | Status |
 |---------|------------|-------------|--------|
 | **arifOS** | `arifos.arif-fazil.com` | `127.0.0.1:8088` | ✅ LIVE |
-| **GEOX** | `geox.arif-fazil.com` | `127.0.0.1:18081` | ✅ LIVE |
+| **GEOX** | `geox.arif-fazil.com` | `127.0.0.1:8081` | ✅ LIVE |
 | **WEALTH** | `wealth.arif-fazil.com` | `127.0.0.1:18082` | ✅ LIVE |
-| **WELL** | `well.arif-fazil.com` | disabled | ⛔ 404 intentional |
+| **WELL** | `well.arif-fazil.com` | `127.0.0.1:18083` | ✅ LIVE |
 
 ---
 
@@ -76,10 +76,10 @@ When sources disagree, higher authority wins. Do not guess.
 These must never appear in any active config, doc, or code:
 
 - ❌ arifOS public on `8080` — correct is `8088`
-- ❌ GEOX public on `8081` — correct is `18081`
+- ❌ GEOX public on `18081` — correct is `8081`
 - ❌ WEALTH disabled — it is LIVE on `18082`
-- ❌ WELL live — it is NOT DEPLOYED
-- ❌ GEOX daemon on `8081` — it is on `18081`
+- ❌ WELL disabled — it is LIVE on `18083`
+- ❌ arifosd daemon on `8081` — it is on `18081`
 - ❌ APEX not archived — it is read-only
 - ❌ organ_governance absolute import inside WEALTH internal package
 - ❌ WEALTH missing `internal/__init__.py`
@@ -115,7 +115,7 @@ curl https://geox.arif-fazil.com/health
 curl https://wealth.arif-fazil.com/health
 
 # Local process check
-ss -ltnp | grep -E '8088|18081|18082'
+ss -ltnp | grep -E '8088|8081|18082|18083'
 ```
 
 ---
@@ -129,7 +129,7 @@ ss -ltnp | grep -E '8088|18081|18082'
 | `arif-sites` | Public surface, federation manifests | Kernel logic |
 | `GEOX` | Earth intelligence, geoscience | Finance, human health |
 | `WEALTH` | Capital intelligence, financial computation | Geology, execution |
-| `WELL` | Human readiness (reserved, not deployed) | Everything until deployed |
+| `WELL` | Human readiness | Execution |
 | `APEX` | Constitutional verdict (archived) | Everything |
 
 ---

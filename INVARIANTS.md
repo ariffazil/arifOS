@@ -16,7 +16,7 @@
 - Execution shell (→ A-FORGE)
 - GEOX earth intelligence (→ GEOX)
 - WEALTH capital intelligence (→ WEALTH)
-- WELL human readiness (→ WELL, reserved)
+- WELL human readiness (→ WELL, operational)
 - APEX verdict engine (→ APEX, archived)
 
 ## Live Ports

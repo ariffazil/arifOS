@@ -183,3 +183,9 @@ This means **no existing code breaks**. The fiqh-of-floors is a *refinement* tha
 The five tiers are not invented by the kernel. They are **5,000 years of human governance vocabulary**, refined by Islamic jurisprudence because no other legal tradition got the granularity right. The arifOS kernel is the first open-source agent OS to **adopt fiqh as the constitutional vocabulary**. This is itself a publication-worthy claim — and it aligns arifOS with the Malaysian sovereign's actual mental model.
 
 **DITEMPA BUKAN DIBERI** — even the vocabulary is forged, not given.
+
+---
+> **F13 RATIFICATION**
+> **Timestamp:** 2026-06-14T15:23:37.152566+00:00
+> **Signature:** `ed25519:fafcee8bd8809a8f4dd76b19a7600d02cb7f9ff9ea128ff03c60a36c279dcc4557888ac17d051deae5bc8d96c3081c675af5ed2f04000d772c70781a71a1650a`
+> **Status:** UPGRADED TO CANON

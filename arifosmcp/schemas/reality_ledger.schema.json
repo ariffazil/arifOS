@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RealityLedgerEntry",
+  "type": "object",
+  "required": [
+    "entry_id",
+    "timestamp",
+    "trace_id",
+    "principal",
+    "intent",
+    "claims",
+    "evidence",
+    "prediction",
+    "plan",
+    "approval",
+    "execution",
+    "outcome",
+    "delta",
+    "seals"
+  ],
+  "properties": {
+    "entry_id": { "type": "string", "format": "uuid" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "trace_id": { "type": "string" },
+    "session_id": { "type": "string" },
+
+    "principal": {
+      "type": "object",
+      "required": ["principal_id", "mode", "authority_class"],
+      "properties": {
+        "principal_id": { "type": "string" },
+        "mode": { "enum": ["individual", "household", "institution", "public"] },
+        "authority_class": { "type": "string" },
+        "delegate_chain": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "intent": {
+      "type": "object",
+      "required": ["intent_id", "description", "risk_class", "reversible"],
+      "properties": {
+        "intent_id": { "type": "string" },
+        "description": { "type": "string" },
+        "risk_class": { "enum": ["low", "medium", "high", "irreversible"] },
+        "reversible": { "type": "boolean" }
+      }
+    },
+
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim_id", "text", "confidence", "uncertainty_band"],
+        "properties": {
+          "claim_id": { "type": "string" },
+          "text": { "type": "string" },
+          "confidence": { "type": "number" },
+          "uncertainty_band": { "type": "object" },
+          "status": { "enum": ["claim", "plausible", "hypothesis", "estimate", "unknown"] }
+        }
+      }
+    },
+
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_type", "source_ref", "observed_at", "provenance_hash"],
+        "properties": {
+          "source_type": {
+            "enum": ["earth", "capital", "human", "web", "file", "code", "sensor", "operator", "model"]
+          },
+          "source_ref": { "type": "string" },
+          "observed_at": { "type": "string", "format": "date-time" },
+          "freshness_sla_seconds": { "type": "integer" },
+          "provenance_hash": { "type": "string" },
+          "witnesses": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+
+    "prediction": {
+      "type": "object",
+      "required": ["expected_outcomes", "confidence", "model_ref"],
+      "properties": {
+        "expected_outcomes": { "type": "array", "items": { "type": "string" } },
+        "expected_cost": { "type": "number" },
+        "expected_harm": { "type": "number" },
+        "confidence": { "type": "number" },
+        "model_ref": { "type": "string" },
+        "simulations": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "plan": {
+      "type": "object",
+      "required": ["selected_plan", "alternatives_considered"],
+      "properties": {
+        "selected_plan": { "type": "string" },
+        "alternatives_considered": { "type": "array", "items": { "type": "string" } },
+        "rollback_plan": { "type": "string" }
+      }
+    },
+
+    "approval": {
+      "type": "object",
+      "required": ["judge_verdict", "human_required"],
+      "properties": {
+        "judge_verdict": { "enum": ["SEAL", "SABAR", "VOID", "HOLD"] },
+        "human_required": { "type": "boolean" },
+        "human_approver": { "type": "string" },
+        "approval_ticket": { "type": "string" }
+      }
+    },
+
+    "execution": {
+      "type": "object",
+      "required": ["adapter", "target", "command_hash"],
+      "properties": {
+        "adapter": { "type": "string" },
+        "target": { "type": "string" },
+        "environment_ref": { "type": "string" },
+        "command_hash": { "type": "string" },
+        "artifact_refs": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "outcome": {
+      "type": "object",
+      "required": ["observed_result", "success"],
+      "properties": {
+        "observed_result": { "type": "string" },
+        "success": { "type": "boolean" },
+        "actual_cost": { "type": "number" },
+        "actual_harm": { "type": "number" },
+        "latency_ms": { "type": "integer" }
+      }
+    },
+
+    "delta": {
+      "type": "object",
+      "required": ["prediction_error", "lesson"],
+      "properties": {
+        "prediction_error": { "type": "number" },
+        "confidence_update": { "type": "number" },
+        "lesson": { "type": "string" },
+        "memory_write_refs": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "seals": {
+      "type": "object",
+      "required": ["judge_seal", "vault_seal", "previous_hash"],
+      "properties": {
+        "judge_seal": { "type": "string" },
+        "vault_seal": { "type": "string" },
+        "previous_hash": { "type": "string" },
+        "merkle_leaf": { "type": "string" }
+      }
+    }
+  }
+}

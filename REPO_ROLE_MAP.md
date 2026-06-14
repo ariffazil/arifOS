@@ -58,7 +58,7 @@ Arif (F13 SOVEREIGN)
 2. **arifOS is the only repo with 888_JUDGE, VAULT999, and memory layers.**
 3. **No repo may claim to be "the constitution" or "sovereign" unless it is arifOS.**
 4. **A-FORGE REPO_CONSTITUTION.md is a FEDERATION_EXECUTION_CHARTER — not the sovereign constitution.**
-5. **WELL server.py is operational. arifOS README "WELL → disabled" claim is stale. See FEDERATION_STATUS.md.**
+5. **WELL server.py is operational and tracked in FEDERATION_STATUS.md.**
 
 ## Alias Registry (Known)
 

@@ -624,6 +624,9 @@ try:
     from arifosmcp.tools.forge_ladder import (
         forge_query as _forge_query,
     )
+    from arifosmcp.tools.planner import (
+        arif_plan_and_simulate as _arif_plan_and_simulate,
+    )
 
     # Route through _wrap_handler so _envelope is accepted by Pydantic
     # (Fix: P0-20260610 — forge_* tools were registered raw, bypassing
@@ -656,6 +659,20 @@ try:
         )(_p)
     else:
         mcp.tool(name="forge_plan", tags={"forge", "read-only", "reason"})(_forge_plan)
+
+    _ps = _wrap_handler(_arif_plan_and_simulate, "forge_plan_and_simulate")
+    if _ps is not None:
+        mcp.tool(
+            name="forge_plan_and_simulate",
+            description=(
+                "FORGE_SIMULATE: Planner and Simulator Service. "
+                "Search-based planner with alternative plans and rollback paths. "
+                "Generates simulation artifacts before high-risk execution."
+            ),
+            tags={"forge", "simulator", "reason", "planning"},
+        )(_ps)
+    else:
+        mcp.tool(name="forge_plan_and_simulate", tags={"forge", "simulator", "reason", "planning"})(_arif_plan_and_simulate)
 
     # ── Institutional Shadow Drift (GENESIS/006 runtime sensor) ─────────────
     _isd = _wrap_handler(

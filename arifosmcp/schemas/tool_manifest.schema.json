@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ToolManifest",
+  "type": "object",
+  "required": ["server_name", "version", "tools"],
+  "properties": {
+    "server_name": { "type": "string" },
+    "version": { "type": "string" },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "description", "category", "risk_tier", "irreversible"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "category": { "enum": ["canonical", "diagnostic", "federation", "forge-sub", "narrative", "planner", "probe"] },
+          "risk_tier": { "enum": ["low", "medium", "high", "critical"] },
+          "irreversible": { "type": "boolean" },
+          "floors": { "type": "array", "items": { "type": "string" } },
+          "eureka_insight": { "type": "string" }
+        }
+      }
+    }
+  }
+}

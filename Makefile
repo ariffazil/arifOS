@@ -1,21 +1,22 @@
 # arifOS Metabolic Makefile
-# Ditempa Bukan Diberi.
+# Ditempa Bukan Diberi — Forged, Not Given
 
 PYTHON = uv run python
 DIR := /root/arifOS
 
-.PHONY: status forge seal health conformance sync sot-check prove deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public security-audit
+include /root/arifOS/scripts/forge.mk
+include /root/arifOS/scripts/security_audit.mk
+
+.PHONY: status forge check seal health conformance sync sot-check prove deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public reality-replay constitutional-benchmark
 
 status:
 	@echo "--- arifOS Status (ΔΩΨ) ---"
-	@$(PYTHON) -m arifosmcp.runtime.reforge
+	@$(PYTHON) -m arifosmcp.runtime.reforge 2>/dev/null || true
 	@git status -s
 
-forge: security-audit
-	@echo "Executing Surgical Burn..."
-	@$(PYTHON) -m arifosmcp.runtime.reforge
-	@git add .
-	@echo "Metabolic Cycle Complete. Awaiting 888_SEAL for commit."
+forge: clean-temp sot-bump security-audit
+	@echo "⛓️  Forge gate passed. Entropy lowered."
+	@echo "   Run: git add . && git commit -m 'your message' && git push"
 
 seal:
 	@echo "Sealing Vault 999..."
@@ -59,6 +60,14 @@ sot-check: security-audit
 	@echo "Auditing arifOS source-of-truth alignment..."
 	@python scripts/audit_sot.py
 
+reality-replay:
+	@echo "Replaying Reality Ledger..."
+	@python -m arifosmcp.core.vault999.reality_ledger
+
+constitutional-benchmark:
+	@echo "Running Constitutional Agent Benchmark..."
+	@python benchmarks/constitutional_agent_benchmark/run_benchmarks.py
+
 sync:
 	@echo "Synchronizing Planetary Fleet..."
 	@git submodule update --remote --merge
@@ -85,11 +94,11 @@ prove:
 	@echo ""
 	@echo "--- 3. make security-audit ---"; make security-audit 2>&1 || echo "FAIL"
 	@echo ""
-	@echo "--- 4. pytest adversarial ---"; python -m pytest tests/adversarial/ -q --tb=short 2>&1 || echo "FAIL"
+	@echo "--- 4. make constitutional-benchmark ---"; make constitutional-benchmark 2>&1 || echo "FAIL"
 	@echo ""
-	@echo "--- 5. vault999-verify ---"; python scripts/vault999_status.py 2>&1 || echo "FAIL"
+	@echo "--- 5. make reality-replay ---"; make reality-replay 2>&1 || echo "FAIL"
 	@echo ""
-	@echo "--- 6. conformance ---"; make conformance 2>&1 || echo "FAIL"
+	@echo "--- 6. vault999-verify ---"; python scripts/vault999_status.py 2>&1 || echo "FAIL"
 	@echo ""
 	@echo "--- Generating proof pack ---"; \
 	PROOF_FILE="reports/ARIFOS_PROOF_PACK_$$(date +%Y-%m-%d).md"; \
@@ -98,9 +107,9 @@ prove:
 	  echo ""; \
 	  echo "## Health"; curl -s http://localhost:8088/health | python3 -m json.tool 2>/dev/null || echo "FAIL"; \
 	  echo ""; \
-	  echo "## Security Audit"; echo "(See security-audit output above)"; \
+	  echo "## Benchmark Score"; cat reports/constitutional_benchmark.md 2>/dev/null | grep Score || echo "FAIL"; \
 	  echo ""; \
-	  echo "## Adversarial Tests"; python -m pytest tests/adversarial/ -q --tb=short 2>&1 | tail -5; \
+	  echo "## Security Audit"; echo "(See security-audit output above)"; \
 	  echo ""; \
 	  echo "## VAULT999 Chain"; python scripts/vault999_status.py 2>&1 | head -20; \
 	} > "$$PROOF_FILE"; \

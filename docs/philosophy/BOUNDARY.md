@@ -1,8 +1,8 @@
 <!-- SOT-MANIFEST
-owner: ariffazil/arifos
-last_verified: 2026-05-22
+owner: Arif
+last_verified: 2026-06-14
 valid_from: 2026-05-22
-valid_until: 2026-06-22
+valid_until: 2026-07-14
 confidence: high
 scope: /
 -->

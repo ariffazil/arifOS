@@ -1,0 +1,61 @@
+version: "1.0.0"
+last_updated: "2026-06-14T15:00:00Z"
+sovereign: "Arif (F13)"
+federation_name: "arifOS Federation"
+
+organs:
+  arifos:
+    role: "Constitutional Kernel"
+    repo: "ariffazil/arifOS"
+    path: "/root/arifOS"
+    port: 8088
+    status: "operational"
+    description: "Enforce F1-F13, issue verdicts, seal VAULT999"
+
+  aaa:
+    role: "Control Plane"
+    repo: "ariffazil/AAA"
+    path: "/root/AAA"
+    port: 3001
+    status: "operational"
+    description: "Cockpit, A2A mesh, operator visibility, agent registry"
+
+  a-forge:
+    role: "Execution Shell"
+    repo: "ariffazil/A-FORGE"
+    path: "/root/A-FORGE"
+    port: 7071
+    status: "operational"
+    description: "Vision, build, deploy, artifact forging"
+
+  geox:
+    role: "Earth Intelligence"
+    repo: "ariffazil/geox"
+    path: "/root/geox"
+    port: 8081
+    status: "operational"
+    description: "Produce evidence with uncertainty bands (geoscience)"
+
+  wealth:
+    role: "Capital Intelligence"
+    repo: "ariffazil/wealth"
+    path: "/root/WEALTH"
+    port: 18082
+    status: "operational"
+    description: "Compute NPV/IRR/risk with epistemic tags"
+
+  well:
+    role: "Vitality Intelligence"
+    repo: "ariffazil/well"
+    path: "/root/WELL"
+    port: 18083
+    status: "operational"
+    description: "Report human readiness scores, reflect only"
+
+  apex:
+    role: "Verdict Engine (Legacy)"
+    repo: "ariffazil/arifOS (subdir APEX)"
+    path: "/root/APEX"
+    port: 3002
+    status: "archived"
+    description: "Legacy probe only. Deliberation moved to AAA a2a-server."

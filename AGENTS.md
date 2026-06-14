@@ -1,10 +1,11 @@
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-05-26
-valid_from: 2026-05-26
-valid_until: 2026-06-26
+last_verified: 2026-06-14
+valid_from: 2026-06-14
+valid_until: 2026-07-14
 confidence: high
 scope: /root/arifOS
+epistemic_status: SOURCE_OF_TRUTH
 -->
 
 # AGENTS.md — arifOS | arifOS Federation

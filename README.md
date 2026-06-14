@@ -326,6 +326,7 @@ arifOS/
 │   │   ├── memory.py        ← 500 — arif_memory_recall
 │   │   ├── heart.py         ← 600 — arif_heart_critique
 │   │   ├── gateway.py       ← 700 — arif_gateway_connect
+│   │   ├── reply.py         ← 750 — arif_reply_compose
 │   │   ├── ops.py           ← 800 — arif_ops_measure
 │   │   ├── judge.py         ← 888 — arif_judge_deliberate
 │   │   ├── forge.py         ← 900 — arif_forge_execute
@@ -691,7 +692,7 @@ docker push ghcr.io/ariffazil/arifos:latest
 
 | Limitation | Detail | Status |
 |-----------|--------|--------|
-| **Runtime drift** | Container may lag behind git HEAD | ⚠️ Needs rebuild after push |
+| **Runtime drift** | Container may lag behind git HEAD | ✅ RESOLVED (aligned 2026-06-12) |
 | **Single VPS** | Entire federation runs on one machine | 🟡 Acceptable for current scale |
 | **SSE concurrency** | MCP SDK singleton SSE stream key — one SSE client per session | ⚠️ Use POST JSON-RPC for concurrent access |
 | **P0-4 connector** | `arif_session_init` buffers SSE until pipeline completes | ⚠️ Known structural issue |

@@ -312,6 +312,19 @@ geox.arif-fazil.com {
 			header_up Host geox.arif-fazil.com
 		}
 	}
+	# WebMCP — GEOX browser-facing MCP console (P2#5)
+	handle /webmcp* {
+		import cors_public
+		reverse_proxy 127.0.0.1:8081 {
+			header_up Host geox.arif-fazil.com
+		}
+	}
+	handle /.well-known/webmcp {
+		import cors_public
+		reverse_proxy 127.0.0.1:8081 {
+			header_up Host geox.arif-fazil.com
+		}
+	}
 	handle {
 		try_files {path} /index.html
 		file_server
