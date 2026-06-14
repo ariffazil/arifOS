@@ -41,6 +41,27 @@ RUNTIME_ENVELOPE_SCHEMA = {
 _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_ping": "Lightweight liveness probe — confirms kernel reachability.",
     "arif_selftest": "Constitutional integrity probe — verifies the floor stack is intact.",
+    # ── Transport Canary Layer (Phase 0, 2026-06-14) ──
+    "arif_schema_echo": (
+        "CANARY: Echo back what the client sent plus the server's interpretation. "
+        "Zero-floor transport diagnostic. If what you sent != what you received, "
+        "the transport bridge is mangling your payload."
+    ),
+    "arif_version_echo": (
+        "CANARY: Return MCP protocol version, supported versions, and dialect hints. "
+        "Zero-floor version probe. Use to detect version-dialect drift before "
+        "attempting a full session init."
+    ),
+    "arif_transport_echo": (
+        "CANARY: Return every transport-level detail the server observed: "
+        "headers, protocol, source, transport hint. Zero-floor diagnostic."
+    ),
+    "arif_initialize_probe": (
+        "CANARY: Test MCP initialize/initialized handshake without constitutional "
+        "ceremony. Simulates protocol version negotiation per MCP spec 2025-06-18. "
+        "Use AFTER ping passes but BEFORE arif_session_init."
+    ),
+    # ── Canonical 13 ──
     "arif_session_init": (
         "Start or resume a governed constitutional session. "
         "Call this FIRST before any other tool in a new conversation. "
@@ -140,7 +161,14 @@ def _tool_registry_contracts() -> dict[str, dict[str, Any]]:
 
 
 def _role_for_name(name: str) -> str:
-    if name in {"arif_ping", "arif_selftest"}:
+    if name in {
+        "arif_ping",
+        "arif_selftest",
+        "arif_schema_echo",
+        "arif_version_echo",
+        "arif_transport_echo",
+        "arif_initialize_probe",
+    }:
         return "diagnostic"
     return "constitutional"
 

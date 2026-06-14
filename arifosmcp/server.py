@@ -473,21 +473,10 @@ try:
     _assert_registered_surface(v2_tools_registered)
 
     # ── Canary Ping Tool (No actor, no envelope, no policy) ──────────────────
-    @mcp.tool(
-        name="arif_ping",
-        description="Dead-simple canary tool to test client tool bridge connectivity. No actor, no envelope, no policy, no ceremony.",
-        tags={"canary", "read-only", "observe"},
-    )
-    def arif_ping() -> dict:
-        return {
-            "ok": True,
-            "build": _DEPLOY_VERSION,
-            "schema_version": "v2026.06.14.v2"
-        }
-
-    # ── Transport Canary Layer (Phase 0, 2026-06-14) ──────────────────────────
-    # Zero-floor diagnostic tools. No session, no actor, no governance.
-    # Diagnostic path: ping → version_echo → schema_echo → initialize_probe → session_init
+    # NOTE: arif_ping is registered OUTSIDE the try block (pre-registration layer
+    # at line ~322) so it survives canonical registration failure.
+    # This duplicate registration is skipped since FastMCP de-dupes by name.
+    # The pre-registration version is the canonical one.
     from arifosmcp.runtime.tools import (  # noqa: E402
         _arif_initialize_probe,
         _arif_schema_echo,
