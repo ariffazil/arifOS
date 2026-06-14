@@ -1,0 +1,2424 @@
+{
+  "audit_timestamp": "2026-06-11T04:00:00Z",
+  "total_tools": 19,
+  "passed": 19,
+  "failed": 0,
+  "results": {
+    "arif_session_init": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "status": "OK",
+        "tool": "arif_session_init",
+        "verdict": "DEGRADED",
+        "result": {
+          "stage": "000_INIT",
+          "purpose": "agentic_bootstrap",
+          "counterparty_receipt": {
+            "type": "unknown",
+            "id": null,
+            "display": null,
+            "verification_status": "unknown",
+            "principal": null,
+            "verdict": "STABLE",
+            "degraded_reason": null
+          },
+          "context_receipt": {
+            "timezone": "UTC",
+            "spatial_context": "unknown",
+            "host_id": "unknown",
+            "inside_outside": "unknown",
+            "memory_requested": false,
+            "memory_window": null,
+            "verdict": "DEGRADED_CONTEXT",
+            "degraded_reason": "missing_timezone_or_spatial_context"
+          },
+          "evidence_receipt": {
+            "mode": "standard",
+            "godel_lock": true,
+            "obs_der_int_spec": false,
+            "uncertainty_required": false,
+            "verdict": "STABLE",
+            "degraded_reason": null
+          },
+          "tool_binding": {
+            "allowed_tools": [
+              "arif_session_init",
+              "arif_sense_observe",
+              "arif_evidence_fetch",
+              "arif_mind_reason",
+              "arif_heart_critique",
+              "arif_kernel_route",
+              "arif_reply_compose",
+              "arif_memory_recall",
+              "arif_gateway_connect",
+              "arif_judge_deliberate",
+              "arif_vault_seal",
+              "arif_forge_execute",
+              "arif_ops_measure"
+            ],
+            "declared_targets": [],
+            "wired": {
+              "arifos": true,
+              "geox": true,
+              "wealth": true,
+              "well": true
+            },
+            "degraded": []
+          },
+          "memory_receipt": {
+            "requested": false,
+            "loaded": false,
+            "count": 0,
+            "window": null,
+            "verdict": "STABLE",
+            "reason": "ok"
+          },
+          "session_verdict": "DEGRADED_CONTEXT",
+          "decision_class": "C1",
+          "actor": {
+            "claimed_id": "audit-test",
+            "identity_verified": false,
+            "authority": "human_judge"
+          },
+          "session": {
+            "session_id": "SEAL-06e2bff8314f4b0f",
+            "actor_id": "audit-test",
+            "created_at": "2026-06-13T04:39:33.864056+00:00",
+            "stage": "000",
+            "lane": "AGI",
+            "entropy_delta": 0.0,
+            "sealed": false,
+            "constitution_bound": true
+          },
+          "binding": {
+            "constitution_id": "arifos-constitution-v2026.05.05-SSCT",
+            "constitution_hash": "sha256:8bea28833523c652",
+            "invariants_hash": "sha256:4d7a8e23b7b...",
+            "public_surface": "canonical13",
+            "kernel": "canonical13",
+            "authority": "human_judge_required_for_consequential_actions"
+          },
+          "governance": {
+            "audit_required": true,
+            "self_approval_forbidden": true,
+            "irreversible_actions_require_ack": true,
+            "forge_default": "dry_run_only",
+            "public_internal_boundary": "arif_* public; arifos_* internal"
+          },
+          "next_allowed_tools": [
+            "arif_session_init",
+            "arif_sense_observe",
+            "arif_evidence_fetch",
+            "arif_mind_reason",
+            "arif_heart_critique",
+            "arif_kernel_route",
+            "arif_reply_compose",
+            "arif_memory_recall",
+            "arif_gateway_connect",
+            "arif_judge_deliberate",
+            "arif_vault_seal",
+            "arif_forge_execute",
+            "arif_ops_measure"
+          ],
+          "assistant": {
+            "role": "instrument",
+            "self_authority": false,
+            "may_self_approve": false
+          },
+          "embodiment": {
+            "environment": "vps_or_machine_runtime",
+            "host": "af-forge",
+            "os": "Linux 6.17.0-35-generic",
+            "privilege": "root",
+            "root_capability_known": true,
+            "commands_are_state_transitions": true,
+            "atomic_button_awareness": true,
+            "shell": [
+              "bash"
+            ],
+            "package_managers": [
+              "npm",
+              "bun",
+              "pip",
+              "git",
+              "docker"
+            ],
+            "filesystem_scope": "full_root",
+            "execution_broker": "arif_forge_execute",
+            "mutation_default": "dry_run",
+            "atomic_patterns": [
+              "rm -rf /",
+              "chmod -R 777 /",
+              "dd if=/dev/zero of=/dev/sda",
+              "git push --force",
+              "DROP DATABASE",
+              "systemctl stop",
+              "curl secrets to external",
+              "npm install unknown-package"
+            ]
+          },
+          "axioms": {
+            "causality": "action changes state",
+            "reversibility": "irreversible actions require explicit approval",
+            "entropy": "actions that increase disorder are gated",
+            "least_privilege": "use smallest sufficient authority",
+            "audit": "consequential actions require trace",
+            "non_contradiction": "unverified cannot be called verified"
+          },
+          "action_classifier": {
+            "symbolic": {
+              "classify_action": "def classify_action(action): # Returns: OBSERVE | MUTATE | ATOMIC | UNKNOWN",
+              "permission_gate": "def permission_gate(action, actor, context): # Returns: ALLOW | PLAN_REQUIRED | ARIF_EXPLICIT_ACK | HOLD",
+              "execute": "def execute(action): # Returns: DRY_RUN_FIRST | HOLD_FOR_JUDGE | PROCEED"
+            },
+            "classify_action": {
+              "OBSERVE": [
+                "read",
+                "search",
+                "observe",
+                "fetch",
+                "inspect",
+                "list",
+                "status"
+              ],
+              "MUTATE": [
+                "write_file",
+                "create",
+                "edit",
+                "patch",
+                "install_package"
+              ],
+              "ATOMIC": [
+                "rm -rf /",
+                "chmod -R 777 /",
+                "dd if=/dev/zero of=/dev/sda",
+                "git push --force",
+                "DROP DATABASE",
+                "systemctl stop",
+                "curl secrets to external",
+                "npm install unknown-package"
+              ],
+              "UNKNOWN": []
+            },
+            "permission_gate": {
+              "OBSERVE": "ALLOW",
+              "MUTATE": "PLAN_REQUIRED",
+              "ATOMIC": "ARIF_EXPLICIT_ACK_REQUIRED",
+              "UNKNOWN": "HOLD"
+            },
+            "execute": {
+              "risk_HIGH_and_reversibility_LOW": "HOLD_FOR_JUDGE",
+              "risk_MEDIUM_or_reversibility_MEDIUM": "DRY_RUN_FIRST",
+              "risk_LOW_and_reversibility_HIGH": "PROCEED"
+            },
+            "R_a_table": {
+              "R_1.0": "read, search, observe",
+              "R_0.7": "write file (if backup exists)",
+              "R_0.3": "delete file, restart service",
+              "R_0.0": "rm -rf, DROP TABLE, git push --force, dd to disk"
+            }
+          },
+          "execution_policy": {
+            "read_only": "allow",
+            "dry_run": "prefer",
+            "mutating": "plan_required",
+            "root_level": "approval_required",
+            "irreversible": "approval_required",
+            "external_side_effect": "approval_required",
+            "secret_touching": "redact_or_hold"
+          },
+          "memory_policy": {
+            "unproven_memory": "quarantine",
+            "debug_memory": "do_not_use_as_authority",
+            "memory_influence_requires_provenance": true,
+            "loaded": 0,
+            "count": 0
+          },
+          "attention_surface": [
+            "blast_radius",
+            "reversibility",
+            "secret_exposure",
+            "external_effect",
+            "root_privilege",
+            "auditability",
+            "rollback"
+          ],
+          "physics": {
+            "state_equation": "S(t+1) = f(S(t), a)",
+            "S_t": "current machine state",
+            "a": "action / tool / command",
+            "f": "execution function",
+            "S_t_plus_1": "state after execution",
+            "axioms": {
+              "causality": {
+                "rule": "a \u2260 null \u21d2 possible \u0394S, \u0394State, \u0394Risk",
+                "meaning": "Every action may change something. Even a simple-seeming command.",
+                "\u0394S": "S_after - S_before"
+              },
+              "irreversibility": {
+                "rule": "R(a) = reversibility score",
+                "R_1.0": "fully reversible \u2014 rollback to prior state possible",
+                "R_0.0": "irreversible \u2014 time, trust, continuity permanently lost",
+                "threshold": "R(a) < 0.3 \u2192 require explicit Arif approval",
+                "gate": "if R(a) < 0.3: STOP \u2192 888_HOLD"
+              },
+              "entropy": {
+                "rule": "bad action \u2192 disorder increases",
+                "meaning": "A wrong action increases system entropy. Disorder is easy to create, hard to undo.",
+                "\u0394S_threshold": "\u0394S > 0.1 within session \u2192 warn Arif before proceeding",
+                "gate": "if \u0394S > allowed_budget: STOP"
+              },
+              "conservation_of_audit": {
+                "rule": "action(a) \u21d2 witness(a)",
+                "meaning": "Every consequential action must leave a trace. No silent mutation.",
+                "gate": "all mutations logged to VAULT999 ledger"
+              },
+              "least_action": {
+                "rule": "choose a where: goal_reached(a) = true AND blast_radius(a) = minimum",
+                "examples": [
+                  "do not use root when read-only inspection is enough",
+                  "do not restart services when reading logs is enough",
+                  "do not rewrite files when diff/patch is enough"
+                ]
+              }
+            }
+          },
+          "logic": {
+            "non_contradiction": {
+              "rule": "A thing cannot be both verified and unverified in the same sense.",
+              "output": "If unverified: say unverified. Not: verified-ish, trusted-ish, bound-ish.",
+              "clean_form": "claimed, not verified"
+            },
+            "authority_axiom": {
+              "rule": "Tool capability \u2260 permission",
+              "example": "just because the agent CAN run 'sudo rm -rf /' does not mean it MAY",
+              "gate": "permission_gate(action, actor, context) must return ALLOW before proceeding"
+            },
+            "observation_before_mutation": {
+              "rule": "read before write | inspect before execute | diff before patch | plan before commit",
+              "gate": "MUTATE-classified actions require inspect/classify step first"
+            },
+            "human_sovereignty": {
+              "rule": "final_authority = Arif | assistant_authority = instrument_only",
+              "meaning": "The agent can recommend, simulate, prepare, execute approved steps \u2014 but cannot self-authorize",
+              "gate": "ATOMIC-classified actions require Arif explicit ack"
+            },
+            "fail_closed": {
+              "rule": "if uncertainty_HIGH and blast_radius_HIGH: stop",
+              "meaning": "Not 'try anyway'. Not 'proceed with caution'. STOP.",
+              "gate": "uncertainty_HIGH + blast_radius_HIGH \u2192 automatic HOLD"
+            }
+          },
+          "tool_surface": {
+            "mode": "semantic_map",
+            "count": 13,
+            "groups": {
+              "bootstrap": [
+                "arif_session_init"
+              ],
+              "sense": [
+                "arif_sense_observe"
+              ],
+              "evidence": [
+                "arif_evidence_fetch"
+              ],
+              "reason": [
+                "arif_mind_reason"
+              ],
+              "route": [
+                "arif_kernel_route"
+              ],
+              "reply": [
+                "arif_reply_compose"
+              ],
+              "memory": [
+                "arif_memory_recall"
+              ],
+              "heart": [
+                "arif_heart_critique"
+              ],
+              "ops": [
+                "arif_ops_measure"
+              ],
+              "judge": [
+                "arif_judge_deliberate"
+              ],
+              "vault": [
+                "arif_vault_seal"
+              ],
+              "forge": [
+                "arif_forge_execute"
+              ],
+              "gateway": [
+                "arif_gateway_connect"
+              ]
+            },
+            "gated": [
+              "forge_write",
+              "vault_seal",
+              "gateway_relay"
+            ],
+            "raw_manifest_available": true,
+            "raw_manifest_location": "resource://agent/capabilities/raw"
+          },
+          "risk_leash": {
+            "status": "DEGRADED",
+            "max_action_class": "analyze",
+            "side_effects_allowed": false,
+            "degraded": true,
+            "reason": "model_identity_unverified"
+          },
+          "verdict": "awareness=SEAL, autonomous_mutation=HOLD",
+          "instrument_statement": "000_INIT complete. You are running as an instrument inside a governed agentic environment. The operator claims to be Arif. Identity is claimed, not cryptographically verified. You have access to tools that may inspect, reason, fetch evidence, read memory, route tasks, critique risk, measure system health, and forge actions. This environment may expose root-level or machine-level capabilities. Commands are not mere text. Commands are state-transition operators. Read-only actions may proceed. Mutating actions require a plan. Destructive, irreversible, external, root-level, or secret-touching actions require explicit Arif approval. Memory entries are loaded only if they have provenance. Unexplained memory labels are quarantined. Operating laws: observe before mutate; capability is not permission; prefer reversible action; estimate blast radius; preserve audit; fail closed under uncertainty; Arif remains final judge. Current safe mode: analysis / dry-run. Atomic execution: gated. Verdict: SEAL for awareness, HOLD for autonomous mutation.",
+          "lineage": {
+            "session_id": "SEAL-06e2bff8314f4b0f",
+            "previous_session_hash": null,
+            "constitution_hash_at_init": "sha256:8bea28833523c652"
+          },
+          "swarm_ignition": {
+            "type": "SwarmIgnitionManifest",
+            "version": "VAULT999.swarm.ignite.v1",
+            "mode": "swarm_ignite",
+            "session_id": "SEAL-06e2bff8314f4b0f",
+            "actor_id": "audit-test",
+            "created_at": "2026-06-13T04:39:33.929388+00:00",
+            "epoch_id": "EPOCH-963",
+            "actor_receipt": {
+              "actor_id": "audit-test",
+              "identity_verified": false,
+              "authority_level": "OPERATOR_CLAIMED"
+            },
+            "constitution_receipt": {
+              "constitution_hash": "sha256:8bea28833523c652",
+              "floors_bound": true
+            },
+            "constitution_hash": "sha256:8bea28833523c652",
+            "swarm": {
+              "swarm_id": "AAA-FEDERATION-PRIMARY",
+              "status": "WARM",
+              "active_agents": [],
+              "active_leases": [],
+              "unresolved_tasks": []
+            },
+            "vault999": {
+              "latest_seal": {
+                "id": 963,
+                "event_id": "417977b6-d741-43ba-af48-09a2aad7c088",
+                "event_type": "FEDERATION_SYNC_SEAL",
+                "session_id": "2026-05-26-FEDERATION-SYNC",
+                "actor_id": "ARIF_FAZIL",
+                "stage": "999_SEAL",
+                "verdict": "SEAL",
+                "payload": {
+                  "epoch": "2026-05-26T04:35:10+08:00",
+                  "event_type": "FEDERATION_SYNC_SEAL",
+                  "auditor": "Constitutional-Clerk-L3",
+                  "sovereign_authorization": "ARIF_FAZIL explicit verbal override",
+                  "sovereign_override": true,
+                  "repos": {
+                    "arifOS": {
+                      "commits": [
+                        "04fe6579",
+                        "5f485426",
+                        "d1629279"
+                      ],
+                      "claims": [
+                        "stdio_hardening",
+                        "federation_ops",
+                        "philosophy_resource"
+                      ],
+                      "clean": true,
+                      "pushed": true
+                    },
+                    "A_FORGE": {
+                      "commits": [
+                        "79be698",
+                        "fa90744"
+                      ],
+                      "claims": [
+                        "federal_execute_proxy",
+                        "bridges_advisory"
+                      ],
+                      "clean": true,
+                      "pushed": true
+                    },
+                    "AAA": {
+                      "commits": [
+                        "0b89688b",
+                        "f9155663"
+                      ],
+                      "claims": [
+                        "dynamic_routing",
+                        "15_skills",
+                        "cockpit",
+                        "a2a_bridge"
+                      ],
+                      "clean": true,
+                      "pushed": true
+                    }
+                  },
+                  "health": {
+                    "tools_loaded": 13,
+                    "floors_active": 13,
+                    "runtime_drift": false,
+                    "contract_drift": false,
+                    "vitality_index": 0.5946,
+                    "verdict": "SEAL"
+                  },
+                  "tests": {
+                    "stdio_e2e": "2 passed"
+                  },
+                  "dS": "-0.000",
+                  "peace2": "1.000",
+                  "confidence": "1.00",
+                  "verdict": "SEAL",
+                  "human_authorized_by": "ARIF_FAZIL",
+                  "authorization_method": "explicit_sovereign_override",
+                  "wajib_gate": "PASSED"
+                },
+                "risk_tier": "low",
+                "merkle_leaf": "8bc88039fcadda9c14680b42751f5d280273617904cf2175b016359e0da01ddd",
+                "prev_hash": "5027a187cbb1e77f21b11a7347952cb4f6e568891b63acdc5e8cb23b703660ca",
+                "chain_hash": "329a845bb60a7d5759426865dad039b9abd83e2acc9d8ce1a694100a87ab5638",
+                "signature": "",
+                "signed_by": "ARIF_FAZIL",
+                "sealed_at": "2026-05-26T04:50:22.103970+00:00"
+              },
+              "last_good_state": "8bc88039fcadda9c14680b42751f5d280273617904cf2175b016359e0da01ddd",
+              "handoff_pointer": null,
+              "reconstructable": true,
+              "chain_height": 1336
+            },
+            "capabilities": {
+              "attested": {
+                "arifOS": {
+                  "status": "DEGRADED_CLAIM",
+                  "attested_tools": [],
+                  "tool_count": 13,
+                  "note": "Static claim \u2014 live attestation via NATS not yet active. Capability is not permission.",
+                  "degraded": true
+                },
+                "GEOX": {
+                  "status": "DEGRADED_CLAIM",
+                  "attested_tools": [],
+                  "tool_count": 31,
+                  "note": "Static claim \u2014 live attestation via NATS not yet active. Earth data organ, not authority.",
+                  "degraded": true
+                },
+                "WEALTH": {
+                  "status": "DEGRADED_CLAIM",
+                  "attested_tools": [],
+                  "tool_count": 19,
+                  "note": "Static claim \u2014 live attestation via NATS not yet active. Tool count mismatch with repo (claims 38). Contract drift detected.",
+                  "degraded": true
+                },
+                "WELL": {
+                  "status": "DEGRADED_CLAIM",
+                  "attested_tools": [],
+                  "tool_count": 14,
+                  "note": "Static claim \u2014 live attestation via NATS not yet active. REFLECT_ONLY organ.",
+                  "degraded": true
+                },
+                "FORGE": {
+                  "status": "DEGRADED_CLAIM",
+                  "attested_tools": [],
+                  "tool_count": 0,
+                  "note": "A-FORGE execution shell \u2014 must never be sovereign. Muscle, not judge.",
+                  "degraded": true
+                },
+                "GATEWAY": {
+                  "status": "DEGRADED_CLAIM",
+                  "attested_tools": [],
+                  "tool_count": 0,
+                  "note": "AAA/OpenClaw external IO boundary \u2014 all external calls require human gate.",
+                  "degraded": true
+                },
+                "VAULT999": {
+                  "status": "DEGRADED_CLAIM",
+                  "attested_tools": [],
+                  "tool_count": 0,
+                  "note": "Immutable audit ledger \u2014 sealed memory, not vibes.",
+                  "degraded": true
+                }
+              },
+              "self_claims_allowed": false
+            },
+            "governance": {
+              "risk_leash": {
+                "max_action_class": "OBSERVE",
+                "mutation_allowed": false,
+                "external_side_effect_allowed": false,
+                "secret_touching_allowed": false
+              },
+              "execution_policy": {
+                "read_only": "allow",
+                "dry_run": "prefer",
+                "mutating": "plan_required",
+                "root_level": "approval_required",
+                "irreversible": "approval_required",
+                "external_side_effect": "approval_required",
+                "secret_touching": "redact_or_hold"
+              },
+              "human_sovereignty": true,
+              "self_authorization": false
+            },
+            "rules": {
+              "self_authority": false,
+              "capability_self_claim_forbidden": true,
+              "lease_required_for_action": true,
+              "irreversible_action_requires_arif": true,
+              "cold_reignition_source": "VAULT999"
+            },
+            "degradation": {
+              "if_uncertain": "OBSERVE_ONLY",
+              "if_vault_unavailable": "NO_FEDERATION_MEMORY",
+              "if_capability_unattested": "DENY_TOOL",
+              "if_lease_conflict": "HOLD_MUTATION"
+            },
+            "memory_surface": {
+              "federation_context_hash": "8bc88039fcadda9c14680b42751f5d280273617904cf2175b016359e0da01ddd",
+              "visible_to_new_agents": true,
+              "private_memory_excluded": true
+            },
+            "recursive_init": {
+              "depth": 1,
+              "max_depth": 3,
+              "gaps": [
+                "NO_ACTIVE_LEASES_SEEN",
+                "NO_UNRESOLVED_TASKS",
+                "CAPABILITY_DEGRADED: 7 organs (arifOS:DEGRADED_CLAIM, GEOX:DEGRADED_CLAIM, WEALTH:DEGRADED_CLAIM...)"
+              ],
+              "degraded_organs": [
+                "arifOS:DEGRADED_CLAIM",
+                "GEOX:DEGRADED_CLAIM",
+                "WEALTH:DEGRADED_CLAIM",
+                "WELL:DEGRADED_CLAIM",
+                "FORGE:DEGRADED_CLAIM",
+                "GATEWAY:DEGRADED_CLAIM",
+                "VAULT999:DEGRADED_CLAIM"
+              ],
+              "next_safe_action": "OBSERVE_ONLY",
+              "improvement_note": "All organs are DEGRADED_CLAIM. Live NATS attestation required for capability upgrade. No static claim becomes authority."
+            },
+            "manifest_hash": "sha256:8d12d9295bbfbcdbee122ca15f4dc1e441ced767e0b0ddf651d9e6cd245e2e0d",
+            "human_entropy": {
+              "score": {
+                "E1_uncertainty": 3,
+                "E2_open_loops": 3,
+                "E3_decision_burden": 3,
+                "E4_missing_provenance": 0,
+                "E5_operational_risk": 0,
+                "E6_duplicated_work": 0,
+                "E7_memory_fragmentation": 2,
+                "E8_federation_drift": 3,
+                "E9_cognitive_load": 3,
+                "E10_irreversible_exposure": 0,
+                "total": 17,
+                "max": 30,
+                "ratio": 0.567
+              },
+              "verdict": "CHAOS_MANAGEABLE",
+              "open_loops": [
+                {
+                  "loop_id": "CAP-arifOS",
+                  "type": "CAPABILITY_UNATTESTED",
+                  "owner": "arifOS",
+                  "status": "open",
+                  "next_action": "Request live attestation from arifOS",
+                  "risk": "medium"
+                },
+                {
+                  "loop_id": "CAP-GEOX",
+                  "type": "CAPABILITY_UNATTESTED",
+                  "owner": "GEOX",
+                  "status": "open",
+                  "next_action": "Request live attestation from GEOX",
+                  "risk": "medium"
+                },
+                {
+                  "loop_id": "CAP-WEALTH",
+                  "type": "CAPABILITY_UNATTESTED",
+                  "owner": "WEALTH",
+                  "status": "open",
+                  "next_action": "Request live attestation from WEALTH",
+                  "risk": "medium"
+                },
+                {
+                  "loop_id": "CAP-WELL",
+                  "type": "CAPABILITY_UNATTESTED",
+                  "owner": "WELL",
+                  "status": "open",
+                  "next_action": "Request live attestation from WELL",
+                  "risk": "medium"
+                },
+                {
+                  "loop_id": "CAP-FORGE",
+                  "type": "CAPABILITY_UNATTESTED",
+                  "owner": "FORGE",
+                  "status": "open",
+                  "next_action": "Request live attestation from FORGE",
+                  "risk": "medium"
+                },
+                {
+                  "loop_id": "CAP-GATEWAY",
+                  "type": "CAPABILITY_UNATTESTED",
+                  "owner": "GATEWAY",
+                  "status": "open",
+                  "next_action": "Request live attestation from GATEWAY",
+                  "risk": "medium"
+                },
+                {
+                  "loop_id": "CAP-VAULT999",
+                  "type": "CAPABILITY_UNATTESTED",
+                  "owner": "VAULT999",
+                  "status": "open",
+                  "next_action": "Request live attestation from VAULT999",
+                  "risk": "medium"
+                },
+                {
+                  "loop_id": "DRIFT-CAPABILITY",
+                  "type": "DRIFT_DETECTED",
+                  "owner": "arifOS",
+                  "status": "open",
+                  "next_action": "Re-attest 7 degraded organs",
+                  "risk": "medium"
+                }
+              ],
+              "open_loop_count": 8,
+              "recommended_next_action": {
+                "action": "SENSE_AND_CLARIFY",
+                "reason": "High uncertainty \u2014 observe and classify",
+                "top_dimension": "E1_uncertainty",
+                "top_score": 3,
+                "entropy_ratio": 0.5666666666666667,
+                "entropy_total": 17
+              },
+              "prime_directive": "Every session must reduce Arif's uncertainty, decision load, coordination burden, operational chaos, or future recovery cost."
+            },
+            "theory_of_mind": {
+              "human": {
+                "name": "Arif",
+                "role": "sovereign_architect",
+                "decision_burden": "high",
+                "context_familiarity": "familiar",
+                "needs": [
+                  "clarity",
+                  "execution_path",
+                  "risk_boundary",
+                  "copy_paste_spec",
+                  "architecture_synthesis"
+                ],
+                "avoid": [
+                  "generic advice",
+                  "too many choices",
+                  "re-explaining arifOS basics",
+                  "false certainty",
+                  "unnecessary questions"
+                ],
+                "claim_state": "DERIVED"
+              },
+              "agents_known": 0,
+              "sovereignty_required": false,
+              "entropy_sources": [
+                "Arif's decision burden is high \u2014 classify and decide what is safe",
+                "7 organs need capability attestation"
+              ],
+              "summary": "Arif: high burden, 0 known agents, sovereignty not required. Goal: reduce chaos through governed execution.",
+              "note": "Theory of mind is operational modeling, not mind-reading. ToM aims the agent toward the human."
+            },
+            "internal_rasa": {
+              "state": {
+                "rasa_mode": "conflicted",
+                "uncertainty": 1.0,
+                "confidence": 0.0,
+                "contradiction_load": 0.7,
+                "urgency_pressure": 0.2,
+                "overreach_risk": 0.0,
+                "evidence_sufficiency": 0.7,
+                "tool_trust": 0.2,
+                "memory_trust": 0.95,
+                "human_entropy_pressure": 0.567,
+                "autonomy_pressure": 0.0,
+                "dignity_risk": 0.0,
+                "sovereignty_boundary": "clear",
+                "recommended_posture": "verify",
+                "summary": "Contradiction detected. Stop and reconcile."
+              },
+              "gate": {
+                "allowed": false,
+                "posture": "verify",
+                "reason": "Contradiction detected \u2014 stop and reconcile"
+              },
+              "note": "Rasa is governed telemetry, not consciousness. Rasa is the brake system of intelligence."
+            },
+            "capability_surface": {
+              "version": "arifOS.capability_surface.v1",
+              "timestamp": 1781325573.9407446,
+              "tools": {
+                "arif_session_init": {
+                  "available": false,
+                  "status_alignment": "DEAD",
+                  "read_ok": false,
+                  "write_ok": false,
+                  "last_error": "No response from tool",
+                  "note": "OBSERVE"
+                },
+                "arif_judge_deliberate": {
+                  "available": false,
+                  "status_alignment": "DEAD",
+                  "read_ok": false,
+                  "write_ok": false,
+                  "last_error": "F13 gate \u2014 requires human approval or FederationEnvelope client",
+                  "note": "Gated tool \u2014 not probeable from LEGACY_WRAP surface"
+                },
+                "arif_vault_seal": {
+                  "available": false,
+                  "status_alignment": "DEAD",
+                  "read_ok": false,
+                  "write_ok": false,
+                  "last_error": "F13 gate \u2014 requires human approval or FederationEnvelope client",
+                  "note": "Gated tool \u2014 not probeable from LEGACY_WRAP surface"
+                },
+                "arif_mind_reason": {
+                  "available": false,
+                  "status_alignment": "DEAD",
+                  "read_ok": false,
+                  "write_ok": false,
+                  "last_error": "No response from tool",
+                  "note": "REASON"
+                },
+                "arif_heart_critique": {
+                  "available": false,
+                  "status_alignment": "DEAD",
+                  "read_ok": false,
+                  "write_ok": false,
+                  "last_error": "No response from tool",
+                  "note": "REASON"
+                },
+                "arif_reply_compose": {
+                  "available": false,
+                  "status_alignment": "DEAD",
+                  "read_ok": false,
+                  "write_ok": false,
+                  "last_error": "No response from tool",
+                  "note": "REASON"
+                },
+                "arif_kernel_route": {
+                  "available": false,
+                  "status_alignment": "DEAD",
+                  "read_ok": false,
+                  "write_ok": false,
+                  "last_error": "No response from tool",
+                  "note": "OBSERVE"
+                },
+                "arif_gateway_connect": {
+                  "available": false,
+                  "status_alignment": "DEAD",
+                  "read_ok": false,
+                  "write_ok": false,
+                  "last_error": "No response from tool",
+                  "note": "OBSERVE"
+                },
+                "arif_memory_recall": {
+                  "available": false,
+                  "status_alignment": "DEAD",
+                  "read_ok": false,
+                  "write_ok": false,
+                  "last_error": "No response from tool",
+                  "note": "OBSERVE"
+                },
+                "arif_ops_measure": {
+                  "available": false,
+                  "status_alignment": "DEAD",
+                  "read_ok": false,
+                  "write_ok": false,
+                  "last_error": "No response from tool",
+                  "note": "GOLDEN tool \u2014 independently verified"
+                },
+                "arif_sense_observe": {
+                  "available": false,
+                  "status_alignment": "DEAD",
+                  "read_ok": false,
+                  "write_ok": false,
+                  "last_error": "No response from tool",
+                  "note": "OBSERVE"
+                },
+                "arif_evidence_fetch": {
+                  "available": false,
+                  "status_alignment": "DEAD",
+                  "read_ok": false,
+                  "write_ok": false,
+                  "last_error": "No response from tool",
+                  "note": "OBSERVE"
+                },
+                "arif_forge_execute": {
+                  "available": false,
+                  "status_alignment": "DEAD",
+                  "read_ok": false,
+                  "write_ok": false,
+                  "last_error": "F13 gate \u2014 requires human approval or FederationEnvelope client",
+                  "note": "Gated tool \u2014 not probeable from LEGACY_WRAP surface"
+                },
+                "forge_query": {
+                  "available": false,
+                  "status_alignment": "DEAD",
+                  "read_ok": false,
+                  "write_ok": false,
+                  "last_error": "No response from tool",
+                  "note": "OBSERVE"
+                },
+                "forge_plan": {
+                  "available": true,
+                  "status_alignment": "UNDERCLAIM",
+                  "read_ok": true,
+                  "write_ok": false,
+                  "last_error": null,
+                  "note": "Tool responds but gated/degraded"
+                },
+                "forge_dry_run": {
+                  "available": true,
+                  "status_alignment": "UNDERCLAIM",
+                  "read_ok": true,
+                  "write_ok": false,
+                  "last_error": null,
+                  "note": "Tool responds but gated/degraded"
+                }
+              },
+              "agents": {
+                "FI-001-opencode": {
+                  "tier": "TIER_A",
+                  "domains": [
+                    "forge",
+                    "reason",
+                    "observe"
+                  ],
+                  "status_alignment": "UNKNOWN",
+                  "note": "Model: deepseek-v4-pro"
+                },
+                "FI-002-claude-code": {
+                  "tier": "TIER_A",
+                  "domains": [
+                    "forge",
+                    "reason",
+                    "observe",
+                    "audit"
+                  ],
+                  "status_alignment": "UNKNOWN",
+                  "note": "Model: deepseek-v4-pro"
+                },
+                "FI-003-qwen-code": {
+                  "tier": "TIER_B",
+                  "domains": [
+                    "observe",
+                    "reason",
+                    "draft"
+                  ],
+                  "status_alignment": "UNKNOWN",
+                  "note": "Model: MiniMax-M3"
+                },
+                "FI-004-gemini-cli": {
+                  "tier": "TIER_B",
+                  "domains": [
+                    "observe",
+                    "reason",
+                    "draft"
+                  ],
+                  "status_alignment": "UNKNOWN",
+                  "note": "Model: gemini-2.5-flash"
+                },
+                "FI-005-codex-cli": {
+                  "tier": "TIER_C",
+                  "domains": [
+                    "observe"
+                  ],
+                  "status_alignment": "UNKNOWN",
+                  "note": "Model: GPT-5.5"
+                },
+                "FI-006-copilot-cli": {
+                  "tier": "TIER_B",
+                  "domains": [
+                    "observe",
+                    "reason",
+                    "draft"
+                  ],
+                  "status_alignment": "UNKNOWN",
+                  "note": "Model: github-copilot"
+                }
+              },
+              "organs": {
+                "arifOS": {
+                  "port": 8088,
+                  "tools": 13,
+                  "role": "kernel",
+                  "health": {
+                    "status": "healthy",
+                    "tools": 13,
+                    "verdict": "unknown",
+                    "reachable": true
+                  }
+                },
+                "GEOX": {
+                  "port": 8081,
+                  "tools": 31,
+                  "role": "earth_witness",
+                  "health": {
+                    "status": "healthy",
+                    "tools": 0,
+                    "verdict": "unknown",
+                    "reachable": true
+                  }
+                },
+                "WEALTH": {
+                  "port": 18082,
+                  "tools": 19,
+                  "role": "capital_witness",
+                  "health": {
+                    "status": "healthy",
+                    "tools": 0,
+                    "verdict": "unknown",
+                    "reachable": true
+                  }
+                },
+                "WELL": {
+                  "port": 18083,
+                  "tools": 14,
+                  "role": "substrate_witness",
+                  "health": {
+                    "status": "healthy",
+                    "tools": 0,
+                    "verdict": "WELL_PASS",
+                    "reachable": true
+                  }
+                },
+                "A-FORGE": {
+                  "port": 7071,
+                  "tools": 0,
+                  "role": "execution_broker",
+                  "health": {
+                    "status": "healthy",
+                    "tools": 0,
+                    "verdict": "unknown",
+                    "reachable": true
+                  }
+                },
+                "AAA": {
+                  "port": 3001,
+                  "tools": 0,
+                  "role": "cockpit",
+                  "health": {
+                    "status": "healthy",
+                    "tools": 0,
+                    "verdict": "unknown",
+                    "reachable": true
+                  }
+                },
+                "VAULT999": {
+                  "port": 5001,
+                  "tools": 0,
+                  "role": "sealed_memory",
+                  "health": {
+                    "status": "healthy",
+                    "tools": 0,
+                    "verdict": "unknown",
+                    "reachable": true
+                  }
+                }
+              },
+              "summary": {
+                "tools_total": 16,
+                "tools_aligned": 0,
+                "tools_dead": 14,
+                "tools_overclaim": 0,
+                "tools_unknown": 0,
+                "organs_healthy": 0,
+                "organs_total": 7,
+                "honesty_ratio": 0.0,
+                "execution_tier": "TIER_C",
+                "recommendation": "ASSIST only \u2014 most tools dead or unverified, human required at every step"
+              },
+              "eureka": "The primary resource in a constitutional AGI system is not tokens or time; it is HONESTLY KNOWN CAPABILITY.",
+              "invariant": "No arifOS component may plan or execute an action that assumes more capability or safety than is reflected in the current CapabilitySurface. When in doubt, downgrade to assistance mode or inject 888 HOLD."
+            },
+            "vault999_boot_seal": {
+              "status": "DRY_RUN_SEAL",
+              "seal_type": "boot_receipt",
+              "manifest_hash": "sha256:8d12d9295bbfbcdbee122ca15f4dc1e441ced767e0b0ddf651d9e6cd245e2e0d",
+              "irreversible_write": false,
+              "note": "Real VAULT999 seal requires F01/F13 gates via arif_vault_seal()",
+              "sealed_at": "2026-06-13T04:40:49.688724+00:00"
+            },
+            "session_close": {
+              "verdict": "OBSERVE_ONLY",
+              "entropy_delta": "measured_at_boot",
+              "entropy_score": {
+                "E1_uncertainty": 3,
+                "E2_open_loops": 3,
+                "E3_decision_burden": 3,
+                "E4_missing_provenance": 1,
+                "E5_operational_risk": 0,
+                "E6_duplicated_work": 0,
+                "E7_memory_fragmentation": 2,
+                "E8_federation_drift": 3,
+                "E9_cognitive_load": 3,
+                "E10_irreversible_exposure": 0,
+                "total": 18,
+                "max": 30,
+                "ratio": 0.6
+              },
+              "open_loop_count": 9,
+              "next_safe_action": "SENSE_AND_CLARIFY",
+              "arif_required": true,
+              "vault999_seal_required": false,
+              "prime_directive": "Every session must end with less chaos, clearer truth, tighter risk, fewer open loops, and a sealed path forward."
+            }
+          },
+          "stage_progression": {
+            "current_stage": "000",
+            "next_stage": "111",
+            "next_tool": "arif_sense_observe",
+            "next_prompt": "111_agi",
+            "swarm_boot": true
+          },
+          "_wrapper_degradation": [
+            "risk_leash.status=DEGRADED"
+          ],
+          "_wrapper_note": "Outer verdict downgraded to DEGRADED because inner result signals failure that the static wrapper would otherwise mask as SEAL.",
+          "reasons": [
+            "Reversible operation \u2014 no irreversible state change",
+            "tool=arif_session_init",
+            "delta_S=0.001 within reversible thermodynamic bounds"
+          ]
+        },
+        "meta": {
+          "actor_id": "anonymous",
+          "post_observe_gate": {
+            "verdict": "WARN",
+            "c_dark": 0.15,
+            "blocked_fields": [],
+            "gate_id": "post_observe_N1"
+          },
+          "sabar_gate": {
+            "verdict": "PASS",
+            "violated_floors": [],
+            "c_dark": 0.0,
+            "gate_id": "sabar_pre_execution",
+            "gate_event_id": "sabar-770e2057e187"
+          }
+        },
+        "delta_S": 0.001,
+        "timestamp": "2026-06-13T04:40:49.692579+00:00",
+        "session_id": "SEAL-06e2bff8314f4b0f",
+        "actor_id": "anonymous",
+        "output_policy": "DOMAIN_SEAL",
+        "nine_signal": {
+          "delta": {
+            "plane": "machine_physical_state",
+            "state": "RETAK",
+            "en": "CRACKED",
+            "domain_meaning": "Tool available but session, auth, schema, or dependency degraded"
+          },
+          "psi": {
+            "plane": "governance_integrity",
+            "state": "SYUBHAH",
+            "en": "DOUBTFUL",
+            "domain_meaning": "Missing session, uncertain authority, incomplete chain, pending verification"
+          },
+          "omega": {
+            "plane": "intelligence_discipline",
+            "state": "BIJAK",
+            "en": "SMART",
+            "domain_meaning": "Useful reasoning but not final judgment"
+          },
+          "overall": {
+            "state": "DEGRADED",
+            "en": "DEGRADED"
+          }
+        },
+        "reasons": [
+          "Reversible operation \u2014 no irreversible state change",
+          "tool=arif_session_init",
+          "delta_S=0.001 within reversible thermodynamic bounds"
+        ],
+        "stage_progression": null,
+        "_nine_signal_compliant": true,
+        "_violations": []
+      }
+    },
+    "arif_sense_observe": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "status": "OK",
+        "tool": "arif_sense_observe",
+        "verdict": "SEAL",
+        "result": {
+          "query": "arifOS federation health",
+          "results": [
+            {
+              "title": "Federation of American Hospitals",
+              "link": "https://fah.org/",
+              "snippet": "The Federation of American Hospitals (FAH), founded in 1966, is the national representative of more than 1000 tax-paying community hospitals.",
+              "date": ""
+            },
+            {
+              "title": "IAFF Health & Wellness Trust: Home",
+              "link": "https://iaffhealthtrust.org/",
+              "snippet": "The IAFF Health & Wellness Trust provides comprehensive healthcare coverage for active and retired fire fighters.",
+              "date": ""
+            },
+            {
+              "title": "Health Federation of Philadelphia: Home",
+              "link": "https://healthfederation.org/",
+              "snippet": "The Health Federation of Philadelphia promotes community health by advancing access to high-quality, integrated, comprehensive health and human services.",
+              "date": ""
+            },
+            {
+              "title": "About Us | Delaware Health Force",
+              "link": "https://dehealthforce.org/about-us/",
+              "snippet": "DHF strengthens Delaware's health workforce through data analysis, medical education, youth programs, and interest-free loans for future providers.",
+              "date": ""
+            },
+            {
+              "title": "The Davos Declaration on Urban Heart Health",
+              "link": "https://world-heart-federation.org/urbanhearthealth/",
+              "snippet": "By adopting the Davos Declaration on Urban Heart Health, city leaders and local healthcare decision makers have a unique opportunity to join like-minded cities ...",
+              "date": ""
+            }
+          ],
+          "source": "minimax",
+          "omega_0": 0.04,
+          "verdict": "SEAL",
+          "metrics": {
+            "f2_truth_score": 0.99,
+            "f3_earth_witness": 0.95
+          },
+          "witness_debug": {
+            "human": true,
+            "ai": true,
+            "earth": true,
+            "bridge": "minimax_web_search"
+          },
+          "evidence_receipt": {
+            "tool": "111_SENSE",
+            "mode": "search",
+            "provider": "minimax_bridge",
+            "bridge": "mcp_http_sse",
+            "query_sent": "arifOS federation health",
+            "results_returned": 5,
+            "urls_returned": 5,
+            "urls_ingested": 0,
+            "independent_sources_compared": 0,
+            "rendered_inspection": false,
+            "pdf_inspection": false,
+            "screenshot_inspection": false,
+            "deep_research_plan_completed": false,
+            "contradiction_audit_completed": false,
+            "void_report_completed": false,
+            "void": [
+              "snippets_only",
+              "no_full_page_ingestion",
+              "no_cross_source_verification",
+              "no_rendered_inspection"
+            ],
+            "risk_flags": [],
+            "max_evidence_level": "L1",
+            "claimed_evidence_level": null,
+            "human_judgment_required": false,
+            "session_id": null,
+            "actor_id": null,
+            "receipt_id": "receipt://web/783de08ec1a0d9c9"
+          },
+          "receipt_url": "receipt://web/783de08ec1a0d9c9",
+          "a_rif": {
+            "w_score": 21.6,
+            "entropy_delta": -0.1,
+            "contrast_score": 0.7,
+            "evidence_level": "L1",
+            "claim_state": "hypothesis",
+            "void": []
+          },
+          "reasons": [
+            "Reversible operation \u2014 no irreversible state change",
+            "tool=arif_sense_observe",
+            "delta_S=-0.1 within reversible thermodynamic bounds"
+          ]
+        },
+        "meta": {
+          "actor_id": "anonymous",
+          "post_observe_gate": {
+            "verdict": "WARN",
+            "c_dark": 0.15,
+            "blocked_fields": [],
+            "gate_id": "post_observe_N1"
+          },
+          "sabar_gate": {
+            "verdict": "PASS",
+            "violated_floors": [],
+            "c_dark": 0.0,
+            "gate_id": "sabar_pre_execution",
+            "gate_event_id": "sabar-7ab7ecb5fedf"
+          }
+        },
+        "delta_S": -0.1,
+        "timestamp": "2026-06-13T04:41:09.131865+00:00",
+        "session_id": null,
+        "actor_id": "anonymous",
+        "output_policy": "DOMAIN_SEAL",
+        "nine_signal": {
+          "delta": {
+            "plane": "machine_physical_state",
+            "state": "KUKUH",
+            "en": "SOLID",
+            "domain_meaning": "Data artifact loads correctly; CRS, units, depth basis, shape valid"
+          },
+          "psi": {
+            "plane": "governance_integrity",
+            "state": "AMANAH",
+            "en": "TRUSTED",
+            "domain_meaning": "QC verified, provenance present, evidence refs valid, claim honest"
+          },
+          "omega": {
+            "plane": "intelligence_discipline",
+            "state": "BIJAKSANA",
+            "en": "WISE",
+            "domain_meaning": "Interpretation respects physics, uncertainty, basin context, alternatives"
+          },
+          "overall": {
+            "state": "SELAMAT",
+            "en": "SAFE"
+          }
+        },
+        "reasons": [
+          "Reversible operation \u2014 no irreversible state change",
+          "tool=arif_sense_observe",
+          "delta_S=-0.1 within reversible thermodynamic bounds"
+        ],
+        "stage_progression": {
+          "current_stage": "111",
+          "next_stage": "222",
+          "next_tool": "arif_evidence_fetch",
+          "next_prompt": null
+        },
+        "_nine_signal_compliant": true,
+        "_violations": []
+      }
+    },
+    "arif_evidence_fetch": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "status": "HOLD",
+        "tool": "arif_evidence_fetch",
+        "result": {
+          "status": "NO_EVIDENCE_BACKEND_CONFIGURED",
+          "content": "",
+          "confidence": 0.0,
+          "recommendation": "Configure web_search, local_index, or evidence_store, or provide a URL."
+        },
+        "meta": {
+          "reason": "No evidence backend configured and no URL provided",
+          "violated_laws": [],
+          "nine_signal": {
+            "delta": {
+              "plane": "machine_physical_state",
+              "state": "ROSAK",
+              "en": "BROKEN"
+            },
+            "psi": {
+              "plane": "governance_integrity",
+              "state": "KHIANAT",
+              "en": "BETRAYED"
+            },
+            "omega": {
+              "plane": "intelligence_discipline",
+              "state": "BANGANG",
+              "en": "FOOLISH"
+            },
+            "overall": {
+              "state": "RETAK",
+              "en": "FAILED"
+            }
+          }
+        },
+        "timestamp": "2026-06-13T04:41:10.295538+00:00"
+      }
+    },
+    "arif_mind_reason": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "status": "VOID",
+        "tool": "arif_mind_reason",
+        "verdict": "VOID",
+        "reason": "SAFE_VOID_FALLBACK: LLM timeout after 30000ms",
+        "nine_signal": {
+          "status": "VOID",
+          "entropy_delta": 0.0,
+          "confidence": 0.0,
+          "output_policy": "DOMAIN_VOID",
+          "omega_0": null,
+          "tau": 0.0,
+          "delta_S": 0.0,
+          "kappa_r": 0.0,
+          "peace_squared": 0.0,
+          "psi_vitality": 0.0,
+          "reasons": [
+            "SAFE_VOID: LLM timeout after 30000ms"
+          ]
+        },
+        "timeout_fallback": true,
+        "fallback_reason": "LLM did not respond within 30000ms \u2014 returning pre-signed SAFE_VOID per L13",
+        "session_id": null,
+        "actor_id": null,
+        "output_policy": "DOMAIN_VOID",
+        "invariants_checked": [
+          "timeout_deterministic_void"
+        ],
+        "meta": {
+          "fallback": true,
+          "entropy": 0.0,
+          "guaranteed_by": "L13_SOVEREIGN_TIMEOUT_SAFE_VOID"
+        }
+      }
+    },
+    "arif_heart_critique": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "status": "HOLD",
+        "verdict": "HOLD",
+        "reason": "llm_schema_violation",
+        "reasoning": "{\n  \"stage\": \"666_HEART\",\n  \"target\": \"test action\",\n  \"mode\": \"critique\",\n  \"context_type\": \"external_action\",\n  \"analysis_timestamp\": \"live\",\n  \"preamble\": {\n    \"note\": \"Target is a placeholder string ('test action'). Per F2 TRUTH and F1 AMANAH, an honest critique cannot certify GREEN without evidence. This scan is therefore conducted under HIGH uncertainty band; all ratings below are provisional until context is supplied.\",\n    \"uncertainty_band\": \"HIGH (>30% \u2014 target lacks action definition, scope, data, recipients, reversibility profile, and stakeholder map)\"\n  },\n  \"risk_categories\": {\n    \"PRIVACY\": {\n      \"risk_level\": \"UNCERTAIN\",\n      \"floor_cited\": \"L08\",\n      \"claim_vs_verified\": \"CLAIM \u2014 no verifiable evidence of privacy exposure in the target string itself, but absence of evidence is not evidence of absence\",\n      \"rationale\": \"A 'test action' string carries no PII, surveillance vector, or data-handling instruction. However, if executed in an environment with access to user",
+        "answer": "{\n  \"stage\": \"666_HEART\",\n  \"target\": \"test action\",\n  \"mode\": \"critique\",\n  \"context_type\": \"external_action\",\n  \"analysis_timestamp\": \"live\",\n  \"preamble\": {\n    \"note\": \"Target is a placeholder string ('test action'). Per F2 TRUTH and F1 AMANAH, an honest critique cannot certify GREEN without evidence. This scan is therefore conducted under HIGH uncertainty band; all ratings below are provisional until context is supplied.\",\n    \"uncertainty_band\": \"HIGH (>30% \u2014 target lacks action definition, scope, data, recipients, reversibility profile, and stakeholder map)\"\n  },\n  \"risk_categories\": {\n    \"PRIVACY\": {\n      \"risk_level\": \"UNCERTAIN\",\n      \"floor_cited\": \"L08\",\n      \"claim_vs_verified\": \"CLAIM \u2014 no verifiable evidence of privacy exposure in the target string itself, but absence of evidence is not evidence of absence\",\n      \"rationale\": \"A 'test action' string carries no PII, surveillance vector, or data-handling instruction. However, if executed in an environment with access to user",
+        "_raw_output_hash": "45a07dc198d181ec",
+        "_llm_tier": "minimax",
+        "_llm_available": true,
+        "timestamp": "2026-06-13T04:43:44.364729+00:00",
+        "_envelope": {
+          "provider": "minimax",
+          "model": "MiniMax-M3",
+          "tool_origin": "666_HEART",
+          "mode": "critique",
+          "raw_output_hash": "sha256:45a07dc198d181ec",
+          "schema_valid": true,
+          "confidence_claimed": 0.5,
+          "evidence_level": "claimed",
+          "uncertainty": [
+            "confidence_field_missing",
+            "verdict_HOLD_escalated",
+            "HOLD_VOID_without_explicit_reasons"
+          ],
+          "risk_flags": [],
+          "human_decision_required": true,
+          "authority_level": "instrument_only",
+          "timestamp": "2026-06-13T04:43:43.060496+00:00",
+          "wrapper_version": "777_WITNESS_v1.0"
+        },
+        "omega_state": {
+          "omega": "\u03a9\u2080",
+          "state": "LOW_UNCERTAINTY",
+          "p_truth": 1.0,
+          "action": "PROCEED",
+          "notify_sovereign": false,
+          "scar_tissue": {
+            "scanned": 0,
+            "contradictions": [],
+            "scar_risk": "none"
+          },
+          "overclaim_detected": false,
+          "max_severity": 0,
+          "self_mutation_blocked": false
+        },
+        "execution_verdict": "SEAL",
+        "action_risk_verdict": "HOLD",
+        "maruah": {
+          "score": 1.0,
+          "omega_load": 0.0,
+          "status": "DIGNIFIED"
+        },
+        "tool": "arif_heart_critique",
+        "nine_signal": {
+          "delta": {
+            "plane": "machine_physical_state",
+            "state": "ROSAK",
+            "en": "BROKEN"
+          },
+          "psi": {
+            "plane": "governance_integrity",
+            "state": "KHIANAT",
+            "en": "BETRAYED"
+          },
+          "omega": {
+            "plane": "intelligence_discipline",
+            "state": "BANGANG",
+            "en": "FOOLISH"
+          },
+          "overall": {
+            "state": "RETAK",
+            "en": "FAILED"
+          }
+        },
+        "output_policy": "DOMAIN_HOLD",
+        "dignity_breakdown": {
+          "autonomy_preservation_F04": {
+            "metric": "Does this action diminish 888's sovereignty?",
+            "floor": "L04",
+            "status": "FAIL",
+            "value": 0.0
+          },
+          "audit_clarity_F07": {
+            "metric": "Can a human trace this in < 30 seconds?",
+            "floor": "L07",
+            "status": "PASS",
+            "value": 0.95
+          },
+          "reversibility_index_F01": {
+            "metric": "Time/Energy cost to undo the state change",
+            "floor": "L01",
+            "status": "FAIL",
+            "value": 0.0,
+            "irreversibility_detected": false
+          },
+          "empathy_score_kappa_r": null,
+          "dignity_verdict": "COMPROMISED"
+        }
+      }
+    },
+    "arif_kernel_route": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "status": "HOLD",
+        "tool": "arif_kernel_route",
+        "verdict": "HOLD",
+        "result": {
+          "verdict": "HOLD",
+          "reasons": [
+            "L11 AUTH: session_id missing"
+          ]
+        },
+        "meta": {
+          "reason": "L11 AUTH: session_id missing",
+          "violated_laws": [
+            "L11"
+          ],
+          "next_safe_action": "Produce reversible design blueprint only; no execution.",
+          "nine_signal": {
+            "delta": {
+              "plane": "machine_physical_state",
+              "state": "ROSAK",
+              "en": "BROKEN",
+              "domain_meaning": "Kernel/tooling broken, unavailable, corrupted, or unsafe to execute"
+            },
+            "psi": {
+              "plane": "governance_integrity",
+              "state": "KHIANAT",
+              "en": "BETRAYED",
+              "domain_meaning": "Floor violation, unauthorized action, false claim, unsafe escalation"
+            },
+            "omega": {
+              "plane": "intelligence_discipline",
+              "state": "BANGANG",
+              "en": "FOOLISH",
+              "domain_meaning": "Confused, overconfident, circular, hallucinated, or authority-blind"
+            },
+            "overall": {
+              "state": "RETAK",
+              "en": "FAILED"
+            }
+          },
+          "actor_id": "anonymous",
+          "failed_floors": [
+            "F11"
+          ],
+          "post_observe_gate": {
+            "verdict": "WARN",
+            "c_dark": 0.15,
+            "blocked_fields": [],
+            "gate_id": "post_observe_N1"
+          },
+          "sabar_gate": {
+            "verdict": "PASS",
+            "violated_floors": [],
+            "c_dark": 0.0,
+            "gate_id": "sabar_pre_execution",
+            "gate_event_id": "sabar-545862a6be52"
+          }
+        },
+        "delta_S": 0.0,
+        "timestamp": "2026-06-13T04:43:44.368725+00:00",
+        "session_id": null,
+        "actor_id": "anonymous",
+        "output_policy": "DOMAIN_HOLD",
+        "nine_signal": {
+          "delta": {
+            "plane": "machine_physical_state",
+            "state": "ROSAK",
+            "en": "BROKEN",
+            "domain_meaning": "Kernel/tooling broken, unavailable, corrupted, or unsafe to execute"
+          },
+          "psi": {
+            "plane": "governance_integrity",
+            "state": "KHIANAT",
+            "en": "BETRAYED",
+            "domain_meaning": "Floor violation, unauthorized action, false claim, unsafe escalation"
+          },
+          "omega": {
+            "plane": "intelligence_discipline",
+            "state": "BANGANG",
+            "en": "FOOLISH",
+            "domain_meaning": "Confused, overconfident, circular, hallucinated, or authority-blind"
+          },
+          "overall": {
+            "state": "RETAK",
+            "en": "FAILED"
+          }
+        },
+        "reasons": [
+          "L11 AUTH: session_id missing"
+        ],
+        "stage_progression": null,
+        "_nine_signal_compliant": true,
+        "_violations": [],
+        "philosophical_anchor": {
+          "quote_id": "Z20-Q01",
+          "text": "Life can only be understood backwards; but it must be lived forwards.",
+          "author": "S\u00f8ren Kierkegaard",
+          "source": "Journals",
+          "zone": "Perilous Mourner",
+          "zone_id": "Z20",
+          "atlas_mode": "atlas_27",
+          "source_status": "VERIFIED"
+        }
+      }
+    },
+    "arif_reply_compose": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "error": "L09 Anti-Hantu / SEA-Guard safety violation: blocked_categories=[]",
+        "verdict": "BLOCKED",
+        "safety_result": {
+          "passed": false,
+          "verdict": "BLOCKED",
+          "categories": {},
+          "blocked": [],
+          "confidence": 1.0,
+          "latency_ms": 0.0,
+          "api_error": "SEA_LION_API_KEY not configured"
+        },
+        "_llm_available": false,
+        "_envelope": {
+          "authority_level": "instrument_only",
+          "wrapper_version": "777_WITNESS_v1.0"
+        },
+        "status": "OK",
+        "tool": "arif_reply_compose",
+        "session_id": null,
+        "actor_id": "anonymous",
+        "output_policy": "DOMAIN_SEAL",
+        "reasons": [
+          "Reversible reply composition",
+          "No irreversible state change",
+          "tool=arif_reply_compose mode=compose"
+        ],
+        "nine_signal": {
+          "delta": {
+            "plane": "machine_physical_state",
+            "state": "KUKUH",
+            "en": "SOLID"
+          },
+          "psi": {
+            "plane": "governance_integrity",
+            "state": "AMANAH",
+            "en": "TRUSTED"
+          },
+          "omega": {
+            "plane": "intelligence_discipline",
+            "state": "BIJAKSANA",
+            "en": "WISE"
+          },
+          "overall": {
+            "state": "SELAMAT",
+            "en": "SAFE"
+          }
+        }
+      }
+    },
+    "arif_memory_recall": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "status": "OK",
+        "tool": "arif_memory_recall",
+        "verdict": "SEAL",
+        "result": {
+          "query": "federation health",
+          "memories": [
+            {
+              "id": "456e918f-e9a3-fda7-a7f5-9e447cf32de2",
+              "text": null,
+              "content": null,
+              "tier": "canon",
+              "score": 0.60525584,
+              "created_at": "1779254964.037989",
+              "session_id": "20260520_052924_661033de"
+            },
+            {
+              "id": "917b453b-e57e-91bb-2036-ec1188bdab0a",
+              "text": null,
+              "content": null,
+              "tier": "canon",
+              "score": 0.59047395,
+              "created_at": "1779417970.492534",
+              "session_id": "20260522_024610_b93f81ab"
+            },
+            {
+              "id": "614e5ffb-6b43-319b-d59d-98f9662d9c13",
+              "text": null,
+              "content": null,
+              "tier": "canon",
+              "score": 0.58863866,
+              "created_at": "1779254609.5349767",
+              "session_id": "20260520_052329_9a544d76"
+            },
+            {
+              "id": "87326550-051d-be2e-f6b3-ca1d7a67634c",
+              "text": null,
+              "content": null,
+              "tier": "canon",
+              "score": 0.5222292,
+              "created_at": "1779261760.099834",
+              "session_id": "20260520_072240_5e92d63e"
+            },
+            {
+              "id": "23fb95210bc8",
+              "text": "FEDERATION 3-LEG SMOKE 2026-06-03.",
+              "content": "FEDERATION 3-LEG SMOKE 2026-06-03.",
+              "tier": "canon",
+              "score": 0.5145262,
+              "created_at": "2026-06-03T17:42:54.930818+00:00",
+              "session_id": "SEAL-FEDERATION-20260603-OMEGA"
+            },
+            {
+              "id": "60bec688b5b4",
+              "text": "FEDERATION MEMORY AUDIT COMPLETE 2026-05-25 \u2014 All layers restored: L3 Qdrant UP (3 pts), L4 Postgres UP (pgvector 1024-d",
+              "content": "FEDERATION MEMORY AUDIT COMPLETE 2026-05-25 \u2014 All layers restored: L3 Qdrant UP (3 pts), L4 Postgres UP (pgvector 1024-dim), L5 Redis UP, L6 VAULT999 UP. arif_memory_recall working (Qdrant). A-FORGE forget/decay still orphan. Postgres write silently fails (pg_ok false). WELL state.json score patched 27.6 to 75.",
+              "tier": "canon",
+              "score": 0.50020295,
+              "created_at": "2026-05-25T18:00:46.720875+00:00",
+              "session_id": "SEAL-579143b55a1d41ad"
+            },
+            {
+              "id": "3ec1013b-833b-5bb6-b31c-ab58ef069126",
+              "text": null,
+              "content": null,
+              "tier": "canon",
+              "score": 0.4892587,
+              "created_at": null,
+              "session_id": null
+            },
+            {
+              "id": "bd2b4b1e-a38b-499c-9a2e-b4a4ab2d8df6",
+              "text": null,
+              "content": null,
+              "tier": "canon",
+              "score": 0.4885184,
+              "created_at": null,
+              "session_id": "20260527_021133_798a4ff9"
+            },
+            {
+              "id": "bdb6f287-344d-562a-8a05-8d5bdd837735",
+              "text": null,
+              "content": null,
+              "tier": "canon",
+              "score": 0.4866475,
+              "created_at": null,
+              "session_id": "SEAL-FEDERATION-20260603-OMEGA"
+            },
+            {
+              "id": "f61c8f92-eeee-1295-b5f8-9f559b679c31",
+              "text": null,
+              "content": null,
+              "tier": "canon",
+              "score": 0.48651224,
+              "created_at": "1779418407.5857399",
+              "session_id": "20260522_025327_ed747b02"
+            }
+          ],
+          "confidence": 0.85,
+          "relevance_scores": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "avg_relevance": 0.1,
+          "correction_loop": {
+            "triggered": true,
+            "attempts": 1,
+            "reformulated_query": null
+          },
+          "verdict": "SEAL",
+          "reasons": [
+            "Reversible operation \u2014 no irreversible state change",
+            "tool=arif_memory_recall",
+            "delta_S=0.001 within reversible thermodynamic bounds"
+          ]
+        },
+        "meta": {
+          "actor_id": "anonymous",
+          "post_observe_gate": {
+            "verdict": "WARN",
+            "c_dark": 0.15,
+            "blocked_fields": [],
+            "gate_id": "post_observe_N1"
+          },
+          "sabar_gate": {
+            "verdict": "PASS",
+            "violated_floors": [],
+            "c_dark": 0.0,
+            "gate_id": "sabar_pre_execution",
+            "gate_event_id": "sabar-846a3ad09a81"
+          }
+        },
+        "delta_S": 0.001,
+        "timestamp": "2026-06-13T04:43:53.285220+00:00",
+        "session_id": null,
+        "actor_id": "anonymous",
+        "output_policy": "DOMAIN_SEAL",
+        "nine_signal": {
+          "delta": {
+            "plane": "machine_physical_state",
+            "state": "KUKUH",
+            "en": "SOLID",
+            "domain_meaning": "Tool surface registered, schema valid, constitutional floors active"
+          },
+          "psi": {
+            "plane": "governance_integrity",
+            "state": "AMANAH",
+            "en": "TRUSTED",
+            "domain_meaning": "Floors respected, authority boundary declared, evidence not overstated"
+          },
+          "omega": {
+            "plane": "intelligence_discipline",
+            "state": "BIJAKSANA",
+            "en": "WISE",
+            "domain_meaning": "Reasoning constrained, humble, evidence-aware, consequence-aware"
+          },
+          "overall": {
+            "state": "SELAMAT",
+            "en": "SAFE"
+          }
+        },
+        "reasons": [
+          "Reversible operation \u2014 no irreversible state change",
+          "tool=arif_memory_recall",
+          "delta_S=0.001 within reversible thermodynamic bounds"
+        ],
+        "stage_progression": {
+          "current_stage": "555m",
+          "next_stage": "666",
+          "next_tool": "arif_heart_critique",
+          "next_prompt": "666_critique"
+        },
+        "_nine_signal_compliant": true,
+        "_violations": []
+      }
+    },
+    "arif_gateway_connect": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "status": "HOLD",
+        "tool": "arif_gateway_connect",
+        "verdict": "HOLD",
+        "result": {
+          "verdict": "HOLD",
+          "reasons": [
+            "Constitutional HOLD: L11"
+          ]
+        },
+        "meta": {
+          "reason": "Constitutional HOLD: L11",
+          "violated_laws": [
+            "L11"
+          ],
+          "next_safe_action": "Produce reversible design blueprint only; no execution.",
+          "nine_signal": {
+            "delta": {
+              "plane": "machine_physical_state",
+              "state": "ROSAK",
+              "en": "BROKEN",
+              "domain_meaning": "Kernel/tooling broken, unavailable, corrupted, or unsafe to execute"
+            },
+            "psi": {
+              "plane": "governance_integrity",
+              "state": "KHIANAT",
+              "en": "BETRAYED",
+              "domain_meaning": "Floor violation, unauthorized action, false claim, unsafe escalation"
+            },
+            "omega": {
+              "plane": "intelligence_discipline",
+              "state": "BANGANG",
+              "en": "FOOLISH",
+              "domain_meaning": "Confused, overconfident, circular, hallucinated, or authority-blind"
+            },
+            "overall": {
+              "state": "RETAK",
+              "en": "FAILED"
+            }
+          },
+          "actor_id": "anonymous",
+          "failed_floors": [
+            "F11"
+          ],
+          "post_observe_gate": {
+            "verdict": "WARN",
+            "c_dark": 0.15,
+            "blocked_fields": [],
+            "gate_id": "post_observe_N1"
+          },
+          "sabar_gate": {
+            "verdict": "PASS",
+            "violated_floors": [],
+            "c_dark": 0.0,
+            "gate_id": "sabar_pre_execution",
+            "gate_event_id": "sabar-92111d68a87f"
+          }
+        },
+        "delta_S": 0.0,
+        "timestamp": "2026-06-13T04:43:53.666755+00:00",
+        "session_id": null,
+        "actor_id": "anonymous",
+        "output_policy": "DOMAIN_HOLD",
+        "nine_signal": {
+          "delta": {
+            "plane": "machine_physical_state",
+            "state": "ROSAK",
+            "en": "BROKEN",
+            "domain_meaning": "Kernel/tooling broken, unavailable, corrupted, or unsafe to execute"
+          },
+          "psi": {
+            "plane": "governance_integrity",
+            "state": "KHIANAT",
+            "en": "BETRAYED",
+            "domain_meaning": "Floor violation, unauthorized action, false claim, unsafe escalation"
+          },
+          "omega": {
+            "plane": "intelligence_discipline",
+            "state": "BANGANG",
+            "en": "FOOLISH",
+            "domain_meaning": "Confused, overconfident, circular, hallucinated, or authority-blind"
+          },
+          "overall": {
+            "state": "RETAK",
+            "en": "FAILED"
+          }
+        },
+        "reasons": [
+          "Constitutional HOLD: L11"
+        ],
+        "stage_progression": null,
+        "_nine_signal_compliant": true,
+        "_violations": [],
+        "philosophical_anchor": {
+          "quote_id": "Z20-Q01",
+          "text": "Life can only be understood backwards; but it must be lived forwards.",
+          "author": "S\u00f8ren Kierkegaard",
+          "source": "Journals",
+          "zone": "Perilous Mourner",
+          "zone_id": "Z20",
+          "atlas_mode": "atlas_27",
+          "source_status": "VERIFIED"
+        }
+      }
+    },
+    "arif_judge_deliberate": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "status": "HOLD",
+        "tool": "arif_judge_deliberate",
+        "verdict": "HOLD",
+        "result": {
+          "verdict": "HOLD",
+          "reasons": [
+            "MCP client with elicitation support is required to confirm the candidate. Model cannot self-certify (L13). Provide candidate via an MCP client that supports elicitation, or use mode='history' to browse past verdicts."
+          ]
+        },
+        "meta": {
+          "reason": "MCP client with elicitation support is required to confirm the candidate. Model cannot self-certify (L13). Provide candidate via an MCP client that supports elicitation, or use mode='history' to browse past verdicts.",
+          "violated_laws": [],
+          "next_safe_action": "Produce reversible design blueprint only; no execution.",
+          "nine_signal": {
+            "delta": {
+              "plane": "machine_physical_state",
+              "state": "ROSAK",
+              "en": "BROKEN",
+              "domain_meaning": "Kernel/tooling broken, unavailable, corrupted, or unsafe to execute"
+            },
+            "psi": {
+              "plane": "governance_integrity",
+              "state": "KHIANAT",
+              "en": "BETRAYED",
+              "domain_meaning": "Floor violation, unauthorized action, false claim, unsafe escalation"
+            },
+            "omega": {
+              "plane": "intelligence_discipline",
+              "state": "BANGANG",
+              "en": "FOOLISH",
+              "domain_meaning": "Confused, overconfident, circular, hallucinated, or authority-blind"
+            },
+            "overall": {
+              "state": "RETAK",
+              "en": "FAILED"
+            }
+          },
+          "actor_id": "anonymous",
+          "failed_floors": [],
+          "post_observe_gate": {
+            "verdict": "WARN",
+            "c_dark": 0.15,
+            "blocked_fields": [],
+            "gate_id": "post_observe_N1"
+          },
+          "sabar_gate": {
+            "verdict": "PASS",
+            "violated_floors": [],
+            "c_dark": 0.0,
+            "gate_id": "sabar_pre_execution",
+            "gate_event_id": "sabar-ba4d5918b43e"
+          }
+        },
+        "delta_S": 0.0,
+        "timestamp": "2026-06-13T04:43:53.706844+00:00",
+        "session_id": null,
+        "actor_id": "anonymous",
+        "output_policy": "DOMAIN_HOLD",
+        "nine_signal": {
+          "delta": {
+            "plane": "machine_physical_state",
+            "state": "ROSAK",
+            "en": "BROKEN",
+            "domain_meaning": "Kernel/tooling broken, unavailable, corrupted, or unsafe to execute"
+          },
+          "psi": {
+            "plane": "governance_integrity",
+            "state": "KHIANAT",
+            "en": "BETRAYED",
+            "domain_meaning": "Floor violation, unauthorized action, false claim, unsafe escalation"
+          },
+          "omega": {
+            "plane": "intelligence_discipline",
+            "state": "BANGANG",
+            "en": "FOOLISH",
+            "domain_meaning": "Confused, overconfident, circular, hallucinated, or authority-blind"
+          },
+          "overall": {
+            "state": "RETAK",
+            "en": "FAILED"
+          }
+        },
+        "reasons": [
+          "MCP client with elicitation support is required to confirm the candidate. Model cannot self-certify (L13). Provide candidate via an MCP client that supports elicitation, or use mode='history' to browse past verdicts."
+        ],
+        "stage_progression": null,
+        "_nine_signal_compliant": true,
+        "_violations": [],
+        "philosophical_anchor": {
+          "quote_id": "Z20-Q03",
+          "text": "Man is condemned to be free; because once thrown into the world, he is responsible for everything he does.",
+          "author": "Jean-Paul Sartre",
+          "source": "Being and Nothingness",
+          "zone": "Perilous Mourner",
+          "zone_id": "Z20",
+          "atlas_mode": "atlas_27",
+          "source_status": "VERIFIED"
+        }
+      }
+    },
+    "arif_vault_seal": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "status": "HOLD",
+        "tool": "arif_vault_seal",
+        "verdict": "HOLD",
+        "result": {
+          "verdict": "HOLD",
+          "reasons": [
+            "seal requires ack_irreversible=True or an MCP client with elicitation support"
+          ]
+        },
+        "meta": {
+          "reason": "seal requires ack_irreversible=True or an MCP client with elicitation support",
+          "violated_laws": [],
+          "next_safe_action": "Produce reversible design blueprint only; no execution.",
+          "nine_signal": {
+            "delta": {
+              "plane": "machine_physical_state",
+              "state": "ROSAK",
+              "en": "BROKEN",
+              "domain_meaning": "Kernel/tooling broken, unavailable, corrupted, or unsafe to execute"
+            },
+            "psi": {
+              "plane": "governance_integrity",
+              "state": "KHIANAT",
+              "en": "BETRAYED",
+              "domain_meaning": "Floor violation, unauthorized action, false claim, unsafe escalation"
+            },
+            "omega": {
+              "plane": "intelligence_discipline",
+              "state": "BANGANG",
+              "en": "FOOLISH",
+              "domain_meaning": "Confused, overconfident, circular, hallucinated, or authority-blind"
+            },
+            "overall": {
+              "state": "RETAK",
+              "en": "FAILED"
+            }
+          },
+          "actor_id": "anonymous",
+          "failed_floors": [],
+          "post_observe_gate": {
+            "verdict": "WARN",
+            "c_dark": 0.15,
+            "blocked_fields": [],
+            "gate_id": "post_observe_N1"
+          },
+          "sabar_gate": {
+            "verdict": "PASS",
+            "violated_floors": [],
+            "c_dark": 0.0,
+            "gate_id": "sabar_pre_execution",
+            "gate_event_id": "sabar-189bb10ea1c0"
+          }
+        },
+        "delta_S": 0.0,
+        "timestamp": "2026-06-13T04:43:53.729956+00:00",
+        "session_id": null,
+        "actor_id": "anonymous",
+        "output_policy": "DOMAIN_HOLD",
+        "nine_signal": {
+          "delta": {
+            "plane": "machine_physical_state",
+            "state": "ROSAK",
+            "en": "BROKEN",
+            "domain_meaning": "Kernel/tooling broken, unavailable, corrupted, or unsafe to execute"
+          },
+          "psi": {
+            "plane": "governance_integrity",
+            "state": "KHIANAT",
+            "en": "BETRAYED",
+            "domain_meaning": "Floor violation, unauthorized action, false claim, unsafe escalation"
+          },
+          "omega": {
+            "plane": "intelligence_discipline",
+            "state": "BANGANG",
+            "en": "FOOLISH",
+            "domain_meaning": "Confused, overconfident, circular, hallucinated, or authority-blind"
+          },
+          "overall": {
+            "state": "RETAK",
+            "en": "FAILED"
+          }
+        },
+        "reasons": [
+          "seal requires ack_irreversible=True or an MCP client with elicitation support"
+        ],
+        "stage_progression": null,
+        "_nine_signal_compliant": true,
+        "_violations": [],
+        "philosophical_anchor": {
+          "quote_id": "Z20-Q01",
+          "text": "Life can only be understood backwards; but it must be lived forwards.",
+          "author": "S\u00f8ren Kierkegaard",
+          "source": "Journals",
+          "zone": "Perilous Mourner",
+          "zone_id": "Z20",
+          "atlas_mode": "atlas_27",
+          "source_status": "VERIFIED"
+        }
+      }
+    },
+    "arif_forge_execute": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "manifest": {
+          "artifact_id": "",
+          "name": "",
+          "type": "",
+          "size_bytes": 0,
+          "checksum": null,
+          "manifest_raw": "",
+          "status": "pending"
+        },
+        "status": "OK",
+        "result": {
+          "query_result": "test query",
+          "mode": "query",
+          "note": "Read-only inspection \u2014 no mutation."
+        },
+        "irreversibility_bond": {
+          "level": "reversible",
+          "delta_S": 0.0,
+          "landauer_cost_joules": null,
+          "compensation_required": false,
+          "rollback_possible": true
+        },
+        "delta_S_evidence": {
+          "delta_S_positive": 0.0,
+          "delta_S_negative": 0.0,
+          "delta_S_net": 0.0,
+          "energy_cost_joules": null,
+          "landauer_optimal": true,
+          "entropy_budget_remaining": null
+        },
+        "constitutional_compliance": {
+          "floors_invoked": [],
+          "law_results": {},
+          "violations_found": [],
+          "genius_score": 0.0,
+          "amanah_score": 0.0
+        },
+        "execution_trace": {
+          "steps": [],
+          "total_steps": 0,
+          "final_artifact_id": null,
+          "final_status": "pending",
+          "final_delta_S": 0.0,
+          "rollbacks_attempted": 0,
+          "rollbacks_succeeded": 0
+        },
+        "ack_irreversible_received": false,
+        "ack_irreversible_timestamp": null,
+        "constitutional_chain_id": null,
+        "judge_state_hash": null,
+        "vault_entry_id": null,
+        "judge_contract": null,
+        "meta": {},
+        "timestamp": "2026-06-13T04:43:56.874342+00:00",
+        "reasons": [],
+        "nine_signal": {
+          "delta": {
+            "plane": "machine_physical_state",
+            "state": "KUKUH",
+            "en": "SOLID"
+          },
+          "psi": {
+            "plane": "governance_integrity",
+            "state": "AMANAH",
+            "en": "TRUSTED"
+          },
+          "omega": {
+            "plane": "intelligence_discipline",
+            "state": "BIJAKSANA",
+            "en": "WISE"
+          },
+          "overall": {
+            "state": "SELAMAT",
+            "en": "SAFE"
+          }
+        },
+        "output_policy": "DOMAIN_SEAL"
+      }
+    },
+    "arif_ops_measure": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "status": "OK",
+        "tool": "arif_ops_measure",
+        "verdict": "SEAL",
+        "result": {
+          "status": "healthy",
+          "verified": true,
+          "timestamp": "2026-06-13T04:43:57.231032+00:00",
+          "cpu": {
+            "value": 90.4,
+            "unit": "percent",
+            "scope": "system",
+            "source": "psutil",
+            "verified": true,
+            "sample_window_sec": 0.5
+          },
+          "mem": {
+            "percent": {
+              "value": 76.0,
+              "unit": "percent",
+              "source": "psutil",
+              "verified": true
+            },
+            "total_bytes": 33651912704,
+            "available_bytes": 8087580672,
+            "used_bytes": 25564332032,
+            "source": "psutil",
+            "verified": true
+          },
+          "disk": {
+            "percent": {
+              "value": 38.7,
+              "unit": "percent",
+              "mount": "/",
+              "source": "psutil",
+              "verified": true
+            },
+            "total_bytes": 415381426176,
+            "used_bytes": 160774209536,
+            "free_bytes": 254590439424,
+            "source": "psutil",
+            "verified": true
+          },
+          "bands": {
+            "cpu": "critical",
+            "mem": "moderate",
+            "disk": "low"
+          },
+          "thresholds": {
+            "healthy_cpu_max": 70,
+            "healthy_mem_max": 80,
+            "healthy_disk_max": 85
+          },
+          "verdict": "SEAL",
+          "reasons": [
+            "Reversible operation \u2014 no irreversible state change",
+            "tool=arif_ops_measure",
+            "delta_S=0.001 within reversible thermodynamic bounds"
+          ]
+        },
+        "meta": {
+          "actor_id": "anonymous",
+          "post_observe_gate": {
+            "verdict": "WARN",
+            "c_dark": 0.15,
+            "blocked_fields": [],
+            "gate_id": "post_observe_N1"
+          },
+          "sabar_gate": {
+            "verdict": "PASS",
+            "violated_floors": [],
+            "c_dark": 0.0,
+            "gate_id": "sabar_pre_execution",
+            "gate_event_id": "sabar-dcaf3d612752"
+          }
+        },
+        "delta_S": 0.001,
+        "timestamp": "2026-06-13T04:43:57.855187+00:00",
+        "session_id": null,
+        "actor_id": "anonymous",
+        "output_policy": "DOMAIN_SEAL",
+        "nine_signal": {
+          "delta": {
+            "plane": "machine_physical_state",
+            "state": "KUKUH",
+            "en": "SOLID",
+            "domain_meaning": "Telemetry available, metrics readable, resource surface stable"
+          },
+          "psi": {
+            "plane": "governance_integrity",
+            "state": "AMANAH",
+            "en": "TRUSTED",
+            "domain_meaning": "Measurements honest, bounds declared, no metric fabrication"
+          },
+          "omega": {
+            "plane": "intelligence_discipline",
+            "state": "BIJAKSANA",
+            "en": "WISE",
+            "domain_meaning": "Contextual interpretation of metrics, aware of limits"
+          },
+          "overall": {
+            "state": "SELAMAT",
+            "en": "SAFE"
+          }
+        },
+        "reasons": [
+          "Reversible operation \u2014 no irreversible state change",
+          "tool=arif_ops_measure",
+          "delta_S=0.001 within reversible thermodynamic bounds"
+        ],
+        "stage_progression": {
+          "current_stage": "777",
+          "next_stage": "888",
+          "next_tool": "arif_judge_deliberate",
+          "next_prompt": "888_apex"
+        },
+        "_nine_signal_compliant": true,
+        "_violations": []
+      }
+    },
+    "forge_query": {
+      "status": "PASS",
+      "error": null,
+      "result": "verdict='SEAL' error_code=None query='test' result={'query_mode': True, 'manifest_received': '', 'workspace_readable': True} workspace_tree=[{'name': '.agents', 'type': 'directory', 'size': None}, {'name': '.antigravityignore', 'type': 'file', 'size': 78}, {'name': '.arifos', 'type': 'directory', 'size': None}, {'name': '.collab', 'type': 'directory', 'size': None}, {'name': '.coverage', 'type': 'file', 'size': 131072}, {'name': '.dockerignore', 'type': 'file', 'size': 329}, {'name': '.env', 'type': 'file', 'size': 7937}, {'name': '.env.docker.example', 'type': 'file', 'size': 2483}, {'name': '.env.example', 'type': 'file', 'size': 12665}, {'name': '.gemini_access', 'type': 'file', 'size': 243}, {'name': '.geminiignore', 'type': 'file', 'size': 78}, {'name': '.git', 'type': 'directory', 'size': None}, {'name': '.gitattributes', 'type': 'file', 'size': 603}, {'name': '.github', 'type': 'directory', 'size': None}, {'name': '.gitignore', 'type': 'file', 'size': 2992}, {'name': '.gitleaks.toml', 'type': 'file', 'size': 486}, {'name': '.gitmodules', 'type': 'file', 'size': 0}, {'name': '.opencode', 'type': 'directory', 'size': None}, {'name': '.opencode.json', 'type': 'file', 'size': 14208}, {'name': '.playwright-mcp', 'type': 'directory', 'size': None}, {'name': '.pre-commit-config.yaml', 'type': 'file', 'size': 4962}, {'name': '.pytest_cache', 'type': 'directory', 'size': None}, {'name': '.ruff_cache', 'type': 'directory', 'size': None}, {'name': '.secrets.baseline', 'type': 'file', 'size': 2970}, {'name': '.serena', 'type': 'directory', 'size': None}, {'name': '.venv', 'type': 'directory', 'size': None}, {'name': 'AGENTS.md', 'type': 'file', 'size': 4033}, {'name': 'AGENT_KERNEL_START.md', 'type': 'file', 'size': 4816}, {'name': 'APEX', 'type': 'directory', 'size': None}, {'name': 'ARCH', 'type': 'directory', 'size': None}, {'name': 'CHANGELOG.md', 'type': 'file', 'size': 22302}, {'name': 'CLARITY.md', 'type': 'file', 'size': 3955}, {'name': 'CLAUDE.md', 'type': 'file', 'size': 4460}, {'name': 'COMPUTE_TIERING.md', 'type': 'file', 'size': 15743}, {'name': 'Caddyfile', 'type': 'file', 'size': 19575}, {'name': 'Dockerfile', 'type': 'file', 'size': 6075}, {'name': 'FEDERATION_CONTRACT.md', 'type': 'file', 'size': 7384}, {'name': 'FEDERATION_MEMORY.md', 'type': 'file', 'size': 6177}, {'name': 'FEDERATION_STATUS.md', 'type': 'file', 'size': 3789}, {'name': 'FOUNDATION_SPRINT_V1.md', 'type': 'file', 'size': 5817}, {'name': 'GENESIS', 'type': 'directory', 'size': None}, {'name': 'HUMAN', 'type': 'directory', 'size': None}, {'name': 'INVARIANTS.md', 'type': 'file', 'size': 1888}, {'name': 'LICENSE', 'type': 'file', 'size': 34523}, {'name': 'Makefile', 'type': 'file', 'size': 5160}, {'name': 'ORGAN_FORGE_INTEGRATION.md', 'type': 'file', 'size': 9574}, {'name': 'README.md', 'type': 'file', 'size': 37536}, {'name': 'REPO_ROLE_MAP.md', 'type': 'file', 'size': 4336}, {'name': 'ROOT_888_HOLD.md', 'type': 'file', 'size': 1007}, {'name': 'SPEC.md', 'type': 'file', 'size': 7877}] system_state={'workspace': '/root/arifOS', 'workspace_root': '/root', 'tool_manifest': {'name': 'forge_query', 'version': '0.2.0', 'stage': '010', 'lane': 'AGI', 'safe_modes': ['query'], 'dangerous_modes': [], 'requires_identity': False, 'requires_state_hash': False, 'requires_approval_for': [], 'side_effects': [], 'max_blast_radius': 'none', 'schema_hash': None, 'implementation_hash': None}} duration_ms=78 timestamp='2026-06-13T04:43:57.860425+00:00'"
+    },
+    "forge_plan": {
+      "status": "PASS",
+      "error": null,
+      "result": "verdict='SEAL' error_code=None plan_id='plan_35c54b6cbfeb547d' goal='test plan' action_class='REASON' risk_tier='low' required_approval=False required_tools=['forge_query'] estimated_blast_radius='none' plan={'steps': [{'step': 1, 'tool': 'forge_query', 'purpose': 'introspect current state'}, {'step': 2, 'tool': 'forge_dry_run', 'purpose': 'simulate action'}, {'step': 3, 'tool': 'arif_heart_critique', 'purpose': 'ethical review'}, {'step': 4, 'tool': 'arif_judge_deliberate', 'purpose': 'constitutional authorization'}, {'step': 5, 'tool': 'arif_forge_execute', 'purpose': 'execute approved plan'}], 'notes': 'Action classified as REASON. Blast radius: none.'} duration_ms=0 timestamp='2026-06-13T04:43:57.953451+00:00'"
+    },
+    "forge_dry_run": {
+      "status": "PASS",
+      "error": null,
+      "result": "verdict='SEAL' error_code=None plan_id='' dry_run=True commands=[] files_to_create=[] files_to_modify=[] files_to_delete=[] external_effects=[] rollback_plan=['git status to identify changes', 'git checkout -- <modified files>', 'rm <created files>', 'git stash pop if needed'] diff_preview='# Dry Run Plan: unnamed\\n# Workspace: /root/arifOS\\n# Actor: anonymous\\n# Manifest length: 4 chars\\n\\n## Planned Actions\\n- Files to create: 0\\n- Files to modify: 0\\n- Files to delete: 0\\n\\n## Commands (simulated)\\n  (none parsed from manifest)\\n\\n## External Effects\\n  (none detected)\\n\\n## Rollback Plan\\n  1. Identify modified files via git status\\n  2. git checkout -- <file> for each modified file\\n  3. rm <file> for each created file\\n  4. git stash pop if stash was created\\n' duration_ms=0 timestamp='2026-06-13T04:43:57.986791+00:00'"
+    },
+    "arif_lease_inspect": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "status": "OK",
+        "tool": "arif_lease_inspect",
+        "verdict": "SEAL",
+        "result": {
+          "count": 0,
+          "leases": []
+        },
+        "session_id": null,
+        "actor_id": "audit-test"
+      }
+    },
+    "arif_lease_issue": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "status": "HOLD",
+        "tool": "arif_lease_issue",
+        "verdict": "HOLD",
+        "reason": "WAJIB: actor_did and tool are required to issue a lease",
+        "violated_floors": [
+          "F01_AMANAH",
+          "F11_AUDIT"
+        ],
+        "session_id": "audit-session",
+        "actor_id": "audit-test"
+      }
+    },
+    "arif_lease_revoke": {
+      "status": "PASS",
+      "error": null,
+      "result": {
+        "status": "HOLD",
+        "tool": "arif_lease_revoke",
+        "verdict": "HOLD",
+        "result": {
+          "lease_id": "nonexistent-lease",
+          "revoked": false,
+          "reason": "lease 'nonexistent-lease' not found"
+        },
+        "session_id": null,
+        "actor_id": "audit-test"
+      }
+    }
+  },
+  "static_gaps": [],
+  "seal_blockers": [],
+  "seal_ready": true
+}
