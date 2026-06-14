@@ -404,8 +404,36 @@ async def _ensure_upstream_session(organ_name: str, client: httpx.AsyncClient) -
         },
     }
     
+    # A-FORGE uses a stable localhost session ID so the gateway can survive
+    # restarts without re-initialization races against the single-session
+    # StreamableHTTP transport.
+    if organ_name == "A-FORGE":
+        af_session_id = "a-forge-gateway-session"
+        try:
+            init_resp = await client.post(
+                organ["url"],
+                json=init_body,
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                    "mcp-session-id": af_session_id,
+                },
+            )
+            body_str = (init_resp.content or b"").decode()
+            if init_resp.status_code < 400 or "already initialized" in body_str.lower():
+                UPSTREAM_SESSIONS[organ_name] = {
+                    "session_id": af_session_id,
+                    "expires_at": now + 300,
+                    "url": organ["url"],
+                }
+                log.info("Upstream session ready (A-FORGE stable): %s", af_session_id)
+                return af_session_id
+        except Exception as e:
+            log.warning("A-FORGE session handshake failed: %s", e)
+        return None
+    
     try:
-        # StreamableHTTP transport (A-FORGE, FastMCP 3.4.2): initialize first,
+        # StreamableHTTP transport (FastMCP 3.4.2): initialize first,
         # server returns mcp-session-id in response headers.
         init_resp = await client.post(
             organ["url"],

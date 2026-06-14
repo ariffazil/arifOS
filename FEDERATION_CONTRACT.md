@@ -2,7 +2,7 @@
 
 > **Canonical. Binding. One file for all organs.**
 > **Ratified:** 2026-06-12 by F13 SOVEREIGN (Arif Fazil)
-> **SoT:** `github.com/ariffazil/arifOS/FEDERATION_CONTRACT.md`
+> **SoT:** `github.com/ariffazil/arifos/FEDERATION_CONTRACT.md`
 > **DITEMPA BUKAN DIBERI — Forged, Not Given.**
 
 ---
