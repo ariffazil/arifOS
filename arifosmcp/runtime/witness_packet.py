@@ -20,6 +20,9 @@ WitnessPacket schema:
   prompt_hash         — SHA-256 of (system + user) prompt
   parsed_output       — the structured JSON returned by LLM
   schema_valid        — did parsed_output match expected schema?
+  l02a_parseability   — was substrate output structurally parseable? (added 2026-06-15)
+  l02b_truth_veracity — was substrate output semantically truthful? (added 2026-06-15)
+                        — NOT_EVALUATED when l02a_parseability=FAIL
   confidence_claimed  — LLM's own confidence claim (if any)
   evidence_level      — none | claimed | cited | verified
   uncertainty         — list of epistemic uncertainty statements
@@ -28,6 +31,24 @@ WitnessPacket schema:
   authority_level     — instrument_only | advisory | adjudicative
   human_decision_required — gate for all downstream tools
   timestamp           — ISO UTC
+
+L02 SPLIT (CCC finding 2026-06-15):
+  Originally L02 was a single field: "TRUTH ≥ 0.99" with a single
+  PASS/FAIL. On text-output LLM substrates (ILMU, MiniMax, sea_lion),
+  the substrate returns free-form prose, not parseable JSON. The
+  envelope parser fails on parseability, not on truth. This conflates
+  a STRUCTURAL failure (parseability) with a SEMANTIC failure
+  (truthfulness) and risks misleading critics.
+
+  Fix: split L02 into two subfields.
+    - l02a_parseability: PASS if envelope parser could extract
+      structured fields. FAIL otherwise.
+    - l02b_truth_veracity: PASS/FAIL/NOT_EVALUATED. NOT_EVALUATED
+      when l02a=FAIL (cannot judge truth without parsed structure).
+
+  Pre-split: a single L02=FAIL was ambiguous (truth or parse?).
+  Post-split: FAIL=parse, NOT_EVALUATED=parse-fail-then-also-truth-NE,
+  PASS=both-passed.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -67,6 +88,10 @@ class WitnessPacket:
     # Content
     parsed_output: dict[str, Any] = field(default_factory=dict)
     schema_valid: bool = False
+    # L02 split (added 2026-06-15 per CCC ariffazil/CCC substrate finding)
+    # — see module docstring for rationale
+    l02a_parseability: str = "FAIL"   # PASS | FAIL
+    l02b_truth_veracity: str = "NOT_EVALUATED"  # PASS | FAIL | NOT_EVALUATED
     confidence_claimed: float | None = None  # 0.0–1.0 from LLM self-report
 
     # Constitutional metadata
@@ -98,7 +123,10 @@ class WitnessPacket:
             "mode": self.mode,
             "raw_output_hash": self.raw_output_hash,
             "prompt_hash": self.prompt_hash,
+            "raw_text": self.raw_text,
             "schema_valid": self.schema_valid,
+            "l02a_parseability": self.l02a_parseability,
+            "l02b_truth_veracity": self.l02b_truth_veracity,
             "confidence_claimed": self.confidence_claimed,
             "evidence_level": self.evidence_level,
             "uncertainty": self.uncertainty,
@@ -160,6 +188,16 @@ class WitnessPacket:
         # Constitutional risk flags
         risk_flags = _flag_constitutional_risks(parsed_output, raw_response, injection)
 
+        # L02 split (CCC finding 2026-06-15) — parseability vs truth_veracity
+        # Pre-split: single schema_valid; L02 reported FAIL on either parse-fail OR truth-fail
+        # Post-split: l02a = parseability (structural), l02b = truth_veracity (semantic)
+        l02a = "PASS" if schema_valid else "FAIL"
+        if l02a == "FAIL":
+            l02b = "NOT_EVALUATED"  # cannot judge truth without parsed structure
+        else:
+            # Default to PASS for parsed outputs; downstream floor scoring can override
+            l02b = "PASS"
+
         # Authority level (L09 ANTIHANTU — LLM is always instrument, never sovereign)
         authority = "instrument_only"
 
@@ -173,6 +211,8 @@ class WitnessPacket:
             raw_text=raw_response[:2000],  # Truncate for storage size
             parsed_output=parsed_output,
             schema_valid=schema_valid,
+            l02a_parseability=l02a,
+            l02b_truth_veracity=l02b,
             confidence_claimed=confidence,
             evidence_level=evidence,
             uncertainty=uncertainty,
@@ -196,6 +236,8 @@ class WitnessPacket:
             "mode": self.mode,
             "raw_output_hash": self.raw_output_hash,
             "schema_valid": self.schema_valid,
+            "l02a_parseability": self.l02a_parseability,
+            "l02b_truth_veracity": self.l02b_truth_veracity,
             "confidence_claimed": self.confidence_claimed,
             "evidence_level": self.evidence_level,
             "uncertainty": self.uncertainty,
