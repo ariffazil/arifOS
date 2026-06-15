@@ -66,6 +66,18 @@ constitutional-benchmark:
 	@echo "Running Constitutional Agent Benchmark..."
 	@python benchmarks/constitutional_agent_benchmark/run_benchmarks.py
 
+metabolic:
+	@echo "══════════════════════════════════════════════════════════════"
+	@echo "METABOLIC CHAIN TEST — The Body Lives or It Doesn't"
+	@echo "══════════════════════════════════════════════════════════════"
+	@echo "Testing: LAS → GEOX → Claim → WEALTH → JUDGE → VAULT"
+	@echo ""
+	PYTHONPATH=tests/metabolic $(PYTHON) -m pytest tests/metabolic/test_chain.py -v --tb=long -s
+	@echo ""
+	@echo "══════════════════════════════════════════════════════════════"
+	@echo "CHAIN TEST COMPLETE"
+	@echo "══════════════════════════════════════════════════════════════"
+
 sync:
 	@echo "Synchronizing Planetary Fleet..."
 	@git submodule update --remote --merge
