@@ -1,0 +1,70 @@
+{
+  "seal_request": {
+    "id": "T0-T4-2026-06-16",
+    "sovereign": "Muhammad Arif Fazil",
+    "clerk": "kimi-constitutional-clerk",
+    "purpose": "Anchor the T0 Canon Cleanup and T4 A-FORGE Lease Gate deliverables to VAULT999.",
+    "reversibility": "The underlying code changes are already pushed to GitHub; the SEAL itself is an irreversible ledger entry."
+  },
+  "step_1_arif_judge_deliberate": {
+    "tool": "arif_judge_deliberate",
+    "payload": {
+      "mode": "judge",
+      "candidate": "Request 999_SEAL for T0 Canon Cleanup and T4 A-FORGE Lease Gate. T0 (arifOS commit d89e89c2): enforced single-source constitution in arifOS/static/arifos/theory/000/000_CONSTITUTION.md; removed stale WEALTH/raw/CONSTITUTION.md and WEALTH/archive/AAA_FEDERATION_CONSTITUTION.md; added scripts/canon_drift_check.py; realigned GEOX GENESIS floor language from F01-F09 to F1-F13; created arifOS CONTEXT.md and RUNBOOK.md; all canon drift scans pass. T4 (A-FORGE commit abf4e38): refactored forge_lease_request to proxy to arifOS arif_lease_issue instead of self-issuing; made validateLeaseForTool async and kernel-validated for EXECUTE_REVERSIBLE and above; required a judge SEAL inside arif_forge_execute; updated HTTP /execute route to await async lease validation; removed dead approvalBoundary import; npm build and unit tests pass. Verification: canon_drift PASS, npm build PASS, AgentEngine unit tests PASS. No live service restart was performed; runtime verification remains pending.",
+      "actor_id": "kimi-constitutional-clerk",
+      "evidence_receipt": {
+        "query_sent": true,
+        "urls_ingested": 2,
+        "independent_sources_compared": 2,
+        "contradiction_audit_completed": true,
+        "rendered_inspection": false,
+        "pdf_inspection": false,
+        "screenshot_inspection": false,
+        "deep_research_plan_completed": false,
+        "void_report_completed": false,
+        "risk_flags": [],
+        "sources": [
+          {
+            "type": "git_commit",
+            "url": "https://github.com/ariffazil/arifos/commit/d89e89c2",
+            "repo": "arifOS",
+            "description": "T0 canon cleanup commit — adds canon_drift_check.py, removes stale constitution files, creates CONTEXT.md/RUNBOOK.md"
+          },
+          {
+            "type": "git_commit",
+            "url": "https://github.com/ariffazil/A-FORGE/commit/abf4e38",
+            "repo": "A-FORGE",
+            "description": "T4 A-FORGE lease gate commit — proxies lease issuance to arifOS kernel, requires judge SEAL for execution"
+          },
+          {
+            "type": "local_test_log",
+            "path": "/root/A-FORGE/dist/test/AgentEngine.test.js",
+            "description": "A-FORGE unit test run output after build"
+          },
+          {
+            "type": "local_script",
+            "path": "/root/arifOS/scripts/canon_drift_check.py",
+            "description": "Canon drift detector verifying no stale constitution files remain"
+          }
+        ]
+      },
+      "claimed_evidence_level": "L3",
+      "truth_band": "HIGH_CONFIDENCE",
+      "confidence_note": "Verified by direct GitHub commit inspection, local npm build/test, contradiction audit of the Mistral synthesis, and canon_drift_check PASS."
+    },
+    "expected_output_fields": ["verdict", "judge_contract.constitutional_chain_id", "judge_contract.state_hash"]
+  },
+  "step_2_arif_vault_seal": {
+    "tool": "arif_vault_seal",
+    "payload": {
+      "mode": "seal",
+      "ack_irreversible": true,
+      "witness_type": "human",
+      "actor_id": "kimi-constitutional-clerk",
+      "constitutional_chain_id": "<paste constitutional_chain_id from judge>",
+      "judge_state_hash": "<paste state_hash from judge>",
+      "payload": "{\"seal_id\":\"T0-T4-2026-06-16\",\"sovereign\":\"Muhammad Arif Fazil\",\"clerk\":\"kimi-constitutional-clerk\",\"deliverables\":[{\"work\":\"T0 Canon Cleanup\",\"repo\":\"arifOS\",\"commit\":\"d89e89c2\",\"summary\":\"Single-source constitution enforced; stale WEALTH constitution files removed; canon_drift_check.py added; GEOX GENESIS floors realigned; CONTEXT.md + RUNBOOK.md created; all scans pass\"},{\"work\":\"T4 A-FORGE Lease Gate\",\"repo\":\"A-FORGE\",\"commit\":\"abf4e38\",\"summary\":\"forge_lease_request proxies to arifOS arif_lease_issue; validateLeaseForTool async kernel-validated for EXECUTE_REVERSIBLE+; arif_forge_execute requires judge SEAL; HTTP /execute route awaits async lease validation; dead approvalBoundary import removed; build + tests pass\"}],\"verification\":{\"canon_drift\":\"PASS\",\"npm_build\":\"PASS\",\"unit_tests\":\"PASS\",\"dynamic_state\":\"T1 confirmed before push\"},\"tags\":[\"T0\",\"T4\",\"canon\",\"lease-gate\",\"A-FORGE\",\"arifOS\"]}"
+    }
+  },
+  "note": "Run step 1 in the AAA cockpit (or any MCP client with elicitation support), confirm the candidate when prompted, then use the returned chain_id and state_hash in step 2."
+}
