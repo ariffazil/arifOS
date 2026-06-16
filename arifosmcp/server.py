@@ -1897,9 +1897,6 @@ def _wire_nats_to_app(_app: Any) -> None:
         logger.debug("add_event_handler not available for NATS wiring", exc_info=True)
 
 
-# Wire to the main app (top-level Starlette app from FastMCP)
-_wire_nats_to_app(app)
-
 
 async def _startup_nats_event_bus() -> None:
     """Connect the NATS event bus at server startup (non-blocking).
@@ -1958,6 +1955,10 @@ async def _shutdown_nats_event_bus() -> None:
         await event_bus.disconnect()
     except Exception:
         pass
+
+
+# Wire to the main app (top-level Starlette app from FastMCP)
+_wire_nats_to_app(app)
 
 
 def main() -> None:
