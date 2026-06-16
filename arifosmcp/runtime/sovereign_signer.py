@@ -28,7 +28,7 @@ def get_constitution_hash() -> str:
     """Get the canonical constitution_hash from FLOOR_SPEC (same as MCP verifier)."""
     import hashlib
 
-    FLOOR_SPEC = (
+    FLOOR_SPEC = (  # noqa: N806
         "F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, "
         "F5: Peace, F6: Empathy, F7: Humility, F8: Genius, "
         "F9: Anti-Hantu, L10: Ontology, L11: Auth, L12: Injection, L13: Sovereign"
@@ -38,20 +38,36 @@ def get_constitution_hash() -> str:
 
 
 def load_private_key() -> bytes:
-    """Load raw 32-byte Ed25519 key from PKCS#8 file (7-byte header + 32-byte key)."""
+    """Load raw 32-byte Ed25519 key from PKCS#8, PEM, or raw format."""
+    from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
     key_paths = [
         Path("/root/compose/sekrits/arifos_sovereign.key"),
         Path("/run/sekrits/arifos_sovereign.key"),
+        Path("/run/secrets/arifos_sovereign.key"),
     ]
     for key_path in key_paths:
         if key_path.exists() and key_path.stat().st_mode & 0o600:
             key_data = key_path.read_bytes()
-            # PKCS#8: 7-byte header + 32-byte raw key
+            # 1. Try PEM
+            if b"-----BEGIN" in key_data:
+                try:
+                    pkey = load_pem_private_key(key_data, password=None)
+                    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+                    if isinstance(pkey, Ed25519PrivateKey):
+                        return pkey.private_bytes_raw()
+                except Exception:
+                    pass
+            # 2. Try PKCS#8: 7-byte header + 32-byte raw key
             if len(key_data) == 39 and key_data[0] == 0x30:
                 return key_data[7:]  # Skip 7-byte header
+            # 3. Try raw 32-byte key
             elif len(key_data) == 32:
                 return key_data  # Raw 32-byte key
-    raise FileNotFoundError(f"Sovereign key not found. Tried: {[str(p) for p in key_paths]}")
+    raise FileNotFoundError(
+        f"Sovereign key not found or format invalid. Tried: {[str(p) for p in key_paths]}"
+    )
 
 
 def sign(actor_id: str, constitution_hash: str, nonce: str) -> str:
