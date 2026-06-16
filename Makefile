@@ -58,6 +58,10 @@ sot-check: security-audit
 	@echo "Auditing arifOS source-of-truth alignment..."
 	@python scripts/audit_sot.py
 
+canon-drift:
+	@echo "Checking constitutional canon drift across federation organs..."
+	@$(PYTHON) scripts/canon_drift_check.py
+
 reality-replay:
 	@echo "Replaying Reality Ledger..."
 	@python -m core.vault999.reality_ledger
