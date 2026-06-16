@@ -4,12 +4,15 @@ arifosmcp/runtime/llm_client.py — Shared LLM Cognition Client
 Tier 1: MiniMax M3 (https://api.minimax.io/v1) — frontier agentic, rate-limited 2026-06-13
 Tier 2: ILMU hosted (ilmu-nemo-nano, https://api.ilmu.ai/v1) — primary active provider
 Tier 3: SEA-LION v4 (https://api.sea-lion.ai/v1) — GPU API, intermittent
-Tier 4: Ollama local — llava:7b on VPS localhost:11434, CPU (~2 tok/s), 15s timeout
-Tier 5: raises LLMUnavailableError — caller applies deterministic fallback
+Tier 4: raises LLMUnavailableError — caller applies deterministic fallback
 
 Cascade reordered 2026-06-13: ILMU promoted to Tier 2 because MiniMax is
 rate-limited (429) and SEA-LION is intermittent. ILMU is the first reliable
 provider — confirmed working with valid JSON for complex schemas.
+
+Ollama (localhost:11434) is reserved for EMBEDDING only (bge-m3).
+It is NOT used for text generation — removed 2026-06-16 (Tier 4 was a ghost
+reference to llava:7b which was never pulled).
 
 ALL LLM output passes through 777_WITNESS envelope before reaching tool logic.
 Raw LLM text never enters judgment, memory, vault, or external action directly.
@@ -47,9 +50,10 @@ MINIMAX_API_KEY = os.getenv("MINIMAX_API_KEY")
 MINIMAX_BASE_URL = os.getenv("MINIMAX_API_HOST", "https://api.minimax.io")
 MINIMAX_MODEL = os.getenv("MINIMAX_MODEL", "MiniMax-M3")
 
-# Tier 2 — Ollama local fallback (qwen2.5:7b, free, no API cost)
+# Ollama — EMBEDDING ONLY (bge-m3). NOT used for text generation.
+# Removed 2026-06-16: llava:7b generation tier was a ghost reference (never pulled).
+# Ollama is retained solely for bge-m3 embeddings (arifbrain, L3 ingest, AAA).
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_URL", "http://localhost:11434")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llava:7b")  # llava:7b confirmed running 2026-06-13 (replaces qwen2.5:7b)
 
 # Tier 2.5 — ILMU hosted fallback (2026-06-03, replaces ollama as Tier 2)
 # ILMU is OpenAI-compatible. Faster than ollama on CPU. Wired per 888_HOLD.
@@ -846,27 +850,10 @@ async def call_llm(
     except LLMUnavailableError:
         pass
 
-    # Tier 4 — Ollama local (llava:7b on VPS localhost:11434)
-    # CPU inference (~2 tok/s), 15s timeout — last resort for complex schemas.
-    try:
-        t0 = time.monotonic()
-        raw_output, parsed = await _call_ollama(
-            system, user, response_schema, temperature, max_tokens
-        )
-        return _make_envelope(
-            raw_output,
-            parsed,
-            "ollama",
-            OLLAMA_MODEL,
-            tool_origin,
-            mode,
-            combined_prompt,
-            (time.monotonic() - t0) * 1000,
-            response_schema,
-            trace_recursion_depth,
-        )
-    except LLMUnavailableError:
-        pass
+    # Ollama removed 2026-06-16 — was a ghost reference to llava:7b (never pulled).
+    # Ollama is retained for bge-m3 embeddings only (arifbrain, L3 ingest, AAA).
+    # Text generation cascade: MiniMax → ILMU → SEA-LION → fallback.
+
     try:
         t0 = time.monotonic()
         raw_output, parsed = await _call_ilmu(
@@ -887,14 +874,14 @@ async def call_llm(
     except LLMUnavailableError:
         pass
 
-    # Tier 5 — no LLM available
+    # Tier 4 — no LLM available
     return wrap_llm_error(
         provider="none",
         model="none",
         tool_origin=tool_origin,
         mode=mode,
         prompt=combined_prompt,
-        error_message="All LLM tiers exhausted (SEA-LION + MiniMax M3 + ILMU + Ollama)",
+        error_message="All LLM tiers exhausted (MiniMax M3 + ILMU + SEA-LION)",
     )
 
 
