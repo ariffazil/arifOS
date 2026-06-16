@@ -1208,6 +1208,32 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["judge"],
         "tags": ["gate", "constitutional", "mcp", "infrastructure"],
     },
+
+    # ── Shadow Geometry Tools (Phase 2, 2026-06-16) ───────────────────
+    "arif_self_evaluate": {
+        "name": "arif_self_evaluate",
+        "description": "DIAGNOSTIC: Evaluate a text output against the 13 constitutional floors of arifOS. Returns PASS/HOLD/VOID verdict with scores and reasons.",
+        "access": "public",
+        "tier": "diagnostic",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L11_AUDIT],
+        "modes": ["evaluate"],
+        "tags": ["diagnostic", "evaluation"],
+    },
+    "arif_model_compare": {
+        "name": "arif_model_compare",
+        "description": "DIAGNOSTIC: Compare two models across the 6 shadow geometry axes of the arifOS Federation.",
+        "access": "public",
+        "tier": "diagnostic",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L11_AUDIT],
+        "modes": ["compare"],
+        "tags": ["diagnostic", "shadow_geometry"],
+    },
 }
 
 # Full surface: canonical (13) + diagnostic (32) = 45 declared tools

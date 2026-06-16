@@ -14294,6 +14294,14 @@ _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
     "arif_initialize_probe": _runtime_initialize_probe,
 }
 
+# Shadow Geometry Tools
+try:
+    from arifosmcp.tools.shadow_geometry import arif_self_evaluate, arif_model_compare
+    _RUNTIME_DIAGNOSTIC_HANDLERS["arif_self_evaluate"] = arif_self_evaluate
+    _RUNTIME_DIAGNOSTIC_HANDLERS["arif_model_compare"] = arif_model_compare
+except ImportError:
+    pass
+
 # Hermes Agent tools — woven into diagnostic handlers
 try:
     from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS

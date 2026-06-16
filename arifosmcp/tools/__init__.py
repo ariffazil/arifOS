@@ -15,6 +15,7 @@ from arifosmcp.tools.reply import arif_reply_compose
 from arifosmcp.tools.sense import arif_sense_observe
 from arifosmcp.tools.session import arif_session_init
 from arifosmcp.tools.vault import arif_vault_seal
+from arifosmcp.tools.shadow_geometry import arif_self_evaluate, arif_model_compare
 
 __all__ = [
     "arif_session_init",
@@ -30,4 +31,6 @@ __all__ = [
     "arif_judge_deliberate",
     "arif_vault_seal",
     "arif_forge_execute",
+    "arif_self_evaluate",
+    "arif_model_compare",
 ]

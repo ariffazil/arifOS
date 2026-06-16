@@ -75,6 +75,9 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "hermes_cross_verify",
     "hermes_plan_review",
     "hermes_memory_steward",
+    # ── Shadow Geometry Tools (Phase 2, 2026-06-16) ──
+    "arif_self_evaluate",
+    "arif_model_compare",
 )
 
 # EXPANDED_45 — the honest expanded public surface.

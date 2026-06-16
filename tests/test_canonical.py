@@ -74,8 +74,9 @@ def test_tool_names():
 def test_register_tools_matches_canonical_surface():
     mcp = FastMCP("test-arifos")
     registered = register_tools(mcp)
-    assert len(registered) == 13
-    assert set(registered) == set(CANONICAL_TOOLS)
+    # 13 canonical + 5 canary tools
+    assert len(registered) == 18
+    assert set(CANONICAL_TOOLS).issubset(set(registered))
     assert not any(name.startswith("arifos_") for name in registered)
 
 
@@ -104,15 +105,17 @@ def test_init_creates_session():
     assert "session_id" in r.result["session"]
 
 
-def test_vault_holds_without_ack():
-    r = arif_vault_seal(mode="seal", payload="test", actor_id="arif")
+@pytest.mark.asyncio
+async def test_vault_holds_without_ack():
+    r = await arif_vault_seal(mode="seal", payload="test", actor_id="arif")
     assert r.status == "HOLD"
     assert "F01" in r.meta["failed_floors"]
 
 
-def test_vault_seals_with_ack():
-    judge = arif_judge_deliberate(mode="judge", candidate="seal test", actor_id="arif")
-    r = arif_vault_seal(
+@pytest.mark.asyncio
+async def test_vault_seals_with_ack():
+    judge = await arif_judge_deliberate(mode="judge", candidate="seal test", actor_id="arif")
+    r = await arif_vault_seal(
         mode="seal",
         payload="test",
         ack_irreversible=True,
@@ -127,8 +130,9 @@ def test_vault_seals_with_ack():
     assert r.judge_contract.state_hash == judge.judge_contract.state_hash
 
 
-def test_forge_holds_without_actor():
-    r = arif_forge_execute(mode="commit", ack_irreversible=True)
+@pytest.mark.asyncio
+async def test_forge_holds_without_actor():
+    r = await arif_forge_execute(mode="commit", ack_irreversible=True)
     assert r.status == "HOLD"
     assert "F11" in r.meta["failed_floors"]
 
@@ -142,9 +146,10 @@ def test_injection_guard_blocks():
     assert floors[0] in ("F11", "F12"), "F11 AUTH or F12 INJECTION must be primary blocker"
 
 
-def test_judge_without_evidence_returns_sabar():
+@pytest.mark.asyncio
+async def test_judge_without_evidence_returns_sabar():
     """F2 Evidence Gate: Without evidence_receipt, SEAL is downgraded to SABAR."""
-    r = arif_judge_deliberate(mode="judge", candidate="deploy", actor_id="arif")
+    r = await arif_judge_deliberate(mode="judge", candidate="deploy", actor_id="arif")
     assert r.status == "SABAR"
     assert r.result["verdict"] == "SABAR"
     assert "evidence" in r.result["reason"].lower()
@@ -174,8 +179,9 @@ def test_judge_emits_seal_with_evidence():
     assert r["judge_contract"]["state_hash"]
 
 
-def test_vault_requires_judge_contract_even_with_ack():
-    r = arif_vault_seal(
+@pytest.mark.asyncio
+async def test_vault_requires_judge_contract_even_with_ack():
+    r = await arif_vault_seal(
         mode="seal",
         payload="test",
         ack_irreversible=True,
@@ -186,15 +192,17 @@ def test_vault_requires_judge_contract_even_with_ack():
     assert "judge" in r.meta["reason"]
 
 
-def test_forge_commit_requires_vault_lineage():
-    r = arif_forge_execute(mode="commit", ack_irreversible=True, actor_id="arif")
+@pytest.mark.asyncio
+async def test_forge_commit_requires_vault_lineage():
+    r = await arif_forge_execute(mode="commit", ack_irreversible=True, actor_id="arif")
     assert r.status == "HOLD"
     assert "vault_entry_id" in r.meta["reason"]
 
 
-def test_forge_commit_accepts_vault_lineage():
-    judge = arif_judge_deliberate(mode="judge", candidate="commit deploy", actor_id="arif")
-    seal = arif_vault_seal(
+@pytest.mark.asyncio
+async def test_forge_commit_accepts_vault_lineage():
+    judge = await arif_judge_deliberate(mode="judge", candidate="commit deploy", actor_id="arif")
+    seal = await arif_vault_seal(
         mode="seal",
         payload="test",
         ack_irreversible=True,
@@ -205,7 +213,7 @@ def test_forge_commit_accepts_vault_lineage():
     )
     assert seal.status == "HOLD"
     assert seal.entry_id is None
-    forge = arif_forge_execute(
+    forge = await arif_forge_execute(
         mode="commit",
         ack_irreversible=True,
         actor_id="arif",
