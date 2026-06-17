@@ -15095,9 +15095,10 @@ def _dict_from_response(response: Any) -> dict[str, Any]:
 
 async def _arif_lease_issue(
     actor_did: str | None = None,
-    organ: str = "arifos-kernel",
+    organ_id: str = "arifos-kernel",
     tool: str | None = None,
-    scope: str = "read",
+    scope: list[str] | None = None,
+    max_action_class: str = "MUTATE",
     ttl_s: int = 300,
     max_invocations: int = 1,
     metadata: dict[str, Any] | None = None,
@@ -15108,11 +15109,18 @@ async def _arif_lease_issue(
     """Issue a new capability lease (P2-7 primitive). Returns lease_id.
 
     WAJIB-gated: actor_did and tool must be non-empty. The kernel records
-    the lease in its in-process LeaseStore (Redis-backed in future). The
-    lease can then be presented at forge_execute time via plan_id to
-    satisfy the P2-7 lease gate (forge_ware C in E008).
+    the lease in the canonical in-process lease_registry. Present the
+    returned lease_id at arif_forge_execute (lease_id=...) to satisfy the
+    P2-7 lease gate.
     """
     from arifosmcp.runtime.lease_registry import issue_lease
+
+    # Backward compat: callers that pass the legacy `organ` kwarg (now removed)
+    # or a single string scope get normalized.
+    if scope is None:
+        scope = [tool] if tool else ["arif_forge_execute"]
+    elif isinstance(scope, str):
+        scope = [scope]
 
     # WAJIB validation per fiqh-of-floors
     if not actor_did or not tool:
@@ -15126,24 +15134,17 @@ async def _arif_lease_issue(
             "actor_id": actor_id,
         }
 
-    # Scope validation (legacy: "read" | "write" | "execute").
-    # Map legacy scope string → action_class required by lease_registry.
-    _valid_scopes = ("read", "write", "execute")
-    if scope not in _valid_scopes:
+    valid_action_classes = ("OBSERVE", "REASON", "CRITIQUE", "DRY_RUN", "MUTATE", "EXTERNAL", "IRREVERSIBLE")
+    if max_action_class not in valid_action_classes:
         return {
             "status": "VOID",
             "tool": "arif_lease_issue",
             "verdict": "VOID",
-            "reason": f"invalid scope '{scope}'; must be one of: {', '.join(_valid_scopes)}",
-            "valid_scopes": list(_valid_scopes),
+            "reason": f"invalid max_action_class '{max_action_class}'; must be one of {valid_action_classes}",
+            "valid_action_classes": list(valid_action_classes),
             "session_id": session_id,
             "actor_id": actor_id,
         }
-    _action_class = {
-        "read": "OBSERVE",
-        "write": "MUTATE",  # ADR-001: legacy "write" maps to MUTATE in lease_registry
-        "execute": "IRREVERSIBLE",  # legacy "execute" implies full mutation authority
-    }.get(scope, "OBSERVE")
 
     # MAKRUH: max_invocations > 5 is a rate-limit risk; soft warn but proceed
     _makruh_warning = None
@@ -15157,11 +15158,11 @@ async def _arif_lease_issue(
     _ttl = max(60, min(3600, ttl_s))  # bound 1m-1h
     _max_uses = max(1, min(100, max_invocations))
     lease = issue_lease(
-        organ_id=organ,
+        organ_id=organ_id,
         actor_id=actor_did,
-        scope=[tool],  # scope is per-tool in new registry
+        scope=list(scope),
         forbidden=[],
-        max_action_class=_action_class,
+        max_action_class=max_action_class,
         ttl_seconds=_ttl,
         max_uses=_max_uses,
     )
@@ -15174,10 +15175,10 @@ async def _arif_lease_issue(
             "lease_id": lease.lease_id,
             "spec": {
                 "actor_did": actor_did,
-                "organ": organ,
+                "organ_id": organ_id,
                 "tool": tool,
-                "scope": scope,
-                "action_class": _action_class,
+                "scope": list(scope),
+                "max_action_class": max_action_class,
                 "ttl_s": _ttl,
                 "max_invocations": _max_uses,
                 "metadata": metadata or {},
@@ -15185,7 +15186,6 @@ async def _arif_lease_issue(
             "issued_at": lease.issued_at,
             "expires_at": lease.expires_at,
             "ttl_remaining_s": round(lease.expires_at - lease.issued_at, 1),
-            "store_total_leases": len([l for l in [lease]]),
         },
         "makruh_warning": _makruh_warning,
         "session_id": session_id,
