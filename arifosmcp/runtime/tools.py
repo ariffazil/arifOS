@@ -12176,7 +12176,7 @@ def _arif_vault_seal(
             "judge_contract": judge_contract.model_dump(mode="json"),
             "model_governance_card": governance_card,
             "drift_events": drift_events,
-            "delta_s_total": entropy.delta_S,
+            "delta_s_total": entropy.delta_s,
             "auth_lineage": auth_lineage,
             # ── Post-AGI WEALTH verification state at decision time ──────
             "delta_m": (verification_state or {}).get("delta_m"),
@@ -12204,7 +12204,7 @@ def _arif_vault_seal(
                 "drift_summary": drift_summary,
                 "constitutional_chain_id": judge_contract.constitutional_chain_id,
                 "judge_state_hash": judge_contract.state_hash,
-                "delta_s_total": entropy.delta_S,
+            "delta_s_total": entropy.delta_s,
             },
             entry_id=entry_id,
             ledger_size=len(_VAULT_LEDGER),
