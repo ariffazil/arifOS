@@ -4057,6 +4057,7 @@ def register_rest_routes(
         readiness = _runtime_selftest()
         verdict = str(readiness.get("verdict", "FAIL"))  # "PASS", "PARTIAL", or "FAIL" — machine-level selftest
         payload = {
+            "status": verdict.lower(),  # human-readable alias: pass | partial | fail
             "machine_status": verdict,  # machine health, not constitutional verdict
             "checks": readiness.get("checks", {}),
             "failures": readiness.get("failed_checks", []),

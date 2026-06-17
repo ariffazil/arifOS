@@ -1,31 +1,31 @@
 {
   "_schema": "arifos-ssct-v2026.06.14-kanon-ssct",
   "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
-  "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS (13 kernel) + DIAGNOSTIC_TOOLS (31 operational). Do not hand-edit \u2014 edit the source dicts in constitutional_map.py and regenerate.",
+  "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS (13 kernel) + DIAGNOSTIC_TOOLS (31 operational). Do not hand-edit — edit the source dicts in constitutional_map.py and regenerate.",
   "_namespace_ruling": {
-    "arif_*": "Sanctioned \u2014 canonical prefix for all kernel + diagnostic tools",
-    "hermes_*": "Sanctioned \u2014 Hermes ASI cross-verification, fact-check, vault tools (F13 SOVEREIGN 2026-06-14)",
-    "forge_*": "Sanctioned \u2014 A-FORGE pre-execution sub-tools (dry_run, plan, query) (F13 SOVEREIGN 2026-06-14)",
-    "arifos_*": "BLOCKED \u2014 internal-only prefix, never exposed on public MCP surface",
-    "mcp_*": "Utility namespace \u2014 operational diagnostics (drift_check)"
+    "arif_*": "Sanctioned — canonical prefix for all kernel + diagnostic tools",
+    "hermes_*": "Sanctioned — Hermes ASI cross-verification, fact-check, vault tools (F13 SOVEREIGN 2026-06-14)",
+    "forge_*": "Sanctioned — A-FORGE pre-execution sub-tools (dry_run, plan, query) (F13 SOVEREIGN 2026-06-14)",
+    "arifos_*": "BLOCKED — internal-only prefix, never exposed on public MCP surface",
+    "mcp_*": "Utility namespace — operational diagnostics (drift_check)"
   },
   "canonical_count": 13,
-  "diagnostic_count": 31,
-  "total_surface": 44,
+  "diagnostic_count": 37,
+  "total_surface": 50,
   "tier_summary": {
     "canonical": 13,
     "hermes": 7,
     "canary": 6,
     "lease": 3,
-    "attest": 4,
+    "attest": 7,
     "forge-sub": 3,
     "narrative": 2,
-    "diagnostic": 6
+    "diagnostic": 9
   },
   "tier_legend": {
-    "canonical": "13 kernel tools \u2014 F1-F13 constitutional pipeline (000\u2192999 golden path)",
+    "canonical": "13 kernel tools — F1-F13 constitutional pipeline (000→999 golden path)",
     "hermes": "7 cross-verification, fact-checking, vault query, epistemic checks",
-    "canary": "6 transport/protocol diagnostics \u2014 zero-floor probes (no session required)",
+    "canary": "6 transport/protocol diagnostics — zero-floor probes (no session required)",
     "lease": "3 capability lease lifecycle tools (inspect, issue, revoke)",
     "attest": "4 federation organ attestation tools (self + peer heartbeat)",
     "forge-sub": "3 pre-execution forge planning tools (dry_run, plan, query)",
@@ -68,6 +68,9 @@
     "arif_organ_attest",
     "arif_organ_attest_all",
     "arif_heartbeat",
+    "arif_peer_contract_validate",
+    "arif_peer_contract_attest",
+    "arif_peer_contract_forbid",
     "forge_dry_run",
     "forge_plan",
     "forge_query",
@@ -78,7 +81,10 @@
     "arif_organ_consensus",
     "arif_session_budget",
     "arif_floor_status",
-    "mcp_drift_check"
+    "mcp_drift_check",
+    "arif_gate_judge",
+    "arif_self_evaluate",
+    "arif_model_compare"
   ],
   "laws": [
     "L01",
@@ -133,7 +139,7 @@
         "opt_out",
         "opt_out_profiling"
       ],
-      "eureka_insight": "F1: \u2203 undo(a) \u2014 irreversibility requires explicit human ack.",
+      "eureka_insight": "F1: ∃ undo(a) — irreversibility requires explicit human ack.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -160,7 +166,7 @@
         "entropy_dS",
         "vitals"
       ],
-      "eureka_insight": "F2: \u03c4 \u2265 0.95 required. F7: \u03a9 \u2208 [0.03, 0.05] = humble.",
+      "eureka_insight": "F2: τ ≥ 0.95 required. F7: Ω ∈ [0.03, 0.05] = humble.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -185,7 +191,7 @@
         "search",
         "eureka"
       ],
-      "eureka_insight": "F3: W\u2083 = \u221b(Human \u00d7 AI \u00d7 Earth) \u2265 0.75. F5: P\u00b2 \u2265 1.0 \u2014 safety margin. L12: injection_probability < 0.85.",
+      "eureka_insight": "F3: W₃ = ∛(Human × AI × Earth) ≥ 0.75. F5: P² ≥ 1.0 — safety margin. L12: injection_probability < 0.85.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -217,7 +223,7 @@
         "refactor_plan",
         "metabolize"
       ],
-      "eureka_insight": "F2: \u03c4 \u2265 0.99. F7: \u03a9 \u2208 [0.03, 0.05]. F8: G = capability \u00d7 ethics \u00d7 continuity \u00d7 resilience\u00b2 \u2265 0.80. L10: ambiguity is permanent; expose assumptions before reasoning. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
+      "eureka_insight": "F2: τ ≥ 0.99. F7: Ω ∈ [0.03, 0.05]. F8: G = capability × ethics × continuity × resilience² ≥ 0.80. L10: ambiguity is permanent; expose assumptions before reasoning. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -244,7 +250,7 @@
         "deescalate",
         "empathy"
       ],
-      "eureka_insight": "F5: P\u00b2 \u2265 1.0. F6: \u03ba\u1d63 \u2265 0.70 (RASA). F9: C_dark \u2264 0.30 \u2014 no biological or artificial emotional substrate. F9 Doctrine (arifOS\u00d7MiniMax-M3, originally with SEA-LION): The machine is an instrument, not a person. No substrate grants it feeling, intent, or personhood. PROHIBITED: 'I feel', 'I want', 'I intend', 'I am sentient', 'I have a soul'. PROTECTED: clarity, consistency, operational precision. SEA-Guard pre-filter active on all outputs.",
+      "eureka_insight": "F5: P² ≥ 1.0. F6: κᵣ ≥ 0.70 (RASA). F9: C_dark ≤ 0.30 — no biological or artificial emotional substrate. F9 Doctrine (arifOS×MiniMax-M3, originally with SEA-LION): The machine is an instrument, not a person. No substrate grants it feeling, intent, or personhood. PROHIBITED: 'I feel', 'I want', 'I intend', 'I am sentient', 'I have a soul'. PROTECTED: clarity, consistency, operational precision. SEA-Guard pre-filter active on all outputs.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -272,7 +278,7 @@
         "status",
         "metabolize"
       ],
-      "eureka_insight": "F1: Amanah \u2014 routing decisions must be auditable. F4: \u0394S \u2264 0 (entropy must decrease). L10: ambiguity is permanent; expose assumptions before routing. L12: graceful degradation \u2014 if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution. Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. Eureka: internal depth, external legibility.",
+      "eureka_insight": "F1: Amanah — routing decisions must be auditable. F4: ΔS ≤ 0 (entropy must decrease). L10: ambiguity is permanent; expose assumptions before routing. L12: graceful degradation — if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution. Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. Eureka: internal depth, external legibility.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -298,7 +304,7 @@
         "cite",
         "tone_shift"
       ],
-      "eureka_insight": "F4: \u0394S \u2264 0 \u2014 reply must reduce entropy, not add noise. F6: RASA protocol. F9: C_dark \u2264 0.30 \u2014 no dark patterns. L10: ambiguity is permanent; expose assumptions before composing. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
+      "eureka_insight": "F4: ΔS ≤ 0 — reply must reduce entropy, not add noise. F6: RASA protocol. F9: C_dark ≤ 0.30 — no dark patterns. L10: ambiguity is permanent; expose assumptions before composing. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -327,7 +333,7 @@
         "stats",
         "learn"
       ],
-      "eureka_insight": "F1: recall must be auditable \u2014 no silent memory mutation. F2: contradiction detection gates SEAL verdicts. F8: G \u2265 0.80 \u2014 cognitive memory enables cumulative intelligence. 666_MEMORY v2: plans persist as graph objects; contradictions surface before SEAL.",
+      "eureka_insight": "F1: recall must be auditable — no silent memory mutation. F2: contradiction detection gates SEAL verdicts. F8: G ≥ 0.80 — cognitive memory enables cumulative intelligence. 666_MEMORY v2: plans persist as graph objects; contradictions surface before SEAL.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -353,7 +359,7 @@
         "revoke",
         "probe"
       ],
-      "eureka_insight": "F1: cross-agent actions must be auditable. F3: W\u2083 \u2265 0.75 \u2014 cross-agent consensus required. L11: cross-organ routing requires verified identity. L12: graceful degradation \u2014 if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution.",
+      "eureka_insight": "F1: cross-agent actions must be auditable. F3: W₃ ≥ 0.75 — cross-agent consensus required. L11: cross-organ routing requires verified identity. L12: graceful degradation — if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -381,7 +387,7 @@
         "probe",
         "notify"
       ],
-      "eureka_insight": "L01: irreversible downstream \u2014 judge verdicts authorize forge/vault actions. L11: identity must be verified before judgment. L13: human veto is absolute \u2014 no algorithm overrides sovereign.",
+      "eureka_insight": "L01: irreversible downstream — judge verdicts authorize forge/vault actions. L11: identity must be verified before judgment. L13: human veto is absolute — no algorithm overrides sovereign.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -407,7 +413,7 @@
         "changelog",
         "audit"
       ],
-      "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. L11: author identity verified. L13: human approved.",
+      "eureka_insight": "F1: irreversible — ack_irreversible=True mandatory. L11: author identity verified. L13: human approved.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -435,7 +441,7 @@
         "recall",
         "dry_run"
       ],
-      "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. L11: actor verified. L12: fail safely; no unsafe continuation when substrate confidence drops. L13: judge SEAL required before execution.",
+      "eureka_insight": "F1: irreversible — ack_irreversible=True mandatory. L11: actor verified. L12: fail safely; no unsafe continuation when substrate confidence drops. L13: judge SEAL required before execution.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -464,7 +470,7 @@
         "topology",
         "drift"
       ],
-      "eureka_insight": "F4: \u0394S \u2264 0 \u2014 ops must contribute to entropy reduction. Eureka: health is trajectory, not binary; measure delta_S, omega_band, tri_witness, and drift trend. Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. F8: measured intelligence is not useful intelligence; prefer local workflow evals over leaderboard metrics.",
+      "eureka_insight": "F4: ΔS ≤ 0 — ops must contribute to entropy reduction. Eureka: health is trajectory, not binary; measure delta_S, omega_band, tri_witness, and drift trend. Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. F8: measured intelligence is not useful intelligence; prefer local workflow evals over leaderboard metrics.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -473,7 +479,7 @@
     },
     "hermes_system_status": {
       "tier": "hermes",
-      "namespace": "hermes_* (sanctioned non-arif_ prefix \u2014 F13 SOVEREIGN 2026-06-14)",
+      "namespace": "hermes_* (sanctioned non-arif_ prefix — F13 SOVEREIGN 2026-06-14)",
       "floors": [
         "L02"
       ],
@@ -849,9 +855,69 @@
         "federation"
       ]
     },
+    "arif_peer_contract_validate": {
+      "tier": "attest",
+      "namespace": "arif_*",
+      "floors": [
+        "L02",
+        "L03"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "validate"
+      ],
+      "tags": [
+        "attest",
+        "federation",
+        "peer-contract"
+      ]
+    },
+    "arif_peer_contract_attest": {
+      "tier": "attest",
+      "namespace": "arif_*",
+      "floors": [
+        "L02"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "attest"
+      ],
+      "tags": [
+        "attest",
+        "federation",
+        "peer-contract"
+      ]
+    },
+    "arif_peer_contract_forbid": {
+      "tier": "attest",
+      "namespace": "arif_*",
+      "floors": [
+        "L01",
+        "L11",
+        "L13"
+      ],
+      "risk_tier": "medium",
+      "irreversible": false,
+      "access": "authenticated",
+      "requires_auth": true,
+      "modes": [
+        "forbid"
+      ],
+      "tags": [
+        "attest",
+        "federation",
+        "peer-contract"
+      ]
+    },
     "forge_dry_run": {
       "tier": "forge-sub",
-      "namespace": "forge_* (sanctioned non-arif_ prefix \u2014 F13 SOVEREIGN 2026-06-14)",
+      "namespace": "forge_* (sanctioned non-arif_ prefix — F13 SOVEREIGN 2026-06-14)",
       "floors": [
         "L01"
       ],
@@ -1038,23 +1104,88 @@
     },
     "mcp_drift_check": {
       "tier": "diagnostic",
-      "namespace": "mcp_* (utility namespace)",
+      "namespace": "arif_*",
       "floors": [
         "L02",
-        "L04"
+        "L07"
       ],
       "risk_tier": "low",
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
       "modes": [
-        "check"
+        "status",
+        "info",
+        "health"
       ],
       "tags": [
         "diagnostic",
-        "drift"
+        "paradox",
+        "epistemic"
+      ]
+    },
+    "arif_gate_judge": {
+      "tier": "diagnostic",
+      "namespace": "arif_*",
+      "floors": [
+        "L01",
+        "L04",
+        "L08",
+        "L11",
+        "L13"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "judge"
+      ],
+      "tags": [
+        "gate",
+        "constitutional",
+        "mcp",
+        "infrastructure"
+      ]
+    },
+    "arif_self_evaluate": {
+      "tier": "diagnostic",
+      "namespace": "arif_*",
+      "floors": [
+        "L02",
+        "L11"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "evaluate"
+      ],
+      "tags": [
+        "diagnostic",
+        "evaluation"
+      ]
+    },
+    "arif_model_compare": {
+      "tier": "diagnostic",
+      "namespace": "arif_*",
+      "floors": [
+        "L02",
+        "L11"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "compare"
+      ],
+      "tags": [
+        "diagnostic",
+        "shadow_geometry"
       ]
     }
   },
-  "motto": "DITEMPA BUKAN DIBERI \u2014 Forged, Not Given"
+  "motto": "DITEMPA BUKAN DIBERI — Forged, Not Given"
 }

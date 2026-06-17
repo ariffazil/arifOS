@@ -1,0 +1,72 @@
+{
+  "contract_version": "1.0.0",
+  "peer_id": {
+    "organ": "arifOS",
+    "instance_id": "98e0d71e-67c6-4cc4-9347-fe13417f673f",
+    "did": "did:arifos:kernel-alpha",
+    "public_key_fingerprint": "arifos-f13-rootkey-ed25519-stub"
+  },
+  "authority_class": "judge",
+  "capability_card": {
+    "schema_hash": "peer-federation-contract-v1",
+    "constitution_hash": "f0-rootkey-naming-physics-sanctuary",
+    "tool_manifest_url": "https://arifos.arif-fazil.com/tools/list",
+    "allowed_action_classes": [
+      "OBSERVE",
+      "PREPARE",
+      "MUTATE",
+      "ATOMIC"
+    ],
+    "max_risk_tier": "T5",
+    "skills": [
+      "arif_session_init",
+      "arif_judge_deliberate",
+      "arif_vault_seal",
+      "arif_lease_issue",
+      "arif_gateway_connect"
+    ]
+  },
+  "lease_required": false,
+  "reversibility_score": 0.0,
+  "accepted_inputs": [
+    {
+      "schema_id": "federation-envelope-v2",
+      "schema_url": "https://arifos.arif-fazil.com/schemas/federation_envelope.schema.json"
+    },
+    {
+      "schema_id": "kernel-envelope-v2",
+      "schema_url": "https://arifos.arif-fazil.com/schemas/kernel_envelope.schema.json"
+    }
+  ],
+  "forbidden_actions": [
+    "delegate_f13",
+    "self_authorize",
+    "ignore_well_biometric_pacing",
+    "bypass_888_hold"
+  ],
+  "audit_sink": {
+    "vault999_endpoint": "https://vault999.arif-fazil.com/seal",
+    "receipt_format": "arifos_vault999_v2",
+    "nats_subject": "arifos.peer.contract.arifos"
+  },
+  "human_veto": {
+    "f13_absolute": true,
+    "override_paths": [
+      {
+        "channel": "telegram",
+        "endpoint": "hermes-asi-gateway"
+      },
+      {
+        "channel": "a2a_task",
+        "endpoint": "https://aaa.arif-fazil.com/a2a/tasks"
+      }
+    ]
+  },
+  "trust_score": 1.0,
+  "signed_attestation": {
+    "issuer": "arifOS-888-JUDGE",
+    "signature": "stub-self-attestation-arifos-kernel-pending-f13-ratification",
+    "issued_at": "2026-06-16T19:54:41Z",
+    "expires_at": "2027-06-16T19:54:41Z"
+  }
+}

@@ -103,6 +103,10 @@ def _vault_dir() -> Path:
         or str(Path(__file__).resolve().parents[2] / "VAULT999")
     )
     path = Path(raw)
+    # ADR: VAULT999_PATH may point to the vault file (e.g., outcomes.jsonl).
+    # The vault directory is the parent that holds the SQLite/JSONL artifacts.
+    if path.is_file():
+        path = path.parent
     path.mkdir(parents=True, exist_ok=True)
     return path
 

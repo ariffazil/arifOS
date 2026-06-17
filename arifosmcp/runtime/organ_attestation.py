@@ -38,6 +38,10 @@ from arifosmcp.runtime.live_kernel import (
 from arifosmcp.runtime.live_kernel import (
     OrganAttestation as OrganAttestationEnvelope,
 )
+from arifosmcp.runtime.peer_contract import (
+    get_arifos_peer_contract_hash,
+    get_arifos_peer_contract_url,
+)
 
 logger = logging.getLogger("arifosmcp.organ_attestation")
 
@@ -343,7 +347,11 @@ async def attest_organ(
         heartbeat_at=now,
         degraded=degraded,
         reason=reason,
-        load={"health_status": health.get("status", "unknown")},
+        load={
+            "health_status": health.get("status", "unknown"),
+            "peer_contract_url": get_arifos_peer_contract_url(),
+            "peer_contract_hash": get_arifos_peer_contract_hash(),
+        },
     )
     _record_heartbeat(
         organ_id=organ_id,
@@ -354,7 +362,11 @@ async def attest_organ(
         tool_count=len(tools),
         degraded=degraded,
         reason=reason,
-        load={"health_status": health.get("status", "unknown")},
+        load={
+            "health_status": health.get("status", "unknown"),
+            "peer_contract_url": get_arifos_peer_contract_url(),
+            "peer_contract_hash": get_arifos_peer_contract_hash(),
+        },
     )
 
     envelope = LiveKernelEnvelope(

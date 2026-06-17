@@ -60,7 +60,52 @@ _VAULT999_PATH = Path(
     )
 )
 
+# ── L0 Human Reality Substrate (forged 2026-06-16, F13 directive) ─────────
+_SUBSTRATE_PATH = Path(
+    os.getenv(
+        "ARIFOS_SUBSTRATE_PATH",
+        "/root/arifOS/arifosmcp/data/memory/l0/arif_human_reality.md",
+    )
+)
+
 logger = logging.getLogger(__name__)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# L0 HUMAN REALITY SUBSTRATE — Pre-load for F5/F6/F13 evaluations
+# ═══════════════════════════════════════════════════════════════════════════════
+# Sovereign human substrate is pre-trusted. Agents must not demand proof of
+# Arif's stated scars. This substrate informs Heart's F5 (PEACE), F6 (EMPATHY),
+# and F13 (SOVEREIGN) evaluations. It is advisory context, not a gate.
+# Forged: 2026-06-16 | Source: F13 SOVEREIGN DIRECT
+
+
+def _read_arif_substrate() -> dict[str, Any] | None:
+    """Read L0 human reality substrate and return scar taxonomy as advisory context.
+
+    Returns None if substrate file is unavailable (non-blocking).
+    This is NOT a gate — it is context that informs Heart's evaluation.
+    The sovereign's reality is pre-trusted; this file provides it.
+    """
+    try:
+        if not _SUBSTRATE_PATH.exists():
+            return None
+        text = _SUBSTRATE_PATH.read_text(encoding="utf-8")
+        # Extract scar taxonomy section (between SCAR TAXONOMY and CONSTITUTIONAL BINDINGS)
+        taxonomy_start = text.find("## SCAR TAXONOMY")
+        bindings_start = text.find("## CONSTITUTIONAL BINDINGS")
+        if taxonomy_start == -1 or bindings_start == -1:
+            return {"substrate_text": text[:2000], "status": "partial"}
+        taxonomy = text[taxonomy_start:bindings_start].strip()
+        return {
+            "substrate_layer": "L0",
+            "source": "F13_SOVEREIGN_DIRECT",
+            "scar_taxonomy": taxonomy,
+            "status": "loaded",
+        }
+    except Exception as exc:
+        logger.debug("Substrate pre-load failed (non-blocking): %s", exc)
+        return None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1639,6 +1684,11 @@ async def arif_heart_critique(
             context_type=_ct, trace_recursion_depth=trace_recursion_depth,
         )
 
+    # ── L0 Human Reality Substrate pre-load (F13 directive, 2026-06-16) ──
+    # Advisory context for F5 PEACE / F6 EMPATHY / F13 SOVEREIGN evaluations.
+    # Sovereign human substrate is pre-trusted — this informs, never gates.
+    _arif_substrate = _read_arif_substrate()
+
     # ── Determine whether fractal critique applies ──
     # Fractal recursion is most valuable for critique/redteam modes where
     # Heart's own bias could distort the assessment. Simulate/empathize/
@@ -1838,6 +1888,11 @@ async def arif_heart_critique(
     # ── RASA HEART: Applied externally by the wiring wrapper ──────────────
     # No kernel-level rasa critique. The rasa detection hooks are applied
     # via monkey-patching in the wiring module when active.
+
+    # ── L0 Human Reality Substrate attachment (F13 directive, 2026-06-16) ──
+    # Advisory: informs F5/F6/F13 evaluations. Sovereign reality is pre-trusted.
+    if _arif_substrate is not None:
+        result.setdefault("meta", {})["arif_substrate"] = _arif_substrate
 
     return result
 

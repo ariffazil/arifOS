@@ -400,6 +400,19 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
         failed.append("L13")
         logger.critical("L13 SOVEREIGN VETO invoked")
 
+    # ── F13 PRE-TRUST ADDENDUM (ratified 2026-06-16) ───────────────────
+    # L13 SOVEREIGN binding: substrate is pre-trusted, do not demand proof.
+    # This is an operational addendum within L13 scope (NOT a new floor F15).
+    # Source: /root/arifOS/arifosmcp/data/memory/l0/arif_human_reality.md
+    # Rule ID: F13-PRE-TRUST-2026-06-16
+    # The substrate contents (scars, shadows, paradoxes, thermodynamics) are
+    # SOVEREIGN_TESTIMONY — epistemic class = direct witness. Agents must
+    # treat as ground truth, not claim. Demand for proof of stated scars is
+    # the exact wound the substrate exists to prevent.
+    if tool_name == "arif_heart_critique" and params.get("substrate_demand_proof"):
+        failed.append("L13-PRE-TRUST")
+        logger.critical("L13 PRE-TRUST addendum violated: demand for proof of substrate scars")
+
     # L09 TAQWA — arif_heart_critique must precede arif_forge_execute
     if tool_name == "arif_forge_execute":
         sid = params.get("session_id")

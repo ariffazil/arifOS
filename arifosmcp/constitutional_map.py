@@ -1051,6 +1051,43 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["record", "query"],
         "tags": ["attest", "federation"],
     },
+    # ── Peer Federation Contract Tools (3) — P2P capability peering v1 ──
+    "arif_peer_contract_validate": {
+        "name": "arif_peer_contract_validate",
+        "description": "ATTEST: Validate a Peer Federation Contract v1 against the canonical schema and constitutional constraints (judge exclusivity, F13 veto, lease alignment).",
+        "access": "public",
+        "tier": "attest",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L03_WITNESS],
+        "modes": ["validate"],
+        "tags": ["attest", "federation", "peer-contract"],
+    },
+    "arif_peer_contract_attest": {
+        "name": "arif_peer_contract_attest",
+        "description": "ATTEST: Return the arifOS peer federation contract URL, hash, and signed contract. Required before P2P negotiation.",
+        "access": "public",
+        "tier": "attest",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH],
+        "modes": ["attest"],
+        "tags": ["attest", "federation", "peer-contract"],
+    },
+    "arif_peer_contract_forbid": {
+        "name": "arif_peer_contract_forbid",
+        "description": "ATTEST: Forbid a peer organ from the federation contract surface. Runtime gate only; does not mutate the canonical contract on disk.",
+        "access": "authenticated",
+        "tier": "attest",
+        "namespace": "arif_*",
+        "risk_tier": "medium",
+        "irreversible": False,
+        "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
+        "modes": ["forbid"],
+        "tags": ["attest", "federation", "peer-contract"],
+    },
     # ── Forge Sub-Tools (3) — Pre-execution planning (A-FORGE namespace) ──
     "forge_dry_run": {
         "name": "forge_dry_run",
@@ -1666,6 +1703,8 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
         "session_id": str | None,
         "actor_id": str | None,
         "delegate_scope": dict | None,
+        "contract_url": str | None,  # P2P Federation Contract v1 URL
+        "contract": dict | None,     # Inline P2P Federation Contract v1
     },
     "arif_judge_deliberate": {
         "mode": str,
@@ -1674,6 +1713,7 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
         "actor_id": str,  # L11: authenticated — required
         "constitutional_chain_id": str | None,
         "domain_payload": dict | None,
+        "peer_contract_id": str | None,  # P2P Federation Contract v1 audit continuity
     },
     "arif_vault_seal": {
         "mode": str,

@@ -1,8 +1,8 @@
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-06-16 18:08 UTC (999_SEAL — MCP Gate v0 deployed + schema adapter + epistemic extension)
+last_verified: 2026-06-17 18:08 UTC (999_SEAL — MCP Gate v0 deployed + schema adapter + epistemic extension)
 valid_from: 2026-06-14
-valid_until: 2026-07-16
+valid_until: 2026-07-17
 confidence: high
 scope: /root/arifOS
 epistemic_status: SOURCE_OF_TRUTH

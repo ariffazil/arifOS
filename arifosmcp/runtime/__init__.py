@@ -20,7 +20,6 @@ from arifosmcp.runtime.compression import (
 # Commits: df66ca05a (honesty_hotfix), 4f14b646a (witness_class),
 #          a26b7af40 (lease).
 # ──────────────────────────────────────────────────────────────────────
-
 # P0-8: Self-probe SELF class. The prober cannot attest itself
 # from inside itself. probe_status_self() honors the Gödel lock.
 from arifosmcp.runtime.honesty_hotfix import (
@@ -28,6 +27,18 @@ from arifosmcp.runtime.honesty_hotfix import (
     min_verdict,
     probe_status_self,
     resolve_kernel_version,
+)
+
+# P2-7 / ADR-001: Canonical lease registry. No cross-organ action without
+# a kernel-issued lease carrying scope, ttl, and max_uses.
+from arifosmcp.runtime.lease_registry import (
+    LeaseRecord,
+    get_lease,
+    issue_lease,
+    list_active_leases,
+    present_lease,
+    revoke_lease,
+    validate_lease_for_tool,
 )
 
 # P3-2: Positional witness taxonomy. Substance answers "what kind
@@ -41,18 +52,6 @@ from arifosmcp.runtime.witness_class import (
     narrator_debt,
     reject_narrative_seal,
     tri_witness_position_state,
-)
-
-# P2-7: Capability lease primitive. No cross-organ action without
-# a lease carrying scope, ttl, and max_invocations. verify_lease()
-# is the gate; consume() is the atom.
-from arifosmcp.runtime.lease import (
-    Lease,
-    LeaseScope,
-    LeaseSpec,
-    LeaseStore,
-    get_default_store,
-    verify_lease,
 )
 
 __all__ = [
@@ -75,11 +74,12 @@ __all__ = [
     "narrator_debt",
     "reject_narrative_seal",
     "tri_witness_position_state",
-    # Capability lease primitive (forged a26b7af40)
-    "Lease",
-    "LeaseScope",
-    "LeaseSpec",
-    "LeaseStore",
-    "get_default_store",
-    "verify_lease",
+    # Canonical lease registry (ADR-001)
+    "LeaseRecord",
+    "issue_lease",
+    "revoke_lease",
+    "get_lease",
+    "list_active_leases",
+    "validate_lease_for_tool",
+    "present_lease",
 ]

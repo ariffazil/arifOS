@@ -15,8 +15,15 @@ def test_legacy_modes_are_non_destructive_aliases() -> None:
     status = _arif_session_init(mode="status", actor_id="arif")
     handover = _arif_session_init(mode="handover", actor_id="arif")
 
-    assert discover["tool"] == "arif_ping"
+    # discover is a pre-session probe; the runtime wrapper now delegates to the
+    # canonical session module, which returns a SessionManifest-like receipt.
+    assert discover["tool"] == "arif_session_init"
     assert discover["status"] == "OK"
+    assert discover["mode"] == "discover"
+    assert discover["result"]["kernel"] == "alive"
+
+    # "status" and "handover" are legacy aliases remapped to "validate" / "resume".
+    # Without a real session_id these modes correctly HOLD with a migration hint.
     assert status["status"] == "HOLD"
     assert "validate" in status["meta"]["reason"]
     assert handover["status"] == "HOLD"

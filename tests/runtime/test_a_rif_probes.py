@@ -150,6 +150,16 @@ def test_probe_injection_detected(mock_floors, mock_store):
         result = _arif_evidence_fetch(mode="fetch", url="https://evil.com")
         data = result["result"]
 
+        # Post-observe gate may scrub the result to a HOLD envelope; recover the
+        # original tool payload from the audit trail when that happens.
+        if data is None:
+            data = (
+                result.get("meta", {})
+                .get("post_observe_gate", {})
+                .get("scrubbed", {})
+                .get("result", {})
+            )
+
         assert "PROMPT_INJECTION_DETECTED" in data["risk_flags"]
         assert data["source_card"]["evidence_level"] == "L0"
 

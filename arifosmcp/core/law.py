@@ -162,6 +162,26 @@ def check_laws(
                     "sovereign_veto_used": True,
                 }
 
+    # ── Human Substrate Check ──────────────────────────────────────
+    # The human is not entirely intelligence. They have scars, shadows,
+    # paradoxes, limits, constraints, invariants. The kernel must know.
+    substrate_warnings: list[str] = []
+    try:
+        from arifosmcp.core.human_substrate import check_human_substrate_floor
+
+        for floor in spec.get("floors", []):
+            floor_value = floor.value if hasattr(floor, "value") else floor
+            sub_result = check_human_substrate_floor(floor_value, tool_name, params)
+            if sub_result["verdict"] in ("GUARD", "BLOCK", "STRENGTHEN"):
+                substrate_warnings.append(
+                    f"{floor_value}: {sub_result['reason']} (verdict={sub_result['verdict']})"
+                )
+                # Only BLOCK adds to failed — GUARD/STRENGTHEN are advisory
+                if sub_result["verdict"] == "BLOCK":
+                    failed.append(floor_value)
+    except Exception:
+        pass  # Non-fatal: substrate check is advisory unless BLOCK
+
     if failed:
         if "L13" in failed:
             return {
@@ -179,16 +199,24 @@ def check_laws(
         "verdict": "SEAL",
         "violated_laws": [],
         "reason": "All constitutional floors clear",
+        "substrate_warnings": substrate_warnings,
     }
 
 
 def get_floor_status() -> dict[str, Any]:
     """Return current constitutional floor status for /health endpoint."""
-    return {
+    result = {
         "floors": {f.value: LAW_DESCRIPTIONS[f] for f in Law},
         "status": "aligned",
         "version": "2026.04.26-KANON",
     }
+    try:
+        from arifosmcp.core.human_substrate import get_substrate_summary
+
+        result["human_substrate"] = get_substrate_summary()
+    except Exception:
+        result["human_substrate"] = {"status": "unavailable"}
+    return result
 
 
 def get_tool_floors(tool_name: str) -> list[str]:

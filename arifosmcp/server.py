@@ -88,6 +88,9 @@ from arifosmcp.constitutional_map import (  # noqa: E402
     list_constitutional_tools,
     list_probe_tools,
 )
+from arifosmcp.runtime.peer_contract import (  # noqa: E402
+    get_arifos_peer_contract,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -506,6 +509,11 @@ try:
     from arifosmcp.runtime.organ_attestation import (
         attest_organ as _attest_organ,
     )
+    from arifosmcp.runtime.peer_contract import (
+        arif_peer_contract_attest as _arif_peer_contract_attest,
+        arif_peer_contract_forbid as _arif_peer_contract_forbid,
+        arif_peer_contract_validate as _arif_peer_contract_validate,
+    )
     from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, register_tools
     from arifosmcp.tools.embodied import register_all_arifos_tools
     from arifosmcp.tools.embodied_instances.arif_mind_reason_handler import (
@@ -770,6 +778,24 @@ try:
 
     # forge_dry_run removed — moved to A-FORGE MCP (forge.arif-fazil.com/mcp).
     # Deprecation proxy registered above.
+
+    # ── Peer Federation Contract tools (P2P v1) ──────────────────────────────
+    for _pc_name, _pc_handler in (
+        ("arif_peer_contract_validate", _arif_peer_contract_validate),
+        ("arif_peer_contract_attest", _arif_peer_contract_attest),
+        ("arif_peer_contract_forbid", _arif_peer_contract_forbid),
+    ):
+        _pc = _wrap_handler(_pc_handler, _pc_name)
+        if _pc is not None:
+            mcp.tool(
+                name=_pc_name,
+                description=(
+                    "Peer Federation Contract v1 — "
+                    f"{_pc_name.replace('arif_peer_contract_', '')}."
+                ),
+                tags={"live-kernel", "attestation", "peer-contract"},
+            )(_pc)
+        v2_tools_registered.append(_pc_name)
 
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
@@ -1138,6 +1164,7 @@ async def horizon_ready(request: Request) -> JSONResponse:
     readiness = _runtime_selftest()
     verdict = str(readiness.get("verdict", "FAIL"))  # "PASS", "PARTIAL", or "FAIL" — machine-level selftest
     payload = {
+        "status": verdict.lower(),  # human-readable alias: pass | partial | fail
         "machine_status": verdict,  # machine health, not constitutional verdict
         "checks": readiness.get("checks", {}),
         "failures": readiness.get("failed_checks", []),
@@ -1249,6 +1276,20 @@ if app:
     app.add_route("/tools", tools_with_meta, methods=["GET"])
     app.add_route("/status.json", federation_status_json, methods=["GET"])
     app.add_route("/.well-known/mcp.json", webmcp_discovery, methods=["GET"])
+
+    # ── Peer Federation Contract discovery (P2P v1) ──────────────────────────
+    async def _peer_contract_discovery(request: Request) -> JSONResponse:
+        try:
+            contract = get_arifos_peer_contract()
+            return JSONResponse(contract.model_dump(mode="json"))
+        except Exception as e:
+            logger.error("peer-contract discovery failed: %s", e)
+            return JSONResponse(
+                {"error": "peer_contract_unavailable", "detail": str(e)},
+                status_code=503,
+            )
+
+    app.add_route("/.well-known/peer-contract.json", _peer_contract_discovery, methods=["GET"])
 
     # ── Airlock Conformance REST endpoints ─────────────────────────────────
     import time as _time

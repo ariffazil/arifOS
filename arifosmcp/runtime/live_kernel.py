@@ -22,6 +22,11 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from arifosmcp.runtime.peer_contract import (
+    get_arifos_peer_contract_hash,
+    get_arifos_peer_contract_url,
+)
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Core models
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -330,6 +335,8 @@ def arif_os_attest(
             "active_leases": 0,  # Placeholder until lease registry is wired
             "queued_tasks": 0,
             "failed_calls_5m": 0,
+            "peer_contract_url": get_arifos_peer_contract_url(),
+            "peer_contract_hash": get_arifos_peer_contract_hash(),
         },
     )
     try:

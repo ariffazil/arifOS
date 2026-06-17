@@ -11,6 +11,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from arifosmcp.runtime.reality_models import FetchResult, SearchResult
@@ -133,7 +134,7 @@ class TestEvidenceStubWiring:
 
         from arifosmcp.tools.evidence import arif_evidence_fetch
 
-        result = arif_evidence_fetch(mode="fetch", url="https://example.com")
+        result = asyncio.run(arif_evidence_fetch(mode="fetch", url="https://example.com"))
 
         assert result["status"] == "OK"
         assert result["result"]["content"] == "hello"
@@ -157,7 +158,7 @@ class TestEvidenceStubWiring:
         with patch.dict("os.environ", {"QDRANT_URL": "http://localhost:6333"}):
             from arifosmcp.tools.evidence import arif_evidence_fetch
 
-            result = arif_evidence_fetch(mode="search", query="python")
+            result = asyncio.run(arif_evidence_fetch(mode="search", query="python"))
 
         assert result["status"] == "OK"
         assert len(result["result"]["results"]) == 1
@@ -175,7 +176,7 @@ class TestEvidenceStubWiring:
 
         from arifosmcp.tools.evidence import arif_evidence_fetch
 
-        result = arif_evidence_fetch(mode="fetch", url="https://example.com")
+        result = asyncio.run(arif_evidence_fetch(mode="fetch", url="https://example.com"))
 
         # Graceful fallback — empty content but OK (no crash)
         assert result["status"] == "OK"

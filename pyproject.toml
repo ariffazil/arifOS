@@ -88,6 +88,15 @@ dev = [
     "ruff>=0.15.13",
     "mypy>=2.1.0",
 ]
+openai = [
+    # OpenAI Agents SDK — required for arifos.adapters.openai
+    # Pin major version; OpenAI ships breaking changes across majors.
+    "openai>=1.60.0",
+]
+anthropic = [
+    # Anthropic Agent SDK — for arifos.adapters.anthropic (future)
+    "anthropic>=0.40.0",
+]
 geox = [
     "lasio>=0.32",
     "welly>=0.5.2",

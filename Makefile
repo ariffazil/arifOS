@@ -6,7 +6,7 @@ DIR := /root/arifOS
 
 include /root/arifOS/scripts/security_audit.mk
 
-.PHONY: status forge seal health conformance sync sot-check prove deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public reality-replay constitutional-benchmark
+.PHONY: status forge seal health conformance sync sot-check prove deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public verify-live reality-replay constitutional-benchmark reality
 
 status:
 	@echo "--- arifOS Status (ΔΩΨ) ---"
@@ -61,6 +61,11 @@ sot-check: security-audit
 canon-drift:
 	@echo "Checking constitutional canon drift across federation organs..."
 	@$(PYTHON) scripts/canon_drift_check.py
+
+reality:
+	@echo "🔍 Probing federation reality..."
+	@python3 scripts/federation_reality_probe.py --write-md --write-json --public
+	@echo "📄 Snapshot: FEDERATION_REALITY_SNAPSHOT.md"
 
 reality-replay:
 	@echo "Replaying Reality Ledger..."

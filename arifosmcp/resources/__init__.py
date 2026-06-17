@@ -2,19 +2,20 @@
 arifOS Resources — Canonical URI Surface
 ════════════════════════════════════════
 
-11 Canonical Resources (intelligence, not chaos):
+12 Canonical Resources (intelligence, not chaos):
 
-  arifos://doctrine       — Immutable law (F1–L13)
-  arifos://trinity        — AAA lane definitions and separation of powers
-  arifos://schema         — Complete blueprint (tools, lanes, forge bridge)
-  arifos://civilization   — Organs, strata, and constitutional boundaries
-  arifos://seal-readiness — Vault integrity and seal gate
-  arifos://jurisdiction   — Autonomy bands and capability grants
-  arifos://identity       — Sovereign identity manifest and authority chain
-  arifos://memory         — 6-layer memory architecture (L1–L6)
-  arifos://vitals         — Metric reference and thresholds
-  arifos://bootstrap      — Full federation knowledge-graph context (v2026.06.14)
-  tree777://index         — TREE777 wiki index
+  arifos://doctrine          — Immutable law (F1–L13)
+  arifos://trinity           — AAA lane definitions and separation of powers
+  arifos://schema            — Complete blueprint (tools, lanes, forge bridge)
+  arifos://civilization      — Organs, strata, and constitutional boundaries
+  arifos://seal-readiness    — Vault integrity and seal gate
+  arifos://jurisdiction      — Autonomy bands and capability grants
+  arifos://identity          — Sovereign identity manifest and authority chain
+  arifos://memory            — 6-layer memory architecture (L1–L6)
+  arifos://vitals            — Metric reference and thresholds
+  arifos://bootstrap         — Full federation knowledge-graph context (v2026.06.14)
+  arifos://human/metabolized — Compact sovereign context (nutrient, not food)
+  tree777://index            — TREE777 wiki index
 
 REMOVED (chaos reduction):
   arifos://philosophy — beautiful, not operational. Agents don't load it.
@@ -33,6 +34,7 @@ from .civilization import register_civilization
 from .doctrine import register_doctrine
 from .embodied_resources import register_embodied_resources
 from .evidence import register_evidence_resources
+from .human_context import register_human_context
 from .identity import register_identity
 from .jurisdiction import register_jurisdiction
 from .memory import register_memory
@@ -55,6 +57,7 @@ CANONICAL_RESOURCES = (
     "arifos://memory",
     "arifos://vitals",
     "arifos://bootstrap",
+    "arifos://human/metabolized",
 )
 
 TREE777_RESOURCES = (
@@ -106,4 +109,5 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_tree777_resources(mcp))
     registered.extend(register_runner_resources(mcp))
     registered.extend(register_sovereign_resources(mcp))
+    registered.extend(register_human_context(mcp))
     return registered

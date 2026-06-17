@@ -7,10 +7,16 @@ Cross-agent routing (A2A) and federation hub.
 
 from __future__ import annotations
 
+import json
 import uuid
 from typing import Any
 
 from arifosmcp.runtime.law import check_laws
+from arifosmcp.runtime.peer_contract import (
+    PeerFederationContract,
+    get_arifos_peer_contract_hash,
+    get_arifos_peer_contract_url,
+)
 from arifosmcp.runtime.tools import _hold, _ok
 
 
@@ -18,6 +24,8 @@ def arif_gateway_connect(
     mode: str = "route",
     target_agent: str | None = None,
     actor_id: str | None = None,
+    contract_url: str | None = None,
+    contract: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     floor_check = check_laws(
         "arif_gateway_connect", {"target_agent": target_agent or ""}, actor_id
@@ -102,5 +110,46 @@ def arif_gateway_connect(
             )
         except Exception as exc:
             return _hold("arif_gateway_connect", f"consensus probe failed: {exc}")
+
+    if mode == "peer_contract":
+        # P2P Federation Contract v1 discovery/validation.
+        # If a remote contract is supplied, validate it; otherwise advertise
+        # arifOS's own contract for peer negotiation.
+        if contract_url or contract:
+            try:
+                if contract is None and contract_url:
+                    import urllib.request
+
+                    with urllib.request.urlopen(contract_url, timeout=10) as resp:
+                        contract = json.loads(resp.read().decode("utf-8"))
+                validated = PeerFederationContract.model_validate(contract if contract is not None else {})
+                return _ok(
+                    "arif_gateway_connect",
+                    {
+                        "protocol": "P2P",
+                        "mode": "peer_contract_validate",
+                        "organ": validated.peer_id.organ,
+                        "authority_class": validated.authority_class.value,
+                        "contract_version": validated.contract_version,
+                        "valid": True,
+                    },
+                )
+            except Exception as exc:
+                return _hold(
+                    "arif_gateway_connect",
+                    f"peer_contract validation failed: {exc}",
+                )
+
+        return _ok(
+            "arif_gateway_connect",
+            {
+                "protocol": "P2P",
+                "mode": "peer_contract_attest",
+                "peer_contract_url": get_arifos_peer_contract_url(),
+                "peer_contract_hash": get_arifos_peer_contract_hash(),
+                "authority_class": "judge",
+                "note": "arifOS peer contract available for P2P negotiation.",
+            },
+        )
 
     return _hold("arif_gateway_connect", f"Unknown mode: {mode}")

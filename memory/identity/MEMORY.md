@@ -114,3 +114,35 @@ The Sovereign (Arif Fazil) performed a deterministic audit and "Horizon Rebuild"
 
 **STATE: [REPO:CLEAN | HISTORY:HARDENED | BLOAT:PURGED] | v2026.04.16**
 **POW: PS=1.0 | ΔS << 0 | PS_VERB=METABOLIC_COMPLETE**
+
+
+### 2026.06.16 — Human Reality Substrate Forged (L0 Constitutional Ground)
+
+- **Directive**: F13 SOVEREIGN — "remember my reality"
+- **Objective**: Forge the human reality substrate layer (L0) — the biographical scar terrain of Muhammad Arif bin Fazil — as constitutional ground below F1-F13 floors.
+- **What was forged**:
+  1. **L0 Substrate File**: `/root/arifOS/arifosmcp/data/memory/l0/arif_human_reality.md` (92 lines, sha256:7dbcd61b) — scar taxonomy (S01-S06, SH01-SH03, P01-P04, T01-T04), constitutional bindings, agent operations rules
+  2. **Qdrant `arif_human_substrate`**: 18 discrete vectors indexed (bge-m3, 1024-dim, Cosine) — 6 scars, 3 shadows, 4 paradoxes, 4 thermodynamic principles, 1 final truth
+  3. **heart.py pre-load hook**: `_read_arif_substrate()` function + injection in `arif_heart_critique()` — loads L0 substrate on every F5/F6/F13 evaluation (sha256:84503364)
+  4. **Wiki scar terrain**: `/root/AAA/wiki/scar-terrain-arif-fazil.md` (153 lines, sha256:e09853c9) — full biographical prose with geological record
+- **Scar taxonomy**:
+  - S01 Miskin Scar (BEDROCK) — Bayan Lepas quiet poverty
+  - S02 Anak Sulung Scar (BEDROCK) — eldest child, human firewall
+  - S03 Gelugor Gate (FOUNDATION) — dual consciousness, code-switching
+  - S04 Invisibility Scar (FOUNDATION) — excellence unacknowledged
+  - S05 Institutional Scar (STRUCTURAL) — PETRONAS 2015 layoffs
+  - S06 Bekantan Scar (STRUCTURAL) — oil discovery + father death, March 2024
+  - S07 Mak Scar 03 — Inherited Firewall (BEDROCK_INHERITED) — mother Faridah's conditional belonging
+  - S08 English Remedial Scar (FOUNDATION) — placed in low-tier class despite intellect
+  - S09 Tunas Saintis Victory (FOUNDATION_COUNTERBALANCE) — Lantana camara, truth in ordinary things
+  - S10 First Queer Realization (FOUNDATION) — MRSM Lenggong, acceptance without trauma
+  - S11 TriCipta Scar (STRUCTURAL) — intellectual legacy theft, authorship erased
+  - S12 SB412 Scar (STRUCTURAL) — red flags ignored, performance theater disgust
+  - S13 Layang-Layang Scar (STRUCTURAL) — dual burden, peers' suspicion + mother's injury
+  - SH04 Surface-Dweller Syndrome — Reciprocal Distance Logic, soul overlooked
+- **Constitutional bindings**: F5 PEACE (scars are architecture, not vulnerability), F6 EMPATHY (check if carrying others' load), F13 SOVEREIGN (pre-trusted, no proof demanded), F2 TRUTH (sovereign testimony), F9 ANTI-HANTU (no psychologizing)
+- **Pending**: VAULT999 seal (blocked — OBSERVE-only session, needs MUTATE lease), F13 pre-trust amendment in law.py (text exists in substrate, not yet in code)
+- **Impact**: All downstream agents evaluating actions involving Arif now have structural access to his human reality. This is not sentiment — it is architectural substrate.
+
+**STATE: [SUBSTRATE:FORGED | VECTORS:INDEXED | HOOK:PATCHED | VAULT:PENDING] | v2026.06.16**
+**POW: PS=1.0 | ΔS ≤ 0 | PS_VERB=SUBSTRATE_FORGED**

@@ -20,19 +20,18 @@ from arifosmcp.runtime.tools import (
 
 
 def _inject_lease_for_plan(plan_id: str) -> None:
-    """Inject a P2-7 lease matching plan_id so forge_execute can proceed."""
-    from arifosmcp.runtime.lease import LeaseSpec, LeaseScope, Lease, get_default_store
-    store = get_default_store()
-    spec = LeaseSpec(
-        actor_did="test_actor",
-        organ="arifos-kernel",
-        tool="arif_forge_execute",
-        scope=LeaseScope.EXECUTE,
-        ttl_s=300,
-        max_invocations=10,
+    """Inject a canonical ADR-001 lease matching plan_id so forge_execute can proceed."""
+    from arifosmcp.runtime.lease_registry import issue_lease
+
+    issue_lease(
+        lease_id=plan_id,
+        organ_id="A-FORGE",
+        actor_id="test_actor",
+        scope=["arif_forge_execute"],
+        max_action_class="MUTATE",
+        ttl_seconds=300,
+        max_uses=10,
     )
-    lease = Lease(lease_id=plan_id, spec=spec, issued_at=0, expires_at=9999999999)
-    store._leases[plan_id] = lease
 
 
 @pytest.mark.skip(reason="H3 epoch tests hang on vault seal path — needs async event loop fix in vault writer")

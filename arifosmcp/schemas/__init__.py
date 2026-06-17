@@ -20,6 +20,17 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
+# CapabilitySurface — Honest map of what the system can actually do (Ω-2026-06-10)
+from arifosmcp.schemas.capability_surface import (
+    AgentCapability,
+    AutonomyMode,
+    CapabilitySurface,
+    CapabilityTier,
+    OrganHealth,
+    StatusAlignment,
+    ToolCapability,
+)
+
 # Sequential thinking (222_SENSE)
 from arifosmcp.schemas.cognition import (
     EpistemicHumility,
@@ -63,17 +74,6 @@ from arifosmcp.schemas.intent_envelope import (
     SovereignProvenance,
 )
 
-# CapabilitySurface — Honest map of what the system can actually do (Ω-2026-06-10)
-from arifosmcp.schemas.capability_surface import (
-    AgentCapability,
-    AutonomyMode,
-    CapabilitySurface,
-    CapabilityTier,
-    OrganHealth,
-    StatusAlignment,
-    ToolCapability,
-)
-
 # Verdict (888_JUDGE, 999_VAULT, 666_HEART)
 from arifosmcp.schemas.lineage import JudgeSealContract
 
@@ -88,6 +88,19 @@ from arifosmcp.schemas.model_card import (
     RuntimeTruth,
     SelfClaimBoundary,
     ShadowProfile,
+)
+
+# Peer Federation Contract v1 (P2P constitutional peering)
+from arifosmcp.schemas.peer_federation_contract import (
+    AcceptedInput,
+    AuditSink,
+    AuthorityClass,
+    CapabilityCard,
+    HumanVeto,
+    OverridePath,
+    PeerFederationContract,
+    PeerId,
+    SignedAttestation,
 )
 
 # Session (000_INIT)
@@ -110,16 +123,6 @@ from arifosmcp.schemas.synthesis import (
     Synthesis,
 )
 
-# Vault Liveness (AAA-GOV-VAULT-LIVENESS-v1)
-from arifosmcp.schemas.vault_liveness import (
-    ContractEntry,
-    ContractStatus,
-    LivenessCheckResult,
-    ProductionContractManifest,
-    VaultLivenessContract,
-    VaultLivenessState,
-)
-
 # Telemetry (777_OPS, 111_SENSE)
 from arifosmcp.schemas.telemetry import TelemetryBlock, VitalsBlock
 
@@ -140,6 +143,16 @@ from arifosmcp.schemas.topology import (
 )
 from arifosmcp.schemas.topology import (
     Verdict as TopologyVerdict,
+)
+
+# Vault Liveness (AAA-GOV-VAULT-LIVENESS-v1)
+from arifosmcp.schemas.vault_liveness import (
+    ContractEntry,
+    ContractStatus,
+    LivenessCheckResult,
+    ProductionContractManifest,
+    VaultLivenessContract,
+    VaultLivenessState,
 )
 from arifosmcp.schemas.verdict import (
     AkalState,
@@ -274,6 +287,16 @@ __all__ = [
     "ContractStatus",
     "ContractEntry",
     "ProductionContractManifest",
+    # Peer Federation Contract v1
+    "PeerFederationContract",
+    "AuthorityClass",
+    "PeerId",
+    "CapabilityCard",
+    "AcceptedInput",
+    "AuditSink",
+    "OverridePath",
+    "HumanVeto",
+    "SignedAttestation",
     # ModelCard (F3 TRI_WITNESS — identity binding)
     "ModelGovernanceCard",
     "ModelAnchor",
