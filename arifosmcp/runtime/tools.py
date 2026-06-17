@@ -5714,6 +5714,302 @@ def _arif_sense_observe(
             delta_S=0.0,
         )
 
+    # ── Phase 0: Tavily endpoint expansion (2026-06-16) ────────────────
+    # Four new modes that delegate directly to tavily_bridge methods.
+    # Each mode stamps the F2 epistemic tag at the boundary so the
+    # downstream F2 sense-evidence gate passes without modification.
+    if mode in ("tavily_context", "tavily_qna", "tavily_crawl", "tavily_map"):
+        from arifosmcp.runtime.tavily_bridge import tavily_bridge as _tvly_p0
+
+        try:
+            if mode == "tavily_context":
+                bridge_result = _run_async(_tvly_p0.get_search_context(query or ""))
+            elif mode == "tavily_qna":
+                bridge_result = _run_async(_tvly_p0.qna_search(query or ""))
+            elif mode == "tavily_crawl":
+                if not url:
+                    return _hold(
+                        "arif_sense_observe",
+                        "tavily_crawl requires `url` parameter",
+                        session_id=session_id,
+                    )
+                bridge_result = _run_async(_tvly_p0.crawl(url=url))
+            else:  # tavily_map
+                if not url:
+                    return _hold(
+                        "arif_sense_observe",
+                        "tavily_map requires `url` parameter",
+                        session_id=session_id,
+                    )
+                bridge_result = _run_async(_tvly_p0.map_site(url=url))
+
+            verdict = bridge_result.get("verdict", "SABAR")
+            if bridge_result.get("status") == "error":
+                payload = {
+                    "mode": mode,
+                    "query": query,
+                    "url": url,
+                    "bridge": bridge_result.get("bridge"),
+                    "error": bridge_result.get("error"),
+                    "error_class": bridge_result.get("error_class"),
+                    "verdict": verdict,
+                    "metrics": bridge_result.get("metrics", {}),
+                    "witness_debug": bridge_result.get("witness_debug", {}),
+                }
+                if bridge_result.get("invite_only"):
+                    payload["invite_only"] = True
+                    payload["invite_url"] = bridge_result.get("invite_url")
+                    payload["note"] = bridge_result.get("note")
+                return _ok("arif_sense_observe", payload, delta_S=0.005)
+
+            # Success path — carry the bridge's epistemic stamp.
+            payload = {
+                "mode": mode,
+                "query": query,
+                "url": url,
+                "epistemic_tag": bridge_result.get("epistemic_tag", "INTERPRETATION"),
+                "verdict": verdict,
+                "result_count": bridge_result.get("result_count")
+                or bridge_result.get("page_count")
+                or bridge_result.get("url_count")
+                or 0,
+                "metrics": bridge_result.get("metrics", {}),
+                "witness_debug": bridge_result.get("witness_debug", {}),
+            }
+            # Mode-specific payload forwarding
+            if mode == "tavily_context":
+                payload["context"] = bridge_result.get("context", "")
+                payload["context_length_chars"] = bridge_result.get("context_length_chars", 0)
+                payload["context_length_tokens_est"] = bridge_result.get(
+                    "context_length_tokens_est", 0
+                )
+                payload["truncated"] = bridge_result.get("truncated", False)
+                payload["hits"] = bridge_result.get("hits", [])
+            elif mode == "tavily_qna":
+                payload["answer"] = bridge_result.get("answer")
+                payload["follow_up_questions"] = bridge_result.get("follow_up_questions")
+                payload["hits"] = bridge_result.get("hits", [])
+            elif mode == "tavily_crawl":
+                payload["pages"] = bridge_result.get("pages", [])
+            else:  # tavily_map
+                payload["urls"] = bridge_result.get("urls", [])
+
+            return _ok("arif_sense_observe", payload, delta_S=0.005)
+        except Exception as exc:
+            logger.error("arif_sense_observe %s failed: %s", mode, exc)
+            return _hold(
+                "arif_sense_observe",
+                f"{mode} bridge failure: {exc}",
+                session_id=session_id,
+            )
+
+    # ── Phase 1: gptr-mcp organ delegation (2026-06-16) ──────────────
+    # deep_research and quick_search delegate to the gptr-mcp organ
+    # running on 127.0.0.1:18084. The bridge translates the arifOS
+    # sense_observe contract to MCP JSON-RPC over SSE.
+    if mode in ("deep_research", "quick_search"):
+        from arifosmcp.runtime.gptr_bridge import gptr_bridge as _gptr
+
+        if not query:
+            return _hold(
+                "arif_sense_observe",
+                f"{mode} requires a `query` parameter",
+                session_id=session_id,
+            )
+
+        try:
+            if mode == "deep_research":
+                bridge_result = _run_async(_gptr.deep_research(query=query))
+            else:  # quick_search
+                bridge_result = _run_async(_gptr.quick_search(query=query))
+
+            if bridge_result.get("status") == "error":
+                payload = {
+                    "mode": mode,
+                    "query": query,
+                    "bridge": bridge_result.get("bridge"),
+                    "error": bridge_result.get("error"),
+                    "verdict": bridge_result.get("verdict", "SABAR"),
+                }
+                if bridge_result.get("error_code"):
+                    payload["error_code"] = bridge_result["error_code"]
+                return _ok("arif_sense_observe", payload, delta_S=0.01)
+
+            inner = bridge_result.get("result", {})
+            payload = {
+                "mode": mode,
+                "query": query,
+                "epistemic_tag": bridge_result.get("epistemic_tag", "INTERPRETATION"),
+                "verdict": bridge_result.get("verdict", "SEAL"),
+                "tool": bridge_result.get("tool"),
+                "gptr_organ": "127.0.0.1:18084",
+                "result": inner,
+                "metrics": {
+                    "f2_truth_score": 0.85,  # F2: AI-curated, not raw fact
+                    "f7_humility_band": 0.10,  # wider band for LLM-generated text
+                },
+            }
+            # Mode-specific field forwarding
+            if mode == "deep_research":
+                payload["research_id"] = bridge_result.get("research_id")
+                payload["report"] = bridge_result.get("report")
+                payload["sources"] = bridge_result.get("sources", [])
+            else:  # quick_search
+                payload["search_id"] = bridge_result.get("search_id")
+                payload["search_results"] = bridge_result.get("search_results", [])
+
+            return _ok("arif_sense_observe", payload, delta_S=0.01)
+        except Exception as exc:
+            logger.error("arif_sense_observe %s gptr bridge failed: %s", mode, exc)
+            return _hold(
+                "arif_sense_observe",
+                f"{mode} gptr bridge failure: {exc}",
+                session_id=session_id,
+            )
+
+    # ── Phase 2: Skyll skill discovery (2026-06-17) ──────────────────
+    # skill_discover — search the Skyll hosted registry for skills.
+    # skill_learn    — fetch + install a skill. 888_HOLD territory because
+    #                   it mutates /root/.agents/skills/. The LLM/agent
+    #                   caller MUST confirm with the user before invoking.
+    if mode in ("skill_discover", "skill_learn"):
+        from arifosmcp.runtime.skyll_bridge import skyll_bridge as _skyll
+
+        if not query:
+            return _hold(
+                "arif_sense_observe",
+                f"{mode} requires a `query` parameter (skill name or description)",
+                session_id=session_id,
+            )
+
+        try:
+            if mode == "skill_discover":
+                bridge_result = _run_async(
+                    _skyll.search_skills(query=query, limit=result_limit)
+                )
+            else:  # skill_learn
+                # skill_learn: requires explicit ack (888_HOLD gate)
+                # The LLM/agent must pass `overwrite=True` to replace an
+                # existing skill — otherwise the bridge fails closed.
+                overwrite_flag = bool(getattr(_arif_sense_observe, "__skill_overwrite__", False))
+                bridge_result = _run_async(
+                    _skyll.install_skill(
+                        skill_id=query,
+                        overwrite=overwrite_flag,
+                    )
+                )
+
+            if bridge_result.get("status") == "error":
+                payload = {
+                    "mode": mode,
+                    "query": query,
+                    "bridge": bridge_result.get("bridge"),
+                    "error": bridge_result.get("error"),
+                    "verdict": bridge_result.get("verdict", "SABAR"),
+                }
+                if bridge_result.get("installed_path"):
+                    payload["installed_path"] = bridge_result["installed_path"]
+                if bridge_result.get("existing_path"):
+                    payload["existing_path"] = bridge_result["existing_path"]
+                if bridge_result.get("verdict") == "888_HOLD":
+                    return _hold(
+                        "arif_sense_observe",
+                        bridge_result.get("error", "888_HOLD"),
+                        floors=["L13"],
+                        session_id=session_id,
+                    )
+                return _ok("arif_sense_observe", payload, delta_S=0.005)
+
+            payload = {
+                "mode": mode,
+                "query": query,
+                "epistemic_tag": bridge_result.get("epistemic_tag", "INTERPRETATION"),
+                "verdict": bridge_result.get("verdict", "SEAL"),
+                "result": {k: v for k, v in bridge_result.items() if k not in {"status", "verdict"}},
+            }
+            return _ok("arif_sense_observe", payload, delta_S=0.005)
+        except Exception as exc:
+            logger.error("arif_sense_observe %s skyll bridge failed: %s", mode, exc)
+            return _hold(
+                "arif_sense_observe",
+                f"{mode} skyll bridge failure: {exc}",
+                session_id=session_id,
+            )
+
+    # ── Phase 3: Tovana belief compiler (2026-06-17) ──────────────────
+    # Three conservative modes for memory/belief management:
+    #   belief_propose  — extract memories + beliefs from a message (888_HOLD)
+    #   belief_list     — list stored memories + beliefs (visibility, F6)
+    #   belief_forget   — delete ALL memories for a user (F1 AMANAH, F6)
+    # All writes are EXPLICIT. 90-day TTL on stored beliefs. F2 INTERPRETATION.
+    if mode in ("belief_propose", "belief_list", "belief_forget"):
+        from arifosmcp.runtime.tovana_compiler import tovana_compiler as _tov
+
+        # user_id is required for all three. Default to "arif" for now.
+        user_id = (query or "arif").strip()
+        if not user_id:
+            return _hold(
+                "arif_sense_observe",
+                f"{mode} requires a `query` parameter (used as user_id)",
+                session_id=session_id,
+            )
+
+        try:
+            if mode == "belief_propose":
+                # belief_propose needs an additional `message` — we use the
+                # mode name's `description` slot or fall back to a stub.
+                message = getattr(
+                    _arif_sense_observe, "__belief_message__", None
+                )
+                if not message:
+                    return _hold(
+                        "arif_sense_observe",
+                        "belief_propose requires a non-empty message (use 'description' param or set __belief_message__)",
+                        session_id=session_id,
+                    )
+                bridge_result = _run_async(_tov.propose(user_id=user_id, message=message))
+            elif mode == "belief_list":
+                bridge_result = _run_async(_tov.list(user_id=user_id))
+            else:  # belief_forget
+                bridge_result = _run_async(_tov.forget(user_id=user_id))
+
+            if bridge_result.get("status") == "error":
+                return _ok(
+                    "arif_sense_observe",
+                    {
+                        "mode": mode,
+                        "user_id": user_id,
+                        "bridge": bridge_result.get("bridge"),
+                        "error": bridge_result.get("error"),
+                        "verdict": bridge_result.get("verdict", "SABAR"),
+                    },
+                    delta_S=0.005,
+                )
+
+            payload = {
+                "mode": mode,
+                "user_id": user_id,
+                "epistemic_tag": bridge_result.get("epistemic_tag", "INTERPRETATION"),
+                "verdict": bridge_result.get("verdict", "SEAL"),
+                "memory_path": bridge_result.get("memory_path"),
+                "memories": bridge_result.get("memories", {}),
+                "beliefs": bridge_result.get("beliefs"),
+                "last_updated": bridge_result.get("last_updated"),
+            }
+            if bridge_result.get("decay"):
+                payload["decay"] = True
+                payload["expired"] = bridge_result.get("expired", [])
+            if bridge_result.get("deleted") is not None:
+                payload["deleted"] = bridge_result["deleted"]
+            return _ok("arif_sense_observe", payload, delta_S=0.01)
+        except Exception as exc:
+            logger.error("arif_sense_observe %s tovana failed: %s", mode, exc)
+            return _hold(
+                "arif_sense_observe",
+                f"{mode} tovana failure: {exc}",
+                session_id=session_id,
+            )
+
     allowed_modes = [
         "search",
         "ingest",
@@ -5725,6 +6021,17 @@ def _arif_sense_observe(
         "extract_claims",
         "contrast",
         "repo_map",
+        "tavily_context",
+        "tavily_qna",
+        "tavily_crawl",
+        "tavily_map",
+        "deep_research",
+        "quick_search",
+        "skill_discover",
+        "skill_learn",
+        "belief_propose",
+        "belief_list",
+        "belief_forget",
     ]
     return _hold(
         "arif_sense_observe",
