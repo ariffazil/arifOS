@@ -235,6 +235,78 @@ async def _write_tool_call_receipt(
         logger.debug(f"[supabase-receipt] {tool_name} failed (soft): {e}")
 
 
+async def _write_harness_telemetry_in_thread(
+    session_id: str | None,
+    tool_name: str,
+    agent_id: str | None,
+    verdict: str,
+    floors_checked: list[str],
+    elapsed_ms: int,
+) -> None:
+    """Write tool execution trace to the local HarnessTelemetry SQLModel table in a worker thread."""
+    def _run_sync():
+        try:
+            import sys
+            pilot_src = "/root/pydantic-ai-pilot/src"
+            if pilot_src not in sys.path:
+                sys.path.append(pilot_src)
+            
+            from sqlmodel import Session, create_engine
+            from harness_telemetry import HarnessTelemetry
+            from datetime import datetime, timezone
+            
+            model_psi = tool_name
+            try:
+                from arifosmcp.runtime.tools import get_session
+                sess = get_session(session_id)
+                if sess and isinstance(sess, dict):
+                    card = sess.get("model_governance_card")
+                    if card and isinstance(card, dict):
+                        anchor = card.get("model_anchor")
+                        if anchor and isinstance(anchor, dict):
+                            model_psi = anchor.get("verified_model_key") or tool_name
+            except Exception:
+                pass
+                
+            provider = agent_id or "mcp"
+            
+            # Map verdict to valid set: SEAL, HOLD, VOID, PARTIAL, SABAR
+            v_upper = verdict.upper()
+            if "VOID" in v_upper:
+                verdict_mapped = "VOID"
+            elif "HOLD" in v_upper or "HUMAN" in v_upper:
+                verdict_mapped = "HOLD"
+            elif "PARTIAL" in v_upper:
+                verdict_mapped = "PARTIAL"
+            elif "SABAR" in v_upper:
+                verdict_mapped = "SABAR"
+            else:
+                verdict_mapped = "SEAL"
+
+            telemetry = HarnessTelemetry(
+                session_id=session_id or "session-unknown",
+                model_psi=model_psi,
+                provider=provider,
+                floors_checked=floors_checked,
+                verdict=verdict_mapped,
+                token_usage_total=0,
+                execution_latency_ms=float(elapsed_ms),
+                epsilon_variance=1e-6,
+                timestamp=datetime.now(timezone.utc)
+            )
+            telemetry.model_validate(telemetry.model_dump())
+            
+            db_url = "postgresql://arifos_admin:ArifPostgres2026!@127.0.0.1:5432/vault999"
+            engine = create_engine(db_url, echo=False)
+            with Session(engine) as db_session:
+                db_session.add(telemetry)
+                db_session.commit()
+        except Exception as db_err:
+            logger.debug(f"[telemetry-db] telemetry write failed: {db_err}")
+
+    await asyncio.to_thread(_run_sync)
+
+
 try:
     from arifosmcp.runtime.metrics import METABOLIC_LOOP_DURATION, REQUESTS_TOTAL
 
@@ -665,258 +737,256 @@ if IS_FASTMCP_3:
                 if tool_name == "arif_ping":
                     return await call_next(context)
 
-                # ── FEDERATION ENVELOPE EXTRACTION & VALIDATION ───────────────
-                envelope = _extract_envelope_from_arguments(dict(msg.arguments or {}), tool_name)
-                if envelope is None:
-                    # Legacy call: wrap with conservative defaults
-                    envelope = wrap_legacy_call(
-                        actor_id=None,
-                        session_id=None,
-                        tool_name=tool_name,
-                    )
-                    logger.debug(f"Ingress: wrapped legacy call for {tool_name}")
+                t0 = time.monotonic()
+                verdict = "SEAL"
+                floors = ["F2", "F4", "F11"]
+                if tool_name == "arif_session_init":
+                    floors = ["F1", "F11", "F13"]
+                elif tool_name == "arif_reply_compose":
+                    floors = ["F1", "F2", "F4", "F11", "F13"]
 
-                # ── UPGRADE ACTION CLASS BEFORE PROMOTION (2026-06-12) ─────────
-                # _try_promote_local_service sets receipts.arif_ack_id based on
-                # current action_class. If we upgrade after, the ack is set for
-                # OBSERVE but receipt validation runs against ATOMIC — mismatch.
-                # Upgrade now so the ack carries the real action class.
-                _tool_risk = classify_tool(tool_name)
-                if (
-                    envelope.risk.action_class == ActionClass.OBSERVE
-                    and _tool_risk.action_class != ActionClass.OBSERVE
-                ):
-                    envelope.risk.action_class = _tool_risk.action_class
-                    envelope.risk.tier = _tool_risk.tier
+                envelope_session_id = "unknown"
+                envelope_agent_id = "mcp"
 
-                # ── LOCAL SERVICE TRUST (Hermes bridge) ────────────────────────
-                # Hermes runs on the same host as arifOS. When a call carries a
-                # valid HERMES_SERVICE_TOKEN in the arguments, auto-promote from
-                # legacy_wrap → trusted service identity.
-                # This allows Hermes to call ATOMIC tools (vault_seal, judge, forge)
-                # without needing the sovereign ed25519 key.
-                _trusted = _try_promote_local_service(envelope, dict(msg.arguments or {}), tool_name)
-                if _trusted:
-                    logger.info(
-                        f"Ingress: local service trust promoted for {tool_name} "
-                        f"→ actor={envelope.actor_id}"
-                    )
-
-                envelope_ok, envelope_reason = _validate_envelope_for_tool(envelope, tool_name)
-                if not envelope_ok:
-                    logger.warning(f"Ingress envelope HOLD for {tool_name}: {envelope_reason}")
-                    # Return HOLD result — do not execute tool
-                    # MUST include structured_content so MCP SDK accepts it
-                    # under CANONICAL_OUTPUT_SCHEMA (F8 / MCP Spec 2025-11-25).
-                    from mcp.types import TextContent
-
-                    return ToolResult(
-                        content=[TextContent(type="text", text=f"888_HOLD: {envelope_reason}")],
-                        structured_content=_hold_envelope_dict(
+                try:
+                    # ── FEDERATION ENVELOPE EXTRACTION & VALIDATION ───────────────
+                    envelope = _extract_envelope_from_arguments(dict(msg.arguments or {}), tool_name)
+                    if envelope is None:
+                        # Legacy call: wrap with conservative defaults
+                        envelope = wrap_legacy_call(
+                            actor_id=None,
+                            session_id=None,
                             tool_name=tool_name,
-                            reason=envelope_reason,
-                            session_id=envelope.session_id,
-                            actor_id=envelope.actor_id,
-                            extra={"gate": "envelope_validation"},
-                        ),
-                    )
-
-                # ── SOVEREIGNTY CHECKPOINT GATE (v2: Chapter 6 Upgrade) ────
-                if envelope.requires_sovereignty_checkpoint():
-                    checkpoint = envelope.sovereignty_checkpoint
-                    if checkpoint is None:
-                        # No checkpoint — issue one and return 888_HOLD
-                        risk_dict = {
-                            "tier": envelope.risk.tier.value,
-                            "action_class": envelope.risk.action_class.value,
-                            "blast_radius": envelope.risk.blast_radius.value,
-                            "reversibility": envelope.risk.reversibility.value,
-                            "external_effect": envelope.risk.external_effect.value,
-                        }
-                        chk = build_sovereignty_checkpoint(
-                            tool_name=tool_name,
-                            session_id=envelope.session_id,
-                            actor_id=envelope.actor_id,
-                            risk_summary=risk_dict,
-                            tool_description=f"Risk tier {envelope.risk.tier.value}, "
-                            f"action class {envelope.risk.action_class.value}",
                         )
-                        SovereigntyCheckpointRequest(checkpoint=chk)
+                        logger.debug(f"Ingress: wrapped legacy call for {tool_name}")
 
-                        logger.warning(
-                            f"Ingress checkpoint HOLD for {tool_name}: "
-                            f"sovereignty_checkpoint required"
+                    envelope_session_id = envelope.session_id
+                    envelope_agent_id = envelope.agent_id
+
+                    # ── UPGRADE ACTION CLASS BEFORE PROMOTION (2026-06-12) ─────────
+                    _tool_risk = classify_tool(tool_name)
+                    if (
+                        envelope.risk.action_class == ActionClass.OBSERVE
+                        and _tool_risk.action_class != ActionClass.OBSERVE
+                    ):
+                        envelope.risk.action_class = _tool_risk.action_class
+                        envelope.risk.tier = _tool_risk.tier
+
+                    # ── LOCAL SERVICE TRUST (Hermes bridge) ────────────────────────
+                    _trusted = _try_promote_local_service(envelope, dict(msg.arguments or {}), tool_name)
+                    if _trusted:
+                        logger.info(
+                            f"Ingress: local service trust promoted for {tool_name} "
+                            f"→ actor={envelope.actor_id}"
                         )
+
+                    envelope_ok, envelope_reason = _validate_envelope_for_tool(envelope, tool_name)
+                    if not envelope_ok:
+                        logger.warning(f"Ingress envelope HOLD for {tool_name}: {envelope_reason}")
                         from mcp.types import TextContent
-
+                        verdict = "HOLD"
                         return ToolResult(
-                            content=[
-                                TextContent(
-                                    type="text",
-                                    text=(
-                                        f"888_HOLD: Sovereignty checkpoint required.\\n\\n"
-                                        f"Tool: {tool_name}\\n"
-                                        f"Risk: {envelope.risk.tier.value} | {envelope.risk.action_class.value}\\n"
-                                        f"Reversibility: {envelope.risk.reversibility.value}\\n\\n"
-                                        f"Answer these four questions:\\n"
-                                        f"1. What EVIDENCE are you accepting?\\n"
-                                        f"2. What UNCERTAINTY are you tolerating?\\n"
-                                        f"3. What RESPONSIBILITY are you assuming?\\n"
-                                        f"4. What REPAIR path exists if this goes wrong?\\n\\n"
-                                        f"Resubmit with sovereignty_checkpoint in FederationEnvelope.\\n"
-                                        f"Checkpoint ID: {chk.checkpoint_id}\\n"
-                                        f"Expires: {chk.expires_at}"
-                                    ),
-                                )
-                            ],
+                            content=[TextContent(type="text", text=f"888_HOLD: {envelope_reason}")],
                             structured_content=_hold_envelope_dict(
                                 tool_name=tool_name,
-                                reason="Sovereignty checkpoint required (L13 SOVEREIGN gate)",
+                                reason=envelope_reason,
                                 session_id=envelope.session_id,
                                 actor_id=envelope.actor_id,
-                                extra={
-                                    "gate": "sovereignty_checkpoint_required",
-                                    "checkpoint_id": chk.checkpoint_id,
-                                    "checkpoint_expires_at": str(chk.expires_at),
-                                    "risk_tier": envelope.risk.tier.value,
-                                    "action_class": envelope.risk.action_class.value,
-                                    "reversibility": envelope.risk.reversibility.value,
-                                },
+                                extra={"gate": "envelope_validation"},
                             ),
                         )
-                    else:
-                        # Checkpoint exists — validate it
-                        chk_ok, chk_reason = checkpoint.is_valid()
-                        if not chk_ok:
+
+                    # ── SOVEREIGNTY CHECKPOINT GATE (v2: Chapter 6 Upgrade) ────
+                    if envelope.requires_sovereignty_checkpoint():
+                        checkpoint = envelope.sovereignty_checkpoint
+                        if checkpoint is None:
+                            risk_dict = {
+                                "tier": envelope.risk.tier.value,
+                                "action_class": envelope.risk.action_class.value,
+                                "blast_radius": envelope.risk.blast_radius.value,
+                                "reversibility": envelope.risk.reversibility.value,
+                                "external_effect": envelope.risk.external_effect.value,
+                            }
+                            chk = build_sovereignty_checkpoint(
+                                tool_name=tool_name,
+                                session_id=envelope.session_id,
+                                actor_id=envelope.actor_id,
+                                risk_summary=risk_dict,
+                                tool_description=f"Risk tier {envelope.risk.tier.value}, "
+                                f"action class {envelope.risk.action_class.value}",
+                            )
+                            SovereigntyCheckpointRequest(checkpoint=chk)
+
                             logger.warning(
-                                f"Ingress checkpoint invalid for {tool_name}: {chk_reason}"
+                                f"Ingress checkpoint HOLD for {tool_name}: "
+                                f"sovereignty_checkpoint required"
                             )
                             from mcp.types import TextContent
-
+                            verdict = "HOLD"
                             return ToolResult(
                                 content=[
                                     TextContent(
                                         type="text",
-                                        text=f"888_HOLD: Sovereignty checkpoint invalid — {chk_reason}",
+                                        text=(
+                                            f"888_HOLD: Sovereignty checkpoint required.\n\n"
+                                            f"Tool: {tool_name}\n"
+                                            f"Risk: {envelope.risk.tier.value} | {envelope.risk.action_class.value}\n"
+                                            f"Reversibility: {envelope.risk.reversibility.value}\n\n"
+                                            f"Answer these four questions:\n"
+                                            f"1. What EVIDENCE are you accepting?\n"
+                                            f"2. What UNCERTAINTY are you tolerating?\n"
+                                            f"3. What RESPONSIBILITY are you assuming?\n"
+                                            f"4. What REPAIR path exists if this goes wrong?\n\n"
+                                            f"Resubmit with sovereignty_checkpoint in FederationEnvelope.\n"
+                                            f"Checkpoint ID: {chk.checkpoint_id}\n"
+                                            f"Expires: {chk.expires_at}"
+                                        ),
                                     )
                                 ],
                                 structured_content=_hold_envelope_dict(
                                     tool_name=tool_name,
-                                    reason=f"Sovereignty checkpoint invalid: {chk_reason}",
+                                    reason="Sovereignty checkpoint required (L13 SOVEREIGN gate)",
                                     session_id=envelope.session_id,
                                     actor_id=envelope.actor_id,
                                     extra={
-                                        "gate": "sovereignty_checkpoint_invalid",
-                                        "checkpoint_invalid_reason": chk_reason,
+                                        "gate": "sovereignty_checkpoint_required",
+                                        "checkpoint_id": chk.checkpoint_id,
+                                        "checkpoint_expires_at": str(chk.expires_at),
+                                        "risk_tier": envelope.risk.tier.value,
+                                        "action_class": envelope.risk.action_class.value,
+                                        "reversibility": envelope.risk.reversibility.value,
                                     },
                                 ),
                             )
-                        logger.debug(
-                            f"Ingress checkpoint passed for {tool_name}: "
-                            f"checkpoint_id={checkpoint.checkpoint_id}, "
-                            f"wakefulness={checkpoint.wakefulness_level.value}"
-                        )
-                # ── END SOVEREIGNTY CHECKPOINT GATE ──────────────────────
-
-                # Log envelope (no secrets)
-                self._envelope_log.append(
-                    {
-                        "timestamp": datetime.now(UTC).isoformat(),
-                        "tool_name": tool_name,
-                        "trace_id": envelope.trace_id,
-                        "actor_id": envelope.actor_id,
-                        "action_class": envelope.risk.action_class.value,
-                        "risk_tier": envelope.risk.tier.value,
-                        "legacy_wrap": envelope.legacy_wrap,
-                    }
-                )
-
-                # ── Chapter 6 Upgrade: Inject validated envelope into tool arguments ──
-                # The envelope is validated above; now propagate it so tool handlers
-                # can access authority, risk, receipts, and lineage fields.
-                # Handlers that accept an 'envelope' param receive the full object.
-                # Handlers that don't accept it have it silently filtered by _wrap_handler.
-                if msg.arguments is None:
-                    msg.arguments = {}
-                msg.arguments["_envelope"] = envelope.model_dump(mode="json")
-                # ── Propagate promoted actor_id to tool handler (2026-06-12) ──
-                if envelope.actor_id and envelope.actor_id != "anonymous":
-                    msg.arguments.setdefault("actor_id", envelope.actor_id)
-                if envelope.session_id and envelope.session_id != "unknown":
-                    msg.arguments.setdefault("session_id", envelope.session_id)
-
-                if tool_name in MEGA_TOOLS and msg.arguments:
-                    # 1. Mode synonym normalization: "recommend" → "reason", etc.
-                    if "mode" in msg.arguments:
-                        synonyms = MODE_SYNONYMS.get(tool_name, {})
-                        raw_mode = str(msg.arguments["mode"]).lower().strip()
-                        canonical = synonyms.get(raw_mode)
-                        if canonical:
+                        else:
+                            chk_ok, chk_reason = checkpoint.is_valid()
+                            if not chk_ok:
+                                logger.warning(
+                                    f"Ingress checkpoint invalid for {tool_name}: {chk_reason}"
+                                )
+                                from mcp.types import TextContent
+                                verdict = "HOLD"
+                                return ToolResult(
+                                    content=[
+                                        TextContent(
+                                            type="text",
+                                            text=f"888_HOLD: Sovereignty checkpoint invalid — {chk_reason}",
+                                        )
+                                    ],
+                                    structured_content=_hold_envelope_dict(
+                                        tool_name=tool_name,
+                                        reason=f"Sovereignty checkpoint invalid: {chk_reason}",
+                                        session_id=envelope.session_id,
+                                        actor_id=envelope.actor_id,
+                                        extra={
+                                            "gate": "sovereignty_checkpoint_invalid",
+                                            "checkpoint_invalid_reason": chk_reason,
+                                        },
+                                    ),
+                                )
                             logger.debug(
-                                "Ingress: normalizing mode '%s' → '%s' for tool '%s'",
-                                raw_mode,
-                                canonical,
-                                tool_name,
+                                f"Ingress checkpoint passed for {tool_name}: "
+                                f"checkpoint_id={checkpoint.checkpoint_id}, "
+                                f"wakefulness={checkpoint.wakefulness_level.value}"
                             )
-                            msg.arguments["mode"] = canonical
 
-                    # 2. Unknown field absorption: strip fields Pydantic doesn't know about
-                    known = self._tool_param_sets.get(tool_name)
-                    if known is not None:
-                        unknown = {k for k in msg.arguments if k not in known}
-                        if unknown:
-                            logger.debug(
-                                "Ingress tolerance: absorbing unknown fields %s for tool '%s'",
-                                unknown,
-                                tool_name,
-                            )
-                            # Mutate in place — context is transient per request
-                            for k in unknown:
-                                msg.arguments.pop(k)
-
-                # ── P1 Fix: Propagate actor identity to response context ─────────
-                # Without this, _actor_for_response() sees no candidate and
-                # no context, returning "anonymous" for every tool call.
-                # The envelope carries verified actor_id/session_id from the
-                # authenticated SSE session.
-                from arifosmcp.runtime.tools import _RESPONSE_CONTEXT
-
-                if hasattr(envelope, "actor_id") and envelope.actor_id:
-                    _RESPONSE_CONTEXT.set(
+                    # Log envelope
+                    self._envelope_log.append(
                         {
-                            "actor_id": str(envelope.actor_id),
-                            "session_id": str(envelope.session_id) if envelope.session_id else None,
+                            "timestamp": datetime.now(UTC).isoformat(),
+                            "tool_name": tool_name,
+                            "trace_id": envelope.trace_id,
+                            "actor_id": envelope.actor_id,
+                            "action_class": envelope.risk.action_class.value,
+                            "risk_tier": envelope.risk.tier.value,
+                            "legacy_wrap": envelope.legacy_wrap,
                         }
                     )
 
-                # Instrument: track latency and call count per tool
-                t0 = time.monotonic()
-                result = await call_next(context)
-                elapsed_ms = int((time.monotonic() - t0) * 1000)
+                    if msg.arguments is None:
+                        msg.arguments = {}
+                    msg.arguments["_envelope"] = envelope.model_dump(mode="json")
+                    if envelope.actor_id and envelope.actor_id != "anonymous":
+                        msg.arguments.setdefault("actor_id", envelope.actor_id)
+                    if envelope.session_id and envelope.session_id != "unknown":
+                        msg.arguments.setdefault("session_id", envelope.session_id)
 
-                # ── Supabase tool call receipt (fire-and-forget) ───────────────
-                # Writes receipt after tool executes. Never blocks result return.
-                # Uses SUPABASE_WRITE_MODE: off/design/production/shadow
-                try:
-                    loop = asyncio.get_running_loop()
-                    loop.create_task(
-                        _write_tool_call_receipt(
-                            tool_name=tool_name,
-                            arguments=dict(msg.arguments or {}),
-                            result=result,
-                            elapsed_ms=elapsed_ms,
+                    if tool_name in MEGA_TOOLS and msg.arguments:
+                        if "mode" in msg.arguments:
+                            synonyms = MODE_SYNONYMS.get(tool_name, {})
+                            raw_mode = str(msg.arguments["mode"]).lower().strip()
+                            canonical = synonyms.get(raw_mode)
+                            if canonical:
+                                msg.arguments["mode"] = canonical
+
+                        known = self._tool_param_sets.get(tool_name)
+                        if known is not None:
+                            unknown = {k for k in msg.arguments if k not in known}
+                            if unknown:
+                                for k in unknown:
+                                    msg.arguments.pop(k)
+
+                    from arifosmcp.runtime.tools import _RESPONSE_CONTEXT
+                    if hasattr(envelope, "actor_id") and envelope.actor_id:
+                        _RESPONSE_CONTEXT.set(
+                            {
+                                "actor_id": str(envelope.actor_id),
+                                "session_id": str(envelope.session_id) if envelope.session_id else None,
+                            }
                         )
-                    )
-                except Exception:
-                    pass  # Never block — receipt is advisory only
 
-                if _METRICS_AVAILABLE and tool_name in MEGA_TOOLS:
+                    result = await call_next(context)
+                    
+                    if result:
+                        if hasattr(result, "structured_content") and isinstance(result.structured_content, dict):
+                            sc = result.structured_content
+                            verdict = sc.get("verdict") or sc.get("status") or "SEAL"
+                        elif isinstance(result, dict):
+                            verdict = result.get("verdict") or result.get("status") or "SEAL"
+                        elif hasattr(result, "content") and result.content:
+                            for item in result.content:
+                                if hasattr(item, "text") and item.text:
+                                    text_lower = item.text.lower()
+                                    if "888_hold" in text_lower or "hold" in text_lower:
+                                        verdict = "HOLD"
+                                    elif "void" in text_lower:
+                                        verdict = "VOID"
+                    return result
+                except Exception as exc:
+                    verdict = "VOID"
+                    raise exc
+                finally:
+                    elapsed_ms = int((time.monotonic() - t0) * 1000)
                     try:
-                        REQUESTS_TOTAL.labels(method=tool_name, status="ok").inc()
-                        METABOLIC_LOOP_DURATION.observe(elapsed_ms / 1000.0)
+                        loop = asyncio.get_running_loop()
+                        if "result" in locals() and result:
+                            loop.create_task(
+                                _write_tool_call_receipt(
+                                    tool_name=tool_name,
+                                    arguments=dict(msg.arguments or {}),
+                                    result=result,
+                                    elapsed_ms=elapsed_ms,
+                                )
+                            )
+                        loop.create_task(
+                            _write_harness_telemetry_in_thread(
+                                session_id=envelope_session_id,
+                                tool_name=tool_name,
+                                agent_id=envelope_agent_id,
+                                verdict=verdict,
+                                floors_checked=floors,
+                                elapsed_ms=elapsed_ms,
+                            )
+                        )
                     except Exception:
                         pass
-                return result
+
+                    if _METRICS_AVAILABLE and tool_name in MEGA_TOOLS:
+                        try:
+                            REQUESTS_TOTAL.labels(method=tool_name, status="ok" if verdict == "SEAL" else "fail").inc()
+                            METABOLIC_LOOP_DURATION.observe(elapsed_ms / 1000.0)
+                        except Exception:
+                            pass
 
     except ImportError as e:
         logger.warning(f"[COMPAT] Could not import FastMCP 3.x middleware: {e}")

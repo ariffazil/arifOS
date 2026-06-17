@@ -47,6 +47,46 @@ logger = logging.getLogger("arifosmcp.organ_attestation")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Health-status classification helper
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Bug #509: The previous allow-list `("healthy", "OK", True)` rejected "ALIVE"
+# and other valid healthy status strings returned by organ `/health` endpoints
+# (e.g. WEALTH returns `"status":"ALIVE"`). This caused `arif_organ_attest_all`
+# to mark healthy organs as DEGRADED_CLAIM on every call.
+#
+# The `is_healthy()` helper normalises the allow-list across all federation
+# organs. New healthy status strings should be added here, NOT in inline
+# allow-lists scattered through the codebase.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_HEALTHY_STATUSES = frozenset(
+    {
+        "healthy",   # arifOS, A-FORGE, AAA, GEOX
+        "alive",     # WEALTH (canonical)
+        "ok",        # legacy / informal
+        "pass",      # arifOS /ready selftest
+        "ready",     # generic health endpoints
+        "serving",   # gRPC-style health
+    }
+)
+
+
+def is_healthy(status: str | bool | None) -> bool:
+    """Return True iff a health-probe `status` field indicates a live organ.
+
+    Accepts: True, "healthy", "alive", "ok", "pass", "ready", "serving" (case-insensitive).
+    Rejects: None, False, "unhealthy", "degraded", "fail", "down", "timeout", etc.
+    Unknown strings are conservative-fail (return False) — F2 TRUTH over F4 CLARITY.
+    """
+    if status is True:
+        return True
+    if not isinstance(status, str):
+        return False
+    return status.strip().lower() in _HEALTHY_STATUSES
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # Registry
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -293,7 +333,7 @@ async def attest_organ(
     reason = None
     degraded = False
 
-    if health.get("status") not in ("healthy", "OK", True):
+    if not is_healthy(health.get("status")):
         status = "DEGRADED_CLAIM"
         reason = f"Health probe returned: {health.get('status', 'unknown')}"
         degraded = True

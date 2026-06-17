@@ -90,7 +90,14 @@ mcp.arif-fazil.com {
         reverse_proxy arifosmcp:3000
     }
     handle /ready {
-        reverse_proxy arifosmcp:3000
+        # arifOS /ready selftest takes 5+ seconds (14 checks). Default
+        # upstream timeout can race — give it room.
+        reverse_proxy arifosmcp:3000 {
+            transport http {
+                dial_timeout 5s
+                response_header_timeout 60s
+            }
+        }
     }
 
     # Static surfaces (Human readable)
@@ -167,7 +174,14 @@ wealth.arif-fazil.com {
         reverse_proxy localhost:18082
     }
     handle /ready {
-        reverse_proxy localhost:18082
+        # WEALTH /ready can be slow on cold-start (DB schema load).
+        # Give it room to respond.
+        reverse_proxy localhost:18082 {
+            transport http {
+                dial_timeout 5s
+                response_header_timeout 60s
+            }
+        }
     }
     handle {
         file_server
