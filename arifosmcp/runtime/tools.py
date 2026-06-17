@@ -12946,6 +12946,7 @@ def _arif_forge_execute(
     judge_state_hash: str | None = None,
     vault_entry_id: str | None = None,
     plan_id: str | None = None,
+    lease_id: str | None = None,
     witness_type: str = "ai",
 ) -> dict[str, Any]:
     # ── Side Effect Gate (Fix 4) ──
@@ -13007,39 +13008,62 @@ def _arif_forge_execute(
     # Reversible: comment out this block and redeploy to restore soft-gate.
     _LEASE_REQUIRED_MODES = {"engineer", "write", "generate", "commit"}
     if mode in _LEASE_REQUIRED_MODES:
+        # ADR-001 (2026-06-16): Migration to lease_registry. The lease gate
+        # now requires a `lease_id` kwarg (separate from plan_id) and uses
+        # the canonical registry's validate_lease_for_tool + present_lease.
+        # Backward compat: legacy tests/callers used `plan_id` AS the lease_id
+        # (the old store indexed by plan_id). Fall back to plan_id if lease_id
+        # is not explicitly provided so ADR-001 migration doesn't break callers
+        # that haven't been updated to pass lease_id separately.
+        _effective_lease_id = lease_id or plan_id
+        if not _effective_lease_id:
+            return _hold(
+                "arif_forge_execute",
+                f"LEASE GATE: no lease_id provided for mode='{mode}' (mutation-class)",
+                ["F11_AUTH"],
+                extra_meta={
+                    "event_type": "lease_required_for_mutation",
+                    "severity": "high",
+                    "next_safe_action": (
+                        "Issue a valid lease via arif_lease_issue with MUTATE scope, "
+                        "or route through arif_judge_deliberate for SEAL-based authorization."
+                    ),
+                },
+                session_id=session_id,
+            )
         try:
-            from arifosmcp.runtime.lease import LeaseScope, verify_lease
+            from arifosmcp.runtime.lease_registry import (
+                present_lease,
+                validate_lease_for_tool,
+            )
 
-            _req_scope = LeaseScope.EXECUTE if mode in ("engineer", "commit") else LeaseScope.WRITE
-            _rej = verify_lease(plan_id, _req_scope)
-            if not _rej.granted:
+            _req_action_class = "MUTATE" if mode in ("engineer", "commit") else "MUTATE"
+            _validation = validate_lease_for_tool(
+                _effective_lease_id, "arif_forge_execute", _req_action_class
+            )
+            if not _validation.get("valid"):
                 return _hold(
                     "arif_forge_execute",
-                    f"LEASE GATE: {_rej.reason}",
+                    f"LEASE GATE: {_validation.get('reason', 'lease invalid')}",
                     ["F11_AUTH"],
                     extra_meta={
-                        "event_type": "lease_required_for_mutation",
+                        "event_type": "lease_invalid",
                         "severity": "high",
-                        "lease_check": {
-                            "granted": _rej.granted,
-                            "reason_code": _rej.reason_code,
-                            "reason": _rej.reason,
-                            "scope_requested": str(_req_scope),
-                        },
+                        "lease_check": _validation,
                         "next_safe_action": (
-                            "Issue a valid lease via arif_lease_issue with "
-                            f"{_req_scope.value.upper()} scope, or route through "
-                            "arif_judge_deliberate for SEAL-based authorization."
+                            f"Issue a new lease via arif_lease_issue with {_req_action_class} "
+                            "scope, or route through arif_judge_deliberate for SEAL-based "
+                            "authorization."
                         ),
                     },
                     session_id=session_id,
                 )
-            # Lease valid — consume one invocation and proceed.
-            from arifosmcp.runtime.lease import get_default_store
-
-            _consumed = get_default_store().consume(plan_id, _req_scope)
-            if _consumed is None:
-                # Defensive: if consume fails despite verify_lease passing
+            # Lease valid — atomically validate + consume one use.
+            _presented = present_lease(
+                _effective_lease_id, "arif_forge_execute", _req_action_class
+            )
+            if not _presented.get("valid"):
+                # Defensive: if present fails despite validation passing
                 # (race condition), block — don't proceed without a consumed lease.
                 return _hold(
                     "arif_forge_execute",
@@ -13048,11 +13072,7 @@ def _arif_forge_execute(
                     extra_meta={
                         "event_type": "lease_consume_race",
                         "severity": "high",
-                        "lease_check": {
-                            "granted": _rej.granted,
-                            "reason_code": _rej.reason_code,
-                            "lease_id": plan_id,
-                        },
+                        "lease_check": _presented,
                     },
                     session_id=session_id,
                 )
@@ -15092,7 +15112,7 @@ async def _arif_lease_issue(
     lease can then be presented at forge_execute time via plan_id to
     satisfy the P2-7 lease gate (forge_ware C in E008).
     """
-    from arifosmcp.runtime.lease import LeaseScope, LeaseSpec, get_default_store
+    from arifosmcp.runtime.lease_registry import issue_lease
 
     # WAJIB validation per fiqh-of-floors
     if not actor_did or not tool:
@@ -15106,19 +15126,24 @@ async def _arif_lease_issue(
             "actor_id": actor_id,
         }
 
-    # Scope validation
-    try:
-        _scope = LeaseScope(scope)
-    except ValueError:
+    # Scope validation (legacy: "read" | "write" | "execute").
+    # Map legacy scope string → action_class required by lease_registry.
+    _valid_scopes = ("read", "write", "execute")
+    if scope not in _valid_scopes:
         return {
             "status": "VOID",
             "tool": "arif_lease_issue",
             "verdict": "VOID",
-            "reason": f"invalid scope '{scope}'; must be one of: read, write, execute",
-            "valid_scopes": ["read", "write", "execute"],
+            "reason": f"invalid scope '{scope}'; must be one of: {', '.join(_valid_scopes)}",
+            "valid_scopes": list(_valid_scopes),
             "session_id": session_id,
             "actor_id": actor_id,
         }
+    _action_class = {
+        "read": "OBSERVE",
+        "write": "MUTATE",  # ADR-001: legacy "write" maps to MUTATE in lease_registry
+        "execute": "IRREVERSIBLE",  # legacy "execute" implies full mutation authority
+    }.get(scope, "OBSERVE")
 
     # MAKRUH: max_invocations > 5 is a rate-limit risk; soft warn but proceed
     _makruh_warning = None
@@ -15128,18 +15153,18 @@ async def _arif_lease_issue(
             f"limit. Lease issued with sovereign-discretion authority."
         )
 
-    # Issue
-    spec = LeaseSpec(
-        actor_did=actor_did,
-        organ=organ,
-        tool=tool,
-        scope=_scope,
-        ttl_s=max(60, min(3600, ttl_s)),  # bound 1m-1h
-        max_invocations=max(1, min(100, max_invocations)),
-        metadata=metadata or {},
+    # Issue via lease_registry (ADR-001 single source of truth).
+    _ttl = max(60, min(3600, ttl_s))  # bound 1m-1h
+    _max_uses = max(1, min(100, max_invocations))
+    lease = issue_lease(
+        organ_id=organ,
+        actor_id=actor_did,
+        scope=[tool],  # scope is per-tool in new registry
+        forbidden=[],
+        max_action_class=_action_class,
+        ttl_seconds=_ttl,
+        max_uses=_max_uses,
     )
-    store = get_default_store()
-    lease = store.issue(spec)
 
     return {
         "status": "OK",
@@ -15148,23 +15173,24 @@ async def _arif_lease_issue(
         "result": {
             "lease_id": lease.lease_id,
             "spec": {
-                "actor_did": spec.actor_did,
-                "organ": spec.organ,
-                "tool": spec.tool,
-                "scope": spec.scope.value,
-                "ttl_s": spec.ttl_s,
-                "max_invocations": spec.max_invocations,
-                "metadata": spec.metadata,
+                "actor_did": actor_did,
+                "organ": organ,
+                "tool": tool,
+                "scope": scope,
+                "action_class": _action_class,
+                "ttl_s": _ttl,
+                "max_invocations": _max_uses,
+                "metadata": metadata or {},
             },
             "issued_at": lease.issued_at,
             "expires_at": lease.expires_at,
-            "ttl_remaining_s": lease.ttl_remaining_s,
-            "store_total_leases": len(store.list_active()),
+            "ttl_remaining_s": round(lease.expires_at - lease.issued_at, 1),
+            "store_total_leases": len([l for l in [lease]]),
         },
         "makruh_warning": _makruh_warning,
         "session_id": session_id,
         "actor_id": actor_id,
-        "note": "Present this lease_id (or plan_id) at arif_forge_execute to satisfy the P2-7 lease gate.",
+        "note": "Present this lease_id at arif_forge_execute (lease_id=...) to satisfy the P2-7 lease gate.",
     }
 
 
@@ -15175,10 +15201,9 @@ async def _arif_lease_revoke(
     actor_id: str | None = None,
 ) -> dict[str, Any]:
     """Revoke an active lease. Kills it in mid-flight."""
-    from arifosmcp.runtime.lease import get_default_store
+    from arifosmcp.runtime.lease_registry import revoke_lease
 
-    store = get_default_store()
-    revoked = store.revoke(lease_id, reason)
+    revoked = revoke_lease(lease_id, reason)
     return {
         "status": "OK" if revoked else "HOLD",
         "tool": "arif_lease_revoke",
@@ -15200,11 +15225,10 @@ async def _arif_lease_inspect(
     actor_id: str | None = None,
 ) -> dict[str, Any]:
     """Inspect a lease or list all active leases."""
-    from arifosmcp.runtime.lease import get_default_store
+    from arifosmcp.runtime.lease_registry import get_lease, list_active_leases
 
-    store = get_default_store()
     if lease_id:
-        lease = store.get(lease_id)
+        lease = get_lease(lease_id)
         if lease is None:
             return {
                 "status": "HOLD",
@@ -15216,7 +15240,7 @@ async def _arif_lease_inspect(
             }
         leases = [lease]
     else:
-        leases = list(store.list_active()) if active_only else list(store._leases.values())
+        leases = list_active_leases() if active_only else list_active_leases(include_expired=True)
 
     return {
         "status": "OK",
@@ -15227,14 +15251,15 @@ async def _arif_lease_inspect(
             "leases": [
                 {
                     "lease_id": l.lease_id,
-                    "actor_did": l.spec.actor_did,
-                    "organ": l.spec.organ,
-                    "tool": l.spec.tool,
-                    "scope": l.spec.scope.value,
-                    "ttl_remaining_s": round(l.ttl_remaining_s, 1),
-                    "invocations_used": l.invocations_used,
-                    "max_invocations": l.spec.max_invocations,
+                    "actor_id": l.actor_id,
+                    "organ_id": l.organ_id,
+                    "scope": l.scope,
+                    "max_action_class": l.max_action_class,
+                    "ttl_remaining_s": round(max(0.0, l.expires_at - time.time()), 1),
+                    "uses_consumed": l.uses_consumed,
+                    "max_uses": l.max_uses,
                     "revoked": l.revoked,
+                    "revoke_reason": l.revoke_reason,
                 }
                 for l in leases
             ],

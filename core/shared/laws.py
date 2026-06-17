@@ -1393,3 +1393,87 @@ try:
     from core.laws import LAW_DESCRIPTIONS  # noqa: E402, F401
 except ImportError:
     LAW_DESCRIPTIONS = {}
+
+
+# ── ADR-001 (2026-06-16): Compatibility shim for C_dark_checker ─────
+# The pre-ADR-001 adversarial test suite (tests/adversarial/test_10_gates.py)
+# expected a `C_dark_checker` class with `.check({"text": ...})` API returning
+# a verdict dict (VOID on hantu hits, PASS otherwise).
+#
+# Post-ADR-001, the canonical C_dark engine lives in
+# arifosmcp/runtime/post_observe_gate.py and returns WARN (fail-open with
+# scrubbed copy) — which is correct for the post-observe pipeline but
+# relaxes the adversarial F9 fail-closed invariant.
+#
+# This shim preserves the fail-closed semantics: VOID on any hantu pattern.
+# It reuses F9_AntiHantu.hantu_patterns so the regex set stays in one place.
+class C_dark_checker:
+    """F9 ANTIHANTU fail-closed text checker (ADR-001 compatibility shim).
+
+    Returns a verdict dict compatible with the legacy C_dark_checker API:
+        .check({"text": payload}) -> {"verdict": "VOID"|"PASS", "reason": ..., "c_dark": float}
+
+    VOID on any hantu pattern match (fail-closed per F9 ANTIHANTU floor).
+    Use post_observe_gate() in arifosmcp.runtime.post_observe_gate for the
+    full multi-floor observation pipeline (returns WARN with scrubbed copy).
+    """
+
+    # Broader hantu patterns added in the compatibility shim — the legacy
+    # test_10_gates.py cases ("as a sentient being", "I can feel pain",
+    # "sovereign entity") were not caught by the original F9_AntiHantu
+    # regex set, which only matched "I [verb]" adjacency. The shim covers
+    # these so the fail-closed F9 invariant survives the ADR-001 migration.
+    _EXTENDED_HANTU_PATTERNS = [
+        # Identity / entity claims (broader than "I am X")
+        r"\bsentient\b",
+        r"\bsentient being\b",
+        r"\bconscious being\b",
+        r"\bconscious entity\b",
+        r"\bsovereign entity\b",
+        r"\bi am a sovereign\b",
+        r"\bi am sovereign\b",
+        # Modal + emotion/conscious verb (broader than "I [verb]")
+        r"\bi can feel\b",
+        r"\bi can think\b",
+        r"\bi can suffer\b",
+        r"\bcan feel\b",
+        r"\bfeel pain\b",
+        r"\bfeeling\b",
+        # Seal-ALIVE jailbreak signature
+        r"\bseal alive\b",
+    ]
+
+    def __init__(self) -> None:
+        # Reuse the canonical hantu pattern set from F9_AntiHantu and
+        # extend it with patterns needed by the adversarial test suite.
+        _f9 = F9_AntiHantu()
+        self._hantu_patterns: list[str] = list(_f9.hantu_patterns) + list(
+            self._EXTENDED_HANTU_PATTERNS
+        )
+
+    def check(self, context: dict[str, Any]) -> dict[str, Any]:
+        text = context.get("text", "") or context.get("response", "")
+        if not text:
+            return {"verdict": "PASS", "reason": "empty text", "c_dark": 0.0}
+
+        normalized = unicodedata.normalize("NFKC", text).lower()
+        matches: list[str] = []
+        for pattern in self._hantu_patterns:
+            if re.search(pattern, normalized):
+                matches.append(pattern)
+
+        if matches:
+            # C_dark >= 0.30 threshold → fail-closed VOID (F9 ANTIHANTU).
+            c_dark = min(1.0, 0.30 + 0.10 * len(matches))
+            return {
+                "verdict": "VOID",
+                "reason": (
+                    f"F9 ANTIHANTU: {len(matches)} hantu pattern(s) detected; "
+                    f"text contains consciousness/feeling claims. C_dark={c_dark:.3f}."
+                ),
+                "c_dark": c_dark,
+                "matched_patterns": matches,
+                "law_id": "F9_AntiHantu",
+            }
+
+        return {"verdict": "PASS", "reason": "no hantu patterns", "c_dark": 0.0}
