@@ -3056,8 +3056,25 @@ def _ok(
     meta: dict[str, Any] | None = None,
     delta_S: float = 0.0,
     session_id: str | None = None,
+    provider: str | None = None,
 ) -> dict[str, Any]:
-    """Wrapped success response with non-mutating meta and optional context witness."""
+    """Wrapped success response with non-mutating meta and optional context witness.
+
+    W1-B F2 wire: when `provider` is set, the result is run through
+    `apply_sense_evidence_epistemic_stamp` before being wrapped. This
+    auto-stamps un-stamped or falsely-stamped results from AI-summarizing
+    grounding providers (perplexity, brave, firecrawl, tavily, exa, ddgs)
+    with PLAUSIBLE + first citation as source. Opt-in: callers that
+    don't pass `provider` get the original behaviour unchanged.
+    """
+    # W1-B: F2 epistemic stamp at the tool boundary (opt-in via provider=).
+    if provider and isinstance(result, dict):
+        from arifosmcp.runtime.envelope import (
+            apply_sense_evidence_epistemic_stamp,
+        )
+
+        result = apply_sense_evidence_epistemic_stamp(result, provider=provider)
+
     # Defensive shallow copy (L12 stewardship — never mutate caller's dict)
     meta_payload = {**(meta or {})}
     from arifosmcp.runtime.context_witness import (
@@ -5124,6 +5141,7 @@ def _arif_sense_observe(
                             "a_rif": a_rif,
                         },
                         delta_S=delta_s,
+                        provider="perplexity",
                     )
                 mm_error = "zero_hits"
             except Exception as exc:
@@ -5168,6 +5186,7 @@ def _arif_sense_observe(
                             "evidence_receipt": evidence_receipt,
                         },
                         delta_S=0.002,
+                        provider="tavily",
                     )
                 tvly_error = tvly_result.get("error", "zero_hits")
             except Exception as exc:
@@ -5212,6 +5231,7 @@ def _arif_sense_observe(
                             "evidence_receipt": evidence_receipt,
                         },
                         delta_S=0.002,
+                        provider="firecrawl",
                     )
                 fc_error = fc_result.get("error", "zero_hits")
             except Exception as exc:
@@ -5256,6 +5276,7 @@ def _arif_sense_observe(
                             "evidence_receipt": evidence_receipt,
                         },
                         delta_S=0.002,
+                        provider="exa",
                     )
                 exa_error = exa_result.get("error", "zero_hits")
             except Exception as exc:
@@ -5341,6 +5362,7 @@ def _arif_sense_observe(
                     "a_rif": a_rif,
                 },
                 delta_S=delta_s,
+                provider="reality_handler",
             )
 
         # ── Brave cascade (F7 Humility) ──
@@ -5397,6 +5419,7 @@ def _arif_sense_observe(
                     "receipt_url": f"receipt://web/{receipt_id.split('/')[-1]}",
                 },
                 delta_S=0.004,
+                provider="brave",
             )
 
         # Both failed → SABAR

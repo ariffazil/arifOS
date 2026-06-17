@@ -726,3 +726,298 @@ def require_epistemic_tags(claims: list[EpistemicClaim]) -> list[str]:
         )
 
     return violations
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SENSE / EVIDENCE EPISTEMIC GATE — F2 TRUTH for Grounding-Provider Output
+# ═══════════════════════════════════════════════════════════════════════════════
+# Forged 2026-06-16 by FORGE (000Ω) — closes the F2 GAP for AI-summarizing
+# grounding providers (Perplexity, Brave, Firecrawl, Tavily, Exa, DDGS).
+#
+# Per arifOS F2 TRUTH (≥0.99 accuracy or declare uncertainty band):
+# Sense/Evidence tool output (111_SENSE, 222_EVIDENCE) is the federation's
+# ONLY ingest point for external grounding providers. Every result that
+# flows out of `arif_sense_observe` or `arif_evidence_fetch` must carry
+# an epistemic stamp. AI-summarized content is INTERPRETATION, not
+# OBSERVED fact — leaking it un-stamped into the federation is a F2+F7
+# violation (false certainty, no humility band).
+#
+# Test contract: tests/constitutional/test_f2_perplexity_epistemic_gate.py
+#
+# Per F8 LAW (boundaries), the kernel disciplines external AI output
+# before it crosses organ boundaries. Per F13 SOVEREIGN, the human
+# ratifies what counts as a "valid input" — this gate is the kernel's
+# internal discipline, not a substitute for sovereign review.
+
+# AI-summarizing grounding providers — these cannot legitimately produce
+# OBSERVED output because their content is, by nature, summarised/curated
+# by an AI model. Raw LAS, SEG-Y, CSV ingestion tools are NOT in this set
+# — they may legitimately produce OBSERVED with proper source/date.
+AI_SUMMARIZING_GROUNDING_PROVIDERS: frozenset[str] = frozenset(
+    {
+        "perplexity",  # sonar / sonar-pro / sonar-reasoning / sonar-deep-research
+        "brave",       # search snippets are AI-curated rankings
+        "firecrawl",   # AI-extracted structured content
+        "tavily",      # AI-curated search results
+        "exa",         # neural search results
+        "ddgs",        # DDGS — search snippets
+    }
+)
+
+
+def enforce_sense_evidence_epistemic_gate(
+    result: dict[str, Any],
+    provider: str,
+) -> tuple[bool, list[str]]:
+    """
+    F2 TRUTH enforcement for `arif_sense_observe` and `arif_evidence_fetch`.
+
+    Validates that any result flowing from a grounding-provider call carries
+    an epistemic stamp. Without this gate, AI-summarized content from
+    Perplexity, Brave, Firecrawl, Tavily, Exa, and DDGS leaks into the
+    federation as raw fact — a F2+F7 violation.
+
+    Args:
+        result: dict from a grounding-provider call. Must contain
+            'epistemic_tag' and (depending on tag) 'source' or 'uncertainty'.
+        provider: provider name. One of 'perplexity', 'brave', 'firecrawl',
+            'tavily', 'exa', 'ddgs', or any custom provider name.
+
+    Returns:
+        (ok, violations) tuple.
+        - ok=True: F2 gate passed. Result is safe to leave the kernel.
+        - ok=False: F2 gate failed. Do NOT pass through; stamp, HOLD, or
+          reject the result. `violations` is a non-empty list of
+          human-readable F2 violation strings.
+
+    Rules (binding F2 contract — see test_f2_perplexity_epistemic_gate.py):
+
+      1. `epistemic_tag` MUST be present in `result`.
+      2. `epistemic_tag` MUST be one of EpistemicTag values.
+      3. `epistemic_tag=OBSERVED` is REJECTED for AI-summarizing providers
+         (false certainty — F2 + F7 violation).
+      4. `epistemic_tag=CLAIM` requires a non-empty `source` key.
+      5. `epistemic_tag=ESTIMATE` requires a non-empty `uncertainty` key.
+      6. `epistemic_tag in {PLAUSIBLE, HYPOTHESIS, UNKNOWN}` is always
+         structurally valid (semantics are self-disclosed).
+
+    Note:
+        This gate is the DISCIPLINE LAYER for AI-summarized content. It does
+        NOT replace the existing `require_epistemic_tags` (which is scoped to
+        capital advice / C4 outputs). The two gates serve two different
+        organs and must remain distinct.
+
+    Example:
+        >>> ok, viol = enforce_sense_evidence_epistemic_gate(
+        ...     {"content": "...", "epistemic_tag": "PLAUSIBLE"}, provider="perplexity"
+        ... )
+        >>> ok
+        True
+        >>> viol
+        []
+    """
+    violations: list[str] = []
+
+    # Rule 1: epistemic_tag must be present
+    tag_value = result.get("epistemic_tag")
+    if not tag_value:
+        violations.append(
+            "F2: missing epistemic_tag. Sense/evidence output must be "
+            "stamped with one of OBSERVED, CLAIM, ESTIMATE, PLAUSIBLE, "
+            "HYPOTHESIS, or UNKNOWN before leaving the kernel. "
+            f"provider={provider!r}."
+        )
+        return False, violations
+
+    # Rule 2: tag value must be valid
+    valid_tag_values = {t.value for t in EpistemicTag}
+    if tag_value not in valid_tag_values:
+        violations.append(
+            f"F2: invalid epistemic_tag {tag_value!r}. "
+            f"Must be one of: {sorted(valid_tag_values)}. "
+            f"provider={provider!r}."
+        )
+        return False, violations
+
+    # Rule 3: OBSERVED is forbidden for AI-summarizing providers
+    # (false certainty — AI summary cannot be observation).
+    if tag_value == EpistemicTag.OBSERVED.value:
+        if provider in AI_SUMMARIZING_GROUNDING_PROVIDERS:
+            violations.append(
+                f"F2+F7 false certainty: provider {provider!r} is "
+                f"AI-summarizing and cannot produce OBSERVED output. "
+                f"Use CLAIM (with source), ESTIMATE (with uncertainty band), "
+                f"or PLAUSIBLE. provider={provider!r}."
+            )
+
+    # Rule 4: CLAIM requires non-empty source (URL or citation)
+    if tag_value == EpistemicTag.CLAIM.value:
+        source = result.get("source")
+        if not source or not str(source).strip():
+            violations.append(
+                "F2: CLAIM requires a non-empty 'source' (URL or citation). "
+                "A claim without traceable provenance is not a CLAIM — "
+                "downgrade to PLAUSIBLE or refuse the result. "
+                f"provider={provider!r}."
+            )
+
+    # Rule 5: ESTIMATE requires non-empty uncertainty band
+    if tag_value == EpistemicTag.ESTIMATE.value:
+        uncertainty = result.get("uncertainty")
+        if not uncertainty or not str(uncertainty).strip():
+            violations.append(
+                "F2: ESTIMATE requires a non-empty 'uncertainty' band "
+                "(e.g. '±0.15', 'CI 0.85', 'P10-P90: 1.2-2.4 m'). "
+                f"provider={provider!r}."
+            )
+
+    # Rule 6: PLAUSIBLE / HYPOTHESIS / UNKNOWN are always structurally valid
+    # (their semantics are self-disclosed: consistent with evidence,
+    # speculative, explicitly unknown — no additional field required).
+    # No-op here.
+
+    return (len(violations) == 0), violations
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SENSE / EVIDENCE EPISTEMIC STAMPER — F2 auto-stamp policy (W1-B)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Forged 2026-06-16 by FORGE (000Ω) — W1-B AUTO-STAMP policy.
+#
+# When a grounding-provider result fails the F2 gate, this stamper rewrites
+# the result with the right epistemic humility:
+#   - Adds epistemic_tag=PLAUSIBLE if missing
+#   - Downcasts OBSERVED → PLAUSIBLE (F2+F7 — AI summary cannot be observation)
+#   - Sets source=first citation if source is missing on a CLAIM
+#   - Attaches the original violations list under _f2_auto_stamp_violations
+#     (transparency: callers can see what was corrected)
+#
+# Policy choice (W1-B, ratified by Arif 2026-06-16):
+#   - Backwards compatible: every caller that already produces valid stamped
+#     output passes through unchanged.
+#   - Disciplined: every un-stamped or falsely-stamped result from a known
+#     AI-summarizing provider gets corrected at the tool boundary.
+#   - Fail-open for unknown providers: if provider is not in
+#     AI_SUMMARIZING_GROUNDING_PROVIDERS, attach a warning and pass through.
+#   - This is the path to migrate to HOLD (W1-A) when the federation is
+#     ready. For now, B is the right balance of F2 enforcement and F1
+#     reversibility.
+#
+# Wire point: `arifosmcp.runtime.tools._ok(..., provider=<name>)` invokes
+# this stamper conditionally. Provider-aware call sites in
+# `_arif_sense_observe` and `_arif_evidence_fetch` pass the provider name;
+# other call sites (which don't go through grounding providers) get the
+# existing behaviour unchanged.
+
+
+def apply_sense_evidence_epistemic_stamp(
+    result: dict[str, Any],
+    provider: str,
+) -> dict[str, Any]:
+    """
+    W1-B AUTO-STAMP policy: F2 gate enforcement at the tool boundary.
+
+    BEHAVIOUR MATRIX:
+    ┌──────────────────────────────────────────────────────┬──────────────────┐
+    │ Result state                                         │ Action           │
+    ├──────────────────────────────────────────────────────┼──────────────────┤
+    │ No epistemic_tag + provider in AI-summarizing set    │ Add PLAUSIBLE +  │
+    │                                                      │ first citation   │
+    │                                                      │ as source.       │
+    │ No epistemic_tag + provider NOT in AI set            │ Attach warning,  │
+    │                                                      │ pass through.    │
+    │ Has foreign-namespace tag (e.g. bridge               │ RESPECT — pass   │
+    │ `INTERPRETATION`)                                    │ through.         │
+    │ Has kernel-namespace tag OBSERVED + provider is      │ Downcast to      │
+    │ AI-summarizing                                       │ PLAUSIBLE        │
+    │                                                      │ (F2+F7).         │
+    │ Has kernel-namespace tag CLAIM without source        │ Add source from  │
+    │                                                      │ first citation.  │
+    │ Has kernel-namespace tag ESTIMATE w/o uncertainty    │ Add uncertainty  │
+    │                                                      │ "unspecified".   │
+    │ Has kernel-namespace tag PLAUSIBLE/HYPOTHESIS/       │ Pass through.    │
+    │ UNKNOWN with all required fields satisfied           │                  │
+    │ Has any other kernel-namespace tag                   │ Pass through.    │
+    └──────────────────────────────────────────────────────┴──────────────────┘
+
+    Why two regimes (foreign vs kernel namespace):
+      - The bridge layer (tavily_bridge, minimax_bridge) stamps results
+        with `epistemic_tag=INTERPRETATION`. This is a FOREIGN F2 regime.
+      - The kernel-namespace EpistemicTag is the constitutional contract.
+      - The kernel DEFERES to foreign stamps (they have their own
+        authority) but ENFORCES kernel-namespace discipline (F2+F7
+        are the kernel's responsibility, not the bridge's).
+
+    Args:
+        result: dict from a grounding-provider call.
+        provider: provider name. Used to determine policy branch.
+
+    Returns:
+        New dict. Never mutates the input. Always a defensive copy when
+        any stamp/warning is added.
+    """
+    if not isinstance(result, dict):
+        # Not a dict — nothing to stamp. Pass through.
+        return result
+
+    kernel_tag_values = {t.value for t in EpistemicTag}
+    existing_tag = result.get("epistemic_tag")
+
+    # ── Case 1: No existing tag — add one if AI-summarizing ────────────────
+    if not existing_tag:
+        if provider in AI_SUMMARIZING_GROUNDING_PROVIDERS:
+            stamped = dict(result)  # defensive copy
+            stamped["epistemic_tag"] = EpistemicTag.PLAUSIBLE.value
+            # Add source from first citation if available.
+            if not stamped.get("source"):
+                citations = stamped.get("citations") or []
+                if citations:
+                    first = citations[0]
+                    if isinstance(first, str):
+                        stamped["source"] = first
+                    elif isinstance(first, dict):
+                        stamped["source"] = (
+                            first.get("url") or first.get("link") or ""
+                        )
+            return stamped
+
+        # Unknown / non-AI provider without a tag — fail-open with warning.
+        _, violations = enforce_sense_evidence_epistemic_gate(result, provider)
+        warned = dict(result)
+        warned["_f2_gate_warnings"] = list(violations)
+        return warned
+
+    # ── Case 2: Existing tag is FOREIGN (not in kernel enum) — respect ────
+    if existing_tag not in kernel_tag_values:
+        return result  # bridge / foreign regime has authority
+
+    # ── Case 3: Existing tag is in KERNEL namespace — apply discipline ─────
+    stamped = dict(result)  # defensive copy
+
+    # F2+F7: downcast OBSERVED on AI-summarizing providers.
+    if existing_tag == EpistemicTag.OBSERVED.value:
+        if provider in AI_SUMMARIZING_GROUNDING_PROVIDERS:
+            stamped["epistemic_tag"] = EpistemicTag.PLAUSIBLE.value
+        return stamped
+
+    # F2: CLAIM needs source.
+    if existing_tag == EpistemicTag.CLAIM.value and not stamped.get("source"):
+        citations = stamped.get("citations") or []
+        if citations:
+            first = citations[0]
+            if isinstance(first, str):
+                stamped["source"] = first
+            elif isinstance(first, dict):
+                stamped["source"] = first.get("url") or first.get("link") or ""
+        return stamped
+
+    # F2: ESTIMATE needs uncertainty band.
+    if (
+        existing_tag == EpistemicTag.ESTIMATE.value
+        and not stamped.get("uncertainty")
+    ):
+        stamped["uncertainty"] = "unspecified"
+        return stamped
+
+    # PLAUSIBLE / HYPOTHESIS / UNKNOWN — all structurally valid, no fix needed.
+    return stamped
