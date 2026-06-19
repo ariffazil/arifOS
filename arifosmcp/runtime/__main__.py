@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import fcntl
 import inspect
 import json
 import logging
@@ -11,9 +10,18 @@ import os
 import select
 import signal
 import sys
+import types
 from typing import TYPE_CHECKING, Any
 
-from .fastmcp_ext.transports import run_server
+_fcntl_mod: types.ModuleType | None
+try:
+    import fcntl as _fcntl_mod
+except ImportError:
+    _fcntl_mod = None
+
+fcntl = _fcntl_mod  # alias: if fcntl is not None: ... (None on Windows)
+
+from .fastmcp_ext.transports import run_server  # noqa: E402
 
 if TYPE_CHECKING:
     from fastmcp.server import FastMCP as FastMCPT  # noqa: I001
@@ -141,7 +149,7 @@ async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[st
     if handler_name == "vault_seal":
         # vault_seal maps to arif_vault_seal (handler_name would be _arif_vault_seal_tool).
         # The legacy "vault_seal" branch is unreachable — kept for traceability only.
-        return await handler(**arguments)
+        return dict(await handler(**arguments))  # type: ignore[arg-type]
 
     result = handler(**arguments)
     if inspect.isawaitable(result):
@@ -150,9 +158,9 @@ async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[st
         from .output_formatter import format_output
 
         result.platform_context = "stdio"
-        return format_output(result, {"verbose": False, "debug": False})
+        return dict(format_output(result, {"verbose": False, "debug": False}))  # type: ignore[arg-type]
     if hasattr(result, "model_dump"):
-        envelope = result.model_dump(mode="json")
+        envelope: dict[str, Any] = result.model_dump(mode="json")
     elif isinstance(result, dict):
         envelope = result
     else:
@@ -362,10 +370,12 @@ def _run_minimal_stdio_server() -> None:
     signal.signal(signal.SIGTERM, _handle_signal)
     signal.signal(signal.SIGINT, _handle_signal)
 
-    # Set stdin non-blocking so readline() returns b'' on EOF without blocking.
+    # stdin_fd must be defined unconditionally — used by select.select on all platforms.
     stdin_fd = sys.stdin.buffer.fileno()
-    old_flags = fcntl.fcntl(stdin_fd, fcntl.F_GETFL)
-    fcntl.fcntl(stdin_fd, fcntl.F_SETFL, old_flags | os.O_NONBLOCK)
+    if fcntl is not None:
+        # Non-blocking stdin: Linux/macOS only (fcntl is None on Windows).
+        old_flags = fcntl.fcntl(stdin_fd, fcntl.F_GETFL)  # type: ignore[attr-defined]
+        fcntl.fcntl(stdin_fd, fcntl.F_SETFL, old_flags | os.O_NONBLOCK)  # type: ignore[attr-defined]
 
     _shutdown_fd_str = os.getenv("ARIFOS_STDIO_SHUTDOWN_FD")
     _shutdown_fd = int(_shutdown_fd_str) if _shutdown_fd_str else None
@@ -412,7 +422,8 @@ def _run_minimal_stdio_server() -> None:
             client_version = params.get("protocolVersion")
             supported_versions = ["2024-11-05", "2025-11-25"]
 
-            # Dynamic negotiation: use client's version if supported, otherwise fallback to "2024-11-05"
+            # Dynamic negotiation: use client's version if supported,
+            # otherwise fallback to "2024-11-05"
             if client_version in supported_versions:
                 negotiated_version = client_version
             else:
@@ -617,17 +628,17 @@ def _run_minimal_stdio_server() -> None:
 
             try:
                 envelope = asyncio.run(_invoke_stdio_tool(handler, arguments))
-                result_payload: dict[str, object] = {
+                local_payload: dict[str, Any] = {
                     "content": [{"type": "text", "text": json.dumps(envelope)}],
                 }
                 # MCP spec: isError only present when true (omitted on success)
                 if not envelope.get("ok", True):
-                    result_payload["isError"] = True
+                    local_payload["isError"] = True
                 send(
                     {
                         "jsonrpc": "2.0",
                         "id": request_id,
-                        "result": result_payload,
+                        "result": local_payload,
                     }
                 )
             except Exception as exc:

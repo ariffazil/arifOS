@@ -208,3 +208,12 @@ entropy-report.json
 
 # ── LSP cache (Serena) — local IDE state, not source ──
 .serena/
+
+# Secrets — never commit
+.env
+.env.local
+.env.*.local
+
+# Local scratch and type-check cache
+scratch/
+.mypy_cache/
