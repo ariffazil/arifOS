@@ -1,106 +1,168 @@
 [project]
 name = "arifos"
-version = "1!2026.07.11"
-description = "arifOS Constitutional AI Governance Kernel — 12 canonical MCP verbs, 13 F1–F13 floors, VAULT999 immutable ledger, 6-organ federation (arifOS, AAA, A-FORGE, GEOX, WEALTH, WELL)"
+version = "2026.06.19"
+
+# 2026.06.19 — Packaging Unification (FORGE SEAL)
+#   Package rename: arifosmcp → arifos (MCP is transport, not identity)
+#   Extras gating: heavy deps (torch/transformers/playwright/vectors) moved to optional groups
+#   Domain coverage: [geox] [wealth] [well] [aaa] [io] [search] [google] [db] [heavy] [observe]
+#   Floor alignment: canonical matrix 2026-06-19 across all organs
+# 2026.06.11 — previous release (arifosmcp on PyPI)
+description = "arifOS v2026.06.19 — Constitutional AI Governance Kernel. 13 canonical tools (arif_verb_noun), dynamic F1-F13 enforcement via ConstitutionKernel + FloorEvaluator, VAULT999 immutable ledger, streamable-http MCP transport. Kernel substrate for AGI/ASI federation."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "AGPL-3.0-only"
 license-files = ["LICENSE"]
 keywords = [
+    # Core Concepts
     "ai-governance",
+    "ai-safety",
     "constitutional-ai",
-    "mcp-server",
+    "ai-filter",
+    "ai-guardrails",
+    # TEACH Framework
+    "truth-detection",
+    "empathy",
+    "reversibility",
+    "clarity",
+    "humility",
+    # v52.5 Features
+    "atlas-333",
+    "smart-routing",
+    "888-hold",
+    "crisis-detection",
+    # Architecture
     "trinity-architecture",
     "agi-asi-apex",
+    "tri-witness",
+    # MCP Integration
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    # Platforms
+    "chatgpt",
+    "claude",
+    "claude-desktop",
+    "cursor-ide",
+    "gemini",
+    "llm",
+    # Technical
+    "hallucination-prevention",
+    "immutable-ledger",
+    "merkle-audit",
+    "thermodynamic-governance",
 ]
 authors = [{ name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" }]
+maintainers = [
+    { name = "Muhammad Arif bin Fazil", email = "arifbfazil@gmail.com" },
+]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Information Technology",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Monitoring",
     "Topic :: Security",
     "Typing :: Typed",
 ]
 
+# === LIGHT TIER — Kernel only (~200MB, no torch/transformers/playwright/vectors) ===
 dependencies = [
-    "fastmcp[tasks]==3.4.4",
-    "fastapi>=0.136.1",
-    "uvicorn[standard]>=0.47.0",
-    "sse-starlette>=3.4.4",
-    "starlette>=1.3.1",
+    "numpy>=2.4.6",
     "pydantic>=2.13.4",
-    "pydantic-settings>=2.14.2",
-    "httpx>=0.25.0",
-    "asyncpg>=0.31.0",
-    "psycopg2-binary>=2.9.12",
-    "sqlalchemy>=2.0.51",
-    "alembic>=1.18.4",
-    "qdrant-client>=1.18.0",
-    "httpx-sse>=0.4.3",
-    "anyio>=4.14.1",
-    "python-dotenv>=1.2.2",
+    "pydantic-settings>=2.7.0",
+    "anyio>=4.13.0",
+    "starlette>=0.40.0",
+    "itsdangerous>=2.2.0",  # Required for SessionMiddleware (WebMCP F11)
+    "fastmcp[tasks]==3.4.2",
+    "prefab-ui==0.13.1",
+    "openapi-pydantic>=0.5.1",
+    "fastapi>=0.136.1",
+    "uvicorn[standard]>=0.49.0",
+    "sse-starlette>=1.8.2",
+    "mcp>=1.0.0",
+    "httpx>=0.28.1",
     "prometheus-client>=0.25.0",
-    "structlog>=24.4.0",
     "rich>=15.0.0",
-    "psutil>=7.2.2",
-    "numpy==2.5.1",
-    "scipy==1.18.0",
-    "scikit-learn==1.9.0",
-    "torch==2.13.0",
-    "transformers==5.13.1",
-    "sentence-transformers==5.6.0",
-    "google-api-python-client>=2.160.0",
-    "google-auth-httplib2>=0.4.0",
-    "google-auth-oauthlib>=1.4.0",
-    "tavily-python>=0.5.0",
-    "exa-py>=2.15.0",
-    "firecrawl-py>=1.3.0",
-    "google-genai>=0.1.0",
-    "duckduckgo-search>=8.1.1",
-    "trafilatura>=1.12.0",
-    "readability-lxml>=0.8.4.1",
-    "markdownify>=0.13.1",
-    "html2text>=2024.2.26",
-    "tldextract>=5.3.1",
-    "bleach>=6.4.0",
-    "defusedxml>=0.7.1",
-    "playwright>=1.60.0",
-    "cryptography>=49.0.0",
-    "pynacl>=1.6.2",
-    "blake3>=1.0.9",
+    "asyncpg>=0.31.0",  # VAULT999 PostgreSQL backend
+    "redis>=5.0.0",  # Session persistence + VAULT999 storage
+    "cryptography>=49.0.0",  # Fernet encryption for vault at-rest
+    "psutil>=7.2.2",  # System health and thermo instrumentation
+    "python-dotenv>=1.2.2",
+    "pyyaml>=6.0.0",  # Rule/config parsing for floors and wrappers
+    "requests>=2.31.0",  # HTTP client used by CLI and fetch wrappers
+    "py-key-value-aio[redis]>=0.4.0",  # Redis storage backend
+    "psycopg2-binary>=2.9.12",  # Postgres adapter (binary)
+    "aiofiles>=23.2.1",  # Async file operations for Vault999 logging
+    "structlog>=24.4.0",  # Structured logging
+]
+
+[project.optional-dependencies]
+# === DOMAIN EXTRAS — organ-specific capability gates ===
+ml = [
+    "sentence-transformers>=5.5.1",  # H1.2: SBERT-based ASI floors (F5, F6, F9)
+    "scikit-learn>=1.9.0",  # H1.2: Cosine similarity for SBERT embeddings
+]
+vectors = [
+    "chromadb>=0.5.0",  # Vector memory backend for ACLIP semantic recall (legacy console path)
+    "qdrant-client>=1.18.0",  # Primary vector store — wired to qdrant container
+    "lancedb>=0.5.0",  # L3: High-speed local semantic vector storage
+]
+browser = [
+    "playwright>=1.49.0",  # Browser-based fetch/search fallback
+    "beautifulsoup4>=4.12.0",  # HTML parsing for fetch/reality tools
+    "duckduckgo-search>=6.3.0",  # Search fallback for reality grounding
+]
+heavy = [
+    "torch>=2.12.0",
+    "transformers>=5.12.0",
+]
+observe = [
+    "opentelemetry-api>=1.42.1",
+    "opentelemetry-sdk>=1.42.1",
+    "opentelemetry-exporter-otlp>=1.42.1",
+    "opentelemetry-instrumentation-fastapi>=0.45b0",
+    "opentelemetry-instrumentation-starlette>=0.45b0",
+    "opentelemetry-instrumentation-httpx>=0.45b0",
+]
+io = [
     "pymupdf>=1.25.0",
     "pdfplumber>=0.11.0",
     "python-docx>=1.1.2",
     "openpyxl>=3.1.5",
     "pillow>=11.0.0",
-    "opentelemetry-api>=1.42.1,<1.44.0",
-    "opentelemetry-sdk>=1.42.1,<1.44.0",
-    "pydantic-ai>=1.94.0",
-    "langgraph>=1.2.6",
-    "duckdb>=1.5.4",
-    "polars>=1.41.2",
-    "pandera>=0.32.0",
+    "blake3>=1.0.0",
+    "pynacl>=1.6.2",
 ]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=9.1.1",
-    "pytest-asyncio>=1.3.0",
-    "pytest-cov>=4.0.0",
-    "hypothesis>=6.155.7",
-    "ruff>=0.15.18",
-    "mypy>=2.1.0",
+search = [
+    "tavily-python>=0.5.0",
+    "exa-py>=2.14.0",
+    "firecrawl-py>=1.3.0",
+    "trafilatura>=1.12.0",
+    "readability-lxml>=0.8.1",
+    "markdownify>=0.13.1",
+    "html2text>=2024.2.26",
+    "bleach>=6.4.0",
+    "defusedxml>=0.7.1",
+    "tldextract>=5.3.1",
 ]
-openai = [
-    # OpenAI Agents SDK — required for arifos.adapters.openai
-    # Pin major version; OpenAI ships breaking changes across majors.
-    "openai>=1.60.0",
+google = [
+    "google-api-python-client>=2.160.0",
+    "google-auth-httplib2>=0.2.0",
+    "google-auth-oauthlib>=1.4.0",
+    "google-genai>=0.1.0",
 ]
-anthropic = [
-    # Anthropic Agent SDK — for arifos.adapters.anthropic (future)
-    "anthropic>=0.40.0",
+db = [
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14.0",
 ]
 geox = [
     "lasio>=0.32",
@@ -108,73 +170,269 @@ geox = [
     "striplog>=0.9.2",
     "segyio>=1.9.14",
     "statsmodels>=0.14.6",
-    "setuptools>=82.0.1",
+    "scikit-learn>=1.9.0",
+    "scipy>=1.17.1",
+    "matplotlib>=3.11.0",
+    "pyproj>=3.7.2",
+    "setuptools<70",  # welly requires pkg_resources from older setuptools (setuptools 70+ removed it)
 ]
 wealth = [
-    "supabase>=2.31.0",
+    "supabase>=2.10.0",
     "numpy-financial>=1.0.0",
-    "psycopg[binary]>=3.3.4",
+    "psycopg[binary]>=3.1.0",
+    "yfinance>=0.2.0",
+    "duckdb>=0.10.0",
+    "polars>=1.0.0",
+    "pyarrow>=17.0.0",
+    "networkx>=3.3",
+    "pyportfolioopt>=1.5.5",
+    "pandera>=0.19.0",
+    "quantlib>=1.42.1",
+    "riskfolio-lib>=7.3.0",
+    "pymc>=6.0.1",
+    "arviz>=1.2.0",
+    "mesa>=3.5.1",
+    "pydantic-ai>=0.0.14",
+    "langgraph>=0.2.0",
 ]
-federation = [
-    "lasio>=0.32",
-    "welly>=0.5.2",
-    "striplog>=0.9.2",
-    "segyio>=1.9.14",
-    "statsmodels>=0.14.6",
-    "setuptools>=82.0.1",
-    "supabase>=2.31.0",
-    "numpy-financial>=1.0.0",
-    "psycopg[binary]>=3.3.4",
+well = []  # WELL is kernel-only; its substrate deps are covered by the mandatory tier
+aaa = [
+    "nats-py>=2.29.3",
+]
+openai = [
+    "openai>=1.60.0",
+]
+anthropic = [
+    "anthropic>=0.40.0",
+]
+dev = [
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.3.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.15.13",
+    "mypy>=2.1.0",
+    "httpx>=0.28.1",
+    "hypothesis>=6.120.0",
+    "python-lsp-server>=1.11.0",
+]
+full = [
+    "arifos[ml,vectors,browser,heavy,observe,io,search,google,db,geox,wealth,aaa,openai,anthropic]",
+]
+# Legacy compat extras (kept for backward compatibility with existing installs)
+yaml = ["pyyaml>=6.0.0"]
+api = [
+    "fastapi>=0.136.1",
+    "uvicorn[standard]>=0.49.0",
+    "python-multipart>=0.0.6",
+]
+postgres = ["asyncpg>=0.31.0"]
+litellm = ["litellm>=1.0.0"]
+governed = [
+    "litellm>=1.0.0",
+    "httpx>=0.28.1",
+    "pygments>=2.16.0",
+    "openai>=1.60.0",
+]
+observability = [
+    "pyjwt>=2.8.0",
+    "opentelemetry-api>=1.42.1",
+    "opentelemetry-sdk>=1.42.1",
+    "opentelemetry-exporter-otlp>=1.42.1",
+    "opentelemetry-instrumentation-fastapi>=0.45b0",
+    "opentelemetry-instrumentation-starlette>=0.45b0",
+    "opentelemetry-instrumentation-httpx>=0.45b0",
+    "prometheus-client>=0.25.0",
+]
+viz = [
+    "matplotlib>=3.8.0",
+    "pandas>=2.1.0",
+]
+all = [
+    "arifos[ml,vectors,browser,heavy,observe,io,search,google,db,geox,wealth,aaa,openai,anthropic]",
 ]
 
 [project.urls]
-Homepage = "https://arifos.arif-fazil.com"
-Documentation = "https://arifos.arif-fazil.com"
-Repository = "https://github.com/ariffazil/arifos"
-Issues = "https://github.com/ariffazil/arifos/issues"
+Homepage      = "https://arifos.arif-fazil.com"
+Documentation = "https://github.com/ariffazil/arifOS"
+Repository    = "https://github.com/ariffazil/arifOS"
+Issues        = "https://github.com/ariffazil/arifOS/issues"
+Trinity       = "https://github.com/ariffazil/arifOS/blob/main/KERNEL/TRINITY_ARCHITECTURE.md"
+PyPI          = "https://pypi.org/project/arifos/"
 
 [project.scripts]
-arifos = "arifosmcp.server:main"
-arifos-mcp = "arifosmcp.server:main"
+arifos     = "arifosmcp.runtime.__main__:main"
+arifos-mcp = "arifosmcp.runtime.__main__:main"   # transition alias — update to arifos.* after Phase 3
+aaa-mcp    = "arifosmcp.runtime.__main__:main"   # legacy alias
+aclip-cai  = "arifosmcp.intelligence.cli:main"
 
 [tool.setuptools]
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["arifosmcp*", "core*"]
-exclude = ["tests*"]
+include = [
+    "scripts*",
+    "arifos*",      # Phase 3: renamed from arifosmcp
+    "arifosmcp*",   # Phase 2: still present until Phase 3 git mv
+    "mcp_server*",
+    "core*",
+]
+exclude = [
+    "*.tests",
+    "*.tests.*",
+    "tests.*",
+    "tests",
+    "core.archive*",
+]
+
+[tool.setuptools.package-data]
+"*" = ["spec/*.yaml", "spec/*.json"]
+"arifosmcp" = ["sites/apex-dashboard/*.html"]
+
+[tool.setuptools.data-files]
+"spec" = ["spec/**/*.json", "spec/**/*.yaml", "spec/**/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
 asyncio_mode = "auto"
 markers = [
-    "e3e: end-to-end tests (deselect with '-m not e3e')",
-    "slow: slow tests (deselect with '-m not slow')",
-    "integration: integration tests requiring live services",
+    "asyncio",
+    "constitutional",
+    "slow",
+    "integration",
 ]
+cache_dir = "C:/Users/User/AppData/Local/Temp/pytest_cache"
+filterwarnings = [
+    "ignore:Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.:UserWarning:langsmith.schemas",
+]
+addopts = "-W \"ignore:Core Pydantic V1 functionality isn.t compatible with Python 3.14 or greater.:UserWarning:langsmith.schemas\""
+
+[tool.black]
+line-length = 100
+target-version = ['py310', 'py311', 'py312']
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+exclude = ["archive/**", "archive_local/**", "tests/**"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "N", "B"]
+ignore = []
 
 [tool.ruff.lint.per-file-ignores]
-"arifosmcp/runtime/a2a/server.py" = ["N812"]
-"arifosmcp/runtime/rest_routes.py" = ["E501", "F841", "N806", "I001"]
-"arifosmcp/schemas/forge.py" = ["N815"]
-"arifosmcp/runtime/semantic_gate.py" = ["E501"]
-"arifosmcp/runtime/tools.py" = ["N802", "B007"]
-"arifosmcp/schemas/semantic_gate.py" = ["E501"]
-"arifosmcp/runtime/tools_internal.py" = ["UP038"]
+"tests/test_v35_features.py" = ["F401"]
+"tests/test_waw_organs.py" = ["F401", "F811"]
+"runtime/tools.py" = ["E402", "E501", "F821", "F841", "N803", "N806"]
+"runtime/mind_reason.py" = ["E501"]
+"runtime/memory_store.py" = ["E402", "I001"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
+warn_unused_ignores = true
+disallow_untyped_defs = false
+no_implicit_optional = true
 strict_optional = true
+strict_equality = true
+show_error_codes = true
+show_column_numbers = true
+show_error_context = true
+pretty = true
+color_output = true
+error_summary = true
+namespace_packages = true
+
+[[tool.mypy.overrides]]
+module = [
+    "core.governance_kernel",
+    "core.judgment",
+    "core.pipeline",
+    "core.organs.*",
+    "core.shared.*",
+]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+warn_return_any = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[[tool.mypy.overrides]]
+module = [
+    "numpy.*",
+    "pydantic.*",
+    "boto3.*",
+    "guardrails.*",
+    "langkit.*",
+    "llama_guard.*",
+    "ragas.*",
+    "dspy.*",
+    "guidance.*",
+    "outlines.*",
+    "llama_index.*",
+    "fastapi.*",
+    "uvicorn.*",
+    "starlette.*",
+    "litellm.*",
+    "fastmcp.*",
+    "openai.*",
+    "anthropic.*",
+    "langchain.*",
+    "chromadb.*",
+    "qdrant_client.*",
+    "sentence_transformers.*",
+    "transformers.*",
+    "mem0.*",
+    "redis.*",
+    "sqlalchemy.*",
+    "asyncpg.*",
+    "pyautogen.*",
+    "pydocket.*",
+    "llamaindex.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["arifosmcp.transport.core.*"]
+warn_unused_ignores = false
+
+[tool.coverage.run]
+omit = [
+    "core/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "\\.\\.\\.",
+]
 
 [tool.bandit]
-skips = ["B110", "B311", "B310", "B112", "B104"]
+skips = ["B110", "B311"]
+
+[tool.uv]
+constraint-dependencies = ["grpcio!=1.78.1"]
+
+[tool.fastmcp]
+config = "fastmcp.json"
 
 [build-system]
 requires = ["setuptools>=82.0.1"]
@@ -182,6 +440,6 @@ build-backend = "setuptools.build_meta"
 
 [dependency-groups]
 dev = [
-    "pytest>=9.1.1",
+    "pytest>=9.0.3",
     "pytest-asyncio>=1.3.0",
 ]
