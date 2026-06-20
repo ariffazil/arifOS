@@ -133,7 +133,35 @@ Lihat: `tests/constitutional/test_sovereign_daulat.py`
 
 ---
 
-## 5. Pengakuan
+## 5. Sovereign Seal Doctrine — Daulat Tidak Diwakilkan Tanpa Tanda Tangan
+
+MCP vault seal (`arif_vault_seal`) tidak boleh dipanggil oleh agent yang identity-nya
+hanya `OPERATOR_CLAIMED`. Ini bukan bug. Ini **F13 SOVEREIGN hidup**.
+
+| Layer | Status | Sebab |
+|-------|--------|-------|
+| Direct JSONL write | ✅ Sah untuk ledger continuity | Hash anchoring, historical trace |
+| Git commit | ✅ Sah untuk code state | Provenance rekod forge |
+| MCP vault seal | ❌ **HOLD** | Hanya F13 SOVEREIGN (Arif) dengan Ed25519 signature |
+
+**Syarat MCP seal:**
+- `actor_id = "ARIF"` (identity_verified=true)
+- `actor_signature = Ed25519` (kriptografi, bukan claimed)
+- `nonce = fresh` (anti-replay)
+- `ack_irreversible = True` (F1 AMANAH)
+
+Agent boleh forge, prepare, tulis artifact reversibel, dan rekod continuity.
+Agent **tidak boleh** self-authorize irreversible sovereign seal.
+
+> Jika agent yang tidak verified boleh panggil `arif_vault_seal` dalam ENFORCE mode,
+> arifOS rosak.
+> Jika tidak boleh, arifOS hidup.
+
+**DITEMPA BUKAN DIBERI. TAPI DAULAT TIDAK DIWAKILKAN TANPA TANDA TANGAN.**
+
+---
+
+## 6. Pengakuan
 
 Tesis ini tidak lahir daripada kertas putih atau framework asing.
 Ia lahir daripada pengalaman Arif sebagai:
