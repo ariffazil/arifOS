@@ -54,9 +54,9 @@ def streamable_http_adapter(request: dict[str, Any]) -> AirlockResult:
     # Enforce lifecycle gate: no normal operations before valid initialize/initialized exchange
     mcp_session_id = request.get("_session_id") or request.get("mcp_session_id") or ""
     
-    # If the method is not lifecycle, verify we have a session ID
+    # If the method is not lifecycle/discovery, verify we have a session ID
     if (
-        method not in ("initialize", "notifications/initialized", "ping")
+        method not in ("initialize", "notifications/initialized", "ping", "tools/list", "resources/list", "prompts/list")
         and tool_name not in CANARY_TOOLS
         and not mcp_session_id
     ):

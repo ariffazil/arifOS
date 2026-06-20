@@ -14629,19 +14629,10 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_forge_execute": _arif_forge_execute_tool,
 }
 
-if len(_CANONICAL_HANDLERS) != 13:
-    # RULE 14 allows canonical expansion up to _MAX_CANONICAL
-    if len(_CANONICAL_HANDLERS) > _MAX_CANONICAL:
-        raise RuntimeError(
-            f"Expected <= {_MAX_CANONICAL} canonical handlers (13 legacy + 6 rule-14), found {len(_CANONICAL_HANDLERS)}"
-        )
-
-# RULE 14: canonical handlers are stored in _CANONICAL_HANDLERS (legacy 13) +
-# _RUNTIME_DIAGNOSTIC_HANDLERS (new rule-14). The union must match CANONICAL_TOOLS.
-_all_canonical = set(_CANONICAL_HANDLERS) | set(_RUNTIME_DIAGNOSTIC_HANDLERS)
-if not set(CANONICAL_TOOLS).issubset(_all_canonical):
-    missing = set(CANONICAL_TOOLS) - _all_canonical
-    raise RuntimeError(f"Canonical handler registry missing entries: {missing}")
+import re as _re
+_LEGACY_CANONICAL = 13
+_RULE14_CANONICAL_ALLOWANCE = 6  # arif_route, arif_triage, arif_kernel_status, arif_bridge, arif_kernel_attest, arif_kernel_health
+_MAX_CANONICAL = _LEGACY_CANONICAL + _RULE14_CANONICAL_ALLOWANCE
 
 _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
     "arif_ping": _runtime_ping,
@@ -14659,15 +14650,6 @@ try:
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_model_compare"] = arif_model_compare
 except ImportError:
     pass
-
-# RULE 14 (2026-06-20): Canonical kernel tool surface may grow via new named tools
-# that absorb mode-bloat from existing tools. Old tools become soft-deprecated.
-# Update constraint: total canonical tools = 13 (legacy) + N (new rule-14 tools).
-# As of 2026-06-20: 13 legacy + 6 new rule-14 = 19 canonical kernel tools.
-import re as _re
-_LEGACY_CANONICAL = 13
-_RULE14_CANONICAL_ALLOWANCE = 6  # arif_route, arif_triage, arif_kernel_status, arif_bridge, arif_kernel_attest, arif_kernel_health
-_MAX_CANONICAL = _LEGACY_CANONICAL + _RULE14_CANONICAL_ALLOWANCE
 
 # Hermes Agent tools — woven into diagnostic handlers
 try:
@@ -14753,6 +14735,21 @@ try:
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_gate_judge"] = _arif_gate_judge_handler
 except ImportError as _e:
     pass
+
+# Validation checks on canonical handlers after all registrations are completed
+if len(_CANONICAL_HANDLERS) != 13:
+    # RULE 14 allows canonical expansion up to _MAX_CANONICAL
+    if len(_CANONICAL_HANDLERS) > _MAX_CANONICAL:
+        raise RuntimeError(
+            f"Expected <= {_MAX_CANONICAL} canonical handlers (13 legacy + 6 rule-14), found {len(_CANONICAL_HANDLERS)}"
+        )
+
+# RULE 14: canonical handlers are stored in _CANONICAL_HANDLERS (legacy 13) +
+# _RUNTIME_DIAGNOSTIC_HANDLERS (new rule-14). The union must match CANONICAL_TOOLS.
+_all_canonical = set(_CANONICAL_HANDLERS) | set(_RUNTIME_DIAGNOSTIC_HANDLERS)
+if not set(CANONICAL_TOOLS).issubset(_all_canonical):
+    missing = set(CANONICAL_TOOLS) - _all_canonical
+    raise RuntimeError(f"Canonical handler registry missing entries: {missing}")
 
 import functools
 

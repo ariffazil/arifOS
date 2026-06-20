@@ -87,6 +87,12 @@ class BlastRadius(StrEnum):
     CIVILIZATIONAL = "CIVILIZATIONAL"
     UNKNOWN = "UNKNOWN"
 
+    # Backward-compatible aliases mapped to Hermes 8-class standard
+    LOW = "LOCAL"
+    MEDIUM = "ACCOUNT"
+    HIGH = "PUBLIC"
+    CRITICAL = "INFRASTRUCTURE"
+
 
 class ToolCapability(BaseModel):
     """A single capability of a tool."""
@@ -137,7 +143,7 @@ class ToolManifest(BaseModel):
 
     # Risk classification
     blast_radius: BlastRadius = Field(
-        default=BlastRadius.LOW, description="How widely effects propagate"
+        default=BlastRadius.LOCAL, description="How widely effects propagate"
     )
     risk_tier: str = Field(default="T1", description="T0-T4 risk classification")
 

@@ -178,6 +178,12 @@ class BlastRadius(StrEnum):
     CIVILIZATIONAL = "CIVILIZATIONAL"
     UNKNOWN = "UNKNOWN"
 
+    # Backward-compatible aliases mapped to Hermes 8-class standard
+    LOW = "LOCAL"
+    MEDIUM = "ACCOUNT"
+    HIGH = "PUBLIC"
+    CRITICAL = "INFRASTRUCTURE"
+
 
 class ReversibilityLevel(StrEnum):
     """How easily this action can be undone."""

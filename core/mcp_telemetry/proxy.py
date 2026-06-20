@@ -438,7 +438,7 @@ async def main(args):
     _mapper = SessionMapper(args.gateway_log)
     _mapper.start()
 
-    server = await asyncio.start_server(handle_client, "0.0.0.0", args.port)
+    server = await asyncio.start_server(handle_client, "127.0.0.1", args.port)
     addr = server.sockets[0].getsockname()
     log.info(f"MCP Telemetry Proxy v3 ready on {addr}")
     log.info(f"  POST /mcp/arifos  → arifOS MCP")
