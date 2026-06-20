@@ -18,6 +18,7 @@
 | **WEALTH** (Capital) | `ariffazil/wealth` | 18082 | ✅ OPERATIONAL | 20 public + 34 hidden aliases | AGPL-3.0 |
 | **WELL** (Vitality) | `ariffazil/well` | 18083 | ✅ OPERATIONAL | 17 somatic | REFLECT_ONLY |
 | **A-FORGE** (Forge) | `ariffazil/A-FORGE` | 7071 | ✅ OPERATIONAL | — | TypeScript execution shell; hosts MIND:51001 + MEMORY:51002 |
+| **A-FORGE MCP** | `ariffazil/A-FORGE` | 7072 | ✅ OPERATIONAL | 77 tools | Dedicated MCP gateway (`a-forge-mcp.service`); single streamable-http session, stdio preferred for agents |
 | **APEX** (888 Judge) | `ariffazil/apex` | 3002 | ⚠️ LEGACY | — | Legacy health probe — deliberation moved to AAA a2a-server |
 | **OpenClaw** (Gateway) | — | 18789 | ✅ OPERATIONAL | — | A2A mesh gateway |
 
