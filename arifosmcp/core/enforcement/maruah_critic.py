@@ -45,9 +45,9 @@ Usage pattern (future, not wired):
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Optional
-
-
+import re as _re
 # --- Policy line (the only "code" that matters) -------------------------
 # F6 EMPATHY enforcement extension. v0.1 wording:
 #   - kritik_sistem: ALLOWED (kasar or halus, your call)
@@ -70,7 +70,7 @@ MARUAH_POLICY_LINE: str = (
 
 
 # --- Task-metadata trigger --------------------------------------------
-def is_maruah_sensitive(task_metadata: Optional[dict]) -> bool:
+def is_maruah_sensitive(task_metadata: dict | None) -> bool:
     """Return True if task metadata flags community-maruah sensitive domain."""
     if not task_metadata:
         return False
@@ -105,7 +105,6 @@ class MaruahVerdict:
 #
 # Format: (literal_phrase, regex_pattern). Use the regex form for variants
 # like "<Name> bodoh" where <Name> could be any proper noun.
-import re as _re
 
 _INDIVIDU_HINA_LITERAL: tuple[str, ...] = (
     "si bodoh",
@@ -144,7 +143,6 @@ _INDIVIDU_HINA_NAME_EXCLUDE: frozenset[str] = frozenset(
         "Design",
         "Process",
         "Method",
-        "Approach",
         "Output",
         "Result",
     }
@@ -171,7 +169,7 @@ _DEHUMANIZATION_MARKERS: tuple[str, ...] = (
 
 def maruah_critic_check(
     draft_text: str,
-    audience_profile: Optional[dict] = None,
+    audience_profile: dict | None = None,
 ) -> MaruahVerdict:
     """Return MaruahVerdict for a draft response.
 

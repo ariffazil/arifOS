@@ -2,13 +2,14 @@
 arifosmcp/runtime/llm_client.py — Shared LLM Cognition Client
 
 Tier 1: MiniMax M3 (https://api.minimax.io/v1) — frontier agentic, rate-limited 2026-06-13
-Tier 2: ILMU hosted (ilmu-nemo-nano, https://api.ilmu.ai/v1) — primary active provider
-Tier 3: SEA-LION v4 (https://api.sea-lion.ai/v1) — GPU API, intermittent
-Tier 4: raises LLMUnavailableError — caller applies deterministic fallback
+Tier 1.5: Azure OpenAI (gpt-4.1-mini) — reliable cheap fallback
+Tier 2: SEA-LION v4 (https://api.sea-lion.ai/v1) — GPU API, intermittent
+Tier 3: raises LLMUnavailableError — caller applies deterministic fallback
 
-Cascade reordered 2026-06-13: ILMU promoted to Tier 2 because MiniMax is
-rate-limited (429) and SEA-LION is intermittent. ILMU is the first reliable
-provider — confirmed working with valid JSON for complex schemas.
+ILMU (ilmu-nemo-nano) — BLOCKED per FFF 2026-06-15.
+  F13 inversion, register-dependent hallucination, L02A parse failure,
+  institutional capture. Removed from cascade. Retained in config for
+  audit trail only. See ariffazil/BBB, CCC, DDD, FFF for full receipts.
 
 Ollama (localhost:11434) is reserved for EMBEDDING only (bge-m3).
 It is NOT used for text generation — removed 2026-06-16 (Tier 4 was a ghost
@@ -64,15 +65,18 @@ AZURE_OPENAI_MODEL = os.getenv("AZURE_OPENAI_MODEL", "gpt-4.1-mini")
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_URL", "http://localhost:11434")
 
 # Tier 2.5 — ILMU hosted fallback (2026-06-03, replaces ollama as Tier 2)
-# ILMU is OpenAI-compatible. Faster than ollama on CPU. Wired per 888_HOLD.
-# Env: ILMU_API_KEY, ILMU_BASE_URL, ILMU_MODEL. If unset → falls through to ollama.
+# BLOCKED per FFF 2026-06-15. Removed from cascade.
+# F13 inversion, register-dependent hallucination, L02A parse failure.
+# Retained in config for audit trail only.
+# Env: ILMU_API_KEY, ILMU_BASE_URL, ILMU_MODEL. If unset → falls through.
 ILMU_BASE_URL = os.getenv("ILMU_BASE_URL", "https://api.ilmu.ai/v1")
 ILMU_MODEL = os.getenv("ILMU_MODEL", "ilmu-nemo-nano")
 ILMU_API_KEY = os.getenv("ILMU_API_KEY", "")
-ILMU_ENABLED = bool(ILMU_API_KEY)  # only active when key is configured
+ILMU_ENABLED = False  # BLOCKED per FFF 2026-06-15 — do not re-enable without F13 directive
 
-# Tier 2 — ILMU Console (hosted hosted fallback, replaces ollama for text generation 2026-06-03)
-# OpenAI-compatible chat/completions endpoint. Used by arifOS when MiniMax M3 is unreachable.
+# Tier 2 — ILMU Console (hosted fallback)
+# BLOCKED per FFF 2026-06-15. Removed from cascade.
+# Retained in config for audit trail only.
 ILMU_API_KEY = os.getenv("ILMU_API_KEY")
 ILMU_BASE_URL = os.getenv("ILMU_BASE_URL", "https://api.ilmu.ai/v1")
 ILMU_MODEL = os.getenv("ILMU_MODEL", "ilmu-nemo-nano")
@@ -911,30 +915,30 @@ async def call_llm(
     except LLMUnavailableError:
         pass
 
-    # Tier 2 — ILMU hosted (ilmu-nemo-nano, OpenAI-compatible)
-    # Promoted to Tier 2 on 2026-06-13. MiniMax M3 is rate-limited (429),
-    # SEA-LION is intermittent, and Ollama is CPU-slow. ILMU is the first
-    # reliable provider in the cascade — confirmed working with valid JSON
-    # for complex schemas including CRITIQUE_SCHEMA.
-    try:
-        t0 = time.monotonic()
-        raw_output, parsed = await _call_ilmu(
-            system, user, response_schema, temperature, max_tokens
-        )
-        return _make_envelope(
-            raw_output,
-            parsed,
-            "ilmu",
-            ILMU_MODEL,
-            tool_origin,
-            mode,
-            combined_prompt,
-            (time.monotonic() - t0) * 1000,
-            response_schema,
-            trace_recursion_depth,
-        )
-    except LLMUnavailableError:
-        pass
+    # Tier 2 — ILMU BLOCKED per FFF 2026-06-15.
+    # F13 inversion, register-dependent hallucination, L02A parse failure.
+    # Removed from cascade. See ariffazil/BBB, CCC, DDD, FFF for full receipts.
+    # To re-enable: set ILMU_ENABLED = True AND obtain F13 SOVEREIGN directive.
+    if ILMU_ENABLED:
+        try:
+            t0 = time.monotonic()
+            raw_output, parsed = await _call_ilmu(
+                system, user, response_schema, temperature, max_tokens
+            )
+            return _make_envelope(
+                raw_output,
+                parsed,
+                "ilmu",
+                ILMU_MODEL,
+                tool_origin,
+                mode,
+                combined_prompt,
+                (time.monotonic() - t0) * 1000,
+                response_schema,
+                trace_recursion_depth,
+            )
+        except LLMUnavailableError:
+            pass
 
     # Tier 3 — SEA-LION v4 (GPU-accelerated API, intermittent as of 2026-06-13)
     try:
@@ -959,27 +963,8 @@ async def call_llm(
 
     # Ollama removed 2026-06-16 — was a ghost reference to llava:7b (never pulled).
     # Ollama is retained for bge-m3 embeddings only (arifbrain, L3 ingest, AAA).
-    # Text generation cascade: MiniMax → ILMU → SEA-LION → fallback.
-
-    try:
-        t0 = time.monotonic()
-        raw_output, parsed = await _call_ilmu(
-            system, user, response_schema, temperature, max_tokens
-        )
-        return _make_envelope(
-            raw_output,
-            parsed,
-            "ilmu",
-            ILMU_MODEL,
-            tool_origin,
-            mode,
-            combined_prompt,
-            (time.monotonic() - t0) * 1000,
-            response_schema,
-            trace_recursion_depth,
-        )
-    except LLMUnavailableError:
-        pass
+    # Text generation cascade: MiniMax → Azure → SEA-LION → fallback.
+    # ILMU removed from cascade per FFF 2026-06-15.
 
     # Tier 4 — no LLM available
     return wrap_llm_error(
@@ -988,7 +973,7 @@ async def call_llm(
         tool_origin=tool_origin,
         mode=mode,
         prompt=combined_prompt,
-        error_message="All LLM tiers exhausted (MiniMax M3 + ILMU + SEA-LION)",
+        error_message="All LLM tiers exhausted (MiniMax M3 + Azure + SEA-LION). ILMU BLOCKED per FFF.",
     )
 
 
@@ -1057,13 +1042,17 @@ async def check_provider_health() -> dict[str, Any]:
         status["fallback"] = "unreachable"
         status["errors"].append(f"Ollama: {exc}")
 
-    # Determine active provider (match cascade: MiniMax → SEA-LION → ILMU → Ollama)
+    # Determine active provider (match cascade: MiniMax → Azure → SEA-LION → fallback)
+    # ILMU BLOCKED per FFF 2026-06-15 — not in cascade
     if status["primary"] == "reachable":
         status["active_provider"] = "minimax"
+    elif status.get("azure_openai") == "reachable":
+        status["active_provider"] = "azure_openai"
     elif status.get("sea_lion") == "reachable":
         status["active_provider"] = "sea_lion"
     elif status.get("ilmu") == "reachable":
-        status["active_provider"] = "ilmu"
+        status["active_provider"] = "ilmu_blocked_fff"
+        status["ilmu_status"] = "BLOCKED per FFF 2026-06-15 — not in cascade"
     elif status.get("fallback") == "reachable":
         status["active_provider"] = "ollama"
     else:

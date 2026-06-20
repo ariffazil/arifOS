@@ -264,3 +264,68 @@ class TestIdentityMismatchCases:
         assert context["canonical_actor_id"] == "anonymous"
         assert context["transport_session_id"] == "global"
         assert context["authority_source"] == "fallback"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Regression: _FileSessionStore.get() must accept default kwarg.
+# Bug: TypeError → SAFE_VOID_FALLBACK in arif_triage.
+# Commit that fixed: 665db9a85
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class TestFileSessionStoreGetDefault:
+    """Regression: .get(key, default) must match dict.get() signature."""
+
+    def test_get_with_default_kwarg_returns_default_for_missing_key(self):
+        """Missing key + default={} → return {} (not None, not TypeError)."""
+        import tempfile
+        from arifosmcp.runtime.tools import _FileSessionStore
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = _FileSessionStore(path=f"{tmp}/sessions.json")
+            result = store.get("nonexistent-session-id", {})
+            assert result == {}, f"expected empty dict, got {result!r}"
+
+    def test_get_with_default_positional_works(self):
+        """3-arg call .get(key, default) used by callers in kernel.py:173 etc."""
+        import tempfile
+        from arifosmcp.runtime.tools import _FileSessionStore
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = _FileSessionStore(path=f"{tmp}/sessions.json")
+            # Simulate the buggy caller pattern: store.get(session_id, default_value)
+            result = store.get("missing", {"fallback": True})
+            assert result == {"fallback": True}
+
+    def test_get_with_no_default_returns_none(self):
+        """Single-arg .get(key) still returns None for missing key."""
+        import tempfile
+        from arifosmcp.runtime.tools import _FileSessionStore
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = _FileSessionStore(path=f"{tmp}/sessions.json")
+            result = store.get("nonexistent")
+            assert result is None
+
+    def test_get_returns_stored_value_when_key_exists(self):
+        """Round-trip: set() then get() returns the stored dict."""
+        import tempfile
+        from arifosmcp.runtime.tools import _FileSessionStore
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = _FileSessionStore(path=f"{tmp}/sessions.json")
+            payload = {"actor_id": "arif", "stage": "888"}
+            store.set("SEAL-test123", payload)
+            result = store.get("SEAL-test123", {})
+            assert result == payload
+
+    def test_get_existing_key_with_default_ignores_default(self):
+        """When key exists, .get() returns the value, not the default."""
+        import tempfile
+        from arifosmcp.runtime.tools import _FileSessionStore
+
+        with tempfile.TemporaryDirectory() as tmp:
+            store = _FileSessionStore(path=f"{tmp}/sessions.json")
+            store.set("k1", {"real": "value"})
+            result = store.get("k1", {"fallback": "ignored"})
+            assert result == {"real": "value"}

@@ -188,6 +188,7 @@ async def _write_tool_call_receipt(
     arguments: dict,
     result: Any,
     elapsed_ms: int,
+    actor_id: str | None = None,
 ) -> None:
     """
     Fire-and-forget Supabase tool call receipt.
@@ -204,7 +205,7 @@ async def _write_tool_call_receipt(
 
         session_ref = "gateway-mcp"
         organ_code = "arifos"
-        actor_ref = "arifOS-kernel"
+        actor_ref = actor_id or "arifOS-kernel"
         result_code = _result_code_from_tool_result(result)
         _extract_error_from_result(result)
         risk_tier = _risk_tier_for_tool(tool_name)
@@ -967,6 +968,7 @@ if IS_FASTMCP_3:
                                     arguments=dict(msg.arguments or {}),
                                     result=result,
                                     elapsed_ms=elapsed_ms,
+                                    actor_id=envelope_agent_id,
                                 )
                             )
                         loop.create_task(
