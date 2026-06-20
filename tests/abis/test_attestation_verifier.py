@@ -94,7 +94,7 @@ class TestFreshness:
         rec = AttestationRecord(
             organ="arifos",
             timestamp=time.time(),
-            tool_count=13,
+            tool_count=19,
             registry_truth="VERIFIED",
             verdict="HEALTHY",
         )
@@ -104,7 +104,7 @@ class TestFreshness:
         rec = AttestationRecord(
             organ="arifos",
             timestamp=time.time() - 3600,
-            tool_count=13,
+            tool_count=19,
             registry_truth="VERIFIED",
             verdict="HEALTHY",
         )
@@ -122,7 +122,7 @@ class TestStore:
         rec_now = AttestationRecord(
             organ="arifos",
             timestamp=time.time(),
-            tool_count=13,
+            tool_count=19,
             registry_truth="VERIFIED",
             verdict="HEALTHY",
         )
@@ -143,7 +143,7 @@ class TestStore:
             AttestationRecord(
                 organ="arifos",
                 timestamp=time.time(),
-                tool_count=13,
+                tool_count=19,
                 registry_truth="VERIFIED",
                 verdict="HEALTHY",
             )
@@ -185,7 +185,7 @@ class TestVerifier:
             AttestationRecord(
                 organ="arifos",
                 timestamp=time.time(),
-                tool_count=13,
+                tool_count=19,
                 registry_truth="VERIFIED",
                 verdict="HEALTHY",
             )
@@ -204,7 +204,7 @@ class TestVerifier:
                 AttestationRecord(
                     organ=organ,
                     timestamp=time.time(),
-                    tool_count=13,
+                    tool_count=19,
                     registry_truth="VERIFIED",
                     verdict="HEALTHY",
                 )
@@ -224,7 +224,7 @@ class TestVerifier:
                 AttestationRecord(
                     organ=organ,
                     timestamp=time.time(),
-                    tool_count=13,
+                    tool_count=19,
                     registry_truth="VERIFIED",
                     verdict="HEALTHY",
                 )
@@ -256,7 +256,7 @@ class TestVerifier:
             AttestationRecord(
                 organ="arifos",
                 timestamp=time.time(),
-                tool_count=13,
+                tool_count=19,
                 registry_truth="VERIFIED",
                 verdict="HEALTHY",
             )

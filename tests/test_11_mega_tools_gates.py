@@ -49,5 +49,5 @@ def test_selftest_passes_and_keeps_forge_dry_run() -> None:
     assert result["verdict"] == "PASS"
     assert result["checks"]["mind_check"]["verdict"] == "PASS"
     assert result["checks"]["heart_check"]["verdict"] == "PASS"
-    assert result["checks"]["registry_check"]["tools_count"] == 13
+    assert result["checks"]["registry_check"]["tools_count"] == 19
     assert result["checks"]["forge_dry_run_check"]["permanent_change"] is False

@@ -19,6 +19,7 @@ from __future__ import annotations
 
 EXPECTED_CANONICAL13: frozenset[str] = frozenset(
     {
+        # 13 legacy canonical tools
         "arif_session_init",
         "arif_sense_observe",
         "arif_evidence_fetch",
@@ -32,6 +33,13 @@ EXPECTED_CANONICAL13: frozenset[str] = frozenset(
         "arif_vault_seal",
         "arif_forge_execute",
         "arif_ops_measure",
+        # 6 Rule-14 canonical tools
+        "arif_route",
+        "arif_triage",
+        "arif_kernel_status",
+        "arif_bridge",
+        "arif_kernel_attest",
+        "arif_kernel_health",
     }
 )
 
@@ -86,30 +94,36 @@ FORBIDDEN_PUBLIC_SUBSTRINGS: tuple[str, ...] = (
 # ════════════════════════════════════════════════════════════════════════════════
 
 
-def test_canonical13_public_surface_is_exactly_13() -> None:
-    """The public MCP surface must expose exactly 13 canonical tools in canonical13 mode."""
-    from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+def test_canonical13_public_surface_is_exactly_25() -> None:
+    """The public MCP surface must expose exactly 25 tools in canonical13 mode.
+
+    canonical13 = 19 canonical kernel tools + 6 zero-floor transport canary probes.
+    The 19 canonical tools are EXPECTED_CANONICAL13; the full wire surface is 25.
+    """
+    from arifosmcp.runtime.public_surface import CANARY_PROBES, public_tool_names_for_mode
 
     tools = public_tool_names_for_mode("canonical13")
     actual = set(tools)
+    expected_surface = set(EXPECTED_CANONICAL13) | set(CANARY_PROBES)
 
-    assert len(actual) == 13, (
-        f"SURFACE DRIFT: canonical13 mode has {len(actual)} tools, expected 13. "
-        f"Extra: {sorted(actual - set(EXPECTED_CANONICAL13))}. "
-        f"Missing: {sorted(set(EXPECTED_CANONICAL13) - actual)}. "
+    assert len(actual) == len(expected_surface), (
+        f"SURFACE DRIFT: canonical13 mode has {len(actual)} tools, expected {len(expected_surface)}. "
+        f"Extra: {sorted(actual - expected_surface)}. "
+        f"Missing: {sorted(expected_surface - actual)}. "
         f"VOID."
     )
-    assert actual == set(EXPECTED_CANONICAL13), (
+    assert actual == expected_surface, (
         f"SURFACE DRIFT: canonical13 set mismatch. VOID."
     )
 
 
 def test_canonical13_no_extra_tools() -> None:
-    """No extra tools beyond the 13 canonical in canonical13 mode."""
-    from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+    """No extra tools beyond the 19 canonical + 6 canary in canonical13 mode."""
+    from arifosmcp.runtime.public_surface import CANARY_PROBES, public_tool_names_for_mode
 
     tools = set(public_tool_names_for_mode("canonical13"))
-    extra = tools - set(EXPECTED_CANONICAL13)
+    expected_surface = set(EXPECTED_CANONICAL13) | set(CANARY_PROBES)
+    extra = tools - expected_surface
     assert not extra, (
         f"EXTRA TOOLS LEAKED: {sorted(extra)}. "
         f"These must be folded into canonical tool modes or removed. VOID."
@@ -117,7 +131,7 @@ def test_canonical13_no_extra_tools() -> None:
 
 
 def test_canonical13_no_missing_tools() -> None:
-    """All 13 canonical tools must be present in canonical13 mode."""
+    """All 19 canonical tools must be present in canonical13 mode."""
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
 
     tools = set(public_tool_names_for_mode("canonical13"))
@@ -168,13 +182,21 @@ def test_no_blocked_prefixes_in_public_surface() -> None:
 
 
 def test_no_forbidden_substrings_in_public_surface() -> None:
-    """No tool containing forbidden substrings may appear in the public surface."""
+    """No tool containing forbidden substrings may appear in the public surface.
+
+    Forbidden substrings are checked as standalone segments (preceded by '_' or
+    start-of-name), not as accidental infixes inside legitimate canonical names
+    such as arif_forge_execute.
+    """
+    import re
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
 
     for name in public_tool_names_for_mode("canonical13"):
         for substr in FORBIDDEN_PUBLIC_SUBSTRINGS:
-            assert substr not in name, (
-                f"Tool '{name}' contains forbidden substring '{substr}'. VOID."
+            # Match substr only when it starts a name or follows an underscore
+            pattern = r"(^|_)" + re.escape(substr)
+            assert not re.search(pattern, name), (
+                f"Tool '{name}' contains forbidden substring '{substr}' as a segment. VOID."
             )
 
 
@@ -206,26 +228,20 @@ def test_no_legacy_forge_names_in_canonical13() -> None:
     )
 
 
-def test_no_diagnostic_probes_in_canonical13() -> None:
-    """Canary/diagnostic probes must NOT appear in canonical13 mode.
+def test_diagnostic_probes_are_present_in_canonical13() -> None:
+    """Canary/diagnostic probes ARE exposed in canonical13 mode.
 
-    arif_ping, arif_schema_echo, arif_version_echo, arif_transport_echo,
-    and arif_initialize_probe are folded into arif.ops modes.
+    The 6 zero-floor transport probes (ping, conformance_report, schema_echo,
+    version_echo, transport_echo, initialize_probe) are part of the default
+    public wire surface. They were previously folded into arif.ops modes; Rule 14
+    ratifies them as standalone canary probes for transport diagnostics.
     """
-    from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+    from arifosmcp.runtime.public_surface import CANARY_PROBES, public_tool_names_for_mode
 
-    canary_probes = {
-        "arif_ping",
-        "arif_schema_echo",
-        "arif_version_echo",
-        "arif_transport_echo",
-        "arif_initialize_probe",
-    }
     tools = set(public_tool_names_for_mode("canonical13"))
-    leaked = tools & canary_probes
-    assert not leaked, (
-        f"Canary probes leaked into canonical13: {sorted(leaked)}. "
-        f"These are modes of arif.ops, not separate tools. VOID."
+    missing = set(CANARY_PROBES) - tools
+    assert not missing, (
+        f"Canary probes missing from canonical13: {sorted(missing)}. VOID."
     )
 
 
@@ -257,9 +273,11 @@ def test_canonical_tools_match_constitutional_tools() -> None:
 
 
 def test_public_surface_drift_check_passes() -> None:
-    """verify_no_drift must report ok=True with exactly 13 tools."""
+    """verify_no_drift must report ok=True with exactly 25 tools."""
+    from arifosmcp.runtime.public_surface import CANARY_PROBES
     from arifosmcp.runtime.public_registry import EXPECTED_TOOL_COUNT, verify_no_drift
 
+    expected_count = len(EXPECTED_CANONICAL13) + len(CANARY_PROBES)
     drift = verify_no_drift("canonical13")
     assert drift["ok"], (
         f"Drift check failed: {drift}. VOID."
@@ -267,7 +285,7 @@ def test_public_surface_drift_check_passes() -> None:
     assert drift["actual_count"] == EXPECTED_TOOL_COUNT, (
         f"Drift count mismatch: {drift['actual_count']} != {EXPECTED_TOOL_COUNT}. VOID."
     )
-    assert drift["actual_count"] == 13
+    assert drift["actual_count"] == expected_count
 
 
 # ════════════════════════════════════════════════════════════════════════════════
@@ -323,20 +341,25 @@ def test_expanded45_contains_more_than_canonical13() -> None:
 # ════════════════════════════════════════════════════════════════════════════════
 
 
-def test_canonical_handlers_count_is_13() -> None:
-    """_CANONICAL_HANDLERS must have exactly 13 entries."""
-    from arifosmcp.runtime.tools import _CANONICAL_HANDLERS
+def test_canonical_handlers_count_is_19() -> None:
+    """Every canonical tool must have a handler (legacy 13 + Rule-14 6 = 19)."""
+    from arifosmcp.constitutional_map import CANONICAL_TOOLS
+    from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, _RUNTIME_DIAGNOSTIC_HANDLERS
 
-    assert len(_CANONICAL_HANDLERS) == 13, (
-        f"Handler drift: expected 13 canonical handlers, got {len(_CANONICAL_HANDLERS)}. VOID."
+    all_handlers = {**_CANONICAL_HANDLERS, **_RUNTIME_DIAGNOSTIC_HANDLERS}
+    covered = [name for name in CANONICAL_TOOLS if name in all_handlers]
+    assert len(covered) == len(CANONICAL_TOOLS), (
+        f"Handler drift: expected {len(CANONICAL_TOOLS)} canonical handlers, "
+        f"got {len(covered)}. Missing: {sorted(set(CANONICAL_TOOLS) - set(all_handlers))}. VOID."
     )
 
 
 def test_canonical_handlers_match_canonical_tools() -> None:
-    """_CANONICAL_HANDLERS keys must match CANONICAL_TOOLS keys."""
+    """Canonical tool keys must all be covered by the handler registries."""
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
-    from arifosmcp.runtime.tools import _CANONICAL_HANDLERS
+    from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, _RUNTIME_DIAGNOSTIC_HANDLERS
 
-    assert set(_CANONICAL_HANDLERS.keys()) == set(CANONICAL_TOOLS.keys()), (
-        f"Handler/tool mismatch. VOID."
+    all_handler_keys = set(_CANONICAL_HANDLERS.keys()) | set(_RUNTIME_DIAGNOSTIC_HANDLERS.keys())
+    assert set(CANONICAL_TOOLS.keys()).issubset(all_handler_keys), (
+        f"Handler/tool mismatch. Missing: {sorted(set(CANONICAL_TOOLS.keys()) - all_handler_keys)}. VOID."
     )

@@ -5,7 +5,11 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from arifosmcp.runtime.public_surface import BLOCKED_PUBLIC_PREFIXES
+from arifosmcp.runtime.public_surface import (
+    BLOCKED_PUBLIC_PREFIXES,
+    CANARY_PROBES,
+    CANONICAL_13,
+)
 
 
 def _load_root_server_module():
@@ -30,29 +34,9 @@ def test_http_discovery_surfaces_match_canonical13() -> None:
     tools_payload = tools_response.json()
     well_known_payload = well_known_response.json()
 
-    # canonical13 public surface now includes the 13 kernel tools + 5 transport canary diagnostics
-    expected_canonical13 = {
-        "arif_session_init",
-        "arif_sense_observe",
-        "arif_evidence_fetch",
-        "arif_mind_reason",
-        "arif_kernel_route",
-        "arif_reply_compose",
-        "arif_memory_recall",
-        "arif_heart_critique",
-        "arif_gateway_connect",
-        "arif_ops_measure",
-        "arif_judge_deliberate",
-        "arif_vault_seal",
-        "arif_forge_execute",
-    }
-    expected_diagnostics = {
-        "arif_ping",
-        "arif_schema_echo",
-        "arif_version_echo",
-        "arif_transport_echo",
-        "arif_initialize_probe",
-    }
+    # canonical13 public surface now includes the 19 kernel tools + 6 transport canary diagnostics
+    expected_canonical13 = set(CANONICAL_13)
+    expected_diagnostics = set(CANARY_PROBES)
     tools_names = {tool["name"] for tool in tools_payload["tools"]}
     well_known_names = {tool["name"] for tool in well_known_payload["tools"]}
 

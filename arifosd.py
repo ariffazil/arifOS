@@ -28,6 +28,29 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 import socketserver, threading
 
+# Optional unified thermodynamic substrate (Tier 5 DRAFT — 888 HOLD ACTIVE)
+try:
+    from arifosmcp.core.physics.thermodynamics_hardened import (
+        apply_maintenance_decay,
+        get_budget_ledger,
+        init_budget_ledger,
+        record_budget_operation,
+    )
+
+    _UNIFIED_THERMO_AVAILABLE = True
+except Exception:
+    _UNIFIED_THERMO_AVAILABLE = False
+
+# Optional institutional evolution substrate (Invariant #15 — Tier 5 DRAFT)
+try:
+    from arifosmcp.core.physics.institutional_evolution import (
+        InstitutionalEvolutionGuard,
+    )
+
+    _INSTITUTIONAL_EVOLUTION_AVAILABLE = True
+except Exception:
+    _INSTITUTIONAL_EVOLUTION_AVAILABLE = False
+
 # =============================================================================
 # MODULE 0 — APEX THERMODYNAMIC ENGINE (E-Layer Correction)
 # =============================================================================
@@ -737,6 +760,24 @@ class MetabolicPipeline:
             "output_entropy_bits": ctx.get("output_entropy_bits", 5.0),
         })
 
+        # Unified thermodynamic ledger + maintenance scaling (Tier 5 DRAFT)
+        compute_bits = apex_result.get("thermo", {}).get("landauer_cost_joules", 0.0) / max(
+            ApexThermodynamicEngine.KB, 1e-25
+        )
+        daemon_uptime_seconds = time.time() - DAEMON_START
+        unified_thermo = self._run_unified_thermo(
+            session_id=session_id,
+            compute_bits=compute_bits,
+            t_active_seconds=daemon_uptime_seconds,
+        )
+
+        # Institutional evolution / mortality-succession guard (Tier 5 DRAFT)
+        institutional_evolution = self._run_institutional_evolution(
+            session_id=session_id,
+            session_duration_s=daemon_uptime_seconds,
+            operator_interventions=1,
+        )
+
         # 888 JUDGE — deliberate
         stages_run.append("888_JUDGE")
         verdict, judge_rationale = self._judge(ctx, apex_result)
@@ -757,6 +798,8 @@ class MetabolicPipeline:
             verdict=verdict, risk_tier=risk_tier,
             rationale=judge_rationale, stages_run=stages_run,
             ctx=ctx, seal=seal, human=human, apex_result=apex_result,
+            unified_thermo=unified_thermo,
+            institutional_evolution=institutional_evolution,
         )
 
     def _sense(self) -> dict:
@@ -773,6 +816,72 @@ class MetabolicPipeline:
             "memory_mb": round(mem_mb, 1),
             "epoch_unix": time.time(),
         }
+
+    def _run_unified_thermo(
+        self,
+        session_id: str,
+        compute_bits: float,
+        t_active_seconds: float = 0.0,
+    ) -> dict:
+        """
+        Run unified thermodynamic ledger + maintenance scaling.
+
+        Tier 5 DRAFT — 888 HOLD ACTIVE. This is additive; if the unified
+        substrate is unavailable, returns a disabled marker without failing.
+        """
+        if not _UNIFIED_THERMO_AVAILABLE:
+            return {"unified_thermo": "disabled"}
+
+        try:
+            init_budget_ledger(session_id, initial_joules=1.0)
+            record_budget_operation(
+                session_id,
+                bits=max(1, int(compute_bits)),
+                operation="erase",
+                metadata={"stage": "arifosd_metabolize"},
+            )
+            if t_active_seconds > 0:
+                apply_maintenance_decay(session_id, t_active_seconds, n_tools=0, n_tracked_files=0)
+            ledger = get_budget_ledger(session_id)
+            return {
+                "unified_thermo": "active",
+                "ledger": ledger.to_dict(),
+                "tier": "DRAFT — TIER 5 (Governance Doctrine) — 888 HOLD ACTIVE",
+            }
+        except Exception as exc:
+            return {"unified_thermo": "error", "error": str(exc)}
+
+    def _run_institutional_evolution(
+        self,
+        session_id: str,
+        session_duration_s: float = 0.0,
+        operator_interventions: int = 0,
+    ) -> dict:
+        """
+        Run invariant #15 institutional evolution checks.
+
+        Tier 5 DRAFT — 888 HOLD ACTIVE. Reports only; does not block SEAL
+        until F13 ratification.
+        """
+        if not _INSTITUTIONAL_EVOLUTION_AVAILABLE:
+            return {"institutional_evolution": "disabled"}
+
+        try:
+            payload = {
+                "session_duration_s": session_duration_s,
+                "operator_interventions": operator_interventions,
+                "role_changes": [],
+                "unacknowledged_obligations": [],
+                "changes_last_30d": 0,
+                "human_reviews_last_30d": 0,
+                "affected_communities": [],
+                "consent_coverage": 1.0,
+            }
+            report = InstitutionalEvolutionGuard.evaluate_evolution_invariants(payload)
+            report["tier"] = "DRAFT — TIER 5 (Governance Doctrine) — 888 HOLD ACTIVE"
+            return {"institutional_evolution": report}
+        except Exception as exc:
+            return {"institutional_evolution": "error", "error": str(exc)}
 
     def _judge(self, ctx: dict, apex_result: dict) -> Tuple[str, str]:
         """888 JUDGE — evaluate floors and return verdict."""
@@ -816,6 +925,8 @@ class MetabolicPipeline:
         verdict: str, risk_tier: str, rationale: str,
         stages_run: List[str], ctx: dict, seal: dict,
         human: str, apex_result: Optional[dict] = None,
+        unified_thermo: Optional[dict] = None,
+        institutional_evolution: Optional[dict] = None,
     ) -> dict:
         """Build the canonical verdict envelope."""
         apex_m = (apex_result or {}).get("apex_metric", {}) if apex_result else {}
@@ -858,6 +969,11 @@ class MetabolicPipeline:
                 "metric": apex_m,
                 "thermo": thermo,
                 "plain": (apex_result or {}).get("plain", ""),
+            },
+            "substrate": {
+                "unified_thermo": unified_thermo or {"unified_thermo": "not_run"},
+                "institutional_evolution": institutional_evolution or {"institutional_evolution": "not_run"},
+                "tier": "DRAFT — TIER 5 (Governance Doctrine) — 888 HOLD ACTIVE",
             },
             "artifacts": [],
             "content": [{"type": "text", "text": rationale}],

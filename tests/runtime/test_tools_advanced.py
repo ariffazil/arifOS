@@ -1,22 +1,18 @@
 from __future__ import annotations
 
+from arifosmcp.constitutional_map import CANONICAL_TOOLS
+from arifosmcp.runtime.public_surface import CANARY_PROBES
 from arifosmcp.runtime.tools import _arif_ping, _arif_session_init
 
 
 def test_ping_reports_canonical13_surface() -> None:
     result = _arif_ping()["result"]
 
-    # canonical13 public surface = 13 kernel tools + 5 transport canary diagnostics
-    assert result["tools_registered"] == 18
+    # canonical13 public surface = 19 canonical tools + 6 transport canary diagnostics
+    assert result["tools_registered"] == len(CANONICAL_TOOLS) + len(CANARY_PROBES)
     assert result["public_surface"]["mode"] == "canonical13"
-    assert result["public_surface"]["kernel_tools"] == 13
-    assert set(result["public_surface"]["diagnostic_tools"]) == {
-        "arif_ping",
-        "arif_schema_echo",
-        "arif_version_echo",
-        "arif_transport_echo",
-        "arif_initialize_probe",
-    }
+    assert result["public_surface"]["kernel_tools"] == len(CANONICAL_TOOLS)
+    assert set(result["public_surface"]["diagnostic_tools"]) == set(CANARY_PROBES)
     assert result["constitution"]["kernel"] == "canonical13"
 
 

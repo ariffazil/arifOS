@@ -126,15 +126,15 @@ def test_cognitive_privacy_stamp_on_forget():
 
 
 def test_no_new_mcp_tools_added():
-    """The 13-tool constitucional surface must not be expanded.
+    """The 19-tool constitutional surface must not be expanded beyond canonical.
 
     New modes on existing tools are OK; new top-level tool names
     are F13 territory.
     """
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
-    assert len(CANONICAL_TOOLS) == 13, (
-        f"Surface drift: 13 → {len(CANONICAL_TOOLS)}. "
+    assert len(CANONICAL_TOOLS) == len(_EXPECTED_13), (
+        f"Surface drift: {len(_EXPECTED_13)} → {len(CANONICAL_TOOLS)}. "
         f"New tools: {set(CANONICAL_TOOLS.keys()) - _EXPECTED_13}"
     )
 
@@ -153,6 +153,13 @@ _EXPECTED_13 = {
     "arif_vault_seal",
     "arif_forge_execute",
     "arif_ops_measure",
+    # Rule-14 canonical tools
+    "arif_route",
+    "arif_triage",
+    "arif_kernel_status",
+    "arif_bridge",
+    "arif_kernel_attest",
+    "arif_kernel_health",
 }
 
 
@@ -163,7 +170,7 @@ def test_session_init_accepts_opt_out_modes():
     """Right #6 and #10 are routed through session_init as new modes.
 
     These are NOT new tools — they are new modes on the existing
-    arif_session_init tool. The 13-tool surface is preserved.
+    arif_session_init tool. The 19-tool canonical surface is preserved.
     """
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
 

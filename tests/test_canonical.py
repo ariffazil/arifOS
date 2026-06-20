@@ -16,6 +16,7 @@ from arifosmcp.constitutional_map import (
     list_constitutional_tools,
     list_probe_tools,
 )
+from arifosmcp.runtime.public_surface import CANARY_PROBES
 from arifosmcp.prompts import CANONICAL_PROMPTS, register_prompts
 from arifosmcp.resources import (
     CANONICAL_RESOURCES,
@@ -46,36 +47,22 @@ def _stable_runtime_env(monkeypatch):
 
 
 def test_surface_partition():
-    assert len(CANONICAL_TOOLS) == 13
-    assert len(list_constitutional_tools()) == 13
+    assert len(CANONICAL_TOOLS) == 19
+    assert len(list_constitutional_tools()) == 19
     assert len(list_probe_tools()) == 0
 
 
 def test_tool_names():
-    expected = [
-        "arif_session_init",
-        "arif_sense_observe",
-        "arif_evidence_fetch",
-        "arif_mind_reason",
-        "arif_kernel_route",
-        "arif_reply_compose",
-        "arif_memory_recall",
-        "arif_heart_critique",
-        "arif_gateway_connect",
-        "arif_ops_measure",
-        "arif_judge_deliberate",
-        "arif_vault_seal",
-        "arif_forge_execute",
-    ]
-    assert sorted(list_constitutional_tools()) == sorted(expected)
-    assert sorted(list_canonical_tools()) == sorted(expected)
+    expected = sorted(CANONICAL_TOOLS)
+    assert sorted(list_constitutional_tools()) == expected
+    assert sorted(list_canonical_tools()) == expected
 
 
 def test_register_tools_matches_canonical_surface():
     mcp = FastMCP("test-arifos")
     registered = register_tools(mcp)
-    # 13 canonical + 5 canary tools
-    assert len(registered) == 18
+    # 19 canonical + 6 canary tools
+    assert len(registered) == len(CANONICAL_TOOLS) + len(CANARY_PROBES)
     assert set(CANONICAL_TOOLS).issubset(set(registered))
     assert not any(name.startswith("arifos_") for name in registered)
 

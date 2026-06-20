@@ -1,14 +1,21 @@
 from __future__ import annotations
 
+from arifosmcp.constitutional_map import CANONICAL_TOOLS
 from arifosmcp.runtime.public_registry import build_server_json
+from arifosmcp.runtime.public_surface import CANARY_PROBES
 
 
 def test_public_registry_exposes_only_capability_tools() -> None:
     tools = build_server_json()["tools"]
     names = {tool["name"] for tool in tools}
 
-    assert len(names) == 13
-    assert "arif_ping" not in names
+    # Default canonical13 wire surface = 19 canonical tools + 6 canary probes
+    assert len(names) == len(CANONICAL_TOOLS) + len(CANARY_PROBES)
+    # Canary probes are part of the default public surface
+    assert "arif_ping" in names
+    assert "arif_conformance_report" in names
+    assert "arif_schema_echo" in names
+    # Internal-only / legacy diagnostics must NOT leak to public surface
     assert "arif_selftest" not in names
     assert "arif_meaning_witness" not in names
     assert "arif_context_witness" not in names

@@ -12,7 +12,7 @@ runtime_surface:
     - https://arifos.arif-fazil.com/mcp
   verification_endpoint: https://arifos.arif-fazil.com/api/federation-probe
   verified_tool_counts:
-    arifos: 13
+    arifos: 19
     geox: 31
     wealth: 19
     well: 17
@@ -57,6 +57,13 @@ canonical_tools:
   - arif_judge_deliberate
   - arif_vault_seal
   - arif_forge_execute
+  # Rule-14 canonical tools (2026-06-20)
+  - arif_route
+  - arif_triage
+  - arif_kernel_status
+  - arif_bridge
+  - arif_kernel_attest
+  - arif_kernel_health
 canonical_modes:
   arif_sense_observe:
     - search

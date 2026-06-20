@@ -60,7 +60,7 @@ def mock_supabase_client():
                     "kernel_version": "v2026.05.05-SSCT",
                     "constitution_hash": "sha256:abc123",
                     "schema_hash": "sha256:def456",
-                    "tool_count_canonical": 13,
+                    "tool_count_canonical": 19,
                     "tool_count_live": 19,
                     "organ_count": 4,
                     "failed_calls_24h": 0,
@@ -68,7 +68,7 @@ def mock_supabase_client():
                     "degradation_reason": None,
                     "organ_status": {},
                     "declared_tools": {
-                        "arifos": 13,
+                        "arifos": 19,
                         "geox": 37,
                         "wealth": 20,
                         "well": 17,
@@ -96,7 +96,7 @@ def test_no_dual_tool_count(mock_supabase_client):
     row = read_kernel_state(mock_supabase_client)
     assert row is not None, "kernel_state must return a row"
     assert row.kernel_status.value == "ALIVE"
-    assert row.tool_count_canonical == 13
+    assert row.tool_count_canonical == 19
     assert row.tool_count_live == 19
 
     # Same row, same fields — no dual truth

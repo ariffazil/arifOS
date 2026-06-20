@@ -756,6 +756,332 @@ ThermodynamicExhaustion = ThermodynamicExhaustionError
 
 
 # ═══════════════════════════════════════════════════════
+# UNIFIED THERMODYNAMIC BUDGET LEDGER
+#
+# Tier 5 DRAFT — 888 HOLD ACTIVE
+#
+# Consolidates the four fragmented Landauer accounting points
+# (arifosd.py, thermodynamics_hardened.py, economic_invariants.py,
+# thermo_estimator.py) into a single kernel memory structure.
+# ═══════════════════════════════════════════════════════
+
+
+@dataclass
+class ThermodynamicBudgetLedger:
+    """
+    Singleton-per-session ledger for unified energy-asymmetry accounting.
+
+    All constitutional organs that consume compute MUST proxy their
+    Landauer-relevant operations through this ledger. The legacy
+    ThermodynamicBudget remains for backward compatibility; this ledger
+    is the canonical source of truth for cross-organ thermodynamic audits.
+    """
+
+    session_id: str
+    initial_joules: float = 1.0
+    consumed_joules: float = field(default=0.0)
+    bits_erased: int = field(default=0)
+    bits_written: int = field(default=0)
+    operation_log: list[dict[str, Any]] = field(default_factory=list)
+    created_at: float = field(default_factory=time.time)
+
+    def record_operation(
+        self,
+        bits: int,
+        operation: str = "erase",
+        temperature_k: float = T_ROOM,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """
+        Record a Landauer-cost operation and return the entry.
+
+        E = k_B * T * ln(2) * bits
+        """
+        if bits < 0:
+            raise ThermodynamicError(
+                "Cannot record negative bit operations.", law_id="F4", verdict="VOID"
+            )
+
+        min_joules = bits * K_BOLTZMANN * temperature_k * math.log(2)
+        self.consumed_joules += min_joules
+
+        if operation == "erase":
+            self.bits_erased += bits
+        else:
+            self.bits_written += bits
+
+        entry = {
+            "operation": operation,
+            "bits": bits,
+            "temperature_k": temperature_k,
+            "min_joules": min_joules,
+            "consumed_running": self.consumed_joules,
+            "timestamp": time.time(),
+            "metadata": metadata or {},
+        }
+        self.operation_log.append(entry)
+        return entry
+
+    @property
+    def remaining(self) -> float:
+        return max(0.0, self.initial_joules - self.consumed_joules)
+
+    @property
+    def is_exhausted(self) -> bool:
+        return self.remaining <= 0.0
+
+    def check_budget(self, projected_cost: float = 0.0) -> dict[str, Any]:
+        """Return budget status; raise ThermodynamicExhaustionError if depleted."""
+        if self.is_exhausted:
+            raise ThermodynamicExhaustionError(self.remaining, self.consumed_joules)
+        if projected_cost > 0 and projected_cost > self.remaining:
+            raise ThermodynamicExhaustionError(
+                max(0.0, self.remaining - projected_cost), self.consumed_joules
+            )
+        return {
+            "session_id": self.session_id,
+            "remaining_joules": self.remaining,
+            "consumed_joules": self.consumed_joules,
+            "depletion_ratio": self.consumed_joules / max(self.initial_joules, 1e-25),
+        }
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "session_id": self.session_id,
+            "initial_joules": self.initial_joules,
+            "consumed_joules": round(self.consumed_joules, 10),
+            "remaining_joules": round(self.remaining, 10),
+            "bits_erased": self.bits_erased,
+            "bits_written": self.bits_written,
+            "operation_count": len(self.operation_log),
+            "created_at": self.created_at,
+            "is_exhausted": self.is_exhausted,
+        }
+
+
+# Singleton registry for unified budget ledgers.
+_budget_ledger_registry: dict[str, ThermodynamicBudgetLedger] = {}
+
+
+def init_budget_ledger(session_id: str, initial_joules: float = 1.0) -> ThermodynamicBudgetLedger:
+    """Initialize or reset the canonical budget ledger for a session."""
+    ledger = ThermodynamicBudgetLedger(
+        session_id=session_id, initial_joules=initial_joules
+    )
+    _budget_ledger_registry[session_id] = ledger
+    return ledger
+
+
+def get_budget_ledger(session_id: str) -> ThermodynamicBudgetLedger:
+    """Return the canonical budget ledger, auto-initializing if disabled or missing."""
+    if session_id not in _budget_ledger_registry:
+        if _PHYSICS_DISABLED:
+            return init_budget_ledger(session_id, initial_joules=1.0)
+        raise ThermodynamicError(
+            f"No unified budget ledger for session {session_id}. "
+            "Stage 000 must call init_budget_ledger().",
+            law_id="F1",
+            verdict="VOID",
+        )
+    return _budget_ledger_registry[session_id]
+
+
+def record_budget_operation(
+    session_id: str,
+    bits: int,
+    operation: str = "erase",
+    temperature_k: float = T_ROOM,
+    metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Record a Landauer-cost operation against the canonical ledger."""
+    ledger = get_budget_ledger(session_id)
+    return ledger.record_operation(bits, operation, temperature_k, metadata)
+
+
+def get_consolidated_budget_report(session_id: str) -> dict[str, Any]:
+    """Return unified ledger report plus legacy budget report for audit."""
+    ledger = get_budget_ledger(session_id)
+    legacy_report = get_thermodynamic_report(session_id)
+    return {
+        "ledger": ledger.to_dict(),
+        "legacy_budget": legacy_report,
+        "consolidation_status": "unified",
+        "fragmentation_remaining": 4,
+    }
+
+
+def cleanup_budget_ledger(session_id: str) -> dict[str, Any]:
+    """Remove ledger and return final state."""
+    if session_id in _budget_ledger_registry:
+        ledger = _budget_ledger_registry.pop(session_id)
+        return {
+            "session_id": session_id,
+            "final_ledger": ledger.to_dict(),
+            "status": "cleaned",
+        }
+    return {"session_id": session_id, "status": "no_ledger_found"}
+
+
+# ═══════════════════════════════════════════════════════
+# MAINTENANCE SCALING — Passive Complexity-Time Degradation
+#
+# Tier 5 DRAFT — 888 HOLD ACTIVE
+#
+# Mathematical model for the entropy cost of keeping an agent session
+# or organ active over time. Completely absent before this draft.
+# ═══════════════════════════════════════════════════════
+
+
+@dataclass
+class MaintenanceScaling:
+    """
+    Passive thermodynamic cost of active complexity.
+
+    E_maintenance = M_base * (1 + alpha * ln(1 + t_active)) * (1 + beta * Complexity_index)
+
+    Where:
+      M_base  = 1e-6 J/s (base maintenance cost)
+      alpha   = 0.05 (time scaling decay coefficient)
+      beta    = 0.12 (complexity decay multiplier)
+      Complexity_index = ln(1 + N_tools) + 0.02 * N_tracked_files
+    """
+
+    M_base: float = 1e-6
+    alpha: float = 0.05
+    beta: float = 0.12
+
+    def complexity_index(self, n_tools: int, n_tracked_files: int) -> float:
+        return math.log1p(n_tools) + 0.02 * n_tracked_files
+
+    def compute(
+        self,
+        t_active_seconds: float,
+        n_tools: int = 0,
+        n_tracked_files: int = 0,
+    ) -> dict[str, Any]:
+        """Return E_maintenance and component breakdown."""
+        if t_active_seconds < 0:
+            raise ThermodynamicError(
+                "t_active_seconds cannot be negative.", law_id="F4", verdict="VOID"
+            )
+        time_factor = 1.0 + self.alpha * math.log1p(t_active_seconds)
+        complexity = self.complexity_index(n_tools, n_tracked_files)
+        complexity_factor = 1.0 + self.beta * complexity
+        e_maintenance = self.M_base * time_factor * complexity_factor
+        return {
+            "e_maintenance_joules_per_second": e_maintenance,
+            "time_factor": time_factor,
+            "complexity_factor": complexity_factor,
+            "complexity_index": complexity,
+            "t_active_seconds": t_active_seconds,
+            "n_tools": n_tools,
+            "n_tracked_files": n_tracked_files,
+        }
+
+    def compute_decay(
+        self,
+        t_active_seconds: float,
+        n_tools: int = 0,
+        n_tracked_files: int = 0,
+    ) -> float:
+        """Return total accumulated maintenance energy over t_active_seconds."""
+        complexity = self.complexity_index(n_tools, n_tracked_files)
+        complexity_factor = 1.0 + self.beta * complexity
+        t = t_active_seconds
+        time_integral = self.M_base * (
+            t + self.alpha * ((1.0 + t) * math.log1p(t) - t)
+        )
+        return time_integral * complexity_factor
+
+
+def compute_maintenance_cost(
+    t_active_seconds: float,
+    n_tools: int = 0,
+    n_tracked_files: int = 0,
+) -> dict[str, Any]:
+    """Convenience wrapper around MaintenanceScaling.compute()."""
+    scaler = MaintenanceScaling()
+    return scaler.compute(t_active_seconds, n_tools, n_tracked_files)
+
+
+def apply_maintenance_decay(
+    session_id: str,
+    t_active_seconds: float,
+    n_tools: int = 0,
+    n_tracked_files: int = 0,
+) -> dict[str, Any]:
+    """
+    Deduct accumulated maintenance cost from the unified ledger.
+
+    Returns the ledger status after deduction. Raises
+    ThermodynamicExhaustionError if the budget is exhausted.
+    """
+    scaler = MaintenanceScaling()
+    decay_joules = scaler.compute_decay(t_active_seconds, n_tools, n_tracked_files)
+    ledger = get_budget_ledger(session_id)
+    ledger.consumed_joules += decay_joules
+    ledger.operation_log.append(
+        {
+            "operation": "maintenance_decay",
+            "decay_joules": decay_joules,
+            "t_active_seconds": t_active_seconds,
+            "n_tools": n_tools,
+            "n_tracked_files": n_tracked_files,
+            "timestamp": time.time(),
+        }
+    )
+    status = ledger.check_budget()
+    return {
+        "decay_joules": decay_joules,
+        "ledger_status": status,
+        "tier": "DRAFT — TIER 5 (Governance Doctrine) — 888 HOLD ACTIVE",
+    }
+
+
+# ═══════════════════════════════════════════════════════
+# EXERGY (USEFUL WORK) — Shared Kernel Helpers
+#
+# Tier 5 DRAFT — 888 HOLD ACTIVE
+#
+# Exergy Ξ = W_useful / H_total. WEALTH organ provides the capital
+# specialization; this module only provides the substrate formula.
+# ═══════════════════════════════════════════════════════
+
+
+def compute_exergy_ratio(
+    useful_work: float,
+    total_heat: float,
+    allocated_capital: float = 1.0,
+    delta_s_allocation: float = 0.0,
+) -> dict[str, Any]:
+    """
+    Substrate exergy ratio.
+
+    Ξ = useful_work / (allocated_capital * (1 + delta_s_allocation))
+    eta_x = Ξ / allocated_capital
+
+    Returns eta_x and a boolean indicating whether it meets the 0.70 threshold.
+    """
+    if allocated_capital <= 0:
+        raise ThermodynamicError(
+            "allocated_capital must be positive.", law_id="F4", verdict="VOID"
+        )
+    denominator = allocated_capital * (1.0 + max(delta_s_allocation, 0.0))
+    xi = useful_work / denominator
+    eta_x = xi / allocated_capital
+    return {
+        "xi": xi,
+        "eta_x": eta_x,
+        "useful_work": useful_work,
+        "total_heat": total_heat,
+        "allocated_capital": allocated_capital,
+        "delta_s_allocation": delta_s_allocation,
+        "heat_waste": total_heat - useful_work,
+        "meets_threshold": eta_x >= 0.70,
+    }
+
+
+# ═══════════════════════════════════════════════════════
 # EXPORTS
 # ═══════════════════════════════════════════════════════
 
@@ -772,6 +1098,8 @@ __all__ = [
     "ThermodynamicExhaustion",
     # Core classes
     "ThermodynamicBudget",
+    "ThermodynamicBudgetLedger",
+    "MaintenanceScaling",
     # Functions
     "shannon_entropy",
     "entropy_delta",
@@ -787,6 +1115,17 @@ __all__ = [
     "check_landauer_before_seal",
     "get_thermodynamic_report",
     "cleanup_thermodynamic_budget",
+    # Unified budget ledger
+    "init_budget_ledger",
+    "get_budget_ledger",
+    "record_budget_operation",
+    "get_consolidated_budget_report",
+    "cleanup_budget_ledger",
+    # Maintenance scaling
+    "compute_maintenance_cost",
+    "apply_maintenance_decay",
+    # Exergy
+    "compute_exergy_ratio",
     # Landauer bound
     "check_landauer_bound",
     # Constants

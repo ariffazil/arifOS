@@ -14,6 +14,7 @@ from arifosmcp.constitutional_map import _TOOL_OUTPUT_SCHEMAS
 
 from .prompts import V2_PROMPT_SPECS
 from .public_surface import (
+    CANARY_PROBES,
     CANONICAL_13,
     current_public_surface_mode,
     normalize_public_surface_mode,
@@ -27,7 +28,9 @@ TOOL_REGISTRY_PATH = ROOT / "arifosmcp" / "tool_registry.json"
 DEFAULT_PUBLIC_BASE_URL = "https://arifosmcp.arif-fazil.com"
 
 CANONICAL_PUBLIC_TOOLS = frozenset(CANONICAL_13)
-EXPECTED_TOOL_COUNT = len(CANONICAL_13)
+# EXPECTED_TOOL_COUNT is the default public wire surface (canonical13 mode):
+# 19 canonical kernel tools + 6 zero-floor transport canary probes = 25.
+EXPECTED_TOOL_COUNT = len(CANONICAL_13) + len(CANARY_PROBES)
 
 RUNTIME_ENVELOPE_SCHEMA = {
     "type": "object",
@@ -124,6 +127,36 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Execute approved builds, deployments, or system changes. "
         "Use ONLY after arif_judge_deliberate has issued a SEAL verdict."
     ),
+    # ── Rule 14 canonical expansion (2026-06-20) ──
+    "arif_route": (
+        "Canonical intent router. Routes a natural-language intent to the correct "
+        "federation organ (GEOX, WEALTH, WELL, A-FORGE) or kernel tool. "
+        "Use when you know what you want but not which tool to call."
+    ),
+    "arif_triage": (
+        "Constitutional preflight check. Returns kernel status, current holds, "
+        "and the correct lane for a proposed action before execution."
+    ),
+    "arif_kernel_status": (
+        "Kernel telemetry and discovery. Query live health, tool registry, "
+        "and predictive readiness across the federation surface."
+    ),
+    "arif_bridge": (
+        "Low-level direct organ tool call. Bypasses intent routing — caller must "
+        "specify organ and tool_name. Use only when both are known ahead of time."
+    ),
+    "arif_kernel_attest": (
+        "Live organ attestation. Verify identity, tool surface, and constitutional "
+        "binding for one or all federation organs."
+    ),
+    "arif_kernel_health": (
+        "Lightweight kernel liveness probe. Returns reachability and constitutional "
+        "runtime status with zero ceremony."
+    ),
+    "arif_conformance_report": (
+        "PROOF MACHINE: run the ARIF Conformance Spine against the live kernel. "
+        "Returns earned pass/fail verdicts for transport, session, and governance checks."
+    ),
 }
 
 
@@ -168,6 +201,7 @@ def _role_for_name(name: str) -> str:
         "arif_version_echo",
         "arif_transport_echo",
         "arif_initialize_probe",
+        "arif_conformance_report",
     }:
         return "diagnostic"
     return "constitutional"
@@ -182,7 +216,16 @@ def _layer_for_name(name: str) -> str:
         "arif_gateway_connect",
     }:
         return "GOVERNANCE"
-    if name in {"arif_ops_measure", "arif_kernel_route"}:
+    if name in {
+        "arif_ops_measure",
+        "arif_kernel_route",
+        "arif_route",
+        "arif_triage",
+        "arif_kernel_status",
+        "arif_bridge",
+        "arif_kernel_attest",
+        "arif_kernel_health",
+    }:
         return "MACHINE"
     return "INTELLIGENCE"
 

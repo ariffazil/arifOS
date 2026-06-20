@@ -153,8 +153,8 @@ class TestUnknownTool:
         assert result.is_allowed, f"Empty tool name OBSERVE should pass: {result.reasons}"
 
     def test_all_canonical_tools_known(self):
-        """All 13 canonical tools must be in the manifest."""
-        assert len(CANONICAL_TOOL_MANIFEST) == 13
+        """All 19 canonical tools must be in the manifest."""
+        assert len(CANONICAL_TOOL_MANIFEST) == 19
         expected = {
             "arif_session_init",
             "arif_sense_observe",
@@ -169,6 +169,13 @@ class TestUnknownTool:
             "arif_judge_deliberate",
             "arif_vault_seal",
             "arif_forge_execute",
+            # Rule-14 canonical tools
+            "arif_route",
+            "arif_triage",
+            "arif_kernel_status",
+            "arif_bridge",
+            "arif_kernel_attest",
+            "arif_kernel_health",
         }
         assert set(CANONICAL_TOOL_MANIFEST.keys()) == expected
 

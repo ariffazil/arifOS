@@ -1,5 +1,6 @@
 # Substrate Coded Reality Map — What Actually Exists
 > **Generated:** 2026-06-20 23:15 UTC
+> **F13 Ratified:** 2026-06-20 — Seal `a624ba3d77796cd8` — Binding reference
 > **Authority:** F4 CLARITY — descriptive, not prescriptive
 > **Method:** Direct code read of all enforcement modules across 6 repos
 > **Purpose:** Ground truth reference for any future substrate invariant document

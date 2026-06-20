@@ -11,12 +11,12 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent
 
 
-def test_canonical13_count_is_13():
-    """canonical13 must remain exactly 13 tools until PHOENIX-72 passes."""
+def test_canonical13_count_is_19():
+    """canonical13 must expose exactly 19 canonical tools (13 legacy + 6 Rule-14)."""
     from arifosmcp.constitutional_map import list_canonical_tools
 
     tools = list_canonical_tools()
-    assert len(tools) == 13, f"Expected 13 canonical tools, got {len(tools)}"
+    assert len(tools) == 19, f"Expected 19 canonical tools, got {len(tools)}"
 
 
 def test_canonical13_names_are_arif_prefix():

@@ -363,23 +363,29 @@ class TestKernelRouteWireIn:
 # 6. Canonical surface unchanged (F13 hard invariant)
 # ─────────────────────────────────────────────────────────────────────────────
 class TestCanonicalSurfaceUnchanged:
-    def test_canonical_handlers_still_thirteen(self):
-        """The hard 13-tool assertion must still hold.
+    def test_canonical_handlers_still_nineteen(self):
+        """The hard 19-tool canonical surface must still hold.
 
         F13: arif_kernel_route(mode="context_runner") is a MODE on the
-        existing 13th tool. No new tool. No new handler.
+        existing legacy tool. No new tool. No new handler.
+        The Rule-14 tools are routed through _RUNTIME_DIAGNOSTIC_HANDLERS
+        while the legacy 13 remain in _CANONICAL_HANDLERS.
         """
-        from arifosmcp.runtime.tools import _CANONICAL_HANDLERS
+        from arifosmcp.constitutional_map import CANONICAL_TOOLS
+        from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, _RUNTIME_DIAGNOSTIC_HANDLERS
 
-        assert len(_CANONICAL_HANDLERS) == 13, (
-            f"Canonical surface changed! Now {len(_CANONICAL_HANDLERS)} tools. "
-            "context_runner must be a MODE, not a new tool."
+        all_handlers = {**_CANONICAL_HANDLERS, **_RUNTIME_DIAGNOSTIC_HANDLERS}
+        covered = [name for name in CANONICAL_TOOLS if name in all_handlers]
+        assert len(covered) == len(CANONICAL_TOOLS), (
+            f"Canonical surface handler coverage changed! "
+            f"{len(covered)}/{len(CANONICAL_TOOLS)} tools covered. "
+            f"Missing: {sorted(set(CANONICAL_TOOLS) - set(all_handlers))}."
         )
 
-    def test_canonical_tools_dict_still_thirteen(self):
+    def test_canonical_tools_dict_still_nineteen(self):
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
-        assert len(CANONICAL_TOOLS) == 13, (
+        assert len(CANONICAL_TOOLS) == 19, (
             "constitutional_map.CANONICAL_TOOLS changed! "
             "context_runner must NOT mutate the constitutional surface."
         )

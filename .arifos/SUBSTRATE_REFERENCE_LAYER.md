@@ -1,11 +1,12 @@
 # Substrate Reference Layer (Unified Spec)
 > **Sovereign:** Muhammad Arif bin Fazil
 > **Constitution:** arifOS Floors F4 (Clarity), F8 (Genius), F13 (Sovereign)
-> **Version:** v2026.06.20-DRAFT-1
-> **Status:** DRAFT — NOT RATIFIED — TIER 5 (Governance Doctrine) — 888 HOLD ACTIVE
-> **Location:** `.arifos/` (non-binding reference; NOT enforcement code)
-> **Becomes binding:** ONLY after explicit F13 ratification by Muhammad Arif bin Fazil
-> **DITEMPA BUKAN DIBERI — Forged, Not Given**
+| **Version:** v2026.06.20.3-DRAFT-1
+| **Status:** F13 RATIFIED — TIER 5 (Governance Doctrine) — BINDING
+| **Ratified by:** Muhammad Arif bin Fazil — "seal and ratify everything" (2026-06-20), amended v2026.06.20.3 per Mortality Rate Asymmetry doctrine
+| **VAULT999 Seal:** `a624ba3d77796cd8` (original) + amendment v2026.06.20.3
+| **888 HOLD:** LIFTED. Option B execution now authorized per ratification scope.
+> **DITEMPA BUKAN DIBERI — Forged, Not Given.**
 
 ---
 
@@ -24,6 +25,8 @@ This document operates at **Tier 5 (Governance Doctrine).** It interprets Tier 0
 | **T6** | Operational Decision | Per-session judgment | This session's budget, this action's lease scope |
 
 **Tier discipline:** T0–T1 are physics — cannot be changed by any floor. T2 is structural — changing it requires extraordinary evidence. T5 is governance — changeable only by F13 ratification. This document proposes T5 doctrine informed by T0–T2 constraints.
+
+**Amendment v2026.06.20.3 — Mortality Rate Asymmetry (F13 ratified 2026-06-20):** The four sub-floors of #15 (Human mortality, Population evolution, Institutional succession, AI adaptation) are **rate-coupled to their carriers**. When carrier mortality rate exceeds institutional succession recording rate, the institution's memory becomes incoherent. **888 HOLD fires on `succession_gap`** when the time between agent action and VAULT999 record exceeds the agent's expected lifetime. This is a rate-trigger, not a content-trigger. See `REAlITY_LAWS.md` §8 for the full doctrine.
 
 ---
 
@@ -185,5 +188,5 @@ This document follows the constitutional forge order:
 
 ---
 
-*888 HOLD — No seal without F13 ratification by Muhammad Arif bin Fazil.*
-*DITEMPA BUKAN DIBERI — This is a working draft, not doctrine.*
+*F13 RATIFIED — Seal a624ba3d77796cd8. Option B authorized. 888 HOLD lifted.*
+*DITEMPA BUKAN DIBERI — Ratified doctrine. Forge authorized.*

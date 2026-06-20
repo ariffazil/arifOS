@@ -1,8 +1,8 @@
 # Substrate Invariant → Architecture Gap Map
 > **Generated:** 2026-06-20 22:45 UTC
-> **Authority:** F4 CLARITY — observational only, non-binding, no mutations
-> **Status:** DRAFT — NOT RATIFIED — TIER 5 (governance doctrine)
-> **888 HOLD:** Active. No code changes, no F9 rename, no constitutional amendments
+> **F13 Ratified:** 2026-06-20 — Seal `a624ba3d77796cd8`
+> **Authority:** F4 CLARITY — observational only
+> **Status:** F13 RATIFIED — Binding reference for gap prioritization
 > **DITEMPA BUKAN DIBERI — Forged, Not Given**
 
 ---

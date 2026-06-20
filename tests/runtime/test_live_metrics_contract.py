@@ -12,7 +12,7 @@ def test_live_metrics_contract_exposes_dashboard_fields() -> None:
 
     payload = response.json()
     assert payload["verdict"] in {"SEAL", "HOLD", "PARTIAL", "VOID"}
-    assert payload["tools_loaded"] == 13
+    assert payload["tools_loaded"] == 19
     assert payload["floors_active"] == 13
     assert "version" in payload
     assert "source_commit" in payload

@@ -95,11 +95,11 @@ class TestEndpointManifest:
         assert manifest["schema_version"] == 2
         assert manifest["kind"] == "arifos.mcp_surface"
 
-    def test_manifest_has_13_canonical_tools(self):
-        """The manifest must declare exactly 13 canonical tools."""
+    def test_manifest_has_19_canonical_tools(self):
+        """The manifest must declare exactly 19 canonical tools."""
         manifest = load_manifest("contracts/mcp_surface.yaml")
         tools = manifest["canonical_tools"]
-        assert len(tools) == 13, f"Expected 13 tools, got {len(tools)}: {tools}"
+        assert len(tools) == 19, f"Expected 19 tools, got {len(tools)}: {tools}"
         assert "arif_session_init" in tools
         assert "arif_vault_seal" in tools
         assert "arif_forge_execute" in tools

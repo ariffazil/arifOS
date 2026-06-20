@@ -48,10 +48,14 @@ def _get_live_tools(mcp_server: Any | None = None) -> list[str]:
     # NOTE: EXPANDED_45 aliases are NOT included here because they have no
     # FastMCP handlers. Including them falsely inflates the registered count.
     try:
+        from arifosmcp.constitutional_map import CANONICAL_TOOLS
         from arifosmcp.runtime.public_surface import DIAGNOSTIC_TOOLS
-        from arifosmcp.runtime.tools import _CANONICAL_HANDLERS
+        from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS
 
-        live = set(_CANONICAL_HANDLERS.keys())
+        # Canonical surface = all entries in CANONICAL_TOOLS that have handlers.
+        # The implementation is split between _CANONICAL_HANDLERS (legacy 13)
+        # and _RUNTIME_DIAGNOSTIC_HANDLERS (Rule-14 6 + diagnostics).
+        live = set(CANONICAL_TOOLS.keys()) & set(CANONICAL_TOOL_HANDLERS.keys())
         if os.getenv("ARIFOS_MCP_EXPOSE_DEV_TOOLS", "").lower() in ("true", "1", "yes"):
             live.update(DIAGNOSTIC_TOOLS)
         return sorted(live)

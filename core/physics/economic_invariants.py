@@ -24,8 +24,10 @@ from typing import Any
 from core.physics.thermodynamics_hardened import (
     LANDAUER_MIN,
     MAX_ENTROPY_DELTA,
+    MaintenanceScaling,
     ThermodynamicBudget,
     ThermodynamicError,
+    compute_maintenance_cost,
     get_thermodynamic_budget,
     vector_orthogonality,
 )
@@ -101,6 +103,18 @@ class SpeedLimitError(EconomicInvariantError):
 class LedgerConservationError(EconomicInvariantError):
     def __init__(self, message: str):
         super().__init__(message, invariant="I12_ledger_conservation", verdict="VOID")
+
+
+class MaintenanceScalingError(EconomicInvariantError):
+    """
+    I13 (DRAFT — TIER 5): Maintenance Scaling violation.
+
+    Passive complexity-time degradation has exceeded the thermodynamic
+    budget. This invariant is NOT ratified; it is under 888 HOLD.
+    """
+
+    def __init__(self, message: str):
+        super().__init__(message, invariant="I13_maintenance_scaling_draft", verdict="888_HOLD")
 
 
 # ═══════════════════════════════════════════════════════
@@ -388,6 +402,38 @@ def check_ledger_conservation(
     }
 
 
+def check_maintenance_scaling(
+    t_active_seconds: float,
+    n_tools: int = 0,
+    n_tracked_files: int = 0,
+    budget_joules: float = 1.0,
+    consumed_joules: float = 0.0,
+) -> dict[str, Any]:
+    """
+    I13 (DRAFT — TIER 5): Maintenance Scaling.
+
+    Passive entropy cost of keeping a session/organ active. A blind spot
+    before this draft. Fails when accumulated decay would exhaust the
+    remaining thermodynamic budget.
+    """
+    scaler = MaintenanceScaling()
+    decay_joules = scaler.compute_decay(t_active_seconds, n_tools, n_tracked_files)
+    remaining = max(0.0, budget_joules - consumed_joules)
+    if decay_joules > remaining:
+        raise MaintenanceScalingError(
+            f"Maintenance decay {decay_joules:.4e} J exceeds remaining budget "
+            f"{remaining:.4e} J for t_active={t_active_seconds:.1f}s. "
+            "Passive complexity-time degradation has crossed the budget. 888_HOLD."
+        )
+    return {
+        "invariant": "I13_DRAFT",
+        "passed": True,
+        "decay_joules": decay_joules,
+        "remaining_joules": remaining,
+        "tier": "DRAFT — TIER 5 (Governance Doctrine) — 888 HOLD ACTIVE",
+    }
+
+
 # ═══════════════════════════════════════════════════════
 # EMERGENCE LAYER — Psychology / Power / Intelligence
 # ═══════════════════════════════════════════════════════
@@ -595,11 +641,13 @@ def run_all_invariants(
     payload: dict[str, Any],
     strict: bool = False,
     include_emergence: bool = False,
+    include_maintenance_scaling: bool = False,
 ) -> dict[str, Any]:
     """
     Execute all 12 substrate invariant checks against a unified payload.
 
     If include_emergence=True, also runs E_PSI, E_PWR, and E_INT.
+    If include_maintenance_scaling=True, also runs I13_DRAFT (Tier 5).
     """
     checks = []
     first_failure = None
@@ -782,6 +830,23 @@ def run_all_invariants(
         except EconomicInvariantError as e:
             _record("I12", None, e)
 
+    # ── I13_DRAFT ──
+    if include_maintenance_scaling and "t_active_seconds" in payload:
+        try:
+            _record(
+                "I13_DRAFT",
+                check_maintenance_scaling(
+                    payload["t_active_seconds"],
+                    payload.get("n_tools", 0),
+                    payload.get("n_tracked_files", 0),
+                    payload.get("budget_joules", 1.0),
+                    payload.get("consumed_joules", 0.0),
+                ),
+                None,
+            )
+        except EconomicInvariantError as e:
+            _record("I13_DRAFT", None, e)
+
     # ═══════════════════════════════════════════════════════
     # EMERGENCE LAYER (optional)
     # ═══════════════════════════════════════════════════════
@@ -852,6 +917,7 @@ def run_all_invariants(
         "results": checks,
         "first_failure": first_failure,
         "emergence_included": include_emergence,
+        "maintenance_scaling_included": include_maintenance_scaling,
     }
 
 
@@ -991,6 +1057,9 @@ inv_e3 = check_intelligence_emergence
 run_invariants = run_all_invariants
 economic_invariant_suite = run_all_invariants
 emergence_suite = run_emergence_layer
+
+# Maintenance scaling aliases
+maintenance_scaling_check = check_maintenance_scaling
 
 # Exception aliases for legacy catch clauses — Substrate
 ValueConservationError = ConservationError
