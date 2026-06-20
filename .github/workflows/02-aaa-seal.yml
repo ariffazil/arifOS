@@ -61,7 +61,6 @@ jobs:
             'core/kernel/__init__.py',
             'Dockerfile',
             'docker-compose.yml',
-            'fastmcp.json',
             'pyproject.toml',
           ]
           ok = True

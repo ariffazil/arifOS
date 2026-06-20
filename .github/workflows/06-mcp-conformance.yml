@@ -49,9 +49,9 @@ jobs:
         run: |
           cd "$WORKDIR"
           python3 -c "
-            import sys; sys.path.insert(0, '.')
-            from arifosmcp.transport.stdio import create_server
-            print('STDIO transport: OK')
+          import sys; sys.path.insert(0, '.')
+          from arifosmcp.transport.stdio import run_stdio
+          print('STDIO transport: OK')
           "
 
       - name: Protocol handshake (JSON-RPC)
@@ -74,15 +74,17 @@ jobs:
         run: |
           cd "$WORKDIR"
           python3 -c "
-            import json
-            with open('arifosmcp/tool_registry.json') as f:
-                reg = json.load(f)
-            tools = reg.get('tools', [])
-            names = [t['name'] for t in tools]
-            # Verify all tools have required MCP fields
-            for t in tools:
-                assert 'name' in t and 'description' in t, f'Missing fields in {t}'
-                assert t['name'].startswith('arifos_') or t['name'].startswith('arif_'), f'Bad prefix: {t[\"name\"]}'
-            print(f'PASS: {len(tools)} tools, all MCP-compliant')
-            for n in sorted(names): print(f'  {n}')
+          import json
+          with open('arifosmcp/tool_registry.json') as f:
+              reg = json.load(f)
+          tools = reg.get('tools', {})
+          # tools is a dict: {name: spec}
+          names = sorted(tools.keys())
+          # Verify all tools have required MCP fields
+          allowed = ('arif_', 'arifos_', 'hermes_', 'forge_', 'mcp_')
+          for name, spec in tools.items():
+              assert 'description' in spec, f'Missing description in {name}'
+              assert any(name.startswith(p) for p in allowed), f'Bad prefix: {name}'
+          print(f'PASS: {len(tools)} tools, all MCP-compliant')
+          for n in names: print(f'  {n}')
           "

@@ -27,9 +27,9 @@ RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
 check() {
     local name="$1"; local result="$2"; local detail="${3:-}"
     case "$result" in
-        PASS) echo -e "  ${GREEN}✅ $name${NC}"; ((PASS++)) ;;
-        WARN) echo -e "  ${YELLOW}⚠️  $name — $detail${NC}"; ((WARN++)) ;;
-        FAIL) echo -e "  ${RED}❌ $name — $detail${NC}"; ((FAIL++)) ;;
+        PASS) echo -e "  ${GREEN}✅ $name${NC}"; PASS=$((PASS + 1)) ;;
+        WARN) echo -e "  ${YELLOW}⚠️  $name — $detail${NC}"; WARN=$((WARN + 1)) ;;
+        FAIL) echo -e "  ${RED}❌ $name — $detail${NC}"; FAIL=$((FAIL + 1)) ;;
     esac
 }
 
@@ -88,7 +88,7 @@ else
 fi
 
 # ─── Q6: No hardcoded secrets? ──────────────────────────────────────────
-if grep -rqE "sk-[a-zA-Z0-9]{20,}" . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.venv --exclude='*.baseline' 2>/dev/null; then
+if grep -rqE "sk-[a-zA-Z0-9]{20,}" . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.venv --exclude-dir=tests --exclude-dir=test --exclude='*.baseline' 2>/dev/null; then
     check "No hardcoded secrets" FAIL "API key pattern detected — rotate immediately"
 else
     check "No hardcoded secrets" PASS

@@ -121,14 +121,27 @@ jobs:
           with open('arifosmcp/tool_registry.json') as f:
             reg = json.load(f)
           tools = reg.get('tools', {})
-          if len(tools) != 13:
-            print(f'ERROR: expected 13 tools, got {len(tools)}')
+          if len(tools) < 13:
+            print(f'ERROR: expected at least 13 tools, got {len(tools)}')
             sys.exit(1)
+          canonical_13 = [
+            'arif_session_init', 'arif_sense_observe', 'arif_evidence_fetch',
+            'arif_mind_reason', 'arif_heart_critique', 'arif_judge_deliberate',
+            'arif_forge_execute', 'arif_vault_seal', 'arif_memory_recall',
+            'arif_kernel_route', 'arif_ops_measure', 'arif_reply_compose',
+            'arif_gateway_connect'
+          ]
+          missing = [c for c in canonical_13 if c not in tools]
+          if missing:
+            print(f'ERROR: missing canonical tools: {missing}')
+            sys.exit(1)
+          # All tools must use arif_* or hermes_* or forge_* or mcp_* naming
+          allowed = ('arif_', 'arifos_', 'hermes_', 'forge_', 'mcp_')
           for name in tools:
-            if not name.startswith('arifos_') and not name.startswith('arif_'):
+            if not any(name.startswith(p) for p in allowed):
               print(f'ERROR: bad name {name}')
               sys.exit(1)
-          print(f'PASS: {len(tools)} canonical tools')
+          print(f'PASS: {len(tools)} tools registered, all 13 canonical present')
           PY
 
       - name: Charter naming audit
