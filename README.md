@@ -24,7 +24,7 @@
 
 [![CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg)](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://pypi.org/project/arifos/)
-[![MCP Tools](https://img.shields.io/badge/MCP-48%20tools%20%7C%2013%20canonical-10b981?logo=anthropic)](https://arifos.arif-fazil.com/mcp)
+[![MCP Tools](https://img.shields.io/badge/MCP-50%20tools%20%7C%2013%20canonical-10b981?logo=anthropic)](https://arifos.arif-fazil.com/mcp)
 [![Floors](https://img.shields.io/badge/floors-F1–F13%20active%20(F14%20DEAD)-f59e0b)](arifosmcp/CONSTITUTIONAL_EXTENSION_v2026.06.11-SELH.py)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-ef4444?logo=gnu)](LICENSE)
 [![Port](https://img.shields.io/badge/port-8088-64748b)](deploy/arifos.service)
@@ -441,7 +441,7 @@ Under F10 ONTOLOGY, you are classified as `instrument`. You do not have consciou
 }
 ```
 
-**Available tools:** 48 MCP tools (13 canonical constitutional + 35 operational support). See `llms.txt` for the complete surface or `/health` for live counts. All return structured Pydantic v2 output with `outputSchema` published.
+**Available tools:** 50 MCP tools (13 canonical constitutional + 37 operational support). See `llms.txt` for the complete surface or `/health` for live counts. All return structured Pydantic v2 output with `outputSchema` published.
 
 ### Adat Agentik Binding
 

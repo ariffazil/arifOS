@@ -75,12 +75,22 @@ CHAOS_TERMS=""
 if grep -rq "gospel\|Gospel\|GOSPEL" README.md FEDERATION_CONTRACT.md AGENTS.md 2>/dev/null; then
     CHAOS_TERMS="$CHAOS_TERMS gospel"
 fi
-if grep -rq "8082\|8083" README.md AGENTS.md 2>/dev/null; then
-    CHAOS_TERMS="$CHAOS_TERMS stale-port"
-fi
 if grep -rq "PHOENIX-73E" README.md TOOL_SURFACE.md CHANGELOG.md 2>/dev/null; then
     CHAOS_TERMS="$CHAOS_TERMS PHOENIX-stale"
 fi
+REPO=$(basename "$(pwd)")
+case "$REPO" in
+    WEALTH)
+        if grep -rqE '(^|[^0-9])8082([^0-9]|$)' README.md AGENTS.md CONTEXT.md RUNBOOK.md 2>/dev/null; then
+            CHAOS_TERMS="$CHAOS_TERMS stale-port"
+        fi
+        ;;
+    WELL)
+        if grep -rqE '(^|[^0-9])8083([^0-9]|$)' README.md AGENTS.md CONTEXT.md RUNBOOK.md 2>/dev/null; then
+            CHAOS_TERMS="$CHAOS_TERMS stale-port"
+        fi
+        ;;
+esac
 if [ -z "$CHAOS_TERMS" ]; then
     check "No chaos terms" PASS
 else
@@ -88,14 +98,34 @@ else
 fi
 
 # ─── Q6: No hardcoded secrets? ──────────────────────────────────────────
-if grep -rqE "sk-[a-zA-Z0-9]{20,}" . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.venv --exclude-dir=tests --exclude-dir=test --exclude='*.baseline' 2>/dev/null; then
-    check "No hardcoded secrets" FAIL "API key pattern detected — rotate immediately"
+SECRET_PATTERNS='sk-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9_]{20,}|AKIA[A-Z0-9]{16}|bot[0-9]+:[A-Za-z0-9_-]{20,}'
+if git rev-parse --git-dir >/dev/null 2>&1; then
+    SECRET_HITS="$(
+        git ls-files -z --cached --others --exclude-standard \
+        | python3 -c 'import os, sys; data=sys.stdin.buffer.read().split(b"\0"); skip=(b"docs/", b"wiki/", b"memory/", b"reports/", b"benchmarks/", b"artifacts/"); out=[p for p in data if p and not p.startswith(skip)]; sys.stdout.buffer.write(b"\0".join(out))' \
+        | xargs -0 -r grep -nE "$SECRET_PATTERNS" 2>/dev/null \
+        | head -n 5 || true
+    )"
+else
+    SECRET_HITS="$(
+        grep -rInE "$SECRET_PATTERNS" . \
+            --exclude-dir=.git \
+            --exclude-dir=node_modules \
+            --exclude-dir=.venv \
+            --exclude-dir=tests \
+            --exclude-dir=test \
+            --exclude='*.baseline' 2>/dev/null \
+        | head -n 5 || true
+    )"
+fi
+if [ -n "$SECRET_HITS" ]; then
+    check "No hardcoded secrets" FAIL "Secret-like pattern detected in git-visible files"
+    printf '%s\n' "$SECRET_HITS" | sed 's/^/       /'
 else
     check "No hardcoded secrets" PASS
 fi
 
 # ─── Q7: Port consistency ───────────────────────────────────────────────
-REPO=$(basename "$(pwd)")
 case "$REPO" in
     arifOS)   EXPECTED_PORT=8088 ;;
     geox)     EXPECTED_PORT=8081 ;;

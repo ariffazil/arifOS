@@ -35,48 +35,17 @@ jobs:
           script: |
             set -euo pipefail
 
-            # Work from the arifOS source repo — always up to date after push
             cd /root/arifOS
             git fetch origin main
-            git reset --hard "${{ github.sha }}"
-
-            # Derive build metadata from VPS git — reliable, no env var dependency
-            LOCAL_SHA=$(git rev-parse HEAD)
-            LOCAL_SHORT=$(git rev-parse --short HEAD)
-            LOCAL_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
-            LOCAL_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-
-            echo "[DEPLOY] Building arifOS from ${LOCAL_SHORT} (${LOCAL_BRANCH}) at ${LOCAL_TIME}..."
-
-            docker build \
-              --build-arg ARIFOS_BUILD_SHA="${LOCAL_SHA}" \
-              --build-arg ARIFOS_BUILD_BRANCH="${LOCAL_BRANCH}" \
-              --build-arg ARIFOS_BUILD_TIME="${LOCAL_TIME}" \
-              -t "ghcr.io/ariffazil/arifos:${LOCAL_SHORT}" \
-              -t "ghcr.io/ariffazil/arifos:latest" \
-              -f arifosmcp/Dockerfile .
-
-            echo "[DEPLOY] Pushing to GHCR..."
-            docker push ghcr.io/ariffazil/arifos:"${LOCAL_SHORT}" &
-            docker push ghcr.io/ariffazil/arifos:latest &
-            wait
-            echo "[DEPLOY] GHCR push complete — ghcr.io/ariffazil/arifos:${LOCAL_SHORT}"
-
-            echo "[DEPLOY] Updating docker-compose.yml with new image tag..."
-            # Note: /root/compose is local-only — do not git reset there.
-            # Match any existing tag (hex sha, date-based, semantic) and replace.
-            sed -i -E "s|ghcr\.io/ariffazil/arifos:[a-zA-Z0-9._-]+|ghcr.io/ariffazil/arifos:${LOCAL_SHORT}|g" /root/compose/docker-compose.yml
-            grep "arifosmcp:" -A 2 /root/compose/docker-compose.yml | grep image
-
-            echo "[DEPLOY] Restarting Docker Compose arifosmcp service..."
             if [ "${{ github.event.inputs.dry_run }}" = "true" ] && [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-              echo "[DRY RUN] Skipping restart and health check — dry_run=true"
-              echo "[DRY RUN] Would have run: docker compose up -d --no-deps --force-recreate arifosmcp"
+              echo "[DRY RUN] Verifying target SHA and deploy prerequisites only"
+              git rev-parse "${{ github.sha }}"
               exit 0
             fi
-            cd /root/compose
-            DEPLOY_GIT_COMMIT="${LOCAL_SHA}" docker compose up -d --no-deps --force-recreate arifosmcp
-            sleep 8
+
+            git checkout --force "${{ github.sha }}"
+            echo "[DEPLOY] Syncing current HEAD into /opt/arifos/app via make deploy-local..."
+            make deploy-local
 
             echo "[DEPLOY] Verifying server health..."
             HEALTH=$(curl -fsS http://localhost:8088/health)
@@ -89,4 +58,7 @@ jobs:
             tools = d.get('tools_loaded', '?')
             print(f'✓ status={d[\"status\"]} tools={tools} version={ver}')
             "
+            DEPLOYED_SHA=$(tr -d '[:space:]' < /opt/arifos/app/.git_commit 2>/dev/null || true)
+            echo "[DEPLOY] Runtime .git_commit=${DEPLOYED_SHA}"
+            test "${DEPLOYED_SHA}" = "$(git rev-parse --short=7 HEAD)"
             echo "[DEPLOY] SEAL COMPLETE — DITEMPA BUKAN DIBERI"

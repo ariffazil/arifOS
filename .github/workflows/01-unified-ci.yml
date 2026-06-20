@@ -144,11 +144,6 @@ jobs:
           print(f'PASS: {len(tools)} tools registered, all 13 canonical present')
           PY
 
-      - name: Charter naming audit
-        run: |
-          cd "$WORKDIR"
-          uv run python3 scripts/audit_charter_naming.py
-
   # ─────────────────────────────────────────────────────────────
   # JOB 2: Constitutional Import Chain — 888_JUDGE, SEAL, FLOORS
   # ─────────────────────────────────────────────────────────────

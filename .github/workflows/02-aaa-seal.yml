@@ -57,10 +57,10 @@ jobs:
           required = [
             'arifosmcp/runtime/server.py',
             'arifosmcp/runtime/__main__.py',
-            'core/pipeline.py',
             'core/kernel/__init__.py',
-            'Dockerfile',
-            'docker-compose.yml',
+            'arifosmcp/tool_registry.json',
+            'arifosmcp/Dockerfile',
+            'Makefile',
             'pyproject.toml',
           ]
           ok = True
