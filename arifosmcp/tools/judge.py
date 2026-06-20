@@ -18,25 +18,24 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
-import asyncio
-import hashlib
 
+import hashlib
 import json as json_lib
 import os
 import urllib.request
 from pathlib import Path
 from typing import Any
 
+from arifosmcp.paradox import (
+    build_organ_anchors,
+    register_organ,
+    verdict_to_cell,
+)
 from arifosmcp.runtime.metabolic_receipt import get_cumulative_metrics
 from arifosmcp.runtime.niat_gate import check_niat_gate
 from arifosmcp.runtime.self_mod_lock import is_self_modification_attempt
 from arifosmcp.runtime.tools import _arif_judge_deliberate
 from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
-from arifosmcp.paradox import (
-    register_organ, build_organ_anchors, get_registry,
-    inject_paradox_anchor, verdict_to_cell,
-)
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PARADOX ANCHORS — 3×3 Orthogonal Matrix for Judge

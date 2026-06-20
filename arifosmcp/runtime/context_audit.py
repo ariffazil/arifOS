@@ -41,7 +41,6 @@ import json
 import logging
 import os
 import threading
-import time
 from collections import defaultdict
 from enum import StrEnum
 from typing import Any
@@ -242,7 +241,7 @@ def _hash_payload(payload: dict[str, Any]) -> str:
 def _now_iso() -> str:
     import datetime
 
-    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+    return datetime.datetime.now(datetime.UTC).isoformat()
 
 
 # ─── Public API: 4 Audit Operations ───────────────────────────────────────

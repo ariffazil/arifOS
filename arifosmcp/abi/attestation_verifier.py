@@ -45,7 +45,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger("arifOS.attestation_verifier")
@@ -86,7 +86,7 @@ class AttestationRecord:
         return self.age_s <= freshness_s
 
     @classmethod
-    def from_nats_message(cls, payload: bytes) -> "AttestationRecord | None":
+    def from_nats_message(cls, payload: bytes) -> AttestationRecord | None:
         try:
             d = json.loads(payload.decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError) as e:
@@ -265,7 +265,7 @@ async def _consume_once(nats_url: str, stream: str, verifier: AttestationVerifie
     """
     try:
         import nats
-        from nats.js.api import DeliverPolicy, AckPolicy
+        from nats.js.api import AckPolicy, DeliverPolicy
     except ImportError:
         logger.error("nats client not installed; cannot consume")
         return 0

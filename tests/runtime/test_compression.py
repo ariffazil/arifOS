@@ -50,13 +50,10 @@ decide what to keep.
 from __future__ import annotations
 
 import hashlib
-import json
-import os
 import pytest
 
 from arifosmcp.runtime.compression import (
     CompressionMode,
-    CompressionResult,
     MemoryTier,
     compress,
     decompress,

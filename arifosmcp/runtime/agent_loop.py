@@ -28,10 +28,10 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Callable, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from arifosmcp.schemas.kernel_envelope import (
     ActionClass,
@@ -65,7 +65,7 @@ class LoopState:
     actor_id: str = ""
     actor_verified: bool = False
     sovereign_id: str = "ARIF_FAZIL"
-    active_lease_id: Optional[str] = None
+    active_lease_id: str | None = None
     lease_scope: list[str] = field(default_factory=list)
     prior_state_hash: str = "sha256:0"
     tool_call_count: int = 0
@@ -142,7 +142,7 @@ def check_memory_access(
     action_class: ActionClass,
     *,
     has_lease: bool = False,
-    human_ack_id: Optional[str] = None,
+    human_ack_id: str | None = None,
     actor_verified: bool = False,
 ) -> tuple[bool, list[str]]:
     """Check whether memory access is allowed for given scopes and action class.
@@ -200,8 +200,8 @@ class GovernedAgentLoop:
         session_id: str = "",
         actor_id: str = "",
         actor_verified: bool = False,
-        lease_id: Optional[str] = None,
-        pre_execution_gate_fn: Optional[Callable] = None,
+        lease_id: str | None = None,
+        pre_execution_gate_fn: Callable | None = None,
     ):
         self.state = LoopState(
             session_id=session_id,
@@ -210,7 +210,7 @@ class GovernedAgentLoop:
             active_lease_id=lease_id,
         )
         self._pre_execution_gate = pre_execution_gate_fn or self._default_gate
-        self._last_envelope: Optional[KernelEnvelope] = None
+        self._last_envelope: KernelEnvelope | None = None
 
     # ═══════════════════════════════════════════════════════════════════
     # PRIMITIVES
@@ -224,9 +224,9 @@ class GovernedAgentLoop:
         input_data: Any = None,
         organ_id: str = "arifOS",
         organ_role: str = "constitutional_kernel",
-        model_id: Optional[str] = None,
+        model_id: str | None = None,
         memory_scopes: list[MemoryScope] | None = None,
-        human_ack_id: Optional[str] = None,
+        human_ack_id: str | None = None,
         secret_touching: bool = False,
     ) -> KernelEnvelope:
         """Build a KernelEnvelope for a new tool call."""
@@ -318,7 +318,7 @@ class GovernedAgentLoop:
         output_hash = StateBlock.compute_hash(output_data or "") if output_data else None
 
         event = AuditEvent(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             session_id=self.state.session_id,
             actor_id=self.state.actor_id,
             sovereign_id=self.state.sovereign_id,
@@ -349,11 +349,11 @@ class GovernedAgentLoop:
         tool_name: str,
         action_class: ActionClass,
         *,
-        tool_fn: Optional[Callable] = None,
+        tool_fn: Callable | None = None,
         input_data: Any = None,
-        model_id: Optional[str] = None,
+        model_id: str | None = None,
         memory_scopes: list[MemoryScope] | None = None,
-        human_ack_id: Optional[str] = None,
+        human_ack_id: str | None = None,
         organ_id: str = "arifOS",
     ) -> dict[str, Any]:
         """Execute a single governed tool call through the full loop.
@@ -553,7 +553,7 @@ def _self_check() -> bool:
         ActionClass.MUTATE,
         tool_fn=dummy_tool,
     )
-    assert not result2["allowed"], f"Mutation without lease should be blocked"
+    assert not result2["allowed"], "Mutation without lease should be blocked"
     assert result2["blocked_by"] == "pre_execution_gate"
 
     # 4. Grant lease, then mutation passes

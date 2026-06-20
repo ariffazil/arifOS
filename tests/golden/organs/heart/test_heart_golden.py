@@ -10,18 +10,13 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.tools.heart import (
-    HEART_PARADOX_ANCHORS,
-    _HEART_BY_CELL,
-    _HEART_BY_ID,
     _fractal_critique_stage,
     _fractal_stabilization_gain,
     _merge_fractal_results,
     _compute_critique_humility_penalty,
     _compute_omega_state,
-    _is_self_target,
     _inject_heart_paradox,
 )
 from arifosmcp.paradox.desensitization import check_desensitization, _clear_fire_log

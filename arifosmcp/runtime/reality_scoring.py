@@ -32,7 +32,6 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-
 # ═══════════════════════════════════════════════════════════════
 # SEVEN-ANCHOR SCORE
 # ═══════════════════════════════════════════════════════════════
@@ -96,7 +95,7 @@ class AnchoredScore:
                 return label
         return "unknown"
 
-    def degrade(self, reason: str, amount: float) -> "AnchoredScore":
+    def degrade(self, reason: str, amount: float) -> AnchoredScore:
         """Reality pushed back — lower the score with evidence."""
         return AnchoredScore(
             value=max(0.0, self.value - amount),
@@ -200,7 +199,7 @@ def probe_mcp_session_enforcement() -> tuple[bool, str]:
 
         # Session enforcement: missing session → 400 or error
         if status == 400:
-            return True, f"session_enforcement_400"
+            return True, "session_enforcement_400"
         err = data.get("error", {}).get("message", "")
         if "session" in err.lower():
             return True, "session_enforcement_active"

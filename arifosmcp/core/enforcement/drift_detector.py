@@ -17,7 +17,6 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Optional
 
 import yaml
 
@@ -42,7 +41,7 @@ class DriftReport:
     runtime_port: int = 0
     port_mismatch: bool = False
     checked_at: float = field(default_factory=time.time)
-    error: Optional[str] = None
+    error: str | None = None
 
     @property
     def has_drift(self) -> bool:

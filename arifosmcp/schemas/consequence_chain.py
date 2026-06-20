@@ -20,12 +20,11 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
-
 
 # ── Authority ────────────────────────────────────────────────────────
 
@@ -77,7 +76,7 @@ class ConsequenceFinding(BaseModel):
     )
     description: str = Field(..., description="Human-readable finding description")
     timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
+        default_factory=lambda: datetime.now(UTC)
     )
 
 
@@ -106,7 +105,7 @@ class ConsequenceProposal(BaseModel):
         description="local, organ, federation, external",
     )
     timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
+        default_factory=lambda: datetime.now(UTC)
     )
 
 
@@ -133,7 +132,7 @@ class ConsequenceApproval(BaseModel):
         description="Conditions for approval (e.g., 'log_to_vault', 'notify_888')",
     )
     timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
+        default_factory=lambda: datetime.now(UTC)
     )
 
 
@@ -159,7 +158,7 @@ class ConsequenceExecution(BaseModel):
         default="", description="Brief summary of execution output"
     )
     timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
+        default_factory=lambda: datetime.now(UTC)
     )
 
 
@@ -254,7 +253,7 @@ class ConsequenceChain(BaseModel):
 
     # Timing
     started_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
+        default_factory=lambda: datetime.now(UTC)
     )
     completed_at: datetime | None = None
 

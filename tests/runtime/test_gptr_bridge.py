@@ -12,7 +12,6 @@ from __future__ import annotations
 import asyncio
 import os
 import socket
-from unittest.mock import patch
 
 import pytest
 
@@ -86,7 +85,7 @@ class TestLiveQuickSearch:
         assert len(results) >= 5, f"expected >=5 results, got {len(results)}"
         # At least one result should mention Kuala Lumpur
         body_blob = " ".join(r.get("body", "") for r in results).lower()
-        assert "kuala lumpur" in body_blob, f"KL not in any result body"
+        assert "kuala lumpur" in body_blob, "KL not in any result body"
 
     def test_quick_search_returns_search_id(self):
         from arifosmcp.runtime.gptr_bridge import gptr_bridge

@@ -15,7 +15,11 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 Stage C — A-FORGE adapter wrapper
 """
 
-import sys, re, json, os, argparse
+import sys
+import re
+import json
+import os
+import argparse
 from pathlib import Path
 
 SOCK_PATH = os.environ.get("ARIFOS_SOCK", "/run/arifos.sock")
@@ -106,7 +110,7 @@ def print_banner(tier: str, verdict: str, rationale: str, intent: str, command: 
     except Exception:
         pass
     print(sep)
-    print(f"arifOS Constitutional Kernel — arif_run")
+    print("arifOS Constitutional Kernel — arif_run")
     print(sep)
     print(f"  Intent:   {intent}")
     print(f"  Command:  {command}")
@@ -130,7 +134,7 @@ def print_banner(tier: str, verdict: str, rationale: str, intent: str, command: 
     print(sep)
 
     # Emit structured metadata for pipeline
-    print(f"\n# arif_run metadata:")
+    print("\n# arif_run metadata:")
     print(f"# __ARIF_VERDICT__={verdict}")
     print(f"# __ARIF_TIER__={tier}")
     print(f"# __ARIF_RATIONALE__={rationale}")
@@ -140,7 +144,8 @@ def print_banner(tier: str, verdict: str, rationale: str, intent: str, command: 
 
 def execute(command: str) -> dict:
     """Execute command via subprocess. Returns result dict."""
-    import subprocess, time
+    import subprocess
+    import time
     start = time.time()
     try:
         result = subprocess.run(
@@ -194,7 +199,7 @@ def main():
     print_banner(tier, verdict, rationale, intent, cmd)
 
     if verdict == "HOLD":
-        print(f"\n# COMMAND BLOCKED — exit 1")
+        print("\n# COMMAND BLOCKED — exit 1")
         sys.exit(1)
 
     if verdict == "CAUTION":
@@ -218,7 +223,7 @@ def main():
         except Exception:
             pass
 
-        print(f"\n# CAUTION mode — executing with monitoring")
+        print("\n# CAUTION mode — executing with monitoring")
         print(f"# Exit code: {result['exit_code']}")
         if result["stderr"]:
             print(f"# stderr: {result['stderr'][:200]}")

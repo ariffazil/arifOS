@@ -40,8 +40,8 @@ from .jurisdiction import register_jurisdiction
 from .memory import register_memory
 from .runner import register_runner_resources
 from .schema import register_schema
-from .sovereign import register_sovereign_resources
 from .seal_readiness import register_seal_readiness
+from .sovereign import register_sovereign_resources
 from .tree777 import register_tree777_resources
 from .trinity import register_trinity
 from .vitals import register_vitals

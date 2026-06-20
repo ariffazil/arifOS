@@ -40,6 +40,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from arifosmcp.paradox import build_organ_anchors, register_organ
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.memory_store import (
     audit_governance,
@@ -64,7 +65,6 @@ from arifosmcp.runtime.memory_store import (
     store as legacy_store,
 )
 from arifosmcp.runtime.tools import _hold, _ok
-from arifosmcp.paradox import register_organ, build_organ_anchors
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SABAR COOLDOWN ANNOTATION

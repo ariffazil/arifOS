@@ -16,7 +16,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import os
 import pytest
 from datetime import datetime, UTC, timedelta
 
@@ -57,7 +56,7 @@ class TestMINDState:
 
     def test_mark_step_success(self):
         """Mark a step as completed successfully."""
-        from arifosmcp.runtime.mind_state import create_mind_state, StepStatus, FeedbackSignal
+        from arifosmcp.runtime.mind_state import create_mind_state, StepStatus
 
         state = create_mind_state("test")
         state.add_step("do thing")
@@ -494,7 +493,6 @@ class TestMindFeedbackHook:
         importlib.reload(hook)
 
         # The original function should still be the original
-        from arifosmcp.runtime.mind_reason import arif_mind_reason_v2
         # Can't easily test this without mocking, but the import should not
         # have replaced the function. We test that the hook exists at least.
         assert hasattr(hook, 'mind_reason_with_feedback')

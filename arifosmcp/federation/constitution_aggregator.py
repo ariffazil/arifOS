@@ -29,7 +29,6 @@ from arifosmcp.federation.organ_constitution import (
     OrganConstitution,
     Tier,
     list_known_organs,
-    load_organ_constitution,
 )
 from arifosmcp.federation.promotion_gates import (
     aggregate_tier,
@@ -139,8 +138,9 @@ def _organ_health_probe(organ_id: str) -> tuple[dict[str, Any], int]:
 def _call_organ_health_sync(organ_id: str) -> dict[str, Any]:
     """Synchronous fallback — call the bridge module's function directly."""
     try:
-        from arifosmcp.runtime.organ_attestation import _ORGAN_CONFIG
         import inspect
+
+        from arifosmcp.runtime.organ_attestation import _ORGAN_CONFIG
 
         cfg = _ORGAN_CONFIG[organ_id]
         mod = __import__(cfg["health_module"], fromlist=[cfg["health_fn"]])
@@ -158,8 +158,9 @@ def _call_organ_health_sync(organ_id: str) -> dict[str, Any]:
 def _list_organ_tools_sync(organ_id: str) -> list[dict[str, Any]]:
     """Synchronous fallback — list the organ's tool surface."""
     try:
-        from arifosmcp.runtime.organ_attestation import _ORGAN_CONFIG
         import inspect
+
+        from arifosmcp.runtime.organ_attestation import _ORGAN_CONFIG
 
         cfg = _ORGAN_CONFIG[organ_id]
         list_fn = cfg.get("list_fn")

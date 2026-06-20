@@ -32,13 +32,13 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from arifosmcp.anomaly.scorer import AnomalyScorer, get_scorer
 from arifosmcp.anomaly.schemas import (
     E7AutonomyEvent,
     FeedbackSignalEvent,
     GateVerdictEvent,
     GradientSignalEvent,
 )
+from arifosmcp.anomaly.scorer import AnomalyScorer, get_scorer
 
 logger = logging.getLogger("arifosmcp.anomaly.nats_subscriber")
 
@@ -181,7 +181,7 @@ class AnomalyNATSSubscriber:
         data = json.loads(msg.data.decode())
         try:
             event = GateVerdictEvent(**data)
-        except Exception as e:
+        except Exception:
             # Try legacy format mapping
             event = GateVerdictEvent(
                 gate=data.get("gate", ""),

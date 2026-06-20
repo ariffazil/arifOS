@@ -31,11 +31,11 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
+from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Any, Callable, Optional
+from typing import Any
 
 logger = logging.getLogger("arifosmcp.mesh_subscriber")
 
@@ -75,9 +75,9 @@ class MeshSubscriber:
         await subscriber.disconnect()
     """
 
-    _instance: dict[str, "MeshSubscriber"] = {}
+    _instance: dict[str, MeshSubscriber] = {}
 
-    def __new__(cls, organ_id: str) -> "MeshSubscriber":
+    def __new__(cls, organ_id: str) -> MeshSubscriber:
         if organ_id not in cls._instance:
             cls._instance[organ_id] = super().__new__(cls)
             cls._instance[organ_id]._initialized = False

@@ -32,15 +32,12 @@ from typing import Any
 
 from mcp_visibility_policy import (
     OrganHealth,
-    Tier,
     ToolEntry,
-    VisibilityPolicy,
     build_policy_from_registry,
     filter_visible_tools,
     load_registry,
 )
-from organ_health_gate import get_diagnostic_shortlist, get_organ_health
-
+from organ_health_gate import get_organ_health
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Intent → organ routing

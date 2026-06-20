@@ -17,7 +17,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.schemas.forge import ForgeErrorCode
 from arifosmcp.tools.forge import arif_forge_execute

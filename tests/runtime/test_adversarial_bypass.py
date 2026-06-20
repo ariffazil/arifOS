@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import uuid
 
-import pytest
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Bypass category 1: Empty / null / forged session_id

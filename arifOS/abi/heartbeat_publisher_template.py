@@ -24,7 +24,6 @@ import json
 import logging
 import signal
 import sys
-import time
 from datetime import UTC, datetime
 
 logging.basicConfig(

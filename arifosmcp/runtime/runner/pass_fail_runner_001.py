@@ -25,10 +25,9 @@ import json
 import sys
 import uuid
 
-from arifosmcp.runtime.runner.runner_001 import Runner001
 from arifosmcp.runtime.context_engine.prepare_context import Segment, SegmentType
+from arifosmcp.runtime.runner.runner_001 import Runner001
 from arifosmcp.runtime.token_pressure import get_session_singleton
-
 
 CRITICAL_PHRASE = "ARIF_RETAINS_FINAL_AUTHORITY_999"
 

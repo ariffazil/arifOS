@@ -12,22 +12,22 @@ from __future__ import annotations
 
 # Re-export everything from the canonical module
 from core.physics.institutional_evolution import (
-    # Exception types
-    SuccessionError,
-    InstitutionalEvolutionError,
-    AttentionBudgetExceededError,
-    PopulationAbsorptionError,
-    SuccessionContinuityError,
     AIAdaptationRateExceededError,
+    AttentionBudgetExceededError,
     ConstitutionalRejectionError,
-    # Function API
-    check_human_attention_budget,
-    check_institutional_succession,
-    check_ai_adaptation_rate,
-    check_population_absorption,
-    check_institutional_evolution,
+    InstitutionalEvolutionError,
     # Guard class
     InstitutionalEvolutionGuard,
+    PopulationAbsorptionError,
+    SuccessionContinuityError,
+    # Exception types
+    SuccessionError,
+    check_ai_adaptation_rate,
+    # Function API
+    check_human_attention_budget,
+    check_institutional_evolution,
+    check_institutional_succession,
+    check_population_absorption,
 )
 
 __all__ = [

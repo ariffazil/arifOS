@@ -194,9 +194,6 @@ def build_canonical_claims(
     # Claim 5: Contract schemas are importable
     def _claim_contracts_importable() -> bool:
         try:
-            from contracts.identity import SignedIdentity, IdentityContext, AuthorityTier
-            from contracts.budget_enforcement import BudgetDomain, BudgetLimit
-            from contracts.gateway_discovery import DiscoveryMode, GatewayAction
 
             return True
         except Exception:

@@ -10,15 +10,15 @@ The 13 canonical arifOS tools should use this when invoked.
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from contextlib import contextmanager
 from functools import wraps
-from typing import Any, Callable, Optional
+from typing import Any
 
 from .arifos_observability.otel_tracer import OTelTracer, init_tracer
 
-
 # Module-level tracer (initialized lazily)
-_tracer: Optional[OTelTracer] = None
+_tracer: OTelTracer | None = None
 
 
 def get_tracer() -> OTelTracer:
@@ -31,7 +31,7 @@ def get_tracer() -> OTelTracer:
 
 
 @contextmanager
-def tool_span(tool_name: str, attributes: Optional[dict[str, Any]] = None):
+def tool_span(tool_name: str, attributes: dict[str, Any] | None = None):
     """
     Context manager for tracing a tool call.
 
@@ -51,7 +51,7 @@ def tool_span(tool_name: str, attributes: Optional[dict[str, Any]] = None):
         yield
 
 
-def trace_tool(tool_name: Optional[str] = None):
+def trace_tool(tool_name: str | None = None):
     """
     Decorator: wrap a tool function in an OTel span.
 

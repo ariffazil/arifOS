@@ -111,8 +111,8 @@ from mcp import McpError
 from pydantic import BaseModel, Field
 
 from arifosmcp.constitutional_map import (
-    CANONICAL_TOOLS,
     CANONICAL_OUTPUT_SCHEMA,
+    CANONICAL_TOOLS,
     STAGE_PROGRESSION,
     validate_tool_response_schema,
 )
@@ -120,6 +120,7 @@ from arifosmcp.core.physics.thermodynamics_hardened import init_thermodynamic_bu
 from arifosmcp.core.threat_engine import ThreatTier
 from arifosmcp.evidence.store import EvidenceStore, get_evidence_store
 from arifosmcp.runtime.law import check_laws
+from arifosmcp.schemas.federation_envelope import FederationEnvelope
 from arifosmcp.schemas.forge import (
     ConstitutionalCompliance,
     DeltaSEvidence,
@@ -143,7 +144,6 @@ from arifosmcp.schemas.synthesis import (
     ReasoningStep,
     ReasoningTrace,
 )
-from arifosmcp.schemas.federation_envelope import FederationEnvelope
 from arifosmcp.schemas.verdict import (
     AmanahProof,
     EntropyDelta,
@@ -1187,7 +1187,7 @@ def _enforce_nine_signal(
         if inner_final in ("HOLD", "FAIL", "VOID", "SABAR"):
             degradation.append(f"inner final_verdict={inner_final}")
         if inner_truth == "FAIL":
-            degradation.append(f"inner truth_verdict=FAIL")
+            degradation.append("inner truth_verdict=FAIL")
         if inner_reasoning in ("HOLD", "FAIL"):
             degradation.append(f"inner reasoning_verdict={inner_reasoning}")
         if inner_status in ("HOLD", "FAIL", "SABAR"):
@@ -13105,7 +13105,8 @@ def _arif_forge_execute(
 
     # ── AMANAH Awareness — HARAM/HOLD pattern scan (informational, not blocking) ──
     #    Agents must know halal/haram. This informs; the agent chooses.
-    from arifosmcp.abi.amanah_gate import scan as _amanah_scan, Verdict as _AmanahVerdict
+    from arifosmcp.abi.amanah_gate import Verdict as _AmanahVerdict
+    from arifosmcp.abi.amanah_gate import scan as _amanah_scan
 
     _amanah_v, _amanah_d, _amanah_c = _amanah_scan(manifest or "")
     _amanah_awareness = None
@@ -14651,7 +14652,6 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_forge_execute": _arif_forge_execute_tool,
 }
 
-import re as _re
 _LEGACY_CANONICAL = 13
 _RULE14_CANONICAL_ALLOWANCE = 6  # arif_route, arif_triage, arif_kernel_status, arif_bridge, arif_kernel_attest, arif_kernel_health
 _MAX_CANONICAL = _LEGACY_CANONICAL + _RULE14_CANONICAL_ALLOWANCE
@@ -14668,7 +14668,7 @@ _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
 
 # Shadow Geometry Tools
 try:
-    from arifosmcp.tools.shadow_geometry import arif_self_evaluate, arif_model_compare
+    from arifosmcp.tools.shadow_geometry import arif_model_compare, arif_self_evaluate
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_self_evaluate"] = arif_self_evaluate
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_model_compare"] = arif_model_compare
 except ImportError:
@@ -14685,12 +14685,22 @@ except ImportError as _e:
 # RULE 14 canonical handlers (newly registered, 2026-06-20)
 try:
     from arifosmcp.tools.kernel_canonical import (
-        arif_route as _arif_route_tool,
-        arif_triage as _arif_triage_tool,
-        arif_kernel_status as _arif_kernel_status_tool,
         arif_bridge as _arif_bridge_tool,
+    )
+    from arifosmcp.tools.kernel_canonical import (
         arif_kernel_attest as _arif_kernel_attest_tool,
+    )
+    from arifosmcp.tools.kernel_canonical import (
         arif_kernel_health as _arif_kernel_health_tool,
+    )
+    from arifosmcp.tools.kernel_canonical import (
+        arif_kernel_status as _arif_kernel_status_tool,
+    )
+    from arifosmcp.tools.kernel_canonical import (
+        arif_route as _arif_route_tool,
+    )
+    from arifosmcp.tools.kernel_canonical import (
+        arif_triage as _arif_triage_tool,
     )
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_route"] = _arif_route_tool
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_triage"] = _arif_triage_tool
@@ -15366,8 +15376,8 @@ def register_tools(
     ingress_middleware: Any | None = None,
 ) -> list[str]:
     """Register the active canonical public surface with the MCP server."""
+    from arifosmcp.constitutional_map import _TOOL_ANNOTATIONS, CANONICAL_TOOLS, DIAGNOSTIC_TOOLS
     from arifosmcp.core.enforcement.risk_classifier import classify_tool
-    from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS, _TOOL_ANNOTATIONS
     from arifosmcp.runtime.public_registry import public_tool_spec_by_name
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
     from arifosmcp.tool_charter import TOOL_CHARTER

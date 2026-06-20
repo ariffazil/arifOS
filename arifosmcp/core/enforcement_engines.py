@@ -23,7 +23,6 @@ from typing import Any
 
 from arifosmcp.schemas.consequence_chain import (
     ConsequenceChain,
-    RiskClassification,
     SubstrateContext,
     auto_classify_risk,
     create_chain,

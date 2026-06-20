@@ -37,15 +37,16 @@ import asyncio
 import threading
 from typing import Any
 
+from arifosmcp.paradox import (
+    build_organ_anchors,
+    inject_paradox_anchor,
+    register_organ,
+)
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.llm_client import LLMUnavailableError
 from arifosmcp.runtime.mind_router import build_routing_envelope
 from arifosmcp.runtime.tools import _hold, _ok
 from arifosmcp.schemas.synthesis import Synthesis
-from arifosmcp.paradox import (
-    register_organ, build_organ_anchors, get_registry,
-    inject_paradox_anchor, check_desensitization,
-)
 
 
 def _reduce_verdict(*verdicts: str) -> str:

@@ -46,29 +46,14 @@ from __future__ import annotations
 
 import logging
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
 from arifosmcp.geometry.sovereign_proximity import (
     ProximityBand,
     band_of,
-    compute_sovereign_proximity,
-    ProximityInputs,
 )
-from arifosmcp.geometry.mind_geometry import (
-    GeometryVerdict_,
-    GeometryVerdict,
-    fuse_axioms,
-    DEFAULT_TORUS,
-)
-from arifosmcp.geometry.mind_axioms import (
-    AxiomResult,
-    AxiomVerdict,
-    run_all_axioms,
-    is_hole_territory,
-)
-from arifosmcp.geometry.mind_schema import OrthogonalAxes
 
 logger = logging.getLogger(__name__)
 
@@ -435,11 +420,9 @@ def geometry_available() -> bool:
     boundary-aware compression or fall back to uniform thresholds.
     """
     try:
-        from arifosmcp.geometry.mind_geometry import DEFAULT_TORUS, fuse_axioms  # noqa: F811
-        from arifosmcp.geometry.mind_axioms import run_all_axioms  # noqa: F811
         from arifosmcp.geometry.sovereign_proximity import (
-            compute_sovereign_proximity,  # noqa: F811
             ProximityInputs,  # noqa: F811
+            compute_sovereign_proximity,  # noqa: F811
         )
 
         # Quick health: can we construct a valid proximity input?

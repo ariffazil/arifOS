@@ -1,4 +1,3 @@
-import pytest
 
 def test_f4_alignment():
     """

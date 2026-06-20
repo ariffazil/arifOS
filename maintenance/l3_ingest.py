@@ -157,7 +157,7 @@ def ingest(
     """Main ingestion loop. Returns summary dict."""
     t0 = time.time()
 
-    print(f"═══ L3 INGEST START ═══", file=sys.stderr)
+    print("═══ L3 INGEST START ═══", file=sys.stderr)
     print(f"  Vault:    {VAULT999_PATH}", file=sys.stderr)
     print(f"  Qdrant:   {QDRANT_URL}/{QDRANT_COLLECTION}", file=sys.stderr)
     print(f"  Embed:    {EMBED_MODEL} @ {OLLAMA_URL}", file=sys.stderr)
@@ -253,7 +253,7 @@ def ingest(
         "vectors_per_second": round(processed / elapsed, 1) if elapsed > 0 else 0,
     }
 
-    print(f"═══ L3 INGEST DONE ═══", file=sys.stderr)
+    print("═══ L3 INGEST DONE ═══", file=sys.stderr)
     print(f"  Processed: {processed}", file=sys.stderr)
     print(f"  Skipped:   {skipped}", file=sys.stderr)
     print(f"  Failed:    {failed}", file=sys.stderr)

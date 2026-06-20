@@ -37,11 +37,10 @@ from typing import Any
 
 from arifosmcp.runtime.adat_registry import (
     ADAT_REGISTRY,
-    AdatViolation,
     WARGA_TIERS,
+    AdatViolation,
 )
-from arifosmcp.runtime.malu_score import MaluScore, MALU_TIERS, get_malu_score
-
+from arifosmcp.runtime.malu_score import MaluScore, get_malu_score
 
 # ── Tier order (BIRTH=0 ... DEREGISTERED=4) ────────────────────────────
 TIER_ORDER = {tier: idx for idx, tier in enumerate(WARGA_TIERS)}

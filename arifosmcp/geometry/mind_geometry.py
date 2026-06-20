@@ -31,24 +31,22 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from arifosmcp.geometry.mind_axioms import (
+    HOLE_TERRITORY,
     Axiom,
     AxiomResult,
     AxiomVerdict,
-    HOLE_TERRITORY,
     is_hole_territory,
     run_all_axioms,
 )
 from arifosmcp.geometry.mind_schema import (
     FORBIDDEN_CENTER,
-    ForbiddenCenterEntry,
+    ActionAffordance,
     GeometryBlock,
-    GeometryEnvelope,
     GeometryVerdict,
     ManifoldType,
     OrthogonalAxes,
-    TensionType,
     TensionEntry,
-    ActionAffordance,
+    TensionType,
     TrajectoryDelta,
 )
 from arifosmcp.geometry.sovereign_proximity import (
@@ -57,7 +55,6 @@ from arifosmcp.geometry.sovereign_proximity import (
     compute_sovereign_proximity,
     explain_proximity,
 )
-
 
 # ── Decision Torus ───────────────────────────────────────────────────────────
 

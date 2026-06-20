@@ -4,7 +4,6 @@ AutoGen Adapter for arifOS Constitutional Kernel
 Acts as a middleware/wrapper for AutoGen agents.
 Enforces arifOS lease, 888 judge deliberation, and VAULT999 seals.
 """
-from typing import Dict, Any
 
 class ArifOSAutoGenWrapper:
     def __init__(self, agent):

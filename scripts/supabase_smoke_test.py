@@ -216,7 +216,7 @@ async def main():
         )
         len(rows) > 0
         len(rows) > 0
-        print(f"\n  aaa.recent_seals (last 3):")
+        print("\n  aaa.recent_seals (last 3):")
         for r in rows:
             print(
                 f"    {r['seal_id']} | {r['verdict']} | organ={r['organ_code']} | {r['subject_type']}"
@@ -227,7 +227,7 @@ async def main():
             "SELECT seal_id, previous_hash, content_hash FROM s999.vault999_ledger "
             "ORDER BY created_at DESC LIMIT 3"
         )
-        print(f"\n  vault999_ledger chain (last 3):")
+        print("\n  vault999_ledger chain (last 3):")
         for r in chain_rows:
             ph = r["previous_hash"][:8] if r["previous_hash"] else "GENESIS"
             ch = r["content_hash"][:8]
@@ -242,7 +242,7 @@ async def main():
         )
         print(f"\n  tool_call:     {tc_row['tool_name']} | {tc_row['status']}  ✓")
         print(f"  approval:       {ap_row['status']}  ✓")
-        print(f"  judge_verdict: ✓ (inserted in same txn)")
+        print("  judge_verdict: ✓ (inserted in same txn)")
 
     await pool.close()
 

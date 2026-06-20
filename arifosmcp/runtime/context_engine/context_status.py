@@ -34,23 +34,21 @@ import os
 import threading
 from typing import Any
 
+from arifosmcp.runtime.context_audit import (
+    POLICY_VERSION as AUDIT_POLICY_VERSION,
+)
+from arifosmcp.runtime.context_audit import (
+    AuditMode,
+    audit_trace,
+)
+from arifosmcp.runtime.context_engine.eureka import (
+    EUREKA_POLICY_VERSION,
+)
 from arifosmcp.runtime.token_pressure import (
     PressureBand,
     classify_pressure,
     get_model_window,
     get_session_singleton,
-)
-from arifosmcp.runtime.context_audit import (
-    POLICY_VERSION as AUDIT_POLICY_VERSION,
-    AuditMode,
-    EventType,
-    RiskClass,
-    audit_classify,
-    audit_trace,
-)
-from arifosmcp.runtime.context_engine.eureka import (
-    EUREKA_POLICY_VERSION,
-    empty_context_packet,
 )
 
 logger = logging.getLogger(__name__)

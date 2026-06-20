@@ -35,7 +35,6 @@ from arifosmcp.runtime.context_runner_bridge import (
     BRIDGE_SOURCE_OF_TRUTH,
     _self_check,
     cache_get,
-    cache_size,
     context_runner_dispatch,
     resource_policy,
     resource_receipt,

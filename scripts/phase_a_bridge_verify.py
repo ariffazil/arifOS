@@ -183,7 +183,7 @@ def main() -> int:
         # L13 halt or similar — error is expected if kernel guards against this intent
         print(f"\n[!] tools/call returned error (may be F1 AMANAH gate): {seal_resp.get('error', {})}")
     elif "result" in seal_resp:
-        print(f"\n[✓] tools/call returned result — bridge works end-to-end")
+        print("\n[✓] tools/call returned result — bridge works end-to-end")
 
     print("\n" + "=" * 70)
     print("VERDICT: Phase A bridge helper proven")

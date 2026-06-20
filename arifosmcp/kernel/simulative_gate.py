@@ -31,7 +31,7 @@ DITEMPA BUKAN DIBERI — ask the question, don't impose the answer.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
@@ -116,10 +116,10 @@ class SimulativeGate:
             else:
                 verdict = SimulativeVerdict.PERFORMING
                 question = (
-                    "F8 ADVISORY: High simulative drift detected (index={:.2f}). "
+                    f"F8 ADVISORY: High simulative drift detected (index={sim_index:.2f}). "
                     "Are you describing reality or performing a simulation? "
                     "This is not a block. This is a question. Answer honestly."
-                ).format(sim_index)
+                )
                 malu_delta = self.MALU_PERFORMING
 
         except Exception as e:

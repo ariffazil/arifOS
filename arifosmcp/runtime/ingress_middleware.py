@@ -251,9 +251,10 @@ async def _write_harness_telemetry_in_thread(
             if pilot_src not in sys.path:
                 sys.path.append(pilot_src)
             
-            from sqlmodel import Session, create_engine
+            from datetime import datetime
+
             from harness_telemetry import HarnessTelemetry
-            from datetime import datetime, timezone
+            from sqlmodel import Session, create_engine
             
             model_psi = tool_name
             try:
@@ -292,7 +293,7 @@ async def _write_harness_telemetry_in_thread(
                 token_usage_total=0,
                 execution_latency_ms=float(elapsed_ms),
                 epsilon_variance=1e-6,
-                timestamp=datetime.now(timezone.utc)
+                timestamp=datetime.now(UTC)
             )
             telemetry.model_validate(telemetry.model_dump())
             

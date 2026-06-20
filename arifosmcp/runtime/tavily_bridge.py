@@ -22,8 +22,8 @@ import logging
 import os
 from typing import Any
 
-from core.shared.laws import get_law_threshold
 import httpx
+from core.shared.laws import get_law_threshold
 
 logger = logging.getLogger(__name__)
 

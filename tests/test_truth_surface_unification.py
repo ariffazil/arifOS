@@ -13,7 +13,6 @@ Introduced: 2026-06-20 Phase 1 truth unification.
 """
 
 import os
-import sys
 
 import pytest
 

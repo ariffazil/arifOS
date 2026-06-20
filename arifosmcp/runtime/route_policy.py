@@ -15,7 +15,6 @@ DITEMPA BUKAN DIBERI — Routing is deterministic, not vibes.
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import time
 from dataclasses import dataclass, field
@@ -118,7 +117,7 @@ class RouteDecision:
     target_tools: list[str]          # Tools to use for this query
     constraints: dict[str, Any]      # Additional constraints for tool calls
     auth_context: dict[str, Any]     # Identity + entitlement propagation
-    audit: "RouteAuditEntry"         # Full audit trail
+    audit: RouteAuditEntry         # Full audit trail
 
 
 # ── Policy Config ──────────────────────────────────────────────────────────

@@ -15,7 +15,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.runtime.governance_pipeline import (
     GovernancePipeline,
@@ -25,15 +24,12 @@ from arifosmcp.runtime.governance_pipeline import (
 )
 from arifosmcp.runtime.principal_paradox import (
     evaluate_autonomy_ceiling,
-    gate_1_5_principal_paradox,
     AutonomyTier,
     GateVerdict,
     MAX_OVERRIDES_PER_HOUR,
 )
 from arifosmcp.runtime.tool_risk_registry import (
     classify_tool,
-    ToolRiskProfile,
-    TOOL_RISK_REGISTRY,
 )
 
 

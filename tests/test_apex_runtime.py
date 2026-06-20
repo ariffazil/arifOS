@@ -181,7 +181,7 @@ def test_law1_mechanical_bounding(result: AuditResult):
     found_tier3 = set(tier3_instruments) & required_tier3
 
     if found_tier3 == required_tier3:
-        result.pass_test(f"TIER_3 gate: all 3 core tools gated")
+        result.pass_test("TIER_3 gate: all 3 core tools gated")
     elif found_tier3:
         result.warn_test(f"TIER_3 gate: partial — {found_tier3} found")
     else:
@@ -282,7 +282,7 @@ def test_law2_godel_lock(result: AuditResult):
         if "justification" in props and "verdict" in props:
             result.pass_test("Verdict contract: verdict + justification are required fields")
         else:
-            result.fail_test(f"Verdict contract: missing verdict or justification field")
+            result.fail_test("Verdict contract: missing verdict or justification field")
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -448,7 +448,7 @@ def test_organ_separation_of_powers(result: AuditResult):
     routing_servers = set(routing.get("servers", {}).keys())
     required_organs = {"arifOS", "WEALTH", "GEOX", "WELL"}
     if required_organs <= routing_servers:
-        result.pass_test(f"Routing: covers all 4 intelligence organs")
+        result.pass_test("Routing: covers all 4 intelligence organs")
     else:
         result.fail_test(f"Routing: missing {required_organs - routing_servers}")
 
@@ -599,7 +599,7 @@ def test_trust_thermodynamics(result: AuditResult):
             "JOURNAL_RECEIPT",
         }
         if required_rt <= rt:
-            result.pass_test(f"Receipt types: all 5 defined")
+            result.pass_test("Receipt types: all 5 defined")
         else:
             result.fail_test(f"Receipt types: missing {required_rt - rt}")
     else:
@@ -629,7 +629,7 @@ def test_routing_orthogonality(result: AuditResult):
     organs_in_map = {e.get("organ") for e in ksm if isinstance(e, dict)}
     required_organs = {"arifOS", "WEALTH", "GEOX", "WELL"}
     if required_organs <= organs_in_map:
-        result.pass_test(f"Keyword substrate map: all 4 organs present")
+        result.pass_test("Keyword substrate map: all 4 organs present")
     else:
         result.fail_test(f"Keyword map: missing {required_organs - organs_in_map}")
 

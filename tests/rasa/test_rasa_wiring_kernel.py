@@ -15,26 +15,21 @@ from __future__ import annotations
 
 import asyncio
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
 
 from arifosmcp.rasa.rasa_contract import RasaContract
 from arifosmcp.rasa.rasa_integration import (
     rasa_check_floors,
     rasa_heart_hook,
     rasa_judge_hook,
-    rasa_mind_hook,
     rasa_sense_hook,
 )
 from arifosmcp.rasa.rasa_schemas import (
     ConstitutionPosture,
     RasaDetection,
     RasaEmotionTag,
-    RasaHeartVerdict,
     RasaIntensity,
-    RasaJudgeVerdict,
-    RasaMemoryPattern,
     RasaRiskBand,
 )
 from arifosmcp.rasa.rasa_wiring_config import (

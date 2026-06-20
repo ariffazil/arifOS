@@ -52,23 +52,20 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any
 
-from arifosmcp.runtime.mind_state import (
-    MINDState,
-    ReasoningStep,
-    StepStatus,
-    EpistemicTag,
-    FeedbackSignal,
-    can_continue,
-    create_mind_state,
-)
 from arifosmcp.runtime.feedback_loop import (
     FeedbackLoop,
-    NoOpGraphWriter,
     NoOpGraphReader,
+    NoOpGraphWriter,
     create_feedback_loop,
+)
+from arifosmcp.runtime.mind_state import (
+    EpistemicTag,
+    FeedbackSignal,
+    MINDState,
+    create_mind_state,
 )
 
 logger = logging.getLogger(__name__)
@@ -267,8 +264,9 @@ class MindFeedbackTracker:
 
         # Write to Qdrant via memory_store
         try:
-            from arifosmcp.runtime.memory_store import store
             import asyncio
+
+            from arifosmcp.runtime.memory_store import store
             checkpoint_data = {
                 "type": "mind_checkpoint",
                 "tier": _CHECKPOINT_TIER,

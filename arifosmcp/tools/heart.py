@@ -47,11 +47,12 @@ import os
 from pathlib import Path
 from typing import Any
 
-from arifosmcp.runtime.llm_client import LLMUnavailableError, call_llm
 from arifosmcp.paradox import (
-    register_organ, build_organ_anchors, get_registry,
-    inject_paradox_anchor, check_desensitization,
+    build_organ_anchors,
+    inject_paradox_anchor,
+    register_organ,
 )
+from arifosmcp.runtime.llm_client import LLMUnavailableError, call_llm
 
 _VAULT999_PATH = Path(
     os.getenv(

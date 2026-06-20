@@ -32,10 +32,9 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import os
-from typing import Any, Callable
+from typing import Any
 
 import httpx
 
@@ -60,10 +59,12 @@ GEOX_BASE = f"http://{GEOX_HOST}:{GEOX_PORT}"
 # ── NATS Mesh availability ──────────────────────────────────────────────────
 try:
     from arifosmcp.runtime.nats_event_bus import (
-        event_bus as _nats,
-        wire_cross_organ_feedback,
-        publish_constitutional_gradient,
         FEDERATION_ORGANS,
+        publish_constitutional_gradient,
+        wire_cross_organ_feedback,
+    )
+    from arifosmcp.runtime.nats_event_bus import (
+        event_bus as _nats,
     )
 
     _NATS_MESH_AVAILABLE = True

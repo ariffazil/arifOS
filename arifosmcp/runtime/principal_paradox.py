@@ -586,7 +586,7 @@ def build_000_autonomy_surface(session_id: str = "") -> dict[str, Any]:
         "hold_conditions": [
             "F13 non-delegable gate triggered (E5)",
             "E7 autonomy ceiling exceeded",
-            f"Blast radius >= FEDERATION without principal approval",
+            "Blast radius >= FEDERATION without principal approval",
             f"Reversibility < {REVERSIBILITY_HARD_FLOOR} without explicit principal approval",
             "No active authority lease",
             f"Override surge: >{MAX_OVERRIDES_PER_HOUR} per hour",

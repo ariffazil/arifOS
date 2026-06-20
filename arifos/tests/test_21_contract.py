@@ -27,21 +27,15 @@ from arifos import (
     ArifSealMissing,
     CognitionLane,
     Decision,
-    FloorVerdict,
     Kernel,
-    RiskEnvelope,
-    check_f1_reversibility,
-    check_f2_truth,
-    check_f7_humility,
     check_f11_audit,
-    check_f13_sovereign,
     posttool,
     prethink,
     pretool,
     seal,
 )
 from arifos.intent import Intent
-from arifos.risk import BlastRadius, Reversibility
+from arifos.risk import BlastRadius
 
 
 # ─────────────────────────────────────────────────────────────────────────────

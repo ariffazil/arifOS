@@ -17,14 +17,11 @@ Architecture:
 
 from __future__ import annotations
 
-import asyncio
-import hashlib
 import json
 import logging
-import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -32,7 +29,7 @@ logger = logging.getLogger("arifos.federation.registry")
 
 # ─── Organ Map ─────────────────────────────────────────────────────────────
 
-FEDERATION_ORGANS: Dict[str, Dict[str, Any]] = {
+FEDERATION_ORGANS: dict[str, dict[str, Any]] = {
     "arifos": {
         "port": 8088,
         "role": "Constitutional kernel — F1-F13 floors, 888 JUDGE, routing, memory",
@@ -90,7 +87,7 @@ class ToolEntry:
         organ: str,
         tool_name: str,
         description: str = "",
-        parameters: Optional[List[Dict]] = None,
+        parameters: list[dict] | None = None,
         mode: str = "canonical",
         lifecycle: str = "active",
         source_class: str = "canonical",
@@ -99,7 +96,7 @@ class ToolEntry:
         hold_risk: str = "none",
         schema_version: str = "1.0.0",
         example_query: str = "",
-        last_verified_utc: Optional[str] = None,
+        last_verified_utc: str | None = None,
         health: str = "unknown",
     ):
         self.organ = organ
@@ -109,7 +106,7 @@ class ToolEntry:
         )
         self.description = description
         self.parameters = parameters or []
-        self._param_names: List[str] = []
+        self._param_names: list[str] = []
         for p in self.parameters:
             if isinstance(p, dict):
                 self._param_names.append(p.get("name", ""))
@@ -123,10 +120,10 @@ class ToolEntry:
         self.hold_risk = hold_risk
         self.schema_version = schema_version
         self.example_query = example_query
-        self.last_verified_utc: Optional[str] = None
+        self.last_verified_utc: str | None = None
         self.health: str = "unknown"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "organ": self.organ,
             "tool_name": self.tool_name,
@@ -164,18 +161,18 @@ class FederationRegistry:
 
     def __init__(self, cache_path: str = "/opt/arifos/app/registry/federation_registry.json"):
         self.cache_path = Path(cache_path)
-        self.tools: List[ToolEntry] = []
-        self.prompts: List[Dict] = []
-        self.resources: List[Dict] = []
-        self.organ_health: Dict[str, Dict] = {}
-        self.built_at_utc: Optional[str] = None
+        self.tools: list[ToolEntry] = []
+        self.prompts: list[dict] = []
+        self.resources: list[dict] = []
+        self.organ_health: dict[str, dict] = {}
+        self.built_at_utc: str | None = None
         self._http = httpx.AsyncClient(
             timeout=httpx.Timeout(10.0, connect=5.0),
             follow_redirects=True,
             headers={"Accept": "application/json, text/event-stream"},
         )
 
-    async def crawl_all(self) -> Dict[str, Any]:
+    async def crawl_all(self) -> dict[str, Any]:
         """Crawl all organs, build the registry, cache to disk."""
         logger.info("FederationRegistry: crawling all organs...")
         self.tools = []
@@ -184,12 +181,12 @@ class FederationRegistry:
         for organ_name, organ_info in FEDERATION_ORGANS.items():
             await self._crawl_organ(organ_name, organ_info)
 
-        self.built_at_utc = datetime.now(timezone.utc).isoformat()
+        self.built_at_utc = datetime.now(UTC).isoformat()
         await self._save_cache()
 
         return self.snapshot()
 
-    async def _crawl_organ(self, organ_name: str, info: Dict):
+    async def _crawl_organ(self, organ_name: str, info: dict):
         """Crawl a single organ for tools via MCP tools/list.
 
         Falls back to static metadata if MCP endpoint is unavailable.
@@ -235,7 +232,7 @@ class FederationRegistry:
                     lifecycle="active",
                     source_class="canonical",
                     trust_grade=self._grade_organ(organ_name),
-                    last_verified_utc=datetime.now(timezone.utc).isoformat(),
+                    last_verified_utc=datetime.now(UTC).isoformat(),
                     health="ok",
                 )
                 self.tools.append(entry)
@@ -264,8 +261,8 @@ class FederationRegistry:
         self,
         intent: str,
         top_k: int = 5,
-        organ_filter: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        organ_filter: list[str] | None = None,
+    ) -> dict[str, Any]:
         """Semantic discovery: return top-k tools matching intent.
 
         Uses Qdrant L3 for semantic search when available, falls back to
@@ -309,14 +306,13 @@ class FederationRegistry:
                 for i, (s, t) in enumerate(top)
             ],
             "discovery_method": "semantic" if scored else "keyword",
-            "searched_at_utc": datetime.now(timezone.utc).isoformat(),
+            "searched_at_utc": datetime.now(UTC).isoformat(),
         }
 
-    async def _semantic_rank(self, intent: str, candidates: List[ToolEntry]) -> List[tuple]:
+    async def _semantic_rank(self, intent: str, candidates: list[ToolEntry]) -> list[tuple]:
         """Rank tools using Qdrant L3 semantic search."""
         try:
             from qdrant_client import QdrantClient
-            from qdrant_client.models import SearchRequest
 
             client = QdrantClient(host="127.0.0.1", port=6333)
             # Try arifos_memory collection for embeddings
@@ -339,7 +335,7 @@ class FederationRegistry:
             logger.debug(f"Semantic search unavailable: {e}")
             return []
 
-    def _keyword_rank(self, intent: str, candidates: List[ToolEntry]) -> List[tuple]:
+    def _keyword_rank(self, intent: str, candidates: list[ToolEntry]) -> list[tuple]:
         """Fallback keyword ranking when Qdrant is unavailable."""
         query_terms = set(intent.lower().split())
         scored = []
@@ -351,7 +347,7 @@ class FederationRegistry:
         scored.sort(key=lambda x: x[0], reverse=True)
         return scored
 
-    async def _embed(self, text: str) -> Optional[List[float]]:
+    async def _embed(self, text: str) -> list[float] | None:
         """Get embedding vector for text. Primary: Ollama bge-m3. Fallback: Azure text-embedding-3-small."""
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
@@ -384,7 +380,7 @@ class FederationRegistry:
         return None
 
     @staticmethod
-    def _cosine_sim(a: List[float], b: List[float]) -> float:
+    def _cosine_sim(a: list[float], b: list[float]) -> float:
         """Cosine similarity between two vectors."""
         dot = sum(x * y for x, y in zip(a, b))
         norm_a = sum(x * x for x in a) ** 0.5
@@ -399,7 +395,7 @@ class FederationRegistry:
         data = self.snapshot()
         self.cache_path.write_text(json.dumps(data, indent=2, default=str))
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         """Return a JSON-serializable snapshot of the registry."""
         return {
             "federation_registry": {
@@ -424,7 +420,7 @@ class FederationRegistry:
 
 # ─── Singleton ──────────────────────────────────────────────────────────────
 
-_registry: Optional[FederationRegistry] = None
+_registry: FederationRegistry | None = None
 
 
 def get_registry() -> FederationRegistry:

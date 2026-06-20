@@ -31,17 +31,15 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
-import json
 import logging
 import os
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-import httpx
 from pydantic import BaseModel, Field, field_validator
 
 logger = logging.getLogger(__name__)
@@ -199,7 +197,7 @@ class CanonicalTermRecord(BaseModel):
         description="True only if F13 explicitly authorized a layer transition",
     )
     attested_at: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
+        default_factory=lambda: datetime.now(UTC).isoformat(),
     )
 
     class Config:
@@ -228,7 +226,7 @@ class SanctuaryViolation(BaseModel):
         description="What action to take — HOLD, VOID, or SOVEREIGN_REVIEW",
     )
     detected_at: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
+        default_factory=lambda: datetime.now(UTC).isoformat(),
     )
 
 
@@ -575,7 +573,7 @@ def create_rootkey_anchor_seal_payload() -> dict[str, Any]:
         Dict payload ready for arif_vault_seal
     """
     pem_bytes, fingerprint = load_sovereign_public_key()
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     anchor = RootKeyAnchor(
         sovereign_id=CANONICAL_SOVEREIGN_ID,

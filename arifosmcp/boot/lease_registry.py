@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -74,7 +74,7 @@ def claim_lease(
     import uuid
 
     lease_id = f"LEASE-{uuid.uuid4().hex[:12]}"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     lease = {
         "lease_id": lease_id,
         "holder": holder,
@@ -90,7 +90,7 @@ def claim_lease(
     # Set expires_at properly
     from datetime import timedelta
 
-    expires = datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
+    expires = datetime.now(UTC) + timedelta(seconds=ttl_seconds)
     lease["expires_at"] = expires.isoformat()
 
     _store_lease(lease)
@@ -155,6 +155,6 @@ def _is_active(lease: dict[str, Any]) -> bool:
         return False
     try:
         expiry = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
-        return expiry > datetime.now(timezone.utc)
+        return expiry > datetime.now(UTC)
     except (ValueError, TypeError):
         return False

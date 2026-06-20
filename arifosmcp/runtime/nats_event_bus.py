@@ -28,12 +28,11 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
-import os
+from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Any, Callable, Optional
+from typing import Any
 
 try:
     import nats
@@ -223,13 +222,13 @@ class NATSEventBus:
     Level 5 (Gradient):    publish_gradient, subscribe_gradient
     """
 
-    _instance: Optional["NATSEventBus"] = None
+    _instance: NATSEventBus | None = None
     _nc: Any | None = None
     _js: Any | None = None  # JetStream context
     _streams_initialized: bool = False
     _subscriptions: dict[str, Any] = {}  # subject → subscription handle
 
-    def __new__(cls) -> "NATSEventBus":
+    def __new__(cls) -> NATSEventBus:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -317,7 +316,7 @@ class NATSEventBus:
                         )
                     )
                     logger.info(f"JetStream stream '{stream_name}' ready")
-                except Exception as e:
+                except Exception:
                     # Stream may already exist — try to update
                     try:
                         await self._js.update_stream(
@@ -514,7 +513,7 @@ class NATSEventBus:
                     f"NATS request to {organ} returned error: {data['error']}"
                 )
             return data.get("result", data)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning(f"NATS request to {organ} timed out after {timeout}s")
             return None
         except Exception as e:

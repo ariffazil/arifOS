@@ -28,7 +28,8 @@ except ImportError:
 
     anchor_hold_registry = _StubHoldRegistry()
 
-from arifosmcp.abi.amanah_gate import scan as _amanah_scan, Verdict as _AmanahVerdict
+from arifosmcp.abi.amanah_gate import Verdict as _AmanahVerdict
+from arifosmcp.abi.amanah_gate import scan as _amanah_scan
 
 
 class HardenedShellForge:

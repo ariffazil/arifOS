@@ -12,7 +12,10 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 Stage C — A-FORGE adapter wrapper
 """
 
-import sys, re, json, argparse
+import sys
+import re
+import json
+import argparse
 from pathlib import Path
 
 def classify_patterns_in_content(content: str) -> list:
@@ -102,7 +105,7 @@ def main():
         sys.exit(0)
 
     print("=" * 60)
-    print(f"arifOS — arif_exec")
+    print("arifOS — arif_exec")
     print("=" * 60)
     print(f"  Script:  {path}")
     print(f"  Intent:  {intent}")
@@ -113,24 +116,24 @@ def main():
         for f in findings:
             print(f"    [{f['tier']}] {f['pattern']} → {f['matched'][:60]}")
     else:
-        print(f"  Patterns found: none")
+        print("  Patterns found: none")
     print("-" * 60)
     print(f"  Verdict: {verdict}")
     print(f"  Rationale: {rationale}")
     print("=" * 60)
 
     if verdict == "HOLD":
-        print(f"\n⚠  SCRIPT BLOCKED — exit 1")
+        print("\n⚠  SCRIPT BLOCKED — exit 1")
         print("To override: invoke 888_HOLD with human confirmation")
         sys.exit(1)
 
     if args.dry_run:
-        print(f"\n✅ Dry run complete — script would execute")
+        print("\n✅ Dry run complete — script would execute")
         sys.exit(0)
 
     # Execute
     import subprocess
-    print(f"\nExecuting script...")
+    print("\nExecuting script...")
     r = subprocess.run(["bash", str(path)], capture_output=True, text=True)
     if r.stdout: print(r.stdout)
     if r.stderr: print(r.stderr, file=sys.stderr)

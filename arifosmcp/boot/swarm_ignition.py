@@ -18,24 +18,24 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from arifosmcp.boot.swarm_manifest import build_swarm_manifest
-from arifosmcp.boot.swarm_registry import (
-    read_swarm_state,
-    announce_boot,
-)
-from arifosmcp.boot.vault999_state import (
-    reconstruct_latest_state,
-    seal_boot_receipt,
+from arifosmcp.boot.capability_attest import (
+    read_capability_attestations,
 )
 from arifosmcp.boot.lease_registry import (
     read_active_agents,
     read_active_leases,
 )
-from arifosmcp.boot.capability_attest import (
-    read_capability_attestations,
+from arifosmcp.boot.swarm_manifest import build_swarm_manifest
+from arifosmcp.boot.swarm_registry import (
+    announce_boot,
+    read_swarm_state,
 )
 from arifosmcp.boot.task_registry import (
     read_unresolved_tasks,
+)
+from arifosmcp.boot.vault999_state import (
+    reconstruct_latest_state,
+    seal_boot_receipt,
 )
 
 logger = logging.getLogger(__name__)

@@ -28,8 +28,6 @@ DITEMPA BUKAN DIBERI — the eureka is a meter, not a mind.
 
 from __future__ import annotations
 
-import os
-import pytest
 
 from arifosmcp.runtime.context_engine.eureka import (
     EUREKA_POLICY_VERSION,

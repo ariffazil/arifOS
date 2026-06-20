@@ -15,7 +15,7 @@ Architecture:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from arifosmcp.boot.swarm_schemas import stable_hash
@@ -66,7 +66,7 @@ def build_swarm_manifest(
         "mode": mode,
         "session_id": session_id,
         "actor_id": actor_id,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "epoch_id": _derive_epoch_id(vault_state),
         # ── Identity receipts ─────────────────────────────────
         "actor_receipt": actor_receipt,
@@ -294,5 +294,5 @@ def _derive_epoch_id(vault_state: dict[str, Any]) -> str:
         seal_id = latest.get("id", "unknown")
         return f"EPOCH-{seal_id}"
     # No prior seal — first boot
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return f"EPOCH-{now.strftime('%Y-%m-%d')}-COLD-BOOT"

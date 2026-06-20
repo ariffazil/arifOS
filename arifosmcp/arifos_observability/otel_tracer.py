@@ -14,7 +14,7 @@ from __future__ import annotations
 import os
 import time
 from contextlib import contextmanager
-from typing import Any, Optional
+from typing import Any
 
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
@@ -31,7 +31,7 @@ _initialized = False
 def init_tracer(
     service_name: str = "arifOS",
     service_version: str = "2026.06.14",
-    otlp_endpoint: Optional[str] = None,
+    otlp_endpoint: str | None = None,
     console_export: bool = False,
 ) -> trace.Tracer:
     """Initialize the OpenTelemetry tracer (idempotent)."""
@@ -73,7 +73,7 @@ class OTelTracer:
         self.tracer = init_tracer(service_name=service_name)
 
     @contextmanager
-    def span(self, name: str, attributes: Optional[dict[str, Any]] = None):
+    def span(self, name: str, attributes: dict[str, Any] | None = None):
         """Context-managed span with arifOS attribute schema."""
         with self.tracer.start_as_current_span(name) as span:
             if attributes:

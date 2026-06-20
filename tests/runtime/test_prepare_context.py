@@ -22,16 +22,12 @@ DITEMPA BUKAN DIBEI — the allocator is forged, not given.
 
 from __future__ import annotations
 
-import hashlib
 import inspect
-import json
-import os
 import uuid
 from typing import Any
 
 import pytest
 
-from arifosmcp.runtime.context_engine.eureka import AuthorityClass
 from arifosmcp.runtime.context_engine.prepare_context import (
     PREPARE_CONTEXT_POLICY_VERSION,
     PROTECTED_SEGMENT_TYPES,

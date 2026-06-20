@@ -19,7 +19,7 @@ import json
 from typing import Any
 
 from .merkle_log import MerkleTree
-from .state_machine import Incident, IncidentStore
+from .state_machine import IncidentStore
 
 
 class VaultResources:

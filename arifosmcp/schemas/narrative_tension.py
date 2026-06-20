@@ -13,7 +13,7 @@ DITEMPA BUKAN DIBERI.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
@@ -25,7 +25,7 @@ class BaseNode(BaseModel):
     node_type: str = Field(..., description="Discriminator for the node kind.")
     node_id: str = Field(..., description="Stable identifier for this node.")
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         description="UTC timestamp when the node was forged.",
     )
     created_by: str = Field(
@@ -152,7 +152,7 @@ class KernelVerdict(BaseModel):
 
     kernel_verdict_id: str = Field(...)
     article_id: str = Field(...)
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     shadow_drift_risk: float = Field(default=0.0, ge=0.0, le=1.0)
     max_severity: float = Field(default=0.0, ge=0.0, le=1.0)
     smoking_gun: str | None = Field(default=None)

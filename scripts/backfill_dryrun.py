@@ -202,7 +202,7 @@ def main():
     )
     print(f"  Needs review:        {total_review:,}  ({total_review / total_valid * 100:.1f}%)")
 
-    print(f"\n  By schema:")
+    print("\n  By schema:")
     for schema, count in sorted(promotable_counts.items(), key=lambda x: x[1], reverse=True):
         print(f"    PROMOTE {count:5d}  {schema}")
     for schema, count in sorted(non_promotable.items(), key=lambda x: x[1], reverse=True):
@@ -221,7 +221,7 @@ def main():
     print(f"  Unique hashes:       {unique_hashes:,}")
     print(f"  Duplicate entries:   {total_dupes:,}")
     if dupes_by_schema:
-        print(f"\n  Duplicates by schema:")
+        print("\n  Duplicates by schema:")
         for schema, counts in sorted(
             dupes_by_schema.items(), key=lambda x: sum(x[1]), reverse=True
         ):
@@ -289,7 +289,7 @@ def main():
         set(frozenset(e.keys()) for _, e in [(i["lineno"], i["entry"]) for i in valid_entries])
     )
     if schema_evolution > 20:
-        risks.append(f"51 schema variants detected — entries span multiple eras/agents")
+        risks.append("51 schema variants detected — entries span multiple eras/agents")
 
     if not risks:
         print("  ✓ No major risks identified in dry-run")
@@ -318,9 +318,9 @@ def main():
     else:
         print("  → Conditions met for staged promotion:")
         print(f"    1. Insert {total_promotable:,} promotable entries into s000 staging")
-        print(f"    2. Run validation queries to confirm data integrity")
-        print(f"    3. Promote unique entries to s999.vault999_ledger")
-        print(f"    4. Keep duplicates in s000 as historical record")
+        print("    2. Run validation queries to confirm data integrity")
+        print("    3. Promote unique entries to s999.vault999_ledger")
+        print("    4. Keep duplicates in s000 as historical record")
         print()
         print("  ⚠ Requires explicit Arif approval before Step 3 (s999 promotion)")
         print("  ⚠ DO NOT run promotion without 'approve' confirmation")

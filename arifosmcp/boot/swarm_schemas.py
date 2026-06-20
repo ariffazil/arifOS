@@ -13,13 +13,12 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from hashlib import sha256
-from typing import Any, Literal
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
-
 
 # ── Enums ──────────────────────────────────────────────────────────
 
@@ -102,7 +101,7 @@ class BootReceipt(BaseModel):
     constitution_hash: str
     boot_mode: BootMode = BootMode.COLD
     agent_role: AgentRole = AgentRole.SCOUT
-    joined_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    joined_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     max_action_class: ActionClass = ActionClass.OBSERVE
     lease_ids: list[str] = []
     capability_claims: list[str] = []
@@ -259,7 +258,7 @@ class SwarmLease(BaseModel):
     def is_active(self) -> bool:
         if not self.expires_at:
             return False
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return self.expires_at > now
 
 
@@ -275,4 +274,4 @@ class ReIgnitionReceipt(BaseModel):
     last_known_good_state: str | None = None
     restored_manifest_hash: str | None = None
     mutations_performed: list[str] = []
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

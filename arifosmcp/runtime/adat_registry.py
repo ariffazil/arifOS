@@ -23,9 +23,8 @@ tebus_salah gives the *recovery*.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
-
 
 # ── F0_FIQH 5-tier re-export (to keep this module self-contained) ───────
 FIQH_TIERS = ("WAJIB", "SUNAT", "HARUS", "MAKRUH", "HARAM")
@@ -344,7 +343,6 @@ def validate_registry() -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    import json
 
     print("=== ADAT ARIF REGISTRY ===\n")
     status = validate_registry()

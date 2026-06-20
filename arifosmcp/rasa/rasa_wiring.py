@@ -54,8 +54,6 @@ from arifosmcp.rasa.rasa_integration import (
     rasa_sense_hook,
 )
 from arifosmcp.rasa.rasa_schemas import (
-    ConstitutionPosture,
-    RasaDetection,
     RasaRiskBand,
 )
 from arifosmcp.rasa.rasa_telemetry import RasaTelemetry
@@ -402,7 +400,7 @@ def _apply_verdict_downgrade(result, blocked_outputs: list) -> None:
         from arifosmcp.schemas.verdict import VerdictCode
         if result.verdict == VerdictCode.SEAL:
             result.verdict = VerdictCode.HOLD
-            setattr(result, "_rasa_verdict_shift", True)
+            result._rasa_verdict_shift = True
             if hasattr(result, "reasons"):
                 result.reasons.append(
                     f"RASA GOVERNANCE: Verdict downgraded SEAL→HOLD. "

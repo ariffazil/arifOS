@@ -15,7 +15,6 @@ import pytest
 import yaml
 
 from arifosmcp.schemas.federation_envelope import (
-    AuthoritySource,
     FederationEnvelope,
     FederationOrgan,
 )
@@ -27,7 +26,6 @@ from contracts.budget_enforcement import (
     check_budget,
 )
 from arifosmcp.core.enforcement.drift_detector import (
-    DriftReport,
     DriftVerdict,
     check_drift,
     load_manifest,

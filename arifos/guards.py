@@ -23,11 +23,9 @@ from arifos.decision import (
     CognitionLane,
     Decision,
     FloorVerdict,
-    HIGH_BLAST_TRIGGERS,
     HOLD_TRIGGERS,
     RiskEnvelope,
 )
-from arifos.envelope import CallEnvelope
 from arifos.exceptions import (
     ArifDenied,
     ArifHold,

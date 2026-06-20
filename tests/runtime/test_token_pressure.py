@@ -21,7 +21,6 @@ DITEMPA BUKAN DIBERI — the pressure meter is forged, not given.
 
 from __future__ import annotations
 
-import os
 import threading
 import time
 import uuid
@@ -35,7 +34,6 @@ from arifosmcp.runtime.token_pressure import (
     count_tokens,
     count_tokens_messages,
     get_model_window,
-    get_session_singleton,
 )
 
 

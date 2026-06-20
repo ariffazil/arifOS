@@ -233,7 +233,6 @@ class TestIronRules:
         # lookup, no LLM). 1 occurrence in default arg + 1 in docstring
         # reference. Test that the count is bounded and never appears
         # in a function call to any client.
-        import re
 
         # No `.generate(`, `.chat(`, `.complete(` on LLM-ish objects
         assert ".generate(" not in source

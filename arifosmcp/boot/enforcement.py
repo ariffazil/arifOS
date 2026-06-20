@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Literal
 
@@ -176,7 +176,7 @@ class EnforcementEngine:
             if expires:
                 try:
                     expiry = datetime.fromisoformat(expires.replace("Z", "+00:00"))
-                    if expiry < datetime.now(timezone.utc):
+                    if expiry < datetime.now(UTC):
                         failed.append("lease_expired")
                 except (ValueError, TypeError):
                     pass
@@ -311,7 +311,7 @@ def build_action_event(
             "failed_gates": result.failed_gates,
             "tier": result.tier,
         },
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "session_id": session_id,
     }
 

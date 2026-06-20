@@ -113,7 +113,7 @@ def test_canonical13_public_surface_is_exactly_25() -> None:
         f"VOID."
     )
     assert actual == expected_surface, (
-        f"SURFACE DRIFT: canonical13 set mismatch. VOID."
+        "SURFACE DRIFT: canonical13 set mismatch. VOID."
     )
 
 

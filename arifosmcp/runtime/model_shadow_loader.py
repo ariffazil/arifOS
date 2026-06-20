@@ -33,7 +33,6 @@ import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 import yaml
 
@@ -62,7 +61,7 @@ class ShadowEntry:
     provenance: str = "UNVERIFIED"
 
     @classmethod
-    def from_yaml(cls, data: dict) -> "ShadowEntry":
+    def from_yaml(cls, data: dict) -> ShadowEntry:
         return cls(
             id=data.get("id", ""),
             name=data.get("name", ""),
@@ -119,7 +118,7 @@ class RoutingConstraints:
     status: str  # CONFIRMED_CENSORED | NO_CENSORSHIP_DETECTED | HARNESS_MONITORED
     forbidden_topics: list[str] = field(default_factory=list)
     known_false_positive_triggers: list[str] = field(default_factory=list)
-    data_retention_days: Optional[int] = None
+    data_retention_days: int | None = None
     zero_retention_available: bool = True
     jurisdiction: str = "UNKNOWN"
     federation_impact: dict = field(default_factory=dict)
@@ -211,7 +210,7 @@ class ModelShadowLoader:
 
     # ── Query API ─────────────────────────────────────────────────
 
-    def get_shadow(self, model_id: str) -> Optional[ShadowProfile]:
+    def get_shadow(self, model_id: str) -> ShadowProfile | None:
         """Get the shadow profile for a model family.
 
         Args:
@@ -250,7 +249,7 @@ class ModelShadowLoader:
             }
         return profile.floor_posture_for_model(model_id)
 
-    def get_routing_constraints(self, model_key: str) -> Optional[RoutingConstraints]:
+    def get_routing_constraints(self, model_key: str) -> RoutingConstraints | None:
         """Get routing constraints for a model.
 
         Args:
@@ -286,7 +285,7 @@ class ModelShadowLoader:
 
 # ── Singleton ──────────────────────────────────────────────────────
 
-_shadow_loader: Optional[ModelShadowLoader] = None
+_shadow_loader: ModelShadowLoader | None = None
 
 
 def get_shadow_loader() -> ModelShadowLoader:

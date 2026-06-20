@@ -40,11 +40,10 @@ import json
 import logging
 import os
 import time
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Query
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)

@@ -19,10 +19,9 @@ DITEMPA BUKAN DIBERI
 from __future__ import annotations
 
 import logging
-import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum, auto
 from typing import Any
 
@@ -197,7 +196,7 @@ class LeaseRecord:
             return False
         try:
             expiry = datetime.fromisoformat(self.limits.expires_at.replace("Z", "+00:00"))
-            return datetime.now(timezone.utc) > expiry
+            return datetime.now(UTC) > expiry
         except (ValueError, TypeError):
             return False
 
@@ -238,7 +237,7 @@ class LeaseStateMachine:
         entry = {
             "from": old_state.name,
             "to": to_state.name,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "reason": reason,
         }
         lease.state_history.append(entry)
@@ -315,8 +314,8 @@ def create_lease(
 ) -> LeaseRecord:
     """Create a new lease in REQUESTED state."""
     lease_id = f"lease_{uuid.uuid4().hex[:12]}"
-    now = datetime.now(timezone.utc)
-    expires_at = datetime.fromtimestamp(now.timestamp() + ttl_seconds, tz=timezone.utc)
+    now = datetime.now(UTC)
+    expires_at = datetime.fromtimestamp(now.timestamp() + ttl_seconds, tz=UTC)
 
     risk = LeaseRisk(
         risk_class=risk_class,

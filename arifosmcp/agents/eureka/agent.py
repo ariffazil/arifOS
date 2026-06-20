@@ -21,16 +21,12 @@ Usage:
 
 from __future__ import annotations
 
-import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
-from pydantic import BaseModel, Field
-
+from .signals import EngineeringSignal, SignalDetector
 from .substrate import SubstrateIndex
-from .signals import SignalDetector, EngineeringSignal
-from .validator import EngineeringClaimValidator, EngineeringClaim, ValidationVerdict
+from .validator import EngineeringClaim, EngineeringClaimValidator, ValidationVerdict
 
 
 class EurekaSignal(str, Enum):
@@ -89,9 +85,9 @@ class EngineeringEurekaAgent:
 
     def __init__(
         self,
-        substrate_index: Optional[SubstrateIndex] = None,
-        signal_detector: Optional[SignalDetector] = None,
-        validator: Optional[EngineeringClaimValidator] = None,
+        substrate_index: SubstrateIndex | None = None,
+        signal_detector: SignalDetector | None = None,
+        validator: EngineeringClaimValidator | None = None,
     ):
         self.substrate = substrate_index or SubstrateIndex()
         self.signals = signal_detector or SignalDetector()
@@ -129,7 +125,7 @@ class EngineeringEurekaAgent:
         )
 
     def scan_for_signals(
-        self, text: str, context: Optional[dict] = None
+        self, text: str, context: dict | None = None
     ) -> EurekaResult:
         """Scan text for eureka signals."""
         self._ensure_bootstrapped()

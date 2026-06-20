@@ -469,7 +469,6 @@ Distinguish CLAIM from FACT."""
             compute_geometry,
         )
         from arifosmcp.geometry.mind_schema import OrthogonalAxes
-        from arifosmcp.geometry.sovereign_proximity import ProximityBand
 
         # Classify the action. Mind reason is by default an
         # 'answer' action (read-only). Modes like 'plan' and

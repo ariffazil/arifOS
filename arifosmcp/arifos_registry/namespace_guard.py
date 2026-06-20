@@ -11,11 +11,9 @@ F8 LAW: namespace discipline is enforced uniformly across organs.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 from .substrate_namespace_registry import (
-    CANONICAL_NAMESPACES,
     CANONICAL_ORGAN_PREFIXES,
     SubstrateNamespaceRegistry,
     get_substrate_namespace_registry,
@@ -29,8 +27,8 @@ class NamespaceGuardResult:
     tool_name: str
     valid: bool
     reason: str
-    namespace: Optional[str] = None
-    canonical_name: Optional[str] = None
+    namespace: str | None = None
+    canonical_name: str | None = None
     is_legacy: bool = False
 
     def to_dict(self) -> dict:
@@ -50,7 +48,7 @@ class NamespaceGuard:
     # Snake case pattern (lowercase letters, digits, underscores)
     VALID_NAME_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 
-    def __init__(self, registry: Optional[SubstrateNamespaceRegistry] = None):
+    def __init__(self, registry: SubstrateNamespaceRegistry | None = None):
         self.registry = registry or get_substrate_namespace_registry()
 
     def validate(self, tool_name: str) -> NamespaceGuardResult:

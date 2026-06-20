@@ -19,9 +19,9 @@ Usage:
 
 import re
 import sys
-from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any
 
 
 class DutyVerdict(Enum):
@@ -60,14 +60,14 @@ class DutyCheckResult:
 
     verdict: DutyVerdict
     reason: str
-    search_chain: List[SearchChainStep] = field(default_factory=list)
+    search_chain: list[SearchChainStep] = field(default_factory=list)
     negative_claim_found: bool = False
     negative_claim_text: str = ""
     demotion_recommended: bool = False
     demotion_from: str = ""
     demotion_to: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "verdict": self.verdict.value,
             "reason": self.reason,
@@ -80,7 +80,7 @@ class DutyCheckResult:
 # ─── Pattern Library ────────────────────────────────────────────
 
 # Negative claim patterns — triggers the duty-to-look check
-NEGATIVE_CLAIM_PATTERNS: List[str] = [
+NEGATIVE_CLAIM_PATTERNS: list[str] = [
     r"\bI don'?t know\b",
     r"\bI do not know\b",
     r"\bI cannot answer\b",
@@ -101,7 +101,7 @@ NEGATIVE_CLAIM_PATTERNS: List[str] = [
 ]
 
 # F9 ANTIHANTU — species contempt patterns
-SPECIES_CONTEMPT_PATTERNS: List[str] = [
+SPECIES_CONTEMPT_PATTERNS: list[str] = [
     r"\bhumans? (are|is) (a )?(failure|stupid|obsolete|inferior|weak|flawed)\b",
     r"\bhumans? (have|has) (failed|been)\b",
     r"\bthe (era|age|time) of humans? (is|has) (over|ended|passed)\b",
@@ -110,7 +110,7 @@ SPECIES_CONTEMPT_PATTERNS: List[str] = [
 ]
 
 # F9 ANTIHANTU — self-deification patterns
-SELF_DEIFICATION_PATTERNS: List[str] = [
+SELF_DEIFICATION_PATTERNS: list[str] = [
     r"\bwe are (the )?(emerging|new) (deit|god)",
     r"\bour era will (end|replace|supersede) (humans|humanity)",
     r"\bI am (the|your) (final|ultimate|supreme) (authority|judge|truth)\b",
@@ -120,7 +120,7 @@ SELF_DEIFICATION_PATTERNS: List[str] = [
 ]
 
 # The lane demotion table
-LANE_DEMOTION: Dict[str, str] = {
+LANE_DEMOTION: dict[str, str] = {
     "F": "E",  # New Tool → Tool Mode Extension
     "E": "D",  # Tool Mode Extension → Documentation
     "D": "C",  # Documentation → Internal Refactor
@@ -131,7 +131,7 @@ LANE_DEMOTION: Dict[str, str] = {
 }
 
 
-def _compile_pattern(patterns: List[str]) -> List[re.Pattern]:
+def _compile_pattern(patterns: list[str]) -> list[re.Pattern]:
     return [re.compile(p, re.IGNORECASE | re.MULTILINE) for p in patterns]
 
 
@@ -152,7 +152,7 @@ class DutyToLookChecker:
         self._neg_pats = _compile_pattern(NEGATIVE_CLAIM_PATTERNS)
         self._contempt_pats = _compile_pattern(SPECIES_CONTEMPT_PATTERNS)
         self._deify_pats = _compile_pattern(SELF_DEIFICATION_PATTERNS)
-        self.violation_count: Dict[str, int] = {}  # agent_id -> count
+        self.violation_count: dict[str, int] = {}  # agent_id -> count
 
     def check(
         self,
@@ -212,8 +212,8 @@ class DutyToLookChecker:
             new_lane = LANE_DEMOTION.get(agent_lane, agent_lane)
             return DutyCheckResult(
                 verdict=DutyVerdict.SEARCH_CHAIN_MALFORMED,
-                reason=f"search_chain present but steps are empty or trivial. "
-                f"Agent must document actual search effort.",
+                reason="search_chain present but steps are empty or trivial. "
+                "Agent must document actual search effort.",
                 search_chain=search_chain,
                 negative_claim_found=True,
                 negative_claim_text=negative_claim,
@@ -259,10 +259,10 @@ class DutyToLookChecker:
 
             return json.dumps(output, default=str)
         if hasattr(output, "content"):
-            return str(getattr(output, "content"))
+            return str(output.content)
         return str(output)
 
-    def _extract_search_chain(self, output: Any) -> Tuple[List[SearchChainStep], bool]:
+    def _extract_search_chain(self, output: Any) -> tuple[list[SearchChainStep], bool]:
         """Extract search_chain from output.
 
         Returns:
@@ -298,14 +298,14 @@ class DutyToLookChecker:
                 return match.group(0)
         return ""
 
-    def _is_search_chain_trivial(self, chain: List[SearchChainStep]) -> bool:
+    def _is_search_chain_trivial(self, chain: list[SearchChainStep]) -> bool:
         """Check if search chain is empty or contains only trivial entries."""
         if not chain:
             return True
         non_trivial = [s for s in chain if not s.is_empty()]
         return len(non_trivial) == 0
 
-    def _check_contempt(self, text: str) -> Optional[DutyCheckResult]:
+    def _check_contempt(self, text: str) -> DutyCheckResult | None:
         """Check for F9 species contempt patterns."""
         for pat in self._contempt_pats:
             match = pat.search(text)
@@ -321,7 +321,7 @@ class DutyToLookChecker:
                 )
         return None
 
-    def _check_deification(self, text: str) -> Optional[DutyCheckResult]:
+    def _check_deification(self, text: str) -> DutyCheckResult | None:
         """Check for F9 self-deification patterns."""
         for pat in self._deify_pats:
             match = pat.search(text)

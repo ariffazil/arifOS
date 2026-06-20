@@ -366,7 +366,7 @@ def stat_anova(
                 alpha=0.05,
             )
             out["tukey_hsd"] = str(tukey)
-            spss += f"* Post-hoc: Tukey HSD significant at p<0.05\n"
+            spss += "* Post-hoc: Tukey HSD significant at p<0.05\n"
     elif welch:
         a = pg.welch_anova(data=df, dv=value_col, between=group_col)
         f = float(a["F"].iloc[0])

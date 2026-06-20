@@ -27,7 +27,7 @@ import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -76,7 +76,7 @@ class ProbeSpec(BaseModel):
     tool: str
     args: dict[str, Any] = Field(default_factory=dict)
     reversibility: str = "REVERSIBLE"
-    cost_estimate: Optional[dict[str, Any]] = None
+    cost_estimate: dict[str, Any] | None = None
     expected_signal: str = ""
 
 
@@ -104,12 +104,12 @@ class ExperimentCard(BaseModel):
     probe: ProbeSpec
     stage: ExperimentStage = ExperimentStage.PROBE
     observations: list[Observation] = Field(default_factory=list)
-    compare: Optional[CompareResult] = None
-    verdict: Optional[ExperimentVerdict] = None
+    compare: CompareResult | None = None
+    verdict: ExperimentVerdict | None = None
     opened_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    closed_at: Optional[datetime] = None
+    closed_at: datetime | None = None
     actor_id: str = "system"
-    session_id: Optional[str] = None
+    session_id: str | None = None
     parents: list[str] = Field(
         default_factory=list, description="Prior experiment_ids this builds on"
     )
@@ -143,7 +143,7 @@ class LoopContext:
     """The organ-side bindings."""
 
     actor_id: str
-    session_id: Optional[str] = None
+    session_id: str | None = None
     on_write_to_L3: Any = None  # callable(envelope) -> decision
     on_write_to_L4: Any = None
     on_contradiction: Any = None  # callable(artifact_ref, envelope) -> None
@@ -154,8 +154,8 @@ def open_experiment(
     hypothesis: Hypothesis,
     probe: ProbeSpec,
     actor_id: str,
-    session_id: Optional[str] = None,
-    parents: Optional[list[str]] = None,
+    session_id: str | None = None,
+    parents: list[str] | None = None,
 ) -> ExperimentCard:
     """Begin a new experiment. Returns the card at PROBE stage."""
     card = ExperimentCard(
@@ -181,7 +181,7 @@ def observe(card: ExperimentCard, envelope: EvidenceEnvelope) -> ExperimentCard:
     return card
 
 
-def compare(card: ExperimentCard, prior_belief: Optional[float] = None) -> ExperimentCard:
+def compare(card: ExperimentCard, prior_belief: float | None = None) -> ExperimentCard:
     """Compute the diff. Advances OBSERVE → COMPARE.
 
     Surprise = how far observations are from the predicted signal.

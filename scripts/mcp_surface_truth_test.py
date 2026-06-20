@@ -18,7 +18,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 import json
 import sys
-import time
 import urllib.request
 from pathlib import Path
 

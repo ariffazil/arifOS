@@ -154,7 +154,6 @@ def _sha256_of_text(text: str) -> str:
 
 from typing import Any  # noqa: E402  — placed here to keep template grouping
 
-
 _ORGAN_CONSTITUTION_TEMPLATES: dict[str, dict[str, Any]] = {
     "arifOS": {
         "organ_id": "arifOS",

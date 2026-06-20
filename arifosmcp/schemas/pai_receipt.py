@@ -60,10 +60,9 @@ import hashlib
 import json
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, model_validator
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  ENUMS
@@ -187,8 +186,8 @@ class PAIOrigin(BaseModel):
     producer_type: ProducerType
     producer_id: str  # did:web:..., agent_id, tool_id, "anonymous"
     organ: Organ
-    model_id: Optional[str] = None  # e.g. "MiniMax-M3", "bge-m3", "geox_petrophysics_v1"
-    tool_id: Optional[str] = None  # e.g. "geox_data_qc_bundle"
+    model_id: str | None = None  # e.g. "MiniMax-M3", "bge-m3", "geox_petrophysics_v1"
+    tool_id: str | None = None  # e.g. "geox_data_qc_bundle"
 
 
 class PAIAuthority(BaseModel):
@@ -197,7 +196,7 @@ class PAIAuthority(BaseModel):
     human_root: str = CANONICAL_HUMAN_ROOT
     delegate: str  # agent_id or tool_id that holds this authority
     authority_chain: list[str] = Field(default_factory=list)  # ["root", "grant:N", "delegation:N"]
-    expires_at: Optional[datetime] = None  # None = no expiry; bounded = short-lived
+    expires_at: datetime | None = None  # None = no expiry; bounded = short-lived
     subdelegation_allowed: bool = False  # true only with explicit grant
 
 
@@ -213,7 +212,7 @@ class PAIIntent(BaseModel):
     requires_888_hold: bool = False  # true if T5
 
     @model_validator(mode="after")
-    def _enforce_intent_floor(self) -> "PAIIntent":
+    def _enforce_intent_floor(self) -> PAIIntent:
         """T4 needs human intent. T5 needs 888 HOLD. No surprise escalations."""
         tier = RISK_TO_TIER[self.risk_class]
         if tier in (Tier.CONSEQUENTIAL, Tier.ATOMIC) and not self.requires_human_intent:
@@ -233,17 +232,17 @@ class PAIEvidence(BaseModel):
     tool_calls: list[str] = Field(default_factory=list)  # tool invocations used
     confidence: str = "unknown"  # CLAIM | PLAUSIBLE | HYPOTHESIS | ESTIMATE | UNKNOWN
     human_reviewed: bool = False
-    reviewer_id: Optional[str] = None  # did of human reviewer, if any
+    reviewer_id: str | None = None  # did of human reviewer, if any
 
 
 class PAIAudit(BaseModel):
     """WHERE the audit trail lives."""
 
     destination: str = "VAULT999"  # canonical audit destination
-    previous_receipt: Optional[str] = None  # content hash of parent receipt, for chains
-    receipt_hash: Optional[str] = None  # computed at finalize-time
-    signature: Optional[str] = None  # ed25519 / HMAC; not self-signed by organ
-    vault_ref: Optional[str] = None  # VAULT999 seal id, if sealed
+    previous_receipt: str | None = None  # content hash of parent receipt, for chains
+    receipt_hash: str | None = None  # computed at finalize-time
+    signature: str | None = None  # ed25519 / HMAC; not self-signed by organ
+    vault_ref: str | None = None  # VAULT999 seal id, if sealed
 
 
 class PAIReceipt(BaseModel):
@@ -265,7 +264,7 @@ class PAIReceipt(BaseModel):
     audit: PAIAudit = Field(default_factory=PAIAudit)
 
     @model_validator(mode="after")
-    def _enforce_receipt_type(self) -> "PAIReceipt":
+    def _enforce_receipt_type(self) -> PAIReceipt:
         if self.receipt_type != PAI_RECEIPT_TYPE:
             raise ValueError(
                 f"receipt_type must be '{PAI_RECEIPT_TYPE}', got {self.receipt_type!r}. "
@@ -322,19 +321,19 @@ def mint_pai_receipt(
     external_effect: bool = False,
     reversibility: Reversibility = Reversibility.FULL,
     delegate: str = "anonymous",
-    authority_chain: Optional[list[str]] = None,
-    expires_at: Optional[datetime] = None,
+    authority_chain: list[str] | None = None,
+    expires_at: datetime | None = None,
     subdelegation_allowed: bool = False,
-    sources: Optional[list[str]] = None,
-    tool_calls: Optional[list[str]] = None,
+    sources: list[str] | None = None,
+    tool_calls: list[str] | None = None,
     confidence: str = "unknown",
     human_reviewed: bool = False,
-    reviewer_id: Optional[str] = None,
-    model_id: Optional[str] = None,
-    tool_id: Optional[str] = None,
-    previous_receipt: Optional[str] = None,
+    reviewer_id: str | None = None,
+    model_id: str | None = None,
+    tool_id: str | None = None,
+    previous_receipt: str | None = None,
     destination: str = "VAULT999",
-    signature: Optional[str] = None,
+    signature: str | None = None,
 ) -> PAIReceipt:
     """Construct a new PAI Receipt. The single forge for receipts across the federation."""
     intent = PAIIntent(
@@ -385,9 +384,9 @@ def mint_pai_receipt(
 def verify_pai_receipt(
     receipt: dict[str, Any] | PAIReceipt,
     *,
-    expected_organ: Optional[Organ] = None,
-    expected_action: Optional[IntentAction] = None,
-    min_tier: Optional[Tier] = None,
+    expected_organ: Organ | None = None,
+    expected_action: IntentAction | None = None,
+    min_tier: Tier | None = None,
     require_human_root: bool = True,
     require_888_signature: bool = False,
 ) -> dict[str, Any]:

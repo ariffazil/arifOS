@@ -23,8 +23,8 @@ from .agents.base import ConstitutionalAgent, TrinityRole, Verdict
 from .agents.engineer import AGIAgent
 from .agents.validator import APEXAgent
 from .escalation.hold_state import HoldStateManager
-from .security.prompt_armor import PromptArmor
 from .memory.constitutional_memory import ConstitutionalMemoryStore
+from .security.prompt_armor import PromptArmor
 
 # Backward-compat aliases (HEXAGON-NAME-CANON-20260606)
 # Old code paths still work; new code should use the HEXAGON names.

@@ -11,7 +11,6 @@ The federation_constitution_hash must be:
 
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.federation.constitution_aggregator import (
     FederationConstitution,
@@ -127,10 +126,6 @@ class TestAggregate:
 class TestGetFederationConstitution:
     def test_cached_aggregate_within_ttl(self):
         """Within TTL, the same object reference is returned."""
-        from arifosmcp.federation.constitution_aggregator import (
-            _CACHED_AGGREGATE,
-            _CACHE_TTL_SECONDS,
-        )
 
         fc1 = get_federation_constitution(health_provider=_all_healthy_provider)
         fc2 = get_federation_constitution(health_provider=_all_healthy_provider)

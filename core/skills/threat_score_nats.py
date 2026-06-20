@@ -7,7 +7,6 @@ Purpose: Bridges threat_score.py to the live NATS governance stream.
          Replaces the stub `assess()` with live data ingestion.
 """
 
-import asyncio
 import json
 from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, field
@@ -15,7 +14,7 @@ from typing import Optional
 
 # Import the core scoring engine
 from .threat_score import (
-    Anomaly, AnomalyType, RiskLevel, ThreatAssessment,
+    ThreatAssessment,
     detect_frequency_spike, detect_novel_path, detect_hold_cluster,
     compute_risk_score, risk_level, recommended_action
 )

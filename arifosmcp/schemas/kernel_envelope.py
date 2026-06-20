@@ -24,13 +24,12 @@ DITEMPA BUKAN DIBERI — Forged as the constitutional contract.
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, field_validator, model_validator
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ACTION CLASSES — the seven irreducible permission levels
@@ -66,27 +65,27 @@ class ActionClass(StrEnum):
     ATOMIC = "IRREVERSIBLE"
 
     @classmethod
-    def is_safe(cls, action: "ActionClass") -> bool:
+    def is_safe(cls, action: ActionClass) -> bool:
         """Safe = no mutation, no external effects, no irreversible effects."""
         return action in {cls.OBSERVE, cls.ANALYZE}
 
     @classmethod
-    def is_mutating(cls, action: "ActionClass") -> bool:
+    def is_mutating(cls, action: ActionClass) -> bool:
         """Mutating = changes state in any way."""
         return action in {cls.MUTATE, cls.EXTERNAL_SIDE_EFFECT, cls.IRREVERSIBLE}
 
     @classmethod
-    def requires_lease(cls, action: "ActionClass") -> bool:
+    def requires_lease(cls, action: ActionClass) -> bool:
         """Actions that require a valid lease beyond OBSERVE."""
         return action not in {cls.OBSERVE, cls.UNKNOWN}
 
     @classmethod
-    def requires_human_ack(cls, action: "ActionClass") -> bool:
+    def requires_human_ack(cls, action: ActionClass) -> bool:
         """Actions that MUST have explicit human acknowledgement."""
         return action in {cls.IRREVERSIBLE, cls.EXTERNAL_SIDE_EFFECT}
 
     @classmethod
-    def subsumes(cls, granted: "ActionClass", requested: "ActionClass") -> bool:
+    def subsumes(cls, granted: ActionClass, requested: ActionClass) -> bool:
         """Whether `granted` action class covers `requested`."""
         order = {
             cls.OBSERVE: 0,
@@ -158,12 +157,12 @@ class BlastRadius(StrEnum):
     INFRA = "INFRASTRUCTURE"
 
     @classmethod
-    def requires_human_ack(cls, radius: "BlastRadius") -> bool:
+    def requires_human_ack(cls, radius: BlastRadius) -> bool:
         """Returns True if this blast radius requires human acknowledgement."""
         return radius.value >= cls.INFRASTRUCTURE.value
 
     @classmethod
-    def subsumes(cls, granted: "BlastRadius", requested: "BlastRadius") -> bool:
+    def subsumes(cls, granted: BlastRadius, requested: BlastRadius) -> bool:
         """Whether `granted` blast radius covers `requested`."""
         order = {
             cls.NONE: 0,
@@ -246,13 +245,13 @@ class KernelIdentity(BaseModel):
     delegation_mode: DelegationMode = Field(
         default=DelegationMode.UNVERIFIED, description="How authority was delegated to this actor"
     )
-    caller_actor_id: Optional[str] = Field(
+    caller_actor_id: str | None = Field(
         default=None, description="Upstream caller in delegation chain"
     )
-    executor_actor_id: Optional[str] = Field(
+    executor_actor_id: str | None = Field(
         default=None, description="Actual executing agent/model"
     )
-    declared_model_key: Optional[str] = Field(
+    declared_model_key: str | None = Field(
         default=None, description="Declared model identifier (e.g. 'deepseek', 'minimax')"
     )
 
@@ -279,7 +278,7 @@ class OrganIdentity(BaseModel):
     organ_version: str = Field(default="v2026.05.05-SSCT", description="Organ version string")
     tool_name: str = Field(default="", description="Name of the tool being called")
     tool_schema_hash: str = Field(default="", description="SHA-256 of the tool's input schema")
-    model_id: Optional[str] = Field(
+    model_id: str | None = Field(
         default=None, description="Model identifier if this call involves an LLM"
     )
     attestation_status: str = Field(
@@ -298,7 +297,7 @@ class AuthorityBlock(BaseModel):
     action_class: ActionClass = Field(
         default=ActionClass.UNKNOWN, description="Action class for this call"
     )
-    lease_id: Optional[str] = Field(
+    lease_id: str | None = Field(
         default=None, description="Active lease identifier (LEASE-NONE if no lease)"
     )
     lease_scope: list[str] = Field(default_factory=list, description="Scope of the active lease")
@@ -314,7 +313,7 @@ class AuthorityBlock(BaseModel):
     human_ack_required: bool = Field(
         default=False, description="Whether explicit human acknowledgement is required"
     )
-    human_ack_id: Optional[str] = Field(
+    human_ack_id: str | None = Field(
         default=None, description="Human acknowledgement receipt ID, if provided"
     )
 
@@ -328,7 +327,7 @@ class StateBlock(BaseModel):
     """Hash chain for audit integrity across calls."""
 
     input_hash: str = Field(default="sha256:" + "0" * 64, description="SHA-256 of the tool input")
-    output_hash: Optional[str] = Field(
+    output_hash: str | None = Field(
         default=None, description="SHA-256 of the tool output (filled after execution)"
     )
     prior_state_hash: str = Field(
@@ -385,22 +384,22 @@ class AuditBlock(BaseModel):
     """Audit trail for this call."""
 
     vault_required: bool = Field(default=False, description="Whether a VAULT999 seal is required")
-    audit_pointer: Optional[str] = Field(
+    audit_pointer: str | None = Field(
         default=None, description="Pointer to the audit entry in VAULT999"
     )
     seal_mode: SealMode = Field(
         default=SealMode.OBSERVE, description="What level of VAULT999 sealing is required"
     )
-    event_id: Optional[str] = Field(
+    event_id: str | None = Field(
         default=None, description="Unique event identifier for this audit event"
     )
     timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc), description="When this event occurred"
+        default_factory=lambda: datetime.now(UTC), description="When this event occurred"
     )
-    prior_event_hash: Optional[str] = Field(
+    prior_event_hash: str | None = Field(
         default=None, description="Hash of the prior audit event (for chain integrity)"
     )
-    trace_id: Optional[str] = Field(
+    trace_id: str | None = Field(
         default=None, description="Distributed trace identifier across organs"
     )
 
@@ -497,7 +496,7 @@ class KernelEnvelope(BaseModel):
     # ═══════════════════════════════════════════════════════════════
 
     @classmethod
-    def observe_only(cls, **overrides: Any) -> "KernelEnvelope":
+    def observe_only(cls, **overrides: Any) -> KernelEnvelope:
         """Create a minimal OBSERVE-only envelope."""
         return cls(
             authority=AuthorityBlock(action_class=ActionClass.OBSERVE),
@@ -509,7 +508,7 @@ class KernelEnvelope(BaseModel):
     @classmethod
     def hold_envelope(
         cls, reasons: list[str], violations: list[str] | None = None
-    ) -> "KernelEnvelope":
+    ) -> KernelEnvelope:
         """Create a HOLD envelope with reasons."""
         return cls(
             verdict=GateVerdict.HOLD,
@@ -519,7 +518,7 @@ class KernelEnvelope(BaseModel):
         )
 
     @classmethod
-    def void_envelope(cls, reasons: list[str], violations: list[str]) -> "KernelEnvelope":
+    def void_envelope(cls, reasons: list[str], violations: list[str]) -> KernelEnvelope:
         """Create a VOID envelope for constitutional violations."""
         return cls(
             verdict=GateVerdict.VOID,
@@ -533,7 +532,7 @@ class KernelEnvelope(BaseModel):
     # ═══════════════════════════════════════════════════════════════
 
     @model_validator(mode="after")
-    def _validate_consistency(self) -> "KernelEnvelope":
+    def _validate_consistency(self) -> KernelEnvelope:
         """Enforce envelope internal consistency."""
         # If action is mutating, a lease should exist
         if self.is_mutating and not self.authority.lease_id:
@@ -570,17 +569,17 @@ class GateResult(BaseModel):
     verdict: GateVerdict = Field(..., description="Gate verdict")
     reasons: list[str] = Field(default_factory=list, description="Gate reasons")
     violations: list[str] = Field(default_factory=list, description="Floor violations")
-    blocked_action_class: Optional[ActionClass] = Field(
+    blocked_action_class: ActionClass | None = Field(
         default=None, description="If blocked, what action class was attempted"
     )
-    required_lease_scope: Optional[str] = Field(
+    required_lease_scope: str | None = Field(
         default=None, description="If blocked for lease, what scope was needed"
     )
     required_human_ack: bool = Field(
         default=False, description="Whether human acknowledgement is needed to proceed"
     )
     drift_detected: bool = Field(default=False, description="Whether runtime drift was detected")
-    drift_level: Optional[DriftLevel] = Field(
+    drift_level: DriftLevel | None = Field(
         default=None, description="Detected drift severity level"
     )
     degraded_organs: list[str] = Field(default_factory=list, description="Organs that are degraded")
@@ -652,14 +651,14 @@ class OrganCard(BaseModel):
     allowed_action_classes: list[ActionClass] = Field(
         default_factory=list, description="Action classes this organ is authorized for"
     )
-    model_adapter: Optional[str] = Field(
+    model_adapter: str | None = Field(
         default=None, description="Model adapter if this organ hosts an LLM"
     )
     memory_scope: list[MemoryScope] = Field(
         default_factory=list, description="Memory scopes this organ may access"
     )
-    last_heartbeat: Optional[datetime] = Field(default=None, description="Last heartbeat timestamp")
-    degraded_reason: Optional[str] = Field(
+    last_heartbeat: datetime | None = Field(default=None, description="Last heartbeat timestamp")
+    degraded_reason: str | None = Field(
         default=None, description="Reason for degradation if not healthy"
     )
     drift_status: DriftLevel = Field(default=DriftLevel.NONE, description="Runtime drift severity")
@@ -674,7 +673,7 @@ class FederationRegistry(BaseModel):
     """Complete federation organ registry."""
 
     registry_version: str = Field(default="2.0.0")
-    generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     kernel_organ: OrganCard = Field(
         default_factory=lambda: OrganCard(
             organ_id="arifOS",
@@ -693,7 +692,7 @@ class FederationRegistry(BaseModel):
         default_factory=list, description="Organs currently in degraded state"
     )
 
-    def get_organ(self, organ_id: str) -> Optional[OrganCard]:
+    def get_organ(self, organ_id: str) -> OrganCard | None:
         """Look up an organ by ID."""
         for organ in self.organs:
             if organ.organ_id == organ_id:
@@ -732,7 +731,7 @@ class HumanAcknowledgement(BaseModel):
     )
     actor_id: str = Field(..., description="Who acknowledged (human)")
     timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         description="When acknowledgement was given",
     )
     action_summary: str = Field(..., description="What action is being acknowledged")
@@ -745,7 +744,7 @@ class HumanAcknowledgement(BaseModel):
         default_factory=lambda: uuid4().hex[:16],
         description="Cryptographic nonce to prevent replay",
     )
-    signature: Optional[str] = Field(
+    signature: str | None = Field(
         default=None, description="Ed25519 signature over (nonce + exact_command)"
     )
     binding_hash: str = Field(
@@ -753,7 +752,7 @@ class HumanAcknowledgement(BaseModel):
     )
 
     @model_validator(mode="after")
-    def _compute_binding(self) -> "HumanAcknowledgement":
+    def _compute_binding(self) -> HumanAcknowledgement:
         """Compute the binding hash that ties this acknowledgement to the action."""
         raw = f"{self.human_ack_id}:{self.nonce}:{self.exact_command}"
         self.binding_hash = f"sha256:{hashlib.sha256(raw.encode()).hexdigest()}"
@@ -761,7 +760,7 @@ class HumanAcknowledgement(BaseModel):
 
     def is_expired(self) -> bool:
         """Check if this acknowledgement has expired."""
-        elapsed = (datetime.now(timezone.utc) - self.timestamp).total_seconds()
+        elapsed = (datetime.now(UTC) - self.timestamp).total_seconds()
         return elapsed > self.expiry_seconds
 
 
@@ -775,8 +774,8 @@ class DriftReport(BaseModel):
 
     build_hash: str = Field(..., description="Declared build hash")
     runtime_hash: str = Field(..., description="Actual runtime hash")
-    git_commit: Optional[str] = Field(default=None, description="Git commit SHA")
-    container_image_digest: Optional[str] = Field(
+    git_commit: str | None = Field(default=None, description="Git commit SHA")
+    container_image_digest: str | None = Field(
         default=None, description="Container image digest"
     )
     tool_manifest_hash: str = Field(default="", description="SHA-256 of tool manifest")
@@ -785,7 +784,7 @@ class DriftReport(BaseModel):
     env_config_hash: str = Field(
         default="", description="SHA-256 of env config (excluding secrets)"
     )
-    deployment_timestamp: Optional[datetime] = Field(default=None, description="When deployed")
+    deployment_timestamp: datetime | None = Field(default=None, description="When deployed")
     drift_level: DriftLevel = Field(default=DriftLevel.NONE, description="Drift severity")
     drift_details: str = Field(default="", description="Human-readable drift explanation")
 
@@ -813,16 +812,16 @@ class AuditEvent(BaseModel):
         description="Unique audit event identifier",
     )
     timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc), description="When this event occurred"
+        default_factory=lambda: datetime.now(UTC), description="When this event occurred"
     )
     session_id: str = Field(default="", description="Session identifier")
     actor_id: str = Field(default="", description="Actor identifier")
     sovereign_id: str = Field(default="ARIF_FAZIL", description="Sovereign identifier")
     organ_id: str = Field(default="arifOS", description="Organ identifier")
-    model_id: Optional[str] = Field(default=None, description="Model identifier if LLM")
+    model_id: str | None = Field(default=None, description="Model identifier if LLM")
     tool_name: str = Field(default="", description="Tool name")
     action_class: ActionClass = Field(default=ActionClass.UNKNOWN, description="Action class")
-    lease_id: Optional[str] = Field(default=None, description="Active lease")
+    lease_id: str | None = Field(default=None, description="Active lease")
     input_hash: str = Field(default="", description="SHA-256 of input")
     output_hash: str = Field(default="", description="SHA-256 of output")
     prior_state_hash: str = Field(default="", description="Prior state hash")
@@ -830,10 +829,10 @@ class AuditEvent(BaseModel):
     prior_event_hash: str = Field(default="", description="Hash of prior audit event")
     verdict: GateVerdict = Field(default=GateVerdict.SEAL, description="Gate verdict")
     reasons: list[str] = Field(default_factory=list, description="Reasons")
-    human_ack_id: Optional[str] = Field(default=None, description="Human acknowledgement ID")
+    human_ack_id: str | None = Field(default=None, description="Human acknowledgement ID")
 
     @model_validator(mode="after")
-    def _compute_event_hash(self) -> "AuditEvent":
+    def _compute_event_hash(self) -> AuditEvent:
         """Compute the hash of this event for chain integrity."""
         # Use a deterministic subset of fields for the hash
         payload = (
@@ -853,7 +852,7 @@ class AuditEvent(BaseModel):
         """The SHA-256 hash of this event for chain integrity."""
         return self._event_hash
 
-    def verify_chain(self, prior_event: Optional["AuditEvent"]) -> bool:
+    def verify_chain(self, prior_event: AuditEvent | None) -> bool:
         """Verify that this event correctly chains to the prior event."""
         if prior_event is None:
             return self.prior_event_hash == ""
@@ -876,7 +875,7 @@ class ToolManifestEntry(BaseModel):
     requires_human_ack: bool = Field(default=False)
     blast_radius: BlastRadius = Field(default=BlastRadius.LOCAL)
     is_reversible: bool = Field(default=True)
-    memory_scope: Optional[MemoryScope] = Field(default=None)
+    memory_scope: MemoryScope | None = Field(default=None)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

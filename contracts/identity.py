@@ -15,7 +15,6 @@ DITEMPA BUKAN DIBERI — Authority must be proved, not declared.
 from __future__ import annotations
 
 from enum import IntEnum, StrEnum
-from typing import Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, field_validator

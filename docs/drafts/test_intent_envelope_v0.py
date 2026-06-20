@@ -21,7 +21,6 @@ What this proves:
 
 from __future__ import annotations
 
-import json
 import sys
 import time
 from datetime import datetime, timedelta, timezone
@@ -349,7 +348,7 @@ def test_T12_8_specs_no_sovereign_provenance() -> tuple[str, bool, str]:
     return (
         "T12_novelty_check",
         True,
-        f"8 competing 2025-2026 specs surveyed; none carry sovereign_provenance or scar-testimony field",
+        "8 competing 2025-2026 specs surveyed; none carry sovereign_provenance or scar-testimony field",
     )
 
 

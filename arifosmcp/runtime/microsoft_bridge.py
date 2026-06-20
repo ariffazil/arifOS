@@ -52,11 +52,9 @@ import importlib.util
 import json
 import os
 import sys
-import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
-
 
 # =====================================================================
 #  Constitutional Receipt
@@ -171,7 +169,7 @@ def probe_package(name: str, *, version_spec: str = "any") -> BridgeReceipt:
             note = f"Package '{name}' import raised: {e!r}."
 
     # Step 3: build the Receipt (F2 TRUTH — every field is observable)
-    timestamp = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+    timestamp = _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")
     content = {
         "package": name,
         "version_spec": version_spec,
@@ -253,7 +251,7 @@ def probe_federation() -> FederationProbe:
     reversible_count = sum(1 for r in receipts if r.reversible)
     sovereign_required = sum(1 for r in receipts if r.sovereign_required)
 
-    timestamp = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+    timestamp = _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")
     python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
     sys_path = [p for p in sys.path if p]  # exclude empty entries
 

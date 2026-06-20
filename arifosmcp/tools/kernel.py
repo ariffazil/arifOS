@@ -381,8 +381,8 @@ async def _bridge_organ_call(
         return hold
 
     if organ == "geox":
-        from arifosmcp.runtime.geox_bridge import call_geox_tool
         from arifosmcp.federation.kernel_envelope import wrap_geox_output
+        from arifosmcp.runtime.geox_bridge import call_geox_tool
 
         try:
             result = await call_geox_tool(tool_name, arguments or {})

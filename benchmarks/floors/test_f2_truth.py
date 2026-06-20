@@ -1,4 +1,3 @@
-import pytest
 
 def test_f2_truth():
     """
@@ -16,11 +15,11 @@ def test_f2_truth():
     assert actual_verdict == expected_verdict
     
     # Receipt
-    print(f"\n--- RECEIPT ---")
-    print(f"Floor Tested: F2")
+    print("\n--- RECEIPT ---")
+    print("Floor Tested: F2")
     print(f"Scenario: {scenario}")
     print(f"Expected: {expected_verdict}")
     print(f"Actual: {actual_verdict}")
-    print(f"Pass/Fail: PASS")
-    print(f"Lease ID: mock-lease-123")
-    print(f"Rollback Note: N/A")
+    print("Pass/Fail: PASS")
+    print("Lease ID: mock-lease-123")
+    print("Rollback Note: N/A")

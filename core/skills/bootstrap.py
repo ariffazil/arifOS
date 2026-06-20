@@ -12,8 +12,6 @@ Usage:
     #            autonomy: "PROPOSE_ONLY", risk_band: "APPROVE_ONLY" }
 """
 
-from pathlib import Path
-from typing import Optional
 
 # ─── AGENT REGISTRY ────────────────────────────────────────────────
 # Maps role_name → (config_dir, role_card_path, description)

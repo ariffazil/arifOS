@@ -36,13 +36,10 @@ from mcp_visibility_policy import (  # noqa: E402
     load_registry,
 )
 from organ_health_gate import (  # noqa: E402
-    DIAGNOSTIC_TOOL_NAMES as OG_DIAG,
     get_diagnostic_shortlist,
 )
 from tool_shortlist_router import (  # noqa: E402
-    Authority,
     route_intent_to_organs,
-    shortlist_tools,
 )
 
 

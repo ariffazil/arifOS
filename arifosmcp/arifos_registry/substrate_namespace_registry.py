@@ -18,8 +18,6 @@ from __future__ import annotations
 import hashlib
 import time
 from dataclasses import dataclass, field
-from typing import Optional
-
 
 # Canonical namespaces (per F13 SOVEREIGN ruling 2026-06-14)
 # Source: /root/arifOS/AGENTS.md "Namespace ruling (F13 SOVEREIGN 2026-06-14)"
@@ -179,10 +177,10 @@ class SubstrateNamespaceRegistry:
             ),
         }
 
-    def get(self, namespace: str) -> Optional[SubstrateNamespace]:
+    def get(self, namespace: str) -> SubstrateNamespace | None:
         return self._namespaces.get(namespace)
 
-    def resolve_organ_for_tool(self, tool_name: str) -> Optional[str]:
+    def resolve_organ_for_tool(self, tool_name: str) -> str | None:
         """Resolve which organ owns a given tool name. Returns namespace."""
         if not tool_name:
             return None

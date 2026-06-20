@@ -14,7 +14,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 
 class SignalType(str, Enum):
@@ -51,7 +50,7 @@ class SignalDetector:
     def __init__(self):
         self._detected: list[EngineeringSignal] = []
 
-    def detect(self, text: str, context: Optional[dict] = None) -> list[EngineeringSignal]:
+    def detect(self, text: str, context: dict | None = None) -> list[EngineeringSignal]:
         """
         Scan text for eureka signals. Phase 1: simple heuristic.
         Phase 2: LLM-assisted detection.

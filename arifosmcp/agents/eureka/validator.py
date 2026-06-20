@@ -12,9 +12,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
-
-from pydantic import BaseModel, Field, field_validator
 
 
 class ValidationVerdict(str, Enum):
@@ -34,8 +31,8 @@ class EngineeringClaim:
     epistemic_label: str  # OBS | DER | INT | SPEC
     confidence: float  # 0.0–0.90
     evidence: list[str] = field(default_factory=list)
-    witness_type: Optional[str] = None  # human | ai | earth
-    witness_id: Optional[str] = None
+    witness_type: str | None = None  # human | ai | earth
+    witness_id: str | None = None
     floor_compliance: list[str] = field(default_factory=list)
 
     def __post_init__(self):

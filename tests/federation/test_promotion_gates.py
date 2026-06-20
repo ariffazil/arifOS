@@ -8,13 +8,11 @@ F2-honest: YELLOW is the honest baseline. GREEN requires evidence.
 
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.federation.organ_constitution import (
     OrganAuthority,
     OrganConstitution,
     ConstitutionalFloor,
-    load_organ_constitution,
 )
 from arifosmcp.federation.promotion_gates import (
     PROMOTION_GATES,

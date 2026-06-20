@@ -21,7 +21,6 @@ from pathlib import Path
 from typing import Any
 
 from fastmcp import FastMCP
-from fastmcp.resources.types import TextResource
 
 _METABOLIZED_PATH = Path("/root/AAA/wiki/arif-fazil-metabolized.md")
 

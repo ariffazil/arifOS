@@ -38,19 +38,19 @@ from arifosmcp.runtime.session import (
     get_session_identity,
 )
 from arifosmcp.tools.hexagon import (
-    hexagon_psi_armor as _hex_psi_armor,
-)
-from arifosmcp.tools.hexagon import (
     hexagon_agi_execute as _hex_agi_execute,
 )
 from arifosmcp.tools.hexagon import (
-    hexagon_hold_status as _hex_hold_status,
+    hexagon_apex_validate as _hex_apex_validate,
 )
 from arifosmcp.tools.hexagon import (
     hexagon_asi_recall as _hex_asi_recall,
 )
 from arifosmcp.tools.hexagon import (
-    hexagon_apex_validate as _hex_apex_validate,
+    hexagon_hold_status as _hex_hold_status,
+)
+from arifosmcp.tools.hexagon import (
+    hexagon_psi_armor as _hex_psi_armor,
 )
 
 from .bridge import call_kernel

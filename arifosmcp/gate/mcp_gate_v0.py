@@ -15,8 +15,6 @@ from __future__ import annotations
 
 import enum
 from dataclasses import dataclass, field
-from typing import Optional
-
 
 # ── Action Classes (7-tier, replacing OBSERVE/MUTATE/ATOMIC) ────────────────
 
@@ -299,7 +297,7 @@ class MCPGateV0:
         one_liners = {
             GateVerdict.ALLOW: "Action allowed.",
             GateVerdict.ALLOW_WITH_LOG: f"Action allowed ({request.action_class.value}). Logged.",
-            GateVerdict.REQUIRE_APPROVAL: f"Action requires human approval.",
+            GateVerdict.REQUIRE_APPROVAL: "Action requires human approval.",
             GateVerdict.SIMULATE_FIRST: "Simulate first.",
             GateVerdict.BLOCK: "Blocked by constitutional policy.",
             GateVerdict.HOLD_888: "Held for sovereign judgment.",

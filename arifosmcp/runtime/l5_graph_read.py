@@ -42,7 +42,7 @@ import json
 import logging
 import os
 import time
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -64,9 +64,9 @@ def _graphiti_get(path: str, params: dict[str, str] | None = None) -> dict[str, 
     if not _GRAPHITI_ENABLED:
         return {"error": "L5 disabled", "results": []}
 
-    import urllib.request
-    import urllib.parse
     import urllib.error
+    import urllib.parse
+    import urllib.request
 
     url = f"{_GRAPHITI_URL.rstrip('/')}{path}"
     if params:
@@ -94,8 +94,8 @@ def _graphiti_post(path: str, body: dict[str, Any]) -> dict[str, Any]:
     if not _GRAPHITI_ENABLED:
         return {"error": "L5 disabled", "results": []}
 
-    import urllib.request
     import urllib.error
+    import urllib.request
 
     url = f"{_GRAPHITI_URL.rstrip('/')}{path}"
     data = json.dumps(body).encode("utf-8")

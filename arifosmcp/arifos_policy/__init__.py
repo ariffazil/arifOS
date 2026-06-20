@@ -15,7 +15,7 @@ Constitutional binding:
 - F13 SOVEREIGN: arifOS can always override OPA verdicts
 """
 
-from .opa_bridge import OPABridge, PolicyVerdict, PolicyInput
 from .cedar_bridge import CedarBridge  # Phase 2
+from .opa_bridge import OPABridge, PolicyInput, PolicyVerdict
 
 __all__ = ["OPABridge", "PolicyVerdict", "PolicyInput", "CedarBridge"]

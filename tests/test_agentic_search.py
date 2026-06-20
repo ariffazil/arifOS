@@ -1,5 +1,4 @@
 """Test the agentic search FSM in arif_memory_recall."""
-import sys
 
 def _payload(result):
     """Extract the data payload from _ok wrapper."""

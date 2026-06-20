@@ -21,9 +21,8 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 
 class ToolLane(str, Enum):
@@ -58,7 +57,7 @@ class ToolManifest:
     human_approval_policy: str  # NONE | SABAR | ALWAYS
     description: str
     signed: bool = False
-    signature: Optional[str] = None
+    signature: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -93,7 +92,7 @@ class MCPToolRegistry:
             raise ValueError(f"Tool {manifest.tool_name} already registered")
         self._tools[manifest.tool_name] = manifest
 
-    def get(self, tool_name: str) -> Optional[ToolManifest]:
+    def get(self, tool_name: str) -> ToolManifest | None:
         return self._tools.get(tool_name)
 
     def list_by_organ(self, organ: str) -> list[ToolManifest]:

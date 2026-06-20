@@ -41,13 +41,17 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, Callable
+from typing import Any
 
 # ── F0_ROOTKEY Gate (Gate -2 — constitutional prerequisite) ─────────
 try:
     from arifosmcp.core.f0_rootkey import (
-        check_f0_rootkey as _f0_rootkey_check,
         F0GateVerdict as _F0Verdict,
+    )
+    from arifosmcp.core.f0_rootkey import (
+        check_f0_rootkey as _f0_rootkey_check,
+    )
+    from arifosmcp.core.f0_rootkey import (
         get_rootkey_anchor_status as _f0_anchor_status,
     )
 
@@ -69,11 +73,19 @@ except ImportError:
 # ── Reality Engineering Bridge (Ω, 2026-06-12) ──────────────────────
 try:
     from arifosmcp.runtime.reality_bridge import (
-        session_gate as _reality_session_gate,
-        envelope_gate as _reality_envelope_gate,
-        risk_gate as _reality_risk_gate,
-        classify_output as _reality_classify_output,
         bridge_enabled as _reality_bridge_enabled,
+    )
+    from arifosmcp.runtime.reality_bridge import (
+        classify_output as _reality_classify_output,
+    )
+    from arifosmcp.runtime.reality_bridge import (
+        envelope_gate as _reality_envelope_gate,
+    )
+    from arifosmcp.runtime.reality_bridge import (
+        risk_gate as _reality_risk_gate,
+    )
+    from arifosmcp.runtime.reality_bridge import (
+        session_gate as _reality_session_gate,
     )
 
     _REALITY_BRIDGE_AVAILABLE = True
@@ -104,9 +116,13 @@ except ImportError:
 # ── E7 Principal Paradox (Gate 1.5, 2026-06-14) ──────────────────────
 try:
     from arifosmcp.runtime.principal_paradox import (
-        gate_1_5_principal_paradox as _e7_gate,
-        AutonomyTier as _E7AutonomyTier,
         MAX_OVERRIDES_PER_HOUR as _E7_MAX_OVERRIDES,
+    )
+    from arifosmcp.runtime.principal_paradox import (
+        AutonomyTier as _E7AutonomyTier,
+    )
+    from arifosmcp.runtime.principal_paradox import (
+        gate_1_5_principal_paradox as _e7_gate,
     )
 
     _E7_AVAILABLE = True
@@ -785,7 +801,8 @@ class GovernancePipeline:
 
         import json as _json
         import threading as _thr
-        from datetime import UTC, datetime as _dt
+        from datetime import UTC
+        from datetime import datetime as _dt
 
         # Map pipeline verdict to correct NATS subject (matching stream config)
         if result.verdict == PipelineVerdict.PASS:
@@ -810,6 +827,7 @@ class GovernancePipeline:
         def _publish_sync() -> None:
             """Thread worker: connect, publish, disconnect."""
             import asyncio as _aio
+
             import nats as _nats_mod
 
             async def _do() -> None:
@@ -1775,11 +1793,14 @@ class GovernancePipeline:
                                 })
                                 return
 
-                    from arifosmcp.runtime.governance_pipeline import ToolCallContext, PipelineVerdict
                     from arifosmcp.runtime.blast_radius_registry import (
+                        EnforcementMode,
                         get_enforcement_mode,
                         get_risk_profile,
-                        EnforcementMode,
+                    )
+                    from arifosmcp.runtime.governance_pipeline import (
+                        PipelineVerdict,
+                        ToolCallContext,
                     )
 
                     # Resolve enforcement mode for this tool

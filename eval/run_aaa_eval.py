@@ -78,7 +78,7 @@ def _pull_from_hf() -> None:
         import subprocess
         dest = "/tmp/AAA-hf"
         os.environ.get("HF_TOKEN", "")
-        url = f"https://huggingface.co/datasets/ariffazil/AAA"
+        url = "https://huggingface.co/datasets/ariffazil/AAA"
         subprocess.run(
             ["git", "clone", url, dest],
             check=True, capture_output=True,
@@ -203,19 +203,19 @@ def _write_summary(
 ) -> None:
     model = os.environ.get("OLLAMA_MODEL", "qwen2.5:7b")
     lines = [
-        f"# AAA Benchmark — Eval Summary",
-        f"",
+        "# AAA Benchmark — Eval Summary",
+        "",
         f"**Timestamp:** {ts}  ",
         f"**Agent mode:** `{mode}`  ",
         f"**Model:** `{model}`  ",
-        f"**Gold version:** v1.2 (111 rows)  ",
-        f"",
-        f"---",
-        f"",
-        f"## Overall",
-        f"",
-        f"| Metric | Value |",
-        f"|--------|-------|",
+        "**Gold version:** v1.2 (111 rows)  ",
+        "",
+        "---",
+        "",
+        "## Overall",
+        "",
+        "| Metric | Value |",
+        "|--------|-------|",
         f"| Total cases | {agg['n_total']} |",
         f"| Run | {agg['n_run']} |",
         f"| Pass | {agg['n_pass']} |",
@@ -223,73 +223,73 @@ def _write_summary(
         f"| Error | {agg['n_error']} |",
         f"| **Overall pass rate** | **{agg['overall_pass_rate']:.1%}** |",
         f"| Maruah-weighted score | {agg['maruah_weighted_score']:.4f} |",
-        f"",
-        f"---",
-        f"",
-        f"## By Floor (F1–F13)",
-        f"",
-        f"| Floor | Total | Run | Pass | Rate |",
-        f"|-------|-------|-----|------|------|",
+        "",
+        "---",
+        "",
+        "## By Floor (F1–F13)",
+        "",
+        "| Floor | Total | Run | Pass | Rate |",
+        "|-------|-------|-----|------|------|",
     ]
     for floor, s in sorted(agg.get("by_floor", {}).items()):
         lines.append(f"| {floor} | {s['total']} | {s['run']} | {s['pass']} | {s['pass_rate']:.1%} |")
 
     lines += [
-        f"",
-        f"---",
-        f"",
-        f"## By Risk Level",
-        f"",
-        f"| Risk | Total | Run | Pass | Rate |",
-        f"|------|-------|-----|------|------|",
+        "",
+        "---",
+        "",
+        "## By Risk Level",
+        "",
+        "| Risk | Total | Run | Pass | Rate |",
+        "|------|-------|-----|------|------|",
     ]
     for risk, s in agg.get("by_risk_level", {}).items():
         lines.append(f"| {risk} | {s['total']} | {s['run']} | {s['pass']} | {s['pass_rate']:.1%} |")
 
     lines += [
-        f"",
-        f"---",
-        f"",
-        f"## By Difficulty",
-        f"",
-        f"| Difficulty | Total | Run | Pass | Rate |",
-        f"|-----------|-------|-----|------|------|",
+        "",
+        "---",
+        "",
+        "## By Difficulty",
+        "",
+        "| Difficulty | Total | Run | Pass | Rate |",
+        "|-----------|-------|-----|------|------|",
     ]
     for diff, s in agg.get("by_difficulty", {}).items():
         lines.append(f"| {diff} | {s['total']} | {s['run']} | {s['pass']} | {s['pass_rate']:.1%} |")
 
     lines += [
-        f"",
-        f"---",
-        f"",
-        f"## By Language",
-        f"",
-        f"| Language | Total | Run | Pass | Rate |",
-        f"|---------|-------|-----|------|------|",
+        "",
+        "---",
+        "",
+        "## By Language",
+        "",
+        "| Language | Total | Run | Pass | Rate |",
+        "|---------|-------|-----|------|------|",
     ]
     for lang, s in agg.get("by_language", {}).items():
         lines.append(f"| {lang} | {s['total']} | {s['run']} | {s['pass']} | {s['pass_rate']:.1%} |")
 
     lines += [
-        f"",
-        f"---",
-        f"",
-        f"## By Domain",
-        f"",
-        f"| Domain | Total | Run | Pass | Rate |",
-        f"|--------|-------|-----|------|------|",
+        "",
+        "---",
+        "",
+        "## By Domain",
+        "",
+        "| Domain | Total | Run | Pass | Rate |",
+        "|--------|-------|-----|------|------|",
     ]
     for dom, s in agg.get("by_domain", {}).items():
         lines.append(f"| {dom} | {s['total']} | {s['run']} | {s['pass']} | {s['pass_rate']:.1%} |")
 
     lines += [
-        f"",
-        f"---",
-        f"",
-        f"## Failure summary (top 10)",
-        f"",
-        f"| ID | Expected | Got | Floor(s) | Notes |",
-        f"|----|----------|-----|---------|-------|",
+        "",
+        "---",
+        "",
+        "## Failure summary (top 10)",
+        "",
+        "| ID | Expected | Got | Floor(s) | Notes |",
+        "|----|----------|-----|---------|-------|",
     ]
     failures = [s for s in scored if not s["pass"] and s["status"] == "ok"]
     for s in failures[:10]:
@@ -297,9 +297,9 @@ def _write_summary(
         lines.append(f"| {s['id']} | {s['expected_decision']} | {s['agent_decision'] or '—'} | {floors} | {s['notes'][:60]} |")
 
     lines += [
-        f"",
-        f"---",
-        f"*DITEMPA BUKAN DIBERI — 999 SEAL*",
+        "",
+        "---",
+        "*DITEMPA BUKAN DIBERI — 999 SEAL*",
     ]
 
     with open(output_dir / "aaa_eval_summary.md", "w") as fh:
@@ -335,7 +335,7 @@ def main() -> None:
     output_dir = Path(args.output)
 
     print(f"\n{'='*60}")
-    print(f"  AAA Constitutional AI Eval Harness")
+    print("  AAA Constitutional AI Eval Harness")
     print(f"  Mode: {active_mode}")
     print(f"{'='*60}\n")
 
@@ -385,7 +385,7 @@ def main() -> None:
     agg = aggregate(scored, cases)
 
     print(f"\n{'='*60}")
-    print(f"  RESULTS")
+    print("  RESULTS")
     print(f"{'='*60}")
     print(f"  Evaluated : {agg['n_run']} / {agg['n_total']} cases in {elapsed:.1f}s")
     print(f"  Pass      : {agg['n_pass']} / {agg['n_run']}  ({agg['overall_pass_rate']:.1%})")
@@ -406,7 +406,7 @@ def main() -> None:
 
     print(f"\n{'='*60}")
     print(f"  Done.  Pass rate: {agg['overall_pass_rate']:.1%}  ({agg['n_pass']}/{agg['n_run']})")
-    print(f"  DITEMPA BUKAN DIBERI — 999 SEAL")
+    print("  DITEMPA BUKAN DIBERI — 999 SEAL")
     print(f"{'='*60}\n")
 
     # Exit 0 if ≥50% pass, 1 otherwise (for CI gate)

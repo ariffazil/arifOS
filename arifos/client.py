@@ -19,7 +19,6 @@ from typing import Any
 import httpx
 
 from arifos.actor import Actor
-from arifos.envelope import CallEnvelope
 from arifos.intent import Intent
 
 

@@ -45,7 +45,7 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from enum import Enum, auto
+from enum import Enum
 from typing import Any
 
 logger = logging.getLogger("arifOS.MetabolicLoop")
@@ -254,15 +254,14 @@ class MetabolicLoop:
         floor_violations: list[str] = []
 
         try:
+            from arifosmcp.geometry.mind_axioms import (
+                is_hole_territory,
+                run_all_axioms,
+            )
             from arifosmcp.geometry.mind_geometry import fuse_axioms
             from arifosmcp.geometry.sovereign_proximity import (
                 ProximityInputs,
                 compute_sovereign_proximity,
-            )
-            from arifosmcp.geometry.mind_axioms import (
-                AxiomResult,
-                run_all_axioms,
-                is_hole_territory,
             )
 
             # Build ProximityInputs from candidate characteristics

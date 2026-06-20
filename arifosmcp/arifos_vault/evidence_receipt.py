@@ -7,7 +7,6 @@ F3 TRI-WITNESS: Human × AI × Earth must all witness every consequential claim.
 from __future__ import annotations
 
 import time
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -31,7 +30,7 @@ class EvidenceReceipt(BaseModel):
     epistemic_status: str  # OBS | DER | INT | SPEC
     witnesses: list[Witness]
     source_refs: list[str] = Field(default_factory=list)
-    session_id: Optional[str] = None
+    session_id: str | None = None
     created_at: str = Field(default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
 
     def is_tri_witnessed(self) -> bool:

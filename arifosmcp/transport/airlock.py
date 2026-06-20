@@ -11,8 +11,9 @@ import hashlib
 import json
 import logging
 import uuid
+from collections.abc import Callable
 from copy import deepcopy
-from typing import Any, Callable
+from typing import Any
 
 from arifosmcp.transport.canonical_envelope import (
     ActionClass,

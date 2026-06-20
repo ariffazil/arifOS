@@ -11,13 +11,13 @@ __all__: list[str] = []
 # ═══════════════════════════════════════════════════════
 try:
     from arifosmcp.core.physics.thermodynamics_hardened import (
-        ThermodynamicError,
-        ThermodynamicBudgetLedger,
         MaintenanceScaling,
-        compute_exergy_ratio,
+        ThermodynamicBudgetLedger,
+        ThermodynamicError,
         apply_maintenance_decay,
-        init_budget_ledger,
+        compute_exergy_ratio,
         get_budget_ledger,
+        init_budget_ledger,
         record_budget_operation,
     )
 except ImportError as _exc:  # pragma: no cover - guarded for optional symbols
@@ -69,21 +69,21 @@ __all__.extend([
 # ═══════════════════════════════════════════════════════
 try:
     from arifosmcp.core.physics.institutional_evolution import (
-        # Exception types
-        SuccessionError,
-        InstitutionalEvolutionError,
-        AttentionBudgetExceededError,
-        PopulationAbsorptionError,
-        SuccessionContinuityError,
         AIAdaptationRateExceededError,
-        # Function API
-        check_human_attention_budget,
-        check_institutional_succession,
-        check_ai_adaptation_rate,
-        check_population_absorption,
-        check_institutional_evolution,
+        AttentionBudgetExceededError,
+        InstitutionalEvolutionError,
         # Guard class
         InstitutionalEvolutionGuard,
+        PopulationAbsorptionError,
+        SuccessionContinuityError,
+        # Exception types
+        SuccessionError,
+        check_ai_adaptation_rate,
+        # Function API
+        check_human_attention_budget,
+        check_institutional_evolution,
+        check_institutional_succession,
+        check_population_absorption,
     )
 except ImportError as _exc:  # pragma: no cover - guarded for optional symbols
     SuccessionError = None  # type: ignore[misc,assignment]

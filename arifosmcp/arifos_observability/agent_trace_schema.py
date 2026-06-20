@@ -15,9 +15,6 @@ Every arifOS tool call span carries:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 
@@ -30,16 +27,16 @@ class AgentTraceSpan(BaseModel):
     actor_id: str
     action_class: str  # OBSERVE | ANALYZE | MUTATE | GOVERNED | SEAL
     tool: str
-    session_id: Optional[str] = None
-    lease_id: Optional[str] = None
-    verdict: Optional[str] = None  # SEAL | SABAR | HOLD | VOID
-    input_hash: Optional[str] = None
-    output_hash: Optional[str] = None
-    entropy_delta: Optional[float] = None
+    session_id: str | None = None
+    lease_id: str | None = None
+    verdict: str | None = None  # SEAL | SABAR | HOLD | VOID
+    input_hash: str | None = None
+    output_hash: str | None = None
+    entropy_delta: float | None = None
     start_time_ns: int
-    end_time_ns: Optional[int] = None
+    end_time_ns: int | None = None
     attributes: dict = Field(default_factory=dict)
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class AgentTraceSchema:

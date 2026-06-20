@@ -13,8 +13,8 @@ This package provides:
 - tool_scorecard.py: per-tool OpenSSF-style score
 """
 
-from .mcp_tool_registry import MCPToolRegistry, ToolManifest, ToolLane
 from .capability_manifest import CapabilityManifest
+from .mcp_tool_registry import MCPToolRegistry, ToolLane, ToolManifest
 from .tool_scorecard import ToolScorecard
 
 __all__ = ["MCPToolRegistry", "ToolManifest", "ToolLane", "CapabilityManifest", "ToolScorecard"]

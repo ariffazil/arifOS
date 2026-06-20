@@ -30,9 +30,8 @@ import os
 import re
 from typing import Any
 
-from core.shared.laws import get_law_threshold
-
 import requests
+from core.shared.laws import get_law_threshold
 
 from .sensing_protocol import (
     # Complex dataclasses

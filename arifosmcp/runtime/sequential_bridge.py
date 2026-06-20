@@ -171,8 +171,8 @@ def call_native_sequential_thinking(
     tool signature for compatibility.
     """
     from arifosmcp.runtime.thinking.session import (
-        ThinkingSessionManager,
         StepType,
+        ThinkingSessionManager,
     )
 
     manager = ThinkingSessionManager()

@@ -27,10 +27,10 @@ Invariant:
 
 from arifosmcp.boot.swarm_schemas import (
     BootReceipt,
-    SwarmManifest,
     CapabilityAttestation,
-    SwarmLease,
     ReIgnitionReceipt,
+    SwarmLease,
+    SwarmManifest,
 )
 
 __all__ = [

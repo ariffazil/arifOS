@@ -15,14 +15,11 @@ Verifies the 8-gate pipeline:
 DITEMPA BUKAN DIBERI — The pipe tested, not assumed.
 """
 
-import pytest
 from types import SimpleNamespace
 
 from arifosmcp.runtime.governance_pipeline import (
     Gate,
-    GateResult,
     GovernancePipeline,
-    PipelineResult,
     PipelineVerdict,
     ToolCallContext,
     get_pipeline,

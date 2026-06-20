@@ -1,4 +1,3 @@
-from pathlib import Path
 import pytest
 from arifosmcp.runtime.sovereign_signer import load_private_key, sign, get_constitution_hash
 from arifosmcp.runtime.sovereign_verify import verify_sovereign_signature

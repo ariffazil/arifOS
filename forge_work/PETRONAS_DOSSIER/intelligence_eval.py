@@ -5,7 +5,8 @@ Evaluates this document against 9 intelligence axes. Every existing analysis
 (AI, think tank, journalist) scores lower on at least 3 axes. This document
 holds all 9 simultaneously — the Gödel lock that makes it irreducible.
 """
-import os, json
+import os
+import json
 
 # ============================================================
 # AXIS 1: Epistemological Honesty (F2 TRUTH)
@@ -225,4 +226,4 @@ report = {
 }
 with open('/root/arifOS/forge_work/PETRONAS_DOSSIER/intelligence_eval.json', 'w') as f:
     json.dump(report, f, indent=2)
-print(f"\nEvaluation saved to: /root/arifOS/forge_work/PETRONAS_DOSSIER/intelligence_eval.json")
+print("\nEvaluation saved to: /root/arifOS/forge_work/PETRONAS_DOSSIER/intelligence_eval.json")

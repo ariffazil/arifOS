@@ -20,10 +20,10 @@ Constitutional binding:
 - F13 SOVEREIGN: Arif holds final veto
 """
 
-from .agent import EngineeringEurekaAgent, EurekaSignal, EurekaResult
-from .substrate import SubstrateIndex, SubstrateCapability
-from .signals import SignalDetector, EngineeringSignal
-from .validator import EngineeringClaimValidator, EngineeringClaim, ValidationVerdict
+from .agent import EngineeringEurekaAgent, EurekaResult, EurekaSignal
+from .signals import EngineeringSignal, SignalDetector
+from .substrate import SubstrateCapability, SubstrateIndex
+from .validator import EngineeringClaim, EngineeringClaimValidator, ValidationVerdict
 
 __all__ = [
     "EngineeringEurekaAgent",

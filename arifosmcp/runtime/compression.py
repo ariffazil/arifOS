@@ -586,7 +586,6 @@ def auto_compress(
 
     This is the primary entry point for automatic context compression.
     """
-    from datetime import datetime, timezone
 
     # ── Policy gate: AUTO_COMPACT_ENABLED (default off) ────────────────────
     if not _AUTO_COMPACT_ENABLED:

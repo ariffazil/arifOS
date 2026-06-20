@@ -31,7 +31,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
-from typing import Any
 
 
 class EpistemicState(StrEnum):
@@ -82,7 +81,7 @@ class WorldStateClaim:
         except Exception:
             return False
 
-    def promote_to(self, new_state: EpistemicState, evidence: str = "") -> "WorldStateClaim":
+    def promote_to(self, new_state: EpistemicState, evidence: str = "") -> WorldStateClaim:
         """Promote claim to a higher epistemic state with evidence."""
         if new_state == EpistemicState.KNOWN and not evidence:
             raise ValueError("KNOWLEDGE requires evidence")

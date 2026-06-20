@@ -29,7 +29,6 @@ if str(_runtime_dir) not in sys.path:
     sys.path.insert(0, str(_runtime_dir))
 
 from mcp_visibility_policy import (  # noqa: E402
-    DIAGNOSTIC_TOOL_NAMES,
     OrganHealth,
     Tier,
     ToolEntry,

@@ -33,7 +33,6 @@ import hashlib
 import re
 from typing import Any
 
-
 # ─── Configuration ────────────────────────────────────────────────────────────
 ECHO_SIMILARITY_THRESHOLD = 0.80  # 80% token overlap = echo
 MIN_MESSAGE_LENGTH_CHARS = 100  # Don't bother with short messages

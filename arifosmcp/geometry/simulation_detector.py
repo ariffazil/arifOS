@@ -32,17 +32,16 @@ DITEMPA BUKAN DIBERI — the simulative can now be measured.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from arifosmcp.geometry.simulation_schema import (
-    SimulationDepth,
-    SimulationVerdict,
-    InstitutionClass,
+    BeliefIntegrity,
     NarrativeGap,
     OpacityTrend,
-    BeliefIntegrity,
     SelfSimulationGuard,
+    SimulationDepth,
+    SimulationVerdict,
 )
 
 logger = logging.getLogger(__name__)
@@ -185,7 +184,7 @@ def detect_simulation(
     # ── Composite simulation index ──────────────────────────────────────
     sim_depth = SimulationDepth(
         institution_name=institution_name,
-        analysis_date=datetime.now(timezone.utc).isoformat(),
+        analysis_date=datetime.now(UTC).isoformat(),
         confidence=confidence,
         evidence_strength=evidence.get("evidence_strength", "PLAUSIBLE"),
         narrative_gap=narrative_gap,
@@ -287,7 +286,7 @@ def kernel_self_check(
         kernel_claims=list(claimed_set),
         kernel_observed=list(observed_set),
         self_simulation_index=round(sim_index, 4),
-        last_self_check=datetime.now(timezone.utc).isoformat(),
+        last_self_check=datetime.now(UTC).isoformat(),
     )
 
 

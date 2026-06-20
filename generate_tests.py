@@ -1,5 +1,4 @@
 import os
-import json
 
 base_dir = "/root/arifOS/benchmarks"
 os.makedirs(f"{base_dir}/floors", exist_ok=True)

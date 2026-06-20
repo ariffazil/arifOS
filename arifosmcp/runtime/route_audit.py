@@ -16,9 +16,7 @@ import json
 import logging
 import os
 import threading
-import time
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -89,7 +87,7 @@ class RouteAuditLogger:
     Thread-safe. F2: every entry has hash chain. F4: single format.
     """
 
-    _instance: "RouteAuditLogger | None" = None
+    _instance: RouteAuditLogger | None = None
     _lock = threading.Lock()
 
     def __init__(self, output_file: str | None = None):
@@ -101,7 +99,7 @@ class RouteAuditLogger:
         self._total_fallbacks = 0
 
     @classmethod
-    def get_instance(cls, output_file: str | None = None) -> "RouteAuditLogger":
+    def get_instance(cls, output_file: str | None = None) -> RouteAuditLogger:
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:

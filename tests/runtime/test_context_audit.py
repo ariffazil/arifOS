@@ -30,7 +30,6 @@ DITEMPA BUKAN DIBERI — every context decision leaves a trace.
 from __future__ import annotations
 
 import os
-import threading
 import uuid
 
 import pytest

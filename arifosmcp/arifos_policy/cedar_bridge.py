@@ -7,7 +7,7 @@ preserving constitutional chain (arifOS still decides).
 """
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
@@ -17,7 +17,7 @@ class CedarBridge:
     enabled: bool = False
 
     async def evaluate(
-        self, principal: str, action: str, resource: str, context: Optional[dict[str, Any]] = None
+        self, principal: str, action: str, resource: str, context: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         return {
             "decision": "ALLOW",

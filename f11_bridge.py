@@ -40,8 +40,6 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 from __future__ import annotations
 
 import asyncio
-import hashlib
-import json
 import logging
 import os
 import sqlite3

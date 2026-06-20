@@ -36,7 +36,6 @@ DITEMPA BUKAN DIBERI — the first reflex is forge, not given.
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import threading
@@ -44,21 +43,16 @@ import time
 from enum import StrEnum
 from typing import Any
 
-from arifosmcp.runtime.token_pressure import (
-    PressureBand,
-    classify_pressure,
-    get_session_singleton,
-)
 from arifosmcp.runtime.context_audit import (
-    POLICY_VERSION as AUDIT_POLICY_VERSION,
     AuditMode,
     EventType,
-    RiskClass,
-    audit_classify,
-    audit_seal,
     audit_digest,
+    audit_seal,
     audit_trace,
-    audit_hold,
+)
+from arifosmcp.runtime.token_pressure import (
+    PressureBand,
+    get_session_singleton,
 )
 
 logger = logging.getLogger(__name__)

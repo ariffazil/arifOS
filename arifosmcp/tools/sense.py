@@ -46,12 +46,12 @@ import logging
 import random
 from typing import Any
 
+from arifosmcp.paradox import build_organ_anchors, register_organ
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.reality_handlers import handler as reality_handler
 from arifosmcp.runtime.reality_models import BundleInput
 from arifosmcp.runtime.session_auth import validate_session
 from arifosmcp.runtime.tools import _hold, _ok, _sabar
-from arifosmcp.paradox import register_organ, build_organ_anchors
 
 logger = logging.getLogger(__name__)
 
@@ -345,7 +345,7 @@ def _agentic_search_plan(
     stop_conditions = [
         f"coverage >= {required_quality}",
         f"trust >= {required_quality}",
-        f"voi <= 0.05",
+        "voi <= 0.05",
         f"budget_exhausted: steps >= {max_steps}",
     ]
 

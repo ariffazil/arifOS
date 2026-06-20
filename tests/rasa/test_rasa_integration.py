@@ -34,7 +34,6 @@ from arifosmcp.rasa.rasa_integration import (
     rasa_heart_hook,
     rasa_integration_diagnostics,
     rasa_judge_hook,
-    rasa_memory_hook,
     rasa_mind_hook,
     rasa_sense_hook,
 )
@@ -407,7 +406,7 @@ class TestSiblingRelationship:
 
     def test_internal_rasa_is_importable_and_distinct(self):
         """internal_rasa must be importable and have different purpose."""
-        from arifosmcp.boot.internal_rasa import InternalRasaEngine, InternalRasaState
+        from arifosmcp.boot.internal_rasa import InternalRasaEngine
 
         # internal_rasa is about AGENT self-monitoring
         engine = InternalRasaEngine()

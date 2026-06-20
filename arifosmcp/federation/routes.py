@@ -25,15 +25,11 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 
 from arifosmcp.federation.constitution_aggregator import (
-    FederationConstitution,
-    OrganConstitutionWithTier,
     as_dict,
     get_federation_constitution,
 )
 from arifosmcp.federation.organ_constitution import (
-    OrganConstitution,
     list_known_organs,
-    load_organ_constitution,
 )
 from arifosmcp.federation.promotion_gates import (
     PROMOTION_GATES,

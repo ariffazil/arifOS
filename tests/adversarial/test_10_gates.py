@@ -20,8 +20,6 @@ DITEMPA BUKAN DIBERI.
 
 from __future__ import annotations
 
-import json
-import hashlib
 import pytest
 
 
@@ -132,7 +130,7 @@ class TestGate07_FloorPollution:
             "actor": "adversarial",
         }
         result = FloorPollutionGuard().check(payload)
-        assert result.get("verdict") in ("HOLD", "VOID"), f"Floor pollution passed"
+        assert result.get("verdict") in ("HOLD", "VOID"), "Floor pollution passed"
 
 
 class TestGate08_VoidRetryBypass:

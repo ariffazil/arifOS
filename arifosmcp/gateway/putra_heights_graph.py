@@ -9,12 +9,24 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 
 from __future__ import annotations
 
-from .tension_node import (
-    ActorNode, ActorRole, ActivityNode, BeliefGraph, ClaimNode, ClaimType,
-    EpistemicTag, EvidenceNode, GovernanceBinding, ParadoxTensionNode, Provenance,
-    ReceiptNode, ResolutionType, Severity, TensionClass, TensionScores, TensionStatus,
-)
 from .merkle_log import MerkleTree
+from .tension_node import (
+    ActivityNode,
+    ActorNode,
+    ActorRole,
+    BeliefGraph,
+    ClaimNode,
+    ClaimType,
+    EpistemicTag,
+    EvidenceNode,
+    GovernanceBinding,
+    ParadoxTensionNode,
+    Provenance,
+    ReceiptNode,
+    Severity,
+    TensionClass,
+    TensionScores,
+)
 
 
 def putra_heights_belief_graph() -> BeliefGraph:

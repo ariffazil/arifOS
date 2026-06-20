@@ -9,12 +9,12 @@ from arifosmcp.tools.heart import arif_heart_critique
 from arifosmcp.tools.judge import arif_judge_deliberate
 from arifosmcp.tools.kernel import arif_kernel_route  # soft-deprecated, see kernel_canonical.py
 from arifosmcp.tools.kernel_canonical import (
-    arif_route,          # new canonical routing (RULE 14)
-    arif_triage,         # session status, preflight, priority
-    arif_kernel_status,   # telemetry, discover, prediction
-    arif_bridge,         # direct organ tool call (bypass intent map)
-    arif_kernel_attest,   # organ attestation (organ param, not name)
-    arif_kernel_health,   # federation liveness snapshot
+    arif_bridge,  # direct organ tool call (bypass intent map)
+    arif_kernel_attest,  # organ attestation (organ param, not name)
+    arif_kernel_health,  # federation liveness snapshot
+    arif_kernel_status,  # telemetry, discover, prediction
+    arif_route,  # new canonical routing (RULE 14)
+    arif_triage,  # session status, preflight, priority
 )
 from arifosmcp.tools.memory import arif_memory_recall
 from arifosmcp.tools.ops import arif_ops_measure
@@ -22,8 +22,8 @@ from arifosmcp.tools.reason import arif_mind_reason
 from arifosmcp.tools.reply import arif_reply_compose
 from arifosmcp.tools.sense import arif_sense_observe
 from arifosmcp.tools.session import arif_session_init
+from arifosmcp.tools.shadow_geometry import arif_model_compare, arif_self_evaluate
 from arifosmcp.tools.vault import arif_vault_seal
-from arifosmcp.tools.shadow_geometry import arif_self_evaluate, arif_model_compare
 
 __all__ = [
     "arif_session_init",

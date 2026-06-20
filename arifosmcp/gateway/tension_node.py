@@ -10,12 +10,11 @@ DITEMPA BUKAN DIBERI.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 # ENUMS
@@ -112,7 +111,7 @@ class ClaimNode(BaseModel):
     speaker: str  # actor_ref
     epistemic_tag: EpistemicTag = EpistemicTag.CLAIM
     source_uri: str = ""
-    extracted_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    extracted_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     evidence_refs: list[str] = Field(default_factory=list)
     contradicts: list[str] = Field(default_factory=list)  # claim_ids
     supports: list[str] = Field(default_factory=list)  # claim_ids
@@ -136,7 +135,7 @@ class EvidenceNode(BaseModel):
     evidence_type: str  # document, testimony, timeline, data_point, news_article, court_record
     description: str
     source_uri: str = ""
-    captured_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    captured_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     hash: str = ""  # sha256 of content
     classification: str = "PUBLIC"  # PUBLIC, CONFIDENTIAL, RESTRICTED
     reliability: float = Field(default=1.0, ge=0.0, le=1.0)
@@ -219,7 +218,7 @@ class Provenance(BaseModel):
     generated_by_activity: str
     generated_by_agent: str
     reviewed_by: list[str] = Field(default_factory=list)
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     derived_from: list[str] = Field(default_factory=list)
     qualified_association: list[dict[str, str]] = Field(default_factory=list)
 
@@ -358,7 +357,7 @@ class BeliefGraph(BaseModel):
     actors: list[ActorNode] = Field(default_factory=list)
     receipts: list[ReceiptNode] = Field(default_factory=list)
     activities: list[ActivityNode] = Field(default_factory=list)
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def add_claim(self, claim: ClaimNode) -> None:
         self.claims.append(claim)

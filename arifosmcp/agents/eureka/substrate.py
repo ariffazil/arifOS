@@ -15,8 +15,7 @@ without claiming any substrate is conscious or sovereign.
 from __future__ import annotations
 
 import importlib
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 
 @dataclass
@@ -25,9 +24,9 @@ class SubstrateCapability:
 
     name: str
     kind: str  # tool | library | service | policy | memory
-    organ: Optional[str] = None
-    lane: Optional[str] = None
-    version: Optional[str] = None
+    organ: str | None = None
+    lane: str | None = None
+    version: str | None = None
     available: bool = True
     notes: str = ""
 
@@ -43,7 +42,7 @@ class SubstrateIndex:
         self._capabilities: list[SubstrateCapability] = []
         self._built = False
 
-    def build(self) -> "SubstrateIndex":
+    def build(self) -> SubstrateIndex:
         """Build the substrate index by probing the live environment."""
         if self._built:
             return self
@@ -81,7 +80,7 @@ class SubstrateIndex:
         self._built = True
         return self
 
-    def _probe(self, module_name: str, kind: str = "library", organ: Optional[str] = None) -> None:
+    def _probe(self, module_name: str, kind: str = "library", organ: str | None = None) -> None:
         try:
             mod = importlib.import_module(module_name)
             version = getattr(mod, "__version__", None)

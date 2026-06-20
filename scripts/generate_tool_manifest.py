@@ -75,10 +75,10 @@ def generate_llms_txt() -> str:
     mhash = manifest_hash()
 
     lines: list[str] = []
-    lines.append(f"# arifOS — Constitutional AI Governance Kernel")
+    lines.append("# arifOS — Constitutional AI Governance Kernel")
     lines.append(f"> Auto-generated from live tool registry. Hash: {mhash}")
     lines.append(f"> Total MCP tools: {total} | Canonical: {len(canonical)} | Operational: {len(operational)}")
-    lines.append(f"> Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL")
+    lines.append("> Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL")
     lines.append("")
     lines.append("## MCP Tools — Complete Surface")
     lines.append(f"arifOS exposes {total} MCP tools: {len(canonical)} canonical constitutional tools")
@@ -151,9 +151,9 @@ def generate_llms_txt() -> str:
     lines.append("")
     lines.append("## Verification")
     lines.append(f"- tools/list count should match total ({total})")
-    lines.append(f"- canonical_tools + operational_tools == tools_exposed_via_mcp")
+    lines.append("- canonical_tools + operational_tools == tools_exposed_via_mcp")
     lines.append(f"- Manifest hash: {mhash}")
-    lines.append(f"- Manifest URL: https://arifos.arif-fazil.com/manifest.txt")
+    lines.append("- Manifest URL: https://arifos.arif-fazil.com/manifest.txt")
     lines.append("")
     lines.append(f"--- Auto-generated {__import__('datetime').datetime.now().isoformat()} ---")
 

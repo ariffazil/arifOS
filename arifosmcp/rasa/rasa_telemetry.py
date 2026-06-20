@@ -35,7 +35,7 @@ import json
 import logging
 import os
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 logger = logging.getLogger(__name__)
 
@@ -142,7 +142,7 @@ class RasaTelemetry:
             snippet = (message or "")[:100]
 
             entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "session_id": session_id or "unknown",
                 "message_snippet": snippet,
                 "risk_band": risk_band,

@@ -22,7 +22,6 @@ from typing import Any
 
 from pydantic import BaseModel, Field, model_validator
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # LIVENESS STATE
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -231,7 +230,7 @@ class VaultLivenessContract(BaseModel):
         return result
 
     @model_validator(mode="after")
-    def _validate_thresholds(self) -> "VaultLivenessContract":
+    def _validate_thresholds(self) -> VaultLivenessContract:
         """Contract semantics validation."""
         if self.min_chain_height < 0:
             raise ValueError("min_chain_height must be >= 0")

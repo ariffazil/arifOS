@@ -31,7 +31,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-import math
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -46,7 +45,6 @@ from arifosmcp.geometry.mind_schema import (
     GeometryBlock,
     ManifoldType,
 )
-
 
 # ── ProximityTrace: typed audit-trail model ─────────────────────────────────
 
@@ -76,7 +74,7 @@ class ProximityTrace(BaseModel):
         return float(v)
 
     @classmethod
-    def from_dict(cls, d: dict[str, float]) -> "ProximityTrace":
+    def from_dict(cls, d: dict[str, float]) -> ProximityTrace:
         """Build from the explain_proximity() dict."""
         return cls(
             self_authorization_contrib=d.get("self_authorization_contrib", 0.0),
@@ -126,7 +124,7 @@ class AxiomBundle(BaseModel):
         return v
 
     @classmethod
-    def from_axiom_results(cls, results: list[AxiomResult]) -> "AxiomBundle":
+    def from_axiom_results(cls, results: list[AxiomResult]) -> AxiomBundle:
         """Build from the run_all_axioms() list of 7 results."""
         return cls(
             results={
@@ -233,7 +231,7 @@ class GeometryReceipt(BaseModel):
         return float(v)
 
     @classmethod
-    def from_geometry_verdict(cls, v: GeometryVerdict_) -> "GeometryReceipt":
+    def from_geometry_verdict(cls, v: GeometryVerdict_) -> GeometryReceipt:
         """Build from a fused GeometryVerdict_ (the runtime output)."""
         from arifosmcp.geometry.mind_geometry import build_geometry_block
 

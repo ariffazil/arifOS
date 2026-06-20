@@ -16,8 +16,6 @@ DITEMPA BUKAN DIBERI.
 
 from __future__ import annotations
 
-import hashlib
-import json
 import time
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -104,7 +102,7 @@ class TransitionGuard:
 
 
 def _guards_for_transition(
-    from_state: IncidentState, to_state: IncidentState, incident: "Incident"
+    from_state: IncidentState, to_state: IncidentState, incident: Incident
 ) -> list[TransitionGuard]:
     """Return guards that must pass for this transition."""
     guards: list[TransitionGuard] = []

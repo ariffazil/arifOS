@@ -3,8 +3,6 @@
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import numpy as np
 import os
 
 OUT = '/root/arifOS/forge_work/PETRONAS_DOSSIER/assets'
@@ -85,7 +83,7 @@ def chart2_f1_vs_workers():
     bars = ax.barh(categories, values, color=colors, height=0.45, edgecolor='none', zorder=3)
 
     for bar, val in zip(bars, values):
-        label = f'RM340,000,000' if val > 1 else f'RM150,000'
+        label = 'RM340,000,000' if val > 1 else 'RM150,000'
         ax.text(bar.get_width() + 5, bar.get_y() + bar.get_height()/2,
                 label, ha='left', va='center', fontsize=12, fontweight='bold', color=HITAM)
 

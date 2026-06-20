@@ -10,10 +10,8 @@ guard logic). Anchored to live state at ratification time.
 
 from __future__ import annotations
 
-import json
 import time
 from dataclasses import dataclass, field
-from typing import Optional
 
 import httpx
 
@@ -35,7 +33,7 @@ class OrganToolSurface:
     invalid: list[str] = field(default_factory=list)
     legacy_redirects: list[str] = field(default_factory=list)
     probe_latency_ms: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -57,8 +55,8 @@ class SubstrateNamespaceRatification:
 
     def __init__(
         self,
-        registry: Optional[SubstrateNamespaceRegistry] = None,
-        guard: Optional[NamespaceGuard] = None,
+        registry: SubstrateNamespaceRegistry | None = None,
+        guard: NamespaceGuard | None = None,
         timeout: float = 5.0,
     ):
         self.registry = registry or get_substrate_namespace_registry()

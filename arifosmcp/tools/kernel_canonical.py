@@ -25,7 +25,6 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import time
-import warnings
 from pathlib import Path
 from typing import Any
 
@@ -523,8 +522,8 @@ def _bridge_geox(tool_name: str, arguments: dict, session_id: str | None, actor_
     if hold:
         return hold
     try:
-        from arifosmcp.runtime.geox_bridge import call_geox_tool
         from arifosmcp.federation.kernel_envelope import wrap_geox_output
+        from arifosmcp.runtime.geox_bridge import call_geox_tool
 
         result = _run_async(call_geox_tool(tool_name, arguments))
         validated = validate_organ_output("geox", result)

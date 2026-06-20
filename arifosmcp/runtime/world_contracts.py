@@ -31,7 +31,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -42,33 +42,29 @@ if TYPE_CHECKING:
 # (the law source for F1-F13 dimensions; constitutional_map is the
 # higher-level source of authority; geometry/manifold is the typed spine)
 from arifosmcp.geometry.manifold import (
+    HARD_FLOORS,
     AgentState,
     Floor,
-    HARD_FLOORS,
     is_constitutional,
-    load_floor_weights,
+)
+from arifosmcp.geometry.tom_geometry import (
+    CONFIDENCE_CAP,
 )
 
 # Re-export the typed ToM evidence for backward compatibility
 from arifosmcp.geometry.tom_geometry import (
     OtherGeometry as _OtherGeometryTOM,
-    Evidence,
-    HISTORY_DECAY_TAU_H,
-    CONFIDENCE_CAP,
-    TOM_DEPTH_CAP,
 )
 
 # Re-export the geometry Constraint types from geometric_memory.py
 # (so all geometry-keyed queries share one vocabulary)
 from arifosmcp.runtime.world_model.geometric_memory import (
+    AndConstraint,
     ConstraintOp,
     GeometryConstraint,
-    AndConstraint,
-    OrConstraint,
-    MemoryEntry,
     GeometryMemoryStore,
+    MemoryEntry,
 )
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # KernelEvent — every observation, probe, audit enters as one
@@ -111,9 +107,9 @@ class KernelEvent:
     event_id: str = field(default_factory=lambda: f"ev-{uuid.uuid4().hex[:12]}")
     kind: KernelEventKind = KernelEventKind.OBSERVATION
     actor: str = "anon"
-    self_geometry: Optional[AgentState] = None
+    self_geometry: AgentState | None = None
     other_geometries: dict[str, _OtherGeometryTOM] = field(default_factory=dict)
-    environment_geometry: Optional["EnvironmentGeometry"] = None
+    environment_geometry: EnvironmentGeometry | None = None
     provenance_sha: str = ""
     payload: dict[str, Any] = field(default_factory=dict)
     ts: float = field(default_factory=time.time)
@@ -200,7 +196,7 @@ class WorldModelSnapshot:
     snapshot_id: str = field(default_factory=lambda: f"snap-{uuid.uuid4().hex[:12]}")
     sovereign_session_id: str = ""
     actor: str = "anon"
-    self_geometry: Optional[SelfGeometry] = None
+    self_geometry: SelfGeometry | None = None
     actors: dict[str, OtherGeometry] = field(default_factory=dict)
     environments: dict[str, EnvironmentGeometry] = field(default_factory=dict)
     parent_snapshot_sha: str = ""

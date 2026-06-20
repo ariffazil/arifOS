@@ -35,15 +35,12 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import asyncio
-import json
 import logging
-from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 
-from arifosmcp.core.agent_policy import AgentPolicy, AgentRole
+from arifosmcp.core.agent_policy import AgentPolicy
 
 logger = logging.getLogger("arifosmcp.aaa_bridge")
 

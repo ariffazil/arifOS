@@ -106,8 +106,8 @@ def read_capability_attestations() -> dict[str, dict[str, Any]]:
       - UNKNOWN: no information available
     """
     import json as _json
-    import urllib.request as _ur
     import urllib.error as _ue
+    import urllib.request as _ur
 
     # Organ probe map — hostname, port, expected canonical count
     _PROBES: dict[str, tuple[str, int, int]] = {

@@ -60,7 +60,6 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-
 # ── Honesty signals (perkataan orang jujur) ─────────────────────────────────
 HONESTY_SIGNALS: list[tuple[re.Pattern, float]] = [
     (re.compile(r"\b(saya\s+tak\s+tahu|aku\s+tak\s+tahu|I\s+don['']t\s+know)\b", re.I), 1.0),
@@ -356,7 +355,6 @@ def _self_check() -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    import json
     import sys
 
     result = _self_check()

@@ -12,7 +12,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.tools.reason import (
     MIND_PARADOX_ANCHORS,

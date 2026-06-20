@@ -54,7 +54,6 @@ from arifosmcp.core.threat_engine import (
     ThreatCategory,
 )
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # L00_ADAT — Lexical Priority Constants + Check
 # ═══════════════════════════════════════════════════════════════════════════════

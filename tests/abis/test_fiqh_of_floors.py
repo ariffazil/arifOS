@@ -6,7 +6,6 @@ DITEMPA BUKAN DIBERI.
 
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.runtime.fiqh_of_floors import (
     ActionContext,

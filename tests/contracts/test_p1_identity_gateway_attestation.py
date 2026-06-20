@@ -24,7 +24,6 @@ from contracts.gateway_discovery import (
     GATEWAY_AUTHORITY_MAP,
     DiscoveryMode,
     GatewayAction,
-    OrganDescriptor,
     get_discovery_organs,
 )
 from contracts.self_attestation import (

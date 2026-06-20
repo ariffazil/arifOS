@@ -16,9 +16,7 @@ DITEMPA BUKAN DIBERI — The test is forged, not given.
 from __future__ import annotations
 
 import hashlib
-import json
 import sys
-import time
 
 
 # ── Import all 4 modules ────────────────────────────────────────────────────
@@ -442,7 +440,7 @@ def test_sha256_receipt() -> None:
     print(f"  {'─' * 56}")
     print(f"  {'COMBINED':30s}  sha256:{combined_sha256}")
     print(f"{'═' * 60}")
-    print(f"DITEMPA BUKAN DIBERI — 999 SEAL ALIVE")
+    print("DITEMPA BUKAN DIBERI — 999 SEAL ALIVE")
     print()
 
     # All files must exist and have content
@@ -456,7 +454,6 @@ def test_sha256_receipt() -> None:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    import os
 
     # Run all tests
     tests = [

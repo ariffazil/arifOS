@@ -28,10 +28,9 @@ import hashlib
 import json
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # FORGE IDENTITY
@@ -238,7 +237,7 @@ def route_delegation(
 
     # Build delegation plan
     trace_id = f"DLGT-{uuid.uuid4().hex[:12]}"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     plan = {
         "trace_id": trace_id,
@@ -312,7 +311,7 @@ def emit_delegation_receipt(
     receipt = {
         "receipt_id": f"RCPT-{uuid.uuid4().hex[:12]}",
         "trace_id": delegation_plan.get("trace_id", "unknown"),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "direction": "delegation",
         "subject": subject,
         "tool": tool,

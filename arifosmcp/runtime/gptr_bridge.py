@@ -122,7 +122,7 @@ class GPTROrganBridge:
                     if "session_id=" in data:
                         session_id = data.split("session_id=", 1)[1].strip()
                         break
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 reader_task.cancel()
                 return {
                     "status": "error",
@@ -152,7 +152,7 @@ class GPTROrganBridge:
             # Read init response (consume it from the queue)
             try:
                 await asyncio.wait_for(sse_events.get(), timeout=15.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 reader_task.cancel()
                 return {
                     "status": "error",
@@ -180,7 +180,7 @@ class GPTROrganBridge:
                 raw_response = await asyncio.wait_for(
                     sse_events.get(), timeout=timeout
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 reader_task.cancel()
                 return {
                     "status": "error",

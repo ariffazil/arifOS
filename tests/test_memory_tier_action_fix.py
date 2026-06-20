@@ -4,8 +4,6 @@ Test for Bug 2: store operations running under OBSERVE authority
 """
 from __future__ import annotations
 
-import pytest
-from unittest.mock import patch, MagicMock
 
 from arifosmcp.runtime.memory_store import (
     _normalise_tier,

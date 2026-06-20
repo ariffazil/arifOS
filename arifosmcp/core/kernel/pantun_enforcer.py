@@ -58,7 +58,6 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-
 # ── D-Layer violation patterns (things that must NOT appear in D-Layer) ─────
 # D-Layer is human-language — but it must not compute constitutional values.
 
@@ -399,7 +398,6 @@ def _self_check() -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    import json
     import sys
 
     result = _self_check()

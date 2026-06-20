@@ -19,7 +19,6 @@ DITEMPA BUKAN DIBERI — Proved by trace, not by claim.
 """
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import time
@@ -268,7 +267,7 @@ def check_session_starts() -> dict[str, Any]:
 
 def check_authority_checked() -> dict[str, Any]:
     """6. Airlock classify_authority fires correctly — unit check + live call."""
-    from arifosmcp.transport.airlock import classify_authority, CanonicalEnvelope
+    from arifosmcp.transport.airlock import CanonicalEnvelope, classify_authority
 
     cases = [
         ("arif", "SOVEREIGN"),
@@ -300,8 +299,10 @@ def check_authority_checked() -> dict[str, Any]:
 def check_hold_blocks_mutation() -> dict[str, Any]:
     """7. 888_HOLD must block irreversible intents — live Airlock gate."""
     from arifosmcp.transport.airlock import (
-        CanonicalEnvelope, classify_reversibility,
-        refuse_with_888_hold, preserve_raw_request,
+        CanonicalEnvelope,
+        classify_reversibility,
+        preserve_raw_request,
+        refuse_with_888_hold,
     )
 
     irreversible_intents = [

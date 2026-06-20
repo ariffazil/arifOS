@@ -34,11 +34,7 @@ from typing import Any
 
 from arifosmcp.runtime.adat_registry import (
     ADAT_REGISTRY,
-    AdatViolation,
-    WARGA_TIERS,
-    adat_by_tier,
 )
-
 
 # ── Decay constants ────────────────────────────────────────────────────
 # malu_index only decreases through tebus_salah. It does NOT free-fade
@@ -232,7 +228,7 @@ class MaluScore:
         }
 
     @classmethod
-    def from_state(cls, state: dict[str, Any]) -> "MaluScore":
+    def from_state(cls, state: dict[str, Any]) -> MaluScore:
         ms = cls(actor_id=state["actor_id"])
         ms._index = state["malu_index"]
         ms._per_adat = state.get("per_adat", {})

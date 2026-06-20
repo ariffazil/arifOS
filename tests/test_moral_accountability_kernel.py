@@ -4,9 +4,7 @@ Tests for the Moral Accountability Kernel — all 6 primitives.
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
-from datetime import UTC, datetime
 
-import pytest
 
 from arifosmcp.core.moral_accountability_kernel import (
     BurdenTransferDetector,

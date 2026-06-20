@@ -7,12 +7,11 @@ and the appropriate verdict is returned.
 
 This is the anti-Beautiful-One invariant in machine form.
 """
-from typing import Dict, Any
+from typing import Any
+
 from . import (
-    is_self_authorized_failure,
-    get_violation_verdict,
-    get_axiom,
     GODEL_AXIOMS,
+    get_axiom,
 )
 
 
@@ -36,7 +35,7 @@ def check_godel_lock(
     has_vaul_entry: bool,     # does the action carry a vault_entry_id?
     has_vaul999_connection: bool,  # is VAULT999 connected?
     failure_cause: str = None,  # explicit cause if known
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Pre-execution check against the Godel Lock.
 
@@ -89,7 +88,7 @@ def check_godel_lock(
     return {"ok": True}
 
 
-def _violation(axiom_id: str, reason: str) -> Dict[str, Any]:
+def _violation(axiom_id: str, reason: str) -> dict[str, Any]:
     axiom = get_axiom(axiom_id)
     return {
         "ok": False,

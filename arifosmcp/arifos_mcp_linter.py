@@ -6,12 +6,6 @@ Phase 1 #4: "Add MCP description linter"
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-from typing import Optional
-
-from .arifos_observability.risk_event_schema import RiskEvent, RiskSeverity
-
 
 class ArifosMCPLinter:
     """Apply MCP description linter to all arifOS canonical tools."""

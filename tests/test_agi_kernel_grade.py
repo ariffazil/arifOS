@@ -15,15 +15,12 @@ import pytest
 
 from arifosmcp.schemas.kernel_envelope import (
     ActionClass,
-    AuditBlock,
     AuditEvent,
     AuthorityBlock,
     BlastRadius,
-    DelegationMode,
     DriftLevel,
     DriftReport,
     FederationRegistry,
-    GateResult,
     GateVerdict,
     HumanAcknowledgement,
     KernelEnvelope,
@@ -33,9 +30,7 @@ from arifosmcp.schemas.kernel_envelope import (
     OrganCard,
     OrganIdentity,
     RiskBlock,
-    SealMode,
     StateBlock,
-    ToolManifestEntry,
 )
 from arifosmcp.runtime.pre_execution_gate import (
     pre_execution_gate,
@@ -45,9 +40,7 @@ from arifosmcp.runtime.pre_execution_gate import (
 from arifosmcp.runtime.agent_loop import (
     GovernedAgentLoop,
     check_memory_access,
-    MEMORY_SCOPE_RULES,
 )
-from arifosmcp.runtime.drift_detector import DriftDetector
 
 
 # ═══════════════════════════════════════════════════════════════════════════

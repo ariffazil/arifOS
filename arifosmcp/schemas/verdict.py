@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Any, Literal, Optional, get_args as _get_args
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -106,7 +106,7 @@ class AnomalousContrast(BaseModel):
 
     # ── model_validator: compute AC_Risk = U_phys × D_transform × B_cog ──
     @model_validator(mode="after")
-    def compute_ac_risk(self) -> "AnomalousContrast":
+    def compute_ac_risk(self) -> AnomalousContrast:
         """Compute AC_Risk from component factors and set magnitude."""
         self.magnitude = round(self.u_phys * self.d_transform * self.b_cog / 3.0, 4)
         # Bound to [0, 1] — D_transform ∈ [1,3] so raw product can exceed 1
@@ -868,11 +868,11 @@ class AttributionChain(BaseModel):
 
     links: list[AttributionLink] = Field(default_factory=list)
     chain_integrity: Literal["INTACT", "UNCONFORMITY_DETECTED", "UNVERIFIED"] = "UNVERIFIED"
-    unconformity_at: Optional[int] = None  # index where chain broke
-    unconformity_reason: Optional[str] = None
+    unconformity_at: int | None = None  # index where chain broke
+    unconformity_reason: str | None = None
 
     @model_validator(mode="after")
-    def detect_unconformity(self) -> "AttributionChain":
+    def detect_unconformity(self) -> AttributionChain:
         """Scan chain for missing links — geological unconformity detection."""
         if not self.links:
             self.chain_integrity = "UNVERIFIED"
@@ -1016,7 +1016,7 @@ class SealOutput(BaseModel):
     )
 
     # ── EUREKA 2: Attribution Chain (Geological Unconformity Detector) ─────────
-    attribution_chain: Optional[AttributionChain] = Field(
+    attribution_chain: AttributionChain | None = Field(
         default=None,
         description="Provenance chain for this seal. "
         "UNCONFORMITY_DETECTED means a cited source has no traceable origin "

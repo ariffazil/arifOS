@@ -484,7 +484,7 @@ if __name__ == "__main__":
     pprint.pprint(env.summary())
     print()
     print(f"commitment   : {env.commitment()}")
-    print(f"kernel rule  : PASS (HUMAN_ASSISTED_AI + C3 with scar)")
+    print("kernel rule  : PASS (HUMAN_ASSISTED_AI + C3 with scar)")
     print()
     print("AI may generate. Humans must authorize consequence.")
     print("DITEMPA BUKAN DIBERI.")

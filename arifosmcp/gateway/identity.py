@@ -111,7 +111,7 @@ def canonical_signature_base(
         f"session_id={session_id}|"
         f"org_id={org_id}|"
         f"timestamp={timestamp}"
-    ).encode("utf-8")
+    ).encode()
 
 
 def compute_hmac(secret: str, base: bytes) -> str:
@@ -335,7 +335,7 @@ def _ensure_resolver():
 
 
 
-def _to_caller_dict(s: "StructuredSubject") -> dict[str, Any]:
+def _to_caller_dict(s: StructuredSubject) -> dict[str, Any]:
     """Map StructuredSubject to the dict shape server.py expects.
 
     Server code uses keys: "human", "agent", "org", "session".

@@ -23,8 +23,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from arifosmcp.constitutional_map import FiqhTier, Law, _FLOOR_FIQH
-
+from arifosmcp.constitutional_map import _FLOOR_FIQH, FiqhTier, Law
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Constants — single source of truth, agent-readable

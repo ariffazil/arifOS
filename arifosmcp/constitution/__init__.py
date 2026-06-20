@@ -12,15 +12,16 @@ Authority: Muhammad Arif bin Fazil (F13 SOVEREIGN).
 DITEMPA BUKAN DIBERI — the agent speaks like a mirror; it is forbidden from being a court.
 """
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 import yaml
 
 _LOCK_PATH = Path(__file__).parent / "godel_lock.yaml"
-GODEL_LOCK_RAW: Dict[str, Any] = yaml.safe_load(_LOCK_PATH.read_text())
+GODEL_LOCK_RAW: dict[str, Any] = yaml.safe_load(_LOCK_PATH.read_text())
 
 # The 7 irreducible axioms
-GODEL_AXIOMS: List[Dict[str, Any]] = GODEL_LOCK_RAW["axioms"]
-GODEL_META: List[Dict[str, Any]] = GODEL_LOCK_RAW["meta"]
+GODEL_AXIOMS: list[dict[str, Any]] = GODEL_LOCK_RAW["axioms"]
+GODEL_META: list[dict[str, Any]] = GODEL_LOCK_RAW["meta"]
 REQUIRED_AXIOM_IDS: set = {"G1", "G2", "G3", "G4", "G5", "G6", "G7"}
 
 
@@ -42,7 +43,7 @@ def assert_lock_complete() -> None:
         )
 
 
-def get_axiom(axiom_id: str) -> Dict[str, Any]:
+def get_axiom(axiom_id: str) -> dict[str, Any]:
     """Return the full axiom dict for the given id (e.g. 'G3')."""
     for a in GODEL_AXIOMS:
         if a["id"] == axiom_id:
@@ -97,5 +98,5 @@ __all__ = [
     "get_violation_verdict",
 ]
 
-from .runtime_hook import check_godel_lock, GodelLockViolation, explain_lock
+from .runtime_hook import GodelLockViolation, check_godel_lock, explain_lock
 

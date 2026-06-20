@@ -19,8 +19,8 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 
 from arifosmcp.transport.airlock import (
-    AirlockASGIMiddleware,
     DIALECT_REGISTRY,
+    AirlockASGIMiddleware,
     AirlockResult,
     classify_authority,
     classify_reversibility,
@@ -44,19 +44,17 @@ from arifosmcp.transport.canonical_envelope import (
     CanonicalEnvelope,
     new_envelope,
 )
-
 from arifosmcp.transport.conformance import (
     print_matrix,
     run_all,
     run_conformance_spine,
 )
-
 from arifosmcp.transport.errors import (
+    ERRORS,
+    ArifError,
+    TransportFaultCode,
     arif_error,
     arif_error_data,
-    ArifError,
-    ERRORS,
-    TransportFaultCode,
     build_transport_error_envelope,
 )
 

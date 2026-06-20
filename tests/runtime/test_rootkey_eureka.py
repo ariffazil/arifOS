@@ -6,10 +6,7 @@ Each module: minimum 3 tests.
 Constitutional floors: F1, F2, F8, F11, F12, F13.
 """
 
-import pytest
-import json
 import hashlib
-from unittest.mock import patch
 
 # ──────────────────────────────────────────────
 # E1: Sovereign Anchor

@@ -30,12 +30,9 @@ DITEMPA BUKAN DIBERI — The drift detector is forged, not given.
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
-import os
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
 
 from arifosmcp.schemas.kernel_envelope import DriftLevel, DriftReport
 
@@ -224,7 +221,7 @@ class DriftDetector:
             return self.hash_file(env_file)
         return ""
 
-    def _read_deployment_timestamp(self) -> Optional[datetime]:
+    def _read_deployment_timestamp(self) -> datetime | None:
         """Read the deployment timestamp."""
         timestamp_file = self.deployed_root / "arifosmcp" / ".deploy_timestamp"
         if timestamp_file.exists():
@@ -239,7 +236,7 @@ class DriftDetector:
 # GLOBAL INSTANCE
 # ═══════════════════════════════════════════════════════════════════════════
 
-_default_detector: Optional[DriftDetector] = None
+_default_detector: DriftDetector | None = None
 
 
 def get_drift_detector() -> DriftDetector:

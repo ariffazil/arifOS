@@ -13,7 +13,10 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 Stage C — A-FORGE adapter wrapper
 """
 
-import sys, json, argparse, subprocess
+import sys
+import json
+import argparse
+import subprocess
 from pathlib import Path
 
 # Services whose control always requires elevated scrutiny

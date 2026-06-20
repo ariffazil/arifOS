@@ -6,7 +6,6 @@ DITEMPA BUKAN DIBERI.
 
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.runtime.post_observe_gate import post_observe_gate
 

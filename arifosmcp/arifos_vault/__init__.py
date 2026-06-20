@@ -8,8 +8,8 @@ This package provides typed receipts for:
 - Irreversible action (888_HOLD trigger)
 """
 
-from .lineage_receipt import LineageReceipt
 from .evidence_receipt import EvidenceReceipt
 from .irreversible_action_receipt import IrreversibleActionReceipt
+from .lineage_receipt import LineageReceipt
 
 __all__ = ["LineageReceipt", "EvidenceReceipt", "IrreversibleActionReceipt"]

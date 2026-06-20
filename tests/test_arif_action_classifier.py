@@ -20,7 +20,6 @@ from arifosmcp.runtime.__advisory__.arif_action_classifier import (
     ActionClass,
     ArifOSMetabolism,
     Gate,
-    Verdict,
     hang_ingat_balik,
 )
 

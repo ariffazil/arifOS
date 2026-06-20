@@ -225,7 +225,7 @@ class RecursiveGovernanceEngine:
             )
         elif unified.composite_verdict == LockVerdict.HOLD:
             self.hold_count += 1
-            paradox_tag = f" paradox=HOLD" if paradox is not None else ""
+            paradox_tag = " paradox=HOLD" if paradox is not None else ""
             logger.warning(
                 f"HOLD [{tool_name}] actor={actor_id} — "
                 f"godel={godel.verdict} loop={strange.verdict} ab1={ab1.verdict}{paradox_tag}"

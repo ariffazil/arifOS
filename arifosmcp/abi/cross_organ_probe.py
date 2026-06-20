@@ -30,11 +30,11 @@ import hashlib
 import json
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request as URLRequest
-from urllib.error import URLError, HTTPError
 
 
 @dataclass(frozen=True)

@@ -34,7 +34,6 @@ from arifosmcp.schemas.federation_envelope import (
     ToolScope,
 )
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # TRUST-LEVEL PERMISSION MATRIX
 # ═══════════════════════════════════════════════════════════════════════════════

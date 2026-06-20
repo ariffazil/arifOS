@@ -31,7 +31,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from arifosmcp.geometry.mind_axioms import HOLE_TERRITORY
 
-
 # ── Verdict Plane Enums (6-plane orthogonal system) ───────────────────────
 
 
@@ -467,7 +466,7 @@ class GeometryBlock(BaseModel):
         return _unit_bounded(v, field="geometry_scalar")
 
     @model_validator(mode="after")
-    def _validate_consistency(self) -> "GeometryBlock":
+    def _validate_consistency(self) -> GeometryBlock:
         """The geometry block must be internally consistent.
 
         - HOLE_RISK verdict requires elevated sovereign_proximity

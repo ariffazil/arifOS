@@ -25,7 +25,6 @@ import json
 import logging
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, model_validator
@@ -109,17 +108,17 @@ class ActionRecord(BaseModel):
     reversibility: str = "REVERSIBLE"  # REVERSIBLE | PARTIALLY_REVERSIBLE | IRREVERSIBLE
     autonomy_band: str = "GREEN"
     actor_id: str
-    session_id: Optional[str] = None
-    capability_grant_id: Optional[str] = None
+    session_id: str | None = None
+    capability_grant_id: str | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     history: list[dict] = Field(default_factory=list)
-    sealed_hash: Optional[str] = None
-    challenge_evidence_ref: Optional[str] = None
-    parent_action_id: Optional[str] = None  # for CHALLENGED → PENDING lineage
+    sealed_hash: str | None = None
+    challenge_evidence_ref: str | None = None
+    parent_action_id: str | None = None  # for CHALLENGED → PENDING lineage
 
     @model_validator(mode="after")
-    def _validate_band(self) -> "ActionRecord":
+    def _validate_band(self) -> ActionRecord:
         if self.autonomy_band not in ("GREEN", "YELLOW", "ORANGE", "RED", "BLACK"):
             raise ValueError(f"Unknown autonomy_band: {self.autonomy_band}")
         return self
@@ -148,8 +147,8 @@ class StateMachine:
         actor_id: str,
         reason: str = "",
         human_acknowledged: bool = False,
-        evidence_ref: Optional[str] = None,
-        extra: Optional[dict] = None,
+        evidence_ref: str | None = None,
+        extra: dict | None = None,
     ) -> ActionRecord:
         """Move the record to ``target``. Reject illegal moves.
 

@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import sys
 import unittest
-import os
 
 sys.path.insert(0, "/opt/arifos/app")
 sys.path.insert(0, "/opt/arifos/app/arifosmcp")

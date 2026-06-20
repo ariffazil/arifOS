@@ -6,10 +6,8 @@ DITEMPA BUKAN DIBERI.
 
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.abi.penangprobe import (
-    ProbeQuery,
     build_query,
     parse_probe_result,
     ratio_bm_to_en,

@@ -33,16 +33,10 @@ DITEMPA BUKAN DIBERI — the bridge is a wire, not a wall.
 
 from __future__ import annotations
 
-import hashlib
-import json
 import logging
 import uuid
 from typing import Any
 
-from arifosmcp.runtime.runner.runner_001 import (
-    RUNNER_POLICY_VERSION,
-    Runner001,
-)
 from arifosmcp.runtime.context_engine.context_status import (
     AUTO_COMPACT_ENABLED_DEFAULT,
     arif_context_status,
@@ -50,6 +44,10 @@ from arifosmcp.runtime.context_engine.context_status import (
 from arifosmcp.runtime.context_engine.prepare_context import (
     Segment,
     SegmentType,
+)
+from arifosmcp.runtime.runner.runner_001 import (
+    RUNNER_POLICY_VERSION,
+    Runner001,
 )
 from arifosmcp.runtime.token_pressure import get_session_singleton
 

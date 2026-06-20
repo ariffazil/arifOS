@@ -1,4 +1,3 @@
-import pytest
 
 def test_f9_traceability():
     """

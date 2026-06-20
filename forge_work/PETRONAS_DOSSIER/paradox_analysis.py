@@ -3,7 +3,6 @@
 Reveals the constitutional geometry embedded in the text itself."""
 
 import re
-from collections import Counter
 
 text = open('/root/arifOS/forge_work/PETRONAS_TIGA_ORANG_13_HALAMAN.md').read()
 

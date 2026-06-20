@@ -38,20 +38,16 @@ from typing import Any, Awaitable, Callable
 
 from arifos.actor import Actor
 from arifos.client import ArifOSMCPClient
-from arifos.decision import ActionClass, CognitionLane, Decision
+from arifos.decision import CognitionLane, Decision
 from arifos.exceptions import (
-    ArifDenied,
     ArifHold,
     ArifSealMissing,
 )
 from arifos.guards import (
     posttool,
-    prethink,
     pretool,
     seal as arifos_seal,
 )
-from arifos.intent import Intent
-from arifos.risk import BlastRadius
 
 logger = logging.getLogger(__name__)
 

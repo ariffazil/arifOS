@@ -521,7 +521,7 @@ async def metabolic_loop(
     start_time = time.perf_counter()
 
     if dry_run:
-        from arifosmcp.runtime.model import IdentityContext, AuthorityLevel
+        from arifosmcp.runtime.model import AuthorityLevel, IdentityContext
 
         _actual_session = session_id or "dry-run-session"
         _actual_actor = actor_id or "anonymous"
@@ -677,7 +677,9 @@ async def metabolic_loop(
         dag_result: dict[str, Any] | None = None
         if len(plan) >= 3:
             try:
-                from arifosmcp.hexagon.escalation.hold_state import HoldStateManager  # was agentzero
+                from arifosmcp.hexagon.escalation.hold_state import (
+                    HoldStateManager,  # was agentzero
+                )
                 from arifosmcp.runtime.dag_executor import ConstitutionalDAGExecutor
                 from arifosmcp.runtime.irreversibility import (
                     AmanahIrreversibilityScorer,

@@ -19,14 +19,12 @@ No fake biology. No neural simulation. No machine qualia.
 
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.rasa.rasa_contract import RasaContract
 from arifosmcp.rasa.rasa_schemas import (
     BiologicalClaimLevel,
     BiologicalSignal,
     BiologicalSource,
-    ExistentialPosture,
     ExistentialTag,
     OrganHealth,
     OrganHealthStatus,

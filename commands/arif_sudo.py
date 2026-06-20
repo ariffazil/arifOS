@@ -11,7 +11,10 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 Stage C — A-FORGE adapter wrapper
 """
 
-import sys, re, json, argparse
+import sys
+import re
+import json
+import argparse
 from pathlib import Path
 
 CRITICAL_SERVICES = ["ssh", "sshd", "systemd", "network", "firewalld",

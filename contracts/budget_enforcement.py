@@ -14,9 +14,8 @@ DITEMPA BUKAN DIBERI — Budget is the nervous system of governed agency.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
-from typing import Optional
 
 
 class BudgetDomain(StrEnum):

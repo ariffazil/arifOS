@@ -6,34 +6,35 @@ and creates rollback paths before high-risk execution.
 """
 from __future__ import annotations
 
-import asyncio
-from typing import Literal, Dict, Any, List
-from pydantic import BaseModel, Field
+from typing import Any, Literal
+
+from pydantic import BaseModel
+
 
 class SimulationResult(BaseModel):
     artifact_id: str
-    expected_outcomes: List[str]
+    expected_outcomes: list[str]
     risk_score: float
     confidence: float
-    simulated_side_effects: List[str]
+    simulated_side_effects: list[str]
 
 class PlanOption(BaseModel):
     plan_id: str
     description: str
-    steps: List[str]
-    rollback_path: List[str]
+    steps: list[str]
+    rollback_path: list[str]
     simulation: SimulationResult | None = None
 
 class PlannerOutput(BaseModel):
     status: Literal["PLANNED", "FAILED", "SIMULATION_REQUIRED"]
     intent: str
-    options: List[PlanOption]
+    options: list[PlanOption]
     selected_plan_id: str | None = None
     advisory: str = ""
 
 async def arif_plan_and_simulate(
     intent: str,
-    context: Dict[str, Any],
+    context: dict[str, Any],
     risk_tier: str = "medium",
     force_simulation: bool = True
 ) -> PlannerOutput:

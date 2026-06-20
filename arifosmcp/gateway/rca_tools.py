@@ -14,7 +14,7 @@ import time
 import uuid
 from typing import Any
 
-from .merkle_log import MerkleTree, canonical_bytes
+from .merkle_log import MerkleTree
 from .state_machine import (
     ActionType,
     Audience,

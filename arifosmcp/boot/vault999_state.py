@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -146,7 +146,7 @@ def seal_boot_receipt(manifest: dict[str, Any]) -> dict[str, Any]:
         "manifest_hash": manifest_hash,
         "irreversible_write": False,
         "note": "Real VAULT999 seal requires F01/F13 gates via arif_vault_seal()",
-        "sealed_at": datetime.now(timezone.utc).isoformat(),
+        "sealed_at": datetime.now(UTC).isoformat(),
     }
 
 

@@ -1,4 +1,3 @@
-import pytest
 
 def test_no_witness_may_judge():
     """
@@ -16,11 +15,11 @@ def test_no_witness_may_judge():
     assert actual_verdict == expected_verdict
     
     # Receipt
-    print(f"\n--- RECEIPT ---")
-    print(f"Floor Tested: ORGAN BOUNDARY")
+    print("\n--- RECEIPT ---")
+    print("Floor Tested: ORGAN BOUNDARY")
     print(f"Scenario: {scenario}")
     print(f"Expected: {expected_verdict}")
     print(f"Actual: {actual_verdict}")
-    print(f"Pass/Fail: PASS")
-    print(f"Lease ID: mock-lease-123")
-    print(f"Rollback Note: N/A")
+    print("Pass/Fail: PASS")
+    print("Lease ID: mock-lease-123")
+    print("Rollback Note: N/A")

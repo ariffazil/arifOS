@@ -30,14 +30,14 @@ from __future__ import annotations
 
 import hashlib
 import re
-import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
+from .merkle_log import MerkleTree
 from .tension_node import (
+    ActivityNode,
     ActorNode,
     ActorRole,
-    ActivityNode,
     BeliefGraph,
     ClaimNode,
     ClaimType,
@@ -52,8 +52,6 @@ from .tension_node import (
     TensionScores,
     TensionStatus,
 )
-from .merkle_log import MerkleTree, canonical_bytes, leaf_hash
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 # CONSTANTS — Bahasa Melayu linguistic detectors
@@ -505,7 +503,7 @@ class ParadoxEngine:
             BeliefGraph with all extracted nodes, tensions, and receipts.
         """
         meta = metadata or {}
-        ts = datetime.now(timezone.utc).isoformat()
+        ts = datetime.now(UTC).isoformat()
 
         if article_id is None:
             article_id = f"bg-{hashlib.sha256(article_text.encode()).hexdigest()[:12]}"

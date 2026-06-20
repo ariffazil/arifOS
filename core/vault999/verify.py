@@ -1,6 +1,5 @@
 import os
 import json
-import hashlib
 
 def verify_vault_chain(vault_file_path):
     if not os.path.exists(vault_file_path):
@@ -48,7 +47,7 @@ def main():
         total_broken += b
     
     print("========================================")
-    print(f" VERIFICATION COMPLETE")
+    print(" VERIFICATION COMPLETE")
     print(f" Total Seals Verified: {total_valid}")
     print(f" Total Malformed Lines: {total_broken}")
     print("========================================")

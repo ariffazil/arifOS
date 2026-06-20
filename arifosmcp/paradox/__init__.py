@@ -21,24 +21,27 @@ This package provides SHARED:
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
-from arifosmcp.paradox.registry import (
-    ParadoxAnchor, AnchorRegistry, build_organ_anchors,
-    register_organ, get_registry,
-)
-from arifosmcp.paradox.injection import inject_paradox_anchor, InjectedAnchor
 from arifosmcp.paradox.desensitization import (
-    check_desensitization,
-    DesensitizationResult,
-    DESENSITIZATION_WARNING_THRESHOLD,
     DESENSITIZATION_CRITICAL_THRESHOLD,
+    DESENSITIZATION_WARNING_THRESHOLD,
+    DesensitizationResult,
+    check_desensitization,
 )
+from arifosmcp.paradox.injection import InjectedAnchor, inject_paradox_anchor
 from arifosmcp.paradox.matrix import (
-    MATRIX_ROWS,
-    MATRIX_COLS,
     MATRIX_CELLS,
+    MATRIX_COLS,
+    MATRIX_ROWS,
+    ParadoxMatrix,
     cell_key,
     verdict_to_cell,
-    ParadoxMatrix,
+)
+from arifosmcp.paradox.registry import (
+    AnchorRegistry,
+    ParadoxAnchor,
+    build_organ_anchors,
+    get_registry,
+    register_organ,
 )
 
 __all__ = [

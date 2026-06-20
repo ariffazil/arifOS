@@ -40,7 +40,6 @@ from enum import Enum
 
 from arifosmcp.geometry.mind_axioms import HOLE_TERRITORY, is_hole_territory
 
-
 # ── Weights (F13-ratified; do not change without sovereign sign-off) ────────
 
 

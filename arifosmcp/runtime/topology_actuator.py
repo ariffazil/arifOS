@@ -27,9 +27,9 @@ from typing import Any
 from arifosmcp.schemas.topology import (
     AntiSinkCheck,
     AppealPath,
+    InnovationRights,
     InstitutionalDrift,
     InstitutionalVerdict,
-    InnovationRights,
     ParticipationWidth,
     RiskBand,
     SovereigntyIntegrity,

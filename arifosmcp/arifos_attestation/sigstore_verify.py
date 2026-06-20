@@ -18,7 +18,6 @@ from __future__ import annotations
 import hashlib
 import time
 from dataclasses import dataclass
-from typing import Any, Optional
 
 import structlog
 
@@ -39,9 +38,9 @@ class VerificationResult:
     verified: bool
     artifact_sha256: str
     signature_present: bool
-    certificate_identity: Optional[str]
-    transparency_log_entry: Optional[str]
-    error: Optional[str]
+    certificate_identity: str | None
+    transparency_log_entry: str | None
+    error: str | None
     timestamp: str
 
     def __str__(self) -> str:
@@ -74,7 +73,7 @@ class SigstoreVerifier:
     def verify_artifact(
         self,
         artifact_path: str,
-        certificate_identity: Optional[str] = None,
+        certificate_identity: str | None = None,
     ) -> VerificationResult:
         """
         Verify a signed artifact at artifact_path.

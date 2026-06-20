@@ -8,12 +8,10 @@ Use this generator to produce a SBOM for supply-chain attestation.
 from __future__ import annotations
 
 import json
-import subprocess
-import time
 from pathlib import Path
 
 # Use the existing SBOM scanner from arifos_attestation
-from .arifos_attestation.sbom_scan import SBOMScanner, SBOM
+from .arifos_attestation.sbom_scan import SBOM, SBOMScanner
 
 
 def generate_arifos_sbom() -> SBOM:

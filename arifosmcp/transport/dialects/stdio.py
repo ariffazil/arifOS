@@ -4,8 +4,10 @@ Stdio Dialect Adapter — local-trust.
 from __future__ import annotations
 
 from typing import Any
+
 from arifosmcp.transport.canonical_envelope import AirlockResult
 from arifosmcp.transport.dialects.raw_jsonrpc import raw_jsonrpc_adapter
+
 
 def stdio_adapter(request: dict[str, Any]) -> AirlockResult:
     """

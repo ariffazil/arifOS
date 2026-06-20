@@ -13,9 +13,9 @@ This package provides:
 - manifest_hash.py: BLAKE3 manifest hashing (already in deps)
 """
 
+from .manifest_hash import ManifestHasher
+from .sbom_scan import SBOMScanner
 from .sigstore_verify import SigstoreVerifier, VerificationResult
 from .slsa_verify import SLSAVerifier
-from .sbom_scan import SBOMScanner
-from .manifest_hash import ManifestHasher
 
 __all__ = ["SigstoreVerifier", "VerificationResult", "SLSAVerifier", "SBOMScanner", "ManifestHasher"]

@@ -812,7 +812,9 @@ class WebMCPGateway:
             """
             try:
                 # Query from hold state manager
-                from arifosmcp.hexagon.escalation.hold_state import HoldStateManager  # was agentzero
+                from arifosmcp.hexagon.escalation.hold_state import (
+                    HoldStateManager,  # was agentzero
+                )
 
                 hold_manager = HoldStateManager()
                 pending = hold_manager.get_pending_holds()
@@ -871,7 +873,9 @@ class WebMCPGateway:
 
             try:
                 # Resolve via hold state manager
-                from arifosmcp.hexagon.escalation.hold_state import HoldStateManager  # was agentzero
+                from arifosmcp.hexagon.escalation.hold_state import (
+                    HoldStateManager,  # was agentzero
+                )
 
                 hold_manager = HoldStateManager()
                 await hold_manager.resolve_hold(

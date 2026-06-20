@@ -1,4 +1,3 @@
-import os
 import json
 import pytest
 from arifosmcp.transport import AirlockASGIMiddleware as ExportedAirlockASGIMiddleware

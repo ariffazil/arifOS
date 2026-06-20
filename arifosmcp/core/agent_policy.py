@@ -50,15 +50,14 @@ COMPARISON TABLE:
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
-import os
 from __future__ import annotations
 
+import os
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
-
 
 # ─── Canonical Policy Version (incremented on schema change) ────────────────
 POLICY_SCHEMA_VERSION = "1.0.0-forge-20260609"

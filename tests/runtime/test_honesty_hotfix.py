@@ -18,7 +18,6 @@ import pytest
 
 from arifosmcp.runtime.honesty_hotfix import (
     CircuitBreaker,
-    RANK_TO_VERDICT,
     VERDICT_RANK,
     min_verdict,
     probe_status_self,

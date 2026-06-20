@@ -109,7 +109,7 @@ def falkordb_query(cypher: str) -> list:
             return []
         return _parse_falkordb_output(result.stdout)
     except subprocess.TimeoutExpired:
-        print(f"  ❌ FalkorDB timeout", file=sys.stderr)
+        print("  ❌ FalkorDB timeout", file=sys.stderr)
         return []
     except Exception as e:
         print(f"  ❌ FalkorDB error: {e}", file=sys.stderr)
@@ -195,7 +195,7 @@ TEXT TO ANALYZE:
         providers.append(("ILMU", ILMU_BASE_URL, ILMU_API_KEY, ILMU_MODEL, 30))
 
     if not providers:
-        print(f"  ❌ No LLM API keys configured (SEA_LION or ILMU)", file=sys.stderr)
+        print("  ❌ No LLM API keys configured (SEA_LION or ILMU)", file=sys.stderr)
         return None
 
     for provider_name, url, key, model, timeout in providers:
@@ -237,7 +237,7 @@ TEXT TO ANALYZE:
 
         print(f"  ⚠️  {provider_name} failed all attempts, trying next provider...", file=sys.stderr)
 
-    print(f"  ❌ All providers exhausted", file=sys.stderr)
+    print("  ❌ All providers exhausted", file=sys.stderr)
     return None
 
 
@@ -356,7 +356,7 @@ def ingest(
     """Main ingestion loop."""
     t0 = time.time()
 
-    print(f"═══ L5 SOVEREIGN FORGE START ═══", file=sys.stderr)
+    print("═══ L5 SOVEREIGN FORGE START ═══", file=sys.stderr)
     primary = "SEA-LION" if SEA_LION_API_KEY else "ILMU" if ILMU_API_KEY else "none"
     print(f"  LLM:      primary={primary}", file=sys.stderr)
     print(f"  FalkorDB: {FALKORDB_HOST}:{FALKORDB_PORT}/{FALKORDB_GRAPH}", file=sys.stderr)
@@ -381,7 +381,7 @@ def ingest(
     if not dry_run:
         ping = falkordb_query("MATCH (n) RETURN count(n) as node_count")
         if not ping:
-            print(f"  ❌ FalkorDB unreachable", file=sys.stderr)
+            print("  ❌ FalkorDB unreachable", file=sys.stderr)
             return {"error": "falkordb_unreachable"}
 
     # Process each text
@@ -423,7 +423,7 @@ def ingest(
         "elapsed_seconds": round(elapsed, 1),
     }
 
-    print(f"═══ L5 SOVEREIGN FORGE DONE ═══", file=sys.stderr)
+    print("═══ L5 SOVEREIGN FORGE DONE ═══", file=sys.stderr)
     print(
         f"  Chunks:   {total_stats['chunks']} ok / {total_stats['failures']} fail", file=sys.stderr
     )

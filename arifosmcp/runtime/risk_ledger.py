@@ -21,9 +21,7 @@ DITEMPA BUKAN DIBERI — Forged 2026-06-12 by Omega (Ω)
 
 from __future__ import annotations
 
-import hashlib
 import logging
-import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum

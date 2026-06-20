@@ -55,8 +55,8 @@ from arifosmcp.rasa.rasa_schemas import (
     RasaJudgeVerdict,
     RasaMemoryPattern,
     RasaRiskBand,
-    RelationshipType,
     RasaUncertaintyBand,
+    RelationshipType,
     SocialContext,
 )
 from arifosmcp.rasa.rasa_telemetry import RasaTelemetry

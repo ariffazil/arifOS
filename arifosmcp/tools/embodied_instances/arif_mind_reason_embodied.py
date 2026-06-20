@@ -24,7 +24,7 @@ from typing import Any
 
 from arifosmcp.memory.policy_engine import MemoryPolicyEngine
 from arifosmcp.memory.types import Authority, MemoryCandidate, MemoryType
-from arifosmcp.runtime.mind_router import mind_plan, MIND_USE_SEQUENTIAL
+from arifosmcp.runtime.mind_router import MIND_USE_SEQUENTIAL, mind_plan
 from arifosmcp.tools.embodied import EmbodiedTool
 from arifosmcp.tools.memory import arif_memory_recall
 from arifosmcp.tools.reason import arif_mind_reason as _mind_reason_kernel

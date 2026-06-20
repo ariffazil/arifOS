@@ -18,9 +18,7 @@ Tools (HEXAGON canon names; agentzero_* aliases retained for backward compat):
 from __future__ import annotations
 
 import logging
-import os
 import uuid
-from datetime import UTC
 from typing import Any
 
 from fastmcp import Context

@@ -28,7 +28,7 @@ class MemoryJanitor:
         self._task: asyncio.Task | None = None
 
     @classmethod
-    def start(cls, interval_seconds: int = 3600) -> "MemoryJanitor":
+    def start(cls, interval_seconds: int = 3600) -> MemoryJanitor:
         """Start the global janitor instance.
 
         Idempotent. Safe to call at import time. The actual task is
@@ -56,7 +56,7 @@ class MemoryJanitor:
         return janitor
 
     @classmethod
-    async def start_async(cls, interval_seconds: int = 3600) -> "MemoryJanitor":
+    async def start_async(cls, interval_seconds: int = 3600) -> MemoryJanitor:
         """Async-safe start — call from inside a running event loop."""
         existing = getattr(cls, "_global", None)
         if existing is not None:

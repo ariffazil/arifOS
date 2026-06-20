@@ -1,13 +1,10 @@
 """Tests for the ARIF Conformance Spine v0.1 proof machine."""
 from __future__ import annotations
 
-import hashlib
 import json
 import os
-import tempfile
 from typing import Any
 
-import pytest
 
 from arifosmcp.transport import conformance_spine as spine
 from arifosmcp.transport.airlock import (

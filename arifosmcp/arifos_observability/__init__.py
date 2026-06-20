@@ -11,8 +11,8 @@ This package provides:
 - risk_event_schema.py: Risk event telemetry (for arifOS risk floor)
 """
 
-from .otel_tracer import OTelTracer, init_tracer
 from .agent_trace_schema import AgentTraceSchema
+from .otel_tracer import OTelTracer, init_tracer
 from .risk_event_schema import RiskEvent
 
 __all__ = ["OTelTracer", "init_tracer", "AgentTraceSchema", "RiskEvent"]

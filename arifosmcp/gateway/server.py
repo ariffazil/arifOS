@@ -33,30 +33,25 @@ import os
 import sys
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 
 import httpx
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import JSONResponse, Response, StreamingResponse
+from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 
-from .identity import Subject, resolve_subject, bootstrap_dev_keys
-from .lease_sm import (
-    LeaseRecord, LeaseState, LeaseStateMachine, RiskClass,
-    create_lease, REQUIRES_888,
-)
 from .delegation import (
     ARIF_DELEGATE_TOOL_DEF,
-    route_delegation,
     emit_delegation_receipt,
+    route_delegation,
     verify_one_frontdoor,
-    classify_task,
-    TaskCategory,
-    FEDERATED_AGENTS,
+)
+from .identity import Subject, bootstrap_dev_keys, resolve_subject
+from .lease_sm import (
+    LeaseRecord,
 )
 
 # ─── Logging ─────────────────────────────────────────────────────────────────
@@ -267,7 +262,7 @@ def issue_lease(
     risk_info = RISK_CLASSES.get(risk_class, RISK_CLASSES["LOW"])
 
     lease_id = f"LEASE-{uuid.uuid4().hex[:12]}"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     ttl = min(defaults.get("ttl_seconds", 3600), risk_info["max_ttl_s"])
 
     lease = {
@@ -301,7 +296,7 @@ def validate_lease(lease_id: str, tool_name: str) -> dict:
     if lease is None:
         return {"status": "DENIED", "reason": "LEASE_NOT_FOUND", "lease_id": lease_id, "decision": "DENIED"}
 
-    now = datetime.now(timezone.utc).timestamp()
+    now = datetime.now(UTC).timestamp()
 
     if now > lease["expires_at"]:
         return {"status": "DENIED", "reason": "LEASE_EXPIRED", "lease_id": lease_id, "decision": "DENIED"}
@@ -346,7 +341,7 @@ def emit_receipt(
 
     receipt = {
         "receipt_id": f"RCPT-{uuid.uuid4().hex[:12]}",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "direction": direction,
         "subject": subject,
         "tool": tool,
@@ -634,7 +629,7 @@ async def _health_handler(request: Request):
         "upstream_organs": results,
         "lease_count": len(LEASE_STORE),
         "receipt_count": _count_receipts(),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "final_authority": "ARIF",
     })
 
@@ -877,7 +872,6 @@ async def _mcp_handler(request: Request):
             vault_seal_attempted = False
             vault_seal_result = None
             try:
-                from .vault_resources import VaultResources
                 vault_seal_attempted = True
                 vault_seal_result = "VAULT999_CHAIN_RECORDED"
             except Exception:
@@ -1078,7 +1072,7 @@ async def _leases_handler(request: Request):
     if auth_error:
         return JSONResponse({"error": auth_error}, status_code=401)
 
-    now = datetime.now(timezone.utc).timestamp()
+    now = datetime.now(UTC).timestamp()
     active = [
         {"lease_id": lid, "tool": l["tool"], "risk_class": l["risk_class"],
          "invocations": f"{l['invocations_used']}/{l['max_invocations']}",
@@ -1124,7 +1118,7 @@ def _read_receipts(limit: int = 50, decision_filter: str | None = None) -> list[
 
 async def _ping_handler(request: Request):
     """Dumb liveness check. No auth, no floors, no envelope."""
-    return JSONResponse({"status": "ok", "ts": datetime.now(timezone.utc).isoformat(), "service": "arifos-airlock"})
+    return JSONResponse({"status": "ok", "ts": datetime.now(UTC).isoformat(), "service": "arifos-airlock"})
 
 
 async def _schema_handler(request: Request):
@@ -1156,7 +1150,7 @@ async def _probe_handler(request: Request):
     return JSONResponse({
         "probe_ok": True,
         "echoed": body,
-        "ts": datetime.now(timezone.utc).isoformat(),
+        "ts": datetime.now(UTC).isoformat(),
         "DITEMPA_BUKAN_DIBERI": True,
     })
 

@@ -5,14 +5,15 @@ from __future__ import annotations
 
 import uuid
 from typing import Any
+
 from arifosmcp.transport.canonical_envelope import (
+    AirlockResult,
     CanonicalEnvelope,
-    ActionClass,
-    _classify_method,
     _build_split_session_state,
+    _classify_method,
 )
-from arifosmcp.transport.errors import build_transport_error_envelope, TransportFaultCode
-from arifosmcp.transport.canonical_envelope import AirlockResult
+from arifosmcp.transport.errors import TransportFaultCode, build_transport_error_envelope
+
 
 def raw_jsonrpc_adapter(request: dict[str, Any]) -> AirlockResult:
     """

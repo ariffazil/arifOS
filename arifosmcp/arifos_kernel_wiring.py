@@ -14,11 +14,8 @@ Constitutional binding:
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
 
 from .arifos_policy import OPABridge, PolicyInput, PolicyVerdict
-from .arifos_observability.otel_tracer import init_tracer, OTelTracer
-
 
 # OPA endpoint per ADR-001 (localhost)
 OPA_DEFAULT = os.environ.get("ARIFOS_OPA_ENDPOINT", "http://127.0.0.1:8181")
@@ -29,10 +26,10 @@ async def evaluate_tool_dispatch(
     actor_id: str,
     action_class: str,
     tool: str,
-    session_id: Optional[str] = None,
-    resource: Optional[str] = None,
-    opa_endpoint: Optional[str] = None,
-    policy_path: Optional[str] = None,
+    session_id: str | None = None,
+    resource: str | None = None,
+    opa_endpoint: str | None = None,
+    policy_path: str | None = None,
 ) -> PolicyVerdict:
     """
     Evaluate an OPA policy for a tool dispatch decision.

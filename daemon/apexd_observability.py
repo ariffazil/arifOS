@@ -514,7 +514,7 @@ def main():
 
     print("=" * 60)
     print("arifOS Phase 1 — apexd Observability Daemon")
-    print(f"SEAL    : seal-20260523T110000-DITEMPA-BUKAN-DIBERI")
+    print("SEAL    : seal-20260523T110000-DITEMPA-BUKAN-DIBERI")
     print(f"EPOCH   : {now_iso()}")
     print(f"Vault   : {VAULT_PATH}")
     print(f"State   : {STATE_PATH}")

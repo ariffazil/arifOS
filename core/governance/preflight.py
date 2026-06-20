@@ -128,7 +128,7 @@ def main():
     # Step 1: classify
     result = classify(command)
     if result is None:
-        print(f"PREFLIGHT: non-dangerous — proceed")
+        print("PREFLIGHT: non-dangerous — proceed")
         sys.exit(3)  # NON_DANGEROUS
 
     description, matched = result
@@ -138,13 +138,13 @@ def main():
     verdict = judge(command, description)
 
     if verdict == 0:
-        print(f"PREFLIGHT: arifOS verdict = SEAL — proceed")
+        print("PREFLIGHT: arifOS verdict = SEAL — proceed")
         sys.exit(0)
     elif verdict == 2:
-        print(f"PREFLIGHT: arifOS verdict = VOID — BLOCKED")
+        print("PREFLIGHT: arifOS verdict = VOID — BLOCKED")
         sys.exit(2)
     else:
-        print(f"PREFLIGHT: arifOS verdict = HOLD — escalate to Arif (L13 SOVEREIGN)")
+        print("PREFLIGHT: arifOS verdict = HOLD — escalate to Arif (L13 SOVEREIGN)")
         sys.exit(1)
 
 

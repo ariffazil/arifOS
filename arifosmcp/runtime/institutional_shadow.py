@@ -13,7 +13,7 @@ DITEMPA BUKAN DIBERI.
 from __future__ import annotations
 
 import math
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 
 from arifosmcp.schemas.institutional_shadow import (
@@ -22,7 +22,6 @@ from arifosmcp.schemas.institutional_shadow import (
     ShadowDriftRequest,
     ShadowDriftResponse,
 )
-
 
 # Sovereign-institution keywords that signal the entity has moved beyond its name.
 _SHADOW_ESCAPE_KEYWORDS: frozenset[str] = frozenset(

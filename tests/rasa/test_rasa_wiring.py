@@ -29,15 +29,9 @@ import tempfile
 
 import pytest
 
-from arifosmcp.rasa.rasa_integration import (
-    rasa_governed_execute,
-    rasa_sense_hook,
-)
 from arifosmcp.rasa.rasa_schemas import (
-    ConstitutionPosture,
     RasaDetection,
     RasaEmotionTag,
-    RasaIntensity,
     RasaRiskBand,
 )
 from arifosmcp.rasa.rasa_telemetry import RasaTelemetry

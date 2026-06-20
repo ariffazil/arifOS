@@ -15,7 +15,8 @@ import asyncio
 import logging
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
 from arifosmcp.tools.judge import arif_judge_deliberate
 
 logger = logging.getLogger(__name__)

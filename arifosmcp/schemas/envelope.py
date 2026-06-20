@@ -28,11 +28,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, model_validator
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 7-LABEL EVIDENCE CLASSIFICATION
@@ -84,10 +83,10 @@ class SourceAttribution(BaseModel):
         ..., description="Federation organ that produced this (geox/wealth/well/a-forge/aaa)"
     )
     tool: str = Field(..., description="Tool name within the organ")
-    repo: Optional[str] = Field(None, description="Repo (e.g. ariffazil/geox)")
-    commit_sha: Optional[str] = Field(None, description="Git commit at time of production")
-    actor_id: Optional[str] = Field(None, description="Agent or human that triggered the call")
-    capability_grant_id: Optional[str] = Field(
+    repo: str | None = Field(None, description="Repo (e.g. ariffazil/geox)")
+    commit_sha: str | None = Field(None, description="Git commit at time of production")
+    actor_id: str | None = Field(None, description="Agent or human that triggered the call")
+    capability_grant_id: str | None = Field(
         None, description="CapabilityGrant that authorized this"
     )
     produced_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
@@ -111,7 +110,7 @@ class UncertaintyBand(BaseModel):
     dimensionless: bool = False
 
     @model_validator(mode="after")
-    def _check_order(self) -> "UncertaintyBand":
+    def _check_order(self) -> UncertaintyBand:
         if not (self.p10 <= self.p50 <= self.p90):
             raise ValueError(
                 f"UncertaintyBand requires p10 ≤ p50 ≤ p90; got "
@@ -156,9 +155,9 @@ class ActorContext(BaseModel):
 
     actor_id: str = Field(..., description="Agent or human identity")
     actor_type: str = Field(..., description="human | agent | system | sovereign")
-    session_id: Optional[str] = Field(None, description="arif_session_init session hash")
-    capability_grant_id: Optional[str] = Field(None, description="Active grant for this tool")
-    autonomy_band: Optional[str] = Field(None, description="GREEN/YELLOW/ORANGE/RED/BLACK")
+    session_id: str | None = Field(None, description="arif_session_init session hash")
+    capability_grant_id: str | None = Field(None, description="Active grant for this tool")
+    autonomy_band: str | None = Field(None, description="GREEN/YELLOW/ORANGE/RED/BLACK")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -219,7 +218,7 @@ class EvidenceEnvelope(BaseModel):
 
     # Action classification (for downstream gating)
     reversibility: Reversibility = Reversibility.REVERSIBLE
-    action_cost: Optional[dict[str, Any]] = Field(
+    action_cost: dict[str, Any] | None = Field(
         default=None,
         description="Optional cost estimate: {compute_seconds, tokens, money, blast_radius}",
     )
@@ -231,7 +230,7 @@ class EvidenceEnvelope(BaseModel):
     # Forged 2026-06-06 in response to the Royal Decree incident: a model can claim to be
     # anything in its output, but the runtime that wrapped the output knows the truth.
     # Required for any AGI-lane output bound for operator surfaces (Telegram/cockpit).
-    runtime_model: Optional[str] = Field(
+    runtime_model: str | None = Field(
         None,
         description=(
             "The actual model id that produced the result (e.g. 'minimax/MiniMax-M3', "
@@ -239,7 +238,7 @@ class EvidenceEnvelope(BaseModel):
             "A claim of model identity inside `result` is non-authoritative."
         ),
     )
-    runtime_model_source: Optional[str] = Field(
+    runtime_model_source: str | None = Field(
         None,
         description=(
             "How `runtime_model` was determined: 'config' (from openclaw.json) | "
@@ -247,7 +246,7 @@ class EvidenceEnvelope(BaseModel):
             "non-authoritative). Default null = unknown / not asserted."
         ),
     )
-    runtime_lane: Optional[str] = Field(
+    runtime_lane: str | None = Field(
         None,
         description=(
             "Constitutional lane that produced this output: 000/111/222/333/444/555/"
@@ -258,13 +257,13 @@ class EvidenceEnvelope(BaseModel):
 
     # Timestamps
     produced_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    expires_at: Optional[datetime] = Field(
+    expires_at: datetime | None = Field(
         None,
         description="Optional TTL — envelope is stale after this time",
     )
 
     @model_validator(mode="after")
-    def _check_quality_for_fact(self) -> "EvidenceEnvelope":
+    def _check_quality_for_fact(self) -> EvidenceEnvelope:
         """L02 TRUTH: FACT requires evidence_quality ≥ 0.99.
 
         Note: This is a soft check that yields a value error only for
@@ -279,7 +278,7 @@ class EvidenceEnvelope(BaseModel):
             raise ValueError(f"L04 CLARITY: delta_S must be ≤ 0; got {self.delta_S}")
         return self
 
-    def is_stale(self, now: Optional[datetime] = None) -> bool:
+    def is_stale(self, now: datetime | None = None) -> bool:
         """True if the envelope has passed its expiry."""
         if self.expires_at is None:
             return False
@@ -307,19 +306,19 @@ def wrap_envelope(
     p50: float,
     p90: float,
     units: str = "unknown",
-    parent_evidence_refs: Optional[list[str]] = None,
+    parent_evidence_refs: list[str] | None = None,
     actor_type: str = "agent",
-    session_id: Optional[str] = None,
-    capability_grant_id: Optional[str] = None,
-    autonomy_band: Optional[str] = None,
+    session_id: str | None = None,
+    capability_grant_id: str | None = None,
+    autonomy_band: str | None = None,
     delta_S: float = 0.0,
     reversibility: Reversibility = Reversibility.REVERSIBLE,
-    repo: Optional[str] = None,
-    commit_sha: Optional[str] = None,
-    expires_at: Optional[datetime] = None,
-    runtime_model: Optional[str] = None,
-    runtime_model_source: Optional[str] = None,
-    runtime_lane: Optional[str] = None,
+    repo: str | None = None,
+    commit_sha: str | None = None,
+    expires_at: datetime | None = None,
+    runtime_model: str | None = None,
+    runtime_model_source: str | None = None,
+    runtime_lane: str | None = None,
 ) -> EvidenceEnvelope:
     """Convenience: wrap a domain result in the standard envelope.
 

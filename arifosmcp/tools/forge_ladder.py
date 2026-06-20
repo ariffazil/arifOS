@@ -20,9 +20,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
 
-from arifosmcp.constitutional_map import CANONICAL_TOOLS, ToolStage
+from arifosmcp.constitutional_map import ToolStage
 from arifosmcp.runtime.law import check_laws
-from arifosmcp.runtime.tools import _ok, _hold
 from arifosmcp.schemas.forge import (
     ForgeDryRunResult,
     ForgeErrorCode,
@@ -176,7 +175,7 @@ def forge_query(
 
     try:
         target_cwd = _resolve_cwd(cwd)
-    except ValueError as exc:
+    except ValueError:
         return ForgeQueryResult(
             verdict="HOLD",
             error_code=ForgeErrorCode.E_WORKSPACE_ESCAPE,

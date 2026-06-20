@@ -441,11 +441,11 @@ async def main(args):
     server = await asyncio.start_server(handle_client, "127.0.0.1", args.port)
     addr = server.sockets[0].getsockname()
     log.info(f"MCP Telemetry Proxy v3 ready on {addr}")
-    log.info(f"  POST /mcp/arifos  → arifOS MCP")
-    log.info(f"  POST /mcp/A-FORGE → A-FORGE")
-    log.info(f"  GET  /health      → health + counters")
-    log.info(f"  GET  /stats       → per-server/agent counts")
-    log.info(f"  GET  /ledger      → recent call records")
+    log.info("  POST /mcp/arifos  → arifOS MCP")
+    log.info("  POST /mcp/A-FORGE → A-FORGE")
+    log.info("  GET  /health      → health + counters")
+    log.info("  GET  /stats       → per-server/agent counts")
+    log.info("  GET  /ledger      → recent call records")
 
     async with server:
         await server.serve_forever()

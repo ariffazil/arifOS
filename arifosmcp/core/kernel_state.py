@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 
 class KernelStatus(str, Enum):
@@ -37,16 +36,16 @@ class KernelStateRow:
     organ_count: int
     failed_calls_24h: int
     kernel_status: KernelStatus
-    degradation_reason: Optional[str]
+    degradation_reason: str | None
     organ_status: dict
     declared_tools: dict            # from FEDERATION_ORGANS (constitutional)
     live_tools: dict                # from live HTTP probes (operational)
     last_refreshed_at: str
-    seal_id: Optional[str]
+    seal_id: str | None
     probe_type: HealthProbeType
 
 
-def read_kernel_state(supabase_client) -> Optional[KernelStateRow]:
+def read_kernel_state(supabase_client) -> KernelStateRow | None:
     """
     Read the ONE truth row from arifosmcp_kernel_state.
     Returns None if the table is not initialized or unreachable.

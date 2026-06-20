@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import asyncio
 
-import pytest
 
 from arifosmcp.rasa.rasa_contract import RasaContract
 from arifosmcp.rasa.rasa_schemas import (

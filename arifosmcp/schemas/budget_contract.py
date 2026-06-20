@@ -20,7 +20,6 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field, model_validator
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # BUDGET DOMAINS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -227,7 +226,7 @@ class BudgetContractSchema(BaseModel):
         }
 
     @model_validator(mode="after")
-    def _validate_contract(self) -> "BudgetContractSchema":
+    def _validate_contract(self) -> BudgetContractSchema:
         """Contract semantics validation."""
         if self.max_turns < 1:
             raise ValueError("max_turns must be >= 1")

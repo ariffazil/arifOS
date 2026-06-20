@@ -361,7 +361,7 @@ class CapabilitySurfaceBuilder:
                 status.write_ok = False
                 status.status_alignment = "UNDERCLAIM"
                 status.outer_verdict = "HOLD"
-                status.note = f"Tool responds but gated/degraded"
+                status.note = "Tool responds but gated/degraded"
             else:
                 status.available = True
                 status.read_ok = True

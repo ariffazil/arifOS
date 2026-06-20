@@ -21,7 +21,6 @@ Reversibility: file delete = revert. No migrations, no new tables.
 
 from __future__ import annotations
 
-import json
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -29,9 +28,7 @@ from enum import StrEnum
 from typing import Any
 
 import numpy as np
-
-from arifosmcp.geometry.manifold import AgentState, Floor, HARD_FLOORS, load_floor_weights
-
+from arifosmcp.geometry.manifold import HARD_FLOORS, Floor, load_floor_weights
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Geometry constraint — typed, evaluable

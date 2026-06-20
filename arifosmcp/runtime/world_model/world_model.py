@@ -17,30 +17,25 @@ Reversibility: file delete = revert. No migrations, no new tables.
 
 from __future__ import annotations
 
-import json
 import time
 import uuid
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, Literal, Optional
+from typing import Any
 
 import numpy as np
-
 from arifosmcp.geometry.manifold import (
+    HARD_FLOORS,
     AgentState,
     Floor,
-    HARD_FLOORS,
-    is_constitutional,
     load_floor_weights,
 )
 from arifosmcp.geometry.tom_geometry import (
-    OtherGeometry,
-    Evidence,
-    HISTORY_DECAY_TAU_H,
     CONFIDENCE_CAP,
     TOM_DEPTH_CAP,
+    Evidence,
+    OtherGeometry,
 )
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Typed actor classes — not a flat list
@@ -82,7 +77,7 @@ class ActorState:
     display_name: str
     geometry: OtherGeometry
     identity_provenance: str
-    relations: list["Relation"] = field(default_factory=list)
+    relations: list[Relation] = field(default_factory=list)
     last_evidence_ts: float = field(default_factory=time.time)
     notes: str = ""
 

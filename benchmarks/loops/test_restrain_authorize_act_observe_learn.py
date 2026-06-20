@@ -1,4 +1,3 @@
-import os
 import pytest
 
 # Mocks of the ledgers and organs for the loop

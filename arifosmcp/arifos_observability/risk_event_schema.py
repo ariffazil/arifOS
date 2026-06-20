@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import time
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -37,7 +36,7 @@ class RiskEvent(BaseModel):
     actor_id: str
     action_class: str
     tool: str
-    session_id: Optional[str] = None
+    session_id: str | None = None
     reason: str
     floor: str  # e.g., "F11_AUDIT"
     reversible: bool

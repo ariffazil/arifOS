@@ -7,7 +7,6 @@ Immutable ledger and audit engine.
 """
 
 from __future__ import annotations
-import asyncio
 
 import hashlib
 from typing import Literal

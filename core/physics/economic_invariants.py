@@ -27,7 +27,6 @@ from core.physics.thermodynamics_hardened import (
     MaintenanceScaling,
     ThermodynamicBudget,
     ThermodynamicError,
-    compute_maintenance_cost,
     get_thermodynamic_budget,
     vector_orthogonality,
 )

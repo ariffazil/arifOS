@@ -35,32 +35,36 @@ import hashlib
 import json
 import logging
 import os
-import time
 import uuid
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
-from arifosmcp.runtime.context_engine.eureka import (
-    AuthorityClass,
-    ContextFailureMode,
-    empty_context_packet as _empty_packet_stub,
-    marginal_value_per_token,
+from arifosmcp.runtime.context_audit import POLICY_VERSION as _AUDIT_POLICY_VERSION
+from arifosmcp.runtime.context_engine.boundary_aware import (
+    BOUNDARY_AWARE_POLICY_VERSION as _BOUNDARY_AWARE_VERSION,
+)
+from arifosmcp.runtime.context_engine.boundary_aware import (
+    BoundaryTag,
+)
+from arifosmcp.runtime.context_engine.boundary_aware import (
+    geometry_available as _boundary_geometry_available,
+)
+from arifosmcp.runtime.context_engine.boundary_aware import (
+    tag_segment as _boundary_tag_segment,
 )
 from arifosmcp.runtime.context_engine.context_status import (
     AUTO_COMPACT_ENABLED_DEFAULT,
     CONTEXT_STATUS_POLICY_VERSION,
+)
+from arifosmcp.runtime.context_engine.context_status import (
     arif_context_status as _arif_context_status_observer,
 )
-from arifosmcp.runtime.context_audit import POLICY_VERSION as _AUDIT_POLICY_VERSION
-from arifosmcp.runtime.context_engine.boundary_aware import (
-    BoundaryTag,
-    tag_segment as _boundary_tag_segment,
-    geometry_available as _boundary_geometry_available,
-    BOUNDARY_AWARE_POLICY_VERSION as _BOUNDARY_AWARE_VERSION,
+from arifosmcp.runtime.context_engine.eureka import (
+    AuthorityClass,
+    marginal_value_per_token,
 )
 from arifosmcp.runtime.token_pressure import (
-    PressureBand,
     classify_pressure,
     get_model_window,
 )

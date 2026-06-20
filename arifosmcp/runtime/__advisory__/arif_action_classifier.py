@@ -23,7 +23,7 @@ Rollback: `rm -rf arifosmcp/runtime/__advisory__/ tests/test_arif_action_classif
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Any, Optional
+from typing import Any
 
 
 class ActionClass(str, Enum):
@@ -61,7 +61,7 @@ class Action:
 @dataclass
 class Verdict:
     gate: Gate
-    reasons: List[str]
+    reasons: list[str]
     required_human_judge: bool
     may_execute: bool
     audit_required: bool = True
@@ -73,10 +73,10 @@ class ArifOSMetabolism:
     human_judge: str = "Yang Arif - sovereign in system, not God"
     agent_role: str = "instrument_only"
     activation_phrase: str = "HANG INGAT BALIK!!!"
-    audit_log: List[Dict[str, Any]] = field(default_factory=list)
+    audit_log: list[dict[str, Any]] = field(default_factory=list)
 
     def classify_gate(self, action: Action) -> Verdict:
-        reasons: List[str] = []
+        reasons: list[str] = []
 
         if action.action_class == ActionClass.UNKNOWN:
             return Verdict(
@@ -177,7 +177,7 @@ class ArifOSMetabolism:
         })
 
 
-def hang_ingat_balik() -> Dict[str, str]:
+def hang_ingat_balik() -> dict[str, str]:
     return {
         "activation": "HANG INGAT BALIK!!!",
         "doctrine": "Intelligence is not authority. Capability is not permission.",

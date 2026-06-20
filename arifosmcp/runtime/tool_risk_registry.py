@@ -30,7 +30,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 # ═══════════════════════════════════════════════════════════════
@@ -495,7 +495,8 @@ def validate_registry() -> dict[str, Any]:
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
     except ImportError:
         # Fallback: derive from tool_registry.json
-        import json, os
+        import json
+        import os
         _reg_path = os.path.join(os.path.dirname(__file__), "..", "tool_registry.json")
         with open(_reg_path) as f:
             _reg = json.load(f)

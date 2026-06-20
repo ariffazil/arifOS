@@ -27,24 +27,18 @@ intelligence. It is controlled attention under finite context.
 
 from __future__ import annotations
 
-import hashlib
-import json
 import logging
 import os
 from enum import IntEnum, StrEnum
 from typing import Any
 
+from arifosmcp.runtime.context_audit import (
+    RiskClass,
+)
 from arifosmcp.runtime.token_pressure import (
     PressureBand,
     classify_pressure,
     get_model_window,
-)
-from arifosmcp.runtime.context_audit import (
-    AuditMode,
-    EventType,
-    RiskClass,
-    audit_classify,
-    audit_hold,
 )
 
 logger = logging.getLogger(__name__)

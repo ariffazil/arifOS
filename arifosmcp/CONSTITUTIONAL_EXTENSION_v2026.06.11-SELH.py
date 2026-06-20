@@ -32,7 +32,6 @@ Ditempa Bukan Diberi.
 """
 
 from enum import StrEnum
-from typing import Any
 
 
 class LawExtension(StrEnum):

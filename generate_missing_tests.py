@@ -1,4 +1,3 @@
-import os
 
 base_dir = "/root/arifOS/benchmarks/floors"
 

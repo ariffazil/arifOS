@@ -18,14 +18,12 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import hashlib
-import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, Field
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ENUMS
@@ -94,7 +92,7 @@ class KernelNode(BaseModel):
     """Base for all constitutional kernel objects."""
     node_id: str = Field(default_factory=lambda: f"NODE-{uuid.uuid4().hex[:12]}")
     node_type: str
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     created_by: str = "arifOS-paradox-engine"
     constitution_hash: str = "sha256:arifos-constitution-v2026.05.05-SSCT"
     epistemic_tag: EpistemicTag = EpistemicTag.CLAIM

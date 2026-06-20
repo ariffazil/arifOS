@@ -11,7 +11,6 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from arifos.actor import Actor
 from arifos.intent import Intent
 
 

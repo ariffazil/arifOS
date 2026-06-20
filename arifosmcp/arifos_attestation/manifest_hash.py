@@ -15,7 +15,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 
 class ManifestHasher:
@@ -28,7 +28,7 @@ class ManifestHasher:
         return "b3:" + blake3.blake3(data).hexdigest()
 
     @staticmethod
-    def hash_file(path: Union[str, Path]) -> str:
+    def hash_file(path: str | Path) -> str:
         """Hash a file's contents."""
         p = Path(path)
         if not p.exists():

@@ -1,6 +1,5 @@
 from __future__ import annotations
 import pytest
-from unittest.mock import MagicMock
 from arifosmcp.runtime.llm_client import LLMOutputEnvelope
 from arifosmcp.tools.shadow_geometry import arif_self_evaluate, arif_model_compare
 

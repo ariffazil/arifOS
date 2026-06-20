@@ -118,9 +118,9 @@ def to_markdown(snapshot: dict[str, Any]) -> str:
     lines.append("## Payloads")
     for organ in snapshot["organs"]:
         lines.append(f"### {organ['name']}")
-        lines.append(f"```json")
+        lines.append("```json")
         lines.append(json.dumps(organ["payload"], indent=2, default=str))
-        lines.append(f"```")
+        lines.append("```")
         lines.append("")
     return "\n".join(lines)
 

@@ -23,7 +23,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
@@ -222,7 +221,7 @@ def route_with_capability(
         return RouteDecision(
             verdict=RouteVerdict.HOLD,
             tool_name=tool_name,
-            reason=f"Autonomy mode is SHORT_CHAIN. Atomic actions require 888_HOLD.",
+            reason="Autonomy mode is SHORT_CHAIN. Atomic actions require 888_HOLD.",
             capability_tier=tier_raw,
             status_alignment=alignment_raw,
             requires_888_hold=True,

@@ -23,7 +23,7 @@ import hashlib
 import json
 import time
 from dataclasses import dataclass, field
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 import httpx
 import structlog
@@ -38,8 +38,8 @@ class PolicyInput:
     actor_id: str
     action_class: Literal["OBSERVE", "ANALYZE", "MUTATE", "GOVERNED", "SEAL"]
     tool: str
-    session_id: Optional[str] = None
-    resource: Optional[str] = None
+    session_id: str | None = None
+    resource: str | None = None
     extra: dict[str, Any] = field(default_factory=dict)
 
     def to_opa(self) -> dict[str, Any]:
@@ -86,7 +86,7 @@ class OPABridge:
     def __init__(self, endpoint: str = "http://127.0.0.1:8181", timeout: float = 5.0):
         self.endpoint = endpoint.rstrip("/")
         self.timeout = timeout
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     async def _ensure_client(self) -> httpx.AsyncClient:
         if self._client is None:

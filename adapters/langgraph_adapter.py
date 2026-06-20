@@ -7,7 +7,6 @@ via arifOS, before the execution node is allowed to run.
 """
 from typing import Dict, Any, Callable
 from arifosmcp.tools.judge import arif_judge_deliberate
-import asyncio
 
 def create_arifos_judgment_node(
     intent_extractor: Callable[[Dict[str, Any]], str],

@@ -42,7 +42,6 @@ import hashlib
 import json
 import logging
 import os
-import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -53,12 +52,9 @@ from arifosmcp.runtime.context_engine.context_status import (
     arif_context_status,
 )
 from arifosmcp.runtime.context_engine.prepare_context import (
-    PREPARE_CONTEXT_POLICY_VERSION,
     Segment,
     prepare_context,
 )
-from arifosmcp.runtime.context_engine.eureka import EUREKA_POLICY_VERSION
-from arifosmcp.runtime.context_audit import POLICY_VERSION as AUDIT_POLICY_VERSION
 from arifosmcp.runtime.token_pressure import get_session_singleton
 
 logger = logging.getLogger(__name__)
@@ -449,7 +445,6 @@ def _hash_receipt(payload: dict[str, Any]) -> str:
 def _self_check() -> dict[str, Any]:
     """10 deterministic properties of Runner001."""
     from arifosmcp.runtime.context_engine.prepare_context import (
-        PROTECTED_SEGMENT_TYPES,
         SegmentType,
     )
 
