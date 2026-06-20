@@ -82,10 +82,10 @@ _STATIC_CAPABILITIES: dict[str, dict[str, Any]] = {
     },
     "VAULT999": {
         "status": "DEGRADED_CLAIM",
-        "attested_tools": [],
-        "canonical_tool_count": 0,
-        "total_tool_count": 0,
-        "note": "Immutable audit ledger — sealed memory, not vibes.",
+        "attested_tools": ["arif_vault_seal", "arif_evidence_fetch"],
+        "canonical_tool_count": 2,
+        "total_tool_count": 2,
+        "note": "Immutable audit ledger — succession memory, not vibes. Tools: arif_vault_seal (999), arif_evidence_fetch (vault query). Live attestation pending NATS subscription.",
         "degraded": True,
     },
 }
@@ -101,12 +101,74 @@ def read_capability_attestations() -> dict[str, dict[str, Any]]:
     Returns a dict of organ → capability info.
     Status values:
       - STATIC_CLAIM: from FORGE_REGISTRY.md (not live-attested)
-      - NATS_ATTESTED: live attestation received via NATS
+      - LIVE_ATTESTED: probed via HTTP /health within last call
+      - DEGRADED_LIVE: live probe returned non-2xx
       - UNKNOWN: no information available
     """
-    # TODO(forge-3): subscribe to NATS arifos.swarm.capability.>
-    # For now, return static baseline
-    return dict(_STATIC_CAPABILITIES)
+    import json as _json
+    import urllib.request as _ur
+    import urllib.error as _ue
+
+    # Organ probe map — hostname, port, expected canonical count
+    _PROBES: dict[str, tuple[str, int, int]] = {
+        "arifOS": ("127.0.0.1", 8088, _ARIFOS_CANONICAL_COUNT),
+        "GEOX":   ("127.0.0.1", 8081, 31),
+        "WEALTH": ("127.0.0.1", 18082, 20),
+        "WELL":   ("127.0.0.1", 18083, 18),
+        "FORGE":  ("127.0.0.1", 7071, 15),
+        "GATEWAY":("127.0.0.1", 18789, 0),
+        "VAULT999":("127.0.0.1", 8100, 2),  # vault999-api
+    }
+
+    out: dict[str, dict[str, Any]] = dict(_STATIC_CAPABILITIES)
+
+    for organ, (host, port, declared_count) in _PROBES.items():
+        if organ not in out:
+            out[organ] = {
+                "status": "UNKNOWN",
+                "attested_tools": [],
+                "canonical_tool_count": 0,
+                "total_tool_count": 0,
+                "degraded": True,
+            }
+        try:
+            with _ur.urlopen(f"http://{host}:{port}/health", timeout=2.0) as r:
+                body = r.read().decode("utf-8", errors="replace")
+                if 200 <= r.status < 300:
+                    out[organ]["status"] = "LIVE_ATTESTED"
+                    out[organ]["degraded"] = False
+                    # Try to extract tool count from JSON body
+                    try:
+                        d = _json.loads(body)
+                        canonical = (
+                            d.get("canonical_tools_loaded")
+                            or d.get("canonical_tool_count")
+                            or d.get("canonical_count")
+                            or declared_count
+                        )
+                        total = (
+                            d.get("total_declared_tools")
+                            or d.get("total_tool_count")
+                            or d.get("tools_exposed_via_mcp")
+                            or declared_count
+                        )
+                        if isinstance(canonical, int) and canonical > 0:
+                            out[organ]["canonical_tool_count"] = canonical
+                        if isinstance(total, int) and total > 0:
+                            out[organ]["total_tool_count"] = total
+                    except (ValueError, TypeError):
+                        pass
+                else:
+                    out[organ]["status"] = "DEGRADED_LIVE"
+                    out[organ]["degraded"] = True
+        except (_ue.URLError, _ue.HTTPError, OSError, TimeoutError) as e:
+            out[organ]["status"] = "DEGRADED_LIVE"
+            out[organ]["degraded"] = True
+            out[organ]["note"] = (
+                out[organ].get("note", "") + f" [live probe: {str(e)[:60]}]"
+            ).strip()
+
+    return out
 
 
 def get_organ_capabilities(organ: str) -> dict[str, Any]:

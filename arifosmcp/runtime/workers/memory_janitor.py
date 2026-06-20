@@ -28,15 +28,42 @@ class MemoryJanitor:
         self._task: asyncio.Task | None = None
 
     @classmethod
-    def start(cls, interval_seconds: int = 3600) -> MemoryJanitor:
-        """Start the global janitor instance."""
+    def start(cls, interval_seconds: int = 3600) -> "MemoryJanitor":
+        """Start the global janitor instance.
+
+        Idempotent. Safe to call at import time. The actual task is
+        scheduled on the next event-loop tick via ``call_soon`` so we
+        never hit the ``There is no current event loop in thread 'MainThread'``
+        RuntimeError that fires when ``create_task`` is called before
+        uvicorn spins up the loop.
+        """
+        existing = getattr(cls, "_global", None)
+        if existing is not None:
+            return existing
         janitor = cls(interval_seconds)
-        # Use get_event_loop().create_task() instead of asyncio.create_task()
-        # so the janitor can be instantiated at import time before uvicorn
-        # has started the event loop. The task is scheduled and will begin
-        # executing once the loop starts.
-        loop = asyncio.get_event_loop()
-        janitor._task = loop.create_task(janitor.run_loop())
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # Loop is live — schedule directly
+                janitor._task = loop.create_task(janitor.run_loop())
+            else:
+                # Loop exists but not running yet — defer to next tick
+                loop.call_soon(lambda: setattr(janitor, "_task", asyncio.ensure_future(janitor.run_loop())))
+        except RuntimeError:
+            # No event loop at all — caller must invoke ``start_async`` later
+            logger.warning("MemoryJanitor.start: no event loop; call start_async() inside an async context")
+        cls._global = janitor
+        return janitor
+
+    @classmethod
+    async def start_async(cls, interval_seconds: int = 3600) -> "MemoryJanitor":
+        """Async-safe start — call from inside a running event loop."""
+        existing = getattr(cls, "_global", None)
+        if existing is not None:
+            return existing
+        janitor = cls(interval_seconds)
+        janitor._task = asyncio.create_task(janitor.run_loop())
+        cls._global = janitor
         return janitor
 
     async def run_loop(self):

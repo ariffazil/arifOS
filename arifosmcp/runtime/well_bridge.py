@@ -205,9 +205,12 @@ def signal_cognitive_pressure(load_delta: float, source: str = "forge") -> bool:
         metrics = state.get("metrics", {})
         cog = dict(metrics.get("cognitive", {"clarity": 10, "decision_fatigue": 0}))
 
-        # Increment fatigue
-        old_fatigue = cog.get("decision_fatigue", 0)
-        new_fatigue = min(10.0, old_fatigue + load_delta)
+        # Increment fatigue — handle None explicitly (key may exist with null value)
+        old_fatigue = cog.get("decision_fatigue") or 0
+        try:
+            new_fatigue = min(10.0, float(old_fatigue) + load_delta)
+        except (TypeError, ValueError):
+            new_fatigue = load_delta
         cog["decision_fatigue"] = new_fatigue
         metrics["cognitive"] = cog
 
