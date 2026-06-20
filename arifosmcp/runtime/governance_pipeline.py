@@ -120,9 +120,107 @@ try:
     _RISK_REGISTRY_AVAILABLE = True
 except ImportError:
     _RISK_REGISTRY_AVAILABLE = False
+
+try:
+    from arifosmcp.apps.command_center.identities import (
+        is_protected_sovereign_id as _is_protected_sovereign_id,
+    )
+except ImportError:
+    _is_protected_sovereign_id = None
 # ──────────────────────────────────────────────────────────────────────
 
 logger = logging.getLogger("arifosmcp.governance_pipeline")
+
+_SOVEREIGN_ALIASES = frozenset(
+    {
+        "arif",
+        "ariffazil",
+        "arif-fazil",
+        "arif_fazil",
+        "muhammad_arif",
+        "muhammad_arif_bin_fazil",
+        "human_sovereign",
+        "arif:sovereign",
+    }
+)
+
+
+def _normalize_actor_id(actor_id: Any) -> str:
+    if actor_id is None:
+        return ""
+    return str(actor_id).strip().lower()
+
+
+def _is_principal_actor(actor_id: Any) -> bool:
+    actor_norm = _normalize_actor_id(actor_id)
+    if not actor_norm:
+        return False
+    if _is_protected_sovereign_id is not None and _is_protected_sovereign_id(actor_norm):
+        return True
+    return actor_norm in _SOVEREIGN_ALIASES
+
+
+def _has_active_authority(ctx: Any) -> bool:
+    if getattr(ctx, "caller_has_lease", False):
+        return True
+
+    params = getattr(ctx, "params", {}) or {}
+    if params.get("lease_id") or params.get("authority_lease_id"):
+        return True
+
+    envelope = getattr(ctx, "envelope", None)
+    authority = getattr(envelope, "authority", None)
+    if authority is None:
+        return False
+
+    source = getattr(getattr(authority, "source", None), "value", None) or str(
+        getattr(authority, "source", "") or ""
+    )
+    source = source.lower()
+    actor_verification = str(getattr(ctx, "actor_verification", "") or "").lower()
+
+    if getattr(authority, "verified", False):
+        return True
+
+    return source in {"token", "session", "delegated", "human_888"} and actor_verification in {
+        "verified",
+        "delegated",
+    }
+
+
+def _reversibility_to_float(value: Any) -> float:
+    if value is None:
+        return 1.0
+    if isinstance(value, (int, float)):
+        return float(value)
+
+    text = str(getattr(value, "value", value)).strip().lower()
+    mapping = {
+        "high": 0.9,
+        "medium": 0.5,
+        "low": 0.3,
+        "irreversible": 0.0,
+    }
+    return mapping.get(text, 1.0)
+
+
+def _is_mutating_action(action_class: Any) -> bool:
+    return str(action_class or "").upper() in {
+        "MUTATE",
+        "EXTERNAL_SIDE_EFFECT",
+        "IRREVERSIBLE",
+        "ATOMIC",
+    }
+
+
+def _is_low_impact_action(action_class: Any) -> bool:
+    return str(action_class or "").upper() in {
+        "OBSERVE",
+        "PREPARE",
+        "ANALYZE",
+        "DRAFT",
+        "SIMULATE",
+    }
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -836,7 +934,7 @@ class GovernancePipeline:
 
         # Only check F13 for irreversible/mutate actions
         action_class = getattr(ctx, "action_class", "OBSERVE")
-        if action_class not in ("MUTATE", "ATOMIC"):
+        if not _is_mutating_action(action_class):
             return GateResult(
                 gate=Gate.F13_SOVEREIGN,
                 passed=True,
@@ -978,7 +1076,7 @@ class GovernancePipeline:
 
         # Anonymous is fine for OBSERVE
         if not ctx.actor_id or ctx.actor_id in ("anonymous", "None", ""):
-            if ctx.action_class in ("OBSERVE", "PREPARE"):
+            if _is_low_impact_action(ctx.action_class):
                 return GateResult(
                     gate=Gate.IDENTITY,
                     passed=True,
@@ -995,7 +1093,7 @@ class GovernancePipeline:
             )
 
         # MUTATE/ATOMIC require verified identity
-        if ctx.action_class in ("MUTATE", "ATOMIC"):
+        if _is_mutating_action(ctx.action_class):
             if ctx.actor_verification == "claimed":
                 return GateResult(
                     gate=Gate.IDENTITY,
@@ -1056,11 +1154,11 @@ class GovernancePipeline:
             if not getattr(ctx, "blast_radius", None):
                 blast_map = {
                     "OBSERVE": "LOCAL",
-                    "PREPARE": "ORGAN",
-                    "COMPUTE": "ORGAN",
-                    "PROPOSE": "FEDERATION",
-                    "MUTATE": "FEDERATION",
-                    "ATOMIC": "EXTERNAL",
+                    "PREPARE": "ORG",
+                    "ANALYZE": "ORG",
+                    "DRAFT": "PUBLIC",
+                    "MUTATE": "PUBLIC",
+                    "IRREVERSIBLE": "CIVILIZATIONAL",
                 }
                 blast_radius = blast_map.get(action_class, "LOCAL")
 
@@ -1068,19 +1166,21 @@ class GovernancePipeline:
             if not getattr(ctx, "reversibility", None):
                 rev_map = {
                     "OBSERVE": 1.0,
-                    "COMPUTE": 1.0,
+                    "ANALYZE": 1.0,
                     "PREPARE": 0.9,
-                    "PROPOSE": 0.7,
+                    "DRAFT": 0.7,
                     "MUTATE": 0.5,
-                    "ATOMIC": 0.1,
+                    "IRREVERSIBLE": 0.1,
                 }
                 reversibility = rev_map.get(action_class, 0.5)
 
         # Determine if caller is principal (F13 sovereign)
-        caller_is_principal = getattr(ctx, "caller_is_principal", False)
+        caller_is_principal = getattr(ctx, "caller_is_principal", False) or _is_principal_actor(
+            getattr(ctx, "actor_id", None)
+        )
 
         # Determine if caller has lease
-        caller_has_lease = getattr(ctx, "caller_has_lease", False) or getattr(ctx, "actor_id", None) is not None
+        caller_has_lease = _has_active_authority(ctx)
 
         session_id = _ensure_session_id(ctx)
 
@@ -1242,8 +1342,13 @@ class GovernancePipeline:
         # Default ceilings per action class (numeric)
         ceilings = {
             "OBSERVE": 5,
+            "ANALYZE": 5,
+            "SIMULATE": 5,
             "PREPARE": 4,
+            "DRAFT": 4,
             "MUTATE": 2,
+            "EXTERNAL_SIDE_EFFECT": 2,
+            "IRREVERSIBLE": 1,
             "ATOMIC": 1,
         }
         ceiling_num = ceilings.get(ctx.action_class, 0)
@@ -1273,7 +1378,7 @@ class GovernancePipeline:
         t0 = time.perf_counter()
 
         # Vault liveness only gates MUTATE/ATOMIC
-        if ctx.action_class in ("OBSERVE", "PREPARE"):
+        if _is_low_impact_action(ctx.action_class):
             return GateResult(
                 gate=Gate.VAULT,
                 passed=True,
@@ -1484,7 +1589,7 @@ class GovernancePipeline:
 
         if ctx.envelope is None:
             # No envelope — allow OBSERVE, block MUTATE/ATOMIC
-            if ctx.action_class in ("MUTATE", "ATOMIC"):
+            if _is_mutating_action(ctx.action_class):
                 return GateResult(
                     gate=Gate.ENVELOPE,
                     passed=False,
@@ -1613,8 +1718,8 @@ class GovernancePipeline:
                 if method == "tools/call" and tool_name and tool_name != "arif_ping":
                     import os as _os
                     _airlock_mode = _os.getenv("ARIF_AIRLOCK_MODE", "shadow").lower().strip()
+                    _envelope = scope.get("airlock_envelope")
                     if _airlock_mode == "enforce":
-                        _envelope = scope.get("airlock_envelope")
                         if _envelope is None:
                             from arifosmcp.transport.errors import arif_error
                             error_body = _json.dumps(
@@ -1681,15 +1786,57 @@ class GovernancePipeline:
                     enf_mode = get_enforcement_mode(tool_name)
                     risk = get_risk_profile(tool_name)
 
+                    actor_id = (
+                        arguments.get("actor_id")
+                        or getattr(_envelope, "actor_id", None)
+                        or getattr(_envelope, "caller_actor", None)
+                        or getattr(_envelope, "sovereign", None)
+                    )
+                    actor_verification = (
+                        getattr(_envelope, "actor_verification", None)
+                        or arguments.get("actor_verification")
+                        or "claimed"
+                    )
+                    blast_radius = (
+                        risk.blast_radius.value
+                        if risk
+                        else arguments.get("blast_radius", "LOCAL")
+                    )
+                    reversibility = (
+                        _reversibility_to_float(risk.reversibility)
+                        if risk
+                        else _reversibility_to_float(arguments.get("reversibility", 1.0))
+                    )
+                    caller_is_principal = _is_principal_actor(actor_id) or _is_principal_actor(
+                        getattr(_envelope, "sovereign", None)
+                    )
+                    authority = getattr(_envelope, "authority", None)
+                    authority_source = getattr(getattr(authority, "source", None), "value", None)
+                    caller_has_lease = bool(
+                        arguments.get("lease_id")
+                        or arguments.get("authority_lease_id")
+                        or (
+                            authority_source in {"token", "session", "delegated", "human_888"}
+                            and actor_verification in {"verified", "delegated"}
+                        )
+                        or getattr(authority, "verified", False)
+                    )
+
                     ctx = ToolCallContext(
                         tool_name=tool_name,
-                        session_id=arguments.get("session_id"),
-                        actor_id=arguments.get("actor_id"),
+                        session_id=arguments.get("session_id") or getattr(_envelope, "session_id", None),
+                        actor_id=actor_id,
+                        actor_verification=actor_verification,
                         action_class=(
                             risk.action_class.value if risk
                             else arguments.get("action_class", "OBSERVE")
                         ),
                         risk_tier=risk.risk_tier.value if risk else "T1",
+                        blast_radius=blast_radius,
+                        reversibility=reversibility,
+                        caller_is_principal=caller_is_principal,
+                        caller_has_lease=caller_has_lease,
+                        envelope=_envelope,
                         params=arguments,
                     )
                     result = pipeline.run(ctx)

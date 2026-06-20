@@ -140,6 +140,10 @@ class ActionClass(StrEnum):
     IRREVERSIBLE = "IRREVERSIBLE"
     UNKNOWN = "UNKNOWN"
 
+    # Compatibility aliases for legacy code
+    PREPARE = "DRAFT"
+    ATOMIC = "IRREVERSIBLE"
+
 
 class ToolClass(StrEnum):
     """Policy/approval risk class for the tool.
@@ -183,6 +187,7 @@ class BlastRadius(StrEnum):
     MEDIUM = "ACCOUNT"
     HIGH = "PUBLIC"
     CRITICAL = "INFRASTRUCTURE"
+    INFRA = "INFRASTRUCTURE"
 
 
 class ReversibilityLevel(StrEnum):

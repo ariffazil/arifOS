@@ -16,6 +16,7 @@ DITEMPA BUKAN DIBERI — The pipe tested, not assumed.
 """
 
 import pytest
+from types import SimpleNamespace
 
 from arifosmcp.runtime.governance_pipeline import (
     Gate,
@@ -147,6 +148,58 @@ class TestIdentityGate:
         result = p.run(ctx)
         assert result.all_clear is False
         assert result.blocked_at == Gate.IDENTITY
+
+
+class TestPrincipalParadoxContext:
+    def test_sovereign_alias_is_inferred_as_principal(self):
+        p = GovernancePipeline(
+            f0_rootkey_enabled=False,
+            f13_gate_enabled=False,
+            vault_liveness_enabled=False,
+            floor_enabled=False,
+            envelope_enabled=False,
+        )
+        ctx = ToolCallContext(
+            tool_name="arif_vault_seal",
+            session_id="principal-session",
+            actor_id="arif-fazil",
+            actor_verification="verified",
+            action_class="IRREVERSIBLE",
+            risk_tier="ATOMIC",
+            blast_radius="PUBLIC",
+            reversibility=0.0,
+        )
+        result = p.run(ctx)
+        e7_gate = next(r for r in result.gate_results if r.gate == Gate.PRINCIPAL_PARADOX)
+        assert e7_gate.passed is True
+        assert e7_gate.metadata["autonomy_tier"] == "FULL_AUTO"
+        assert "Principal (F13 SOVEREIGN)" in e7_gate.reason
+
+    def test_delegated_envelope_supplies_authority_without_explicit_lease_flag(self):
+        p = GovernancePipeline(
+            f0_rootkey_enabled=False,
+            f13_gate_enabled=False,
+            vault_liveness_enabled=False,
+            floor_enabled=False,
+        )
+        envelope = SimpleNamespace(
+            authority=SimpleNamespace(source=SimpleNamespace(value="token"), verified=False)
+        )
+        ctx = ToolCallContext(
+            tool_name="arif_mind_reason",
+            session_id="delegated-session",
+            actor_id="operator-1",
+            actor_verification="delegated",
+            action_class="ANALYZE",
+            risk_tier="LOW",
+            blast_radius="ORG",
+            reversibility=1.0,
+            envelope=envelope,
+        )
+        result = p.run(ctx)
+        e7_gate = next(r for r in result.gate_results if r.gate == Gate.PRINCIPAL_PARADOX)
+        assert e7_gate.passed is True
+        assert e7_gate.metadata["e7_verdict"] == "PROCEED"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

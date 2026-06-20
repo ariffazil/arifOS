@@ -13879,13 +13879,16 @@ def _runtime_selftest(
         return default
 
     # 1. Registry check
+    # RULE 14: canonical surface is 19 tools (13 legacy + 6 rule-14).
+    # The implementation is split between _CANONICAL_HANDLERS and
+    # _RUNTIME_DIAGNOSTIC_HANDLERS; the union is the canonical surface.
     try:
-        tool_names = list(_CANONICAL_HANDLERS.keys())
-        registry_ok = set(tool_names) == set(CANONICAL_TOOLS)
+        tool_names = list(CANONICAL_TOOL_HANDLERS.keys())
+        registry_ok = set(CANONICAL_TOOLS).issubset(set(tool_names))
         checks["registry_check"] = {
             "verdict": "PASS" if registry_ok else "FAIL",
-            "tools_count": len(tool_names),
-            "tools": tool_names,
+            "tools_count": len(CANONICAL_TOOLS),
+            "tools": sorted(CANONICAL_TOOLS),
         }
         if not registry_ok:
             failed_checks.append("registry_check")
@@ -14286,6 +14289,18 @@ def _runtime_initialize_probe(
     )
 
 
+def _runtime_conformance_report(
+    payload: Any = None,
+    _envelope: dict[str, Any] | None = None,
+    client_capabilities: dict[str, Any] | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Conformance spine proof machine — zero-ceremony transport diagnostic."""
+    from arifosmcp.transport.conformance_spine import run_spine
+
+    return run_spine(fast=False)
+
+
 def _arif_schema_echo(
     payload: Any = None,
     _envelope: dict[str, Any] | None = None,
@@ -14644,6 +14659,7 @@ _MAX_CANONICAL = _LEGACY_CANONICAL + _RULE14_CANONICAL_ALLOWANCE
 _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
     "arif_ping": _runtime_ping,
     "arif_selftest": _runtime_selftest,
+    "arif_conformance_report": _runtime_conformance_report,
     "arif_schema_echo": _runtime_schema_echo,
     "arif_version_echo": _runtime_version_echo,
     "arif_transport_echo": _runtime_transport_echo,
@@ -15478,21 +15494,26 @@ __all__ = [
 ]
 
 # ── Server.py compatibility shims ──────────────────────────────────────────
-CANONICAL_TOOL_HANDLERS = _CANONICAL_HANDLERS
-FINAL_TOOL_IMPLEMENTATIONS = _CANONICAL_HANDLERS
+# Includes both legacy 13 canonical tools + RULE-14 diagnostic tools
+# (arif_route, arif_triage, arif_kernel_status, arif_bridge, arif_kernel_attest, arif_kernel_health,
+#  canary probes, hermes, shadow_geometry, paradox, gate_judge)
+# This ensures GET /mcp, /tools, /health all report the correct tool_count
+# and OpenClaw probe sees 19+ instead of stale 13.
+CANONICAL_TOOL_HANDLERS = {**_CANONICAL_HANDLERS, **_RUNTIME_DIAGNOSTIC_HANDLERS}
+FINAL_TOOL_IMPLEMENTATIONS = CANONICAL_TOOL_HANDLERS
 
 
 def get_tool_handler(name: str) -> Any:
     """Resolve a tool handler by name (canonical or legacy alias)."""
-    # 1. Try canonical name directly
-    handler = _CANONICAL_HANDLERS.get(name)
+    # 1. Try canonical name directly (legacy 13 + rule-14 6)
+    handler = CANONICAL_TOOL_HANDLERS.get(name)
     if handler:
         return handler
 
     # 2. Try legacy alias
     canonical_name = _LEGACY_ALIASES.get(name)
     if canonical_name:
-        return _CANONICAL_HANDLERS.get(canonical_name)
+        return CANONICAL_TOOL_HANDLERS.get(canonical_name)
 
     return None
 

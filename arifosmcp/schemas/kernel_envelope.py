@@ -61,6 +61,10 @@ class ActionClass(StrEnum):
     IRREVERSIBLE = "IRREVERSIBLE"
     UNKNOWN = "UNKNOWN"  # fail-closed: unknown class = HOLD
 
+    # Compatibility aliases for legacy code
+    PREPARE = "DRAFT"
+    ATOMIC = "IRREVERSIBLE"
+
     @classmethod
     def is_safe(cls, action: "ActionClass") -> bool:
         """Safe = no mutation, no external effects, no irreversible effects."""
@@ -102,12 +106,21 @@ class ActionClass(StrEnum):
 
 
 class GateVerdict(StrEnum):
-    """Constitutional gate verdict."""
+    """Constitutional gate verdict.
+
+    Canonical verdict set (Invariant #15):
+      SEAL  — proceed, all checks passed
+      SABAR — proceed with conditions, warnings active
+      HOLD  — stop, insufficient authority or missing succession continuity
+      VOID  — stop, invalid input or internal error
+      REJECT — stop, constitutional floor violation (F13-level prohibition)
+    """
 
     SEAL = "SEAL"  # proceed
     SABAR = "SABAR"  # proceed with conditions
     HOLD = "HOLD"  # stop — insufficient authority
-    VOID = "VOID"  # stop — constitutional violation
+    VOID = "VOID"  # stop — invalid input / internal error
+    REJECT = "REJECT"  # stop — constitutional floor violation (F13 prohibition)
 
 
 class BlastRadius(StrEnum):
@@ -142,6 +155,7 @@ class BlastRadius(StrEnum):
     MEDIUM = "ACCOUNT"
     HIGH = "PUBLIC"
     CRITICAL = "INFRASTRUCTURE"
+    INFRA = "INFRASTRUCTURE"
 
     @classmethod
     def requires_human_ack(cls, radius: "BlastRadius") -> bool:

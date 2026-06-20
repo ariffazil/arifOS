@@ -68,6 +68,10 @@ class ActionClass(StrEnum):
     IRREVERSIBLE = "IRREVERSIBLE"
     UNKNOWN = "UNKNOWN"
 
+    # Compatibility aliases for legacy code
+    PREPARE = "DRAFT"
+    ATOMIC = "IRREVERSIBLE"
+
 
 class RiskTier(StrEnum):
     LOW = "LOW"
@@ -84,7 +88,8 @@ class BlastRadius(StrEnum):
     MARKET = "MARKET"
     INFRASTRUCTURE = "INFRASTRUCTURE"
     CIVILIZATIONAL = "CIVILIZATIONAL"
-    UNKNOWN = "UNKNOWN""
+    UNKNOWN = "UNKNOWN"
+    INFRA = "INFRASTRUCTURE"
 
 
 class AutonomyTier(StrEnum):

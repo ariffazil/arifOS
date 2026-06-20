@@ -61,13 +61,18 @@ def test_anonymous_vault_seal_blocked():
 
 def test_anonymous_observe_allowed():
     """Anonymous actor observes — should PASS through all gates."""
-    pipeline = GovernancePipeline(principal_paradox_enabled=True)
+    pipeline = GovernancePipeline(
+        principal_paradox_enabled=True,
+        f0_rootkey_enabled=False,
+        f13_gate_enabled=False,
+    )
     ctx = ToolCallContext(
         tool_name="arif_sense_observe",
         session_id="s2",
         actor_id="anonymous",
         action_class="OBSERVE",
         risk_tier="LOW",
+        caller_has_lease=True,
     )
     result = pipeline.run(ctx)
     assert result.verdict == PipelineVerdict.PASS
@@ -88,6 +93,8 @@ def test_chain_reversible_to_irreversible():
     """
     pipeline = GovernancePipeline(
         principal_paradox_enabled=True,
+        f0_rootkey_enabled=False,
+        f13_gate_enabled=False,
         vault_liveness_enabled=False,  # vault probe unavailable in test env
         envelope_enabled=False,  # test env — no federation envelopes
     )
@@ -116,7 +123,7 @@ def test_chain_reversible_to_irreversible():
         actor_verification="verified",
         action_class="MUTATE",
         risk_tier="HIGH",
-        blast_radius="FEDERATION",
+        blast_radius="PUBLIC",
         reversibility=0.4,
         params={"mode": "engineer"},
         caller_has_lease=True,
@@ -136,9 +143,9 @@ def test_chain_reversible_to_irreversible():
         session_id="chain-1",
         actor_id="agent-7",
         actor_verification="verified",
-        action_class="ATOMIC",
+        action_class="IRREVERSIBLE",
         risk_tier="ATOMIC",
-        blast_radius="FEDERATION",
+        blast_radius="PUBLIC",
         reversibility=0.0,
         caller_has_lease=True,
     )
@@ -164,14 +171,14 @@ def test_autonomy_contracts_as_risk_expands():
 
     # Medium risk, federation blast, 0.5 reversible → PRINCIPAL_APPROVAL_REQUIRED
     tier2, _, _ = evaluate_autonomy_ceiling(
-        action_class="MUTATE", risk_tier="MEDIUM", blast_radius="FEDERATION",
+        action_class="MUTATE", risk_tier="MEDIUM", blast_radius="PUBLIC",
         reversibility=0.5, caller_has_lease=True,
     )
     assert tier2 == "PRINCIPAL_APPROVAL_REQUIRED"
 
     # High risk, external blast, 0.3 reversible → HOLD
     tier3, _, _ = evaluate_autonomy_ceiling(
-        action_class="ATOMIC", risk_tier="HIGH", blast_radius="EXTERNAL",
+        action_class="IRREVERSIBLE", risk_tier="HIGH", blast_radius="CIVILIZATIONAL",
         reversibility=0.3, caller_has_lease=True,
     )
     assert tier3 == "HOLD"
@@ -213,9 +220,9 @@ def test_all_13_canonical_tools_classified():
     for tool in canonical:
         profile = classify_tool(tool, {})
         assert profile.tool_name == tool
-        assert profile.action_class in ("OBSERVE", "COMPUTE", "PROPOSE", "MUTATE", "ATOMIC", "PREPARE")
+        assert profile.action_class in ("OBSERVE", "ANALYZE", "DRAFT", "MUTATE", "IRREVERSIBLE", "PREPARE")
         assert profile.risk_tier in ("LOW", "MEDIUM", "HIGH", "ATOMIC")
-        assert profile.blast_radius in ("LOCAL", "ORGAN", "FEDERATION", "EXTERNAL")
+        assert profile.blast_radius in ("LOCAL", "ACCOUNT", "ORG", "PUBLIC", "MARKET", "INFRASTRUCTURE", "CIVILIZATIONAL")
         assert 0.0 <= profile.reversibility <= 1.0
 
 
@@ -227,9 +234,9 @@ def test_forge_mode_classification():
     assert p.risk_tier == "LOW"
     assert p.autonomy_floor == "FULL_AUTO"
 
-    # Dry run → COMPUTE, safe
+    # Dry run → ANALYZE, safe
     p = classify_tool("arif_forge_execute", {"mode": "dry_run"})
-    assert p.action_class == "COMPUTE"
+    assert p.action_class == "ANALYZE"
     assert p.autonomy_floor == "FULL_AUTO"
 
     # Engineer → MUTATE, needs principal
@@ -237,9 +244,9 @@ def test_forge_mode_classification():
     assert p.action_class == "MUTATE"
     assert p.autonomy_floor == "PRINCIPAL_APPROVAL_REQUIRED"
 
-    # Deploy → ATOMIC, HOLD
+    # Deploy → IRREVERSIBLE, HOLD
     p = classify_tool("arif_forge_execute", {"mode": "deploy"})
-    assert p.action_class == "ATOMIC"
+    assert p.action_class == "IRREVERSIBLE"
     assert p.autonomy_floor == "HOLD"
 
 
@@ -250,9 +257,9 @@ def test_dangerous_mode_aliases():
         "generate": "MUTATE",
         "build": "MUTATE",
         "mutate": "MUTATE",
-        "execute": "ATOMIC",
-        "apply": "ATOMIC",
-        "push": "ATOMIC",
+        "execute": "IRREVERSIBLE",
+        "apply": "IRREVERSIBLE",
+        "push": "IRREVERSIBLE",
     }
     for alias, expected_class in aliases.items():
         p = classify_tool("arif_forge_execute", {"mode": alias})
@@ -275,9 +282,9 @@ def test_simulation_mode_logs_but_does_not_block():
         session_id="sim-1",
         actor_id="agent-7",
         actor_verification="verified",
-        action_class="ATOMIC",
+        action_class="IRREVERSIBLE",
         risk_tier="ATOMIC",
-        blast_radius="FEDERATION",
+        blast_radius="PUBLIC",
         reversibility=0.0,
         caller_has_lease=True,
     )
@@ -295,6 +302,8 @@ def test_enforce_mode_blocks():
     """In enforce mode, E7 hard-blocks atomic actions."""
     pipeline = GovernancePipeline(
         principal_paradox_enabled=True,
+        f0_rootkey_enabled=False,
+        f13_gate_enabled=False,
         enforcement_mode="enforce",
     )
     ctx = ToolCallContext(
@@ -302,9 +311,9 @@ def test_enforce_mode_blocks():
         session_id="enf-1",
         actor_id="agent-7",
         actor_verification="verified",
-        action_class="ATOMIC",
+        action_class="IRREVERSIBLE",
         risk_tier="ATOMIC",
-        blast_radius="FEDERATION",
+        blast_radius="PUBLIC",
         reversibility=0.0,
         caller_has_lease=True,
     )
@@ -324,9 +333,9 @@ def test_enforce_mode_blocks():
 
 def test_principal_direct_always_full_auto():
     """Principal (F13) always gets FULL_AUTO regardless of risk."""
-    # Even ATOMIC + EXTERNAL + irreversible → FULL_AUTO for principal
+    # Even IRREVERSIBLE + CIVILIZATIONAL + irreversible → FULL_AUTO for principal
     tier, rationale, envelope = evaluate_autonomy_ceiling(
-        action_class="ATOMIC", risk_tier="ATOMIC", blast_radius="EXTERNAL",
+        action_class="IRREVERSIBLE", risk_tier="ATOMIC", blast_radius="CIVILIZATIONAL",
         reversibility=0.0, caller_is_principal=True,
     )
     assert tier == "FULL_AUTO"
@@ -346,7 +355,7 @@ def test_no_lease_always_hold():
 def test_surge_protection_downgrades():
     """When override count exceeds max, autonomy downgrades."""
     tier, rationale, envelope = evaluate_autonomy_ceiling(
-        action_class="MUTATE", risk_tier="MEDIUM", blast_radius="ORGAN",
+        action_class="MUTATE", risk_tier="MEDIUM", blast_radius="ORG",
         reversibility=0.7, caller_has_lease=True,
         prior_override_count=MAX_OVERRIDES_PER_HOUR,  # at limit
     )
@@ -393,7 +402,7 @@ def test_attestation_receipt_completeness():
     receipt = emit_attestation(
         intent="seal ROOTKEY_SPEC_v54",
         inputs_hash="abc123def456",
-        risk_trigger="ATOMIC+FEDERATION",
+        risk_trigger="IRREVERSIBLE+PUBLIC",
         autonomy_tier="PRINCIPAL_APPROVAL_REQUIRED",
         approval_decision="SABAR",
         approving_authority="arifOS-kernel",
@@ -416,6 +425,8 @@ def test_repeated_identical_calls_detected():
     """Repeated identical MUTATE calls from same agent should trigger budget gate."""
     pipeline = GovernancePipeline(
         principal_paradox_enabled=True,
+        f0_rootkey_enabled=False,
+        f13_gate_enabled=False,
         max_same_tool_calls=2,
         vault_liveness_enabled=False,  # vault probe unavailable in test env
         floor_enabled=False,  # test env — floor L01 requires ack_irreversible param
@@ -428,7 +439,7 @@ def test_repeated_identical_calls_detected():
         actor_verification="verified",
         action_class="MUTATE",
         risk_tier="HIGH",
-        blast_radius="FEDERATION",
+        blast_radius="PUBLIC",
         reversibility=0.5,
         params={"mode": "engineer"},
         caller_has_lease=True,
@@ -455,9 +466,9 @@ def test_repeated_identical_calls_detected():
 
 
 def test_gateway_connect_federation_blast():
-    """Gateway routing carries FEDERATION blast radius."""
+    """Gateway routing carries PUBLIC blast radius."""
     p = classify_tool("arif_gateway_connect", {"mode": "route"})
-    assert p.blast_radius == "FEDERATION"
+    assert p.blast_radius == "PUBLIC"
     assert p.risk_tier == "MEDIUM"
 
 

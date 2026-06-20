@@ -19,7 +19,7 @@ ARCHITECTURE:
 USAGE:
   from arifosmcp.runtime.tool_risk_registry import classify_tool
   params = classify_tool("arif_forge_execute", {"mode": "engineer"})
-  # → {risk_tier: "HIGH", blast_radius: "FEDERATION", ...}
+  # → {risk_tier: "HIGH", blast_radius: "PUBLIC", ...}
 
 F1 AMANAH: Registry is policy, not code. Updating it is reversible.
 F2 TRUTH: Every entry has a rationale — why this tool maps to this risk.
@@ -44,9 +44,9 @@ class ToolRiskProfile:
 
     tool_name: str
     mode: str | None  # None = base profile, str = mode-specific override
-    action_class: str  # OBSERVE | COMPUTE | PROPOSE | MUTATE | ATOMIC
+    action_class: str  # OBSERVE | ANALYZE | DRAFT | MUTATE | IRREVERSIBLE
     risk_tier: str  # LOW | MEDIUM | HIGH | ATOMIC
-    blast_radius: str  # LOCAL | ORGAN | FEDERATION | EXTERNAL
+    blast_radius: str  # LOCAL | ACCOUNT | ORG | PUBLIC | MARKET | INFRASTRUCTURE | CIVILIZATIONAL
     reversibility: float  # 1.0 → 0.0
     autonomy_floor: str  # minimum autonomy tier allowed
     rationale: str  # WHY this classification
@@ -128,9 +128,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_mind_reason",
             mode=None,
-            action_class="COMPUTE",
+            action_class="ANALYZE",
             risk_tier="LOW",
-            blast_radius="ORGAN",
+            blast_radius="ORG",
             reversibility=1.0,
             autonomy_floor="FULL_AUTO",
             rationale="Reasoning within arifOS boundary, fully reversible. Plan output is proposal only.",
@@ -139,9 +139,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_mind_reason",
             mode="plan_approve",
-            action_class="PROPOSE",
+            action_class="DRAFT",
             risk_tier="MEDIUM",
-            blast_radius="FEDERATION",
+            blast_radius="PUBLIC",
             reversibility=0.7,
             autonomy_floor="PROPOSE_ONLY",
             rationale="Plan approval gates execution. The plan itself is reversible but commits intent.",
@@ -153,9 +153,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_heart_critique",
             mode=None,
-            action_class="COMPUTE",
+            action_class="ANALYZE",
             risk_tier="LOW",
-            blast_radius="ORGAN",
+            blast_radius="ORG",
             reversibility=1.0,
             autonomy_floor="FULL_AUTO",
             rationale="Heart critique is advisory only — computes risk, does not block. F1 reversible.",
@@ -164,9 +164,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_heart_critique",
             mode="redteam",
-            action_class="COMPUTE",
+            action_class="ANALYZE",
             risk_tier="MEDIUM",
-            blast_radius="ORGAN",
+            blast_radius="ORG",
             reversibility=0.9,
             autonomy_floor="FULL_AUTO",
             rationale="Red-team mode simulates attacks. Higher blast radius conceptually but advisory.",
@@ -178,9 +178,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_kernel_route",
             mode=None,
-            action_class="COMPUTE",
+            action_class="ANALYZE",
             risk_tier="LOW",
-            blast_radius="ORGAN",
+            blast_radius="ORG",
             reversibility=1.0,
             autonomy_floor="FULL_AUTO",
             rationale="Routing is computational dispatch. No mutation. Purely organizational.",
@@ -192,7 +192,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_reply_compose",
             mode=None,
-            action_class="COMPUTE",
+            action_class="ANALYZE",
             risk_tier="LOW",
             blast_radius="LOCAL",
             reversibility=1.0,
@@ -219,7 +219,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             mode="store",
             action_class="MUTATE",
             risk_tier="MEDIUM",
-            blast_radius="ORGAN",
+            blast_radius="ORG",
             reversibility=0.8,
             autonomy_floor="PROPOSE_ONLY",
             rationale="Memory store writes to memory. Reversible but changes agent knowledge graph.",
@@ -231,9 +231,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_gateway_connect",
             mode=None,
-            action_class="COMPUTE",
+            action_class="ANALYZE",
             risk_tier="LOW",
-            blast_radius="ORGAN",
+            blast_radius="ORG",
             reversibility=1.0,
             autonomy_floor="FULL_AUTO",
             rationale="Gateway routing is computational. No mutation. Bridges to other organs.",
@@ -242,9 +242,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_gateway_connect",
             mode="route",
-            action_class="COMPUTE",
+            action_class="ANALYZE",
             risk_tier="MEDIUM",
-            blast_radius="FEDERATION",
+            blast_radius="PUBLIC",
             reversibility=0.9,
             autonomy_floor="FULL_AUTO",
             rationale="Cross-organ routing carries federation risk. Still computational only.",
@@ -256,9 +256,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_judge_deliberate",
             mode=None,
-            action_class="PROPOSE",
+            action_class="DRAFT",
             risk_tier="MEDIUM",
-            blast_radius="ORGAN",
+            blast_radius="ORG",
             reversibility=0.8,
             autonomy_floor="PROPOSE_ONLY",
             rationale="Judgment proposes constitutional verdicts. Advisory to principal, not self-executing.",
@@ -267,9 +267,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_judge_deliberate",
             mode="judge",
-            action_class="PROPOSE",
+            action_class="DRAFT",
             risk_tier="HIGH",
-            blast_radius="FEDERATION",
+            blast_radius="PUBLIC",
             reversibility=0.5,
             autonomy_floor="PRINCIPAL_APPROVAL_REQUIRED",
             rationale="Binding judgment crosses into principal territory. F13 sovereignty gate.",
@@ -281,9 +281,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_vault_seal",
             mode=None,
-            action_class="ATOMIC",
+            action_class="IRREVERSIBLE",
             risk_tier="ATOMIC",
-            blast_radius="FEDERATION",
+            blast_radius="PUBLIC",
             reversibility=0.0,
             autonomy_floor="PRINCIPAL_APPROVAL_REQUIRED",
             rationale="VAULT999 seal is IRREVERSIBLE by design. SEAL writes permanently to append-only ledger. E7 hard floor: reversibility 0.0 < 0.3 → HOLD unless principal.",
@@ -297,7 +297,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             mode=None,  # base default — safest, used when mode unknown
             action_class="MUTATE",
             risk_tier="HIGH",
-            blast_radius="FEDERATION",
+            blast_radius="PUBLIC",
             reversibility=0.5,
             autonomy_floor="PRINCIPAL_APPROVAL_REQUIRED",
             rationale="Forge default is HIGH risk: code mutation with federation blast. Conservative default.",
@@ -317,9 +317,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_forge_execute",
             mode="dry_run",
-            action_class="COMPUTE",
+            action_class="ANALYZE",
             risk_tier="LOW",
-            blast_radius="ORGAN",
+            blast_radius="ORG",
             reversibility=1.0,
             autonomy_floor="FULL_AUTO",
             rationale="Dry run simulates without mutation. F1 AMANAH: fully reversible.",
@@ -330,7 +330,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             mode="engineer",
             action_class="MUTATE",
             risk_tier="HIGH",
-            blast_radius="FEDERATION",
+            blast_radius="PUBLIC",
             reversibility=0.4,
             autonomy_floor="PRINCIPAL_APPROVAL_REQUIRED",
             rationale="Engineer mode WRITES CODE to disk. Federation blast: affects all organs. Requires principal for irreversible deploys.",
@@ -341,7 +341,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             mode="commit",
             action_class="MUTATE",
             risk_tier="HIGH",
-            blast_radius="FEDERATION",
+            blast_radius="PUBLIC",
             reversibility=0.3,
             autonomy_floor="PRINCIPAL_APPROVAL_REQUIRED",
             rationale="Commit writes to git history. Reversibility 0.3 — borderline hard floor. Principal approval required.",
@@ -350,9 +350,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_forge_execute",
             mode="deploy",
-            action_class="ATOMIC",
+            action_class="IRREVERSIBLE",
             risk_tier="ATOMIC",
-            blast_radius="EXTERNAL",
+            blast_radius="CIVILIZATIONAL",
             reversibility=0.1,
             autonomy_floor="HOLD",
             rationale="DEPLOY IS ATOMIC: pushes to production, affects external systems, near-irreversible. E7 HOLD — principal must directly execute.",
@@ -446,7 +446,7 @@ def classify_tool(
         mode=mode,
         action_class="OBSERVE",
         risk_tier="HIGH",  # Conservative: unknown tools are high risk
-        blast_radius="ORGAN",
+        blast_radius="ORG",
         reversibility=0.5,
         autonomy_floor="PRINCIPAL_APPROVAL_REQUIRED",
         rationale=f"Unknown tool '{tool_name}' — conservative default. "
