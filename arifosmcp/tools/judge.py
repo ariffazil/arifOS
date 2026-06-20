@@ -26,6 +26,16 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from arifosmcp.core.enforcement.maruah_critic import (
+    is_maruah_sensitive,
+    maruah_critic_check,
+    MaruahVerdict,
+)
+from arifosmcp.core.enforcement.somatic_loop import (
+    SomaticState,
+    classify_somatic_state,
+    TelemetrySample,
+)
 from arifosmcp.paradox import (
     build_organ_anchors,
     register_organ,
@@ -48,7 +58,10 @@ from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
 JUDGE_PARADOX_ANCHORS: list[dict] = [
     # ── TRUTH ROW ──────────────────────────────────────────────────────────────
     {
-        "id": "J_TxC", "matrix_cell": "truth_care", "matrix_row": "TRUTH", "matrix_col": "CARE",
+        "id": "J_TxC",
+        "matrix_cell": "truth_care",
+        "matrix_row": "TRUTH",
+        "matrix_col": "CARE",
         "motto_binding": "DIKAJI, BUKAN DISUAPI",
         "quote": {
             "text": "If it is not right, do not do it; if it is not true, do not say it.",
@@ -71,7 +84,10 @@ JUDGE_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "J_TxP", "matrix_cell": "truth_peace", "matrix_row": "TRUTH", "matrix_col": "PEACE",
+        "id": "J_TxP",
+        "matrix_cell": "truth_peace",
+        "matrix_row": "TRUTH",
+        "matrix_col": "PEACE",
         "motto_binding": "DIJELASKAN, BUKAN DIKABURKAN",
         "quote": {
             "text": "In justice is every virtue comprehended.",
@@ -93,7 +109,10 @@ JUDGE_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "J_TxJ", "matrix_cell": "truth_justice", "matrix_row": "TRUTH", "matrix_col": "JUSTICE",
+        "id": "J_TxJ",
+        "matrix_cell": "truth_justice",
+        "matrix_row": "TRUTH",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DISEDARKAN, BUKAN DIYAKINKAN",
         "quote": {
             "text": "About the just and the unjust… we should consider not what the many but what the man who knows shall say to us — that single man and the truth.",
@@ -116,7 +135,10 @@ JUDGE_PARADOX_ANCHORS: list[dict] = [
     },
     # ── CLARITY ROW ────────────────────────────────────────────────────────────
     {
-        "id": "J_CxC", "matrix_cell": "clarity_care", "matrix_row": "CLARITY", "matrix_col": "CARE",
+        "id": "J_CxC",
+        "matrix_cell": "clarity_care",
+        "matrix_row": "CLARITY",
+        "matrix_col": "CARE",
         "motto_binding": "DIJELAJAH, BUKAN DISEKATI",
         "quote": {
             "text": "One must never repay injustice with injustice, as the many think, since one must never do injustice.",
@@ -138,7 +160,10 @@ JUDGE_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "J_CxP", "matrix_cell": "clarity_peace", "matrix_row": "CLARITY", "matrix_col": "PEACE",
+        "id": "J_CxP",
+        "matrix_cell": "clarity_peace",
+        "matrix_row": "CLARITY",
+        "matrix_col": "PEACE",
         "motto_binding": "DIHADAPI, BUKAN DITANGGUHI",
         "quote": {
             "text": "At his best, man is the noblest of all animals; separated from law and justice he is the worst.",
@@ -160,7 +185,10 @@ JUDGE_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "J_CxJ", "matrix_cell": "clarity_justice", "matrix_row": "CLARITY", "matrix_col": "JUSTICE",
+        "id": "J_CxJ",
+        "matrix_cell": "clarity_justice",
+        "matrix_row": "CLARITY",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DIUSAHAKAN, BUKAN DIHARAPI",
         "quote": {
             "text": "The arc of the moral universe is long, but it bends toward justice.",
@@ -184,7 +212,10 @@ JUDGE_PARADOX_ANCHORS: list[dict] = [
     },
     # ── HUMILITY ROW ───────────────────────────────────────────────────────────
     {
-        "id": "J_HxC", "matrix_cell": "humility_care", "matrix_row": "HUMILITY", "matrix_col": "CARE",
+        "id": "J_HxC",
+        "matrix_cell": "humility_care",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "CARE",
         "motto_binding": "DIJAGA, BUKAN DIABAIKAN",
         "quote": {
             "text": "Those who are unable to escape suffering injustice determine that it is profitable to make a compact neither to do nor to suffer injustice.",
@@ -206,7 +237,10 @@ JUDGE_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "J_HxP", "matrix_cell": "humility_peace", "matrix_row": "HUMILITY", "matrix_col": "PEACE",
+        "id": "J_HxP",
+        "matrix_cell": "humility_peace",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "PEACE",
         "motto_binding": "DIDAMAIKAN, BUKAN DIPANASKAN",
         "quote": {
             "text": "Two things fill the mind with ever new and increasing admiration and awe: the starry heavens above me and the moral law within me.",
@@ -228,7 +262,10 @@ JUDGE_PARADOX_ANCHORS: list[dict] = [
         "norm": "SUNAT",
     },
     {
-        "id": "J_HxJ", "matrix_cell": "humility_justice", "matrix_row": "HUMILITY", "matrix_col": "JUSTICE",
+        "id": "J_HxJ",
+        "matrix_cell": "humility_justice",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DITEMPA, BUKAN DIBERI",
         "quote": {
             "text": "Act only according to that maxim whereby you can at the same time will that it should become a universal law.",
@@ -263,9 +300,7 @@ _judge_anchors = build_organ_anchors("judge", JUDGE_PARADOX_ANCHORS)
 _judge_registry = register_organ("judge", _judge_anchors)
 
 
-def _judge_paradox_for_verdict(
-    verdict_str: str, action_tier: str = "standard"
-) -> dict | None:
+def _judge_paradox_for_verdict(verdict_str: str, action_tier: str = "standard") -> dict | None:
     """
     Resolve the correct paradox anchor for a given verdict.
 
@@ -279,9 +314,7 @@ def _judge_paradox_for_verdict(
     return None
 
 
-def _inject_judge_paradox(
-    result: dict, verdict_str: str, action_tier: str = "standard"
-) -> dict:
+def _inject_judge_paradox(result: dict, verdict_str: str, action_tier: str = "standard") -> dict:
     """
     Inject paradox anchors into judge verdict output via 3×3 matrix resolution.
 
@@ -358,6 +391,7 @@ def _inject_judge_paradox(
             )
 
     return result
+
 
 # WELL state file candidates — covers docker-compose path, manual-start path, env override
 _WELL_STATE_CANDIDATES = [
@@ -737,7 +771,108 @@ async def arif_judge_deliberate(
                 meta={"cumulative_metrics": cumulative},
             )
 
-    # ── SELF-MODIFICATION LOCK (Gap 5) ──────────────────────────────────────
+        # ── MARUAH CRITIC GATE (Gap 1: community_maruah=true trigger) ─────────
+        # If the candidate text or metadata flags community-maruah sensitivity,
+        # run maruah_critic_check() before deliberation. Block if verdict not ok.
+        #
+        # Data flow:
+        #   caller sets community_maruah=true in task metadata (e.g. via
+        #   arif_kernel_route, arif_mind_reason plan, or MCP tool metadata).
+        #   The flag reaches judge via: evidence_receipt or heart_critique meta.
+        _maruah_sensitive = False
+        _maruah_meta: dict = {}
+        if isinstance(candidate, dict):
+            _maruah_sensitive = bool(candidate.get("community_maruah", False))
+            _maruah_meta = candidate
+        if not _maruah_sensitive and isinstance(heart_critique, dict):
+            _meta = heart_critique.get("meta", {}) if isinstance(heart_critique, dict) else {}
+            _maruah_sensitive = bool(_meta.get("community_maruah", False))
+            _maruah_meta = _meta
+        if not _maruah_sensitive and isinstance(evidence, dict):
+            _maruah_sensitive = bool(
+                evidence.get("task_metadata", {}).get("community_maruah", False)
+            )
+
+        if _maruah_sensitive and isinstance(candidate, str) and candidate.strip():
+            _mv: MaruahVerdict = maruah_critic_check(
+                draft_text=candidate,
+                audience_profile=_maruah_meta.get("audience_profile"),
+            )
+            if not _mv.ok:
+                _maruah_reasons = [
+                    f"MARUAH_CRITIC_BLOCK: {i.type} (severity={i.severity})" for i in _mv.issues
+                ] + [
+                    f"policy: {_mv.policy_line}",
+                    "Respect maruah governance: kritik sistem dibenarkan walau kasar, "
+                    "hinakan individu diblok. Semak dan ubah suai input sebelum cuba lagi.",
+                ]
+                return VerdictOutput(
+                    verdict=VerdictCode.HOLD,
+                    reasons=_maruah_reasons,
+                    next_safe_action=(
+                        "Revise candidate text: kritik sistem/tindakan, "
+                        "bukan martabat peribadi. Guna 'community_maruah=true' "
+                        "metadata untuk trigger gate ini."
+                    ),
+                    meta={
+                        "maruah_gate": "MARUAH_BLOCKED",
+                        "maruah_verdict": {
+                            "ok": _mv.ok,
+                            "issues": [
+                                {"type": i.type, "severity": i.severity, "snippet": i.snippet}
+                                for i in _mv.issues
+                            ],
+                        },
+                    },
+                )
+            _evidence["maruah_gate"] = {
+                "gate": "MARUAH_PASS",
+                "issues_found": len(_mv.issues),
+            }
+
+        # ── SOMATIC STATE GATE (Gap 2: machine telemetry → HOLD on CRITICAL) ──
+        # Before deliberation, classify machine somatic state from arif_ops_measure
+        # telemetry. If somatic state is CRITICAL, return HOLD.
+        # This is MACHINE-AS-BODY telemetry (F9 ANTIHANTU: NOT biological).
+        _vitals = _evidence.get("vitals", {})
+        _telemetry_sample = TelemetrySample(
+            latency_ms=float(_vitals.get("avg_latency_ms", 0)),
+            error_rate=float(_vitals.get("error_rate", 0)),
+            cost_burn_per_min=float(_vitals.get("cost_burn_per_min", 0)),
+            queue_depth=int(_vitals.get("queue_depth", 0)),
+        )
+        _somatic_state = classify_somatic_state(_telemetry_sample)
+        _evidence["somatic_state"] = _somatic_state.value
+        if _somatic_state == SomaticState.CRITICAL:
+            return VerdictOutput(
+                verdict=VerdictCode.HOLD,
+                reasons=[
+                    f"SOMATIC_GATE: Machine state is {_somatic_state.value}. "
+                    "System telemetry shows critical thresholds exceeded.",
+                    f"latency_ms={_telemetry_sample.latency_ms}, "
+                    f"error_rate={_telemetry_sample.error_rate}, "
+                    f"cost_burn={_telemetry_sample.cost_burn_per_min}, "
+                    f"queue_depth={_telemetry_sample.queue_depth}",
+                    "Pause. Escalate. Recover. Then re-judge.",
+                ],
+                next_safe_action=(
+                    "Resolve critical machine state before deliberation. "
+                    "Check arif_ops_measure for details."
+                ),
+                meta={
+                    "somatic_gate": "SOMATIC_BLOCKED",
+                    "somatic_state": _somatic_state.value,
+                    "telemetry": {
+                        "latency_ms": _telemetry_sample.latency_ms,
+                        "error_rate": _telemetry_sample.error_rate,
+                        "cost_burn_per_min": _telemetry_sample.cost_burn_per_min,
+                        "queue_depth": _telemetry_sample.queue_depth,
+                    },
+                    "well_substrate": _evidence.get("well_substrate", {}),
+                },
+            )
+
+        # ── SELF-MODIFICATION LOCK (Gap 5) ──────────────────────────────────────
     if isinstance(candidate, str) or isinstance(candidate, dict):
         _target = ""
         _action = ""
@@ -900,10 +1035,10 @@ async def arif_judge_deliberate(
     except Exception:
         pass  # fail-soft: simulative detection never blocks deliberation
 
-    # ── Attach WELL substrate to result ──
-    # Every judge verdict now carries biological readiness evidence.
-    # This closes the loop: constitutional decisions are grounded
-    # in operator substrate state.
+    # ── Attach WELL substrate + somatic state + maruah gate to result ──
+    # Every judge verdict now carries biological readiness evidence + machine
+    # somatic state + maruah critic verdict. This closes the loop for all three
+    # civilizational intelligence gates.
     well_sub = _evidence.get("well_substrate", {})
     if isinstance(result, dict):
         result.setdefault("meta", {})["well_substrate"] = well_sub
@@ -913,6 +1048,16 @@ async def arif_judge_deliberate(
                 f"floors_violated={well_sub.get('active_violations')} — "
                 "biological substrate flags active. Verdict stands; ARIF confirmation advised."
             )
+
+        # ── Somatic state attachment (Gap 2) ──
+        _somatic_val = _evidence.get("somatic_state")
+        if _somatic_val:
+            result["meta"]["somatic_state"] = _somatic_val
+
+        # ── Maruah gate attachment (Gap 1) ──
+        _maruah_gate_val = _evidence.get("maruah_gate")
+        if _maruah_gate_val:
+            result["meta"]["maruah_gate"] = _maruah_gate_val
 
         # ── W-4: Attach G-WELL governance to elevated-tier verdicts ───────────
         if _is_elevated_tier and "well_governance" in _evidence:
@@ -945,7 +1090,7 @@ async def arif_judge_deliberate(
                 "provided": True,
                 "effect": "F13_SOVEREIGN_CONFIRMED",
                 "note": "Sovereign (Arif) has explicitly confirmed this action. "
-                        "F13 gate waived per constitutional receipt path.",
+                "F13 gate waived per constitutional receipt path.",
             }
             result.setdefault("reasons", []).append(
                 f"F13_SOVEREIGN_RECEIPT: {_receipt_hash} — "
