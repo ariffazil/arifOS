@@ -2,13 +2,14 @@
 """
 MCP Surface Truth Test — MCP_SURFACE_TRUTH.md
 
-Single probe comparing ALL 4 surfaces of tool count and returning a verdict.
+Single probe comparing ALL 5 surfaces of tool count and returning a verdict.
 
 Surfaces tested:
   1. CANONICAL_TOOLS + DIAGNOSTIC_TOOLS (declared source of truth)
   2. /health endpoint (runtime metrics)
   3. MCP tools/list (live wire protocol)
   4. arif_session_init capability_surface (governed session view)
+  5. Session auth continuity: session_id persists across 3+ sequential calls
 
 Returns PASS, DEGRADED, or FAIL with exact drift table.
 
@@ -167,6 +168,158 @@ def get_session_capability_counts() -> dict:
     }
 
 
+# ── Surface 5: Session Auth Continuity ─────────────────────────
+
+
+def test_session_auth_continuity() -> dict:
+    """
+    [5/5] SESSION AUTH CONTINUITY TEST
+
+    Tests the full session lifecycle:
+      1. arif_session_init → capture session_id
+      2. arif_kernel_health with session_id → must NOT return L11
+      3. arif_kernel_route with session_id → must NOT return L11
+      4. validate session survives 3+ sequential calls
+
+    Returns dict with verdict and per-step results.
+    """
+    steps = []
+    all_passed = True
+
+    # Step 1: Init session
+    try:
+        resp = http_post_json(
+            ARIFOS_MCP_URL,
+            {
+                "jsonrpc": "2.0",
+                "id": "5-session-init",
+                "method": "tools/call",
+                "params": {
+                    "name": "arif_session_init",
+                    "arguments": {
+                        "mode": "light",
+                        "actor_id": "surface-truth-test",
+                    },
+                },
+            },
+        )
+        content = resp.get("result", {}).get("content", [{}])
+        session_id = ""
+        for item in content:
+            if isinstance(item, dict) and "text" in item:
+                try:
+                    parsed = json.loads(item["text"])
+                    session_id = parsed.get("result", {}).get("session_id", "")
+                    if session_id:
+                        break
+                except (json.JSONDecodeError, KeyError, TypeError):
+                    continue
+
+        if session_id:
+            steps.append({"step": 1, "name": "session_init", "status": "PASS", "session_id": session_id})
+        else:
+            steps.append({"step": 1, "name": "session_init", "status": "FAIL", "detail": "No session_id returned"})
+            all_passed = False
+            return {"verdict": "FAIL", "steps": steps}
+    except Exception as e:
+        all_passed = False
+        return {"verdict": "FAIL", "steps": [{"step": 1, "name": "session_init", "status": "FAIL", "detail": str(e)}]}
+
+    # Step 2: arif_kernel_health — no session required (public mode)
+    try:
+        resp = http_post_json(
+            ARIFOS_MCP_URL,
+            {
+                "jsonrpc": "2.0",
+                "id": "5-health",
+                "method": "tools/call",
+                "params": {
+                    "name": "arif_kernel_health",
+                    "arguments": {
+                        "actor_id": "surface-truth-test",
+                        "session_id": session_id,
+                    },
+                },
+            },
+        )
+        # Health should work regardless; check for error
+        error = resp.get("error")
+        if error:
+            steps.append({"step": 2, "name": "arif_kernel_health", "status": "FAIL", "detail": error.get("message", str(error))})
+            all_passed = False
+        else:
+            steps.append({"step": 2, "name": "arif_kernel_health", "status": "PASS"})
+    except Exception as e:
+        steps.append({"step": 2, "name": "arif_kernel_health", "status": "FAIL", "detail": str(e)})
+        all_passed = False
+
+    # Step 3: arif_kernel_route(mode=status) with session
+    try:
+        resp = http_post_json(
+            ARIFOS_MCP_URL,
+            {
+                "jsonrpc": "2.0",
+                "id": "5-route",
+                "method": "tools/call",
+                "params": {
+                    "name": "arif_kernel_route",
+                    "arguments": {
+                        "mode": "status",
+                        "session_id": session_id,
+                        "actor_id": "surface-truth-test",
+                    },
+                },
+            },
+        )
+        error = resp.get("error")
+        if error:
+            steps.append({"step": 3, "name": "arif_kernel_route(status)", "status": "FAIL", "detail": error.get("message", str(error))})
+            all_passed = False
+        else:
+            steps.append({"step": 3, "name": "arif_kernel_route(status)", "status": "PASS"})
+    except Exception as e:
+        steps.append({"step": 3, "name": "arif_kernel_route(status)", "status": "FAIL", "detail": str(e)})
+        all_passed = False
+
+    # Step 4: Sequential continuity — call 3 different tools with same session
+    continuity_passed = True
+    for i, tool_name in enumerate(["arif_kernel_health", "arif_kernel_route", "arif_kernel_health"], start=4):
+        try:
+            args = {
+                "session_id": session_id,
+                "actor_id": "surface-truth-test",
+            }
+            if tool_name == "arif_kernel_route":
+                args["mode"] = "status"
+
+            resp = http_post_json(
+                ARIFOS_MCP_URL,
+                {
+                    "jsonrpc": "2.0",
+                    "id": f"5-seq-{i}",
+                    "method": "tools/call",
+                    "params": {
+                        "name": tool_name,
+                        "arguments": args,
+                    },
+                },
+            )
+            error = resp.get("error")
+            if error:
+                steps.append({"step": i, "name": f"continuity[{tool_name}]", "status": "FAIL", "detail": error.get("message", str(error))})
+                continuity_passed = False
+                all_passed = False
+            else:
+                steps.append({"step": i, "name": f"continuity[{tool_name}]", "status": "PASS"})
+        except Exception as e:
+            steps.append({"step": i, "name": f"continuity[{tool_name}]", "status": "FAIL", "detail": str(e)})
+            continuity_passed = False
+            all_passed = False
+
+    verdict = "PASS" if all_passed else "FAIL"
+    return {"verdict": verdict, "steps": steps, "session_id": session_id}
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 
@@ -243,6 +396,20 @@ def main() -> int:
         print(f"  ERROR: {e}")
         caps = {}
 
+    # ── Surface 5: Session Auth Continuity ──────────────────────────────
+    print("\n[5/5] SESSION AUTH CONTINUITY")
+    try:
+        continuity = test_session_auth_continuity()
+        for step in continuity.get("steps", []):
+            icon = "✅" if step["status"] == "PASS" else "❌"
+            detail = step.get("detail", "")
+            print(f"  {icon} Step {step['step']}: {step['name']:40s} {step['status']:5s} {detail}")
+        print(f"  Session ID: {continuity.get('session_id', 'N/A')}")
+        print(f"  Continuity verdict: {continuity['verdict']}")
+    except Exception as e:
+        print(f"  ERROR: {e}")
+        continuity = {"verdict": "FAIL", "steps": []}
+
     # ── Drift Analysis ──────────────────────────────────────────────────
     print("\n" + "=" * 72)
     print("  DRIFT ANALYSIS")
@@ -294,6 +461,12 @@ def main() -> int:
         issues.append(f"  [DEGRADED] degraded organs: {', '.join(degraded_organs)}")
     else:
         print("  [OK] all organs attested")
+
+    # Session auth continuity
+    if continuity.get("verdict") != "PASS":
+        issues.append(f"  [FAIL] session auth continuity: {continuity.get('verdict')}")
+    else:
+        print("  [OK] session auth continuity: PASS")
 
     # ── Verdict ────────────────────────────────────────────────────────
     print("\n" + "=" * 72)

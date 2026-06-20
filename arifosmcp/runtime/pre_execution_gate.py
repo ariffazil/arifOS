@@ -543,6 +543,141 @@ def pre_execution_gate(
             reasons.append("Action touches secrets but no human acknowledgement — advisory warning")
             violations.append("F12_INJECTION — secret exposure risk")
 
+    # ── Gate 14: Maintenance cost scaling ──────────────────────────────
+    # Passive complexity-time degradation: every ordered system accumulates
+    # maintenance debt. If unaccounted, mutation-class actions risk
+    # compounding hidden fragility. (Invariant #11)
+    if requested_action in (ActionClass.MUTATE, ActionClass.IRREVERSIBLE):
+        try:
+            from core.physics.thermodynamics_hardened import (
+                MaintenanceScaling,
+                compute_maintenance_cost,
+            )
+
+            scaler = MaintenanceScaling()
+            t_active = getattr(envelope.state, "session_active_s", None)
+            complexity = getattr(envelope.state, "complexity_index", None)
+            if t_active is None:
+                t_active = time.time() - getattr(envelope, "_gate_t0", t0)
+            if complexity is None:
+                complexity = 1.0  # default: single-component system
+
+            maintenance_joules = compute_maintenance_cost(
+                t_active_seconds=t_active,
+                complexity_index=complexity,
+            )
+
+            # Threshold: accumulated maintenance > 10% of thermodynamic budget → HOLD
+            from core.physics.thermodynamics_hardened import get_thermodynamic_budget
+
+            budget = get_thermodynamic_budget(envelope.session_id)
+            if budget and budget.initial_budget > 0:
+                maintenance_ratio = maintenance_joules / budget.initial_budget
+                if maintenance_ratio > 0.10:
+                    reasons.append(
+                        f"Maintenance cost {maintenance_joules:.2e} J ({maintenance_ratio*100:.1f}% "
+                        f"of session budget) — complexity-time degradation at risk threshold"
+                    )
+                    violations.append("F12_RESILIENCE — maintenance cost scaling")
+        except ImportError:
+            pass  # Maintenance scaling unavailable — proceed with warning
+        except Exception:
+            logger.warning("Maintenance cost gate failed — proceeding (fail-open for non-critical gate)")
+
+    # ── Gate 15: Institutional Evolution Guard ─────────────────────────
+    # Invariant #15: Prevent AI-driven institutional change from outrunning
+    # human succession, population absorption, and recall authority.
+    if requested_action in (ActionClass.MUTATE, ActionClass.IRREVERSIBLE):
+        try:
+            from core.physics.institutional_evolution import InstitutionalEvolutionGuard, InstitutionalEvolutionError
+
+            # Build payload from envelope state and metadata
+            duration = 3600
+            if hasattr(envelope, "audit") and hasattr(envelope.audit, "timestamp"):
+                try:
+                    duration = time.time() - envelope.audit.timestamp.timestamp()
+                except Exception:
+                    pass
+
+            evolution_payload = {
+                "session_duration_s": duration,
+                "operator_interventions": getattr(envelope.state, "operator_interventions", 0),
+                "affected_communities": getattr(envelope.state, "affected_communities", []),
+                "consent_coverage": getattr(envelope.state, "consent_coverage", 1.0),
+                "role_changes": getattr(envelope.state, "role_changes", []),
+                "unacknowledged_obligations": getattr(envelope.state, "unacknowledged_obligations", []),
+                "changes_last_30d": getattr(envelope.state, "changes_last_30d", 0),
+                "human_reviews_last_30d": getattr(envelope.state, "human_reviews_last_30d", 0),
+            }
+
+            # Check if there are explicit overrides in envelope metadata
+            if hasattr(envelope, "metadata") and envelope.metadata:
+                for key in ["session_duration_s", "operator_interventions", "consent_coverage", "changes_last_30d", "human_reviews_last_30d"]:
+                    if key in envelope.metadata:
+                        evolution_payload[key] = envelope.metadata[key]
+                for key in ["affected_communities", "role_changes", "unacknowledged_obligations"]:
+                    if key in envelope.metadata:
+                        evolution_payload[key] = envelope.metadata[key]
+
+            eval_res = InstitutionalEvolutionGuard.evaluate_evolution_invariants(evolution_payload)
+            if not eval_res["passed"]:
+                first_fail_verdict = eval_res["verdict"]
+                if first_fail_verdict == "HOLD_888" or first_fail_verdict == "HOLD":
+                    return GateResult(
+                        envelope=envelope,
+                        verdict=GateVerdict.HOLD,
+                        reasons=[f"Succession/Evolution Blocked: {eval_res['first_failure']}"],
+                        violations=["F11_AUDIT — Succession continuity broken"],
+                        blocked_action_class=requested_action,
+                    )
+                elif first_fail_verdict == "REJECT":
+                    return GateResult(
+                        envelope=envelope,
+                        verdict=GateVerdict.REJECT,
+                        reasons=[f"Constitutional Rejection: {eval_res['first_failure']}"],
+                        violations=["F13_SOVEREIGN — Constitutional prohibition triggered"],
+                        blocked_action_class=requested_action,
+                    )
+                elif first_fail_verdict == "VOID":
+                    return GateResult(
+                        envelope=envelope,
+                        verdict=GateVerdict.VOID,
+                        reasons=[f"Succession/Evolution Invalid: {eval_res['first_failure']}"],
+                        violations=["F11_AUDIT — Invalid institutional evolution parameters"],
+                        blocked_action_class=requested_action,
+                    )
+                elif first_fail_verdict == "SABAR":
+                    reasons.append(f"Succession Warning: {eval_res['first_failure']}")
+                    violations.append("F7_PROPORTIONALITY — Community absorption lag")
+            elif eval_res["verdict"] == "SABAR":
+                # Warn if soft warnings triggered
+                for check_res in eval_res["results"].values():
+                    if check_res.get("verdict") == "SABAR":
+                        for r in check_res.get("reasons", []):
+                            reasons.append(f"Succession warning: {r}")
+                violations.append("F7_PROPORTIONALITY — community absorption rate caution")
+
+        except ImportError:
+            # FAIL-SAFE: If the institutional evolution module cannot be imported,
+            # we log a severe warning but do NOT block the gate. This is fail-open
+            # by design for prototype phase (Tier 5 DRAFT). Before production seal,
+            # this must become fail-closed: ImportError → HOLD.
+            logger.error(
+                "InstitutionalEvolutionGuard UNAVAILABLE — core.physics.institutional_evolution "
+                "could not be imported. Invariant #15 is NOT being enforced. "
+                "This is acceptable only during DRAFT phase."
+            )
+            reasons.append(
+                "InstitutionalEvolutionGuard UNAVAILABLE — Invariant #15 not enforced this cycle"
+            )
+            violations.append("F11_AUDIT — Institutional evolution guard offline")
+        except Exception as e:
+            logger.error(
+                f"InstitutionalEvolutionGuard failed with unexpected error: {e}. "
+                f"Invariant #15 enforcement skipped for this cycle."
+            )
+            reasons.append(f"InstitutionalEvolutionGuard error — Invariant #15 skipped: {e}")
+
     # ── GATE COMPLETE — decide verdict ────────────────────────────────
     total_latency_ms = (time.monotonic() - t0) * 1000
 

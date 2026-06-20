@@ -546,6 +546,13 @@ def _constitutional_gate(
                 not in (
                     "arif_session_init",
                     "arif_kernel_route",
+                    "arif_kernel_attest",
+                    "arif_kernel_health",
+                    "arif_organ_attest",
+                    "arif_organ_attest_all",
+                    "arif_os_attest",
+                    "arif_heartbeat",
+                    "arif_ping",
                 )
             ):
                 if _runtime_claim_boundary(card, "tools") in (
