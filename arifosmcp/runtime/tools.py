@@ -2381,8 +2381,11 @@ class _FileSessionStore:
                 finally:
                     _unlock(f)
 
-    def get(self, key: str) -> dict[str, Any] | None:
-        return self._get_session(key)
+    def get(self, key: str, default: Any = None) -> dict[str, Any] | None | Any:
+        val = self._get_session(key)
+        if val is None:
+            return default
+        return val
 
     def set(self, key: str, value: dict[str, Any]) -> None:
         self._set_session(key, value)
@@ -2406,9 +2409,16 @@ class _FileSessionStore:
 
     def pop(self, key: str, default: Any = None) -> Any:
         data = self._load()
-        value = data.get("sessions", {}).pop(key, data.pop(key, default))
-        self._save(data)
-        return value
+        sessions = data.get("sessions", {})
+        if key in sessions:
+            value = sessions.pop(key)
+            self._save(data)
+            return value
+        if key in data:
+            value = data.pop(key)
+            self._save(data)
+            return value
+        return default
 
     def clear(self) -> None:
         self._save({})
