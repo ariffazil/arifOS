@@ -74,10 +74,13 @@ _LEGACY_BLAST_MAP = {
     "account": BlastRadius.ACCOUNT,
     "org": BlastRadius.ORG,
     "public": BlastRadius.PUBLIC,
-    "financial": BlastRadius.FINANCIAL,
-    "infra": BlastRadius.INFRA,
+    "financial": BlastRadius.MARKET,
+    "market": BlastRadius.MARKET,
+    "infra": BlastRadius.INFRASTRUCTURE,
+    "infrastructure": BlastRadius.INFRASTRUCTURE,
+    "civilizational": BlastRadius.CIVILIZATIONAL,
     "none": BlastRadius.LOCAL,
-    "host": BlastRadius.INFRA,
+    "host": BlastRadius.INFRASTRUCTURE,
     "user": BlastRadius.ACCOUNT,
 }
 
@@ -371,7 +374,7 @@ def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPa
             tier=RiskTier.T5,
             action_class=ActionClass.ATOMIC,
             tool_class=ToolClass.MUTATE,
-            blast_radius=BlastRadius.INFRA,
+        blast_radius=BlastRadius.INFRASTRUCTURE,
             reversibility=ReversibilityLevel.IRREVERSIBLE,
         )
 

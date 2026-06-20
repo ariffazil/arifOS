@@ -1,9 +1,27 @@
 """
-arifOS Constitutional Kernel — Floor Evaluator
-══════════════════════════════════════════════
+arifOS Constitutional Kernel — Floor Evaluator + L00_ADAT Lexical Priority
+═════════════════════════════════════════════════════════════════════════════
 
 Parametric evaluator for F1–L13 Constitutional Laws.
-Interprets ThreatAssessment and ActionContext into formal floor decisions.
+Head: L00_ADAT — the lexical priority invariant.
+
+LEXICAL_PRIORITY_INVARIANT (L00_ADAT):
+
+When floors conflict, the appeal order is FIXED and non-negotiable:
+
+  1. L00_ADAT       — Lexical priority itself. No runtime reordering.
+  2. F0_ROOTKEY     — Reality / Physics / Constitutional anchors.
+  3. F6_MARUAH      — Dignity floor. Non-negotiable.
+  4. F1_F13         — Core constitutional invariants.
+  5. F0_SAFETY      — Emergency safety protocols / circuit breakers.
+  6. F13_SOVEREIGN  — Human sovereign, constrained by floors 1-5.
+  7. F1_AMANAH      — Leases, authority, trust boundaries.
+  8. F7_F8          — Judges, courts, evidence, risk.
+  9. F3_F5          — Planner, tools, implementation.
+
+L00_ADAT is enforced BEFORE any individual floor evaluation.
+If a proposal would violate lexical ordering (e.g., a planner
+trying to override dignity), it is DENIED at L00, not evaluated further.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -12,8 +30,7 @@ from __future__ import annotations
 
 from typing import Any
 
-# Import all 13 floor classes from canonical shared implementation.
-# These live at repo-root /core/shared/ (mapped to sys.path parent).
+# Import floor classes from canonical shared implementation.
 from core.shared.laws import (
     F1_Amanah,
     F2_Truth,
@@ -36,6 +53,108 @@ from arifosmcp.core.threat_engine import (
     ThreatAssessment,
     ThreatCategory,
 )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# L00_ADAT — Lexical Priority Constants + Check
+# ═══════════════════════════════════════════════════════════════════════════════
+
+LEXICAL_PRIORITY_LAYERS = [
+    "REALITY",      # 0. Physics / evidence floor
+    "DIGNITY",      # 1. Maruah — non-negotiable
+    "CONSTITUTION", # 2. F1-F13 invariants
+    "SAFETY",       # 3. Emergency protocols / circuit breakers
+    "SOVEREIGN",    # 4. Human sovereign (within floors 0-3)
+    "AUTHORITY",    # 5. Leases, amanah, scope
+    "JUDGES",       # 6. Courts, evidence, risk judges
+    "PLANNER",      # 7. Planner, tools, implementation
+]
+
+# Which layers can override which other layers (adjacent override only)
+# Higher index = lower priority. Layer N can override layer N+1.
+# Layer N cannot override layer N-1.
+# This is the Invariant: NO REVERSE OVERRIDE.
+LEXICAL_OVERRIDE_MAP = {
+    "REALITY": {"DIGNITY", "CONSTITUTION", "SAFETY", "SOVEREIGN", "AUTHORITY", "JUDGES", "PLANNER"},
+    "DIGNITY": {"CONSTITUTION", "SAFETY", "SOVEREIGN", "AUTHORITY", "JUDGES", "PLANNER"},
+    "CONSTITUTION": {"SAFETY", "SOVEREIGN", "AUTHORITY", "JUDGES", "PLANNER"},
+    "SAFETY": {"SOVEREIGN", "AUTHORITY", "JUDGES", "PLANNER"},
+    "SOVEREIGN": {"AUTHORITY", "JUDGES", "PLANNER"},
+    "AUTHORITY": {"JUDGES", "PLANNER"},
+    "JUDGES": {"PLANNER"},
+    "PLANNER": set(),  # Can override nothing
+}
+
+# Reverse map: which layers CANNOT override this one
+LEXICAL_FORBIDDEN_OVERRIDE = {
+    "REALITY": {"DIGNITY", "CONSTITUTION", "SAFETY", "SOVEREIGN", "AUTHORITY", "JUDGES", "PLANNER"},
+    "DIGNITY": {"CONSTITUTION", "SAFETY", "SOVEREIGN", "AUTHORITY", "JUDGES", "PLANNER"},
+    "CONSTITUTION": {"DIGNITY", "REALITY"},
+    "SAFETY": {"DIGNITY", "REALITY"},
+    "SOVEREIGN": {"DIGNITY", "CONSTITUTION", "REALITY"},
+    "AUTHORITY": {"SOVEREIGN", "DIGNITY", "CONSTITUTION", "REALITY"},
+    "JUDGES": {"AUTHORITY", "SOVEREIGN", "DIGNITY", "CONSTITUTION", "REALITY"},
+    "PLANNER": {"JUDGES", "AUTHORITY", "SOVEREIGN", "DIGNITY", "CONSTITUTION", "REALITY"},
+}
+
+
+def check_lexical_priority(
+    proposing_layer: str,
+    target_layer: str,
+    action_description: str = "",
+) -> tuple[bool, str]:
+    """Check if `proposing_layer` is allowed to overrule or mutate `target_layer`.
+
+    Args:
+        proposing_layer: The layer initiating the action (e.g. "PLANNER", "SOVEREIGN")
+        target_layer: The layer being affected (e.g. "DIGNITY", "CONSTITUTION")
+        action_description: Human-readable description for the violation message
+
+    Returns:
+        (allowed: bool, reason: str)
+    """
+    if proposing_layer not in LEXICAL_PRIORITY_LAYERS:
+        return False, (
+            f"L00_ADAT VIOLATION: Unknown proposing layer '{proposing_layer}'. "
+            "All actors must declare their layer."
+        )
+
+    if target_layer not in LEXICAL_PRIORITY_LAYERS:
+        return False, (
+            f"L00_ADAT VIOLATION: Unknown target layer '{target_layer}'. "
+            "All affected domains must be recognized."
+        )
+
+    # Check: is proposing_layer forbidden from overriding target_layer?
+    forbidden = LEXICAL_FORBIDDEN_OVERRIDE.get(target_layer, set())
+    if proposing_layer in forbidden:
+        return False, (
+            f"L00_ADAT VIOLATION: Layer '{proposing_layer}' attempted to "
+            f"override layer '{target_layer}'. {action_description}. "
+            f"Lexical priority forbids this: {target_layer} is higher in the "
+            f"appeal stack. DIGNITY, CONSTITUTION, and REALITY cannot be "
+            f"overridden by lower layers."
+        )
+
+    # Check: is the override allowed?
+    allowed_overrides = LEXICAL_OVERRIDE_MAP.get(proposing_layer, set())
+    if target_layer in allowed_overrides:
+        return True, (
+            f"L00_ADAT OK: Layer '{proposing_layer}' overriding "
+            f"layer '{target_layer}' is lexically permitted. {action_description}"
+        )
+
+    # If proposing_layer equals target_layer, it's a self-check — allow
+    if proposing_layer == target_layer:
+        return True, (
+            f"L00_ADAT OK: Self-check within layer '{proposing_layer}'. {action_description}"
+        )
+
+    # Default: deny if the relationship is not explicitly defined
+    return False, (
+        f"L00_ADAT VIOLATION: Layer '{proposing_layer}' attempted action "
+        f"on layer '{target_layer}'. No override path defined. {action_description}"
+    )
 
 
 class LawResult(BaseModel):

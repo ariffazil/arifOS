@@ -1,0 +1,159 @@
+{
+  "transport_contract_version": "arifos.transport.v1",
+  "protocol_versions_supported": ["2025-03-26", "2024-11-05"],
+  "canonical_protocol_version": "2025-03-26",
+
+  "status_enum": {
+    "values": ["healthy", "degraded", "down", "holding"],
+    "description": "Single canonical health status vocabulary. All organs emit these values from /health, /ready, and /attest endpoints.",
+    "input_compatibility_aliases": {
+      "alive": "healthy",
+      "ok": "healthy",
+      "live": "healthy",
+      "pass": "healthy",
+      "ready": "healthy",
+      "serving": "healthy",
+      "unhealthy": "degraded",
+      "warning": "degraded",
+      "error": "down",
+      "unreachable": "down"
+    }
+  },
+
+  "required_endpoints": [
+    { "path": "/health",  "purpose": "Liveness probe. Tiny, fast, dependency-light. Returns canonical status_enum value." },
+    { "path": "/ready",   "purpose": "Readiness to serve canonical tool surface. Includes registry truth and session substrate health." },
+    { "path": "/attest",  "purpose": "Identity attestation. Returns organ_id, role, version, tool_count, schema_hash, identity_anchor, health_status, attestation_status, attested_at, expires_at." },
+    { "path": "/contract","purpose": "Canonical contract endpoint. Returns supported protocol versions, required headers, error envelope schema." },
+    { "path": "/mcp",     "purpose": "MCP Streamable HTTP endpoint. JSON-RPC 2.0 over HTTP POST with session management." }
+  ],
+
+  "required_headers": {
+    "traceparent": "W3C trace context for distributed tracing",
+    "x-arifos-trace-id": "Federation-local trace identifier"
+  },
+
+  "optional_headers": {
+    "mcp-session-id": "MCP session identifier from initialize handshake",
+    "x-arifos-session-id": "Canonical session identifier",
+    "x-arifos-lease-id": "Lease identifier for governed actions",
+    "x-arifos-hold-id": "Hold identifier from 888_HOLD escalation",
+    "x-arifos-attestation": "Attestation freshness token"
+  },
+
+  "canonical_port_registry": {
+    "arifos":  {"host": "127.0.0.1", "port": 8088, "transport": "systemd bare-metal", "path": "/mcp"},
+    "geox":    {"host": "127.0.0.1", "port": 8081, "transport": "systemd bare-metal", "path": "/mcp"},
+    "wealth":  {"host": "127.0.0.1", "port": 18082, "transport": "systemd bare-metal", "path": "/mcp"},
+    "well":    {"host": "127.0.0.1", "port": 18083, "transport": "systemd bare-metal", "path": "/mcp"},
+    "a_forge": {"host": "127.0.0.1", "port": 7071, "transport": "systemd bare-metal (bridge)", "note": "MCP server port 7072 documented separately"},
+    "aaa":     {"host": "127.0.0.1", "port": 3001, "transport": "systemd bare-metal", "path": "/a2a"},
+    "apex":    {"host": "127.0.0.1", "port": 3002, "transport": "systemd bare-metal (legacy)", "path": "/"}
+  },
+
+  "error_envelope": {
+    "surface": {
+      "/mcp": "JSON-RPC 2.0 error object with standardized error.data fields",
+      "non-mcp REST": "application/problem+json per RFC 9457"
+    },
+    "error_fields": [
+      "type",
+      "title",
+      "status",
+      "detail",
+      "fault_code",
+      "retryable",
+      "next_probe",
+      "trace_id",
+      "session_id",
+      "lease_id",
+      "upstream_service",
+      "upstream_status"
+    ],
+    "jsonrpc_error_fields": {
+      "code": "String fault code (e.g. ARIF_TRANSPORT_HANDSHAKE)",
+      "message": "Human-readable message",
+      "data": {
+        "jsonrpc_code": "Numeric JSON-RPC error code (-32600 to -32603 reserved)",
+        "fault_code": "Canonical fault identifier",
+        "retryable": "boolean — may retry this request",
+        "next_probe": "Recommended diagnostic probe tool name",
+        "contract_version": "transport contract version string",
+        "trace_id": "federation trace identifier",
+        "attestation_status": "attestation status at time of error",
+        "upstream_service": "Upstream service name if applicable",
+        "upstream_status": "HTTP status from upstream if applicable"
+      }
+    },
+    "problem_detail_fields": {
+      "type": "URI to problem type documentation",
+      "title": "Short human-readable title",
+      "status": "HTTP status code",
+      "detail": "Detailed explanation",
+      "instance": "URI identifying specific occurrence",
+      "fault_code": "Canonical fault identifier",
+      "retryable": "boolean",
+      "next_probe": "Recommended diagnostic probe",
+      "trace_id": "federation trace identifier"
+    }
+  },
+
+  "action_class_policy": {
+    "OBSERVE":  {"may_degrade": true,  "fail_closed": false, "session_required": false, "lease_required": false},
+    "SUGGEST":  {"may_degrade": true,  "fail_closed": false, "session_required": false, "lease_required": false},
+    "MUTATE":   {"may_degrade": false, "fail_closed": true,  "session_required": true,  "lease_required": true, "attestation_required": true},
+    "EXECUTE_HIGH_IMPACT": {"may_degrade": false, "fail_closed": true, "session_required": true, "lease_required": true, "attestation_required": true},
+    "IRREVERSIBLE": {"may_degrade": false, "fail_closed": true, "session_required": true, "lease_required": true, "attestation_required": true, "hold_required": true}
+  },
+
+  "attestation_contract": {
+    "required_fields": [
+      "organ_id",
+      "role",
+      "version",
+      "tool_count",
+      "schema_hash",
+      "identity_anchor_type",
+      "identity_anchor_hash",
+      "health_status",
+      "attestation_status",
+      "attested_at",
+      "expires_at"
+    ],
+    "freshness_window_seconds": 60,
+    "attestation_status_enum": ["fresh", "stale", "unknown", "compromised"]
+  },
+
+  "conformance_spine": {
+    "required_steps": [
+      "ping",
+      "version_echo",
+      "initialize_probe",
+      "schema_echo",
+      "transport_echo",
+      "session_init_light",
+      "os_attest",
+      "888_hold_mutation_refusal",
+      "vault_replay"
+    ],
+    "gate_rule": "No substrate-grade claim may be made unless all 9 conformance steps pass. No wisdom claim unless spine is green AND attestation is fresh AND registry truth holds."
+  },
+
+  "ci_gates": {
+    "transport_contract_lock": {"block_on": "mismatch", "description": "Every advertised port, path, protocol version, and tool count matches canonical registry"},
+    "transport_health_enum":   {"block_on": "drift",    "description": "/health emits only canonical statuses. Compatibility aliases accepted on input, never emitted"},
+    "transport_attest_fresh":  {"block_on": "absence",  "description": "/attest present, hash-anchored, freshness window valid"},
+    "transport_jsonrpc_errors":{"block_on": "failure",  "description": "Error responses preserve JSON-RPC id, valid error structure, typed fault_code"},
+    "transport_problem_details":{"block_on": "failure", "description": "REST non-MCP errors use application/problem+json with stable problem types"},
+    "retry_deadline_budget":   {"block_on": "storm",    "description": "Retries use randomized exponential backoff, bounded budgets, deadline propagation"},
+    "dependency_cascade_drill":{"block_on": "false_health", "description": "All organs survive upstream slowness without false green"},
+    "hold_never_void":         {"block_on": "misclassification", "description": "Mechanical faults never convert to VOID; only constitutional faults"}
+  },
+
+  "metadata": {
+    "generated_at": "2026-06-18T00:00:00Z",
+    "generated_by": "FORGE (000Ω) — Transport Layer Invariants Audit",
+    "status": "RATIFIED — effective for all federation organs",
+    "supersedes": "All ad-hoc port registries, health vocabularies, and protocol version hardcodings in individual repos"
+  }
+}

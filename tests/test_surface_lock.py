@@ -48,8 +48,8 @@ def test_canonical_prompts_count():
     """Exactly 9 canonical prompts required (Phase 1 adds 888_deliberation)."""
     from arifosmcp.prompts import CANONICAL_PROMPTS
 
-    assert len(CANONICAL_PROMPTS) == 5, (
-        f"Prompt drift: expected 5, got {len(CANONICAL_PROMPTS)}. VOID."
+    assert len(CANONICAL_PROMPTS) == 7, (
+        f"Prompt drift: expected 7, got {len(CANONICAL_PROMPTS)}. VOID."
     )
 
 
@@ -57,8 +57,8 @@ def test_canonical_resources_count():
     """Exactly 6 canonical resources required."""
     from arifosmcp.resources import CANONICAL_RESOURCES
 
-    assert len(CANONICAL_RESOURCES) == 9, (
-        f"Resource drift: expected 9, got {len(CANONICAL_RESOURCES)}. VOID."
+    assert len(CANONICAL_RESOURCES) == 11, (
+        f"Resource drift: expected 11, got {len(CANONICAL_RESOURCES)}. VOID."
     )
 
 
@@ -114,6 +114,6 @@ def test_version_string():
     """Version must match the current sealed runtime release."""
     from arifosmcp import __version__
 
-    assert __version__ == "2026.05.05-SSCT", (
-        f"Version drift: expected 2026.05.05-SSCT, got {__version__}. VOID."
+    assert __version__ == "2026.06.11-FIQHGEOM", (
+        f"Version drift: expected 2026.06.11-FIQHGEOM, got {__version__}. VOID."
     )

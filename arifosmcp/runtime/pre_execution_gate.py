@@ -323,6 +323,33 @@ def pre_execution_gate(
             blocked_action_class=requested_action,
         )
 
+    # ── Gate 3.5: HARD INFRASTRUCTURE → 888 HOLD ──────────────────────
+    # Hermes ASI standard: BlastClass ≥ INFRASTRUCTURE requires unconditional
+    # 888 HOLD regardless of lease band, action class, or human ack status.
+    # This is HARAM — not WAJIB. No override possible.
+    if manifest_entry and manifest_entry.blast_radius in (
+        BlastRadius.INFRASTRUCTURE,
+        BlastRadius.CIVILIZATIONAL,
+    ):
+        # Even if human ack is present, INFRASTRUCTURE requires sovereign seal
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=[
+                f"HARD INFRASTRUCTURE HOLD: Tool '{tool_name}' has blast radius "
+                f"{manifest_entry.blast_radius.value}. Hermes ASI doctrine: "
+                f"BlastClass ≥ INFRASTRUCTURE requires unconditional 888 HOLD "
+                f"regardless of lease band or human ack. This is HARAM without "
+                f"sovereign-level ceremony."
+            ],
+            violations=[
+                "F0_SAFETY — INFRASTRUCTURE blast requires 888 HOLD",
+                "L00_ADAT — INFRASTRUCTURE/CIVILIZATIONAL is HARAM, not WAJIB",
+            ],
+            blocked_action_class=requested_action,
+            required_human_ack=True,
+        )
+
     # ── Gate 4: Actor verification ────────────────────────────────────
     if ActionClass.is_mutating(requested_action):
         if not envelope.kernel.actor_verified:

@@ -292,6 +292,11 @@ def arif_os_attest(
     except Exception:
         pass
 
+    # Canonical count — from in-process dict. This is the constitutional floor, not a live probe.
+    tool_count_canonical = tool_count
+    tool_count_live = None  # live_kernel self-attestation does not probe HTTP
+    probe_type = "in_process_canonical"
+
     # Constitution and envelope hashes
     constitution_hash = _load_constitution_hash()
     envelope_schema_hash = _load_envelope_schema_hash()
@@ -401,6 +406,9 @@ def arif_os_attest(
         "result": {
             "heartbeat": heartbeat.model_dump(mode="json"),
             "envelope": envelope.model_dump(mode="json"),
+            "probe_type": probe_type,
+            "tool_count_canonical": tool_count_canonical,
+            "tool_count_live": tool_count_live,
         },
     }
 

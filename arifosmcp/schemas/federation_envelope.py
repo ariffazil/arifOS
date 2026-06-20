@@ -117,12 +117,28 @@ class RiskTier(StrEnum):
 
 
 class ActionClass(StrEnum):
-    """What phase of action this call represents."""
+    """What phase of action this call represents.
 
-    OBSERVE = "OBSERVE"  # Read-only, no side effects
-    PREPARE = "PREPARE"  # Plan, dry-run, validate
-    MUTATE = "MUTATE"  # Write, modify, execute
-    ATOMIC = "ATOMIC"  # Irreversible, dangerous, final
+    Canonical seven-class ladder. Higher = more dangerous.
+    Import from kernel_envelope as the single source of truth.
+
+    OBSERVE: Read-only. No external side effects.
+    ANALYZE: Reason over existing data. No mutation.
+    DRAFT: Create proposed content, plan, patch. No external side effects.
+    SIMULATE: Run reversible sandbox execution only.
+    MUTATE: Change local state, files, memory, database, configuration.
+    EXTERNAL_SIDE_EFFECT: Send email, call external API, post, publish.
+    IRREVERSIBLE: Delete, rotate keys, deploy production, vault seal.
+    """
+
+    OBSERVE = "OBSERVE"
+    ANALYZE = "ANALYZE"
+    DRAFT = "DRAFT"
+    SIMULATE = "SIMULATE"
+    MUTATE = "MUTATE"
+    EXTERNAL_SIDE_EFFECT = "EXTERNAL_SIDE_EFFECT"
+    IRREVERSIBLE = "IRREVERSIBLE"
+    UNKNOWN = "UNKNOWN"
 
 
 class ToolClass(StrEnum):
@@ -144,14 +160,23 @@ class ToolClass(StrEnum):
 
 
 class BlastRadius(StrEnum):
-    """How far the blast reaches if this action goes wrong."""
+    """Canonical 8-class blast radius (Hermes ASI standard).
 
-    LOCAL = "local"  # Single process / file
-    ACCOUNT = "account"  # User account / session
-    ORG = "org"  # Organization / project
-    PUBLIC = "public"  # Public-facing / external users
-    FINANCIAL = "financial"  # Money / capital at risk
-    INFRA = "infra"  # Infrastructure / host at risk
+    Import from kernel_envelope as the single source of truth.
+    Kept here for import convenience in federation-facing code.
+
+    NONE, LOCAL, ACCOUNT, ORG, PUBLIC, MARKET, INFRASTRUCTURE, CIVILIZATIONAL.
+    """
+
+    NONE = "NONE"
+    LOCAL = "LOCAL"
+    ACCOUNT = "ACCOUNT"
+    ORG = "ORG"
+    PUBLIC = "PUBLIC"
+    MARKET = "MARKET"
+    INFRASTRUCTURE = "INFRASTRUCTURE"
+    CIVILIZATIONAL = "CIVILIZATIONAL"
+    UNKNOWN = "UNKNOWN"
 
 
 class ReversibilityLevel(StrEnum):

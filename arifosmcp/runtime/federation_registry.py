@@ -350,7 +350,7 @@ class FederationRegistry:
         return scored
 
     async def _embed(self, text: str) -> Optional[List[float]]:
-        """Get embedding vector for text via Ollama bge-m3."""
+        """Get embedding vector for text. Primary: Ollama bge-m3. Fallback: Azure text-embedding-3-small."""
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 resp = await client.post(
@@ -358,9 +358,28 @@ class FederationRegistry:
                     json={"model": "bge-m3", "prompt": text[:512]},
                 )
                 resp.raise_for_status()
-                return resp.json().get("embedding")
+                emb = resp.json().get("embedding")
+                if emb:
+                    return emb
         except Exception:
-            return None
+            pass
+
+        # Fallback: Azure OpenAI text-embedding-3-small
+        azure_key = os.getenv("AZURE_OPENAI_KEY")
+        azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+        if azure_key and azure_endpoint:
+            try:
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    resp = await client.post(
+                        f"{azure_endpoint}/embeddings",
+                        json={"model": "text-embedding-3-small", "input": text[:2048]},
+                        headers={"api-key": azure_key, "Content-Type": "application/json"},
+                    )
+                    resp.raise_for_status()
+                    return resp.json()["data"][0]["embedding"]
+            except Exception:
+                pass
+        return None
 
     @staticmethod
     def _cosine_sim(a: List[float], b: List[float]) -> float:

@@ -158,7 +158,7 @@ async def _db_auth() -> SubstrateCheckResult:
 
 
 async def _embed_endpoint() -> SubstrateCheckResult:
-    """S0.C4: Embedding endpoint returns valid vector."""
+    """S0.C4: Embedding endpoint returns valid vector. Checks Ollama bge-m3 then Azure."""
     t0 = time.monotonic()
     code = None
     did_pass = False
@@ -191,6 +191,34 @@ async def _embed_endpoint() -> SubstrateCheckResult:
     except Exception as e:
         code = "E_EMBED_OFFLINE"
         detail = {"error": str(e)}
+
+    # Fallback check: Azure text-embedding-3-small
+    if not did_pass:
+        azure_key = os.environ.get("AZURE_OPENAI_KEY")
+        azure_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT", "")
+        if azure_key and azure_endpoint:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(
+                        f"{azure_endpoint}/embeddings",
+                        json={"model": "text-embedding-3-small", "input": "ping"},
+                        headers={"api-key": azure_key, "Content-Type": "application/json"},
+                        timeout=5,
+                    ) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            embedding = data["data"][0]["embedding"]
+                            if embedding and len(embedding) > 0:
+                                did_pass = True
+                                code = None
+                                detail = {
+                                    "embedding_dim": len(embedding),
+                                    "model": "text-embedding-3-small",
+                                    "note": "Azure fallback (Ollama unreachable)",
+                                }
+            except Exception:
+                pass
+
     return SubstrateCheckResult(
         check_id="S0.C4",
         passed=did_pass,

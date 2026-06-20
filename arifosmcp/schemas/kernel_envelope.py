@@ -111,14 +111,52 @@ class GateVerdict(StrEnum):
 
 
 class BlastRadius(StrEnum):
-    """Estimated impact radius of an action."""
+    """Canonical 8-class blast radius (Hermes ASI standard).
+
+    Hermes ASI standard — the harder the floor, the higher the class.
+    Propagation is distributed (matrix over agents), not aggregates (max over agents).
+
+    NONE              — No effect radius.
+    LOCAL             — Single process, file, or in-memory state.
+    ACCOUNT           — User account / session scope.
+    ORG               — Organization / project scope.
+    PUBLIC            — Public-facing / external user scope.
+    MARKET            — Financial / capital / market-level impact.
+    INFRASTRUCTURE    — Infrastructure / host / system-level impact.
+    CIVILIZATIONAL    — Multi-system, societal, or civilizational impact.
+    UNKNOWN           — Cannot determine; fail closed.
+    """
 
     NONE = "NONE"
-    LOW = "LOW"
-    MEDIUM = "MEDIUM"
-    HIGH = "HIGH"
-    CRITICAL = "CRITICAL"
+    LOCAL = "LOCAL"
+    ACCOUNT = "ACCOUNT"
+    ORG = "ORG"
+    PUBLIC = "PUBLIC"
+    MARKET = "MARKET"
+    INFRASTRUCTURE = "INFRASTRUCTURE"
+    CIVILIZATIONAL = "CIVILIZATIONAL"
     UNKNOWN = "UNKNOWN"
+
+    @classmethod
+    def requires_human_ack(cls, radius: "BlastRadius") -> bool:
+        """Returns True if this blast radius requires human acknowledgement."""
+        return radius.value >= cls.INFRASTRUCTURE.value
+
+    @classmethod
+    def subsumes(cls, granted: "BlastRadius", requested: "BlastRadius") -> bool:
+        """Whether `granted` blast radius covers `requested`."""
+        order = {
+            cls.NONE: 0,
+            cls.LOCAL: 1,
+            cls.ACCOUNT: 2,
+            cls.ORG: 3,
+            cls.PUBLIC: 4,
+            cls.MARKET: 5,
+            cls.INFRASTRUCTURE: 6,
+            cls.CIVILIZATIONAL: 7,
+            cls.UNKNOWN: 99,
+        }
+        return order.get(granted, -1) >= order.get(requested, 999)
 
 
 class DriftLevel(StrEnum):
