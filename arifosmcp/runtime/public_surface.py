@@ -75,6 +75,7 @@ def _alias_public_name(alias_name: str) -> str:
 DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arif_ping",
     # ── Transport Canary Layer (Phase 0, 2026-06-14) ──
+    "arif_conformance_report",
     "arif_schema_echo",
     "arif_version_echo",
     "arif_transport_echo",
