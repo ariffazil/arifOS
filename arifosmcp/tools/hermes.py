@@ -39,9 +39,27 @@ def _check_organ_health(host: str, port: int, name: str, timeout: float = 3.0) -
     try:
         result = sock.connect_ex((host, port))
         alive = result == 0
-        return {"organ": name, "host": host, "port": port, "alive": alive, "error": None}
+        return {
+            "organ": name,
+            "host": host,
+            "port": port,
+            "alive": alive,
+            "error": None,
+            "tool_count": None,
+            "probe_type": "tcp_connect",
+            "note": "TCP reachability only. Use arif_organ_attest_all for MCP tool counts.",
+        }
     except Exception as e:
-        return {"organ": name, "host": host, "port": port, "alive": False, "error": str(e)}
+        return {
+            "organ": name,
+            "host": host,
+            "port": port,
+            "alive": False,
+            "error": str(e),
+            "tool_count": None,
+            "probe_type": "tcp_connect",
+            "note": "TCP reachability only. Use arif_organ_attest_all for MCP tool counts.",
+        }
     finally:
         sock.close()
 

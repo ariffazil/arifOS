@@ -45,19 +45,38 @@ async def arif_capability_select(
         - L13 SOVEREIGN: no tool discovery bypasses floor enforcement
     """
     async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-        # 1. Embed query
+        # 1. Embed query (Primary: Ollama bge-m3, Fallback: Azure text-embedding-3-small)
         embed_r = await client.post(
             f"{OLLAMA_URL}/api/embed",
             json={"model": EMBED_MODEL, "input": query},
         )
-        if embed_r.status_code != 200:
+        query_vec = None
+        if embed_r.status_code == 200:
+            try:
+                query_vec = embed_r.json()["embeddings"][0]
+            except (KeyError, IndexError):
+                pass
+        if query_vec is None:
+            # Fallback: Azure OpenAI text-embedding-3-small
+            azure_key = os.getenv("AZURE_OPENAI_KEY")
+            azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+            if azure_key and azure_endpoint:
+                try:
+                    azure_r = await client.post(
+                        f"{azure_endpoint}/embeddings",
+                        json={"model": "text-embedding-3-small", "input": query},
+                        headers={"api-key": azure_key, "Content-Type": "application/json"},
+                    )
+                    if azure_r.status_code == 200:
+                        query_vec = azure_r.json()["data"][0]["embedding"]
+                except Exception:
+                    pass
+        if query_vec is None:
             return {
                 "verdict": "FAIL",
                 "tool": "arif_capability_select",
-                "error": f"Ollama embed failed: {embed_r.status_code}",
-                "note": "bge-m3 must be running on Ollama (port 11434)",
+                "error": "All embedding backends exhausted (Ollama bge-m3 + Azure text-embedding-3-small)",
             }
-        query_vec = embed_r.json()["embeddings"][0]
 
         # 2. Search Qdrant
         search_payload = {

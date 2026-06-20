@@ -666,4 +666,100 @@ actor_id ∈ {
 
 ---
 
+---
+
+## Appendix F — RULE 14: MODE-FIRST NAMING (Tool Bloat Prevention)
+
+> Ratified: 2026-06-20 · Sovereign directive · Supersedes all parallel tool-name patterns
+
+### The Problem
+
+Every time a developer adds a new capability, the reflex is to add a new named tool:
+```
+tool_x       tool_x_v2    tool_x_legacy    tool_x_compat
+```
+This is namespace entropy. The arifOS tool surface has grown from 13 canonical tools to 40+ registered names because there was no enforced rule governing new capability addition. This document fixes that permanently.
+
+### The Rule
+
+**CANONICAL PRINCIPLE:** When N related operations act on the same entity, it MUST be ONE tool with N modes. It MUST NOT be N named tools.
+
+| Case | Action | Example |
+|------|--------|---------|
+| Same entity + new operation | Add `mode` to existing tool | `arif_judge` gains `mode=compare` |
+| New entity type | Add new tool name | `arif_route` for routing (new entity) |
+| Different output shape entirely | Split into separate tool | `arif_judge_history` (different return schema) |
+| Internal implementation detail | Keep hidden | `_bridge_organ_call` stays private |
+| Emergency one-shot | Require sovereign seal within 72h | One-off tool ratified → merged or deleted |
+
+### Why Modes Work Better Than Names
+
+1. **One schema to govern.** The tool's parameter contract is stable. Only `mode` expands.
+2. **Discovery is cleaner.** Agents query `mode` options rather than guessing from a flat list.
+3. **Sealing is uniform.** The same `REQUIRES_888` logic applies to all modes.
+4. **No orphan tools.** When a capability is deprecated, only the mode is deprecated, not the entire tool name.
+
+### What This Means for Existing Tools
+
+The following mode bloat patterns are flagged for refactoring (not deletion — backward compatibility is required during transition):
+
+| Canonical Tool | Mode Count | Collapse Target |
+|---|---|---|
+| `arif_kernel_route` | 16 modes | → `arif_route` (routing) + `arif_triage` (status) + `arif_kernel_status` (telemetry) |
+| `arif_gateway_connect` | 6 modes | → `arif_agent_discover` + `arif_agent_connect` + `arif_agent_handshake` |
+| `arif_judge_deliberate` | 6 modes | → `arif_judge` + `arif_judge_history` (different shape) |
+| `arif_session_init` | 7 modes | → `arif_session_start` + `arif_session_resume` + `arif_session_validate` |
+
+### Internal Wiring (Mode-First)
+
+The canonical surface presents N named tools. Each named tool accepts a `mode` parameter. Modes are implementation detail — agents do not see the internal routing.
+
+```
+arif_route(intent: string, organ?: string, payload: object)
+    mode "route"          → route to organ by intent map (NEW canonical routing)
+    mode "delegate"       → dispatch task to target agent (DEPRECATED, route preferred)
+    mode "bridge"         → direct organ tool call (DEPRECATED, route preferred)
+    mode "attest"         → organ attestation (keep)
+    mode "health"         → federation health (keep)
+
+arif_triage(intent: string, session_id?: string)
+    mode "status"         → kernel session status
+    mode "triage"         → priority queue
+    mode "preflight"      → pre-session probe
+
+arif_kernel_status()
+    mode "telemetry"       → thermodynamic metrics
+    mode "discover"        → semantic tool discovery
+```
+
+### Seal for Mode Addition
+
+To add a new `mode` to an existing canonical tool:
+1. Propose mode in `forge_work/` with justification (entity same? output shape same?)
+2. Self-model update: tool self-model predicts success rate for new mode
+3. `arif_judge` validates the mode proposal against RULE 14
+4. Sovereign seal in VAULT999: `RULE14-APPROVAL-<tool>-<mode>`
+5. Schema registered; no new tool name created
+
+### What Is NOT a Mode
+
+- Operations on different entity types are different tools — NOT modes
+- Output schemas that differ in structure → separate tools, NOT modes
+- One-shot emergency capabilities → must be sealed within 72h or absorbed into existing mode
+
+### Transition Path
+
+- Phase 1: Add RULE 14 to constitution (this document)
+- Phase 2: Introduce `arif_route` as new canonical routing tool; keep old names as soft aliases (emit deprecation warnings)
+- Phase 3: All new capability additions MUST follow MODE-FIRST; old names gradually absorbed
+- Phase 4: Soft aliases removed after all callers updated (target: 30 days)
+
+### Enforcement
+
+F2 TRUTH: Every tool name in the MCP surface MUST correspond to a distinct entity-operation pair. If two tools act on the same entity with related operations, they are candidates for mode-collapse.
+
+F8 GENIUS: Tool surface entropy is a systemic health metric. When `tool_count > canonical_count × 2`, the namespace is in decay. ArifOS must auto-flag bloat and surface it to the Sovereign Dashboard (AAA L7).
+
+---
+
 **DITEMPA BUKAN DIBERI — Forged, Not Given.**

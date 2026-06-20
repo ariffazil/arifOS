@@ -143,12 +143,17 @@ def _run_in_tovana_venv(callable_path: str, *args: Any, **kwargs: Any) -> Any:
         "print('__RESULT__:' + json.dumps(_jsonable(result)))\n"
     )
     env = os.environ.copy()
-    env["TOVANA_API_KEY"] = env.get("MINIMAX_API_KEY", "")
-    env["TOVANA_BASE_URL"] = env.get("OPENAI_BASE_URL", "https://api.minimax.io/v1")
-    # Default to highspeed model — it doesn't emit <think> blocks that
-    # break langchain's JSON parser. M3 is the strategic model but emits
-    # reasoning. Use highspeed for structured extraction.
-    env["TOVANA_MODEL"] = os.getenv("TOVANA_MODEL", "MiniMax-M2.5-highspeed")
+    # Primary: Azure OpenAI gpt-4.1-mini (cheap, reliable, no <think> blocks)
+    # Fallback: MiniMax (original config). Azure wired 2026-06-20.
+    azure_key = env.get("AZURE_OPENAI_KEY", "")
+    if azure_key:
+        env["TOVANA_API_KEY"] = azure_key
+        env["TOVANA_BASE_URL"] = env.get("AZURE_OPENAI_ENDPOINT", "https://api.minimax.io/v1")
+        env["TOVANA_MODEL"] = env.get("AZURE_OPENAI_MODEL", "gpt-4.1-mini")
+    else:
+        env["TOVANA_API_KEY"] = env.get("MINIMAX_API_KEY", "")
+        env["TOVANA_BASE_URL"] = env.get("OPENAI_BASE_URL", "https://api.minimax.io/v1")
+        env["TOVANA_MODEL"] = os.getenv("TOVANA_MODEL", "MiniMax-M2.5-highspeed")
     env["TOVANA_USER_ID"] = "default"
     env["TOVANA_MEMORY_FILE"] = "/tmp/tovana_default.json"
 

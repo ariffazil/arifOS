@@ -2,7 +2,7 @@
 
 > **Canonical Source of Truth:** `ariffazil/arifOS`
 > **Authority:** arifOS F13 SOVEREIGN (Muhammad Arif bin Fazil)
-> **Last Verified:** 2026-06-16
+> **Last Verified:** 2026-06-20
 > **Rule:** All other repo READMEs must point here for live/degraded/disabled status.
 > **Contract:** See `FEDERATION_CONTRACT.md` for organ boundaries and invariants.
 
@@ -12,7 +12,7 @@
 
 | Organ | Repo | Port | Status | Tools | Notes |
 |-------|------|------|--------|-------|-------|
-| **arifOS** (Kernel) | `ariffazil/arifos` | 8088 | ✅ OPERATIONAL | 13 canonical | F1-F13 active, 888 JUDGE, VAULT999 |
+| **arifOS** (Kernel) | `ariffazil/arifos` | 8088 | ✅ OPERATIONAL | 13 canonical + 35 operational | F1-F13 active, 888 JUDGE, VAULT999; truth unification Phase 1 deployed 2026-06-20 |
 | **AAA** (Cockpit) | `ariffazil/aaa` | 3001 | ✅ OPERATIONAL | — | React 19 + A2A gateway |
 | **GEOX** (Earth) | `ariffazil/geox` | 8081 | ✅ OPERATIONAL | 40 canonical | Apache-2.0 licensed |
 | **WEALTH** (Capital) | `ariffazil/wealth` | 18082 | ✅ OPERATIONAL | 20 public + 34 hidden aliases | AGPL-3.0 |
@@ -51,7 +51,9 @@
 | Runtime Drift | ✅ RESOLVED | build and live stamps aligned after 2026-06-12 deploy |
 | WEALTH stale constitution | ✅ RESOLVED | `raw/CONSTITUTION.md` and `archive/AAA_FEDERATION_CONSTITUTION.md` removed; canonical link added |
 | GEOX GENESIS/003 | ✅ RESOLVED | Verified aligned to F1–F13; SOT-MANIFEST header added |
-| arifOS CONTEXT/RUNBOOK | 🔴 HIGH | Missing; required for operational clarity — being created in T0 |
+| arifOS CONTEXT/RUNBOOK | 🟡 MEDIUM | CONTEXT.md present but stale (2026-06-16); RUNBOOK.md missing |
+| arifOS RLS enforcement | 🔴 HIGH | Phase 1 Step 6 — RLS on mcp_servers/policies/projections at 888_HOLD awaiting Arif confirm |
+| arifOS test suite (Phase 1 Step 7) | 🟡 MEDIUM | 5 truth-unification tests written, blocked by pre-existing BlastRadius.LOW import bug |
 | WELL state.json | ⚠️ MEDIUM | `OPERATOR_DECLARED_STALE` for engineering test phase; fresh biometric input still pending (F13) |
 | APEX decommission | 🟡 LOW | `apex-prime.service` still running on 3002 for legacy health probe; marked legacy-only |
 | A-FORGE lease gate | 🔴 HIGH | Leases self-issued by A-FORGE; must be kernel-issued — T4 in progress |

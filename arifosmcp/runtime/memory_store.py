@@ -302,20 +302,44 @@ def _get_qdrant_client():
 def _generate_embedding(text: str) -> list[float]:
     import httpx  # noqa: PLC0415
 
-    # BGE-M3 on CPU takes ~60-90s on first call (model load + 1024-dim inference).
-    # Federation store must wait for the embedding — we cannot proceed without it.
-    # 120s timeout absorbs worst-case cold start; subsequent calls reuse warm model.
+    # Primary: BGE-M3 on Ollama (free, local, 1024-dim)
+    # Fallback: Azure text-embedding-3-small ($200 ProCopilot credit, 1536-dim)
+    # Wired 2026-06-20 per Arif's 888_HOLD.
     _timeout = float(os.getenv("ARIFOS_EMBEDDING_TIMEOUT_S", "120.0"))
-    response = httpx.post(
-        f"{_OLLAMA_URL}/api/embeddings",
-        json={"model": _EMBEDDING_MODEL, "prompt": text},
-        timeout=_timeout,
-    )
-    response.raise_for_status()
-    embedding = response.json().get("embedding", [])
-    if not embedding:
-        raise RuntimeError("Ollama returned empty embedding")
-    return embedding
+    try:
+        response = httpx.post(
+            f"{_OLLAMA_URL}/api/embeddings",
+            json={"model": _EMBEDDING_MODEL, "prompt": text},
+            timeout=_timeout,
+        )
+        response.raise_for_status()
+        embedding = response.json().get("embedding", [])
+        if embedding:
+            return embedding
+    except Exception:
+        pass
+
+    # Fallback: Azure OpenAI embedding
+    azure_key = os.getenv("AZURE_OPENAI_KEY")
+    azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+    azure_embed = os.getenv("AZURE_OPENAI_EMBEDDING", "text-embedding-3-small")
+    if azure_key and azure_endpoint:
+        try:
+            response = httpx.post(
+                f"{azure_endpoint}/embeddings",
+                json={"model": azure_embed, "input": text},
+                headers={"api-key": azure_key, "Content-Type": "application/json"},
+                timeout=30.0,
+            )
+            response.raise_for_status()
+            data = response.json()
+            embedding = data["data"][0]["embedding"]
+            if embedding:
+                return embedding
+        except Exception:
+            pass
+
+    raise RuntimeError("All embedding backends exhausted (Ollama bge-m3 + Azure text-embedding-3-small)")
 
 
 def _summarize(content: Any) -> str:

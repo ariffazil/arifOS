@@ -454,15 +454,20 @@ def create_arifos_mcp_server() -> FastMCP:
 
 def _assert_registered_surface(registered_names: list[str]) -> None:
     """Assert the registered surface contains at minimum the 13 canonical tools.
-    
-    Diagnostic tools (arif_ping, hermes_*, etc.) are allowed alongside canonicals.
+
+    Canonical13 enforcement: the default public wire surface is 13 kernel + 6 canary
+    probes = 19 tools. All other diagnostics (hermes, lease, attest, etc.) are gated
+    behind ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
     """
-    from arifosmcp.runtime.public_surface import DIAGNOSTIC_TOOLS
+    from arifosmcp.runtime.public_surface import CANARY_PROBES, DIAGNOSTIC_TOOLS
+
     expected_set = set(CANONICAL_TOOLS)
+    # Subtract ALL non-canonical tools (canary probes + gated diagnostics) from the
+    # registered set. What remains must be exactly the canonical 13.
     registered_set = set(registered_names) - set(DIAGNOSTIC_TOOLS)
-    # Allow arif_ping and arif_conformance_report as canary on any surface
-    registered_set.discard("arif_ping")
-    registered_set.discard("arif_conformance_report")
+    # Also discard canary probes (belt-and-suspenders — they're in DIAGNOSTIC_TOOLS)
+    for probe in CANARY_PROBES:
+        registered_set.discard(probe)
     if not expected_set.issubset(registered_set):
         missing = expected_set - registered_set
         unexpected = registered_set - expected_set
@@ -632,170 +637,186 @@ try:
     # live on A-FORGE MCP (forge.arif-fazil.com/mcp, port 7071).
     # arifOS retains a thin deprecation proxy that redirects agents to A-FORGE.
     # Hard removal target: 2026-07-15.
-    _FORGE_MCP_ENDPOINT = "https://forge.arif-fazil.com/mcp"
-    _FORGE_DEPRECATION_MSG = (
-        "forge_* tools have moved to A-FORGE MCP. "
-        "Connect to forge.arif-fazil.com/mcp for engineering tools. "
-        "This arifOS endpoint will be removed 2026-07-15."
-    )
-    _FORGE_DEPRECATION_META = {
-        "status": "DEPRECATED_PROXY",
-        "forwarded_to": _FORGE_MCP_ENDPOINT,
-        "removal_after": "2026-07-15",
-        "migration": "Connect to forge.arif-fazil.com/mcp for forge_query, forge_plan, forge_dry_run, forge_plan_and_simulate, filesystem, git, docker, postgres, and all engineering tools.",
-    }
+    # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (Canonical13 enforcement).
+    if _EXPOSE_DEV_TOOLS:
+        _FORGE_MCP_ENDPOINT = "https://forge.arif-fazil.com/mcp"
+        _FORGE_DEPRECATION_MSG = (
+            "forge_* tools have moved to A-FORGE MCP. "
+            "Connect to forge.arif-fazil.com/mcp for engineering tools. "
+            "This arifOS endpoint will be removed 2026-07-15."
+        )
+        _FORGE_DEPRECATION_META = {
+            "status": "DEPRECATED_PROXY",
+            "forwarded_to": _FORGE_MCP_ENDPOINT,
+            "removal_after": "2026-07-15",
+            "migration": "Connect to forge.arif-fazil.com/mcp for forge_query, forge_plan, forge_dry_run, forge_plan_and_simulate, filesystem, git, docker, postgres, and all engineering tools.",
+        }
 
-    def _make_forge_deprecated_proxy(tool_name: str) -> Callable:
-        """Return a handler that returns deprecation metadata (no **kwargs, FastMCP compat)."""
-        if tool_name == "forge_query":
-            def _h1(manifest: str = "", query: str = "", cwd: str = ".", session_id: str | None = None, actor_id: str | None = None, _envelope: dict | None = None) -> dict[str, Any]:
-                return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
-            return _h1
-        elif tool_name == "forge_plan":
-            def _h2(goal: str = "", workspace: str = ".", session_id: str | None = None, actor_id: str | None = None, _envelope: dict | None = None) -> dict[str, Any]:
-                return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
-            return _h2
-        elif tool_name == "forge_dry_run":
-            def _h3(plan_id: str = "", manifest: str = "", cwd: str = ".", session_id: str | None = None, actor_id: str | None = None, _envelope: dict | None = None) -> dict[str, Any]:
-                return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
-            return _h3
-        else:
-            def _h4(intent: str = "", context: dict | None = None, risk_tier: str = "medium", force_simulation: bool = True, _envelope: dict | None = None) -> dict[str, Any]:
-                return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
-            return _h4
+        def _make_forge_deprecated_proxy(tool_name: str) -> Callable:
+            """Return a handler that returns deprecation metadata (no **kwargs, FastMCP compat)."""
+            if tool_name == "forge_query":
+                def _h1(manifest: str = "", query: str = "", cwd: str = ".", session_id: str | None = None, actor_id: str | None = None, _envelope: dict | None = None) -> dict[str, Any]:
+                    return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
+                return _h1
+            elif tool_name == "forge_plan":
+                def _h2(goal: str = "", workspace: str = ".", session_id: str | None = None, actor_id: str | None = None, _envelope: dict | None = None) -> dict[str, Any]:
+                    return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
+                return _h2
+            elif tool_name == "forge_dry_run":
+                def _h3(plan_id: str = "", manifest: str = "", cwd: str = ".", session_id: str | None = None, actor_id: str | None = None, _envelope: dict | None = None) -> dict[str, Any]:
+                    return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
+                return _h3
+            else:
+                def _h4(intent: str = "", context: dict | None = None, risk_tier: str = "medium", force_simulation: bool = True, _envelope: dict | None = None) -> dict[str, Any]:
+                    return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
+                return _h4
 
-    for _fn in ("forge_query", "forge_plan", "forge_dry_run", "forge_plan_and_simulate"):
-        mcp.tool(name=_fn, description=_FORGE_DEPRECATION_MSG, tags={"forge", "deprecated", "proxy"})(_make_forge_deprecated_proxy(_fn))
+        for _fn in ("forge_query", "forge_plan", "forge_dry_run", "forge_plan_and_simulate"):
+            mcp.tool(name=_fn, description=_FORGE_DEPRECATION_MSG, tags={"forge", "deprecated", "proxy"})(_make_forge_deprecated_proxy(_fn))
+    else:
+        logger.info("Forge deprecated proxies gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose.")
 
     # ── Institutional Shadow Drift (GENESIS/006 runtime sensor) ─────────────
-    _isd = _wrap_handler(
-        _arif_detect_institutional_shadow_drift,
-        "arif_detect_institutional_shadow_drift",
-    )
-    if _isd is not None:
-        mcp.tool(
-            name="arif_detect_institutional_shadow_drift",
-            description=(
-                "Detect when a sovereign institution's observed functions have outgrown "
-                "its declared name (GENESIS/006 Petronas Paradox). Returns drift_score, "
-                "sovereignty_score, risk_class, verdict, and cross-node routing hints. "
-                "Use before high-blast-radius deals involving national institutions."
-            ),
-            tags={"genesis", "shadow-drift", "sovereignty", "888-hold"},
-        )(_isd)
-    else:
-        mcp.tool(
-            name="arif_detect_institutional_shadow_drift",
-            description=(
-                "Detect when a sovereign institution's observed functions have outgrown "
-                "its declared name."
-            ),
-            tags={"genesis", "shadow-drift", "sovereignty", "888-hold"},
-        )(_arif_detect_institutional_shadow_drift)
-
-    # ── Narrative Tension / Perception Kernel (frame geometry) ───────────────
-    _nt = _wrap_handler(_arif_detect_narrative_tension, "arif_detect_narrative_tension")
-    if _nt is not None:
-        mcp.tool(
-            name="arif_detect_narrative_tension",
-            description=(
-                "Detect paradox tension, power asymmetry, and implicit frames in news "
-                "articles or institutional text. Returns a FrameGraph with actors, claims, "
-                "tensions, and a kernel verdict. Golden case: Putra Heights Kosmo 2026-06-12."
-            ),
-            tags={"perception-kernel", "narrative-tension", "frame-geometry", "shadow-drift"},
-        )(_nt)
-
-    # ── Live Kernel Attestation (MCP state bus) ─────────────────────────────
-    _attest = _wrap_handler(_arif_os_attest, "arif_os_attest")
-    if _attest is not None:
-        mcp.tool(
-            name="arif_os_attest",
-            description=(
-                "arifOS organ.attest(): live self-attestation of the constitutional kernel. "
-                "Returns constitution_hash, schema_hash, tool_surface, health, and active "
-                "lease state. Required before any kernel-grade federation call."
-            ),
-            tags={"live-kernel", "attestation", "state-bus", "organ-attest"},
-        )(_attest)
-    else:
-        mcp.tool(
-            name="arif_os_attest",
-            description="arifOS organ.attest(): live self-attestation.",
-            tags={"live-kernel", "attestation", "state-bus", "organ-attest"},
-        )(_arif_os_attest)
-
-    # ── Federation organ attestation (live state bus) ────────────────────────
-    _organ_attest = _wrap_handler(_attest_organ, "arif_organ_attest")
-    if _organ_attest is not None:
-        mcp.tool(
-            name="arif_organ_attest",
-            description=(
-                "Probe and attest a federation organ (GEOX, WEALTH, WELL). "
-                "Returns organ heartbeat, schema hash, tool count, and kernel envelope."
-            ),
-            tags={"live-kernel", "attestation", "state-bus", "organ-attest"},
-        )(_organ_attest)
-
-    _organ_attest_all = _wrap_handler(_attest_all_organs, "arif_organ_attest_all")
-    if _organ_attest_all is not None:
-        mcp.tool(
-            name="arif_organ_attest_all",
-            description=(
-                "Attest arifOS plus all federation organs in one call. "
-                "Returns per-organ heartbeat and a degraded-organ list."
-            ),
-            tags={"live-kernel", "attestation", "state-bus", "organ-attest"},
-        )(_organ_attest_all)
-
-    # ── Bounded authority leases (live state bus) ────────────────────────────
-    for _lease_name, _lease_handler in (
-        ("arif_lease_issue", _arif_lease_issue),
-        ("arif_lease_inspect", _arif_lease_inspect),
-        ("arif_lease_revoke", _arif_lease_revoke),
-    ):
-        _lh = _wrap_handler(_lease_handler, _lease_name)
-        if _lh is not None:
+    # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (Canonical13 enforcement).
+    if _EXPOSE_DEV_TOOLS:
+        _isd = _wrap_handler(
+            _arif_detect_institutional_shadow_drift,
+            "arif_detect_institutional_shadow_drift",
+        )
+        if _isd is not None:
             mcp.tool(
-                name=_lease_name,
+                name="arif_detect_institutional_shadow_drift",
                 description=(
-                    "Issue, inspect, or revoke a bounded authority lease. "
-                    "Leases scope organ/agent tool access and action class."
+                    "Detect when a sovereign institution's observed functions have outgrown "
+                    "its declared name (GENESIS/006 Petronas Paradox). Returns drift_score, "
+                    "sovereignty_score, risk_class, verdict, and cross-node routing hints. "
+                    "Use before high-blast-radius deals involving national institutions."
                 ),
-                tags={"live-kernel", "lease", "state-bus", "authority"},
-            )(_lh)
-
-    # ── Federation heartbeat registry (live state bus) ───────────────────────
-    _hb = _wrap_handler(_arif_heartbeat, "arif_heartbeat")
-    if _hb is not None:
-        mcp.tool(
-            name="arif_heartbeat",
-            description=(
-                "Record or query federation heartbeats. Returns liveness verdict for known organs."
-            ),
-            tags={"live-kernel", "heartbeat", "state-bus", "vitality"},
-        )(_hb)
-
-    # forge_dry_run removed — moved to A-FORGE MCP (forge.arif-fazil.com/mcp).
-    # Deprecation proxy registered above.
-
-    # ── Peer Federation Contract tools (P2P v1) ──────────────────────────────
-    for _pc_name, _pc_handler in (
-        ("arif_peer_contract_validate", _arif_peer_contract_validate),
-        ("arif_peer_contract_attest", _arif_peer_contract_attest),
-        ("arif_peer_contract_forbid", _arif_peer_contract_forbid),
-    ):
-        _pc = _wrap_handler(_pc_handler, _pc_name)
-        if _pc is not None:
+                tags={"genesis", "shadow-drift", "sovereignty", "888-hold"},
+            )(_isd)
+        else:
             mcp.tool(
-                name=_pc_name,
+                name="arif_detect_institutional_shadow_drift",
                 description=(
-                    "Peer Federation Contract v1 — "
-                    f"{_pc_name.replace('arif_peer_contract_', '')}."
+                    "Detect when a sovereign institution's observed functions have outgrown "
+                    "its declared name."
                 ),
-                tags={"live-kernel", "attestation", "peer-contract"},
-            )(_pc)
-        v2_tools_registered.append(_pc_name)
+                tags={"genesis", "shadow-drift", "sovereignty", "888-hold"},
+            )(_arif_detect_institutional_shadow_drift)
+
+        # ── Narrative Tension / Perception Kernel (frame geometry) ───────────────
+        _nt = _wrap_handler(_arif_detect_narrative_tension, "arif_detect_narrative_tension")
+        if _nt is not None:
+            mcp.tool(
+                name="arif_detect_narrative_tension",
+                description=(
+                    "Detect paradox tension, power asymmetry, and implicit frames in news "
+                    "articles or institutional text. Returns a FrameGraph with actors, claims, "
+                    "tensions, and a kernel verdict. Golden case: Putra Heights Kosmo 2026-06-12."
+                ),
+                tags={"perception-kernel", "narrative-tension", "frame-geometry", "shadow-drift"},
+            )(_nt)
+    else:
+        logger.info("Shadow drift + narrative tension tools gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose.")
+
+    # ── Live Kernel Attestation + Federation Organ Attest + Leases + Heartbeat + Peer Contract ──
+    # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (Canonical13 enforcement).
+    if _EXPOSE_DEV_TOOLS:
+        # ── Live Kernel Attestation (MCP state bus) ─────────────────────────────
+        _attest = _wrap_handler(_arif_os_attest, "arif_os_attest")
+        if _attest is not None:
+            mcp.tool(
+                name="arif_os_attest",
+                description=(
+                    "arifOS organ.attest(): live self-attestation of the constitutional kernel. "
+                    "Returns constitution_hash, schema_hash, tool_surface, health, and active "
+                    "lease state. Required before any kernel-grade federation call."
+                ),
+                tags={"live-kernel", "attestation", "state-bus", "organ-attest"},
+            )(_attest)
+        else:
+            mcp.tool(
+                name="arif_os_attest",
+                description="arifOS organ.attest(): live self-attestation.",
+                tags={"live-kernel", "attestation", "state-bus", "organ-attest"},
+            )(_arif_os_attest)
+
+        # ── Federation organ attestation (live state bus) ────────────────────────
+        _organ_attest = _wrap_handler(_attest_organ, "arif_organ_attest")
+        if _organ_attest is not None:
+            mcp.tool(
+                name="arif_organ_attest",
+                description=(
+                    "Probe and attest a federation organ (GEOX, WEALTH, WELL). "
+                    "Returns organ heartbeat, schema hash, tool count, and kernel envelope."
+                ),
+                tags={"live-kernel", "attestation", "state-bus", "organ-attest"},
+            )(_organ_attest)
+
+        _organ_attest_all = _wrap_handler(_attest_all_organs, "arif_organ_attest_all")
+        if _organ_attest_all is not None:
+            mcp.tool(
+                name="arif_organ_attest_all",
+                description=(
+                    "Attest arifOS plus all federation organs in one call. "
+                    "Returns per-organ heartbeat and a degraded-organ list."
+                ),
+                tags={"live-kernel", "attestation", "state-bus", "organ-attest"},
+            )(_organ_attest_all)
+
+        # ── Bounded authority leases (live state bus) ────────────────────────────
+        for _lease_name, _lease_handler in (
+            ("arif_lease_issue", _arif_lease_issue),
+            ("arif_lease_inspect", _arif_lease_inspect),
+            ("arif_lease_revoke", _arif_lease_revoke),
+        ):
+            _lh = _wrap_handler(_lease_handler, _lease_name)
+            if _lh is not None:
+                mcp.tool(
+                    name=_lease_name,
+                    description=(
+                        "Issue, inspect, or revoke a bounded authority lease. "
+                        "Leases scope organ/agent tool access and action class."
+                    ),
+                    tags={"live-kernel", "lease", "state-bus", "authority"},
+                )(_lh)
+
+        # ── Federation heartbeat registry (live state bus) ───────────────────────
+        _hb = _wrap_handler(_arif_heartbeat, "arif_heartbeat")
+        if _hb is not None:
+            mcp.tool(
+                name="arif_heartbeat",
+                description=(
+                    "Record or query federation heartbeats. Returns liveness verdict for known organs."
+                ),
+                tags={"live-kernel", "heartbeat", "state-bus", "vitality"},
+            )(_hb)
+
+        # forge_dry_run removed — moved to A-FORGE MCP (forge.arif-fazil.com/mcp).
+        # Deprecation proxy registered above.
+
+        # ── Peer Federation Contract tools (P2P v1) ──────────────────────────────
+        for _pc_name, _pc_handler in (
+            ("arif_peer_contract_validate", _arif_peer_contract_validate),
+            ("arif_peer_contract_attest", _arif_peer_contract_attest),
+            ("arif_peer_contract_forbid", _arif_peer_contract_forbid),
+        ):
+            _pc = _wrap_handler(_pc_handler, _pc_name)
+            if _pc is not None:
+                mcp.tool(
+                    name=_pc_name,
+                    description=(
+                        "Peer Federation Contract v1 — "
+                        f"{_pc_name.replace('arif_peer_contract_', '')}."
+                    ),
+                    tags={"live-kernel", "attestation", "peer-contract"},
+                )(_pc)
+            v2_tools_registered.append(_pc_name)
+    else:
+        logger.info(
+            "Federation attest/lease/heartbeat/peer-contract tools gated — "
+            "set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose."
+        )
 
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
@@ -816,40 +837,44 @@ try:
         # logger.info("GovernancePipeline middleware attached — 9-gate enforcement active")
 
     # ── Hermes Agent diagnostic tools (expanded45 surface) ─────────────────────
-    from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
-    for _hermes_name, _hermes_handler in HERMES_TOOL_HANDLERS.items():
-        _hw = _wrap_handler(_hermes_handler, _hermes_name)
-        if _hw is not None:
-            mcp.tool(
-                name=_hermes_name,
-                description=_hermes_handler.__doc__,
-                tags={"hermes", "diagnostic", "read-only"},
-            )(_hw)
-        else:
-            # fallback for non-async handlers
-            mcp.tool(
-                name=_hermes_name,
-                tags={"hermes", "diagnostic", "read-only"},
-            )(_hermes_handler)
-    v2_tools_registered.extend(list(HERMES_TOOL_HANDLERS.keys()))
+    # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (Canonical13 enforcement).
+    if _EXPOSE_DEV_TOOLS:
+        from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
+        for _hermes_name, _hermes_handler in HERMES_TOOL_HANDLERS.items():
+            _hw = _wrap_handler(_hermes_handler, _hermes_name)
+            if _hw is not None:
+                mcp.tool(
+                    name=_hermes_name,
+                    description=_hermes_handler.__doc__,
+                    tags={"hermes", "diagnostic", "read-only"},
+                )(_hw)
+            else:
+                # fallback for non-async handlers
+                mcp.tool(
+                    name=_hermes_name,
+                    tags={"hermes", "diagnostic", "read-only"},
+                )(_hermes_handler)
+        v2_tools_registered.extend(list(HERMES_TOOL_HANDLERS.keys()))
 
-    # ── Inject JSON Schema enums for Hermes tools ──────────────────────────
-    from arifosmcp.constitutional_map import DIAGNOSTIC_TOOLS as _DIAG_TOOLS
-    for _hn in HERMES_TOOL_HANDLERS:
-        _spec = _DIAG_TOOLS.get(_hn)
-        _modes = _spec.get("modes", []) if _spec else []
-        if _modes:
-            try:
-                _provider = getattr(mcp, "_local_provider", None)
-                if _provider:
-                    _ft = getattr(_provider, "_components", {}).get(f"tool:{_hn}@")
-                    if _ft and hasattr(_ft, "parameters"):
-                        _params = _ft.parameters
-                        if "properties" in _params and "mode" in _params["properties"]:
-                            _params["properties"]["mode"]["enum"] = _modes
-                            logger.info("INJECTED enum for %s: %s", _hn, _modes)
-            except Exception:
-                logger.debug("Schema enum injection skipped for %s", _hn, exc_info=True)
+        # ── Inject JSON Schema enums for Hermes tools ──────────────────────────
+        from arifosmcp.constitutional_map import DIAGNOSTIC_TOOLS as _DIAG_TOOLS
+        for _hn in HERMES_TOOL_HANDLERS:
+            _spec = _DIAG_TOOLS.get(_hn)
+            _modes = _spec.get("modes", []) if _spec else []
+            if _modes:
+                try:
+                    _provider = getattr(mcp, "_local_provider", None)
+                    if _provider:
+                        _ft = getattr(_provider, "_components", {}).get(f"tool:{_hn}@")
+                        if _ft and hasattr(_ft, "parameters"):
+                            _params = _ft.parameters
+                            if "properties" in _params and "mode" in _params["properties"]:
+                                _params["properties"]["mode"]["enum"] = _modes
+                                logger.info("INJECTED enum for %s: %s", _hn, _modes)
+                except Exception:
+                    logger.debug("Schema enum injection skipped for %s", _hn, exc_info=True)
+    else:
+        logger.info("Hermes tools gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose.")
 
     # Refresh the public registry cache after all canonical tools are registered
     from arifosmcp.runtime.public_registry import _runtime_contracts

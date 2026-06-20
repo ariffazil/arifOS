@@ -71,12 +71,27 @@ COGNITIVE_AXIS_VECTORS: dict[CognitiveAxis, tuple[float, float]] = {
 
 
 class BlastRadius(StrEnum):
-    """How widely effects propagate from this tool."""
+    """How widely effects propagate from this tool.
 
-    LOW = "low"  # Isolated, contained
-    MEDIUM = "medium"  # Affects current session
-    HIGH = "high"  # Affects multiple sessions or systems
-    CRITICAL = "critical"  # Affects federation, irreversible
+    Canonical 8-class — aligned to kernel_envelope.BlastRadius.
+    NONE, LOCAL, ACCOUNT, ORG, PUBLIC, MARKET, INFRASTRUCTURE, CIVILIZATIONAL.
+    """
+
+    NONE = "NONE"
+    LOCAL = "LOCAL"
+    ACCOUNT = "ACCOUNT"
+    ORG = "ORG"
+    PUBLIC = "PUBLIC"
+    MARKET = "MARKET"
+    INFRASTRUCTURE = "INFRASTRUCTURE"
+    CIVILIZATIONAL = "CIVILIZATIONAL"
+    UNKNOWN = "UNKNOWN"
+
+    # Backward-compatible aliases mapped to Hermes 8-class standard
+    LOW = "LOCAL"
+    MEDIUM = "ACCOUNT"
+    HIGH = "PUBLIC"
+    CRITICAL = "INFRASTRUCTURE"
 
 
 class ToolCapability(BaseModel):
@@ -128,7 +143,7 @@ class ToolManifest(BaseModel):
 
     # Risk classification
     blast_radius: BlastRadius = Field(
-        default=BlastRadius.LOW, description="How widely effects propagate"
+        default=BlastRadius.LOCAL, description="How widely effects propagate"
     )
     risk_tier: str = Field(default="T1", description="T0-T4 risk classification")
 

@@ -111,14 +111,58 @@ class GateVerdict(StrEnum):
 
 
 class BlastRadius(StrEnum):
-    """Estimated impact radius of an action."""
+    """Canonical 8-class blast radius (Hermes ASI standard).
+
+    Hermes ASI standard — the harder the floor, the higher the class.
+    Propagation is distributed (matrix over agents), not aggregates (max over agents).
+
+    NONE              — No effect radius.
+    LOCAL             — Single process, file, or in-memory state.
+    ACCOUNT           — User account / session scope.
+    ORG               — Organization / project scope.
+    PUBLIC            — Public-facing / external user scope.
+    MARKET            — Financial / capital / market-level impact.
+    INFRASTRUCTURE    — Infrastructure / host / system-level impact.
+    CIVILIZATIONAL    — Multi-system, societal, or civilizational impact.
+    UNKNOWN           — Cannot determine; fail closed.
+    """
 
     NONE = "NONE"
-    LOW = "LOW"
-    MEDIUM = "MEDIUM"
-    HIGH = "HIGH"
-    CRITICAL = "CRITICAL"
+    LOCAL = "LOCAL"
+    ACCOUNT = "ACCOUNT"
+    ORG = "ORG"
+    PUBLIC = "PUBLIC"
+    MARKET = "MARKET"
+    INFRASTRUCTURE = "INFRASTRUCTURE"
+    CIVILIZATIONAL = "CIVILIZATIONAL"
     UNKNOWN = "UNKNOWN"
+
+    # Backward-compatible aliases mapped to Hermes 8-class standard
+    LOW = "LOCAL"
+    MEDIUM = "ACCOUNT"
+    HIGH = "PUBLIC"
+    CRITICAL = "INFRASTRUCTURE"
+
+    @classmethod
+    def requires_human_ack(cls, radius: "BlastRadius") -> bool:
+        """Returns True if this blast radius requires human acknowledgement."""
+        return radius.value >= cls.INFRASTRUCTURE.value
+
+    @classmethod
+    def subsumes(cls, granted: "BlastRadius", requested: "BlastRadius") -> bool:
+        """Whether `granted` blast radius covers `requested`."""
+        order = {
+            cls.NONE: 0,
+            cls.LOCAL: 1,
+            cls.ACCOUNT: 2,
+            cls.ORG: 3,
+            cls.PUBLIC: 4,
+            cls.MARKET: 5,
+            cls.INFRASTRUCTURE: 6,
+            cls.CIVILIZATIONAL: 7,
+            cls.UNKNOWN: 99,
+        }
+        return order.get(granted, -1) >= order.get(requested, 999)
 
 
 class DriftLevel(StrEnum):
@@ -305,7 +349,7 @@ class RiskBlock(BaseModel):
         default=1.0, ge=0.0, le=1.0, description="1.0 = fully reversible, 0.0 = fully irreversible"
     )
     blast_radius: BlastRadius = Field(
-        default=BlastRadius.LOW, description="Estimated impact radius"
+        default=BlastRadius.LOCAL, description="Estimated impact radius"
     )
     secret_touching: bool = Field(
         default=False, description="Whether this action touches secrets/credentials"
@@ -443,7 +487,7 @@ class KernelEnvelope(BaseModel):
         """Create a minimal OBSERVE-only envelope."""
         return cls(
             authority=AuthorityBlock(action_class=ActionClass.OBSERVE),
-            risk=RiskBlock(reversibility_score=1.0, blast_radius=BlastRadius.LOW),
+            risk=RiskBlock(reversibility_score=1.0, blast_radius=BlastRadius.LOCAL),
             audit=AuditBlock(seal_mode=SealMode.OBSERVE),
             **overrides,
         )
@@ -816,7 +860,7 @@ class ToolManifestEntry(BaseModel):
     dangerous_modes: list[str] = Field(default_factory=list, description="Gated modes")
     requires_lease: bool = Field(default=False)
     requires_human_ack: bool = Field(default=False)
-    blast_radius: BlastRadius = Field(default=BlastRadius.LOW)
+    blast_radius: BlastRadius = Field(default=BlastRadius.LOCAL)
     is_reversible: bool = Field(default=True)
     memory_scope: Optional[MemoryScope] = Field(default=None)
 

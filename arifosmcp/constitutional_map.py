@@ -598,7 +598,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_kernel_route": {
         "name": "arif_kernel_route",
-        "description": "555_ROUTE: Routes intent to correct tool or organ. "
+        "description": "555_ROUTE [DEPRECATED — use arif_route + arif_triage + arif_kernel_status]: Routes intent to correct tool or organ. "
         "Use when unsure which tool to call, task needs multi-tool sequencing, "
         "or delegating to GEOX/WEALTH/WELL. Returns a plan, not a result. "
         "Parameters: mode (route|kernel|triage|delegate|status|metabolize), target (tool/endpoint name), task (task description), stage, session_id, actor_id.",  # noqa: E501
@@ -620,9 +620,95 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "L10: ambiguity is permanent; expose assumptions before routing. "
             "L12: graceful degradation — if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution. "
             "Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. "
-            "Eureka: internal depth, external legibility."
+            "Eureka: internal depth, external legibility. "
+            "RULE 14 (MODE-FIRST NAMING): prefer arif_route for routing; this tool is soft-deprecated."
         ),
         "cognitive_axis": "boundary",
+        "expose": True,
+    },
+    # ── CANONICAL TOOLS (RULE 14 MODE-FIRST NAMING, 2026-06-20) ──
+    "arif_route": {
+        "name": "arif_route",
+        "description": "555_ROUTE_CANONICAL: New canonical routing entry point. Routes an intent to the correct organ (GEOX, WEALTH, WELL, A-FORGE) using the organ_intent_map.yaml. Replaces arif_kernel_route(mode=route|delegate|bridge) for intent-based routing. For direct organ tool call with known organ+tool, use arif_bridge. Parameters: intent (natural language), organ (explicit override, optional), organ_tool (tool to call, optional), arguments (tool args), actor_id, session_id.",  # noqa: E501
+        "access": "public",
+        "stage": ToolStage.ROUTE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L01_AMANAH, Law.L04_CLARITY, Law.L10_ONTOLOGY],
+        "risk_tier": "low",
+        "irreversible": False,
+        "modes": ["route"],
+        "eureka_insight": "RULE 14: One tool, one operation (routing). Modes are not used; intent is the parameter.",
+        "cognitive_axis": "boundary",
+        "expose": True,
+    },
+    "arif_triage": {
+        "name": "arif_triage",
+        "description": "555_TRIAGE: Session status, preflight, and priority classification. Replaces arif_kernel_route(mode=status|preflight|triage). Modes: status (active session count + current stage), preflight (pre-session safety probe, no session required), triage (priority classification for a task). Parameters: mode (status|preflight|triage), session_id, stage, actor_id, priority.",
+        "access": "public",
+        "stage": ToolStage.ROUTE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L04_CLARITY, Law.L10_ONTOLOGY],
+        "risk_tier": "low",
+        "irreversible": False,
+        "modes": ["status", "preflight", "triage"],
+        "eureka_insight": "RULE 14: Mode-first. One tool, three related modes (status, preflight, triage) — all act on session state.",
+        "cognitive_axis": "boundary",
+        "expose": True,
+    },
+    "arif_kernel_status": {
+        "name": "arif_kernel_status",
+        "description": "555_KERNEL_STATUS: Telemetry, semantic tool discovery, and prediction health. Replaces arif_kernel_route(mode=telemetry|discover|prediction). Modes: telemetry (g_score, delta_S, omega), discover (semantic search across federation), prediction (self-model prediction health). Parameters: mode (telemetry|discover|prediction), intent (for discover), top_k, organ_filter, actor_id.",
+        "access": "public",
+        "stage": ToolStage.ROUTE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L02_TRUTH, Law.L04_CLARITY, Law.L08_GENIUS],
+        "risk_tier": "low",
+        "irreversible": False,
+        "modes": ["telemetry", "discover", "prediction"],
+        "eureka_insight": "RULE 14: Mode-first. Three related status-reporting operations on the same entity (kernel state).",
+        "cognitive_axis": "boundary",
+        "expose": True,
+    },
+    "arif_bridge": {
+        "name": "arif_bridge",
+        "description": "555_BRIDGE: Low-level direct organ tool call. Bypasses intent map — caller must specify organ and tool_name. Use arif_route for intent-based routing. Use arif_bridge only when organ and tool are known ahead of time. Internal implementation also used by arif_route. Parameters: organ (geox|wealth|well), tool_name, arguments, actor_id, session_id.",
+        "access": "authenticated",
+        "stage": ToolStage.ROUTE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L10_ONTOLOGY],
+        "risk_tier": "medium",
+        "irreversible": False,
+        "modes": ["bridge"],
+        "eureka_insight": "RULE 14: One tool, one operation (bridge). Organ is a parameter, not a mode. Bypasses intent map for known-target cases.",
+        "cognitive_axis": "boundary",
+        "expose": True,
+    },
+    "arif_kernel_attest": {
+        "name": "arif_kernel_attest",
+        "description": "555_KERNEL_ATTEST: Live organ attestation. Replaces arif_kernel_route(mode=attest). If organ is None, attest all organs. Parameters: organ (GEOX|WEALTH|WELL|arifOS, optional), actor_id, session_id.",
+        "access": "public",
+        "stage": ToolStage.ROUTE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L01_AMANAH, Law.L02_TRUTH],
+        "risk_tier": "low",
+        "irreversible": False,
+        "modes": ["attest"],
+        "eureka_insight": "RULE 14: Organ is a parameter, not a separate tool name. Same attestation logic, different target.",
+        "cognitive_axis": "boundary",
+        "expose": True,
+    },
+    "arif_kernel_health": {
+        "name": "arif_kernel_health",
+        "description": "555_KERNEL_HEALTH: Federation liveness heartbeat snapshot. Replaces arif_kernel_route(mode=health). No modes — health is singular. Parameters: actor_id (optional).",
+        "access": "public",
+        "stage": ToolStage.ROUTE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L02_TRUTH, Law.L04_CLARITY],
+        "risk_tier": "low",
+        "irreversible": False,
+        "modes": ["health"],
+        "eureka_insight": "RULE 14: One tool, one operation. No modes because no expansion room is needed.",
+        "cognitive_axis": "vitality",
         "expose": True,
     },
     "arif_reply_compose": {
@@ -794,16 +880,18 @@ CONSTITUTIONAL_TOOLS: tuple[str, ...] = tuple(CANONICAL_TOOLS.keys())
 #   narrative  — Institutional shadow drift + narrative tension detection
 #   diagnostic — Health probes, floor status, drift checks, budget telemetry, instruction scanner
 #
-# NAMESPACE RULING (F13 SOVEREIGN, 2026-06-14):
-#   arif_*   — Canonical prefix for all kernel + diagnostic tools  (sanctioned)
-#   hermes_* — Sanctioned non-arif_ namespace for Hermes ASI tools (sanctioned)
-#   forge_*  — Sanctioned non-arif_ namespace for A-FORGE sub-tools (sanctioned)
+# NAMESPACE RULING (F13 SOVEREIGN, 2026-06-14; amended 2026-06-19 — Canonical13 enforcement):
+#   arif_*   — Canonical prefix for 13 kernel tools + 6 canary probes (public surface)
+#   hermes_* — GATED non-arif_ namespace for Hermes ASI tools (ARIFOS_MCP_EXPOSE_DEV_TOOLS)
+#   forge_*  — GATED non-arif_ namespace for A-FORGE sub-tools (ARIFOS_MCP_EXPOSE_DEV_TOOLS;
+#              forge_* tools are DEPRECATED on arifOS — use A-FORGE MCP directly)
 #   arifos_* — BLOCKED public prefix (internal-only, never exposed)
-#   mcp_*    — Utility namespace for operational diagnostics (mcp_drift_check)
-# 
-# DECISION: Rename NOT required. hermes_* and forge_* are FIAT-sanctioned
-# non-arif_ namespaces by F13 SOVEREIGN. Prefixing to arif_hermes_* or
-# arif_forge_* would add entropy with zero governance benefit.
+#   mcp_*    — Utility namespace for operational diagnostics (mcp_drift_check; gated)
+#
+# AMENDED 2026-06-19: hermes_*, forge_*, and non-canonical arif_* diagnostics
+# (lease, attest, peer_contract, heartbeat, narrative, shadow) are no longer
+# on the default public wire surface. They require ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
+# Canonical13 = 13 kernel tools. Default public wire = 13 + 6 canary probes = 19.
 # ═══════════════════════════════════════════════════════════════════════════════
 
 DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
@@ -1586,11 +1674,11 @@ def build_tool_registry_manifest() -> dict[str, Any]:
             "Do not hand-edit — edit the source dicts in constitutional_map.py and regenerate."
         ),
         "_namespace_ruling": {
-            "arif_*": "Sanctioned — canonical prefix for all kernel + diagnostic tools",
-            "hermes_*": "Sanctioned — Hermes ASI cross-verification, fact-check, vault tools (F13 SOVEREIGN 2026-06-14)",
-            "forge_*": "Sanctioned — A-FORGE pre-execution sub-tools (dry_run, plan, query) (F13 SOVEREIGN 2026-06-14)",
+            "arif_*": "Canonical13 public surface — 13 kernel + 6 canary probes (19 default wire tools)",
+            "hermes_*": "GATED — Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",
+            "forge_*": "GATED/DEPRECATED — A-FORGE pre-execution sub-tools (use A-FORGE MCP directly; removed 2026-07-15)",
             "arifos_*": "BLOCKED — internal-only prefix, never exposed on public MCP surface",
-            "mcp_*": "Utility namespace — operational diagnostics (drift_check)",
+            "mcp_*": "GATED — Utility namespace for operational diagnostics",
         },
         "canonical_count": len(CONSTITUTIONAL_TOOLS),
         "diagnostic_count": len(DIAGNOSTIC_TOOLS),

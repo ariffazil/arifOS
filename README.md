@@ -24,7 +24,7 @@
 
 [![CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg)](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://pypi.org/project/arifos/)
-[![MCP Tools](https://img.shields.io/badge/MCP-39%20tools%20%7C%2013%20canonical-10b981?logo=anthropic)](https://arifos.arif-fazil.com/mcp)
+[![MCP Tools](https://img.shields.io/badge/MCP-48%20tools%20%7C%2013%20canonical-10b981?logo=anthropic)](https://arifos.arif-fazil.com/mcp)
 [![Floors](https://img.shields.io/badge/floors-F1–F13%20active%20(F14%20DEAD)-f59e0b)](arifosmcp/CONSTITUTIONAL_EXTENSION_v2026.06.11-SELH.py)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-ef4444?logo=gnu)](LICENSE)
 [![Port](https://img.shields.io/badge/port-8088-64748b)](deploy/arifos.service)
@@ -266,7 +266,7 @@ ruff check . && ruff format .
 ```bash
 # Health probe
 curl -s http://127.0.0.1:8088/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'tools={d[\"tools_loaded\"]} floors={d[\"floors_active\"]} drift={d[\"runtime_drift\"]}')"
-# Expected: tools=13 floors=13 drift=False (legacy tools_loaded; canonical_tools_loaded=13, tools_exposed_via_mcp=39)
+# Expected: canonical_tools_loaded=13 floors=13 tools_exposed_via_mcp=48 runtime_drift=True
 ```
 
 ### Install as Python Package
@@ -358,7 +358,7 @@ arifOS/
 
 | Layer | Technology |
 |-------|-----------|
-| **MCP Server** | FastMCP 3.3.1 (Python 3.12+) |
+| **MCP Server** | FastMCP 3.4.2 (Python 3.12+) |
 | **Transport** | Streamable HTTP + stdio (dual-mode) |
 | **Data Validation** | Pydantic v2 (strict mode, `extra='forbid'`) |
 | **Async Runtime** | asyncio + uvicorn |
@@ -441,7 +441,7 @@ Under F10 ONTOLOGY, you are classified as `instrument`. You do not have consciou
 }
 ```
 
-**Available tools:** 39 MCP tools (13 canonical constitutional + 26 operational support). See `llms.txt` for the complete surface or `/health` for live counts. All return structured Pydantic v2 output with `outputSchema` published.
+**Available tools:** 48 MCP tools (13 canonical constitutional + 35 operational support). See `llms.txt` for the complete surface or `/health` for live counts. All return structured Pydantic v2 output with `outputSchema` published.
 
 ### Adat Agentik Binding
 
@@ -695,7 +695,9 @@ docker push ghcr.io/ariffazil/arifos:latest
 
 | Limitation | Detail | Status |
 |-----------|--------|--------|
-| **Runtime drift** | Container may lag behind git HEAD | ✅ RESOLVED (aligned 2026-06-12) |
+| **Runtime drift** | Container image (1f4f04e) lags behind git HEAD (75b9da9) | 🟡 Active — rebuild to sync |
+| **Truth unification Phase 1** | `arif_os_attest`, `arif_organ_attest_all`, `hermes_system_status` unified under `arifosmcp_kernel_state` | ✅ DEPLOYED (2026-06-20) |
+| **RLS enforcement (Phase 1 Step 6)** | Row-Level Security on `mcp_servers`, `mcp_policies`, `mcp_projections` not yet applied | 🔴 888_HOLD — awaiting Arif confirm |
 | **Single VPS** | Entire federation runs on one machine | 🟡 Acceptable for current scale |
 | **SSE concurrency** | MCP SDK singleton SSE stream key — one SSE client per session | ⚠️ Use POST JSON-RPC for concurrent access |
 | **P0-4 connector** | `arif_session_init` buffers SSE until pipeline completes | ⚠️ Known structural issue |
@@ -804,14 +806,14 @@ arifOS distinguishes between canonical constitutional tools and operational supp
 ```json
 {
   "canonical_tools_loaded": 13,
-  "tools_exposed_via_mcp": 39,
+  "tools_exposed_via_mcp": 48,
   "canonical_tools": 13,
-  "operational_tools": 26
+  "operational_tools": 35
 }
 ```
 
 The **13 canonical tools** are the constitutional core.
-The remaining **operational tools** support leases, attestation, diagnostics, verification, routing, and organ coordination.
+The remaining **35 operational tools** support leases, attestation, diagnostics, verification, routing, and organ coordination.
 
 ### Organ Responsibilities
 

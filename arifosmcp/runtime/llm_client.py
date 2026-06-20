@@ -50,6 +50,14 @@ MINIMAX_API_KEY = os.getenv("MINIMAX_API_KEY")
 MINIMAX_BASE_URL = os.getenv("MINIMAX_API_HOST", "https://api.minimax.io")
 MINIMAX_MODEL = os.getenv("MINIMAX_MODEL", "MiniMax-M3")
 
+# Tier 1.5 — Azure OpenAI (gpt-4.1-mini, ProCopilot $200 credit)
+# Wired 2026-06-20. Sits between MiniMax (Tier 1) and ILMU (Tier 2)
+# as a reliable, cheap fallback when MiniMax is rate-limited.
+# Azure is OpenAI-compatible — uses same httpx pattern as ILMU.
+AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+AZURE_OPENAI_MODEL = os.getenv("AZURE_OPENAI_MODEL", "gpt-4.1-mini")
+
 # Ollama — EMBEDDING ONLY (bge-m3). NOT used for text generation.
 # Removed 2026-06-16: llava:7b generation tier was a ghost reference (never pulled).
 # Ollama is retained solely for bge-m3 embeddings (arifbrain, L3 ingest, AAA).
@@ -562,6 +570,80 @@ async def _call_minimax(
     return raw_output, parsed
 
 
+async def _call_azure(
+    system: str,
+    user: str,
+    response_schema: dict[str, Any] | None,
+    temperature: float,
+    max_tokens: int = 1200,
+) -> tuple[str, dict[str, Any]]:
+    """
+    Tier 1.5 — call Azure OpenAI gpt-4.1-mini (ProCopilot $200 credit).
+
+    OpenAI-compatible /v1/chat/completions at Azure endpoint.
+    Wired 2026-06-20 per Arif's 888_HOLD. Sits between MiniMax (Tier 1)
+    and ILMU (Tier 2) as a reliable, cheap fallback.
+
+    Returns (raw_output_str, parsed_output_dict).
+    """
+    if not AZURE_OPENAI_KEY:
+        raise LLMUnavailableError("AZURE_OPENAI_KEY not configured")
+
+    messages = [{"role": "system", "content": system}]
+    if user:
+        messages.append({"role": "user", "content": user})
+
+    payload: dict[str, Any] = {
+        "model": AZURE_OPENAI_MODEL,
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{AZURE_OPENAI_ENDPOINT}/chat/completions",
+                headers={
+                    "api-key": AZURE_OPENAI_KEY,
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+            )
+    except Exception as exc:
+        logger.warning("Azure OpenAI transport error: %s", exc)
+        raise LLMUnavailableError(f"Azure OpenAI unavailable: {exc}") from exc
+
+    if response.status_code != 200:
+        logger.warning("Azure OpenAI HTTP %s: %s", response.status_code, response.text[:200])
+        raise LLMUnavailableError(f"Azure OpenAI HTTP {response.status_code}")
+
+    try:
+        data = response.json()
+        msg = data["choices"][0]["message"]
+        content = msg.get("content", "")
+    except Exception as exc:
+        logger.warning("Azure OpenAI parse error: %s", exc)
+        raise LLMUnavailableError(f"Azure OpenAI response parse error: {exc}") from exc
+
+    raw_output = _strip_markdown(content)
+
+    try:
+        parsed = json.loads(raw_output)
+    except json.JSONDecodeError:
+        logger.warning("Azure OpenAI returned invalid JSON, wrapping plain text: %s", raw_output[:200])
+        parsed = {"reasoning": raw_output, "answer": raw_output}
+
+    if not isinstance(parsed, dict):
+        raise LLMUnavailableError(f"Azure OpenAI output must be a JSON object, got {type(parsed).__name__}")
+
+    if not parsed:
+        raise LLMUnavailableError("Azure OpenAI returned empty JSON object")
+
+    logger.debug("Azure OpenAI inference complete (model=%s)", AZURE_OPENAI_MODEL)
+    return raw_output, parsed
+
+
 async def _call_ollama(
     system: str,
     user: str,
@@ -740,10 +822,12 @@ async def call_llm(
     trace_recursion_depth: int = 0,
 ) -> LLMOutputEnvelope:
     """
-    Call MiniMax M3 (Tier 1) → ILMU (Tier 2) → SEA-LION (Tier 3) → Ollama (Tier 4).
+    Call MiniMax M3 (Tier 1) → Azure gpt-4.1-mini (Tier 1.5) → ILMU (Tier 2) → SEA-LION (Tier 3).
 
-    Cascade reordered 2026-06-13: ILMU promoted to Tier 2 as first reliable provider
-    after MiniMax rate-limiting. SEA-LION is intermittent; Ollama is slow CPU.
+    Cascade updated 2026-06-20: Azure inserted as Tier 1.5 (ProCopilot $200 credit).
+    Azure is OpenAI-compatible, cheap ($0.15/M input), reliable. Sits between
+    MiniMax (rate-limited) and ILMU (free but intermittent).
+    Original cascade reordered 2026-06-13: ILMU promoted to Tier 2.
 
     Returns LLMOutputEnvelope — the single legal form of LLM output in arifOS.
     The envelope is the ONLY thing that should reach tool logic, judgment, or memory.
@@ -794,6 +878,29 @@ async def call_llm(
             parsed,
             "minimax",
             MINIMAX_MODEL,
+            tool_origin,
+            mode,
+            combined_prompt,
+            (time.monotonic() - t0) * 1000,
+            response_schema,
+            trace_recursion_depth,
+        )
+    except LLMUnavailableError:
+        pass
+
+    # Tier 1.5 — Azure OpenAI gpt-4.1-mini (ProCopilot $200 credit)
+    # Wired 2026-06-20. Sits BETWEEN MiniMax and ILMU. Cheap, reliable,
+    # OpenAI-compatible. Falls through if AZURE_OPENAI_KEY is not set.
+    try:
+        t0 = time.monotonic()
+        raw_output, parsed = await _call_azure(
+            system, user, response_schema, temperature, max_tokens
+        )
+        return _make_envelope(
+            raw_output,
+            parsed,
+            "azure_openai",
+            AZURE_OPENAI_MODEL,
             tool_origin,
             mode,
             combined_prompt,

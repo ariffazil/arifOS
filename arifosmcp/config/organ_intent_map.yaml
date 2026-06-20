@@ -1,0 +1,215 @@
+# organ_intent_map.yaml — Canonical routing map for arifOS kernel
+# arif_route(intent=) → routes to the correct organ
+# Respects RULE 14 MODE-FIRST NAMING
+#
+# Usage in arif_route:
+#   intent: "seismic interpretation" → GEOX
+#   intent: "well log analysis"     → GEOX
+#   intent: "portfolio risk"        → WEALTH
+#   intent: "biometric assessment"   → WELL
+#
+# Format: intent_keyword → organ_id
+# Match priority: longest keyword wins (substring match)
+#
+# Ratified: 2026-06-20
+---
+organ_routes:
+  geox:
+    intent_keywords:
+      - seismic
+      - well log
+      - las
+      - petrophysics
+      - horizon
+      - fault
+      - amplitude
+      - basin
+      - prospect
+      - sequence strat
+      - dst
+      - drill stem
+      - wellbore
+      - subsurface
+      - velocity
+      - checkshot
+      - vsp
+      - avo
+      - impedance
+      - inversion
+      - lithology
+      - porosity
+      - saturation
+      - permeability
+      - resistivity
+      - gamma ray
+      - sonic
+      - density
+      - neutron
+      - structural map
+      - trap
+      - charge
+      - seal
+      - source rock
+      - migration
+      - geophysics
+      - geoseismic
+      - carbonate
+      - clastic
+      - turbidite
+      - sandstone
+      - shale
+      - anhydrite
+      - limestone
+      - reflector
+      - twt
+      - time depth
+      - wavelet
+      - synthetic
+      - vClay
+      - Vsh
+      - Sw
+      - Phi
+      - GR
+      - RD
+      - RS
+      - SP
+      - caliper
+    organ: GEOX
+    port: 8081
+    tool_prefix: geox_
+
+  wealth:
+    intent_keywords:
+      - portfolio
+      - asset
+      - liability
+      - cash flow
+      - npv
+      - irr
+      - emv
+      - option
+      - derivative
+      - pricing
+      - risk metric
+      - capital
+      - investment
+      - hedge
+      - futures
+      - bond
+      - equity
+      - commodity
+      - allocation
+      - rebalancing
+      - stress test
+      - monte carlo
+      - variance
+      - sharpe
+      - sortino
+      - max drawdown
+      - VaR
+      - cvar
+      - greeks
+      - delta
+      - gamma
+      - theta
+      - vega
+      - rho
+    organ: WEALTH
+    port: 18082
+    tool_prefix: wealth_
+
+  well:
+    intent_keywords:
+      - wellness
+      - vitality
+      - biometric
+      - health
+      - sleep
+      - heart rate
+      - hrv
+      - resting heart
+      - steps
+      - calories
+      - activity
+      - blood pressure
+      - weight
+      - body mass
+      - metabolic
+      - homeostasis
+      - strain
+      - recovery
+      - readiness
+      - sleep debt
+      - RHR
+      - HRV
+      - SpO2
+      - temperature
+      - stress index
+      - autonomic
+    organ: WELL
+    port: 18083
+    tool_prefix: well_
+
+  a_forge:
+    intent_keywords:
+      - build
+      - deploy
+      - forge
+      - compile
+      - commit
+      - push
+      - git
+      - docker
+      - container
+      - image
+      - pod
+      - kubernetes
+      - k8s
+      - pipeline
+      - ci/cd
+      - jenkins
+      - github
+      - repository
+      - version
+    organ: A-FORGE
+    port: 7071
+    tool_prefix: ""
+
+  aaa:
+    intent_keywords:
+      - dashboard
+      - control plane
+      - throttle
+      - permission
+      - access control
+      - audit log
+      - federation health
+      - agent registry
+      - cockpit
+    organ: AAA
+    port: 3001
+    tool_prefix: ""
+
+  apex:
+    intent_keywords:
+      - apex
+      - oracle
+      - third witness
+      - constitutional review
+    organ: APEX
+    port: 3002
+    tool_prefix: ""
+
+# Default routing when no keyword matches
+default_organ: arifOS
+
+# Routing precedence rules
+precedence:
+  # If intent contains any keyword from geox + any keyword from wealth, GEOX wins
+  # (earth domain takes priority over financial for hybrid queries)
+  geox_priority_over:
+    - wealth
+  well_priority_over:
+    - a_forge
+  # Exact organ override — if organ parameter is explicitly passed, use it
+  explicit_organ_overrides_keyword_match: true

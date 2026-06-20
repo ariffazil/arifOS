@@ -52,12 +52,21 @@ REVERSIBILITY_HARD_FLOOR = 0.3  # below this → full principal control required
 # ═══════════════════════════════════════════════════════════════
 
 
+# -- Canonical enums imported from kernel schema --
+# principal_paradox.py maintains its own local subset aligned to Hermes ASI blast standard.
+# BlastRadius values map: LOCAL → LOCAL, ORGAN → ORG, FEDERATION → PUBLIC, EXTERNAL → CIVILIZATIONAL
+# Full canonical enum in schemas/kernel_envelope.py and schemas/federation_envelope.py
+
+
 class ActionClass(StrEnum):
     OBSERVE = "OBSERVE"
-    COMPUTE = "COMPUTE"
-    PROPOSE = "PROPOSE"
+    ANALYZE = "ANALYZE"
+    DRAFT = "DRAFT"
+    SIMULATE = "SIMULATE"
     MUTATE = "MUTATE"
-    ATOMIC = "ATOMIC"
+    EXTERNAL_SIDE_EFFECT = "EXTERNAL_SIDE_EFFECT"
+    IRREVERSIBLE = "IRREVERSIBLE"
+    UNKNOWN = "UNKNOWN"
 
 
 class RiskTier(StrEnum):
@@ -69,9 +78,13 @@ class RiskTier(StrEnum):
 
 class BlastRadius(StrEnum):
     LOCAL = "LOCAL"
-    ORGAN = "ORGAN"
-    FEDERATION = "FEDERATION"
-    EXTERNAL = "EXTERNAL"
+    ACCOUNT = "ACCOUNT"
+    ORG = "ORG"
+    PUBLIC = "PUBLIC"
+    MARKET = "MARKET"
+    INFRASTRUCTURE = "INFRASTRUCTURE"
+    CIVILIZATIONAL = "CIVILIZATIONAL"
+    UNKNOWN = "UNKNOWN""
 
 
 class AutonomyTier(StrEnum):
@@ -169,23 +182,35 @@ def _record_override(session_id: str) -> int:
 
 # (risk_tier, blast_radius, reversibility_floor) → autonomy_tier
 AUTONOMY_CONTRACTION = [
-    # (Risk,         Blast,       Rev Floor,  Autonomy)
-    (RiskTier.LOW,    BlastRadius.LOCAL,      0.9,  AutonomyTier.FULL_AUTO),
-    (RiskTier.LOW,    BlastRadius.ORGAN,      0.8,  AutonomyTier.FULL_AUTO),
-    (RiskTier.LOW,    BlastRadius.FEDERATION, 0.7,  AutonomyTier.PROPOSE_ONLY),
-    (RiskTier.LOW,    BlastRadius.EXTERNAL,   0.7,  AutonomyTier.PROPOSE_ONLY),
-    (RiskTier.MEDIUM, BlastRadius.LOCAL,      0.7,  AutonomyTier.FULL_AUTO),
-    (RiskTier.MEDIUM, BlastRadius.ORGAN,      0.7,  AutonomyTier.PROPOSE_ONLY),
-    (RiskTier.MEDIUM, BlastRadius.FEDERATION, 0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.MEDIUM, BlastRadius.EXTERNAL,   0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.HIGH,   BlastRadius.LOCAL,      0.5,  AutonomyTier.PROPOSE_ONLY),
-    (RiskTier.HIGH,   BlastRadius.ORGAN,      0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.HIGH,   BlastRadius.FEDERATION, 0.3,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.HIGH,   BlastRadius.EXTERNAL,   0.3,  AutonomyTier.HOLD),
-    (RiskTier.ATOMIC, BlastRadius.LOCAL,      0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.ATOMIC, BlastRadius.ORGAN,      0.3,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.ATOMIC, BlastRadius.FEDERATION, 0.0,  AutonomyTier.HOLD),
-    (RiskTier.ATOMIC, BlastRadius.EXTERNAL,   0.0,  AutonomyTier.HOLD),
+    # (Risk,         Blast,              Rev Floor,  Autonomy)
+    (RiskTier.LOW,    BlastRadius.LOCAL,            0.9,  AutonomyTier.FULL_AUTO),
+    (RiskTier.LOW,    BlastRadius.ACCOUNT,          0.85, AutonomyTier.FULL_AUTO),
+    (RiskTier.LOW,    BlastRadius.ORG,              0.8,  AutonomyTier.PROPOSE_ONLY),
+    (RiskTier.LOW,    BlastRadius.PUBLIC,           0.7,  AutonomyTier.PROPOSE_ONLY),
+    (RiskTier.LOW,    BlastRadius.MARKET,           0.6,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.LOW,    BlastRadius.INFRASTRUCTURE,   0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.LOW,    BlastRadius.CIVILIZATIONAL,   0.3,  AutonomyTier.HOLD),
+    (RiskTier.MEDIUM, BlastRadius.LOCAL,            0.7,  AutonomyTier.FULL_AUTO),
+    (RiskTier.MEDIUM, BlastRadius.ACCOUNT,          0.7,  AutonomyTier.PROPOSE_ONLY),
+    (RiskTier.MEDIUM, BlastRadius.ORG,              0.7,  AutonomyTier.PROPOSE_ONLY),
+    (RiskTier.MEDIUM, BlastRadius.PUBLIC,           0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.MEDIUM, BlastRadius.MARKET,           0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.MEDIUM, BlastRadius.INFRASTRUCTURE,   0.3,  AutonomyTier.HOLD),
+    (RiskTier.MEDIUM, BlastRadius.CIVILIZATIONAL,   0.1,  AutonomyTier.HOLD),
+    (RiskTier.HIGH,   BlastRadius.LOCAL,            0.5,  AutonomyTier.PROPOSE_ONLY),
+    (RiskTier.HIGH,   BlastRadius.ACCOUNT,          0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.HIGH,   BlastRadius.ORG,              0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.HIGH,   BlastRadius.PUBLIC,           0.3,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.HIGH,   BlastRadius.MARKET,           0.2,  AutonomyTier.HOLD),
+    (RiskTier.HIGH,   BlastRadius.INFRASTRUCTURE,   0.0,  AutonomyTier.HOLD),
+    (RiskTier.HIGH,   BlastRadius.CIVILIZATIONAL,   0.0,  AutonomyTier.HOLD),
+    (RiskTier.ATOMIC, BlastRadius.LOCAL,            0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.ATOMIC, BlastRadius.ACCOUNT,          0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.ATOMIC, BlastRadius.ORG,              0.3,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.ATOMIC, BlastRadius.PUBLIC,           0.2,  AutonomyTier.HOLD),
+    (RiskTier.ATOMIC, BlastRadius.MARKET,           0.1,  AutonomyTier.HOLD),
+    (RiskTier.ATOMIC, BlastRadius.INFRASTRUCTURE,   0.0,  AutonomyTier.HOLD),
+    (RiskTier.ATOMIC, BlastRadius.CIVILIZATIONAL,   0.0,  AutonomyTier.HOLD),
 ]
 
 

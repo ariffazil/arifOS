@@ -337,10 +337,18 @@ async def attest_organ(
         status = "DEGRADED_CLAIM"
         reason = f"Health probe returned: {health.get('status', 'unknown')}"
         degraded = True
-    elif not tools:
+    elif not tools and not is_healthy(health.get("status")):
+        # Both health probe AND tools/list failed — true degradation
         status = "DEGRADED_CLAIM"
         reason = "Tool surface empty or unreachable"
         degraded = True
+    elif not tools:
+        # Health probe PASSED but tools/list returned empty
+        # This is a probe method failure (HTTP), not an organ failure
+        # Surface as PARTIAL_DEGRADED to distinguish from true degradation
+        status = "PARTIAL_DEGRADED"
+        reason = "Tool surface unreachable via HTTP MCP probe — organ alive at health endpoint"
+        # NOT degraded=True — organ is alive, probe method is the issue
     elif identity_anchor_hash == "sha256:missing":
         # Correct language: not "constitution file unavailable" but anchor-type-aware
         reason = f"Identity anchor ({identity_anchor_type}) unavailable"
@@ -445,6 +453,14 @@ async def attest_organ(
         verdict="DEGRADED" if degraded else "SEAL",
     )
 
+    # Derive canonical tool count from federation registry (declared, not probed)
+    _canonical_tc = 0
+    try:
+        from arifosmcp.runtime.federation_registry import FEDERATION_ORGANS
+        _canonical_tc = FEDERATION_ORGANS.get(organ_id, {}).get("canonical_tools", 0)
+    except Exception:
+        pass
+
     return {
         "status": "OK" if not degraded else "DEGRADED",
         "tool": "arif_organ_attest",
@@ -453,6 +469,9 @@ async def attest_organ(
             "heartbeat": heartbeat.model_dump(mode="json"),
             "envelope": envelope.model_dump(mode="json"),
             "tools_observed": len(tools),
+            "tool_count_live": len(tools),
+            "tool_count_canonical": _canonical_tc,
+            "probe_method": "http_mcp",
         },
     }
 

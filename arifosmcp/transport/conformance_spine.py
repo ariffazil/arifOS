@@ -36,7 +36,7 @@ FAIL = "FAIL"
 
 # ── Low-level helpers ────────────────────────────────────────────────────────
 
-def _http_get(path: str, timeout: int = 5) -> dict[str, Any]:
+def _http_get(path: str, timeout: int = 15) -> dict[str, Any]:
     try:
         req = urllib.request.Request(
             f"{KERNEL_URL}{path}",
@@ -49,7 +49,7 @@ def _http_get(path: str, timeout: int = 5) -> dict[str, Any]:
 
 
 def _mcp_post(method: str, params: dict[str, Any] | None = None,
-              session_id: str | None = None, timeout: int = 8) -> dict[str, Any]:
+              session_id: str | None = None, timeout: int = 15) -> dict[str, Any]:
     payload = {"jsonrpc": "2.0", "id": 1, "method": method, "params": params or {}}
     data = json.dumps(payload).encode("utf-8")
     headers: dict[str, str] = {

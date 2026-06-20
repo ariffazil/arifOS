@@ -70,7 +70,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=["revoke", "epoch_open", "epoch_seal"],
         requires_lease=False,
         requires_human_ack=False,
-        blast_radius=BlastRadius.LOW,
+        blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
     "arif_sense_observe": ToolManifestEntry(
@@ -91,7 +91,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=[],
         requires_lease=False,
         requires_human_ack=False,
-        blast_radius=BlastRadius.LOW,
+        blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
     "arif_evidence_fetch": ToolManifestEntry(
@@ -101,7 +101,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=["archive"],
         requires_lease=False,
         requires_human_ack=False,
-        blast_radius=BlastRadius.LOW,
+        blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
     "arif_mind_reason": ToolManifestEntry(
@@ -122,7 +122,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=[],
         requires_lease=False,
         requires_human_ack=False,
-        blast_radius=BlastRadius.LOW,
+        blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
     "arif_kernel_route": ToolManifestEntry(
@@ -132,7 +132,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=[],
         requires_lease=False,
         requires_human_ack=False,
-        blast_radius=BlastRadius.LOW,
+        blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
     "arif_reply_compose": ToolManifestEntry(
@@ -142,7 +142,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=[],
         requires_lease=False,
         requires_human_ack=False,
-        blast_radius=BlastRadius.LOW,
+        blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
     "arif_memory_recall": ToolManifestEntry(
@@ -152,7 +152,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=["store", "prune"],
         requires_lease=True,
         requires_human_ack=False,
-        blast_radius=BlastRadius.MEDIUM,
+        blast_radius=BlastRadius.ACCOUNT,
         is_reversible=True,
     ),
     "arif_heart_critique": ToolManifestEntry(
@@ -170,7 +170,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=[],
         requires_lease=False,
         requires_human_ack=False,
-        blast_radius=BlastRadius.LOW,
+        blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
     "arif_gateway_connect": ToolManifestEntry(
@@ -180,7 +180,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=["route", "relay"],
         requires_lease=True,
         requires_human_ack=True,
-        blast_radius=BlastRadius.HIGH,
+        blast_radius=BlastRadius.PUBLIC,
         is_reversible=True,
     ),
     "arif_ops_measure": ToolManifestEntry(
@@ -190,7 +190,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=[],
         requires_lease=False,
         requires_human_ack=False,
-        blast_radius=BlastRadius.LOW,
+        blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
     "arif_judge_deliberate": ToolManifestEntry(
@@ -200,7 +200,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=[],
         requires_lease=False,
         requires_human_ack=False,
-        blast_radius=BlastRadius.LOW,
+        blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
     "arif_vault_seal": ToolManifestEntry(
@@ -210,7 +210,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=["seal"],
         requires_lease=True,
         requires_human_ack=True,
-        blast_radius=BlastRadius.CRITICAL,
+        blast_radius=BlastRadius.INFRASTRUCTURE,
         is_reversible=False,
     ),
     "arif_forge_execute": ToolManifestEntry(
@@ -220,7 +220,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=["engineer", "write", "generate", "commit"],
         requires_lease=True,
         requires_human_ack=True,
-        blast_radius=BlastRadius.HIGH,
+        blast_radius=BlastRadius.PUBLIC,
         is_reversible=False,
     ),
 }
@@ -321,6 +321,33 @@ def pre_execution_gate(
             ],
             violations=["F1_AMANAH — action class escalation"],
             blocked_action_class=requested_action,
+        )
+
+    # ── Gate 3.5: HARD INFRASTRUCTURE → 888 HOLD ──────────────────────
+    # Hermes ASI standard: BlastClass ≥ INFRASTRUCTURE requires unconditional
+    # 888 HOLD regardless of lease band, action class, or human ack status.
+    # This is HARAM — not WAJIB. No override possible.
+    if manifest_entry and manifest_entry.blast_radius in (
+        BlastRadius.INFRASTRUCTURE,
+        BlastRadius.CIVILIZATIONAL,
+    ):
+        # Even if human ack is present, INFRASTRUCTURE requires sovereign seal
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=[
+                f"HARD INFRASTRUCTURE HOLD: Tool '{tool_name}' has blast radius "
+                f"{manifest_entry.blast_radius.value}. Hermes ASI doctrine: "
+                f"BlastClass ≥ INFRASTRUCTURE requires unconditional 888 HOLD "
+                f"regardless of lease band or human ack. This is HARAM without "
+                f"sovereign-level ceremony."
+            ],
+            violations=[
+                "F0_SAFETY — INFRASTRUCTURE blast requires 888 HOLD",
+                "L00_ADAT — INFRASTRUCTURE/CIVILIZATIONAL is HARAM, not WAJIB",
+            ],
+            blocked_action_class=requested_action,
+            required_human_ack=True,
         )
 
     # ── Gate 4: Actor verification ────────────────────────────────────
