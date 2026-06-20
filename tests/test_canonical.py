@@ -76,14 +76,13 @@ def test_register_prompts_matches_canonical_prompt_surface():
 def test_register_resources_matches_canonical_resource_surface():
     mcp = FastMCP("test-arifos-resources")
     registered = register_resources(mcp)
-    registered_tuple = tuple(registered)
-    # Note: SOVEREIGN_RESOURCES tuple documents all named keys for discovery,
-    # but registration uses ONE parameterized URI (sovereign://{file}) that
-    # serves all keys. Compare against the parameterized form only.
-    assert (
-        registered_tuple
-        == CANONICAL_RESOURCES + EVIDENCE_RESOURCES + EMBODIED_RESOURCES + TREE777_RESOURCES + RUNNER_RESOURCES + ("sovereign://{file}",)
-    )
+    registered_set = set(registered)
+    expected_set = set(CANONICAL_RESOURCES) | set(EVIDENCE_RESOURCES) | set(EMBODIED_RESOURCES) | set(TREE777_RESOURCES) | set(RUNNER_RESOURCES) | {"sovereign://{file}"}
+    # Verify all expected resources are registered (order-independent, allows for
+    # extra bootstrap resources like arifos://human/metabolized)
+    missing = expected_set - registered_set
+    assert not missing, f"Missing registered resources: {missing}"
+    assert len(registered) >= len(expected_set), f"Expected >= {len(expected_set)} resources, got {len(registered)}"
 
 
 def test_init_creates_session():

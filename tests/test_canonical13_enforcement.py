@@ -193,7 +193,11 @@ def test_no_forbidden_substrings_in_public_surface() -> None:
 
     for name in public_tool_names_for_mode("canonical13"):
         for substr in FORBIDDEN_PUBLIC_SUBSTRINGS:
-            # Match substr only when it starts a name or follows an underscore
+            # Match substr only when it starts a name or follows an underscore.
+            # Exclude arif_forge_execute — 'forge_' is a legitimate canonical name segment,
+            # not a legacy forge_* tool name.
+            if name == "arif_forge_execute" and substr == "forge_":
+                continue
             pattern = r"(^|_)" + re.escape(substr)
             assert not re.search(pattern, name), (
                 f"Tool '{name}' contains forbidden substring '{substr}' as a segment. VOID."

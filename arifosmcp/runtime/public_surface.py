@@ -106,7 +106,7 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
 # Canonical 13 + Diagnostic 6 = 19 registrable tools.
 # The old ghost aliases are preserved below as DOMAIN_ALIASES for documentation
 # and future implementation tracking, but they are NOT part of any public mode.
-EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_13, *DIAGNOSTIC_TOOLS])))
+EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_13, *CANARY_PROBES, *DIAGNOSTIC_TOOLS])))
 
 # DOMAIN_ALIASES — planned domain-specific tools that currently have NO FastMCP
 # handlers. They exist in the alias map as implementation targets, not as live
