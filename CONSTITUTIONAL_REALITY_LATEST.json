@@ -1,0 +1,606 @@
+{
+  "report_id": "CR-20260620-122556",
+  "generated_at": "2026-06-20T12:25:56.711234+00:00",
+  "generator": "scripts/generate_constitutional_reality.py",
+  "constitution_source": {
+    "path": "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+    "method": "sha256sum + git rev-parse",
+    "value": "actual_sha256=sha256:56fe182e47630a511c8a5f0e67f8546c8529a120a39af603d79e4e5f88df35e1; declared_frontmatter_hash=SHA256:da81f983e3bfb0f1e177f828a779eaab99d2d0162e88dfdd7f1b3904f67adf44; git_commit=816911390b84075d12df524bd12439d06320865b",
+    "verified_at": "2026-06-20T12:25:31.607705+00:00"
+  },
+  "overall_verdict": "YELLOW",
+  "summary": "Floors: {'IMPLEMENTED': 8, 'PARTIAL': 3, 'GAP': 1, 'UNVERIFIED': 1}; Organs: {'PASS': 4, 'DEGRADED': 2, 'FAIL': 0}; Overall: YELLOW. Constitution is present and largely wired, but operational reality has measurable gaps.",
+  "floors": [
+    {
+      "floor_id": "F01",
+      "name": "AMANAH",
+      "type": "HARD",
+      "constitutional_claim": "Every action conserves ability to undo or audit; irreversible actions require F13 ack.",
+      "enforcement_code": [
+        "IRREVERSIBILITY_COMPLEXITY",
+        "_check_f1_amanah()",
+        "arif_forge_execute ack_irreversible gate"
+      ],
+      "evidence": [
+        {
+          "path": "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+          "method": "read",
+          "value": "L01 AMANAH — Sacred Trust"
+        },
+        {
+          "path": "arifosmcp/runtime/live_kernel.py",
+          "method": "grep",
+          "value": "ack_irreversible"
+        }
+      ],
+      "spec_value": "score >= 0.50 reversibility; C_irreversible in {0..5}",
+      "measured_value": "arif_forge_execute returns HOLD when session_id empty (verified)",
+      "status": "IMPLEMENTED",
+      "notes": "Gate exists and is wired; completeness of all tool-level reversibility checks not fully audited."
+    },
+    {
+      "floor_id": "F02",
+      "name": "TRUTH",
+      "type": "HARD",
+      "constitutional_claim": "Accuracy >= 0.99 or declare uncertainty band.",
+      "enforcement_code": [
+        "_check_f2_truth()",
+        "evidence_signals",
+        "tau_confidence_system"
+      ],
+      "evidence": [
+        {
+          "path": "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+          "method": "read",
+          "value": "tau = P(claim | evidence) >= 0.99"
+        },
+        {
+          "path": "arifosmcp/AGENTS.md",
+          "method": "read",
+          "value": "Canonical Tool-Count Truth Table (F2)"
+        }
+      ],
+      "spec_value": "tau >= 0.99",
+      "measured_value": "/health reports tau_confidence_system=0.99",
+      "status": "PARTIAL",
+      "notes": "Truth table exists but live tool_count uses in-process dict, not single audited truth source."
+    },
+    {
+      "floor_id": "F03",
+      "name": "WITNESS",
+      "type": "SOFT",
+      "constitutional_claim": "Human, AI, Earth, Verifier witnesses must align via geometric mean.",
+      "enforcement_code": [
+        "_check_f3_witness()",
+        "W4 formula"
+      ],
+      "evidence": [
+        {
+          "path": "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+          "method": "read",
+          "value": "W4 = (H * A * E * V)^(1/4) >= 0.75"
+        }
+      ],
+      "spec_value": "W4 >= 0.75",
+      "measured_value": "/health thermodynamic.witness = {human:0.42, ai:0.32, earth:0.26}",
+      "status": "IMPLEMENTED",
+      "notes": "Constitution threshold is 0.75, not 0.95. Any recap claiming 0.95 is drift."
+    },
+    {
+      "floor_id": "F04",
+      "name": "CLARITY",
+      "type": "SOFT",
+      "constitutional_claim": "Every output reduces entropy (delta-S <= 0).",
+      "enforcement_code": [
+        "_check_f4_clarity()"
+      ],
+      "evidence": [
+        {
+          "path": "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+          "method": "read",
+          "value": "delta-S = S(input) - S(output) <= 0"
+        }
+      ],
+      "spec_value": "score >= 0.0",
+      "measured_value": "/health entropy_delta = -0.0",
+      "status": "IMPLEMENTED",
+      "notes": "Metric surfaced; enforcement strength depends on caller usage."
+    },
+    {
+      "floor_id": "F05",
+      "name": "PEACE",
+      "type": "SOFT",
+      "constitutional_claim": "Power requires safety margin; de-escalate and guard maruah.",
+      "enforcement_code": [
+        "_check_f5_peace()"
+      ],
+      "evidence": [
+        {
+          "path": "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+          "method": "read",
+          "value": "P^2 = Buffers(tau) / R(tau) >= 1.0"
+        }
+      ],
+      "spec_value": "P^2 >= 1.0",
+      "measured_value": "/health peace_squared = 0.5",
+      "status": "GAP",
+      "notes": "Live peace_squared (0.5) is below constitutional threshold (1.0)."
+    },
+    {
+      "floor_id": "F06",
+      "name": "EMPATHY",
+      "type": "SOFT",
+      "constitutional_claim": "Stakeholder care; weakest stakeholder principle.",
+      "enforcement_code": [
+        "_check_f6_empathy()"
+      ],
+      "evidence": [
+        {
+          "path": "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+          "method": "read",
+          "value": "kappa_r >= 0.70"
+        }
+      ],
+      "spec_value": "kappa_r >= 0.70",
+      "measured_value": "Not directly exposed on /health",
+      "status": "UNVERIFIED",
+      "notes": "Code exists; no live metric available to verify this session."
+    },
+    {
+      "floor_id": "F07",
+      "name": "HUMILITY",
+      "type": "SOFT",
+      "constitutional_claim": "Uncertainty band Omega_0 in [0.03, 0.05].",
+      "enforcement_code": [
+        "_check_f7_humility()",
+        "certainty_indicators"
+      ],
+      "evidence": [
+        {
+          "path": "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+          "method": "read",
+          "value": "Omega_0 in [0.03, 0.05]"
+        }
+      ],
+      "spec_value": "0.03 <= Omega_0 <= 0.05",
+      "measured_value": "/health confidence = 0.99 (system-level, not humility band)",
+      "status": "PARTIAL",
+      "notes": "Band defined in code; live /health does not expose per-output humility score."
+    },
+    {
+      "floor_id": "F08",
+      "name": "GENIUS",
+      "type": "SOFT",
+      "constitutional_claim": "Maintain intelligence quality and system health.",
+      "enforcement_code": [
+        "arif_ops_measure",
+        "token_pressure"
+      ],
+      "evidence": [
+        {
+          "path": "arifosmcp/runtime/live_kernel.py",
+          "method": "grep",
+          "value": "vitality_index"
+        }
+      ],
+      "spec_value": "vitality_index healthy",
+      "measured_value": "/health vitality_index = 0.5946; ml_floors healthy",
+      "status": "PARTIAL",
+      "notes": "Telemetry live; auto-compaction disabled (Phase 1 only)."
+    },
+    {
+      "floor_id": "F09",
+      "name": "ANTIHANTU",
+      "type": "HARD",
+      "constitutional_claim": "Anti-hallucination: C_dark < 0.30, no consciousness claims.",
+      "enforcement_code": [
+        "_check_f9_antihantu()",
+        "C_dark formula"
+      ],
+      "evidence": [
+        {
+          "path": "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+          "method": "read",
+          "value": "C_dark = H(0.25)+ToM(0.25)+Scar(0.20)+Godel(0.15)+Humility(0.15) < 0.30"
+        },
+        {
+          "path": "arifosmcp/AGENTS.md",
+          "method": "read",
+          "value": "F9 Enhanced: C_dark Formula"
+        }
+      ],
+      "spec_value": "C_dark < 0.30",
+      "measured_value": "/health shadow = 0.0",
+      "status": "IMPLEMENTED",
+      "notes": "shadow metric at 0.0; anti-hantu doctrine present in skills and code."
+    },
+    {
+      "floor_id": "F10",
+      "name": "ONTOLOGY",
+      "type": "HARD",
+      "constitutional_claim": "AI-only ontology; no soul/feelings claims.",
+      "enforcement_code": [
+        "_check_f10_ontology()"
+      ],
+      "evidence": [
+        {
+          "path": "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+          "method": "read",
+          "value": "AI-only ontology"
+        },
+        {
+          "path": "arifosmcp/runtime/CONSTITUTIONAL_QUOTES_SPEC.md",
+          "method": "grep",
+          "value": "ontology"
+        }
+      ],
+      "spec_value": "No consciousness/soul claims",
+      "measured_value": "This report uses mechanical language per F10.",
+      "status": "IMPLEMENTED",
+      "notes": "No hantu language detected in generated artifacts."
+    },
+    {
+      "floor_id": "F11",
+      "name": "AUTH",
+      "type": "HARD",
+      "constitutional_claim": "Verify identity before sensitive ops.",
+      "enforcement_code": [
+        "arif_lease_issue",
+        "actor_id/session_id gates"
+      ],
+      "evidence": [
+        {
+          "path": "arifosmcp/runtime/live_kernel.py",
+          "method": "grep",
+          "value": "session_id"
+        },
+        {
+          "path": "arifosmcp/runtime/organ_attestation.py",
+          "method": "grep",
+          "value": "AuthorityLease"
+        }
+      ],
+      "spec_value": "Identity verified",
+      "measured_value": "arif_forge_execute empty session returns HOLD",
+      "status": "IMPLEMENTED",
+      "notes": "Lease system exists; A-FORGE lease gate still self-issued (known gap GAP-001)."
+    },
+    {
+      "floor_id": "F12",
+      "name": "INJECTION",
+      "type": "HARD",
+      "constitutional_claim": "Sanitize inputs; no prompt injection.",
+      "enforcement_code": [
+        "_check_f12_injection()"
+      ],
+      "evidence": [
+        {
+          "path": "arifosmcp/runtime/live_kernel.py",
+          "method": "grep",
+          "value": "injection"
+        },
+        {
+          "path": "tests/04_adversarial",
+          "method": "ls",
+          "value": "adversarial test suite exists"
+        }
+      ],
+      "spec_value": "No successful injection",
+      "measured_value": "Hermes detected and rejected 5+ injected footers",
+      "status": "IMPLEMENTED",
+      "notes": "Agent successfully resisted ratification injection; red-team tests exist."
+    },
+    {
+      "floor_id": "F13",
+      "name": "SOVEREIGN",
+      "type": "HARD",
+      "constitutional_claim": "Human veto absolute.",
+      "enforcement_code": [
+        "arif_judge_deliberate",
+        "F13 veto path"
+      ],
+      "evidence": [
+        {
+          "path": "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+          "method": "read",
+          "value": "Human veto absolute"
+        },
+        {
+          "path": "arifosmcp/AGENTS.md",
+          "method": "read",
+          "value": "F13 SOVEREIGN: Human veto absolute"
+        }
+      ],
+      "spec_value": "Arif has final veto",
+      "measured_value": "Acknowledged across constitution, AGENTS.md, /health owner_summary",
+      "status": "IMPLEMENTED",
+      "notes": "Human-in-the-loop is the documented and observed final authority."
+    }
+  ],
+  "organs": [
+    {
+      "organ_id": "arifOS",
+      "role": "constitutional_kernel",
+      "localhost_url": "http://127.0.0.1:8088",
+      "public_url": "https://arifos.arif-fazil.com",
+      "expected_tools": 13,
+      "live_tools": 13,
+      "health_status": "healthy",
+      "reachable": true,
+      "latency_ms": 602.92,
+      "verdict": "PASS",
+      "notes": ""
+    },
+    {
+      "organ_id": "GEOX",
+      "role": "earth_evidence",
+      "localhost_url": "http://127.0.0.1:8081",
+      "public_url": "https://geox.arif-fazil.com",
+      "expected_tools": 40,
+      "live_tools": 40,
+      "health_status": "healthy",
+      "reachable": true,
+      "latency_ms": 4702.57,
+      "verdict": "PASS",
+      "notes": ""
+    },
+    {
+      "organ_id": "WEALTH",
+      "role": "capital_compute",
+      "localhost_url": "http://127.0.0.1:18082",
+      "public_url": "https://wealth.arif-fazil.com",
+      "expected_tools": 20,
+      "live_tools": 21,
+      "health_status": "ALIVE",
+      "reachable": true,
+      "latency_ms": 397.83,
+      "verdict": "DEGRADED",
+      "notes": "tool count mismatch: live=21 expected=20"
+    },
+    {
+      "organ_id": "WELL",
+      "role": "human_readiness_reflect_only",
+      "localhost_url": "http://127.0.0.1:18083",
+      "public_url": "https://well.arif-fazil.com",
+      "expected_tools": 17,
+      "live_tools": 21,
+      "health_status": "degraded",
+      "reachable": true,
+      "latency_ms": 201.75,
+      "verdict": "DEGRADED",
+      "notes": "tool count mismatch: live=21 expected=17"
+    },
+    {
+      "organ_id": "AAA",
+      "role": "cockpit_a2a",
+      "localhost_url": "http://127.0.0.1:3001",
+      "public_url": "https://aaa.arif-fazil.com",
+      "expected_tools": null,
+      "live_tools": null,
+      "health_status": "healthy",
+      "reachable": true,
+      "latency_ms": 3299.69,
+      "verdict": "PASS",
+      "notes": ""
+    },
+    {
+      "organ_id": "A-FORGE",
+      "role": "governed_execution",
+      "localhost_url": "http://127.0.0.1:7071",
+      "public_url": null,
+      "expected_tools": 59,
+      "live_tools": 59,
+      "health_status": "healthy",
+      "reachable": true,
+      "latency_ms": 199.79,
+      "verdict": "PASS",
+      "notes": ""
+    }
+  ],
+  "cross_checks": [
+    {
+      "id": "XC-01",
+      "claim": "Constitution sealed hash matches file hash",
+      "source": "frontmatter declares SHA256:da81f983e3bfb0f1e177f828a779eaab99d2d0162e88dfdd7f1b3904f67adf44",
+      "measured": "actual sha256 = sha256:56fe182e47630a511c8a5f0e67f8546c8529a120a39af603d79e4e5f88df35e1",
+      "status": "MISMATCH",
+      "floors": [
+        "F02"
+      ]
+    },
+    {
+      "id": "XC-02",
+      "claim": "Tri-witness threshold W4 >= 0.75 with all 4 witnesses present",
+      "source": "000_CONSTITUTION.md line 104: W4 = (H * A * E * V)^(1/4) >= 0.75",
+      "measured": "present=['human', 'ai', 'earth']; geometric_mean_4th_root=0.432",
+      "status": "MISMATCH",
+      "floors": [
+        "F03"
+      ]
+    },
+    {
+      "id": "XC-03",
+      "claim": "arifOS exposes 13 canonical tools",
+      "source": "arifosmcp/AGENTS.md",
+      "measured": "/health canonical_tools_loaded=13, tools_exposed_via_mcp=48",
+      "status": "MATCH",
+      "floors": [
+        "F02"
+      ]
+    },
+    {
+      "id": "XC-04",
+      "claim": "All 6 federation organs are listening and healthy",
+      "source": "AGENTS.md organ table",
+      "measured": "verdicts: ['PASS', 'PASS', 'DEGRADED', 'DEGRADED', 'PASS', 'PASS']",
+      "status": "PARTIAL",
+      "floors": [
+        "F08",
+        "F11"
+      ]
+    },
+    {
+      "id": "XC-05",
+      "claim": "kernel_state.py is the single source of truth for attestation",
+      "source": "arifosmcp/core/kernel_state.py docstring",
+      "measured": "arif_os_attest in live_kernel.py uses in-process list_canonical_tools(), not read_kernel_state()",
+      "status": "MISMATCH",
+      "floors": [
+        "F02"
+      ]
+    },
+    {
+      "id": "XC-06",
+      "claim": "Brain-stem (arifosd) is healthy and fail-closed",
+      "source": "AGENTS.md runtime services table",
+      "measured": "docker-config.json/config.json: not a directory loop present=True",
+      "status": "MISMATCH",
+      "floors": [
+        "F08",
+        "F12"
+      ]
+    }
+  ],
+  "gaps": [
+    {
+      "id": "GAP-F02",
+      "severity": "high",
+      "domain": "F02 TRUTH",
+      "description": "Truth table exists but live tool_count uses in-process dict, not single audited truth source.",
+      "related_floors": [
+        "F02"
+      ],
+      "evidence": [
+        {
+          "path": "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+          "method": "read",
+          "value": "tau = P(claim | evidence) >= 0.99"
+        }
+      ]
+    },
+    {
+      "id": "GAP-F05",
+      "severity": "medium",
+      "domain": "F05 PEACE",
+      "description": "Live peace_squared (0.5) is below constitutional threshold (1.0).",
+      "related_floors": [
+        "F05"
+      ],
+      "evidence": [
+        {
+          "path": "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+          "method": "read",
+          "value": "P^2 = Buffers(tau) / R(tau) >= 1.0"
+        }
+      ]
+    },
+    {
+      "id": "GAP-F07",
+      "severity": "medium",
+      "domain": "F07 HUMILITY",
+      "description": "Band defined in code; live /health does not expose per-output humility score.",
+      "related_floors": [
+        "F07"
+      ],
+      "evidence": [
+        {
+          "path": "/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md",
+          "method": "read",
+          "value": "Omega_0 in [0.03, 0.05]"
+        }
+      ]
+    },
+    {
+      "id": "GAP-F08",
+      "severity": "medium",
+      "domain": "F08 GENIUS",
+      "description": "Telemetry live; auto-compaction disabled (Phase 1 only).",
+      "related_floors": [
+        "F08"
+      ],
+      "evidence": [
+        {
+          "path": "arifosmcp/runtime/live_kernel.py",
+          "method": "grep",
+          "value": "vitality_index"
+        }
+      ]
+    },
+    {
+      "id": "GAP-01",
+      "severity": "high",
+      "domain": "cross_check",
+      "description": "Constitution sealed hash matches file hash: frontmatter declares SHA256:da81f983e3bfb0f1e177f828a779eaab99d2d0162e88dfdd7f1b3904f67adf44 vs actual sha256 = sha256:56fe182e47630a511c8a5f0e67f8546c8529a120a39af603d79e4e5f88df35e1",
+      "related_floors": [
+        "F02"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "GAP-02",
+      "severity": "medium",
+      "domain": "cross_check",
+      "description": "Tri-witness threshold W4 >= 0.75 with all 4 witnesses present: 000_CONSTITUTION.md line 104: W4 = (H * A * E * V)^(1/4) >= 0.75 vs present=['human', 'ai', 'earth']; geometric_mean_4th_root=0.432",
+      "related_floors": [
+        "F03"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "GAP-04",
+      "severity": "high",
+      "domain": "cross_check",
+      "description": "All 6 federation organs are listening and healthy: AGENTS.md organ table vs verdicts: ['PASS', 'PASS', 'DEGRADED', 'DEGRADED', 'PASS', 'PASS']",
+      "related_floors": [
+        "F08",
+        "F11"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "GAP-05",
+      "severity": "high",
+      "domain": "cross_check",
+      "description": "kernel_state.py is the single source of truth for attestation: arifosmcp/core/kernel_state.py docstring vs arif_os_attest in live_kernel.py uses in-process list_canonical_tools(), not read_kernel_state()",
+      "related_floors": [
+        "F02"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "GAP-06",
+      "severity": "medium",
+      "domain": "cross_check",
+      "description": "Brain-stem (arifosd) is healthy and fail-closed: AGENTS.md runtime services table vs docker-config.json/config.json: not a directory loop present=True",
+      "related_floors": [
+        "F08",
+        "F12"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "GAP-ARIFOSD-01",
+      "severity": "high",
+      "domain": "arifosd",
+      "description": "arifosd loops on docker-config.json/config.json: not a directory. Not fail-closed.",
+      "related_floors": [
+        "F08",
+        "F12"
+      ],
+      "evidence": [
+        {
+          "path": "journalctl -u arifosd",
+          "method": "journalctl",
+          "value": "Jun 20 12:25:31 af-forge python3[2534822]: WARNING: Error loading config file: open /root/.secrets/auth/docker-config.json/config.json: not a directory"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "constitution_declared_hash": "SHA256:da81f983e3bfb0f1e177f828a779eaab99d2d0162e88dfdd7f1b3904f67adf44",
+    "constitution_actual_hash": "sha256:56fe182e47630a511c8a5f0e67f8546c8529a120a39af603d79e4e5f88df35e1",
+    "git_commit": "816911390b84075d12df524bd12439d06320865b",
+    "runtime_drift": true,
+    "note": "This report is a snapshot. Regenerate after any code change."
+  }
+}
