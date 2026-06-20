@@ -23,8 +23,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.physics.thermodynamics_hardened import ThermodynamicError
 from core.physics.economic_invariants import EconomicInvariantError
+from core.physics.thermodynamics_hardened import ThermodynamicError
+
+try:
+    from arifosmcp.runtime.heartbeat_registry import federation_liveness
+except ImportError:  # pragma: no cover - defensive for standalone test imports
+    federation_liveness = None
 
 
 class SuccessionError(ThermodynamicError):
@@ -460,6 +465,41 @@ class InstitutionalEvolutionGuard:
         }
 
     @classmethod
+    def check_federation_liveness(
+        cls,
+        required_organs: list[str] | None = None,
+        max_stale_seconds: float = 120.0,
+    ) -> dict[str, Any]:
+        """F8: Institutional evolution requires a live federation substrate.
+
+        MUTATE / IRREVERSIBLE actions must not proceed when required organs
+        are stale or degraded. The heartbeat registry is fed by the live NATS
+        organ attestation subscriber (arifos.organ.>).
+        """
+        if federation_liveness is None:
+            return {
+                "passed": True,
+                "verdict": "PASS",
+                "reason": "heartbeat_registry not available (offline/test mode)",
+            }
+
+        liveness = federation_liveness(
+            required_organs=required_organs,
+            threshold_seconds=max_stale_seconds,
+        )
+        if liveness["verdict"] == "SEAL":
+            return {
+                "passed": True,
+                "verdict": "PASS",
+                "liveness": liveness,
+            }
+
+        raise SuccessionContinuityError(
+            f"Federation liveness breach: {liveness}. "
+            "Required organs are stale/degraded; institutional evolution cannot proceed. HOLD_888."
+        )
+
+    @classmethod
     def evaluate_evolution_invariants(cls, payload: dict[str, Any]) -> dict[str, Any]:
         """Evaluate all 4 Mortality / Succession / Institutional Evolution sub-checks."""
         results = {}
@@ -510,6 +550,18 @@ class InstitutionalEvolutionGuard:
                 )
             except InstitutionalEvolutionError as e:
                 results["ai_adaptation_rate"] = {"passed": False, "verdict": e.verdict, "error": str(e)}
+                if not first_failure:
+                    first_failure = e
+
+        # Forge 3: federation liveness gate — requires live organ attestation
+        if payload.get("check_federation_liveness", False):
+            try:
+                results["federation_liveness"] = cls.check_federation_liveness(
+                    required_organs=payload.get("required_organs"),
+                    max_stale_seconds=payload.get("max_stale_seconds", 120.0),
+                )
+            except InstitutionalEvolutionError as e:
+                results["federation_liveness"] = {"passed": False, "verdict": e.verdict, "error": str(e)}
                 if not first_failure:
                     first_failure = e
 

@@ -37,14 +37,11 @@ DITEMPA BUKAN DIBERI — The gate is forged, not given.
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import time
-from typing import Any, Callable, Optional
 
 from arifosmcp.schemas.kernel_envelope import (
     ActionClass,
-    AuditEvent,
     BlastRadius,
     DriftLevel,
     DriftReport,
@@ -650,7 +647,10 @@ def pre_execution_gate(
     # human succession, population absorption, and recall authority.
     if requested_action in (ActionClass.MUTATE, ActionClass.IRREVERSIBLE):
         try:
-            from core.physics.institutional_evolution import InstitutionalEvolutionGuard, InstitutionalEvolutionError
+            from core.physics.institutional_evolution import (
+                InstitutionalEvolutionError,
+                InstitutionalEvolutionGuard,
+            )
 
             # Build payload from envelope state and metadata
             duration = 3600
@@ -669,6 +669,10 @@ def pre_execution_gate(
                 "unacknowledged_obligations": getattr(envelope.state, "unacknowledged_obligations", []),
                 "changes_last_30d": getattr(envelope.state, "changes_last_30d", 0),
                 "human_reviews_last_30d": getattr(envelope.state, "human_reviews_last_30d", 0),
+                # Forge 3: MUTATE/IRREVERSIBLE actions require live organ attestation
+                "check_federation_liveness": True,
+                "required_organs": ["arifOS", "GEOX", "WEALTH", "WELL", "a-forge"],
+                "max_stale_seconds": 120.0,
             }
 
             # Check if there are explicit overrides in envelope metadata

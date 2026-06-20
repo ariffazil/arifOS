@@ -16,10 +16,11 @@ except ImportError:
     pass  # Windows / dev fallback
 
 import logging
-from typing import Any, Callable
 import os
 import sys
 import traceback
+from collections.abc import Callable
+from typing import Any
 
 
 # ─── Path prioritization (runs before arifOS imports below) ─────────────────
@@ -80,7 +81,6 @@ from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
 from starlette.middleware.cors import CORSMiddleware  # noqa: E402
 from starlette.requests import Request  # noqa: E402
 from starlette.responses import JSONResponse  # noqa: E402
-from starlette.staticfiles import StaticFiles  # noqa: E402
 
 from arifosmcp.constitutional_map import (  # noqa: E402
     CANONICAL_TOOLS,
@@ -516,7 +516,11 @@ try:
     )
     from arifosmcp.runtime.peer_contract import (
         arif_peer_contract_attest as _arif_peer_contract_attest,
+    )
+    from arifosmcp.runtime.peer_contract import (
         arif_peer_contract_forbid as _arif_peer_contract_forbid,
+    )
+    from arifosmcp.runtime.peer_contract import (
         arif_peer_contract_validate as _arif_peer_contract_validate,
     )
     from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, register_tools
@@ -1265,7 +1269,8 @@ async def mcp_health(request: Request) -> JSONResponse:
 
 app = mcp.http_app(transport="streamable-http", stateless_http=True, json_response=True)
 # Mirror federated tool count onto app for health endpoint (register_rest_routes receives app)
-from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS
+from arifosmcp.constitutional_map import DIAGNOSTIC_TOOLS
+
 _actual_canonical_count = len(CANONICAL_TOOLS)  # currently 19
 _actual_diagnostic_count = len(DIAGNOSTIC_TOOLS)  # currently 37
 mcp._tool_count = _actual_canonical_count  # pyright: ignore[reportAttributeAccessIssue]
@@ -1330,6 +1335,7 @@ if app:
 
     async def _airlock_schema(request):
         from starlette.responses import JSONResponse
+
         from arifosmcp.transport.airlock import DIALECT_REGISTRY
         return JSONResponse({
             "protocol_versions_supported": ["2025-11-25", "2024-11-05"],
@@ -1409,8 +1415,6 @@ if app:
             set_kernel_policy_hash,
         )
         from arifosmcp.runtime.policy_hash import (
-            KERNEL_MANIFEST_HASH,
-            KERNEL_POLICY_HASH,
             compute_manifest_hash,
             compute_policy_hash,
         )
@@ -1769,7 +1773,7 @@ if app:
                 f"vault_append_only={has_vault_any}",
                 f"model_shadows={_n('model_shadows_registered')}",
                 f"memory_quarantine={'active' if s_val > 58 else 'inactive'}",
-                f"f14_kill_switch=sovereign_held",
+                "f14_kill_switch=sovereign_held",
                 f"falsification_failures={falsification_failures}",
             ],
             contrast_class="no safety (0%), prompt-level guard (20%), behavioral safety (40%), architectural governance (60%), sovereign runtime (85%)",
@@ -1941,7 +1945,7 @@ if app:
 
     app.add_route("/arif", _serve_agent_arif, methods=["GET"])
     app.add_route("/arif/000/{filename}", _serve_sovereign_file, methods=["GET"])
-    logger.info(f"Sovereign static routes registered at /arif and /arif/000/{{filename}}")
+    logger.info("Sovereign static routes registered at /arif and /arif/000/{filename}")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1953,8 +1957,9 @@ if app:
 # invokes on server start/stop regardless of entry point.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# ── Anomaly scorer singleton — lives for the server lifetime ──────────────
+# ── Subscribers that live for the server lifetime ─────────────────────────
 _anomaly_subscriber: Any = None
+_organ_attestation_subscriber: Any = None
 
 
 def _wire_nats_to_app(_app: Any) -> None:
@@ -1976,7 +1981,7 @@ async def _startup_nats_event_bus() -> None:
     Governance events will simply not be published until NATS recovers.
     """
     try:
-        from arifosmcp.runtime.nats_event_bus import init_nats_event_bus, event_bus
+        from arifosmcp.runtime.nats_event_bus import event_bus, init_nats_event_bus
 
         connected = await init_nats_event_bus()
         if connected:
@@ -2011,14 +2016,25 @@ async def _startup_nats_event_bus() -> None:
 
 
 async def _shutdown_nats_event_bus() -> None:
-    """Gracefully disconnect the NATS event bus + anomaly scorer."""
-    global _anomaly_subscriber
+    """Gracefully disconnect the NATS event bus + subscribers."""
+    global _anomaly_subscriber, _organ_attestation_subscriber
     if _anomaly_subscriber is not None:
         try:
             await _anomaly_subscriber.stop()
         except Exception:
             pass
         _anomaly_subscriber = None
+
+    if _organ_attestation_subscriber is not None:
+        try:
+            from arifosmcp.runtime.organ_attestation_subscriber import (
+                stop_organ_attestation_subscriber,
+            )
+
+            await stop_organ_attestation_subscriber()
+        except Exception:
+            pass
+        _organ_attestation_subscriber = None
 
     try:
         from arifosmcp.runtime.nats_event_bus import event_bus
