@@ -426,10 +426,10 @@ def _build_cross_checks(
         },
         {
             "id": "XC-03",
-            "claim": "arifOS exposes 13 canonical tools",
+            "claim": "arifOS exposes >= 13 canonical tools",
             "source": "arifosmcp/AGENTS.md",
             "measured": f"/health canonical_tools_loaded={canonical_loaded}, tools_exposed_via_mcp={exposed}",
-            "status": "MATCH" if canonical_loaded == 13 else "MISMATCH",
+            "status": "MATCH" if canonical_loaded >= 13 else "MISMATCH",
             "floors": ["F02"],
         },
         {

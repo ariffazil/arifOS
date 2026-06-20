@@ -13,7 +13,7 @@ from typing import Any
 
 
 def _canonical_tool_list() -> list[dict[str, Any]]:
-    """Extract canonical 13 tool data from constitutional_map."""
+    """Extract canonical tool data from constitutional_map."""
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
@@ -97,7 +97,7 @@ def generate_llms_txt() -> str:
     lines.append("")
 
     # Canonical tools
-    lines.append("### Canonical Constitutional Tools (13)")
+    lines.append(f"### Canonical Constitutional Tools ({len(canonical)})")
     lines.append("| Tool | Stage | Access | Reversible | Modes |")
     lines.append("|------|-------|--------|------------|-------|")
     for t in canonical:

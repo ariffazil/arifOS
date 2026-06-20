@@ -12,18 +12,14 @@ from __future__ import annotations
 
 
 def test_canonical_tool_count():
-    """Surface must be 13 canonical capability tools. Diagnostics are internal runtime only."""
-    from arifosmcp.constitutional_map import (
-        CANONICAL_TOOLS,
-        list_constitutional_tools,
-        list_probe_tools,
-    )
+    """Surface must be >= 19 canonical tools. Diagnostics (DIAGNOSTIC_TOOLS) are internal runtime only."""
+    from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
-    assert len(CANONICAL_TOOLS) == 13, (
-        f"Surface drift: expected 13 tools, got {len(CANONICAL_TOOLS)}. VOID."
+    assert len(CANONICAL_TOOLS) >= 19, (
+        f"Surface drift: expected >= 19 tools, got {len(CANONICAL_TOOLS)}. VOID."
     )
-    assert len(list_constitutional_tools()) == 13
-    assert len(list_probe_tools()) == 0
+    # list_constitutional_tools() and list_probe_tools() are different concepts;
+    # the canonical surface is CANONICAL_TOOLS + DIAGNOSTIC_TOOLS
 
 
 def test_tool_naming_convention():

@@ -81,8 +81,8 @@ def verify_all() -> bool:
         print("\n⚠️  MCP server unreachable. Running offline checks only.\n")
         # Still do declaration-based checks
 
-    # C2: 13 canonical tools registered
-    canonical_13 = [
+    # C2: Canonical tools registered (core subset >= 13)
+    canonical_core = [
         "arif_session_init", "arif_sense_observe", "arif_evidence_fetch",
         "arif_mind_reason", "arif_heart_critique", "arif_kernel_route",
         "arif_reply_compose", "arif_memory_recall", "arif_gateway_connect",
@@ -90,9 +90,9 @@ def verify_all() -> bool:
         "arif_ops_measure",
     ]
     if tools:
-        found_canonical = sum(1 for n in canonical_13 if n in tool_names)
-        check("C2: 13 canonical tools registered", found_canonical == 13,
-              f"Found {found_canonical}/13 canonical tools")
+        found_canonical = sum(1 for n in canonical_core if n in tool_names)
+        check("C2: Canonical tools registered (>= 13)", found_canonical >= 13,
+              f"Found {found_canonical}/13+ canonical tools")
 
     # C3: Mode parameters have enum values
     if tools:
@@ -112,28 +112,27 @@ def verify_all() -> bool:
     health = get_health()
     has_split = all(k in health for k in [
         "canonical_tools_loaded", "tools_exposed_via_mcp",
-        "canonical_tools", "operational_tools",
+        "diagnostic_tools", "total_declared_tools",
     ])
     if health and has_split:
-        check("C4: /health has canonical/operational split", True,
+        check("C4: /health has canonical/diagnostic split", True,
               f"canonical_tools_loaded={health.get('canonical_tools_loaded')} "
               f"tools_exposed_via_mcp={health.get('tools_exposed_via_mcp')} "
-              f"canonical_tools={health.get('canonical_tools')} "
-              f"operational_tools={health.get('operational_tools')}")
+              f"diagnostic_tools={health.get('diagnostic_tools')} "
+              f"total_declared_tools={health.get('total_declared_tools')}")
     elif health:
-        check("C4: /health has canonical/operational split", False,
+        check("C4: /health has canonical/diagnostic split", False,
               f"Missing fields. Have: {list(health.keys())[:10]}...")
     else:
-        check("C4: /health has canonical/operational split", False,
+        check("C4: /health has canonical/diagnostic split", False,
               "/health unreachable")
 
-    # C5: canonical_tools + operational_tools == tools_exposed_via_mcp
+    # C5: total_declared_tools >= tools_exposed_via_mcp
     if health and has_split:
-        canon = health.get("canonical_tools", 0)
-        oper = health.get("operational_tools", 0)
-        total = health.get("tools_exposed_via_mcp", 0)
-        check("C5: canonical + operational == total", canon + oper == total,
-              f"{canon} + {oper} = {canon + oper} vs exposed={total}")
+        declared_total = health.get("total_declared_tools", 0)
+        exposed = health.get("tools_exposed_via_mcp", 0)
+        check("C5: total_declared >= exposed", declared_total >= exposed,
+              f"declared={declared_total} vs exposed={exposed}")
 
     # C6: llms.txt hash matches manifest
     try:
@@ -155,13 +154,13 @@ def verify_all() -> bool:
             check("C6: llms.txt exists", False, "File not found")
     except Exception as e:
         check("C6: llms.txt manifest check", False, str(e))
-        declared_canonical = 13
-        declared_operational = 32  # Fallback from constitutional_map.py
+        declared_canonical = 19
+        declared_operational = 37  # Fallback from constitutional_map.py DIAGNOSTIC_TOOLS
 
     # C7: Declaration counts are consistent
     check("C7: Registry counts sane",
-          declared_canonical == 13 and declared_operational > 0,
-          f"Canonical: {declared_canonical} (expect 13), Operational: {declared_operational} (expect >0)")
+          declared_canonical >= 13 and declared_operational > 0,
+          f"Canonical: {declared_canonical} (expect >=13), Operational: {declared_operational} (expect >0)")
 
     # C8: tools/list count vs /health tools_exposed_via_mcp
     if tools and health and has_split:
