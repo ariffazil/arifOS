@@ -53,9 +53,9 @@ class PatchTarget(StrEnum):
 SYSTEM_INVARIANTS: list[dict[str, Any]] = [
     {
         "id": "INV-001",
-        "name": "13_canonical_tools",
-        "check": "len(canonical_tools) == 13",
-        "description": "The 13 canonical tools must always exist.",
+        "name": "canonical_tools_count",
+        "check": "len(canonical_tools) >= 13",
+        "description": "The canonical tools (>=13) must always exist. Currently 19 from CANONICAL_TOOLS.",
     },
     {
         "id": "INV-002",

@@ -1265,9 +1265,14 @@ async def mcp_health(request: Request) -> JSONResponse:
 
 app = mcp.http_app(transport="streamable-http", stateless_http=True, json_response=True)
 # Mirror federated tool count onto app for health endpoint (register_rest_routes receives app)
-mcp._tool_count = 13  # pyright: ignore[reportAttributeAccessIssue]  # 13 canonical tools
-app.state._tool_count = 13  # pyright: ignore[reportAttributeAccessIssue]
-app._tool_count = 13  # pyright: ignore[reportAttributeAccessIssue]
+from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS
+_actual_canonical_count = len(CANONICAL_TOOLS)  # currently 19
+_actual_diagnostic_count = len(DIAGNOSTIC_TOOLS)  # currently 37
+mcp._tool_count = _actual_canonical_count  # pyright: ignore[reportAttributeAccessIssue]
+app.state._tool_count = _actual_canonical_count  # pyright: ignore[reportAttributeAccessIssue]
+app._tool_count = _actual_canonical_count  # pyright: ignore[reportAttributeAccessIssue]
+app.state._diagnostic_tool_count = _actual_diagnostic_count  # pyright: ignore[reportAttributeAccessIssue]
+app.state._total_tool_count = _actual_canonical_count + _actual_diagnostic_count  # pyright: ignore[reportAttributeAccessIssue]
 if app:
     # ── MCP 2025-11-25 Transport Compliance Middleware ──────────────────────
     # PHOENIX-73C FIX: stateless_http=False enables proper session management.

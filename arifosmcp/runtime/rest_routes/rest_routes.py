@@ -2461,14 +2461,33 @@ def register_rest_routes(
                 "_tool_count",
                 getattr(getattr(mcp, "state", None), "_tool_count", len(tool_registry)),
             ),
-            "canonical_tools_loaded": 13,
+            "canonical_tools_loaded": getattr(
+                mcp,
+                "_tool_count",
+                len(tool_registry),
+            ),
             "tools_exposed_via_mcp": _count_mcp_tools(fastmcp_instance or mcp),
-            "canonical_tools": 13,
-            "operational_tools": max(0, _count_mcp_tools(fastmcp_instance or mcp) - 13),
+            "canonical_tools": getattr(
+                mcp,
+                "_tool_count",
+                len(tool_registry),
+            ),
+            "diagnostic_tools": getattr(
+                getattr(mcp, "state", None), "_diagnostic_tool_count", 37,
+            ),
+            "total_declared_tools": getattr(
+                getattr(mcp, "state", None), "_total_tool_count", 56,
+            ),
+            "operational_tools": max(
+                0,
+                _count_mcp_tools(fastmcp_instance or mcp)
+                - getattr(mcp, "_tool_count", len(tool_registry)),
+            ),
             "tool_count_semantics": {
-                "canonical_tools_loaded": "Constitutional core tools returned by arif_kernel_route(mode=list)",
-                "operational_tools": "Supporting MCP tools (leases, probes, Hermes, forge helpers, attestation, diagnostics)",
-                "tools_exposed_via_mcp": "Total tools returned by MCP tools/list",
+                "canonical_tools_loaded": "Constitutional core tools from CANONICAL_TOOLS (dynamically derived)",
+                "diagnostic_tools": "Supporting MCP tools (leases, probes, Hermes, forge helpers, attestation, diagnostics) from DIAGNOSTIC_TOOLS",
+                "tools_exposed_via_mcp": "Total tools returned by MCP tools/list (includes all FastMCP registered tools)",
+                "total_declared_tools": "CANONICAL_TOOLS + DIAGNOSTIC_TOOLS (the full declared surface)",
             },
             "tool_manifest_url": "https://arifos.arif-fazil.com/manifest.txt",
             "tool_manifest_hash": "auto-generated",

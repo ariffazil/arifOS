@@ -13,7 +13,7 @@ generated_from: arifosmcp.constitutional_map.CANONICAL_TOOLS
 >
 > **Machine is substrate. Governance is constraint. Intelligence is interpretation. Judgment remains Arif.**
 >
-> This document registers the canonical MCP tools (the 13-tool constitutional surface) available to AI agents
+> This document registers the canonical MCP tools (the constitutional surface) available to AI agents
 operating within the arifOS ecosystem. The tool tables below are **auto-generated** from
 `arifosmcp.constitutional_map.CANONICAL_TOOLS`. The static sections (frontmatter, floor definitions,
 Trinity Lanes, pipeline diagram, witness defaults, resource URIs, footer) are hand-maintained in
@@ -25,7 +25,7 @@ Trinity Lanes, pipeline diagram, witness defaults, resource URIs, footer) are ha
      Regenerate: python -m arifosmcp.maintenance.generate_agents_md
      ═══════════════════════════════════════════════════════════════════════════ -->
 
-## 13 Canonical Tools (arif_noun_verb)
+## 19 Canonical Tools (arif_noun_verb)
 
 All tools follow the `arif_<noun>_<verb>` naming convention.
 
@@ -33,58 +33,64 @@ All tools follow the `arif_<noun>_<verb>` naming convention.
 
 | Tool | Stage | Lane | Access | F-Floors |
 | :--- | :---- | :--- | :----- | :-------- |
-| `arif_session_init` | 000 | AGI | public | F01, F11, F12 |
-| `arif_judge_deliberate` | 888 | ASI | authenticated | F01, F11, F13 |
-| `arif_vault_seal` | 999 | APEX | authenticated | F01, F11, F13 |
+| `arif_session_init` | 000 | AGI | public | L01, L11, L12 |
+| `arif_judge_deliberate` | 888 | ASI | authenticated | L01, L11, L13 |
+| `arif_vault_seal` | 999 | APEX | authenticated | L01, L11, L13 |
 
 ### INTELLIGENCE (Δ Mind / Ω Heart)
 
 | Tool | Stage | Lane | Access | F-Floors |
 | :--- | :---- | :--- | :----- | :-------- |
-| `arif_mind_reason` | 333 | AGI | public | F02, F07, F08, F10 |
-| `arif_heart_critique` | 444 | ASI | public | F05, F06, F09 |
-| `arif_reply_compose` | 444r | AGI | public | F02, F04, F06, F09 |
+| `arif_mind_reason` | 333 | AGI | public | L02, L07, L08, L10 |
+| `arif_heart_critique` | 666 | ASI | public | L05, L06, L09 |
+| `arif_reply_compose` | 444r | AGI | public | L02, L04, L06, L09 |
 
 ### INFRASTRUCTURE
 
 | Tool | Stage | Lane | Access | F-Floors |
 | :--- | :---- | :--- | :----- | :-------- |
-| `arif_kernel_route` | 555 | AGI | public | F01, F04, F03, F10 |
-| `arif_gateway_connect` | 666g | ASI | public | F01, F03, F11 |
-| `arif_memory_recall` | 555m | AGI | public | F01, F08 |
-| `arif_ops_measure` | 777 | AGI | public | F02, F04 |
+| `arif_kernel_route` | 555 | AGI | public | L01, L04, L03, L10 |
+| `arif_route` | 555 | AGI | public | L01, L04, L10 |
+| `arif_triage` | 555 | AGI | public | L04, L10 |
+| `arif_kernel_status` | 555 | AGI | public | L02, L04, L08 |
+| `arif_kernel_attest` | 555 | AGI | public | L01, L02 |
+| `arif_kernel_health` | 555 | AGI | public | L02, L04 |
+| `arif_bridge` | 555 | AGI | authenticated | L01, L11, L10 |
+| `arif_gateway_connect` | 666g | ASI | public | L01, L03, L11 |
+| `arif_memory_recall` | 555m | AGI | public | L01, L08, L02 |
+| `arif_ops_measure` | 777 | AGI | public | L02, L04 |
 
 ### REALITY GROUNDING
 
 | Tool | Stage | Lane | Access | F-Floors |
 | :--- | :---- | :--- | :----- | :-------- |
-| `arif_sense_observe` | 111 | AGI | public | F02, F07 |
-| `arif_evidence_fetch` | 222 | AGI | public | F02, F03, F05, F12 |
+| `arif_sense_observe` | 111 | AGI | public | L02, L07 |
+| `arif_evidence_fetch` | 222 | AGI | public | L02, L03, L05, L12 |
 
 ### EXECUTION
 
 | Tool | Stage | Lane | Access | F-Floors |
 | :--- | :---- | :--- | :----- | :-------- |
-| `arif_forge_execute` | 666 | AGI | sovereign | F01, F11, F13 |
+| `arif_forge_execute` | 010 | AGI | sovereign | L01, L11, L13 |
 
 
-## Constitutional Laws (F1–F13)
+## Constitutional Laws (F1–L13)
 
 | Floor | Name | Type | Core Invariant |
 | :---- | :--- | :---- | :------------- |
-| F01 | AMANAH | HARD | Reversible-first; irreversible → 888 HOLD |
-| F02 | TRUTH | HARD | ≥0.99 accuracy or declare uncertainty band |
-| F03 | WITNESS | SOFT | Theory · constitution · intent must align |
-| F04 | CLARITY | SOFT | Every output reduces entropy (ΔS ≤ 0) |
-| F05 | PEACE | SOFT | Peace ≥ 1.0; de-escalate, guard maruah |
-| F06 | EMPATHY | SOFT | Dignity-first; ASEAN/MY context |
-| F07 | HUMILITY | SOFT | Uncertainty band 0.03–0.05; no fake certainty |
-| F08 | GENIUS | SOFT | Maintain intelligence quality, system health |
-| F09 | ANTIHANTU | HARD | Anti-Hallucination: C_dark < 0.30, no consciousness claims |
-| F10 | ONTOLOGY | HARD | AI-only ontology; no soul/feelings claims |
-| F11 | AUTH | HARD | Verify identity before sensitive ops |
-| F12 | INJECTION | HARD | Sanitize inputs; no prompt injection |
-| F13 | SOVEREIGN | HARD | Human veto absolute. |
+| L01 | AMANAH | HARD | Reversible-first; irreversible → 888 HOLD |
+| L02 | TRUTH | HARD | ≥0.99 accuracy or declare uncertainty band |
+| L03 | WITNESS | SOFT | Theory · constitution · intent must align |
+| L04 | CLARITY | SOFT | Every output reduces entropy (ΔS ≤ 0) |
+| L05 | PEACE | SOFT | Peace ≥ 1.0; de-escalate, guard maruah |
+| L06 | EMPATHY | SOFT | Dignity-first; ASEAN/MY context |
+| L07 | HUMILITY | SOFT | Uncertainty band 0.03–0.05; no fake certainty |
+| L08 | GENIUS | SOFT | Maintain intelligence quality, system health |
+| L09 | ANTIHANTU | HARD | Anti-Hallucination: C_dark < 0.30, no consciousness claims |
+| L10 | ONTOLOGY | HARD | AI-only ontology; no soul/feelings claims |
+| L11 | AUTH | HARD | Verify identity before sensitive ops |
+| L12 | INJECTION | HARD | Sanitize inputs; no prompt injection |
+| L13 | SOVEREIGN | HARD | Human veto absolute. |
 
 ### F9 Enhanced: C_dark Formula
 
@@ -109,14 +115,20 @@ Threshold: C_dark < 0.30 for SEAL.
 
 ```
 000   → arif_session_init        — 000_INIT: Session bootstrap + identity binding. CALL FIRST…
+010   → arif_forge_execute       — 010_FORGE_EXECUTE: Build execution — code generation,…
 111   → arif_sense_observe       — 111_OBSERVE: Multimodal reality observation and hybrid…
 222   → arif_evidence_fetch      — 222_EVIDENCE: Verified external evidence retrieval with…
 333   → arif_mind_reason         — 333_REASON: Symbolic reasoning kernel — epistemically…
-444   → arif_heart_critique      — 444_CRITIQUE: Ethical critique and consequence assessment…
 444r  → arif_reply_compose       — 444_REPLY: Governed response composition — formats final…
-555   → arif_kernel_route        — 555_ROUTE: Routes intent to correct tool or organ. Use when…
-555m  → arif_memory_recall       — 555m_MEMORY: Associative memory — Postgres+Qdrant vector…
-666   → arif_forge_execute       — 666_FORGE: Build execution — code generation, artifact…
+555   → arif_kernel_route        — 555_ROUTE [DEPRECATED — use arif_route + arif_triage +…
+555   → arif_route               — 555_ROUTE_CANONICAL: New canonical routing entry point.…
+555   → arif_triage              — 555_TRIAGE: Session status, preflight, and priority…
+555   → arif_kernel_status       — 555_KERNEL_STATUS: Telemetry, semantic tool discovery, and…
+555   → arif_bridge              — 555_BRIDGE: Low-level direct organ tool call. Bypasses…
+555   → arif_kernel_attest       — 555_KERNEL_ATTEST: Live organ attestation. Replaces…
+555   → arif_kernel_health       — 555_KERNEL_HEALTH: Federation liveness heartbeat snapshot.…
+555m  → arif_memory_recall       — 555_MEMORY v4: Unified cognitive memory — 8 canonical modes…
+666   → arif_heart_critique      — 666_HEART: Ethical critique and consequence assessment…
 666g  → arif_gateway_connect     — 666_GATEWAY: Federated cross-agent bridge — connects arifOS…
 777   → arif_ops_measure         — 777_MEASURE: Machine resource health + governance…
 888   → arif_judge_deliberate    — 888_JUDGE: Final constitutional arbitration — renders…
@@ -137,7 +149,7 @@ When governance kernel returns 0.0 for witness scores, these defaults are applie
 | :--- | :------ |
 | `arifos://agents/skills` | This document |
 | `arifos://status/vitals` | System health |
-| `arifos://governance/floors` | F1-F13 thresholds |
+| `arifos://governance/floors` | F1-L13 thresholds |
 | `arifos://contracts/tools` | Tool risk contracts |
 
 ## Canonical Links
@@ -148,104 +160,6 @@ When governance kernel returns 0.0 for witness scores, these defaults are applie
 - **MCP Endpoint**: <https://mcp.arif-fazil.com/mcp>
 - **Code**: <https://github.com/ariffazil/arifOS>
 
----
-
-## Canonical Tool-Count Truth Table (F2) — Updated 2026-06-14
-
-This section is the F2 truth for the 44-tool arifOS MCP surface.
-All counts are auto-generated from `constitutional_map.py` CANONICAL_TOOLS (13)
-+ DIAGNOSTIC_TOOLS (31) = 44 declared tools across 8 tiers.
-
-| Scope | Count | Description | Source |
-| :---  | :---: | :---        | :---   |
-| **Canonical constitutional surface** | **13** | 13 `arif_*` kernel tools, 000→999 pipeline, F1-F13 floor binding | `CANONICAL_TOOLS` |
-| **Hermes cross-verification** | **7** | `hermes_system_status`, `hermes_vault_query`, `hermes_epistemic_check`, `hermes_fact_check`, `hermes_cross_verify`, `hermes_plan_review`, `hermes_memory_steward` | `DIAGNOSTIC_TOOLS` tier=hermes |
-| **Canary transport diagnostics** | **6** | `arif_ping`, `arif_schema_echo`, `arif_version_echo`, `arif_transport_echo`, `arif_initialize_probe`, `arif_conformance_report` | `DIAGNOSTIC_TOOLS` tier=canary |
-| **Lease lifecycle** | **3** | `arif_lease_inspect`, `arif_lease_issue`, `arif_lease_revoke` | `DIAGNOSTIC_TOOLS` tier=lease |
-| **Federation attestation** | **4** | `arif_os_attest`, `arif_organ_attest`, `arif_organ_attest_all`, `arif_heartbeat` | `DIAGNOSTIC_TOOLS` tier=attest |
-| **A-FORGE pre-execution** | **3** | `forge_dry_run`, `forge_plan`, `forge_query` | `DIAGNOSTIC_TOOLS` tier=forge-sub |
-| **Narrative detection** | **2** | `arif_detect_institutional_shadow_drift`, `arif_detect_narrative_tension` | `DIAGNOSTIC_TOOLS` tier=narrative |
-| **General diagnostics** | **6** | `arif_stack_health_probe`, `arif_scan_local_instructions`, `arif_organ_consensus`, `arif_session_budget`, `arif_floor_status`, `mcp_drift_check` | `DIAGNOSTIC_TOOLS` tier=diagnostic |
-| **TOTAL SURFACE** | **44** | All tools declared in `build_tool_registry_manifest()` | `tool_registry.json` |
-
-**Namespace ruling (F13 SOVEREIGN 2026-06-14):**
-- `arif_*` — Canonical prefix for all kernel + diagnostic tools (sanctioned)
-- `hermes_*` — Sanctioned non-arif_ namespace for Hermes ASI tools
-- `forge_*` — Sanctioned non-arif_ namespace for A-FORGE pre-execution tools
-- `arifos_*` — BLOCKED; internal-only prefix, never exposed on public MCP
-- `mcp_*` — Utility namespace for operational diagnostics (mcp_drift_check)
-
-**The 13 canonicals are the constitutional contract.** The 44 are the full
-declared surface. Drift between declared and live `/health` tool_count is
-a HOLD condition.
-
-When in doubt, query the live kernel:
-
-```bash
-curl -s http://127.0.0.1:8088/health | python3 -m json.tool
-# contract_status.tool_count = authoritative wire surface
-```
-
----
-
-## Live Runtime Evidence (Verified 2026-06-12)
-
-This section closes the **"runtime liveness"** and **"enforcement proof"** gaps
-from external audits. All claims below are reproducible by curl.
-
-### 1. Runtime liveness
-
-```bash
-curl -s http://127.0.0.1:8088/health
-# Returns: status=healthy, tools_loaded=13, floors_active=13,
-#          live_commit=023e73d, build_commit=52fccbb,
-#          vault999_health=healthy, graphiti_enabled=true,
-#          ml_floors.ml_floors_enabled=true,
-#          contract_drift=false, registry_truth=VERIFIED
-```
-
-### 2. SEAL-gated forge — fail-closed proof
-
-`arif_forge_execute` with **empty session_id** returns HOLD via the
-LEGACY_WRAP gate (F11 AUTH fail-closed). Verified by direct call:
-
-```bash
-# Expected response:
-#   verdict: HOLD
-#   result_text: "888_HOLD: LEGACY_WRAP cannot execute ATOMIC on
-#                  arif_forge_execute. Upgrade client to send
-#                  FederationEnvelope with verified authority."
-#   failed_floors: ["F11"]
-#   output_policy: DOMAIN_HOLD
-```
-
-This is **enforcement proof**, not design claim. The substrate rejects
-unsigned FORGE at runtime.
-
-### 3. Tool surface (live enumeration)
-
-```bash
-SID=$(curl -s -i -X POST http://127.0.0.1:8088/mcp \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json, text/event-stream" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize",
-       "params":{"protocolVersion":"2024-11-25",
-                "capabilities":{},"clientInfo":{"name":"audit","version":"1.0"}}}' \
-  | grep -i "mcp-session-id" | head -1 | tr -d '\r' | awk '{print $2}')
-
-curl -s -X POST http://127.0.0.1:8088/mcp \
-  -H "mcp-session-id: $SID" \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json, text/event-stream" \
-  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
-# Returns: 19 tools (16 arif_* + 3 forge_*), matches the truth table.
-```
-
-### 4. Compile-time authority (constitutional_map.py)
-
-The 13 canonical tools are defined in `arifosmcp/constitutional_map.py:CANONICAL_TOOLS`
-and bound to floor enforcement at module import. This is the SOT; anything
-not in CANONICAL_TOOLS is not part of the constitutional contract.
 
 ---
 

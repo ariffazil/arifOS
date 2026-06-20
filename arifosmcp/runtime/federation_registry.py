@@ -36,7 +36,8 @@ FEDERATION_ORGANS: Dict[str, Dict[str, Any]] = {
     "arifos": {
         "port": 8088,
         "role": "Constitutional kernel — F1-F13 floors, 888 JUDGE, routing, memory",
-        "canonical_tools": 13,
+        "canonical_tools": 19,
+        "total_tools": 56,
         "namespace": "arifOS",
     },
     "wealth": {
@@ -54,7 +55,8 @@ FEDERATION_ORGANS: Dict[str, Dict[str, Any]] = {
     "well": {
         "port": 18083,
         "role": "Human vitality — biometric readiness, homeostasis (REFLECT_ONLY)",
-        "canonical_tools": 17,
+        "canonical_tools": 18,
+        "total_tools": 21,
         "namespace": "WELL",
     },
     "aforge": {

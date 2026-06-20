@@ -79,7 +79,7 @@ _INTRO = """
 >
 > **Machine is substrate. Governance is constraint. Intelligence is interpretation. Judgment remains Arif.**
 >
-> This document registers the canonical MCP tools (the 13-tool constitutional surface) available to AI agents
+> This document registers the canonical MCP tools (the constitutional surface) available to AI agents
 operating within the arifOS ecosystem. The tool tables below are **auto-generated** from
 `arifosmcp.constitutional_map.CANONICAL_TOOLS`. The static sections (frontmatter, floor definitions,
 Trinity Lanes, pipeline diagram, witness defaults, resource URIs, footer) are hand-maintained in
@@ -112,6 +112,12 @@ _TOOL_CATEGORIES: dict[str, list[str]] = {
     ],
     "INFRASTRUCTURE": [
         "arif_kernel_route",
+        "arif_route",
+        "arif_triage",
+        "arif_kernel_status",
+        "arif_kernel_attest",
+        "arif_kernel_health",
+        "arif_bridge",
         "arif_gateway_connect",
         "arif_memory_recall",
         "arif_ops_measure",
