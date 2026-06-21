@@ -188,6 +188,17 @@ _ORGAN_CONFIG: dict[str, dict[str, Any]] = {
             "/opt/well/app/GENESIS/012_SUBSTRATE_MANIFEST.md",
         ],
     },
+    "VAULT999": {
+        "role": "immutable_ledger",
+        "health_module": "arifosmcp.runtime.vault_bridge",
+        "health_fn": "vault_health_check",
+        "list_fn": "list_vault_tools",
+        "identity_anchor_type": "vault_manifest",
+        "identity_anchor_candidates": [
+            "/root/arifOS/VAULT999/vault999.jsonl",
+            "/root/arifOS/VAULT999/vault999_legacy.jsonl",
+        ],
+    },
 }
 
 

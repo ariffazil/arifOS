@@ -74,6 +74,12 @@ FEDERATION_ORGANS: dict[str, dict[str, Any]] = {
         "canonical_tools": 2,
         "namespace": "APEX",
     },
+    "vault999": {
+        "port": 8100,
+        "role": "immutable_ledger",
+        "canonical_tools": 7,
+        "namespace": "VAULT999",
+    },
 }
 
 # ─── Registry Models ────────────────────────────────────────────────────────

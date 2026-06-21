@@ -31,6 +31,7 @@ Three active workstreams:
 | WELL | human_readiness_reflect_only | ✅ | ✅ | 15 / 18 | DEGRADED |
 | AAA | cockpit_a2a | ✅ | ✅ | — | PASS |
 | A-FORGE | governed_execution | ✅ | — | 77 / 77 | PASS |
+| VAULT999 | immutable_ledger | ✅ | — | 7 / 7 | PASS |
 
 **Overall verdict:** `DEGRADED`  
 **Reality score:** 58 / 100  

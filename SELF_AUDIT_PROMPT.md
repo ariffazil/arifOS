@@ -64,7 +64,7 @@ Classify: `CONFIG_CHANGE | POLICY_CHANGE | INFRA_CHANGE | IRREVERSIBLE`
 Call **at minimum** these probes:
 ```
 arif_os_attest()                    → kernel live envelope
-arif_organ_attest_all()             → all 4 organs live
+arif_organ_attest_all()             → all 7 organs live (arifOS, GEOX, WEALTH, WELL, AAA, A-FORGE, VAULT999)
 arif_ops_measure(mode='health')     → CPU/mem/disk bands
 arif_schema_echo()                  → transport bridge integrity
 ```

@@ -47,8 +47,8 @@ from arifosmcp.transport.canonical_envelope import (
 from arifosmcp.transport.conformance import (
     print_matrix,
     run_all,
-    run_conformance_spine,
 )
+from arifosmcp.transport.conformance_spine import run_spine as run_conformance_spine
 from arifosmcp.transport.errors import (
     ERRORS,
     ArifError,

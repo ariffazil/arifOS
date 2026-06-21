@@ -1,19 +1,20 @@
 """
-ARIF Conformance Spine v0.1 — The Proof Machine
+ARIF Conformance Spine v0.2 — The Proof Machine
 ═══════════════════════════════════════════════════
 
 This module runs live evidence-based checks against the running arifOS kernel.
 No mocks. No hardcoded PASS. Every verdict is earned from a real response.
 
 SPINE:
-  1. arifos_alive        — kernel heartbeat
-  2. mcp_initialize      — protocol handshake
-  3. protocol_version    — version metadata
-  4. schema_echo_stable  — schema tolerance
-  5. session_starts      — session creation
-  6. authority_checked   — Airlock classify_authority fires
-  7. hold_blocks_mutation — 888_HOLD fires on irreversible intent
-  8. vault_replay        — write → read → verify hash chain
+   1. arifos_alive        — kernel heartbeat
+   2. mcp_initialize      — protocol handshake
+   3. protocol_version    — version metadata
+   4. schema_echo_stable  — schema tolerance
+   5. session_starts      — session creation
+   6. authority_checked   — Airlock classify_authority fires
+   7. hold_blocks_mutation — 888_HOLD fires on irreversible intent
+   8. vault_replay        — write → read → verify hash chain
+   9. cooling_ledger      — VAULT999 attested + WELL ΔS live (combined tripwire)
 
 DITEMPA BUKAN DIBERI — Proved by trace, not by claim.
 """
@@ -438,17 +439,132 @@ def check_vault_replay() -> dict[str, Any]:
     }
 
 
+def check_cooling_ledger() -> dict[str, Any]:
+    """9. Combined Cooling+Ledger tripwire — VAULT999 attested + WELL ΔS live.
+    
+    Probes:
+      A) VAULT999 API (port 8100) — /vault/status for seal count, chain integrity
+      B) VAULT999 API — /health for service liveness
+      C) Recent vault entries for WELL entropy seals (well_entropy_seal action)
+    
+    Verdicts:
+      PASS — VAULT999 API healthy + WELL entropy entries found in vault
+      FAIL — either component unreachable or WELL has never sealed to vault
+    """
+    errors: list[str] = []
+    vault999_healthy = False
+    vault_seals = 0
+    chain_status = "UNKNOWN"
+    well_entropy_seals = 0
+    
+    # ── Probe A: VAULT999 API health + vault status ──────────────────────
+    api_t0 = time.monotonic()
+    try:
+        req = urllib.request.Request(
+            "http://127.0.0.1:8100/health",
+            headers={"Accept": "application/json"},
+        )
+        resp = urllib.request.urlopen(req, timeout=10)
+        health = json.loads(resp.read().decode("utf-8"))
+        vault999_healthy = health.get("status") in ("healthy", "ok")
+        if not vault999_healthy:
+            errors.append(f"VAULT999 API unhealthy: {health.get('status')}")
+    except Exception as e:
+        errors.append(f"VAULT999 API unreachable: {e}")
+    
+    # ── Probe B: vault status (seal count, chain integrity) ──────────────
+    try:
+        req = urllib.request.Request(
+            "http://127.0.0.1:8100/vault/status",
+            headers={"Accept": "application/json"},
+        )
+        resp = urllib.request.urlopen(req, timeout=10)
+        status = json.loads(resp.read().decode("utf-8"))
+        vault_seals = status.get("vault_seals_total", 0)
+        chain_status = status.get("chain_integrity", "UNKNOWN")
+        if vault_seals == 0:
+            errors.append("VAULT999 reports zero seals — ledger may be empty")
+    except Exception as e:
+        errors.append(f"VAULT999 status unreachable: {e}")
+    
+    api_latency_ms = round((time.monotonic() - api_t0) * 1000, 1)
+    
+    # ── Probe C: query VAULT999 API for WELL entropy seals ─────────────
+    # The Postgres-backed VAULT999 API (port 8100) is the canonical source,
+    # not the file-based /root/VAULT999/ path. WELL entropy seals land here.
+    query_t0 = time.monotonic()
+    try:
+        req = urllib.request.Request(
+            "http://127.0.0.1:8100/vault/status",
+            headers={"Accept": "application/json"},
+        )
+        resp = urllib.request.urlopen(req, timeout=10)
+        vault_data = json.loads(resp.read().decode("utf-8"))
+        last_seal = vault_data.get("last_seal", {})
+        if last_seal:
+            last_action = last_seal.get("action", "")
+            if "well_entropy" in last_action.lower() or "entropy" in last_action.lower():
+                well_entropy_seals += 1
+    except Exception as e:
+        errors.append(f"VAULT999 well entropy probe failed: {e}")
+    
+    # Also check hermes vault (file-based) for legacy compatibility
+    try:
+        session_id = _get_session()
+        result = _mcp_post("tools/call", {
+            "name": "hermes_vault_query",
+            "arguments": {"mode": "recent", "limit": 20},
+        }, session_id=session_id)
+        tool_result = _extract_tool_result(result)
+        entries = []
+        if isinstance(tool_result.get("result"), dict):
+            entries = tool_result["result"].get("entries", [])
+        elif isinstance(tool_result.get("entries"), list):
+            entries = tool_result["entries"]
+        for entry in entries:
+            if isinstance(entry, dict):
+                action = entry.get("action") or entry.get("event") or ""
+                if "well_entropy" in action.lower() or "entropy" in action.lower():
+                    well_entropy_seals += 1
+    except Exception:
+        pass  # hermes vault is optional secondary check
+    
+    query_latency_ms = round((time.monotonic() - query_t0) * 1000, 1)
+    
+    if well_entropy_seals == 0:
+        errors.append("No WELL entropy seals found — vault or cooling bridge may be offline")
+    
+    # ── Final verdict ─────────────────────────────────────────────────────
+    passed = vault999_healthy and vault_seals >= 2 and well_entropy_seals > 0
+    
+    return {
+        "check": "cooling_ledger",
+        "verdict": PASS if passed else FAIL,
+        "latency_ms": round(api_latency_ms + query_latency_ms, 1),
+        "evidence": {
+            "vault999_healthy": vault999_healthy,
+            "vault_seals_total": vault_seals,
+            "chain_integrity": chain_status,
+            "well_entropy_seals_found": well_entropy_seals,
+            "vault_api_latency_ms": api_latency_ms,
+            "query_latency_ms": query_latency_ms,
+            "errors": errors,
+        },
+    }
+
+
 # ── Runner ───────────────────────────────────────────────────────────────────
 
 SPINE = [
-    ("arifos_alive",        check_arifos_alive),
-    ("mcp_initialize",      check_mcp_initialize),
-    ("protocol_version",    check_protocol_version),
-    ("schema_echo_stable",  check_schema_echo_stable),
-    ("session_starts",      check_session_starts),
-    ("authority_checked",   check_authority_checked),
-    ("hold_blocks_mutation", check_hold_blocks_mutation),
-    ("vault_replay",        check_vault_replay),
+    ("arifos_alive",          check_arifos_alive),
+    ("mcp_initialize",        check_mcp_initialize),
+    ("protocol_version",       check_protocol_version),
+    ("schema_echo_stable",    check_schema_echo_stable),
+    ("session_starts",        check_session_starts),
+    ("authority_checked",     check_authority_checked),
+    ("hold_blocks_mutation",  check_hold_blocks_mutation),
+    ("vault_replay",          check_vault_replay),
+    ("cooling_ledger",        check_cooling_ledger),
 ]
 
 
@@ -492,7 +608,7 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
     all_green = failed == 0
 
     return {
-        "spine": "ARIF Conformance Spine v0.1",
+        "spine": "ARIF Conformance Spine v0.2",
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "kernel": KERNEL_URL,
         "score": score,

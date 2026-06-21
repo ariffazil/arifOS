@@ -337,7 +337,7 @@ mcp = FastMCP(
 @mcp.tool(
     name="arif_conformance_report",
     description=(
-        "PROOF MACHINE: Run the ARIF Conformance Spine v0.1 against the live kernel. "
+        "PROOF MACHINE: Run the ARIF Conformance Spine v0.2 against the live kernel. "
         "Every verdict is earned from a real response — no mocks, no hardcoded PASS. "
         "Checks: kernel alive, MCP initialize, protocol version, schema echo, session start, "
         "authority classification, 888_HOLD mutation refusal, VAULT replay verification. "
