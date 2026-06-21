@@ -2,8 +2,9 @@
 arifOS Resources — Canonical URI Surface
 ════════════════════════════════════════
 
-12 Canonical Resources (intelligence, not chaos):
+15 Canonical + Supplemental Resources (intelligence, not chaos):
 
+CANONICAL (13):
   arifos://doctrine          — Immutable law (F1–L13)
   arifos://trinity           — AAA lane definitions and separation of powers
   arifos://schema            — Complete blueprint (tools, lanes, forge bridge)
@@ -16,6 +17,11 @@ arifOS Resources — Canonical URI Surface
   arifos://bootstrap         — Full federation knowledge-graph context (v2026.06.14)
   arifos://human/metabolized — Compact sovereign context (nutrient, not food)
   tree777://index            — TREE777 wiki index
+  runner://policy/v1         — Context runner pinned policy (F2, F11)
+
+SUPPLEMENTAL (2 — auto-generated, low maintenance):
+  arifos://mcp-alignment     — MCP spec conformance matrix (protocol, extensions, deprecations)
+  arifos://resources/index   — Machine-readable JSON catalog of all resources
 
 REMOVED (chaos reduction):
   arifos://philosophy — beautiful, not operational. Agents don't load it.
@@ -37,7 +43,9 @@ from .evidence import register_evidence_resources
 from .human_context import register_human_context
 from .identity import register_identity
 from .jurisdiction import register_jurisdiction
+from .mcp_alignment import register_mcp_alignment
 from .memory import register_memory
+from .resources_index import register_resources_index
 from .runner import register_runner_resources
 from .schema import register_schema
 from .seal_readiness import register_seal_readiness
@@ -58,6 +66,13 @@ CANONICAL_RESOURCES = (
     "arifos://vitals",
     "arifos://bootstrap",
     "arifos://human/metabolized",
+    "tree777://index",
+    "runner://policy/v1",
+)
+
+SUPPLEMENTAL_RESOURCES = (
+    "arifos://mcp-alignment",
+    "arifos://resources/index",
 )
 
 TREE777_RESOURCES = (
@@ -92,7 +107,7 @@ RUNNER_RESOURCES = (
 
 
 def register_resources(mcp: FastMCP) -> list[str]:
-    """Register 11 canonical resources + evidence, embodied, TREE777, runner, and bootstrap families."""
+    """Register 13 canonical + evidence, embodied, TREE777, runner, supplemental, and human context families."""
     registered: list[str] = []
     registered.extend(register_doctrine(mcp))
     registered.extend(register_trinity(mcp))
@@ -104,6 +119,8 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_memory(mcp))
     registered.extend(register_vitals(mcp))
     registered.extend(register_bootstrap(mcp))
+    registered.extend(register_mcp_alignment(mcp))
+    registered.extend(register_resources_index(mcp))
     registered.extend(register_evidence_resources(mcp))
     registered.extend(register_embodied_resources(mcp))
     registered.extend(register_tree777_resources(mcp))
