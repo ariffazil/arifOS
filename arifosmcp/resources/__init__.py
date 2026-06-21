@@ -2,7 +2,16 @@
 arifOS Resources — Canonical URI Surface
 ════════════════════════════════════════
 
-15 Canonical + Supplemental Resources (intelligence, not chaos):
+15 Canonical + Supplemental Resources (intelligence, not chaos).
+
+TRUTH HIERARCHY (all resources carry a truth_level):
+  1 SOVEREIGN_CANON  — Immutable constitution, seals, sovereign directives
+  2 SEALED_VAULT     — Append-only ledger entries, signed judgments
+  3 TRUSTED_REPO     — Version-controlled source of truth (git)
+  4 OBSERVED_EXTERNAL — Web evidence, real-time sensor data
+  5 USER_CLAIM       — Human input without verification
+  6 MODEL_INFERENCE  — LLM-generated content, may hallucinate
+  7 UNTRUSTED        — Unverified external, requires quarantine
 
 CANONICAL (13):
   arifos://doctrine          — Immutable law (F1–L13)
@@ -22,6 +31,9 @@ CANONICAL (13):
 SUPPLEMENTAL (2 — auto-generated, low maintenance):
   arifos://mcp-alignment     — MCP spec conformance matrix (protocol, extensions, deprecations)
   arifos://resources/index   — Machine-readable JSON catalog of all resources
+
+GOVERNANCE RESOURCE (new):
+  arifos://resources/audit   — Governed resource audit with hashes, truth levels, authority
 
 REMOVED (chaos reduction):
   arifos://philosophy — beautiful, not operational. Agents don't load it.

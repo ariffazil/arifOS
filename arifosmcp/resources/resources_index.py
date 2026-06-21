@@ -114,12 +114,12 @@ def _build_resource_catalog() -> dict[str, Any]:
     })
 
     entries.append({
-        "uri": "arifos://resources/audit",
+        "uri": "arifos://resources/index",
         "family": "supplemental",
         "mime_type": "application/json",
         "dynamic": False,
-        "description": "Governed resource audit with hashes, authority levels, staleness, and permissions",
-        "floors": ["F2", "F4", "F11", "F13"],
+        "description": "Machine-readable JSON catalog of all registered arifOS MCP resources with URIs, MIME types, descriptions, and floor linkages",
+        "floors": ["F2", "F4", "F11"],
     })
 
     return {
@@ -257,6 +257,24 @@ def register_resources_index(mcp: FastMCP) -> list[str]:
             hash_input = f"{uri}:{sorted(entry.get('floors', []))}:v2026.06.21"
             content_hash = f"sha256:{hashlib.sha256(hash_input.encode()).hexdigest()[:32]}"
 
+            # Truth hierarchy: SOVEREIGN_CANON > SEALED_VAULT > TRUSTED_REPO
+            # > OBSERVED_EXTERNAL > USER_CLAIM > MODEL_INFERENCE > UNTRUSTED
+            truth_hierarchy = {
+                "CANONICAL": "SOVEREIGN_CANON",
+                "STRUCTURAL": "SEALED_VAULT",
+                "DYNAMIC": "OBSERVED_EXTERNAL",
+                "EPHEMERAL": "MODEL_INFERENCE",
+            }
+            truth = truth_hierarchy.get(authority, "UNTRUSTED")
+
+            # What this resource overrides when in conflict
+            overrides_map = {
+                "SOVEREIGN_CANON": ["user_claim", "model_inference", "untrusted_resource", "stale_resource"],
+                "SEALED_VAULT": ["model_inference", "untrusted_resource", "stale_resource"],
+                "OBSERVED_EXTERNAL": ["model_inference", "untrusted_resource"],
+                "MODEL_INFERENCE": ["untrusted_resource"],
+            }
+
             audit_entry = {
                 "uri": uri,
                 "family": family,
@@ -264,6 +282,9 @@ def register_resources_index(mcp: FastMCP) -> list[str]:
                 "dynamic": is_dynamic,
                 "hash": content_hash,
                 "authority_level": authority,
+                "truth_level": truth,
+                "truth_hierarchy_rank": list(truth_hierarchy.values()).index(truth) + 1 if truth in truth_hierarchy.values() else 99,
+                "overrides_when_in_conflict": overrides_map.get(truth, []),
                 "owner": owner,
                 "mutation_allowed": mutation,
                 "staleness_policy": staleness,
@@ -285,7 +306,21 @@ def register_resources_index(mcp: FastMCP) -> list[str]:
                 "subscribe": True,
                 "listChanged": True,
             },
+            "truth_hierarchy": [
+                "1 SOVEREIGN_CANON — immutable constitution, seals, sovereign directives",
+                "2 SEALED_VAULT — append-only ledger entries, signed judgments",
+                "3 TRUSTED_REPO — version-controlled source of truth (git)",
+                "4 OBSERVED_EXTERNAL — web evidence, real-time sensor data",
+                "5 USER_CLAIM — human input without verification",
+                "6 MODEL_INFERENCE — LLM-generated content, may hallucinate",
+                "7 UNTRUSTED — unverified external resource, requires quarantine",
+            ],
             "summary": {
+                "by_truth_level": {
+                    "SOVEREIGN_CANON": sum(1 for e in audit_entries if e["truth_level"] == "SOVEREIGN_CANON"),
+                    "SEALED_VAULT": sum(1 for e in audit_entries if e["truth_level"] == "SEALED_VAULT"),
+                    "OBSERVED_EXTERNAL": sum(1 for e in audit_entries if e["truth_level"] == "OBSERVED_EXTERNAL"),
+                },
                 "by_authority": {
                     "CANONICAL": sum(1 for e in audit_entries if e["authority_level"] == "CANONICAL"),
                     "STRUCTURAL": sum(1 for e in audit_entries if e["authority_level"] == "STRUCTURAL"),
