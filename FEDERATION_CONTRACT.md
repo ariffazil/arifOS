@@ -26,7 +26,7 @@ All constitutional floors (F1-F13) derive from his sovereignty. No organ, agent,
 | # | Organ | Repo | Port | MCP Endpoint | Role | Authority |
 |---|-------|------|------|-------------|------|-----------|
 | Ω | **arifOS** | `ariffazil/arifos` | 8088 | `https://arifos.arif-fazil.com/mcp` | Governance kernel | F1-F13 enforcement, 888 JUDGE, VAULT999, routing |
-| Ψ | **A-FORGE** | `ariffazil/A-FORGE` | 7071 | `https://forge.arif-fazil.com/mcp` | Engineering actuator | Plan, simulate, execute, rollback — only under SEAL |
+| Ψ | **A-FORGE** | `ariffazil/A-FORGE` | 7072 | `https://forge.arif-fazil.com/mcp` | Engineering actuator | Plan, simulate, execute, rollback — only under SEAL |
 | Δ | **AAA** | `ariffazil/AAA` | 3001 | — | Cockpit / identity / A2A | Display, route, queue — never adjudicate |
 | 🌍 | **GEOX** | `ariffazil/geox` | 8081 | `https://geox.arif-fazil.com/mcp` | Earth intelligence | Evidence-only — never authorize drilling |
 | 💰 | **WEALTH** | `ariffazil/wealth` | 18082 | `https://wealth.arif-fazil.com/mcp` | Capital intelligence | Compute-only — never allocate capital |
@@ -91,9 +91,9 @@ No organ may authorize its own execution. Only `arif_judge_deliberate → arif_f
 - **OWNS:** Engineering plans, dry-runs, build pipelines, deploy orchestration, code execution, shell, filesystem
 - **NEVER:** Self-authorize (requires arifOS SEAL), issue constitutional verdicts, compute domain logic (NumPy/Pandas)
 
-### AAA — Cockpit / Identity
-- **OWNS:** UX surface, agent identity, A2A gateway, approval queue, cockpit dashboard
-- **NEVER:** Issue constitutional verdicts, execute engineering mutations
+### AAA — Cockpit / Identity / A2A
+- **OWNS:** UX surface, agent identity, A2A gateway, approval queue, cockpit dashboard, A2A mesh routing
+- **NEVER:** Issue constitutional verdicts, execute engineering mutations, execute irreversible actions
 
 ### GEOX — Earth Intelligence
 - **OWNS:** Well logs, seismic, petrophysics, prospect evaluation, basin screening
@@ -106,10 +106,6 @@ No organ may authorize its own execution. Only `arif_judge_deliberate → arif_f
 ### WELL — Vitality Guard
 - **OWNS:** Sleep, fatigue, stress, cognitive clarity, dignity metrics
 - **NEVER:** Make medical diagnoses, judge fitness for duty, adjudicate constitution
-
-### AAA — Control Plane
-- **OWNS:** Cockpit display, A2A mesh routing, agent identity registry, approval queue
-- **NEVER:** Issue constitutional verdicts, execute irreversible actions
 
 ### A-FORGE — Execution Shell
 - **OWNS:** Build, deploy, code execution, orchestration

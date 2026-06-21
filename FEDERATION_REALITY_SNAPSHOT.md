@@ -1,30 +1,30 @@
 # Federation Reality Snapshot
 
-**Last verified:** `2026-06-16T21:00:28.096231+00:00`
-**Overall verdict:** `GREEN_WITH_GAPS`
+**Last verified:** `2026-06-21T06:20:00.000000+00:00`
+**Overall verdict:** `DEGRADED`
 **Truth layer:** `L2_VERIFIED_STATE`
 
 ## Organ Status
 
-| Organ | Role | Localhost | Public | Tools (expected) | Latency (ms) | Verdict |
-|-------|------|-----------|--------|------------------|--------------|---------|
-| arifOS | constitutional_kernel | ✅ | ✅ | 39 / 13 | 11.95 | DEGRADED |
-| GEOX | earth_evidence | ✅ | ✅ | 40 / 40 | 15.36 | PASS |
-| WEALTH | capital_compute | ✅ | ✅ | 21 / 20 | 7.72 | DEGRADED |
-| WELL | human_readiness_reflect_only | ✅ | ✅ | 18 / 17 | 5.67 | DEGRADED |
-| AAA | cockpit_a2a | ✅ | ✅ | — / — | 61.73 | PASS |
-| A-FORGE | governed_execution | ✅ | — | 59 / 59 | 5.68 | PASS |
+| Organ | Role | Localhost | Public | Tools (live/registered) | Verdict |
+|-------|------|-----------|--------|-------------------------|---------|
+| arifOS | constitutional_kernel | ✅ | ✅ | 0 / 57 | DEGRADED |
+| GEOX | earth_evidence | ✅ | ✅ | 40 / 40 | PASS |
+| WEALTH | capital_compute | ✅ | ✅ | 24 / 54 | PASS |
+| WELL | human_readiness_reflect_only | ✅ | ✅ | 15 / 18 | DEGRADED |
+| AAA | cockpit_a2a | ✅ | ✅ | — | PASS |
+| A-FORGE | governed_execution | ✅ | — | 77 / 77 | PASS |
 
 ## Endpoint Detail
 
 | Organ | Endpoint | Status | Version | Freshness | Notes |
 |-------|----------|--------|---------|-----------|-------|
-| arifOS | http://127.0.0.1:8088 | healthy | kanon-5c27359 | fresh | — |
-| GEOX | http://127.0.0.1:8081 | healthy | v2026.06.05 | fresh | — |
-| WEALTH | http://127.0.0.1:18082 | ALIVE | 2026.06.15 | — | — |
-| WELL | http://127.0.0.1:18083 | healthy | 2026.05.15-ΩWELL+GWELL+FEDERATION | expired | truth=INSUFFICIENT_DATA |
+| arifOS | http://127.0.0.1:8088 | DEGRADED_CLAIM | unknown | stale | tool_count=0; _static_tools fix 2026-06-21; health probe reports unhealthy |
+| GEOX | http://127.0.0.1:8081 | ALIVE | v2026.06.05 | fresh | 40 tools attested |
+| WEALTH | http://127.0.0.1:18082 | ALIVE | 2026.06.15 | fresh | 24 tools attested |
+| WELL | http://127.0.0.1:18083 | DEGRADED_CLAIM | 2026.05.15-ΩWELL+GWELL+FEDERATION | expired | 15 tools attested; state.json STALE |
 | AAA | http://127.0.0.1:3001 | healthy | 1.0.0 | — | tools: organ has no MCP tool surface |
-| A-FORGE | http://127.0.0.1:7071 | healthy | 0.1.0 | fresh | — |
+| A-FORGE | http://127.0.0.1:7072 | healthy | 0.1.0 | fresh | MCP:7072; 77 tools |
 
 ## Known Gaps
 

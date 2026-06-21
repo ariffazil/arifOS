@@ -1,7 +1,7 @@
 # arifOS Federation Memory Architecture — Live Map
 > **Canonical Source:** `ariffazil/arifOS:FEDERATION_MEMORY.md`
 > **Authority:** arifOS F13 SOVEREIGN (Muhammad Arif bin Fazil)
-> **Last Verified:** 2026-05-27 by Hermes ASI
+> **Last Verified:** 2026-06-21 by arifOS kernel attestation (tool_count=0 bug found; static fallback deployed)
 > **Valid From:** 2026-05-27
 > **Rule:** SOT state. All agents must read this for memory layer ground truth. Stale summaries in other docs must point here.
 

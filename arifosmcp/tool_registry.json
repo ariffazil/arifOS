@@ -159,7 +159,7 @@
         "canonical"
       ],
       "affordance_contract": {
-        "action_class": "PREPARE",
+        "action_class": "DRAFT",
         "risk_tier": "LOW",
         "blast_radius": "LOCAL",
         "reversibility": 0.95,

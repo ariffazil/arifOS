@@ -244,6 +244,30 @@ class FederationRegistry:
                 "error": "MCP unreachable + no static metadata",
             }
 
+    def _static_tools(self, organ_name: str, count: int) -> list[dict[str, Any]]:
+        """Return static placeholder tool metadata when MCP crawl fails.
+
+        Each organ's tool surface is documented in FEDERATION_ORGANS.
+        When the MCP endpoint is unreachable, this fallback ensures the
+        registry still knows what tools SHOULD exist.
+        """
+        now_utc = datetime.now(UTC).isoformat()
+        tools: list[dict[str, Any]] = []
+        for i in range(count):
+            tools.append({
+                "name": f"{organ_name}_tool_{i:03d}",
+                "description": f"Static placeholder for {organ_name} tool #{i} — MCP endpoint unreachable",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "mode": {"type": "string", "description": "Operation mode"},
+                    },
+                },
+                "_static": True,
+                "_indexed_at": now_utc,
+            })
+        return tools
+
     def _grade_organ(self, organ_name: str) -> str:
         """Assign trust grade per organ."""
         grades = {

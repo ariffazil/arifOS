@@ -2,7 +2,7 @@
 
 > **Authority:** F13 SOVEREIGN (Muhammad Arif bin Fazil)  
 > **Scope:** Live machine + service state on VPS `af-forge` (72.62.71.199)  
-> **Generated:** 2026-06-16T20:57 UTC by `scripts/federation_reality_probe.py`  
+> **Generated:** 2026-06-21T06:20 UTC by arifOS constitutional agent  
 > **Next refresh:** Run `make reality` to regenerate this file and `FEDERATION_REALITY_SNAPSHOT.md`.
 
 ---
@@ -23,25 +23,25 @@ Three active workstreams:
 
 ## 2. Federation organ status
 
-| Organ | Role | Localhost | Public | Tools (expected) | Verdict |
-|-------|------|-----------|--------|------------------|---------|
-| arifOS | constitutional_kernel | ✅ | ✅ | 39 / 13 | DEGRADED |
+| Organ | Role | Localhost | Public | Tools (live/registered) | Verdict |
+|-------|------|-----------|--------|-------------------------|---------|
+| arifOS | constitutional_kernel | ✅ | ✅ | 0 / 57 | DEGRADED |
 | GEOX | earth_evidence | ✅ | ✅ | 40 / 40 | PASS |
-| WEALTH | capital_compute | ✅ | ✅ | 21 / 20 | DEGRADED |
-| WELL | human_readiness_reflect_only | ✅ | ✅ | 18 / 17 | DEGRADED |
+| WEALTH | capital_compute | ✅ | ✅ | 24 / 54 | PASS |
+| WELL | human_readiness_reflect_only | ✅ | ✅ | 15 / 18 | DEGRADED |
 | AAA | cockpit_a2a | ✅ | ✅ | — | PASS |
-| A-FORGE | governed_execution | ✅ | — | 59 / 59 | PASS |
+| A-FORGE | governed_execution | ✅ | — | 77 / 77 | PASS |
 
-**Overall verdict:** `GREEN_WITH_GAPS`  
-**Reality score:** 64 / 100  
+**Overall verdict:** `DEGRADED`  
+**Reality score:** 58 / 100  
 **Maturity:** Level 4.2 / 7
 
 ### Verdict notes
 
-- **arifOS DEGRADED**: `tools/list` returns 39 tools vs 13 canonical. Alias/legacy surface drift.
-- **WEALTH DEGRADED**: 21 tools reported vs 20 declared. Hidden aliases surfacing or registry miscount.
-- **WELL DEGRADED**: Reachable but freshness `expired`, `truth_status=INSUFFICIENT_DATA`. Live biometric input stale.
-- **A-FORGE PASS**: 59 tools, healthy. No public HTTPS ingress configured.
+- **arifOS DEGRADED**: `tools/list` crawl returns 0 tools — `FederationRegistry._static_tools` missing (fixed 2026-06-21). 57 tools registered in `tool_registry.json`. 12 divergent ActionClass enums across codebase create permission-model fragmentation.
+- **WEALTH PASS**: 24 live tools per MCP attestation (vs 54 declared — likely hidden aliases not counted). Attestation verified 2026-06-21.
+- **WELL DEGRADED**: 15 live tools. Freshness `expired`, `truth_status=INSUFFICIENT_DATA`. Live biometric input stale.
+- **A-FORGE PASS**: 77 tools on MCP:7072, healthy. No public HTTPS ingress configured.
 
 ---
 

@@ -2,7 +2,7 @@
 
 > **The law of the federation. arifOS structures decision; it does not decide.**
 > **DITEMPA BUKAN DIBERI — Forged, Not Given.**
-> **Last SOT refresh: 2026-06-14 | Commit: 0f887477c**
+> **Last SOT refresh: 2026-06-21 | Commit: running HEAD**
 
 ---
 
@@ -31,25 +31,32 @@ curl -s http://localhost:8088/health | python3 -m json.tool | grep -E 'floors|fl
 ```
 Arif (F13 SOVEREIGN)
     ↓
-arifOS (13 constitutional tools — arif_*)
-    ├── arif_session_init      — start a governed session
-    ├── arif_sense_observe     — search/ingest/observe reality
-    ├── arif_evidence_fetch    — fetch + cite external evidence
-    ├── arif_mind_reason       — multi-step reasoning + planning
-    ├── arif_heart_critique    — ethical risk + empathy audit
-    ├── arif_judge_deliberate  — render constitutional verdict
-    ├── arif_forge_execute     — execute approved builds/deploys (LEASE REQUIRED for mutation)
-    ├── arif_vault_seal        — seal to immutable ledger
-    ├── arif_memory_recall     — search/store session memory (+ agentic search)
-    ├── arif_kernel_route      — route intent to correct tool
-    ├── arif_ops_measure       — health + vitals + cost
-    ├── arif_reply_compose     — compose final response
-    └── arif_gateway_connect   — bridge to federation organs (MIND + MEMORY upstream)
+arifOS (20 canonical + 37 diagnostic = 57 total registered tools)
+    ├── 000 arif_session_init      — start or resume a governed session
+    ├── 111 arif_sense_observe     — search/ingest/observe reality
+    ├── 222 arif_evidence_fetch    — fetch + cite external evidence
+    ├── 333 arif_mind_reason       — multi-step reasoning + planning + critique
+    ├── 444 arif_reply_compose     — compose final response with citations
+    ├── 555 arif_kernel_route      — route intent to correct tool/organ
+    ├── 555 arif_route             — simplified intent router (mode-first naming)
+    ├── 555 arif_triage            — constitutional preflight + holds check
+    ├── 555 arif_kernel_status     — kernel telemetry + discovery + prediction
+    ├── 555 arif_bridge_connect    — canonical cross-organ bridge (arif_<noun>_<verb>)
+    ├── 555 arif_bridge            — [DEPRECATED] legacy alias for arif_bridge_connect
+    ├── 555 arif_kernel_attest     — live organ attestation (single/all)
+    ├── 555 arif_kernel_health     — lightweight kernel liveness probe
+    ├── 555m arif_memory_recall     — search/store session memory (+ agentic search)
+    ├── 666 arif_heart_critique    — ethical risk + empathy audit + redteam
+    ├── 666g arif_gateway_connect   — bridge to federation organs (GEOX/WEALTH/WELL/A-FORGE)
+    ├── 777 arif_ops_measure       — health + vitals + cost + drift + topology
+    ├── 888 arif_judge_deliberate  — render constitutional verdict (SEAL/SABAR/HOLD/VOID)
+    ├── 900 arif_forge_execute     — execute approved plans (LEASE REQUIRED for mutation)
+    └── 999 arif_vault_seal        — seal to immutable append-only ledger
 ```
 
 **Golden path:** `session_init → sense_observe/evidence_fetch → mind_reason → heart_critique → judge_deliberate → vault_seal`
 
-**Federated organs (gateway upstream):** GEOX, WEALTH, WELL, MIND (51001), MEMORY (51002)
+**Federated organs (gateway upstream):** GEOX:8081, WEALTH:18082, WELL:18083, A-FORGE:7072, AAA:3001, MIND (51001), MEMORY (51002)
 
 ---
 
@@ -79,8 +86,13 @@ mypy arifosmcp/runtime/ --ignore-missing-imports
 
 | Path | What lives here |
 |------|-----------------|
-| `arifosmcp/tools/` | 13 canonical `arif_*` tool handlers |
+| `arifosmcp/tools/` | 20 canonical `arif_*` tool handlers + judge.py (888 JUDGE) |
 | `arifosmcp/runtime/` | FastMCP ASGI server, tool registration, bridges, lease, memory store, live kernel |
+| `arifosmcp/runtime/agentic_bridge.py` | **THE BRIDGE** — MCP→ART→ACT→JUDGE→FORGE→VAULT999 wired entry point |
+| `arifosmcp/runtime/art/` | ART reflex subpackage — lifecycle, verdict, blast, reflex, trust_curve |
+| `arifosmcp/runtime/act/` | ACT ceremony subpackage — patterns, gates, runtime, compensation, ticketing, receipts |
+| `arifosmcp/runtime/pre_execution_gate.py` | 15+ constitutional gates including ART Gate 2.5 + ACT Gate 2.6 + drift Gate 9 |
+| `arifosmcp/runtime/forge_dispatch.py` | A-FORGE dispatch enforcement (SEAL required, VAULT999 required) |
 | `arifosmcp/runtime/tools.py` | Central tool handler — memory recall, forge execute, lease gate, agentic search |
 | `arifosmcp/runtime/lease.py` | Capability lease primitive — LIVE (hard-block on mutation) |
 | `arifosmcp/runtime/memory_store.py` | Tiered memory: sacred/canon/session/ephemeral/test |
@@ -89,16 +101,23 @@ mypy arifosmcp/runtime/ --ignore-missing-imports
 | `arifosmcp/runtime/well_bridge.py` | WELL bridge v2 — MCP HTTP bridge + substrate_manifest |
 | `arifosmcp/runtime/organ_attestation.py` | Per-organ identity anchor attestation (physics/capital/substrate/constitution) |
 | `arifosmcp/runtime/live_kernel.py` | LiveKernelEnvelope + OrganHeartbeat with identity_anchor_type |
+| `arifosmcp/runtime/federation_registry.py` | Federation-wide tool crawl + semantic discovery |
 | `arifosmcp/runtime/feedback_loop.py` | Recursive self-correction controller (plan→act→observe→evaluate→re-plan) |
 | `arifosmcp/runtime/mind_state.py` | MIND persistent state for recursive reasoning |
 | `arifosmcp/runtime/mind_feedback_hook.py` | Zero-kernel-modification hook: MINDState + FeedbackLoop |
 | `arifosmcp/runtime/vector_db_policy.py` | 7 decision rules for when to use vector embeddings |
+| `arifosmcp/schemas/art.py` | ART Pydantic v2 schema contracts — TrustBand, ToolLifecycle, ArtVerdict |
+| `arifosmcp/schemas/act.py` | ACT Pydantic v2 schema contracts — ActPattern, ActStage, ActReceipt |
+| `arifosmcp/schemas/kernel_envelope.py` | **CANONICAL** KernelEnvelope + ActionClass (7 values) + BlastRadius |
 | `arifosmcp/core/moral_accountability_kernel.py` | Six AGI moral primitives (TT case study derived) |
 | `arifosmcp/core/kernel/tool_registry.py` | Registry generation from CANONICAL_TOOLS |
 | `arifosmcp/gateway/server.py` | MCP proxy gateway — upstream session pool, MIND+MEMORY organs |
 | `arifosmcp/CONSTITUTIONAL_EXTENSION_*.py` | Extension floors: F0 PRIME, F14 DEAD, F15-F17 draft |
 | `core/` | Floor enforcement, VAULT999 ledger, judgment primitives |
-| `arifosmcp/tool_registry.json` | Machine-readable canonical tool surface (generated — do not hand-edit) |
+| `arifosmcp/tool_registry.json` | Machine-readable canonical tool surface (57 tools — generated, do not hand-edit) |
+| `tests/art/` | ART schema + reflex tests (16 tests) |
+| `tests/act/` | ACT schema + pattern tests (16 tests) |
+| `tests/integration/` | Bridge E2E + forge dispatch tests (15 tests) |
 | `docs/` | Architecture specs, NIAT relay spec, forge work |
 
 ---

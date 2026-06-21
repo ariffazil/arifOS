@@ -75,7 +75,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_session_init",
             mode=None,  # base
-            action_class="PREPARE",
+            action_class="DRAFT",
             risk_tier="LOW",
             blast_radius="LOCAL",
             reversibility=0.95,
@@ -86,7 +86,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ToolRiskProfile(
             tool_name="arif_session_init",
             mode="init",
-            action_class="PREPARE",
+            action_class="DRAFT",
             risk_tier="LOW",
             blast_radius="LOCAL",
             reversibility=1.0,
