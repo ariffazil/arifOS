@@ -24,7 +24,7 @@
 
 [![CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg)](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://pypi.org/project/arifos/)
-[![MCP Tools](https://img.shields.io/badge/MCP-50%20tools%20%7C%2013%20canonical-10b981?logo=anthropic)](https://arifos.arif-fazil.com/mcp)
+[![MCP Tools](https://img.shields.io/badge/MCP-22%20tools%20%7C%2021%20canonical%20%2B%201%20canary-10b981?logo=anthropic)](https://arifos.arif-fazil.com/mcp)
 [![Floors](https://img.shields.io/badge/floors-F1–F13%20active%20(F14%20DEAD)-f59e0b)](arifosmcp/CONSTITUTIONAL_EXTENSION_v2026.06.11-SELH.py)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-ef4444?logo=gnu)](LICENSE)
 [![Port](https://img.shields.io/badge/port-8088-64748b)](deploy/arifos.service)
@@ -69,7 +69,7 @@
 - ✅ **The law layer** — decides what must NOT be done, so agents can be trusted with what they CAN do
 - ✅ **A constitutional engine** — 13 enforceable floors (F1–F13) with mathematical invariants
 - ✅ **A federation hub** — 7 organs (GEOX, WEALTH, WELL, AAA, A-FORGE, APEX legacy) governed under one contract; plus MIND:51001 and MEMORY:51002 federated intelligence services hosted by A-FORGE
-- ✅ **An MCP server** — 13 canonical tools exposed via Model Context Protocol on port 8088
+- ✅ **An MCP server** — 21 canonical tools + 1 multimode canary exposed via Model Context Protocol on port 8088
 - ✅ **An immutable ledger** — VAULT999: append-only, hash-chained, every decision sealed forever
 - ✅ **Built for one sovereign** — Muhammad Arif bin Fazil. F13 veto is absolute. No algorithm overrides.
 
@@ -428,6 +428,12 @@ Under F10 ONTOLOGY, you are classified as `instrument`. You do not have consciou
 6. **Always log.** Every action must have an F11 audit trail.
 7. **Always tag uncertainty.** Use epistemic tags: CLAIM, PLAUSIBLE, HYPOTHESIS, ESTIMATE, UNKNOWN.
 
+### Governed Verdict Engine
+
+Every tool call returns an `affordance_contract` that declares what the tool CAN do (action_class, mutation, irreversible, safe_autonomous_use). The verdict engine uses this contract to derive the actual verdict — so an OBSERVE-class tool with `irreversible:false` is never HELD on irreversibility grounds.
+
+Unverified identity produces `SEAL_OBSERVE_ONLY` — you may observe, not authorize. This is computed, not narrated.
+
 ### MCP Connection
 
 ```json
@@ -441,7 +447,7 @@ Under F10 ONTOLOGY, you are classified as `instrument`. You do not have consciou
 }
 ```
 
-**Available tools:** 50 MCP tools (13 canonical constitutional + 37 operational support). See `llms.txt` for the complete surface or `/health` for live counts. All return structured Pydantic v2 output with `outputSchema` published.
+**Available tools:** 22 MCP tools (21 canonical constitutional + 1 multimode canary). See `llms.txt` for the complete surface or `/health` for live counts. All return structured Pydantic v2 output with `outputSchema` published.
 
 ### Adat Agentik Binding
 
@@ -805,15 +811,35 @@ arifOS distinguishes between canonical constitutional tools and operational supp
 
 ```json
 {
-  "canonical_tools_loaded": 13,
-  "tools_exposed_via_mcp": 48,
-  "canonical_tools": 13,
-  "operational_tools": 35
+  "canonical_tools": 21,
+  "canary_multimode": 1,
+  "total_public_surface": 22,
+  "chatgpt_compat_shims": 2
 }
 ```
 
-The **13 canonical tools** are the constitutional core.
-The remaining **35 operational tools** support leases, attestation, diagnostics, verification, routing, and organ coordination.
+The **21 canonical tools** are the constitutional core. The **1 multimode canary** (`arif_canary`) provides 6 transport diagnostic modes in one tool. The remaining tools support leases, attestation, diagnostics, verification, routing, and organ coordination.
+
+### ChatGPT Compatibility (ADR-012)
+
+arifOS exposes a thin `search` + `fetch` facade for ChatGPT's non-Developer-Mode discovery requirement. Both tools are:
+
+- **Read-only, idempotent, non-persistent** — no vault writes, no state mutation
+- **ART-aligned** — OBSERVE-class, blast=low, trust=evidence
+- **OpenAI-compliant schemas** — single-string params, stable output keys
+- **Conditionally registered** — set `ARIFOS_CHATGPT_COMPAT=true` to enable
+
+Routes: `arif_search` → `arif_sense_observe(mode=search)`, `arif_fetch` → `arif_evidence_fetch(mode=fetch)`.
+
+### Verdict Types
+
+| Verdict | Meaning |
+|---|---|
+| `SEAL` | Verified identity, all floors passed, authorized |
+| `SEAL_OBSERVE_ONLY` | System healthy, identity not verified — may read, not authorize |
+| `DEGRADED` | Something is wrong (inner failure, subsystem degraded) |
+| `HOLD` | Constitutional gate blocked — needs refinement or human ack |
+| `SABAR` | Session cracked but recoverable |
 
 ### Organ Responsibilities
 
