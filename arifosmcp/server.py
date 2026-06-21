@@ -340,7 +340,8 @@ mcp = FastMCP(
         "PROOF MACHINE: Run the ARIF Conformance Spine v0.2 against the live kernel. "
         "Every verdict is earned from a real response — no mocks, no hardcoded PASS. "
         "Checks: kernel alive, MCP initialize, protocol version, schema echo, session start, "
-        "authority classification, 888_HOLD mutation refusal, VAULT replay verification. "
+        "authority classification, 888_HOLD mutation refusal, VAULT replay verification, "
+        "cooling_ledger attestation. "
         "substrate_gate=GREEN means arifOS is a governed runtime, not a concept."
     ),
     tags={"canary", "transport-probe", "read-only", "conformance", "proof-machine"},

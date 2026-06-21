@@ -1,5 +1,5 @@
 """
-ARIF Transport Airlock v0.1 — normalize client dialects into canonical transactions.
+ARIF Transport Airlock v0.2 — normalize client dialects into canonical transactions.
 
 Accepts: ChatGPT, Claude, OpenAI Agents SDK, FastMCP, Cursor, stdio, Streamable HTTP, SSE, raw JSON-RPC
 Normalizes into: CanonicalEnvelope (actor, intent, evidence, authority, action_class, reversibility, session_state, trace_id)

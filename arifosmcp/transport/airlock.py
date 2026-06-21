@@ -1,5 +1,5 @@
 """
-ARIF Transport Airlock v0.1.
+ARIF Transport Airlock v0.2.
 
 All raw client dialects are normalized into CanonicalEnvelope before the kernel
 or governance pipeline sees them.
