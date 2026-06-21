@@ -308,7 +308,8 @@ mcp = FastMCP(
         "- Meaning is sovereign-anchored; the machine carries structure, not sense.\n"
         "- Paradox is the boundary scream — the correct response is HOLD.\n\n"
         "Golden path: init → sense → mind → heart → judge → vault\n\n"
-        "Canonical surface: 13 public capability tools (arif_noun_verb naming).\n"
+        "Canonical surface: 27 tools on default wire "
+        "(21 constitutional arif_noun_verb + 6 zero-floor canary probes).\n"
         f"Tools:\n  {', '.join(sorted(list_canonical_tools()))}\n\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
@@ -338,6 +339,8 @@ def arif_conformance_report(
     payload: Any = None,
     _envelope: dict[str, Any] | None = None,
     client_capabilities: dict[str, Any] | None = None,
+    actor_id: str | None = None,
+    session_id: str | None = None,
 ) -> dict:
     """
     Run the live Conformance Spine and return a structured proof report.
@@ -379,6 +382,8 @@ def arif_ping(
     payload: Any = None,
     _envelope: dict[str, Any] | None = None,
     client_capabilities: dict[str, Any] | None = None,
+    actor_id: str | None = None,
+    session_id: str | None = None,
 ) -> dict:
     """Canary probe — no session, no actor, no constitution required."""
     return {
@@ -404,6 +409,8 @@ def arif_schema_echo(
     payload: dict | str | list | None = None,
     _envelope: dict[str, Any] | None = None,
     client_capabilities: dict[str, Any] | None = None,
+    actor_id: str | None = None,
+    session_id: str | None = None,
 ) -> dict:
     """Echo diagnostic — returns what client sent for shape comparison.
 
@@ -447,6 +454,8 @@ def arif_transport_echo(
     payload: Any = None,
     _envelope: dict[str, Any] | None = None,
     client_capabilities: dict[str, Any] | None = None,
+    actor_id: str | None = None,
+    session_id: str | None = None,
 ) -> dict:
     """Transport echo — diagnostic for MCP session bridge (normalized canary)."""
     from arifosmcp.runtime.tools import _arif_transport_echo
@@ -581,8 +590,16 @@ try:
         payload: dict | str | list | None = None,
         _envelope: dict[str, Any] | None = None,
         client_capabilities: dict[str, Any] | None = None,
+        actor_id: str | None = None,
+        session_id: str | None = None,
     ) -> dict:
-        return _arif_schema_echo(payload=payload, _envelope=_envelope, client_capabilities=client_capabilities)
+        return _arif_schema_echo(
+            payload=payload,
+            _envelope=_envelope,
+            client_capabilities=client_capabilities,
+            actor_id=actor_id,
+            session_id=session_id,
+        )
 
     @mcp.tool(
         name="arif_version_echo",
@@ -597,8 +614,16 @@ try:
         payload: Any = None,
         _envelope: dict[str, Any] | None = None,
         client_capabilities: dict[str, Any] | None = None,
+        actor_id: str | None = None,
+        session_id: str | None = None,
     ) -> dict:
-        return _arif_version_echo(payload=payload, _envelope=_envelope, client_capabilities=client_capabilities)
+        return _arif_version_echo(
+            payload=payload,
+            _envelope=_envelope,
+            client_capabilities=client_capabilities,
+            actor_id=actor_id,
+            session_id=session_id,
+        )
 
     @mcp.tool(
         name="arif_transport_echo",
@@ -613,8 +638,16 @@ try:
         payload: Any = None,
         _envelope: dict[str, Any] | None = None,
         client_capabilities: dict[str, Any] | None = None,
+        actor_id: str | None = None,
+        session_id: str | None = None,
     ) -> dict:
-        return _arif_transport_echo(payload=payload, _envelope=_envelope, client_capabilities=client_capabilities)
+        return _arif_transport_echo(
+            payload=payload,
+            _envelope=_envelope,
+            client_capabilities=client_capabilities,
+            actor_id=actor_id,
+            session_id=session_id,
+        )
 
     @mcp.tool(
         name="arif_initialize_probe",
@@ -632,6 +665,8 @@ try:
         _envelope: dict[str, Any] | None = None,
         client_capabilities: dict[str, Any] | None = None,
         protocol_version: str | None = None,
+        actor_id: str | None = None,
+        session_id: str | None = None,
     ) -> dict:
         # Merge explicit protocol_version into payload for downstream extraction
         if protocol_version and isinstance(payload, dict):
@@ -642,6 +677,8 @@ try:
             payload=payload,
             _envelope=_envelope,
             client_capabilities=client_capabilities,
+            actor_id=actor_id,
+            session_id=session_id,
         )
 
     from arifosmcp.runtime.tools import _wrap_handler
@@ -852,43 +889,47 @@ try:
 
     # ── Hermes Agent diagnostic tools (expanded45 surface) ─────────────────────
     # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (Canonical13 enforcement).
-    if _EXPOSE_DEV_TOOLS:
-        from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
-        for _hermes_name, _hermes_handler in HERMES_TOOL_HANDLERS.items():
-            _hw = _wrap_handler(_hermes_handler, _hermes_name)
-            if _hw is not None:
-                mcp.tool(
-                    name=_hermes_name,
-                    description=_hermes_handler.__doc__,
-                    tags={"hermes", "diagnostic", "read-only"},
-                )(_hw)
-            else:
-                # fallback for non-async handlers
-                mcp.tool(
-                    name=_hermes_name,
-                    tags={"hermes", "diagnostic", "read-only"},
-                )(_hermes_handler)
-        v2_tools_registered.extend(list(HERMES_TOOL_HANDLERS.keys()))
+    # NOTE (2026-06-21): hermes_vault_query is required by the conformance spine (vault_replay check)
+    # and must be exposed always.
+    from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
+    _hermes_to_register = HERMES_TOOL_HANDLERS if _EXPOSE_DEV_TOOLS else {
+        "hermes_vault_query": HERMES_TOOL_HANDLERS["hermes_vault_query"]
+    }
+    for _hermes_name, _hermes_handler in _hermes_to_register.items():
+        _hw = _wrap_handler(_hermes_handler, _hermes_name)
+        if _hw is not None:
+            mcp.tool(
+                name=_hermes_name,
+                description=_hermes_handler.__doc__,
+                tags={"hermes", "diagnostic", "read-only"},
+            )(_hw)
+        else:
+            # fallback for non-async handlers
+            mcp.tool(
+                name=_hermes_name,
+                tags={"hermes", "diagnostic", "read-only"},
+            )(_hermes_handler)
+    v2_tools_registered.extend(list(_hermes_to_register.keys()))
 
-        # ── Inject JSON Schema enums for Hermes tools ──────────────────────────
-        from arifosmcp.constitutional_map import DIAGNOSTIC_TOOLS as _DIAG_TOOLS
-        for _hn in HERMES_TOOL_HANDLERS:
-            _spec = _DIAG_TOOLS.get(_hn)
-            _modes = _spec.get("modes", []) if _spec else []
-            if _modes:
-                try:
-                    _provider = getattr(mcp, "_local_provider", None)
-                    if _provider:
-                        _ft = getattr(_provider, "_components", {}).get(f"tool:{_hn}@")
-                        if _ft and hasattr(_ft, "parameters"):
-                            _params = _ft.parameters
-                            if "properties" in _params and "mode" in _params["properties"]:
-                                _params["properties"]["mode"]["enum"] = _modes
-                                logger.info("INJECTED enum for %s: %s", _hn, _modes)
-                except Exception:
-                    logger.debug("Schema enum injection skipped for %s", _hn, exc_info=True)
-    else:
-        logger.info("Hermes tools gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose.")
+    # ── Inject JSON Schema enums for Hermes tools ──────────────────────────
+    from arifosmcp.constitutional_map import DIAGNOSTIC_TOOLS as _DIAG_TOOLS
+    for _hn in _hermes_to_register:
+        _spec = _DIAG_TOOLS.get(_hn)
+        _modes = _spec.get("modes", []) if _spec else []
+        if _modes:
+            try:
+                _provider = getattr(mcp, "_local_provider", None)
+                if _provider:
+                    _ft = getattr(_provider, "_components", {}).get(f"tool:{_hn}@")
+                    if _ft and hasattr(_ft, "parameters"):
+                        _params = _ft.parameters
+                        if "properties" in _params and "mode" in _params["properties"]:
+                            _params["properties"]["mode"]["enum"] = _modes
+                            logger.info("INJECTED enum for %s: %s", _hn, _modes)
+            except Exception:
+                logger.debug("Schema enum injection skipped for %s", _hn, exc_info=True)
+    if not _EXPOSE_DEV_TOOLS:
+        logger.info("Hermes tools gated (except hermes_vault_query for conformance check) — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose all.")
 
     # Refresh the public registry cache after all canonical tools are registered
     from arifosmcp.runtime.public_registry import _runtime_contracts

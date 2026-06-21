@@ -1749,6 +1749,37 @@ def _enforce_nine_signal(
         if inner_confidence is not None and inner_confidence < 0.5:
             degradation.append(f"inner confidence={inner_confidence:.2f}")
 
+        # ── P0-3 IDENTITY-GATING (2026-06-21): unverified actor MUST NOT receive SEAL ─
+        # The nine_signal PSI plane already reports SYUBHAH when actor_verified=False,
+        # but the outer verdict was still SEAL — a contradiction that breaks the audit
+        # chain's trustworthiness. An external auditor's first probe is "does SEAL
+        # require verified identity?" If the answer is no, governance is absent.
+        # This check closes the gap: anonymous/unverified actors cannot produce SEAL.
+        actor_verified_flag = out.get("actor_verified")
+        if outer_verdict == "SEAL" and actor_verified_flag is False:
+            outer_verdict = "DEGRADED"
+            degradation.append(
+                "actor_verified=False — identity not verified, SEAL downgraded to "
+                "DEGRADED. Governance integrity requires verified identity (P0-3 "
+                "enforcement 2026-06-21)."
+            )
+
+        # ── P0-3 NINE-SIGNAL CONSISTENCY (2026-06-21): verdict must not contradict
+        # nine_signal. If nine_signal.overall is not SELAMAT/SAFE, outer verdict
+        # cannot be SEAL — the audit surface must be internally consistent.
+        ns = out.get("nine_signal")
+        if isinstance(ns, dict):
+            ns_overall = ns.get("overall", {})
+            if isinstance(ns_overall, dict):
+                ns_state = ns_overall.get("state", "")
+                if ns_state not in ("SELAMAT", "SAFE", "") and outer_verdict == "SEAL":
+                    outer_verdict = "DEGRADED"
+                    degradation.append(
+                        f"nine_signal.overall.state={ns_state} contradicts "
+                        f"outer_verdict=SEAL — downgraded to DEGRADED for "
+                        f"audit surface consistency (P0-3 enforcement 2026-06-21)."
+                    )
+
         if degradation:
             outer_verdict = "DEGRADED"
             result_payload["_wrapper_degradation"] = degradation
@@ -15404,6 +15435,7 @@ def _runtime_version_echo(
         payload=payload,
         _envelope=_envelope,
         client_capabilities=client_capabilities,
+        **kwargs,
     )
 
 
@@ -15417,6 +15449,7 @@ def _runtime_transport_echo(
         payload=payload,
         _envelope=_envelope,
         client_capabilities=client_capabilities,
+        **kwargs,
     )
 
 
@@ -15430,6 +15463,7 @@ def _runtime_initialize_probe(
         payload=payload,
         _envelope=_envelope,
         client_capabilities=client_capabilities,
+        **kwargs,
     )
 
 
@@ -15503,6 +15537,7 @@ def _arif_version_echo(
     payload: Any = None,
     _envelope: dict[str, Any] | None = None,
     client_capabilities: dict[str, Any] | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """Version echo — return protocol version and dialect information.
 
@@ -15545,6 +15580,7 @@ def _arif_transport_echo(
     payload: Any = None,
     _envelope: dict[str, Any] | None = None,
     client_capabilities: dict[str, Any] | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """Transport echo — return what transport the server saw from this call.
 
@@ -15688,6 +15724,7 @@ def _arif_initialize_probe(
     _envelope: dict[str, Any] | None = None,
     client_capabilities: dict[str, Any] | None = None,
     protocol_version: str | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """Initialize probe — test MCP handshake without constitutional ceremony.
 
@@ -15902,6 +15939,216 @@ def _arif_daily_intelligence_brief(
 # CANONICAL REGISTRY
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# ═══════════════════════════════════════════════════════════════════════════
+# arif_memory v5 router — exposes federated dispatcher via MCP (FORGE 000Ω, 2026-06-21)
+# ═══════════════════════════════════════════════════════════════════════════
+
+async def _arif_memory_v5_router(
+    mode: str = "recall",
+    query: str | None = None,
+    memory_id: str | None = None,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    metadata: dict | None = None,
+    tier: str | None = None,
+    content: str | None = None,
+    payload: dict[str, Any] | None = None,
+    lease_id: str | None = None,
+    human_approval: bool = False,
+    idempotency_key: str | None = None,
+    trace_id: str | None = None,
+    caller_chain: list | None = None,
+    timestamp: str | None = None,
+    # v5 federated payload fields (explicitly declared so FastMCP/Pydantic accepts them)
+    memory_class: str | None = None,
+    tier_hint: str | None = None,
+    truth_class: dict[str, Any] | str | None = None,
+    provenance: dict[str, Any] | None = None,
+    source_receipts: list[dict[str, Any]] | None = None,
+    policy: dict[str, Any] | None = None,
+    structured: dict[str, Any] | None = None,
+    correction_event: str | None = None,
+    new_content: str | None = None,
+    new_structured: dict[str, Any] | None = None,
+    new_truth_class: dict[str, Any] | str | None = None,
+    resolution_kind: str | None = None,
+    supersedes_memory_id: str | None = None,
+    from_tier: str | None = None,
+    to_tier: str | None = None,
+    promotion_reason: str | None = None,
+    required_floors_satisfied: list[str] | None = None,
+    policy_basis: str | None = None,
+    cascade: bool | None = None,
+    tombstone_text: str | None = None,
+    require_human_ack: bool | None = None,
+    minimised_vault_record: bool | None = None,
+    aspect: str | None = None,
+    seal_id: str | None = None,
+    include_proof: bool | None = None,
+    include: list[str] | None = None,
+    redact_pii: bool | None = None,
+    scope: str | None = None,
+    top_k: int | None = None,
+    graph_first: bool | None = None,
+    hybrid: bool | None = None,
+    include_contested: bool | None = None,
+    time_window_hours: int | None = None,
+    temporal_as_of: str | None = None,
+    organ_staleness_band: str | None = None,
+    progressive_level: str | None = None,
+    embedding_ref: str | None = None,
+    vault_version: str | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Router between new v5 federated dispatcher and legacy v4 modes.
+
+    Wire-up 2026-06-21 (FORGE 000Ω):
+      - v5 native modes (recall|inspect|attest|remember|promote|revise|forget) → new dispatcher
+      - Legacy modes (store|get|list|prune|search|context|context_restore|dry_run|manage|
+        repo_ingest|repo_search) → legacy _arif_memory_recall function
+      - kwargs translated to payload dict for v5 dispatcher
+
+    Exposed via _CANONICAL_HANDLERS as both:
+      - arif_memory         (canonical, new)
+      - arif_memory_recall  (deprecated alias, also routed here for back-compat)
+    """
+    v5_native_modes = {
+        "recall", "inspect", "attest", "remember",
+        "promote", "revise", "forget",
+    }
+
+    if mode in v5_native_modes:
+        # Translate kwargs → payload dict (Day 4 polish — propagate ALL v5 fields)
+        if payload is None:
+            payload = {}
+        # Identity
+        if query is not None:
+            payload.setdefault("query", query)
+        if memory_id is not None:
+            payload.setdefault("memory_id", memory_id)
+        if content is not None:
+            payload.setdefault("content", content)
+        if structured is not None:
+            payload.setdefault("structured", structured)
+        if new_content is not None:
+            payload.setdefault("new_content", new_content)
+        if new_structured is not None:
+            payload.setdefault("new_structured", new_structured)
+        # Classification
+        if memory_class is not None:
+            payload.setdefault("memory_class", memory_class)
+        if tier is not None:
+            payload.setdefault("tier_hint", tier)
+        if truth_class is not None:
+            payload.setdefault("truth_class", truth_class)
+        # Provenance + receipts
+        if provenance is not None:
+            payload.setdefault("provenance", provenance)
+        if source_receipts is not None:
+            payload.setdefault("source_receipts", source_receipts)
+        if policy is not None:
+            payload.setdefault("policy", policy)
+        if idempotency_key is not None:
+            payload.setdefault("idempotency_key", idempotency_key)
+        # Revise fields
+        if correction_event is not None:
+            payload.setdefault("correction_event", correction_event)
+        if new_truth_class is not None:
+            payload.setdefault("new_truth_class", new_truth_class)
+        if resolution_kind is not None:
+            payload.setdefault("resolution_kind", resolution_kind)
+        if supersedes_memory_id is not None:
+            payload.setdefault("supersedes_memory_id", supersedes_memory_id)
+        # Promote fields
+        if from_tier is not None:
+            payload.setdefault("from_tier", from_tier)
+        if to_tier is not None:
+            payload.setdefault("to_tier", to_tier)
+        if promotion_reason is not None:
+            payload.setdefault("promotion_reason", promotion_reason)
+        if required_floors_satisfied is not None:
+            payload.setdefault("required_floors_satisfied", required_floors_satisfied)
+        # Forget fields
+        if policy_basis is not None:
+            payload.setdefault("policy_basis", policy_basis)
+        if cascade is not None:
+            payload.setdefault("cascade", cascade)
+        if tombstone_text is not None:
+            payload.setdefault("tombstone_text", tombstone_text)
+        if minimised_vault_record is not None:
+            payload.setdefault("minimised_vault_record", minimised_vault_record)
+        # Attest fields
+        if aspect is not None:
+            payload.setdefault("aspect", aspect)
+        if seal_id is not None:
+            payload.setdefault("seal_id", seal_id)
+        if include_proof is not None:
+            payload.setdefault("include_proof", include_proof)
+        # Inspect fields
+        if include is not None:
+            payload.setdefault("include", include)
+        if redact_pii is not None:
+            payload.setdefault("redact_pii", redact_pii)
+        # Recall fields
+        if scope is not None:
+            payload.setdefault("scope", scope)
+        if top_k is not None:
+            payload.setdefault("top_k", top_k)
+        if graph_first is not None:
+            payload.setdefault("graph_first", graph_first)
+        if hybrid is not None:
+            payload.setdefault("hybrid", hybrid)
+        if include_contested is not None:
+            payload.setdefault("include_contested", include_contested)
+        if time_window_hours is not None:
+            payload.setdefault("time_window_hours", time_window_hours)
+        if temporal_as_of is not None:
+            payload.setdefault("temporal_as_of", temporal_as_of)
+        if organ_staleness_band is not None:
+            payload.setdefault("organ_staleness_band", organ_staleness_band)
+        if progressive_level is not None:
+            payload.setdefault("progressive_level", progressive_level)
+        if embedding_ref is not None:
+            payload.setdefault("embedding_ref", embedding_ref)
+        if vault_version is not None:
+            payload.setdefault("vault_version", vault_version)
+        # Merge metadata dict last (preserves any explicit kwargs above)
+        if metadata is not None:
+            for k, v in metadata.items():
+                payload.setdefault(k, v)
+        # Catch-all extras
+        for k, v in kwargs.items():
+            payload.setdefault(k, v)
+
+        # Call new federated dispatcher
+        from arifosmcp.runtime.megaTools.tool_13_arif_memory import (
+            arif_memory as _v5_dispatch,
+        )
+        return await _v5_dispatch(
+            mode=mode,
+            payload=payload,
+            session_id=session_id,
+            actor_id=actor_id,
+            lease_id=lease_id,
+            human_approval=human_approval,
+            trace_id=trace_id,
+        )
+
+    # Legacy modes → original _arif_memory_recall
+    return await _arif_memory_recall(
+        mode=mode,
+        query=query,
+        memory_id=memory_id,
+        session_id=session_id,
+        actor_id=actor_id,
+        metadata=metadata,
+        tier=tier,
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+
+
 _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_session_init": _arif_session_init,
     "arif_sense_observe": _arif_sense_observe,
@@ -15909,7 +16156,8 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_mind_reason": _arif_mind_reason_tool,
     "arif_kernel_route": _arif_kernel_route,
     "arif_reply_compose": _arif_reply_compose_tool,
-    "arif_memory_recall": _arif_memory_recall,
+    "arif_memory_recall": _arif_memory_v5_router,  # DEPRECATED alias → v5 router (preserves legacy modes)
+    "arif_memory": _arif_memory_v5_router,          # NEW canonical v5 — 7 federated modes
     "arif_heart_critique": _arif_heart_critique,
     "arif_gateway_connect": _arif_gateway_connect,
     "arif_ops_measure": _arif_ops_measure,
@@ -16155,7 +16403,28 @@ def _build_enriched_signature(handler):
         )
         new_params.append(envelope_param)
 
+    # Inject actor_id so FastMCP's Pydantic model accepts it when injected by middleware/gateway
+    if "actor_id" not in {p.name for p in new_params}:
+        actor_id_param = inspect.Parameter(
+            "actor_id",
+            inspect.Parameter.KEYWORD_ONLY,
+            default=None,
+            annotation=str | None,
+        )
+        new_params.append(actor_id_param)
+
+    # Inject session_id so FastMCP's Pydantic model accepts it when injected by middleware/gateway
+    if "session_id" not in {p.name for p in new_params}:
+        session_id_param = inspect.Parameter(
+            "session_id",
+            inspect.Parameter.KEYWORD_ONLY,
+            default=None,
+            annotation=str | None,
+        )
+        new_params.append(session_id_param)
+
     return sig.replace(parameters=new_params)
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -16464,6 +16733,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     # Ensure _envelope is in __annotations__ so FastMCP/Pydantic type-hint
     # resolution does not KeyError when building the input schema.
     _wrapped.__annotations__["_envelope"] = Any
+    _wrapped.__annotations__["actor_id"] = str | None
+    _wrapped.__annotations__["session_id"] = str | None
     return _wrapped
 
 

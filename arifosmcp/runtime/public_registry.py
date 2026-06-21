@@ -85,7 +85,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Modes: reason | reflect | verify | critique | plan | plan_review | plan_approve | refactor_plan | metabolize."
     ),
     "arif_kernel_route": (
-        "Route intent to the correct tool or federation organ. "
+        "[DEPRECATED — use arif_route] Route intent to the correct tool or federation organ. "
         "Use when unsure which tool to call next or how to delegate. "
         "Modes: route | stage | lane | list | status | surface_drift."
     ),
@@ -94,8 +94,13 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Call this LAST, after reasoning and judgment are complete. "
         "Modes: compose | style | cite | summary | format | nudge | repo_answer."
     ),
+    "arif_memory": (
+        "Federated memory tool — 7 canonical modes: "
+        "recall | inspect | attest | remember | promote | revise | forget. "
+        "Use for storing, retrieving, and governing memory across the 6-layer stack."
+    ),
     "arif_memory_recall": (
-        "Search past sessions, assets, sealed events, or repositories. "
+        "[DEPRECATED — use arif_memory] Search past sessions, assets, sealed events, or repositories. "
         "Use for retrieving historical context, prior decisions, and codebase knowledge. "
         "Modes: recall | store | get | list | context | repo_ingest | repo_search | "
         "manage (snapshot|consolidate|forget|replay|restore — EUREKA-A KernelState OS resource manager)."
@@ -138,8 +143,8 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "and the correct lane for a proposed action before execution."
     ),
     "arif_kernel_status": (
-        "Kernel telemetry and discovery. Query live health, tool registry, "
-        "and predictive readiness across the federation surface."
+        "[DEPRECATED — moving to arif_diag_telemetry] Kernel telemetry and discovery. "
+        "Query live health, tool registry, and predictive readiness across the federation surface."
     ),
     "arif_bridge_connect": (
         "Low-level direct organ tool call. Bypasses intent routing — caller must "
@@ -152,16 +157,26 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Retained for backward compatibility. Same implementation as arif_bridge_connect."
     ),
     "arif_kernel_attest": (
-        "Live organ attestation. Verify identity, tool surface, and constitutional "
-        "binding for one or all federation organs."
+        "[DEPRECATED — moving to arif_diag_attest] Live organ attestation. "
+        "Verify identity, tool surface, and constitutional binding for one or all federation organs."
     ),
     "arif_kernel_health": (
-        "Lightweight kernel liveness probe. Returns reachability and constitutional "
-        "runtime status with zero ceremony."
+        "[DEPRECATED — moving to arif_diag_health] Lightweight kernel liveness probe. "
+        "Returns reachability and constitutional runtime status with zero ceremony."
     ),
     "arif_conformance_report": (
         "PROOF MACHINE: run the ARIF Conformance Spine against the live kernel. "
         "Returns earned pass/fail verdicts for transport, session, and governance checks."
+    ),
+    # ── ChatGPT Compatibility Shim ──
+    "arif_search": (
+        "Search the web for information. Use when you need to find current "
+        "facts, documentation, or real-world data. Returns search results "
+        "with titles, URLs, and snippets."
+    ),
+    "arif_fetch": (
+        "Fetch content from a URL. Use when you need to read the contents "
+        "of a specific webpage or document. Returns the page content as text."
     ),
 }
 
@@ -232,6 +247,10 @@ def _layer_for_name(name: str) -> str:
         "arif_bridge",
         "arif_kernel_attest",
         "arif_kernel_health",
+        "arif_memory",
+        "arif_memory_recall",
+        "arif_search",
+        "arif_fetch",
     }:
         return "MACHINE"
     return "INTELLIGENCE"
@@ -365,10 +384,10 @@ def _tool_output_schema(name: str) -> dict[str, Any]:
 
 @lru_cache(maxsize=1)
 def _runtime_contracts() -> dict[str, dict[str, Any]]:
-    from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, _wrap_handler
+    from arifosmcp.runtime.tools import FINAL_TOOL_IMPLEMENTATIONS, _wrap_handler
 
     contracts: dict[str, dict[str, Any]] = {}
-    for name, handler in _CANONICAL_HANDLERS.items():
+    for name, handler in FINAL_TOOL_IMPLEMENTATIONS.items():
         wrapped = _wrap_handler(handler, name)
         tool = FunctionTool.from_function(
             wrapped,
