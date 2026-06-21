@@ -12812,6 +12812,8 @@ def _arif_judge_deliberate(
     meta_state["constitutional_chain_id"] = contract.constitutional_chain_id
     meta_state["state_hash"] = contract.state_hash
     meta_state["irreversibility_level"] = contract.irreversibility_level
+    if _rb:
+        meta_state["arqocf_rubric"] = _rb
 
     output = VerdictOutput(
         status="OK",
