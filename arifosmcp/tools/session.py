@@ -912,8 +912,12 @@ def _manifest_backed_next_actions(
                 {
                     "intent": intent,
                     "status": "AVAILABLE",
+                    "registered": True,
                     "registered_tool": tool_name,
                     "mode": mode,
+                    "callable_from_this_client": True,
+                    "last_probe": "UNKNOWN",
+                    "public_surface_mode": surface_mode,
                     "reason": f"Public tool on the {surface_mode} surface.",
                 }
             )
@@ -922,8 +926,12 @@ def _manifest_backed_next_actions(
             {
                 "intent": intent,
                 "status": "CAPABILITY_GAP",
+                "registered": False,
                 "registered_tool": None,
                 "mode": mode,
+                "callable_from_this_client": False,
+                "last_probe": "UNKNOWN",
+                "public_surface_mode": surface_mode,
                 "reason": f"No registered public tool matches {tool_name}",
                 "capability_gap": {
                     "desired_tool": tool_name,

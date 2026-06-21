@@ -19,8 +19,12 @@ except Exception:  # pragma: no cover - defensive fallback
     TOOL_ALIAS_MAP = {}
 
 
-CANONICAL_13: tuple[str, ...] = tuple(list_constitutional_tools())
-# CANONICAL_13 is the single canonical set (was previously duplicated as CANONICAL_15)
+CANONICAL_13: tuple[str, ...] = tuple(
+    name for name in list_constitutional_tools()
+    if not (CANONICAL_TOOLS.get(name, {}).get("_deprecated", False)
+            or CANONICAL_TOOLS.get(name, {}).get("deprecated", False))
+)
+# CANONICAL_13 is the single canonical set — deprecated aliases excluded.
 
 # ── Canary Probe — always-on transport diagnostic (Canonical13 enforcement) ──
 # This zero-floor probe is ALWAYS registered on the public wire surface.

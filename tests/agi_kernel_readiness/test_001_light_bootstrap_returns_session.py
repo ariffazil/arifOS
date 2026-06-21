@@ -49,12 +49,19 @@ def test_light_bootstrap_next_actions_are_manifest_backed():
     assert all(item.get("status") in {"AVAILABLE", "CAPABILITY_GAP"} for item in next_actions)
 
     for item in next_actions:
+        assert "callable_from_this_client" in item, item
+        assert "last_probe" in item, item
+        assert "public_surface_mode" in item, item
         if item.get("status") == "AVAILABLE":
             assert item.get("registered_tool"), item
+            assert item.get("registered") is True, item
+            assert item.get("callable_from_this_client") is True, item
         else:
             gap = item.get("capability_gap", {})
             assert gap.get("desired_tool"), item
             assert item.get("registered_tool") is None, item
+            assert item.get("registered") is False, item
+            assert item.get("callable_from_this_client") is False, item
 
 
 def test_light_session_preserved_across_status():
