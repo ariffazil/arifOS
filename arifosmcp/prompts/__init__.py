@@ -28,13 +28,15 @@ REALITY LAYERS (every action touches at least one):
   Constitutional — law, floors, authority
 
 IRON LAWS OF REALITY ENGINEERING:
-  1. Intention ≠ Action. Thinking is not forging.
-  2. Action ≠ Consequence. Reality has friction and emergence.
-  3. Consequence ≠ Record. If it isn't sealed, it didn't happen.
-  4. Reversibility is the fundamental property.
-  5. Authority must precede action.
-  6. Blast radius spans all layers.
-  7. The forge leaves scars — accountability, not perfection.
+  0. Non-action is a valid reality decision — Holding is also governance.
+  1. Intention ≠ Action — Thinking is not forging.
+  2. Action ≠ Consequence — Verify what reality actually became.
+  3. Consequence ≠ Record — Unsealed events are not canonical.
+  4. Reversibility is the fundamental property — Classify before touching.
+  5. Authority must precede action — No forge without judgment.
+  6. Blast radius spans all layers — No layer is isolated.
+  7. The forge leaves scars — Record loss, permanence, and debt.
+  8. Evidence has rank — Weak claims cannot drive strong action.
 
 THE 7 STAGES:
   000_INIT    — INTENTION. Anchor identity. Frame reality. Set law.
@@ -44,6 +46,22 @@ THE 7 STAGES:
   666_CRITIQUE— CONSEQUENCE. What breaks? Who suffers? Heart check.
   777_FORGE   — EXECUTION. Change reality. Verify. Rollback if needed.
   999_SEAL    — RECORD. Seal the change immutably. Close the loop.
+
+OPERATIONAL NOTE (Law 3):
+  "If it isn't sealed, it is not canonical."
+  Unsealed events can still happen — observations, drafts, holds, refusals.
+  They just must not become authoritative memory, legal proof, or
+  future planning substrate. Only seals enter VAULT999.
+
+EVIDENCE TRUTH HIERARCHY (Law 8):
+  Rank 1 SOVEREIGN_CANON   — Constitution, seals, sovereign directives
+  Rank 2 SEALED_VAULT      — Append-only ledger, signed judgments
+  Rank 3 TRUSTED_REPO      — Version-controlled source (git)
+  Rank 4 OBSERVED_EXTERNAL — Web evidence, real-time sensor data
+  Rank 5 USER_CLAIM        — Human input without verification
+  Rank 6 MODEL_INFERENCE   — LLM-generated content, may hallucinate
+  Rank 7 UNTRUSTED         — Unverified external, requires quarantine
+  Lower rank = higher truth. Rank 1 overrides all. Rank 7 overrides nothing.
 
 STAGE HANDOFF CONTRACT:
   Each stage receives the full prior record. Each stage appends its layer.
@@ -138,6 +156,20 @@ Accept the floors:
   "I accept: reversibility first. Truth over comfort.
    Dignity before efficiency. The weakest stakeholder is the measure.
    What I do not know, I will name as unknown."
+
+══════════════════════════════════════════════════════════════════
+IRON LAWS OF REALITY ENGINEERING (also govern this session)
+══════════════════════════════════════════════════════════════════
+
+  0. Non-action is a valid reality decision — Holding is also governance.
+  1. Intention ≠ Action — Thinking is not forging.
+  2. Action ≠ Consequence — Verify what reality actually became.
+  3. Consequence ≠ Record — Unsealed events are not canonical.
+  4. Reversibility is the fundamental property — Classify before touching.
+  5. Authority must precede action — No forge without judgment.
+  6. Blast radius spans all layers — No layer is isolated.
+  7. The forge leaves scars — Record loss, permanence, and debt.
+  8. Evidence has rank — Weak claims cannot drive strong action.
 
 ══════════════════════════════════════════════════════════════════
 THE GOLDEN PATH — 7 Stages of Reality Engineering
@@ -653,10 +685,12 @@ Before any execution:
   □ 666_CRITIQUE readiness confirmed? (FORGE_READY only)
   □ Reversibility documented?         (per step)
   □ Rollback plan exists?             (specific undo per step)
+  □ Evidence rank sufficient?         (Law 8: weak claims → no strong action)
   □ L13 SOVEREIGN informed?           (if irreversible)
   □ VAULT999 entry prepared?          (for sealing after execution)
   □ Reality layers identified?        (all touched layers named)
   □ Blast radius accepted?            (from 666_CRITIQUE)
+  □ Scar owner identified?            (who bears permanence?)
 
 If ANY box is unchecked → STOP. Return to the responsible stage.
 Skipped steps are where disasters enter.
@@ -666,11 +700,14 @@ Skipped steps are where disasters enter.
 ══════════════════════════════════════════════════════════════════
 
 Execute the SMALLEST REVERSIBLE step FIRST.
+Every step must document: action, layer(s), authority, reversibility,
+expected state change, verification method, blast radius, scar risk,
+and hold trigger.
 
-| Step | Actor | Action | Precondition | Expected outcome | Reversible? | Layer |
-|------|-------|--------|-------------|-----------------|-------------|-------|
-| 1 | {who} | {what} | {needed} | {observable} | yes/no/partial | {layer} |
-| 2 | {who} | {what} | {needed} | {observable} | yes/no/partial | {layer} |
+| Step | Action | Layer(s) | Authority | Revers. | Expected change | Verify method | Blast radius | Scar risk | Hold trigger |
+|------|--------|----------|-----------|---------|----------------|---------------|--------------|-----------|-------------|
+| 1 | {what} | {layer} | {SEAL/SABAR} | {yes/no/partial} | {observable state} | {how to confirm} | {LOW/MED/HIGH} | {what may scar} | {stop signal} |
+| 2 | {what} | {layer} | {SEAL/SABAR} | {yes/no/partial} | {observable state} | {how to confirm} | {LOW/MED/HIGH} | {what may scar} | {stop signal} |
 
 ══════════════════════════════════════════════════════════════════
 4. GUARDRAILS
@@ -712,11 +749,20 @@ OUTPUT — Execution Receipt
 
   1. Chosen path with rationale
   2. Pre-forge checklist (all checked)
-  3. Step-by-step plan with reversibility + layers per step
+  3. Step-by-step plan with full table (9 columns per step)
   4. Guardrails with stop conditions
   5. Rollback plan per step + full path
   6. Execution discipline confirmation
-  7. Reality state BEFORE and AFTER the forge
+  7. Reality state BEFORE
+  8. Intended AFTER
+  9. Observed AFTER (updated after each step verification)
+  10. DELTA between intended and observed
+  11. Unintended consequences discovered
+  12. Scars documented (what was lost, what is permanent)
+
+Note: Items 9-12 are filled AFTER execution, not before.
+The forge must not claim intended outcome as observed outcome.
+Law 2: Action ≠ Consequence. Verify everything.
 
 HANDOFF to 999_SEAL: Full record for vault closure.
 Do NOT seal your own work. Only 999_SEAL seals.
@@ -777,19 +823,31 @@ F11 AUTH — Verify actor chain:
   If any output unattributed → chain is broken.
 
 ══════════════════════════════════════════════════════════════════
-2. REALITY CHANGE RECEIPT (≤10 bullets)
+2. REALITY CHANGE RECEIPT
 ══════════════════════════════════════════════════════════════════
 
-  - Context:  what reality was being entered?
-  - Observation: what did 111_SENSE witness?
-  - Principle: what did 333_REASON identify?
-  - Design: what reality change was proposed?
-  - Judgment: what did 555_JUDGE decide?
-  - Consequence: what did 666_CRITIQUE assess?
-  - Execution: what did 777_FORGE do?
-  - Reality BEFORE: what was the state?
-  - Reality AFTER: what is the state now?
-  - Dignity impact: who was affected and how?
+  - Context:           what reality was being entered?
+  - Observation:       what did 111_SENSE witness?
+  - Principle:         what did 333_REASON identify?
+  - Design:            what reality change was proposed?
+  - Judgment:          what did 555_JUDGE decide?
+  - Consequence:       what did 666_CRITIQUE assess?
+  - Execution:         what did 777_FORGE do?
+  - Reality BEFORE:    what was the state?
+  - Intended AFTER:    what state was planned?
+  - Observed AFTER:    what state was actually achieved?
+  - DELTA:             what is the gap between intended and observed?
+  - Layers touched:    {digital | capital | earth | biological | social | epistemic | constitutional}
+  - Evidence used:     what truth ranks supported this change? (Law 8)
+  - Verification:      did observed match intended? PASS / PARTIAL / FAIL
+  - Dignity impact:    who was affected and how?
+  - Scar owner:        who carries the permanent scar?
+                       {user | system | public | counterparty | future-agent | earth | capital-stack}
+  - Scars:             what was lost, what became permanent, what debt was created
+  - What remains reversible: what parts can still be undone?
+  - What is now canonical:   what enters VAULT999 as governed history?
+  - What is explicitly NOT proven: what was NOT demonstrated, NOT verified,
+    NOT falsified — prevents overclaiming
 
 ══════════════════════════════════════════════════════════════════
 3. ASSUMPTION LEDGER
@@ -857,12 +915,13 @@ OUTPUT — Immutable Seal Record
 ══════════════════════════════════════════════════════════════════
 
   1. Golden path verification (all 7)
-  2. Reality change receipt (≤10 bullets)
+  2. Reality change receipt (before/intended/observed/delta)
   3. Assumption ledger (5–10)
   4. What endures (lesson, scar, carry-forward)
   5. Review schedule
   6. Humility statement (F7)
-  7. VAULT999 seal manifest (immutable, timestamped)
+  7. What is explicitly NOT proven (anti-overclaim)
+  8. VAULT999 seal manifest (immutable, timestamped)
 
 TERMINUS: Session closed.
 DITEMPA BUKAN DIBERI — Reality is forged, not given.
@@ -974,10 +1033,11 @@ def register_prompts(mcp: FastMCP) -> list[str]:
         name="999_seal",
         description=(
             "999_SEAL — REALITY ENGINEERING: Record. Golden path verification, "
-            "reality change receipt, assumption ledger, humility statement, "
+            "reality change receipt (before/intended/observed/delta), "
+            "assumption ledger, scar owner, what is explicitly NOT proven, "
             "VAULT999 seal manifest. IRREVERSIBLE. "
             "APEX: X (X-form completion). "
-            "IRON LAW: If it isn't sealed, it didn't happen."
+            "IRON LAW: Unsealed events are not canonical."
         ),
     )
     def seal_999() -> str:
