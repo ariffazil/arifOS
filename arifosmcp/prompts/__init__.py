@@ -146,8 +146,9 @@ It is an ENGINEERING SUBSTRATE for personal sovereign intelligence.
   ▸ 4/4 organ heartbeat daemons deployed (GEOX/WEALTH/WELL/A-FORGE)
   ▸ Governance pipeline publishes verdicts live to NATS
   ▸ 10+/10 services active, 6+ NATS connections
-  ▸ arifOS MCP: 13 canonical tools, 16 arif_* exposed, 19 total
-  ▸ Runtime drift: live_commit e938ea6 vs build_commit 0f88747
+  ▸ arifOS MCP: 19 canonical tools on wire (13 kernel + 6 canary probes)
+  ▸ Public surface mode: canonical13 (default) | expanded45 (gated, dev only)
+  ▸ Runtime drift: live_commit vs build_commit 0f88747 (recompute at 999_SEAL)
   ▸ VAULT999: chain intact from seal id 62+
   ▸ 60 historical gaps pre-May-2026: SOVEREIGN RULING — NON-ISSUE
 

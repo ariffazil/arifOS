@@ -104,8 +104,8 @@ def get_declared_tool_counts() -> dict:
     if DIAGNOSTIC_TOOLS is None:
         return {
             "canonical_count": len(CANONICAL_TOOLS),
-            "diagnostic_count": 37,
-            "total_declared": len(CANONICAL_TOOLS) + 37,
+            "diagnostic_count": 0,
+            "total_declared": len(CANONICAL_TOOLS),
         }
     return {
         "canonical_count": len(CANONICAL_TOOLS),

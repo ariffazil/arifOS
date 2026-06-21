@@ -161,13 +161,35 @@ _CONSTITUTION_HASH_CACHE = None
 
 
 def compute_constitution_hash() -> str:
-    """Compute and cache the SHA-256 hash of /root/arifOS/static/constitution.json (INV-4)."""
+    """Compute and cache the canonical constitution hash.
+
+    P0-3 HASH SCHISM FIX (2026-06-21):
+    Previously this function ONLY hashed the constitution.json FILE, while
+    compute_policy_hash() in policy_hash.py computed a DIFFERENT hash from
+    CANONICAL_TOOLS + floor definitions. Two different callers asking for
+    "the constitution hash" could receive two different values — breaking
+    the tamper-evident chain (the first thing an auditor checks).
+
+    Now: KERNEL_POLICY_HASH (computed from live code at startup) is the
+    SINGLE canonical source. File-based hash is fallback only.
+    """
     global _CONSTITUTION_HASH_CACHE
     if _CONSTITUTION_HASH_CACHE is not None:
         return _CONSTITUTION_HASH_CACHE
 
     import hashlib
     import os
+
+    # P0-3: Prefer KERNEL_POLICY_HASH (live code → canonical source of truth).
+    # This ensures arif_os_attest, organ_attestation, and KernelIdentity all
+    # report the SAME hash — eliminating the hash schism.
+    try:
+        from arifosmcp.runtime.policy_hash import KERNEL_POLICY_HASH as _KPH
+        if _KPH:
+            _CONSTITUTION_HASH_CACHE = f"sha256:{_KPH}"
+            return _CONSTITUTION_HASH_CACHE
+    except ImportError:
+        pass
 
     candidates = [
         "/root/arifOS/static/constitution.json",
@@ -182,7 +204,9 @@ def compute_constitution_hash() -> str:
                     return _CONSTITUTION_HASH_CACHE
             except Exception:
                 pass
-    # Fallback to default
+    # Last-resort fallback — should only be reached in development without
+    # a running kernel. In production, KERNEL_POLICY_HASH is always set at
+    # startup by server.py before any tool is called.
     _CONSTITUTION_HASH_CACHE = "sha256:8bea28833523c652dd4f41e75f55ed3895e638efc92823a3528b7e237305943b"
     return _CONSTITUTION_HASH_CACHE
 

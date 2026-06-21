@@ -54,11 +54,11 @@ class TestVisibility:
 
     @pytest.mark.asyncio
     async def test_canonical_tools_are_model_visible(self) -> None:
-        """The main MCP server exposes the 19 canonical arif_* tools as public surface."""
+        """The main MCP server exposes the 21 canonical arif_* tools as public surface."""
         from arifosmcp.server import mcp
 
         names = await self._tool_names(mcp)
-        # All 19 canonical tools must be visible
+        # All 21 canonical tools must be visible
         canonical_13 = {
             "arif_evidence_fetch",
             "arif_forge_execute",

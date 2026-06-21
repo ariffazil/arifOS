@@ -28,7 +28,9 @@ EXPECTED_CANONICAL13: frozenset[str] = frozenset(
         "arif_kernel_route",
         "arif_reply_compose",
         "arif_memory_recall",
+        "arif_memory",
         "arif_gateway_connect",
+        "arif_bridge_connect",
         "arif_judge_deliberate",
         "arif_vault_seal",
         "arif_forge_execute",
@@ -94,11 +96,11 @@ FORBIDDEN_PUBLIC_SUBSTRINGS: tuple[str, ...] = (
 # ════════════════════════════════════════════════════════════════════════════════
 
 
-def test_canonical13_public_surface_is_exactly_25() -> None:
-    """The public MCP surface must expose exactly 25 tools in canonical13 mode.
+def test_canonical13_public_surface_is_exactly_22() -> None:
+    """The public MCP surface must expose exactly 22 tools in canonical13 mode.
 
-    canonical13 = 19 canonical kernel tools + 6 zero-floor transport canary probes.
-    The 19 canonical tools are EXPECTED_CANONICAL13; the full wire surface is 25.
+    canonical13 = 21 canonical tools + 1 zero-floor transport canary probe.
+    The full wire surface is 22.
     """
     from arifosmcp.runtime.public_surface import CANARY_PROBES, public_tool_names_for_mode
 
@@ -118,7 +120,7 @@ def test_canonical13_public_surface_is_exactly_25() -> None:
 
 
 def test_canonical13_no_extra_tools() -> None:
-    """No extra tools beyond the 19 canonical + 6 canary in canonical13 mode."""
+    """No extra tools beyond the 21 canonical + 1 canary in canonical13 mode."""
     from arifosmcp.runtime.public_surface import CANARY_PROBES, public_tool_names_for_mode
 
     tools = set(public_tool_names_for_mode("canonical13"))
@@ -131,7 +133,7 @@ def test_canonical13_no_extra_tools() -> None:
 
 
 def test_canonical13_no_missing_tools() -> None:
-    """All 19 canonical tools must be present in canonical13 mode."""
+    """All 21 canonical tools must be present in canonical13 mode."""
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
 
     tools = set(public_tool_names_for_mode("canonical13"))
@@ -235,10 +237,9 @@ def test_no_legacy_forge_names_in_canonical13() -> None:
 def test_diagnostic_probes_are_present_in_canonical13() -> None:
     """Canary/diagnostic probes ARE exposed in canonical13 mode.
 
-    The 6 zero-floor transport probes (ping, conformance_report, schema_echo,
-    version_echo, transport_echo, initialize_probe) are part of the default
-    public wire surface. They were previously folded into arif.ops modes; Rule 14
-    ratifies them as standalone canary probes for transport diagnostics.
+    The multimode canary probe (arif_canary) is part of the default public wire
+    surface. It exposes ping, schema_echo, version_echo, transport_echo,
+    initialize_probe, and conformance_report as modes.
     """
     from arifosmcp.runtime.public_surface import CANARY_PROBES, public_tool_names_for_mode
 
@@ -277,7 +278,7 @@ def test_canonical_tools_match_constitutional_tools() -> None:
 
 
 def test_public_surface_drift_check_passes() -> None:
-    """verify_no_drift must report ok=True with exactly 25 tools."""
+    """verify_no_drift must report ok=True with exactly 22 tools."""
     from arifosmcp.runtime.public_surface import CANARY_PROBES
     from arifosmcp.runtime.public_registry import EXPECTED_TOOL_COUNT, verify_no_drift
 
@@ -290,6 +291,15 @@ def test_public_surface_drift_check_passes() -> None:
         f"Drift count mismatch: {drift['actual_count']} != {EXPECTED_TOOL_COUNT}. VOID."
     )
     assert drift["actual_count"] == expected_count
+
+
+def test_verify_no_drift_reports_22_tools() -> None:
+    """verify_no_drift must report ok=True with exactly 22 tools."""
+    from arifosmcp.runtime.public_registry import verify_no_drift
+
+    drift = verify_no_drift("canonical13")
+    assert drift["ok"], f"Drift check failed: {drift}. VOID."
+    assert drift["actual_count"] == 22, f"Expected 22 tools, got {drift['actual_count']}."
 
 
 # ════════════════════════════════════════════════════════════════════════════════

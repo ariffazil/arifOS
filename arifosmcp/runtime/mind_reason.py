@@ -37,6 +37,9 @@ from arifosmcp.schemas.mind_metabolism import (
 
 logger = logging.getLogger(__name__)
 
+CANONICAL_EVIDENCE_TOOL = "arif_evidence_fetch"
+CANONICAL_JUDGE_TOOL = "arif_judge_deliberate"
+
 # ── Thinking Session Manager ──────────────────────────────────────────────────
 thinking_manager = ThinkingSessionManager()
 
@@ -325,7 +328,7 @@ Distinguish CLAIM from FACT."""
                 }
             ],
             "axioms_used": ["L07"],
-            "next_safe_action": ["222_EVIDENCE", "888_JUDGE"],
+            "next_safe_action": [CANONICAL_EVIDENCE_TOOL, CANONICAL_JUDGE_TOOL],
         }
         provenance = _FIELD_PROVENANCE_FALLBACK
         witness = _build_witness_statement(None)
@@ -703,7 +706,7 @@ async def arif_mind_reason_v2(request: MindRequest) -> MindResponse:
     # Determine Next Actions
     next_actions = [
         NextAction(
-            tool="888_JUDGE",
+            tool=CANONICAL_JUDGE_TOOL,
             mode="deliberate",
             reason="Final constitutional gate required",
             required=True,
@@ -712,7 +715,7 @@ async def arif_mind_reason_v2(request: MindRequest) -> MindResponse:
     if not request.evidence.evidence_receipts:
         next_actions.append(
             NextAction(
-                tool="222_FETCH",
+                tool=CANONICAL_EVIDENCE_TOOL,
                 mode="search",
                 reason="No evidence bound to reasoning",
                 required=True,

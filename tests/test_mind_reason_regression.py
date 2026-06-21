@@ -3,7 +3,9 @@ from __future__ import annotations
 import pytest
 
 from arifosmcp.runtime.llm_client import LLMOutputEnvelope
+from arifosmcp.schemas.mind_metabolism import MindRequest
 
+import arifosmcp.runtime.mind_reason as runtime_mind_reason
 import arifosmcp.tools.reason as mind_reason_tool
 
 
@@ -43,8 +45,9 @@ def test_floor_breach_returns_hold_envelope(monkeypatch: pytest.MonkeyPatch) -> 
     assert result.status == "HOLD"
     assert result.meta["reason"] == "floor block"
     assert result.meta["violated_laws"] == ["L12"]
-    assert result.result["status"] == "HOLD"
-    assert any(u.get("type") == "FLOOR_BREACH" for u in result.result.get("uncertainty", []))
+    assert result.result["reasoning_verdict"] == "HOLD"
+    assert result.meta["floor_verdict"] == "HOLD"
+    assert result.meta["next_safe_action"].startswith("Produce reversible")
 
 
 @pytest.mark.asyncio
@@ -68,7 +71,7 @@ async def test_mind_reason_from_async_context_does_not_use_run_until_complete(
     )
 
     assert result.status == "OK"
-    assert result.result["status"] == "SEAL"
+    assert result.result["reasoning_verdict"] == "SEAL"
 
 
 async def _fake_call_llm_dict_confidence(*args, **kwargs):
@@ -124,9 +127,93 @@ def test_mind_reason_dict_confidence_no_fallback(monkeypatch: pytest.MonkeyPatch
     result = mind_reason_tool.arif_mind_reason(query="Say exactly: MIND_OK", actor_id="arif")
 
     assert result.status == "OK"
-    assert result.result["status"] == "REASONED"
-    assert result.result["synthesis"] == "MIND_OK"
+    assert result.result["reasoning_verdict"] == "REASONED"
     assert result.result["claim_state"] == "VERIFIED"
+    assert result.result["next_safe_action"] == ["continue"]
     # Critical invariant: must NOT be the deterministic fallback message
-    assert "LLM unavailable" not in result.result.get("synthesis", "").lower()
-    assert "deterministic" not in result.result.get("synthesis", "").lower()
+    assert result.result["confidence"]["overall"] > 0.8
+
+
+@pytest.mark.asyncio
+async def test_mind_reason_v2_next_actions_use_canonical_tool_names(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _fake_call_llm_v2(*args, **kwargs):
+        from datetime import datetime, timezone
+        from arifosmcp.runtime.llm_client import LLMOutputEnvelope
+
+        tool_origin = kwargs.get("tool_origin", "")
+        if tool_origin == "333 MIND_METABOLIZE":
+            parsed_output = {
+                "input_summary": "Need a governed next step",
+                "core_problem": "Choose the next governed action",
+                "why_it_matters": "The caller needs a canonical next action.",
+                "decision_pressure": "medium",
+                "background_field": [],
+                "known_unknowns": [],
+                "assumptions": [],
+                "constraints": [],
+                "risk_notes": [],
+            }
+        elif tool_origin == "333 MIND_ABSTRACT":
+            parsed_output = {"abstractions": []}
+        elif tool_origin == "333 MIND_ABDUCT":
+            parsed_output = {"abductions": []}
+        elif tool_origin == "333 MIND_SYNTHESIZE":
+            parsed_output = {
+                "bounded_answer": "Bounded answer",
+                "what_is_supported": ["governed next step"],
+                "what_is_not_supported": [],
+                "what_remains_unknown": [],
+                "confidence": {
+                    "reasoning_confidence": 0.9,
+                    "evidence_confidence": 0.9,
+                    "overall_confidence": 0.9,
+                },
+            }
+        else:
+            parsed_output = {}
+
+        return LLMOutputEnvelope(
+            provider="test",
+            model="test",
+            tool_origin=tool_origin or "test",
+            mode="reason",
+            raw_output="{}",
+            raw_output_hash="sha256:test",
+            parsed_output=parsed_output,
+            schema_valid=True,
+            confidence_claimed=0.9,
+            prompt_hash="sha256:test",
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        )
+
+    monkeypatch.setattr("arifosmcp.runtime.mind_reason.call_llm", _fake_call_llm_v2)
+
+    request = MindRequest(query="Need a governed next step", mode="metabolize", actor_id="arif")
+    response = await runtime_mind_reason.arif_mind_reason_v2(request)
+
+    tools = [action.tool for action in response.mind_packet.next_actions]
+    assert tools == ["arif_judge_deliberate", "arif_evidence_fetch"]
+    assert "888_JUDGE" not in tools
+    assert "222_FETCH" not in tools
+
+
+@pytest.mark.asyncio
+async def test_mind_reason_legacy_fallback_uses_canonical_tool_names(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _raise_llm_unavailable(*_args, **_kwargs):
+        raise RuntimeError("LLM unavailable")
+
+    monkeypatch.setattr("arifosmcp.runtime.mind_reason.call_llm", _raise_llm_unavailable)
+
+    result = await runtime_mind_reason.arif_mind_reason(
+        query="Need a governed next step",
+        mode="reason",
+        actor_id="arif",
+    )
+
+    assert result["next_safe_action"] == ["arif_evidence_fetch", "arif_judge_deliberate"]
+    assert "222_EVIDENCE" not in result["next_safe_action"]
+    assert "888_JUDGE" not in result["next_safe_action"]

@@ -1,7 +1,7 @@
 """
 arifosmcp/runtime/megaTools/__init__.py
 
-11 Mega-Tools — Split from tools.py (2026-03-28)
+13 Mega-Tools — Split from tools.py (2026-03-28; tool_13 added 2026-06-21)
 
 Each tool is in its own file for independent auditing and testing.
 """
@@ -18,6 +18,7 @@ from .tool_09_math_estimator import math_estimator
 from .tool_10_code_engine import code_engine
 from .tool_11_architect_registry import architect_registry
 from .tool_12_compat_probe import compat_probe
+from .tool_13_arif_memory import arif_memory
 
 MEGA_TOOLS = {
     "init_anchor": init_anchor,
@@ -32,6 +33,7 @@ MEGA_TOOLS = {
     "code_engine": code_engine,
     "architect_registry": architect_registry,
     "compat_probe": compat_probe,
+    "arif_memory": arif_memory,
 }
 
 __all__ = [
@@ -47,5 +49,6 @@ __all__ = [
     "code_engine",
     "architect_registry",
     "compat_probe",
+    "arif_memory",
     "MEGA_TOOLS",
 ]

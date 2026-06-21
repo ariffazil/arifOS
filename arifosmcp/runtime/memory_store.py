@@ -954,6 +954,55 @@ def recall(memory_id: str) -> dict[str, Any] | None:
     except Exception as exc:
         logger.warning("Qdrant scroll recall failed for %s: %s", memory_id, exc)
 
+    # Fallback C: Postgres direct lookup by id (for records written via _handle_remember
+    # without Qdrant embedding — qdrant_id=NULL). ADR-010: Postgres is L4 canonical.
+    try:
+        import asyncpg
+
+        async def _pg_direct():
+            conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
+            try:
+                row = await conn.fetchrow(
+                    """
+                    SELECT id, tier, text, metadata, qdrant_id, session_id, created_at, deleted_at
+                    FROM memory_store
+                    WHERE id = $1 AND deleted_at IS NULL
+                    """,
+                    uuid.UUID(memory_id),
+                )
+                return dict(row) if row else None
+            finally:
+                await conn.close()
+
+        pg_row = _pg_run(_pg_direct())
+        if pg_row:
+            # Parse metadata — asyncpg returns JSONB as string
+            meta = pg_row.get("metadata", {})
+            if isinstance(meta, str):
+                try:
+                    meta = json.loads(meta)
+                except (json.JSONDecodeError, TypeError):
+                    meta = {}
+            return {
+                "memory_id": str(pg_row["id"]),
+                "content": pg_row["text"],
+                "mode": meta.get("memory_class"),
+                "tags": meta.get("entity_tags", []),
+                "actor_id": meta.get("provenance", {}).get("actor_id"),
+                "session_id": pg_row.get("session_id"),
+                "summary": _summarize(pg_row["text"]),
+                "content_hash": _content_hash(pg_row["text"]),
+                "created_at": pg_row["created_at"].isoformat() if pg_row.get("created_at") else None,
+                "tier": pg_row.get("tier", "L4"),
+                "point_id": None,
+                "version": "v5-pg-direct",
+                "truth_class": meta.get("truth_class"),
+                "provenance": meta.get("provenance"),
+                "source": "postgres_direct",
+            }
+    except Exception as exc:
+        logger.debug("Postgres direct recall failed for %s: %s", memory_id, exc)
+
     # Legacy file fallback
     legacy_path = _MEMORY_DIR / f"{memory_id}.json"
     if legacy_path.exists():

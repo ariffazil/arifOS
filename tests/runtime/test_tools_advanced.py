@@ -8,7 +8,7 @@ from arifosmcp.runtime.tools import _arif_ping, _arif_session_init
 def test_ping_reports_canonical13_surface() -> None:
     result = _arif_ping()["result"]
 
-    # canonical13 public surface = 19 canonical tools + 6 transport canary diagnostics
+    # canonical13 public surface = 21 canonical tools + 1 transport canary diagnostic
     assert result["tools_registered"] == len(CANONICAL_TOOLS) + len(CANARY_PROBES)
     assert result["public_surface"]["mode"] == "canonical13"
     assert result["public_surface"]["kernel_tools"] == len(CANONICAL_TOOLS)

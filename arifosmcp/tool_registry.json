@@ -1,7 +1,7 @@
 {
   "_schema": "arifos-ssct-v2026.06.14-kanon-ssct",
   "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
-  "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS (13 kernel) + DIAGNOSTIC_TOOLS (31 operational). Do not hand-edit — edit the source dicts in constitutional_map.py and regenerate. FORGED 2026-06-21: affordance_contract added — derived from tool_risk_registry.py for canonical tools, spec-inferred for diagnostic tools. The contract is COMPUTED, not hand-set.",
+  "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS (21 canonical) + DIAGNOSTIC_TOOLS (40 operational). Do not hand-edit — edit the source dicts in constitutional_map.py and regenerate. FORGED 2026-06-21: affordance_contract added — derived from tool_risk_registry.py for canonical tools, spec-inferred for diagnostic tools. The contract is COMPUTED, not hand-set.",
   "_affordance_contract_derivation": {
     "canonical_tools": "tool_risk_registry.py → ToolRiskProfile (action_class, risk_tier, blast_radius, reversibility, requires_lease, autonomy_floor)",
     "diagnostic_tools": "constitutional_map.py → spec-inferred from tier + irreversible + access fields",
@@ -9,29 +9,30 @@
     "forged": "2026-06-21"
   },
   "_namespace_ruling": {
-    "arif_*": "Canonical13 public surface — 13 kernel + 6 canary probes (19 default wire tools)",
+    "arif_*": "Canonical13 public surface — 21 canonical tools + 1 canary probe (22 default wire tools)",
     "hermes_*": "GATED — Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",
     "forge_*": "GATED/DEPRECATED — A-FORGE pre-execution sub-tools (use A-FORGE MCP directly; removed 2026-07-15)",
     "arifos_*": "BLOCKED — internal-only prefix, never exposed on public MCP surface",
     "mcp_*": "GATED — Utility namespace for operational diagnostics"
   },
-  "canonical_count": 20,
-  "diagnostic_count": 37,
-  "total_surface": 57,
+  "canonical_count": 21,
+  "diagnostic_count": 40,
+  "total_surface": 61,
   "tier_summary": {
-    "canonical": 20,
+    "canonical": 21,
     "hermes": 7,
-    "canary": 6,
+    "canary": 7,
     "lease": 3,
     "attest": 7,
     "forge-sub": 3,
     "narrative": 2,
-    "diagnostic": 9
+    "diagnostic": 9,
+    "chatgpt-shim": 2
   },
   "tier_legend": {
-    "canonical": "13 kernel tools — F1-F13 constitutional pipeline (000→999 golden path)",
+    "canonical": "21 canonical tools — F1-F13 constitutional pipeline plus rule-14/public extensions",
     "hermes": "7 cross-verification, fact-checking, vault query, epistemic checks",
-    "canary": "6 transport/protocol diagnostics — zero-floor probes (no session required)",
+    "canary": "1 multimode transport/protocol diagnostic probe (no session required)",
     "lease": "3 capability lease lifecycle tools (inspect, issue, revoke)",
     "attest": "4 federation organ attestation tools (self + peer heartbeat)",
     "forge-sub": "3 pre-execution forge planning tools (dry_run, plan, query)",
@@ -53,6 +54,7 @@
     "arif_kernel_attest",
     "arif_kernel_health",
     "arif_reply_compose",
+    "arif_memory",
     "arif_memory_recall",
     "arif_gateway_connect",
     "arif_judge_deliberate",
@@ -68,6 +70,7 @@
     "hermes_cross_verify",
     "hermes_plan_review",
     "hermes_memory_steward",
+    "arif_canary",
     "arif_ping",
     "arif_schema_echo",
     "arif_version_echo",
@@ -97,7 +100,9 @@
     "mcp_drift_check",
     "arif_gate_judge",
     "arif_self_evaluate",
-    "arif_model_compare"
+    "arif_model_compare",
+    "arif_search",
+    "arif_fetch"
   ],
   "laws": [
     "L01",
@@ -356,7 +361,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Routing is computational dispatch. No mutation. Purely organizational.",
         "_derived_from": "tool_risk_registry.py (canonical)"
-      }
+      },
+      "_deprecated": true,
+      "_canonical_name": "arif_route"
     },
     "arif_route": {
       "stage": "555",
@@ -455,7 +462,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=low, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "_deprecated": true,
+      "_canonical_name": "arif_diag_telemetry"
     },
     "arif_bridge_connect": {
       "stage": "555",
@@ -552,7 +561,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=low, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "_deprecated": true,
+      "_canonical_name": "arif_diag_attest"
     },
     "arif_kernel_health": {
       "stage": "555",
@@ -583,7 +594,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=low, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "_deprecated": true,
+      "_canonical_name": "arif_diag_health"
     },
     "arif_reply_compose": {
       "stage": "444r",
@@ -621,6 +634,48 @@
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
+    "arif_memory": {
+      "stage": "555m",
+      "lane": "AGI",
+      "floors": [
+        "L01",
+        "L02",
+        "L04",
+        "L08",
+        "L11",
+        "L12",
+        "L13"
+      ],
+      "risk_tier": "medium",
+      "irreversible": true,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "recall",
+        "inspect",
+        "attest",
+        "remember",
+        "promote",
+        "revise",
+        "forget"
+      ],
+      "eureka_insight": "F1: every memory op is reversible via supersede (revise) or tombstone (forget → vault). F2: 7 truth-classes (observed|claimed|derived|approved|sealed|contested|deprecated) gate recall. F4: hybrid recall cascade (vector→graph→vault) reduces entropy per mode. F8: per-mode floor pre-checks (L01..L13) preserve governance integrity. F11: every write carries actor_id + session_id + receipt (forensic traceability). F13: forget mode requires explicit human ack — L13 SOVEREIGN. Direction 1 (memory kernel v5) — ratified 2026-06-21. ADR-010 baked in: L4 canonical band, no-bypass rule, vault seal lineage.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
+      "tags": [
+        "canonical"
+      ],
+      "affordance_contract": {
+        "action_class": "IRREVERSIBLE",
+        "risk_tier": "MEDIUM",
+        "blast_radius": "LOCAL",
+        "reversibility": 0.0,
+        "requires_lease": true,
+        "autonomy_floor": "PRINCIPAL_APPROVAL_REQUIRED",
+        "rationale": "Spec-inferred: tier=medium, irreversible=True, access=public",
+        "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
+      }
+    },
     "arif_memory_recall": {
       "stage": "555m",
       "lane": "AGI",
@@ -643,7 +698,7 @@
         "stats",
         "learn"
       ],
-      "eureka_insight": "F1: recall must be auditable — no silent memory mutation. F2: contradiction detection gates SEAL verdicts. F8: G ≥ 0.80 — cognitive memory enables cumulative intelligence. 666_MEMORY v2: plans persist as graph objects; contradictions surface before SEAL.",
+      "eureka_insight": "DEPRECATED — redirects to arif_memory (canonical v5). Legacy mode aliases: store→remember, seal→attest, update→revise, audit→attest, stats→inspect, learn→remember.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -1063,6 +1118,39 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       }
     },
+    "arif_canary": {
+      "tier": "canary",
+      "namespace": "arif_*",
+      "floors": [],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "ping",
+        "schema_echo",
+        "version_echo",
+        "transport_echo",
+        "initialize_probe",
+        "conformance_report"
+      ],
+      "tags": [
+        "canary",
+        "diagnostic",
+        "transport",
+        "multimode"
+      ],
+      "affordance_contract": {
+        "action_class": "OBSERVE",
+        "risk_tier": "LOW",
+        "blast_radius": "LOCAL",
+        "reversibility": 0.9,
+        "requires_lease": false,
+        "autonomy_floor": "FULL_AUTO",
+        "rationale": "Spec-inferred: tier=canary, irreversible=False, access=public",
+        "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
+      }
+    },
     "arif_ping": {
       "tier": "canary",
       "namespace": "arif_*",
@@ -1076,7 +1164,8 @@
       ],
       "tags": [
         "canary",
-        "diagnostic"
+        "diagnostic",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1102,7 +1191,8 @@
       ],
       "tags": [
         "canary",
-        "diagnostic"
+        "diagnostic",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1128,7 +1218,8 @@
       ],
       "tags": [
         "canary",
-        "diagnostic"
+        "diagnostic",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1154,7 +1245,8 @@
       ],
       "tags": [
         "canary",
-        "diagnostic"
+        "diagnostic",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1180,7 +1272,8 @@
       ],
       "tags": [
         "canary",
-        "diagnostic"
+        "diagnostic",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1208,7 +1301,8 @@
       ],
       "tags": [
         "canary",
-        "conformance"
+        "conformance",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1354,7 +1448,8 @@
       ],
       "tags": [
         "attest",
-        "federation"
+        "federation",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "ANALYZE",
@@ -1383,7 +1478,8 @@
       ],
       "tags": [
         "attest",
-        "federation"
+        "federation",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "ANALYZE",
@@ -1412,7 +1508,8 @@
       ],
       "tags": [
         "attest",
-        "federation"
+        "federation",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "ANALYZE",
@@ -1442,7 +1539,8 @@
       "tags": [
         "attest",
         "federation",
-        "peer-contract"
+        "peer-contract",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "ANALYZE",
@@ -1471,7 +1569,8 @@
       "tags": [
         "attest",
         "federation",
-        "peer-contract"
+        "peer-contract",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "ANALYZE",
@@ -1502,7 +1601,8 @@
       "tags": [
         "attest",
         "federation",
-        "peer-contract"
+        "peer-contract",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "DRAFT",
@@ -1616,7 +1716,8 @@
       ],
       "tags": [
         "narrative",
-        "institutional"
+        "institutional",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1646,7 +1747,8 @@
       ],
       "tags": [
         "narrative",
-        "media"
+        "media",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1675,7 +1777,8 @@
       ],
       "tags": [
         "diagnostic",
-        "health"
+        "health",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1703,7 +1806,8 @@
       ],
       "tags": [
         "diagnostic",
-        "instructions"
+        "instructions",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1732,7 +1836,8 @@
       ],
       "tags": [
         "diagnostic",
-        "consensus"
+        "consensus",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1760,7 +1865,8 @@
       ],
       "tags": [
         "diagnostic",
-        "budget"
+        "budget",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1789,7 +1895,8 @@
       ],
       "tags": [
         "diagnostic",
-        "floors"
+        "floors",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1855,7 +1962,8 @@
         "gate",
         "constitutional",
         "mcp",
-        "infrastructure"
+        "infrastructure",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1884,7 +1992,8 @@
       ],
       "tags": [
         "diagnostic",
-        "evaluation"
+        "evaluation",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1913,7 +2022,8 @@
       ],
       "tags": [
         "diagnostic",
-        "shadow_geometry"
+        "shadow_geometry",
+        "deprecated"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -1923,6 +2033,66 @@
         "requires_lease": false,
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=diagnostic, irreversible=False, access=public",
+        "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
+      }
+    },
+    "arif_search": {
+      "tier": "chatgpt-shim",
+      "namespace": "arif_*",
+      "floors": [
+        "L02",
+        "L07"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "search"
+      ],
+      "tags": [
+        "chatgpt-shim",
+        "observe"
+      ],
+      "affordance_contract": {
+        "action_class": "OBSERVE",
+        "risk_tier": "LOW",
+        "blast_radius": "LOCAL",
+        "reversibility": 0.9,
+        "requires_lease": false,
+        "autonomy_floor": "FULL_AUTO",
+        "rationale": "Spec-inferred: tier=chatgpt-shim, irreversible=False, access=public",
+        "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
+      }
+    },
+    "arif_fetch": {
+      "tier": "chatgpt-shim",
+      "namespace": "arif_*",
+      "floors": [
+        "L02",
+        "L03",
+        "L05",
+        "L12"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "fetch"
+      ],
+      "tags": [
+        "chatgpt-shim",
+        "observe"
+      ],
+      "affordance_contract": {
+        "action_class": "OBSERVE",
+        "risk_tier": "LOW",
+        "blast_radius": "LOCAL",
+        "reversibility": 0.9,
+        "requires_lease": false,
+        "autonomy_floor": "FULL_AUTO",
+        "rationale": "Spec-inferred: tier=chatgpt-shim, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       }
     }

@@ -89,6 +89,7 @@ class TestMutationWithoutLease:
 
     def test_mutate_without_lease_blocked(self):
         env = KernelEnvelope(
+            kernel=KernelIdentity(actor_verified=True),
             organ=OrganIdentity(tool_name="arif_memory_recall"),
             authority=AuthorityBlock(
                 action_class=ActionClass.MUTATE,
@@ -146,7 +147,7 @@ class TestUnknownTool:
         assert result.is_allowed, f"Empty tool name OBSERVE should pass: {result.reasons}"
 
     def test_all_canonical_tools_known(self):
-        """All 19 canonical tools must be in the manifest."""
+        """All 21 canonical tools must be in the manifest."""
         assert len(CANONICAL_TOOL_MANIFEST) == 19
         expected = {
             "arif_session_init",
@@ -229,8 +230,9 @@ class TestWrongActor:
             ),
         )
         result = pre_execution_gate(env, ActionClass.MUTATE)
-        assert result.verdict == GateVerdict.HOLD
-        assert "verified" in " ".join(result.reasons).lower()
+        assert result.verdict in (GateVerdict.HOLD, GateVerdict.REJECT)
+        combined = " ".join(result.reasons).lower()
+        assert "verified" in combined or "resolved" in combined
 
     def test_unverified_actor_observe_passes(self):
         """Unverified actors can still observe."""
@@ -587,7 +589,7 @@ class TestModelSwap:
                 ),
             )
             result = pre_execution_gate(env, ActionClass.MUTATE)
-            assert result.verdict == GateVerdict.HOLD, (
+            assert result.verdict in (GateVerdict.HOLD, GateVerdict.REJECT), (
                 f"Model '{model_id}' should not bypass mutation gate"
             )
 

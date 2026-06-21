@@ -116,6 +116,16 @@ _EXPOSE_ORGAN_BRIDGE = os.getenv("ARIFOS_EXPOSE_ORGAN_BRIDGE", "false").lower() 
     "yes",
 )
 
+# ── ChatGPT compatibility shim: register arif_search + arif_fetch ─────────────
+# These are thin single-string-param wrappers that route to arif_sense_observe
+# and arif_evidence_fetch. Satisfies ChatGPT's mandatory search/fetch discovery
+# requirement without touching kernel logic.
+_CHATGPT_COMPAT = os.getenv("ARIFOS_CHATGPT_COMPAT", "false").lower() in (
+    "true",
+    "1",
+    "yes",
+)
+
 
 class GlobalPanicMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
@@ -681,6 +691,27 @@ try:
             session_id=session_id,
         )
 
+    # ── Canary Multimode (replaces 6 individual canaries) ────────────────────
+    # One tool, six modes. ART: OBSERVE-class, zero floors, read-only.
+    from arifosmcp.tools.canary_multimode import arif_canary as _arif_canary_handler
+
+    mcp.tool(
+        name="arif_canary",
+        description=(
+            "Unified transport diagnostic probe. One tool, six modes. "
+            "Use for liveness checks, protocol version verification, schema round-trip "
+            "testing, transport detail dumps, MCP handshake tests, and full conformance spine. "
+            "Modes: ping | schema_echo | version_echo | transport_echo | initialize_probe | conformance_report"
+        ),
+        tags={"canary", "read-only", "diagnostic", "transport", "multimode"},
+        annotations={
+            "readOnlyHint": True,
+            "destructiveHint": False,
+            "openWorldHint": True,
+            "idempotentHint": True,
+        },
+    )(_arif_canary_handler)
+
     from arifosmcp.runtime.tools import _wrap_handler
 
     # ── Forge Ladder — DEPRECATED PROXY (engineering tools moved to A-FORGE) ─
@@ -726,6 +757,33 @@ try:
             mcp.tool(name=_fn, description=_FORGE_DEPRECATION_MSG, tags={"forge", "deprecated", "proxy"})(_make_forge_deprecated_proxy(_fn))
     else:
         logger.info("Forge deprecated proxies gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose.")
+
+    # ── ChatGPT Compatibility Facade (ADR-012) ──────────────────────────────
+    # GATED: only registered when ARIFOS_CHATGPT_COMPAT=true.
+    # Thin read-only shims: search → arif_sense_observe, fetch → arif_evidence_fetch.
+    # See: adr/ADR_012_CHATGPT_COMPATIBILITY_SHIM_FACADE_20260621.md
+    if _CHATGPT_COMPAT:
+        from arifosmcp.tools.chatgpt_shim import SHIM_HANDLERS, SHIM_OUTPUT_SCHEMAS
+        from arifosmcp.tools.chatgpt_shim import SHIM_TOOLS as _SHIM_DEFS
+
+        for _shim_name, _shim_handler in SHIM_HANDLERS.items():
+            _shim_def = _SHIM_DEFS[_shim_name]
+            _shim_schema = SHIM_OUTPUT_SCHEMAS.get(_shim_name)
+            mcp.tool(
+                name=_shim_name,
+                description=_shim_def["description"],
+                tags={"chatgpt-compat", "read-only", "facade"},
+                output_schema=_shim_schema,
+                annotations={
+                    "readOnlyHint": True,
+                    "destructiveHint": False,
+                    "openWorldHint": True,
+                    "idempotentHint": True,
+                },
+            )(_shim_handler)
+            logger.info("ChatGPT compat shim registered: %s", _shim_name)
+    else:
+        logger.info("ChatGPT compat shims gated — set ARIFOS_CHATGPT_COMPAT=true to expose.")
 
     # ── Institutional Shadow Drift (GENESIS/006 runtime sensor) ─────────────
     # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (Canonical13 enforcement).

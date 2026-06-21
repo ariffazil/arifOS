@@ -29,7 +29,7 @@ DEFAULT_PUBLIC_BASE_URL = "https://arifosmcp.arif-fazil.com"
 
 CANONICAL_PUBLIC_TOOLS = frozenset(CANONICAL_13)
 # EXPECTED_TOOL_COUNT is the default public wire surface (canonical13 mode):
-# 19 canonical kernel tools + 6 zero-floor transport canary probes = 25.
+# 21 canonical kernel tools + 1 zero-floor transport canary probe = 22.
 EXPECTED_TOOL_COUNT = len(CANONICAL_13) + len(CANARY_PROBES)
 
 RUNTIME_ENVELOPE_SCHEMA = {
@@ -165,8 +165,14 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Returns reachability and constitutional runtime status with zero ceremony."
     ),
     "arif_conformance_report": (
-        "PROOF MACHINE: run the ARIF Conformance Spine against the live kernel. "
-        "Returns earned pass/fail verdicts for transport, session, and governance checks."
+        "[DEPRECATED — use arif_canary(mode=conformance_report)] "
+        "PROOF MACHINE: run the ARIF Conformance Spine against the live kernel."
+    ),
+    "arif_canary": (
+        "Unified transport diagnostic probe. One tool, six modes. "
+        "Use for liveness checks, protocol version verification, schema round-trip "
+        "testing, transport detail dumps, MCP handshake tests, and full conformance spine. "
+        "Modes: ping | schema_echo | version_echo | transport_echo | initialize_probe | conformance_report"
     ),
     # ── ChatGPT Compatibility Shim ──
     "arif_search": (

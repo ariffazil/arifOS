@@ -47,8 +47,8 @@ def _stable_runtime_env(monkeypatch):
 
 
 def test_surface_partition():
-    assert len(CANONICAL_TOOLS) == 19
-    assert len(list_constitutional_tools()) == 19
+    assert len(CANONICAL_TOOLS) == 21
+    assert len(list_constitutional_tools()) == 21
     assert len(list_probe_tools()) == 0
 
 
@@ -61,8 +61,8 @@ def test_tool_names():
 def test_register_tools_matches_canonical_surface():
     mcp = FastMCP("test-arifos")
     registered = register_tools(mcp)
-    # 19 canonical + 6 canary tools
-    assert len(registered) == len(CANONICAL_TOOLS) + len(CANARY_PROBES)
+    # register_tools wires canonical handlers only; the public canary is registered separately
+    assert len(registered) == len(CANONICAL_TOOLS)
     assert set(CANONICAL_TOOLS).issubset(set(registered))
     assert not any(name.startswith("arifos_") for name in registered)
 

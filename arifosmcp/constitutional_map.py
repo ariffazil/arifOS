@@ -145,7 +145,7 @@ STAGE_PROGRESSION: dict[str, dict[str, str | None]] = {
     # (refinement of route), "g" = gateway (refinement of forge). These
     # encode parent-child relationships, not independent stage numbers.
     # 444r reply is a side-branch; no tool sits directly at 444.
-    "444r": {"next": "555", "tool": "arif_kernel_route", "prompt": None},
+    "444r": {"next": "555", "tool": "arif_route", "prompt": None},
     # v3.1 fix: 555 route/memory → 666 critique (heart), NOT forge.
     # Constitutionally: critique MUST precede forge. Never skip heart.
     "555": {"next": "666", "tool": "arif_heart_critique", "prompt": "666_critique"},
@@ -625,6 +625,11 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         ),
         "cognitive_axis": "boundary",
         "expose": True,
+        "_deprecated": True,
+        "_canonical_name": "arif_route",
+        "_deprecation_epoch": "2026-Q3",
+        "_removal_allowed": False,
+        "_deprecation_note": "Use arif_route for intent routing. This tool is a legacy multi-mode entry point — arif_route + arif_triage + arif_diag_telemetry replace all its modes.",
     },
     # ── CANONICAL TOOLS (RULE 14 MODE-FIRST NAMING, 2026-06-20) ──
     "arif_route": {
@@ -668,6 +673,11 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "eureka_insight": "RULE 14: Mode-first. Three related status-reporting operations on the same entity (kernel state).",
         "cognitive_axis": "boundary",
         "expose": True,
+        "_deprecated": True,
+        "_canonical_name": "arif_diag_telemetry",
+        "_deprecation_epoch": "2026-Q3",
+        "_removal_allowed": False,
+        "_deprecation_note": "Moving to arif_diag_telemetry namespace. Registry-level rename pending handler code update.",
     },
     "arif_bridge_connect": {
         "name": "arif_bridge_connect",
@@ -714,6 +724,11 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "eureka_insight": "RULE 14: Organ is a parameter, not a separate tool name. Same attestation logic, different target.",
         "cognitive_axis": "boundary",
         "expose": True,
+        "_deprecated": True,
+        "_canonical_name": "arif_diag_attest",
+        "_deprecation_epoch": "2026-Q3",
+        "_removal_allowed": False,
+        "_deprecation_note": "Moving to arif_diag_attest namespace. Registry-level rename pending handler code update.",
     },
     "arif_kernel_health": {
         "name": "arif_kernel_health",
@@ -728,6 +743,11 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "eureka_insight": "RULE 14: One tool, one operation. No modes because no expansion room is needed.",
         "cognitive_axis": "vitality",
         "expose": True,
+        "_deprecated": True,
+        "_canonical_name": "arif_diag_health",
+        "_deprecation_epoch": "2026-Q3",
+        "_removal_allowed": False,
+        "_deprecation_note": "Moving to arif_diag_health namespace. Registry-level rename pending handler code update.",
     },
     "arif_reply_compose": {
         "name": "arif_reply_compose",
@@ -748,9 +768,35 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "cognitive_axis": "reflect",
         "expose": True,
     },
+    "arif_memory": {
+        "name": "arif_memory",
+        "description": "555_MEMORY v5: Federated memory tool — 7 canonical modes (recall|inspect|attest|remember|promote|revise|forget). Supersedes arif_memory_recall v4. Per Action-Class split: OBSERVE (recall|inspect|attest), MUTATE (remember|promote|revise), ATOMIC (forget). Hybrid recall cascade: vector (Qdrant L3) → graph (FalkorDB/Graphiti L5) → vault (VAULT999 v2 L6). Floor enforcement: B3 truth_class, B5 revise-supersede, C3 graph-mandatory cascade, A4 v1 tombstone gating. L13 SOVEREIGN mandatory for forget. Parameters: mode, payload, session_id, actor_id, lease_id, human_approval, trace_id, idempotency_key. See ADR-010 for L4 canonical-band + no-bypass rule.",  # noqa: E501
+        "access": "public",
+        "stage": ToolStage.MEMORY,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L01_AMANAH, Law.L02_TRUTH, Law.L04_CLARITY, Law.L08_GENIUS, Law.L11_AUDIT, Law.L12_INJECTION, Law.L13_SOVEREIGN],
+        "risk_tier": "medium",
+        "irreversible": True,   # forget mode is IRREVERSIBLE on recall + writes tombstone to vault
+        "modes": ["recall", "inspect", "attest", "remember", "promote", "revise", "forget"],
+        "eureka_insight": (
+            "F1: every memory op is reversible via supersede (revise) or tombstone (forget → vault). "
+            "F2: 7 truth-classes (observed|claimed|derived|approved|sealed|contested|deprecated) gate recall. "
+            "F4: hybrid recall cascade (vector→graph→vault) reduces entropy per mode. "
+            "F8: per-mode floor pre-checks (L01..L13) preserve governance integrity. "
+            "F11: every write carries actor_id + session_id + receipt (forensic traceability). "
+            "F13: forget mode requires explicit human ack — L13 SOVEREIGN. "
+            "Direction 1 (memory kernel v5) — ratified 2026-06-21. "
+            "ADR-010 baked in: L4 canonical band, no-bypass rule, vault seal lineage."
+        ),
+        "cognitive_axis": "trace",
+        "expose": True,
+        "supersedes": "arif_memory_recall",
+        "schema_version": 5,
+        "deprecated_aliases": ["arif_memory_recall"],
+    },
     "arif_memory_recall": {
         "name": "arif_memory_recall",
-        "description": "555_MEMORY v4: Unified cognitive memory — 8 canonical modes (recall|store|seal|forget|update|audit|stats|learn). Backward-compat aliases: init_recall→recall, search→recall, context→recall, quarantine→store, import→store, graph_*→store/recall, contradict_*→audit. 666_MEMORY v2 cognitive layer: graph-backed plan persistence (FalkorDB+Qdrant), contradiction detection, cross-session recall, learning loop. Parameters: mode, query, memory_id, session_id, actor_id, content, tags, plan_object, outcome, lessons, resolution.",  # noqa: E501
+        "description": "[DEPRECATED 2026-06-21 — use arif_memory] 555_MEMORY v4 legacy alias. Routes via LEGACY_MODE_ALIASES to arif_memory v5 (7 modes). 30-day deprecation window. Will be removed in canonical_map regeneration after 2026-07-21.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.MEMORY,
         "lane": TrinityLane.AGI,
@@ -759,13 +805,15 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "modes": ["recall", "store", "seal", "forget", "update", "audit", "stats", "learn"],
         "eureka_insight": (
-            "F1: recall must be auditable — no silent memory mutation. "
-            "F2: contradiction detection gates SEAL verdicts. "
-            "F8: G ≥ 0.80 — cognitive memory enables cumulative intelligence. "
-            "666_MEMORY v2: plans persist as graph objects; contradictions surface before SEAL."
+            "DEPRECATED — redirects to arif_memory (canonical v5). "
+            "Legacy mode aliases: store→remember, seal→attest, update→revise, "
+            "audit→attest, stats→inspect, learn→remember."
         ),
         "cognitive_axis": "trace",
         "expose": True,
+        "deprecated": True,
+        "redirects_to": "arif_memory",
+        "deprecation_window_days": 30,
     },
     "arif_gateway_connect": {
         "name": "arif_gateway_connect",
@@ -899,7 +947,7 @@ CONSTITUTIONAL_TOOLS: tuple[str, ...] = tuple(CANONICAL_TOOLS.keys())
 #   diagnostic — Health probes, floor status, drift checks, budget telemetry, instruction scanner
 #
 # NAMESPACE RULING (F13 SOVEREIGN, 2026-06-14; amended 2026-06-19 — Canonical13 enforcement):
-#   arif_*   — Canonical prefix for 13 kernel tools + 6 canary probes (public surface)
+#   arif_*   — Canonical prefix for 21 canonical tools + 1 canary probe (public surface)
 #   hermes_* — GATED non-arif_ namespace for Hermes ASI tools (ARIFOS_MCP_EXPOSE_DEV_TOOLS)
 #   forge_*  — GATED non-arif_ namespace for A-FORGE sub-tools (ARIFOS_MCP_EXPOSE_DEV_TOOLS;
 #              forge_* tools are DEPRECATED on arifOS — use A-FORGE MCP directly)
@@ -909,7 +957,7 @@ CONSTITUTIONAL_TOOLS: tuple[str, ...] = tuple(CANONICAL_TOOLS.keys())
 # AMENDED 2026-06-19: hermes_*, forge_*, and non-canonical arif_* diagnostics
 # (lease, attest, peer_contract, heartbeat, narrative, shadow) are no longer
 # on the default public wire surface. They require ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
-# Canonical13 = 13 kernel tools. Default public wire = 13 + 6 canary probes = 19.
+# Canonical13 = 21 canonical tools. Default public wire = 21 + 1 canary probe = 22.
 # ═══════════════════════════════════════════════════════════════════════════════
 
 DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
@@ -998,10 +1046,28 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["classify", "compact"],
         "tags": ["hermes", "memory"],
     },
-    # ── Canary / Transport Tools (6) — Protocol diagnostics, zero-floor probes ──
+    # ── Canary / Transport Tools — Multimode (replaces 6 individual canaries) ──
+    "arif_canary": {
+        "name": "arif_canary",
+        "description": (
+            "CANARY: Unified transport diagnostic probe. One tool, six modes. "
+            "Use for liveness checks, protocol version verification, schema round-trip "
+            "testing, transport detail dumps, MCP handshake tests, and full conformance spine. "
+            "Modes: ping | schema_echo | version_echo | transport_echo | initialize_probe | conformance_report"
+        ),
+        "access": "public",
+        "tier": "canary",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [],
+        "modes": ["ping", "schema_echo", "version_echo", "transport_echo", "initialize_probe", "conformance_report"],
+        "tags": ["canary", "diagnostic", "transport", "multimode"],
+    },
+    # ── Individual canary names (DEPRECATED → arif_canary) ──
     "arif_ping": {
         "name": "arif_ping",
-        "description": "CANARY: Lightweight liveness probe — confirms kernel reachability. No session, no actor, no governance required.",
+        "description": "[DEPRECATED — use arif_canary(mode=ping)] Lightweight liveness probe.",
         "access": "public",
         "tier": "canary",
         "namespace": "arif_*",
@@ -1009,11 +1075,13 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [],
         "modes": ["probe"],
-        "tags": ["canary", "diagnostic"],
+        "tags": ["canary", "diagnostic", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_canary",
     },
     "arif_schema_echo": {
         "name": "arif_schema_echo",
-        "description": "CANARY: Echo back client payload + server interpretation. Zero-floor transport diagnostic — no session, no actor, no governance.",
+        "description": "[DEPRECATED — use arif_canary(mode=schema_echo)] Payload round-trip test.",
         "access": "public",
         "tier": "canary",
         "namespace": "arif_*",
@@ -1021,11 +1089,13 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [],
         "modes": ["echo"],
-        "tags": ["canary", "diagnostic"],
+        "tags": ["canary", "diagnostic", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_canary",
     },
     "arif_version_echo": {
         "name": "arif_version_echo",
-        "description": "CANARY: Return MCP protocol version, supported versions, dialect hints. Zero-floor version probe — detect version-dialect drift before session init.",
+        "description": "[DEPRECATED — use arif_canary(mode=version_echo)] Protocol version check.",
         "access": "public",
         "tier": "canary",
         "namespace": "arif_*",
@@ -1033,11 +1103,13 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [],
         "modes": ["echo"],
-        "tags": ["canary", "diagnostic"],
+        "tags": ["canary", "diagnostic", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_canary",
     },
     "arif_transport_echo": {
         "name": "arif_transport_echo",
-        "description": "CANARY: Return every transport-level detail observed — headers, protocol, source, transport hint. Zero-floor diagnostic for client-specific connection issues.",
+        "description": "[DEPRECATED — use arif_canary(mode=transport_echo)] Transport detail dump.",
         "access": "public",
         "tier": "canary",
         "namespace": "arif_*",
@@ -1045,11 +1117,13 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [],
         "modes": ["echo"],
-        "tags": ["canary", "diagnostic"],
+        "tags": ["canary", "diagnostic", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_canary",
     },
     "arif_initialize_probe": {
         "name": "arif_initialize_probe",
-        "description": "CANARY: Test MCP initialize/initialized handshake without constitutional ceremony. Use AFTER ping passes but BEFORE arif_session_init.",
+        "description": "[DEPRECATED — use arif_canary(mode=initialize_probe)] MCP handshake test.",
         "access": "public",
         "tier": "canary",
         "namespace": "arif_*",
@@ -1057,11 +1131,13 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [],
         "modes": ["probe"],
-        "tags": ["canary", "diagnostic"],
+        "tags": ["canary", "diagnostic", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_canary",
     },
     "arif_conformance_report": {
         "name": "arif_conformance_report",
-        "description": "CANARY: Run ARIF Conformance Spine v0.1 against live kernel — kernel alive, MCP initialize, protocol version, schema echo, session start, authority classification, 888_HOLD mutation refusal, VAULT replay verification.",
+        "description": "[DEPRECATED — use arif_canary(mode=conformance_report)] Full conformance spine.",
         "access": "public",
         "tier": "canary",
         "namespace": "arif_*",
@@ -1069,7 +1145,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L02_TRUTH],
         "modes": ["report"],
-        "tags": ["canary", "conformance"],
+        "tags": ["canary", "conformance", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_canary",
     },
     # ── Lease Tools (3) — Capability lease lifecycle ──
     "arif_lease_inspect": {
@@ -1131,7 +1209,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L02_TRUTH, Law.L03_WITNESS],
         "modes": ["attest"],
-        "tags": ["attest", "federation"],
+        "tags": ["attest", "federation", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_diag_attest",
     },
     "arif_organ_attest_all": {
         "name": "arif_organ_attest_all",
@@ -1143,7 +1223,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L02_TRUTH, Law.L03_WITNESS],
         "modes": ["attest"],
-        "tags": ["attest", "federation"],
+        "tags": ["attest", "federation", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_diag_attest",
     },
     "arif_heartbeat": {
         "name": "arif_heartbeat",
@@ -1155,7 +1237,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L02_TRUTH],
         "modes": ["record", "query"],
-        "tags": ["attest", "federation"],
+        "tags": ["attest", "federation", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_diag_attest",
     },
     # ── Peer Federation Contract Tools (3) — P2P capability peering v1 ──
     "arif_peer_contract_validate": {
@@ -1168,7 +1252,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L02_TRUTH, Law.L03_WITNESS],
         "modes": ["validate"],
-        "tags": ["attest", "federation", "peer-contract"],
+        "tags": ["attest", "federation", "peer-contract", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_diag_attest",
     },
     "arif_peer_contract_attest": {
         "name": "arif_peer_contract_attest",
@@ -1180,7 +1266,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L02_TRUTH],
         "modes": ["attest"],
-        "tags": ["attest", "federation", "peer-contract"],
+        "tags": ["attest", "federation", "peer-contract", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_diag_attest",
     },
     "arif_peer_contract_forbid": {
         "name": "arif_peer_contract_forbid",
@@ -1192,7 +1280,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
         "modes": ["forbid"],
-        "tags": ["attest", "federation", "peer-contract"],
+        "tags": ["attest", "federation", "peer-contract", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_diag_attest",
     },
     # ── Forge Sub-Tools (3) — Pre-execution planning (A-FORGE namespace) ──
     "forge_dry_run": {
@@ -1242,7 +1332,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L02_TRUTH, Law.L05_PEACE],
         "modes": ["detect"],
-        "tags": ["narrative", "institutional"],
+        "tags": ["narrative", "institutional", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_diag_shadow_drift",
     },
     "arif_detect_narrative_tension": {
         "name": "arif_detect_narrative_tension",
@@ -1254,7 +1346,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L02_TRUTH, Law.L05_PEACE, Law.L06_EMPATHY],
         "modes": ["detect"],
-        "tags": ["narrative", "media"],
+        "tags": ["narrative", "media", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_diag_narrative_tension",
     },
     # ── Additional Diagnostic Tools (6) — Health probes, drift checks, budget, floor status, instructions ──
     "arif_stack_health_probe": {
@@ -1267,7 +1361,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L02_TRUTH, Law.L04_CLARITY],
         "modes": ["probe"],
-        "tags": ["diagnostic", "health"],
+        "tags": ["diagnostic", "health", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_diag_health",
     },
     "arif_scan_local_instructions": {
         "name": "arif_scan_local_instructions",
@@ -1279,7 +1375,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L04_CLARITY],
         "modes": ["scan"],
-        "tags": ["diagnostic", "instructions"],
+        "tags": ["diagnostic", "instructions", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_judge_deliberate",
     },
     "arif_organ_consensus": {
         "name": "arif_organ_consensus",
@@ -1291,7 +1389,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L02_TRUTH, Law.L03_WITNESS],
         "modes": ["consensus"],
-        "tags": ["diagnostic", "consensus"],
+        "tags": ["diagnostic", "consensus", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_gateway_connect",
     },
     "arif_session_budget": {
         "name": "arif_session_budget",
@@ -1303,7 +1403,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L04_CLARITY],
         "modes": ["budget"],
-        "tags": ["diagnostic", "budget"],
+        "tags": ["diagnostic", "budget", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_ops_measure",
     },
     "arif_floor_status": {
         "name": "arif_floor_status",
@@ -1315,7 +1417,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L02_TRUTH, Law.L11_AUDIT],
         "modes": ["status"],
-        "tags": ["diagnostic", "floors"],
+        "tags": ["diagnostic", "floors", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_judge_deliberate",
     },
     "mcp_drift_check": {
         "name": "mcp_drift_check",
@@ -1349,7 +1453,10 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L01_AMANAH, Law.L04_CLARITY, Law.L08_GENIUS, Law.L11_AUDIT, Law.L13_SOVEREIGN],
         "modes": ["judge"],
-        "tags": ["gate", "constitutional", "mcp", "infrastructure"],
+        "tags": ["gate", "constitutional", "mcp", "infrastructure", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "art_gate",
+        "_deprecation_note": "This is ART.gate() — a function, not a tool. Should be runtime/art/gate.py, not a registered MCP tool.",
     },
 
     # ── Shadow Geometry Tools (Phase 2, 2026-06-16) ───────────────────
@@ -1363,7 +1470,9 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L02_TRUTH, Law.L11_AUDIT],
         "modes": ["evaluate"],
-        "tags": ["diagnostic", "evaluation"],
+        "tags": ["diagnostic", "evaluation", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_judge_deliberate",
     },
     "arif_model_compare": {
         "name": "arif_model_compare",
@@ -1375,7 +1484,48 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "irreversible": False,
         "floors": [Law.L02_TRUTH, Law.L11_AUDIT],
         "modes": ["compare"],
-        "tags": ["diagnostic", "shadow_geometry"],
+        "tags": ["diagnostic", "shadow_geometry", "deprecated"],
+        "_deprecated": True,
+        "_canonical_name": "arif_diag_model_compare",
+    },
+    # ── ChatGPT Compatibility Shim (2) — OpenAI discovery requirements ──
+    # Registered only when ARIFOS_CHATGPT_COMPAT=true.
+    # Thin single-string-param wrappers → arif_sense_observe / arif_evidence_fetch.
+    # ART: OBSERVE-class, blast=low, trust=evidence. ACT: single-call programs.
+    "arif_search": {
+        "name": "arif_search",
+        "description": (
+            "Search the web for information. Use when you need to find current "
+            "facts, documentation, or real-world data. Returns search results "
+            "with titles, URLs, and snippets."
+        ),
+        "access": "public",
+        "tier": "chatgpt-shim",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L07_HUMILITY],
+        "modes": ["search"],
+        "tags": ["chatgpt-shim", "observe"],
+        "_chatgpt_compat": True,
+        "_routes_to": "arif_sense_observe",
+    },
+    "arif_fetch": {
+        "name": "arif_fetch",
+        "description": (
+            "Fetch content from a URL. Use when you need to read the contents "
+            "of a specific webpage or document. Returns the page content as text."
+        ),
+        "access": "public",
+        "tier": "chatgpt-shim",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH, Law.L03_WITNESS, Law.L05_PEACE, Law.L12_INJECTION],
+        "modes": ["fetch"],
+        "tags": ["chatgpt-shim", "observe"],
+        "_chatgpt_compat": True,
+        "_routes_to": "arif_evidence_fetch",
     },
 }
 
@@ -1617,6 +1767,15 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
         "OBSERVE", title="Kernel Health",
     ),
     # ═══════════════════════════════════════════════════════════════════
+    # CHATGPT COMPATIBILITY SHIM — OBSERVE-class, read-only, open-world
+    # ═══════════════════════════════════════════════════════════════════
+    "arif_search": derive_mcp_annotations(
+        "OBSERVE", title="Search (ChatGPT Compat)",
+    ),
+    "arif_fetch": derive_mcp_annotations(
+        "OBSERVE", title="Fetch (ChatGPT Compat)",
+    ),
+    # ═══════════════════════════════════════════════════════════════════
     # HERMES TOOLS (7) — all OBSERVE/ANALYZE (read-only cross-verification)
     # ═══════════════════════════════════════════════════════════════════
     "hermes_system_status": derive_mcp_annotations(
@@ -1643,8 +1802,11 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     # ═══════════════════════════════════════════════════════════════════
     # CANARY TOOLS (6) — zero-floor transport diagnostics, all OBSERVE
     # ═══════════════════════════════════════════════════════════════════
+    "arif_canary": derive_mcp_annotations(
+        "OBSERVE", title="Canary (multimode)",
+    ),
     "arif_ping": derive_mcp_annotations(
-        "OBSERVE", title="Ping",
+        "OBSERVE", title="Ping [DEPRECATED]",
     ),
     "arif_schema_echo": derive_mcp_annotations(
         "OBSERVE", title="Schema Echo",
@@ -1911,7 +2073,7 @@ get_floor_coverage = get_law_coverage
 def build_tool_registry_manifest() -> dict[str, Any]:
     """
     Generate the canonical tool registry manifest.
-    Merges CANONICAL_TOOLS (13 kernel) + DIAGNOSTIC_TOOLS (24 diagnostic/hermes/canary/lease/attest/forge-sub/narrative).
+    Merges CANONICAL_TOOLS (21 canonical) + DIAGNOSTIC_TOOLS (40 diagnostic/hermes/canary/lease/attest/forge-sub/narrative).
     Single source: CANONICAL_TOOLS + DIAGNOSTIC_TOOLS dicts. No legacy aliases.
 
     FORGED 2026-06-21: Every tool now includes an affordance_contract derived from
@@ -2037,7 +2199,7 @@ def build_tool_registry_manifest() -> dict[str, Any]:
         "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
         "_note": (
             "SOLE SOURCE OF TRUTH. "
-            "Generated from CANONICAL_TOOLS (13 kernel) + DIAGNOSTIC_TOOLS (31 operational). "
+        "Generated from CANONICAL_TOOLS (21 canonical) + DIAGNOSTIC_TOOLS (40 operational). "
             "Do not hand-edit — edit the source dicts in constitutional_map.py and regenerate. "
             "FORGED 2026-06-21: affordance_contract added — derived from tool_risk_registry.py "
             "for canonical tools, spec-inferred for diagnostic tools. The contract is "
@@ -2050,7 +2212,7 @@ def build_tool_registry_manifest() -> dict[str, Any]:
             "forged": "2026-06-21",
         },
         "_namespace_ruling": {
-            "arif_*": "Canonical13 public surface — 13 kernel + 6 canary probes (19 default wire tools)",
+            "arif_*": "Canonical13 public surface — 21 canonical tools + 1 canary probe (22 default wire tools)",
             "hermes_*": "GATED — Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",
             "forge_*": "GATED/DEPRECATED — A-FORGE pre-execution sub-tools (use A-FORGE MCP directly; removed 2026-07-15)",
             "arifos_*": "BLOCKED — internal-only prefix, never exposed on public MCP surface",
@@ -2061,9 +2223,9 @@ def build_tool_registry_manifest() -> dict[str, Any]:
         "total_surface": len(all_tools),
         "tier_summary": tier_counts,
         "tier_legend": {
-            "canonical": "13 kernel tools — F1-F13 constitutional pipeline (000→999 golden path)",
+            "canonical": "21 canonical tools — F1-F13 constitutional pipeline plus rule-14/public extensions",
             "hermes": "7 cross-verification, fact-checking, vault query, epistemic checks",
-            "canary": "6 transport/protocol diagnostics — zero-floor probes (no session required)",
+            "canary": "1 multimode transport/protocol diagnostic probe (no session required)",
             "lease": "3 capability lease lifecycle tools (inspect, issue, revoke)",
             "attest": "4 federation organ attestation tools (self + peer heartbeat)",
             "forge-sub": "3 pre-execution forge planning tools (dry_run, plan, query)",

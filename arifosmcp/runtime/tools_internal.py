@@ -236,7 +236,12 @@ def _create_error_envelope(
     error_code: str = "INTERNAL_ERROR",
     verdict: Verdict = Verdict.VOID,
 ) -> RuntimeEnvelope:
-    """Create a standardized error envelope with full context."""
+    """Create a standardized error envelope with full context.
+
+    Bug fix 2026-06-21 (FORGE 000Ω): errors field expects CanonicalError,
+    not ArifOSError. RuntimeEnvelope.errors: list[CanonicalError].
+    """
+    from arifosmcp.runtime.model import CanonicalError
     return RuntimeEnvelope(
         ok=False,
         tool=tool_name,
@@ -246,7 +251,7 @@ def _create_error_envelope(
         verdict=verdict,
         status=RuntimeStatus.ERROR,
         detail=error_msg,
-        errors=[ArifOSError(code=error_code, message=error_msg, stage=stage)],
+        errors=[CanonicalError(code=error_code, message=error_msg, stage=stage)],
     )
 
 
@@ -1596,6 +1601,30 @@ async def engineering_memory_dispatch_impl(
                     },
                 )
             except Exception as e:
+                # Postgres fallback: if query looks like a UUID, try direct lookup
+                import re
+                if re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', query, re.I):
+                    try:
+                        from arifosmcp.runtime.memory_store import recall as pg_recall
+                        result = pg_recall(query)
+                        if result:
+                            return RuntimeEnvelope(
+                                ok=True,
+                                tool="engineering_memory",
+                                session_id=session_id,
+                                stage="555m_MEMORY",
+                                verdict=Verdict.SEAL,
+                                status=RuntimeStatus.SUCCESS,
+                                payload={
+                                    "results": [result],
+                                    "count": 1,
+                                    "query": query,
+                                    "backend": "postgres_direct",
+                                    "note": "Postgres fallback for UUID lookup",
+                                },
+                            )
+                    except Exception as pg_exc:
+                        logger.debug(f"Postgres fallback failed: {pg_exc}")
                 return _create_error_envelope(
                     tool_name="engineering_memory",
                     stage="555m_MEMORY",

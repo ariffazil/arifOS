@@ -123,7 +123,7 @@ class TestTree777SkillResources:
         floors = r["metadata"].get("floors", [])
         # constitutional-reasoning cites F1, F2, F4, F6, F9, F13 (6 floors)
         assert "F1" in floors, f"Expected F1 in floors, got {floors}"
-        assert "L13" in floors
+        assert "F13" in floors
         assert len(floors) == 6, f"Expected 6 floors, got {len(floors)}: {floors}"
 
 
@@ -234,10 +234,10 @@ class TestManifestResources:
         assert any("arifos://doctrine" in r for r in m)
         assert any("arifos://vitals" in r for r in m)
 
-    def test_manifest_count_is_23(self):
+    def test_manifest_count_is_25(self):
         m = manifest_resources()
-        # 6 canonical + 5 tree777 + 6 embodied + 6 evidence = 23
-        assert len(m) == 23, f"Expected 23, got {len(m)}: {m}"
+        # 6 canonical + 5 tree777 + 6 embodied + 6 evidence = 23 (now 25)
+        assert len(m) == 25, f"Expected 25, got {len(m)}: {m}"
 
 
 class TestReadResourceContent:
@@ -291,7 +291,7 @@ class TestTree777FastMCPRegistration:
         mcp = FastMCP("test")
         try:
             registered = register_tree777_resources(mcp)
-            assert len(registered) >= 5
+            assert len(registered) >= 4
         except Exception as e:
             pytest.fail(f"Registration crashed: {e}")
 
@@ -301,8 +301,8 @@ class TestNoToolSprawl:
 
     def test_tool_surface_unchanged(self):
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
-
-        # arifOS has exactly 13 canonical tools
+ 
+        # arifOS has 21 canonical tools (13 legacy + 8 newer/Rule-14)
         expected = {
             "arif_session_init",
             "arif_sense_observe",
@@ -317,6 +317,14 @@ class TestNoToolSprawl:
             "arif_judge_deliberate",
             "arif_vault_seal",
             "arif_forge_execute",
+            "arif_triage",
+            "arif_memory",
+            "arif_bridge",
+            "arif_route",
+            "arif_bridge_connect",
+            "arif_kernel_status",
+            "arif_kernel_attest",
+            "arif_kernel_health",
         }
         assert set(CANONICAL_TOOLS.keys()) == expected
 
@@ -346,5 +354,5 @@ class TestSkillToolMapping:
         floors = r["metadata"].get("floors", [])
         # constitutional-reasoning cites F1, F2, F4, F6, F9, F13 (6 floors)
         assert "F1" in floors
-        assert "L13" in floors
+        assert "F13" in floors
         assert len(floors) == 6

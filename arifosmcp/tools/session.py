@@ -11,6 +11,7 @@ Constitutional session bootstrap + identity binding + embodiment card.
 from __future__ import annotations
 
 from arifosmcp.runtime.law import check_laws
+from arifosmcp.runtime.public_surface import current_public_surface_mode, public_boundary_allows
 from arifosmcp.runtime.tools import ARIF_DOCTRINE, _new_session
 
 # ── Ω: Model Registry Loader (AGI Kernel, 2026-06-12) ──────────────
@@ -233,6 +234,7 @@ def arif_session_init(
             session=SessionState(session_id=sid, actor_id=actor_id, stage="000", lane="AGI", constitution_bound=True),
             actor={"claimed_id": actor_id, "identity_verified": False, "authority_level": "OPERATOR"},
             constitution={"id": "arifos-constitution-v2026.05.05-SSCT", "human_judge_required": True},
+            meta={"actor_verified": False, "authority_mode": "OBSERVE_ONLY"},
             result={
                 "session_id": sid,
                 "mode": mode,
@@ -259,12 +261,18 @@ def arif_session_init(
                     "delegation_mode": delegation_mode or "internal_executor",
                     "call_chain": ["client", "arif_session_init", "light"],
                 },
-                "next_actions": [
-                    "call arif_kernel_attest for kernel self-attestation",
-                    "call arif_kernel_status for federation organ liveness and telemetry",
-                    "call arif_triage before a proposed action",
-                    "call arif_session_init(mode='init') for full constitutional binding",
-                ],
+                "next_actions": _manifest_backed_next_actions(
+                    [
+                        ("kernel self-attestation", "arif_kernel_attest", "attest"),
+                        (
+                            "federation organ liveness and telemetry",
+                            "arif_kernel_status",
+                            "status",
+                        ),
+                        ("preflight before a proposed action", "arif_triage", "preflight"),
+                        ("full constitutional binding", "arif_session_init", "init"),
+                    ]
+                ),
             },
             doctrine=ARIF_DOCTRINE,
         )
@@ -658,6 +666,7 @@ def arif_session_init(
                                 "authority_level": "OBSERVE_ONLY",
                             },
                             constitution={"id": "arifos-constitution-v2026.05.05-SSCT", "human_judge_required": True},
+                            meta={"actor_verified": False, "authority_mode": "OBSERVE_ONLY"},
                             result={
                                 "session_id": existing_sid,
                                 "idempotency_replay": True,
@@ -669,7 +678,7 @@ def arif_session_init(
                                 "mutation_allowed": False,
                                 "irreversible_allowed": False,
                                 "external_side_effects_allowed": False,
-                                "verdict": "SEAL",
+                                "verdict": "OBSERVE_ONLY",
                                 "pre_session": False,
                                 "identity_lineage": {
                                     "trace_id": trace_id,
@@ -744,6 +753,7 @@ def arif_session_init(
                 "authority_level": "OBSERVE_ONLY",
             },
             constitution={"id": "arifos-constitution-v2026.05.05-SSCT", "human_judge_required": True},
+            meta={"actor_verified": False, "authority_mode": "OBSERVE_ONLY"},
             result={
                 "session_id": sid,
                 "actor_id": actor_id,
@@ -755,7 +765,7 @@ def arif_session_init(
                 "mutation_allowed": False,
                 "irreversible_allowed": False,
                 "external_side_effects_allowed": False,
-                "verdict": "SEAL",
+                "verdict": "OBSERVE_ONLY",
                 "pre_session": False,
                 "present_boundary": "LIVE",
                 "action_class": "SESSION_BIRTH",
@@ -771,12 +781,7 @@ def arif_session_init(
                     "delegation_mode": delegation_mode or "internal_executor",
                     "call_chain": ["client", "arif_session_init", "birth"],
                 },
-                "next_actions": [
-                    "call arif_kernel_attest for kernel self-attestation",
-                    "call arif_kernel_status for federation organ liveness and telemetry",
-                    "call arif_triage before a proposed action",
-                    "call arif_session_init(mode='init') for full constitutional binding (optional, slow)",
-                ],
+                "next_actions": _observe_only_next_actions(),
             },
             doctrine=ARIF_DOCTRINE,
         )
@@ -880,6 +885,53 @@ def _build_tool_surface() -> ToolSurface:
         raw_manifest_available=True,
         raw_manifest_location="resource://agent/capabilities/raw",
     )
+
+
+def _observe_only_next_actions() -> list[dict[str, Any]]:
+    """Return canonical public next steps for an observe-only session."""
+    return _manifest_backed_next_actions(
+        [
+            ("kernel self-attestation", "arif_kernel_attest", "attest"),
+            ("federation organ liveness and telemetry", "arif_kernel_status", "status"),
+            ("preflight before a proposed action", "arif_triage", "preflight"),
+            ("full constitutional binding", "arif_session_init", "init"),
+        ]
+    )
+
+
+def _manifest_backed_next_actions(
+    candidates: list[tuple[str, str, str]]
+) -> list[dict[str, Any]]:
+    """Build next_actions from the exposed surface manifest only."""
+    surface_mode = current_public_surface_mode()
+    actions: list[dict[str, Any]] = []
+    for intent, tool_name, mode in candidates:
+        available = public_boundary_allows(tool_name, surface_mode)
+        if available:
+            actions.append(
+                {
+                    "intent": intent,
+                    "status": "AVAILABLE",
+                    "registered_tool": tool_name,
+                    "mode": mode,
+                    "reason": f"Public tool on the {surface_mode} surface.",
+                }
+            )
+            continue
+        actions.append(
+            {
+                "intent": intent,
+                "status": "CAPABILITY_GAP",
+                "registered_tool": None,
+                "mode": mode,
+                "reason": f"No registered public tool matches {tool_name}",
+                "capability_gap": {
+                    "desired_tool": tool_name,
+                    "surface_mode": surface_mode,
+                },
+            }
+        )
+    return actions
 
 
 def _compute_risk_leash(

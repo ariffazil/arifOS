@@ -80,6 +80,61 @@ from arifosmcp.schemas.lineage import JudgeSealContract
 # Memory (555_MEMORY)
 from arifosmcp.schemas.memory import MemoryBlock
 
+# Memory Kernel v5 — Direction 1, ratified 2026-06-21
+# Federated arif_memory tool: 7 modes × 13 floors × 7 truth-classes × 6 tiers
+# 555_MEMORY v5 — supersedes legacy MemoryBlock + arif_memory_recall v4 (8 modes)
+from arifosmcp.schemas.memory_truth import (
+    # Enums
+    MemoryClass,
+    TruthClass,
+    # Type aliases
+    MemoryClassName,
+    TruthClassName,
+    TierCode,
+    # Functions
+    tier_allowed,
+    allowed_tiers,
+    default_ttl_hours,
+    default_recall_eligible,
+    can_transition,
+    legal_next,
+    floors_required,
+)
+from arifosmcp.schemas.memory_modes import (
+    MemoryMode,
+    MemoryModeName,
+    LEGACY_MODE_ALIASES,
+    resolve_legacy_mode,
+    MODE_ACTION_CLASS,
+    MODE_PRE_FLOORS,
+    MODE_POST_FLOORS,
+    MODE_REQUIRES_LEASE,
+    MODE_REQUIRES_HUMAN_ACK,
+    MODE_BACKEND_TARGET,
+    MODE_STAGE,
+)
+from arifosmcp.schemas.memory_object import (
+    SourceReceipt,
+    ProvenanceBlock,
+    EpistemicsBlock,
+    PolicyBlock,
+    MemoryObject,
+    ReceiptEnvelope,
+    MemoryResultEnvelope,
+    compute_call_hash,
+)
+from arifosmcp.schemas.memory_payload import (
+    RecallPayload,
+    InspectPayload,
+    AttestPayload,
+    RememberPayload,
+    PromotePayload,
+    RevisePayload,
+    ForgetPayload,
+    MemoryPayload,
+    MemoryToolRequest,
+)
+
 # ModelCard (F3 TRI_WITNESS — identity binding)
 from arifosmcp.schemas.model_card import (
     ModelAnchor,
@@ -264,6 +319,51 @@ __all__ = [
     "MindAnomalousContrast",
     # Memory (555_MEMORY)
     "MemoryBlock",
+    # Memory Kernel v5 — Direction 1, ratified 2026-06-21
+    # Truth-class taxonomy
+    "TruthClass",
+    "MemoryClass",
+    "TruthClassName",
+    "MemoryClassName",
+    "TierCode",
+    "tier_allowed",
+    "allowed_tiers",
+    "default_ttl_hours",
+    "default_recall_eligible",
+    "can_transition",
+    "legal_next",
+    "floors_required",
+    # Mode enum + metadata
+    "MemoryMode",
+    "MemoryModeName",
+    "LEGACY_MODE_ALIASES",
+    "resolve_legacy_mode",
+    "MODE_ACTION_CLASS",
+    "MODE_PRE_FLOORS",
+    "MODE_POST_FLOORS",
+    "MODE_REQUIRES_LEASE",
+    "MODE_REQUIRES_HUMAN_ACK",
+    "MODE_BACKEND_TARGET",
+    "MODE_STAGE",
+    # MemoryObject + receipts
+    "SourceReceipt",
+    "ProvenanceBlock",
+    "EpistemicsBlock",
+    "PolicyBlock",
+    "MemoryObject",
+    "ReceiptEnvelope",
+    "MemoryResultEnvelope",
+    "compute_call_hash",
+    # Per-mode payloads
+    "RecallPayload",
+    "InspectPayload",
+    "AttestPayload",
+    "RememberPayload",
+    "PromotePayload",
+    "RevisePayload",
+    "ForgetPayload",
+    "MemoryPayload",
+    "MemoryToolRequest",
     # Gateway (666g_GATEWAY)
     "GatewayBlock",
     # Intent Envelope v1 (F1/F11/F13 atomic authorization)

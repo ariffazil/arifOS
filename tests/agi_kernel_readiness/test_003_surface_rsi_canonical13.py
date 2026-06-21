@@ -1,13 +1,13 @@
 """
 test_003 — Surface RSI Canonical 13 (Level 0-1)
 
-Goal: /health or tools/list returns exactly 19 canonical arif_* tools
+Goal: /health or tools/list returns exactly 21 canonical arif_* tools
       (no drift, no phantoms, no ghost aliases).
 
 Pass criteria:
-    - tools_loaded = 19
+    - tools_loaded = 21
     - registry_truth = VERIFIED
-    - canonical_count = 19
+    - canonical_count = 21
     - contract_drift = false
 
 Current status (2026-06-12): PASS (canonical 13 alive).
@@ -32,7 +32,7 @@ def fetch_health() -> dict:
 
 def test_health_canonical_13():
     h = fetch_health()
-    assert h.get("tools_loaded") == 19, f"tools_loaded should be 19, got {h.get('tools_loaded')}"
+    assert h.get("tools_loaded") == 21, f"tools_loaded should be 21, got {h.get('tools_loaded')}"
     assert h.get("registry_truth") == "VERIFIED", (
         f"registry_truth should be VERIFIED, got {h.get('registry_truth')}"
     )

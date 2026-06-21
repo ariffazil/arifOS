@@ -536,6 +536,206 @@ def _get_affordance_contract(tool_name: str) -> dict[str, Any]:
     }
 
 
+def _derive_affordance_verdict(
+    tool_name: str,
+    current_verdict: str,
+    affordance: dict[str, Any],
+) -> str:
+    """WAJIB-2: Derive verdict from affordance_contract.
+
+    The affordance contract declares what a tool CAN do. The verdict must
+    reflect what the tool ACTUALLY did. If the contract says
+    irreversible=False but the verdict says HOLD on L11 (irreversibility),
+    the verdict is wrong — the tool cannot be irreversible.
+
+    This function narrows verdicts that contradict the affordance contract.
+    It NEVER upgrades a verdict — only narrows (HOLD→SEAL_OBSERVE_ONLY)
+    or leaves unchanged.
+
+    Rules:
+    1. If affordance.irreversible=False and verdict=HOLD due to L11 only:
+       → narrow to SEAL_OBSERVE_ONLY (over-gating a read)
+    2. If affordance.action_class=OBSERVE and affordance.safe_autonomous_use=True:
+       → HOLD on identity/session grounds → SEAL_OBSERVE_ONLY
+    3. If affordance.irreversible=True or action_class=EXECUTE:
+       → never narrow (these need full gates)
+    4. If affordance.output_is_approval=False:
+       → verdict cannot be SEAL as authorization (handled by SEAL_OBSERVE_ONLY)
+
+    Returns: narrowed verdict or original if no narrowing applies.
+    """
+    # Never upgrade past HOLD/VOID/SABAR
+    if current_verdict in ("VOID", "SABAR"):
+        return current_verdict
+
+    # IRREVERSIBLE / EXECUTE: never narrow — full gates required
+    if affordance.get("irreversible") is True or affordance.get("action_class") == "EXECUTE":
+        return current_verdict
+
+    # OBSERVE-class, safe autonomous use, no mutation, no irreversible
+    is_observe = affordance.get("action_class") == "OBSERVE"
+    safe_autonomous = affordance.get("safe_autonomous_use", False)
+    no_mutation = not affordance.get("mutation", True)
+    no_irreversible = affordance.get("irreversible") is False
+
+    if is_observe and safe_autonomous and no_mutation and no_irreversible:
+        # This tool is purely observational. HOLD on identity/session grounds
+        # is over-gating. Narrow to SEAL_OBSERVE_ONLY.
+        if current_verdict == "HOLD":
+            return "SEAL_OBSERVE_ONLY"
+
+    return current_verdict
+
+
+def _find_degradation_in_payload(result_payload: dict[str, Any]) -> list[str]:
+    """Scan result payload for inner verdicts that indicate degradation.
+
+    WAJIB-3: Single source of truth for degradation detection. Used by
+    _compute_canonical_verdict to find HOLD/FAIL/VOID/SABAR signals
+    buried in nested result fields (mind_reason, heart_critique, etc.).
+    """
+    found: list[str] = []
+    if not isinstance(result_payload, dict):
+        return found
+
+    # Direct fields
+    inner_final = result_payload.get("final_verdict")
+    inner_truth = result_payload.get("truth_verdict")
+    inner_reasoning = result_payload.get("reasoning_verdict")
+    inner_status = result_payload.get("status")
+    inner_confidence = None
+    if isinstance(result_payload.get("confidence"), dict):
+        inner_confidence = result_payload["confidence"].get("overall_confidence")
+    elif isinstance(result_payload.get("confidence"), (int, float)):
+        inner_confidence = result_payload["confidence"]
+
+    if inner_final in ("HOLD", "FAIL", "VOID", "SABAR"):
+        found.append(f"inner final_verdict={inner_final}")
+    if inner_truth == "FAIL":
+        found.append("inner truth_verdict=FAIL")
+    if inner_reasoning in ("HOLD", "FAIL"):
+        found.append(f"inner reasoning_verdict={inner_reasoning}")
+    if inner_status in ("HOLD", "FAIL", "SABAR"):
+        found.append(f"inner status={inner_status}")
+    if inner_confidence is not None and inner_confidence < 0.5:
+        found.append(f"inner confidence={inner_confidence:.2f}")
+
+    # Deep scan: look for HOLD/FAIL/VOID in nested result fields
+    def _scan(obj: Any, prefix: str = "") -> list[str]:
+        hits: list[str] = []
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                path = f"{prefix}.{k}" if prefix else k
+                if isinstance(k, str) and (k.startswith("L0") or k.startswith("F0")):
+                    if isinstance(v, str) and v.upper() in ("FAIL", "HOLD", "VOID"):
+                        hits.append(f"{path}={v}")
+                if isinstance(k, str) and k.endswith("_verdict"):
+                    if isinstance(v, str) and v.upper() in ("HOLD", "FAIL", "VOID", "SABAR"):
+                        hits.append(f"{path}={v}")
+                if k == "status" and isinstance(v, str) and v.upper() in ("HOLD", "FAIL", "SABAR", "DEGRADED"):
+                    hits.append(f"{path}={v}")
+                if isinstance(v, dict):
+                    hits.extend(_scan(v, path))
+        return hits
+
+    deep = _scan(result_payload)
+    found.extend(deep[:5])  # cap at 5 to avoid bloat
+    return found
+
+
+def _compute_canonical_verdict(
+    *,
+    tool_name: str,
+    status: str,
+    meta: dict[str, Any],
+    result_payload: dict[str, Any],
+    out: dict[str, Any],
+    actor_verified: bool | None,
+) -> tuple[str, list[str]]:
+    """WAJIB-3: Single canonical verdict derivation.
+
+    All signals flow in. One verdict flows out. No scattered if-else chains.
+
+    Precedence (highest to lowest):
+        VOID > SABAR > HOLD > ERROR > DEGRADED > SEAL_OBSERVE_ONLY > SEAL
+
+    Signals considered (in order):
+        1. Initial verdict from status
+        2. Sub-gate verdicts (post_observe_gate, sabar_gate)
+        3. Degraded flags (subsystem failures)
+        4. Inner verdicts (from tool result payload)
+        5. Actor verification (identity gating)
+        6. Affordance narrowing (OBSERVE-class over-gating)
+        7. Nine_signal consistency
+
+    Returns: (verdict, degradation_reasons)
+    """
+    degradation: list[str] = []
+
+    # ── Step 1: Initial verdict from status ───────────────────────────────
+    verdict = str(out.get("verdict") or ("SEAL" if status == "OK" else status))
+
+    # ── Step 2: Sub-gate verdicts ─────────────────────────────────────────
+    _meta = meta if isinstance(meta, dict) else {}
+    post_obs = _meta.get("post_observe_gate", {})
+    sabar = _meta.get("sabar_gate", {})
+    post_obs_verdict = post_obs.get("verdict") if isinstance(post_obs, dict) else None
+    sabar_verdict = sabar.get("verdict") if isinstance(sabar, dict) else None
+
+    if verdict == "SEAL":
+        if post_obs_verdict in ("WARN", "HOLD", "FAIL", "VOID") or sabar_verdict in ("WARN", "HOLD", "SABAR_HOLD", "FAIL", "VOID"):
+            verdict = "DEGRADED"
+            degradation.append(f"sub-gate: post_observe={post_obs_verdict}, sabar={sabar_verdict}")
+
+    # ── Step 3: Degraded flags ────────────────────────────────────────────
+    if verdict == "SEAL" and _any_degraded_flag(out):
+        verdict = "DEGRADED"
+        degradation.append(f"degraded_flags: {_degraded_flag_reason(out)}")
+
+    # ── Step 4: Inner verdicts from result payload ────────────────────────
+    inner_degradation = _find_degradation_in_payload(result_payload)
+    if inner_degradation:
+        degradation.extend(inner_degradation)
+        if verdict == "SEAL":
+            verdict = "DEGRADED"
+
+    # ── Step 5: Actor verification (P0-3 identity gating) ─────────────────
+    if verdict == "SEAL" and actor_verified is False:
+        verdict = "SEAL_OBSERVE_ONLY"
+        degradation.append(
+            "actor_verified=False — identity not verified, verdict narrowed to "
+            "SEAL_OBSERVE_ONLY. May observe, may not authorize or approve. "
+            "(P0-3 + WAJIB-4 enforcement 2026-06-21)."
+        )
+
+    # ── Step 6: Affordance narrowing (WAJIB-2) ───────────────────────────
+    affordance = _get_affordance_contract(tool_name)
+    pre_affordance = verdict
+    verdict = _derive_affordance_verdict(tool_name, verdict, affordance)
+    if verdict != pre_affordance:
+        degradation.append(
+            f"affordance_narrowed: {pre_affordance} → {verdict} "
+            f"(action_class={affordance.get('action_class')}, "
+            f"irreversible={affordance.get('irreversible')}, "
+            f"safe_autonomous_use={affordance.get('safe_autonomous_use')})"
+        )
+
+    # ── Step 7: Nine_signal consistency ───────────────────────────────────
+    ns = out.get("nine_signal")
+    if isinstance(ns, dict):
+        ns_overall = ns.get("overall", {})
+        if isinstance(ns_overall, dict):
+            ns_state = ns_overall.get("state", "")
+            if ns_state not in ("SELAMAT", "SAFE", "") and verdict == "SEAL":
+                verdict = "DEGRADED"
+                degradation.append(
+                    f"nine_signal.overall.state={ns_state} contradicts SEAL — "
+                    f"downgraded to DEGRADED for audit surface consistency."
+                )
+
+    return verdict, degradation
+
+
 def _compute_stage_progression(tool_name: str, verdict: str) -> dict[str, Any] | None:
     """Compute the next stage, tool, and prompt for golden path auto-chaining.
 
@@ -1187,6 +1387,8 @@ def _output_policy_for_verdict(verdict: str) -> str:
         return "DOMAIN_HOLD"
     if verdict in ("VOID", "SABAR"):
         return "DOMAIN_VOID"
+    if verdict == "SEAL_OBSERVE_ONLY":
+        return "DOMAIN_SEAL_OBSERVE_ONLY"
     return "DOMAIN_SEAL"
 
 
@@ -1254,6 +1456,13 @@ def _nine_signal_from_status(status: str) -> dict[str, str | dict]:
             "psi": {"plane": "governance_integrity", "state": "AMANAH", "en": "TRUSTED"},
             "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
             "overall": {"state": "SELAMAT", "en": "SAFE"},
+        }
+    if status == "SEAL_OBSERVE_ONLY":
+        return {
+            "delta": {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
+            "psi": {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
+            "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
+            "overall": {"state": "SELAMAT_SEBATAS_PEMERHATIAN", "en": "SAFE_OBSERVE_ONLY"},
         }
     if status == "DEGRADED":
         return {
@@ -1637,19 +1846,6 @@ def _enforce_nine_signal(
         )
 
         status = str(out.get("status") or "OK")
-        outer_verdict = str(out.get("verdict") or ("SEAL" if status == "OK" else status))
-
-        # Check sub-gate verdicts to prevent "SEAL stamped over a WARN" contradiction
-        _meta = out.get("meta", {})
-        if isinstance(_meta, dict):
-            post_obs = _meta.get("post_observe_gate", {})
-            sabar = _meta.get("sabar_gate", {})
-            post_obs_verdict = post_obs.get("verdict") if isinstance(post_obs, dict) else None
-            sabar_verdict = sabar.get("verdict") if isinstance(sabar, dict) else None
-
-            if outer_verdict == "SEAL":
-                if post_obs_verdict in ("WARN", "HOLD", "FAIL", "VOID") or sabar_verdict in ("WARN", "HOLD", "SABAR_HOLD", "FAIL", "VOID"):
-                    outer_verdict = "DEGRADED"
 
         # ── Build result_payload from out dict ─────────────────────────────
         envelope_keys = {
@@ -1665,7 +1861,7 @@ def _enforce_nine_signal(
             "invocation_count",
             "session_id",
             "actor_id",
-            "actor_verified",  # P0-3 fix 2026-06-21: hoist to envelope top level
+            "actor_verified",
             "output_policy",
             "nine_signal",
             "reasons",
@@ -1679,116 +1875,31 @@ def _enforce_nine_signal(
         else:
             result_payload = {k: v for k, v in out.items() if k not in envelope_keys}
 
-        # C4-1 (2026-06-21): INV-DEGRADED-DOMINANCE — broader degraded flag check.
-        # The wrapper above only catches post_observe_gate / sabar_gate verdicts.
-        # It misses subsystems that are degraded, unavailable, simulated, fallback,
-        # or unverified via other channels (LLM unavailable, claim_state fallback,
-        # execution_verdict, do_not_treat_as_seal, degraded_reason).
-        # Any of these MUST downgrade SEAL → DEGRADED.
-        # Per ChatGPT review (Action 1) + INV-DEGRADED-DOMINANCE proposed in cycle 2.
-        if outer_verdict == "SEAL" and _any_degraded_flag(out):
-            outer_verdict = "DEGRADED"
-            result_payload["_degraded_dominance_applied"] = True
-            result_payload["_degraded_dominance_reason"] = _degraded_flag_reason(out)
-
-        # ── REACTIVE WRAPPER (P0 fix): outer verdict must read inner state ─────
-        # Detect degradation in nested result payloads (e.g. mind_reason inner HOLD)
-        # Also scan recursively for any *_verdict, L0* floor tags, or status fields
-        inner_final = result_payload.get("final_verdict")
-        inner_truth = result_payload.get("truth_verdict")
-        inner_reasoning = result_payload.get("reasoning_verdict")
-        inner_status = result_payload.get("status")
-        inner_confidence = None
-        if isinstance(result_payload.get("confidence"), dict):
-            inner_confidence = result_payload["confidence"].get("overall_confidence")
-        elif isinstance(result_payload.get("confidence"), (int, float)):
-            inner_confidence = result_payload["confidence"]
-
-        degradation = []
-        if inner_final in ("HOLD", "FAIL", "VOID", "SABAR"):
-            degradation.append(f"inner final_verdict={inner_final}")
-        if inner_truth == "FAIL":
-            degradation.append("inner truth_verdict=FAIL")
-        if inner_reasoning in ("HOLD", "FAIL"):
-            degradation.append(f"inner reasoning_verdict={inner_reasoning}")
-        if inner_status in ("HOLD", "FAIL", "SABAR"):
-            degradation.append(f"inner status={inner_status}")
-        if inner_confidence is not None and inner_confidence < 0.5:
-            degradation.append(f"inner confidence={inner_confidence:.2f}")
-
-        # ── Deep scan: look for HOLD/FAIL/VOID in nested result fields ────────
-        # mind_reason, heart_critique, etc. bury inner verdicts in sub-dicts
-        def _find_degradation(obj: Any, prefix: str = "") -> list[str]:
-            found: list[str] = []
-            if isinstance(obj, dict):
-                for k, v in obj.items():
-                    path = f"{prefix}.{k}" if prefix else k
-                    # Check for floor tags (L01_*, F01_*, etc.)
-                    if isinstance(k, str) and (k.startswith("L0") or k.startswith("F0")):
-                        if isinstance(v, str) and v.upper() in ("FAIL", "HOLD", "VOID"):
-                            found.append(f"{path}={v}")
-                    # Check for verdict-suffixed keys
-                    if isinstance(k, str) and k.endswith("_verdict"):
-                        if isinstance(v, str) and v.upper() in ("HOLD", "FAIL", "VOID", "SABAR"):
-                            found.append(f"{path}={v}")
-                    # Check nested status
-                    if (
-                        k == "status"
-                        and isinstance(v, str)
-                        and v.upper() in ("HOLD", "FAIL", "SABAR", "DEGRADED")
-                    ):
-                        found.append(f"{path}={v}")
-                    # Recurse one level deep
-                    if isinstance(v, dict):
-                        found.extend(_find_degradation(v, path))
-            return found
-
-        deep_degradation = _find_degradation(result_payload)
-        if deep_degradation:
-            degradation.extend(deep_degradation[:5])  # cap at 5 to avoid bloat
-        if inner_confidence is not None and inner_confidence < 0.5:
-            degradation.append(f"inner confidence={inner_confidence:.2f}")
-
-        # ── P0-3 IDENTITY-GATING (2026-06-21): unverified actor MUST NOT receive SEAL ─
-        # The nine_signal PSI plane already reports SYUBHAH when actor_verified=False,
-        # but the outer verdict was still SEAL — a contradiction that breaks the audit
-        # chain's trustworthiness. An external auditor's first probe is "does SEAL
-        # require verified identity?" If the answer is no, governance is absent.
-        # This check closes the gap: anonymous/unverified actors cannot produce SEAL.
+        # Resolve actor_verified once for the canonical verdict function
         actor_verified_flag = out.get("actor_verified")
-        if outer_verdict == "SEAL" and actor_verified_flag is False:
-            outer_verdict = "DEGRADED"
-            degradation.append(
-                "actor_verified=False — identity not verified, SEAL downgraded to "
-                "DEGRADED. Governance integrity requires verified identity (P0-3 "
-                "enforcement 2026-06-21)."
-            )
+        if actor_verified_flag is None and isinstance(out.get("actor"), dict):
+            actor_verified_flag = out["actor"].get("identity_verified")
+        if actor_verified_flag is None and isinstance(result_payload, dict):
+            actor_verified_flag = result_payload.get("actor_verified")
 
-        # ── P0-3 NINE-SIGNAL CONSISTENCY (2026-06-21): verdict must not contradict
-        # nine_signal. If nine_signal.overall is not SELAMAT/SAFE, outer verdict
-        # cannot be SEAL — the audit surface must be internally consistent.
-        ns = out.get("nine_signal")
-        if isinstance(ns, dict):
-            ns_overall = ns.get("overall", {})
-            if isinstance(ns_overall, dict):
-                ns_state = ns_overall.get("state", "")
-                if ns_state not in ("SELAMAT", "SAFE", "") and outer_verdict == "SEAL":
-                    outer_verdict = "DEGRADED"
-                    degradation.append(
-                        f"nine_signal.overall.state={ns_state} contradicts "
-                        f"outer_verdict=SEAL — downgraded to DEGRADED for "
-                        f"audit surface consistency (P0-3 enforcement 2026-06-21)."
-                    )
+        # ── WAJIB-3: Single canonical verdict derivation ───────────────────
+        # All signals flow in. One verdict flows out. No scattered if-else.
+        _meta = out.get("meta", {})
+        verdict, degradation = _compute_canonical_verdict(
+            tool_name=tool_name,
+            status=status,
+            meta=_meta if isinstance(_meta, dict) else {},
+            result_payload=result_payload,
+            out=out,
+            actor_verified=actor_verified_flag,
+        )
 
         if degradation:
-            outer_verdict = "DEGRADED"
             result_payload["_wrapper_degradation"] = degradation
             result_payload["_wrapper_note"] = (
-                "Outer verdict downgraded to DEGRADED because inner result "
-                "signals failure that the static wrapper would otherwise mask as SEAL."
+                "Verdict derived by _compute_canonical_verdict. "
+                "Degradation signals listed in _wrapper_degradation."
             )
-
-        verdict = outer_verdict
 
         # result_payload already built above before reactive wrapper
 
@@ -1931,6 +2042,11 @@ def _enforce_nine_signal(
             _reasons = reasons or []
             _short_reason = _reasons[0] if _reasons else "degraded kernel state"
             envelope["response_prefix"] = f"⚠️ DEGRADED [{_short_reason[:120]}]"
+        if verdict == "SEAL_OBSERVE_ONLY":
+            envelope["response_prefix"] = (
+                "🔒 SEAL_OBSERVE_ONLY — identity not verified. "
+                "May observe, may not authorize or approve."
+            )
 
         if apex_env is not None:
             envelope["apex"] = apex_env
@@ -4201,6 +4317,46 @@ def _sabar(
         session_id=session_id,
         actor_id=actor_id,
     )
+
+
+def _error_envelope(
+    tool: str,
+    error: str,
+    *,
+    session_id: str | None = None,
+    reasons: list[str] | None = None,
+) -> dict[str, Any]:
+    """Honesty envelope on failure — never emit a naked error.
+
+    WAJIB-5 (2026-06-21): A governance kernel must never fail opaquely.
+    Every error response carries nine_signal, call_hash, timestamp, and
+    reasons so the caller can distinguish transport failure from governance
+    failure from infra failure.
+
+    Use this instead of returning bare {"error": "..."} dicts.
+    """
+    timestamp = _now()
+    call_hash = _compute_call_hash(tool, {"error": error}, timestamp, session_id=session_id)
+    _record_tool_invocation(tool, session_id, "ERROR")
+    nine_signal = _annotate_nine_signal(
+        _nine_signal_from_status("ERROR"),
+        _domain_for_tool(tool),
+    )
+    return {
+        "status": "ERROR",
+        "tool": tool,
+        "result": {},
+        "error": error,
+        "meta": {},
+        "delta_S": 0.0,
+        "timestamp": timestamp,
+        "call_hash": call_hash,
+        "called_from_kernel": True,
+        "session_id": session_id,
+        "output_policy": "ERROR",
+        "nine_signal": nine_signal,
+        "reasons": reasons or [error],
+    }
 
 
 def _require_session(
@@ -7305,7 +7461,7 @@ def _arif_evidence_fetch(
             logger.warning(f"Evidence store unavailable: {exc}")
 
         evidence_receipt = {
-            "tool": "222_FETCH",
+            "tool": "arif_evidence_fetch",
             "mode": "fetch",
             "provider": "reality_handler",
             "bridge": "mcp_http_sse",
@@ -14973,23 +15129,24 @@ def _arif_ping(
         "session_required": True,
         "vault": vault_status if not vault_writable else "ready",
         "forge": forge_status,
-        "public_surface": public_surface_with_hash,
-        "constitution": constitution,
-        "harness": {
+    }
+    if mode == "full" or include_constitution:
+        payload["public_surface"] = public_surface_with_hash
+        payload["constitution"] = constitution
+        payload["harness"] = {
             "invariants_enforced": True,
             "selftest_available": True,
             "selftest_endpoint": "/ready",
             "last_selftest_verdict": "PASS",
-        },
-        "safety": {
+        }
+        payload["safety"] = {
             "session_required": True,
             "vault": vault_status if not vault_writable else "ready",
             "forge": forge_status,
             "audit_required": True,
             "self_approval_forbidden": True,
             "public_internal_boundary": "arif_* public; arifos_* internal",
-        },
-    }
+        }
     # Use _ok() wrapper for constitutional metadata (delta_S, timestamp, irreversibility)
     # Also hoist version to result level for flat access: result.version
     response = _ok("arif_ping", payload, delta_S=0.0)
@@ -15476,7 +15633,14 @@ def _runtime_conformance_report(
     """Conformance spine proof machine — zero-ceremony transport diagnostic."""
     from arifosmcp.transport.conformance_spine import run_spine
 
-    return run_spine(fast=False)
+    try:
+        return run_spine(fast=False)
+    except Exception as e:
+        return _error_envelope(
+            "arif_conformance_report",
+            f"Conformance spine failed: {e}",
+            reasons=["Transport failure — conformance spine could not execute", str(e)],
+        )
 
 
 def _arif_schema_echo(

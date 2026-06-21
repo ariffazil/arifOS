@@ -28,16 +28,16 @@ def test_drift_check_passes_in_normal_mode():
     assert report["verdict"] == "SEAL"
     assert report["missing"] == []
     assert report["extra"] == []
-    assert report["registered_count"] == 19
+    assert report["registered_count"] == 21
 
 
 def test_drift_check_counts_diagnostic_tools_in_dev_mode(monkeypatch):
-    """When dev tools are exposed, drift check must count 39 (19 canonical + 20 diagnostic)."""
+    """When dev tools are exposed, drift check must count 42 (21 canonical + 21 diagnostic)."""
     from arifosmcp.tools.drift_check import mcp_drift_check
 
     monkeypatch.setenv("ARIFOS_MCP_EXPOSE_DEV_TOOLS", "true")
     report = mcp_drift_check(mode="report", target_manifest="all")
-    assert report["registered_count"] == 39  # 19 canonical + 20 diagnostic
+    assert report["registered_count"] == 42  # 21 canonical + 21 diagnostic
 
 
 # ── 2. Absorbed mode dispatch ─────────────────────────────────────────────────

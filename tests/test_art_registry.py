@@ -28,7 +28,7 @@ from arifosmcp.runtime.art_registry import (
 
 
 class TestAllCanonicalClassified:
-    """All 19 canonical arif_* tools must have a bucket."""
+    """All 21 canonical arif_* tools must have a bucket."""
 
     CANONICAL_19 = [
         "arif_session_init", "arif_forge_execute", "arif_sense_observe",

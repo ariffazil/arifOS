@@ -22,20 +22,13 @@ except Exception:  # pragma: no cover - defensive fallback
 CANONICAL_13: tuple[str, ...] = tuple(list_constitutional_tools())
 # CANONICAL_13 is the single canonical set (was previously duplicated as CANONICAL_15)
 
-# ── Canary Probes — always-on transport diagnostics (Canonical13 enforcement) ──
-# These 6 zero-floor probes are ALWAYS registered on the public wire surface.
-# They require no session, no actor, no governance — pure transport diagnostics.
-CANARY_PROBES: tuple[str, ...] = (
-    "arif_ping",
-    "arif_conformance_report",
-    "arif_schema_echo",
-    "arif_version_echo",
-    "arif_transport_echo",
-    "arif_initialize_probe",
-)
+# ── Canary Probe — always-on transport diagnostic (Canonical13 enforcement) ──
+# This zero-floor probe is ALWAYS registered on the public wire surface.
+# It requires no session, no actor, no governance — pure transport diagnostics.
+CANARY_PROBES: tuple[str, ...] = ("arif_canary",)
 
 # ── Canonical13 Public Surface (= canonical kernel + canary probes) ──────────
-# This is the DEFAULT public wire surface. 13 constitutional + 6 canary = 19 tools.
+# This is the DEFAULT public wire surface. 21 canonical + 1 canary = 22 tools.
 CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = tuple(
     list(dict.fromkeys([*CANONICAL_13, *CANARY_PROBES]))
 )
@@ -142,8 +135,8 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     """
     Return the public tool names for a given surface mode.
 
-    canonical13 (default): CANONICAL_13 + CANARY_PROBES (19 tools).
-        This is the honest default wire surface — 13 kernel + 6 canary probes.
+    canonical13 (default): CANONICAL_13 + CANARY_PROBES (22 tools).
+        This is the honest default wire surface — 21 canonical tools + 1 canary probe.
     expanded45: CANONICAL_13 + DIAGNOSTIC_TOOLS (gated tools included).
         Only active when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
 
@@ -154,8 +147,8 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     if resolved == "expanded45":
         candidates = EXPANDED_45
     else:
-        # canonical13: 13 kernel + 6 canary probes = 19 tools on the default wire.
-        # Canary probes are transport diagnostics (ping, echo, version, init_probe).
+        # canonical13: 21 canonical tools + 1 canary probe = 22 tools on the default wire.
+        # Canary probe is a transport diagnostic (multimode arif_canary).
         candidates = CANONICAL13_PUBLIC_SURFACE
     # Filter out internal_only tools regardless of mode.
     return tuple(

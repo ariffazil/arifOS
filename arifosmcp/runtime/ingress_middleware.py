@@ -913,8 +913,8 @@ if IS_FASTMCP_3:
                     if envelope.session_id and envelope.session_id != "unknown":
                         msg.arguments.setdefault("session_id", envelope.session_id)
 
-                    if tool_name in MEGA_TOOLS and msg.arguments:
-                        if "mode" in msg.arguments:
+                    if msg.arguments:
+                        if tool_name in MEGA_TOOLS and "mode" in msg.arguments:
                             synonyms = MODE_SYNONYMS.get(tool_name, {})
                             raw_mode = str(msg.arguments["mode"]).lower().strip()
                             canonical = synonyms.get(raw_mode)
@@ -923,7 +923,9 @@ if IS_FASTMCP_3:
 
                         known = self._tool_param_sets.get(tool_name)
                         if known is not None:
-                            unknown = {k for k in msg.arguments if k not in known}
+                            # Keep metadata parameters and those defined in the tool's parameter schema
+                            allowed_params = known | {"_envelope", "actor_id", "session_id"}
+                            unknown = {k for k in msg.arguments if k not in allowed_params}
                             if unknown:
                                 for k in unknown:
                                     msg.arguments.pop(k)

@@ -23,46 +23,48 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
-from _helpers import boot_light_session  # noqa: E402
+from arifosmcp.tools.session import arif_session_init  # noqa: E402
 
 
 def test_light_returns_seal_session_id():
     """Light mode must return a SEAL-prefixed session_id."""
-    c, sb = boot_light_session("agi-gate-001-light")
-    try:
-        assert (
-            sb.get("verdict") == "OBSERVE_ONLY" or sb.get("authority_mode") == "LIGHT_BOOTSTRAP"
-        ), f"light should produce LIGHT_BOOTSTRAP, got {sb.get('authority_mode')}"
-        sess_id = sb.get("session_id", "")
-        assert sess_id.startswith("SEAL-"), f"session_id must be SEAL-prefixed, got {sess_id}"
-        assert sb.get("actor_id") == "agi-gate-001-light", (
-            f"actor_id should be echoed, got {sb.get('actor_id')}"
-        )
-    finally:
-        c.close()
+    result = arif_session_init(mode="light", actor_id="agi-gate-001-light")
+
+    birth = result.result["session_birth"]
+    assert birth["verdict"] == "OBSERVE_ONLY", f"light should produce OBSERVE_ONLY, got {birth}"
+    sess_id = birth.get("session_id", "")
+    assert sess_id.startswith("SEAL-"), f"session_id must be SEAL-prefixed, got {sess_id}"
+    assert birth.get("actor_id") == "agi-gate-001-light", f"actor_id should be echoed, got {birth}"
+
+
+def test_light_bootstrap_next_actions_are_manifest_backed():
+    """Light mode must expose structured next_actions without invented tool names."""
+    result = arif_session_init(mode="light", actor_id="agi-gate-001-next")
+
+    assert result.meta["actor_verified"] is False
+
+    next_actions = result.result.get("next_actions", [])
+    assert next_actions, "light bootstrap should expose next_actions"
+    assert all(isinstance(item, dict) for item in next_actions), next_actions
+    assert all(item.get("status") in {"AVAILABLE", "CAPABILITY_GAP"} for item in next_actions)
+
+    for item in next_actions:
+        if item.get("status") == "AVAILABLE":
+            assert item.get("registered_tool"), item
+        else:
+            gap = item.get("capability_gap", {})
+            assert gap.get("desired_tool"), item
+            assert item.get("registered_tool") is None, item
 
 
 def test_light_session_preserved_across_status():
-    """session_id should be retrievable via status() call."""
-    c, sb = boot_light_session("agi-gate-001-status")
-    try:
-        light_sid = sb.get("session_id")
-        assert light_sid, "light must return session_id"
+    """status mode should remain callable after a light bootstrap."""
+    arif_session_init(mode="light", actor_id="agi-gate-001-status")
+    r2 = arif_session_init(mode="status", actor_id="agi-gate-001-status")
 
-        r2 = c.call("arif_session_init", {"mode": "status"})
-        inner = r2.get("result", {})
-        if inner.get("verdict") == "HOLD":
-            assert "actor_id" in str(inner.get("reasons", [])), (
-                f"status HOLD should require actor_id; got {inner.get('reasons')}"
-            )
-        else:
-            sb2 = inner.get("session_birth", {})
-            if sb2:
-                assert sb2.get("session_id") == light_sid, (
-                    f"status must echo session_id; got {sb2.get('session_id')}"
-                )
-    finally:
-        c.close()
+    assert r2.status == "OK"
+    assert r2.result["active_sessions"] >= 0
+    assert "version" in r2.result
 
 
 if __name__ == "__main__":

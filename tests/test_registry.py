@@ -11,7 +11,7 @@ from pathlib import Path
 REGISTRY_PATH = Path(__file__).parent.parent
 
 
-def _resolve_registry_paths() -> tuple[Path, Path, Path]:
+def _resolve_registry_paths() -> tuple[Path, Path, Path, Path, Path]:
     candidates = [
         Path("/root/arifOS/registry"),  # NEW: in-repo registry (v3)
         Path("/root/arifos-model-registry"),  # Legacy separate repo
@@ -22,18 +22,18 @@ def _resolve_registry_paths() -> tuple[Path, Path, Path]:
         models = root / "models"
         souls = root / "provider_souls"
         if models.exists() and souls.exists():
-            return models, souls, root / "runtime_profiles"
+            return models, souls, root / "runtime_profiles", root / "catalog.json", root / "schemas"
 
     return (
         candidates[0] / "models",
         candidates[0] / "provider_souls",
         candidates[0] / "runtime_profiles",
+        candidates[0] / "catalog.json",
+        candidates[0] / "schemas",
     )
 
 
-MODELS_PATH, SOULS_PATH, RUNTIME_PATH = _resolve_registry_paths()
-CATALOG_PATH = Path("/root/arifOS/registry/catalog.json")
-SCHEMAS_PATH = Path("/root/arifOS/registry/schemas")
+MODELS_PATH, SOULS_PATH, RUNTIME_PATH, CATALOG_PATH, SCHEMAS_PATH = _resolve_registry_paths()
 
 
 def _load_schema(filename: str) -> dict:

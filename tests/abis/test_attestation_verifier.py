@@ -134,7 +134,7 @@ class TestStore:
         )
         assert store.ingest(rec_now) is True
         assert store.ingest(rec_old) is False  # out-of-order
-        assert store.latest_for("arifos").tool_count == 13
+        assert store.latest_for("arifos").tool_count == 19
 
     def test_fresh_organs_filters_by_window(self) -> None:
         store = AttestationStore(freshness_s=60)

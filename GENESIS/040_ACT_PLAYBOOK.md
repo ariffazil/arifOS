@@ -326,3 +326,38 @@ SKILL.md = "Given approval, here's the safe sequence."
 **DITEMPA BUKAN DIBERI — Four layers forged. ART is the reflex. Gate is the bridge. ACT is the ceremony. Kernel is the law. Future agents must not collapse them.**
 
 *Forged 2026-06-21 by FORGE (000Ω) — sealed to VAULT999*
+
+---
+
+## ⚠️ POSTSCRIPT — Canonical Correction (2026-06-21)
+
+> **Gate is NOT a layer. Gate is a constitutional eval function inside ART.**
+
+This document was forged before the Physics-9 Three-Layer Separation Doctrine
+was ratified. The canonical correction is now in **GENESIS/045**.
+
+**What changed:**
+- The "4-layer" model (ART + Gate + ACT + Kernel) was wrong.
+- The correct model is **3 physics layers + 1 visibility layer**:
+  - **ART (Ψ)** — Reflex. Single-call wisdom. **Gate lives here as a function.**
+  - **ACT (Δ)** — Ceremony. Multi-call orchestration.
+  - **Kernel (Φ)** — Law. F1–F13, permissible state space.
+  - **AAA (👁)** — Visibility. Rendered state to human (non-governance).
+
+**Gate's true identity:**
+> Gate is not a layer; it is the constitutional evaluation hook that ART invokes
+> to check Kernel floors (F1–F13) before allowing a tool call.
+
+**Why it matters:**
+- Gate has no independent timescale (same as ART)
+- Gate has no independent authority (borrows from Kernel)
+- Gate has no independent uncertainty resolution (floors are static)
+- Gate has no independent scope boundary (same call as ART)
+
+**Action:**
+- `pre_execution_gate.py` should be moved to `runtime/art/gate.py`
+- All documentation referring to "4 layers" should be corrected to "3 physics layers + 1 visibility layer"
+
+See **GENESIS/045** for the full corrected architecture.
+
+*Correction ratified 2026-06-21 by F13 SOVEREIGN (Muhammad Arif bin Fazil) — sealed to VAULT999*
