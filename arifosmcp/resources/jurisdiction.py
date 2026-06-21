@@ -11,6 +11,22 @@ from fastmcp import FastMCP
 from fastmcp.resources.types import TextResource
 
 JURISDICTION_TEXT = """\
+---arifos_meta
+resource_class: governance
+authority_level: SOVEREIGN_CANON
+owner: ARIF_FAZIL
+version: 2026.06.21
+mutation_allowed: false
+requires_actor_verified: true
+requires_session: true
+lease_required: false
+blast_radius: HIGH
+evidence_level: CANONICAL
+staleness_policy: fail_closed
+last_attested: 2026-06-22T00:00:00Z
+truth_level: 1
+---end_arifos_meta
+
 arifOS Jurisdiction — Autonomy Bands
 
 FIVE BANDS (GREEN → BLACK):

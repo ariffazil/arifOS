@@ -2,7 +2,7 @@
 arifOS MCP Resource Specifications
 ═══════════════════════════════════════════════════════════════════════════════
 
-5 canonical read-only context resources.
+7 canonical + supplemental read-only context resources.
 
 Resources are live context surfaces, not executable actions.
 They provide:
@@ -10,6 +10,8 @@ They provide:
 - Governance doctrine
 - Tool specifications
 - Session telemetry
+- MCP conformance alignment
+- Machine-readable catalog
 
 All resources are read-only. Mutations happen through tools.
 """
@@ -47,7 +49,7 @@ class ResourceSpec:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 5 CANONICAL RESOURCES
+# 7 CANONICAL + SUPPLEMENTAL RESOURCE SPECS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CANONICAL_RESOURCE_SPECS: tuple[ResourceSpec, ...] = (
@@ -58,7 +60,7 @@ CANONICAL_RESOURCE_SPECS: tuple[ResourceSpec, ...] = (
             "Immutable constitutional substrate. F1-L13 floors, verdict schema, Gödel Lock, agent skills manifest. "
             "Sub-resources: arifos://doctrine/floor/{law_id}, arifos://doctrine/skill/{skill_name}"
         ),
-        mime_type="application/json",
+        mime_type="text/plain",
         dynamic=False,
         auth_required="anonymous",
     ),
@@ -81,7 +83,7 @@ CANONICAL_RESOURCE_SPECS: tuple[ResourceSpec, ...] = (
             "Query: ?section=all|master|tools|trinity|stages|reply|index&tool_id={id}. "
             "Includes the governed domain evidence contract used by GEOX-aware tool envelopes."
         ),
-        mime_type="application/json",
+        mime_type="text/plain",
         dynamic=False,
         auth_required="anonymous",
     ),
@@ -107,6 +109,32 @@ CANONICAL_RESOURCE_SPECS: tuple[ResourceSpec, ...] = (
         ),
         mime_type="application/json",
         dynamic=False,
+        auth_required="anonymous",
+    ),
+    ResourceSpec(
+        uri="arifos://mcp-alignment",
+        name="MCP Spec Conformance Matrix",
+        description=(
+            "Current conformance status of arifOS vs. MCP 2025-11-25 specification. "
+            "Covers core spec conformance, extensions support (JSON Schema 2020-12, Pagination, "
+            "Tasks, MCP Apps, OAuth), transport, auth/security posture, deprecations, "
+            "live resource inventory, and client compatibility matrix."
+        ),
+        mime_type="text/plain",
+        dynamic=False,
+        auth_required="anonymous",
+    ),
+    ResourceSpec(
+        uri="arifos://resources/index",
+        name="Resource Catalog",
+        description=(
+            "Machine-readable JSON catalog of all registered arifOS MCP resources. "
+            "Auto-generated from live resource registry. Includes URIs, MIME types, "
+            "descriptions, floor linkages, and summary counts grouped by family "
+            "(canonical, tree777, embodied, evidence, runner, supplemental)."
+        ),
+        mime_type="application/json",
+        dynamic=True,
         auth_required="anonymous",
     ),
 )

@@ -13,12 +13,6 @@ from arifosmcp.resources import (
 )
 from arifosmcp.runtime.build import get_build_info
 
-try:
-    from arifosmcp.tools_canonical import TOOL_ALIAS_MAP
-except Exception:  # pragma: no cover - defensive fallback
-    TOOL_ALIAS_MAP = {}
-
-
 CANONICAL_13: tuple[str, ...] = tuple(
     name for name in list_constitutional_tools()
     if not (CANONICAL_TOOLS.get(name, {}).get("_deprecated", False)
@@ -50,21 +44,6 @@ VALID_PUBLIC_SURFACE_MODES: tuple[str, ...] = (
     "canonical13",
     "expanded45",
 )
-
-
-def _alias_public_name(alias_name: str) -> str:
-    namespace = "arifos"
-    clean_name = alias_name
-    if alias_name.startswith(("P_geox_", "E_geox_")):
-        namespace = "geoxarifOS"
-        clean_name = alias_name.replace("P_geox_", "").replace("E_geox_", "")
-    elif alias_name.startswith(("V_", "P_wealth_")):
-        namespace = "wealth"
-        clean_name = alias_name.replace("V_", "").replace("P_wealth_", "")
-    elif alias_name.startswith(("P_well_", "E_well_")):
-        namespace = "AFWELL"
-        clean_name = alias_name.replace("P_well_", "").replace("E_well_", "")
-    return f"{namespace}_{clean_name}"
 
 
 # Diagnostic tools — reversible governance inspectors, not canonical constitutional tools.
@@ -106,11 +85,9 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
 # and future implementation tracking, but they are NOT part of any public mode.
 EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_13, *CANARY_PROBES, *DIAGNOSTIC_TOOLS])))
 
-# DOMAIN_ALIASES — planned domain-specific tools that currently have NO FastMCP
-# handlers. They exist in the alias map as implementation targets, not as live
-# public tools. Do NOT include these in drift check manifests or public modes.
-DOMAIN_ALIASES: tuple[str, ...] = tuple(_alias_public_name(name) for name in TOOL_ALIAS_MAP)
-
+# DOMAIN_ALIASES were removed 2026-06-21 — TOOL_ALIAS_MAP was dead code
+# with 84 ghost aliases that had no FastMCP handlers. Cleared by FORGE audit.
+# See: forge_work/arifos-mcp-tool-audit-2026-06-21.md
 
 def normalize_public_surface_mode(mode: str | None = None) -> str:
     raw = (mode or "").strip().lower()

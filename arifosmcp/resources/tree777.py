@@ -27,11 +27,14 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Any
 
 from fastmcp import FastMCP
+
+logger = logging.getLogger("arifos.resources.tree777")
 
 # ── Wiki Root ─────────────────────────────────────────────────────────────────
 # The canonical TREE777 wiki lives at this path.
@@ -59,7 +62,11 @@ def _list_wiki_skills() -> list[dict[str, str]]:
         return skills
 
     for category_dir in SKILLS_DIR.iterdir():
-        if not category_dir.is_dir():
+        try:
+            if not category_dir.is_dir():
+                continue
+        except (PermissionError, OSError) as e:
+            logger.warning("Skipping symlink/broken entry: %s (%s)", category_dir, e)
             continue
         category = category_dir.name
         for skill_file in category_dir.glob("*.md"):

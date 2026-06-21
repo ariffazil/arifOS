@@ -279,15 +279,17 @@ async def arif_memory(
     # ── 5. Dispatch to backend ──
     # Day 3 NEW handlers (promote / forget / attest) — direct call
     # Day 3.5 added: remember (handles L4 write without embedding dependency)
-    if mode in ("remember", "promote", "forget", "attest"):
+    # Day 4 polish: inspect (direct Postgres lookup for UUID queries)
+    if mode in ("remember", "promote", "forget", "attest", "inspect"):
         from arifosmcp.runtime.memory_handlers_v5 import (
-            _handle_remember, _handle_promote, _handle_forget, _handle_attest,
+            _handle_remember, _handle_promote, _handle_forget, _handle_attest, _handle_inspect,
         )
         handler = {
             "remember": _handle_remember,
             "promote": _handle_promote,
             "forget": _handle_forget,
             "attest": _handle_attest,
+            "inspect": _handle_inspect,
         }[mode]
         try:
             res_dict = await handler(payload, ctx=ctx)

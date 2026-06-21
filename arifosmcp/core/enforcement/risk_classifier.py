@@ -334,6 +334,64 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
         blast_radius=BlastRadius.PUBLIC,
         reversibility=ReversibilityLevel.HIGH,
     ),
+    # === MISSING CANONICAL ENTRIES (added 2026-06-21) ===
+    # arif_memory v5 — multi-mode: recall is OBSERVE, store is MUTATE, forget is ATOMIC
+    # The router handles internal classification. Externally it's a MUTATE (the safe ceiling).
+    "arif_memory": RiskPassport(
+        tier=RiskTier.T3,
+        action_class=ActionClass.MUTATE,
+        tool_class=ToolClass.MUTATE,
+        blast_radius=BlastRadius.ORG,
+        reversibility=ReversibilityLevel.MEDIUM,
+    ),
+    # arif_bridge_connect — routes calls to federation organs
+    "arif_bridge_connect": RiskPassport(
+        tier=RiskTier.T2,
+        action_class=ActionClass.PREPARE,
+        tool_class=ToolClass.DECIDE,
+        blast_radius=BlastRadius.ORG,
+        reversibility=ReversibilityLevel.HIGH,
+    ),
+    # arif_route — canonical intent router (replaces deprecated arif_kernel_route)
+    "arif_route": RiskPassport(
+        tier=RiskTier.T1,
+        action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.DECIDE,
+        blast_radius=BlastRadius.ORG,
+        reversibility=ReversibilityLevel.HIGH,
+    ),
+    # arif_triage — session preflight and lane routing
+    "arif_triage": RiskPassport(
+        tier=RiskTier.T1,
+        action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.OBSERVE,
+        blast_radius=BlastRadius.ACCOUNT,
+        reversibility=ReversibilityLevel.HIGH,
+    ),
+    # arif_kernel_status — telemetry and discovery (read-only)
+    "arif_kernel_status": RiskPassport(
+        tier=RiskTier.T1,
+        action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.OBSERVE,
+        blast_radius=BlastRadius.ORG,
+        reversibility=ReversibilityLevel.HIGH,
+    ),
+    # arif_kernel_attest — organ attestation (read-only probe)
+    "arif_kernel_attest": RiskPassport(
+        tier=RiskTier.T1,
+        action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.OBSERVE,
+        blast_radius=BlastRadius.ORG,
+        reversibility=ReversibilityLevel.HIGH,
+    ),
+    # arif_kernel_health — lightweight liveness probe
+    "arif_kernel_health": RiskPassport(
+        tier=RiskTier.T0,
+        action_class=ActionClass.OBSERVE,
+        tool_class=ToolClass.OBSERVE,
+        blast_radius=BlastRadius.LOCAL,
+        reversibility=ReversibilityLevel.HIGH,
+    ),
 }
 
 

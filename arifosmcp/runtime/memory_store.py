@@ -54,9 +54,15 @@ _QDRANT_URL = os.getenv("QDRANT_URL", "http://qdrant:6333")
 _QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "arifos_memory")
 _OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 _EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3:latest")
+# ADR-010: L4 canonical store is LOCAL Postgres (port 5432), not Supabase pooler.
+# ARIFOS_MEMORY_POSTGRES_URL was pointing to Supabase, causing recall failures.
+# Priority: POSTGRES_URL (local) > ARIFOS_MEMORY_POSTGRES_URL (env) > default (local)
 _PG_URL = os.getenv(
-    "ARIFOS_MEMORY_POSTGRES_URL",
-    "postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999",
+    "POSTGRES_URL",
+    os.getenv(
+        "ARIFOS_MEMORY_POSTGRES_URL",
+        "postgresql://arifos_admin:ArifPostgresVault2026!@postgres:5432/vault999",
+    ),
 )
 
 # Tier constants

@@ -3086,8 +3086,8 @@ def get_constitution_identity() -> dict[str, Any]:
         "kernel": "canonical13",
         "floors_count": 13,
         "laws_count": 13,
-        "policy_url": "/policy",
-        "constitution_url": "/constitution.json",
+        "policy_url": "/api/constitution#floors",  # F1-F13 floor definitions
+        "constitution_url": "/api/constitution",
     }
 
 

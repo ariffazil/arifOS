@@ -809,8 +809,116 @@ def _evaluate_aspect(
     return False, 0, None
 
 
+# ────────────────────────────────────────────────────────────────────────
+# _handle_inspect — Direct Postgres lookup by memory_id
+# ────────────────────────────────────────────────────────────────────────
+# Day 4 polish (2026-06-21): inspect mode was routing through vector search,
+# which requires embeddings. For UUID lookups, we should do a direct Postgres
+# query instead. ADR-010: Postgres is L4 canonical store.
+# ────────────────────────────────────────────────────────────────────────
+
+async def _handle_inspect(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
+    """Inspect a memory by memory_id — direct Postgres lookup.
+
+    Bypasses vector search for UUID lookups. Falls back to vector search
+    for natural language queries.
+    """
+    import re
+    import uuid as _uuid
+    import asyncpg
+    from arifosmcp.runtime.memory_store import _PG_URL, _summarize, _content_hash
+
+    query = payload.get("query") or payload.get("memory_id") or ""
+
+    # Check if query looks like a UUID
+    uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    if re.match(uuid_pattern, query, re.I):
+        # Direct Postgres lookup
+        try:
+            conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
+            try:
+                pg_row = await conn.fetchrow(
+                    """
+                    SELECT id, tier, text, metadata, qdrant_id, session_id,
+                           created_at, deleted_at
+                    FROM memory_store
+                    WHERE id = $1 AND deleted_at IS NULL
+                    """,
+                    _uuid.UUID(query),
+                )
+                if pg_row:
+                    pg_row = dict(pg_row)
+                else:
+                    pg_row = None
+            finally:
+                await conn.close()
+
+            if pg_row:
+                # Parse metadata — asyncpg returns JSONB as string
+                meta = pg_row.get("metadata", {})
+                if isinstance(meta, str):
+                    try:
+                        meta = json.loads(meta)
+                    except (json.JSONDecodeError, TypeError):
+                        meta = {}
+
+                return {
+                    "ok": True,
+                    "verdict": "SEAL",
+                    "payload": {
+                        "memory_id": str(pg_row["id"]),
+                        "content": pg_row["text"],
+                        "mode": meta.get("memory_class"),
+                        "tags": meta.get("entity_tags", []),
+                        "actor_id": meta.get("provenance", {}).get("actor_id"),
+                        "session_id": pg_row.get("session_id"),
+                        "summary": _summarize(pg_row["text"]),
+                        "content_hash": _content_hash(pg_row["text"]),
+                        "created_at": pg_row["created_at"].isoformat() if pg_row.get("created_at") else None,
+                        "tier": pg_row.get("tier", "L4"),
+                        "truth_class": meta.get("truth_class"),
+                        "provenance": meta.get("provenance"),
+                        "source": "postgres_direct",
+                        "note": "inspect by UUID — direct Postgres lookup per ADR-010",
+                    },
+                }
+            else:
+                return {
+                    "ok": False,
+                    "verdict": "SABAR",
+                    "payload": {
+                        "error": "NOT_FOUND",
+                        "message": f"Memory {query} not found or soft-deleted",
+                        "query": query,
+                    },
+                }
+        except Exception as exc:
+            logger.warning(f"Postgres inspect failed for {query}: {exc}")
+            return {
+                "ok": False,
+                "verdict": "SABAR",
+                "payload": {
+                    "error": "INSPECT_ERROR",
+                    "message": f"Postgres lookup failed: {exc}",
+                    "query": query,
+                },
+            }
+    else:
+        # Not a UUID — fall back to vector search
+        return {
+            "ok": False,
+            "verdict": "SABAR",
+            "payload": {
+                "error": "NOT_UUID",
+                "message": "inspect mode requires a UUID memory_id. Use recall mode for natural language queries.",
+                "query": query,
+            },
+        }
+
+
 __all__ = [
     "_handle_promote",
     "_handle_forget",
     "_handle_attest",
+    "_handle_inspect",
 ]

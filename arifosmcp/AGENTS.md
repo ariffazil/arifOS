@@ -25,7 +25,7 @@ Trinity Lanes, pipeline diagram, witness defaults, resource URIs, footer) are ha
      Regenerate: python -m arifosmcp.maintenance.generate_agents_md
      ═══════════════════════════════════════════════════════════════════════════ -->
 
-## 19 Canonical Tools (arif_noun_verb)
+## 21 Canonical Tools (arif_noun_verb)
 
 All tools follow the `arif_<noun>_<verb>` naming convention.
 
