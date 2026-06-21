@@ -1,7 +1,10 @@
 import os
 import shlex
 import subprocess
+import logging
 from datetime import UTC, datetime
+
+logger = logging.getLogger(__name__)
 
 # arifOS Governance Imports (graceful fallback for standalone use)
 try:
@@ -116,6 +119,44 @@ class HardenedShellForge:
 
         # 4. Preparation: F1 Amanah Checkpoint (MOCK Logic - in prod would call git)
         # Note: In a real system, we would trigger a worktree-add or commit here.
+
+        # ── HOLD-1c: Pre-execution gate BEFORE subprocess boundary ─────────
+        # Shell forge executes operator commands directly. Every execution must
+        # pass through the constitutional chokepoint before subprocess.run().
+        # Previously this path bypassed pre_execution_gate entirely.
+        try:
+            from arifosmcp.schemas.kernel_envelope import ActionClass
+            from arifosmcp.runtime.pre_execution_gate import quick_gate
+
+            _shell_action = ActionClass.MUTATE if is_risk else ActionClass.OBSERVE
+            _gate_result = quick_gate(
+                action_class=_shell_action,
+                actor_verified=False,  # shell forge runs as operator
+                tool_name="shell_forge.execute",
+            )
+            if _gate_result.is_blocked:
+                logger.warning(
+                    "shell_forge gate BLOCKED: cmd=%s action=%s reasons=%s",
+                    command[:80], _shell_action.value, _gate_result.reasons,
+                )
+                result = {
+                    "ok": False,
+                    "status": "HOLD",
+                    "error": "Constitutional gate blocked shell execution",
+                    "gate_verdict": _gate_result.verdict.value,
+                    "gate_reasons": _gate_result.reasons,
+                    "gate_violations": _gate_result.violations,
+                    "command": command,
+                }
+                if _amanah_awareness:
+                    result["amanah_awareness"] = _amanah_awareness
+                return result
+        except ImportError:
+            logger.warning(
+                "pre_execution_gate unavailable in shell_forge — "
+                "proceeding without gate (fail-open for operator path)"
+            )
+        # ── end HOLD-1c gate ────────────────────────────────────────────
 
         # 5. Execution
         args = shlex.split(command)

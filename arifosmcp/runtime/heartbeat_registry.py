@@ -113,7 +113,8 @@ def federation_liveness(
         age = now - rec.heartbeat_at
         if age > threshold_seconds:
             stale.append(organ_id)
-        elif rec.degraded or rec.status != "ALIVE":
+        # P1-4 fix: accept both "HEALTHY" (new) and "ALIVE" (legacy) as live states
+        elif rec.degraded or rec.status not in ("HEALTHY", "ALIVE"):
             degraded.append(organ_id)
             alive.append(organ_id)
         else:

@@ -388,6 +388,7 @@ def arif_session_init(
 
                 identity_verified = verify_actor_signature(actor_id, nonce, signature)
                 sess["signature_verified"] = identity_verified
+                sess["actor_verified"] = identity_verified
             except Exception:
                 pass
 
@@ -464,6 +465,13 @@ def arif_session_init(
                 sess["floor_posture_override"] = _floor_posture_override
             except Exception:
                 pass
+
+        # Persist session to session store
+        try:
+            from arifosmcp.runtime.tools import _SESSIONS
+            _SESSIONS[sess["session_id"]] = sess
+        except Exception:
+            pass
 
         # ── v3.1: Context completeness receipt ───────────────
         context_completeness = _compute_context_completeness(
@@ -713,6 +721,13 @@ def arif_session_init(
         if delegation_mode:
             sess["delegation_mode"] = delegation_mode
 
+        # Persist session birth
+        try:
+            from arifosmcp.runtime.tools import _SESSIONS
+            _SESSIONS[sid] = sess
+        except Exception:
+            pass
+
         return SessionManifest(
             status="OK",
             mode=mode,
@@ -743,6 +758,7 @@ def arif_session_init(
                 "external_side_effects_allowed": False,
                 "verdict": "SEAL",
                 "pre_session": False,
+                "present_boundary": "LIVE",
                 "action_class": "SESSION_BIRTH",
                 "blast_radius": "LOW",
                 "human_ack_required": False,

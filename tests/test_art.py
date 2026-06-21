@@ -329,3 +329,139 @@ class TestStateTransitions:
                            days_since_use=95))
         assert r.next_tool_state == ToolState.ABANDONED
         assert r.reason == ArtReason.ALL_CHECKS_PASSED
+
+
+# ── v3.1 — DISCOVERY SURFACE HARDENING ────────────────────────────────
+
+
+class TestV31UnverifiedSchema:
+    """E1: schema_verified=False + MUTATE/EXECUTE → DEFAULT_OBSERVE.
+
+    Trust-on-first-hash. MCP server / user-supplied schemas without
+    signature verification cannot run state-changing actions.
+    """
+
+    def _trusted_base(self, **overrides):
+        """Build a baseline ArtRequest that would otherwise PROCEED."""
+        base = dict(
+            action_class="observe", tool_state="trusted",
+            blast_radius="low", trust_level="evidence",
+            actor_resolved=True, schema_locked=True,
+            degraded=False, reversible=True,
+            schema_verified=True,  # default to verified so test isolates E1
+        )
+        base.update(overrides)
+        return ArtRequest(**base)
+
+    def test_unverified_schema_downgrades_mutate(self):
+        """E1: MUTATE + schema_verified=False → DEFAULT_OBSERVE."""
+        r = art(self._trusted_base(action_class="mutate", schema_verified=False))
+        assert r.verdict == ArtVerdict.DEFAULT_OBSERVE
+        assert r.reason == ArtReason.UNVERIFIED_SCHEMA_SOURCE
+        assert r.check_blocked == 2  # TRUST check
+
+    def test_unverified_schema_execute_holds_earlier(self):
+        """E1 + EXECUTE: EXECUTE always HOLDs (Check 1) before E1 can fire.
+        E1 only downgrades MUTATE; EXECUTE has its own tighter gate."""
+        r = art(self._trusted_base(action_class="execute", schema_verified=False))
+        assert r.verdict == ArtVerdict.HOLD
+        assert r.reason == ArtReason.EXECUTE_NEEDS_ACK
+
+    def test_unverified_schema_does_not_downgrade_observe(self):
+        """E1: OBSERVE with unverified schema is still allowed (read is safe)."""
+        r = art(self._trusted_base(action_class="observe", schema_verified=False))
+        assert r.verdict == ArtVerdict.PROCEED
+        assert r.reason == ArtReason.ALL_CHECKS_PASSED
+
+    def test_verified_schema_proceeds(self):
+        """E1: schema_verified=True → existing checks apply (sanity)."""
+        r = art(self._trusted_base(action_class="mutate", schema_verified=True))
+        assert r.verdict == ArtVerdict.PROCEED
+
+
+class TestV31ExternalSurface:
+    """E2: external_surface + MUTATE + not acknowledged_remote → HOLD.
+
+    Closes Hermes #16462 (no first-call approval for MCP tools).
+    Local mutation (mcp_filesystem_write) is unaffected.
+    """
+
+    def _trusted_base(self, **overrides):
+        base = dict(
+            action_class="mutate", tool_state="trusted",
+            blast_radius="low", trust_level="evidence",
+            actor_resolved=True, schema_locked=True,
+            degraded=False, reversible=True,
+            schema_verified=True,
+            external_surface=False, acknowledged_remote=False,
+        )
+        base.update(overrides)
+        return ArtRequest(**base)
+
+    def test_external_mutate_unacknowledged_holds(self):
+        """E2: MUTATE + external + not acked → HOLD."""
+        r = art(self._trusted_base(
+            action_class="mutate",
+            external_surface=True,
+            acknowledged_remote=False,
+        ))
+        assert r.verdict == ArtVerdict.HOLD
+        assert r.reason == ArtReason.EXTERNAL_SURFACE_UNACKNOWLEDGED
+        assert r.check_blocked == 1  # POWER check
+
+    def test_external_mutate_acknowledged_proceeds(self):
+        """E2: MUTATE + external + acked → PROCEED."""
+        r = art(self._trusted_base(
+            action_class="mutate",
+            external_surface=True,
+            acknowledged_remote=True,
+        ))
+        assert r.verdict == ArtVerdict.PROCEED
+
+    def test_local_mutate_unaffected(self):
+        """E2: MUTATE + NOT external → PROCEED (no ack needed)."""
+        r = art(self._trusted_base(
+            action_class="mutate",
+            external_surface=False,
+            acknowledged_remote=False,
+        ))
+        assert r.verdict == ArtVerdict.PROCEED
+
+
+class TestV31CumulativeSilentFallback:
+    """E3: silent_fallback_count >= threshold (2) → HOLD.
+
+    Catches cumulative drift that per-call STATE snapshots miss.
+    Caller pushes the counter; reflex itself stays stateless.
+    """
+
+    def _trusted_base(self, **overrides):
+        base = dict(
+            action_class="observe", tool_state="trusted",
+            blast_radius="low", trust_level="evidence",
+            actor_resolved=True, schema_locked=True,
+            degraded=False, reversible=True,
+            schema_verified=True,
+            silent_fallback_count=0,
+        )
+        base.update(overrides)
+        return ArtRequest(**base)
+
+    def test_silent_fallback_count_one_proceeds(self):
+        """E3: 1 silent fallback → no downgrade (single fallback is fine)."""
+        r = art(self._trusted_base(silent_fallback_count=1))
+        assert r.verdict == ArtVerdict.PROCEED
+
+    def test_silent_fallback_count_two_holds(self):
+        """E3: 2 silent fallbacks → HOLD (catches cumulative drift)."""
+        r = art(self._trusted_base(silent_fallback_count=2))
+        assert r.verdict == ArtVerdict.HOLD
+        assert r.reason == ArtReason.CUMULATIVE_SILENT_FALLBACK
+        assert r.check_blocked == 3  # SYSTEM check
+        assert r.next_tool_state == ToolState.FALLBACK
+
+    def test_silent_fallback_count_three_still_holds(self):
+        """E3: 3+ silent fallbacks → still HOLD (no upper bound check)."""
+        r = art(self._trusted_base(silent_fallback_count=5))
+        assert r.verdict == ArtVerdict.HOLD
+        assert r.reason == ArtReason.CUMULATIVE_SILENT_FALLBACK

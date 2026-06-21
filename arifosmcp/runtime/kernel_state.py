@@ -1,5 +1,6 @@
 """
 arifosmcp/runtime/kernel_state.py — Persistent cross-tool mind state (EUREKA-A)
+================================================================================
 
 Purpose
 -------
@@ -26,6 +27,18 @@ two new surfaces that plug into the existing session/continuity/lease layer:
      hypotheses, prunes resolved claims, demotes stale scars. Wired into the
      arif_memory_manage tool's `mode=consolidate`.
 
+  4. `kernel_transition()` — the SOLE lawful chokepoint for KSR mutation.
+     Every state transition MUST route through this function. It:
+       - Reads the current KSR hash (from_ksr_hash)
+       - Applies the mutation
+       - Computes the new KSR hash (to_ksr_hash)
+       - Creates a TransitionReceipt with full temporal metadata
+       - Seals the receipt to VAULT999 (via seal_transition)
+       - Returns the receipt
+
+     Doctrine: "Only the kernel makes time real. Agents may request marks;
+     they cannot mint time."
+
 The state object is **session-scoped** (one KernelState per active session) and
 **event-sourced**: every transition appends to the in-memory event log so we
 can later replay or audit the mind's reasoning history.
@@ -37,12 +50,29 @@ Constitutional binding:
   F7 HUMILITY   — uncertainty is a first-class field, never omitted.
   F9 ANTIHANTU  — no `feelings`, no `wants`, no `consciousness` fields.
   F11 AUDIT     — every transition is logged; state_hash is sha256 of canonical json.
+                  Every transition produces a TransitionReceipt sealed to VAULT999.
+  F13 SOVEREIGN — Only `kernel_transition()` may create authoritative time marks.
+                  No direct KSR mutation is lawful outside this chokepoint.
+
+Temporal Architecture (Phase 1 — kernel_transition() spine):
+  KSR_PRESENT
+    ↓[read from_ksr_hash]
+  kernel_transition()
+    ↓[verify authority, apply mutation, compute to_ksr_hash]
+  TransitionReceipt
+    ↓[seal to vault999-writer]
+  VAULT sealed past
+    ↓[index]
+  Federation memory
 
 Reversibility: F1 — delete this file = revert. No state migration needed.
+
+DITEMPA BUKAN DIBERI.
 """
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -53,7 +83,37 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from arifosmcp.schemas.transition_receipt import (
+    AuthoritySource,
+    ProofLevel,
+    TransitionEventType,
+    TransitionReceipt,
+    VerdictCode,
+)
+from arifosmcp.runtime.vault_sealer import seal_transition
+
+# APEX intelligence flow: dials carried through every transition
+# (hardened 2026-06-20 — A/P/X/E frozen into each TransitionReceipt)
+try:
+    from core.enforcement.genius import APEXDials
+except ImportError:
+    # Graceful fallback: APEXDials is a thin Pydantic model with A/P/X/E floats.
+    from pydantic import BaseModel, Field
+
+    class APEXDials(BaseModel):
+        A: float = 0.0
+        P: float = 0.0
+        X: float = 0.0
+        E: float = 0.0
+
+        def to_dict(self) -> dict[str, float]:
+            return {"A": self.A, "P": self.P, "X": self.X, "E": self.E}
+
 logger = logging.getLogger(__name__)
+
+# ── Runtime epoch counter — incremented on every kernel_transition() call ──
+_NEXT_EPOCH_COUNTER: int = 0
+_EPOCH_LOCK = threading.Lock()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Enums — small, fixed, constitutionally bounded
@@ -266,6 +326,27 @@ class KernelState(BaseModel):
             "authority_boundary": "operator",
             "uncertainty_band": "PLAUSIBLE",
             "honesty_ratio": 0.0,
+            # ── APEX AUTHORITY REGISTRY (hardened 2026-06-20) ────────
+            # Single source of truth for "who can do what."
+            # Authority is not split across repos — arifOS owns it.
+            # Each principal has roles, permissions, and expiry.
+            "authority_registry": {
+                "operator": {
+                    "roles": ["SOVEREIGN", "JUDGE", "FORGE", "OBSERVE"],
+                    "permissions": ["mutate", "seal", "veto", "delegate", "attest"],
+                    "expiry": "perpetual",
+                },
+                "agent": {
+                    "roles": ["FORGE", "OBSERVE"],
+                    "permissions": ["mutate_with_approval", "observe", "attest"],
+                    "expiry": "session",
+                },
+                "guest": {
+                    "roles": ["OBSERVE"],
+                    "permissions": ["observe"],
+                    "expiry": "session",
+                },
+            },
         }
     )
 
@@ -310,7 +391,18 @@ class KernelState(BaseModel):
         event_type: str,
         payload: dict[str, Any],
     ) -> KernelState:
-        """Apply an event, return a new state with hash + log entry. Immutable update."""
+        """
+        Apply an event, return a new state with hash + log entry. Immutable update.
+
+        NOTE: In Phase 1, this method is PATCHED to route through kernel_transition().
+        The direct mutation path below is preserved as a FAST PATH for in-memory-only
+        transitions that do not need vault sealing (e.g., intermediate reasoning steps).
+        All CONSEQUENTIAL transitions MUST go through kernel_transition().
+
+        External callers should prefer kernel_transition() for any transition that
+        needs a lawful mark. This method will raise a warning if called directly
+        for consequential event types.
+        """
         prior_hash = self.state_hash or self.compute_state_hash()
         updated = self.model_copy(deep=True)
         updated.event_log.append(
@@ -333,6 +425,159 @@ class KernelState(BaseModel):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Phase 1: kernel_transition() — the SOLE lawful chokepoint for KSR mutation
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _next_ksr_epoch_id() -> str:
+    """Monotonic epoch ID for every kernel_transition() call."""
+    global _NEXT_EPOCH_COUNTER
+    with _EPOCH_LOCK:
+        _NEXT_EPOCH_COUNTER += 1
+        return f"KSR-EPOCH-{_NEXT_EPOCH_COUNTER:06d}"
+
+
+def kernel_transition(
+    state: KernelState,
+    *,
+    caller: str,
+    event_type: str | TransitionEventType,
+    payload: dict[str, Any],
+    actor: str | None = None,
+    session_id: str | None = None,
+    metadata: dict[str, Any] | None = None,
+    authority_source: str | AuthoritySource = AuthoritySource.KSR,
+    event_label: str = "",
+    skip_vault: bool = False,
+    # ── APEX intelligence flow (hardened 2026-06-20) ─────────────────
+    # These carry the 5D APEX state through every transition.
+    # dials: ApexDials at moment of transition (A/P/X/E)
+    # action_class: ActionClass string (e.g. "OBSERVE", "MUTATE_LOCAL", "JUDGE")
+    # custody_chain: [initiator, validator, approver, executor]
+    # All are embedded into the TransitionReceipt and sealed to VAULT999.
+    dials: APEXDials | None = None,
+    action_class: str = "OBSERVE",
+    custody_chain: list[str] | None = None,
+) -> tuple[KernelState, TransitionReceipt]:
+    """
+    The SOLE lawful chokepoint for KSR mutation.
+
+    Every state transition MUST route through this function. It:
+
+    1. Reads the current KSR hash (from_ksr_hash)
+    2. Applies the mutation via KernelState.transition()
+    3. Computes the new KSR hash (to_ksr_hash)
+    4. Creates a TransitionReceipt with full temporal metadata
+    5. Seals the receipt to VAULT999 (via seal_transition, unless skip_vault=True)
+    6. Returns (updated_state, TransitionReceipt)
+
+    Returns:
+        (updated KernelState, sealed TransitionReceipt)
+
+    Invariant:
+        No KSR mutation outside this function.
+        No Vault append without TransitionReceipt.
+        No TransitionReceipt without prior KSR hash and next KSR hash.
+        No external mark becomes time until kernel accepts it.
+
+    Doctrine:
+        "Only the kernel makes time real. Agents may request marks;
+         they cannot mint time."
+    """
+    # ── 1. Resolve types ────────────────────────────────────────────────
+    _actor = actor or caller
+    _session_id = session_id or state.session_id
+    _event_type_str = event_type.value if isinstance(event_type, TransitionEventType) else event_type
+    _authority = (
+        authority_source.value
+        if isinstance(authority_source, AuthoritySource)
+        else authority_source
+    )
+    _metadata = metadata or {}
+
+    # ── 2. Capture from-state hash BEFORE mutation ──────────────────────
+    from_ksr_hash = state.state_hash or state.compute_state_hash()
+    started_at_ns = time.time_ns()
+
+    # ── 3. Apply mutation (in-memory only) ──────────────────────────────
+    updated = state.transition(actor=_actor, event_type=_event_type_str, payload=payload)
+    to_ksr_hash = updated.state_hash
+
+    # ── 4. Get or compute prior ledger hash ─────────────────────────────
+    # TODO (Phase 3): Replace with real ledger store query
+    prior_ledger_hash = "sha256:0"
+
+    # ── 5. Create TransitionReceipt ─────────────────────────────────────
+    epoch_id = _next_ksr_epoch_id()
+
+    # ── 5a. Resolve APEX dials snapshot ──────────────────────────────────
+    # Dials are frozen into the receipt at transition time.
+    # This carries AKAL/PRESENT/EXPLORATION/ENERGY across time through the ledger.
+    _dials_serialized: dict[str, float] = {"A": 0.0, "P": 0.0, "X": 0.0, "E": 0.0}
+    if dials is not None:
+        if hasattr(dials, "to_dict"):
+            _dials_serialized = dials.to_dict()
+        elif isinstance(dials, dict):
+            _dials_serialized = {k: float(v) for k, v in dials.items() if k in ("A", "P", "X", "E")}
+
+    receipt = TransitionReceipt(
+        organ_id="arifOS",
+        caller=caller,
+        ksr_epoch_id=epoch_id,
+        event_type=(
+            event_type
+            if isinstance(event_type, TransitionEventType)
+            else TransitionEventType.KSR_UPDATED
+        ),
+        event_label=event_label or _event_type_str,
+        from_ksr_hash=from_ksr_hash,
+        to_ksr_hash=to_ksr_hash,
+        prior_ledger_hash=prior_ledger_hash,
+        started_at_ns=started_at_ns,
+        authority_source=(
+            authority_source
+            if isinstance(authority_source, AuthoritySource)
+            else AuthoritySource.KSR
+        ),
+        verdict=VerdictCode.SEAL,
+        dials_snapshot=_dials_serialized,
+        action_class=action_class,
+        custody_chain=custody_chain or [caller],
+        metadata=_metadata,
+    )
+    receipt.seal()
+
+    # ── 6. Seal to Vault (async, fire-and-forget) ───────────────────────
+    if not skip_vault:
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(
+                seal_transition(
+                    receipt_id=receipt.receipt_id,
+                    event_type=_event_type_str,
+                    payload=receipt.to_vault_payload(),
+                    session_id=_session_id,
+                    agent_id=caller,
+                )
+            )
+        except RuntimeError:
+            logger.warning(
+                f"[kernel_transition] no event loop; "
+                f"skipping vault seal for receipt {receipt.receipt_id}"
+            )
+
+    # ── 7. Log and return ───────────────────────────────────────────────
+    logger.info(
+        f"[kernel_transition] {_event_type_str} "
+        f"from={from_ksr_hash[:16]} to={to_ksr_hash[:16]} "
+        f"epoch={epoch_id} receipt={receipt.receipt_id} "
+        f"duration_ms={receipt.duration_ms} vault={receipt.vault_ref or 'pending'}"
+    )
+
+    return updated, receipt
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Store — in-process L1, ready to back to L4 (Supabase) when wired
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -345,16 +590,47 @@ class KernelStateStore:
         self._states: dict[str, KernelState] = {}
         self._event_count: int = 0
         self._consolidation_count: int = 0
+        # Phase 1 guard: tracks the last kernel_transition receipt per session.
+        # save_state() checks this to detect direct mutations outside kernel_transition().
+        self._last_receipt_per_session: dict[str, str] = {}
 
-    def save_state(self, state: KernelState) -> str:
-        """Persist state, return its hash."""
+    def save_state(self, state: KernelState, *, _via_receipt_id: str | None = None) -> str:
+        """
+        Persist state, return its hash.
+
+        Phase 1 guard: if no _via_receipt_id is provided (meaning this save is
+        NOT coming from kernel_transition()), a warning is logged. This is a
+        soft guard — the hard enforcement (rejecting non-gated mutations) will
+        be added in Phase 2 after the system is stable.
+
+        Callers that route through kernel_transition() automatically pass the
+        receipt_id. Direct callers get a warning trace.
+        """
         with self._lock:
+            session_id = state.session_id
+            last_receipt = self._last_receipt_per_session.get(session_id)
+
+            if _via_receipt_id:
+                # Lawful path — coming from kernel_transition()
+                self._last_receipt_per_session[session_id] = _via_receipt_id
+            else:
+                # UNLAWFUL path — direct mutation without kernel_transition()
+                prev_hash = last_receipt or "none"
+                logger.warning(
+                    "[KSR-GUARD] DIRECT KSR MUTATION DETECTED: "
+                    "session=%s state_hash=%s last_receipt=%s "
+                    "Callers MUST route through kernel_transition()",
+                    session_id,
+                    state.state_hash[:24] if state.state_hash else "unset",
+                    prev_hash,
+                )
+
             state.state_hash = state.compute_state_hash()
-            self._states[state.session_id] = state
+            self._states[session_id] = state
             self._event_count += 1
             logger.info(
                 "kernel_state.saved session=%s hash=%s claims=%d hypotheses=%d actions=%d",
-                state.session_id,
+                session_id,
                 state.state_hash[:24],
                 len(state.claims),
                 len(state.hypotheses),
@@ -373,13 +649,26 @@ class KernelStateStore:
         event_type: str,
         payload: dict[str, Any],
     ) -> tuple[KernelState | None, str | None]:
-        """Apply a transition event. Returns (new_state, new_hash) or (None, None) if missing."""
+        """
+        Apply a transition event via kernel_transition().
+        Routes through the sole lawful chokepoint for KSR mutation.
+
+        Returns (new_state, new_hash) or (None, None) if missing.
+        Every transition produces a TransitionReceipt sealed to VAULT999.
+        """
         with self._lock:
             current = self._states.get(session_id)
             if current is None:
                 return None, None
-            updated = current.transition(actor, event_type, payload)
-            self._states[session_id] = updated
+            updated, receipt = kernel_transition(
+                current,
+                caller=actor,
+                event_type=event_type,
+                payload=payload,
+                actor=actor,
+                session_id=session_id,
+            )
+            self.save_state(updated, _via_receipt_id=receipt.receipt_id)
             self._event_count += 1
             return updated, updated.state_hash
 
@@ -449,11 +738,16 @@ def consolidate(state: KernelState) -> KernelState:
         if contra.resolution != "unresolved" and contra.resolved_at:
             summary["demoted_contradictions"] += 1
 
-    return updated.transition(
-        actor="arif_memory_manage",
+    # Route through kernel_transition() for lawful mark
+    consolidated, receipt = kernel_transition(
+        updated,
+        caller="arif_memory_manage",
         event_type="consolidation",
         payload=summary,
+        actor="arif_memory_manage",
+        event_label=f"Consolidated: {summary['merged_claims']} merged, {summary['pruned_resolved']} pruned",
     )
+    return consolidated
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -517,4 +811,5 @@ __all__ = [
     "consolidate",
     "get_state_store",
     "init_state_for_session",
+    "kernel_transition",
 ]

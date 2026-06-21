@@ -9,7 +9,7 @@ from arifosmcp.tools.heart import arif_heart_critique
 from arifosmcp.tools.judge import arif_judge_deliberate
 from arifosmcp.tools.kernel import arif_kernel_route  # soft-deprecated, see kernel_canonical.py
 from arifosmcp.tools.kernel_canonical import (
-    arif_bridge,  # direct organ tool call (bypass intent map)
+    arif_bridge,  # [DEPRECATED] use arif_bridge_connect (direct organ tool call)
     arif_kernel_attest,  # organ attestation (organ param, not name)
     arif_kernel_health,  # federation liveness snapshot
     arif_kernel_status,  # telemetry, discover, prediction
@@ -34,7 +34,8 @@ __all__ = [
     "arif_route",          # replaces arif_kernel_route for routing
     "arif_triage",         # replaces arif_kernel_route(mode=status|preflight|triage)
     "arif_kernel_status",  # replaces arif_kernel_route(mode=telemetry|discover)
-    "arif_bridge",         # replaces arif_kernel_route(mode=bridge)
+    "arif_bridge_connect", # CANONICAL: direct organ tool call (noun_verb convention, forged 2026-06-21)
+    "arif_bridge",         # [DEPRECATED] legacy noun-only name — use arif_bridge_connect
     "arif_kernel_attest",  # replaces arif_kernel_route(mode=attest)
     "arif_kernel_health", # replaces arif_kernel_route(mode=health)
     # ── Legacy (soft-deprecated, still functional) ──

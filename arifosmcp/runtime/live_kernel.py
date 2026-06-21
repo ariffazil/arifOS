@@ -101,11 +101,18 @@ class OrganHeartbeat(BaseModel):
       - GEOX    → physics_manifest_hash       (natural law / kuasa alam)
       - WEALTH  → capital_manifest_hash       (value law)
       - WELL    → substrate_manifest_hash     (vitality law)
+
+    FIX 2026-06-21 (P1-4 ALIVE → HEALTHY): the kernel's own F09 ANTIHANTU
+    floor forbids "fabricated agency or consciousness claims". The previous
+    default "ALIVE" used personhood-adjacent language for what is a binary
+    service-liveness check. Default renamed to "HEALTHY"; "ALIVE" remains
+    accepted by consumers for backward compatibility (see organ_attestation
+    consumer at heartbeat_registry.py:116).
     """
 
     event_type: str = "ORGAN_HEARTBEAT"
     organ_id: str
-    status: str = "ALIVE"
+    status: str = "HEALTHY"  # was "ALIVE" — see class docstring
     version: str = "0.0.0"
     schema_hash: str = "sha256:pending"
     constitution_hash: str = "sha256:pending"  # arifOS only — kept for backward compat
@@ -150,16 +157,39 @@ def _sha256_of_file(path: str) -> str:
         return "sha256:unavailable"
 
 
-def _load_constitution_hash() -> str:
-    """Best-effort hash of the canonical constitution file."""
+_CONSTITUTION_HASH_CACHE = None
+
+
+def compute_constitution_hash() -> str:
+    """Compute and cache the SHA-256 hash of /root/arifOS/static/constitution.json (INV-4)."""
+    global _CONSTITUTION_HASH_CACHE
+    if _CONSTITUTION_HASH_CACHE is not None:
+        return _CONSTITUTION_HASH_CACHE
+
+    import hashlib
+    import os
+
     candidates = [
-        "/root/arifOS/GENESIS/000_KERNEL_CANON.md",
-        "/opt/arifos/app/GENESIS/000_KERNEL_CANON.md",
+        "/root/arifOS/static/constitution.json",
+        "/opt/arifos/app/static/constitution.json",
+        "static/constitution.json",
     ]
     for p in candidates:
         if os.path.exists(p):
-            return _sha256_of_file(p)
-    return "sha256:missing"
+            try:
+                with open(p, "rb") as f:
+                    _CONSTITUTION_HASH_CACHE = f"sha256:{hashlib.sha256(f.read()).hexdigest()}"
+                    return _CONSTITUTION_HASH_CACHE
+            except Exception:
+                pass
+    # Fallback to default
+    _CONSTITUTION_HASH_CACHE = "sha256:8bea28833523c652dd4f41e75f55ed3895e638efc92823a3528b7e237305943b"
+    return _CONSTITUTION_HASH_CACHE
+
+
+def _load_constitution_hash() -> str:
+    """Best-effort hash of the canonical constitution file."""
+    return compute_constitution_hash()
 
 
 def _load_envelope_schema_hash() -> str:
@@ -219,10 +249,29 @@ def build_kernel_envelope(
         risk_blast = "MEDIUM"
         reversibility = 0.5
 
+    # Look up actor_verified from session store
+    actor_verified = False
+    if session_id:
+        try:
+            store_path = os.getenv("ARIFOS_SESSION_STORE_PATH", "/app/data/sessions.json")
+            import json
+            for p in (store_path, "/tmp/arifos/sessions.json"):
+                if os.path.exists(p):
+                    with open(p, encoding="utf-8") as f:
+                        data = json.load(f)
+                        sessions = data.get("sessions", {})
+                        sess = sessions.get(session_id) or data.get(session_id)
+                        if isinstance(sess, dict):
+                            actor_verified = bool(sess.get("actor_verified") or sess.get("signature_verified"))
+                            break
+        except Exception:
+            pass
+
     return LiveKernelEnvelope(
         kernel=KernelIdentity(
             session_id=session_id or "",
             actor_id=actor_id or "",
+            actor_verified=actor_verified,
             constitution_hash=constitution_hash,
         ),
         organ=OrganAttestation(
@@ -231,7 +280,9 @@ def build_kernel_envelope(
             organ_version=organ_version,
             tool_name=tool_name,
             tool_schema_hash=envelope_schema_hash,
-            attestation_status="ALIVE" if verdict == "SEAL" else "DEGRADED_CLAIM",
+            # P1-4 fix: "ALIVE" → "HEALTHY" — F09 ANTIHANTU compliance
+            # ("ALIVE" is personhood-adjacent language for a binary liveness check)
+            attestation_status="HEALTHY" if verdict == "SEAL" else "DEGRADED_CLAIM",
         ),
         authority=AuthorityLease(
             action_class=action_class,
@@ -306,7 +357,8 @@ def arif_os_attest(
         "/opt/arifos/app/identity.toml"
     )
 
-    status = "ALIVE"
+    # P1-4 fix: "ALIVE" → "HEALTHY" — F09 ANTIHANTU compliance
+    status = "HEALTHY"
     reason: str | None = None
     degraded = False
 

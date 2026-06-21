@@ -10,7 +10,7 @@ import os
 from typing import Any
 
 # Determine backend version
-MEMORY_BACKEND_VERSION = os.getenv("MEMORY_BACKEND_VERSION", "v1")
+MEMORY_BACKEND_VERSION = os.getenv("MEMORY_BACKEND_VERSION", "v2")
 
 
 class MemoryBackend:

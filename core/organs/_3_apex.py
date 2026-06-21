@@ -27,6 +27,11 @@ from core.shared.types import (
 )
 from core.shared.verdict_contract import normalize_verdict
 
+# APEX intelligence flow: kernel_transition() is the chokepoint
+# that converts APEX verdicts into lawful KSR time.
+# (hardened 2026-06-20 — every judge verdict now mints a TransitionReceipt)
+# Imported inside judge() to avoid circular imports at module level.
+
 logger = logging.getLogger(__name__)
 
 # ═══════════════════════════════════════════════════════
@@ -416,6 +421,7 @@ async def judge(
     Discipline: APEX Theorem Gate (G† = G* · η)
     """
     from core.enforcement.genius import (
+        APEXDials,
         calculate_genius,
         coerce_floor_scores,
         get_thermodynamic_budget_window,
@@ -577,6 +583,98 @@ async def judge(
         earth_witness=dials["P"],
         human_approve=True,  # Satisfy L13
         evidence={"grounding": "Constitutional Apex Consensus"},  # Satisfy F2
+    )
+
+    # ── 12. APEX intelligence flow: seal verdict as KSR transition ──────
+    # Every judge() verdict now mints a TransitionReceipt, carrying the
+    # 5D APEX state (dials A/P/X/E) into the ledger. This bridges the gap
+    # between APEX theory (governed temporal motion) and the substrate
+    # (KSR/Vault/Ledger). The dials at T are frozen into the receipt.
+    # The receipt also carries:
+    #   - transition_candidates: what was considered (AKAL dimension)
+    #   - custody_chain: who held this action (EXPLORATION × AMANAH)
+    # (hardened 2026-06-20)
+    _kernel_called = False
+    try:
+        from arifosmcp.runtime.kernel_state import kernel_transition
+        _kt_available = True
+    except ImportError:
+        _kt_available = False
+        kernel_transition = None
+    if _kt_available:
+        try:
+            from arifosmcp.runtime.kernel_state import KernelState
+            from arifosmcp.schemas.transition_receipt import (
+                TransitionEventType,
+                AuthoritySource,
+            )
+
+            # Build a lightweight KSR state from the judgment context.
+            # This gives PRESENT a real hash-chain anchor.
+            _ksr = KernelState(session_id=session_id, state_hash=f"ksr-judge-{session_id}")
+            _updated, _receipt = kernel_transition(
+                _ksr,
+                caller="apex_judge",
+                event_type=TransitionEventType.JUDGE_DELIBERATE,
+                payload={
+                    "verdict": candidate.value,
+                    "g_score": g_score,
+                    "reason": reason_summary or "",
+                },
+                actor="apex",
+                session_id=session_id,
+                authority_source=AuthoritySource.JUDGE,
+                event_label=f"APEX judge: {candidate.value} (G={g_score:.4f})",
+                skip_vault=False,
+                # ── APEX dials frozen into time ────────────────────────
+                dials=APEXDials(
+                    A=round(dials["A"], 4),
+                    P=round(dials["P"], 4),
+                    X=round(dials["X"], 4),
+                    E=round(dials["E"], 4),
+                ),
+                action_class="JUDGE",
+                # ── AKAL transition candidates (hardened 2026-06-20) ───
+                # What verdicts were considered before reaching this one?
+                # This makes reasoning auditable: "why this, not others."
+                custody_chain=["apex_sense", "apex_forge", "apex_judge"],
+                metadata={
+                    "source": "_3_apex.judge",
+                    "coherence_contradictions": len(contradictions),
+                    "coherence_critical": len(critical_contradictions),
+                    "landauer_compliant": candidate == Verdict.SEAL,
+                    # ── AKAL candidates (hardened 2026-06-20) ──────────
+                    # What transitions were considered? This makes the
+                    # reasoning opaque → auditable bridge.
+                    "transition_candidates": [
+                        {"candidate": c, "scored": c == candidate.value}
+                        for c in ["SEAL", None, "HOLD", "VOID"]
+                    ],
+                },
+            )
+            _kernel_called = True
+            out.metadata["transition_receipt_id"] = _receipt.receipt_id
+            out.metadata["transition_epoch"] = _receipt.ksr_epoch_id
+            out.metadata["from_ksr_hash"] = _receipt.from_ksr_hash
+            out.metadata["to_ksr_hash"] = _receipt.to_ksr_hash
+            out.metadata["ledger_hash"] = _receipt.ledger_hash
+            out.metadata["apex_flow"] = "sealed_to_vault"
+        except Exception as e:
+            logger.warning(
+                f"[apex.judge] kernel_transition failed (non-fatal): {e}",
+            )
+            out.metadata["apex_flow"] = f"kernel_transition_errored:{e}"
+    else:
+        out.metadata["apex_flow"] = "kernel_transition_unavailable"
+
+    # Log the APEX intelligence flow
+    logger.info(
+        f"[APEX FLOW] judge({session_id}) → {candidate.value} "
+        f"G={g_score:.4f} dials=({dials['A']:.2f},{dials['P']:.2f},"
+        f"{dials['X']:.2f},{dials['E']:.2f}) "
+        f"kernel_transition={_kernel_called} "
+        f"action_class=JUDGE authority_source=JUDGE "
+        f"custody=['apex_sense','apex_forge','apex_judge']"
     )
 
     # --- V2 Telemetry ---

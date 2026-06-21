@@ -277,7 +277,8 @@ class VaultDB:
                    WHERE event_type = 'SOVEREIGN_SEAL' OR event_type IS NULL
                    ORDER BY epoch DESC LIMIT 1"""
             )
-            prev_seal_id = prev_row["id"] if prev_row else None
+            # prev_seal_id is VARCHAR in DB — cast to string
+            prev_seal_id = str(prev_row["id"]) if prev_row else None
             prev_seal_hash = prev_row["seal_hash"] if prev_row else None
 
             epoch_val = (
@@ -341,7 +342,8 @@ class VaultDB:
                 """SELECT id, seal_hash, chain_hash FROM vault_seals
                    ORDER BY epoch DESC LIMIT 1"""
             )
-            prev_seal_id = prev_row["id"] if prev_row else None
+            # prev_seal_id is VARCHAR in DB — cast to string
+            prev_seal_id = str(prev_row["id"]) if prev_row else None
             prev_seal_hash = prev_row["seal_hash"] if prev_row else None
 
             created_at = (
@@ -394,6 +396,87 @@ class VaultDB:
             )
             log.info(
                 f"AUDIT_RECEIPT written: id={row['id']}, action={req.action}, seal_hash={seal_hash[:16]}"
+            )
+            return dict(row)
+
+    async def write_transition(self, req: AuditReceiptRequest) -> dict:
+        """
+        INSERT a KSR_TRANSITION event into vault_seals.
+        Called ONLY by kernel_transition() via the /transition endpoint.
+        Internal — not an MCP surface.
+        """
+        GENESIS_CHAIN_HASH = "9dab04abd3e39c3d5ae90f9f90f838f17403208e24b852007c757773e8f36d43"  # pragma: allowlist secret
+
+        async with self.pool.acquire() as conn:
+            # Chain to most recent seal
+            prev_row = await conn.fetchrow(
+                """SELECT id, seal_hash, chain_hash FROM vault_seals
+                   ORDER BY epoch DESC LIMIT 1"""
+            )
+            prev_seal_id: str | None = str(prev_row["id"]) if prev_row else None
+            prev_seal_hash: str | None = prev_row["seal_hash"] if prev_row else None
+
+            created_at = (
+                datetime.fromisoformat(req.created_at)
+                if req.created_at
+                else datetime.now(timezone.utc)
+            )
+            prev_chain_hash = prev_row["chain_hash"] if prev_row else GENESIS_CHAIN_HASH
+
+            payload = dict(req.payload)
+            seal_hash = compute_seal_hash(prev_chain_hash, req.action, created_at, payload)
+            chain_hash = compute_chain_hash(prev_seal_hash or GENESIS_CHAIN_HASH, seal_hash)
+
+            # Column order in vault_seals table (Supabase):
+            # 1=id(SERIAL), 2=record_id(UUID), 3=seal_hash, 4=prev_seal_id,
+            # 5=agent_id, 6=action, 7=payload, 8=confidence, 9=epoch,
+            # 10=created_at, 11=verdict, 12=timestamp, 13=floors_triggered,
+            # 14=data, 15=chain_hash, 16=witness, 17=cooling_id,
+            # 18=event_type, 19=session_id, 20=actor_id, 21=action_type,
+            # 22=signature, 23=signed_by, 24=sealed_at
+            row = await conn.fetchrow(
+                """
+                INSERT INTO vault_seals (
+                    record_id, seal_hash, prev_seal_id, agent_id,
+                    action, payload, epoch, created_at, verdict,
+                    chain_hash, witness, event_type, session_id,
+                    actor_id, action_type, signature, signed_by, sealed_at
+                ) VALUES (
+                    gen_random_uuid(), $1, $2, $3,
+                    $4, $5, $6, $6, $7,
+                    $8, $9, $10, $11,
+                    $3, $12, $13, $14, $6
+                )
+                RETURNING id, seal_hash, chain_hash, epoch
+            """,
+                seal_hash,                    # $1
+                prev_seal_id,                 # $2
+                req.agent_id,                 # $3  (agent_id + actor_id)
+                req.action,                   # $4
+                json.dumps(payload),          # $5
+                created_at,                   # $6  (epoch + created_at + sealed_at)
+                req.claim_state or "SEAL",    # $7  (verdict)
+                chain_hash,                   # $8
+                json.dumps({                  # $9  (witness)
+                    "receipt_id": payload.get("receipt_id"),
+                    "event_type": payload.get("event_type"),
+                    "caller": payload.get("caller"),
+                    "ksr_epoch_id": payload.get("ksr_epoch_id"),
+                    "payload_summary": req.payload_summary,
+                    "binding": False,
+                    "irreversible": False,
+                }),
+                "KSR_TRANSITION",             # $10 (event_type)
+                req.session_id,               # $11 (session_id)
+                "ksr_transition",             # $12 (action_type)
+                "kernel_transition",          # $13 (signature)
+                req.agent_id,                 # $14 (signed_by)
+            )
+            log.info(
+                f"KSR_TRANSITION written: id={row['id']}, "
+                f"receipt_id={payload.get('receipt_id', '?')}, "
+                f"event_type={payload.get('event_type', '?')}, "
+                f"seal_hash={seal_hash[:16]}"
             )
             return dict(row)
 
@@ -634,6 +717,31 @@ async def create_audit_receipt(req: AuditReceiptRequest, _auth=Depends(verify_wr
         raise
     except Exception as e:
         log.error(f"audit-receipt failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/transition")
+async def create_transition(req: AuditReceiptRequest, _auth=Depends(verify_writer_token)):
+    """
+    INTERNAL: Write a KSR TransitionReceipt to vault_seals.
+    Called ONLY by kernel_transition() via seal_transition().
+    NOT an MCP endpoint — kernel-internal only.
+
+    Uses dedicated write_transition() method for KSR_TRANSITION event_type
+    to distinguish from SOVEREIGN_SEAL / AUDIT_RECEIPT.
+    """
+    if req.binding:
+        raise HTTPException(status_code=403, detail="Transition receipt cannot be binding")
+    if req.irreversible:
+        raise HTTPException(status_code=403, detail="Transition receipt cannot be irreversible")
+
+    try:
+        result = await db.write_transition(req)
+        return {"success": True, "event_type": "KSR_TRANSITION", **result}
+    except HTTPException:
+        raise
+    except Exception as e:
+        log.error(f"transition failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

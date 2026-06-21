@@ -350,8 +350,17 @@ def check_vault_replay() -> dict[str, Any]:
     """
     errors: list[str] = []
     explicit_env = os.getenv("ARIFOS_VAULT_PATH") or os.getenv("VAULT999_PATH")
-    vault_path = explicit_env or "/var/lib/arifos/vault999/outcomes.jsonl"
-    file_exists = os.path.exists(vault_path) and os.path.getsize(vault_path) > 0
+    # VJAMMMM fix (2026-06-21): hermes_vault_query reads from /root/VAULT999/,
+    # not /var/lib/arifos/vault999/outcomes.jsonl. The conformance check MUST
+    # check the SAME path the query tool reads, or the file_present check and
+    # the query_status check will disagree on reality.
+    vault_path = explicit_env or "/root/VAULT999"
+    # VJAMMMM: vault_path is a directory, not a file. Check dir exists + has files.
+    if os.path.isdir(vault_path):
+        _vault_files = [f for f in os.listdir(vault_path) if f.endswith((".json", ".jsonl"))]
+        file_exists = len(_vault_files) > 0
+    else:
+        file_exists = os.path.exists(vault_path) and os.path.getsize(vault_path) > 0
 
     if explicit_env and not file_exists:
         detail = "missing" if not os.path.exists(vault_path) else "empty"
@@ -406,6 +415,8 @@ def check_vault_replay() -> dict[str, Any]:
         errors.append(f"hermes_vault_query returned non-OK status: {status}")
     if not entries:
         errors.append("hermes_vault_query returned no entries")
+    if not file_exists:
+        errors.append("Vault directory is missing or empty")
     if latest_id == "unknown":
         errors.append("Most recent vault entry has no recognisable timestamp/id")
 

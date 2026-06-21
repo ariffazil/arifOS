@@ -592,7 +592,7 @@ class GateResult(BaseModel):
     @property
     def is_blocked(self) -> bool:
         """Whether the gate blocks this action."""
-        return self.verdict in {GateVerdict.HOLD, GateVerdict.VOID}
+        return self.verdict in {GateVerdict.HOLD, GateVerdict.VOID, GateVerdict.REJECT}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

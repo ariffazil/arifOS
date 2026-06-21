@@ -200,6 +200,59 @@ CANONICAL_HEALTH_ENDPOINT = "https://mcp.arif-fazil.com/health"
 CANONICAL_READY_ENDPOINT = "https://mcp.arif-fazil.com/ready"
 HUMAN_LANDING = "https://arifos.arif-fazil.com/"
 
+# C2-5 fix (2026-06-21): the previous human-landing URL was being served
+# as an MCP endpoint by some platform harnesses (e.g. the agent that hit
+# `arifos.arif-fazil.com/mcp` instead of `mcp.arif-fazil.com/mcp`).
+# These are the DEPRECATED MCP endpoints — listed so the kernel can
+# detect when a client is pointed at the wrong host and surface the
+# canonical URL in the response.
+#
+# NOTE: `arifos.arif-fazil.com` is still the canonical HUMAN LANDING
+# (marketing/docs surface, not MCP). Only the /mcp path on that host is
+# deprecated as an MCP endpoint.
+DEPRECATED_ENDPOINTS: tuple[str, ...] = (
+    "https://arifos.arif-fazil.com/mcp",
+    "https://arifos.arif-fazil.com/sse",
+    "http://arifos.arif-fazil.com:8088/mcp",
+)
+
+# C2-6 fix (2026-06-21): MCP spec version pin. Previously `_MCP_SPEC_VERSION`
+# in tools.py was "2025-11-25" but `PEER_SOVEREIGNS.arifos.protocol_version`
+# was "2025-03-26" — two declared canonicals. Pin:
+#   - CANONICAL: the version this server declares in its initialize response
+#   - PREFERRED: the version clients SHOULD use going forward
+#   - SUPPORTED: both versions still work (for backward compat)
+# Both versions are accepted at the wire; 2025-11-25 is preferred for new clients.
+MCP_SPEC_VERSION_CANONICAL = "2025-11-25"
+MCP_SPEC_VERSION_PREFERRED = "2025-11-25"
+MCP_SPEC_VERSION_LEGACY = "2025-03-26"
+MCP_SPEC_VERSIONS_SUPPORTED = ("2025-11-25", "2025-03-26")
+
+
+def canonical_mcp_endpoint() -> str:
+    """Return the single canonical MCP endpoint. C2-5 invariant.
+
+    Every component that needs to advertise an MCP URL MUST call this
+    function rather than hardcoding. Use this for:
+      - tools/list responses
+      - initialize response
+      - any documentation generator
+      - any client-side redirect hint
+    """
+    return CANONICAL_MCP_ENDPOINT
+
+
+def deprecated_endpoint_redirect_hint(received_url: str | None) -> str | None:
+    """If the client hit a deprecated URL, return the canonical redirect target.
+
+    Returns None if `received_url` is canonical or unrecognized.
+    """
+    if not received_url:
+        return None
+    if received_url in DEPRECATED_ENDPOINTS:
+        return CANONICAL_MCP_ENDPOINT
+    return None
+
 # Peer sovereign processors — peer intelligences, NOT sub-tools of arifOS.
 # Each has its own governance floor, MCP transport, and update cycle.
 PEER_SOVEREIGNS: dict[str, dict[str, Any]] = {

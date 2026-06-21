@@ -185,6 +185,32 @@ class HardenedKernelRouter:
         # Route as default
         return "arifos.kernel"
 
+    # Mapping from legacy router tool names → canonical arif_* names
+    LEGACY_TO_CANONICAL: dict[str, str] = {
+        "arifos.init": "arif_session_init",
+        "arifos_init": "arif_session_init",
+        "arifos.sense": "arif_sense_observe",
+        "arifos_sense": "arif_sense_observe",
+        "arifos.mind": "arif_mind_reason",
+        "arifos_mind": "arif_mind_reason",
+        "arifos.memory": "arif_memory_recall",
+        "arifos_memory": "arif_memory_recall",
+        "arifos.forge": "arif_forge_execute",
+        "arifos_forge": "arif_forge_execute",
+        "arifos.vault": "arif_vault_seal",
+        "arifos_vault": "arif_vault_seal",
+        "arifos.heart": "arif_heart_critique",
+        "arifos_heart": "arif_heart_critique",
+        "arifos.ops": "arif_ops_measure",
+        "arifos_ops": "arif_ops_measure",
+        "arifos.judge": "arif_judge_deliberate",
+        "arifos_judge": "arif_judge_deliberate",
+        "arifos.kernel": "arif_kernel_route",
+        "arifos_kernel": "arif_kernel_route",
+        "arifos.route": "arif_kernel_route",
+        "arifos_route": "arif_kernel_route",
+    }
+
     async def _invoke_tool_with_governance(
         self,
         tool_name: str,
@@ -193,7 +219,12 @@ class HardenedKernelRouter:
         session_id: str | None,
         context: dict[str, Any],
     ) -> RuntimeEnvelope:
-        """Invoke tool with full ToM requirements."""
+        """Invoke tool with full constitutional governance.
+
+        HOLD-1a (2026-06-21): All tool invocations now pass through
+        pre_execution_gate before handler dispatch. Previously this method
+        called tool handlers directly, bypassing the canonical gate.
+        """
 
         # Import tools dynamically to avoid circular deps
         from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS, get_tool_handler
@@ -223,6 +254,71 @@ class HardenedKernelRouter:
                     "tom_violation": False,
                 },
             )
+
+        # ── HOLD-1a: Pre-execution gate BEFORE handler dispatch ─────────────
+        # Every tool invocation must pass through the constitutional chokepoint.
+        # This closes the legacy bypass where kernel_router called handlers
+        # directly without KernelEnvelope or pre_execution_gate.
+        try:
+            from arifosmcp.schemas.kernel_envelope import ActionClass
+            from arifosmcp.runtime.pre_execution_gate import quick_gate
+
+            canonical_name = self.LEGACY_TO_CANONICAL.get(tool_name, tool_name)
+            # Determine action class: init/session = observe; forge/vault = mutate
+            if tool_name in (
+                "arifos.init", "arifos_init",
+                "arifos.sense", "arifos_sense",
+                "arifos.mind", "arifos_mind",
+                "arifos.memory", "arifos_memory",
+                "arifos.heart", "arifos_heart",
+                "arifos.ops", "arifos_ops",
+                "arifos.judge", "arifos_judge",
+                "arifos.kernel", "arifos_kernel",
+                "arifos.route", "arifos_route",
+            ):
+                action_class = ActionClass.OBSERVE
+            elif tool_name in ("arifos.forge", "arifos_forge"):
+                action_class = ActionClass.MUTATE
+            elif tool_name in ("arifos.vault", "arifos_vault"):
+                action_class = ActionClass.IRREVERSIBLE
+            else:
+                action_class = ActionClass.OBSERVE
+
+            gate_result = quick_gate(
+                action_class=action_class,
+                actor_verified=(actor_id != "anonymous"),
+                tool_name=canonical_name,
+            )
+
+            if gate_result.is_blocked:
+                logger.warning(
+                    "kernel_router gate BLOCKED: tool=%s canonical=%s action=%s reasons=%s",
+                    tool_name, canonical_name, action_class.value, gate_result.reasons,
+                )
+                return RuntimeEnvelope(
+                    tool=tool_name,
+                    stage="555_ROUTE",
+                    status=RuntimeStatus.ERROR,
+                    verdict=Verdict.VOID,
+                    session_id=session_id,
+                    payload={
+                        "ok": False,
+                        "error": "Constitutional gate blocked execution",
+                        "gate_verdict": gate_result.verdict.value,
+                        "gate_reasons": gate_result.reasons,
+                        "gate_violations": gate_result.violations,
+                        "tool_name": tool_name,
+                        "canonical_name": canonical_name,
+                        "action_class": action_class.value,
+                        "query": query,
+                    },
+                )
+        except ImportError:
+            logger.warning(
+                "pre_execution_gate unavailable in kernel_router — "
+                "proceeding without gate (fail-open for legacy path)"
+            )
+        # ── end HOLD-1a gate ────────────────────────────────────────────
 
         # Build payload with ToM fields if not present
         payload = dict(context.get("payload", {}) or {})
@@ -341,10 +437,11 @@ async def process_query(
     context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
-    MAIN ENTRY POINT for query processing.
+    Legacy query processing entry point — NOW ROUTED THROUGH PRE_EXECUTION_GATE.
 
-    This is the ONLY way to process queries with proper governance.
-    All other paths are considered bypass attempts.
+    HOLD-1a (2026-06-21): All tool invocations pass through quick_gate before
+    handler dispatch. The canonical execution path is GovernedAgentLoop.execute().
+    This router is retained for backward compatibility with keyword-based dispatch.
     """
     router = get_router()
     return await router.route(query, actor_id, session_id, context)

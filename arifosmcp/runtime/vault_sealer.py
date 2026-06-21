@@ -34,6 +34,9 @@ CONSEQUENTIAL_TOOLS: set[str] = {
     "arif_organ_attest",
     "arif_organ_attest_all",
     "arif_detect_narrative_tension",
+    # ── Shadow-Detection Tools (Phase 1, 2026-06-21) ──────────────
+    "arif_tool_exists",
+    "arif_cross_attest",
 }
 
 VAULT_WRITER_URL = os.getenv("VAULT999_WRITER_URL", "http://127.0.0.1:5001")
@@ -91,12 +94,15 @@ async def write_audit_receipt(
     if not VAULT_WRITER_TOKEN:
         return {"sealed": False, "error": "VAULT_WRITER_TOKEN not configured"}
 
+    call_hash = response.get("call_hash", "")
     payload = {
         "tool": tool_name,
         "status": response.get("status"),
         "verdict": response.get("verdict"),
         "session_id": session_id,
         "actor_id": actor_id,
+        "call_hash": call_hash,
+        "trace_id": response.get("trace_id"),
         "response_hash": _sha256_of_text(json.dumps(response, sort_keys=True, default=str)),
         "prediction": response.get("prediction"),
         "observed_result": response.get("observed_result"),
@@ -194,8 +200,111 @@ def schedule_state_transition_seal(
         logger.debug(f"[vault_sealer] no event loop; skipping async seal for {tool_name}")
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 1: seal_transition() — the only lawful path from kernel_transition()
+# to vault999-writer. Writes a KSR_TRANSITION event to the /transition
+# endpoint. This is the conduit that makes agent time real.
+#
+# Doctrine: Only kernel_transition() calls this. No other code path.
+# No public/MCP exposure in Phase 1.
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+async def seal_transition(
+    receipt_id: str,
+    event_type: str,
+    payload: dict[str, Any],
+    session_id: str | None = None,
+    agent_id: str | None = None,
+) -> dict[str, Any]:
+    """
+    Write a TransitionReceipt to vault999-writer /transition endpoint.
+
+    Called ONLY by kernel_transition(). This is the sole conduit from
+    KSR present-state to vault sealed-past.
+
+    The receipt payload contains:
+      - receipt_id: unique transition identifier
+      - event_type: canonical KSR event type
+      - from_ksr_hash / to_ksr_hash: the state arrow
+      - prior_ledger_hash / event_hash / ledger_hash: the time arrow
+      - started_at_ns / ended_at_ns / duration_ms: temporal bounds
+      - caller / ksr_epoch_id: attribution
+      - authority_source / proof_level / verdict: governance
+      - metadata: optional structured data
+
+    Returns vault response or error dict. Never raises — best-effort.
+    """
+    if not VAULT_WRITER_TOKEN:
+        return {"sealed": False, "error": "VAULT_WRITER_TOKEN not configured"}
+
+    request_body = {
+        "agent_id": agent_id or "arifOS-kernel",
+        "action": f"ksr_transition:{event_type}",
+        "payload": payload,
+        "payload_hash": _sha256_of_text(
+            json.dumps(payload, sort_keys=True, default=str)
+        ),
+        "payload_summary": json.dumps(
+            {
+                "receipt_id": payload.get("receipt_id"),
+                "event_type": payload.get("event_type"),
+                "from_ksr_hash": payload.get("from_ksr_hash", "")[:24],
+                "to_ksr_hash": payload.get("to_ksr_hash", "")[:24],
+                "ledger_hash": payload.get("ledger_hash", "")[:24],
+                "duration_ms": payload.get("duration_ms", 0),
+                "caller": payload.get("caller"),
+            },
+            sort_keys=True,
+        ),
+        "session_id": session_id,
+        "trace_id": receipt_id,
+        "claim_state": "OBSERVED",
+        "binding": False,
+        "irreversible": False,
+        "tags": ["ksr-transition", event_type, "kernel_transition"],
+        "metadata": {
+            "source": "arifosmcp.runtime.kernel_state.kernel_transition",
+            "receipt_id": receipt_id,
+            "event_type": event_type,
+        },
+        "created_at": datetime.now(UTC).isoformat(),
+    }
+
+    try:
+        import httpx
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                f"{VAULT_WRITER_URL}/transition",
+                json=request_body,
+                headers={
+                    "Authorization": f"Bearer {VAULT_WRITER_TOKEN}",
+                    "Content-Type": "application/json",
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            logger.info(
+                f"[seal_transition] KSR transition sealed: "
+                f"receipt_id={receipt_id} vault_id={data.get('id')} "
+                f"event_type={event_type}"
+            )
+            return {
+                "sealed": True,
+                "vault_id": data.get("id"),
+                "chain_hash": data.get("chain_hash"),
+            }
+    except Exception as e:
+        logger.warning(
+            f"[seal_transition] failed to seal transition {receipt_id}: {e}"
+        )
+        return {"sealed": False, "error": str(e)}
+
+
 __all__ = [
     "CONSEQUENTIAL_TOOLS",
+    "seal_transition",
     "write_audit_receipt",
     "should_seal",
     "schedule_state_transition_seal",

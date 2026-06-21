@@ -12,14 +12,15 @@ Sequence:
   3. Identify actor
   4. Classify intent into action class
   5. Build KernelEnvelope
-  6. Run pre_execution_gate
-  7. If SEAL/SABAR → route to tool
-  8. If HOLD → stop and return reasons
-  9. Wrap tool call with envelope
-  10. Capture result
-  11. Update audit trail
-  12. Re-check gate before every next action
-  13. Return final answer with verdict and evidence
+  6. Check memory access governance
+  7. Run pre_execution_gate (the bridge — ART reflex + Floors + lease + drift)
+  8. If SEAL/SABAR → route to tool
+  9. If HOLD → stop and return reasons
+  10. Execute tool (only if gate passed)
+  11. Record audit event with hash chain
+  12. Update state for next call
+  13. Re-check gate before every next action
+  14. Return final answer with verdict and evidence
 
 DITEMPA BUKAN DIBERI — The loop is forged, not given.
 """

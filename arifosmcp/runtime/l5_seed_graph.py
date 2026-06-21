@@ -35,7 +35,7 @@ from datetime import UTC, datetime
 FALKOR_HOST = os.getenv("FALKOR_HOST", "localhost")
 FALKOR_PORT = int(os.getenv("FALKOR_PORT", "6380"))
 FALKOR_GRAPH = os.getenv("FALKOR_GRAPH", "arif_l5_knowledge")
-VAULT999_PATH = os.getenv("VAULT999_PATH", "/root/VAULT999/outcomes.jsonl")
+VAULT999_PATH = os.getenv("VAULT999_PATH", "/root/arifOS/VAULT999/SEALED_EVENTS_v2.jsonl")
 DRY_RUN = os.getenv("L5_SEED_DRY_RUN", "false").lower() == "true"
 
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -11,7 +11,8 @@ Canonical tools (stable names):
   arif_route        — route intent to organ (new canonical routing entry point)
   arif_triage       — session status, priority, preflight
   arif_kernel_status — telemetry, discovery, prediction health
-  arif_bridge       — direct organ tool call (bypasses intent map, use sparingly)
+  arif_bridge_connect — direct organ tool call (canonical noun_verb name, forged 2026-06-21)
+  arif_bridge       — [DEPRECATED] legacy noun-only name, retained for backward compat
 
 Soft-deprecated (still work, emit warning):
   arif_kernel_route — absorbs all old modes via passthrough
@@ -369,8 +370,11 @@ def arif_kernel_status(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# CANONICAL TOOL 4: arif_bridge (low-level organ call)
+# CANONICAL TOOL 4: arif_bridge_connect / arif_bridge (low-level organ call)
 # ═══════════════════════════════════════════════════════════════════════════════
+# arif_bridge_connect (CANONICAL, forged 2026-06-21): follows arif_<noun>_<verb> convention.
+# arif_bridge: [DEPRECATED] legacy noun-only name — functionally identical,
+#   retained for backward compatibility. Both call the same implementation.
 
 def arif_bridge(
     organ: str,

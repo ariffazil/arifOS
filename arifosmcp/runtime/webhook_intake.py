@@ -163,7 +163,7 @@ def _revoked_approval_key_ids() -> set[str]:
 
 
 def _vault_path() -> Path:
-    return Path(os.environ.get("VAULT999_PATH", os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"))
+    return Path(os.environ.get("VAULT999_PATH", "/root/arifOS/VAULT999/SEALED_EVENTS_v2.jsonl"))
 
 
 def verify_signature(

@@ -401,20 +401,30 @@ def arif_ping(
     tags={"canary", "transport-probe", "diagnostic", "read-only"},
 )
 def arif_schema_echo(
-    payload: Any = None,
+    payload: dict | str | list | None = None,
     _envelope: dict[str, Any] | None = None,
     client_capabilities: dict[str, Any] | None = None,
 ) -> dict:
-    """Echo diagnostic — returns what client sent for shape comparison."""
+    """Echo diagnostic — returns what client sent for shape comparison.
+
+    FIX (2026-06-21): Changed payload type from `Any` to `dict | str | list | None`.
+    `Any` generated an empty JSON Schema (no `type` field), causing FastMCP/MCP
+    clients to strip the parameter to None — the conformance spine's
+    `schema_echo_stable` check FAILed because payload arrived as NoneType.
+    Concrete union types generate a proper anyOf schema.
+    """
     import json
 
     params = payload if isinstance(payload, dict) else {}
-    received_keys = sorted(params.keys())
-    type_map = {k: type(v).__name__ for k, v in params.items()}
-    raw_dump = json.dumps(params, default=str)[:2000]
+    received_keys = sorted(params.keys()) if isinstance(payload, dict) else []
+    type_map = {k: type(v).__name__ for k, v in params.items()} if isinstance(payload, dict) else {}
+    raw_dump = json.dumps(params, default=str)[:2000] if isinstance(payload, dict) else str(payload)[:2000]
     return {
         "ok": True,
         "probe": "schema_echo",
+        "echo": payload,
+        "received_type": type(payload).__name__,
+        "received_repr": repr(payload)[:2000],
         "received_keys": received_keys,
         "key_count": len(received_keys),
         "type_map": type_map,
@@ -568,7 +578,7 @@ try:
         tags={"canary", "read-only", "diagnostic", "transport"},
     )
     def arif_schema_echo(  # noqa: F811
-        payload: Any = None,
+        payload: dict | str | list | None = None,
         _envelope: dict[str, Any] | None = None,
         client_capabilities: dict[str, Any] | None = None,
     ) -> dict:

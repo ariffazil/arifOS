@@ -25,13 +25,28 @@ from pathlib import Path
 
 
 def get_constitution_hash() -> str:
-    """Get the canonical constitution_hash from FLOOR_SPEC (same as MCP verifier)."""
+    """Get the canonical constitution_hash from KERNEL_CANON file (or fallback to FLOOR_SPEC)."""
+    import os
     import hashlib
 
+    # Try loading from the file first (same as live_kernel.py)
+    candidates = [
+        "/root/arifOS/GENESIS/000_KERNEL_CANON.md",
+        "/opt/arifos/app/GENESIS/000_KERNEL_CANON.md",
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            try:
+                with open(p, "rb") as f:
+                    return f"sha256:{hashlib.sha256(f.read()).hexdigest()}"
+            except Exception:
+                pass
+
+    # Fallback to the hardcoded floor spec hash
     FLOOR_SPEC = (  # noqa: N806
         "F1: Amanah, F2: Truth, F3: Tri-Witness, F4: Clarity, "
-        "F5: Peace, F6: Empathy, F7: Humility, F8: Genius, "
-        "F9: Anti-Hantu, L10: Ontology, L11: Auth, L12: Injection, L13: Sovereign"
+        "F5: Peace, F6: Maruah, F7: Humility, F8: Genius, "
+        "F9: Anti-Hantu, F10: Ontology, F11: Auditability, F12: Resilience, F13: Sovereign"
     )
     c_hash = hashlib.sha256(FLOOR_SPEC.encode()).hexdigest()[:16]
     return f"sha256:{c_hash}"  # Include sha256: prefix (MUST match verifier)

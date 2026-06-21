@@ -165,6 +165,10 @@ def post_observe_gate(
     *,
     caller_lane: str = "AGI",
     strict_f02: bool = True,
+    action_class: str | Any = None,
+    actor_id: str | None = None,
+    reversible: bool = True,
+    is_anonymous: bool | None = None,
 ) -> dict[str, Any]:
     """
     N1 Post-Observe Gate. Wrap observation results before they enter
@@ -181,6 +185,14 @@ def post_observe_gate(
     strict_f02 : bool
         If True, observation must declare omega_0 in [0.03, 0.05] OR carry
         a peer_reviewed source. If False, missing omega_0 → WARN not HOLD.
+    action_class : str or ActionClass
+        Tool action class for policy gating.
+    actor_id : str
+        Actor ID for identity validation.
+    reversible : bool
+        True if the action is reversible.
+    is_anonymous : bool
+        True if caller is anonymous/unauthenticated.
 
     Returns
     -------
@@ -245,12 +257,41 @@ def post_observe_gate(
     # ── 4. Verdict ─────────────────────────────────────────────────────
     verdict: str
     advice: str
+
+    # Under INV-3: post_observe_gate policy table keyed on action_class
+    anon = is_anonymous if is_anonymous is not None else (actor_id in (None, "anonymous"))
+
+    if hasattr(action_class, "value"):
+        ac_str = str(action_class.value).upper()
+    elif action_class:
+        ac_str = str(action_class).upper()
+    else:
+        ac_str = "OBSERVE"
+
+    policy_applied = None
+    if anon:
+        if ac_str == "OBSERVE" and reversible:
+            c_dark = 0.0
+            verdict = "PASS"
+            advice = "OBSERVE anonymous reversible: anonymity is acceptable for read-only. PASS (c_dark=0)."
+            policy_applied = "OBSERVE_ANON_REVERSIBLE"
+        elif ac_str == "MUTATE":
+            verdict = "HOLD"
+            advice = f"MUTATE anonymous: {ac_str} action requires a verified session/actor. HOLD escalated."
+            policy_applied = "MUTATE_ANON_HOLD"
+        elif ac_str in ("IRREVERSIBLE", "SEAL", "FORGE") or "seal" in ac_str or "forge" in ac_str:
+            verdict = "HOLD"
+            advice = f"SEAL/FORGE anonymous: {ac_str} action requires a verified session/actor. Hard HOLD."
+            policy_applied = "SEAL_FORGE_ANON_HOLD"
+
     if f12_total_hits > 0:
         verdict = "HOLD"
         advice = (
             f"F12 INJECTION: {f12_total_hits} vector(s) detected. Do NOT pipe into arif_mind_reason. "
             "Re-observe with a different query, or escalate to arif_judge_deliberate for advisory."
         )
+    elif policy_applied is not None:
+        pass
     elif c_dark >= 0.30:
         verdict = "HOLD"
         advice = (

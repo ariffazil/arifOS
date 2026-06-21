@@ -39,10 +39,20 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class Tier(StrEnum):
-    """Visibility tiers (per amendment_001)."""
+    """Visibility tiers (per amendment_001).
+
+    Amendment 002 (2026-06-21, GENESIS-016 binding): Added HERMES tier.
+    Hermes-tier tools are public hermes_* utilities (vault_query, fact_check,
+    epistemic_check, cross_verify, plan_review, memory_steward, system_status)
+    that were registered in DIAGNOSTIC_TOOLS but filtered out of MCP exposure
+    because the Tier enum did not include 'hermes'. The visibility policy
+    default `tier_filter` now includes Tier.HERMES so the constitutional
+    surface matches the engineering.
+    """
 
     CORE = "core"  # Always visible when organ healthy
     ORGAN = "organ"  # Visible only after intent match
+    HERMES = "hermes"  # Hermes utilities (vault_query, fact_check, etc.) — public
     LAB = "lab"  # Visible only with explicit route
     DEPRECATED = "deprecated"  # Not callable, audit trail only
 
@@ -95,7 +105,7 @@ class VisibilityPolicy(BaseModel):
     """The runtime policy used to filter the visible surface."""
 
     max_visible: int = 15
-    tier_filter: set[Tier] = Field(default_factory=lambda: {Tier.CORE, Tier.ORGAN})
+    tier_filter: set[Tier] = Field(default_factory=lambda: {Tier.CORE, Tier.ORGAN, Tier.HERMES})
     organ_health_filter: set[OrganHealth] = Field(
         default_factory=lambda: {OrganHealth.HEALTHY}
     )

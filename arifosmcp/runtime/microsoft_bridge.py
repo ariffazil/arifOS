@@ -279,22 +279,24 @@ def probe_federation() -> FederationProbe:
 
 
 # =====================================================================
-#  Log to VAULT999 outcomes.jsonl (append-only, no overwrite)
+#  Log to VAULT999 telemetry log (append-only, no overwrite)
 # =====================================================================
 
-# Per AGENTS.md: "VAULT999/outcomes.jsonl" is the audit mirror.
-# We APPEND, never REPLACE. One line per probe.
+# Per sovereign ruling 2026-06-20: outcomes.jsonl demoted to telemetry.
+# Canonical chain = SEALED_EVENTS_v2.jsonl (vault999-writer only).
+# This probe log is telemetry, not seal chain.
 
 
 def log_to_vault999(
-    probe: FederationProbe, vault_path: str = os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"
+    probe: FederationProbe, vault_path: str = os.environ.get("VAULT999_TELEMETRY_PATH", "/root/arifOS/VAULT999/telemetry_probes.jsonl")
 ) -> int:
-    """Append the probe to VAULT999 outcomes.jsonl. Returns line number written.
+    """Append the probe to VAULT999 telemetry log. Returns line number written.
 
     Constitutional note (F11 AUDIT):
-      - This is APPEND-ONLY. We never edit prior lines.
-      - We never write to the canonical `vault_sealed_events` table.
-      - We use `\\n` to separate JSONL records.
+      - This is TELEMETRY, not canonical seal chain.
+      - Canonical chain = SEALED_EVENTS_v2.jsonl (vault999-writer only).
+      - We APPEND, never REPLACE. One line per probe.
+      - We use \\n to separate JSONL records.
       - On permission error: do nothing, return -1.
     """
     # Build a single-line JSON record (no embedded newlines)

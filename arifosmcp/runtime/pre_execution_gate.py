@@ -55,6 +55,147 @@ from arifosmcp.schemas.kernel_envelope import (
 
 logger = logging.getLogger("arifosmcp.pre_execution_gate")
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ART REFLEX BRIDGE — maps envelope/manifest → ArtRequest → ArtVerdict → gate
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _art_action_class_str(action_class: ActionClass) -> str:
+    """Map ActionClass enum → art.py action_class string."""
+    return {
+        ActionClass.OBSERVE: "observe",
+        ActionClass.ANALYZE: "observe",
+        ActionClass.DRAFT: "mutate",
+        ActionClass.SIMULATE: "mutate",
+        ActionClass.MUTATE: "mutate",
+        ActionClass.EXTERNAL_SIDE_EFFECT: "mutate",
+        ActionClass.IRREVERSIBLE: "mutate",
+    }.get(action_class, "observe")
+
+
+def _art_blast_radius_str(br: BlastRadius) -> str:
+    """Map BlastRadius enum → art.py blast_radius string."""
+    return {
+        BlastRadius.NONE: "low",
+        BlastRadius.LOCAL: "low",
+        BlastRadius.ACCOUNT: "medium",
+        BlastRadius.ORG: "high",
+        BlastRadius.PUBLIC: "high",
+        BlastRadius.MARKET: "high",
+        BlastRadius.INFRASTRUCTURE: "high",
+        BlastRadius.CIVILIZATIONAL: "high",
+        BlastRadius.UNKNOWN: "unknown",
+    }.get(br, "unknown")
+
+
+def _art_reflex_check(
+    envelope: KernelEnvelope,
+    requested_action: ActionClass,
+    manifest_entry: ToolManifestEntry | None,
+) -> GateResult | None:
+    """Gate 2.5 — ART reflex advisory check.
+
+    Calls the stateless ART reflex (4 states × 3 checks) and maps
+    ArtVerdict into the gate pipeline.
+
+    Returns:
+        None if ART says PROCEED (continue to next gate).
+        GateResult(SABAR) if ART says DEFAULT_OBSERVE on a non-observe action.
+        GateResult(HOLD) if ART says HOLD or BLOCK.
+
+    Fails open: if ART module is unavailable, returns None (no block).
+    """
+    try:
+        from arifosmcp.runtime.art import ArtVerdict, ArtRequest, ToolState, art
+    except ImportError:
+        logger.warning("ART reflex unavailable — skipping reflex check")
+        return None
+
+    # W2 (2026-06-21): Tool state from bucket-based ArtRegistry instead of
+    # hardcoded TRUSTED. All manifest tools start OBSERVED; TRUSTED is earned
+    # through proven reliability. Unknown tools → UNTRUSTED (fail-conservative).
+    try:
+        from arifosmcp.runtime.art_registry import get_default_tool_state
+        _state_str = get_default_tool_state(envelope.organ.tool_name)
+        _tool_state = ToolState(_state_str)
+    except (ImportError, Exception):
+        _tool_state = ToolState.TRUSTED  # fail-open: gate continues
+
+    # Build ArtRequest from envelope + manifest + registry state.
+    art_req = ArtRequest(
+        action_class=_art_action_class_str(requested_action),
+        tool_state=_tool_state.value,
+        blast_radius=_art_blast_radius_str(
+            manifest_entry.blast_radius if manifest_entry else BlastRadius.UNKNOWN
+        ),
+        trust_level="evidence" if envelope.kernel.actor_verified else "unknown",
+        actor_resolved=envelope.kernel.actor_verified,
+        schema_locked=True,  # manifest entry = schema is known
+        degraded=False,
+        reversible=manifest_entry.is_reversible if manifest_entry else False,
+        external_surface=(
+            requested_action == ActionClass.EXTERNAL_SIDE_EFFECT
+        ),
+        acknowledged_remote=(
+            envelope.authority.external_side_effect_allowed
+            if requested_action == ActionClass.EXTERNAL_SIDE_EFFECT
+            else False
+        ),
+    )
+
+    art_result = art(art_req)
+
+    # PROCEED → continue to next gate
+    if art_result.verdict == ArtVerdict.PROCEED:
+        return None
+
+    # DEFAULT_OBSERVE → downgrade non-observe actions IF safely representable
+    # Only MUTATE/DRAFT/SIMULATE can downgrade to OBSERVE.
+    # IRREVERSIBLE and EXTERNAL_SIDE_EFFECT cannot safely downgrade → HOLD.
+    if art_result.verdict == ArtVerdict.DEFAULT_OBSERVE:
+        if requested_action in (
+            ActionClass.MUTATE,
+            ActionClass.DRAFT,
+            ActionClass.SIMULATE,
+        ):
+            return GateResult(
+                envelope=envelope,
+                verdict=GateVerdict.SABAR,
+                reasons=[f"ART reflex downgrade: {art_result.reason.value}"],
+                violations=[],
+            )
+        if requested_action in (ActionClass.OBSERVE, ActionClass.ANALYZE):
+            return None  # already observe — proceed
+        # IRREVERSIBLE / EXTERNAL_SIDE_EFFECT → cannot downgrade, must HOLD
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=[f"ART reflex: {art_result.reason.value} — cannot downgrade {requested_action.value}"],
+            violations=["ART_REFLEX_HOLD"],
+            blocked_action_class=requested_action,
+        )
+
+    # HOLD → stop with HOLD
+    if art_result.verdict == ArtVerdict.HOLD:
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=[f"ART reflex: {art_result.reason.value}"],
+            violations=["ART_REFLEX_HOLD"],
+            blocked_action_class=requested_action,
+        )
+
+    # BLOCK → REJECT (constitutional-level prohibition)
+    # GateVerdict.REJECT is a true block (is_blocked=True after schema fix)
+    return GateResult(
+        envelope=envelope,
+        verdict=GateVerdict.REJECT,
+        reasons=[f"ART reflex: {art_result.reason.value}"],
+        violations=["ART_REFLEX_BLOCK"],
+        blocked_action_class=requested_action,
+    )
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # TOOL MANIFEST — canonical list of what every tool is allowed to do
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -366,6 +507,15 @@ def pre_execution_gate(
                         blocked_action_class=requested_action,
                         required_human_ack=True,
                     )
+
+    # ── Gate 2.5: ART reflex advisory check ────────────────────────────
+    # Calls the stateless ART reflex (4 tool states × 3 checks) and maps
+    # the ArtVerdict into the gate pipeline. ART is advisory — the gate
+    # has final say. Fails open if ART module unavailable.
+    if manifest_entry:
+        art_gate = _art_reflex_check(envelope, requested_action, manifest_entry)
+        if art_gate is not None:
+            return art_gate
 
     # ── Gate 3: Action class escalation check ─────────────────────────
     # The requested action class must not exceed what the tool allows

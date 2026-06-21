@@ -141,9 +141,15 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Kernel telemetry and discovery. Query live health, tool registry, "
         "and predictive readiness across the federation surface."
     ),
-    "arif_bridge": (
+    "arif_bridge_connect": (
         "Low-level direct organ tool call. Bypasses intent routing — caller must "
-        "specify organ and tool_name. Use only when both are known ahead of time."
+        "specify organ and tool_name. Use only when both are known ahead of time. "
+        "Canonical name follows arif_<noun>_<verb> convention (bridge=organ bridge, connect=verb)."
+    ),
+    "arif_bridge": (
+        "[DEPRECATED — use arif_bridge_connect] Low-level direct organ tool call. "
+        "Bypasses intent routing — caller must specify organ and tool_name. "
+        "Retained for backward compatibility. Same implementation as arif_bridge_connect."
     ),
     "arif_kernel_attest": (
         "Live organ attestation. Verify identity, tool surface, and constitutional "
@@ -222,6 +228,7 @@ def _layer_for_name(name: str) -> str:
         "arif_route",
         "arif_triage",
         "arif_kernel_status",
+        "arif_bridge_connect",
         "arif_bridge",
         "arif_kernel_attest",
         "arif_kernel_health",

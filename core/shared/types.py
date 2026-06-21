@@ -870,6 +870,12 @@ class InitOutput(BaseOrganOutput):
     human_approval: bool = False
     human_approval_persisted: bool = False
 
+    # ── APEX PRESENT BOUNDARY (hardened 2026-06-20) ─────────────────────
+    # Machine-checkable: is this session's state LIVE (just created),
+    # CACHED (resumed from existing), or INFERRED (constructed from partial data)?
+    # Agents must not confuse memory with authority.
+    present_boundary: str = "LIVE"
+
     @property
     def is_void(self) -> bool:
         """Query was rejected at airlock."""
@@ -935,6 +941,13 @@ class ApexOutput(BaseOrganOutput):
     # Legacy support
     floor_scores: FloorScores = Field(default_factory=FloorScores)
     proof: str | None = None  # If audit mode
+
+    # APEX intelligence flow: metadata from kernel_transition seal
+    # (hardened 2026-06-20 — carries transition receipt ID, epoch, ledger hash)
+    metadata: dict[str, Any] = Field(
+        default_factory=dict,
+        description="APEX flow metadata: transition_receipt_id, ledger_hash, etc.",
+    )
 
 
 class VaultEntry(BaseModel):

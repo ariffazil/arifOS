@@ -500,14 +500,8 @@ def revoke_organ_attestation(organ_id: str, reason: str = "sovereign_revoke") ->
 
 
 def _load_arifos_constitution_hash() -> str:
-    candidates = [
-        "/root/arifOS/GENESIS/000_KERNEL_CANON.md",
-        "/opt/arifos/app/GENESIS/000_KERNEL_CANON.md",
-    ]
-    for p in candidates:
-        if __import__("os").path.exists(p):
-            return _sha256_of_file(p)
-    return "sha256:missing"
+    from arifosmcp.runtime.live_kernel import compute_constitution_hash
+    return compute_constitution_hash()
 
 
 def _load_envelope_schema_hash() -> str:

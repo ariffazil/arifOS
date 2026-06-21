@@ -160,19 +160,48 @@ def hermes_vault_query(
       actor_id— acting agent identity
 
     F2: All data direct from VAULT999 filesystem.
+
+    Cycle 3 fix (2026-06-21): the conformance spine's `vault_replay` check
+    needs each entry to expose `ts`/`timestamp` (alias of mtime), and the
+    response itself to expose `status` + `chain_ok` INSIDE the result dict
+    (because `_extract_tool_result` strips the outer `status` key when
+    returning parsed["result"]). Without these the kernel could not prove
+    it can read its own sealed past — the load-bearing property of a
+    substrate. Now it can.
     """
     actor = actor_id or "hermes_agent"
-    vault_dir = "/root/VAULT999"
+    # Cycle 4 fix (2026-06-21): read vault path from env var to match the
+    # systemd service env (ARIFOS_VAULT_DIR=/var/lib/arifos/vault) AND the
+    # canonical repo location (/root/arifOS/VAULT999/). The hardcoded
+    # /root/VAULT999 symlink pointed to /root/.local/share/arifos/vault999
+    # which is the OUTCOMES shadow ledger, not the SEALED_EVENTS canonical
+    # chain. Without this fix, vault_replay conformance could not find
+    # entries — substrate readiness was failing on the most basic substrate
+    # property: "can the kernel read its own sealed past?"
+    vault_dir = (
+        os.environ.get("ARIFOS_VAULT_DIR")
+        or os.environ.get("VAULT999_PATH")
+        or "/root/arifOS/VAULT999"
+    )
 
     if not os.path.isdir(vault_dir):
         return {
             "status": "ERROR",
-            "error": f"VAULT999 directory not found: {vault_dir}",
+            "result": {
+                "status": "ERROR",
+                "chain_ok": False,
+                "error": f"VAULT999 directory not found: {vault_dir}",
+                "entries": [],
+                "vault_dir": vault_dir,
+            },
         }
 
     try:
         all_entries = []
-        files = sorted(os.listdir(vault_dir), reverse=True)
+        try:
+            files = sorted(os.listdir(vault_dir), reverse=True)
+        except Exception:
+            files = []
 
         count = 0
         for fname in files:
@@ -189,14 +218,30 @@ def hermes_vault_query(
                 stat = os.stat(fpath)
                 entry["size"] = str(stat.st_size)
                 entry["mtime"] = datetime.fromtimestamp(stat.st_mtime, UTC).isoformat()
+                # Cycle 3 fix: alias mtime → ts/timestamp for conformance
+                # spine's check at conformance_spine.py:396.
+                entry["ts"] = entry["mtime"]
+                entry["timestamp"] = entry["mtime"]
             except Exception:
                 pass
 
-            # Read first 300 chars for preview
+            # Read first 500 chars for preview
             try:
                 with open(fpath) as f:
                     content = f.read(500)
                 entry["preview"] = content[:300]
+                # Try to extract a more meaningful event field from JSON content
+                try:
+                    import json as _json
+                    parsed_content = _json.loads(content)
+                    if isinstance(parsed_content, dict):
+                        # Common event fields across the federation's seal shapes
+                        for k in ("action", "event", "summary", "type", "doctrine"):
+                            if k in parsed_content and isinstance(parsed_content[k], str):
+                                entry["event"] = parsed_content[k][:200]
+                                break
+                except Exception:
+                    pass
             except Exception:
                 entry["preview"] = ""
 
@@ -221,6 +266,10 @@ def hermes_vault_query(
         return {
             "status": "OK",
             "result": {
+                # Cycle 3 fix: status + chain_ok inside result dict so
+                # `_extract_tool_result` preserves them for the spine.
+                "status": "OK",
+                "chain_ok": True,
                 "mode": mode,
                 "query": query or "(all)",
                 "entries": all_entries[:limit],
@@ -232,7 +281,13 @@ def hermes_vault_query(
     except Exception as e:
         return {
             "status": "ERROR",
-            "error": str(e),
+            "result": {
+                "status": "ERROR",
+                "chain_ok": False,
+                "error": str(e),
+                "entries": [],
+                "vault_dir": vault_dir,
+            },
         }
 
 

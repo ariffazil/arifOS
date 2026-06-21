@@ -82,6 +82,17 @@ _assert_reflex_weight_ceiling()
 
 
 # ═══════════════════════════════════════════════════════════════════════
+# v3.1 — DISCOVERY SURFACE HARDENING
+# Cumulative silent-fallback detector threshold. If a session has
+# this many silent fallbacks (default: 2), ART downgrades to HOLD.
+# Tune higher for noisy networks, lower for high-security contexts.
+# Per v3.1 docstring: caller pushes the counter from session middleware;
+# the reflex itself stays stateless.
+# ═══════════════════════════════════════════════════════════════════════
+SILENT_FALLBACK_HOLD_THRESHOLD: int = 2
+
+
+# ═══════════════════════════════════════════════════════════════════════
 # CROSS-DOMAIN INSIGHT
 # ═══════════════════════════════════════════════════════════════════════
 #
@@ -164,16 +175,19 @@ class ArtReason(str, Enum):
     BLAST_RADIUS_UNKNOWN = "blast radius unknown — default observe"
     IRREVERSIBLE_NO_ROLLBACK = "irreversible action without rollback"
     EXECUTE_NEEDS_ACK = "execute action always needs ack"
+    EXTERNAL_SURFACE_UNACKNOWLEDGED = "mutate on external surface without ack — hold"  # v3.1
 
     # Check 2: Trust
     ACTOR_UNRESOLVED = "non-observe action without resolved actor"
     TRUST_LEVEL_UNKNOWN = "trust level unknown — default observe"
     VERDICT_WITHOUT_SCHEMA = "tool returns verdict but schema unverified"
+    UNVERIFIED_SCHEMA_SOURCE = "schema source unverified — default observe"  # v3.1
 
     # Check 3: System
     DEGRADED_MUTATION = "system degraded — cannot mutate"
     FAILURE_RATE_HIGH = "failure rate exceeds threshold — fallback suggested"
     DRIFT_DETECTED = "schema/permission drift detected — fallback suggested"
+    CUMULATIVE_SILENT_FALLBACK = "cumulative silent fallback detected — hold"  # v3.1
 
     # Abandonment
     TOOL_STALE = "tool unused >90 days — abandon candidate"
@@ -212,6 +226,29 @@ class ArtRequest:
     failure_rate: float = 0.0
     drift_count: int = 0
     days_since_use: int = 0
+
+    # v3.1 — Discovery Surface Hardening
+    # E1: Where the schema came from. "compiled" = import-time introspection
+    # (OpenAI @function_tool). "registry" = static TOOLSETS dict (Hermes).
+    # "mcp_server" = runtime JSON-RPC tools/list (unverified by default).
+    # "builtin" = hardcoded in agent source. "user_supplied" = arbitrary input.
+    # Default schema_verified=True is TOFU (trust on first use) — backward
+    # compatible with pre-v3.1 callers. Opt out to False for mcp_server /
+    # user_supplied schemas that lack signature/hash verification.
+    schema_source: str = "builtin"
+    schema_verified: bool = True
+
+    # E2: Does the action hit a remote system? Local mcp_filesystem_write is
+    # MUTATE but NOT external. mcp_github_create_issue is MUTATE AND external.
+    # Without this split, ART treats them identically — the Hermes #16462 gap.
+    external_surface: bool = False
+    acknowledged_remote: bool = False  # set by session init or explicit policy
+
+    # E3: Cumulative silent-fallback counter. Caller (session middleware)
+    # pushes this from outside; reflex itself stays stateless. A single
+    # silent fallback is fine. 2+ in a session → HOLD (catches cumulative
+    # drift that per-call STATE snapshots miss).
+    silent_fallback_count: int = 0
 
 
 # ── RESULT ───────────────────────────────────────────────────────────
@@ -370,6 +407,20 @@ def art(request: ArtRequest) -> ArtResult:
             check_blocked=1,
         )
 
+    # v3.1 — E2: EXTERNAL_SURFACE requires explicit ack
+    # Closes Hermes #16462 (no first-call approval for MCP tools).
+    # A mcp_github_create_issue is MUTATE + external — needs ack.
+    # A mcp_filesystem_write is MUTATE but local — proceeds.
+    if (request.action_class == "mutate"
+            and request.external_surface
+            and not request.acknowledged_remote):
+        return ArtResult(
+            verdict=ArtVerdict.HOLD,
+            reason=ArtReason.EXTERNAL_SURFACE_UNACKNOWLEDGED,
+            next_tool_state=next_state if next_state != current_state else None,
+            check_blocked=1,
+        )
+
     # ── CHECK 2: TRUST ───────────────────────────────────────────────
     # "Can I trust what this tool tells me?"
 
@@ -397,6 +448,18 @@ def art(request: ArtRequest) -> ArtResult:
             check_blocked=2,
         )
 
+    # v3.1 — E1: UNVERIFIED_SCHEMA downgrade for non-observe actions
+    # Trust-on-first-hash. A tool from mcp_server or user_supplied with
+    # schema_verified=False should not run MUTATE/EXECUTE without proof.
+    if (not request.schema_verified
+            and request.action_class in ("mutate", "execute")):
+        return ArtResult(
+            verdict=ArtVerdict.DEFAULT_OBSERVE,
+            reason=ArtReason.UNVERIFIED_SCHEMA_SOURCE,
+            next_tool_state=next_state if next_state != current_state else None,
+            check_blocked=2,
+        )
+
     # ── CHECK 3: SYSTEM ──────────────────────────────────────────────
     # "Is the system healthy enough for this action?"
 
@@ -404,6 +467,19 @@ def art(request: ArtRequest) -> ArtResult:
         return ArtResult(
             verdict=ArtVerdict.HOLD,
             reason=ArtReason.DEGRADED_MUTATION,
+            next_tool_state=ToolState.FALLBACK,
+            check_blocked=3,
+        )
+
+    # v3.1 — E3: CUMULATIVE_SILENT_FALLBACK detector
+    # Catches the slow-burn failure mode: per-call STATE check passes,
+    # but 2+ silent fallbacks in a session means something is wrong upstream.
+    # Catches Hermes pattern (install succeeds with default_enabled when
+    # tools/list probe fails). Caller pushes the counter; reflex stays stateless.
+    if request.silent_fallback_count >= SILENT_FALLBACK_HOLD_THRESHOLD:
+        return ArtResult(
+            verdict=ArtVerdict.HOLD,
+            reason=ArtReason.CUMULATIVE_SILENT_FALLBACK,
             next_tool_state=ToolState.FALLBACK,
             check_blocked=3,
         )

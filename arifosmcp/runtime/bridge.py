@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 # P0: VPS Infrastructure Integration — Use Redis as primary vault backend
 # Docker network: redis:6379 (already running on VPS)
-DEFAULT_VAULT_PATH = Path(__file__).parents[2] / "VAULT999" / "vault999.jsonl"
+DEFAULT_VAULT_PATH = Path(__file__).parents[2] / "VAULT999" / "SEALED_EVENTS_v2.jsonl"
 
 # Import Redis vault (graceful fallback to file if Redis unavailable)
 try:

@@ -320,7 +320,7 @@ _DEFAULT_QDF: float = 0.83
 _DEFAULT_METABOLIC_STAGE: int = 333
 
 # Default vault path for /api/live/vault endpoint
-DEFAULT_VAULT_PATH = Path(__file__).parents[3] / "VAULT999" / "vault999.jsonl"
+DEFAULT_VAULT_PATH = Path(__file__).parents[3] / "VAULT999" / "SEALED_EVENTS_v2.jsonl"
 
 
 def _cache_headers() -> dict[str, str]:
@@ -1554,6 +1554,62 @@ def _rest_error(
     # In production, we don't return raw 'e' or 'exc' strings.
     # We return the safe 'message' provided.
     return JSONResponse(payload, status_code=status_code)
+
+
+def _rest_action_class(canonical_name: str, body: dict[str, Any]) -> Any:
+    """HOLD-1b: Map REST tool + mode → ActionClass for gate check.
+
+    Uses the same classification as the canonical tool manifest:
+    - OBSERVE for sense/evidence/kernel/ops/attest/health/status/triage
+    - ANALYZE for mind_reason/heart_critique/judge_deliberate
+    - MUTATE for memory_recall/forge_execute
+    - IRREVERSIBLE for vault_seal
+    - EXTERNAL_SIDE_EFFECT for gateway_connect/bridge
+    - DRAFT for reply_compose
+    """
+    from arifosmcp.schemas.kernel_envelope import ActionClass
+
+    mode = body.get("mode", "")
+
+    # OBSERVE-class tools
+    if canonical_name in (
+        "arif_session_init", "arif_sense_observe", "arif_evidence_fetch",
+        "arif_kernel_route", "arif_route", "arif_ops_measure",
+        "arif_kernel_health", "arif_kernel_attest", "arif_kernel_status",
+        "arif_triage",
+    ):
+        return ActionClass.OBSERVE
+
+    # ANALYZE-class tools
+    if canonical_name in ("arif_mind_reason", "arif_heart_critique", "arif_judge_deliberate"):
+        return ActionClass.ANALYZE
+
+    # DRAFT-class tools
+    if canonical_name == "arif_reply_compose":
+        return ActionClass.DRAFT
+
+    # MUTATE-class tools — dangerous modes escalate
+    if canonical_name == "arif_memory_recall":
+        if mode in ("store", "prune"):
+            return ActionClass.MUTATE
+        return ActionClass.OBSERVE  # recall/get/list/search are observe
+
+    if canonical_name == "arif_forge_execute":
+        if mode in ("engineer", "write", "generate", "commit"):
+            return ActionClass.MUTATE
+        return ActionClass.OBSERVE  # query/recall/dry_run are observe
+
+    # IRREVERSIBLE-class tools
+    if canonical_name == "arif_vault_seal":
+        if mode == "seal":
+            return ActionClass.IRREVERSIBLE
+        return ActionClass.OBSERVE  # list/verify/chain/dry_run are observe
+
+    # EXTERNAL_SIDE_EFFECT-class tools
+    if canonical_name in ("arif_gateway_connect", "arif_bridge"):
+        return ActionClass.EXTERNAL_SIDE_EFFECT
+
+    return ActionClass.OBSERVE
 
 
 def _public_base_url(request: Request) -> str:
@@ -3571,6 +3627,47 @@ def register_rest_routes(
                     },
                     status_code=400,
                 )
+
+            # ── HOLD-1b: Pre-execution gate BEFORE tool dispatch ─────────────
+            # Every REST tool call must pass through the constitutional chokepoint.
+            # Previously this path called tool_fn() directly, bypassing
+            # pre_execution_gate entirely for federated HTTP clients.
+            try:
+                from arifosmcp.schemas.kernel_envelope import ActionClass
+                from arifosmcp.runtime.pre_execution_gate import quick_gate
+
+                _rest_action = _rest_action_class(canonical_name, body)
+                _gate_result = quick_gate(
+                    action_class=_rest_action,
+                    actor_verified=False,  # REST clients are federated, not verified
+                    tool_name=canonical_name,
+                )
+                if _gate_result.is_blocked:
+                    logger.warning(
+                        "rest_routes gate BLOCKED: tool=%s canonical=%s action=%s reasons=%s",
+                        incoming_name, canonical_name, _rest_action.value, _gate_result.reasons,
+                    )
+                    return JSONResponse(
+                        {
+                            "status": "error",
+                            "error": "GATE_BLOCKED",
+                            "reason": "Constitutional gate blocked execution",
+                            "gate_verdict": _gate_result.verdict.value,
+                            "gate_reasons": _gate_result.reasons,
+                            "gate_violations": _gate_result.violations,
+                            "tool": incoming_name,
+                            "canonical": canonical_name,
+                            "request_id": request_id,
+                            "verdict": "HOLD",
+                        },
+                        status_code=403,
+                    )
+            except ImportError:
+                logger.warning(
+                    "pre_execution_gate unavailable in rest_routes — "
+                    "proceeding without gate (fail-open for federated path)"
+                )
+            # ── end HOLD-1b gate ────────────────────────────────────────────
 
             # Filter to only valid parameters
             sig = inspect.signature(tool_fn)

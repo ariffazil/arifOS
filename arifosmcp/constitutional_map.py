@@ -669,9 +669,23 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "cognitive_axis": "boundary",
         "expose": True,
     },
+    "arif_bridge_connect": {
+        "name": "arif_bridge_connect",
+        "description": "555_BRIDGE_CONNECT (CANONICAL, forged 2026-06-21): Low-level direct organ tool call. Bypasses intent map — caller must specify organ and tool_name. Use arif_route for intent-based routing. Use arif_bridge_connect only when organ and tool are known ahead of time. Follows arif_<noun>_<verb> naming convention (bridge=organ bridge, connect=verb). Parameters: organ (geox|wealth|well|geox), tool_name, arguments, actor_id, session_id.",
+        "access": "authenticated",
+        "stage": ToolStage.ROUTE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L10_ONTOLOGY],
+        "risk_tier": "medium",
+        "irreversible": False,
+        "modes": ["connect"],
+        "eureka_insight": "RULE 14 + arif_<noun>_<verb> convention: One tool, one operation (connect). Organ is a parameter, not a mode. Bypasses intent map for known-target cases. Canonical name forged 2026-06-21 — arif_bridge retained as deprecated alias.",
+        "cognitive_axis": "boundary",
+        "expose": True,
+    },
     "arif_bridge": {
         "name": "arif_bridge",
-        "description": "555_BRIDGE: Low-level direct organ tool call. Bypasses intent map — caller must specify organ and tool_name. Use arif_route for intent-based routing. Use arif_bridge only when organ and tool are known ahead of time. Internal implementation also used by arif_route. Parameters: organ (geox|wealth|well), tool_name, arguments, actor_id, session_id.",
+        "description": "555_BRIDGE [DEPRECATED — use arif_bridge_connect]: Low-level direct organ tool call. This is the legacy noun-only name retained for backward compatibility. The canonical name is arif_bridge_connect (noun=bridge, verb=connect). Functionally identical — both call the same kernel-canonical bridge implementation. Deprecation epoch: 2026-Q3. Removal: NOT allowed (backward compat). Parameters: organ (geox|wealth|well), tool_name, arguments, actor_id, session_id.",
         "access": "authenticated",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
@@ -679,9 +693,13 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "risk_tier": "medium",
         "irreversible": False,
         "modes": ["bridge"],
-        "eureka_insight": "RULE 14: One tool, one operation (bridge). Organ is a parameter, not a mode. Bypasses intent map for known-target cases.",
+        "eureka_insight": "DEPRECATED 2026-06-21. Use arif_bridge_connect. Same handler, same function — canonical name follows arif_<noun>_<verb> convention.",
         "cognitive_axis": "boundary",
         "expose": True,
+        "_deprecated": True,
+        "_canonical_name": "arif_bridge_connect",
+        "_deprecation_epoch": "2026-Q3",
+        "_removal_allowed": False,
     },
     "arif_kernel_attest": {
         "name": "arif_kernel_attest",
@@ -1369,100 +1387,370 @@ FULL_SURFACE_TOOLS: tuple[str, ...] = (
     CONSTITUTIONAL_TOOLS + tuple(DIAGNOSTIC_TOOLS.keys())
 )
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# MCP ANNOTATIONS — derived from action_class, NOT hand-set
+# ═══════════════════════════════════════════════════════════════════════════════
+# Per the AAA Agent Operating Invariants (Rule 6: HINTS ≠ CONTRACTS):
+# MCP annotations (readOnlyHint, destructiveHint, idempotentHint) are UX
+# vocabulary — informational signals, not enforceable guarantees.
+#
+# arifOS edge: `destructiveHint` is COMPUTED from action_class deterministically.
+# The annotation is OUTPUT of the classification gate, not INPUT to it.
+# A malicious server can mark a destructive tool `readOnlyHint: true` —
+# but arifOS derives everything from the action_class, which is the
+# actual enforceable contract.
+#
+# Derivation table:
+#   action_class   → readOnlyHint  destructiveHint  idempotentHint
+#   ─────────────     ────────────  ───────────────  ──────────────
+#   OBSERVE           True          False            True
+#   ANALYZE           True          False            True
+#   PREPARE           False         False            True
+#   DRAFT             True          False            False
+#   MUTATE            False         True             False
+#   EXECUTE           False         True             False
+#   IRREVERSIBLE      False         True             False
+#   BRIDGE            False         False            False
+#
+# Override: irreversible=True in the tool spec forces destructiveHint=True
+# regardless of action_class (belt-and-suspenders for vault/forge etc.)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def derive_mcp_annotations(
+    action_class: str,
+    *,
+    is_irreversible: bool = False,
+    title: str = "",
+) -> dict[str, Any]:
+    """Derive MCP tool annotations from action_class deterministically.
+
+    This is the arifOS edge: annotations are OUTPUT of classification,
+    not hand-set metadata. The action_class IS the enforceable contract.
+
+    Args:
+        action_class: One of OBSERVE|ANALYZE|PREPARE|DRAFT|MUTATE|EXECUTE|IRREVERSIBLE|BRIDGE
+        is_irreversible: Belt-and-suspenders — if True, forces destructiveHint=True
+        title: Human-readable short title for the tool
+
+    Returns:
+        Dict of MCP annotations ready for FastMCP tool registration.
+    """
+    ac = action_class.upper()
+
+    _READONLY_MAP: dict[str, bool] = {
+        "OBSERVE": True,
+        "ANALYZE": True,
+        "PREPARE": False,
+        "DRAFT": True,
+        "MUTATE": False,
+        "EXECUTE": False,
+        "IRREVERSIBLE": False,
+        "BRIDGE": False,
+    }
+
+    _DESTRUCTIVE_MAP: dict[str, bool] = {
+        "OBSERVE": False,
+        "ANALYZE": False,
+        "PREPARE": False,
+        "DRAFT": False,
+        "MUTATE": True,
+        "EXECUTE": True,
+        "IRREVERSIBLE": True,
+        "BRIDGE": False,
+    }
+
+    _IDEMPOTENT_MAP: dict[str, bool] = {
+        "OBSERVE": True,
+        "ANALYZE": True,
+        "PREPARE": True,
+        "DRAFT": False,
+        "MUTATE": False,
+        "EXECUTE": False,
+        "IRREVERSIBLE": False,
+        "BRIDGE": False,
+    }
+
+    read_only = _READONLY_MAP.get(ac, False)
+    destructive = _DESTRUCTIVE_MAP.get(ac, True)  # unknown → conservative
+    idempotent = _IDEMPOTENT_MAP.get(ac, False)
+
+    # Belt-and-suspenders: irreversible tools are ALWAYS destructive
+    if is_irreversible:
+        destructive = True
+
+    return {
+        "title": title or ac.title(),
+        "readOnlyHint": read_only,
+        "destructiveHint": destructive,
+        "idempotentHint": idempotent,
+        "openWorldHint": ac in ("OBSERVE", "BRIDGE"),
+        "_derived_from": {
+            "action_class": action_class,
+            "is_irreversible": is_irreversible,
+            "derivation": "arifOS action_class → MCP annotations (deterministic)",
+            "rule": "AAA Agent Invariant #6: HINTS ≠ CONTRACTS. Annotations are output of classification, not input.",
+        },
+    }
+
+
+def _action_class_for_tool(tool_name: str, spec: dict[str, Any] | None = None) -> str:
+    """Determine the action_class for any tool from its spec + risk registry.
+
+    Resolution order:
+      1. tool_risk_registry.py (canonical, has explicit action_class)
+      2. Spec-based inference from tier + irreversible field
+      3. Conservative default (OBSERVE)
+    """
+    # 1. Try the risk registry first
+    try:
+        from arifosmcp.runtime.tool_risk_registry import classify_tool
+        profile = classify_tool(tool_name)
+        if profile and profile.action_class != "OBSERVE":
+            # Only use registry if it has a non-default classification
+            # (classify_tool returns OBSERVE as fallback for unknown tools)
+            return profile.action_class
+    except Exception:
+        pass
+
+    # 2. Spec-based inference
+    if spec:
+        tier = spec.get("tier", spec.get("risk_tier", "low"))
+        irreversible = spec.get("irreversible", False)
+
+        if irreversible:
+            return "IRREVERSIBLE"
+
+        # Tier-based defaults
+        if tier in ("hermes", "canary", "diagnostic"):
+            return "OBSERVE"
+        if tier == "attest":
+            return "ANALYZE"
+        if tier == "lease":
+            return "MUTATE"  # lease tools change state
+        if tier == "forge-sub":
+            return "ANALYZE"
+        if tier == "narrative":
+            return "ANALYZE"
+        if tier == "canonical":
+            # For canonical tools not in risk registry, use access level
+            access = spec.get("access", "public")
+            risk_tier = spec.get("risk_tier", "low")
+            if risk_tier == "critical":
+                return "MUTATE"
+            if access == "authenticated":
+                return "DRAFT"
+            return "ANALYZE"
+
+    # 3. Conservative default
+    return "OBSERVE"
+
+
 # MCP Spec 2025-11-25 tool annotations (SEP-1862/1913/1984/2417)
-# title + readOnlyHint + destructiveHint + idempotentHint + openWorldHint
+# EVERY annotation below is DERIVED from action_class via derive_mcp_annotations().
+# No hand-set hints. The action_class is the contract; the hints are its projection.
 _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
-    "arif_session_init": {
-        "title": "Init Session",
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
-    "arif_sense_observe": {
-        "title": "Sense & Observe",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": True,
-    },
-    "arif_evidence_fetch": {
-        "title": "Fetch Evidence",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": True,
-    },
-    "arif_mind_reason": {
-        "title": "Mind Reason",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": False,
-    },
-    "arif_heart_critique": {
-        "title": "Heart Critique",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": False,
-    },
-    "arif_kernel_route": {
-        "title": "Kernel Route",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
-    "arif_reply_compose": {
-        "title": "Reply Compose",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": False,
-    },
-    "arif_memory_recall": {
-        "title": "Memory Recall",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
-    "arif_gateway_connect": {
-        "title": "Gateway Connect",
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True,
-    },
-    "arif_judge_deliberate": {
-        "title": "Judge Deliberate",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": False,
-    },
-    "arif_vault_seal": {
-        "title": "Vault Seal",
-        "readOnlyHint": False,
-        "destructiveHint": True,
-        "idempotentHint": False,
-        "openWorldHint": True,
-    },
-    "arif_forge_execute": {
-        "title": "Forge Execute",
-        "readOnlyHint": False,
-        "destructiveHint": True,
-        "idempotentHint": False,
-        "openWorldHint": True,
-    },
-    "arif_ops_measure": {
-        "title": "Ops Measure",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    # ═══════════════════════════════════════════════════════════════════
+    # 13 CANONICAL TOOLS — action_class from tool_risk_registry.py
+    # ═══════════════════════════════════════════════════════════════════
+    "arif_session_init": derive_mcp_annotations(
+        "PREPARE", title="Init Session",
+    ),
+    "arif_sense_observe": derive_mcp_annotations(
+        "OBSERVE", title="Sense & Observe",
+    ),
+    "arif_evidence_fetch": derive_mcp_annotations(
+        "OBSERVE", title="Fetch Evidence",
+    ),
+    "arif_mind_reason": derive_mcp_annotations(
+        "ANALYZE", title="Mind Reason",
+    ),
+    "arif_heart_critique": derive_mcp_annotations(
+        "ANALYZE", title="Heart Critique",
+    ),
+    "arif_kernel_route": derive_mcp_annotations(
+        "ANALYZE", title="Kernel Route",
+    ),
+    "arif_reply_compose": derive_mcp_annotations(
+        "ANALYZE", title="Reply Compose",
+    ),
+    "arif_memory_recall": derive_mcp_annotations(
+        "OBSERVE", title="Memory Recall",
+    ),
+    "arif_gateway_connect": derive_mcp_annotations(
+        "ANALYZE", title="Gateway Connect",
+    ),
+    "arif_judge_deliberate": derive_mcp_annotations(
+        "DRAFT", title="Judge Deliberate",
+    ),
+    "arif_vault_seal": derive_mcp_annotations(
+        "IRREVERSIBLE", title="Vault Seal", is_irreversible=True,
+    ),
+    "arif_forge_execute": derive_mcp_annotations(
+        "MUTATE", title="Forge Execute", is_irreversible=True,
+    ),
+    "arif_ops_measure": derive_mcp_annotations(
+        "OBSERVE", title="Ops Measure",
+    ),
+    # ═══════════════════════════════════════════════════════════════════
+    # RULE-14 DIAGNOSTIC TOOLS — action_class from kernel_canonical spec
+    # ═══════════════════════════════════════════════════════════════════
+    "arif_route": derive_mcp_annotations(
+        "ANALYZE", title="Route",
+    ),
+    "arif_triage": derive_mcp_annotations(
+        "ANALYZE", title="Triage",
+    ),
+    "arif_kernel_status": derive_mcp_annotations(
+        "OBSERVE", title="Kernel Status",
+    ),
+    "arif_bridge_connect": derive_mcp_annotations(
+        "BRIDGE", title="Bridge Connect",
+    ),
+    "arif_bridge": derive_mcp_annotations(
+        "BRIDGE", title="Bridge [DEPRECATED]",
+    ),
+    "arif_kernel_attest": derive_mcp_annotations(
+        "ANALYZE", title="Kernel Attest",
+    ),
+    "arif_kernel_health": derive_mcp_annotations(
+        "OBSERVE", title="Kernel Health",
+    ),
+    # ═══════════════════════════════════════════════════════════════════
+    # HERMES TOOLS (7) — all OBSERVE/ANALYZE (read-only cross-verification)
+    # ═══════════════════════════════════════════════════════════════════
+    "hermes_system_status": derive_mcp_annotations(
+        "OBSERVE", title="System Status",
+    ),
+    "hermes_vault_query": derive_mcp_annotations(
+        "OBSERVE", title="Vault Query",
+    ),
+    "hermes_epistemic_check": derive_mcp_annotations(
+        "ANALYZE", title="Epistemic Check",
+    ),
+    "hermes_fact_check": derive_mcp_annotations(
+        "ANALYZE", title="Fact Check",
+    ),
+    "hermes_cross_verify": derive_mcp_annotations(
+        "ANALYZE", title="Cross Verify",
+    ),
+    "hermes_plan_review": derive_mcp_annotations(
+        "ANALYZE", title="Plan Review",
+    ),
+    "hermes_memory_steward": derive_mcp_annotations(
+        "ANALYZE", title="Memory Steward",
+    ),
+    # ═══════════════════════════════════════════════════════════════════
+    # CANARY TOOLS (6) — zero-floor transport diagnostics, all OBSERVE
+    # ═══════════════════════════════════════════════════════════════════
+    "arif_ping": derive_mcp_annotations(
+        "OBSERVE", title="Ping",
+    ),
+    "arif_schema_echo": derive_mcp_annotations(
+        "OBSERVE", title="Schema Echo",
+    ),
+    "arif_version_echo": derive_mcp_annotations(
+        "OBSERVE", title="Version Echo",
+    ),
+    "arif_transport_echo": derive_mcp_annotations(
+        "OBSERVE", title="Transport Echo",
+    ),
+    "arif_initialize_probe": derive_mcp_annotations(
+        "ANALYZE", title="Initialize Probe",
+    ),
+    "arif_conformance_report": derive_mcp_annotations(
+        "ANALYZE", title="Conformance Report",
+    ),
+    # ═══════════════════════════════════════════════════════════════════
+    # LEASE TOOLS (3) — state-changing authority management
+    # ═══════════════════════════════════════════════════════════════════
+    "arif_lease_inspect": derive_mcp_annotations(
+        "OBSERVE", title="Lease Inspect",
+    ),
+    "arif_lease_issue": derive_mcp_annotations(
+        "MUTATE", title="Lease Issue",
+    ),
+    "arif_lease_revoke": derive_mcp_annotations(
+        "IRREVERSIBLE", title="Lease Revoke", is_irreversible=True,
+    ),
+    # ═══════════════════════════════════════════════════════════════════
+    # ATTEST TOOLS (7) — read-only federation health verification
+    # ═══════════════════════════════════════════════════════════════════
+    "arif_os_attest": derive_mcp_annotations(
+        "OBSERVE", title="OS Attest",
+    ),
+    "arif_organ_attest": derive_mcp_annotations(
+        "ANALYZE", title="Organ Attest",
+    ),
+    "arif_organ_attest_all": derive_mcp_annotations(
+        "ANALYZE", title="Organ Attest All",
+    ),
+    "arif_heartbeat": derive_mcp_annotations(
+        "OBSERVE", title="Heartbeat",
+    ),
+    "arif_peer_contract_validate": derive_mcp_annotations(
+        "ANALYZE", title="Peer Contract Validate",
+    ),
+    "arif_peer_contract_attest": derive_mcp_annotations(
+        "OBSERVE", title="Peer Contract Attest",
+    ),
+    "arif_peer_contract_forbid": derive_mcp_annotations(
+        "MUTATE", title="Peer Contract Forbid",
+    ),
+    # ═══════════════════════════════════════════════════════════════════
+    # FORGE SUB-TOOLS (3) — pre-execution planning, all ANALYZE
+    # ═══════════════════════════════════════════════════════════════════
+    "forge_dry_run": derive_mcp_annotations(
+        "ANALYZE", title="Dry Run",
+    ),
+    "forge_plan": derive_mcp_annotations(
+        "ANALYZE", title="Plan",
+    ),
+    "forge_query": derive_mcp_annotations(
+        "OBSERVE", title="Query",
+    ),
+    # ═══════════════════════════════════════════════════════════════════
+    # NARRATIVE TOOLS (2) — institutional analysis, all ANALYZE
+    # ═══════════════════════════════════════════════════════════════════
+    "arif_detect_institutional_shadow_drift": derive_mcp_annotations(
+        "ANALYZE", title="Detect Institutional Shadow Drift",
+    ),
+    "arif_detect_narrative_tension": derive_mcp_annotations(
+        "ANALYZE", title="Detect Narrative Tension",
+    ),
+    # ═══════════════════════════════════════════════════════════════════
+    # DIAGNOSTIC TOOLS (6) — health probes, drift checks, budget
+    # ═══════════════════════════════════════════════════════════════════
+    "arif_stack_health_probe": derive_mcp_annotations(
+        "OBSERVE", title="Stack Health Probe",
+    ),
+    "arif_scan_local_instructions": derive_mcp_annotations(
+        "OBSERVE", title="Scan Local Instructions",
+    ),
+    "arif_organ_consensus": derive_mcp_annotations(
+        "ANALYZE", title="Organ Consensus",
+    ),
+    "arif_session_budget": derive_mcp_annotations(
+        "OBSERVE", title="Session Budget",
+    ),
+    "arif_floor_status": derive_mcp_annotations(
+        "OBSERVE", title="Floor Status",
+    ),
+    "mcp_drift_check": derive_mcp_annotations(
+        "ANALYZE", title="Drift Check",
+    ),
+    # ═══════════════════════════════════════════════════════════════════
+    # MCP GATE + SHADOW GEOMETRY (3) — evaluation infrastructure
+    # ═══════════════════════════════════════════════════════════════════
+    "arif_gate_judge": derive_mcp_annotations(
+        "ANALYZE", title="Gate Judge",
+    ),
+    "arif_self_evaluate": derive_mcp_annotations(
+        "ANALYZE", title="Self Evaluate",
+    ),
+    "arif_model_compare": derive_mcp_annotations(
+        "ANALYZE", title="Model Compare",
+    ),
 }
 
 # MCP Spec 2025-11-25 outputSchema (SEP-2127 / JSON Schema)
@@ -1625,14 +1913,87 @@ def build_tool_registry_manifest() -> dict[str, Any]:
     Generate the canonical tool registry manifest.
     Merges CANONICAL_TOOLS (13 kernel) + DIAGNOSTIC_TOOLS (24 diagnostic/hermes/canary/lease/attest/forge-sub/narrative).
     Single source: CANONICAL_TOOLS + DIAGNOSTIC_TOOLS dicts. No legacy aliases.
+
+    FORGED 2026-06-21: Every tool now includes an affordance_contract derived from
+    tool_risk_registry.py (canonical) or inferred from the tool spec (diagnostic).
+    This is the arifOS edge: the contract is computed, not hand-set.
     """
+    # ── Load risk registry for affordance contract derivation ──
+    _risk_registry: dict[str, Any] = {}
+    try:
+        from arifosmcp.runtime.tool_risk_registry import (
+            TOOL_RISK_REGISTRY,
+            classify_tool as _risk_classify,
+        )
+        _risk_registry = TOOL_RISK_REGISTRY
+    except Exception:
+        _risk_classify = None
+
+    def _affordance_contract(name: str, spec: dict[str, Any]) -> dict[str, Any]:
+        """Derive affordance_contract for a tool from risk registry or spec."""
+        # 1. Try the risk registry first
+        if name in _risk_registry:
+            profiles = _risk_registry[name]
+            base = profiles[0]  # First entry is base/default
+            return {
+                "action_class": base.action_class,
+                "risk_tier": base.risk_tier,
+                "blast_radius": base.blast_radius,
+                "reversibility": base.reversibility,
+                "requires_lease": base.requires_lease,
+                "autonomy_floor": base.autonomy_floor,
+                "rationale": base.rationale,
+                "_derived_from": "tool_risk_registry.py (canonical)",
+            }
+
+        # 2. Spec-based inference for diagnostic tools
+        tier = spec.get("tier", spec.get("risk_tier", "low"))
+        irreversible = spec.get("irreversible", False)
+        access = spec.get("access", "public")
+
+        if irreversible:
+            action_class = "IRREVERSIBLE"
+        elif tier == "lease":
+            action_class = "MUTATE"
+        elif access in ("authenticated", "sovereign"):
+            action_class = "DRAFT"
+        elif tier in ("hermes", "canary", "diagnostic", "forge-sub", "narrative"):
+            action_class = "OBSERVE"
+        elif tier == "attest":
+            action_class = "ANALYZE"
+        else:
+            action_class = "OBSERVE"
+
+        # blast_radius inference
+        if tier == "canonical" and spec.get("risk_tier") == "critical":
+            blast_radius = "PUBLIC"
+        elif tier in ("hermes", "narrative"):
+            blast_radius = "ORG"
+        elif tier in ("lease", "attest"):
+            blast_radius = "ORG"
+        else:
+            blast_radius = "LOCAL"
+
+        reversibility = 0.0 if irreversible else 0.9
+
+        return {
+            "action_class": action_class,
+            "risk_tier": spec.get("risk_tier", "low").upper(),
+            "blast_radius": blast_radius,
+            "reversibility": reversibility,
+            "requires_lease": irreversible or tier == "lease",
+            "autonomy_floor": "PRINCIPAL_APPROVAL_REQUIRED" if irreversible else "FULL_AUTO",
+            "rationale": f"Spec-inferred: tier={tier}, irreversible={irreversible}, access={access}",
+            "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)",
+        }
+
     all_tools: dict[str, dict[str, Any]] = {}
 
-    # ── Canonical 13 ──
+    # ── Canonical (13 kernel + Rule-14 diagnostics) ──
     for name, spec in CANONICAL_TOOLS.items():
         all_tools[name] = {
-            "stage": spec["stage"].value,
-            "lane": spec["lane"].value,
+            "stage": spec["stage"].value if hasattr(spec["stage"], "value") else str(spec["stage"]),
+            "lane": spec["lane"].value if hasattr(spec["lane"], "value") else str(spec["lane"]),
             "floors": [floor.value for floor in spec["floors"]],
             "risk_tier": spec["risk_tier"],
             "irreversible": spec["irreversible"],
@@ -1643,7 +2004,12 @@ def build_tool_registry_manifest() -> dict[str, Any]:
             "tier": "canonical",
             "namespace": "arif_* (canonical prefix)",
             "tags": ["canonical"],
+            "affordance_contract": _affordance_contract(name, spec),
         }
+        # Forward deprecation metadata if present
+        if spec.get("_deprecated"):
+            all_tools[name]["_deprecated"] = True
+            all_tools[name]["_canonical_name"] = spec.get("_canonical_name", "")
 
     # ── Diagnostic + Federation tools ──
     for name, spec in DIAGNOSTIC_TOOLS.items():
@@ -1657,6 +2023,7 @@ def build_tool_registry_manifest() -> dict[str, Any]:
             "requires_auth": spec.get("access", "public") != "public",
             "modes": spec.get("modes", []),
             "tags": spec.get("tags", []),
+            "affordance_contract": _affordance_contract(name, spec),
         }
 
     # ── Tier summary ──
@@ -1671,8 +2038,17 @@ def build_tool_registry_manifest() -> dict[str, Any]:
         "_note": (
             "SOLE SOURCE OF TRUTH. "
             "Generated from CANONICAL_TOOLS (13 kernel) + DIAGNOSTIC_TOOLS (31 operational). "
-            "Do not hand-edit — edit the source dicts in constitutional_map.py and regenerate."
+            "Do not hand-edit — edit the source dicts in constitutional_map.py and regenerate. "
+            "FORGED 2026-06-21: affordance_contract added — derived from tool_risk_registry.py "
+            "for canonical tools, spec-inferred for diagnostic tools. The contract is "
+            "COMPUTED, not hand-set."
         ),
+        "_affordance_contract_derivation": {
+            "canonical_tools": "tool_risk_registry.py → ToolRiskProfile (action_class, risk_tier, blast_radius, reversibility, requires_lease, autonomy_floor)",
+            "diagnostic_tools": "constitutional_map.py → spec-inferred from tier + irreversible + access fields",
+            "rule": "AAA Agent Invariant #6: HINTS ≠ CONTRACTS. Affordance contracts are derived from action_class, not self-declared by the tool.",
+            "forged": "2026-06-21",
+        },
         "_namespace_ruling": {
             "arif_*": "Canonical13 public surface — 13 kernel + 6 canary probes (19 default wire tools)",
             "hermes_*": "GATED — Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",

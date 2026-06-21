@@ -176,6 +176,10 @@ class ThermodynamicBudget:
     landauer_violations: int = field(default=0)
     max_violations: int = 3  # After 3 violations → 888_HOLD
 
+    # APEX ENERGY: soft warning threshold (default 80%)
+    # When depletion_ratio exceeds this, surface a warning — don't block.
+    warning_threshold: float = field(default=0.80)
+
     # Energy consumption rates (Joules per unit)
     COST_PER_REASON_CYCLE: float = 1e-3
     COST_PER_TOOL_CALL: float = 1e-2
@@ -202,6 +206,20 @@ class ThermodynamicBudget:
     def is_exhausted(self) -> bool:
         """Budget fully depleted."""
         return self.remaining <= 0
+
+    @property
+    def is_warning(self) -> bool:
+        """APEX ENERGY: budget approaching depletion (soft threshold)."""
+        return self.depletion_ratio >= self.warning_threshold
+
+    @property
+    def energy_status(self) -> str:
+        """APEX ENERGY: machine-readable budget status."""
+        if self.is_exhausted:
+            return "EXHAUSTED"
+        if self.is_warning:
+            return "WARNING"
+        return "OK"
 
     def consume_reason_cycle(self, n_cycles: int = 1) -> None:
         """Consume energy for reasoning cycles."""

@@ -222,7 +222,7 @@ def probe_policy_hash_active() -> tuple[bool, str]:
 
 def probe_vault999_integrity() -> tuple[bool, str]:
     """Is VAULT999 append-only and growing? If tampered, audit score drops."""
-    vault_path = os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"
+    vault_path = os.environ.get("VAULT999_PATH", "/root/arifOS/VAULT999/SEALED_EVENTS_v2.jsonl")
     if not os.path.isfile(vault_path):
         return False, "vault_missing"
     try:

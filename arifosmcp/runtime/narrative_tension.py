@@ -125,8 +125,9 @@ def _now() -> datetime:
 
 
 def _constitution_hash() -> str:
-    """Best-effort constitution hash; matches the existing golden case convention."""
-    return "sha256:arifos-constitution-v2026.05.05-SSCT"
+    """Best-effort constitution hash (INV-4)."""
+    from arifosmcp.runtime.live_kernel import compute_constitution_hash
+    return compute_constitution_hash()
 
 
 def _load_golden_case(article_id: str | None, title: str) -> NarrativeTensionResponse | None:

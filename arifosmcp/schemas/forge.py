@@ -144,6 +144,13 @@ class ForgeManifest(BaseModel):
     checksum: str | None = Field(default=None)
     manifest_raw: str = Field(default="", description="Raw manifest content")
     status: ManifestStatus = Field(default=ManifestStatus.PENDING)
+    # APEX EXPLORATION × AMANAH: custody chain (hardened 2026-06-20)
+    # Records who held this action from conception to execution.
+    # Each entry: {"role": "initiator|validator|approver|executor", "actor_id": str, "timestamp": str}
+    custody_chain: list[dict[str, str]] = Field(
+        default_factory=list,
+        description="Custody chain: who held this action from conception to execution",
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

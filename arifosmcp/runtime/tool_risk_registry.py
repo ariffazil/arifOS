@@ -226,6 +226,20 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             requires_lease=True,
         ),
     ],
+    # ── BRIDGE: Direct Organ Call (RULE 14) ─────────────────────
+    "arif_bridge_connect": [
+        ToolRiskProfile(
+            tool_name="arif_bridge_connect",
+            mode=None,
+            action_class="ANALYZE",
+            risk_tier="MEDIUM",
+            blast_radius="PUBLIC",
+            reversibility=0.9,
+            autonomy_floor="FULL_AUTO",
+            rationale="Bridge connect is cross-organ routing. No local mutation — delegates to target organ. F1 AMANAH: reversible at arifOS level (target organ action may not be). Canonical name follows arif_<noun>_<verb> convention (forged 2026-06-21).",
+            requires_lease=False,
+        ),
+    ],
     # ── GATEWAY: Federation Bridge ────────────────────────────────
     "arif_gateway_connect": [
         ToolRiskProfile(
