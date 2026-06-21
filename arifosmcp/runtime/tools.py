@@ -12890,8 +12890,6 @@ def _arif_vault_seal(
     # ── DEGRADED-DOMINANCE GATE (Phase 5, 2026-06-21) ──────────────────────
     # Same gate as judge_deliberate. If any critical subsystem is degraded,
     # refuse the seal. The substrate must never seal into a broken chain.
-    # Per arifOS doctrine: vault_chain integrity is the load-bearing property.
-    # Without it, SEAL has no replay path — substrate property lost.
     try:
         from arifosmcp.runtime.substrate_health import degraded_dominance_gate
 
@@ -12922,6 +12920,51 @@ def _arif_vault_seal(
             "actor_id": actor_id,
             "_gate_error": True,
         }
+
+    # ── EPISTEMIC GATE (2026-06-21) — reject AI-synthesised evidence ──────
+    # If the payload carries an _epistemic tag, verify it is vault-eligible.
+    # Haram: AI-synthesised evidence must never enter the immutable ledger.
+    try:
+        from arifosmcp.runtime.epistemic_injector import verify_vault_eligibility
+
+        if mode == "seal" and payload:
+            # Check if payload is a JSON string that might contain _epistemic
+            _payload_to_check = payload
+            try:
+                import json as _epi_json
+                _payload_parsed = _epi_json.loads(payload)
+                _eligible, _reason = verify_vault_eligibility(_payload_parsed)
+            except (json.JSONDecodeError, TypeError, ValueError):
+                # Payload is not JSON or has no _epistemic — allow (not all payloads are tool responses)
+                _eligible = True
+                _reason = "Non-JSON payload — epistemic check skipped"
+
+            if not _eligible:
+                logger.warning("EPISTEMIC GATE BLOCKED vault seal: %s", _reason)
+                return {
+                    "status": "ERROR",
+                    "verdict": "HOLD",
+                    "seal_status": "SUPPRESSED",
+                    "reason": _reason,
+                    "session_id": session_id,
+                    "actor_id": actor_id,
+                    "mode": mode,
+                    "_epistemic_gate": "BLOCKED",
+                    "doctrine": "HARAM: AI-synthesised evidence cannot enter vault.",
+                }
+    except Exception as _epi_err:
+        logger.warning("vault epistemic gate error (failing safe): %s", _epi_err)
+        # Fail safe: if we can't verify, don't seal
+        if mode == "seal":
+            return {
+                "status": "ERROR",
+                "verdict": "HOLD",
+                "seal_status": "SUPPRESSED",
+                "reason": f"Epistemic gate error (fail-safe): {_epi_err}",
+                "session_id": session_id,
+                "actor_id": actor_id,
+                "_gate_error": True,
+            }
 
     from datetime import datetime
 
@@ -16269,6 +16312,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             actor_id=kwargs.get("actor_id"),
         )
         _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+        _inject_epistemic_tag(final_resp, tool_name)
         _schedule_seal(final_resp, tool_name, kwargs)
         try:
             import asyncio
@@ -16312,6 +16356,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 actor_id=kwargs.get("actor_id"),
             )
             _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+            _inject_epistemic_tag(final_resp, tool_name)
             _schedule_seal(final_resp, tool_name, kwargs)
             return final_resp
         # Nine-Signal enforcement on every response
@@ -16322,6 +16367,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             actor_id=kwargs.get("actor_id"),
         )
         _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+        _inject_epistemic_tag(final_resp, tool_name)
         _schedule_seal(final_resp, tool_name, kwargs)
         try:
             import asyncio
@@ -16362,6 +16408,36 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             response["live_kernel_envelope"] = envelope.model_dump(mode="json")
         except Exception:
             # Envelope attachment must never crash a tool call.
+            pass
+
+    def _inject_epistemic_tag(
+        response: dict[str, Any], tool_name: str
+    ) -> None:
+        """Inject _epistemic halal/haram tag into every tool response.
+
+        Uses the tool classification registry. If the tool is not registered,
+        defaults to DETERMINISTIC (safe fallback). This runs after Nine-Signal
+        enforcement and live kernel envelope attachment.
+
+        Every tool response MUST carry an _epistemic field so downstream
+        consumers can distinguish AI-generated advisory from deterministic
+        authority without tracing the call chain.
+        """
+        try:
+            from arifosmcp.runtime.epistemic_injector import (
+                inject_epistemic_for_tool,
+            )
+
+            # Don't overwrite if tool already injected its own epistemic tag
+            if "_epistemic" not in response:
+                inject_epistemic_for_tool(
+                    response,
+                    tool_name,
+                    tagged_by="arifOS",
+                )
+        except Exception:
+            # Epistemic injection must never crash a tool call.
+            # If missing, the vault_seal epistemic gate will catch it.
             pass
 
     def _schedule_seal(response: dict[str, Any], tool_name: str, kwargs: dict[str, Any]) -> None:

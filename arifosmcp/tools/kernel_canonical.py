@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import asyncio
 import concurrent.futures
+import logging
 import time
 from pathlib import Path
 from typing import Any
@@ -32,6 +33,8 @@ from typing import Any
 from arifosmcp.core.federation_contracts import validate_organ_output
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _hold, _ok
+
+logger = logging.getLogger(__name__)
 
 try:
     from arifosmcp.core.tool_self_model import SURPRISE_WINDOW_SIZE
@@ -527,6 +530,12 @@ def _bridge_geox(tool_name: str, arguments: dict, session_id: str | None, actor_
         return hold
     try:
         from arifosmcp.federation.kernel_envelope import wrap_geox_output
+        from arifosmcp.runtime.epistemic_injector import (
+            has_executive_authority,
+            is_ai_generated,
+            read_epistemic,
+            verify_route_eligibility,
+        )
         from arifosmcp.runtime.geox_bridge import call_geox_tool
 
         result = _run_async(call_geox_tool(tool_name, arguments))
@@ -538,6 +547,20 @@ def _bridge_geox(tool_name: str, arguments: dict, session_id: str | None, actor_
             actor_id=actor_id,
             lease_id=arguments.get("lease_id"),
         )
+
+        # ── Epistemic route gate (2026-06-21) ─────────────────────────────
+        # Check if the bridged result claims executive authority but is AI-generated.
+        # AI may recommend action, not self-approve action.
+        _source_epi = read_epistemic(wrapped) if isinstance(wrapped, dict) else None
+        if _source_epi:
+            _eligible, _reason = verify_route_eligibility(_source_epi, "EXECUTIVE")
+            if not _eligible:
+                logger.warning(
+                    "EPISTEMIC ROUTE GATE: GEOX bridge blocked for %s — %s",
+                    tool_name, _reason,
+                )
+                return _hold("arif_bridge", f"Epistemic route gate: {_reason}", ["F2_TRUTH"])
+
         return _ok("arif_bridge", {
             "organ": "GEOX",
             "tool": tool_name,
@@ -545,6 +568,7 @@ def _bridge_geox(tool_name: str, arguments: dict, session_id: str | None, actor_
             "status": "bridged",
             "boundary_enforced": validated["boundary_enforced"],
             "violations": validated["violations"],
+            "_epistemic_checked": True,
         })
     except Exception as e:
         return _hold("arif_bridge", f"GEOX bridge failed: {e}")
@@ -556,10 +580,26 @@ def _bridge_wealth(tool_name: str, arguments: dict, session_id: str | None, acto
     if hold:
         return hold
     try:
+        from arifosmcp.runtime.epistemic_injector import (
+            read_epistemic,
+            verify_route_eligibility,
+        )
         from arifosmcp.runtime.wealth_bridge import call_wealth_tool
 
         result = _run_async(call_wealth_tool(tool_name, arguments))
         validated = validate_organ_output("wealth", result)
+
+        # ── Epistemic route gate (2026-06-21) ─────────────────────────────
+        _source_epi = read_epistemic(validated["output"]) if isinstance(validated["output"], dict) else None
+        if _source_epi:
+            _eligible, _reason = verify_route_eligibility(_source_epi, "EXECUTIVE")
+            if not _eligible:
+                logger.warning(
+                    "EPISTEMIC ROUTE GATE: WEALTH bridge blocked for %s — %s",
+                    tool_name, _reason,
+                )
+                return _hold("arif_bridge", f"Epistemic route gate: {_reason}", ["F2_TRUTH"])
+
         return _ok("arif_bridge", {
             "organ": "WEALTH",
             "tool": tool_name,
@@ -567,6 +607,7 @@ def _bridge_wealth(tool_name: str, arguments: dict, session_id: str | None, acto
             "status": "bridged",
             "boundary_enforced": validated["boundary_enforced"],
             "violations": validated["violations"],
+            "_epistemic_checked": True,
         })
     except Exception as e:
         return _hold("arif_bridge", f"WEALTH bridge failed: {e}")
@@ -578,14 +619,31 @@ def _bridge_well(tool_name: str, arguments: dict, session_id: str | None, actor_
     if hold:
         return hold
     try:
+        from arifosmcp.runtime.epistemic_injector import (
+            read_epistemic,
+            verify_route_eligibility,
+        )
         from arifosmcp.runtime.well_bridge import call_well_tool
 
         result = _run_async(call_well_tool(tool_name, arguments))
+
+        # ── Epistemic route gate (2026-06-21) ─────────────────────────────
+        _source_epi = read_epistemic(result) if isinstance(result, dict) else None
+        if _source_epi:
+            _eligible, _reason = verify_route_eligibility(_source_epi, "EXECUTIVE")
+            if not _eligible:
+                logger.warning(
+                    "EPISTEMIC ROUTE GATE: WELL bridge blocked for %s — %s",
+                    tool_name, _reason,
+                )
+                return _hold("arif_bridge", f"Epistemic route gate: {_reason}", ["F2_TRUTH"])
+
         return _ok("arif_bridge", {
             "organ": "WELL",
             "tool": tool_name,
             "result": result,
             "status": "bridged",
+            "_epistemic_checked": True,
         })
     except Exception as e:
         return _hold("arif_bridge", f"WELL bridge failed: {e}")

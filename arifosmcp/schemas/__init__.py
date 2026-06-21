@@ -145,6 +145,25 @@ from arifosmcp.schemas.topology import (
     Verdict as TopologyVerdict,
 )
 
+# Epistemic Tag (_epistemic response envelope — halal/haram boundary)
+from arifosmcp.schemas.epistemic_tag import (
+    AiInvolvement,
+    AuthorityClaim,
+    EpistemicTag,
+    EvidenceSource,
+    OutputClass,
+    EPISTEMIC_AI_ADVISORY,
+    EPISTEMIC_AI_FALLBACK,
+    EPISTEMIC_DETERMINISTIC,
+    EPISTEMIC_DOMAIN_ASSISTED,
+    EPISTEMIC_DOMAIN_COMPUTATION,
+    EPISTEMIC_GOVERNANCE_TEMPLATE,
+    EPISTEMIC_MEASURED,
+    EPISTEMIC_RETRIEVED,
+    assert_tag_valid,
+    validate_halal_haram,
+)
+
 # Vault Liveness (AAA-GOV-VAULT-LIVENESS-v1)
 from arifosmcp.schemas.vault_liveness import (
     ContractEntry,
@@ -280,6 +299,22 @@ __all__ = [
     "BudgetDomain",
     "DomainLimit",
     "ViolationPolicy",
+    # Epistemic Tag (_epistemic response envelope)
+    "EpistemicTag",
+    "OutputClass",
+    "AiInvolvement",
+    "AuthorityClaim",
+    "EvidenceSource",
+    "EPISTEMIC_DETERMINISTIC",
+    "EPISTEMIC_GOVERNANCE_TEMPLATE",
+    "EPISTEMIC_AI_ADVISORY",
+    "EPISTEMIC_AI_FALLBACK",
+    "EPISTEMIC_DOMAIN_COMPUTATION",
+    "EPISTEMIC_DOMAIN_ASSISTED",
+    "EPISTEMIC_MEASURED",
+    "EPISTEMIC_RETRIEVED",
+    "assert_tag_valid",
+    "validate_halal_haram",
     # Vault Liveness (AAA-GOV-VAULT-LIVENESS-v1)
     "VaultLivenessContract",
     "VaultLivenessState",
