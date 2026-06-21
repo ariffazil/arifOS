@@ -1,4 +1,4 @@
-"""Canonical prompt registry for arifOS MCP."""
+"""Canonical prompt registry for arifOS MCP — delegates to prompts/__init__.py."""
 
 from __future__ import annotations
 
@@ -7,77 +7,61 @@ from arifosmcp.prompts import register_prompts
 __all__ = ["CANONICAL_PROMPTS", "register_prompts", "V2_PROMPT_SPECS", "register_v2_prompts"]
 
 CANONICAL_PROMPTS = (
-    "system",
-    "judge",
-    "init",
-    "888_deliberation",
-    "rsi",
-    "ortho",
-    "epistemic",
-    "governance",
-    "entropy",
+    "000_init",
+    "111_sense",
+    "333_reason",
+    "555_judge",
+    "666_critique",
+    "777_forge",
+    "999_seal",
 )
 
 V2_PROMPT_SPECS = (
     {
-        "name": "system",
-        "description": "Constitutional system context — arifOS F1-L13 governance floor",
+        "name": "000_init",
+        "description": "000_INIT — Threshold. Identity binding, reality grounding, floor acceptance.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "judge",
-        "description": "888_JUDGE verdict engine context — deliberative decision protocol",
+        "name": "111_sense",
+        "description": "111_SENSE — Witness. Open observation, pattern detection, evidence gathering with epistemic labels.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "init",
-        "description": "000_INIT session anchor context — temporal + identity grounding",
+        "name": "333_reason",
+        "description": "333_REASON — Mind. Abstraction, abduction (N≥3 hypotheses), synthesis, proposal.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "888_deliberation",
-        "description": "APEX deliberation ritual — prepares a sovereign judgment case",
+        "name": "555_judge",
+        "description": "555_JUDGE — Constitutional evaluator. Truth, reversibility, dignity, universality tests. SEAL/SABAR/HOLD/VOID.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "rsi",
-        "description": "Recursive Self-Improvement meta-skill — AGI reflection protocol",
+        "name": "666_critique",
+        "description": "666_CRITIQUE — Pre-forge mirror. Consequence scan, blast radius, alternatives, ethical ground.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "ortho",
-        "description": "Orthogonal correction meta-skill — drift detection and correction",
+        "name": "777_forge",
+        "description": "777_FORGE — Builder. Authorize, execute smallest reversible step, verify, rollback on failure.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "epistemic",
-        "description": "Epistemic hygiene meta-skill — uncertainty and confidence framing",
-        "input_schema": {},
-        "default_tools": [],
-        "tool_choice": "auto",
-    },
-    {
-        "name": "governance",
-        "description": "Governance awareness meta-skill — constitutional floor context",
-        "input_schema": {},
-        "default_tools": [],
-        "tool_choice": "auto",
-    },
-    {
-        "name": "entropy",
-        "description": "Entropy management meta-skill — disorder detection and ordering",
+        "name": "999_seal",
+        "description": "999_SEAL — Closer. Golden path verification, immutable VAULT999 write. IRREVERSIBLE.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
@@ -86,7 +70,5 @@ V2_PROMPT_SPECS = (
 
 
 def register_v2_prompts(mcp):
-    """Stub — delegate to register_prompts."""
-    from arifosmcp.prompts import register_prompts
-
+    """Delegate to register_prompts in prompts/__init__.py."""
     return register_prompts(mcp)

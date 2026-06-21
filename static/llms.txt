@@ -3,8 +3,8 @@
 # Layer:       THEORY — Constitutional governance framework
 # Read Order:  HUMAN (arif-fazil.com/llms.txt) → THEORY (this) → APPS (aaa.arif-fazil.com/llms.txt)
 # Authority:   ARIF FAZIL (888 Judge, Sovereign)
-# Version:     v2026.05.05-SSCT
-# Updated:     2026-05-05
+# Version:     v2026.06.22-SSCT
+# Updated:     2026-06-22
 # Canonical:   https://arif-fazil.com/.well-known/arifos.json
 
 ---
@@ -75,8 +75,59 @@ Health endpoint:    https://arifos.arif-fazil.com/health
 Tools list:         https://arifos.arif-fazil.com/tools
 API status:         https://arifos.arif-fazil.com/api/status
 
-MCP protocol:       2025-03-26 (backward compatible with 2024-11-05)
+MCP protocol:       2025-11-25 (baseline)
 Transport:          streamable-http (stateless_http=True)
+
+---
+
+## MCP RESOURCES (15 total — Constitutional Reference Layer)
+
+All resources are text/plain unless noted. Served via MCP resources/* protocol.
+These are the kernel's memory, not its muscles.
+Memory does not become truth until it has provenance (F2).
+Truth does not become final until sealed (F12).
+
+### Constitutional Core (F1–F13)
+
+| URI | Description | Floors |
+|-----|-------------|--------|
+| arifos://doctrine | Immutable 13-floor constitution. Amanah → Sovereign. All tools and agents operate within these floors. | F1–F13 |
+| arifos://trinity | AAA Trinity lane architecture: AGI(111) proposes, ASI(444) judges, APEX(888) authorizes, FORGE(010) executes, 999 seals. | F1,F4,F7,F13 |
+| arifos://schema | Complete canonical blueprint of the arifOS MCP surface. 13 tools organized by Trinity lane, 13 floors with invariants, separation of powers. | All |
+| arifos://civilization | Seven federation organs, three intelligence strata, constitutional boundaries, entropy responsibility model. | F1,F10 |
+| arifos://identity | Sovereign identity manifest bound from identity.toml. Root of accountability — all attestation chains begin here. | F1,F13 |
+| arifos://bootstrap | Complete federation knowledge-graph bootstrap. Full world-model in one call. v2026.06.14. | All |
+
+### Execution & Sealing
+
+| URI | Description | Floors |
+|-----|-------------|--------|
+| arifos://seal-readiness | Vault integrity report, five disambiguated seal types, seven-floor seal gate. Bare SEAL without namespace is non-compliant. | F2,F12 |
+| arifos://jurisdiction | Five autonomy bands (GREEN→BLACK), CapabilityGrant registry. Autonomy is a leased capability, not a permanent possession. | F11,F13 |
+
+### Memory, Vitals, Knowledge
+
+| URI | Description | Floors |
+|-----|-------------|--------|
+| arifos://memory | Six-layer memory architecture: L1 ephemeral → L6 immutable (VAULT999). | F2,F6,F12 |
+| arifos://vitals | Constitutional vitals reference — metric definitions, thresholds. For LIVE values use arif_ops_measure(mode=health). | F8 |
+| tree777://index | TREE777 wiki full index — all skills, concepts, and scars. | F2,F4 |
+| runner://policy/v1 | Pinned policy of the context_runner bridge. F2 deterministic, F11 SOT. | F2,F11 |
+| arifos://human/metabolized | Metabolized sovereign context — the nutrient, not the full testimony. Forged 2026-06-16 by FORGE (000Ω). | F1,F6,F9,F13 |
+
+### Supplemental (auto-generated)
+
+| URI | Description | Floors |
+|-----|-------------|--------|
+| arifos://mcp-alignment | MCP spec conformance matrix — protocol compliance, extensions, deprecations, client compatibility. | F2,F4,F11 |
+| arifos://resources/index | Machine-readable JSON catalog of all resources with URIs, MIME types, descriptions, and floor linkages. | F2,F4,F11 |
+
+### Discovery Endpoints
+
+- Resource listing: `MCP resources/list` (standard protocol)
+- Server card: `.well-known/mcp/server-card.json`
+- Health: `arif_ops_measure(mode=health)` for live constitutional vitals
+- Full bootstrap: `arifos://bootstrap` (world-model in one fetch)
 
 ---
 

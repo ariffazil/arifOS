@@ -1,50 +1,61 @@
 # Runtime prompt registry — must match arifosmcp.prompts.CANONICAL_PROMPTS
-# 2026-06-04: AAA Trinity upgrade — 2 gateways (000+999) + 3 lanes (111/444/888)
+# 2026-06-21: APEX Theory upgrade — 7 prompts (000/111/333/555/666/777/999)
 CANONICAL_PROMPTS = (
     "000_init",
-    "111_agi",
-    "444_asi",
-    "888_apex",
+    "111_sense",
+    "333_reason",
+    "555_judge",
+    "666_critique",
+    "777_forge",
     "999_seal",
 )
 
 V2_PROMPT_SPECS = (
     {
         "name": "000_init",
-        "description": "000_INIT — Session anchor and constitutional gateway. "
-        "Identity binding (L11), entropy baseline, session manifest, F1-L13 confirmation.",
+        "description": "000_INIT — Threshold. Identity binding, reality grounding, floor acceptance.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "111_agi",
-        "description": "111_AGI — Tactical intelligence (AGI lane, stages 111-555). "
-        "PROPOSE. Abstraction + abduction + synthesis. EVOI discipline. C_dark guard.",
+        "name": "111_sense",
+        "description": "111_SENSE — Witness. Open observation, pattern detection, evidence gathering with epistemic labels.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "444_asi",
-        "description": "444_ASI — Strategic judgment (ASI lane, stages 666-888). "
-        "JUDGE. Attestation chain + F1-L13 floor-by-floor + orthogonal transfer + deliberation.",
+        "name": "333_reason",
+        "description": "333_REASON — Mind. Abstraction, abduction (N≥3 hypotheses), synthesis, proposal.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
-        "name": "888_apex",
-        "description": "888_APEX — Authority resolution (APEX lane, stages 888-999). "
-        "AUTHORIZE. Governance separation + generality test + verdict verification + pre-forge checklist.",
+        "name": "555_judge",
+        "description": "555_JUDGE — Constitutional evaluator. Truth, reversibility, dignity, universality tests. SEAL/SABAR/HOLD/VOID.",
+        "input_schema": {},
+        "default_tools": [],
+        "tool_choice": "auto",
+    },
+    {
+        "name": "666_critique",
+        "description": "666_CRITIQUE — Pre-forge mirror. Consequence scan, blast radius, alternatives, ethical ground.",
+        "input_schema": {},
+        "default_tools": [],
+        "tool_choice": "auto",
+    },
+    {
+        "name": "777_forge",
+        "description": "777_FORGE — Builder. Authorize, execute smallest reversible step, verify, rollback on failure.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
     },
     {
         "name": "999_seal",
-        "description": "999_SEAL — Vault closure and constitutional exit. "
-        "Golden path verification + actor chain + evidence chain + floor compliance + VAULT999 write.",
+        "description": "999_SEAL — Closer. Golden path verification, immutable VAULT999 write. IRREVERSIBLE.",
         "input_schema": {},
         "default_tools": [],
         "tool_choice": "auto",
@@ -54,7 +65,6 @@ V2_PROMPT_SPECS = (
 
 def register_v2_prompts(mcp):
     from arifosmcp.prompts import register_prompts
-
     return register_prompts(mcp)
 
 

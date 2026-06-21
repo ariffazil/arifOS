@@ -1,7 +1,9 @@
 # arifOS — Constitutional AI Governance Kernel
 > Auto-generated from live tool registry. Hash: a68bb4800aeed0d0
 > Total MCP tools: 45 | Canonical: 13 | Operational: 32
+> MCP Resources: 15 (13 canonical + 2 supplemental)
 > Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL
+> Protocol: MCP 2025-11-25
 
 ## MCP Tools — Complete Surface
 arifOS exposes 45 MCP tools: 13 canonical constitutional tools
@@ -104,5 +106,13 @@ F11 AUDITABILITY . F12 RESILIENCE . F13 SOVEREIGN (human veto FINAL)
 - canonical_tools + operational_tools == tools_exposed_via_mcp
 - Manifest hash: a68bb4800aeed0d0
 - Manifest URL: https://arifos.arif-fazil.com/manifest.txt
+
+## MCP Resources (15 total)
+13 canonical + 2 supplemental. All served via MCP resources/* protocol.
+See https://arifos.arif-fazil.com/llms.txt for full resource table.
+Key: arifos://doctrine arifos://trinity arifos://schema arifos://civilization
+arifos://seal-readiness arifos://jurisdiction arifos://identity arifos://memory
+arifos://vitals arifos://bootstrap arifos://human/metabolized tree777://index
+runner://policy/v1 arifos://mcp-alignment arifos://resources/index
 
 --- Auto-generated 2026-06-14T21:52:58.723389 ---
