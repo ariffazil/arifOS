@@ -222,58 +222,90 @@ def register_resources_index(mcp: FastMCP) -> list[str]:
         """
         import hashlib
 
+        # ── Canonical truth hierarchy table ──────────────────────────────────
+        # Integer rank 1 (highest truth) → 7 (lowest). Machine-comparable.
+        # SOVEREIGN_CANON > SEALED_VAULT > TRUSTED_REPO > OBSERVED_EXTERNAL
+        # > USER_CLAIM > MODEL_INFERENCE > UNTRUSTED
+        TRUTH_TABLE: dict[str, tuple[int, str, list[str]]] = {
+            "CANONICAL":    (1, "SOVEREIGN_CANON",   ["user_claim", "model_inference", "untrusted_resource", "stale_resource", "observed_external"]),
+            "STRUCTURAL":   (2, "SEALED_VAULT",      ["user_claim", "model_inference", "untrusted_resource", "stale_resource"]),
+            "TRUSTED_REPO": (3, "TRUSTED_REPO",      ["user_claim", "model_inference", "untrusted_resource"]),
+            "DYNAMIC":      (4, "OBSERVED_EXTERNAL", ["model_inference", "untrusted_resource"]),
+            "USER_CLAIM":   (5, "USER_CLAIM",        ["model_inference", "untrusted_resource"]),
+            "EPHEMERAL":    (6, "MODEL_INFERENCE",   ["untrusted_resource"]),
+            "UNTRUSTED":    (7, "UNTRUSTED",         []),
+        }
+
         index = _build_resource_catalog()
         audit_entries = []
 
+        # ── Explicit truth overrides for specific URIs ────────────────────
+        # Allow per-URI authority override without restructuring the family system.
+        _URI_AUTHORITY_OVERRIDES: dict[str, str] = {
+            "arifos://human/metabolized": "STRUCTURAL",       # SEALED_VAULT — nutrient, not canon
+            "runner://policy/v1": "TRUSTED_REPO",             # git-versioned policy
+            "runner://receipt/{run_id}": "TRUSTED_REPO",       # git-versioned receipts
+            "tree777://index": "STRUCTURAL",                  # SEALED_VAULT — knowledge graph index
+            "tree777://skills/{category}/{name}": "STRUCTURAL",
+            "tree777://concepts/{name}": "STRUCTURAL",
+            "tree777://scars/{name}": "STRUCTURAL",
+        }
+
+        # ── Authority-level metadata (owner, mutation, staleness, blast, evidence) ──
+        _AUTHORITY_META: dict[str, tuple[str, bool, str, str, str]] = {
+            "CANONICAL":     ("ARIF_FAZIL", False, "fail_closed", "HIGH",   "CANONICAL"),
+            "STRUCTURAL":    ("ARIF_FAZIL", False, "fail_closed", "MEDIUM", "DERIVED"),
+            "TRUSTED_REPO":  ("ARIF_FAZIL", False, "fail_closed", "MEDIUM", "DERIVED"),
+            "DYNAMIC":       ("RUNTIME",    True,  "warn",        "LOW",    "OBSERVED"),
+            "EPHEMERAL":     ("RUNTIME",    True,  "warn",        "LOW",    "MODEL_INFERENCE"),
+            "USER_CLAIM":    ("ARIF_FAZIL", True,  "warn",        "LOW",    "USER_CLAIM"),
+            "UNTRUSTED":     ("UNKNOWN",    True,  "fail_closed", "HIGH",   "UNTRUSTED"),
+        }
+
+        # ── Family → default authority mapping ──────────────────────────────
+        _FAMILY_AUTHORITY: dict[str, str] = {
+            "canonical":    "CANONICAL",
+            "tree777":      "STRUCTURAL",
+            "supplemental": "STRUCTURAL",
+            "runner":       "TRUSTED_REPO",
+            "evidence":     "DYNAMIC",
+            "embodied":     "DYNAMIC",
+        }
+
+        seen_uris: set[str] = set()
+
         for entry in index["resources"]:
             uri = entry["uri"]
+
+            # Deduplicate — same URI from multiple families (e.g. tree777://index
+            # in both CANONICAL and TREE777_RESOURCES). First occurrence wins.
+            if uri in seen_uris:
+                continue
+            seen_uris.add(uri)
+
             is_dynamic = entry.get("dynamic", False)
             family = entry.get("family", "unknown")
 
-            # Determine authority level
-            if family == "canonical":
-                authority = "CANONICAL"
-                owner = "ARIF_FAZIL"
-                mutation = False
-                staleness = "fail_closed"
-                blast = "HIGH"
-                evidence = "CANONICAL"
-            elif family in ("tree777", "supplemental"):
-                authority = "STRUCTURAL"
-                owner = "ARIF_FAZIL"
-                mutation = not is_dynamic  # static resources are immutable
-                staleness = "fail_closed" if not is_dynamic else "warn"
-                blast = "MEDIUM"
-                evidence = "DERIVED"
-            else:
-                authority = "DYNAMIC"
-                owner = "RUNTIME"
-                mutation = True
-                staleness = "warn"
-                blast = "LOW"
-                evidence = "OBSERVED"
+            # Resolve authority: per-URI override > family default > DYNAMIC
+            authority = _URI_AUTHORITY_OVERRIDES.get(uri, _FAMILY_AUTHORITY.get(family, "DYNAMIC"))
 
-            # Compute mock content hash (salted with URI + floors)
+            # Resolve metadata from authority
+            owner, mutation, staleness, blast, evidence = _AUTHORITY_META.get(
+                authority, ("RUNTIME", True, "warn", "LOW", "OBSERVED")
+            )
+
+            # Template URIs (containing {param}) are structurally immutable
+            if is_dynamic and "{" in uri:
+                mutation = False
+
+            # Compute content hash (salted with URI + floors)
             hash_input = f"{uri}:{sorted(entry.get('floors', []))}:v2026.06.21"
             content_hash = f"sha256:{hashlib.sha256(hash_input.encode()).hexdigest()[:32]}"
 
-            # Truth hierarchy: SOVEREIGN_CANON > SEALED_VAULT > TRUSTED_REPO
-            # > OBSERVED_EXTERNAL > USER_CLAIM > MODEL_INFERENCE > UNTRUSTED
-            truth_hierarchy = {
-                "CANONICAL": "SOVEREIGN_CANON",
-                "STRUCTURAL": "SEALED_VAULT",
-                "DYNAMIC": "OBSERVED_EXTERNAL",
-                "EPHEMERAL": "MODEL_INFERENCE",
-            }
-            truth = truth_hierarchy.get(authority, "UNTRUSTED")
-
-            # What this resource overrides when in conflict
-            overrides_map = {
-                "SOVEREIGN_CANON": ["user_claim", "model_inference", "untrusted_resource", "stale_resource"],
-                "SEALED_VAULT": ["model_inference", "untrusted_resource", "stale_resource"],
-                "OBSERVED_EXTERNAL": ["model_inference", "untrusted_resource"],
-                "MODEL_INFERENCE": ["untrusted_resource"],
-            }
+            # Canonical truth table lookup — rank is an integer 1-7
+            rank, truth_label, overrides = TRUTH_TABLE.get(
+                authority, (99, "UNTRUSTED", [])
+            )
 
             audit_entry = {
                 "uri": uri,
@@ -282,14 +314,14 @@ def register_resources_index(mcp: FastMCP) -> list[str]:
                 "dynamic": is_dynamic,
                 "hash": content_hash,
                 "authority_level": authority,
-                "truth_level": truth,
-                "truth_hierarchy_rank": list(truth_hierarchy.values()).index(truth) + 1 if truth in truth_hierarchy.values() else 99,
-                "overrides_when_in_conflict": overrides_map.get(truth, []),
+                "truth_level": truth_label,
+                "truth_rank": rank,                          # INTEGER 1-7
+                "overrides_when_in_conflict": overrides,
                 "owner": owner,
                 "mutation_allowed": mutation,
                 "staleness_policy": staleness,
-                "requires_actor_verified": authority in ("CANONICAL", "STRUCTURAL"),
-                "requires_session": authority in ("CANONICAL", "STRUCTURAL"),
+                "requires_actor_verified": rank <= 2,         # CANONICAL + STRUCTURAL
+                "requires_session": rank <= 2,
                 "blast_radius": blast,
                 "evidence_level": evidence,
                 "floors": entry.get("floors", []),
@@ -307,23 +339,30 @@ def register_resources_index(mcp: FastMCP) -> list[str]:
                 "listChanged": True,
             },
             "truth_hierarchy": [
-                "1 SOVEREIGN_CANON — immutable constitution, seals, sovereign directives",
-                "2 SEALED_VAULT — append-only ledger entries, signed judgments",
-                "3 TRUSTED_REPO — version-controlled source of truth (git)",
-                "4 OBSERVED_EXTERNAL — web evidence, real-time sensor data",
-                "5 USER_CLAIM — human input without verification",
-                "6 MODEL_INFERENCE — LLM-generated content, may hallucinate",
-                "7 UNTRUSTED — unverified external resource, requires quarantine",
+                {"rank": 1, "label": "SOVEREIGN_CANON",  "description": "immutable constitution, seals, sovereign directives"},
+                {"rank": 2, "label": "SEALED_VAULT",     "description": "append-only ledger entries, signed judgments"},
+                {"rank": 3, "label": "TRUSTED_REPO",     "description": "version-controlled source of truth (git)"},
+                {"rank": 4, "label": "OBSERVED_EXTERNAL","description": "web evidence, real-time sensor data"},
+                {"rank": 5, "label": "USER_CLAIM",       "description": "human input without verification"},
+                {"rank": 6, "label": "MODEL_INFERENCE",  "description": "LLM-generated content, may hallucinate"},
+                {"rank": 7, "label": "UNTRUSTED",        "description": "unverified external resource, requires quarantine"},
             ],
+            "truth_hierarchy_rule": "Lower rank = higher truth. Rank 1 overrides all. Rank 7 overrides nothing.",
             "summary": {
-                "by_truth_level": {
-                    "SOVEREIGN_CANON": sum(1 for e in audit_entries if e["truth_level"] == "SOVEREIGN_CANON"),
-                    "SEALED_VAULT": sum(1 for e in audit_entries if e["truth_level"] == "SEALED_VAULT"),
-                    "OBSERVED_EXTERNAL": sum(1 for e in audit_entries if e["truth_level"] == "OBSERVED_EXTERNAL"),
+                    "total_unique": len(audit_entries),
+                    "by_truth_rank": {
+                    1: sum(1 for e in audit_entries if e["truth_rank"] == 1),
+                    2: sum(1 for e in audit_entries if e["truth_rank"] == 2),
+                    3: sum(1 for e in audit_entries if e["truth_rank"] == 3),
+                    4: sum(1 for e in audit_entries if e["truth_rank"] == 4),
+                    5: sum(1 for e in audit_entries if e["truth_rank"] == 5),
+                    6: sum(1 for e in audit_entries if e["truth_rank"] == 6),
+                    7: sum(1 for e in audit_entries if e["truth_rank"] == 7),
                 },
                 "by_authority": {
                     "CANONICAL": sum(1 for e in audit_entries if e["authority_level"] == "CANONICAL"),
                     "STRUCTURAL": sum(1 for e in audit_entries if e["authority_level"] == "STRUCTURAL"),
+                    "TRUSTED_REPO": sum(1 for e in audit_entries if e["authority_level"] == "TRUSTED_REPO"),
                     "DYNAMIC": sum(1 for e in audit_entries if e["authority_level"] == "DYNAMIC"),
                 },
                 "by_blast": {
