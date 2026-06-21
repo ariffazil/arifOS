@@ -1,5 +1,5 @@
-# ADR-012: ChatGPT Compatibility Shim Facade
-**Status:** `888_HOLD` (PROPOSED / AWAITING SOVEREIGN VETO OR RATIFICATION)
+# ADR-012: ChatGPT Compatibility Swarm Facade
+**Status:** `888_HOLD` (PROPOSED under Plan_ID: `SWARM_SHIM_ELEVATION_20260621_001`)
 **Owner:** Arif bin Fazil (Sovereign/Architect)
 **Date:** 2026-06-21
 
@@ -9,19 +9,22 @@
 
 To achieve non-developer-mode discovery in ChatGPT/OpenAI client runtimes, the arifOS MCP server must register standard `search` and `fetch` tools. 
 
-However, direct mapping to side-effectful or mutating actions (such as `mode="ingest"`) violates the separation between read-only (OBSERVE) actions and persistent/mutating (MUTATE) actions. Furthermore, ChatGPT utilizes tool annotations (`readOnlyHint`, `destructiveHint`, etc.) to structure its confirmation modals and execution policies. 
+To bridge this, we establish a **read-only, idempotent, host-adaptive Swarm Facade** (`_arif_swarm_orchestrate`) that:
+1. Presents familiar interfaces to the host.
+2. Decomposes tasks using short-lived, role-specialized micro-agents (Scout, Verifier, Synthesizer).
+3. Enforces strict safety checkpoints and non-persistence invariants.
 
 ---
 
 ## Decisions
 
-We propose establishing a **read-only, idempotent, host-adaptive facade** that exposes familiar interfaces to the host while routing requests safely underneath.
+We propose establishing this upgraded Swarm Facade with the following attributes:
 
 1. **Facaded Mapping**:
-   - `search` maps to `_arif_route(intent="Search for: {query}")` — discovery-only, no side effects.
-   - `fetch` maps to `_arif_sense_observe(mode="fetch", url=url, persist=False)` — returns text snippets without persistent ingestion.
-2. **Explicit Annotations**: Both tools will carry explicit metadata hints (`readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: true`, `idempotentHint: true`) to inform the host that they are safe, non-destructive, and idempotent retrieval tools.
-3. **Structured Outputs**: Define a fixed `outputSchema` to satisfy ChatGPT client expectation of predictable return types.
+   - `search` maps to `_arif_swarm_orchestrate(intent="Search for: {query}")` — discovery-only, no side effects.
+   - `fetch` maps to `_arif_swarm_orchestrate(intent="Fetch and analyze: {url}", mode="fetch", persist=False)` — returns text snippets without persistent ingestion.
+2. **Explicit Annotations**: Both tools carry hints (`readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: true`, `idempotentHint: true`) to inform the host that they are safe, non-destructive retrieval tools.
+3. **Structured Outputs**: Define a fixed schema that includes a compact, optional `"provenance"` block detailing swarm execution parameters (agents, consensus score, audit reference).
 
 ---
 
@@ -32,10 +35,10 @@ We propose establishing a **read-only, idempotent, host-adaptive facade** that e
 | Field | Specification |
 |---|---|
 | **Name** | `search` |
-| **Host Contract** | Accepts `query: str`. Optional `session_id` and `actor_id` parameters to absorb injected headers. |
-| **Internal Route** | [arif_route](file:///root/arifOS/arifosmcp/runtime/tools.py#L16208) (or `_arif_route`) with intent: `"Search for: {query}"`. |
+| **Host Contract** | Accepts `query: str`. Optional `session_id`, `actor_id`, and `_envelope`/`client_capabilities` parameters to absorb injected headers and client context. |
+| **Internal Route** | `_arif_swarm_orchestrate(intent="Search for: {query}")` routing to Scout + Verifier + Synthesizer. |
 | **Annotations** | `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: true`, `idempotentHint: true` |
-| **Output Schema** | Returns `{ "results": [ { "title": "str", "url": "str", "snippet": "str" } ] }` |
+| **Output Schema** | Returns `{ "results": [ { "title": "str", "url": "str", "snippet": "str", "source_type": "str" } ], "provenance": { "swarm_mode": "str", "agents_participated": [ "str" ], "consensus_score": 0.0, "epistemic_tier": 0, "audit_ref": "str", "uncertainty_notes": "str" } }` |
 
 ---
 
@@ -44,7 +47,16 @@ We propose establishing a **read-only, idempotent, host-adaptive facade** that e
 | Field | Specification |
 |---|---|
 | **Name** | `fetch` |
-| **Host Contract** | Accepts `url: str`. Optional `session_id` and `actor_id` parameters. |
-| **Internal Route** | [arif_sense_observe](file:///root/arifOS/arifosmcp/runtime/tools.py#L5924) (or `_arif_sense_observe`) with mode `"fetch"`, `persist=False`. |
+| **Host Contract** | Accepts `url: str`. Optional `session_id`, `actor_id`, and other wrapper metadata. |
+| **Internal Route** | `_arif_swarm_orchestrate(intent="Fetch and analyze: {url}", mode="fetch", persist=False)`. |
 | **Annotations** | `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: true`, `idempotentHint: true` |
-| **Output Schema** | Returns `{ "canonical_url": "str", "content_blocks": [ "str" ], "fetch_status": "str" }` |
+| **Output Schema** | Returns `{ "canonical_url": "str", "content_blocks": [ "str" ], "fetch_status": "str", "provenance": { "swarm_mode": "str", "agents_participated": [ "str" ], "consensus_score": 0.0, "epistemic_tier": 0, "audit_ref": "str" } }` |
+
+---
+
+## 4. Swarm Orchestrator Design
+
+The internal `_arif_swarm_orchestrate` routine implements:
+- **Task Decomposition**: Spawns bounded micro-agents (WebScout for web index query, InternalScout for repo index, Verifier for contradiction check, Synthesizer for consensus).
+- **Hard Boundaries**: Under `persist=False`, all temporary files are stored in in-memory scratch space, preventing writes to `/root/VAULT999` while logging the final execution hash.
+- **Epistemic Trace**: Computes `consensus_score` and `epistemic_tier` mapping directly to the GEOX-style witness framework.
