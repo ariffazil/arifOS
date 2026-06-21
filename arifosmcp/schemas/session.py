@@ -476,6 +476,7 @@ class SessionManifest(BaseModel):
     timestamp: str | None = None
     actor_signature: str | None = None
     nonce: str | None = None
+    actor_verified: bool = Field(default=False, description="Whether the actor_id was cryptographically verified")
     signature_verified: bool = False
     constitution_bound: bool = False
     invariants_checked: list[str] = Field(default_factory=list)

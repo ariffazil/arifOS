@@ -235,6 +235,7 @@ def arif_session_init(
             actor={"claimed_id": actor_id, "identity_verified": False, "authority_level": "OPERATOR"},
             constitution={"id": "arifos-constitution-v2026.05.05-SSCT", "human_judge_required": True},
             meta={"actor_verified": False, "authority_mode": "OBSERVE_ONLY"},
+            actor_verified=False,
             result={
                 "session_id": sid,
                 "mode": mode,
@@ -526,6 +527,7 @@ def arif_session_init(
             session_continuity=session_continuity,
             consent_boundaries=consent_boundaries,
             context_completeness=context_completeness,
+            actor_verified=identity_verified,
             result={
                 "session": sess,
                 "session_birth": {
@@ -564,7 +566,7 @@ def arif_session_init(
                 "authority_mode": "OBSERVE_ONLY",
                 "mutation_allowed": False,
                 "irreversible_allowed": False,
-                "verdict": "SEAL",
+                "verdict": "SEAL" if identity_verified else "OBSERVE_ONLY",
             },
             doctrine=ARIF_DOCTRINE,
         )
@@ -754,6 +756,7 @@ def arif_session_init(
             },
             constitution={"id": "arifos-constitution-v2026.05.05-SSCT", "human_judge_required": True},
             meta={"actor_verified": False, "authority_mode": "OBSERVE_ONLY"},
+            actor_verified=False,
             result={
                 "session_id": sid,
                 "actor_id": actor_id,
