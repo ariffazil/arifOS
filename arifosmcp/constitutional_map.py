@@ -577,7 +577,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_heart_critique": {
         "name": "arif_heart_critique",
-        "description": "666_HEART: Ethical critique and consequence assessment against F1-L13 floors. Call this before: irreversible actions, decisions affecting dignity or human welfare, forge execution, or any proposal that may violate constitutional floors. Do NOT call this to make the final decision — that belongs to arif_judge_deliberate. Parameters: mode (critique|simulate|redteam|maruah|deescalate|empathy), target (the item to critique), stakeholder_ids, session_id, actor_id.",  # noqa: E501
+        "description": "666_HEART: Ethical critique and consequence assessment against F1-L13 floors. Call this before: irreversible actions, decisions affecting dignity or human welfare, forge execution, or any proposal that may violate constitutional floors. Do NOT call this to make the final decision — that belongs to arif_judge_deliberate. Modes: critique | simulate | redteam | maruah | deescalate | empathy. Parameters: mode, target, session_id, actor_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.FORGE,
         "lane": TrinityLane.ASI,
@@ -601,7 +601,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "description": "555_ROUTE [DEPRECATED — use arif_route + arif_triage + arif_kernel_status]: Routes intent to correct tool or organ. "
         "Use when unsure which tool to call, task needs multi-tool sequencing, "
         "or delegating to GEOX/WEALTH/WELL. Returns a plan, not a result. "
-        "Parameters: mode (route|kernel|triage|delegate|status|metabolize), target (tool/endpoint name), task (task description), stage, session_id, actor_id.",  # noqa: E501
+        "Modes: route | kernel | triage | delegate | status | metabolize (plus absorbed: stage, lane, list, surface_drift, bridge). "
+        "Parameters: mode, target, task, session_id, actor_id.",  # noqa: E501
         "access": "public",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,

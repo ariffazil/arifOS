@@ -9185,20 +9185,22 @@ def _arif_kernel_route(
     sequence. Acts as the traffic controller for the 13-tool surface,
     ensuring every call flows through the proper floor checks.
 
-    Modes:
-      route   — Full orchestration: depth, risk, budget, workflow, authority.
-      stage   — Query or advance the session stage (000–999).
-      lane    — Switch cognitive lane (AGI | ASI | APEX).
-      list    — Enumerate available tools for the current session.
-      status  — Kernel health + orchestration maturity metrics.
-      bridge  — Bridge call to GEOX or WEALTH organ.
+    Modes (constitutional):
+      route      — Full orchestration: depth, risk, budget, workflow, authority.
+      kernel     — Kernel-level status and mode detection.
+      triage     — Pre-flight check: session status, holds, lane.
+      delegate   — Delegate task to a specific organ or tool.
+      status     — Kernel health + orchestration maturity metrics.
+      metabolize — Digest input into structured kernel context.
 
-    Governance gating modes (standalone diagnostics):
-      depth_select, risk_gate, budget_gate, authority_gate,
-      reversibility_gate, workflow_select
+    Additional absorb modes (from canonical13 surface):
+      stage, lane, list, surface_drift, bridge, depth_select,
+      risk_gate, budget_gate, authority_gate, reversibility_gate,
+      workflow_select — these are absorbed into mode dispatch.
 
     Parameters:
-      mode       — route | stage | lane | list | status | depth_select | bridge | ...
+      mode       — route | kernel | triage | delegate | status | metabolize
+                   (plus absorbed modes: stage | lane | list | surface_drift | bridge)
       target     — Target tool or endpoint name
       task       — Task description for routing resolution
       stage      — Explicit stage override (000–999)
@@ -10781,16 +10783,15 @@ async def _arif_heart_critique(
       simulate   — Run a what-if scenario and project risk outcomes.
       empathize  — Assess human impact load (Ω) on weakest stakeholders.
       redteam    — Attack surface analysis.
-      maruah     — Dignity score (L05 Peace).
+      maruah     — Dignity score (L05 Peace) / F6 MARUAH.
       deescalate — Risk reduction strategy.
-      summary    — Return a condensed risk scorecard.
 
     Parameters:
-      mode             — critique | simulate | empathize | redteam | maruah | deescalate | summary
+      mode             — critique | simulate | empathize | redteam | maruah | deescalate
       target           — Action, content, or scenario to critique
       session_id       — Governed session ID
       actor_id         — Sovereign actor identifier
-      evidence_receipt — F-WEB receipt; if present, triggers external instruction scan
+      evidence_receipt — F-WEB receipt; if present, triggers external instruction scan (observe-only)
 
     Returns:
       RiskReport with risks_found, risk_tier, human_decision_required,
@@ -11097,16 +11098,15 @@ def _arif_gateway_connect(
     include constitution hash verification to prevent rogue agent injection.
 
     Modes:
-      route     — Forward intent to a specific target agent.
-      discover  — List available agents in the federation mesh.
-      handshake — Initiate a verified constitutional handshake.
-      relay     — Pass a sealed message through the gateway without mutation.
-      seal      — Emit a pending cross-agent SEAL handoff contract.
-      delegate  — Forward to an external bridge-backed agent adapter.
+      connect   — Establish A2A bridge to a target agent.
+      delegate  — Forward domain work to GEOX/WEALTH/WELL with session_id provenance.
+      handover  — Transfer session control to a different agent.
+      revoke    — Terminate an existing A2A bridge.
+      probe     — Health-check a target agent without committing.
 
     Parameters:
-      mode        — route | discover | handshake | relay | seal | delegate
-      target_agent — Canonical agent name (e.g., kimi, claude, gemini)
+      mode        — connect | delegate | handover | revoke | probe
+      target_agent — Canonical agent name (e.g., GEOX, WEALTH, WELL, kimi, claude)
       session_id  — Governed session ID
       actor_id    — Sovereign actor identifier
 
