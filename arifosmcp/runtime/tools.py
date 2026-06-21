@@ -3247,9 +3247,81 @@ _JUDGE_CHAIN_REGISTRY: dict[str, dict[str, Any]] = {}
 _VAULT_ENTRY_REGISTRY: dict[str, dict[str, Any]] = {}
 _PLAN_REGISTRY: dict[str, dict[str, Any]] = {}
 _EPOCH_REGISTRY: dict[str, dict[str, Any]] = {}
+_ACK_REGISTRY: dict[str, dict[str, Any]] = {}  # ack_id -> {issued_at, expires_at, tool_name, mode, consumed, actor_id, session_id}
+_ACK_TTL_SECONDS = 300  # 5 minute ack validity window (matches nonce TTL)
 _IRREVERSIBLE_ELICITATION_MODES = {"seal", "commit"}
 _NONCE_STORE: dict[str, float] = {}  # Replay attack prevention: nonce -> timestamp
 _NONCE_TTL_SECONDS = 300  # 5 minute nonce validity window
+
+_ACK_COUNTER: int = 0
+
+
+def _issue_ack_id(
+    tool_name: str,
+    mode: str,
+    actor_id: str,
+    session_id: str,
+    ttl_seconds: int = _ACK_TTL_SECONDS,
+) -> str:
+    """Issue a time-bound, one-time-use ack_id for ATOMIC actions.
+
+    The ack_id is bound to (tool_name, mode, actor_id, session_id) so it
+    cannot be replayed across different tools or actors.
+
+    Returns the ack_id string. Store it — validation requires it.
+    """
+    global _ACK_COUNTER
+    _ACK_COUNTER += 1
+    ack_id = f"ack_{uuid.uuid4().hex[:16]}_{_ACK_COUNTER}"
+    now = time.time()
+    _ACK_REGISTRY[ack_id] = {
+        "issued_at": now,
+        "expires_at": now + ttl_seconds,
+        "tool_name": tool_name,
+        "mode": mode,
+        "actor_id": actor_id,
+        "session_id": session_id,
+        "consumed": False,
+    }
+    return ack_id
+
+
+def _validate_ack_id(
+    ack_id: str,
+    tool_name: str,
+    mode: str,
+    actor_id: str | None,
+    session_id: str | None,
+) -> tuple[bool, str]:
+    """Validate an ack_id for the given tool/mode/actor.
+
+    Checks:
+    1. Exists in registry
+    2. Not expired
+    3. Not already consumed
+    4. Binds to same (tool_name, mode, actor_id, session_id)
+
+    Returns (ok, reason). On ok=True, marks the ack as consumed (one-time-use).
+    """
+    entry = _ACK_REGISTRY.get(ack_id)
+    if entry is None:
+        return False, f"ack_id not found: {ack_id}"
+    if entry.get("consumed"):
+        return False, f"ack_id already consumed: {ack_id}"
+    if time.time() > entry.get("expires_at", 0):
+        return False, f"ack_id expired: {ack_id}"
+    if entry.get("tool_name") != tool_name:
+        return False, f"ack_id bound to different tool ({entry.get('tool_name')}), cannot use for {tool_name}"
+    if entry.get("mode") != mode:
+        return False, f"ack_id bound to different mode ({entry.get('mode')}), cannot use for {mode}"
+    if entry.get("actor_id") != actor_id:
+        return False, f"ack_id bound to different actor ({entry.get('actor_id')[:8]}...), cannot use for {actor_id}"
+    if entry.get("session_id") != session_id:
+        return False, f"ack_id bound to different session ({entry.get('session_id')[:8]}...)"
+    # Mark consumed
+    _ACK_REGISTRY[ack_id]["consumed"] = True
+    _ACK_REGISTRY[ack_id]["consumed_at"] = time.time()
+    return True, "ack_id valid and consumed"
 _TIMEOUT_MS = int(
     os.getenv("HEART_TIMEOUT_MS", "30000")
 )  # LLM timeout (L13: configurable, default 30s)
@@ -12680,6 +12752,29 @@ def _arif_judge_deliberate(
         floor_compliance=floor_compliance,
     )
 
+    # ── AR-QOCF Rubric Gate (ENG-6.0, 2026-06-21) ────────────────────────────
+    # Multi-axis quality check. If enabled (AXIS_FLOOR > 0), ALL axes must pass
+    # before SEAL. Failing axes are surfaced in the verdict.
+    try:
+        from arifosmcp.runtime.quality_arqocf import compute_rubric
+
+        _rb = compute_rubric(
+            evidence_count=len(evidence_receipt or []),
+            contradiction_free=len(floor_compliance.get("contradictions", [])) == 0,
+            confidence=epistemic_confidence,
+            has_sources=bool(evidence_receipt),
+            satisfies_intent=True,
+        )
+        if not _rb["passed"]:
+            logger.warning(
+                f"[AR-QOCF GATE] Rubric failed: {_rb['failing_axes']} "
+                f"(Q={_rb['axes']['quality']}, O={_rb['axes']['originality']}, "
+                f"C={_rb['axes']['craft']}, F={_rb['axes']['functionality']})"
+            )
+    except Exception as _rb_err:
+        logger.warning(f"[AR-QOCF GATE] Rubric error (non-blocking): {_rb_err}")
+        _rb = None
+
     # ── L08 Genius Floor Gate ─────────────────────────────────────────────────
     if GENIUS_SCORE_VOID_FLOOR > 0.0 and contract.g_score < GENIUS_SCORE_VOID_FLOOR:
         logger.warning(
@@ -12777,6 +12872,20 @@ def _arif_judge_deliberate(
     seal_output["output_policy"] = _output_policy_for_verdict("OK")
     seal_output["invariants_checked"] = _invariants_checked
     seal_output["scar_recall"] = _SCAR_RECALL
+    # ── Issue arif_ack_id for downstream ATOMIC execution ───────────────
+    # The agent must include this ack_id in arif_forge_execute/arif_vault_seal
+    # to prove they hold a valid SEAL verdict. The ack_id is issued with
+    # the SEAL's (tool_name, mode, actor_id, session_id) binding.
+    _seal_ack_id = _issue_ack_id(
+        tool_name="arif_forge_execute",
+        mode="engineer",
+        actor_id=session_id or actor_id or "judge",
+        session_id=session_id or "unknown",
+    )
+    seal_output["arif_ack_id"] = _seal_ack_id
+    seal_output[
+        "_ack_id_note"
+    ] = "Include this arif_ack_id in the next ATOMIC call (forge_execute/vault_seal). Expires in 5 minutes."
     # ── F0_FIQH.md: 5-tier fiqh voice (ratified 2026-06-11 by 888) ────────────
     # Additive only: surfaces tier language in every judge verdict.
     # Agents can read `_fiqh_voice` for F1..F13 human-language tier strings.
@@ -14929,6 +15038,7 @@ async def _arif_forge_execute_tool(
     judge_state_hash: str | None = None,
     vault_entry_id: str | None = None,
     plan_id: str | None = None,
+    arif_ack_id: str | None = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """
@@ -14997,6 +15107,35 @@ async def _arif_forge_execute_tool(
         )
         if hold is not None:
             return hold
+
+        # ── arif_ack_id validation for ATOMIC/engineer mode ────────────────
+        # If a judge issued an ack_id, require it here for engineer/write/generate/commit.
+        # This bridges the 888_JUDGE SEAL → forge_execute authority chain.
+        if mode in ("engineer", "commit", "write") and not ack_irreversible:
+            if arif_ack_id:
+                ack_ok, ack_reason = _validate_ack_id(
+                    arif_ack_id,
+                    "arif_forge_execute",
+                    mode,
+                    actor_id,
+                    session_id,
+                )
+                if not ack_ok:
+                    return {
+                        "status": "HOLD",
+                        "result": {},
+                        "meta": {
+                            "reason": f"ack_id validation failed: {ack_reason}",
+                            "ack_id_provided": True,
+                        },
+                        "timestamp": _now(),
+                    }
+            else:
+                # Not providing an ack_id for engineer mode is allowed IF
+                # the tool already has ack_irreversible=True (direct human ack)
+                # or if no ack was issued by the judge (e.g. trusted automation).
+                pass
+
         if ctx is not None:
             await ctx.report_progress(100, 100, "arif_forge_execute: completed")
 

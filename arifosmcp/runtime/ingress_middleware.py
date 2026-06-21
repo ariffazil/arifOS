@@ -691,6 +691,28 @@ def _validate_envelope_for_tool(
                 "Send AuthorityEnvelope with source=token|session|delegated|human_888."
             )
 
+    # 5. ATOMIC action requires substantively valid ack_id (not just present)
+    if envelope.risk.action_class == ActionClass.ATOMIC:
+        ack_id = envelope.receipts.arif_ack_id
+        if not ack_id:
+            return False, "ATOMIC requires arif_ack_id (L13 sovereign approval)"
+        # Lazy import to avoid circular dependency at module load time
+        try:
+            from arifosmcp.runtime.tools import _validate_ack_id
+            ack_ok, ack_reason = _validate_ack_id(
+                ack_id,
+                tool_name,
+                envelope.niat or envelope.matlamat or "unknown",
+                envelope.actor_id,
+                envelope.session_id,
+            )
+            if not ack_ok:
+                return False, f"ack_id validation failed: {ack_reason}"
+        except ImportError:
+            # If tools module not loaded yet, fall through (belt-and-suspenders:
+            # schema-level validation already checked presence)
+            logger.warning("_validate_ack_id not available — ack_id substance check skipped")
+
     return True, "SEAL"
 
 

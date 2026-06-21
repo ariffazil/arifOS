@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from datetime import datetime, timezone
 from typing import Any
 
@@ -185,6 +186,35 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     if not ok:
         return _sabar_remember("remember: L4 write returned False")
 
+    # ── Constitutional seal for sovereign/canon memories ──
+    # Tier L4+ or sensitivity=sovereign/canon memories are vault-sealed
+    # to make them immutable constitutional state, not ephemeral L3 vectors.
+    _sealed = False
+    if tier_hint in ("L4", "L5", "L6") or memory_class in ("sovereign", "canon", "sacred"):
+        try:
+            _vault_path = os.environ.get(
+                "VAULT999_PATH",
+                "/root/arifOS/VAULT999/SEALED_EVENTS_v2.jsonl",
+            )
+            _vault_entry = {
+                "ts": _utc_now().isoformat(),
+                "type": "MEMORY_ATOM",
+                "memory_id": memory_id,
+                "content_hash": content_hash,
+                "tier": tier_hint,
+                "memory_class": memory_class,
+                "truth_class": tc_status,
+                "actor_id": actor_id,
+                "session_id": session_id,
+                "summary": summary[:200],
+            }
+            with open(_vault_path, "a") as _vf:
+                _vf.write(json.dumps(_vault_entry) + "\n")
+            _sealed = True
+        except Exception as _seal_err:
+            logger.warning(f"memory constitutional seal failed (non-blocking): {_seal_err}")
+            _sealed = False
+
     # ── Emit receipt ──
     receipt = {
         "receipt_id": f"rcp_remember_{memory_id[:8]}",
@@ -198,6 +228,7 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
         "idempotency_key": idempotency_key,
         "provenance_actor_id": actor_id,
         "operation_at": _utc_now().isoformat(),
+        "constitutional_seal": _sealed,
     }
 
     return {
@@ -211,6 +242,7 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
             "truth_class": tc_status,
             "content_hash": content_hash,
             "summary": summary,
+            "constitutionally_sealed": _sealed,
             "remember_receipt": receipt,
         },
     }
@@ -491,6 +523,19 @@ async def _handle_forget(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
         "floor_violation", "superseded", "human_veto",
     ):
         return _sabar(f"forget: invalid policy_basis='{policy_basis}'")
+
+    # ── Sovereign memory protection ──
+    # Check if this memory is a sovereign/canon class — only human_veto can
+    # delete sovereign memories. Agent-driven deletion is blocked.
+    _forget_human_ack = payload.get("require_human_ack", False)
+    if not _forget_human_ack:
+        # Quick check from the payload itself: if memory_class indicates sovereignty
+        memory_class = payload.get("memory_class", "")
+        if memory_class in ("sovereign", "canon", "sacred"):
+            return _sabar(
+                f"forget: memory_class='{memory_class}' requires require_human_ack=True "
+                "(L13 SOVEREIGN — agent cannot delete sovereign memories)"
+            )
 
     # ── UPDATE L4 memory_records (soft-delete) ──
     try:
