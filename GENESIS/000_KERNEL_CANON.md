@@ -154,6 +154,33 @@ Self-authorization = forbidden HOLE at center. Human = OUTSIDE.
 
 ---
 
+## 8B. The Protocol Doctrine: MCP vs Governance
+
+MCP (Model Context Protocol) provides the **transport boundary** for tools.
+arifOS, ART, and ACT provide the **governance boundary** for tools.
+
+| Concern | MCP Provides | arifOS Federation Provides |
+|---------|-------------|---------------------------|
+| Tool surface | Schema, transport, call/response | — |
+| Tool lifecycle | — | ART: UNTRUSTED → TRUSTED → FALLBACK |
+| Trust awareness | — | ART: trust bands, decay curves, blast quantization |
+| Execution craft | — | ACT: staging, canary, dry-run, compensation |
+| Human checkpoints | — | ACT: human-in-loop patterns, 888 HOLD |
+| Irreversible audit | — | VAULT999: immutable hash-chained ledger |
+| Law enforcement | — | Kernel: F1-F13 floors, 888 JUDGE |
+
+**One sentence:** MCP makes tools *callable*. arifOS makes tools *governed*.
+ART makes tools *wise*. ACT makes wisdom *executable*. Together they convert
+raw LLM tool access into governed, reversible, auditable agentic action.
+
+This is the charter sentence:
+
+> **MCP gives a transport boundary for tools. arifOS + ART + ACT give Time,
+> Trust, and Craft: lifecycle, blast awareness, staging rituals, human gates,
+> and irreversible audit.**
+
+---
+
 ## 9. Organ Invariants
 
 | Organ | Must | Must Never |

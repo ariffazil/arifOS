@@ -23,6 +23,10 @@ F1 AMANAH: Mesh subscriber is read-only. It never sends commands to organs.
            It only delivers intelligence. Organs decide what to do with it.
            Mesh failure must never block organ operation.
 
+F11 AUDIT: Every intelligence callback also writes a row to the ART library
+           (fire-and-forget, never raises, never blocks the mesh). This gives
+           ART longitudinal tool-memory without requiring organs to opt in.
+
 F2 TRUTH: Subscriber delivers actual NATS messages. Not simulated.
            If NATS is unavailable, subscriber degrades gracefully to polling.
 
@@ -292,6 +296,47 @@ def organ_intelligence_printer(organ_id: str) -> IntelligenceCallback:
             parts.append(f"organs_alive={alive}/{len(heartbeats)}")
 
         logger.info(" | ".join(parts))
+
+        # ── ART library write (W1.5 — fire-and-forget) ──────────────────────
+        # Every mesh broadcast becomes a row in art_library. Gives ART
+        # longitudinal tool-memory without requiring organs to opt in.
+        # Never raises. Never blocks the mesh. Async record() is scheduled
+        # onto the running event loop; if no loop exists (sync test), skip.
+        try:
+            import asyncio
+
+            from arifosmcp.runtime.art_library import ArtVerdictRow, get_library
+
+            async def _record_art_verdict() -> None:
+                try:
+                    await get_library().record(
+                        ArtVerdictRow(
+                            ts=datetime.now(UTC),
+                            session_id=str(data.get("session_id", "mesh-broadcast")),
+                            tool_name=str(data.get("tool_name", "federation")),
+                            action_class=str(data.get("action_class", "intelligence")),
+                            tool_state=str(data.get("tool_state", "OBSERVED")),
+                            verdict=(
+                                str(verdict.get("verdict", "unknown"))
+                                if isinstance(verdict, dict)
+                                else "unknown"
+                            ),
+                            witness=data.get("witness"),
+                            blast_radius=data.get("blast_radius"),
+                            reversible=data.get("reversible"),
+                            actor_id=data.get("actor_id"),
+                            intent=data.get("intent"),
+                        )
+                    )
+                except Exception:
+                    pass  # library is fire-and-forget — never raise
+
+            try:
+                asyncio.get_running_loop().create_task(_record_art_verdict())
+            except RuntimeError:
+                pass  # no event loop (e.g. sync test) — skip silently
+        except Exception:
+            pass  # library unavailable or import failed — never break the mesh
 
     return callback
 

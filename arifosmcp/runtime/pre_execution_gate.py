@@ -145,6 +145,30 @@ def _art_reflex_check(
 
     art_result = art(art_req)
 
+    # ── ART 2.0: Predictive assessment ─────────────────────────────
+    # Compute trust score, failure risk, and recommended ACT pattern.
+    # These values are stored on art_result for downstream consumers
+    # (ACT gate, AAA cockpit, etc.). Non-blocking — prediction never holds.
+    try:
+        from arifosmcp.runtime.art_predict import get_predictive_assessment
+        _pred = get_predictive_assessment(
+            tool_name=manifest_entry.tool_name if manifest_entry else "unknown",
+            action_class=requested_action.value,
+            failure_rate=getattr(art_req, 'failure_rate', 0.0),
+            drift_count=getattr(art_req, 'drift_count', 0),
+            days_since_use=getattr(art_req, 'days_since_use', 0),
+            blast_str=art_req.blast_radius,
+        )
+        art_result.trust_score = _pred.trust_score
+        art_result.trust_band = _pred.trust_band.value
+        art_result.blast_weight = _pred.blast_weight
+        art_result.failure_risk = _pred.failure_risk.value
+        art_result.recommended_pattern = _pred.recommended_pattern
+    except ImportError:
+        pass  # ART 2.0 not available — continue without prediction
+    except Exception as _e:
+        logger.debug("ART 2.0 prediction error (non-blocking): %s", _e)
+
     # PROCEED → continue to next gate
     if art_result.verdict == ArtVerdict.PROCEED:
         return None
@@ -194,6 +218,166 @@ def _art_reflex_check(
         violations=["ART_REFLEX_BLOCK"],
         blocked_action_class=requested_action,
     )
+
+
+def _act_reflex_check(
+    envelope: KernelEnvelope,
+    requested_action: ActionClass,
+    manifest_entry: ToolManifestEntry | None,
+) -> GateResult | None:
+    """Gate 2.6 — ACT execution craft check.
+
+    Called AFTER Gate 2.5 (ART) says PROCEED. Decides HOW to sequence
+    and stage the execution. Enforces:
+      - Stage verification (can't proceed to N+1 if N failed)
+      - Dry-run requirement for irreversible + high blast
+      - Canary requirement for high blast
+      - Human coordination for irreversible + high blast
+      - Compensation plan requirement for irreversible
+
+    Returns:
+        None if ACT says PROCEED (continue to Gate 3).
+        GateResult(HOLD) if ACT says DRY_RUN_REQUIRED, CANARY_REQUIRED, etc.
+        GateResult(REJECT) if ACT says BLOCK.
+
+    Fails open: if ACT module is unavailable, returns None (no block).
+    """
+    try:
+        from arifosmcp.runtime.act import (
+            act, ActRequest, ActResult,
+            ActVerdict, ExecutionPattern,
+        )
+    except ImportError:
+        logger.debug("ACT module unavailable — skipping execution craft check")
+        return None
+
+    # Only check ACT for non-trivial actions
+    if requested_action in (ActionClass.OBSERVE, ActionClass.ANALYZE):
+        return None
+
+    # Determine blast radius from manifest
+    blast = manifest_entry.blast_radius if manifest_entry else BlastRadius.UNKNOWN
+    blast_str = {
+        BlastRadius.NONE: "low",
+        BlastRadius.LOCAL: "low",
+        BlastRadius.SYSTEM: "medium",
+        BlastRadius.INFRASTRUCTURE: "high",
+        BlastRadius.CIVILIZATIONAL: "high",
+        BlastRadius.UNKNOWN: "unknown",
+    }.get(blast, "unknown")
+
+    is_reversible = manifest_entry.is_reversible if manifest_entry else False
+
+    # For single tool calls, ACT checks:
+    #   1. Dry-run required for irreversible actions
+    #   2. Human coordination for irreversible + high blast
+    #   3. Compensation for irreversible
+    #
+    # For multi-step programs (detected via session state or explicit flag),
+    # ACT also checks stage verification and staging pattern.
+    # Multi-step detection is a session-level concern — ACT receives flags
+    # from the caller (agent loop or /execute endpoint).
+
+    act_req = ActRequest(
+        program_stage="single",
+        execution_pattern=ExecutionPattern.SINGLE_SHOT.value,
+        blast_radius=blast_str,
+        is_reversible=is_reversible,
+        has_dry_run=False,
+        has_compensation=False,
+        human_acknowledged=(
+            envelope.authority.requires_human_ack
+            or (manifest_entry and manifest_entry.requires_human_ack)
+        ),
+        previous_stage_verified=True,
+        is_multi_step=False,
+        stage_number=1,
+        total_stages=1,
+    )
+
+    act_result = act(act_req)
+
+    # PROCEED → continue to next gate
+    if act_result.verdict == ActVerdict.PROCEED:
+        return None
+
+    # DRY_RUN_REQUIRED → HOLD with instruction
+    if act_result.verdict == ActVerdict.DRY_RUN_REQUIRED:
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=[f"ACT: {act_result.reason.value} — recommended: {act_result.recommended_pattern.value}"],
+            violations=["ACT_REFLEX_HOLD"],
+            blocked_action_class=requested_action,
+            required_human_ack=True,
+        )
+
+    # CANARY_REQUIRED → HOLD
+    if act_result.verdict == ActVerdict.CANARY_REQUIRED:
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=[f"ACT: {act_result.reason.value} — recommended: {act_result.recommended_pattern.value}"],
+            violations=["ACT_REFLEX_HOLD"],
+            blocked_action_class=requested_action,
+            required_human_ack=True,
+        )
+
+    # COMPENSATION_REQUIRED → HOLD
+    if act_result.verdict == ActVerdict.COMPENSATION_REQUIRED:
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=[f"ACT: {act_result.reason.value} — recommended: {act_result.recommended_pattern.value}"],
+            violations=["ACT_REFLEX_HOLD"],
+            blocked_action_class=requested_action,
+        )
+
+    # STAGED_ROLLOUT → HOLD with recommendation
+    if act_result.verdict in (
+        ActVerdict.STAGED_ROLLOUT,
+        ActVerdict.SINGLE_SHOT,
+    ):
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=[f"ACT: {act_result.reason.value} — recommended: {act_result.recommended_pattern.value}"],
+            violations=["ACT_REFLEX_HOLD"],
+            blocked_action_class=requested_action,
+        )
+
+    # HUMAN_REQUIRED → HOLD
+    if act_result.verdict == ActVerdict.HUMAN_REQUIRED:
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=[f"ACT: {act_result.reason.value} — human acknowledgment required"],
+            violations=["ACT_REFLEX_HOLD"],
+            blocked_action_class=requested_action,
+            required_human_ack=True,
+        )
+
+    # HOLD → stop with HOLD
+    if act_result.verdict == ActVerdict.HOLD:
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=[f"ACT: {act_result.reason.value}"],
+            violations=["ACT_REFLEX_HOLD"],
+            blocked_action_class=requested_action,
+        )
+
+    # BLOCK → REJECT
+    if act_result.verdict == ActVerdict.BLOCK:
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.REJECT,
+            reasons=[f"ACT: {act_result.reason.value}"],
+            violations=["ACT_REFLEX_BLOCK"],
+            blocked_action_class=requested_action,
+        )
+
+    return None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -516,6 +700,17 @@ def pre_execution_gate(
         art_gate = _art_reflex_check(envelope, requested_action, manifest_entry)
         if art_gate is not None:
             return art_gate
+
+    # ── Gate 2.6: ACT execution craft check ─────────────────────────
+    # Called AFTER ART says PROCEED and BEFORE Gate 3 escalation check.
+    # ACT decides HOW to execute a program: staging, tempo, compensation,
+    # dry-run enforcement, human coordination.
+    # Only fires for non-OBSERVE actions with meaningful blast radius.
+    # Fails open if ACT module unavailable.
+    if manifest_entry and requested_action not in (ActionClass.OBSERVE, ActionClass.ANALYZE):
+        act_gate = _act_reflex_check(envelope, requested_action, manifest_entry)
+        if act_gate is not None:
+            return act_gate
 
     # ── Gate 3: Action class escalation check ─────────────────────────
     # The requested action class must not exceed what the tool allows

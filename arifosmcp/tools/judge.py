@@ -612,6 +612,47 @@ async def arif_judge_deliberate(
             except Exception:
                 _evidence["vitals"] = {"status": "unavailable"}
 
+        # ── RUNTIME DRIFT GATE (G3 — 666_CRITIQUE closure) ──────────────────
+        # If the kernel is reporting runtime_drift=true (build ≠ live),
+        # every verdict carries explicit uncertainty. The judge refuses
+        # to issue SEAL while drift is active unless the sovereign
+        # explicitly acknowledges it via sovereign_receipt.
+        #
+        # Drift is a constitutional signal, not a footnote.
+        # F2 TRUTH: "build_commit ≠ live_commit" means the kernel's
+        # self-attestation is unreliable → all verdicts are provisional.
+        _runtime_drift = _evidence.get("vitals", {}).get("runtime_drift", False)
+        if _runtime_drift and not _has_receipt:
+            return VerdictOutput(
+                verdict=VerdictCode.HOLD,
+                reasons=[
+                    "RUNTIME_DRIFT_HOLD: Kernel reports runtime_drift=true "
+                    "(build_commit ≠ live_commit). The kernel's self-attestation "
+                    "is unreliable — all verdicts are provisional until drift "
+                    "is resolved.",
+                    "No SEAL may be issued while drift is active.",
+                    "Options: (1) rebuild and redeploy to sync build with live, "
+                    "or (2) provide sovereign_receipt for F13 override.",
+                ],
+                next_safe_action=(
+                    "Rebuild and redeploy to resolve drift. "
+                    "Then re-run deliberation with a clean health check."
+                ),
+                meta={
+                    "drift_gate": "RUNTIME_DRIFT_HOLD",
+                    "runtime_drift": True,
+                    "build_commit": _evidence.get("vitals", {}).get("build_commit", "unknown"),
+                    "live_commit": _evidence.get("vitals", {}).get("live_commit", "unknown"),
+                },
+            )
+        elif _runtime_drift and _has_receipt:
+            # F13 SOVEREIGN OVERRIDE: receipt present, drift acknowledged
+            _evidence["f13_drift_override"] = {
+                "runtime_drift": True,
+                "sovereign_acknowledged": True,
+                "override": "F13_SOVEREIGN_DRIFT_ACKNOWLEDGED",
+            }
+
         # ── WELL biological substrate pre-load (Gap 2 wire) ──────────────────
         # W0 preserved: WELL informs, judge decides, operator holds veto.
         # This is advisory evidence surfaced alongside every verdict — not a gate.
