@@ -258,6 +258,31 @@ class CapabilityNode(BaseModel):
         description="If True, irreversible mutations require an external witness."
     )
 
+    # ── Contract bindings (RSI 2026-06-22 FORGE) ─────────────────────────
+    # Per sovereign directive: every callable tool needs four bindings —
+    # capability identity, authority rule, mode contract, audit rule.
+    allowed_actors: list[str] | None = Field(
+        default=None,
+        description="Per-actor allowlist. If set, only these actor_ids may invoke. "
+                    "Bypassed for SOVEREIGN authority (the human is always allowed)."
+    )
+    witness_types: list[WitnessType] | None = Field(
+        default=None,
+        description="Accepted witness types for this capability. Empty/None = any."
+    )
+    modes: list[str] | None = Field(
+        default=None,
+        description="Bounded behavior modes this capability exposes. "
+                    "Empty/None = no mode check."
+    )
+    bootstrap: bool = Field(
+        default=False,
+        description="Bootstrap floor flag. If True, the capability is always reachable "
+                    "for read-only introspection — bypassing the Unknown Capability DENY. "
+                    "Used for self-diagnosis tools (arif_kernel_status, arif_explain_denial). "
+                    "Bootstrap tools MUST have mutation_class=NONE."
+    )
+
     # Strange Loop (Mission 002): external anchor required for mutations
     requires_external_anchor: bool = Field(
         default=False,

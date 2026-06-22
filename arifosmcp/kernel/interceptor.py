@@ -113,9 +113,16 @@ TOOL_ALIASES: dict[str, str] = {
     # Think family
     "reason": "arif_think",
     "arif_reason": "arif_think",
+    # Mind reason family (RSI 2026-06-22: per sovereign contract)
+    "arifOS.arif_mind_reason": "arif_mind_reason",
+    "mind_reason": "arif_mind_reason",
+    "arif_mind": "arif_mind_reason",
     # Compose family
     "reply": "arif_compose",
     "arif_reply": "arif_compose",
+    # Critique family
+    "arif_heart": "arif_critique",
+    "heart": "arif_critique",
     # Measure family
     "vitals": "arif_measure",
     "arif_vitals": "arif_measure",
@@ -123,6 +130,14 @@ TOOL_ALIASES: dict[str, str] = {
     "arif_router": "arif_route",
     # Triage family
     "arif_preflight": "arif_triage",
+    # Kernel status family (RSI 2026-06-22: bootstrap floor)
+    "arifOS.arif_kernel_status": "arif_kernel_status",
+    "kernel_status": "arif_kernel_status",
+    "arif_status": "arif_kernel_status",
+    "status": "arif_kernel_status",
+    # Memory recall
+    "arif_recall": "arif_memory_recall",
+    "recall": "arif_memory_recall",
 }
 
 
@@ -176,23 +191,93 @@ def _check_policy_floors(
     # FLOOR 1: Unknown capability → DENY (safe default)
     if capability is None:
         # Help the caller recover: suggest canonical name if a near-alias exists
-        hint = ""
         requested_lower = req.raw_tool_name.lower()
+
+        # BOOTSTRAP FAULT DETECTION (RSI 2026-06-22): if a bootstrap tool
+        # (arif_kernel_status, arif_explain_denial, etc.) is itself unknown,
+        # this is a kernel self-diagnosis failure — a deadlock. Surface it
+        # distinctly so it cannot be mistaken for an ordinary unknown-cap.
+        if requested_lower in {"arif_kernel_status", "arif_explain_denial",
+                              "arif_capability_list", "arif_contracts_tools",
+                              "status", "kernel_status"}:
+            return InterceptorDecision(
+                verdict=AdmissibilityVerdict.DENY,
+                reason=(
+                    f"BOOTSTRAP_FAULT: '{req.raw_tool_name}' is a bootstrap introspection "
+                    f"capability but is not registered in the capability graph. "
+                    f"This breaks kernel self-diagnosis. "
+                    f"Sovereign action required: register the capability, restart arifOS, "
+                    f"and re-probe."
+                ),
+                actor_id=req.actor_id,
+                authority_tier=authority,
+                resource_class=None,
+                organ_id=None,
+                normalized_request=req.model_dump(),
+                graph_version=graph.version.version_id,
+            )
+
+        # Standard unknown-capability DENY with actionable suggestions.
+        # RSI 2026-06-22: enriched to help the sovereign self-diagnose.
+        hint = ""
         for alias, canonical in TOOL_ALIASES.items():
             if alias == requested_lower:
                 hint = f" Did you mean '{canonical}'?"
                 break
+        # Find close matches by string containment
+        close_matches = []
+        for cap in graph.capabilities:
+            if (requested_lower in cap.tool_name.lower()
+                or requested_lower in cap.capability_id.lower()):
+                close_matches.append(cap.tool_name)
+        close_hint = ""
+        if close_matches and not hint:
+            close_hint = f" Close matches: {', '.join(close_matches[:3])}."
+
         return InterceptorDecision(
             verdict=AdmissibilityVerdict.DENY,
             reason=(
-                f"Unknown capability '{req.raw_tool_name}' — no entry in capability graph. "
-                f"Safe default: DENY.{hint} "
-                f"Call arif_kernel_status or visit arifos://contracts/tools for the canonical list."
+                f"KERNEL_DENY: Capability not registered in graph.\n"
+                f"  raw_capability: {req.raw_tool_name}\n"
+                f"  normalized_capability: {canonical_tool}\n"
+                f"  actor: {req.actor_id}\n"
+                f"  authority: {authority.value}\n"
+                f"  graph_version: {graph.version.version_id}\n"
+                f"{hint}{close_hint}\n"
+                f"Suggested fixes:\n"
+                f"  1. Register capability in /contracts/tools.yaml (ADR-009 proposed)\n"
+                f"  2. Regenerate capability graph\n"
+                f"  3. Check aliases: {list(TOOL_ALIASES.keys())[:5]}...\n"
+                f"  4. Run arif_kernel_status for full capability list"
             ),
             actor_id=req.actor_id,
             authority_tier=authority,
             resource_class=None,
             organ_id=None,
+            normalized_request=req.model_dump(),
+            graph_version=graph.version.version_id,
+        )
+
+    # FLOOR 1b (RSI 2026-06-22): Bootstrap floor — bootstrap capabilities
+    # are always admissible as read-only introspection, regardless of any
+    # other check. This prevents the kernel from locking itself out of
+    # self-diagnosis. Bootstrap tools MUST have mutation_class=NONE
+    # (verified at registration, not here, for perf).
+    if capability.bootstrap and capability.mutation_class == MutationClass.NONE:
+        # Bypass remaining floors and return ADMIT_READ directly.
+        return InterceptorDecision(
+            verdict=AdmissibilityVerdict.ADMIT_READ,
+            reason=(
+                f"Bootstrap floor ADMIT: capability '{capability.capability_id}' "
+                f"is bootstrap-protected. Read-only introspection always allowed."
+            ),
+            capability_id=capability.capability_id,
+            actor_id=req.actor_id,
+            authority_tier=authority,
+            mutation_class=capability.mutation_class,
+            blast_radius=capability.blast_radius,
+            resource_class=capability.resource_class,
+            organ_id=capability.organ_id,
             normalized_request=req.model_dump(),
             graph_version=graph.version.version_id,
         )
@@ -307,9 +392,41 @@ def _check_policy_floors(
             authority_tier=authority,
             mutation_class=capability.mutation_class,
             blast_radius=capability.blast_radius,
+            resource_class=capability.resource_class,
+            organ_id=capability.organ_id,
             normalized_request=req.model_dump(),
             graph_version=graph.version.version_id,
         )
+
+    # FLOOR 7b (RSI 2026-06-22): Allowed-actors allowlist (per sovereign contract).
+    # If the capability declares allowed_actors, only those actor_ids may invoke.
+    # SOVEREIGN authority bypasses this gate (the human is always allowed).
+    # Empty/None list = no per-actor restriction.
+    if capability.allowed_actors and authority != AuthorityTier.SOVEREIGN:
+        actor_norm = (req.actor_id or "").lower().strip()
+        allowed_norm = {a.lower().strip() for a in capability.allowed_actors}
+        # Substring match: "arifbfazil" matches "arif" in allowed_actors
+        is_allowed = actor_norm in allowed_norm or any(
+            sub in actor_norm for sub in allowed_norm
+        )
+        if not is_allowed:
+            return InterceptorDecision(
+                verdict=AdmissibilityVerdict.DENY,
+                reason=(
+                    f"Actor '{req.actor_id}' not in allowed_actors for capability "
+                    f"'{capability.capability_id}'. Allowed: {capability.allowed_actors}. "
+                    f"SOVEREIGN authority bypasses this check."
+                ),
+                capability_id=capability.capability_id,
+                actor_id=req.actor_id,
+                authority_tier=authority,
+                mutation_class=capability.mutation_class,
+                blast_radius=capability.blast_radius,
+                resource_class=capability.resource_class,
+                organ_id=capability.organ_id,
+                normalized_request=req.model_dump(),
+                graph_version=graph.version.version_id,
+            )
 
     # FLOOR 8: Trust state < TRUSTED_READ for read-class capabilities
     if capability.mutation_class == MutationClass.NONE:
