@@ -34,7 +34,7 @@ async def fire_hold_event(findings: list[str]):
 
         payload = json.dumps(
             {
-                "epoch": datetime.utcnow().isoformat() + "Z",
+                "epoch": datetime.now(datetime.UTC).isoformat().replace("+00:00", "Z"),
                 "source": "forge_sentinel_audit",
                 "type": "888_HOLD",
                 "level": "CRITICAL",
