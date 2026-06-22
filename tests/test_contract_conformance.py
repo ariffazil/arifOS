@@ -29,7 +29,7 @@ import pytest
 
 def test_all_canonical_tools_have_contracts():
     """Every tool in CANONICAL_TOOLS must have a contract entry."""
-    from contracts.validators import CONTRACT_REGISTRY
+    from contracts.generated.validators_runtime import CONTRACT_REGISTRY
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
     for tool_name in CANONICAL_TOOLS:
@@ -40,7 +40,7 @@ def test_all_canonical_tools_have_contracts():
 
 def test_all_contracts_have_required_fields():
     """Every contract must have all 16 required fields."""
-    from contracts.validators import CONTRACT_REGISTRY
+    from contracts.generated.validators_runtime import CONTRACT_REGISTRY
 
     required_fields = [
         "canonical_name", "axis", "pipeline_stage", "modes",
@@ -58,7 +58,7 @@ def test_all_contracts_have_required_fields():
 
 def test_contract_count_matches_canonical():
     """Contract registry count must match CANONICAL_TOOLS count."""
-    from contracts.validators import CONTRACT_REGISTRY
+    from contracts.generated.validators_runtime import CONTRACT_REGISTRY
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
     assert len(CONTRACT_REGISTRY) == len(CANONICAL_TOOLS), (
@@ -75,7 +75,7 @@ def test_contract_count_matches_canonical():
 def test_irreversible_tools_require_sovereign_authority():
     """Irreversible tools must require sovereign authority OR have hold conditions
     gating the irreversible mode (multi-mode tools like arif_memory)."""
-    from contracts.validators import CONTRACT_REGISTRY, Authority
+    from contracts.generated.validators_runtime import CONTRACT_REGISTRY, Authority
 
     # Multi-mode tools where only specific modes are irreversible
     # (e.g., arif_memory: forget=irreversible, but recall/inspect=observe)
@@ -110,7 +110,7 @@ def test_irreversible_tools_require_sovereign_authority():
 
 def test_critical_tools_have_hold_conditions():
     """Critical risk tools must have hold conditions."""
-    from contracts.validators import CONTRACT_REGISTRY
+    from contracts.generated.validators_runtime import CONTRACT_REGISTRY
 
     for name, contract in CONTRACT_REGISTRY.items():
         if contract.risk_tier == "critical":
@@ -121,7 +121,7 @@ def test_critical_tools_have_hold_conditions():
 
 def test_all_tools_have_denial_codes():
     """Every tool must have at least one denial code."""
-    from contracts.validators import CONTRACT_REGISTRY
+    from contracts.generated.validators_runtime import CONTRACT_REGISTRY
 
     for name, contract in CONTRACT_REGISTRY.items():
         assert len(contract.denial_codes) > 0, (
@@ -131,7 +131,7 @@ def test_all_tools_have_denial_codes():
 
 def test_all_tools_have_audit_events():
     """Every tool must have at least start/complete audit events."""
-    from contracts.validators import CONTRACT_REGISTRY
+    from contracts.generated.validators_runtime import CONTRACT_REGISTRY
 
     minimum_events = {"tool_call_start", "tool_call_complete"}
     for name, contract in CONTRACT_REGISTRY.items():
@@ -149,7 +149,7 @@ def test_all_tools_have_audit_events():
 
 def test_validate_tool_call_accepts_valid_call():
     """Valid tool call with all requirements met should pass."""
-    from contracts.validators import validate_tool_call
+    from contracts.generated.validators_runtime import validate_tool_call
 
     result = validate_tool_call(
         tool_name="arif_observe",
@@ -163,7 +163,7 @@ def test_validate_tool_call_accepts_valid_call():
 
 def test_validate_tool_call_rejects_unknown_tool():
     """Unknown tool should be rejected with CONTRACT_DRIFT."""
-    from contracts.validators import validate_tool_call, DenialCode
+    from contracts.generated.validators_runtime import validate_tool_call, DenialCode
 
     result = validate_tool_call(
         tool_name="nonexistent_tool",
@@ -176,7 +176,7 @@ def test_validate_tool_call_rejects_unknown_tool():
 
 def test_validate_tool_call_rejects_bad_mode():
     """Invalid mode should be rejected."""
-    from contracts.validators import validate_tool_call, DenialCode
+    from contracts.generated.validators_runtime import validate_tool_call, DenialCode
 
     result = validate_tool_call(
         tool_name="arif_observe",
@@ -189,7 +189,7 @@ def test_validate_tool_call_rejects_bad_mode():
 
 def test_validate_tool_call_rejects_missing_envelope():
     """Missing envelope should be rejected."""
-    from contracts.validators import validate_tool_call, DenialCode
+    from contracts.generated.validators_runtime import validate_tool_call, DenialCode
 
     result = validate_tool_call(
         tool_name="arif_observe",
@@ -202,7 +202,7 @@ def test_validate_tool_call_rejects_missing_envelope():
 
 def test_validate_tool_call_rejects_insufficient_authority():
     """Public actor on sovereign tool should be rejected."""
-    from contracts.validators import validate_tool_call, DenialCode
+    from contracts.generated.validators_runtime import validate_tool_call, DenialCode
 
     result = validate_tool_call(
         tool_name="arif_forge",
@@ -216,7 +216,7 @@ def test_validate_tool_call_rejects_insufficient_authority():
 
 def test_validate_tool_call_rejects_missing_plan_for_beta():
     """Beta channel tool without plan should be rejected."""
-    from contracts.validators import validate_tool_call, DenialCode, CONTRACT_REGISTRY
+    from contracts.generated.validators_runtime import validate_tool_call, DenialCode, CONTRACT_REGISTRY
 
     # Find a beta channel tool
     beta_tools = [
@@ -242,7 +242,7 @@ def test_validate_tool_call_rejects_missing_plan_for_beta():
 
 def test_find_orphan_tools():
     """Orphan detector should find tools not in contracts."""
-    from contracts.validators import find_orphan_tools
+    from contracts.generated.validators_runtime import find_orphan_tools
 
     orphans = find_orphan_tools(["arif_observe", "unknown_tool_1", "unknown_tool_2"])
     assert "unknown_tool_1" in orphans
@@ -252,7 +252,7 @@ def test_find_orphan_tools():
 
 def test_find_contract_drift():
     """Drift detector should find missing runtime tools."""
-    from contracts.validators import find_contract_drift
+    from contracts.generated.validators_runtime import find_contract_drift
 
     drift = find_contract_drift(["arif_observe"])
     # arif_observe should NOT be in drift (it's registered)
@@ -268,7 +268,7 @@ def test_find_contract_drift():
 
 def test_all_floors_covered_by_at_least_one_tool():
     """Every constitutional floor must be covered by at least one tool."""
-    from contracts.validators import CONTRACT_REGISTRY
+    from contracts.generated.validators_runtime import CONTRACT_REGISTRY
 
     all_floors = set()
     for contract in CONTRACT_REGISTRY.values():
