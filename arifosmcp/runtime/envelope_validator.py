@@ -59,33 +59,33 @@ def set_kernel_manifest_hash(h: str) -> None:
 # Allowed tools by action class
 ALLOWED_TOOLS_BY_CLASS: dict[str, set[str]] = {
     "READ": {
-        "arif_ops_measure",
-        "arif_sense_observe",
-        "arif_evidence_fetch",
+        "arif_measure",
+        "arif_observe",
+        "arif_fetch",
         "arif_memory_recall",
         "arif_kernel_route",
-        "arif_reply_compose",
+        "arif_compose",
         "arif_lease_inspect",
     },
     "ADVISORY": {
-        "arif_mind_reason",
-        "arif_heart_critique",
+        "arif_think",
+        "arif_critique",
         "arif_gateway_connect",
         "arif_lease_issue",
     },
     "MUTATE": {
-        "arif_session_init",
-        "arif_forge_execute",
+        "arif_init",
+        "arif_forge",
         "arif_lease_revoke",
     },
     "ATOMIC": {
-        "arif_judge_deliberate",
-        "arif_vault_seal",
+        "arif_judge",
+        "arif_seal",
     },
 }
 
 # Tools that always require F13 signature
-F13_REQUIRED_TOOLS: set[str] = {"arif_vault_seal", "arif_judge_deliberate"}
+F13_REQUIRED_TOOLS: set[str] = {"arif_seal", "arif_judge"}
 
 
 @dataclass
@@ -117,7 +117,7 @@ def validate_envelope(
     All previous gates must pass before this is called.
 
     Args:
-        tool_name: The canonical tool name (e.g. 'arif_forge_execute')
+        tool_name: The canonical tool name (e.g. 'arif_forge')
         envelope: The raw _envelope dict from the MCP call
         action_class: READ | ADVISORY | MUTATE | ATOMIC
         policy_hash: sha256 hash from the envelope
@@ -222,12 +222,12 @@ def _self_check() -> dict[str, Any]:
     results = []
 
     # Test 1: Missing envelope
-    r = validate_envelope("arif_mind_reason", envelope=None, action_class="ADVISORY")
+    r = validate_envelope("arif_think", envelope=None, action_class="ADVISORY")
     results.append(("missing_envelope", r.verdict == EnvelopeVerdict.MISSING, str(r.verdict)))
 
     # Test 2: Tool not allowed for action class (with valid authority chain)
     r = validate_envelope(
-        "arif_vault_seal",
+        "arif_seal",
         envelope={"policy_hash": "abc", "authority_chain": ["a", "b"]},
         action_class="READ",
     )
@@ -237,7 +237,7 @@ def _self_check() -> dict[str, Any]:
 
     # Test 3: ATOMIC without F13 signature
     r = validate_envelope(
-        "arif_vault_seal",
+        "arif_seal",
         envelope={"policy_hash": "abc", "authority_chain": ["a", "b"]},
         action_class="ATOMIC",
         f13_signature="",
@@ -248,7 +248,7 @@ def _self_check() -> dict[str, Any]:
 
     # Test 4: Valid advisory call
     r = validate_envelope(
-        "arif_mind_reason",
+        "arif_think",
         envelope={"policy_hash": "abc", "authority_chain": ["agent", "organ"]},
         action_class="ADVISORY",
         policy_hash="abc",

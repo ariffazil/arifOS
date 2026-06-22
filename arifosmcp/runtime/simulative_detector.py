@@ -138,7 +138,7 @@ def compute_simulation_index(text: str) -> dict[str, Any]:
 def simulative_check(candidate_text: str | None) -> dict[str, Any] | None:
     """Public entry point for the simulative detection gate.
 
-    Call this from arif_judge_deliberate. Returns None if there's nothing
+    Call this from arif_judge. Returns None if there's nothing
     to check, otherwise returns the detection result. NEVER blocks —
     advisory only.
 

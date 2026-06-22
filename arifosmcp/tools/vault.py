@@ -11,11 +11,11 @@ from __future__ import annotations
 import hashlib
 from typing import Literal
 
-from arifosmcp.runtime.tools import _arif_vault_seal
+from arifosmcp.runtime.tools import _arif_seal
 from arifosmcp.schemas.verdict import SealOutput
 
 
-async def arif_vault_seal(
+async def arif_seal(
     mode: Literal["seal", "verify", "chain", "list", "dry_run", "seal_card", "render"] = "seal",
     payload: str = "",
     session_id: str | None = None,
@@ -93,7 +93,7 @@ async def arif_vault_seal(
             mode=mode,
         )
 
-    result = _arif_vault_seal(
+    result = _arif_seal(
         mode=mode,
         payload=payload,
         session_id=session_id,
@@ -150,7 +150,7 @@ def _build_seal_card(
         timestamp=payload.get("telemetry", {}).get("timestamp") or "0",
         permanence_flag=False,
         status="OK",
-        tool="arif_vault_seal",
+        tool="arif_seal",
         mode=mode,
         seal_data=seal_data,
     )

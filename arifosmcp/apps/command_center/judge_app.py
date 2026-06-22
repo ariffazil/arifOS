@@ -3,7 +3,7 @@
 Wires 888_JUDGE to session lifecycle advancement.
 
 On judge_action, this module:
-  1. Calls arif_judge_deliberate for a verdict
+  1. Calls arif_judge for a verdict
   2. Advances the plan lifecycle based on the verdict:
        SEAL  → APPROVED (if not already past judge_reviewed)
        SABAR  → RISK_REVIEWED with conditional requirements
@@ -78,7 +78,7 @@ def governed_judge_deliberate(
         from arifosmcp.runtime.tools import _CANONICAL_HANDLERS
         from arifosmcp.schemas.verdict import VerdictCode
 
-        handler = _CANONICAL_HANDLERS.get("arif_judge_deliberate")
+        handler = _CANONICAL_HANDLERS.get("arif_judge")
         output = handler(mode="judge", candidate=candidate, actor_id=actor_id)
     except Exception as e:
         return {
@@ -192,11 +192,11 @@ def governed_judge_deliberate(
     if verdict_code == "SEAL":
         allowed_next = ["forge_dry_run"]
         forbidden_next = ["forge_execute", "vault_seal"]
-        required_next = "arif_forge_execute"
+        required_next = "arif_forge"
     elif verdict_code == "SABAR":
         allowed_next = []
         forbidden_next = ["forge_execute", "vault_seal"]
-        required_next = "arif_ops_measure"
+        required_next = "arif_measure"
     else:
         allowed_next = []
         forbidden_next = ["forge_execute", "forge_dry_run", "vault_seal"]

@@ -40,48 +40,48 @@
   "llm_context": {
     "schema": "arifos-llm-context/v1",
     "canonical_tools": {
-      "init_anchor": "arif_session_init",
-      "evidence_sense": "arif_sense_observe",
-      "agi_mind": "arif_mind_reason",
+      "init_anchor": "arif_init",
+      "evidence_sense": "arif_observe",
+      "agi_mind": "arif_think",
       "route_meta": "arif_kernel_route",
       "memory_recall": "arif_memory_recall",
-      "asi_heart": "arif_heart_critique",
-      "ops_metrics": "arif_ops_measure",
-      "apex_judge": "arif_judge_deliberate",
-      "vault_seal": "arif_vault_seal",
-      "forge_exec": "arif_forge_execute",
+      "asi_heart": "arif_critique",
+      "ops_metrics": "arif_measure",
+      "apex_judge": "arif_judge",
+      "vault_seal": "arif_seal",
+      "forge_exec": "arif_forge",
       "gateway_connect": "arif_gateway_connect",
-      "reply_compose": "arif_reply_compose",
-      "vps_monitor": "arif_ops_measure"
+      "reply_compose": "arif_compose",
+      "vps_monitor": "arif_measure"
     },
     "tool_aliases": {
-      "arif.init": "arif_session_init",
-      "arif.sense": "arif_sense_observe",
-      "arif.mind": "arif_mind_reason",
+      "arif.init": "arif_init",
+      "arif.sense": "arif_observe",
+      "arif.mind": "arif_think",
       "arif.kernel": "arif_kernel_route",
       "arif.route": "arif_kernel_route",
-      "arif.heart": "arif_heart_critique",
-      "arif.ops": "arif_ops_measure",
-      "arif.judge": "arif_judge_deliberate",
+      "arif.heart": "arif_critique",
+      "arif.ops": "arif_measure",
+      "arif.judge": "arif_judge",
       "arif.memory": "arif_memory_recall",
-      "arif.vault": "arif_vault_seal",
-      "arif.forge": "arif_forge_execute",
+      "arif.vault": "arif_seal",
+      "arif.forge": "arif_forge",
       "arif.gateway": "arif_gateway_connect",
-      "arif.health": "arif_ops_measure",
-      "arif.reply": "arif_reply_compose",
-      "init_anchor": "arif_session_init",
-      "physics_reality": "arif_sense_observe",
-      "reality_compass": "arif_sense_observe",
-      "agi_mind": "arif_mind_reason",
-      "agi_reason": "arif_mind_reason",
-      "asi_heart": "arif_heart_critique",
-      "math_estimator": "arif_ops_measure",
-      "apex_soul": "arif_judge_deliberate",
-      "vault_ledger": "arif_vault_seal",
-      "vault_seal": "arif_vault_seal",
-      "code_engine": "arif_forge_execute",
-      "vps_monitor": "arif_ops_measure",
-      "architect_registry": "arif_session_init"
+      "arif.health": "arif_measure",
+      "arif.reply": "arif_compose",
+      "init_anchor": "arif_init",
+      "physics_reality": "arif_observe",
+      "reality_compass": "arif_observe",
+      "agi_mind": "arif_think",
+      "agi_reason": "arif_think",
+      "asi_heart": "arif_critique",
+      "math_estimator": "arif_measure",
+      "apex_soul": "arif_judge",
+      "vault_ledger": "arif_seal",
+      "vault_seal": "arif_seal",
+      "code_engine": "arif_forge",
+      "vps_monitor": "arif_measure",
+      "architect_registry": "arif_init"
     },
     "discovery": {
       "tool_contracts_resource": "arifos://contracts/tools",
@@ -129,22 +129,22 @@
       "inputSchema": {}
     },
     {
-      "name": "arif_session_init",
+      "name": "arif_init",
       "description": "Start a governed session and bind identity/context.",
       "inputSchema": {}
     },
     {
-      "name": "arif_sense_observe",
+      "name": "arif_observe",
       "description": "Observe live signals from the environment and runtime.",
       "inputSchema": {}
     },
     {
-      "name": "arif_mind_reason",
+      "name": "arif_think",
       "description": "Run governed reasoning over evidence and active context.",
       "inputSchema": {}
     },
     {
-      "name": "arif_heart_critique",
+      "name": "arif_critique",
       "description": "Critique a candidate action against values, risk, and floors.",
       "inputSchema": {}
     },
@@ -154,22 +154,22 @@
       "inputSchema": {}
     },
     {
-      "name": "arif_forge_execute",
+      "name": "arif_forge",
       "description": "Execute an approved action through the forge lane.",
       "inputSchema": {}
     },
     {
-      "name": "arif_judge_deliberate",
+      "name": "arif_judge",
       "description": "Deliberate on a candidate action and return a verdict path.",
       "inputSchema": {}
     },
     {
-      "name": "arif_vault_seal",
+      "name": "arif_seal",
       "description": "Record the governed outcome into the audit trail.",
       "inputSchema": {}
     },
     {
-      "name": "arif_ops_measure",
+      "name": "arif_measure",
       "description": "Measure operational state, economics, and execution thermodynamics.",
       "inputSchema": {}
     },
@@ -179,12 +179,12 @@
       "inputSchema": {}
     },
     {
-      "name": "arif_evidence_fetch",
+      "name": "arif_fetch",
       "description": "Fetch evidence from external or local sources with traceability.",
       "inputSchema": {}
     },
     {
-      "name": "arif_reply_compose",
+      "name": "arif_compose",
       "description": "Compose a governed response aligned to active mandate and evidence.",
       "inputSchema": {}
     },
@@ -274,18 +274,18 @@
     "input": {
       "arif_ping": {},
       "arif_selftest": {},
-      "arif_session_init": {},
-      "arif_sense_observe": {},
-      "arif_mind_reason": {},
-      "arif_heart_critique": {},
+      "arif_init": {},
+      "arif_observe": {},
+      "arif_think": {},
+      "arif_critique": {},
       "arif_kernel_route": {},
-      "arif_forge_execute": {},
-      "arif_judge_deliberate": {},
-      "arif_vault_seal": {},
-      "arif_ops_measure": {},
+      "arif_forge": {},
+      "arif_judge": {},
+      "arif_seal": {},
+      "arif_measure": {},
       "arif_memory_recall": {},
-      "arif_evidence_fetch": {},
-      "arif_reply_compose": {},
+      "arif_fetch": {},
+      "arif_compose": {},
       "arif_gateway_connect": {}
     }
   },

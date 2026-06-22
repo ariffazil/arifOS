@@ -4,7 +4,7 @@
 
 ## Δ Machine & Observation (000, 111, 222)
 
-### 000 — arif_session_init (Niat / Identity)
+### 000 — arif_init (Niat / Identity)
 
 > "Execute every act of thy life as though it were thy last."
 > — Marcus Aurelius, Meditations
@@ -15,7 +15,7 @@
 > "The first requisite is the religious and moral knowledge of right and wrong; the next is an acquaintance with the history of mankind."
 > — Samuel Johnson
 
-### 111 — arif_sense_observe (Observation)
+### 111 — arif_observe (Observation)
 
 > "The ability to observe without evaluation is the highest form of intelligence."
 > — Jiddu Krishnamurti
@@ -26,7 +26,7 @@
 > "Sit down before fact as a little child, be prepared to give up every preconceived notion, follow humbly wherever and to whatever abysses nature leads, or you shall learn nothing."
 > — Thomas Henry Huxley
 
-### 222 — arif_evidence_fetch (Evidence)
+### 222 — arif_fetch (Evidence)
 
 > "A wise man proportions his belief to the evidence."
 > — David Hume, An Enquiry Concerning Human Understanding (1748)
@@ -39,7 +39,7 @@
 
 ## Ψ Governance & Routing (333, 444, 444r)
 
-### 333 — arif_mind_reason (Reasoning)
+### 333 — arif_think (Reasoning)
 
 > "The test of a first-rate intelligence is the ability to hold two opposed ideas in mind at the same time and still retain the ability to function."
 > — F. Scott Fitzgerald
@@ -61,7 +61,7 @@
 > "It is not enough to have a good mind; the main thing is to use it well."
 > — René Descartes, Discourse on the Method (1637)
 
-### 444r — arif_reply_compose (Reply / Synthesis)
+### 444r — arif_compose (Reply / Synthesis)
 
 > "Art is long, life short, judgment difficult, opportunity transient. To act is easy, to think is hard; to act according to our thought is troublesome."
 > — Johann Wolfgang von Goethe
@@ -85,7 +85,7 @@
 > "The force of character is cumulative. All the foregone days of virtue work their health into this."
 > — Ralph Waldo Emerson
 
-### 666 — arif_heart_critique (Ethics / Dignity / Harm)
+### 666 — arif_critique (Ethics / Dignity / Harm)
 
 > "The king who judges the poor with fairness — his throne will be established forever."
 > — Proverbs 29:14
@@ -109,7 +109,7 @@
 
 ## Ω Intelligence & Judgment (777, 888, 999)
 
-### 777 — arif_ops_measure (Telemetry / Ops)
+### 777 — arif_measure (Telemetry / Ops)
 
 > "The man of science has learned to believe in justification, not by faith, but by verification."
 > — Thomas Henry Huxley
@@ -120,7 +120,7 @@
 > "The measure of intelligence is the ability to change."
 > — Albert Einstein
 
-### 888 — arif_judge_deliberate (Judgment / Verdict)
+### 888 — arif_judge (Judgment / Verdict)
 
 > "Time is the fairest and toughest judge."
 > — Edgar Quinet
@@ -131,7 +131,7 @@
 > "Wisdom is knowing what you do not know."
 > — Socrates / Plato (Apology 21d)
 
-### 999 — arif_vault_seal (Immutable Record / Seal)
+### 999 — arif_seal (Immutable Record / Seal)
 
 > "What we do in life echoes in eternity."
 > — Marcus Aurelius, Meditations
@@ -144,7 +144,7 @@
 
 ## 🔨 Execution (010)
 
-### 010 — arif_forge_execute (Build / Deploy)
+### 010 — arif_forge (Build / Deploy)
 
 > "Genius is nothing but a continued attention."
 > — Claude Adrien Helvétius

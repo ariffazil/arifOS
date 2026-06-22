@@ -1,13 +1,13 @@
 """
-Embodied arif_mind_reason MCP handler — bridges FastMCP to EmbodiedTool.run()
+Embodied arif_think MCP handler — bridges FastMCP to EmbodiedTool.run()
 
-This handler is registered in _CANONICAL_HANDLERS["arif_mind_reason"].
+This handler is registered in _CANONICAL_HANDLERS["arif_think"].
 When the MCP server calls it, it goes through:
     _wrap_handler() → embodied_mind_reason_handler() → ArifMindReasonEmbodied().run()
 
 The EmbodiedTool.run() pipeline:
     preflight()  → EmbodiedDecision (SEAL/HOLD/VOID)
-    execute()    → arif_mind_reason kernel
+    execute()    → arif_think kernel
     postflight() → EmbodiedToolEnvelope + witness record
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.tools.embodied_instances.arif_mind_reason_embodied import (
+from arifosmcp.tools.embodied_instances.arif_think_embodied import (
     ArifMindReasonEmbodied,
 )
 

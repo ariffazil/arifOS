@@ -1,8 +1,8 @@
 """
-arifOS Embodied arif_mind_reason — 333_MIND with full pipeline
+arifOS Embodied arif_think — 333_MIND with full pipeline
 ══════════════════════════════════════════════════════════════
 
-Migration of arif_mind_reason through EmbodiedTool.run():
+Migration of arif_think through EmbodiedTool.run():
 
     RECEIVE → SENSE BOUND → CLASSIFY → CHECK AUTHORITY
     → CHECK REVERSIBILITY → SIMULATE → ACT OR HOLD
@@ -10,7 +10,7 @@ Migration of arif_mind_reason through EmbodiedTool.run():
 
 The embodied execution path:
 1. preflight()  → run_preflight()  → EmbodiedDecision (SEAL/HOLD/VOID)
-2. execute()    → _arif_mind_reason kernel (deterministic constitutional reasoning)
+2. execute()    → _arif_think kernel (deterministic constitutional reasoning)
 3. postflight() → run_postflight()  → EmbodiedToolEnvelope + witness record
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -27,7 +27,7 @@ from arifosmcp.memory.types import Authority, MemoryCandidate, MemoryType
 from arifosmcp.runtime.mind_router import MIND_USE_SEQUENTIAL, mind_plan
 from arifosmcp.tools.embodied import EmbodiedTool
 from arifosmcp.tools.memory import arif_memory_recall
-from arifosmcp.tools.reason import arif_mind_reason as _mind_reason_kernel
+from arifosmcp.tools.reason import arif_think as _mind_reason_kernel
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ _policy_engine = MemoryPolicyEngine()
 
 class ArifMindReasonEmbodied(EmbodiedTool):
     """
-    Embodied arif_mind_reason — constitutional reasoning with full pipeline.
+    Embodied arif_think — constitutional reasoning with full pipeline.
 
     Modes (from tools/mind_reason.py):
       reason       General constitutional reasoning with axiom trace.
@@ -49,8 +49,8 @@ class ArifMindReasonEmbodied(EmbodiedTool):
     Domain: AOS
     """
 
-    tool_id = "arif_mind_reason"
-    tool_name = "arif_mind_reason"
+    tool_id = "arif_think"
+    tool_name = "arif_think"
     domain = "AOS"
     description = (
         "Structured reasoning with constitutional awareness — axiom trace, synthesis, verification"
@@ -61,16 +61,16 @@ class ArifMindReasonEmbodied(EmbodiedTool):
     required_permissions = []
     required_floors = ["L02", "L07", "L08", "L10"]
     safe_compose_with = [
-        "arif_sense_observe",
-        "arif_evidence_fetch",
-        "arif_heart_critique",
+        "arif_observe",
+        "arif_fetch",
+        "arif_critique",
         "arif_kernel_route",
         "arif_memory_recall",
     ]
     dangerous_compose_with = [
-        "arif_vault_seal",
-        "arif_judge_deliberate",
-        "arif_forge_execute",
+        "arif_seal",
+        "arif_judge",
+        "arif_forge",
     ]
 
     async def execute(self, params: dict, ctx: Any) -> dict:
@@ -111,7 +111,7 @@ class ArifMindReasonEmbodied(EmbodiedTool):
             return plan_result
 
         if mode == "metabolize":
-            from arifosmcp.runtime.mind_reason import arif_mind_reason_v2
+            from arifosmcp.runtime.mind_reason import arif_think_v2
             from arifosmcp.schemas.mind_metabolism import MindRequest
 
             # ── 555_MEM: Recall relevant memory context BEFORE reasoning ──────────
@@ -169,7 +169,7 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                 evidence=params.get("evidence", {}),
                 reasoning_control=params.get("reasoning_control", {}),
             )
-            result = await arif_mind_reason_v2(request)
+            result = await arif_think_v2(request)
 
             # ── 555_MEM: Store reasoning outcome AFTER reasoning ─────────────────
             try:
@@ -203,7 +203,7 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                         if isinstance(result, dict)
                         else ""
                     ),
-                    source_type="arif_mind_reason",
+                    source_type="arif_think",
                     source_ref={
                         "mode": mode,
                         "session_id": session_id,

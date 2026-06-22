@@ -737,7 +737,7 @@ def require_epistemic_tags(claims: list[EpistemicClaim]) -> list[str]:
 # Per arifOS F2 TRUTH (≥0.99 accuracy or declare uncertainty band):
 # Sense/Evidence tool output (111_SENSE, 222_EVIDENCE) is the federation's
 # ONLY ingest point for external grounding providers. Every result that
-# flows out of `arif_sense_observe` or `arif_evidence_fetch` must carry
+# flows out of `arif_observe` or `arif_fetch` must carry
 # an epistemic stamp. AI-summarized content is INTERPRETATION, not
 # OBSERVED fact — leaking it un-stamped into the federation is a F2+F7
 # violation (false certainty, no humility band).
@@ -770,7 +770,7 @@ def enforce_sense_evidence_epistemic_gate(
     provider: str,
 ) -> tuple[bool, list[str]]:
     """
-    F2 TRUTH enforcement for `arif_sense_observe` and `arif_evidence_fetch`.
+    F2 TRUTH enforcement for `arif_observe` and `arif_fetch`.
 
     Validates that any result flowing from a grounding-provider call carries
     an epistemic stamp. Without this gate, AI-summarized content from
@@ -905,7 +905,7 @@ def enforce_sense_evidence_epistemic_gate(
 #
 # Wire point: `arifosmcp.runtime.tools._ok(..., provider=<name>)` invokes
 # this stamper conditionally. Provider-aware call sites in
-# `_arif_sense_observe` and `_arif_evidence_fetch` pass the provider name;
+# `_arif_observe` and `_arif_fetch` pass the provider name;
 # other call sites (which don't go through grounding providers) get the
 # existing behaviour unchanged.
 

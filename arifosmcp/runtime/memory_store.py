@@ -46,7 +46,8 @@ from arifosmcp.runtime.f4_retrieval_policy import (  # noqa: E402, PLC0415
     integrate_with_search_results,
 )
 
-_MEMORY_DIR = Path(os.getenv("ARIFOS_MEMORY_DIR", "/root/.arifOS/memory"))
+# ADR-010 + Agentic Filesystem: canonical memory path is /agent/memory/
+_MEMORY_DIR = Path(os.getenv("ARIFOS_MEMORY_DIR", "/agent/memory"))
 _INDEX_FILE = _MEMORY_DIR / ".qdrant_index.json"
 _LEGACY_INDEX_FILE = _MEMORY_DIR / ".index.json"
 

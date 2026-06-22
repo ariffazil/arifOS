@@ -15,7 +15,7 @@ CROSS-ORGAN FEEDBACK LOOP WIRING:
   plan→act→observe→evaluate→update_graph→re-plan now spans organs.
   arifOS emits feedback signals via NATS; GEOX/WEALTH/WELL subscribe
   and respond with computation results. The loop is no longer confined
-  to a single arif_mind_reason call.
+  to a single arif_think call.
 
 ORGAN IDENTITY ANCHORS (for LiveKernelEnvelope):
   arifOS → constitution_hash

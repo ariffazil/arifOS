@@ -135,7 +135,7 @@ class AgentBindingEnforcer:
             agent_id: Unique agent identifier.
             agent_name: Human-readable agent name.
             model_key: The model powering the agent.
-            session_id: Current session (from arif_session_init).
+            session_id: Current session (from arif_init).
             declared_tier: Agent's claimed tier (verified against registry).
 
         Returns:

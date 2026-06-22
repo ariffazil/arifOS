@@ -280,7 +280,7 @@ class ConstitutionKernel:
 
         Converts (tool_name, params, session_id) → ActionContext → ConstitutionalVerdict,
         then returns the {"passed", "violated_laws"} dict that
-        arif_forge_execute / arif_vault_seal expect.
+        arif_forge / arif_seal expect.
         """
         context = ActionContext(
             tool_name=tool_name,
@@ -302,9 +302,9 @@ class ConstitutionKernel:
 
     def evaluate(self, context: ActionContext) -> ConstitutionalVerdict:
         # ── session_seal bypass: F11S/F13S lightweight gate ──────────────
-        # session_seal uses its own guards in _arif_vault_seal (tools.py).
+        # session_seal uses its own guards in _arif_seal (tools.py).
         # It bypasses L13 WELL-gate, WEALTH pre-flight, and L11/L13 full floor.
-        if context.tool_name == "arif_vault_seal" and context.mode == "session_seal":
+        if context.tool_name == "arif_seal" and context.mode == "session_seal":
             from arifosmcp.core.threat_engine import IrreversibilityLevel, ThreatAssessment
 
             threat = ThreatAssessment(

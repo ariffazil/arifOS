@@ -12,9 +12,9 @@ canonical tools.
 
 ## What this is NOT
 
-- NOT `arif_judge_deliberate` (888) — does not adjudicate
-- NOT `arif_vault_seal` (999) — does not seal
-- NOT `arif_forge_execute` (666) — does not execute
+- NOT `arif_judge` (888) — does not adjudicate
+- NOT `arif_seal` (999) — does not seal
+- NOT `arif_forge` (666) — does not execute
 - NOT F1-F13 enforcement — F1-F13 floors remain in `core/`
 
 ## Files
@@ -44,9 +44,9 @@ was restarted. No git operation was performed.
 
 ## Next steps (HOLD pending 888 deliberation)
 
-These are NOT done. They are the path forward, subject to `arif_judge_deliberate`:
+These are NOT done. They are the path forward, subject to `arif_judge`:
 
-1. **Wire as advisory pre-filter** to `arif_forge_execute` (666) — log-only for
+1. **Wire as advisory pre-filter** to `arif_forge` (666) — log-only for
    24h, no enforcement. Match rate vs human judge before promotion.
 2. **Bridge to `EvidenceBundle`** — feed `Verdict` into `reality_models.py` so
    the audit trail leaves the Python list and lands in Postgres.

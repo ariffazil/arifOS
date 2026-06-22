@@ -268,7 +268,7 @@ def arif_triage(
             "stage": stage or "000",
             "canonical_tool_count": len(CANONICAL_TOOLS),
             "active_sessions": len(_SESSIONS),
-            "next_safe_action": "Call arif_session_init(mode='ping' | 'light' | 'full')",
+            "next_safe_action": "Call arif_init(mode='ping' | 'light' | 'full')",
             "mode": "preflight",
         })
 
@@ -293,93 +293,11 @@ def arif_triage(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# CANONICAL TOOL 3: arif_kernel_status
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def arif_kernel_status(
-    mode: str = "telemetry",
-    actor_id: str | None = None,
-    intent: str | None = None,
-    top_k: int = 5,
-    organ_filter: list[str] | None = None,
-    arguments: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """
-    Kernel telemetry, semantic tool discovery, and prediction health.
-
-    RULE 14: One tool, defined modes.
-    Modes:
-        telemetry   — thermodynamic and system health metrics
-        discover    — semantic search across federation tool surface
-        prediction  — self-model prediction health summary
-
-    Args:
-        mode:          "telemetry" | "discover" | "prediction"
-        actor_id:      Calling actor
-        intent:        Query for discover mode
-        top_k:         Max results for discover
-        organ_filter:  Organs to search in discover
-        arguments:     Raw args (for discover top_k, organs)
-
-    Returns:
-        Mode-appropriate status and discovery data.
-    """
-    floor_check = check_laws("arif_kernel_status", {"mode": mode}, actor_id)
-    if floor_check["verdict"] != "SEAL":
-        return _hold("arif_kernel_status", floor_check["reason"], floor_check["violated_laws"])
-
-    if mode == "telemetry":
-        return _ok("arif_kernel_status", {
-            "g_score": 0.97,
-            "delta_S": 0.002,
-            "omega": 0.91,
-            "kernel_uptime": time.time() % 10000,
-            "mode": "telemetry",
-        })
-
-    if mode == "prediction":
-        return _ok("arif_kernel_status", {
-            "prediction_health": _get_prediction_health(),
-            "mode": "prediction",
-        })
-
-    if mode == "discover":
-        import asyncio
-
-        from arifosmcp.runtime.federation_registry import get_registry
-
-        registry = get_registry()
-        intent_query = intent or ""
-        _top_k = top_k
-        _organ_filter = organ_filter
-
-        try:
-            result = asyncio.run(
-                registry.discover(
-                    intent=intent_query,
-                    top_k=_top_k,
-                    organ_filter=_organ_filter,
-                )
-            )
-            return _ok("arif_kernel_status", {"mode": "discover", **result})
-        except Exception as e:
-            return _ok("arif_kernel_status", {
-                "mode": "discover",
-                "tools": [],
-                "error": str(e),
-            })
-
-    return _hold("arif_kernel_status", f"Unknown mode: {mode}")
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# CANONICAL TOOL 4: arif_bridge_connect / arif_bridge (low-level organ call)
+# CANONICAL TOOL 3: arif_bridge_connect (low-level organ call)
 # ═══════════════════════════════════════════════════════════════════════════════
 # arif_bridge_connect (CANONICAL, forged 2026-06-21): follows arif_<noun>_<verb> convention.
-# arif_bridge: [DEPRECATED] legacy noun-only name — functionally identical,
-#   retained for backward compatibility. Both call the same implementation.
 
-def arif_bridge(
+def arif_bridge_connect(
     organ: str,
     tool_name: str,
     arguments: dict[str, Any] | None = None,

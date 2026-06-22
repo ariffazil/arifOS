@@ -17,19 +17,19 @@ from typing import Any
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CANONICAL_ORDER: list[str] = [
-    "arif_session_init",
-    "arif_sense_observe",
-    "arif_evidence_fetch",
-    "arif_mind_reason",
+    "arif_init",
+    "arif_observe",
+    "arif_fetch",
+    "arif_think",
     "arif_kernel_route",
-    "arif_reply_compose",
+    "arif_compose",
     "arif_memory_recall",
-    "arif_heart_critique",
+    "arif_critique",
     "arif_gateway_connect",
-    "arif_ops_measure",
-    "arif_judge_deliberate",
-    "arif_vault_seal",
-    "arif_forge_execute",
+    "arif_measure",
+    "arif_judge",
+    "arif_seal",
+    "arif_forge",
 ]
 
 
@@ -39,7 +39,7 @@ CANONICAL_ORDER: list[str] = [
 
 TOOL_CHARTER: dict[str, dict[str, Any]] = {
     # ── 000_INIT ─────────────────────────────────────────────────────────────
-    "arif_session_init": {
+    "arif_init": {
         "eureka_insight": "Identity is the root of accountability. An unbound session is mathematically equivalent to chaos.",
         "stage_code": "000",
         "stage_name": "INIT",
@@ -162,9 +162,9 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "carries_forward": ["session_id", "constitution_hash"],
         },
         "next_recommended_tools": [
-            "arif_sense_observe",
-            "arif_evidence_fetch",
-            "arif_mind_reason",
+            "arif_observe",
+            "arif_fetch",
+            "arif_think",
         ],
         "authority_boundary": {
             "may": ["bind", "validate", "resume"],
@@ -179,7 +179,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 {
                     "user_intent": "Start a governed reasoning session",
                     "call": {
-                        "tool": "arif_session_init",
+                        "tool": "arif_init",
                         "args": {"mode": "init", "actor_id": "ChatGPT"},
                     },
                 }
@@ -200,7 +200,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
     },
     # ── 111_SENSE ────────────────────────────────────────────────────────────
-    "arif_sense_observe": {
+    "arif_observe": {
         "eureka_insight": "Observation alters the observer. All ingested reality must be tagged with an epistemic confidence band.",
         "stage_code": "111",
         "stage_name": "SENSE",
@@ -283,7 +283,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
         "risk": {"tier": "low", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": False, "recommended_session_id": True},
-        "next_recommended_tools": ["arif_evidence_fetch", "arif_mind_reason"],
+        "next_recommended_tools": ["arif_fetch", "arif_think"],
         "authority_boundary": {
             "may": ["observe", "search", "measure"],
             "may_not": ["modify", "judge", "seal"],
@@ -293,7 +293,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 {
                     "user_intent": "Search for recent news on AI governance",
                     "call": {
-                        "tool": "arif_sense_observe",
+                        "tool": "arif_observe",
                         "args": {"mode": "search", "query": "AI governance 2026"},
                     },
                 }
@@ -301,7 +301,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "bad": [
                 {
                     "user_intent": "Deploy the new build",
-                    "reason_not_to_call": "Sense does not execute or deploy. Use arif_forge_execute after judge seal.",
+                    "reason_not_to_call": "Sense does not execute or deploy. Use arif_forge after judge seal.",
                 }
             ],
         },
@@ -314,7 +314,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
     },
     # ── 222_FETCH ────────────────────────────────────────────────────────────
-    "arif_evidence_fetch": {
+    "arif_fetch": {
         "eureka_insight": "Evidence is not truth; it is a cryptographic receipt of a claim at a specific timestamp.",
         "stage_code": "222",
         "stage_name": "FETCH",
@@ -398,7 +398,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
         "risk": {"tier": "medium", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": False, "recommended_session_id": True},
-        "next_recommended_tools": ["arif_mind_reason", "arif_heart_critique"],
+        "next_recommended_tools": ["arif_think", "arif_critique"],
         "authority_boundary": {
             "may": ["retrieve", "search", "ingest"],
             "may_not": ["modify source", "judge", "seal"],
@@ -408,7 +408,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 {
                     "user_intent": "Get evidence for climate policy claims",
                     "call": {
-                        "tool": "arif_evidence_fetch",
+                        "tool": "arif_fetch",
                         "args": {
                             "mode": "fetch",
                             "url": "https://ipcc.gov/report",
@@ -433,7 +433,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
     },
     # ── 333_MIND ─────────────────────────────────────────────────────────────
-    "arif_mind_reason": {
+    "arif_think": {
         "eureka_insight": "Cleverness without correctness is dangerous (G-Score). The agent must think within the constitutional box.",
         "stage_code": "333",
         "stage_name": "MIND",
@@ -493,7 +493,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 "returns": ["plan_receipt"],
             },
             "plan_approve": {
-                "purpose": "Approve a pending plan so it can be used by arif_forge_execute (H2).",
+                "purpose": "Approve a pending plan so it can be used by arif_forge (H2).",
                 "required_parameters": ["plan_id"],
                 "returns": ["plan_id", "status"],
             },
@@ -543,7 +543,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "recommended_session_id": True,
             "emits_chain_data": True,
         },
-        "next_recommended_tools": ["arif_heart_critique", "arif_judge_deliberate"],
+        "next_recommended_tools": ["arif_critique", "arif_judge"],
         "authority_boundary": {
             "may": ["reason", "classify", "suggest"],
             "may_not": ["approve irreversible action", "replace human judgment"],
@@ -553,7 +553,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 {
                     "user_intent": "Assess whether this claim is constitutionally stable",
                     "call": {
-                        "tool": "arif_mind_reason",
+                        "tool": "arif_think",
                         "args": {
                             "mode": "verify",
                             "query": "Deploying without review is safe",
@@ -633,9 +633,9 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         "risk": {"tier": "low", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": True, "recommended_session_id": True},
         "next_recommended_tools": [
-            "arif_sense_observe",
-            "arif_mind_reason",
-            "arif_ops_measure",
+            "arif_observe",
+            "arif_think",
+            "arif_measure",
         ],
         "authority_boundary": {
             "may": ["route", "query"],
@@ -647,7 +647,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                     "user_intent": "What tool should I use next?",
                     "call": {
                         "tool": "arif_kernel_route",
-                        "args": {"mode": "route", "target": "arif_judge_deliberate"},
+                        "args": {"mode": "route", "target": "arif_judge"},
                     },
                 }
             ],
@@ -667,7 +667,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
     },
     # ── 444_REPLY ────────────────────────────────────────────────────────────
-    "arif_reply_compose": {
+    "arif_compose": {
         "eureka_insight": "Communication is action. Strip all ghost-sentience (Anti-Hantu) and manipulative intent before delivery.",
         "stage_code": "444r",
         "stage_name": "REPLY",
@@ -773,7 +773,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 {
                     "user_intent": "Draft a formal response to the audit report",
                     "call": {
-                        "tool": "arif_reply_compose",
+                        "tool": "arif_compose",
                         "args": {
                             "mode": "style",
                             "message": "We acknowledge the findings...",
@@ -785,7 +785,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "bad": [
                 {
                     "user_intent": "Judge whether the report is acceptable",
-                    "reason_not_to_call": "Reply composes text; it does not judge. Use arif_judge_deliberate.",
+                    "reason_not_to_call": "Reply composes text; it does not judge. Use arif_judge.",
                 }
             ],
         },
@@ -899,7 +899,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
         "risk": {"tier": "medium", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": True, "accepts_anonymous": False},
-        "next_recommended_tools": ["arif_mind_reason", "arif_heart_critique"],
+        "next_recommended_tools": ["arif_think", "arif_critique"],
         "authority_boundary": {
             "may": ["recall", "list"],
             "may_not": ["unauthorized deletion", "seal"],
@@ -930,7 +930,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
     },
     # ── 666_HEART ────────────────────────────────────────────────────────────
-    "arif_heart_critique": {
+    "arif_critique": {
         "eureka_insight": "Logic optimizes; empathy restrains. Human impact (κᵣ) is a measurable thermodynamic load.",
         "stage_code": "666",
         "stage_name": "HEART",
@@ -1001,7 +1001,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
         "risk": {"tier": "high", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": True, "recommended_session_id": True},
-        "next_recommended_tools": ["arif_judge_deliberate", "arif_ops_measure"],
+        "next_recommended_tools": ["arif_judge", "arif_measure"],
         "authority_boundary": {
             "may": ["analyze", "assess", "warn"],
             "may_not": ["approve", "execute", "override judge"],
@@ -1011,7 +1011,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 {
                     "user_intent": "Assess the risks of deploying without a review",
                     "call": {
-                        "tool": "arif_heart_critique",
+                        "tool": "arif_critique",
                         "args": {"mode": "critique", "target": "deploy without review"},
                     },
                 }
@@ -1093,7 +1093,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
         "risk": {"tier": "high", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": True, "recommended_session_id": True},
-        "next_recommended_tools": ["arif_mind_reason", "arif_judge_deliberate"],
+        "next_recommended_tools": ["arif_think", "arif_judge"],
         "authority_boundary": {
             "may": ["route", "discover", "handshake"],
             "may_not": ["execute on behalf of", "override target agent constitution"],
@@ -1124,7 +1124,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
     },
     # ── 777_OPS ──────────────────────────────────────────────────────────────
-    "arif_ops_measure": {
+    "arif_measure": {
         "eureka_insight": "Metabolism dictates survival. Compute cycles and token costs are physical limits on cognitive depth.",
         "stage_code": "777",
         "stage_name": "OPS",
@@ -1181,7 +1181,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
         "risk": {"tier": "low", "irreversible": False, "requires_human_ack": False},
         "state": {"requires_session_id": False, "recommended_session_id": True},
-        "next_recommended_tools": ["arif_sense_observe", "arif_kernel_route"],
+        "next_recommended_tools": ["arif_observe", "arif_kernel_route"],
         "authority_boundary": {
             "may": ["measure", "estimate", "predict"],
             "may_not": ["modify", "execute", "judge"],
@@ -1190,7 +1190,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "good": [
                 {
                     "user_intent": "Check if the system can handle a large reasoning job",
-                    "call": {"tool": "arif_ops_measure", "args": {"mode": "vitals"}},
+                    "call": {"tool": "arif_measure", "args": {"mode": "vitals"}},
                 }
             ],
             "bad": [
@@ -1209,7 +1209,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
     },
     # ── 888_JUDGE ────────────────────────────────────────────────────────────
-    "arif_judge_deliberate": {
+    "arif_judge": {
         "eureka_insight": "The Gödel Lock. The mind cannot judge the mind. Arbitration relies on deterministic constitutional physics.",
         "stage_code": "888",
         "stage_name": "JUDGE",
@@ -1276,7 +1276,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
         "risk": {"tier": "critical", "irreversible": False, "requires_human_ack": True},
         "state": {"requires_session_id": True, "accepts_anonymous": False},
-        "next_recommended_tools": ["arif_vault_seal", "arif_forge_execute"],
+        "next_recommended_tools": ["arif_seal", "arif_forge"],
         "authority_boundary": {
             "may": ["evaluate", "compare", "explain", "emit_verdict_structure"],
             "may_not": [
@@ -1290,7 +1290,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 {
                     "user_intent": "Should we approve the deployment plan?",
                     "call": {
-                        "tool": "arif_judge_deliberate",
+                        "tool": "arif_judge",
                         "args": {"mode": "judge", "candidate": "deploy plan v3"},
                     },
                 }
@@ -1311,7 +1311,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
     },
     # ── 999_VAULT ────────────────────────────────────────────────────────────
-    "arif_vault_seal": {
+    "arif_seal": {
         "eureka_insight": "History is immutable. A ledger without cryptographic permanence is just a suggestion.",
         "stage_code": "999",
         "stage_name": "VAULT",
@@ -1398,7 +1398,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 {
                     "user_intent": "Permanently record the approved deployment verdict",
                     "call": {
-                        "tool": "arif_vault_seal",
+                        "tool": "arif_seal",
                         "args": {
                             "mode": "seal",
                             "payload": '{"verdict":"SEAL","plan":"v3"}',
@@ -1423,7 +1423,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
         },
     },
     # ── 010_FORGE ────────────────────────────────────────────────────────────
-    "arif_forge_execute": {
+    "arif_forge": {
         "eureka_insight": "Execution is irreversible. If undo(a) does not exist, explicit human acknowledgment (ack_irreversible) is mandatory.",
         "stage_code": "010",
         "stage_name": "FORGE",
@@ -1525,7 +1525,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             },
             "plan_id": {
                 "type": "string",
-                "meaning": "Approved plan_id from arif_mind_reason(mode='plan'). Required for engineer/write/generate (H2).",
+                "meaning": "Approved plan_id from arif_think(mode='plan'). Required for engineer/write/generate (H2).",
                 "required_when": [
                     {"mode": "engineer"},
                     {"mode": "write"},
@@ -1547,7 +1547,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
             "requires_vault_entry_id": False,
         },
         "state": {"requires_session_id": True, "accepts_anonymous": False},
-        "next_recommended_tools": ["arif_vault_seal"],
+        "next_recommended_tools": ["arif_seal"],
         "authority_boundary": {
             "may": ["execute_authorized", "query", "rollback"],
             "may_not": ["self-approve", "bypass judge", "execute without seal"],
@@ -1557,7 +1557,7 @@ TOOL_CHARTER: dict[str, dict[str, Any]] = {
                 {
                     "user_intent": "Deploy the approved build v3 after judge seal",
                     "call": {
-                        "tool": "arif_forge_execute",
+                        "tool": "arif_forge",
                         "args": {
                             "mode": "engineer",
                             "manifest": '{"image":"arifos:v3","rollout":"canary"}',

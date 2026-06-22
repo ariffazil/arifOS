@@ -13,11 +13,11 @@ The 7 canonical modes of the federated arif_memory tool. Each mode maps to:
 
 The naming follows the existing arifOS federated-tool pattern:
   - arif_kernel_route (mode=route|stage|lane|list|status|surface_drift)
-  - arif_mind_reason (mode=reason|reflect|verify|critique|plan|...)
-  - arif_judge_deliberate (mode=judge|validate|hold|rules|armor|probe|notify)
-  - arif_vault_seal (mode=seal|verify|ledger|changelog|audit)
-  - arif_sense_observe (mode=search|ingest|compass|atlas|entropy_dS|vitals)
-  - arif_forge_execute (mode=engineer|query|write|generate|commit|recall|dry_run)
+  - arif_think (mode=reason|reflect|verify|critique|plan|...)
+  - arif_judge (mode=judge|validate|hold|rules|armor|probe|notify)
+  - arif_seal (mode=seal|verify|ledger|changelog|audit)
+  - arif_observe (mode=search|ingest|compass|atlas|entropy_dS|vitals)
+  - arif_forge (mode=engineer|query|write|generate|commit|recall|dry_run)
 
 arif_memory joins this federation with mode=recall|remember|promote|
 revise|forget|attest|inspect.

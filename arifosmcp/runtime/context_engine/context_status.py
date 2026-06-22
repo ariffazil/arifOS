@@ -293,7 +293,7 @@ def _self_check() -> dict[str, Any]:
     import inspect
 
     source = inspect.getsource(arif_context_status)
-    r = "audit_seal" not in source and "arif_vault_seal" not in source
+    r = "audit_seal" not in source and "arif_seal" not in source
     results.append(("no_vault_mutation", r))
 
     # 9. Tokens remaining is non-negative

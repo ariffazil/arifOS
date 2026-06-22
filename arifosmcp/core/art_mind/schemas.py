@@ -2,7 +2,7 @@
 Pydantic v2 schemas for the minda substrate.
 
 These are the input/output contracts. They are advisory-only — never
-executed, never used as authority. They flow into arif_judge_deliberate
+executed, never used as authority. They flow into arif_judge
 as one of several inputs.
 """
 
@@ -43,7 +43,7 @@ class ScoredPlan(BaseModel):
     Attributes:
         plan_id:    identifier (e.g., "observe_more", "reason_then_search", "forge_now")
         score:      expected utility (lower = worse; -1e9 = rejected)
-        actions:    list of action names (e.g., ["arif_sense_observe"])
+        actions:    list of action names (e.g., ["arif_observe"])
         outcome:    full outcome dict from RolloutEngine
         hold_888:   True if this plan needs human ack (F1/F13)
         reason:     human-readable reason for the hold

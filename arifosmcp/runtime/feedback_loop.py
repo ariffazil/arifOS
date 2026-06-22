@@ -26,7 +26,7 @@ is a FeedbackSignal that determines:
 
 INTEGRATION POINT
 ─────────────────
-  Monkey-patched into arif_mind_reason via the integration hook.
+  Monkey-patched into arif_think via the integration hook.
   Zero kernel file modification. Removing the hook = full rollback (F1).
 
 FLOOR BINDING

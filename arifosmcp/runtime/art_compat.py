@@ -147,12 +147,12 @@ DEFAULT_AUTHORITY: dict[str, str] = {
 }
 
 DEFAULT_TOOL_AUTHORITY: dict[str, str] = {
-    "arif_judge_deliberate": "f13", "arif_vault_seal": "f13",
-    "arif_forge_execute": "operator", "arif_kernel_route": "operator",
-    "arif_mind_reason": "readonly", "arif_heart_critique": "readonly",
-    "arif_memory_recall": "readonly", "arif_sense_observe": "readonly",
-    "arif_evidence_fetch": "readonly", "arif_kernel_status": "readonly",
-    "arif_kernel_attest": "readonly", "arif_session_init": "readonly",
+    "arif_judge": "f13", "arif_seal": "f13",
+    "arif_forge": "operator", "arif_kernel_route": "operator",
+    "arif_think": "readonly", "arif_critique": "readonly",
+    "arif_memory_recall": "readonly", "arif_observe": "readonly",
+    "arif_fetch": "readonly", "arif_kernel_status": "readonly",
+    "arif_kernel_attest": "readonly", "arif_init": "readonly",
 }
 
 

@@ -414,7 +414,7 @@ class ToolSelfModel:
     Usage:
         self_model = ToolSelfModel()
         self_model.register(my_tool_charter)
-        entry = self_model.get("arif_mind_reason")
+        entry = self_model.get("arif_think")
         if entry.has_permission_gap:
             return HOLD("Missing permissions: {}".format(entry.permission_gap))
     """

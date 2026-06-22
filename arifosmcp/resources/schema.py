@@ -32,29 +32,29 @@ arifOS Schema — Canonical Blueprint (Δ)
 Tools (13 canonical — AAA Trinity aligned):
 
   GATEWAY (Entry):
-    000  arif_session_init         — Session bootstrap + identity binding
+    000  arif_init         — Session bootstrap + identity binding
 
   AGI LANE (Tactical — Propose):
-    111  arif_sense_observe        — Reality observation, web search
-    222  arif_evidence_fetch       — External evidence retrieval
-    333  arif_mind_reason          — Symbolic reasoning kernel
+    111  arif_observe        — Reality observation, web search
+    222  arif_fetch       — External evidence retrieval
+    333  arif_think          — Symbolic reasoning kernel
     555  arif_kernel_route         — Tool routing and staging
     555m arif_memory_recall        — Associative memory (L1-L6)
-    777  arif_ops_measure          — System health and vitals
+    777  arif_measure          — System health and vitals
     666g arif_gateway_connect      — Cross-organ federation bridge
-    444r arif_reply_compose        — Governed response composition
+    444r arif_compose        — Governed response composition
 
   ASI LANE (Strategic — Judge):
-    444  arif_heart_critique       — Ethical critique, red team, de-escalation
+    444  arif_critique       — Ethical critique, red team, de-escalation
 
   APEX LANE (Authority — Authorize):
-    888  arif_judge_deliberate     — Final constitutional arbitration
+    888  arif_judge     — Final constitutional arbitration
 
   GATEWAY (Exit):
-    999  arif_vault_seal           — Immutable ledger anchoring
+    999  arif_seal           — Immutable ledger anchoring
 
   FORGE (Execute — gated by APEX):
-    010  arif_forge_execute        — Build and deployment execution
+    010  arif_forge        — Build and deployment execution
 
 Trinity Lanes:
   AGI  (Tactical)   | stages 000–777 | language: OBSERVED/COMPUTED/INFERRED
@@ -83,7 +83,7 @@ Separation of Powers:
   This separation IS the constitution.
 
 FORGE BRIDGE (010):
-  arif_forge_execute — Build and deployment execution.
+  arif_forge — Build and deployment execution.
   Gated by APEX authority (must have prior JUDGE_SEAL_AUTHORIZATION).
   Authority flow: AGI proposes → ASI evaluates → APEX authorizes → Forge executes.
   Interface contract: query /health for runtime capabilities.

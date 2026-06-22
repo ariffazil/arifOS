@@ -17,7 +17,7 @@ Binding:    pending L11 actor verification
 
 This is a stub. The live session manifest is maintained by
 the runtime session manager and bound to the canonical
-arif_session_init → arif_vault_seal lifecycle.
+arif_init → arif_seal lifecycle.
 """
 
 

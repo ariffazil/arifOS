@@ -225,7 +225,7 @@ class WitnessPacket:
 
     def summary_for_judge(self) -> dict[str, Any]:
         """
-        Compact digest for arif_judge_deliberate consumption.
+        Compact digest for arif_judge consumption.
 
         Returns only governance-relevant fields — not full raw_text.
         """
@@ -633,9 +633,9 @@ MODEL_GOVERNANCE = {
     "aisingapore/Qwen-SEA-LION-v4-32B-IT": {  # pragma: allowlist secret
         "authority": "instrument_only",
         "allowed_tools": [
-            "arif_mind_reason",
-            "arif_heart_critique",
-            "arif_reply_compose",
+            "arif_think",
+            "arif_critique",
+            "arif_compose",
             "sea_lion_interpreter",
         ],
         "forbidden_roles": ["sovereign_judge", "irreversible_executor", "vault_sealer"],
@@ -643,7 +643,7 @@ MODEL_GOVERNANCE = {
     },
     "qwen2.5:7b": {
         "authority": "instrument_only",
-        "allowed_tools": ["arif_mind_reason", "arif_heart_critique"],
+        "allowed_tools": ["arif_think", "arif_critique"],
         "forbidden_roles": ["sovereign_judge", "vault_sealer"],
         "rate_limit": "local_unlimited",
     },
@@ -681,14 +681,14 @@ def quarantine_release(packet: WitnessPacket) -> dict[str, Any]:
         "released": True,
         "packet": packet.to_dict(),
         "release_timestamp": ...,
-        "next_tool": "arif_judge_deliberate" | "arif_memory_recall" | ...
+        "next_tool": "arif_judge" | "arif_memory_recall" | ...
       }
     """
-    next_tool = "arif_judge_deliberate"
+    next_tool = "arif_judge"
     if packet.tool_origin == "444_CRITIQUE":
-        next_tool = "arif_judge_deliberate"
+        next_tool = "arif_judge"
     elif packet.tool_origin == "444r_REPLY":
-        next_tool = "arif_heart_critique"
+        next_tool = "arif_critique"
 
     return {
         "released": True,

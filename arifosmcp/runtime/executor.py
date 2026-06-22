@@ -61,30 +61,30 @@ _ALL_STATES = {
 
 _TOOL_STATE_MAP: dict[str, set[ExecutionState]] = {
     # ── 000_INIT ──────────────────────────────────────────────────────────────────────
-    "arif_session_init": {ExecutionState.OBSERVE},
+    "arif_init": {ExecutionState.OBSERVE},
     # ── 111_SENSE / OBSERVE ───────────────────────────────────────────────────────────
-    "arif_sense_observe": {ExecutionState.OBSERVE, ExecutionState.VERIFY},
-    "arif_evidence_fetch": {ExecutionState.OBSERVE, ExecutionState.VERIFY},
-    "arif_ops_measure": {
+    "arif_observe": {ExecutionState.OBSERVE, ExecutionState.VERIFY},
+    "arif_fetch": {ExecutionState.OBSERVE, ExecutionState.VERIFY},
+    "arif_measure": {
         ExecutionState.OBSERVE,
         ExecutionState.VERIFY,
         ExecutionState.EXECUTE,
     },
     # ── 333_MIND / ANALYZE ────────────────────────────────────────────────────────────
-    "arif_mind_reason": {ExecutionState.ANALYZE},
+    "arif_think": {ExecutionState.ANALYZE},
     "arif_kernel_route": {ExecutionState.ANALYZE},
     # ── 666_HEART / SIMULATE ──────────────────────────────────────────────────────────
-    "arif_heart_critique": {ExecutionState.ANALYZE, ExecutionState.SIMULATE},
+    "arif_critique": {ExecutionState.ANALYZE, ExecutionState.SIMULATE},
     # ── 888_JUDGE / AWAIT_APPROVAL ────────────────────────────────────────────────────
-    "arif_judge_deliberate": {ExecutionState.SIMULATE, ExecutionState.AWAIT_APPROVAL},
+    "arif_judge": {ExecutionState.SIMULATE, ExecutionState.AWAIT_APPROVAL},
     "arif_gateway_connect": {ExecutionState.AWAIT_APPROVAL},
     # ── 010_FORGE / EXECUTE ───────────────────────────────────────────────────────────
-    "arif_forge_execute": {ExecutionState.SIMULATE, ExecutionState.EXECUTE},
+    "arif_forge": {ExecutionState.SIMULATE, ExecutionState.EXECUTE},
     # ── 999_VAULT / SEAL ──────────────────────────────────────────────────────────────
-    "arif_vault_seal": {ExecutionState.VERIFY, ExecutionState.SEAL},
+    "arif_seal": {ExecutionState.VERIFY, ExecutionState.SEAL},
     # ── Infrastructure (omni-state) ───────────────────────────────────────────────────
     "arif_memory_recall": _ALL_STATES,
-    "arif_reply_compose": _ALL_STATES,
+    "arif_compose": _ALL_STATES,
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
@@ -93,19 +93,19 @@ _TOOL_STATE_MAP: dict[str, set[ExecutionState]] = {
 
 # None = remain in current state (self-loop allowed)
 _TOOL_PROGRESSION_MAP: dict[str, ExecutionState | None] = {
-    "arif_session_init": ExecutionState.OBSERVE,
-    "arif_sense_observe": ExecutionState.ANALYZE,
-    "arif_evidence_fetch": ExecutionState.ANALYZE,
-    "arif_ops_measure": ExecutionState.ANALYZE,
+    "arif_init": ExecutionState.OBSERVE,
+    "arif_observe": ExecutionState.ANALYZE,
+    "arif_fetch": ExecutionState.ANALYZE,
+    "arif_measure": ExecutionState.ANALYZE,
     "arif_memory_recall": None,
-    "arif_mind_reason": ExecutionState.SIMULATE,
+    "arif_think": ExecutionState.SIMULATE,
     "arif_kernel_route": ExecutionState.SIMULATE,
-    "arif_heart_critique": ExecutionState.AWAIT_APPROVAL,
-    "arif_judge_deliberate": ExecutionState.EXECUTE,
+    "arif_critique": ExecutionState.AWAIT_APPROVAL,
+    "arif_judge": ExecutionState.EXECUTE,
     "arif_gateway_connect": ExecutionState.EXECUTE,
-    "arif_forge_execute": ExecutionState.VERIFY,
-    "arif_reply_compose": None,
-    "arif_vault_seal": ExecutionState.SEAL,
+    "arif_forge": ExecutionState.VERIFY,
+    "arif_compose": None,
+    "arif_seal": ExecutionState.SEAL,
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
@@ -193,7 +193,7 @@ class ExecutionStateMachine:
             ),
             "required_next_state": next_required,
             "next_safe_action": {
-                "tool": "arif_sense_observe",
+                "tool": "arif_observe",
                 "reason": "Re-anchor to OBSERVE and progress through the pipeline.",
             },
             "session_id": session_id,

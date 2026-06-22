@@ -1,7 +1,7 @@
 """
 arifosmcp.constitution.runtime_hook — Runtime enforcement of the Godel Lock.
 
-Called by arif_forge_execute BEFORE any MUTATE action proceeds.
+Called by arif_forge BEFORE any MUTATE action proceeds.
 If the action would violate any G1-G7 axiom, the action is BLOCKED
 and the appropriate verdict is returned.
 

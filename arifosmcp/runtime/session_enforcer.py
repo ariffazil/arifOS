@@ -42,21 +42,21 @@ class SessionVerdict(StrEnum):
 SESSION_TTL_HOURS = 24  # Sessions expire after 24h
 REQUIRED_FOR_TIERS = {
     # Tier 1 tools (read-only) — can proceed with anonymous session
-    "T1_READONLY": ["arif_ops_measure", "arif_sense_observe", "arif_evidence_fetch"],
+    "T1_READONLY": ["arif_measure", "arif_observe", "arif_fetch"],
     # Tier 2 tools (reasoning) — need valid session
     "T2_REASON": [
-        "arif_mind_reason",
-        "arif_heart_critique",
-        "arif_reply_compose",
+        "arif_think",
+        "arif_critique",
+        "arif_compose",
         "arif_memory_recall",
         "arif_kernel_route",
     ],
     # Tier 3 tools (governance) — need verified identity
     "T3_GOVERN": [
-        "arif_session_init",
-        "arif_judge_deliberate",
-        "arif_vault_seal",
-        "arif_forge_execute",
+        "arif_init",
+        "arif_judge",
+        "arif_seal",
+        "arif_forge",
         "arif_gateway_connect",
         "arif_lease_issue",
         "arif_lease_revoke",
@@ -228,31 +228,31 @@ def _self_check() -> dict[str, Any]:
     results = []
 
     # Test 1: Missing session on T2 tool
-    r = enforce_session("arif_mind_reason", session_id=None)
+    r = enforce_session("arif_think", session_id=None)
     results.append(
         ("T2_missing_session", r["verdict"] == SessionVerdict.MISSING, str(r["verdict"]))
     )
 
     # Test 2: Auto-anonymous on T1 tool
-    r = enforce_session("arif_ops_measure", session_id=None)
+    r = enforce_session("arif_measure", session_id=None)
     results.append(("T1_auto_anonymous", r["verdict"] == SessionVerdict.VALID, str(r["verdict"])))
 
     # Test 3: Valid session
     sid = "test_session_001"
     register_session(sid, actor_id="test_agent", identity_verified=True)
-    r = enforce_session("arif_mind_reason", session_id=sid)
+    r = enforce_session("arif_think", session_id=sid)
     results.append(("T2_valid_session", r["verdict"] == SessionVerdict.VALID, str(r["verdict"])))
 
     # Test 4: T3 needs verified identity
     sid2 = "test_session_002"
     register_session(sid2, actor_id="test_agent", identity_verified=False)
-    r = enforce_session("arif_forge_execute", session_id=sid2)
+    r = enforce_session("arif_forge", session_id=sid2)
     results.append(
         ("T3_unverified_blocked", r["verdict"] == SessionVerdict.UNVERIFIED, str(r["verdict"]))
     )
 
     # Test 5: T3 with verified identity
-    r = enforce_session("arif_vault_seal", session_id=sid)
+    r = enforce_session("arif_seal", session_id=sid)
     results.append(("T3_verified_ok", r["verdict"] == SessionVerdict.VALID, str(r["verdict"])))
 
     passed = sum(1 for _, ok, _ in results if ok)

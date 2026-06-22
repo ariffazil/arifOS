@@ -104,8 +104,8 @@ class EmbodiedTool:
 
     Example:
         class ArifMindReasonTool(EmbodiedTool):
-            tool_id = "arif_mind_reason"
-            tool_name = "arif_mind_reason"
+            tool_id = "arif_think"
+            tool_name = "arif_think"
             domain = "AOS"
             risk_tier = "T1"
             reversibility = "reversible"
@@ -413,9 +413,9 @@ class EmbodiedTool:
 # ── Pre-built manifests for arifOS canonical tools ────────────────────────────
 
 ARIFOS_TOOL_CHARTERS = {
-    "arif_session_init": ToolManifest(
-        tool_id="arif_session_init",
-        tool_name="arif_session_init",
+    "arif_init": ToolManifest(
+        tool_id="arif_init",
+        tool_name="arif_init",
         domain="AOS",
         description="Initialize a governed session with constitutional binding",
         risk_tier="T1",
@@ -426,9 +426,9 @@ ARIFOS_TOOL_CHARTERS = {
         cognitive_axis=CognitiveAxis.IDENTITY,
         expose=True,
     ),
-    "arif_mind_reason": ToolManifest(
-        tool_id="arif_mind_reason",
-        tool_name="arif_mind_reason",
+    "arif_think": ToolManifest(
+        tool_id="arif_think",
+        tool_name="arif_think",
         domain="AOS",
         description="Structured reasoning with constitutional awareness",
         risk_tier="T1",
@@ -439,9 +439,9 @@ ARIFOS_TOOL_CHARTERS = {
         cognitive_axis=CognitiveAxis.REASON,
         expose=True,
     ),
-    "arif_sense_observe": ToolManifest(
-        tool_id="arif_sense_observe",
-        tool_name="arif_sense_observe",
+    "arif_observe": ToolManifest(
+        tool_id="arif_observe",
+        tool_name="arif_observe",
         domain="AOS",
         description="Reality grounding — web search, URL ingestion, compass, atlas",
         risk_tier="T1",
@@ -452,9 +452,9 @@ ARIFOS_TOOL_CHARTERS = {
         cognitive_axis=CognitiveAxis.OBSERVE,
         expose=True,
     ),
-    "arif_evidence_fetch": ToolManifest(
-        tool_id="arif_evidence_fetch",
-        tool_name="arif_evidence_fetch",
+    "arif_fetch": ToolManifest(
+        tool_id="arif_fetch",
+        tool_name="arif_fetch",
         domain="AOS",
         description="Evidence-preserving web ingestion with sequential thinking",
         risk_tier="T1",
@@ -478,9 +478,9 @@ ARIFOS_TOOL_CHARTERS = {
         cognitive_axis=CognitiveAxis.BOUNDARY,
         expose=True,
     ),
-    "arif_reply_compose": ToolManifest(
-        tool_id="arif_reply_compose",
-        tool_name="arif_reply_compose",
+    "arif_compose": ToolManifest(
+        tool_id="arif_compose",
+        tool_name="arif_compose",
         domain="AOS",
         description="Reply synthesis with L04/L06/L09 governance",
         risk_tier="T1",
@@ -504,9 +504,9 @@ ARIFOS_TOOL_CHARTERS = {
         cognitive_axis=CognitiveAxis.TRACE,
         expose=True,
     ),
-    "arif_heart_critique": ToolManifest(
-        tool_id="arif_heart_critique",
-        tool_name="arif_heart_critique",
+    "arif_critique": ToolManifest(
+        tool_id="arif_critique",
+        tool_name="arif_critique",
         domain="AOS",
         description="Ethical critique, risk assessment, empathy scan",
         risk_tier="T2",
@@ -530,9 +530,9 @@ ARIFOS_TOOL_CHARTERS = {
         cognitive_axis=CognitiveAxis.BOUNDARY,
         expose=True,
     ),
-    "arif_ops_measure": ToolManifest(
-        tool_id="arif_ops_measure",
-        tool_name="arif_ops_measure",
+    "arif_measure": ToolManifest(
+        tool_id="arif_measure",
+        tool_name="arif_measure",
         domain="AOS",
         description="Operational health telemetry and governance vitality metrics",
         risk_tier="T0",
@@ -543,9 +543,9 @@ ARIFOS_TOOL_CHARTERS = {
         cognitive_axis=CognitiveAxis.VITALITY,
         expose=True,
     ),
-    "arif_judge_deliberate": ToolManifest(
-        tool_id="arif_judge_deliberate",
-        tool_name="arif_judge_deliberate",
+    "arif_judge": ToolManifest(
+        tool_id="arif_judge",
+        tool_name="arif_judge",
         domain="AOS",
         description="Final constitutional arbitration — SEAL, SABAR, HOLD, or VOID",
         risk_tier="T3",
@@ -553,13 +553,13 @@ ARIFOS_TOOL_CHARTERS = {
         blast_radius=BlastRadius.HIGH,
         required_permissions=["judge"],
         required_floors=["L11", "L13"],
-        safe_compose_with=["arif_vault_seal"],
+        safe_compose_with=["arif_seal"],
         cognitive_axis=CognitiveAxis.JUDGE,
         expose=True,
     ),
-    "arif_forge_execute": ToolManifest(
-        tool_id="arif_forge_execute",
-        tool_name="arif_forge_execute",
+    "arif_forge": ToolManifest(
+        tool_id="arif_forge",
+        tool_name="arif_forge",
         domain="AOS",
         description="Metabolic execution — build, deploy, system modification",
         risk_tier="T3",
@@ -567,13 +567,13 @@ ARIFOS_TOOL_CHARTERS = {
         blast_radius=BlastRadius.HIGH,
         required_permissions=["forge"],
         required_floors=["L01", "L11", "L13"],
-        dangerous_compose_with=["arif_mind_reason"],
+        dangerous_compose_with=["arif_think"],
         cognitive_axis=CognitiveAxis.EXECUTE,
         expose=True,
     ),
-    "arif_vault_seal": ToolManifest(
-        tool_id="arif_vault_seal",
-        tool_name="arif_vault_seal",
+    "arif_seal": ToolManifest(
+        tool_id="arif_seal",
+        tool_name="arif_seal",
         domain="AOS",
         description="Immutable ledger anchoring — VAULT999 seal",
         risk_tier="T4",

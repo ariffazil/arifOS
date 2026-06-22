@@ -92,7 +92,7 @@ class ModelGovernanceCard(BaseModel):
     in declared-only/degraded mode. Full constitutional governance requires
     a verified identity binding.
 
-    Canonical path: arif_session_init → _new_session → build_governance_card
+    Canonical path: arif_init → _new_session → build_governance_card
     """
 
     session_id: str

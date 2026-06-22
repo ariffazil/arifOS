@@ -145,7 +145,7 @@ def seal_boot_receipt(manifest: dict[str, Any]) -> dict[str, Any]:
         "seal_type": "boot_receipt",
         "manifest_hash": manifest_hash,
         "irreversible_write": False,
-        "note": "Real VAULT999 seal requires F01/F13 gates via arif_vault_seal()",
+        "note": "Real VAULT999 seal requires F01/F13 gates via arif_seal()",
         "sealed_at": datetime.now(UTC).isoformat(),
     }
 

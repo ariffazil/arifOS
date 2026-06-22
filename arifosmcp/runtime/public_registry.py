@@ -62,24 +62,24 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_initialize_probe": (
         "CANARY: Test MCP initialize/initialized handshake without constitutional "
         "ceremony. Simulates protocol version negotiation per MCP spec 2025-06-18. "
-        "Use AFTER ping passes but BEFORE arif_session_init."
+        "Use AFTER ping passes but BEFORE arif_init."
     ),
     # ── Canonical 13 ──
-    "arif_session_init": (
+    "arif_init": (
         "Start or resume a governed constitutional session. "
         "Call this FIRST before any other tool in a new conversation. "
         "Modes: init (full binding, ~60s) | light (<1s bootstrap with tool pointers)."
     ),
-    "arif_sense_observe": (
+    "arif_observe": (
         "Search the web, ingest URLs, check system vitals, or map a repository. "
         "Use for gathering real-world data and grounding queries in reality. "
         "Modes: search | ingest | compass | atlas | entropy_dS | vitals | repo_map."
     ),
-    "arif_evidence_fetch": (
+    "arif_fetch": (
         "Fetch and preserve external evidence with source citations. "
         "Use when a claim needs verified backing or factual grounding."
     ),
-    "arif_mind_reason": (
+    "arif_think": (
         "Multi-step reasoning, planning, and reflection with confidence labeling. "
         "Use for complex analysis, hypothesis evaluation, plan generation, and decision preparation. "
         "Modes: reason | reflect | verify | critique | plan | plan_review | plan_approve | refactor_plan | metabolize."
@@ -89,7 +89,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Use when unsure which tool to call next or how to delegate. "
         "Modes: route | stage | lane | list | status | surface_drift."
     ),
-    "arif_reply_compose": (
+    "arif_compose": (
         "Compose the final response for the user. "
         "Call this LAST, after reasoning and judgment are complete. "
         "Modes: compose | style | cite | summary | format | nudge | repo_answer."
@@ -105,7 +105,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Modes: recall | store | get | list | context | repo_ingest | repo_search | "
         "manage (snapshot|consolidate|forget|replay|restore — EUREKA-A KernelState OS resource manager)."
     ),
-    "arif_heart_critique": (
+    "arif_critique": (
         "Assess ethical risks and human impact before acting. "
         "Use before irreversible, sensitive, or dignity-affecting actions. "
         "Modes: critique | simulate | empathize | redteam | maruah | deescalate | instruction_scan."
@@ -114,23 +114,23 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Bridge to other federation agents (GEOX, WEALTH, WELL, A-FORGE, AAA, APEX, cn-organ). "
         "Use for cross-organ tasks and multi-agent coordination."
     ),
-    "arif_ops_measure": (
+    "arif_measure": (
         "Check system health, thermodynamic state, and resource metrics. "
         "Use for operational status and metabolic monitoring. "
         "Modes: health | vitals | cost | predict | topology | drift | stack_health | budget."
     ),
-    "arif_judge_deliberate": (
+    "arif_judge": (
         "Render final constitutional verdict on a proposed action. "
         "Use when a decision is ready for arbitration and binding judgment. "
         "Modes: judge | compare | history | explain | floor_status | witness_consensus."
     ),
-    "arif_vault_seal": (
+    "arif_seal": (
         "Seal a verdict or outcome to the immutable audit ledger. "
         "Use for final, irreversible records that must be preserved forever."
     ),
-    "arif_forge_execute": (
+    "arif_forge": (
         "Execute approved builds, deployments, or system changes. "
-        "Use ONLY after arif_judge_deliberate has issued a SEAL verdict."
+        "Use ONLY after arif_judge has issued a SEAL verdict."
     ),
     # ── Rule 14 canonical expansion (2026-06-20) ──
     "arif_route": (
@@ -236,15 +236,15 @@ def _role_for_name(name: str) -> str:
 
 def _layer_for_name(name: str) -> str:
     if name in {
-        "arif_session_init",
-        "arif_judge_deliberate",
-        "arif_vault_seal",
-        "arif_forge_execute",
+        "arif_init",
+        "arif_judge",
+        "arif_seal",
+        "arif_forge",
         "arif_gateway_connect",
     }:
         return "GOVERNANCE"
     if name in {
-        "arif_ops_measure",
+        "arif_measure",
         "arif_kernel_route",
         "arif_route",
         "arif_triage",

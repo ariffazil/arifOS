@@ -194,7 +194,7 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
         try:
             _vault_path = os.environ.get(
                 "VAULT999_PATH",
-                "/root/arifOS/VAULT999/SEALED_EVENTS_v2.jsonl",
+                "/agent/vault999/SEALED_EVENTS_v2.jsonl",
             )
             _vault_entry = {
                 "ts": _utc_now().isoformat(),

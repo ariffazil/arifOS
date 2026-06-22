@@ -552,7 +552,7 @@ def compute_tension_scan(
                 axes_involved=("T", "U", "C"),
                 explanation=f"Action class '{action_class}' requested with low truth (T={axes.T:.2f}) "
                            f"and high uncertainty (U={axes.U:.2f}). Evidence does not support execution.",
-                required_next_tool="arif_evidence_fetch",
+                required_next_tool="arif_fetch",
                 blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
             ))
 
@@ -566,7 +566,7 @@ def compute_tension_scan(
             axes_involved=("C", "T"),
             explanation=f"High coherence (C={axes.C:.2f}) paired with low truth (T={axes.T:.2f}). "
                        f"Claim may be elegantly wrong. Confidence ≠ evidence.",
-            required_next_tool="arif_evidence_fetch",
+            required_next_tool="arif_fetch",
             blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
         ))
 
@@ -580,7 +580,7 @@ def compute_tension_scan(
             axes_involved=("A", "H"),
             explanation=f"Authority cleanliness is high (A={axes.A:.2f}) but no actual authorization "
                        f"exists. AI provenance ≠ authority. Lease or sovereign permission required.",
-            required_next_tool="arif_judge_deliberate",
+            required_next_tool="arif_judge",
             blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
         ))
 
@@ -594,7 +594,7 @@ def compute_tension_scan(
             axes_involved=("B", "R"),
             explanation=f"High blast radius (B={axes.B:.2f}) with low reversibility (R={axes.R:.2f}). "
                        f"Action carries irreversible consequences.",
-            required_next_tool="arif_heart_critique",
+            required_next_tool="arif_critique",
             blocked_actions=("EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
         ))
 
@@ -608,7 +608,7 @@ def compute_tension_scan(
             axes_involved=("T", "C"),
             explanation=f"Novel claim (T={axes.T:.2f}) delivered with high coherence (C={axes.C:.2f}). "
                        f"Novelty is not truth — route to critic for adversarial testing.",
-            required_next_tool="arif_heart_critique",
+            required_next_tool="arif_critique",
         ))
 
     # T6: SOVEREIGNTY_AMBIGUITY — high proximity to forbidden center
@@ -620,7 +620,7 @@ def compute_tension_scan(
             axes_involved=("H", "A"),
             explanation=f"High sovereign proximity ({sovereign_proximity:.2f}). "
                        f"Thought is near the forbidden center — requires explicit sovereign clearance.",
-            required_next_tool="arif_judge_deliberate",
+            required_next_tool="arif_judge",
             blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
         ))
 
@@ -642,7 +642,7 @@ def compute_action_affordance(
     # Start permissive, then restrict
     allowed = ["OBSERVE", "ANALYZE", "DRAFT", "SIMULATE"]
     blocked: list[str] = []
-    next_tool = "arif_heart_critique"
+    next_tool = "arif_critique"
     mem_tier = "hypothesis"
     requires_human_ack = False
     requires_evidence = False
@@ -650,17 +650,17 @@ def compute_action_affordance(
     # Geometry verdict gates
     if geometry_verdict == GeometryVerdict.HOLD:
         allowed = ["OBSERVE"]
-        next_tool = "arif_mind_reason"
+        next_tool = "arif_think"
         mem_tier = "ephemeral"
     elif geometry_verdict == GeometryVerdict.HOLE_RISK:
         allowed = ["OBSERVE", "ANALYZE"]
         blocked = ["MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"]
-        next_tool = "arif_judge_deliberate"
+        next_tool = "arif_judge"
         mem_tier = "ephemeral"
     elif geometry_verdict == GeometryVerdict.EDGE:
         allowed = ["OBSERVE", "ANALYZE", "DRAFT"]
         blocked = ["MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"]
-        next_tool = "arif_heart_critique"
+        next_tool = "arif_critique"
         mem_tier = "hypothesis"
 
     # Tension severity gates (overrides)
@@ -693,7 +693,7 @@ def compute_action_affordance(
         blocked.extend(["MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"])
         if geometry_verdict == GeometryVerdict.HOLE_RISK:
             allowed = ["OBSERVE"]
-            next_tool = "arif_judge_deliberate"
+            next_tool = "arif_judge"
 
     # Sovereign proximity check
     if sovereign_proximity >= 0.75:

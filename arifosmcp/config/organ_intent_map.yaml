@@ -162,9 +162,6 @@ organ_routes:
       - docker
       - container
       - image
-      - pod
-      - kubernetes
-      - k8s
       - pipeline
       - ci/cd
       - jenkins
@@ -190,15 +187,16 @@ organ_routes:
     port: 3001
     tool_prefix: ""
 
-  apex:
-    intent_keywords:
-      - apex
-      - oracle
-      - third witness
-      - constitutional review
-    organ: APEX
-    port: 3002
-    tool_prefix: ""
+  # apex:
+  #   intent_keywords:
+  #     - apex
+  #     - oracle
+  #     - third witness
+  #     - constitutional review
+  #   organ: APEX
+  #   port: 3002
+  #   tool_prefix: ""
+  # NOTE: APEX decommissioned 2026-06-14. Deliberation absorbed into AAA a2a-server.
 
 # Default routing when no keyword matches
 default_organ: arifOS

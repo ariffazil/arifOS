@@ -94,7 +94,7 @@ def _get_contract() -> RasaContract:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# HOOK: 111 SENSE — Rasa detection (hooks into arif_sense_observe path)
+# HOOK: 111 SENSE — Rasa detection (hooks into arif_observe path)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
@@ -106,7 +106,7 @@ def rasa_sense_hook(
 ) -> dict[str, Any]:
     """111 SENSE hook — detect human rasa signals from a message.
 
-    This hook can be called from the arif_sense_observe path when the
+    This hook can be called from the arif_observe path when the
     message contains human-originated text. It does NOT modify the
     existing sense pipeline — it runs IN ADDITION to normal sensing.
 
@@ -150,7 +150,7 @@ def rasa_sense_hook(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# HOOK: 333 MIND — Rasa context interpretation (hooks into arif_mind_reason path)
+# HOOK: 333 MIND — Rasa context interpretation (hooks into arif_think path)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
@@ -161,7 +161,7 @@ def rasa_mind_hook(
 ) -> dict[str, Any]:
     """333 MIND hook — interpret rasa as governance constraint on reasoning.
 
-    This hook can be called from the arif_mind_reason path BEFORE generating
+    This hook can be called from the arif_think path BEFORE generating
     a reasoned response. It converts raw emotion detection into cognitive
     constraints: bandwidth reduction, risk sensitivity, spiritual state.
 
@@ -242,7 +242,7 @@ def rasa_memory_hook(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# HOOK: 444 HEART — Rasa risk critique (hooks into arif_heart_critique path)
+# HOOK: 444 HEART — Rasa risk critique (hooks into arif_critique path)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
@@ -253,7 +253,7 @@ def rasa_heart_hook(
 ) -> dict[str, Any]:
     """444 HEART hook — risk calculus for dignity, peace, boundary.
 
-    This hook can be called from the arif_heart_critique path to perform
+    This hook can be called from the arif_critique path to perform
     rasa-specific risk assessment: de-escalation, dignity preservation,
     boundary honoring, and F9/F10 violation risk.
 
@@ -295,7 +295,7 @@ def rasa_heart_hook(
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # HOOK: 888 JUDGE — Constitutional enforcement with rasa (hooks into
-#        arif_judge_deliberate path)
+#        arif_judge path)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
@@ -306,7 +306,7 @@ def rasa_judge_hook(
 ) -> dict[str, Any]:
     """888 JUDGE hook — constitutional enforcement of rasa governance.
 
-    This hook can be called from the arif_judge_deliberate path to add
+    This hook can be called from the arif_judge path to add
     rasa-aware constitutional checks: F1 (irreversibility), F5 (no
     trivializing pain), F6 (dignity-first), F9 (no consciousness claims),
     F10 (no ontology violation), F13 (human veto preserved).
@@ -389,7 +389,7 @@ async def rasa_governed_execute(
 
     Args:
         message: The human message to analyze for rasa signals.
-        session_id: Session identifier (from arif_session_init / 000).
+        session_id: Session identifier (from arif_init / 000).
         context: Optional additional context (no rasa hints needed).
 
     Returns:

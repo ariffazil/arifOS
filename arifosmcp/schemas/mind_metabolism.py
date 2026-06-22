@@ -97,7 +97,7 @@ class OutputContract(BaseModel):
 
 
 class MindRequest(BaseModel):
-    """v2 Input Schema for arif_mind_reason"""
+    """v2 Input Schema for arif_think"""
 
     query: str
     mode: str = "metabolize"
@@ -226,7 +226,7 @@ class MindGovernance(BaseModel):
     verdict: str = "HOLD"
     invariant_axes: InvariantAxes | None = Field(
         default=None,
-        description="25-axis invariant pass/fail from arif_mind_reason reasoning pass",
+        description="25-axis invariant pass/fail from arif_think reasoning pass",
     )
 
 
@@ -383,10 +383,10 @@ class InvariantAxes(BaseModel):
 
 
 class MindResponse(BaseModel):
-    """v2 Output Schema for arif_mind_reason"""
+    """v2 Output Schema for arif_think"""
 
     status: Literal["OK", "HOLD", "VOID"] = "OK"
-    tool: str = "arif_mind_reason"
+    tool: str = "arif_think"
     mode: str = "metabolize"
     session_id: str | None = None
     actor_id: str | None = None

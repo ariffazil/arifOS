@@ -5,7 +5,7 @@ Wires tavily__search into the canonical arifOS tool surface
 via Tavily REST API (https://api.tavily.com/).
 Falls back to MCP only when REST fails.
 
-Tools (canonical surface, arif_sense_observe modes):
+Tools (canonical surface, arif_observe modes):
   tavily-search             — basic/advanced web search
   tavily-extract            — URL content extraction
   tavily-context            — RAG-ready joined context string (added 2026-06-16)

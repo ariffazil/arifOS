@@ -16,12 +16,12 @@ the kernel's runtime tool functions are wrapped with rasa governance adapters.
 
 | Stage | Function Patched | Hook Called | Mode |
 |-------|-----------------|-------------|------|
-| **000** | `_arif_session_init` | bootstrap rasa context | passive |
-| **111** | `_arif_sense_observe` | `rasa_sense_hook()` | primary |
-| **333** | `_arif_mind_reason` | `rasa_mind_hook()` | shadow/passive |
-| **444** | `_arif_heart_critique` | `rasa_heart_hook()` | primary |
+| **000** | `_arif_init` | bootstrap rasa context | passive |
+| **111** | `_arif_observe` | `rasa_sense_hook()` | primary |
+| **333** | `_arif_think` | `rasa_mind_hook()` | shadow/passive |
+| **444** | `_arif_critique` | `rasa_heart_hook()` | primary |
 | **555m** | `_arif_memory_recall` | `rasa_memory_hook()` | shadow/passive |
-| **888** | `_arif_judge_deliberate` | `rasa_judge_hook()` | primary |
+| **888** | `_arif_judge` | `rasa_judge_hook()` | primary |
 
 ### Wiring Mechanism
 
@@ -213,7 +213,7 @@ grep -c "rasa" /root/arifOS/logs/rasa_telemetry.jsonl  # should not grow
 - **F13 SOVEREIGN:** Human must opt-in via env var. Judge preserves veto.
 - **No new floors:** F1-F13 only. Rasa is governance, not legislation.
 - **No silent behavior:** All changes gated behind `RASA_WIRING_ENABLED`. Default OFF.
-- **No self-authorization:** `arif_forge_execute` never infers rasa. Judge is sole verdict authority.
+- **No self-authorization:** `arif_forge` never infers rasa. Judge is sole verdict authority.
 - **Hook failure → degrade:** Every hook wrapped in try/except. Failure emits warning, returns ungoverned result.
 
 ---

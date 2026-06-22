@@ -2,7 +2,7 @@
 arifOS Forge Output Schemas — 010_FORGE
 ══════════════════════════════════════════════════════════════════════════════
 
-Phase 2 Civilization Intelligence — ForgeOutput for arif_forge_execute.
+Phase 2 Civilization Intelligence — ForgeOutput for arif_forge.
 Forged irreversibly: delta_S, irreversibility bond, manifest, execution trace.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -169,13 +169,13 @@ class ConstitutionalCompliance(BaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# FORGE OUTPUT — PRIMARY OUTPUT FOR arif_forge_execute
+# FORGE OUTPUT — PRIMARY OUTPUT FOR arif_forge
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
 class ForgeOutput(BaseModel):
     """
-    Full output for arif_forge_execute (010_FORGE).
+    Full output for arif_forge (010_FORGE).
 
     Every field affects reasoning behavior:
     - irreversibility_bond: determines if actor can ack_irreversible
@@ -256,7 +256,7 @@ class ForgeEnvelope(BaseModel):
     """Backward-compatible forge envelope."""
 
     status: str = "OK"
-    tool: str = "arif_forge_execute"
+    tool: str = "arif_forge"
     result: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None

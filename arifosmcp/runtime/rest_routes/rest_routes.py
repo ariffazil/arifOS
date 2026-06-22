@@ -72,38 +72,38 @@ from arifosmcp.runtime.law import get_floor_count
 _EXTERNAL_TO_INTERNAL = {
     "arif_ping": "000_INIT",
     "arif_selftest": "000_INIT",
-    "arif_session_init": "arifos_init",
-    "arif_sense_observe": "arifos_sense",
-    "arif_evidence_fetch": "arifos_fetch",
-    "arif_mind_reason": "arifos_mind",
+    "arif_init": "arifos_init",
+    "arif_observe": "arifos_sense",
+    "arif_fetch": "arifos_fetch",
+    "arif_think": "arifos_mind",
     "arif_kernel_route": "arifos_kernel",
-    "arif_reply_compose": "arifos_reply",
+    "arif_compose": "arifos_reply",
     "arif_memory_recall": "arifos_memory",
-    "arif_heart_critique": "arifos_heart",
+    "arif_critique": "arifos_heart",
     "arif_gateway_connect": "arifos_gateway",
-    "arif_ops_measure": "arifos_ops",
-    "arif_judge_deliberate": "arifos_judge",
-    "arif_vault_seal": "arifos_vault",
-    "arif_forge_execute": "arifos_forge",
+    "arif_measure": "arifos_ops",
+    "arif_judge": "arifos_judge",
+    "arif_seal": "arifos_vault",
+    "arif_forge": "arifos_forge",
 }
 
 # Human-readable descriptions for each tool (authoritative)
 TOOL_HUMAN_DESCRIPTIONS = {
     "arif_ping": "Lightweight liveness probe — confirms kernel is responsive and sovereign.",
     "arif_selftest": "Internal diagnostic — verifies all 13 constitutional floors are intact.",
-    "arif_session_init": "Session anchor — opens a new governance session with identity binding.",
-    "arif_sense_observe": "Observe real-world signals — web search, system telemetry, environment data.",
-    "arif_evidence_fetch": "Fetch and verify evidence from URLs, files, or databases.",
-    "arif_mind_reason": "First-principles reasoning engine — synthesis, hypothesis, and cross-domain analysis.",
+    "arif_init": "Session anchor — opens a new governance session with identity binding.",
+    "arif_observe": "Observe real-world signals — web search, system telemetry, environment data.",
+    "arif_fetch": "Fetch and verify evidence from URLs, files, or databases.",
+    "arif_think": "First-principles reasoning engine — synthesis, hypothesis, and cross-domain analysis.",
     "arif_kernel_route": "Metabolic conductor — routes tasks to the correct organ: GEOX, WEALTH, or WELL.",
-    "arif_reply_compose": "Governed response compositor — drafts human-readable answers with constitutional tone.",
+    "arif_compose": "Governed response compositor — drafts human-readable answers with constitutional tone.",
     "arif_memory_recall": "Vector memory retrieval — searches past sessions, decisions, and sealed events.",
-    "arif_heart_critique": "Safety and empathy check — consequence modeling and bias detection.",
+    "arif_critique": "Safety and empathy check — consequence modeling and bias detection.",
     "arif_gateway_connect": "Agent-to-agent mesh router — opens connections across the federation (A2A protocol).",
-    "arif_ops_measure": "Thermodynamic metrics — CPU, memory, disk, and constitutional pressure.",
-    "arif_judge_deliberate": "888 ASI judgment — final rule-check against F1–L13 floors before approval.",
-    "arif_vault_seal": "APEX ledger writer — permanently seals verdicts to VAULT999 (Merkle-hashed).",
-    "arif_forge_execute": "Execution dispatcher — sends signed manifests to A-FORGE after SEAL authorization.",
+    "arif_measure": "Thermodynamic metrics — CPU, memory, disk, and constitutional pressure.",
+    "arif_judge": "888 ASI judgment — final rule-check against F1–L13 floors before approval.",
+    "arif_seal": "APEX ledger writer — permanently seals verdicts to VAULT999 (Merkle-hashed).",
+    "arif_forge": "Execution dispatcher — sends signed manifests to A-FORGE after SEAL authorization.",
 }
 
 
@@ -120,13 +120,13 @@ def _get_stage_lane_access(tool_name: str) -> tuple[str | None, str | None, str]
     # Access level from law bindings
     access = "public"
     if tool_name in [
-        "arif_heart_critique",
+        "arif_critique",
         "arif_gateway_connect",
-        "arif_judge_deliberate",
-        "arif_vault_seal",
+        "arif_judge",
+        "arif_seal",
     ]:
         access = "authenticated"
-    if tool_name == "arif_forge_execute":
+    if tool_name == "arif_forge":
         access = "sovereign"
     return stage, lane, access
 
@@ -1573,19 +1573,19 @@ def _rest_action_class(canonical_name: str, body: dict[str, Any]) -> Any:
 
     # OBSERVE-class tools
     if canonical_name in (
-        "arif_session_init", "arif_sense_observe", "arif_evidence_fetch",
-        "arif_kernel_route", "arif_route", "arif_ops_measure",
+        "arif_init", "arif_observe", "arif_fetch",
+        "arif_kernel_route", "arif_route", "arif_measure",
         "arif_kernel_health", "arif_kernel_attest", "arif_kernel_status",
         "arif_triage",
     ):
         return ActionClass.OBSERVE
 
     # ANALYZE-class tools
-    if canonical_name in ("arif_mind_reason", "arif_heart_critique", "arif_judge_deliberate"):
+    if canonical_name in ("arif_think", "arif_critique", "arif_judge"):
         return ActionClass.ANALYZE
 
     # DRAFT-class tools
-    if canonical_name == "arif_reply_compose":
+    if canonical_name == "arif_compose":
         return ActionClass.DRAFT
 
     # MUTATE-class tools — dangerous modes escalate
@@ -1594,13 +1594,13 @@ def _rest_action_class(canonical_name: str, body: dict[str, Any]) -> Any:
             return ActionClass.MUTATE
         return ActionClass.OBSERVE  # recall/get/list/search are observe
 
-    if canonical_name == "arif_forge_execute":
+    if canonical_name == "arif_forge":
         if mode in ("engineer", "write", "generate", "commit"):
             return ActionClass.MUTATE
         return ActionClass.OBSERVE  # query/recall/dry_run are observe
 
     # IRREVERSIBLE-class tools
-    if canonical_name == "arif_vault_seal":
+    if canonical_name == "arif_seal":
         if mode == "seal":
             return ActionClass.IRREVERSIBLE
         return ActionClass.OBSERVE  # list/verify/chain/dry_run are observe
@@ -1724,8 +1724,8 @@ def _tool_openapi_paths(base_url: str, tools: list[Any]) -> dict[str, Any]:
             }
         }
         legacy_aliases = {
-            "arif_mind_reason": ["arifos_mind"],
-            "arif_session_init": ["arifos_init"],
+            "arif_think": ["arifos_mind"],
+            "arif_init": ["arifos_init"],
         }
         for alias in legacy_aliases.get(tool_name, []):
             paths[f"/tools/{alias}"] = paths[f"/tools/{tool_name}"]
@@ -2843,7 +2843,7 @@ def register_rest_routes(
         """Human validation endpoint — /999 is the sovereign approval gate.
 
         Returns pending human authorizations and vault seal status.
-        This is the irreversible action gate: /999 POST to arif_vault_seal
+        This is the irreversible action gate: /999 POST to arif_seal
         requires human witness before any irreversible operation (F1 Amanah,
         L13 Sovereign Human Veto).
         """
@@ -2873,7 +2873,7 @@ def register_rest_routes(
                 "vault999_health": vault_status,
                 "pending_approvals": pending_approvals,
                 "seal_methods": {
-                    "POST /999/seal": "arif_vault_seal — requires operator approval",
+                    "POST /999/seal": "arif_seal — requires operator approval",
                     "GET /operator/approvals": "list pending human authorizations",
                 },
                 "source_of_truth": "https://github.com/ariffazil/arifOS",
@@ -6652,23 +6652,23 @@ setInterval(refreshSot, 30000);
                 "public_tools": [
                     "arif_ping",
                     "arif_selftest",
-                    "arif_session_init",
-                    "arif_sense_observe",
-                    "arif_evidence_fetch",
-                    "arif_mind_reason",
-                    "arif_heart_critique",
+                    "arif_init",
+                    "arif_observe",
+                    "arif_fetch",
+                    "arif_think",
+                    "arif_critique",
                     "arif_kernel_route",
-                    "arif_reply_compose",
-                    "arif_ops_measure",
+                    "arif_compose",
+                    "arif_measure",
                 ],
                 "authenticated_tools": [
                     "arif_memory_recall",
                     "arif_gateway_connect",
                 ],
                 "irreversible_tools": [
-                    "arif_judge_deliberate",
-                    "arif_vault_seal",
-                    "arif_forge_execute",
+                    "arif_judge",
+                    "arif_seal",
+                    "arif_forge",
                 ],
                 "token_location": "Authorization: Bearer <token>",
                 "query_string_tokens": "forbidden",
@@ -6676,9 +6676,9 @@ setInterval(refreshSot, 30000);
                 "scopes": {
                     "read": "Public tools — no auth required",
                     "write": "Authenticated tools — requires Bearer token",
-                    "seal": "arif_vault_seal — requires 888_HOLD + human confirmation",
-                    "forge": "arif_forge_execute — requires 888_HOLD + human confirmation",
-                    "judge": "arif_judge_deliberate — constitutional gate + human veto",
+                    "seal": "arif_seal — requires 888_HOLD + human confirmation",
+                    "forge": "arif_forge — requires 888_HOLD + human confirmation",
+                    "judge": "arif_judge — constitutional gate + human veto",
                 },
                 "sessions_note": (
                     "Sessions are not authentication. Use Bearer tokens. "

@@ -163,7 +163,7 @@ def _revoked_approval_key_ids() -> set[str]:
 
 
 def _vault_path() -> Path:
-    return Path(os.environ.get("VAULT999_PATH", "/root/arifOS/VAULT999/SEALED_EVENTS_v2.jsonl"))
+    return Path(os.environ.get("VAULT999_PATH", "/agent/vault999/SEALED_EVENTS_v2.jsonl"))
 
 
 def verify_signature(
@@ -595,13 +595,13 @@ def _derive_routing(
         return {"action": "reject", "target": None}
 
     routing_map = {
-        ("github", "push"): {"action": "adjudicate", "target": "arif_forge_execute"},
-        ("github", "release"): {"action": "adjudicate", "target": "arif_forge_execute"},
-        ("grafana", "alert"): {"action": "adjudicate", "target": "arif_judge_deliberate"},
-        ("manual", "deploy_signal"): {"action": "adjudicate", "target": "arif_forge_execute"},
-        ("manual", "health_check"): {"action": "observe", "target": "arif_ops_measure"},
-        ("manual", "audit_request"): {"action": "observe", "target": "arif_evidence_fetch"},
-        ("manual", "sovereign_veto"): {"action": "veto", "target": "arif_judge_deliberate"},
+        ("github", "push"): {"action": "adjudicate", "target": "arif_forge"},
+        ("github", "release"): {"action": "adjudicate", "target": "arif_forge"},
+        ("grafana", "alert"): {"action": "adjudicate", "target": "arif_judge"},
+        ("manual", "deploy_signal"): {"action": "adjudicate", "target": "arif_forge"},
+        ("manual", "health_check"): {"action": "observe", "target": "arif_measure"},
+        ("manual", "audit_request"): {"action": "observe", "target": "arif_fetch"},
+        ("manual", "sovereign_veto"): {"action": "veto", "target": "arif_judge"},
     }
     return routing_map.get((source, event_type), {"action": "hold", "target": None})
 
@@ -623,10 +623,10 @@ def execute_routing(
     session_id = event_context.get("trace_id")
 
     try:
-        if target == "arif_judge_deliberate":
-            from arifosmcp.tools.judge import arif_judge_deliberate
+        if target == "arif_judge":
+            from arifosmcp.tools.judge import arif_judge
 
-            result = arif_judge_deliberate(
+            result = arif_judge(
                 mode="judge",
                 candidate=candidate,
                 session_id=session_id,
@@ -638,25 +638,25 @@ def execute_routing(
                 "verdict": getattr(result, "verdict", "UNKNOWN"),
                 "status": getattr(result, "status", "UNKNOWN"),
             }
-        elif target == "arif_ops_measure":
-            from arifosmcp.tools.ops import arif_ops_measure
+        elif target == "arif_measure":
+            from arifosmcp.tools.ops import arif_measure
 
-            result = arif_ops_measure(mode="vitals")
+            result = arif_measure(mode="vitals")
             return {
                 "tool": target,
                 "executed": True,
                 "vitals": getattr(result, "__dict__", {}),
             }
-        elif target == "arif_evidence_fetch":
-            from arifosmcp.tools.evidence import arif_evidence_fetch
+        elif target == "arif_fetch":
+            from arifosmcp.tools.evidence import arif_fetch
 
-            result = arif_evidence_fetch(mode="search", query=candidate)
+            result = arif_fetch(mode="search", query=candidate)
             return {
                 "tool": target,
                 "executed": True,
                 "status": getattr(result, "status", "UNKNOWN"),
             }
-        # arif_forge_execute is intentionally NOT auto-executed from webhooks
+        # arif_forge is intentionally NOT auto-executed from webhooks
         # L01 AMANAH: forge requires explicit sovereign ack
         return {
             "tool": target,

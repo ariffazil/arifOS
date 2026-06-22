@@ -40,8 +40,8 @@ from typing import Any
 
 TOOL_BUCKET: dict[str, str] = {
     # ── SENSE / EVIDENCE — read-only, low blast, frequent use ──────────────
-    "arif_sense_observe":       "sense",
-    "arif_evidence_fetch":      "sense",
+    "arif_observe":       "sense",
+    "arif_fetch":      "sense",
     "arif_schema_echo":         "sense",
     "arif_ping":                "sense",
     "arif_transport_echo":      "sense",
@@ -50,8 +50,8 @@ TOOL_BUCKET: dict[str, str] = {
     "arif_conformance_report":  "sense",
 
     # ── MIND / ROUTE — mutate belief/routing, not external reality ─────────
-    "arif_mind_reason":         "mind",
-    "arif_reply_compose":       "mind",
+    "arif_think":         "mind",
+    "arif_compose":       "mind",
     "arif_kernel_route":        "mind",
     "arif_route":               "mind",
     "arif_triage":              "mind",
@@ -61,7 +61,7 @@ TOOL_BUCKET: dict[str, str] = {
     "arif_kernel_health":       "mind",
 
     # ── HEART — ethical critique, can shape agent behavior ────────────────
-    "arif_heart_critique":      "heart",
+    "arif_critique":      "heart",
 
     # ── GATEWAY / BRIDGE — cross-agent, high-blast control plane ───────────
     "arif_gateway_connect":     "gateway",
@@ -69,11 +69,11 @@ TOOL_BUCKET: dict[str, str] = {
     "arif_bridge_connect":      "bridge",
 
     # ── AUTHORITY — IRREVERSIBLE / APEX lane, sovereign-grade ──────────────
-    "arif_session_init":        "authority",
-    "arif_ops_measure":         "authority",
-    "arif_forge_execute":       "authority",
-    "arif_judge_deliberate":    "authority",
-    "arif_vault_seal":          "authority",
+    "arif_init":        "authority",
+    "arif_measure":         "authority",
+    "arif_forge":       "authority",
+    "arif_judge":    "authority",
+    "arif_seal":          "authority",
 }
 
 

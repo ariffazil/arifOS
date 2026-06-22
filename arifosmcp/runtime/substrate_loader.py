@@ -60,7 +60,7 @@ F13_PRE_TRUST_ADDENDUM = {
         "thermodynamics": "T01-T04 (Cooling, Entropy Recycling, Tectonic Calm, Rasa)",
     },
     "constitutional_bindings_count": 5,
-    "exception": "Sovereign may revoke any element via 999_SEAL or arif_vault_seal.",
+    "exception": "Sovereign may revoke any element via 999_SEAL or arif_seal.",
     "ratified_by": SOVEREIGN_ACTOR,
     "ratified_at": "2026-06-16",
     "epistemic_class": EPISTEMIC_CLASS,
@@ -235,9 +235,9 @@ def recall_similar_scars(
         return [{"error": f"substrate recall failed: {e}"}]
 
 
-# ── Pre-load hook for arif_heart_critique ──────────────────────────────────
+# ── Pre-load hook for arif_critique ──────────────────────────────────
 def preload_substrate_context(actor_id: str | None = None, session_id: str | None = None) -> dict[str, Any]:
-    """Called by arif_heart_critique on F5/F6/F13 paths.
+    """Called by arif_critique on F5/F6/F13 paths.
     Returns a compact context block that can be merged into the critique envelope.
     Fail-open: never raises.
     """

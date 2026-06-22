@@ -534,7 +534,7 @@ def _calculate_discovery_physics(
     }
 
 
-def arif_sense_observe(
+def arif_observe(
 
 
     mode: str = "search",
@@ -582,8 +582,8 @@ def arif_sense_observe(
             }
         else:
             if auth.get("expired"):
-                return _sabar("arif_sense_observe", auth["reason"], session_id=session_id)
-            return _hold("arif_sense_observe", auth["reason"], ["L11"], session_id=session_id)
+                return _sabar("arif_observe", auth["reason"], session_id=session_id)
+            return _hold("arif_observe", auth["reason"], ["L11"], session_id=session_id)
 
     q = query or url or ""
 
@@ -601,7 +601,7 @@ def arif_sense_observe(
         from arifosmcp.core.threat_engine import ThreatEngine
 
         # 1. Knowledge Discovery (Hybrid)
-        hd_res = arif_sense_observe(
+        hd_res = arif_observe(
             mode="hybrid_discovery",
             query=q,
             session_id=session_id,
@@ -637,11 +637,11 @@ def arif_sense_observe(
             def payload_text(self):
                 return self.query
 
-        act_ctx = _ActionContext("arif_sense_observe", "compass", q, actor_id)
+        act_ctx = _ActionContext("arif_observe", "compass", q, actor_id)
         auth_proof = AuthorityGate.verify(act_ctx, assessment)
 
         # 4. Next Safe Moves
-        next_moves = ["Use arif_mind_reason to analyze the discovered evidence."]
+        next_moves = ["Use arif_think to analyze the discovered evidence."]
         if assessment.irreversibility.value > 0:
             next_moves.append(
                 "WARNING: Intent detected as high-risk; submit formal plan before action."
@@ -650,10 +650,10 @@ def arif_sense_observe(
             next_moves.append("Knowledge gap detected: Ingest relevant docs via arif_wiki_ingest.")
 
         return _ok(
-            "arif_sense_observe",
+            "arif_observe",
             {
                 "status": "OK",
-                "tool": "arif_sense_observe",
+                "tool": "arif_observe",
                 "mode": "compass",
                 "query": q,
                 "orientation": {
@@ -681,14 +681,14 @@ def arif_sense_observe(
             },
         )
 
-    floor_check = check_laws("arif_sense_observe", {"query": query or ""}, actor_id)
+    floor_check = check_laws("arif_observe", {"query": query or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_sense_observe", floor_check["reason"], floor_check["violated_laws"])
+        return _hold("arif_observe", floor_check["reason"], floor_check["violated_laws"])
 
     if partition_mode == "DEAD":
         return {
             "status": "HOLD",
-            "tool": "arif_sense_observe",
+            "tool": "arif_observe",
             "result": {},
             "meta": {
                 "partition": "DEAD",
@@ -699,7 +699,7 @@ def arif_sense_observe(
 
     if partition_mode == "PURGATORY":
         return _ok(
-            "arif_sense_observe",
+            "arif_observe",
             {
                 "query": query,
                 "results": [],
@@ -895,7 +895,7 @@ def arif_sense_observe(
             from core.governance_kernel import get_governance_kernel
             _gk = get_governance_kernel(session_id or "global")
             _gk.record_event("action", {
-                "tool": "arif_sense_observe",
+                "tool": "arif_observe",
                 "mode": "hybrid_discovery",
                 "query": q,
                 "actor_id": actor_id,
@@ -909,7 +909,7 @@ def arif_sense_observe(
             })
             kernel_bridge = "HIT"
             # Log the kernel function invoked and payload shape
-            print("[KERNEL-BRIDGE] arif_sense_observe → core.governance_kernel.evaluate_floors")
+            print("[KERNEL-BRIDGE] arif_observe → core.governance_kernel.evaluate_floors")
             print(f"[KERNEL-BRIDGE]   query={repr(q[:80])}, payload_keys={list(kernel_result.keys())}")
             kernel_metrics = {
                 "qdf": kernel_result.get("qdf"),
@@ -924,10 +924,10 @@ def arif_sense_observe(
             print(f"[KERNEL-BRIDGE-WARN] sense.py → core.governance_kernel: {_e}")
 
         return _ok(
-            "arif_sense_observe",
+            "arif_observe",
             _inject_rasa({
                 "status": "OK",
-                "tool": "arif_sense_observe",
+                "tool": "arif_observe",
                 "mode": "hybrid_discovery",
                 "query": q,
                 "kernel_bridge": kernel_bridge,  # "HIT" | "MISS" | "ERROR"
@@ -973,7 +973,7 @@ def arif_sense_observe(
         if scan_res.assessment.irreversibility.value > 1:
             threat_names = [t.name for t in (scan_res.assessment.threats or [])]
             return _hold(
-                "arif_sense_observe",
+                "arif_observe",
                 f"L12 INJECTION: Destructive pattern detected — {', '.join(threat_names) or 'CRITICAL'}",
                 ["L12"],
                 session_id=session_id,
@@ -983,7 +983,7 @@ def arif_sense_observe(
             results = s_res.results if s_res.results else []
             omega_0 = 0.05 + min(len(results) * 0.02, 0.20)
             return _ok(
-                "arif_sense_observe",
+                "arif_observe",
                 _inject_rasa({
                     "query": query,
                     "results": results,
@@ -996,9 +996,9 @@ def arif_sense_observe(
                 }),
             )
         except Exception as e:
-            logger.warning(f"RealityHandler failure in arif_sense_observe ({mode}): {e}")
+            logger.warning(f"RealityHandler failure in arif_observe ({mode}): {e}")
             return _ok(
-                "arif_sense_observe",
+                "arif_observe",
                 _inject_rasa({
                     "query": query,
                     "results": [],
@@ -1022,7 +1022,7 @@ def arif_sense_observe(
                 )
             )
             return _ok(
-                "arif_sense_observe",
+                "arif_observe",
                 _inject_rasa({
                     "url": url,
                     "ingested": bundle.status.state == "SUCCESS",
@@ -1035,9 +1035,9 @@ def arif_sense_observe(
                 }),
             )
         except Exception as e:
-            logger.warning(f"RealityHandler failure in arif_sense_observe ({mode}): {e}")
+            logger.warning(f"RealityHandler failure in arif_observe ({mode}): {e}")
             return _ok(
-                "arif_sense_observe",
+                "arif_observe",
                 _inject_rasa({
                     "url": url,
                     "ingested": False,
@@ -1067,7 +1067,7 @@ def arif_sense_observe(
                 )
             )
             return _ok(
-                "arif_sense_observe",
+                "arif_observe",
                 {
                     "heading": bundle.input.mode,
                     "confidence": 0.95 if bundle.status.state == "SUCCESS" else 0.50,
@@ -1079,9 +1079,9 @@ def arif_sense_observe(
                 },
             )
         except Exception as e:
-            logger.warning(f"RealityHandler failure in arif_sense_observe ({mode}): {e}")
+            logger.warning(f"RealityHandler failure in arif_observe ({mode}): {e}")
             return _ok(
-                "arif_sense_observe",
+                "arif_observe",
                 {
                     "heading": "unknown",
                     "confidence": 0.0,
@@ -1093,7 +1093,7 @@ def arif_sense_observe(
 
     if mode == "atlas":
         return _ok(
-            "arif_sense_observe",
+            "arif_observe",
             {
                 "map": {},
                 "layers": layers or [],
@@ -1103,7 +1103,7 @@ def arif_sense_observe(
     if mode == "entropy_dS":
         ds = random.uniform(-0.1, 0.1)
         return _ok(
-            "arif_sense_observe",
+            "arif_observe",
             {
                 "delta_S": round(ds, 6),
                 "trend": "stable",
@@ -1112,7 +1112,7 @@ def arif_sense_observe(
         )
     if mode == "vitals":
         return _ok(
-            "arif_sense_observe",
+            "arif_observe",
             {
                 "cpu": 12.5,
                 "mem": 34.0,
@@ -1172,4 +1172,4 @@ def arif_sense_observe(
             "findings": findings
         }
 
-    return _hold("arif_sense_observe", f"Unknown mode: {mode}")
+    return _hold("arif_observe", f"Unknown mode: {mode}")

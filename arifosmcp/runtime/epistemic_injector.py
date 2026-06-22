@@ -214,7 +214,7 @@ DETERMINISTIC_TOOLS: set[str] = {
     "arif_kernel_health",
     "arif_kernel_attest",
     "arif_kernel_status",
-    "arif_ops_measure",
+    "arif_measure",
     # Transport probes
     "arif_schema_echo",
     "arif_transport_echo",
@@ -223,25 +223,25 @@ DETERMINISTIC_TOOLS: set[str] = {
     # Conformance
     "arif_conformance_report",
     # Session (auth core is deterministic)
-    "arif_session_init",
+    "arif_init",
     "arif_triage",
 }
 
 # Tools where the output is AI-generated advisory content
 # Wajib AI-assisted. Must never claim EXECUTIVE.
 AI_ADVISORY_TOOLS: set[str] = {
-    "arif_mind_reason",
-    "arif_heart_critique",
-    "arif_reply_compose",
-    "arif_evidence_fetch",
+    "arif_think",
+    "arif_critique",
+    "arif_compose",
+    "arif_fetch",
 }
 
 # Tools that mix AI advisory with deterministic governance
 # May have AI-generated explanatory text alongside deterministic core.
 GOVERNANCE_TEMPLATE_TOOLS: set[str] = {
-    "arif_judge_deliberate",
-    "arif_vault_seal",
-    "arif_forge_execute",
+    "arif_judge",
+    "arif_seal",
+    "arif_forge",
 }
 
 # Tools that route or bridge — output classification depends on the routed organ
@@ -256,7 +256,7 @@ ROUTING_TOOLS: set[str] = {
 # Domain intelligence tools — output_class depends on the specific tool
 # Default to DOMAIN_COMPUTATION / NONE / ADVISORY / COMPUTED
 DOMAIN_TOOLS: set[str] = {
-    "arif_sense_observe",
+    "arif_observe",
     "arif_memory_recall",
 }
 

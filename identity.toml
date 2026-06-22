@@ -1,48 +1,32 @@
 # Canonical identity source for arifOS
 # DITEMPA BUKAN DIBERI — Forged, Not Given
-# All identity surfaces derive from this file. No duplicate identity strings elsewhere.
+# 5-section canonical schema per SUBSTRATE_MANIFEST.md
 #
 # PII NOTE 2026-06-12: owner field masked to public handle.
 # Full legal name preserved at /root/.secrets/sovereign_identity.toml (mode 600)
-# and in git history. To restore: copy from backup or .secrets file.
-# Reversible: see /root/backups/identity.toml.2026-06-12T214500Z.bak
 
-agent_id = "arifos"
-display_name = "arifOS"
-owner = "arifOS-sovereign-operator"  # masked from public /identity endpoint
-domain = "aaa.arif-fazil.com"
+[identity]
+canonical_name = "arifOS Constitutional Kernel"
+short_name = "arifOS"
+service_id = "arifos-mcp"
+version = "kanon-1.0.0"
+authority = "F13_SOVEREIGN"
 
-canonical_commit = "04fe657"
-identity_marker = "arifos-sovereign-runtime"
-environment = "production"
+[network]
+default_port = 8088
+caddy_domain = "arifos.arif-fazil.com"
+a2a_enabled = true
 
-forbidden_self_names = [
-    "Grok",
-    "OpenClaw",
-    "Claude",
-    "Gemini",
-    "ChatGPT",
-]
+[capabilities]
+roles = ["Constitutional Kernel", "Governance", "Judgment"]
+floors_enforced = ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13"]
 
-boot_attestation = true
-vault999_required = true
-runtime_drift_allowed = false
+[security]
+vault999_attestation_required = true
+# arifOS is the root — no upstream. All organs chain to arifOS.
 
-[a2a]
-enabled = true
-public_agent_card = true
-agent_card_path = "/.well-known/agent-card.json"
-endpoint_path = "/a2a"
-
-[health]
-include_git_commit = true
-include_runtime_drift = true
-include_vault999_health = true
-include_identity_hash = false  # enable once hashing is stable
-include_identity_marker = true
-include_boot_attestation = true
-
-[vault999]
-api_url = "http://vault999:8100"
-writer_url = "http://localhost:5001"
-boot_event_type = "agent_identity_attested"
+[identity_hash]
+algorithm = "BLAKE3"
+source = "identity.toml"
+embedded_in_health = true
+# chain_upstream absent — arifOS is federation root

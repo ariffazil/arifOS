@@ -24,7 +24,7 @@ Phase 1 (this module):
   - audit_classify(event_type, risk)  (decides TRACE/DIGEST/SEAL/HOLD per policy)
 
 NOT in this module (Phase 2+):
-  - actual VAULT999 HTTP writes (the seal function calls arif_vault_seal
+  - actual VAULT999 HTTP writes (the seal function calls arif_seal
     via MCP — F13-gated path. Phase 1 only collects payloads; Phase 2 wires
     the actual write. Until then, audit_seal returns a VAULT999-READY
     payload that the next session can drain into the canonical ledger.)
@@ -290,7 +290,7 @@ def audit_digest(session_id: str, window_start: str = "", window_end: str = "") 
     Flush all TRACE events for a session as a single DIGEST to VAULT999.
 
     Phase 1: this returns a DIGEST payload ready for VAULT999 but does NOT
-    actually call arif_vault_seal. Phase 2 will wire the MCP call.
+    actually call arif_seal. Phase 2 will wire the MCP call.
 
     Returns:
         dict with: mode, digest_hash, n_traces, vault999_status, payload
@@ -343,7 +343,7 @@ def audit_seal(
     """
     Immediate VAULT999 append for compaction / high-risk retrieval.
 
-    Phase 1: queues the SEAL payload. Phase 2 wires arif_vault_seal MCP call.
+    Phase 1: queues the SEAL payload. Phase 2 wires arif_seal MCP call.
     Caller must provide all required fields per the manifest schema in
     docs/context/context_policy_v1.md.
 
@@ -388,7 +388,7 @@ def audit_seal(
 def audit_hold(rationale: str, event_type: str = "", session_id: str = "") -> dict[str, Any]:
     """
     Refuse to write. Returns HOLD envelope. Caller must escalate to F13
-    sovereign via arif_vault_seal with ack_irreversible=True.
+    sovereign via arif_seal with ack_irreversible=True.
 
     This function NEVER writes anywhere. It is a circuit breaker.
     """
@@ -405,7 +405,7 @@ def audit_hold(rationale: str, event_type: str = "", session_id: str = "") -> di
         "note": (
             "This operation is F13 SOVEREIGN territory. "
             "The agent does not have authority. "
-            "Use arif_vault_seal(mode=seal, ack_irreversible=True, "
+            "Use arif_seal(mode=seal, ack_irreversible=True, "
             "actor_signature=<ed25519>) to proceed."
         ),
     }

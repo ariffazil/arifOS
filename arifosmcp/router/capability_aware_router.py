@@ -82,8 +82,8 @@ def route_with_capability(
     Route a tool action through the CapabilitySurface enforcement mesh.
 
     Args:
-        tool_name: Canonical tool name (e.g. 'arif_forge_execute')
-        capability_surface: Full CapabilitySurface dict (from arif_ops_measure)
+        tool_name: Canonical tool name (e.g. 'arif_forge')
+        capability_surface: Full CapabilitySurface dict (from arif_measure)
         intended_action: 'observe', 'reason', 'dry_run', 'mutate', 'atomic'
         cache_max_age_s: Maximum age of surface before it's considered expired
         override_unknown: If True, UNKNOWN tools are treated as usable (F13 only)

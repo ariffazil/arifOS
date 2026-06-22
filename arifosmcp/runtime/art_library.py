@@ -164,8 +164,8 @@ class ArtLibrary:
 
     Read interface (W2/W3 callers: art_registry, art_propose):
         lib = ArtLibrary()
-        recent = await lib.recent_for_tool("arif_mind_reason", window_days=30)
-        rate   = await lib.success_rate("arif_mind_reason", window_days=30)
+        recent = await lib.recent_for_tool("arif_think", window_days=30)
+        rate   = await lib.success_rate("arif_think", window_days=30)
 
     Write interface (W1.5 caller: mesh_subscriber):
         await lib.record(ArtVerdictRow(...))

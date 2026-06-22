@@ -43,7 +43,7 @@ class AuthorityGate:
         requires_human = FloorEvaluator._requires_human_witness(context, threat)
 
         plan_approved = False
-        if context.tool_name == "arif_forge_execute" and context.mode in {
+        if context.tool_name == "arif_forge" and context.mode in {
             "engineer",
             "write",
             "generate",

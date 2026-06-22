@@ -4,7 +4,7 @@ Irreversible Action Receipt — 888_HOLD trigger.
 Per F1 AMANAH: any irreversible action must be explicitly approved.
 This receipt is generated BEFORE the action and sealed AFTER.
 
-Used by: arif_vault_seal, hostinger-vps, Caddy reload, secret rotation.
+Used by: arif_seal, hostinger-vps, Caddy reload, secret rotation.
 """
 
 from __future__ import annotations

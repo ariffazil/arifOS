@@ -38,26 +38,26 @@ THREE LANES:
 
   000 — GATEWAY (Entry)
     Anchor identity. Emit manifest. Root the audit chain.
-    Tool: arif_session_init
+    Tool: arif_init
     Domain language: SELAMAT / KUKUH / AMANAH / BIJAKSANA
 
   111 — AGI (Tactical Intelligence)
     Role: PROPOSE. Abstract, abduce, synthesize.
-    Tools: arif_sense_observe, arif_evidence_fetch, arif_mind_reason,
-           arif_kernel_route, arif_memory_recall, arif_ops_measure,
-           arif_reply_compose, arif_gateway_connect
+    Tools: arif_observe, arif_fetch, arif_think,
+           arif_kernel_route, arif_memory_recall, arif_measure,
+           arif_compose, arif_gateway_connect
     Domain language: OBSERVED / COMPUTED / INFERRED / HYPOTHESIZED / ESTIMATED / UNKNOWN
     NEVER: judge, authorize, seal
 
   444 — ASI (Strategic Judgment)
     Role: JUDGE. Attest. Floor-check. Deliberate. Emit verdict.
-    Tools: arif_heart_critique
+    Tools: arif_critique
     Domain language: CONSISTENT / NEEDS_CORRECTION / INSUFFICIENT
     NEVER: execute, authorize, seal
 
   888 — APEX (Authority Resolution)
     Role: AUTHORIZE. Verify verdict. Check sovereignty. Authorize or block.
-    Tools: arif_judge_deliberate
+    Tools: arif_judge
     Domain language: SEAL / SABAR / HOLD / VOID
     SEAL = constitutional approval, irreversibly sealed
     SABAR = held — needs more evidence or human review
@@ -66,7 +66,7 @@ THREE LANES:
 
   999 — GATEWAY (Exit)
     Verify path. Write immutable record. Terminate session.
-    Tool: arif_vault_seal
+    Tool: arif_seal
     Domain language: SEALED / CHAIN_HEIGHT / MERKLE_LEAF
 
 THE IRON RULE:

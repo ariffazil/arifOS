@@ -1,11 +1,11 @@
 """
-arif_action_classifier — Advisory pre-filter for `arif_forge_execute` (666).
+arif_action_classifier — Advisory pre-filter for `arif_forge` (666).
 
 Status (T1 verified, 2026-06-08): 17/17 tests pass.
 Role in the federation: ADVISORY, not adjudicative.
   - This module CLASSIFIES an Action into a Gate.
-  - It does NOT adjudicate. That is `arif_judge_deliberate` (888).
-  - It does NOT seal. That is `arif_vault_seal` (999).
+  - It does NOT adjudicate. That is `arif_judge` (888).
+  - It does NOT seal. That is `arif_seal` (999).
   - It does NOT execute. It returns a Verdict that downstream tools may
     consult, log, or ignore. The judge still rules.
 

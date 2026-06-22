@@ -41,8 +41,8 @@ godel_lock:
     - APEX
     - VAULT999
   requires_external_witness:
-    - arif_judge_deliberate
-    - arif_vault_seal
+    - arif_judge
+    - arif_seal
     - tri_witness
     - human_888
   blocks:

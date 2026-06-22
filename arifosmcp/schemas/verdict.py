@@ -602,12 +602,12 @@ class VerdictOutput(BaseModel):
     This is where sovereign judgment crystallizes.
     Every field must affect the reasoning behavior.
 
-    VerdictOutput is the primary output for arif_judge_deliberate.
+    VerdictOutput is the primary output for arif_judge.
     """
 
     # Standard
     status: str = "OK"
-    tool: str = "arif_judge_deliberate"
+    tool: str = "arif_judge"
 
     # Core verdict
     verdict: VerdictCode = Field(description="SEAL | SABAR | VOID | HOLD")
@@ -808,19 +808,19 @@ class _VerdictEnvelope(BaseModel):
 class Verdict(_VerdictEnvelope):
     """Backward-compatible verdict envelope."""
 
-    tool: str = "arif_judge_deliberate"
+    tool: str = "arif_judge"
 
 
 class CritiqueReport(_VerdictEnvelope):
     """Heart output envelope."""
 
-    tool: str = "arif_heart_critique"
+    tool: str = "arif_critique"
 
 
 class SealReceipt(_VerdictEnvelope):
     """Vault output envelope."""
 
-    tool: str = "arif_vault_seal"
+    tool: str = "arif_seal"
 
 
 class VerdictReport(Verdict):
@@ -891,7 +891,7 @@ class AttributionChain(BaseModel):
 
 class SealOutput(BaseModel):
     """
-    Full output for arif_vault_seal (999_VAULT).
+    Full output for arif_seal (999_VAULT).
 
     Every field affects behavior:
     - irreversibility_bond: determines if seal is allowed
@@ -903,7 +903,7 @@ class SealOutput(BaseModel):
     """
 
     status: str = "OK"
-    tool: str = "arif_vault_seal"
+    tool: str = "arif_seal"
 
     # Core verdict
     verdict: VerdictCode = Field(default=VerdictCode.SEAL)

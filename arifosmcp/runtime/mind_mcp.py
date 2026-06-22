@@ -14,7 +14,7 @@ from fastmcp import FastMCP
 
 from arifosmcp.runtime.mind_reason import (
     arif_mind_claim_attest,
-    arif_mind_reason_v2,
+    arif_think_v2,
     arif_mind_step,
     arif_mind_trace_get,
 )
@@ -29,12 +29,12 @@ mcp = FastMCP("arifOS-Mind")
 
 
 @mcp.tool()
-async def arif_mind_reason(
+async def arif_think(
     query: str, session_id: str | None = None, mode: str = "metabolize"
 ) -> dict[str, Any]:
     """Execute constitutional reasoning and cognitive metabolism."""
     request = MindRequest(query=query, mode=mode, session_id=session_id)
-    result = await arif_mind_reason_v2(request)
+    result = await arif_think_v2(request)
     return result.model_dump()
 
 

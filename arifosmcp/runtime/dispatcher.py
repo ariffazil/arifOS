@@ -3,12 +3,13 @@
 The canonical runtime now routes through `arifosmcp.runtime.tools`, but a
 number of stdio, bridge, and audit paths still import this module directly.
 Keep it as a thin compatibility layer over the live implementations.
+
+LEGACY ALIAS TELEMETRY: REMOVED (Phase 2a+2b) — no backward compat.
 """
 
 from __future__ import annotations
 
 from collections.abc import MutableMapping
-from datetime import UTC
 from typing import Any
 
 
@@ -70,47 +71,10 @@ async def dispatch_with_fail_closed(tool_name: str, arguments: dict[str, Any]) -
 
 
 def get_tool_handler(name: str) -> Any:
-    from arifosmcp.runtime.tools import LEGACY_TOOL_ALIASES
+    """Direct lookup — no legacy alias resolution (Phase 2a+2b)."""
+    from arifosmcp.runtime.public_registry import public_registry
 
-    handler = HARDENED_DISPATCH_MAP.get(name)
-    if handler:
-        return handler
-
-    canonical_name = LEGACY_TOOL_ALIASES.get(name)
-    if canonical_name:
-        _record_legacy_alias_hit(name, canonical_name)
-        return HARDENED_DISPATCH_MAP.get(canonical_name)
-
-    return None
-
-
-def _record_legacy_alias_hit(alias: str, canonical: str) -> None:
-    """Append legacy alias usage to shim telemetry log for cutover monitoring."""
-    import json
-    import os
-    from datetime import datetime
-    from pathlib import Path
-
-    log_path = Path(
-        os.getenv("ARIFOS_SHIM_TELEMETRY_PATH", "/root/arifOS/VAULT999/shim_hits.jsonl")
-    )
-    try:
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(log_path, "a", encoding="utf-8") as f:
-            f.write(
-                json.dumps(
-                    {
-                        "ts": datetime.now(UTC).isoformat(),
-                        "alias": alias,
-                        "canonical": canonical,
-                        "type": "legacy_alias_hit",
-                    },
-                    ensure_ascii=False,
-                )
-                + "\n"
-            )
-    except Exception:
-        pass  # Telemetry must never crash the dispatch path
+    return public_registry.get(name)
 
 
 def hardened_init_anchor_dispatch(mode: str = "status", **kwargs: Any) -> dict[str, Any]:

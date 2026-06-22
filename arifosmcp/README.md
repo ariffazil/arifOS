@@ -124,19 +124,19 @@ graph TB
 
 | Tool | Stage | Constitutional Role |
 |------|-------|---------------------|
-| `arif_session_init` | 000_INIT | Session anchoring and identity |
-| `arif_sense_observe` | 111_SENSE | Reality grounding and search |
-| `arif_evidence_fetch` | 222_EVIDENCE | Evidence preservation |
-| `arif_mind_reason` | 333_MIND | Constitutional reasoning |
-| `arif_heart_critique` | 666_HEART | Safety critique and impact |
+| `arif_init` | 000_INIT | Session anchoring and identity |
+| `arif_observe` | 111_SENSE | Reality grounding and search |
+| `arif_fetch` | 222_EVIDENCE | Evidence preservation |
+| `arif_think` | 333_MIND | Constitutional reasoning |
+| `arif_critique` | 666_HEART | Safety critique and impact |
 | `arif_kernel_route` | 444_ROUT | Intent routing |
-| `arif_reply_compose` | 777_REPLY | Response composition |
+| `arif_compose` | 777_REPLY | Response composition |
 | `arif_memory_recall` | 555_MEM | Context bridge |
 | `arif_gateway_connect` | 444_ROUT | Federation bridge |
-| `arif_judge_deliberate` | 888_JUDGE | Sovereign verdict |
-| `arif_vault_seal` | 999_SEAL | Immutable vault ledger |
-| `arif_forge_execute` | 999_FORGE | Execution under SEAL |
-| `arif_ops_measure` | 777_OPS | Thermodynamic vitals |
+| `arif_judge` | 888_JUDGE | Sovereign verdict |
+| `arif_seal` | 999_SEAL | Immutable vault ledger |
+| `arif_forge` | 999_FORGE | Execution under SEAL |
+| `arif_measure` | 777_OPS | Thermodynamic vitals |
 
 > **Note:** The detailed tool specifications below use legacy/internal aliases (`init_anchor`, `arifos_kernel`, `apex_soul`, etc.). The canonical public surface uses the `arif_*` names above. Runtime truth is always `/.well-known/mcp/server.json` and `/tools` on the live endpoint.
 

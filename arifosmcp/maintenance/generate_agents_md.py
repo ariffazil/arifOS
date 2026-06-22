@@ -101,14 +101,14 @@ _AUTO_GEN_MARKER = """\
 # (the script will fail loud if any canonical tool is ungrouped).
 _TOOL_CATEGORIES: dict[str, list[str]] = {
     "GOVERNANCE (APEX / ASI)": [
-        "arif_session_init",
-        "arif_judge_deliberate",
-        "arif_vault_seal",
+        "arif_init",
+        "arif_judge",
+        "arif_seal",
     ],
     "INTELLIGENCE (Δ Mind / Ω Heart)": [
-        "arif_mind_reason",
-        "arif_heart_critique",
-        "arif_reply_compose",
+        "arif_think",
+        "arif_critique",
+        "arif_compose",
     ],
     "INFRASTRUCTURE": [
         "arif_kernel_route",
@@ -120,14 +120,14 @@ _TOOL_CATEGORIES: dict[str, list[str]] = {
         "arif_bridge",
         "arif_gateway_connect",
         "arif_memory_recall",
-        "arif_ops_measure",
+        "arif_measure",
     ],
     "REALITY GROUNDING": [
-        "arif_sense_observe",
-        "arif_evidence_fetch",
+        "arif_observe",
+        "arif_fetch",
     ],
     "EXECUTION": [
-        "arif_forge_execute",
+        "arif_forge",
     ],
 }
 

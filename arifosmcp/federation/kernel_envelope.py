@@ -11,7 +11,7 @@ through arifOS gets this wrapper before reaching the agent.
 
 Architecture:
     GEOX universal envelope → kernel_envelope(payload=geox_output)
-    → arif_judge_deliberate → verdict → agent response
+    → arif_judge → verdict → agent response
 """
 
 from __future__ import annotations

@@ -38,7 +38,7 @@ SEHATI = prerequisite for:
   - Federation membership
   - VAULT999 write access
   - Tool access beyond read-only
-  - arif_forge_execute access
+  - arif_forge access
 
 REFERENCE IMPLEMENTATION: KSS (Kawan Sehidup Semati)
   - Three witnesses, one truth

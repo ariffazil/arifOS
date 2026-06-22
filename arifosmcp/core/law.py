@@ -112,18 +112,18 @@ def check_laws(
                         logger.warning(f"L09 ANTIHANTU: manipulation pattern in {key}")
 
             # F9b: heart-critique prerequisite gate for forge (F9 TAQWA short-circuit)
-            # If agent skips arif_heart_critique entirely, forge must be blocked.
-            if tool_name == "arif_forge_execute":
+            # If agent skips arif_critique entirely, forge must be blocked.
+            if tool_name == "arif_forge":
                 session_id = params.get("session_id")
                 if session_id:
                     try:
                         from arifosmcp.apps.session_state import was_tool_called
 
-                        if not was_tool_called(session_id, "arif_heart_critique"):
+                        if not was_tool_called(session_id, "arif_critique"):
                             failed.append("L09")
                             logger.critical(
-                                f"L09 ANTIHANTU: arif_forge_execute blocked — "
-                                f"arif_heart_critique not called in session {session_id}. "
+                                f"L09 ANTIHANTU: arif_forge blocked — "
+                                f"arif_critique not called in session {session_id}. "
                                 f"PSI KHIANAT: Anti-Hantu prerequisite violated."
                             )
                     except Exception as e:

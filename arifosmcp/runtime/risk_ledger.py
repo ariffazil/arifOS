@@ -14,7 +14,7 @@ F1 AMANAH: All decisions logged, reversible via override.
 F11 AUTH: Every gate decision has session_id + actor_id.
 F13 SOVEREIGN: Override requires F13 ed25519 signature.
 
-Integrated with: arif_forge_execute, arif_vault_seal, arif_judge_deliberate
+Integrated with: arif_forge, arif_seal, arif_judge
 
 DITEMPA BUKAN DIBERI — Forged 2026-06-12 by Omega (Ω)
 """
@@ -109,7 +109,7 @@ def compute_proximity(
     sa = class_weights.get(action_class, 0.0)
 
     # IRR: irreversible actions
-    if ack_irreversible or tool_name in ("arif_vault_seal", "arif_judge_deliberate"):
+    if ack_irreversible or tool_name in ("arif_seal", "arif_judge"):
         irr = 0.30
     elif action_class == "MUTATE":
         irr = 0.15
@@ -125,7 +125,7 @@ def compute_proximity(
         au = 0.10
 
     # AG: action gravity (tool-specific)
-    high_gravity = {"arif_vault_seal", "arif_judge_deliberate", "arif_forge_execute"}
+    high_gravity = {"arif_seal", "arif_judge", "arif_forge"}
     if tool_name in high_gravity:
         ag = 0.15
 
@@ -229,7 +229,7 @@ def _self_check() -> dict[str, Any]:
     results = []
 
     # Test 1: Read action → SURFACE
-    r = gate_risk("arif_mind_reason", action_class="ADVISORY", session_id="sess_001")
+    r = gate_risk("arif_think", action_class="ADVISORY", session_id="sess_001")
     results.append(
         (
             "advisory_surface",
@@ -240,7 +240,7 @@ def _self_check() -> dict[str, Any]:
 
     # Test 2: ATOMIC vault seal with blast radius → HOLE_RISK/HOLD
     r = gate_risk(
-        "arif_vault_seal",
+        "arif_seal",
         action_class="ATOMIC",
         ack_irreversible=True,
         affects_production=True,
@@ -256,7 +256,7 @@ def _self_check() -> dict[str, Any]:
     )
 
     # Test 3: MUTATE with session → APPROVE/CAUTION
-    r = gate_risk("arif_forge_execute", action_class="MUTATE", session_id="sess_001")
+    r = gate_risk("arif_forge", action_class="MUTATE", session_id="sess_001")
     results.append(
         (
             "mutate_with_session",
@@ -268,7 +268,7 @@ def _self_check() -> dict[str, Any]:
     # Test 4: F13 sig on CAUTION action — sig stored but verdict stays CAUTION
     # (override only activates when verdict == HOLD, which requires proximity > 0.50)
     r = gate_risk(
-        "arif_vault_seal",
+        "arif_seal",
         action_class="ATOMIC",
         ack_irreversible=True,
         affects_production=True,

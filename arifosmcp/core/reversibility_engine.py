@@ -441,19 +441,19 @@ TOOL_BASE_CLASSES: dict[str, str] = {
     "docker": "run",  # generic docker — pattern matching handles specifics
     "git": "run",  # generic git — pattern matching handles specifics
     # arifOS
-    "arif_mind_reason": "read",  # Reasoning is reversible
-    "arif_sense_observe": "read",
-    "arif_evidence_fetch": "fetch",
-    "arif_heart_critique": "read",
+    "arif_think": "read",  # Reasoning is reversible
+    "arif_observe": "read",
+    "arif_fetch": "fetch",
+    "arif_critique": "read",
     "arif_kernel_route": "read",
     "arif_memory_recall": "read",
-    "arif_ops_measure": "read",
-    "arif_judge_deliberate": "read",  # Judgment is reversible until seal
-    "arif_forge_execute": "execute",
-    "arif_vault_seal": "execute",  # Sealing is IRREVERSIBLE
-    "arif_session_init": "read",
+    "arif_measure": "read",
+    "arif_judge": "read",  # Judgment is reversible until seal
+    "arif_forge": "execute",
+    "arif_seal": "execute",  # Sealing is IRREVERSIBLE
+    "arif_init": "read",
     "arif_gateway_connect": "execute",
-    "arif_reply_compose": "write",
+    "arif_compose": "write",
 }
 
 
@@ -495,7 +495,7 @@ def classify_action(tool_id: str, params: dict[str, Any] | None = None) -> dict[
     Args:
         tool_id: The tool name or command being classified.
                  Examples: "bash", "git status", "write", "rm -rf",
-                           "arif_mind_reason", "docker ps"
+                           "arif_think", "docker ps"
         params: Optional params for context-sensitive classification.
 
     Returns:

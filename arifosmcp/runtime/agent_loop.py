@@ -540,7 +540,7 @@ def _self_check() -> bool:
         return {"status": "ok"}
 
     result = loop.execute(
-        "arif_ops_measure",
+        "arif_measure",
         ActionClass.OBSERVE,
         tool_fn=dummy_tool,
         input_data={"mode": "health"},
@@ -574,7 +574,7 @@ def _self_check() -> bool:
     # 6. Revoke lease, mutation blocked again
     loop.revoke_lease()
     result4 = loop.execute(
-        "arif_vault_seal",
+        "arif_seal",
         ActionClass.IRREVERSIBLE,
         tool_fn=dummy_tool,
     )

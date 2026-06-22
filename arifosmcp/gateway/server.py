@@ -161,7 +161,7 @@ DEFAULT_POLICIES: list[dict] = [
     },
     {
         "id": "vault_sovereign",
-        "match": {"tool": "arif_vault_seal"},
+        "match": {"tool": "arif_seal"},
         "subject": {"roles": ["sovereign"]},
         "lease_defaults": {
             "risk_class": "SOVEREIGN",
@@ -549,13 +549,13 @@ def _route_tool_to_organ(tool_name: str) -> str | None:
     # A-FORGE owns several federated/arif_ and wealth_ tools because it wraps
     # upstream organs with local session/lease gating and telemetry.
     AFORGE_OWNED = {
-        "arif_session_init",
+        "arif_init",
         "arif_health_check",
-        "arif_sense_observe",
-        "arif_mind_reason",
-        "arif_heart_critique",
-        "arif_forge_execute",
-        "arif_vault_seal",
+        "arif_observe",
+        "arif_think",
+        "arif_critique",
+        "arif_forge",
+        "arif_seal",
         "wealth_evaluate_ROI",
         "wealth_compute_EMV",
         "wealth_thermodynamic_scan",

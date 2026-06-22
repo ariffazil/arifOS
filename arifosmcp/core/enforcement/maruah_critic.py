@@ -3,11 +3,11 @@
 # Provenance: usman_awang_research → v0 (2026-06-21 am) → v0.1 (2026-06-21 pm,
 #              after Arif "Call BANGANG as BANGANG" correction).
 # Iron Rule (v0.1): this file WAS a passive function library.
-#                    v0.2 (2026-06-20): WIRED into arif_judge_deliberate via
+#                    v0.2 (2026-06-20): WIRED into arif_judge via
 #                    /root/arifOS/arifosmcp/tools/judge.py.
 #                    See 888_HOLD seal: <forge-session-2026-06-20>.
 #                    Wire-up patch: maruah_critic_check() + is_maruah_sensitive()
-#                    called from arif_judge_deliberate when community_maruah=true.
+#                    called from arif_judge when community_maruah=true.
 #                    Integration test: tests/constitutional/test_maruah_enforcement.py.
 #
 # Design constraints (v0.1):
@@ -240,8 +240,8 @@ def self_audit() -> dict:
     return {
         "module": "maruah_critic",
         "version": "0.2.0",
-        "wired": True,  # v0.2 (2026-06-20): wired into arif_judge_deliberate
-        "wire_path": "arifosmcp/tools/judge.py → arif_judge_deliberate()",
+        "wired": True,  # v0.2 (2026-06-20): wired into arif_judge
+        "wire_path": "arifosmcp/tools/judge.py → arif_judge()",
         "trigger": "community_maruah=true in task metadata or heart_critique meta",
         "policy_line": MARUAH_POLICY_LINE,
         "depends_on_llm": False,

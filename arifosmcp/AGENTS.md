@@ -33,17 +33,17 @@ All tools follow the `arif_<noun>_<verb>` naming convention.
 
 | Tool | Stage | Lane | Access | F-Floors |
 | :--- | :---- | :--- | :----- | :-------- |
-| `arif_session_init` | 000 | AGI | public | L01, L11, L12 |
-| `arif_judge_deliberate` | 888 | ASI | authenticated | L01, L11, L13 |
-| `arif_vault_seal` | 999 | APEX | authenticated | L01, L11, L13 |
+| `arif_init` | 000 | AGI | public | L01, L11, L12 |
+| `arif_judge` | 888 | ASI | authenticated | L01, L11, L13 |
+| `arif_seal` | 999 | APEX | authenticated | L01, L11, L13 |
 
 ### INTELLIGENCE (Δ Mind / Ω Heart)
 
 | Tool | Stage | Lane | Access | F-Floors |
 | :--- | :---- | :--- | :----- | :-------- |
-| `arif_mind_reason` | 333 | AGI | public | L02, L07, L08, L10 |
-| `arif_heart_critique` | 666 | ASI | public | L05, L06, L09 |
-| `arif_reply_compose` | 444r | AGI | public | L02, L04, L06, L09 |
+| `arif_think` | 333 | AGI | public | L02, L07, L08, L10 |
+| `arif_critique` | 666 | ASI | public | L05, L06, L09 |
+| `arif_compose` | 444r | AGI | public | L02, L04, L06, L09 |
 
 ### INFRASTRUCTURE
 
@@ -58,20 +58,20 @@ All tools follow the `arif_<noun>_<verb>` naming convention.
 | `arif_bridge` | 555 | AGI | authenticated | L01, L11, L10 |
 | `arif_gateway_connect` | 666g | ASI | public | L01, L03, L11 |
 | `arif_memory_recall` | 555m | AGI | public | L01, L08, L02 |
-| `arif_ops_measure` | 777 | AGI | public | L02, L04 |
+| `arif_measure` | 777 | AGI | public | L02, L04 |
 
 ### REALITY GROUNDING
 
 | Tool | Stage | Lane | Access | F-Floors |
 | :--- | :---- | :--- | :----- | :-------- |
-| `arif_sense_observe` | 111 | AGI | public | L02, L07 |
-| `arif_evidence_fetch` | 222 | AGI | public | L02, L03, L05, L12 |
+| `arif_observe` | 111 | AGI | public | L02, L07 |
+| `arif_fetch` | 222 | AGI | public | L02, L03, L05, L12 |
 
 ### EXECUTION
 
 | Tool | Stage | Lane | Access | F-Floors |
 | :--- | :---- | :--- | :----- | :-------- |
-| `arif_forge_execute` | 010 | AGI | sovereign | L01, L11, L13 |
+| `arif_forge` | 010 | AGI | sovereign | L01, L11, L13 |
 
 
 ## Constitutional Laws (F1–L13)
@@ -114,12 +114,12 @@ Threshold: C_dark < 0.30 for SEAL.
 ## 000–999 Metabolic Pipeline
 
 ```
-000   → arif_session_init        — 000_INIT: Session bootstrap + identity binding. CALL FIRST…
-010   → arif_forge_execute       — 010_FORGE_EXECUTE: Build execution — code generation,…
-111   → arif_sense_observe       — 111_OBSERVE: Multimodal reality observation and hybrid…
-222   → arif_evidence_fetch      — 222_EVIDENCE: Verified external evidence retrieval with…
-333   → arif_mind_reason         — 333_REASON: Symbolic reasoning kernel — epistemically…
-444r  → arif_reply_compose       — 444_REPLY: Governed response composition — formats final…
+000   → arif_init        — 000_INIT: Session bootstrap + identity binding. CALL FIRST…
+010   → arif_forge       — 010_FORGE_EXECUTE: Build execution — code generation,…
+111   → arif_observe       — 111_OBSERVE: Multimodal reality observation and hybrid…
+222   → arif_fetch      — 222_EVIDENCE: Verified external evidence retrieval with…
+333   → arif_think         — 333_REASON: Symbolic reasoning kernel — epistemically…
+444r  → arif_compose       — 444_REPLY: Governed response composition — formats final…
 555   → arif_kernel_route        — 555_ROUTE [DEPRECATED — use arif_route + arif_triage +…
 555   → arif_route               — 555_ROUTE_CANONICAL: New canonical routing entry point.…
 555   → arif_triage              — 555_TRIAGE: Session status, preflight, and priority…
@@ -128,11 +128,11 @@ Threshold: C_dark < 0.30 for SEAL.
 555   → arif_kernel_attest       — 555_KERNEL_ATTEST: Live organ attestation. Replaces…
 555   → arif_kernel_health       — 555_KERNEL_HEALTH: Federation liveness heartbeat snapshot.…
 555m  → arif_memory_recall       — 555_MEMORY v4: Unified cognitive memory — 8 canonical modes…
-666   → arif_heart_critique      — 666_HEART: Ethical critique and consequence assessment…
+666   → arif_critique      — 666_HEART: Ethical critique and consequence assessment…
 666g  → arif_gateway_connect     — 666_GATEWAY: Federated cross-agent bridge — connects arifOS…
-777   → arif_ops_measure         — 777_MEASURE: Machine resource health + governance…
-888   → arif_judge_deliberate    — 888_JUDGE: Final constitutional arbitration — renders…
-999   → arif_vault_seal          — 999_SEAL: Immutable ledger anchoring — cryptographic…
+777   → arif_measure         — 777_MEASURE: Machine resource health + governance…
+888   → arif_judge    — 888_JUDGE: Final constitutional arbitration — renders…
+999   → arif_seal          — 999_SEAL: Immutable ledger anchoring — cryptographic…
 ```
 
 

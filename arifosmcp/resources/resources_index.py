@@ -151,7 +151,7 @@ _DESCRIPTIONS: dict[str, str] = {
     "arifos://jurisdiction": "Five autonomy bands (GREEN→BLACK), CapabilityGrant registry, jurisdiction rules.",
     "arifos://identity": "Sovereign identity manifest bound from identity.toml. Root of accountability — all attestation chains begin here.",
     "arifos://memory": "Six-layer memory architecture: L1 ephemeral → L6 immutable (VAULT999). Memory ≠ truth without provenance.",
-    "arifos://vitals": "Constitutional vitals reference — metric definitions, green/yellow/red thresholds. For LIVE values use arif_ops_measure.",
+    "arifos://vitals": "Constitutional vitals reference — metric definitions, green/yellow/red thresholds. For LIVE values use arif_measure.",
     "arifos://bootstrap": "Complete federation knowledge-graph bootstrap context. Full world-model in one call. v2026.06.14.",
     "arifos://human/metabolized": "Metabolized sovereign context — compact human intelligence. The nutrient, not the full testimony.",
     "tree777://index": "TREE777 wiki full index — all skills, concepts, and scars in the canonical knowledge graph.",

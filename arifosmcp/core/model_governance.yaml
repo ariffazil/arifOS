@@ -15,9 +15,9 @@ models:
     role: reasoning_witness
     authority: instrument_only        # F13: LLM can never be sovereign
     allowed_tools:
-      - arif_mind_reason             # reasoning tool
-      - arif_heart_critique          # risk critique tool
-      - arif_reply_compose           # language shaping tool
+      - arif_think             # reasoning tool
+      - arif_critique          # risk critique tool
+      - arif_compose           # language shaping tool
       - sea_lion_interpreter         # SEA-LION-specific tool
     forbidden_roles:
       - sovereign_judge             # never adjudicate (F888_JUDGE is ASI/APEX)
@@ -39,10 +39,10 @@ models:
     role: reasoning_witness
     authority: instrument_only
     allowed_tools:
-      - arif_mind_reason
-      - arif_heart_critique
-      - arif_reply_compose
-      - arif_judge_deliberate
+      - arif_think
+      - arif_critique
+      - arif_compose
+      - arif_judge
     forbidden_roles:
       - sovereign_judge
       - irreversible_executor
@@ -64,9 +64,9 @@ models:
     role: fast_witness
     authority: instrument_only
     allowed_tools:
-      - arif_mind_reason
-      - arif_heart_critique
-      - arif_reply_compose
+      - arif_think
+      - arif_critique
+      - arif_compose
     forbidden_roles:
       - sovereign_judge
       - irreversible_executor
@@ -88,9 +88,9 @@ models:
     role: reasoning_witness
     authority: instrument_only
     allowed_tools:
-      - arif_mind_reason
-      - arif_heart_critique
-      - arif_reply_compose
+      - arif_think
+      - arif_critique
+      - arif_compose
       - arif_anti_sink_check
       - institutional_drift_check
     forbidden_roles:
@@ -114,8 +114,8 @@ models:
     role: local_witness
     authority: instrument_only
     allowed_tools:
-      - arif_mind_reason
-      - arif_heart_critique
+      - arif_think
+      - arif_critique
     forbidden_roles:
       - sovereign_judge
       - vault_sealer
@@ -133,7 +133,7 @@ models:
     role: deterministic_witness
     authority: advisory               # deterministic outputs can be advisory
     allowed_tools:
-      - arif_mind_reason
+      - arif_think
     forbidden_roles:
       - sovereign_judge             # rules cannot adjudicate
       - vault_sealer

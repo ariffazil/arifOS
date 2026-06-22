@@ -130,11 +130,11 @@ class RoutePolicyConfig:
     default_lane: QueryLane = QueryLane.EXPLOIT
     exploit_tools: tuple[str, ...] = (
         "arif_memory_recall",
-        "arif_sense_observe",
-        "arif_evidence_fetch",
+        "arif_observe",
+        "arif_fetch",
     )
     explore_tools: tuple[str, ...] = (
-        "arif_sense_observe",   # with contrast query
+        "arif_observe",   # with contrast query
         "arif_memory_recall",   # with orphan mode
         "arif_gateway_connect", # cross-organ discovery
     )

@@ -38,8 +38,8 @@ GOVERNANCE RESOURCE (new):
 REMOVED (chaos reduction):
   arifos://philosophy — beautiful, not operational. Agents don't load it.
   arifos://forge      — merged into arifos://schema
-  source://list       — dynamic data → belongs in arif_evidence_fetch tool
-  receipt://list      — dynamic data → belongs in arif_evidence_fetch tool
+  source://list       — dynamic data → belongs in arif_fetch tool
+  receipt://list      — dynamic data → belongs in arif_fetch tool
   tree777://search    — search → belongs in arif_memory_recall tool
 """
 

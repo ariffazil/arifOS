@@ -5,7 +5,7 @@
 Arif-triggered judgment ritual. This is NOT the backend evaluator.
 This is the Prompt that Arif invokes when he wants a structured verdict.
 
-The backend tool (arif_judge_deliberate) is a gated executor.
+The backend tool (arif_judge) is a gated executor.
 The prompt (this file) is the ritual Arif uses to prepare a judgment case.
 
 A skill may reference a tool, but it must never become the tool.
@@ -128,7 +128,7 @@ def register_deliberation_prompt(mcp: FastMCP) -> list[str]:
             "STEP 4: Irreversibility assessment. "
             "STEP 5: Verdict recommendation. "
             "STEP 6: Arif's explicit verdict signature (L13 SOVEREIGN). "
-            "This prompt is the ritual. arif_judge_deliberate is the gated backend. "
+            "This prompt is the ritual. arif_judge is the gated backend. "
             "The backend executes only after Arif's explicit trigger in STEP 6. "
             "A skill may reference a tool, but it must never become the tool."
         ),

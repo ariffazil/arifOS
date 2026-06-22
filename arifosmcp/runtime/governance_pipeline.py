@@ -244,7 +244,7 @@ def _is_low_impact_action(action_class: Any) -> bool:
 # ═══════════════════════════════════════════════════════════════════════════════
 # The MiddlewareContext does not guarantee a session_id attribute.
 # This helper ensures every downstream read gets a valid session_id
-# or mints one deterministically. Without this, arif_session_init
+# or mints one deterministically. Without this, arif_init
 # fails with "MiddlewareContext has no attribute session_id" and
 # the entire init pipeline is broken.
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -411,7 +411,7 @@ class GovernancePipeline:
 
     Usage:
         pipeline = GovernancePipeline()
-        result = pipeline.run(ToolCallContext(tool_name="arif_forge_execute", ...))
+        result = pipeline.run(ToolCallContext(tool_name="arif_forge", ...))
         if result.all_clear:
             execute(tool_call)
         else:
@@ -547,7 +547,7 @@ class GovernancePipeline:
                     )
                     result.violated_laws.append("F0")
                     result.next_safe_action = (
-                        "Seal F0_ROOTKEY anchor: run arif_vault_seal with "
+                        "Seal F0_ROOTKEY anchor: run arif_seal with "
                         "f0_rootkey anchor payload, or set ARIF_ROOTKEY env var."
                     )
                     result.total_latency_ms = (time.perf_counter() - t0) * 1000
@@ -576,7 +576,7 @@ class GovernancePipeline:
             result.blocked_at = gate.gate
             result.reasons.append(gate.reason)
             result.violated_laws.extend(gate.metadata.get("violated_laws", []))
-            result.next_safe_action = "Restart session with arif_session_init(mode='init')"
+            result.next_safe_action = "Restart session with arif_init(mode='init')"
             result.total_latency_ms = (time.perf_counter() - t0) * 1000
             self._publish_to_mesh(ctx, result)
             return result
@@ -590,7 +590,7 @@ class GovernancePipeline:
             result.reasons.append(gate.reason)
             result.violated_laws.extend(gate.metadata.get("violated_laws", ["L11"]))
             result.next_safe_action = (
-                "Verify identity with arif_session_init(mode='init', actor_id='...')"
+                "Verify identity with arif_init(mode='init', actor_id='...')"
             )
             result.total_latency_ms = (time.perf_counter() - t0) * 1000
             self._publish_to_mesh(ctx, result)
@@ -1050,10 +1050,10 @@ class GovernancePipeline:
 
         # Allow discovery tools without session
         discovery_tools = {
-            "arif_session_init",
-            "arif_ops_measure",
+            "arif_init",
+            "arif_measure",
             "arif_kernel_route",
-            "arif_sense_observe",
+            "arif_observe",
         }
         if ctx.tool_name in discovery_tools:
             return GateResult(
@@ -1067,7 +1067,7 @@ class GovernancePipeline:
             return GateResult(
                 gate=Gate.SESSION,
                 passed=False,
-                reason="No session bound. Call arif_session_init(mode='init') first.",
+                reason="No session bound. Call arif_init(mode='init') first.",
                 latency_ms=(time.perf_counter() - t0) * 1000,
                 metadata={"violated_laws": ["L11"]},
             )
@@ -1105,7 +1105,7 @@ class GovernancePipeline:
                 gate=Gate.IDENTITY,
                 passed=False,
                 reason=f"Anonymous actor cannot execute {ctx.action_class}. "
-                f"Call arif_session_init with verified actor_id.",
+                f"Call arif_init with verified actor_id.",
                 latency_ms=(time.perf_counter() - t0) * 1000,
                 metadata={"violated_laws": ["L11", "L13"]},
             )

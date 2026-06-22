@@ -14,7 +14,7 @@ Authority:
 
 Relationships:
   - TransitionReceipt is produced by kernel_transition()
-  - kernel_transition() is called BY: KernelState.transition(), arif_vault_seal, darjat_engine (future)
+  - kernel_transition() is called BY: KernelState.transition(), arif_seal, darjat_engine (future)
   - TransitionReceipt is stored via: seal_transition() → vault999-writer /transition endpoint
   - TransitionReceipt derives from: KSR prior state, KSR patched state, caller's lease
 

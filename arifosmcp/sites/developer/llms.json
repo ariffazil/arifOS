@@ -31,24 +31,24 @@
   "tools": {
     "count": 13,
     "canonical": [
-      "arif_session_init",
-      "arif_sense_observe",
-      "arif_evidence_fetch",
-      "arif_mind_reason",
-      "arif_heart_critique",
+      "arif_init",
+      "arif_observe",
+      "arif_fetch",
+      "arif_think",
+      "arif_critique",
       "arif_kernel_route",
-      "arif_reply_compose",
+      "arif_compose",
       "arif_memory_recall",
       "arif_gateway_connect",
-      "arif_judge_deliberate",
-      "arif_vault_seal",
-      "arif_forge_execute",
-      "arif_ops_measure"
+      "arif_judge",
+      "arif_seal",
+      "arif_forge",
+      "arif_measure"
     ]
   },
   "governed_discovery_kernel": {
     "entrypoint": {
-      "tool": "arif_sense_observe",
+      "tool": "arif_observe",
       "mode": "compass",
       "uses": "hybrid_discovery"
     },

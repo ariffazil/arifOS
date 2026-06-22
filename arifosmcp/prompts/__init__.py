@@ -130,7 +130,7 @@ The forge is about to change reality. First, establish the frame:
 Session identity (from kernel):
   actor_id:      {your identity}
   session_id:    {UUIDv4 or session reference}
-  actor_hash:    {SHA-256 of verified binding — from arif_session_init}
+  actor_hash:    {SHA-256 of verified binding — from arif_init}
 
 ══════════════════════════════════════════════════════════════════
 THE LAW — F1-L13 Constitutional Floors

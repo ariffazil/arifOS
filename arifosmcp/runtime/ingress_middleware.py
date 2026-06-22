@@ -156,23 +156,23 @@ def _risk_tier_for_tool(tool_name: str) -> int:
     Used for receipt metadata only — not enforced here.
     """
     high_risk = {
-        "arif_judge_deliberate",
-        "arif_vault_seal",
-        "arif_heart_critique",
-        "arif_session_init",
-        "arif_forge_execute",
+        "arif_judge",
+        "arif_seal",
+        "arif_critique",
+        "arif_init",
+        "arif_forge",
     }
     medium_risk = {
-        "arif_mind_reason",
+        "arif_think",
         "arif_gateway_connect",
         "arif_kernel_route",
     }
     low_risk = {
-        "arif_sense_observe",
-        "arif_evidence_fetch",
-        "arif_reply_compose",
+        "arif_observe",
+        "arif_fetch",
+        "arif_compose",
         "arif_memory_recall",
-        "arif_ops_measure",
+        "arif_measure",
     }
     if tool_name in high_risk:
         return 3
@@ -764,9 +764,9 @@ if IS_FASTMCP_3:
                 t0 = time.monotonic()
                 verdict = "SEAL"
                 floors = ["F2", "F4", "F11"]
-                if tool_name == "arif_session_init":
+                if tool_name == "arif_init":
                     floors = ["F1", "F11", "F13"]
-                elif tool_name == "arif_reply_compose":
+                elif tool_name == "arif_compose":
                     floors = ["F1", "F2", "F4", "F11", "F13"]
 
                 envelope_session_id = "unknown"
@@ -786,6 +786,50 @@ if IS_FASTMCP_3:
 
                     envelope_session_id = envelope.session_id
                     envelope_agent_id = envelope.agent_id
+
+                    # ── FORGE SCOPE GATE (v3: ToolScoper integration) ──────────────
+                    # When forge_scope is non-empty, only tools on the allowlist pass.
+                    # This is the arifOS-side of the A-FORGE ToolScoper bridge.
+                    # The scope is populated by A-FORGE before forwarding the call.
+                    if envelope.forge_scope:
+                        if tool_name not in envelope.forge_scope:
+                            logger.info(
+                                f"Ingress forge_scope HOLD for {tool_name}: "
+                                f"tool not in forge_scope allowlist "
+                                f"(scope={envelope.forge_scope})"
+                            )
+                            from mcp.types import TextContent
+                            return ToolResult(
+                                content=[
+                                    TextContent(
+                                        type="text",
+                                        text=(
+                                            f"FORGE_SCOPE_HOLD: {tool_name} is not in "
+                                            f"the current forge_scope allowlist.\n"
+                                            f"Allowed tools: {', '.join(envelope.forge_scope)}\n\n"
+                                            f"This call was scoped by A-FORGE ToolScoper "
+                                            f"to the current action class and pipeline stage. "
+                                            f"Use a different forge_plan action class or "
+                                            f"expand the scope for this operation."
+                                        ),
+                                    )
+                                ],
+                                structured_content=_hold_envelope_dict(
+                                    tool_name=tool_name,
+                                    reason=f"Tool {tool_name} not in forge_scope allowlist",
+                                    session_id=envelope.session_id,
+                                    actor_id=envelope.actor_id,
+                                    extra={
+                                        "gate": "forge_scope",
+                                        "forge_scope": envelope.forge_scope,
+                                    },
+                                ),
+                            )
+                        logger.debug(
+                            f"Ingress forge_scope PASS for {tool_name}: "
+                            f"tool in scope ({len(envelope.forge_scope)} tools)"
+                        )
+                    # ────────────────────────────────────────────────────────────────
 
                     # ── UPGRADE ACTION CLASS BEFORE PROMOTION (2026-06-12) ─────────
                     _tool_risk = classify_tool(tool_name)

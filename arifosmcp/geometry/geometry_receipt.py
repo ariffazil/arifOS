@@ -23,7 +23,7 @@ and re-thread 6 floats. This module provides:
 
   - meters_to_geometryblock: convenience constructor that
     materializes the wire-in dict (the result["_geometry"]
-    emitted by arif_mind_reason) into a typed GeometryBlock.
+    emitted by arif_think) into a typed GeometryBlock.
     Used by the runner-side fusion step.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
@@ -252,7 +252,7 @@ class GeometryReceipt(BaseModel):
 
 
 def meters_to_geometryblock(geo_dict: dict[str, Any]) -> GeometryBlock:
-    """Materialize the arif_mind_reason result["_geometry"] dict into a typed GeometryBlock.
+    """Materialize the arif_think result["_geometry"] dict into a typed GeometryBlock.
 
     The runtime emits a flat dict (so the wire-in stays simple
     and the consumer doesn't need to know about Pydantic). The

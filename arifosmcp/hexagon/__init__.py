@@ -13,7 +13,7 @@ The 5-Class Agent Parliament (HEXAGON architecture):
 
 MVP scope (live): APEXAgent + AGIAgent + PromptArmor + HoldStateManager
 + ConstitutionalMemoryStore (basis for 555-ASI stub)
-Stubs deferred: A-AUDIT (→ arif_ops_measure), A-ARCHIVE (→ arif_vault_seal)
+Stubs deferred: A-AUDIT (→ arif_measure), A-ARCHIVE (→ arif_seal)
 """
 
 __version__ = "2026.06.06-HEXAGON"

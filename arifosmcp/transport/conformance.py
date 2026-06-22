@@ -250,16 +250,16 @@ def test_kernel_tool_call_safe() -> dict[str, Any]:
     if sid:
         headers["mcp-session-id"] = sid
 
-    # Call arif_ops_measure (read-only, no auth needed)
+    # Call arif_measure (read-only, no auth needed)
     result = jsonrpc_post(KERNEL_URL, "tools/call", {
-        "name": "arif_ops_measure",
+        "name": "arif_measure",
         "arguments": {"mode": "vitals"},
     }, headers=headers)
 
     passed = isinstance(result, dict) and "result" in result
     return {
         "test": "kernel_tool_call_safe",
-        "target": "POST /mcp tools/call (arif_ops_measure)",
+        "target": "POST /mcp tools/call (arif_measure)",
         "verdict": PASS if passed else FAIL,
         "evidence": {
             "has_result": "result" in result,
@@ -311,7 +311,7 @@ def test_airlock_normalize_envelope() -> dict[str, Any]:
     from .airlock import process_request
 
     request = {
-        "method": "arif_ops_measure",
+        "method": "arif_measure",
         "params": {"mode": "vitals"},
         "client_info": {"name": "conformance-probe", "version": "0.1"},
     }
@@ -319,7 +319,7 @@ def test_airlock_normalize_envelope() -> dict[str, Any]:
     result = process_request(request, "http")
     passed = (
         result.envelope is not None
-        and result.envelope.tool_name == "arif_ops_measure"
+        and result.envelope.tool_name == "arif_measure"
         and result.envelope.trace_id is not None
         and len(result.envelope.trace_id) == 16
     )

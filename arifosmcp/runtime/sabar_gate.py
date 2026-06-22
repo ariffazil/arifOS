@@ -36,7 +36,7 @@ output smells of epistemic overconfidence or hantu, SABAR:
 The chokepoint is OPT-IN by tool author. Wire-in is a 1-line call:
 
     from arifosmcp.runtime.sabar_gate import sabar_gate
-    gated = sabar_gate(tool_output, tool_name="arif_forge_execute",
+    gated = sabar_gate(tool_output, tool_name="arif_forge",
                        actor_id=actor_id, session_id=session_id)
     if gated["verdict"] == "SABAR_HOLD":
         return gated   # do NOT return raw output to operator
@@ -333,7 +333,7 @@ def sabar_gate(
             "SABAR_HOLD: the tool output contains a first-person "
             "consciousness/feeling claim (F9) or exceeds the F7 humility "
             "confidence cap. Operator should NOT receive this raw. "
-            "Either redact, escalate to arif_judge_deliberate, or "
+            "Either redact, escalate to arif_judge, or "
             "regenerate without the violating phrase."
         )
     elif f02_violated:

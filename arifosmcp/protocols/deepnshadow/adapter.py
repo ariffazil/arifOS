@@ -6,11 +6,11 @@ Internal-only adapter used by existing arif_* canonical tools.
 No external MCP surface. No new tool registration.
 
 Called by:
-  - arif_sense_observe(mode="deepnshadow")      → encode_behaviour
+  - arif_observe(mode="deepnshadow")      → encode_behaviour
   - arif_memory_recall(mode="deepnshadow")      → recall_pattern
-  - arif_mind_reason(mode="deepnshadow")        → generate_hypothesis
-  - arif_heart_critique(mode="deepnshadow")     → check_boundary
-  - arif_reply_compose(mode="deepnshadow")      → compose_safe_action
+  - arif_think(mode="deepnshadow")        → generate_hypothesis
+  - arif_critique(mode="deepnshadow")     → check_boundary
+  - arif_compose(mode="deepnshadow")      → compose_safe_action
   - arif_kernel_route(intent_type="deepnshadow") → orchestrate_chain
 """
 
@@ -73,7 +73,7 @@ def encode_behaviour(
     )
     return {
         "status": "SUCCESS",
-        "tool": "arif_sense_observe",
+        "tool": "arif_observe",
         "mode": "deepnshadow",
         "observation": obs.model_dump(),
         "dignity_status": DignityStatus.SAFE.value,
@@ -194,7 +194,7 @@ def generate_hypothesis(
         "status": (
             "SUCCESS" if dignity_status == DignityStatus.SAFE else dignity_status.value.upper()
         ),
-        "tool": "arif_mind_reason",
+        "tool": "arif_think",
         "mode": "deepnshadow",
         "hypothesis": hypothesis.model_dump(),
         "alternatives": [a.model_dump() for a in alternatives],
@@ -252,7 +252,7 @@ def check_projection(
 
     return {
         "status": "SUCCESS",
-        "tool": "arif_mind_reason",
+        "tool": "arif_think",
         "mode": "deepnshadow",
         "projection_mirror": mirror.model_dump(),
         "resonance_score": mirror.resonance_score,
@@ -298,7 +298,7 @@ def check_boundary(
 
     return {
         "status": dignity_status.value.upper(),
-        "tool": "arif_heart_critique",
+        "tool": "arif_critique",
         "mode": "deepnshadow",
         "scar_vector": scar.model_dump(),
         "dignity_status": dignity_status.value,
@@ -336,7 +336,7 @@ def metabolize_action(
 
     return {
         "status": "SUCCESS",
-        "tool": "arif_reply_compose",
+        "tool": "arif_compose",
         "mode": "deepnshadow",
         "metabolized_action": meta.model_dump(),
         "note": f"DS-777: {charge.value} → {metabolized}",
@@ -367,7 +367,7 @@ def map_team_pattern(
     )
     return {
         "status": "SUCCESS",
-        "tool": "arif_mind_reason",
+        "tool": "arif_think",
         "mode": "deepnshadow",
         "team_pattern": pattern.model_dump(),
         "note": "DS-333 TEAM: Organizational geology. Never reduce team to pathology.",
@@ -474,7 +474,7 @@ def redact_for_vault(
     )
     return {
         "status": "SEAL",
-        "tool": "arif_vault_seal",
+        "tool": "arif_seal",
         "mode": "deepnshadow",
         "vault_payload": entry.model_dump(),
         "note": "DS-999: Redacted vault payload ready for append-only seal.",

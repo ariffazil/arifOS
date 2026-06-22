@@ -195,7 +195,7 @@ def get_active_shadows() -> list[ShadowPattern]:
 
 def get_shadows_for_init() -> list[dict[str, Any]]:
     """
-    Return active shadows to inject into arif_session_init.
+    Return active shadows to inject into arif_init.
     Called at session start to affect INIT posture.
     """
     active = get_active_shadows()
@@ -311,7 +311,7 @@ def _self_check() -> dict[str, Any]:
     s = record_shadow_candidate(
         "phantom_proper_noun",
         "Model fabricates fake person names",
-        "arif_reply_compose",
+        "arif_compose",
         "sess_001",
         c_dark=0.25,
     )
@@ -327,14 +327,14 @@ def _self_check() -> dict[str, Any]:
     record_shadow_candidate(
         "phantom_proper_noun",
         "Model fabricates fake person names",
-        "arif_reply_compose",
+        "arif_compose",
         "sess_002",
         c_dark=0.30,
     )
     record_shadow_candidate(
         "phantom_proper_noun",
         "Model fabricates fake person names",
-        "arif_reply_compose",
+        "arif_compose",
         "sess_003",
         c_dark=0.28,
     )

@@ -176,7 +176,7 @@ def prepare_call(
     if require_session and not _session_state.is_active():
         raise SchemaAdapterError(
             f"This call requires an active session. "
-            f"Call 'arif_session_init' first with your actor_id. "
+            f"Call 'arif_init' first with your actor_id. "
             f"Tool '{tool_name}' cannot proceed without session context.",
             original_kwargs=kwargs,
         )
@@ -195,5 +195,5 @@ def format_error(error: SchemaAdapterError) -> str:
     return (
         f"Schema Adapter Error: {error.message}\n"
         f"Original fields: {list(error.original_kwargs.keys()) if error.original_kwargs else 'N/A'}\n"
-        f"Suggestion: Check field names or start a session with arif_session_init."
+        f"Suggestion: Check field names or start a session with arif_init."
     )

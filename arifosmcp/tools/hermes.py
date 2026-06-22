@@ -172,7 +172,7 @@ def hermes_vault_query(
     actor = actor_id or "hermes_agent"
     # Cycle 4 fix (2026-06-21): read vault path from env var to match the
     # systemd service env (ARIFOS_VAULT_DIR=/var/lib/arifos/vault) AND the
-    # canonical repo location (/root/arifOS/VAULT999/). The hardcoded
+    # canonical repo location (/agent/vault999/). The hardcoded
     # /root/VAULT999 symlink pointed to /root/.local/share/arifos/vault999
     # which is the OUTCOMES shadow ledger, not the SEALED_EVENTS canonical
     # chain. Without this fix, vault_replay conformance could not find
@@ -181,7 +181,7 @@ def hermes_vault_query(
     vault_dir = (
         os.environ.get("ARIFOS_VAULT_DIR")
         or os.environ.get("VAULT999_PATH")
-        or "/root/arifOS/VAULT999"
+        or "/agent/vault999"
     )
 
     if not os.path.isdir(vault_dir):

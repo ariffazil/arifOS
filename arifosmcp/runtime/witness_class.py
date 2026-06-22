@@ -311,8 +311,8 @@ def reject_narrative_seal(
         ),
         pattern_matched=matched,
         suggestion=(
-            "Provide a real probe receipt hash from arif_session_init, "
-            "arif_sense_observe, arif_ops_measure, or arif_evidence_fetch "
+            "Provide a real probe receipt hash from arif_init, "
+            "arif_observe, arif_measure, or arif_fetch "
             "to bind the seal to a verifiable probe."
         ),
     )

@@ -43,7 +43,7 @@ class AppealRequest(BaseModel):
 class AppealReview(BaseModel):
     """Review assignment for an appeal."""
 
-    reviewer: str = Field(description="Assigned reviewer: human_888 | arif_heart_critique | arif_judge_deliberate")
+    reviewer: str = Field(description="Assigned reviewer: human_888 | arif_critique | arif_judge")
     review_deadline: datetime = Field(description="When the review must complete")
     review_method: str = Field(default="redteam", description="redteam | rehearing | evidence_recheck")
 
@@ -124,7 +124,7 @@ def arif_appeal_raise(
     review_deadline = datetime.now(UTC) + timedelta(hours=48)
 
     # Determine reviewer based on contested verdict type
-    reviewer = "arif_heart_critique"
+    reviewer = "arif_critique"
     review_method = "redteam"
 
     # For irreversible actions, require human review

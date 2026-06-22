@@ -222,20 +222,20 @@ def _derive_tool_class(action: ActionClass, combined: str) -> ToolClass:
 # Explicit canonical tool mappings (arifOS Federation)
 _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
     # T5 ATOMIC — constitutional / irreversible
-    "arif_forge_execute": RiskPassport(
+    "arif_forge": RiskPassport(
         tier=RiskTier.T5,
         action_class=ActionClass.ATOMIC,
         tool_class=ToolClass.MUTATE,
         blast_radius=BlastRadius.INFRA,
         reversibility=ReversibilityLevel.IRREVERSIBLE,
     ),
-    "arif_judge_deliberate": RiskPassport(
+    "arif_judge": RiskPassport(
         # 888_JUDGE: constitutional deliberation and verdict emission.
         # Downgraded from ATOMIC → OBSERVE on 2026-06-13 for the same
         # reason as 666_HEART: the judge produces advisory output
         # (SEAL/HOLD/VOID) consumed by upstream decision-makers. It
         # does not mutate state directly — the actual vault sealing
-        # is done by arif_vault_seal (which correctly remains ATOMIC).
+        # is done by arif_seal (which correctly remains ATOMIC).
         # F13 sovereign receipt gate still requires elevated auth for
         # binding verdicts on sovereign/C4/C5 actions.
         tier=RiskTier.T3,
@@ -244,14 +244,14 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
         blast_radius=BlastRadius.ORG,
         reversibility=ReversibilityLevel.HIGH,
     ),
-    "arif_vault_seal": RiskPassport(
+    "arif_seal": RiskPassport(
         tier=RiskTier.T5,
         action_class=ActionClass.ATOMIC,
         tool_class=ToolClass.MUTATE,
         blast_radius=BlastRadius.ORG,
         reversibility=ReversibilityLevel.IRREVERSIBLE,
     ),
-    "arif_heart_critique": RiskPassport(
+    "arif_critique": RiskPassport(
         # 666_HEART: read-only ethical reflection (critique | simulate |
         # empathize | redteam | maruah | deescalate | summary). The tool
         # never mutates state — it produces advisory output consumed by
@@ -266,7 +266,7 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
         blast_radius=BlastRadius.LOCAL,
         reversibility=ReversibilityLevel.HIGH,
     ),
-    "arif_session_init": RiskPassport(
+    "arif_init": RiskPassport(
         tier=RiskTier.T1,
         action_class=ActionClass.OBSERVE,
         tool_class=ToolClass.OBSERVE,
@@ -298,14 +298,14 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
         reversibility=ReversibilityLevel.HIGH,
     ),
     # T2 PREPARE
-    "arif_mind_reason": RiskPassport(
+    "arif_think": RiskPassport(
         tier=RiskTier.T2,
         action_class=ActionClass.PREPARE,
         tool_class=ToolClass.DECIDE,
         blast_radius=BlastRadius.ORG,
         reversibility=ReversibilityLevel.HIGH,
     ),
-    "arif_evidence_fetch": RiskPassport(
+    "arif_fetch": RiskPassport(
         tier=RiskTier.T2,
         action_class=ActionClass.PREPARE,
         tool_class=ToolClass.RETRIEVE,
@@ -313,21 +313,21 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
         reversibility=ReversibilityLevel.HIGH,
     ),
     # T1 OBSERVE
-    "arif_sense_observe": RiskPassport(
+    "arif_observe": RiskPassport(
         tier=RiskTier.T1,
         action_class=ActionClass.OBSERVE,
         tool_class=ToolClass.OBSERVE,
         blast_radius=BlastRadius.ACCOUNT,
         reversibility=ReversibilityLevel.HIGH,
     ),
-    "arif_ops_measure": RiskPassport(
+    "arif_measure": RiskPassport(
         tier=RiskTier.T1,
         action_class=ActionClass.OBSERVE,
         tool_class=ToolClass.OBSERVE,
         blast_radius=BlastRadius.ORG,
         reversibility=ReversibilityLevel.HIGH,
     ),
-    "arif_reply_compose": RiskPassport(
+    "arif_compose": RiskPassport(
         tier=RiskTier.T1,
         action_class=ActionClass.OBSERVE,
         tool_class=ToolClass.OBSERVE,

@@ -17,9 +17,9 @@ version = "2026.06.11"
 #   F13 Sovereign Fix: Closing model self-certification bypass.
 #   Topology: Registered graphiti-mcp endpoint.
 # 2026.05.18 — MCP contract fixes
-#   W1: arif_evidence_fetch status str, store.search_sources
-#   W2: arif_heart_critique F11 AUTH gate removed (read-only)
-#   W3: arif_mind_reason actor_id propagated to MindOutput.meta
+#   W1: arif_fetch status str, store.search_sources
+#   W2: arif_critique F11 AUTH gate removed (read-only)
+#   W3: arif_think actor_id propagated to MindOutput.meta
 #   S2: nine-signal domain governance (not earth) for evidence_fetch
 #       nine-signal domain risk (not vitality) for heart_critique
 # 2026.05.17-omega — W3 session binding, schema hardening, 13-tool registry

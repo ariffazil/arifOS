@@ -329,12 +329,12 @@ class FloorEvaluator:
 
         # Fallback L01 (keep existing logic as safety net)
         tool_base_irreversibility = {
-            ("arif_vault_seal", "seal"): IrreversibilityLevel.CRITICAL,
-            ("arif_vault_seal", "commit"): IrreversibilityLevel.CRITICAL,
-            ("arif_vault_seal", "session_seal"): IrreversibilityLevel.LOW,
-            ("arif_forge_execute", "engineer"): IrreversibilityLevel.HIGH,
-            ("arif_forge_execute", "write"): IrreversibilityLevel.HIGH,
-            ("arif_forge_execute", "generate"): IrreversibilityLevel.HIGH,
+            ("arif_seal", "seal"): IrreversibilityLevel.CRITICAL,
+            ("arif_seal", "commit"): IrreversibilityLevel.CRITICAL,
+            ("arif_seal", "session_seal"): IrreversibilityLevel.LOW,
+            ("arif_forge", "engineer"): IrreversibilityLevel.HIGH,
+            ("arif_forge", "write"): IrreversibilityLevel.HIGH,
+            ("arif_forge", "generate"): IrreversibilityLevel.HIGH,
         }
         base_irrev = tool_base_irreversibility.get((context.tool_name, context.mode))
         effective_irreversibility = max(
@@ -500,7 +500,7 @@ class FloorEvaluator:
             wt = getattr(context, "witness_type", "ai")
             wt_str = getattr(wt, "value", str(wt))
             if wt_str != "human":
-                if context.tool_name == "arif_mind_reason" and context.mode == "plan_approve":
+                if context.tool_name == "arif_think" and context.mode == "plan_approve":
                     failed.append("L13_VIOLATION")
                     reasons["L13_VIOLATION"] = (
                         "L13 SOVEREIGN: AI self-approval is constitutionally forbidden"
@@ -543,8 +543,8 @@ class FloorEvaluator:
     @staticmethod
     def _requires_human_witness(context: Any, threat: ThreatAssessment) -> bool:
         human_required_tools_modes = {
-            "arif_vault_seal": {"seal", "commit"},
-            "arif_forge_execute": {"engineer", "write", "generate"},
+            "arif_seal": {"seal", "commit"},
+            "arif_forge": {"engineer", "write", "generate"},
         }
         if (
             context.tool_name in human_required_tools_modes
@@ -554,13 +554,13 @@ class FloorEvaluator:
             wt = getattr(context, "witness_type", "ai")
             wt_str = getattr(wt, "value", str(wt))
             if (
-                context.tool_name == "arif_vault_seal"
+                context.tool_name == "arif_seal"
                 and getattr(context, "ack_irreversible", False)
                 and wt_str == "human"
             ):
                 return False
             return True
-        if (context.tool_name, context.mode) == ("arif_mind_reason", "plan_approve"):
+        if (context.tool_name, context.mode) == ("arif_think", "plan_approve"):
             return True
         if threat.irreversibility.value >= IrreversibilityLevel.CRITICAL.value:
             return True

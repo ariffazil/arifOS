@@ -240,7 +240,7 @@ def arif_cc_sense_observe(mode: str = "vitals", query: str | None = None) -> dic
     state = get_state()
     state.reality_checks += 1
 
-    handler = _CANONICAL_HANDLERS.get("arif_sense_observe")
+    handler = _CANONICAL_HANDLERS.get("arif_observe")
     return _invoke_handler(handler, mode=mode, query=query, actor_id="arif")
 
 
@@ -252,7 +252,7 @@ def arif_cc_evidence_fetch(url: str, query: str | None = None) -> dict:
     """
     state = get_state()
     state.fetch_calls += 1
-    handler = _CANONICAL_HANDLERS.get("arif_evidence_fetch")
+    handler = _CANONICAL_HANDLERS.get("arif_fetch")
     return _invoke_handler(handler, url=url, query=query, actor_id="arif")
 
 
@@ -264,7 +264,7 @@ def arif_cc_mind_reason(query: str, mode: str = "reason") -> dict:
     """
     state = get_state()
     state.reason_calls += 1
-    handler = _CANONICAL_HANDLERS.get("arif_mind_reason")
+    handler = _CANONICAL_HANDLERS.get("arif_think")
     return _invoke_handler(handler, query=query, mode=mode, actor_id="arif")
 
 
@@ -276,7 +276,7 @@ def arif_cc_heart_critique(target: str, mode: str = "critique") -> dict:
     """
     state = get_state()
     state.critique_calls += 1
-    handler = _CANONICAL_HANDLERS.get("arif_heart_critique")
+    handler = _CANONICAL_HANDLERS.get("arif_critique")
     return _invoke_handler(handler, target=target, mode=mode, actor_id="arif")
 
 
@@ -288,7 +288,7 @@ def arif_cc_reply_compose(message: str, style: str = "formal") -> dict:
     """
     state = get_state()
     state.reply_compositions += 1
-    handler = _CANONICAL_HANDLERS.get("arif_reply_compose")
+    handler = _CANONICAL_HANDLERS.get("arif_compose")
     return _invoke_handler(handler, message=message, style=style, actor_id="arif")
 
 
@@ -312,7 +312,7 @@ def arif_cc_session_status() -> dict:
     constitution hash, stage, lane, plan state, latest verdict, required next
     tool, and blocked reason. Read-only diagnostic.
 
-    Do not use for creating new sessions — use arif_session_init instead.
+    Do not use for creating new sessions — use arif_init instead.
     """
     state = get_state()
     state.session_count += 1
@@ -373,13 +373,13 @@ def arif_cc_session_status() -> dict:
         required_next = "arif_kernel_route"
         blocked_reason = None
     elif plan_state == "planned":
-        required_next = "arif_judge_deliberate"
+        required_next = "arif_judge"
     elif plan_state == "judge_reviewed":
-        required_next = "arif_ops_measure"
+        required_next = "arif_measure"
     elif plan_state == "approved":
-        required_next = "arif_forge_execute"
+        required_next = "arif_forge"
     elif plan_state == "executed":
-        required_next = "arif_vault_seal"
+        required_next = "arif_seal"
     elif plan_state == "blocked":
         blocked_reason = live.get("blocked_reason", "Plan blocked by governance gate")
         required_next = None
@@ -421,7 +421,7 @@ def arif_cc_ops_vitals() -> dict:
         state.ops_reads += 1
         return OpsVitals().model_dump()
 
-    result = _invoke_handler(_CANONICAL_HANDLERS.get("arif_ops_measure"), mode="vitals")
+    result = _invoke_handler(_CANONICAL_HANDLERS.get("arif_measure"), mode="vitals")
     return OpsVitals(
         g_score=result.g_score,
         delta_S=result.delta_S,
@@ -456,7 +456,7 @@ def arif_cc_judge_action(candidate: str) -> dict:
     candidate = _truncate(candidate.strip(), MAX_CANDIDATE_LENGTH)
 
     # Phase 2: Route through kernel first
-    routing = _route_action(target="arif_judge_deliberate", task=candidate)
+    routing = _route_action(target="arif_judge", task=candidate)
     routing_result = routing.get("result", {})
     routing_path = routing_result.get("path", ["init", "sense", "judge"])
 
@@ -464,7 +464,7 @@ def arif_cc_judge_action(candidate: str) -> dict:
         result = judge_candidate(candidate)
         return JudgeVerdict(
             routing_path=routing_path,
-            required_next_tool="arif_ops_measure",
+            required_next_tool="arif_measure",
             **result,
         ).model_dump()
 
@@ -527,7 +527,7 @@ def arif_cc_forge_dry_run(manifest: str) -> dict:
     manifest = _truncate(manifest, MAX_MANIFEST_LENGTH)
 
     # Phase 2: Route through kernel first
-    routing = _route_action(target="arif_forge_execute", task=manifest)
+    routing = _route_action(target="arif_forge", task=manifest)
     routing_result = routing.get("result", {})
     routing_path = routing_result.get("path", ["init", "sense", "mind"])
 
@@ -698,7 +698,7 @@ def arif_cc_vault_dry_seal(payload: str) -> dict:
     payload = _truncate(payload, MAX_PAYLOAD_LENGTH)
 
     # Phase 2: Route through kernel first
-    routing = _route_action(target="arif_vault_seal", task=payload)
+    routing = _route_action(target="arif_seal", task=payload)
     routing_result = routing.get("result", {})
     routing_path = routing_result.get("path", ["init", "sense", "mind"])
 
@@ -854,7 +854,7 @@ def command_center() -> PrefabApp:
     (666 Gateway), and vault audit (999 Vault).
 
     Do not use for direct tool execution — use the specific canonical tool
-    (e.g., arif_judge_deliberate, arif_ops_measure) when the user asks for
+    (e.g., arif_judge, arif_measure) when the user asks for
     a single action outside the cockpit context.
     """
 

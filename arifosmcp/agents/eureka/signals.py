@@ -114,7 +114,7 @@ class SignalDetector:
                     description="A VAULT999 seal candidate is being prepared.",
                     confidence=0.80,
                     evidence=[text[:200]],
-                    suggested_action="Verify floor compliance before invoking arif_vault_seal.",
+                    suggested_action="Verify floor compliance before invoking arif_seal.",
                 )
             )
 

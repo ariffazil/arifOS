@@ -108,7 +108,7 @@ class TransportFaultCode(StrEnum):
     # Next probe: arif_version_echo
 
     ARIF_INIT_DIALECT_MISMATCH = "ARIF_INIT_DIALECT_MISMATCH"
-    # arif_session_init received args that don't match any supported mode.
+    # arif_init received args that don't match any supported mode.
     # Transport works, but the init schema is wrong.
     # Next probe: arif_initialize_probe
 
@@ -116,7 +116,7 @@ class TransportFaultCode(StrEnum):
     # The Mcp-Session-Id doesn't resolve to an active session. Either the session
     # expired, the worker restarted (lost in-memory state), or the client sent a
     # stale ID. jsonrpc_code: -32001.
-    # Next probe: arif_session_init(mode='resume')
+    # Next probe: arif_init(mode='resume')
 
     ARIF_ENVELOPE_MISSING = "ARIF_ENVELOPE_MISSING"
     # A governed tool was called without the required FederationEnvelope.

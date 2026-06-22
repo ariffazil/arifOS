@@ -6,7 +6,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 Every organ (GEOX, WEALTH, WELL) imports this module to:
   1. Register its tool surface with arifOS on startup
   2. Check risk tier before executing C2+ tools
-  3. Call arifOS kernel (arif_judge_deliberate) for C2/IRREVERSIBLE tools
+  3. Call arifOS kernel (arif_judge) for C2/IRREVERSIBLE tools
   4. Execute only after receiving SEAL verdict
 
 Risk Tier Classification:
@@ -427,7 +427,7 @@ class OrganGovernance:
             "arguments_keys": list(arguments.keys()),
         }
 
-        # ── Call arifOS kernel: arif_judge_deliberate ──────────────────────────
+        # ── Call arifOS kernel: arif_judge ──────────────────────────
         judge_params = {
             "mode": "judge",
             "candidate": json.dumps(candidate),
@@ -437,7 +437,7 @@ class OrganGovernance:
 
         logger.info(f"GOVERNANCE CHECK: {tool_name} [{risk_tier.value}] → calling arifOS kernel")
 
-        kernel_result = _call_arif_kernel_sync("arif_judge_deliberate", judge_params)
+        kernel_result = _call_arif_kernel_sync("arif_judge", judge_params)
 
         # Parse verdict from kernel response
         verdict = "HOLD"  # fail-closed default
@@ -490,7 +490,7 @@ class OrganGovernance:
         if verdict in ("SEAL", "HOLD", "VOID"):
             try:
                 _call_arif_kernel_sync(
-                    "arif_judge_deliberate",
+                    "arif_judge",
                     {
                         "mode": "judge",
                         "candidate": json.dumps(

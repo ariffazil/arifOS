@@ -187,7 +187,7 @@ class TensionEntry(BaseModel):
     axes_involved: tuple[str, ...] = Field(..., min_length=2, max_length=8)
     explanation: str = Field(..., min_length=1, max_length=1000)
     required_next_tool: str = Field(
-        ..., description="One of: arif_heart_critique, arif_mind_reason, arif_evidence_fetch, arif_vault_seal, arif_judge_deliberate, HOLD"
+        ..., description="One of: arif_critique, arif_think, arif_fetch, arif_seal, arif_judge, HOLD"
     )
     blocked_actions: tuple[str, ...] = Field(
         default_factory=tuple,
@@ -212,7 +212,7 @@ class ActionAffordance(BaseModel):
         description="Action classes explicitly blocked by geometry/tension",
     )
     next_cognitive_tool: str = Field(
-        default="arif_heart_critique",
+        default="arif_critique",
         description="Recommended next tool in the cognitive pipeline",
     )
     memory_tier_recommendation: str = Field(
@@ -500,7 +500,7 @@ class GeometryBlock(BaseModel):
 class GeometryEnvelope(BaseModel):
     """The full MIND_GEOMETRY_V1 envelope attached to a reasoning output.
 
-    This is what arif_mind_reason emits. The runner parses this,
+    This is what arif_think emits. The runner parses this,
     then asks the 7 axioms to check it, then fuses the per-axiom
     results into a final geometry_verdict (which becomes one
     of the 7 verdict dimensions, not a replacement for floor verdicts).

@@ -6,7 +6,7 @@ in the current session. F1 AMANAH: fail-closed. F11 AUDITABILITY: every block lo
 
 Architecture:
   1. Agent calls arifos_route_query → session marked as "routed"
-  2. Agent calls search tool (arif_sense_observe, arif_memory_recall, etc.)
+  2. Agent calls search tool (arif_observe, arif_memory_recall, etc.)
   3. Middleware checks: has this session been routed?
      - YES → allow
      - NO → HOLD with instruction to call arifos_route_query first
@@ -28,8 +28,8 @@ logger = logging.getLogger(__name__)
 
 # Tools that REQUIRE prior routing
 GATED_TOOLS: frozenset[str] = frozenset({
-    "arif_sense_observe",
-    "arif_evidence_fetch",
+    "arif_observe",
+    "arif_fetch",
     "arif_memory_recall",
     "arif_kernel_route",
     "arif_gateway_connect",
@@ -50,15 +50,15 @@ GATED_TOOLS: frozenset[str] = frozenset({
 
 # Tools that do NOT require routing (always allowed)
 PASSTHROUGH_TOOLS: frozenset[str] = frozenset({
-    "arif_session_init",
+    "arif_init",
     "arifos_route_query",
-    "arif_ops_measure",
-    "arif_heart_critique",
-    "arif_judge_deliberate",
-    "arif_vault_seal",
-    "arif_forge_execute",
-    "arif_reply_compose",
-    "arif_mind_reason",
+    "arif_measure",
+    "arif_critique",
+    "arif_judge",
+    "arif_seal",
+    "arif_forge",
+    "arif_compose",
+    "arif_think",
 })
 
 
@@ -142,14 +142,14 @@ def create_route_guard_middleware(
             guard.record_block()
             logger.warning(
                 "ROUTE_GUARD: Blocked %s — no session_id. "
-                "Call arif_session_init first, then arifos_route_query.",
+                "Call arif_init first, then arifos_route_query.",
                 tool_name,
             )
             return {
                 "verdict": "HOLD",
                 "reason": "NO_SESSION",
                 "tool": tool_name,
-                "instruction": "Call arif_session_init first, then arifos_route_query before any search/discovery tool.",
+                "instruction": "Call arif_init first, then arifos_route_query before any search/discovery tool.",
                 "governance": {
                     "floor": "F1",
                     "rule": "Pre-retrieval routing gate",

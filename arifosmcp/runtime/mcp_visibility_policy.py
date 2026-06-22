@@ -14,7 +14,7 @@ It does NOT govern whether the model may CALL them (that's arifOS lease).
 The governor is invoked by:
   - arif_kernel_route(mode="tools/list") — default visible set
   - arif_kernel_route(mode="route", intent=X) — intent-matched shortlist
-  - arif_sense_observe(...) — wraps result with visibility-aware metadata
+  - arif_observe(...) — wraps result with visibility-aware metadata
 
 Pydantic v2 models for type safety. F1 AMANAH: all decisions reversible
 by relaxing the policy yaml. F2 TRUTH: every filter operation is logged.

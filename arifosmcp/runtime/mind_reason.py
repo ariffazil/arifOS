@@ -1,7 +1,7 @@
 """
 arifosmcp/runtime/mind_reason.py - 333 MIND LLM-Powered Reasoning
 
-Wires arif_mind_reason through call_llm() for constitutional LLM inference.
+Wires arif_think through call_llm() for constitutional LLM inference.
 Tier 1: SEA-LION (api.sea-lion.ai)
 Tier 2: Ollama local fallback
 Tier 3: Deterministic fallback (original logic from tools/mind_reason.py)
@@ -37,8 +37,8 @@ from arifosmcp.schemas.mind_metabolism import (
 
 logger = logging.getLogger(__name__)
 
-CANONICAL_EVIDENCE_TOOL = "arif_evidence_fetch"
-CANONICAL_JUDGE_TOOL = "arif_judge_deliberate"
+CANONICAL_EVIDENCE_TOOL = "arif_fetch"
+CANONICAL_JUDGE_TOOL = "arif_judge"
 
 # ── Thinking Session Manager ──────────────────────────────────────────────────
 thinking_manager = ThinkingSessionManager()
@@ -226,7 +226,7 @@ def _status_to_reasoning_mode(status: str) -> str:
 # ── Core Reasoning Function (v1 Legacy) ─────────────────────────────────────────
 
 
-async def arif_mind_reason(
+async def arif_think(
     query: str,
     mode: str = "reason",
     session_id: str | None = None,
@@ -256,7 +256,7 @@ async def arif_mind_reason(
             actor_id=actor_id,
             reasoning_control=reasoning_control,
         )
-        v2_resp = await arif_mind_reason_v2(request)
+        v2_resp = await arif_think_v2(request)
         return v2_resp.model_dump()
 
     timestamp = datetime.datetime.now(datetime.UTC).isoformat()
@@ -489,7 +489,7 @@ Distinguish CLAIM from FACT."""
         }:
             action_class = "draft"  # plans/drafts may mutate
         # The result is "draft" not "execute" — the runner can
-        # promote to "execute" via arif_forge_execute.
+        # promote to "execute" via arif_forge.
 
         # Extract per-axis values from the parsed_output if present.
         # Otherwise use neutral 0.5 (not collapsed, not extreme).
@@ -574,21 +574,21 @@ def _mode_to_status_fallback(mode: str) -> str:
     return mapping.get(mode, "HOLD")
 
 
-async def arif_mind_reason_structured(
+async def arif_think_structured(
     query: str,
     mode: str = "reason",
     session_id: str | None = None,
     actor_id: str | None = None,
 ) -> dict[str, Any]:
-    """Structured wrapper for arif_mind_reason - returns parsed_output directly."""
-    result = await arif_mind_reason(query, mode, session_id, actor_id)
+    """Structured wrapper for arif_think - returns parsed_output directly."""
+    result = await arif_think(query, mode, session_id, actor_id)
     return {k: v for k, v in result.items() if not k.startswith("_")}
 
 
 # ── Core Reasoning Function (v2 Metabolic) ──────────────────────────────────────
 
 
-async def arif_mind_reason_v2(request: MindRequest) -> MindResponse:
+async def arif_think_v2(request: MindRequest) -> MindResponse:
     """
     333 MIND v2 - Cognitive Metabolism Kernel.
 
@@ -824,9 +824,9 @@ async def arif_mind_handoff_prepare(session_id: str, target_organ: str) -> dict[
 
 
 __all__ = [
-    "arif_mind_reason",
-    "arif_mind_reason_v2",
-    "arif_mind_reason_structured",
+    "arif_think",
+    "arif_think_v2",
+    "arif_think_structured",
     "arif_mind_step",
     "arif_mind_trace_get",
     "arif_mind_claim_attest",

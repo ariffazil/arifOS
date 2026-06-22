@@ -26,7 +26,7 @@ def intercept(tool_name: str, payload: dict, session_id: str | None = None) -> d
 
     Returns None if clear to proceed, or an error/pause envelope to block.
 
-    Dangerous tools (arif_forge_execute, vault_seal_record, vault_append)
+    Dangerous tools (arif_forge, vault_seal_record, vault_append)
     require a valid session_id. Anonymous callers are blocked.
     """
     # Record all tool calls passing through interceptor — F9 TAQWA prerequisite tracking
@@ -41,7 +41,7 @@ def intercept(tool_name: str, payload: dict, session_id: str | None = None) -> d
     else:
         # Anonymous session — restrict dangerous tools
         dangerous_tools = {
-            "arif_forge_execute",
+            "arif_forge",
             "vault_seal_record",
             "vault_append",
             "forge_surface",
@@ -59,7 +59,7 @@ def intercept(tool_name: str, payload: dict, session_id: str | None = None) -> d
         # Non-dangerous tools are fine without a session
         return None
 
-    if tool_name in ("arif_forge_execute", "forge_surface"):
+    if tool_name in ("arif_forge", "forge_surface"):
         # Must be APPROVED lifecycle state before forge can run
         if session.lifecycle != LifecycleState.APPROVED:
             return envelope_pause(
@@ -90,17 +90,17 @@ def intercept(tool_name: str, payload: dict, session_id: str | None = None) -> d
                 session_id=session_id,
             )
 
-        # F9 TAQWA: arif_heart_critique must have been called in this session chain.
+        # F9 TAQWA: arif_critique must have been called in this session chain.
         # If agent skips heart_critique entirely, forge must be blocked — PSI KHIANAT.
-        if not was_tool_called(session_id, "arif_heart_critique"):
+        if not was_tool_called(session_id, "arif_critique"):
             return envelope_error(
                 tool_name=tool_name,
                 stage="INTERCEPTOR",
                 verdict="HOLD",
                 detail=(
-                    "L09 ANTIHANTU gate: arif_heart_critique not called in this session. "
+                    "L09 ANTIHANTU gate: arif_critique not called in this session. "
                     "PSI KHIANAT: Anti-Hantu prerequisite violated. "
-                    "Call arif_heart_critique before arif_forge_execute."
+                    "Call arif_critique before arif_forge."
                 ),
             )
 

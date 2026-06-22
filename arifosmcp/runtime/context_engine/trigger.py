@@ -322,7 +322,7 @@ def _next_steps(action: TriggerAction, policy: dict[str, Any]) -> list[str]:
         return [
             "SEAL HOLD event in context_audit (DONE).",
             "Refuse non-reversible model calls.",
-            "Agent: invoke arif_context_compact() or arif_session_init(new) to recover.",
+            "Agent: invoke arif_context_compact() or arif_init(new) to recover.",
             "F13: sovereign may override with new session.",
         ]
     return ["NOOP — degenerate state. Investigate session binding."]

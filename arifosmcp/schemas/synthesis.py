@@ -2,7 +2,7 @@
 arifOS Mind + Synthesis Schemas — 333_MIND, 444r_REPLY, 222_FETCH
 ══════════════════════════════════════════════════════════════════════════════
 
-Phase 2 Civilization Intelligence — MindOutput for arif_mind_reason.
+Phase 2 Civilization Intelligence — MindOutput for arif_think.
 
 MindOutput must include:
 - AxiomsUsed: explicit constitutional grounding per reasoning step
@@ -203,13 +203,13 @@ class MindAnomalousContrast(BaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# MIND OUTPUT — PRIMARY OUTPUT FOR arif_mind_reason (333_MIND)
+# MIND OUTPUT — PRIMARY OUTPUT FOR arif_think (333_MIND)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
 class MindOutput(BaseModel):
     """
-    Full output for arif_mind_reason (333_MIND — AGI layer for reasoning).
+    Full output for arif_think (333_MIND — AGI layer for reasoning).
 
     Every field affects reasoning behavior:
     - axioms_used: grounds reasoning in constitution, prevents drift
@@ -223,7 +223,7 @@ class MindOutput(BaseModel):
     """
 
     status: str = "OK"
-    tool: str = "arif_mind_reason"
+    tool: str = "arif_think"
 
     # Core result
     result: dict[str, Any] = Field(default_factory=dict)
@@ -276,7 +276,7 @@ class MindOutput(BaseModel):
 
     # ── Metabolic Loop Fields (Eureka 8 — meaning + constraint stages) ─────────────
     # MeaningGenerate: differential interpretations of decoded entities
-    # Maps to: arif_mind_reason (333) stage — metabolic loop step 3
+    # Maps to: arif_think (333) stage — metabolic loop step 3
     candidate_meanings: list[CandidateMeaning] = Field(
         default_factory=list,
         description="Differential interpretations — never a single claim. "
@@ -284,7 +284,7 @@ class MindOutput(BaseModel):
     )
 
     # ConstraintVerify: rules, physics, law, ethics verified against candidate meanings
-    # Maps to: arif_heart_critique (444) stage — metabolic loop step 4
+    # Maps to: arif_critique (444) stage — metabolic loop step 4
     constraints_checked: list[ConstraintCheck] = Field(
         default_factory=list,
         description="Constraint checks applied: physics, law, ethics, financial, constitutional. "
@@ -306,27 +306,27 @@ class Synthesis(BaseModel):
     """Backward-compatible synthesis envelope."""
 
     status: str = "OK"
-    tool: str = "arif_mind_reason"
+    tool: str = "arif_think"
     result: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None
 
 
 class ReplyBlock(BaseModel):
-    """Reply envelope for arif_reply_compose."""
+    """Reply envelope for arif_compose."""
 
     status: str = "OK"
-    tool: str = "arif_reply_compose"
+    tool: str = "arif_compose"
     result: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None
 
 
 class EvidenceBlock(BaseModel):
-    """Evidence envelope for arif_evidence_fetch."""
+    """Evidence envelope for arif_fetch."""
 
     status: str = "OK"
-    tool: str = "arif_evidence_fetch"
+    tool: str = "arif_fetch"
     result: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None

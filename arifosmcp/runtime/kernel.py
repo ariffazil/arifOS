@@ -64,13 +64,13 @@ def get_philosophical_contrast(g_score: float, risk: str) -> dict[str, str]:
 
 _AUDITOR_GATED_TOOLS = frozenset(
     {
-        "arif_sense_observe",
-        "arif_mind_reason",
+        "arif_observe",
+        "arif_think",
         "arif_memory_recall",
-        "arif_evidence_fetch",
-        "arif_reply_compose",
-        "arif_forge_execute",
-        "arif_heart_critique",
+        "arif_fetch",
+        "arif_compose",
+        "arif_forge",
+        "arif_critique",
     }
 )
 _AUDITOR_TIMEOUT_S = 5.0
@@ -158,9 +158,9 @@ def _check_wakefulness_gate(tool_name: str) -> dict[str, Any]:
 
         # CRITICAL: clarity < 4 or sleep_debt > 2 days → block C4+ (forge, vault, judge)
         if status == "DEGRADED" and tool_name in {
-            "arif_forge_execute",
-            "arif_vault_seal",
-            "arif_judge_deliberate",
+            "arif_forge",
+            "arif_seal",
+            "arif_judge",
         }:
             return {
                 "ok": False,
@@ -220,12 +220,11 @@ class ConstitutionalKernel:
         from arifosmcp.runtime.telemetry import trace_tool_call
         from arifosmcp.runtime.tools import (
             FINAL_TOOL_IMPLEMENTATIONS,
-            LEGACY_TOOL_ALIASES,
         )
 
         print(f"KERNEL: Dispatching {tool_name} through Fail-Closed Gates...")
 
-        canonical_name = LEGACY_TOOL_ALIASES.get(tool_name, tool_name)
+        canonical_name = tool_name  # LEGACY_TOOL_ALIASES removed — no backward compat
         # Chapter 6 Upgrade: Prefer envelope fields for identity if present
         envelope_data = arguments.get("envelope") or arguments.get("_envelope")
         if envelope_data and isinstance(envelope_data, dict):

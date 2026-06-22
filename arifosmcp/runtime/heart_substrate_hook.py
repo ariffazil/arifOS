@@ -4,16 +4,16 @@ Heart Critique Substrate Hook
 Forged 2026-06-16, F13 SOVEREIGN directive: "remember my reality"
 
 This module is a WRAPPER/HOOK, not a kernel modification. It augments
-arif_heart_critique() by pre-loading the L0 human substrate on F5/F6/F13
+arif_critique() by pre-loading the L0 human substrate on F5/F6/F13
 evaluation paths. Per architecture rule: additive only, never modify
 existing kernel files.
 
-The hook is idempotent — calling arif_heart_critique with this hook
+The hook is idempotent — calling arif_critique with this hook
 installed simply augments the returned envelope with a `substrate_context`
 field. It never blocks the critique itself (fail-open).
 
 Install: just import this module once at process start. It monkey-patches
-arif_heart_critique in the runtime import chain.
+arif_critique in the runtime import chain.
 
 Floor binding: F13 SOVEREIGN (pre-trust addendum, 2026-06-16).
 """
@@ -42,7 +42,7 @@ def _get_substrate():
 
 
 # ── F5 / F6 / F13 trigger patterns ──────────────────────────────────────────
-# When arif_heart_critique is called in any of these modes, preload substrate.
+# When arif_critique is called in any of these modes, preload substrate.
 # Also triggered if target text references sovereign-specific keywords.
 _F5_F6_F13_TRIGGERS = {
     "empathize",        # F6 EMPATHY
@@ -77,7 +77,7 @@ def _should_preload(mode: str | None, target: str | None, context_type: str | No
 
 
 def _install_hook() -> bool:
-    """Monkey-patch arif_heart_critique to inject substrate context.
+    """Monkey-patch arif_critique to inject substrate context.
     Returns True if installed, False if already installed or unavailable.
     """
     # Idempotency guard
@@ -94,18 +94,18 @@ def _install_hook() -> bool:
     for name in candidates:
         try:
             mod = sys.modules.get(name) or __import__(name, fromlist=["*"])
-            if hasattr(mod, "arif_heart_critique"):
+            if hasattr(mod, "arif_critique"):
                 heart_mod = mod
                 break
         except Exception:
             continue
     if heart_mod is None:
-        logger.warning("substrate hook: arif_heart_critique not found in kernel modules")
+        logger.warning("substrate hook: arif_critique not found in kernel modules")
         return False
 
-    original = heart_mod.arif_heart_critique
+    original = heart_mod.arif_critique
 
-    async def hooked_arif_heart_critique(*args, **kwargs):
+    async def hooked_arif_critique(*args, **kwargs):
         result = await original(*args, **kwargs)
         try:
             mode = kwargs.get("mode")
@@ -123,9 +123,9 @@ def _install_hook() -> bool:
             logger.debug("substrate pre-load failed (fail-open): %s", e)
         return result
 
-    heart_mod.arif_heart_critique = hooked_arif_heart_critique
+    heart_mod.arif_critique = hooked_arif_critique
     _install_hook._installed = True
-    logger.info("L0 substrate hook installed on arif_heart_critique (F13 addendum active)")
+    logger.info("L0 substrate hook installed on arif_critique (F13 addendum active)")
     return True
 
 

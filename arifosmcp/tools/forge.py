@@ -12,7 +12,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from arifosmcp.runtime.law import check_laws
-from arifosmcp.runtime.tools import _add_floor_compat, _arif_forge_execute
+from arifosmcp.runtime.tools import _add_floor_compat, _arif_forge
 from arifosmcp.schemas.forge import ForgeErrorCode, ForgeManifest, ForgeOutput, ManifestStatus
 from arifosmcp.tools.forge_ladder import ARIF_FORGE_EXECUTE_MANIFEST
 
@@ -40,7 +40,7 @@ _ATOMIC_MODES = {"commit", "deploy"}
 _FORGE_MUTATE_ATOMIC = _MUTATE_MODES | _ATOMIC_MODES
 
 
-async def arif_forge_execute(
+async def arif_forge(
     mode: str = "engineer",
     manifest: str = "",
     query: str | None = None,
@@ -72,13 +72,13 @@ async def arif_forge_execute(
     For planning, use forge_plan. For simulation, use forge_dry_run.
 
     Executes approved builds, deployments, or system changes ONLY after
-    arif_judge_deliberate has issued a SEAL verdict and explicit ack.
+    arif_judge has issued a SEAL verdict and explicit ack.
 
     Args:
         mode: "engineer" | "write" | "generate" | "commit" | "deploy".
         manifest: JSON manifest describing the action to execute.
         artifact_id: Reference to a prior artifact (e.g., plan output).
-        session_id: Constitutional session ID from arif_session_init.
+        session_id: Constitutional session ID from arif_init.
         ack_irreversible: Must be True to confirm irreversible execution.
         judge_state_hash: REQUIRED for all MUTATE/ATOMIC modes.
         plan_id: Approved plan_id from forge_plan (required for engineer/write/generate).
@@ -179,7 +179,7 @@ async def arif_forge_execute(
             "error_code": ForgeErrorCode.E_JUDGE_STATE_HASH_REQUIRED,
             "reason": (
                 "888 HOLD — judge_state_hash is REQUIRED for MUTATE/ATOMIC forge modes. "
-                "Call arif_judge_deliberate first, then pass the returned state_hash."
+                "Call arif_judge first, then pass the returned state_hash."
             ),
             "violated_laws": ["L01", "L11"],
             "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
@@ -285,7 +285,7 @@ async def arif_forge_execute(
                 )
 
     floor_check = check_laws(
-        "arif_forge_execute",
+        "arif_forge",
         {
             "mode": mode,
             "ack_irreversible": ack_irreversible,
@@ -360,7 +360,7 @@ async def arif_forge_execute(
     import asyncio
 
     def _run_forge():
-        return _arif_forge_execute(
+        return _arif_forge(
             mode=mode,
             manifest=manifest,
             query=query,

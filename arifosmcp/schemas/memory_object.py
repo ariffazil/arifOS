@@ -298,7 +298,7 @@ class MemoryResultEnvelope(BaseModel):
     delta_S: float                               # entropy delta (≤0 = success)
     floor_snapshot: dict[str, bool]              # L01..L13
     payload_result: dict[str, Any]               # mode-specific body
-    next_tool_hint: str | None = None            # e.g. "arif_judge_deliberate"
+    next_tool_hint: str | None = None            # e.g. "arif_judge"
     timestamp: datetime = Field(default_factory=_utc_now)
 
     # Burn-down observability fields

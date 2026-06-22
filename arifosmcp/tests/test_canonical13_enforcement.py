@@ -37,23 +37,23 @@ from arifosmcp.runtime.public_surface import (
 EXPECTED_PUBLIC_TOOLS: frozenset[str] = frozenset(
     {
         # GOVERNANCE (APEX / ASI)
-        "arif_session_init",
-        "arif_judge_deliberate",
-        "arif_vault_seal",
+        "arif_init",
+        "arif_judge",
+        "arif_seal",
         # INTELLIGENCE (Δ Mind / Ω Heart)
-        "arif_mind_reason",
-        "arif_heart_critique",
-        "arif_reply_compose",
+        "arif_think",
+        "arif_critique",
+        "arif_compose",
         # INFRASTRUCTURE
         "arif_kernel_route",
         "arif_gateway_connect",
         "arif_memory_recall",
-        "arif_ops_measure",
+        "arif_measure",
         # REALITY GROUNDING
-        "arif_sense_observe",
-        "arif_evidence_fetch",
+        "arif_observe",
+        "arif_fetch",
         # EXECUTION
-        "arif_forge_execute",
+        "arif_forge",
     }
 )
 
@@ -246,25 +246,25 @@ def test_every_public_tool_declares_floors(tool_name: str):
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Test 8: Constitutional asymmetry — irreversible tools are exactly the 2 vault
-# gates. (arif_judge_deliberate is declared reversible at the tool level — its
+# gates. (arif_judge is declared reversible at the tool level — its
 # irreversible effect comes from the SEAL verdict it produces, which routes
-# through arif_forge_execute / arif_vault_seal. F1 AMANAH gating happens at
+# through arif_forge / arif_seal. F1 AMANAH gating happens at
 # the *verdict* level, not the *tool* level. This is correct by design.)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def test_irreversible_tools_are_exactly_vault_and_forge():
     """Irreversible tool-level tools must be exactly: vault_seal + forge_execute.
 
-    Note: arif_judge_deliberate is `irreversible: False` at the tool level —
+    Note: arif_judge is `irreversible: False` at the tool level —
     the irreversibility of its SEAL verdict is enforced downstream by the
-    F1 AMANAH gate inside arif_vault_seal and arif_forge_execute. This is the
+    F1 AMANAH gate inside arif_seal and arif_forge. This is the
     correct architecture: judgment is reversible (re-judge), only commitment
     is irreversible (seal/forge).
     """
     irreversible = sorted(
         name for name, spec in CANONICAL_TOOLS.items() if spec.get("irreversible", False)
     )
-    expected = sorted(["arif_forge_execute", "arif_vault_seal"])
+    expected = sorted(["arif_forge", "arif_seal"])
     assert irreversible == expected, (
         f"Irreversible tool set drifted. "
         f"Expected {expected}; got {irreversible}. "

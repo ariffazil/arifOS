@@ -1,4 +1,4 @@
-"""Reply output schema — 444r_REPLY (arif_reply_compose)"""
+"""Reply output schema — 444r_REPLY (arif_compose)"""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ class ReplyResult(BaseModel):
 
 class ReplyOutput(BaseModel):
     status: str = "OK"
-    tool: str = "arif_reply_compose"
+    tool: str = "arif_compose"
     result: ReplyResult = Field(default_factory=ReplyResult)
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None

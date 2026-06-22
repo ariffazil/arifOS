@@ -1,4 +1,4 @@
-"""Heart output schema — 666_HEART (arif_heart_critique)"""
+"""Heart output schema — 666_HEART (arif_critique)"""
 
 from __future__ import annotations
 
@@ -10,11 +10,11 @@ from pydantic import BaseModel, Field
 # Fix #9: Structured critique request to prevent safety filter friction
 class CritiqueRequest(BaseModel):
     """
-    Structured request for arif_heart_critique.
+    Structured request for arif_critique.
 
     Instead of free-text target which may trigger safety filters,
     use structured fields. The agent will use this when calling
-    arif_heart_critique with mode='summary' or structured output.
+    arif_critique with mode='summary' or structured output.
 
     Either `claim` OR `structured_request` should be provided, not both.
     """
@@ -114,7 +114,7 @@ class HeartResult(BaseModel):
 
 class HeartOutput(BaseModel):
     status: str = "OK"
-    tool: str = "arif_heart_critique"
+    tool: str = "arif_critique"
     result: HeartResult = Field(default_factory=HeartResult)
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None

@@ -74,8 +74,8 @@ class ToolRiskProfile:
 
 BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
     # ── T0: Harmless Observation (FULL_AUTO safe) ───────────────────────────
-    "arif_ops_measure": ToolRiskProfile(
-        tool_name="arif_ops_measure",
+    "arif_measure": ToolRiskProfile(
+        tool_name="arif_measure",
         risk_tier=RiskTier.T0,
         action_class=ActionClass.OBSERVE,
         blast_radius=BlastRadius.LOCAL,
@@ -83,8 +83,8 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
         enforcement=EnforcementMode.SIMULATE,
         description="System health check — completely read-only",
     ),
-    "arif_sense_observe": ToolRiskProfile(
-        tool_name="arif_sense_observe",
+    "arif_observe": ToolRiskProfile(
+        tool_name="arif_observe",
         risk_tier=RiskTier.T0,
         action_class=ActionClass.OBSERVE,
         blast_radius=BlastRadius.LOCAL,
@@ -101,8 +101,8 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
         enforcement=EnforcementMode.SIMULATE,
         description="Memory lookup — read-only retrieval",
     ),
-    "arif_mind_reason": ToolRiskProfile(
-        tool_name="arif_mind_reason",
+    "arif_think": ToolRiskProfile(
+        tool_name="arif_think",
         risk_tier=RiskTier.T0,
         action_class=ActionClass.OBSERVE,
         blast_radius=BlastRadius.LOCAL,
@@ -110,8 +110,8 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
         enforcement=EnforcementMode.SIMULATE,
         description="Multi-step reasoning — no side effects",
     ),
-    "arif_heart_critique": ToolRiskProfile(
-        tool_name="arif_heart_critique",
+    "arif_critique": ToolRiskProfile(
+        tool_name="arif_critique",
         risk_tier=RiskTier.T0,
         action_class=ActionClass.OBSERVE,
         blast_radius=BlastRadius.LOCAL,
@@ -119,8 +119,8 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
         enforcement=EnforcementMode.SIMULATE,
         description="Ethical critique — read-only assessment",
     ),
-    "arif_reply_compose": ToolRiskProfile(
-        tool_name="arif_reply_compose",
+    "arif_compose": ToolRiskProfile(
+        tool_name="arif_compose",
         risk_tier=RiskTier.T0,
         action_class=ActionClass.OBSERVE,
         blast_radius=BlastRadius.LOCAL,
@@ -139,8 +139,8 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
     ),
 
     # ── T1: Account-Scoped Observation ─────────────────────────────────────
-    "arif_evidence_fetch": ToolRiskProfile(
-        tool_name="arif_evidence_fetch",
+    "arif_fetch": ToolRiskProfile(
+        tool_name="arif_fetch",
         risk_tier=RiskTier.T1,
         action_class=ActionClass.OBSERVE,
         blast_radius=BlastRadius.LOCAL,
@@ -148,8 +148,8 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
         enforcement=EnforcementMode.SIMULATE,
         description="External evidence fetch — low external effect",
     ),
-    "arif_session_init": ToolRiskProfile(
-        tool_name="arif_session_init",
+    "arif_init": ToolRiskProfile(
+        tool_name="arif_init",
         risk_tier=RiskTier.T1,
         action_class=ActionClass.OBSERVE,
         blast_radius=BlastRadius.ACCOUNT,
@@ -271,8 +271,8 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
     ),
 
     # ── T4: Public-Scoped Mutation ─────────────────────────────────────────
-    "arif_vault_seal": ToolRiskProfile(
-        tool_name="arif_vault_seal",
+    "arif_seal": ToolRiskProfile(
+        tool_name="arif_seal",
         risk_tier=RiskTier.T4,
         action_class=ActionClass.MUTATE,
         blast_radius=BlastRadius.PUBLIC,
@@ -283,8 +283,8 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
     ),
 
     # ── T5: Infrastructure Atomic ──────────────────────────────────────────
-    "arif_forge_execute": ToolRiskProfile(
-        tool_name="arif_forge_execute",
+    "arif_forge": ToolRiskProfile(
+        tool_name="arif_forge",
         risk_tier=RiskTier.T5,
         action_class=ActionClass.ATOMIC,
         blast_radius=BlastRadius.INFRASTRUCTURE,
@@ -293,8 +293,8 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
         requires_human_ack=True,
         description="Build/deploy/system change — ATOMIC, requires F13 ack",
     ),
-    "arif_judge_deliberate": ToolRiskProfile(
-        tool_name="arif_judge_deliberate",
+    "arif_judge": ToolRiskProfile(
+        tool_name="arif_judge",
         risk_tier=RiskTier.T5,
         action_class=ActionClass.ATOMIC,
         blast_radius=BlastRadius.PUBLIC,

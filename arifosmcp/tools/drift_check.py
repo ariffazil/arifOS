@@ -121,15 +121,27 @@ def compute_tool_schema_hash(tool_name: str) -> str:
     C2-4 fix: surface per-tool schema hash so clients can detect when a
     tool's schema has changed between calls.
 
-    Returns "sha256:unknown_tool" if the tool is not in the canonical
-    registry. This is the C2-1 fabrication defense at the hash level.
+    B1 fix (2026-06-21): widened lookup to include DIAGNOSTIC_TOOLS so
+    the 6 canary / transport / conformance tools
+    (arif_ping, arif_conformance_report, arif_schema_echo,
+    arif_version_echo, arif_transport_echo, arif_initialize_probe) get
+    real SHA256 fingerprints instead of the fabrication-defense sentinel
+    `sha256:unknown_tool`. CANONICAL_TOOLS is still consulted first to
+    preserve the canonical-priority contract; DIAGNOSTIC_TOOLS is the
+    fallback for live-registered diagnostic tools whose specs are
+    declared in `arifosmcp.constitutional_map`.
+
+    Returns "sha256:unknown_tool" only when the tool is genuinely absent
+    from BOTH maps — the C2-1 fabrication defense is preserved.
     """
     try:
-        from arifosmcp.constitutional_map import CANONICAL_TOOLS
+        from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS
 
-        if tool_name not in CANONICAL_TOOLS:
+        spec = CANONICAL_TOOLS.get(tool_name)
+        if spec is None:
+            spec = DIAGNOSTIC_TOOLS.get(tool_name)
+        if spec is None:
             return "sha256:unknown_tool"
-        spec = CANONICAL_TOOLS[tool_name] or {}
         payload = json.dumps(spec, sort_keys=True, default=str)
         return f"sha256:{hashlib.sha256(payload.encode()).hexdigest()}"
     except Exception:
@@ -179,7 +191,7 @@ def check_tool_exists(tool_name: str) -> dict[str, Any]:
             "arif_os_attest": "arif_kernel_attest (renamed in RULE-14)",
             "arif_organ_attest_all": "arif_organ_attest (single organ, not all)",
             "arif_lease_issue": (
-                "leases are internal-only; use arif_session_init for authority bootstrap"
+                "leases are internal-only; use arif_init for authority bootstrap"
             ),
             "arif_daily_intelligence_brief": "not yet registered (planned)",
         }

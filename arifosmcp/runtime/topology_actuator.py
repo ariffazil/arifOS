@@ -100,8 +100,8 @@ def evaluate_topology(
     them into actionable throttle/promote/gate/escalate commands.
 
     Args:
-        drift: InstitutionalDrift from arif_ops_measure(mode='topology')
-        anti_sink: AntiSinkCheck from arif_ops_measure(mode='drift')
+        drift: InstitutionalDrift from arif_measure(mode='topology')
+        anti_sink: AntiSinkCheck from arif_measure(mode='drift')
         tool_call_distribution: Optional {tool_name: call_count} for tool balance
 
     Returns:
@@ -155,7 +155,7 @@ def evaluate_topology(
         recommendations.append(
             ActuatorRecommendation(
                 action=ActuatorAction.GATE,
-                target="arif_forge_execute",
+                target="arif_forge",
                 reason="Forge execution gated due to symbolic sovereignty",
                 signal_source="sovereignty_integrity",
                 severity="high",
@@ -227,7 +227,7 @@ def evaluate_topology(
         recommendations.append(
             ActuatorRecommendation(
                 action=ActuatorAction.GATE,
-                target="arif_reply_compose",
+                target="arif_compose",
                 reason="Beautiful Ones risk detected — polished collapse possible",
                 signal_source="beautiful_ones_risk",
                 severity="high",

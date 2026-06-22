@@ -22,7 +22,7 @@ CANARY_TOOLS = frozenset(
         "arif_schema_echo",
         "arif_transport_echo",
         "arif_initialize_probe",
-        "arif_session_init",
+        "arif_init",
         "arif_os_attest",
     }
 )

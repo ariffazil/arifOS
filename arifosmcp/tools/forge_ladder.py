@@ -2,12 +2,12 @@
 arifosmcp/tools/forge_ladder.py — 010_FORGE Governed Ladder
 ═══════════════════════════════════════════════════════════════
 
-Splits the monolithic arif_forge_execute into a classification ladder:
+Splits the monolithic arif_forge into a classification ladder:
   forge_query    → OBSERVE class — read-only introspection (always enabled)
   forge_plan     → REASON class — classify action, estimate blast radius
   forge_dry_run  → REASON class — simulate execution, produce diff preview
 
-arif_forge_execute (v2) → MUTATE/ATOMIC class — gated by 888_JUDGE + ack_irreversible
+arif_forge (v2) → MUTATE/ATOMIC class — gated by 888_JUDGE + ack_irreversible
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -100,7 +100,7 @@ FORGE_DRY_RUN_MANIFEST = ToolManifest(
 )
 
 ARIF_FORGE_EXECUTE_MANIFEST = ToolManifest(
-    name="arif_forge_execute",
+    name="arif_forge",
     version="0.2.0",
     stage=ToolStage.FORGE_EXECUTE,
     lane="AGI",
@@ -295,9 +295,9 @@ def forge_plan(
     # Recommend tools based on classification
     required_tools = ["forge_query"]
     if action_class in ("MUTATE", "ATOMIC"):
-        required_tools.extend(["forge_dry_run", "arif_heart_critique", "arif_judge_deliberate"])
+        required_tools.extend(["forge_dry_run", "arif_critique", "arif_judge"])
     if action_class == "ATOMIC":
-        required_tools.append("arif_forge_execute")
+        required_tools.append("arif_forge")
 
     return ForgePlanResult(
         verdict="SEAL",
@@ -312,13 +312,13 @@ def forge_plan(
             "steps": [
                 {"step": 1, "tool": "forge_query", "purpose": "introspect current state"},
                 {"step": 2, "tool": "forge_dry_run", "purpose": "simulate action"},
-                {"step": 3, "tool": "arif_heart_critique", "purpose": "ethical review"},
+                {"step": 3, "tool": "arif_critique", "purpose": "ethical review"},
                 {
                     "step": 4,
-                    "tool": "arif_judge_deliberate",
+                    "tool": "arif_judge",
                     "purpose": "constitutional authorization",
                 },
-                {"step": 5, "tool": "arif_forge_execute", "purpose": "execute approved plan"},
+                {"step": 5, "tool": "arif_forge", "purpose": "execute approved plan"},
             ],
             "notes": f"Action classified as {action_class}. Blast radius: {estimated_blast_radius}.",
         },

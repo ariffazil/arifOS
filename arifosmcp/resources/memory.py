@@ -63,7 +63,7 @@ DISCIPLINES:
 
   L6 — IMMUTABLE (VAULT999, append-only hash-chained)
     Final sealed truth. Cannot be modified, only appended.
-    Tool: arif_vault_seal(mode=seal)
+    Tool: arif_seal(mode=seal)
 
 IRON RULE:
   Memory does not become truth until it has provenance.

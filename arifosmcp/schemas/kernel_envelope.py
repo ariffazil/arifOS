@@ -235,7 +235,7 @@ class KernelIdentity(BaseModel):
         default="sha256:dd4f41e75f55ed38df759a1c8db1fc4680ef0307a6b0e2793bccf6540bb21506",
         description="SHA-256 of the active constitutional floor spec",
     )
-    session_id: str = Field(default="", description="Active session ID from arif_session_init")
+    session_id: str = Field(default="", description="Active session ID from arif_init")
     epoch_id: str = Field(default="EPOCH-LIVE-1", description="Constitutional epoch identifier")
     actor_id: str = Field(default="", description="Actor identifier (agent or human)")
     actor_verified: bool = Field(

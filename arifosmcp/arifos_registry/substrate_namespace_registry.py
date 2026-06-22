@@ -36,7 +36,7 @@ CANONICAL_NAMESPACES = ("arif", "wealth", "geox", "well", "hermes", "forge", "mc
 
 # Accepted organ prefixes (includes organ-owned namespaces for federation validation)
 # Note: aforge_ is reserved for any future A-FORGE MCP surface; A-FORGE is currently
-# HTTP REST on :7071, accessed via arif_forge_execute → aforge_*
+# HTTP REST on :7071, accessed via arif_forge → aforge_*
 CANONICAL_ORGAN_PREFIXES = CANONICAL_NAMESPACES + ("aforge",)
 
 # Legacy aliases: old_tool_name → canonical_tool_name
@@ -148,7 +148,7 @@ class SubstrateNamespaceRegistry:
                 endpoint="http://127.0.0.1:7071",
                 lanes=[],
                 tool_count=4,  # forge_plan, forge_dry_run, forge_query, forge_execute
-                description="Deployment + infra forge: HTTP REST on :7071, accessed via arif_forge_execute",
+                description="Deployment + infra forge: HTTP REST on :7071, accessed via arif_forge",
             ),
             # Peer agents (per F13 ruling 2026-06-14)
             "hermes": SubstrateNamespace(

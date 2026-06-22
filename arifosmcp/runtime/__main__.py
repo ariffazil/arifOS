@@ -147,7 +147,7 @@ async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[st
                 arguments["actor_id"] = session_info.get("actor_id")
 
     if handler_name == "vault_seal":
-        # vault_seal maps to arif_vault_seal (handler_name would be _arif_vault_seal_tool).
+        # vault_seal maps to arif_seal (handler_name would be _arif_seal_tool).
         # The legacy "vault_seal" branch is unreachable — kept for traceability only.
         return dict(await handler(**arguments))  # type: ignore[arg-type]
 

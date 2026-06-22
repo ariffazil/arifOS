@@ -8,7 +8,7 @@ Evidence pre-loading: vitals and heart output are piped into the judge
 before adjudication so epistemic confidence is grounded in actual system state.
 
 Post-SEAL auto-hook: When verdict is SEAL and vault_entry_id is provided,
-the judge output is automatically routed to arif_vault_seal for immutable anchoring.
+the judge output is automatically routed to arif_seal for immutable anchoring.
 
 PARADOX ANCHORS (v3): 11 linguistic invariants fire at verdict decision points:
   J1 (Parker/MLK) — SABAR carries deadline | J4 (Aristotle) — SEAL is incomplete justice
@@ -44,7 +44,7 @@ from arifosmcp.paradox import (
 from arifosmcp.runtime.metabolic_receipt import get_cumulative_metrics
 from arifosmcp.runtime.niat_gate import check_niat_gate
 from arifosmcp.runtime.self_mod_lock import is_self_modification_attempt
-from arifosmcp.runtime.tools import _arif_judge_deliberate
+from arifosmcp.runtime.tools import _arif_judge
 from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -554,7 +554,7 @@ def _read_well_governance(state_path_candidates: list | None = None) -> dict[str
     }
 
 
-async def arif_judge_deliberate(
+async def arif_judge(
     mode: str = "judge",
     candidate: str | None = None,
     session_id: str | None = None,
@@ -597,7 +597,7 @@ async def arif_judge_deliberate(
                 )
 
     """
-    from arifosmcp.tools.ops import arif_ops_measure
+    from arifosmcp.tools.ops import arif_measure
 
     _evidence: dict = {}
     _is_elevated_tier = action_tier.lower() in ("sovereign", "c4", "c5")
@@ -605,7 +605,7 @@ async def arif_judge_deliberate(
     if mode != "history":
         if _evidence.get("vitals") is None:
             try:
-                vitals_result = arif_ops_measure(mode="vitals")
+                vitals_result = arif_measure(mode="vitals")
                 _evidence["vitals"] = getattr(vitals_result, "__dict__", {}) or {
                     "status": "unavailable"
                 }
@@ -818,7 +818,7 @@ async def arif_judge_deliberate(
         #
         # Data flow:
         #   caller sets community_maruah=true in task metadata (e.g. via
-        #   arif_kernel_route, arif_mind_reason plan, or MCP tool metadata).
+        #   arif_kernel_route, arif_think plan, or MCP tool metadata).
         #   The flag reaches judge via: evidence_receipt or heart_critique meta.
         _maruah_sensitive = False
         _maruah_meta: dict = {}
@@ -872,7 +872,7 @@ async def arif_judge_deliberate(
             }
 
         # ── SOMATIC STATE GATE (Gap 2: machine telemetry → HOLD on CRITICAL) ──
-        # Before deliberation, classify machine somatic state from arif_ops_measure
+        # Before deliberation, classify machine somatic state from arif_measure
         # telemetry. If somatic state is CRITICAL, return HOLD.
         # This is MACHINE-AS-BODY telemetry (F9 ANTIHANTU: NOT biological).
         _vitals = _evidence.get("vitals", {})
@@ -898,7 +898,7 @@ async def arif_judge_deliberate(
                 ],
                 next_safe_action=(
                     "Resolve critical machine state before deliberation. "
-                    "Check arif_ops_measure for details."
+                    "Check arif_measure for details."
                 ),
                 meta={
                     "somatic_gate": "SOMATIC_BLOCKED",
@@ -981,7 +981,7 @@ async def arif_judge_deliberate(
                 meta={"error": str(exc)},
             )
 
-    result = _arif_judge_deliberate(
+    result = _arif_judge(
         mode=mode,
         candidate=candidate,
         session_id=session_id,
@@ -1148,17 +1148,17 @@ async def arif_judge_deliberate(
 
     if vault_entry_id and is_seal:
         try:
-            from arifosmcp.tools.vault import arif_vault_seal
+            from arifosmcp.tools.vault import arif_seal
 
             payload_dict = {
-                "tool": "arif_judge_deliberate",
+                "tool": "arif_judge",
                 "candidate": candidate,
                 "verdict": result.get("verdict", ""),
                 "constitutional_chain_id": result.get("meta", {}).get("constitutional_chain_id"),
                 "state_hash": result.get("meta", {}).get("state_hash"),
             }
 
-            seal_result = arif_vault_seal(
+            seal_result = arif_seal(
                 mode="seal",
                 payload=json_lib.dumps(payload_dict),
                 session_id=session_id,

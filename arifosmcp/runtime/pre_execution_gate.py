@@ -390,8 +390,8 @@ def _act_reflex_check(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
-    "arif_session_init": ToolManifestEntry(
-        tool_name="arif_session_init",
+    "arif_init": ToolManifestEntry(
+        tool_name="arif_init",
         action_class=ActionClass.OBSERVE,
         safe_modes=["init", "resume", "validate", "status", "discover", "handover"],
         dangerous_modes=["revoke", "epoch_open", "epoch_seal"],
@@ -400,8 +400,8 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
-    "arif_sense_observe": ToolManifestEntry(
-        tool_name="arif_sense_observe",
+    "arif_observe": ToolManifestEntry(
+        tool_name="arif_observe",
         action_class=ActionClass.OBSERVE,
         safe_modes=[
             "search",
@@ -421,8 +421,8 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
-    "arif_evidence_fetch": ToolManifestEntry(
-        tool_name="arif_evidence_fetch",
+    "arif_fetch": ToolManifestEntry(
+        tool_name="arif_fetch",
         action_class=ActionClass.OBSERVE,
         safe_modes=["fetch", "search", "verify"],
         dangerous_modes=["archive"],
@@ -431,8 +431,8 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
-    "arif_mind_reason": ToolManifestEntry(
-        tool_name="arif_mind_reason",
+    "arif_think": ToolManifestEntry(
+        tool_name="arif_think",
         action_class=ActionClass.ANALYZE,
         safe_modes=[
             "reason",
@@ -462,8 +462,8 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
-    "arif_reply_compose": ToolManifestEntry(
-        tool_name="arif_reply_compose",
+    "arif_compose": ToolManifestEntry(
+        tool_name="arif_compose",
         action_class=ActionClass.DRAFT,
         safe_modes=["compose"],
         dangerous_modes=[],
@@ -482,8 +482,8 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         blast_radius=BlastRadius.ACCOUNT,
         is_reversible=True,
     ),
-    "arif_heart_critique": ToolManifestEntry(
-        tool_name="arif_heart_critique",
+    "arif_critique": ToolManifestEntry(
+        tool_name="arif_critique",
         action_class=ActionClass.ANALYZE,
         safe_modes=[
             "critique",
@@ -510,8 +510,8 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         blast_radius=BlastRadius.PUBLIC,
         is_reversible=True,
     ),
-    "arif_ops_measure": ToolManifestEntry(
-        tool_name="arif_ops_measure",
+    "arif_measure": ToolManifestEntry(
+        tool_name="arif_measure",
         action_class=ActionClass.OBSERVE,
         safe_modes=["health", "vitals", "cost", "predict", "genius", "psi_le", "omega", "landauer"],
         dangerous_modes=[],
@@ -520,8 +520,8 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
-    "arif_judge_deliberate": ToolManifestEntry(
-        tool_name="arif_judge_deliberate",
+    "arif_judge": ToolManifestEntry(
+        tool_name="arif_judge",
         action_class=ActionClass.ANALYZE,
         safe_modes=["judge", "compare", "history", "explain"],
         dangerous_modes=[],
@@ -530,8 +530,8 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
-    "arif_vault_seal": ToolManifestEntry(
-        tool_name="arif_vault_seal",
+    "arif_seal": ToolManifestEntry(
+        tool_name="arif_seal",
         action_class=ActionClass.IRREVERSIBLE,
         safe_modes=["list", "verify", "chain", "dry_run"],
         dangerous_modes=["seal"],
@@ -540,8 +540,8 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         blast_radius=BlastRadius.INFRASTRUCTURE,
         is_reversible=False,
     ),
-    "arif_forge_execute": ToolManifestEntry(
-        tool_name="arif_forge_execute",
+    "arif_forge": ToolManifestEntry(
+        tool_name="arif_forge",
         action_class=ActionClass.MUTATE,
         safe_modes=["query", "recall", "dry_run"],
         dangerous_modes=["engineer", "write", "generate", "commit"],
@@ -1242,7 +1242,7 @@ def _self_check() -> bool:
     # 5. Irreversible without human ack → HOLD
     env5 = KernelEnvelope(
         kernel=KernelIdentity(actor_verified=True),
-        organ=OrganIdentity(tool_name="arif_vault_seal"),
+        organ=OrganIdentity(tool_name="arif_seal"),
         authority=AuthorityBlock(
             action_class=ActionClass.IRREVERSIBLE,
             lease_id="LEASE-ACTIVE",
@@ -1308,7 +1308,7 @@ def _self_check() -> bool:
     )
     env8 = KernelEnvelope(
         kernel=KernelIdentity(actor_verified=True),
-        organ=OrganIdentity(tool_name="arif_vault_seal"),
+        organ=OrganIdentity(tool_name="arif_seal"),
         authority=AuthorityBlock(
             action_class=ActionClass.IRREVERSIBLE,
             lease_id="LEASE-ACTIVE",

@@ -14,7 +14,7 @@ from enum import StrEnum
 
 
 class InitAnchorMode(StrEnum):
-    """Modes supported by the 000_INIT arif_session_init tool."""
+    """Modes supported by the 000_INIT arif_init tool."""
 
     INIT = "init"
     STATE = "state"
@@ -33,16 +33,16 @@ class InitAnchorMode(StrEnum):
 # Maps old arifos_<name> → live arif_<noun>_<verb> canonical names.
 # get_legacy_redirect() in public_registry.py uses this for backward-compat resolution.
 CANONICAL_TOOL_HANDLERS: dict[str, str] = {
-    "arifos_init": "arif_session_init",
-    "arifos_sense": "arif_sense_observe",
-    "arifos_mind": "arif_mind_reason",
+    "arifos_init": "arif_init",
+    "arifos_sense": "arif_observe",
+    "arifos_mind": "arif_think",
     "arifos_kernel": "arif_kernel_route",
-    "arifos_heart": "arif_heart_critique",
-    "arifos_ops": "arif_ops_measure",
-    "arifos_judge": "arif_judge_deliberate",
+    "arifos_heart": "arif_critique",
+    "arifos_ops": "arif_measure",
+    "arifos_judge": "arif_judge",
     "arifos_memory": "arif_memory_recall",
-    "arifos_vault": "arif_vault_seal",
-    "arifos_forge": "arif_forge_execute",
+    "arifos_vault": "arif_seal",
+    "arifos_forge": "arif_forge",
     "arifos_gateway": "arif_gateway_connect",
 }
 

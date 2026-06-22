@@ -1,7 +1,7 @@
 """
 arifosmcp/runtime/reply_compose.py — 444r_REPLY LLM-Powered Response Composition
 
-Wires arif_reply_compose through call_llm() for constitutional message composition.
+Wires arif_compose through call_llm() for constitutional message composition.
 Tier 1: SEA-LION (api.sea-lion.ai)
 Tier 2: Ollama local fallback
 Tier 3: Deterministic fallback (pass-through with constitutional annotations)
@@ -358,7 +358,7 @@ def _compose_fallback(
 # ── Public API ───────────────────────────────────────────────────────────────
 
 
-async def arif_reply_compose(
+async def arif_compose(
     mode: str = "compose",
     message: str | None = None,
     style: str | None = None,
@@ -430,7 +430,7 @@ async def arif_reply_compose(
 
     safety = sea_guard_filter(msg)
     if not safety.passed:
-        logger.warning("SEA-Guard BLOCKED arif_reply_compose: categories=%s", safety.blocked)
+        logger.warning("SEA-Guard BLOCKED arif_compose: categories=%s", safety.blocked)
         return {
             "error": (
                 f"L09 Anti-Hantu / SEA-Guard safety violation: blocked_categories={safety.blocked}"
@@ -463,7 +463,7 @@ async def arif_reply_compose(
     except LLMUnavailableError:
         pass
 
-    logger.info("arif_reply_compose: using deterministic fallback (no LLM)")
+    logger.info("arif_compose: using deterministic fallback (no LLM)")
     return _stamp_f14_reply(
         _compose_fallback(mode=mode, message=msg, style=style, citations=citations),
         ai_involvement=ai_involvement,
@@ -476,7 +476,7 @@ def _stamp_f14_reply(
     ai_involvement: str = "full",
     language: str = "en",
 ) -> dict[str, Any]:
-    """F14 — stamp every arif_reply_compose response with rights metadata.
+    """F14 — stamp every arif_compose response with rights metadata.
 
     Right #1: ai_involvement disclosure (full | partial | advisory | observed)
     Right #4: language register (en | bm | ta | zh | ar | id | ms | tl | ja | ko)
@@ -498,4 +498,4 @@ def _stamp_f14_reply(
     return result
 
 
-__all__ = ["arif_reply_compose", "RESPONSE_SCHEMA"]
+__all__ = ["arif_compose", "RESPONSE_SCHEMA"]

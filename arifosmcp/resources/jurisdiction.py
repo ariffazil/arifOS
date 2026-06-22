@@ -35,13 +35,13 @@ FIVE BANDS (GREEN → BLACK):
     Action class: OBSERVE
     Tools: sense, evidence, memory, ops, kernel route, gateway, reply
     Rule: Execute without asking. No human ack needed.
-    Example: arif_sense_observe, arif_mind_reason
+    Example: arif_observe, arif_think
 
   YELLOW (T1–T2 — Advisory Autonomy)
     Action class: OBSERVE / PREPARE
     Tools: mind_reason, heart_critique (critique mode)
     Rule: Execute. Log outcome. Human can override afterward.
-    Example: arif_heart_critique(mode=critique)
+    Example: arif_critique(mode=critique)
 
   ORANGE (T3 — Constrained Autonomy)
     Action class: PREPARE / MUTATE
@@ -53,13 +53,13 @@ FIVE BANDS (GREEN → BLACK):
     Action class: MUTATE
     Tools: forge_execute (dry-run), judge_deliberate (compare mode)
     Rule: 888_HOLD required. Human ack before execution.
-    Example: arif_forge_execute(ack_irreversible=true)
+    Example: arif_forge(ack_irreversible=true)
 
   BLACK (T5 — Sovereign Only)
     Action class: ATOMIC
     Tools: judge_deliberate (judge mode), vault_seal, forge_execute (live)
     Rule: L13 SOVEREIGN veto. APEX authorization mandatory.
-    Example: arif_vault_seal(mode=seal)
+    Example: arif_seal(mode=seal)
 
 CAPABILITY GRANTS:
   Agents hold CapabilityGrants, never raw secrets.

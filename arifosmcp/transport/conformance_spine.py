@@ -232,11 +232,11 @@ def check_schema_echo_stable() -> dict[str, Any]:
 
 
 def check_session_starts() -> dict[str, Any]:
-    """5. arif_session_init must return READY with a session ID."""
+    """5. arif_init must return READY with a session ID."""
     session_id = _get_session()
     t0 = time.monotonic()
     result = _mcp_post("tools/call", {
-        "name": "arif_session_init",
+        "name": "arif_init",
         "arguments": {
             "mode": "light",
             "actor_id": "conformance-spine",

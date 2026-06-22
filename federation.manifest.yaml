@@ -16,12 +16,12 @@
 # To update: edit this file, then run validation:
 #   python scripts/validate_federation_manifest.py
 #
-# Last verified: 2026-05-19
-# Verified by: Ω-FORGE audit
+# Last verified: 2026-06-21
+# Verified by: FORGE substrate audit — ports corrected, identity chains fixed, tool counts updated
 
 schema_version: "1"
 kind: arifos.federation_manifest
-version: "2026.05.19"
+version: "2026.06.21"
 status: contract
 
 # ─── SOVEREIGN ───────────────────────────────────────────────────────────────
@@ -96,15 +96,15 @@ organs:
     role: earth_evidence
     lane: AGI
     authority: evidence_only
-    port: 18081
+    port: 8081
     transport: streamable_http
     public_domain: https://geox.arif-fazil.com
 
     tool_counts:
-      canonical_public: 15
+      canonical_public: 54
       deprecated_aliases: 0
       hidden_internal: 0
-      callable_verified: 15
+      callable_verified: 54
       phantom: 0
 
     authority_exclusions:
@@ -113,26 +113,23 @@ organs:
       - deployment_substrate
       - final_seal
 
+    # NOTE: Full 54-tool list too large for manifest.
+    # See: /root/geox/src/geox_mcp/registry.py → CANONICAL_PUBLIC_TOOLS
     primary_tools:
-      - geox_data_ingest_bundle
-      - geox_data_qc_bundle
+      - geox_basin_resolve
+      - geox_basin_profile
       - geox_subsurface_generate_candidates
       - geox_subsurface_verify_integrity
-      - geox_seismic_analyze_volume
-      - geox_section_interpret_correlation
-      - geox_map_context_scene
-      - geox_time4d_analyze_system
+      - geox_seismic_compute
       - geox_prospect_evaluate
-      - geox_prospect_judge_preview
-      - geox_prospect_judge_seal
-      - geox_dst_ingest_test
-      - geox_evidence_summarize_cross
+      - geox_evidence_reason
+      - geox_claim_create
+      - geox_data_ingest_bundle
       - geox_system_registry_status
-      - geox_history_audit
 
     registry_truth: VERIFIED
-    health_endpoint: http://localhost:18081/health
-    tools_endpoint: http://localhost:18081/tools
+    health_endpoint: http://localhost:8081/health
+    tools_endpoint: http://localhost:8081/tools
     contract_hash: sha256:geox-v2026.05.19
 
   # ── WEALTH: Capital Thermodynamics ──────────────────────────────────────
@@ -147,10 +144,10 @@ organs:
     public_domain: https://wealth.arif-fazil.com
 
     tool_counts:
-      canonical_public: 17
+      canonical_public: 20
       deprecated_aliases: 0
       hidden_internal: 34
-      callable_verified: 17
+      callable_verified: 20
       phantom: 0
 
     authority_exclusions:
@@ -194,10 +191,10 @@ organs:
     public_domain: https://well.arif-fazil.com
 
     tool_counts:
-      canonical_public: 15
+      canonical_public: 17
       deprecated_aliases: 0
       hidden_internal: 0
-      callable_verified: 15
+      callable_verified: 17
       phantom: 0
 
     authority_exclusions:
@@ -207,28 +204,38 @@ organs:
       - deployment_substrate
       - final_seal
 
-    truth_status: EXPIRED  # ⚠️ State not refreshed since 2026-05-14 (~20 days stale)
-    state_refresh_needed: true
+    state_refresh_needed: false
 
+    # NOTE: Tools verified from server.py — manifest had completely stale list
     primary_tools:
-      - well_classify_substrate
-      - well_trace_lineage
-      - well_detect_boundary
-      - well_measure_gradient
-      - well_assess_metabolism
-      - well_assess_homeostasis
-      - well_check_repair
-      - well_validate_vitality
-      - well_assess_livelihood
-      - well_assess_reliability
-      - well_compute_mind_state
-      - well_detect_cascade_risk
-      - well_measure_continuity
-      - well_sense_gradient
-      - well_trace_memories
+      - well_state
+      - well_log
+      - well_readiness
+      - well_contrast_report
+      - well_init
+      - well_anchor
+      - well_check_floors
+      - well_log_state
+      - well_get_readiness
+      - well_check_floor
+      - well_list_log
+      - well_seal_vault
+      - well_trend_analysis
+      - well_bandwidth_recommendation
+      - well_recovery_protocol
+      - well_niat_check
+      - well_decision_classify
+      - well_consent_status
+      - well_medical_boundary
+      - well_pressure_ledger
+      - well_daily_brief
+      - well_machine_state
+      - well_machine_log
+      - well_coupled_readiness
+      - well_decision_bandwidth
 
-    health_endpoint: http://localhost:8083/health
-    tools_endpoint: http://localhost:8083/tools
+    health_endpoint: http://localhost:18083/health
+    tools_endpoint: http://localhost:18083/tools
     contract_hash: sha256:well-v2026.05.19
 
   # ── A-FORGE: Execution Substrate ───────────────────────────────────────

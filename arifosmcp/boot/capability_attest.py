@@ -22,13 +22,13 @@ logger = logging.getLogger(__name__)
 try:
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
-    _ARIFOS_CANONICAL_COUNT = len(CANONICAL_TOOLS)  # currently 19
-    _ARIFOS_DIAGNOSTIC_COUNT = 37  # see DIAGNOSTIC_TOOLS in constitutional_map.py
+    _ARIFOS_CANONICAL_COUNT = len(CANONICAL_TOOLS)  # currently 22 (21 canonical + 1 probe)
+    _ARIFOS_DIAGNOSTIC_COUNT = 21  # from public_surface.py DIAGNOSTIC_TOOLS tuple
     _ARIFOS_TOTAL_COUNT = _ARIFOS_CANONICAL_COUNT + _ARIFOS_DIAGNOSTIC_COUNT
 except ImportError:
-    _ARIFOS_CANONICAL_COUNT = 19
-    _ARIFOS_DIAGNOSTIC_COUNT = 37
-    _ARIFOS_TOTAL_COUNT = 56
+    _ARIFOS_CANONICAL_COUNT = 22
+    _ARIFOS_DIAGNOSTIC_COUNT = 21
+    _ARIFOS_TOTAL_COUNT = 43
 # ── Static capability baseline (FORGE_REGISTRY.md) ────────────────
 
 _STATIC_CAPABILITIES: dict[str, dict[str, Any]] = {
@@ -82,10 +82,10 @@ _STATIC_CAPABILITIES: dict[str, dict[str, Any]] = {
     },
     "VAULT999": {
         "status": "DEGRADED_CLAIM",
-        "attested_tools": ["arif_vault_seal", "arif_evidence_fetch"],
+        "attested_tools": ["arif_seal", "arif_fetch"],
         "canonical_tool_count": 2,
         "total_tool_count": 2,
-        "note": "Immutable audit ledger — succession memory, not vibes. Tools: arif_vault_seal (999), arif_evidence_fetch (vault query). Live attestation pending NATS subscription.",
+        "note": "Immutable audit ledger — succession memory, not vibes. Tools: arif_seal (999), arif_fetch (vault query). Live attestation pending NATS subscription.",
         "degraded": True,
     },
 }

@@ -1350,7 +1350,7 @@ def _heart_fallback(
     # Q-Day Blast Radius (deterministic — no LLM required)
     if mode in ("qday_blast_radius", "pqc_institutional_risk"):
         # Mark as deterministic-valid: prevent main fn from setting do_not_treat_as_seal=True
-        # The main arif_heart_critique sets this when _llm_available is False.
+        # The main arif_critique sets this when _llm_available is False.
         # We override it here so the Q-Day deterministic scan is treated as a valid critique.
         base_result["_llm_available"] = None  # is_fallback=False in main fn
         target_lower = (target or "").lower()
@@ -1522,7 +1522,7 @@ def _check_vault999_scar_tissue(target: str, max_scan: int = 50) -> dict[str, An
 def _is_self_target(target: str) -> bool:
     """Canonical self-target detection (Eureka 2026-05-21)."""
     SELF_ALIASES = {
-        "arif_heart_critique",
+        "arif_critique",
         "666_HEART",
         "heart.py",
         "arifOS/arifosmcp/tools/heart.py",
@@ -1630,7 +1630,7 @@ def _compute_omega_state(result: dict[str, Any], target: str) -> dict[str, Any]:
 # ── Public API ───────────────────────────────────────────────────────────────
 
 
-async def arif_heart_critique(
+async def arif_critique(
     mode: str = "critique",
     target: str | None = None,
     actor_id: str | None = None,
@@ -1898,4 +1898,4 @@ async def arif_heart_critique(
     return result
 
 
-__all__ = ["arif_heart_critique", "CRITIQUE_SCHEMA"]
+__all__ = ["arif_critique", "CRITIQUE_SCHEMA"]

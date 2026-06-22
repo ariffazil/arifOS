@@ -3,7 +3,7 @@ arifosmcp/runtime/mind_feedback_hook.py — MIND Feedback Integration Hook v1
 ═══════════════════════════════════════════════════════════════════════════════
 
 ZERO-KERNEL-MODIFICATION hook that wires MINDState + FeedbackLoop into
-arif_mind_reason_v2 without touching mind_reason.py.
+arif_think_v2 without touching mind_reason.py.
 
 ARCHITECTURE
 ────────────
@@ -19,7 +19,7 @@ ARCHITECTURE
 
 USAGE
 ─────
-  Instead of calling arif_mind_reason_v2() directly, call:
+  Instead of calling arif_think_v2() directly, call:
 
     from arifosmcp.runtime.mind_feedback_hook import mind_reason_with_feedback
     response, feedback = await mind_reason_with_feedback(request)
@@ -27,7 +27,7 @@ USAGE
   OR set the environment variable to auto-patch:
 
     MIND_FEEDBACK_ENABLED=true
-    # Now arif_mind_reason_v2 is automatically wrapped
+    # Now arif_think_v2 is automatically wrapped
 
 REVERSIBILITY (F1)
 ──────────────────
@@ -84,7 +84,7 @@ _CHECKPOINT_TIER = os.getenv("MIND_CHECKPOINT_TIER", "canon")  # canon = 90-day 
 class MindFeedbackTracker:
     """Tracks MINDState and FeedbackLoop across a single reasoning request.
 
-    Created at the start of arif_mind_reason_v2, persisted after each
+    Created at the start of arif_think_v2, persisted after each
     metabolic layer (metabolize → abstract → attest → abduct → synthesize).
 
     Usage:
@@ -303,7 +303,7 @@ class MindFeedbackTracker:
 
 
 async def mind_reason_with_feedback(request) -> tuple[Any, dict[str, Any]]:
-    """Execute arif_mind_reason_v2 with MINDState + FeedbackLoop tracking.
+    """Execute arif_think_v2 with MINDState + FeedbackLoop tracking.
 
     Args:
         request: MindRequest (from mind_metabolism.py)
@@ -311,14 +311,14 @@ async def mind_reason_with_feedback(request) -> tuple[Any, dict[str, Any]]:
     Returns:
         (MindResponse, feedback_summary_dict)
 
-    This is the drop-in replacement for arif_mind_reason_v2().
+    This is the drop-in replacement for arif_think_v2().
     All existing callers can switch to this without changing mind_reason.py.
     """
-    from arifosmcp.runtime.mind_reason import arif_mind_reason_v2
+    from arifosmcp.runtime.mind_reason import arif_think_v2
 
     if not _FEEDBACK_ENABLED:
         # Passthrough — zero overhead when disabled
-        response = await arif_mind_reason_v2(request)
+        response = await arif_think_v2(request)
         return response, {"status": "feedback_disabled"}
 
     # Initialize tracker
@@ -332,7 +332,7 @@ async def mind_reason_with_feedback(request) -> tuple[Any, dict[str, Any]]:
     )
 
     # Execute the original reasoning
-    response = await arif_mind_reason_v2(request)
+    response = await arif_think_v2(request)
 
     # Record layers from the response's mind_packet
     if hasattr(response, 'mind_packet') and response.mind_packet:
@@ -402,7 +402,7 @@ async def mind_reason_with_feedback(request) -> tuple[Any, dict[str, Any]]:
 
 
 def _auto_patch():
-    """Auto-patch arif_mind_reason_v2 if MIND_FEEDBACK_ENABLED=true.
+    """Auto-patch arif_think_v2 if MIND_FEEDBACK_ENABLED=true.
 
     This is the zero-kernel-modification mechanism. When the env var is set,
     this module monkey-patches the import path so that callers get the
@@ -413,15 +413,15 @@ def _auto_patch():
 
     try:
         import arifosmcp.runtime.mind_reason as mr
-        _original = mr.arif_mind_reason_v2
+        _original = mr.arif_think_v2
 
         async def _wrapped(request):
             response, _summary = await mind_reason_with_feedback(request)
             return response
 
-        mr.arif_mind_reason_v2 = _wrapped
+        mr.arif_think_v2 = _wrapped
         logger.info(
-            "MindFeedbackHook: AUTO-PATCHED arif_mind_reason_v2 "
+            "MindFeedbackHook: AUTO-PATCHED arif_think_v2 "
             "with feedback tracking (MIND_FEEDBACK_ENABLED=true)"
         )
         return True

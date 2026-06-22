@@ -109,7 +109,7 @@ class EvidenceReceipt(BaseModel):
     """
     Anchors a runtime MCP artifact as valid evidence for downstream tools.
 
-    This allows arif_judge_deliberate to SEAL based on MCP-generated evidence,
+    This allows arif_judge to SEAL based on MCP-generated evidence,
     not only web/sense receipts.
     """
 
@@ -318,7 +318,7 @@ class EmbodiedToolEnvelope(BaseModel):
     """
 
     # Identity
-    tool_id: str = Field(description="Canonical tool identifier e.g. 'arif_mind_reason'")
+    tool_id: str = Field(description="Canonical tool identifier e.g. 'arif_think'")
     tool_name: str = Field(description="Human-readable tool name")
     domain: Domain = Field(description="Which MCP organ")
     tool_version: str | None = Field(
@@ -408,7 +408,7 @@ class EmbodiedToolEnvelope(BaseModel):
     # Evidence receipt (Fix #5)
     evidence_receipt: EvidenceReceipt | None = Field(
         default=None,
-        description="Runtime artifact anchoring for downstream arif_judge_deliberate verification",
+        description="Runtime artifact anchoring for downstream arif_judge verification",
     )
 
     # Next step
@@ -423,8 +423,8 @@ class EmbodiedToolEnvelope(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "tool_id": "arif_mind_reason",
-                "tool_name": "arif_mind_reason",
+                "tool_id": "arif_think",
+                "tool_name": "arif_think",
                 "domain": "AOS",
                 "actor_id": "arif",
                 "session_id": "sess_abc123",
@@ -444,7 +444,7 @@ class EmbodiedToolEnvelope(BaseModel):
                 "result": {"reasoning_output": "..."},
                 "witness": {
                     "input_hash": "sha256:...",
-                    "tool_id": "arif_mind_reason",
+                    "tool_id": "arif_think",
                     "timestamp": "2026-05-09T12:00:00Z",
                     "actor_id": "arif",
                     "session_id": "sess_abc123",

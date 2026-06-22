@@ -184,7 +184,7 @@ async def arif_session_budget(
                 f" Objective '{objective_id}' has {len(same_obj)} recorded operations — "
                 "split-action bypass suspected."
             )
-        next_safe_action = "888_HOLD → arif_judge_deliberate → sovereign review"
+        next_safe_action = "888_HOLD → arif_judge → sovereign review"
     else:
         verdict = "SEAL"
         recommendation = (

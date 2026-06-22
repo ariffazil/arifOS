@@ -29,7 +29,7 @@ class GovernanceKernel:
 
     Usage:
         kernel = GovernanceKernel()
-        result = kernel.execute_tool("arif_session_init", params, actor_id)
+        result = kernel.execute_tool("arif_init", params, actor_id)
     """
 
     def __init__(self):

@@ -12,12 +12,12 @@ ARCHITECTURE:
   ┌────────────────────────────────────────────────────────────────┐
   │  EXISTING KERNEL (UNMODIFIED)                                  │
   │                                                                 │
-  │  arif_sense_observe()    ──→  rasa_wrap_sense()                │
-  │  arif_mind_reason()      ──→  rasa_wrap_mind()                 │
-  │  arif_heart_critique()   ──→  rasa_wrap_heart()                │
+  │  arif_observe()    ──→  rasa_wrap_sense()                │
+  │  arif_think()      ──→  rasa_wrap_mind()                 │
+  │  arif_critique()   ──→  rasa_wrap_heart()                │
   │  arif_memory_recall()    ──→  rasa_wrap_memory()               │
-  │  arif_judge_deliberate() ──→  rasa_wrap_judge()                │
-  │  arif_session_init()     ──→  rasa_wrap_session_init()         │
+  │  arif_judge() ──→  rasa_wrap_judge()                │
+  │  arif_init()     ──→  rasa_wrap_session_init()         │
   │                                                                 │
   │  activate_rasa_wiring()   → monkey-patches tool modules         │
   │  deactivate_rasa_wiring() → restores original functions          │
@@ -86,7 +86,7 @@ _session_rasa: dict[str, dict] = {}
 
 
 def rasa_wrap_sense(original_sense_fn):
-    """Wrap arif_sense_observe (111 SENSE) with rasa detection.
+    """Wrap arif_observe (111 SENSE) with rasa detection.
 
     In SHADOW mode: runs original sense + rasa detection, logs delta.
     In ENFORCE mode: runs original sense, applies rasa governance to output.
@@ -155,7 +155,7 @@ def rasa_wrap_sense(original_sense_fn):
 
 
 def rasa_wrap_mind(original_mind_fn):
-    """Wrap arif_mind_reason (333 MIND) with rasa context.
+    """Wrap arif_think (333 MIND) with rasa context.
 
     Attaches rasa governance context to reasoning, constraining
     cognitive bandwidth and risk sensitivity per detection.
@@ -198,7 +198,7 @@ def rasa_wrap_mind(original_mind_fn):
 
 
 def rasa_wrap_heart(original_heart_fn):
-    """Wrap arif_heart_critique (444 HEART) with rasa risk calculus.
+    """Wrap arif_critique (444 HEART) with rasa risk calculus.
 
     Adds rasa-specific risk assessment to the heart critique:
     de-escalation score, dignity preservation, boundary honoring.
@@ -305,7 +305,7 @@ def rasa_wrap_memory(original_memory_fn):
 
 
 def rasa_wrap_judge(original_judge_fn):
-    """Wrap arif_judge_deliberate (888 JUDGE) with rasa constitutional check.
+    """Wrap arif_judge (888 JUDGE) with rasa constitutional check.
 
     Adds rasa-aware floor enforcement to the judge deliberation:
     F1, F5, F6, F9, F10, F13 for human rasa contexts.
@@ -424,7 +424,7 @@ def _log_rasa_telemetry(session_id: str, organ: str, data: dict) -> None:
 
 
 def rasa_wrap_session_init(original_init_fn):
-    """Wrap arif_session_init (000 INIT) to initialize rasa context.
+    """Wrap arif_init (000 INIT) to initialize rasa context.
 
     Sets up per-session rasa tracking state. Zero impact on
     session initialization output.
@@ -547,23 +547,23 @@ def activate_rasa_wiring(mode: RasaContractMode | None = None) -> None:
     try:
         import arifosmcp.runtime.tools as rt_mod
 
-        # ── Patch _arif_sense_observe (111 SENSE) ───────────────────
-        if hasattr(rt_mod, "_arif_sense_observe"):
-            _originals["_arif_sense_observe"] = rt_mod._arif_sense_observe
-            rt_mod._arif_sense_observe = rasa_wrap_sense(rt_mod._arif_sense_observe)
-            logger.info("Rasa wiring: patched _arif_sense_observe (111 SENSE)")
+        # ── Patch _arif_observe (111 SENSE) ───────────────────
+        if hasattr(rt_mod, "_arif_observe"):
+            _originals["_arif_observe"] = rt_mod._arif_observe
+            rt_mod._arif_observe = rasa_wrap_sense(rt_mod._arif_observe)
+            logger.info("Rasa wiring: patched _arif_observe (111 SENSE)")
 
-        # ── Patch _arif_mind_reason (333 MIND) — passive/shadow only ──
-        if hasattr(rt_mod, "_arif_mind_reason"):
-            _originals["_arif_mind_reason"] = rt_mod._arif_mind_reason
-            rt_mod._arif_mind_reason = rasa_wrap_mind(rt_mod._arif_mind_reason)
-            logger.info("Rasa wiring: patched _arif_mind_reason (333 MIND) [shadow]")
+        # ── Patch _arif_think (333 MIND) — passive/shadow only ──
+        if hasattr(rt_mod, "_arif_think"):
+            _originals["_arif_think"] = rt_mod._arif_think
+            rt_mod._arif_think = rasa_wrap_mind(rt_mod._arif_think)
+            logger.info("Rasa wiring: patched _arif_think (333 MIND) [shadow]")
 
-        # ── Patch _arif_heart_critique (444 HEART) ──────────────────
-        if hasattr(rt_mod, "_arif_heart_critique"):
-            _originals["_arif_heart_critique"] = rt_mod._arif_heart_critique
-            rt_mod._arif_heart_critique = rasa_wrap_heart(rt_mod._arif_heart_critique)
-            logger.info("Rasa wiring: patched _arif_heart_critique (444 HEART)")
+        # ── Patch _arif_critique (444 HEART) ──────────────────
+        if hasattr(rt_mod, "_arif_critique"):
+            _originals["_arif_critique"] = rt_mod._arif_critique
+            rt_mod._arif_critique = rasa_wrap_heart(rt_mod._arif_critique)
+            logger.info("Rasa wiring: patched _arif_critique (444 HEART)")
 
         # ── Patch _arif_memory_recall (555m MEMORY) — passive/shadow only ──
         if hasattr(rt_mod, "_arif_memory_recall"):
@@ -571,17 +571,17 @@ def activate_rasa_wiring(mode: RasaContractMode | None = None) -> None:
             rt_mod._arif_memory_recall = rasa_wrap_memory(rt_mod._arif_memory_recall)
             logger.info("Rasa wiring: patched _arif_memory_recall (555m MEMORY) [shadow]")
 
-        # ── Patch _arif_judge_deliberate (888 JUDGE) ────────────────
-        if hasattr(rt_mod, "_arif_judge_deliberate"):
-            _originals["_arif_judge_deliberate"] = rt_mod._arif_judge_deliberate
-            rt_mod._arif_judge_deliberate = rasa_wrap_judge(rt_mod._arif_judge_deliberate)
-            logger.info("Rasa wiring: patched _arif_judge_deliberate (888 JUDGE)")
+        # ── Patch _arif_judge (888 JUDGE) ────────────────
+        if hasattr(rt_mod, "_arif_judge"):
+            _originals["_arif_judge"] = rt_mod._arif_judge
+            rt_mod._arif_judge = rasa_wrap_judge(rt_mod._arif_judge)
+            logger.info("Rasa wiring: patched _arif_judge (888 JUDGE)")
 
-        # ── Patch _arif_session_init (000 INIT) ─────────────────────
-        if hasattr(rt_mod, "_arif_session_init"):
-            _originals["_arif_session_init"] = rt_mod._arif_session_init
-            rt_mod._arif_session_init = rasa_wrap_session_init(rt_mod._arif_session_init)
-            logger.info("Rasa wiring: patched _arif_session_init (000 INIT)")
+        # ── Patch _arif_init (000 INIT) ─────────────────────
+        if hasattr(rt_mod, "_arif_init"):
+            _originals["_arif_init"] = rt_mod._arif_init
+            rt_mod._arif_init = rasa_wrap_session_init(rt_mod._arif_init)
+            logger.info("Rasa wiring: patched _arif_init (000 INIT)")
 
     except Exception as e:
         logger.warning(f"Rasa wiring: could not patch runtime.tools: {e}")

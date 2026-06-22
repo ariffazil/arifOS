@@ -172,7 +172,7 @@ def authority_missing(transport: str = "streamable_http") -> AirlockError:
         stage=AirlockStage.ENVELOPE_CONSTRUCT,
         transport=transport,
         retryable=True,
-        next_probe="arif_session_init",
+        next_probe="arif_init",
     )
 
 
@@ -228,7 +228,7 @@ def build_transport_error_envelope(
         TransportFaultCode.ARIF_TRANSPORT_DIALECT_MISMATCH: (-32602, "arif_transport_echo"),
         TransportFaultCode.ARIF_VERSION_NEGOTIATION_FAILED: (-32602, "arif_version_echo"),
         TransportFaultCode.ARIF_INIT_DIALECT_MISMATCH: (-32602, "arif_initialize_probe"),
-        TransportFaultCode.ARIF_SESSION_NOT_FOUND: (-32001, "arif_session_init(mode='resume')"),
+        TransportFaultCode.ARIF_SESSION_NOT_FOUND: (-32001, "arif_init(mode='resume')"),
         TransportFaultCode.ARIF_ENVELOPE_MISSING: (-32602, "arif_ping"),
         TransportFaultCode.ARIF_LEASE_EXPIRED: (-32000, "arif_lease_issue"),
     }

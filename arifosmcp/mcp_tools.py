@@ -271,7 +271,7 @@ def create_meta_mcp() -> FastMCP:
 
 
 def create_mind_mcp() -> FastMCP:
-    """Cognitive Agent MCP — arif_mind_reason v2 metabolic surface."""
+    """Cognitive Agent MCP — arif_think v2 metabolic surface."""
     from arifosmcp.runtime.mind_mcp import mcp
 
     return mcp
@@ -350,19 +350,19 @@ TOOL_CATALOG = """arifOS 13-Tool Canonical Surface — arif_<noun>_<verb> namesp
 ================================================================================================
 
 GOVERNED LOOP (13):  [canonical arif_<noun>_<verb> surface — AGENTS.md SOT]
-  000  arif_session_init       — Identity bootstrap, session anchor
-  111  arif_sense_observe      — Physical reality grounding (GEOX / Δ organ)
-  222  arif_evidence_fetch     — Web / external evidence retrieval
-  333  arif_mind_reason        — Constitutional reasoning (F2/F7/F8)
-  444h arif_heart_critique     — Ethical critique, F9/L12 safety gate
+  000  arif_init       — Identity bootstrap, session anchor
+  111  arif_observe      — Physical reality grounding (GEOX / Δ organ)
+  222  arif_fetch     — Web / external evidence retrieval
+  333  arif_think        — Constitutional reasoning (F2/F7/F8)
+  444h arif_critique     — Ethical critique, F9/L12 safety gate
   444r arif_kernel_route       — Metabolic syscall routing (444_ROUTER)
-       arif_reply_compose      — Dual-axis governed response composition
+       arif_compose      — Dual-axis governed response composition
   555  arif_memory_recall      — Vector memory retrieval (Qdrant + bge-m3)
   666g arif_gateway_connect    — A2A mesh, agent-to-agent governed connection
-  777  arif_ops_measure        — Health probe, brent_score, ops telemetry
-  888  arif_judge_deliberate   — Constitutional verdict engine (888_JUDGE)
-  999  arif_vault_seal         — Append-only VAULT999 ledger write
-  010  arif_forge_execute      — A-FORGE dispatch (requires 888 SEAL)
+  777  arif_measure        — Health probe, brent_score, ops telemetry
+  888  arif_judge   — Constitutional verdict engine (888_JUDGE)
+  999  arif_seal         — Append-only VAULT999 ledger write
+  010  arif_forge      — A-FORGE dispatch (requires 888 SEAL)
 
 WIKI AGENT (4):      [repo comprehension via arifos_wiki_tools forge]
   W    arif_wiki_ingest        — Index repo: scan, chunk, extract symbols, write index

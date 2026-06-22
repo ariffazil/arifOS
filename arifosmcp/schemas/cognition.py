@@ -227,11 +227,11 @@ class RealityAnchor(BaseModel):
 
 
 class EvidenceOutput(BaseModel):
-    """Full output schema for arif_evidence_fetch with sequential thinking."""
+    """Full output schema for arif_fetch with sequential thinking."""
 
     # Standard fields
     status: str = "OK"
-    tool: str = "arif_evidence_fetch"
+    tool: str = "arif_fetch"
 
     # Thinking sequence (the new civilization intelligence layer)
     thinking_sequence: ThinkingSequence | None = Field(

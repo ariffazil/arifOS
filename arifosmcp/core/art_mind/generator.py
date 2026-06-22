@@ -19,7 +19,7 @@ class ToolAction:
     """One action in a plan.
 
     Attributes:
-        name:         action identifier (e.g., "arif_sense_observe")
+        name:         action identifier (e.g., "arif_observe")
         params:       action parameters
         reversible:   can this action be undone? (F1 AMANAH)
         cost:         rough cost proxy [0.0, 1.0+]
@@ -73,7 +73,7 @@ class CandidateGenerator:
             id="observe_more",
             actions=[
                 ToolAction(
-                    name="arif_sense_observe",
+                    name="arif_observe",
                     params={"depth": "high"},
                     reversible=True,
                     cost=0.1,
@@ -92,7 +92,7 @@ class CandidateGenerator:
             id="reason_then_search",
             actions=[
                 ToolAction(
-                    name="arif_mind_reason",
+                    name="arif_think",
                     params={"mode": "structured"},
                     reversible=True,
                     cost=0.1,
@@ -118,7 +118,7 @@ class CandidateGenerator:
             id="forge_now",
             actions=[
                 ToolAction(
-                    name="arif_forge_execute",
+                    name="arif_forge",
                     params={"intent": intent},
                     reversible=False,  # forge is the canonical irreversible
                     cost=0.5,

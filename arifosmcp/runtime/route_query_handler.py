@@ -45,7 +45,7 @@ class RouteQueryInput(BaseModel):
     )
     session_id: str | None = Field(
         default=None,
-        description="Current governed session ID from arif_session_init.",
+        description="Current governed session ID from arif_init.",
     )
     actor_id: str | None = Field(
         default=None,

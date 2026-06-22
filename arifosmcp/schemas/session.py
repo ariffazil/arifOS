@@ -59,7 +59,7 @@ class EmbodimentCard(BaseModel):
     filesystem_scope: str = "full_root"
     network_scope: str = "localhost_only"
     container_runtime: bool = True
-    execution_broker: str = "arif_forge_execute"
+    execution_broker: str = "arif_forge"
     mutation_default: str = "dry_run"
     side_effects_allowed_without_ack: bool = False
     atomic_capability_present: bool = True
@@ -141,7 +141,7 @@ class ToolSurface(BaseModel):
     count: int = 0  # populated at runtime
     groups: dict[str, list[str]] = Field(
         default_factory=lambda: {
-            "bootstrap": ["arif_session_init"],
+            "bootstrap": ["arif_init"],
             "sense": ["observe", "search", "ingest", "compass"],
             "evidence": ["fetch", "verify", "contradiction_scan"],
             "reason": ["reason", "critique", "plan"],
@@ -438,7 +438,7 @@ class SessionManifest(BaseModel):
     """Full 000_INIT output — embodiment + capability + attention + ToM-1 scaffold."""
 
     status: str = "OK"
-    tool: str = "arif_session_init"
+    tool: str = "arif_init"
     mode: str = "init"
 
     # WAJIB categories (ToM-0 — operational orientation)

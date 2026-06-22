@@ -76,7 +76,7 @@ TRANSPORT
 
 AUTH & SECURITY
 ───────────────
-[✓] Session binding     — arif_session_init required for governed tools
+[✓] Session binding     — arif_init required for governed tools
 [✓] Floor enforcement   — F1-F13 constitutional gates on all tool calls
 [✓] Lease gating        — Mutation-class operations require capability lease
 [✓] VAULT999 sealing    — Immutable audit trail for all terminal verdicts

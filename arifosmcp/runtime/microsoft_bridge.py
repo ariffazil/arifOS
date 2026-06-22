@@ -288,7 +288,7 @@ def probe_federation() -> FederationProbe:
 
 
 def log_to_vault999(
-    probe: FederationProbe, vault_path: str = os.environ.get("VAULT999_TELEMETRY_PATH", "/root/arifOS/VAULT999/telemetry_probes.jsonl")
+    probe: FederationProbe, vault_path: str = os.environ.get("VAULT999_TELEMETRY_PATH", "/agent/vault999/telemetry_probes.jsonl")
 ) -> int:
     """Append the probe to VAULT999 telemetry log. Returns line number written.
 

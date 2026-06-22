@@ -40,11 +40,11 @@
     "diagnostic": "6 health probes, drift checks, floor status, budget telemetry, instruction scanner"
   },
   "canonical_order": [
-    "arif_session_init",
-    "arif_sense_observe",
-    "arif_evidence_fetch",
-    "arif_mind_reason",
-    "arif_heart_critique",
+    "arif_init",
+    "arif_observe",
+    "arif_fetch",
+    "arif_think",
+    "arif_critique",
     "arif_kernel_route",
     "arif_route",
     "arif_triage",
@@ -53,14 +53,14 @@
     "arif_bridge",
     "arif_kernel_attest",
     "arif_kernel_health",
-    "arif_reply_compose",
+    "arif_compose",
     "arif_memory",
     "arif_memory_recall",
     "arif_gateway_connect",
-    "arif_judge_deliberate",
-    "arif_vault_seal",
-    "arif_forge_execute",
-    "arif_ops_measure"
+    "arif_judge",
+    "arif_seal",
+    "arif_forge",
+    "arif_measure"
   ],
   "diagnostic_order": [
     "hermes_system_status",
@@ -135,7 +135,7 @@
     "L13"
   ],
   "tools": {
-    "arif_session_init": {
+    "arif_init": {
       "stage": "000",
       "lane": "AGI",
       "floors": [
@@ -174,7 +174,7 @@
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
-    "arif_sense_observe": {
+    "arif_observe": {
       "stage": "111",
       "lane": "AGI",
       "floors": [
@@ -211,7 +211,7 @@
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
-    "arif_evidence_fetch": {
+    "arif_fetch": {
       "stage": "222",
       "lane": "AGI",
       "floors": [
@@ -246,7 +246,7 @@
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
-    "arif_mind_reason": {
+    "arif_think": {
       "stage": "333",
       "lane": "AGI",
       "floors": [
@@ -288,7 +288,7 @@
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
-    "arif_heart_critique": {
+    "arif_critique": {
       "stage": "666",
       "lane": "ASI",
       "floors": [
@@ -598,7 +598,7 @@
       "_deprecated": true,
       "_canonical_name": "arif_diag_health"
     },
-    "arif_reply_compose": {
+    "arif_compose": {
       "stage": "444r",
       "lane": "AGI",
       "floors": [
@@ -751,7 +751,7 @@
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
-    "arif_judge_deliberate": {
+    "arif_judge": {
       "stage": "888",
       "lane": "ASI",
       "floors": [
@@ -789,7 +789,7 @@
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
-    "arif_vault_seal": {
+    "arif_seal": {
       "stage": "999",
       "lane": "APEX",
       "floors": [
@@ -825,7 +825,7 @@
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
-    "arif_forge_execute": {
+    "arif_forge": {
       "stage": "010",
       "lane": "AGI",
       "floors": [
@@ -863,7 +863,7 @@
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
-    "arif_ops_measure": {
+    "arif_measure": {
       "stage": "777",
       "lane": "AGI",
       "floors": [

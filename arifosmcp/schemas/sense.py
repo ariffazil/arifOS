@@ -1,4 +1,4 @@
-"""Sense output schema — 111_SENSE (arif_sense_observe)"""
+"""Sense output schema — 111_SENSE (arif_observe)"""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ class SenseResult(BaseModel):
 
 class SenseOutput(BaseModel):
     status: str = "OK"
-    tool: str = "arif_sense_observe"
+    tool: str = "arif_observe"
     result: SenseResult = Field(default_factory=SenseResult)
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None

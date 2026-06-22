@@ -16,9 +16,9 @@
 
 ## Implementation
 Embedded natively in:
-- `111_SENSE` (`arif_sense_observe`)
-- `222_FETCH` (`arif_evidence_fetch`)
-- `888_JUDGE` (`arif_judge_deliberate`)
+- `111_SENSE` (`arif_observe`)
+- `222_FETCH` (`arif_fetch`)
+- `888_JUDGE` (`arif_judge`)
 
 ## Core Law
 ```python

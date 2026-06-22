@@ -1023,7 +1023,7 @@ async def wire_cross_organ_feedback(
     """Wire a feedback signal from one organ to another via NATS.
 
     This is the cross-organ extension of feedback_loop.py. Instead of
-    the feedback loop running only within a single arif_mind_reason call,
+    the feedback loop running only within a single arif_think call,
     it now spans organs: arifOS reason → GEOX compute → WEALTH evaluate →
     feedback signal → arifOS re-plan.
 

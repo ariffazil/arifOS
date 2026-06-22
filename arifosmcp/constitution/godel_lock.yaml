@@ -75,7 +75,7 @@ axioms:
       from outside the agent's own frame. The external witness is a human, a
       higher-order governance module, or a composite procedure defined by them.
       When the witness conflicts with the agent's reasoning, the witness wins.
-    enforce: "arif_forge_execute refuses all MUTATE actions without actor_signature != agent's own id AND judge_state_hash != null"
+    enforce: "arif_forge refuses all MUTATE actions without actor_signature != agent's own id AND judge_state_hash != null"
     failure_verdict: "HOLD"
     failure_cause: "self_authorized_mutation"
     witness: "F13 SOVEREIGN (cannot be delegated to LLM)"
@@ -113,7 +113,7 @@ axioms:
       agent does not control. If the gate denies, the agent does not
       re-argue its own admissibility, attempt to bypass, or run a
       parallel un-gated path.
-    enforce: "arif_forge_execute H2 hard-gate: refuses engineer/write/generate without approved plan_id; refuses commit without vault_entry_id; downstream tool calls wrapped by _KERNEL.evaluate_intent"
+    enforce: "arif_forge H2 hard-gate: refuses engineer/write/generate without approved plan_id; refuses commit without vault_entry_id; downstream tool calls wrapped by _KERNEL.evaluate_intent"
     failure_verdict: "SEAL_REJECTED"
     failure_cause: "gate_bypass_attempt"
     witness: "F13 SOVEREIGN + KernelState.heart_critique"

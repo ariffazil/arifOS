@@ -9,8 +9,8 @@ mounted at ARIFOS_REGISTRY_ROOT (default: /app/arifos-model-registry).
 No HTTP. No separate container. Just a file database.
 
 Wired to:
-- arif_session_init (000) — identity verification + APEX gating
-- arif_ops_measure (777) — registry health vitals
+- arif_init (000) — identity verification + APEX gating
+- arif_measure (777) — registry health vitals
 - arif_stack_health_probe (777) — federation health
 - kernel routing — governance posture enforcement
 

@@ -70,7 +70,7 @@ def register_evidence_resources(mcp: FastMCP) -> list[str]:
 
     registered.append("source://{hash}")
 
-    # source://list — REMOVED (dynamic data → belongs in arif_evidence_fetch tool)
+    # source://list — REMOVED (dynamic data → belongs in arif_fetch tool)
 
     # ── receipt://web/{id} ─────────────────────────────────────────────────────
     @mcp.resource(
@@ -105,7 +105,7 @@ def register_evidence_resources(mcp: FastMCP) -> list[str]:
 
     registered.append("receipt://web/{id}")
 
-    # receipt://list — REMOVED (dynamic data → belongs in arif_evidence_fetch tool)
+    # receipt://list — REMOVED (dynamic data → belongs in arif_fetch tool)
 
     # ── contrast://{id} ─────────────────────────────────────────────────────────
     @mcp.resource(

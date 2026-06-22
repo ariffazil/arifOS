@@ -101,7 +101,7 @@ def build_charter_v2(
         {
             "uri": "arifos://vitals",
             "name": "Constitutional Vitals Reference",
-            "description": "Metric definitions and thresholds (green/yellow/red). For LIVE values use arif_ops_measure.",
+            "description": "Metric definitions and thresholds (green/yellow/red). For LIVE values use arif_measure.",
             "mimeType": "text/plain",
         },
         {

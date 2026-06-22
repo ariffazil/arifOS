@@ -570,7 +570,7 @@ def create_rootkey_anchor_seal_payload() -> dict[str, Any]:
     Once sealed, it becomes VAULT999 entry for the root anchor.
 
     Returns:
-        Dict payload ready for arif_vault_seal
+        Dict payload ready for arif_seal
     """
     pem_bytes, fingerprint = load_sovereign_public_key()
     now = datetime.now(UTC).isoformat()

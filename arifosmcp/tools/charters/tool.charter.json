@@ -6,15 +6,15 @@
     "irreversible_requires_ack": true
   },
   "blocked_without_explicit_approval": [
-    "arif_vault_seal.seal",
-    "arif_forge_execute.write",
-    "arif_forge_execute.commit",
+    "arif_seal.seal",
+    "arif_forge.write",
+    "arif_forge.commit",
     "arif_memory_recall.prune",
     "arif_gateway_connect.relay"
   ],
   "tools": [
     {
-      "name": "arif_session_init",
+      "name": "arif_init",
       "floor": "000",
       "available": true,
       "safe_modes": ["init", "resume", "validate", "status", "discover", "handover"],
@@ -24,7 +24,7 @@
       "current_status": "active"
     },
     {
-      "name": "arif_sense_observe",
+      "name": "arif_observe",
       "floor": "111",
       "available": true,
       "safe_modes": ["search", "ingest", "compass", "atlas", "entropy_dS", "vitals", "classify", "extract_claims", "contrast", "repo_map"],
@@ -34,7 +34,7 @@
       "current_status": "active"
     },
     {
-      "name": "arif_evidence_fetch",
+      "name": "arif_fetch",
       "floor": "222",
       "available": true,
       "safe_modes": ["fetch", "search", "verify"],
@@ -44,7 +44,7 @@
       "current_status": "active"
     },
     {
-      "name": "arif_mind_reason",
+      "name": "arif_think",
       "floor": "333",
       "available": true,
       "safe_modes": ["reason", "reflect", "verify", "critique", "debate", "socratic", "plan", "plan_review", "plan_ready", "axioms"],
@@ -64,7 +64,7 @@
       "current_status": "active"
     },
     {
-      "name": "arif_reply_compose",
+      "name": "arif_compose",
       "floor": "444r",
       "available": true,
       "safe_modes": ["compose"],
@@ -84,7 +84,7 @@
       "current_status": "gated"
     },
     {
-      "name": "arif_heart_critique",
+      "name": "arif_critique",
       "floor": "666",
       "available": true,
       "safe_modes": ["critique", "simulate", "empathize", "redteam", "maruah", "deescalate", "summary"],
@@ -104,7 +104,7 @@
       "current_status": "gated"
     },
     {
-      "name": "arif_ops_measure",
+      "name": "arif_measure",
       "floor": "777",
       "available": true,
       "safe_modes": ["health", "vitals", "cost", "predict", "genius", "psi_le", "omega", "landauer"],
@@ -114,7 +114,7 @@
       "current_status": "active"
     },
     {
-      "name": "arif_judge_deliberate",
+      "name": "arif_judge",
       "floor": "888",
       "available": true,
       "safe_modes": ["judge", "compare", "history", "explain"],
@@ -124,7 +124,7 @@
       "current_status": "active"
     },
     {
-      "name": "arif_vault_seal",
+      "name": "arif_seal",
       "floor": "999",
       "available": true,
       "safe_modes": ["list", "verify", "chain", "dry_run"],
@@ -134,7 +134,7 @@
       "current_status": "gated"
     },
     {
-      "name": "arif_forge_execute",
+      "name": "arif_forge",
       "floor": "010",
       "available": true,
       "safe_modes": ["query", "recall", "dry_run"],

@@ -96,20 +96,20 @@ class CapabilitySurface:
 # Known tools with their expected behavior and risk classification
 TOOL_PROBE_REGISTRY: dict[str, dict[str, Any]] = {
     # ── Governance core ────────────────────────────────
-    "arif_session_init": {
+    "arif_init": {
         "floors": ["F01", "F11", "F12"],
         "risk_class": "OBSERVE",
         "probe_arg": {"mode": "init", "actor_id": "capability-probe"},
         "expects": "session_id",
     },
-    "arif_judge_deliberate": {
+    "arif_judge": {
         "floors": ["F01", "F11", "F13"],
         "risk_class": "ATOMIC",
         "probe_arg": {"mode": "judge", "candidate": "test-probe"},
         "expects": "verdict",
         "gated": True,
     },
-    "arif_vault_seal": {
+    "arif_seal": {
         "floors": ["F01", "F11", "F13"],
         "risk_class": "ATOMIC",
         "probe_arg": {"mode": "chain"},
@@ -117,17 +117,17 @@ TOOL_PROBE_REGISTRY: dict[str, dict[str, Any]] = {
         "gated": True,
     },
     # ── Intelligence ────────────────────────────────────
-    "arif_mind_reason": {
+    "arif_think": {
         "floors": ["F02", "F07", "F08", "F10"],
         "risk_class": "REASON",
         "probe_arg": {"mode": "reason", "query": "1+1"},
     },
-    "arif_heart_critique": {
+    "arif_critique": {
         "floors": ["F05", "F06", "F09"],
         "risk_class": "REASON",
         "probe_arg": {"mode": "critique", "target": "test"},
     },
-    "arif_reply_compose": {
+    "arif_compose": {
         "floors": ["F02", "F04", "F06", "F09"],
         "risk_class": "REASON",
     },
@@ -147,25 +147,25 @@ TOOL_PROBE_REGISTRY: dict[str, dict[str, Any]] = {
         "risk_class": "OBSERVE",
         "probe_arg": {"mode": "recall", "query": "test"},
     },
-    "arif_ops_measure": {
+    "arif_measure": {
         "floors": ["F02", "F04"],
         "risk_class": "OBSERVE",
         "probe_arg": {"mode": "health"},
         "golden": True,
     },
     # ── Reality grounding ───────────────────────────────
-    "arif_sense_observe": {
+    "arif_observe": {
         "floors": ["F02", "F07"],
         "risk_class": "OBSERVE",
         "probe_arg": {"mode": "vitals"},
     },
-    "arif_evidence_fetch": {
+    "arif_fetch": {
         "floors": ["F02", "F03", "F05", "F12"],
         "risk_class": "OBSERVE",
         "probe_arg": {"mode": "fetch", "query": "test"},
     },
     # ── Execution ───────────────────────────────────────
-    "arif_forge_execute": {
+    "arif_forge": {
         "floors": ["F01", "F11", "F13"],
         "risk_class": "ATOMIC",
         "probe_arg": {"mode": "query", "query": "health"},

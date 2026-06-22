@@ -2,7 +2,7 @@
 ART Mind — The micro arifOS cognition substrate (federated under ART).
 
 v0.1 (2026-06-21) — Advisory only. Generates ranked plans with confidence bands
-BEFORE arif_judge_deliberate. Sits at the 333-REASON stage of the 000-999 pipeline.
+BEFORE arif_judge. Sits at the 333-REASON stage of the 000-999 pipeline.
 
 This is the 5th organ of ART:
   1. Reflex   — runtime/art.py        (hot path, 3 checks, 4 states)

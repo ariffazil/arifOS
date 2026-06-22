@@ -1,12 +1,12 @@
 """Forge Application — arifOS Command Center v0.3.
 
 Double-gated execution:
-  Gate 1: arif_judge_deliberate verdict == SEAL
+  Gate 1: arif_judge verdict == SEAL
   Gate 2: Human explicit approval for irreversible actions
 
 This module provides the governed forge execution path.
 The CC tool forge_dry_run calls into this after the interceptor
-passes. The actual arif_forge_execute backend is called only
+passes. The actual arif_forge backend is called only
 when both gates are satisfied.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
@@ -103,7 +103,7 @@ def governed_forge_execute(
     try:
         from arifosmcp.runtime.tools import _CANONICAL_HANDLERS
 
-        handler = _CANONICAL_HANDLERS.get("arif_forge_execute")
+        handler = _CANONICAL_HANDLERS.get("arif_forge")
         result = handler(
             mode=mode,
             manifest=manifest,

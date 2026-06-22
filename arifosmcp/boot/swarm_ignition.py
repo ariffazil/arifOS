@@ -4,7 +4,7 @@ Swarm Ignition Orchestrator — INIT_0 through INIT_10
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 Central orchestrator for the AGI-level recursive swarm ignition.
-Called ONCE per agent boot from arif_session_init.
+Called ONCE per agent boot from arif_init.
 
 Architecture:
   tools.py → run_swarm_ignition() → 6 reader modules → SwarmManifest

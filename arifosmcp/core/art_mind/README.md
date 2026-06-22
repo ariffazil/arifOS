@@ -9,7 +9,7 @@
 ## What is Minda?
 
 **Minda** is the cognition substrate of arifOS. It sits at the **333-REASON** stage of
-the 000-999 pipeline, BEFORE `arif_judge_deliberate` (888). Its only job is to:
+the 000-999 pipeline, BEFORE `arif_judge` (888). Its only job is to:
 
 1. **Sense** — fold new observations into a Bayesian belief
 2. **Think** — generate candidate tool-chain plans
@@ -23,11 +23,11 @@ Minda **never executes**. It advises. The Judge authorizes. The Vault witnesses.
 
 | Stage | arifOS today | What minda adds |
 |---|---|---|
-| 111 SENSE | `arif_sense_observe` (raw facts) | **Bayesian belief update** (confidence + provenance) |
-| 333 REASON | `arif_mind_reason` (LLM reasoning) | **Plan generation + trajectory simulation** (search over futures) |
+| 111 SENSE | `arif_observe` (raw facts) | **Bayesian belief update** (confidence + provenance) |
+| 333 REASON | `arif_think` (LLM reasoning) | **Plan generation + trajectory simulation** (search over futures) |
 | 333 REASON | (none) | **Multi-objective expected utility** (F1-F13 as constraints) |
 | 555 ROUTE | `arif_kernel_route` (pick tool) | **Ranked plans with confidence bands** (not just a single pick) |
-| 888 JUDGE | `arif_judge_deliberate` (constitutional verdict) | (consumes minda output as one input) |
+| 888 JUDGE | `arif_judge` (constitutional verdict) | (consumes minda output as one input) |
 
 The 3 missing pieces from the v3.1 framework: **Bayesian update + trajectory simulation + expected utility**.
 
@@ -103,7 +103,7 @@ The forge plan triggers 888_HOLD (irreversible). The mind picks `reason_then_sea
 | **F9 ANTIHANTU** | Minda is documented as a **TOOL**, not a mind. No consciousness claims. |
 | **F10 ONTOLOGY** | Same as F9 — AI-only ontology. |
 | **F11 AUTH** | Caller identity is required upstream (gated by arifOS session). |
-| **F12 INJECTION** | Input sanitization is upstream (`arif_sense_observe` enforces 5× patterns). |
+| **F12 INJECTION** | Input sanitization is upstream (`arif_observe` enforces 5× patterns). |
 | **F13 SOVEREIGN** | Human veto is absolute. Minda never self-executes; Judge + 888_HOLD are the only authority. |
 
 ## Configuration

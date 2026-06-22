@@ -17,7 +17,7 @@ What was missing is the CONSUMER side: a verifier that:
   1. subscribes to the stream,
   2. counts which organs have attested within the freshness window,
   3. computes honesty_ratio = (organs_attested / organs_expected),
-  4. surfaces the ratio for inclusion in /health or /arif_session_init.
+  4. surfaces the ratio for inclusion in /health or /arif_init.
 
 This module provides:
   - AttestationRecord: the parsed shape of a heartbeat message.

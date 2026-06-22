@@ -74,7 +74,7 @@ class VerdictLabel:
     VOID = "VOID"  # Breach, blocked permanently
 
 
-# Mode-to-RequestType mapping for arif_mind_reason
+# Mode-to-RequestType mapping for arif_think
 MIND_REASON_MODES = {
     "reason": RequestType.REASON,
     "reflect": RequestType.REASON,
@@ -90,19 +90,19 @@ MIND_REASON_MODES = {
 
 # Tool-to-RequestType mapping
 TOOL_REQUEST_TYPE = {
-    "arif_session_init": RequestType.EXECUTE,
-    "arif_sense_observe": RequestType.READ,
-    "arif_evidence_fetch": RequestType.READ,
-    "arif_mind_reason": RequestType.REASON,  # overridden by mode param
-    "arif_heart_critique": RequestType.CRITIQUE,  # overridden by mode
+    "arif_init": RequestType.EXECUTE,
+    "arif_observe": RequestType.READ,
+    "arif_fetch": RequestType.READ,
+    "arif_think": RequestType.REASON,  # overridden by mode param
+    "arif_critique": RequestType.CRITIQUE,  # overridden by mode
     "arif_kernel_route": RequestType.READ,
-    "arif_reply_compose": RequestType.REASON,
+    "arif_compose": RequestType.REASON,
     "arif_memory_recall": RequestType.READ,
     "arif_gateway_connect": RequestType.EXECUTE,
-    "arif_judge_deliberate": RequestType.REASON,
-    "arif_vault_seal": RequestType.VAULT_WRITE,
-    "arif_forge_execute": RequestType.EXECUTE,  # overridden by mode
-    "arif_ops_measure": RequestType.READ,
+    "arif_judge": RequestType.REASON,
+    "arif_seal": RequestType.VAULT_WRITE,
+    "arif_forge": RequestType.EXECUTE,  # overridden by mode
+    "arif_measure": RequestType.READ,
 }
 
 
@@ -122,17 +122,17 @@ def classify_request(tool_name: str, params: dict[str, Any]) -> str:
     # Override by mode for multi-mode tools
     mode = params.get("mode", "").lower()
 
-    if tool_name == "arif_mind_reason":
+    if tool_name == "arif_think":
         return MIND_REASON_MODES.get(mode, RequestType.REASON)
 
-    if tool_name == "arif_heart_critique":
+    if tool_name == "arif_critique":
         if mode in ("critique", "redteam", "simulate"):
             return RequestType.CRITIQUE
         if mode in ("empathize", "maruah", "deescalate"):
             return RequestType.REASON
         return RequestType.CRITIQUE
 
-    if tool_name == "arif_forge_execute":
+    if tool_name == "arif_forge":
         if mode == "dry_run":
             return RequestType.DRY_RUN
         if mode in ("query", "recall"):
@@ -289,11 +289,11 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
         )
         if query_param and isinstance(query_param, str) and len(query_param) > 2:
             if tool_name in (
-                "arif_mind_reason",
-                "arif_heart_critique",
-                "arif_sense_observe",
-                "arif_evidence_fetch",
-                "arif_reply_compose",
+                "arif_think",
+                "arif_critique",
+                "arif_observe",
+                "arif_fetch",
+                "arif_compose",
                 "arif_read",
             ):
                 try:
@@ -409,22 +409,22 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
     # SOVEREIGN_TESTIMONY — epistemic class = direct witness. Agents must
     # treat as ground truth, not claim. Demand for proof of stated scars is
     # the exact wound the substrate exists to prevent.
-    if tool_name == "arif_heart_critique" and params.get("substrate_demand_proof"):
+    if tool_name == "arif_critique" and params.get("substrate_demand_proof"):
         failed.append("L13-PRE-TRUST")
         logger.critical("L13 PRE-TRUST addendum violated: demand for proof of substrate scars")
 
-    # L09 TAQWA — arif_heart_critique must precede arif_forge_execute
-    if tool_name == "arif_forge_execute":
+    # L09 TAQWA — arif_critique must precede arif_forge
+    if tool_name == "arif_forge":
         sid = params.get("session_id")
         if sid:
             try:
                 from arifosmcp.apps.session_state import was_tool_called
 
-                if not was_tool_called(sid, "arif_heart_critique"):
+                if not was_tool_called(sid, "arif_critique"):
                     failed.append("L09")
                     logger.critical(
-                        f"L09 ANTIHANTU: arif_forge_execute blocked — "
-                        f"arif_heart_critique not called in session {sid}. "
+                        f"L09 ANTIHANTU: arif_forge blocked — "
+                        f"arif_critique not called in session {sid}. "
                         f"PSI KHIANAT: Anti-Hantu prerequisite violated."
                     )
             except Exception as e:
@@ -448,7 +448,7 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
                 "violated_laws": failed,
                 "reason": f"Constitutional floor breach: {', '.join(failed)}",
                 "request_type": request_type,
-                "next_safe_action": "Run arif_heart_critique first, then retry forge",
+                "next_safe_action": "Run arif_critique first, then retry forge",
             }
         if "L01" in failed or "L11" in failed:
             return {

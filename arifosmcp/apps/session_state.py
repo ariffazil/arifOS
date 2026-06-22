@@ -63,13 +63,13 @@ def get_or_create_session(session_id: str, actor_id: str = "arif") -> SessionSta
 
     Reads from both the governance store (_session_store) and the kernel
     store (runtime.tools._SESSIONS) so that sessions created by
-    arif_session_init are visible to governance apps.
+    arif_init are visible to governance apps.
     """
     # Check governance store first
     if session_id in _session_store:
         return _session_store[session_id]
 
-    # Check kernel session store (arif_session_init uses this)
+    # Check kernel session store (arif_init uses this)
     try:
         from arifosmcp.runtime.tools import _SESSIONS
 

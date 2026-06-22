@@ -15,7 +15,7 @@ The flow:
 Doctrine:
   ART may recommend. Judge authorizes. Vault witnesses.
   This service is the advisory layer. It does not execute.
-  The arif_judge_deliberate call is what authorizes any action.
+  The arif_judge call is what authorizes any action.
 """
 
 from __future__ import annotations
@@ -46,7 +46,7 @@ class MindaService:
     def think(self, req: ThinkRequest) -> ThinkResponse:
         """Run the full cognition loop and return a ranked proposal.
 
-        Advisory only. Never executes. The caller (typically arif_judge_deliberate
+        Advisory only. Never executes. The caller (typically arif_judge
         or an LLM agent loop) decides what to do with the proposal.
         """
         # 1. Belief update

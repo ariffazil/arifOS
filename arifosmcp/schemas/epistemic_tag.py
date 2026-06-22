@@ -50,8 +50,8 @@ class OutputClass(StrEnum):
 
     AI_ADVISORY          — Output produced or assisted by an AI/LLM path.
                            Always advisory, never authoritative on its own.
-                           Examples: arif_mind_reason, arif_heart_critique,
-                           arif_reply_compose, arif_evidence_fetch summaries.
+                           Examples: arif_think, arif_critique,
+                           arif_compose, arif_fetch summaries.
 
     DOMAIN_COMPUTATION   — Domain-specific computation from an organ engine.
                            May mix deterministic calculation with heuristics.
@@ -76,7 +76,7 @@ class AiInvolvement(StrEnum):
     ASSISTED         — LLM assisted but final output is governed by determinism.
                        Example: LLM rephrased a deterministic result.
     GENERATED        — LLM generated the output content.
-                       Example: arif_mind_reason reasoning trace.
+                       Example: arif_think reasoning trace.
     FALLBACK_SKIPPED — AI path was attempted but not completed; deterministic
                        fallback returned instead. Carries a degraded_reason field.
     """

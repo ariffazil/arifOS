@@ -644,10 +644,10 @@ def session_gate_c4(query_class: QueryClass, session_id: str | None) -> dict | N
         "governance_block": True,
         "error": "C4_SESSION_REQUIRED: Capital/investment decisions require a governed session.",
         "detail": (
-            "Call arif_session_init first to open a governed session. "
+            "Call arif_init first to open a governed session. "
             "Money decisions are C4 — no session means no recommendation."
         ),
-        "action_required": "arif_session_init(mode='init', actor_id='<your-id>')",
+        "action_required": "arif_init(mode='init', actor_id='<your-id>')",
         "output_policy": "HOLD",
     }
 

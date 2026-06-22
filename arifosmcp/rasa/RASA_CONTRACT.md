@@ -125,7 +125,7 @@ The uncertainty band is always declared in the result envelope.
 
 ```json
 {
-  "tool": "arif_heart_critique",
+  "tool": "arif_critique",
   "verdict": "HOLD",
   "result": {
     "rasa_detection": {

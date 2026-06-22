@@ -1,7 +1,7 @@
 """
 arifos://vitals — Constitutional Vitals Reference (Ω)
 ═════════════════════════════════════════════════════
-Static reference thresholds. Dynamic values via arif_ops_measure.
+Static reference thresholds. Dynamic values via arif_measure.
 This resource defines what the metrics MEAN, not what they currently ARE.
 """
 
@@ -29,7 +29,7 @@ truth_level: 1  # SOVEREIGN_CANON (1-7 scale)
 
 arifOS Vitals — Metric Reference & Thresholds (Ω)
 
-DYNAMIC VALUES: Use arif_ops_measure(mode=health) for live telemetry.
+DYNAMIC VALUES: Use arif_measure(mode=health) for live telemetry.
 This resource defines the reference thresholds and what each metric means.
 
 METRIC DICTIONARY:
@@ -66,9 +66,9 @@ METRIC DICTIONARY:
     System hold: ≥ 0.85
     What: Unified thermodynamic entropy rate across cognitive + machine substrates.
 
-RESOURCE METRICS (via arif_ops_measure):
+RESOURCE METRICS (via arif_measure):
   CPU, Memory, Disk, Load, Swap — standard system telemetry.
-  Check /health endpoint or arif_ops_measure(mode=topology) for federation map.
+  Check /health endpoint or arif_measure(mode=topology) for federation map.
 
 DITEMPA BUKAN DIBERI
 """
@@ -82,7 +82,7 @@ def register_vitals(mcp: FastMCP) -> list[str]:
         description=(
             "Static reference for constitutional vitals: metric definitions, "
             "green/yellow/red thresholds, and what each metric means. "
-            "For LIVE values, use arif_ops_measure(mode=health). "
+            "For LIVE values, use arif_measure(mode=health). "
             "This resource is the dictionary, not the reading."
         ),
         text=VITALS_TEXT,

@@ -202,7 +202,7 @@ if __name__ == "__main__":  # pragma: no cover
         ),
         (
             "kasaq_efficient",
-            "HOLD. arif_forge_execute requires ack_irreversible=true. 888: confirm or cancel.",
+            "HOLD. arif_forge requires ack_irreversible=true. 888: confirm or cancel.",
         ),
     ]
     for label, text in cases:

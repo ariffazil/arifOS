@@ -15,7 +15,7 @@ Background:
   This is a testable claim. This module provides the empirical
   probe. It:
     1. Sends a Penang-BM query and an English query to the
-       same MCP tool (arif_sense_observe, mode=search).
+       same MCP tool (arif_observe, mode=search).
     2. Records: byte length, word count, top-3 result URLs,
        top-3 result title languages (heuristic).
     3. Computes: language_routing_differential (count of
@@ -236,7 +236,7 @@ async def run_live_probe(
         async with Client(arifos_url) as c:
             for label, q in (("bm", bm_q), ("en", en_q)):
                 r = await c.call_tool(
-                    "arif_sense_observe",
+                    "arif_observe",
                     {"mode": "search", "query": q.text, "result_limit": 5},
                 )
                 content = r.content if hasattr(r, "content") else r

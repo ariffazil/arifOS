@@ -108,7 +108,7 @@ from arifosmcp.schemas.session import (
 )
 
 
-def arif_session_init(
+def arif_init(
     mode: str = "init",
     actor_id: str | None = None,
     ack_irreversible: bool = False,
@@ -157,7 +157,7 @@ def arif_session_init(
         tool_surface = _build_tool_surface()
         return SessionManifest(
             status="OK",
-            tool="arif_session_init",
+            tool="arif_init",
             mode="ping",
             session=SessionState(
                 session_id="",
@@ -229,7 +229,7 @@ def arif_session_init(
         sid = sess.get("session_id", "UNKNOWN")
         return SessionManifest(
             status="OK",
-            tool="arif_session_init",
+            tool="arif_init",
             mode=mode,
             session=SessionState(session_id=sid, actor_id=actor_id, stage="000", lane="AGI", constitution_bound=True),
             actor={"claimed_id": actor_id, "identity_verified": False, "authority_level": "OPERATOR"},
@@ -260,7 +260,7 @@ def arif_session_init(
                     "executor_actor_id": executor_actor_id or "Hermes@af-forge",
                     "sovereign_id": sovereign_id or actor_id or "ARIF_FAZIL",
                     "delegation_mode": delegation_mode or "internal_executor",
-                    "call_chain": ["client", "arif_session_init", "light"],
+                    "call_chain": ["client", "arif_init", "light"],
                 },
                 "next_actions": _manifest_backed_next_actions(
                     [
@@ -271,7 +271,7 @@ def arif_session_init(
                             "status",
                         ),
                         ("preflight before a proposed action", "arif_triage", "preflight"),
-                        ("full constitutional binding", "arif_session_init", "init"),
+                        ("full constitutional binding", "arif_init", "init"),
                     ]
                 ),
             },
@@ -315,7 +315,7 @@ def arif_session_init(
 
     # ── FLOOR CHECK ────────────────────────────────────────────
     floor_check = check_laws(
-        "arif_session_init",
+        "arif_init",
         {"mode": mode, "ack_irreversible": ack_irreversible},
         actor_id,
     )
@@ -505,7 +505,7 @@ def arif_session_init(
         # Default: compact output with WAJIB fields + ToM-1 scaffold
         return SessionManifest(
             status="OK",
-            tool="arif_session_init",
+            tool="arif_init",
             mode="init",
             session=session_state,
             actor=actor_block,
@@ -606,7 +606,7 @@ def arif_session_init(
                 "pre_session": True,
                 "active_sessions": len(_SESSIONS),
                 "available_modes": ["ping", "discover", "birth", "light", "init", "status", "validate", "resume", "epoch_open", "epoch_seal"],
-                "next_lane": "arif_session_init(mode='birth') to create observe-only session",
+                "next_lane": "arif_init(mode='birth') to create observe-only session",
                 "required_for_birth": {
                     "mode": "birth (or init_light)",
                     "actor_id": "string (non-null, e.g. arifbfazil)",
@@ -688,7 +688,7 @@ def arif_session_init(
                                     "executor_actor_id": executor_actor_id or "Hermes@af-forge",
                                     "sovereign_id": sovereign_id or actor_id or "ARIF_FAZIL",
                                     "delegation_mode": delegation_mode or "internal_executor",
-                                    "call_chain": ["client", "arif_session_init", "birth", "idempotency_replay"],
+                                    "call_chain": ["client", "arif_init", "birth", "idempotency_replay"],
                                 },
                             },
                             doctrine=ARIF_DOCTRINE,
@@ -782,7 +782,7 @@ def arif_session_init(
                     "executor_actor_id": executor_actor_id or "arifOS@af-forge",
                     "sovereign_id": sovereign_id or actor_id or "ARIF_FAZIL",
                     "delegation_mode": delegation_mode or "internal_executor",
-                    "call_chain": ["client", "arif_session_init", "birth"],
+                    "call_chain": ["client", "arif_init", "birth"],
                 },
                 "next_actions": _observe_only_next_actions(),
             },
@@ -868,7 +868,7 @@ def _build_embodiment_card() -> EmbodimentCard:
         filesystem_scope="full_root",
         network_scope="localhost_only",
         container_runtime=True,
-        execution_broker="arif_forge_execute",
+        execution_broker="arif_forge",
         mutation_default="dry_run",
         side_effects_allowed_without_ack=False,
         atomic_capability_present=True,
@@ -897,7 +897,7 @@ def _observe_only_next_actions() -> list[dict[str, Any]]:
             ("kernel self-attestation", "arif_kernel_attest", "attest"),
             ("federation organ liveness and telemetry", "arif_kernel_status", "status"),
             ("preflight before a proposed action", "arif_triage", "preflight"),
-            ("full constitutional binding", "arif_session_init", "init"),
+            ("full constitutional binding", "arif_init", "init"),
         ]
     )
 

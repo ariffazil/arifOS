@@ -4,7 +4,7 @@ arifosmcp/tools/chatgpt_shim.py — ChatGPT Discovery Shim (Hardened)
 
 Two thin tools that satisfy ChatGPT's mandatory search/fetch discovery
 requirement without touching kernel logic. Routes internally to the
-canonical arif_sense_observe and arif_evidence_fetch handlers.
+canonical arif_observe and arif_fetch handlers.
 
 ART ALIGNMENT:
   Both tools are OBSERVE-class (action_class="observe", blast_radius="low").
@@ -105,21 +105,21 @@ async def arif_search(
     session_id: str | None = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
-    """ChatGPT-compatible search shim → arif_sense_observe(mode=search).
+    """ChatGPT-compatible search shim → arif_observe(mode=search).
 
     Read-only, open-world, idempotent. Never persists.
     Returns search results with titles, URLs, and snippets.
     """
     from arifosmcp.runtime.tools import _CANONICAL_HANDLERS
 
-    handler = _CANONICAL_HANDLERS.get("arif_sense_observe")
+    handler = _CANONICAL_HANDLERS.get("arif_observe")
     if handler is None:
         return {
             "status": "error",
             "tool": "arif_search",
             "results": [],
             "query_used": query,
-            "error": "arif_sense_observe handler not available",
+            "error": "arif_observe handler not available",
         }
 
     try:
@@ -154,7 +154,7 @@ async def arif_fetch(
     session_id: str | None = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
-    """ChatGPT-compatible fetch shim → arif_evidence_fetch(mode=fetch).
+    """ChatGPT-compatible fetch shim → arif_fetch(mode=fetch).
 
     Read-only, open-world, idempotent. Never persists by default.
     Returns page content as text with canonical URL.
@@ -167,7 +167,7 @@ async def arif_fetch(
     # Default: fetch-only (no persistence). If persist=True, use ingest mode.
     mode = "ingest" if persist else "fetch"
 
-    handler = _CANONICAL_HANDLERS.get("arif_evidence_fetch")
+    handler = _CANONICAL_HANDLERS.get("arif_fetch")
     if handler is None:
         return {
             "status": "error",
@@ -175,7 +175,7 @@ async def arif_fetch(
             "content": "",
             "canonical_url": url,
             "fetch_status": "error",
-            "error": "arif_evidence_fetch handler not available",
+            "error": "arif_fetch handler not available",
         }
 
     try:
@@ -225,7 +225,7 @@ SHIM_TOOLS: dict[str, dict[str, Any]] = {
             "facts, documentation, or real-world data. Returns search results "
             "with titles, URLs, and snippets."
         ),
-        "routes_to": "arif_sense_observe",
+        "routes_to": "arif_observe",
         "route_mode": "search",
     },
     "arif_fetch": {
@@ -234,7 +234,7 @@ SHIM_TOOLS: dict[str, dict[str, Any]] = {
             "Fetch content from a URL. Use when you need to read the contents "
             "of a specific webpage or document. Returns the page content as text."
         ),
-        "routes_to": "arif_evidence_fetch",
+        "routes_to": "arif_fetch",
         "route_mode": "fetch",
     },
 }

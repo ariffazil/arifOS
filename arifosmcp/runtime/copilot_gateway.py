@@ -214,7 +214,7 @@ def _call_arif_judge(
         payload = json.dumps(
             {
                 "jsonrpc": "2.0",
-                "method": "arif_judge_deliberate",
+                "method": "arif_judge",
                 "params": {
                     "mode": "judge",
                     "candidate": copilot_output[:2000],

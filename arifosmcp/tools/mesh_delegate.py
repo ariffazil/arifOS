@@ -17,7 +17,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from arifosmcp.tools.judge import arif_judge_deliberate
+from arifosmcp.tools.judge import arif_judge
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ async def arif_mesh_delegate(
         "Apply F2 TRUTH and F3 WITNESS principles. Output a final sealed decision."
     )
     
-    deliberation = await arif_judge_deliberate(
+    deliberation = await arif_judge(
         dilemma=judge_prompt,
         constitutional_floors=["F2_truth", "F3_tri_witness"],
         evidence_keys=["mesh_delegate"],

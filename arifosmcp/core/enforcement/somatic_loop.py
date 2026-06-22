@@ -2,16 +2,16 @@
 # Forged 2026-06-21 | session: 2026-06-21-melayu-policy
 # Provenance: turn 4 Perplexity paste → somatic_intelligence_research
 # Iron Rule (v0.0.1): this file WAS a passive function library.
-#                    v0.0.2 (2026-06-20): WIRED into arif_judge_deliberate via
+#                    v0.0.2 (2026-06-20): WIRED into arif_judge via
 #                    /root/arifOS/arifosmcp/tools/judge.py.
 #                    Wire-up patch: classify_somatic_state() called before
-#                    _arif_judge_deliberate() from vitals telemetry.
+#                    _arif_judge() from vitals telemetry.
 #                    SomaticState.CRITICAL → HOLD.
 #                    Integration test: tests/constitutional/test_maruah_enforcement.py.
 #
 # Design constraints:
 #   - Machine-as-body analogy ONLY. Not biological. (F9 ANTIHANTU hard rule.)
-#   - Maps to existing `arif_ops_measure` telemetry. No new sensors invented.
+#   - Maps to existing `arif_measure` telemetry. No new sensors invented.
 #   - SomaticState enum: NOMINAL | STRESSED | CRITICAL.
 #   - Pure-function decision: input telemetry → output state. No side effects.
 #   - No new floor. No new layer name. (F1-F13 hard rule.)
@@ -64,7 +64,7 @@ class TelemetrySample:
 
 
 # --- Thresholds (v0, conservative) -----------------------------------
-# v0: deliberately simple. v1: source from arif_ops_measure live.
+# v0: deliberately simple. v1: source from arif_measure live.
 # These are PLACEHOLDERS, not production thresholds. Tune in v1.
 _THRESHOLDS = {
     "latency_ms_critical": 2000.0,
@@ -108,7 +108,7 @@ def classify_somatic_state(telemetry: TelemetrySample) -> SomaticState:
 
 
 # --- Recommended response per state ----------------------------------
-# v0: text-only advisory. v1: trigger arif_triage or arif_judge_deliberate.
+# v0: text-only advisory. v1: trigger arif_triage or arif_judge.
 RESPONSE_BY_STATE: dict[SomaticState, str] = {
     SomaticState.NOMINAL: "proceed",
     SomaticState.STRESSED: "throttle, plan, observe",
@@ -127,9 +127,9 @@ def self_audit() -> dict:
     return {
         "module": "somatic_loop",
         "version": "0.0.2",
-        "wired": True,  # v0.0.2 (2026-06-20): wired into arif_judge_deliberate
-        "wire_path": "arifosmcp/tools/judge.py → arif_judge_deliberate()",
-        "trigger": "machine telemetry from arif_ops_measure vitals; CRITICAL → HOLD",
+        "wired": True,  # v0.0.2 (2026-06-20): wired into arif_judge
+        "wire_path": "arifosmcp/tools/judge.py → arif_judge()",
+        "trigger": "machine telemetry from arif_measure vitals; CRITICAL → HOLD",
         "depends_on_llm": False,
         "depends_on_network": False,
         "floor_count_delta": 0,

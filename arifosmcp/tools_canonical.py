@@ -22,7 +22,7 @@ EXTENSION HOOKS PATTERN (from wiki/pages/RECURSIVE_IMPROVEMENT_LOG.md):
   Maps cleanly to: before_execution → F9_TAQWA check; after_execution → L11_AUDIT logging.
 
 DELTA BUNDLE SPEC (from wiki/pages/RECURSIVE_IMPROVEMENT_LOG.md):
-  arif_mind_reason output must include: facts, scars, floor_scores, entropy, omega_0.
+  arif_think output must include: facts, scars, floor_scores, entropy, omega_0.
   See: tools/mind_reason.py _build_delta_bundle()
 
 QUANTUM SABAR PROTOCOL (from wiki/pages/RECURSIVE_IMPROVEMENT_LOG.md):
@@ -909,7 +909,7 @@ def arifos_oracle_bio(
         # of a governed decision proportional to its irreversibility weight (W_scar).
         #
         # Inputs via dimensions dict:
-        #   action_weight       float [0,1]  — irreversibility weight from arif_ops_measure
+        #   action_weight       float [0,1]  — irreversibility weight from arif_measure
         #   kappa_r             float [0,1]  — reversibility coefficient
         #   baseline_well_score float        — optional prior snapshot score
         #   current_bio_delta   dict         — optional caller-provided sensor deltas

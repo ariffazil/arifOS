@@ -71,7 +71,7 @@ class AutonomyMode(StrEnum):
 class ToolCapability(BaseModel):
     """What one tool can honestly do right now."""
 
-    name: str = Field(description="Canonical tool name (e.g. arif_ops_measure)")
+    name: str = Field(description="Canonical tool name (e.g. arif_measure)")
     organ: str = Field(description="Owning organ (arifOS, WEALTH, WELL, GEOX, A-FORGE)")
     available: bool = Field(description="Is the tool reachable? (transport/auth)")
     read_ok: bool = Field(description="Read operations working?")

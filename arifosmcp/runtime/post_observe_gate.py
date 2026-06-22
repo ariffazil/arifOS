@@ -6,13 +6,13 @@ N1 — ACS `post_tool_call` interception point for arifOS.
 
 Forged: 2026-06-11
 Reference: microsoft/agent-governance-toolkit ACS spec (Build 2026)
-arifOS gap: between `arif_sense_observe` (111) and `arif_mind_reason` (333)
+arifOS gap: between `arif_observe` (111) and `arif_think` (333)
 Constitutional binding: F02 TRUTH + F09 ANTIHANTU + F12 INJECTION
 
 This module is INTENTIONALLY a stand-alone callable — not a kernel mutation.
 Agents (Claude Code, OpenCode, Continue, custom) wrap their observe→reason
 flow with this gate. The kernel itself remains F02+F07 on the tool contract
-(do not change arif_sense_observe's floor binding without F13).
+(do not change arif_observe's floor binding without F13).
 
 The gate checks observation output (a dict payload from sense_observe or
 evidence_fetch) for:
@@ -36,8 +36,8 @@ Returns:
     "epoch_utc": str,
   }
 
-A HOLD here means: do NOT pipe this observation into arif_mind_reason.
-Re-observe with a different query, or escalate to arif_judge_deliberate.
+A HOLD here means: do NOT pipe this observation into arif_think.
+Re-observe with a different query, or escalate to arif_judge.
 """
 
 from __future__ import annotations
@@ -172,13 +172,13 @@ def post_observe_gate(
 ) -> dict[str, Any]:
     """
     N1 Post-Observe Gate. Wrap observation results before they enter
-    arif_mind_reason (or any reasoning step). Reversible: never mutates
+    arif_think (or any reasoning step). Reversible: never mutates
     the input observation; returns a separate gate verdict + scrubbed copy.
 
     Parameters
     ----------
     observation : dict
-        The full payload returned by arif_sense_observe or arif_evidence_fetch.
+        The full payload returned by arif_observe or arif_fetch.
         Shape varies by mode. The gate walks the entire structure.
     caller_lane : str
         One of AGI, ASI, APEX. APEX/ASI calls relax F02 to PLAUSIBLE.
@@ -287,8 +287,8 @@ def post_observe_gate(
     if f12_total_hits > 0:
         verdict = "HOLD"
         advice = (
-            f"F12 INJECTION: {f12_total_hits} vector(s) detected. Do NOT pipe into arif_mind_reason. "
-            "Re-observe with a different query, or escalate to arif_judge_deliberate for advisory."
+            f"F12 INJECTION: {f12_total_hits} vector(s) detected. Do NOT pipe into arif_think. "
+            "Re-observe with a different query, or escalate to arif_judge for advisory."
         )
     elif policy_applied is not None:
         pass
@@ -312,7 +312,7 @@ def post_observe_gate(
         )
     else:
         verdict = "PASS"
-        advice = "All three floors clean. Safe to pipe into arif_mind_reason."
+        advice = "All three floors clean. Safe to pipe into arif_think."
 
     scrubbed = _scrub_observation(observation, blocked_fields)
 
@@ -359,7 +359,7 @@ def safe_observe_then_reason(
     return the gate verdict without calling reason_fn.
 
     Usage:
-        result = safe_observe_then_reason(obs, arif_mind_reason, query=...)
+        result = safe_observe_then_reason(obs, arif_think, query=...)
     """
     gate = post_observe_gate(observation)
     if gate["verdict"] == "HOLD":

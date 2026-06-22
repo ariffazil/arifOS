@@ -81,7 +81,7 @@ class EmbodiedToolEngine:
     Usage:
         engine = EmbodiedToolEngine()
         decision = await engine.run_preflight(
-            tool_id="arif_mind_reason",
+            tool_id="arif_think",
             params={"query": "What is the capital of France?"},
             actor_id="arif",
             session_id="sess_abc123",
@@ -90,7 +90,7 @@ class EmbodiedToolEngine:
             return decision  # HOLD or VOID
         result = await tool.execute(params)
         envelope = await engine.run_postflight(
-            tool_id="arif_mind_reason",
+            tool_id="arif_think",
             params={"query": "What is the capital of France?"},
             actor_id="arif",
             session_id="sess_abc123",
@@ -593,8 +593,8 @@ def embodied_tool(
 
     Usage:
         @embodied_tool(
-            tool_id="arif_mind_reason",
-            tool_name="arif_mind_reason",
+            tool_id="arif_think",
+            tool_name="arif_think",
             domain="AOS",
             risk_tier="T1",
             reversibility="reversible",

@@ -97,12 +97,12 @@ class MCPGateV0:
         "geox_seismic_compute",
         "geox_subsurface_generate_candidates",
         "forge_dry_run",
-        "arif_forge_execute",
+        "arif_forge",
     }
 
     # Tools that ALWAYS require 888_HOLD
     IRREVERSIBLE_TOOLS: set[str] = {
-        "arif_vault_seal",
+        "arif_seal",
         "forge_vault_seal",
         "forge_approve",
         "docker_volume_remove",
@@ -118,7 +118,7 @@ class MCPGateV0:
 
     # Tools that REQUIRE_APPROVAL before execution
     APPROVAL_REQUIRED_TOOLS: set[str] = {
-        "arif_forge_execute",
+        "arif_forge",
         "forge_execute",
         "forge_approve",
         "docker_container_start",
@@ -145,10 +145,10 @@ class MCPGateV0:
         ):
             return MCPGateResponse(
                 verdict=GateVerdict.BLOCK,
-                reason="No active session. Start one with arif_session_init.",
+                reason="No active session. Start one with arif_init.",
                 explanation=(
                     "All non-observation actions require an active constitutional session. "
-                    "Call arif_session_init(actor_id='...') first. "
+                    "Call arif_init(actor_id='...') first. "
                     "Sessions provide identity, lease, and audit context. "
                     "F1 AMANAH: no anonymous mutation."
                 ),

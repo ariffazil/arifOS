@@ -42,6 +42,6 @@ F_CONSTRAINTS: list[FConstraint] = [
     FConstraint("F9",  "ANTIHANTU", "no consciousness claims — this is a TOOL, not a mind", True),
     FConstraint("F10", "ONTOLOGY",  "AI-only ontology — no soul/feelings/consciousness in plan", True),
     FConstraint("F11", "AUTH",      "caller identity verified before advisory (gated upstream)", True),
-    FConstraint("F12", "INJECTION", "input sanitized (5× patterns checked upstream by arif_sense_observe)", True),
+    FConstraint("F12", "INJECTION", "input sanitized (5× patterns checked upstream by arif_observe)", True),
     FConstraint("F13", "SOVEREIGN", "human veto is absolute; 888_HOLD gates all irreversible", True),
 ]

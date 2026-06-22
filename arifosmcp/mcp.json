@@ -6,23 +6,23 @@
   "description": "Constitutional MCP gateway \u2014 arifOS AAA. 13 canonical tools (arif_<noun>_<verb>), 13 floors, human veto. DITEMPA BUKAN DIBERI.",
   "tools": [
     {
-      "name": "arif_session_init",
+      "name": "arif_init",
       "description": "Initialize constitutional session with identity anchor and telemetry seed."
     },
     {
-      "name": "arif_sense_observe",
+      "name": "arif_observe",
       "description": "Ground query in physical reality via 8-stage constitutional sensing protocol."
     },
     {
-      "name": "arif_evidence_fetch",
+      "name": "arif_fetch",
       "description": "Fetch and verify external evidence under F2 truth threshold."
     },
     {
-      "name": "arif_mind_reason",
+      "name": "arif_think",
       "description": "Multi-source synthesis and structured first-principles reasoning with uncertainty bands."
     },
     {
-      "name": "arif_heart_critique",
+      "name": "arif_critique",
       "description": "Red-team proposal for ethical risks. Evaluate against F5, F6, F9."
     },
     {
@@ -30,7 +30,7 @@
       "description": "Route request to correct metabolic lane or tool family based on risk and task type."
     },
     {
-      "name": "arif_reply_compose",
+      "name": "arif_compose",
       "description": "Compose dual-axis reply: technical answer + constitutional commentary."
     },
     {
@@ -42,19 +42,19 @@
       "description": "A2A federation routing \u2014 connect to peer agents via Agent Card protocol."
     },
     {
-      "name": "arif_judge_deliberate",
+      "name": "arif_judge",
       "description": "Final constitutional verdict evaluation. Outputs: SEAL, PARTIAL, VOID, HOLD."
     },
     {
-      "name": "arif_vault_seal",
+      "name": "arif_seal",
       "description": "Append immutable verdict record to Merkle-hashed VAULT999 ledger."
     },
     {
-      "name": "arif_forge_execute",
+      "name": "arif_forge",
       "description": "Issue signed execution manifest to A-FORGE substrate. Requires SEAL."
     },
     {
-      "name": "arif_ops_measure",
+      "name": "arif_measure",
       "description": "Calculate operational costs, thermodynamics, capacity, and timing with entropy analysis."
     }
   ],

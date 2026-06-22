@@ -7,7 +7,7 @@ This is a clerk-level audit receipt, not a sovereign SEAL. It writes a
 non-binding AUDIT_RECEIPT to vault999-writer for every MUTATE/ATOMIC action
 so the chain remains continuous and state transitions are recoverable.
 
-Sovereign SEAL (arif_vault_seal / 888_JUDGE) remains the only binding verdict.
+Sovereign SEAL (arif_seal / 888_JUDGE) remains the only binding verdict.
 
 DITEMPA BUKAN DIBERI.
 """
@@ -25,10 +25,10 @@ logger = logging.getLogger("arifosmcp.vault_sealer")
 
 # Tools whose successful execution represents a consequential state transition
 CONSEQUENTIAL_TOOLS: set[str] = {
-    "arif_forge_execute",
-    "arif_judge_deliberate",
-    "arif_vault_seal",
-    "arif_session_init",
+    "arif_forge",
+    "arif_judge",
+    "arif_seal",
+    "arif_init",
     "arif_lease_issue",
     "arif_lease_revoke",
     "arif_organ_attest",

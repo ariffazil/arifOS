@@ -55,15 +55,15 @@ and what changes in the integrated path.
 
 | Stage | Existing Tool | Rasa Contract Hook | Integration Function | What Changes |
 |-------|--------------|-------------------|---------------------|-------------|
-| **000** | `arif_session_init` | _session bootstrap_ | (implicit) | Session identity established; rasa pipeline receives `session_id` |
-| **111** | `arif_sense_observe` | `RasaContract.sense()` | `rasa_sense_hook(message, session_id)` | Detects 12 emotion tags, CRISIS/DISTRESS/SAFE risk bands. Uses BM-English Penang Pasar keyword register. Output: `RasaDetection` with linguistic markers, confidence, observation note ("You report feeling...") |
-| **222** | `arif_evidence_fetch` | _context as evidence layer_ | (pass-through) | Context dict (`ctx`) serves as evidence layer for mind interpretation. No separate evidence fetch needed — rasa evidence IS the message content. |
-| **333** | `arif_mind_reason` | `RasaContract.mind_interpret()` | `rasa_mind_hook(detection, context)` | Converts rasa detection into cognitive constraints: bandwidth (0.0–1.0), risk sensitivity (0.5–1.0), spiritual state (neutral/grieving/open/dry), recommended posture. NEVER upgrades rasa to "data to optimize away." |
-| **444** | `arif_heart_critique` | `RasaContract.heart_critique()` | `rasa_heart_hook(detection, context, memory)` | Risk calculus: de-escalation score, dignity preservation, boundary honoring, F9/F10 violation risk. Hard-stops: CRISIS → human professional required. Boundary blur: EMPTINESS → f9=0.3. |
+| **000** | `arif_init` | _session bootstrap_ | (implicit) | Session identity established; rasa pipeline receives `session_id` |
+| **111** | `arif_observe` | `RasaContract.sense()` | `rasa_sense_hook(message, session_id)` | Detects 12 emotion tags, CRISIS/DISTRESS/SAFE risk bands. Uses BM-English Penang Pasar keyword register. Output: `RasaDetection` with linguistic markers, confidence, observation note ("You report feeling...") |
+| **222** | `arif_fetch` | _context as evidence layer_ | (pass-through) | Context dict (`ctx`) serves as evidence layer for mind interpretation. No separate evidence fetch needed — rasa evidence IS the message content. |
+| **333** | `arif_think` | `RasaContract.mind_interpret()` | `rasa_mind_hook(detection, context)` | Converts rasa detection into cognitive constraints: bandwidth (0.0–1.0), risk sensitivity (0.5–1.0), spiritual state (neutral/grieving/open/dry), recommended posture. NEVER upgrades rasa to "data to optimize away." |
+| **444** | `arif_critique` | `RasaContract.heart_critique()` | `rasa_heart_hook(detection, context, memory)` | Risk calculus: de-escalation score, dignity preservation, boundary honoring, F9/F10 violation risk. Hard-stops: CRISIS → human professional required. Boundary blur: EMPTINESS → f9=0.3. |
 | **555m** | `arif_memory_recall` | `RasaContract.memory_recall()` | `rasa_memory_hook(detection, session_id)` | Pattern-matches current rasa against past session records. Returns longitudinal themes, previous coping strategies. NEVER pathologizes or diagnoses. |
 | **555** | `arif_kernel_route` | _routing based on severity_ | (implicit via `final_posture`) | Routes based on `RasaContractResult.final_posture`: HUMAN_LOOP/DRAFT_ONLY/V ERIFY/SIMPLIFY/PROCEED. CRISIS → routes to human escalation, not machine output. |
-| **888** | `arif_judge_deliberate` | `RasaContract.judge()` | `rasa_judge_hook(detection, context, heart)` | Constitutional enforcement: F1 (no irreversible advice), F5 (no gaslighting), F6 (dignity-first), F9 (no consciousness claims), F10 (no ontology violation), F13 (human veto). May downgrade SEAL→HOLD, block specific outputs, require rewrite. |
-| **999** | `arif_vault_seal` | _result sealing_ | (implicit via `RasaContractResult`) | Rasa-governed interaction recorded in VAULT999. `RasaContractResult` carries full pipeline output for archival. Coexists with `qualia_trace` in same vault record. |
+| **888** | `arif_judge` | `RasaContract.judge()` | `rasa_judge_hook(detection, context, heart)` | Constitutional enforcement: F1 (no irreversible advice), F5 (no gaslighting), F6 (dignity-first), F9 (no consciousness claims), F10 (no ontology violation), F13 (human veto). May downgrade SEAL→HOLD, block specific outputs, require rewrite. |
+| **999** | `arif_seal` | _result sealing_ | (implicit via `RasaContractResult`) | Rasa-governed interaction recorded in VAULT999. `RasaContractResult` carries full pipeline output for archival. Coexists with `qualia_trace` in same vault record. |
 
 ### 2.2 Constitution-Relevant Floors (Rasa-Specific)
 
@@ -350,11 +350,11 @@ governance module** that hooks INTO the existing 13 canonical tools:
 
 | Canonical Tool | Rasa Integration |
 |----------------|-----------------|
-| `arif_sense_observe` (111) | `rasa_sense_hook()` can be called alongside sense |
-| `arif_mind_reason` (333) | `rasa_mind_hook()` can constrain reasoning before output |
-| `arif_heart_critique` (444) | `rasa_heart_hook()` adds dignity/peace/boundary calculus |
+| `arif_observe` (111) | `rasa_sense_hook()` can be called alongside sense |
+| `arif_think` (333) | `rasa_mind_hook()` can constrain reasoning before output |
+| `arif_critique` (444) | `rasa_heart_hook()` adds dignity/peace/boundary calculus |
 | `arif_memory_recall` (555m) | `rasa_memory_hook()` recalls past human rasa patterns |
-| `arif_judge_deliberate` (888) | `rasa_judge_hook()` adds rasa-aware floor enforcement |
+| `arif_judge` (888) | `rasa_judge_hook()` adds rasa-aware floor enforcement |
 
 ---
 

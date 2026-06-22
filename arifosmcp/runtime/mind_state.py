@@ -3,7 +3,7 @@ arifosmcp/runtime/mind_state.py — MIND Persistent State v1
 ═══════════════════════════════════════════════════════════════
 333_MIND state object for recursive self-correcting reasoning.
 
-Every arif_mind_reason step snapshots state here. Between steps,
+Every arif_think step snapshots state here. Between steps,
 the feedback loop reads this to decide re-plan / branch / rollback.
 Between sessions, Qdrant + L5 Graphiti restore this so MIND never
 starts from zero.

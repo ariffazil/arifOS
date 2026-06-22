@@ -18,7 +18,7 @@ class TelemetryBlock(BaseModel):
 
 class VitalsBlock(BaseModel):
     status: str = "OK"
-    tool: str = "arif_sense_observe"
+    tool: str = "arif_observe"
     result: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None

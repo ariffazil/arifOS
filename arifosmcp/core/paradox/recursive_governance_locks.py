@@ -13,7 +13,7 @@ Usage:
 
     engine = RecursiveGovernanceEngine()
     receipt = engine.apply_locks(
-        tool_name="arif_judge_deliberate",
+        tool_name="arif_judge",
         params={...},
         actor_id="hermes-asi",
         context={"memory_loop_depth": 2, "beauty_score": 0.9},
@@ -90,9 +90,9 @@ SELF_CLAIM_PATTERNS: dict[SelfClaimCategory, list[re.Pattern[str]]] = {
 
 # Tools that are *allowed* to make boundary claims because they are external witnesses
 EXTERNAL_WITNESS_TOOLS: set[str] = {
-    "arif_judge_deliberate",
-    "arif_vault_seal",
-    "arif_heart_critique",
+    "arif_judge",
+    "arif_seal",
+    "arif_critique",
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════

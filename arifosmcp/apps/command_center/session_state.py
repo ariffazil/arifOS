@@ -6,8 +6,8 @@ Blocked path: DRAFT → HOLD/VOID
 
 Each transition requires specific conditions:
   DRAFT → PLANNED:       intent submitted
-  PLANNED → RISK_REVIEWED: arif_ops_measure called
-  RISK_REVIEWED → JUDGE_REVIEWED: arif_judge_deliberate called
+  PLANNED → RISK_REVIEWED: arif_measure called
+  RISK_REVIEWED → JUDGE_REVIEWED: arif_judge called
   JUDGE_REVIEWED → APPROVED: verdict == SEAL
   APPROVED → EXECUTED:  forge_dry_run + human_ack
   EXECUTED → SEALED:    vault_dry_seal + permanent=true

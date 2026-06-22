@@ -420,12 +420,12 @@ class FloorEvaluator:
         # L01 AMANAH — Trustworthiness / Irreversibility
         # Some tools are inherently irreversible regardless of payload content
         tool_base_irreversibility = {
-            ("arif_vault_seal", "seal"): IrreversibilityLevel.CRITICAL,
-            ("arif_vault_seal", "commit"): IrreversibilityLevel.CRITICAL,
-            ("arif_vault_seal", "session_seal"): IrreversibilityLevel.LOW,
-            ("arif_forge_execute", "engineer"): IrreversibilityLevel.HIGH,
-            ("arif_forge_execute", "write"): IrreversibilityLevel.HIGH,
-            ("arif_forge_execute", "generate"): IrreversibilityLevel.HIGH,
+            ("arif_seal", "seal"): IrreversibilityLevel.CRITICAL,
+            ("arif_seal", "commit"): IrreversibilityLevel.CRITICAL,
+            ("arif_seal", "session_seal"): IrreversibilityLevel.LOW,
+            ("arif_forge", "engineer"): IrreversibilityLevel.HIGH,
+            ("arif_forge", "write"): IrreversibilityLevel.HIGH,
+            ("arif_forge", "generate"): IrreversibilityLevel.HIGH,
         }
         base_irrev = tool_base_irreversibility.get((context.tool_name, context.mode))
         effective_irreversibility = max(
@@ -451,7 +451,7 @@ class FloorEvaluator:
         # L04 CLARITY — Transparent intent
         if not context.candidate and not context.manifest and not context.query:
             # Empty intent is only a problem for judge/forge modes
-            if context.tool_name in ("arif_judge_deliberate", "arif_forge_execute"):
+            if context.tool_name in ("arif_judge", "arif_forge"):
                 failed.append("L04")
                 reasons["L04"] = "Action intent is empty or unclear"
 
@@ -473,7 +473,7 @@ class FloorEvaluator:
         # (Enforced at content layer)
 
         # L10 ONTOLOGY — Structural coherence
-        if context.tool_name == "arif_judge_deliberate" and context.mode not in {
+        if context.tool_name == "arif_judge" and context.mode not in {
             "judge",
             "compare",
             "history",
@@ -513,7 +513,7 @@ class FloorEvaluator:
         if cls._requires_human_witness(context, threat):
             if context.witness_type != WitnessType.HUMAN:
                 # Distinguish sovereignty violation (AI self-approval) from missing witness
-                if context.tool_name == "arif_mind_reason" and context.mode == "plan_approve":
+                if context.tool_name == "arif_think" and context.mode == "plan_approve":
                     failed.append("L13_VIOLATION")
                     reasons["L13_VIOLATION"] = (
                         "L13 SOVEREIGN: AI self-approval is constitutionally forbidden"
@@ -561,11 +561,11 @@ class FloorEvaluator:
         """Determine if L13 requires a human witness for this action."""
         # Hard-coded canonical policy — mode-aware
         human_required_tools_modes = {
-            "arif_vault_seal": {"seal", "commit"},
-            "arif_forge_execute": {"engineer", "write", "generate"},
+            "arif_seal": {"seal", "commit"},
+            "arif_forge": {"engineer", "write", "generate"},
         }
         human_required_modes = {
-            ("arif_mind_reason", "plan_approve"),
+            ("arif_think", "plan_approve"),
         }
 
         if context.tool_name in human_required_tools_modes:
@@ -606,7 +606,7 @@ class AuthorityGate:
 
         # Check plan approval for forge engineer/write/generate
         plan_approved = False
-        if context.tool_name == "arif_forge_execute" and context.mode in {
+        if context.tool_name == "arif_forge" and context.mode in {
             "engineer",
             "write",
             "generate",
@@ -705,12 +705,12 @@ class ConstitutionKernel:
         # Step 2: Irreversibility (threat-based + tool base)
         threat_irreversibility = self.irreversibility_model.from_threats(threat)
         tool_base_irreversibility = {
-            ("arif_vault_seal", "seal"): IrreversibilityLevel.CRITICAL,
-            ("arif_vault_seal", "commit"): IrreversibilityLevel.CRITICAL,
-            ("arif_vault_seal", "session_seal"): IrreversibilityLevel.LOW,
-            ("arif_forge_execute", "engineer"): IrreversibilityLevel.HIGH,
-            ("arif_forge_execute", "write"): IrreversibilityLevel.HIGH,
-            ("arif_forge_execute", "generate"): IrreversibilityLevel.HIGH,
+            ("arif_seal", "seal"): IrreversibilityLevel.CRITICAL,
+            ("arif_seal", "commit"): IrreversibilityLevel.CRITICAL,
+            ("arif_seal", "session_seal"): IrreversibilityLevel.LOW,
+            ("arif_forge", "engineer"): IrreversibilityLevel.HIGH,
+            ("arif_forge", "write"): IrreversibilityLevel.HIGH,
+            ("arif_forge", "generate"): IrreversibilityLevel.HIGH,
         }
         base_irrev = tool_base_irreversibility.get((context.tool_name, context.mode))
         irreversibility = max(

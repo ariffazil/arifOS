@@ -117,8 +117,8 @@ _EXPOSE_ORGAN_BRIDGE = os.getenv("ARIFOS_EXPOSE_ORGAN_BRIDGE", "false").lower() 
 )
 
 # ── ChatGPT compatibility shim: register arif_search + arif_fetch ─────────────
-# These are thin single-string-param wrappers that route to arif_sense_observe
-# and arif_evidence_fetch. Satisfies ChatGPT's mandatory search/fetch discovery
+# These are thin single-string-param wrappers that route to arif_observe
+# and arif_fetch. Satisfies ChatGPT's mandatory search/fetch discovery
 # requirement without touching kernel logic.
 _CHATGPT_COMPAT = os.getenv("ARIFOS_CHATGPT_COMPAT", "false").lower() in (
     "true",
@@ -371,7 +371,7 @@ def arif_conformance_report(
         "mcp_initialize":      "MCP initialize works?       protocol handshake returns serverInfo",
         "protocol_version":    "protocol version clear?     2025-11-25 or supported variant present",
         "schema_echo_stable":  "schema echo stable?         arif_schema_echo returns what was sent",
-        "session_starts":      "session starts?             arif_session_init returns READY",
+        "session_starts":      "session starts?             arif_init returns READY",
         "authority_checked":   "authority checked?          classify_authority fires SOVEREIGN/HIGH/MEDIUM/LOW",
         "hold_blocks_mutation":"888_HOLD blocks mutation?   irreversible intents return 888_HOLD_REQUIRED",
         "vault_replay":        "VAULT replay verifies?      vault file readable, last entry valid JSON",
@@ -386,7 +386,7 @@ def arif_conformance_report(
     name="arif_ping",
     description="TRANSPORT PROBE: Dead-simple canary to test client bridge connectivity. "
     "Zero floors, zero identity, zero KG, zero VAULT writes. "
-    "If this tool returns OK but arif_session_init fails, the wound is in the init schema.",
+    "If this tool returns OK but arif_init fails, the wound is in the init schema.",
     tags={"canary", "transport-probe", "read-only"},
 )
 def arif_ping(
@@ -455,7 +455,7 @@ def arif_schema_echo(
 @mcp.tool(
     name="arif_transport_echo",
     description="TRANSPORT PROBE: Echo transport-level metadata. "
-    "Use this before arif_session_init to verify the MCP transport bridge is working. "
+    "Use this before arif_init to verify the MCP transport bridge is working. "
     "Returns received protocol version, transport type, negotiated state. "
     "Normalized arguments: payload, _envelope, client_capabilities. "
     "Zero floors, zero identity, zero side effects.",
@@ -555,13 +555,13 @@ try:
     )
     from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, register_tools
     from arifosmcp.tools.embodied import register_all_arifos_tools
-    from arifosmcp.tools.embodied_instances.arif_mind_reason_handler import (
+    from arifosmcp.tools.embodied_instances.arif_think_handler import (
         embodied_mind_reason_handler,
     )
 
     register_all_arifos_tools()
 
-    _CANONICAL_HANDLERS["arif_mind_reason"] = embodied_mind_reason_handler
+    _CANONICAL_HANDLERS["arif_think"] = embodied_mind_reason_handler
 
     # Note: arif_gate_judge handler is registered in tools.py
     # _RUNTIME_DIAGNOSTIC_HANDLERS, not in _CANONICAL_HANDLERS.
@@ -574,6 +574,26 @@ try:
 
     v2_tools_registered = register_tools(mcp, ingress_middleware=_ingress_middleware)
     _assert_registered_surface(v2_tools_registered)
+
+    # ── Phase 2 dual-mode alias shim (14-ACT refactor) ───────────────────────
+    # When ARIFOS_MCP_DUAL_MODE=true (default during Phase 2), this registers
+    # the 12 NEW canonical tool names (arif_init, arif_observe, ...) as thin
+    # wrappers that dispatch to existing handlers. Old names remain registered.
+    # Phase 3 cutover: set ARIFOS_MCP_DUAL_MODE=false + remove old handlers.
+    from arifosmcp.runtime.alias_shim import register_new_canonical_tools
+    from arifosmcp.runtime.tools import _RUNTIME_DIAGNOSTIC_HANDLERS
+    try:
+        v2_new_canonical_registered = register_new_canonical_tools(
+            mcp, _CANONICAL_HANDLERS, _RUNTIME_DIAGNOSTIC_HANDLERS,
+        )
+        if v2_new_canonical_registered:
+            logger.info(
+                "Phase 2 dual-mode: registered %d new canonical names: %s",
+                len(v2_new_canonical_registered),
+                v2_new_canonical_registered,
+            )
+    except Exception as _shim_err:
+        logger.warning("Phase 2 alias shim failed (non-fatal, old names still work): %s", _shim_err)
 
     # ── Canary Ping Tool (No actor, no envelope, no policy) ──────────────────
     # NOTE: arif_ping is registered OUTSIDE the try block (pre-registration layer
@@ -666,7 +686,7 @@ try:
             "CANARY: Test MCP initialize/initialized handshake without constitutional ceremony. "
             "Simulates protocol version negotiation per MCP spec 2025-11-25. Returns what a "
             "proper initialize response would look like. Use AFTER ping passes but BEFORE "
-            "arif_session_init. If this works but session_init does not, the problem is in "
+            "arif_init. If this works but session_init does not, the problem is in "
             "the session init schema, not transport. No session, no actor, no governance."
         ),
         tags={"canary", "read-only", "diagnostic", "transport", "initialize"},
@@ -761,7 +781,7 @@ try:
 
     # ── ChatGPT Compatibility Facade (ADR-012) ──────────────────────────────
     # GATED: only registered when ARIFOS_CHATGPT_COMPAT=true.
-    # Thin read-only shims: search → arif_sense_observe, fetch → arif_evidence_fetch.
+    # Thin read-only shims: search → arif_observe, fetch → arif_fetch.
     # See: adr/ADR_012_CHATGPT_COMPATIBILITY_SHIM_FACADE_20260621.md
     if _CHATGPT_COMPAT:
         from arifosmcp.tools.chatgpt_shim import SHIM_HANDLERS, SHIM_OUTPUT_SCHEMAS
@@ -1269,8 +1289,8 @@ try:
 
     # ── Eureka Forge: Supplementary capabilities absorbed into canonical13 ──
     # arif_capability_select  →  arif_kernel_route(mode="capability")  [via tools.py mode dispatch]
-    # arif_appeal_raise       →  arif_judge_deliberate(mode="appeal")  [via tools.py mode dispatch]
-    # arif_appeal_status      →  arif_judge_deliberate(mode="appeal_status")  [via tools.py mode dispatch]
+    # arif_appeal_raise       →  arif_judge(mode="appeal")  [via tools.py mode dispatch]
+    # arif_appeal_status      →  arif_judge(mode="appeal_status")  [via tools.py mode dispatch]
     # arif_appeal_list        →  arif_memory_recall(mode="appeals")    [via tools.py mode dispatch]
     # The capability and appeal logic remains in arifosmcp/tools/ — callable
     # as modes of existing canonical tools. No separate MCP registrations.
@@ -1366,7 +1386,7 @@ async def mcp_health(request: Request) -> JSONResponse:
 
     Returns 200 with status and timestamp. No auth required.
     This is a lightweight probe, not a full tool call.
-    Use arif_ops_measure(mode='health') for the thermodynamic health check.
+    Use arif_measure(mode='health') for the thermodynamic health check.
     """
     return JSONResponse(
         {
@@ -1381,8 +1401,8 @@ app = mcp.http_app(transport="streamable-http", stateless_http=True, json_respon
 # Mirror federated tool count onto app for health endpoint (register_rest_routes receives app)
 from arifosmcp.constitutional_map import DIAGNOSTIC_TOOLS
 
-_actual_canonical_count = len(CANONICAL_TOOLS)  # currently 19
-_actual_diagnostic_count = len(DIAGNOSTIC_TOOLS)  # currently 37
+_actual_canonical_count = len(CANONICAL_TOOLS)  # currently 22 (21 canonical + 1 probe)
+_actual_diagnostic_count = len(DIAGNOSTIC_TOOLS)  # currently 21 (from public_surface.py)
 mcp._tool_count = _actual_canonical_count  # pyright: ignore[reportAttributeAccessIssue]
 app.state._tool_count = _actual_canonical_count  # pyright: ignore[reportAttributeAccessIssue]
 app._tool_count = _actual_canonical_count  # pyright: ignore[reportAttributeAccessIssue]

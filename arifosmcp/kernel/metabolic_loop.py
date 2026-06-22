@@ -427,7 +427,7 @@ class MetabolicLoop:
 
         The SEAL stage produces a receipt hash and prepares the
         payload for VAULT999 writing. Actual VAULT999 write is
-        done by arif_vault_seal (F13 territory).
+        done by arif_seal (F13 territory).
         """
         t0 = time.monotonic()
         self._enforce_stage_order(Stage.SEAL)

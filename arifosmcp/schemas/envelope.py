@@ -155,7 +155,7 @@ class ActorContext(BaseModel):
 
     actor_id: str = Field(..., description="Agent or human identity")
     actor_type: str = Field(..., description="human | agent | system | sovereign")
-    session_id: str | None = Field(None, description="arif_session_init session hash")
+    session_id: str | None = Field(None, description="arif_init session hash")
     capability_grant_id: str | None = Field(None, description="Active grant for this tool")
     autonomy_band: str | None = Field(None, description="GREEN/YELLOW/ORANGE/RED/BLACK")
 

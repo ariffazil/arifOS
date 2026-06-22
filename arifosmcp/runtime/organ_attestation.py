@@ -195,8 +195,8 @@ _ORGAN_CONFIG: dict[str, dict[str, Any]] = {
         "list_fn": "list_vault_tools",
         "identity_anchor_type": "vault_manifest",
         "identity_anchor_candidates": [
-            "/root/arifOS/VAULT999/vault999.jsonl",
-            "/root/arifOS/VAULT999/vault999_legacy.jsonl",
+            "/agent/vault999/vault999.jsonl",
+            "/agent/vault999/vault999_legacy.jsonl",
         ],
     },
 }

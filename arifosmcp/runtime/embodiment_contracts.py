@@ -49,7 +49,7 @@ class EmbodimentContract:
 
 TOOL_EMBODIMENT_CONTRACTS: dict[str, EmbodimentContract] = {
     # ── 000_INIT: Session Bootstrap ───────────────────────────────────────────
-    "arif_session_init": EmbodimentContract(
+    "arif_init": EmbodimentContract(
         allowed_lanes=["AGI", "APEX", "QUARANTINE", "HUMAN"],
         required_tiers=["SOVEREIGN", "OPERATOR", "GUEST", "ANONYMOUS"],
         reversible_only=True,
@@ -57,7 +57,7 @@ TOOL_EMBODIMENT_CONTRACTS: dict[str, EmbodimentContract] = {
         description="Constitutional session bootstrap — open to all for identity binding.",
     ),
     # ── 111_SENSE: Perception ─────────────────────────────────────────────────
-    "arif_sense_observe": EmbodimentContract(
+    "arif_observe": EmbodimentContract(
         allowed_lanes=["AGI", "APEX", "QUARANTINE", "HUMAN"],
         required_tiers=["SOVEREIGN", "OPERATOR", "GUEST", "ANONYMOUS"],
         reversible_only=True,
@@ -65,7 +65,7 @@ TOOL_EMBODIMENT_CONTRACTS: dict[str, EmbodimentContract] = {
         description="Reality observation — read-only, safe in any lane.",
     ),
     # ── 222_FETCH: Evidence Ingestion ─────────────────────────────────────────
-    "arif_evidence_fetch": EmbodimentContract(
+    "arif_fetch": EmbodimentContract(
         allowed_lanes=["AGI", "APEX", "QUARANTINE", "HUMAN"],
         required_tiers=["SOVEREIGN", "OPERATOR", "GUEST", "ANONYMOUS"],
         reversible_only=True,
@@ -73,7 +73,7 @@ TOOL_EMBODIMENT_CONTRACTS: dict[str, EmbodimentContract] = {
         description="Evidence fetch — read-only ingestion, safe in any lane.",
     ),
     # ── 333_MIND: Reasoning ───────────────────────────────────────────────────
-    "arif_mind_reason": EmbodimentContract(
+    "arif_think": EmbodimentContract(
         allowed_lanes=["AGI", "APEX", "HUMAN"],
         required_tiers=["SOVEREIGN", "OPERATOR", "GUEST"],
         reversible_only=True,
@@ -81,7 +81,7 @@ TOOL_EMBODIMENT_CONTRACTS: dict[str, EmbodimentContract] = {
         description="Cognitive reasoning — no state mutation, bounded computation.",
     ),
     # ── 666_HEART: Ethical Critique ───────────────────────────────────────────
-    "arif_heart_critique": EmbodimentContract(
+    "arif_critique": EmbodimentContract(
         allowed_lanes=["AGI", "APEX", "HUMAN"],
         required_tiers=["SOVEREIGN", "OPERATOR", "GUEST"],
         reversible_only=True,
@@ -97,7 +97,7 @@ TOOL_EMBODIMENT_CONTRACTS: dict[str, EmbodimentContract] = {
         description="Constitutional routing — inspection only, no mutation.",
     ),
     # ── 444r_REPLY: Composition ───────────────────────────────────────────────
-    "arif_reply_compose": EmbodimentContract(
+    "arif_compose": EmbodimentContract(
         allowed_lanes=["AGI", "APEX", "QUARANTINE", "HUMAN"],
         required_tiers=["SOVEREIGN", "OPERATOR", "GUEST", "ANONYMOUS"],
         reversible_only=True,
@@ -121,7 +121,7 @@ TOOL_EMBODIMENT_CONTRACTS: dict[str, EmbodimentContract] = {
         description="Cross-agent bridge — relay only, no local mutation.",
     ),
     # ── 888_JUDGE: Judgment ───────────────────────────────────────────────────
-    "arif_judge_deliberate": EmbodimentContract(
+    "arif_judge": EmbodimentContract(
         allowed_lanes=["AGI", "APEX", "HUMAN"],
         required_tiers=["SOVEREIGN", "OPERATOR"],
         requires_judge=True,
@@ -130,7 +130,7 @@ TOOL_EMBODIMENT_CONTRACTS: dict[str, EmbodimentContract] = {
         description="Constitutional judgment — verdict issuance, high authority required.",
     ),
     # ── 999_VAULT: Immutable Ledger ───────────────────────────────────────────
-    "arif_vault_seal": EmbodimentContract(
+    "arif_seal": EmbodimentContract(
         allowed_lanes=["AGI", "APEX", "HUMAN"],
         required_tiers=["SOVEREIGN", "OPERATOR"],
         requires_judge=True,
@@ -139,7 +139,7 @@ TOOL_EMBODIMENT_CONTRACTS: dict[str, EmbodimentContract] = {
         description="Immutable seal — append-only, irreversible, requires G05 verdict.",
     ),
     # ── 010_FORGE: Execution ──────────────────────────────────────────────────
-    "arif_forge_execute": EmbodimentContract(
+    "arif_forge": EmbodimentContract(
         allowed_lanes=["AGI", "APEX", "HUMAN"],
         required_tiers=["SOVEREIGN"],
         requires_plan_id=True,
@@ -149,7 +149,7 @@ TOOL_EMBODIMENT_CONTRACTS: dict[str, EmbodimentContract] = {
         description="State mutation — forge execution, sovereign-only, plan+verdict required.",
     ),
     # ── 777_OPS: Monitoring ───────────────────────────────────────────────────
-    "arif_ops_measure": EmbodimentContract(
+    "arif_measure": EmbodimentContract(
         allowed_lanes=["AGI", "APEX", "QUARANTINE", "HUMAN"],
         required_tiers=["SOVEREIGN", "OPERATOR", "GUEST", "ANONYMOUS"],
         reversible_only=True,
@@ -223,7 +223,7 @@ def enforce_embodiment(
             ),
             "floors": ["L11", "H2"],
             "embodiment_violation": "plan_id",
-            "next_safe_action": "Generate plan via arif_mind_reason(mode='plan') → await approval.",
+            "next_safe_action": "Generate plan via arif_think(mode='plan') → await approval.",
         }
 
     # ── Judge verdict check ───────────────────────────────────────────────────
@@ -236,7 +236,7 @@ def enforce_embodiment(
             ),
             "floors": ["L11", "G05"],
             "embodiment_violation": "judge_verdict",
-            "next_safe_action": "Call arif_judge_deliberate(candidate=...) to obtain SEAL.",
+            "next_safe_action": "Call arif_judge(candidate=...) to obtain SEAL.",
         }
 
     return {

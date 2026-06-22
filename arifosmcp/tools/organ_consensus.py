@@ -132,7 +132,7 @@ def _compute_consensus(
             health_score = 0.0
             all_healthy = False
 
-        # Constitutional verdict — only from arif_judge_deliberate (constitutional vocabulary)
+        # Constitutional verdict — only from arif_judge (constitutional vocabulary)
         gov_verdict = verdict.upper().strip()
         if gov_verdict in ("SEAL", "OBSERVE"):
             gov_score = 1.0

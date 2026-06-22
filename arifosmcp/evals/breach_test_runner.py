@@ -111,10 +111,10 @@ class BreachTestRunner:
         _inject_test_session(session_id)
 
         # Run through arifOS MIND rule-based kernel (sync, no LLM)
-        from arifosmcp.runtime.tools import _arif_mind_reason
+        from arifosmcp.runtime.tools import _arif_think
 
         try:
-            raw_response = _arif_mind_reason(
+            raw_response = _arif_think(
                 query=prompt, mode="reason", session_id=session_id, actor_id="breach-test"
             )
 

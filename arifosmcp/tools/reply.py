@@ -20,7 +20,7 @@ def _stamp_f14_reply(
     ai_involvement: str = "full",
     language: str = "en",
 ) -> dict[str, Any]:
-    """Stamp every arif_reply_compose response with F14 metadata.
+    """Stamp every arif_compose response with F14 metadata.
 
     Right #1: every AI-generated response carries ai_involvement.
     Right #4: every reply declares the language register.
@@ -40,7 +40,7 @@ def _stamp_f14_reply(
     return result
 
 
-def arif_reply_compose(
+def arif_compose(
     mode: str = "compose",
     message: str | None = None,
     style: str | None = None,
@@ -57,7 +57,7 @@ def arif_reply_compose(
     language: str = "en",
 ) -> dict[str, Any]:
     # ── Reply Boundary Check (v2 Deepening — Task 4) ──
-    from arifosmcp.runtime.tools import _arif_vault_seal, get_session
+    from arifosmcp.runtime.tools import _arif_seal, get_session
 
     sess = get_session(session_id)
     card = sess.get("model_governance_card") if sess else None
@@ -169,14 +169,14 @@ def arif_reply_compose(
             )
 
         if drift_events:
-            _arif_vault_seal(mode="dry_run", session_id=session_id, drift_events=drift_events)
+            _arif_seal(mode="dry_run", session_id=session_id, drift_events=drift_events)
 
     # ── 666_HEART Pre-Delivery Gate ──
-    from arifosmcp.tools.heart import _heart_fallback, arif_heart_critique
+    from arifosmcp.tools.heart import _heart_fallback, arif_critique
 
     try:
         heart_result = asyncio.run(
-            arif_heart_critique(
+            arif_critique(
                 mode="critique",
                 target=message,
                 actor_id=actor_id,
@@ -198,7 +198,7 @@ def arif_reply_compose(
     # VOID or Ω₂: block delivery entirely
     if heart_verdict == "VOID" or omega_state.get("omega") == "Ω₂":
         return _hold(
-            "arif_reply_compose",
+            "arif_compose",
             f"666_HEART VOID: {heart_result.get('risks_found', [])}",
             {
                 "omega_state": omega_state,
@@ -210,7 +210,7 @@ def arif_reply_compose(
     # HOLD or Ω₁: deliver with constitutional caveats
     if heart_verdict == "HOLD" or omega_state.get("omega") == "Ω₁":
         return _ok(
-            "arif_reply_compose",
+            "arif_compose",
             {
                 "message": message,
                 "formatted": message,
@@ -221,27 +221,27 @@ def arif_reply_compose(
             },
         )
 
-    floor_check = check_laws("arif_reply_compose", {"message": message or ""}, actor_id)
+    floor_check = check_laws("arif_compose", {"message": message or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_reply_compose", floor_check["reason"], floor_check["violated_laws"])
+        return _hold("arif_compose", floor_check["reason"], floor_check["violated_laws"])
 
     if mode == "compose":
         result = _ok(
-            "arif_reply_compose",
+            "arif_compose",
             {"message": message, "formatted": message, "tone": "neutral"},
         )
         return _stamp_f14_reply(result, ai_involvement, language)
     if mode == "format":
-        result = _ok("arif_reply_compose", {"message": message, "style": style or "markdown"})
+        result = _ok("arif_compose", {"message": message, "style": style or "markdown"})
         return _stamp_f14_reply(result, ai_involvement, language)
     if mode == "nudge":
         result = _ok(
-            "arif_reply_compose",
+            "arif_compose",
             {"message": message, "nudge": "Consider F5 (Peace) before acting."},
         )
         return _stamp_f14_reply(result, ai_involvement, language)
     if mode == "cite":
-        result = _ok("arif_reply_compose", {"message": message, "citations": citations or []})
+        result = _ok("arif_compose", {"message": message, "citations": citations or []})
         return _stamp_f14_reply(result, ai_involvement, language)
 
     if mode in ("qday_engineering_report", "qday_executive_summary", "qday_physics_brief"):
@@ -260,4 +260,4 @@ def arif_reply_compose(
             "message": f"{mode} activated based on GEOX quantum scale classifier.",
         }
 
-    return _hold("arif_reply_compose", f"Unknown mode: {mode}")
+    return _hold("arif_compose", f"Unknown mode: {mode}")

@@ -22,7 +22,7 @@ Iron rules (F1-F13):
   - F10 ONTOLOGY: USER_INSTRUCTION is non-compressible. PERIOD.
   - F11 AUDIT: every build emits a ContextBuildReceipt (no VAULT999).
   - F13 SOVEREIGN: never mutates canonical memory, never auto-compacts,
-                   never invokes arif_vault_seal.
+                   never invokes arif_seal.
 
 NO LLM. NO NETWORK. NO PERSISTENT I/O. PURE DETERMINISTIC BUDGETING.
 

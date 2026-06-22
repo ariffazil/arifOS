@@ -16,7 +16,7 @@ performs institutional reality rather than describing actual reality.
 It does NOT block. It asks. The agent must answer or escalate.
 
 ARCHITECTURE POSITION:
-  Kaparinyo Gate → F1-F13 Floors → arif_judge_deliberate → arif_vault_seal
+  Kaparinyo Gate → F1-F13 Floors → arif_judge → arif_seal
   (pre-floor)       (constitutional)  (verdict)              (immutable)
 
 SIMULATION MARKERS (derived from Kaparinyo premise):

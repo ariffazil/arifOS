@@ -5,7 +5,7 @@ arifosmcp/tools/reason.py — 333_MIND v3.3
 Inductive reasoning engine and synthesis.
 
 DELTA BUNDLE SPEC (from archive/333/README.md):
-  Every arif_mind_reason output MUST include:
+  Every arif_think output MUST include:
   - facts: F2 ≥ 0.99 verifiable claims
   - scars: unresolved contradictions blocking certainty
   - floor_scores: F2, F4, F7, L13 self-check
@@ -706,7 +706,7 @@ def _build_delta_bundle(
     # It gives admissibility (traceability, audit, reproducibility).
     # It NEVER gives authority (see core invariant).
     provenance = {
-        "source": "arif_mind_reason",
+        "source": "arif_think",
         "model_provenance": confidence.get("model_source", "unknown"),
         "claim_origin": claim_state,
         "reasoning_backend": reasoning_mode,
@@ -833,7 +833,7 @@ def _run_reasoning_sync(coro: Any, timeout: float = 70.0) -> dict[str, Any]:
     return result["value"]
 
 
-def arif_mind_reason(
+def arif_think(
 
     mode: str = "reason",
     query: str | None = None,
@@ -877,7 +877,7 @@ def arif_mind_reason(
         }
         
     from arifosmcp.runtime.mind_reason import (
-        arif_mind_reason_structured as run_reasoning,
+        arif_think_structured as run_reasoning,
     )
 
     session_id = context.get("session_id") if context else None
@@ -914,10 +914,10 @@ def arif_mind_reason(
             "next_safe_action": [a.get("tool") for a in packet.get("next_actions", [])] if isinstance(packet.get("next_actions"), list) else [],
             "_mind_routing": _routing["_mind_routing"],
         }
-        return Synthesis(**_ok("arif_mind_reason", bundle))
+        return Synthesis(**_ok("arif_think", bundle))
 
     # Floor check (Manual override check)
-    floor_check = check_laws("arif_mind_reason", {"query": query or ""}, actor_id)
+    floor_check = check_laws("arif_think", {"query": query or ""}, actor_id)
     floor_verdict = floor_check.get("verdict", "HOLD")
     floor_reason = floor_check.get("reason", "Constitutional floor check did not SEAL")
 
@@ -946,7 +946,7 @@ def arif_mind_reason(
 
     if floor_verdict != "SEAL":
         hold_env = _hold(
-            "arif_mind_reason",
+            "arif_think",
             floor_reason,
             floors=list(floor_check.get("violated_laws", [])),
             extra_meta={"floor_verdict": floor_verdict},
@@ -955,4 +955,4 @@ def arif_mind_reason(
         hold_env["result"] = bundle
         return Synthesis(**hold_env)
 
-    return Synthesis(**_ok("arif_mind_reason", bundle))
+    return Synthesis(**_ok("arif_think", bundle))

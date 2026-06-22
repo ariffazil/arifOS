@@ -1,8 +1,8 @@
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-06-21
+last_verified: 2026-06-22
 valid_from: 2026-05-22
-valid_until: 2026-07-21
+valid_until: 2026-07-22
 confidence: high
 scope: /
 -->

@@ -18,7 +18,7 @@ ARCHITECTURE:
 
 USAGE:
   from arifosmcp.runtime.tool_risk_registry import classify_tool
-  params = classify_tool("arif_forge_execute", {"mode": "engineer"})
+  params = classify_tool("arif_forge", {"mode": "engineer"})
   # → {risk_tier: "HIGH", blast_radius: "PUBLIC", ...}
 
 F1 AMANAH: Registry is policy, not code. Updating it is reversible.
@@ -71,9 +71,9 @@ class ToolRiskProfile:
 # Format: tool_name → list[ToolRiskProfile]  (first entry = base/default)
 TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
     # ── 000: Session Init ──────────────────────────────────────────
-    "arif_session_init": [
+    "arif_init": [
         ToolRiskProfile(
-            tool_name="arif_session_init",
+            tool_name="arif_init",
             mode=None,  # base
             action_class="DRAFT",
             risk_tier="LOW",
@@ -84,7 +84,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             requires_lease=False,
         ),
         ToolRiskProfile(
-            tool_name="arif_session_init",
+            tool_name="arif_init",
             mode="init",
             action_class="DRAFT",
             risk_tier="LOW",
@@ -96,9 +96,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ),
     ],
     # ── SENSE: Search/Observe ─────────────────────────────────────
-    "arif_sense_observe": [
+    "arif_observe": [
         ToolRiskProfile(
-            tool_name="arif_sense_observe",
+            tool_name="arif_observe",
             mode=None,
             action_class="OBSERVE",
             risk_tier="LOW",
@@ -110,9 +110,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ),
     ],
     # ── EVIDENCE: Fetch + Cite ────────────────────────────────────
-    "arif_evidence_fetch": [
+    "arif_fetch": [
         ToolRiskProfile(
-            tool_name="arif_evidence_fetch",
+            tool_name="arif_fetch",
             mode=None,
             action_class="OBSERVE",
             risk_tier="LOW",
@@ -124,9 +124,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ),
     ],
     # ── MIND: Multi-Step Reasoning ────────────────────────────────
-    "arif_mind_reason": [
+    "arif_think": [
         ToolRiskProfile(
-            tool_name="arif_mind_reason",
+            tool_name="arif_think",
             mode=None,
             action_class="ANALYZE",
             risk_tier="LOW",
@@ -137,7 +137,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             requires_lease=False,
         ),
         ToolRiskProfile(
-            tool_name="arif_mind_reason",
+            tool_name="arif_think",
             mode="plan_approve",
             action_class="DRAFT",
             risk_tier="MEDIUM",
@@ -149,9 +149,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ),
     ],
     # ── HEART: Ethical Critique ───────────────────────────────────
-    "arif_heart_critique": [
+    "arif_critique": [
         ToolRiskProfile(
-            tool_name="arif_heart_critique",
+            tool_name="arif_critique",
             mode=None,
             action_class="ANALYZE",
             risk_tier="LOW",
@@ -162,7 +162,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             requires_lease=False,
         ),
         ToolRiskProfile(
-            tool_name="arif_heart_critique",
+            tool_name="arif_critique",
             mode="redteam",
             action_class="ANALYZE",
             risk_tier="MEDIUM",
@@ -188,9 +188,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ),
     ],
     # ── REPLY: Compose Response ───────────────────────────────────
-    "arif_reply_compose": [
+    "arif_compose": [
         ToolRiskProfile(
-            tool_name="arif_reply_compose",
+            tool_name="arif_compose",
             mode=None,
             action_class="ANALYZE",
             risk_tier="LOW",
@@ -266,9 +266,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ),
     ],
     # ── JUDGE: Constitutional Verdict ─────────────────────────────
-    "arif_judge_deliberate": [
+    "arif_judge": [
         ToolRiskProfile(
-            tool_name="arif_judge_deliberate",
+            tool_name="arif_judge",
             mode=None,
             action_class="DRAFT",
             risk_tier="MEDIUM",
@@ -279,7 +279,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             requires_lease=True,
         ),
         ToolRiskProfile(
-            tool_name="arif_judge_deliberate",
+            tool_name="arif_judge",
             mode="judge",
             action_class="DRAFT",
             risk_tier="HIGH",
@@ -291,9 +291,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ),
     ],
     # ── VAULT: Immutable Seal ─────────────────────────────────────
-    "arif_vault_seal": [
+    "arif_seal": [
         ToolRiskProfile(
-            tool_name="arif_vault_seal",
+            tool_name="arif_seal",
             mode=None,
             action_class="IRREVERSIBLE",
             risk_tier="ATOMIC",
@@ -305,9 +305,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ),
     ],
     # ── FORGE: Execute Builds/Deploys ─────────────────────────────
-    "arif_forge_execute": [
+    "arif_forge": [
         ToolRiskProfile(
-            tool_name="arif_forge_execute",
+            tool_name="arif_forge",
             mode=None,  # base default — safest, used when mode unknown
             action_class="MUTATE",
             risk_tier="HIGH",
@@ -318,7 +318,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             requires_lease=True,
         ),
         ToolRiskProfile(
-            tool_name="arif_forge_execute",
+            tool_name="arif_forge",
             mode="query",
             action_class="OBSERVE",
             risk_tier="LOW",
@@ -329,7 +329,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             requires_lease=False,
         ),
         ToolRiskProfile(
-            tool_name="arif_forge_execute",
+            tool_name="arif_forge",
             mode="dry_run",
             action_class="ANALYZE",
             risk_tier="LOW",
@@ -340,7 +340,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             requires_lease=False,
         ),
         ToolRiskProfile(
-            tool_name="arif_forge_execute",
+            tool_name="arif_forge",
             mode="engineer",
             action_class="MUTATE",
             risk_tier="HIGH",
@@ -351,7 +351,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             requires_lease=True,
         ),
         ToolRiskProfile(
-            tool_name="arif_forge_execute",
+            tool_name="arif_forge",
             mode="commit",
             action_class="MUTATE",
             risk_tier="HIGH",
@@ -362,7 +362,7 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
             requires_lease=True,
         ),
         ToolRiskProfile(
-            tool_name="arif_forge_execute",
+            tool_name="arif_forge",
             mode="deploy",
             action_class="IRREVERSIBLE",
             risk_tier="ATOMIC",
@@ -374,9 +374,9 @@ TOOL_RISK_REGISTRY: dict[str, list[ToolRiskProfile]] = {
         ),
     ],
     # ── OPS: Health + Vitals ──────────────────────────────────────
-    "arif_ops_measure": [
+    "arif_measure": [
         ToolRiskProfile(
-            tool_name="arif_ops_measure",
+            tool_name="arif_measure",
             mode=None,
             action_class="OBSERVE",
             risk_tier="LOW",
@@ -424,7 +424,7 @@ def classify_tool(
       3. Universal safe default (OBSERVE/LOW/LOCAL/1.0)
 
     Args:
-        tool_name: Canonical tool name (e.g. "arif_forge_execute")
+        tool_name: Canonical tool name (e.g. "arif_forge")
         params: Tool parameters dict (used to extract "mode")
 
     Returns:

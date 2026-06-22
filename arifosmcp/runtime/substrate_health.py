@@ -53,7 +53,7 @@ def substrate_health_check() -> dict[str, str]:
     vault_dir = (
         os.environ.get("VAULT999_PATH")
         or os.environ.get("ARIFOS_VAULT_DIR")
-        or "/root/arifOS/VAULT999"
+        or "/agent/vault999"
     )
     if not os.path.exists(vault_dir):
         health["vault_chain"] = "MISSING"

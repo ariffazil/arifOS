@@ -77,7 +77,7 @@ class A2ATaskManager:
         try:
             # Call arifos_init to establish governed session
             init_result = await self._call_mcp_tool(
-                "arif_session_init",
+                "arif_init",
                 {"mode": "init", "actor_id": request.client_agent_id},
             )
 
@@ -156,7 +156,7 @@ class A2ATaskManager:
             )
 
             _critique_result = await self._call_mcp_tool(
-                "arif_heart_critique",
+                "arif_critique",
                 {
                     "mode": "critique",
                     "target": f"A2A task [{task.id}]: {query[:200]}",
@@ -169,7 +169,7 @@ class A2ATaskManager:
             await self._update_task_state(task_id, TaskState.WORKING, "Awaiting APEX judgment...")
 
             judge_result = await self._call_mcp_tool(
-                "arif_judge_deliberate",
+                "arif_judge",
                 {
                     "mode": "judge",
                     "candidate": f"A2A task execution: {query[:200]}",
@@ -459,7 +459,7 @@ class A2AServer:
 
             # Step 1: Initialize constitutional anchor
             init_result = await self.task_manager._call_mcp_tool(
-                "arif_session_init",
+                "arif_init",
                 {
                     "intent": query,
                     "actor_id": actor_id,

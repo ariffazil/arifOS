@@ -67,7 +67,7 @@ policies:
   # MEDIUM: forge execute, deploy, seal
   forge_medium:
     match:
-      tool: "arif_forge_execute"
+      tool: "arif_forge"
       subject:
         roles: ["admin", "sovereign"]
     lease_defaults:

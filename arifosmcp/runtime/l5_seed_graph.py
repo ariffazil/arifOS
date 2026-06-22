@@ -35,7 +35,7 @@ from datetime import UTC, datetime
 FALKOR_HOST = os.getenv("FALKOR_HOST", "localhost")
 FALKOR_PORT = int(os.getenv("FALKOR_PORT", "6380"))
 FALKOR_GRAPH = os.getenv("FALKOR_GRAPH", "arif_l5_knowledge")
-VAULT999_PATH = os.getenv("VAULT999_PATH", "/root/arifOS/VAULT999/SEALED_EVENTS_v2.jsonl")
+VAULT999_PATH = os.getenv("VAULT999_PATH", "/agent/vault999/SEALED_EVENTS_v2.jsonl")
 DRY_RUN = os.getenv("L5_SEED_DRY_RUN", "false").lower() == "true"
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -48,35 +48,35 @@ DRY_RUN = os.getenv("L5_SEED_DRY_RUN", "false").lower() == "true"
 
 TOOLS = {
     # ── GOVERNANCE (ArifOS Kernel) ──
-    "arif_session_init": {
+    "arif_init": {
         "type": "Tool", "domain": "governance", "organ": "kernel",
         "description": "Initialize governed session — identity binding, F-floor activation",
         "reversible": True, "confidence": 0.99, "scope": "session", "owner": "888",
         "expiry": "session", "revocation_path": "F13_SOVEREIGN",
     },
-    "arif_judge_deliberate": {
+    "arif_judge": {
         "type": "Tool", "domain": "governance", "organ": "kernel",
         "description": "888 JUDGE — render constitutional verdict (SEAL/SABAR/VOID/HOLD)",
         "reversible": False, "confidence": 0.99, "scope": "decision", "owner": "888",
         "expiry": "never", "revocation_path": "F13_SOVEREIGN_OVERRIDE",
     },
-    "arif_vault_seal": {
+    "arif_seal": {
         "type": "Tool", "domain": "governance", "organ": "kernel",
         "description": "999 VAULT — immutable ledger anchoring, hash-chained",
         "reversible": False, "confidence": 0.99, "scope": "permanent", "owner": "999",
         "expiry": "never", "revocation_path": "NONE_IMMUTABLE",
     },
-    "arif_sense_observe": {
+    "arif_observe": {
         "type": "Tool", "domain": "governance", "organ": "kernel",
         "description": "111 SENSE — machine state observation, F2 truth grounding",
         "reversible": True, "confidence": 0.95, "scope": "read", "owner": "333",
     },
-    "arif_mind_reason": {
+    "arif_think": {
         "type": "Tool", "domain": "intelligence", "organ": "mind",
         "description": "333 MIND — symbolic reasoning kernel, epistemic band enforced",
         "reversible": True, "confidence": 0.95, "scope": "reasoning", "owner": "333",
     },
-    "arif_heart_critique": {
+    "arif_critique": {
         "type": "Tool", "domain": "intelligence", "organ": "heart",
         "description": "444 HEART — ethical critique, consequence assessment, F5/F6/F9 enforcement",
         "reversible": True, "confidence": 0.90, "scope": "ethical", "owner": "444",
@@ -91,7 +91,7 @@ TOOLS = {
         "description": "555m MEMORY — vector + graph recall, Qdrant + FalkorDB dual-read",
         "reversible": True, "confidence": 0.90, "scope": "read", "owner": "555",
     },
-    "arif_forge_execute": {
+    "arif_forge": {
         "type": "Tool", "domain": "governance", "organ": "kernel",
         "description": "666 FORGE — code generation, artifact creation, F1 reversible gate",
         "reversible": True, "confidence": 0.95, "scope": "execution", "owner": "888",
@@ -101,7 +101,7 @@ TOOLS = {
         "description": "666g GATEWAY — cross-agent federation bridge, A2A protocol",
         "reversible": True, "confidence": 0.90, "scope": "federation", "owner": "666",
     },
-    "arif_ops_measure": {
+    "arif_measure": {
         "type": "Tool", "domain": "infra", "organ": "ops",
         "description": "777 MEASURE — machine health, resource telemetry, entropy audit",
         "reversible": True, "confidence": 0.95, "scope": "read", "owner": "777",
@@ -142,7 +142,7 @@ TOOLS = {
     },
     "mind_feedback_hook": {
         "type": "Tool", "domain": "intelligence", "organ": "mind",
-        "description": "Integration hook — zero-kernel-mod wrapper for arif_mind_reason_v2 feedback tracking",
+        "description": "Integration hook — zero-kernel-mod wrapper for arif_think_v2 feedback tracking",
         "reversible": True, "confidence": 0.93, "scope": "integration", "owner": "333",
     },
     "sequential_thinking_mcp": {
@@ -332,13 +332,13 @@ TOOLS = {
 # Directional edges: (source, relation, target, weight, reason)
 EDGES = [
     # Governance pipeline
-    ("arif_session_init", "ROUTES_TO", "arif_sense_observe", 1.0, "000→111 pipeline"),
-    ("arif_sense_observe", "ROUTES_TO", "arif_mind_reason", 1.0, "111→333 pipeline"),
-    ("arif_mind_reason", "ROUTES_TO", "arif_heart_critique", 1.0, "333→444 pipeline"),
-    ("arif_heart_critique", "ROUTES_TO", "arif_kernel_route", 1.0, "444→555 pipeline"),
-    ("arif_kernel_route", "ROUTES_TO", "arif_forge_execute", 0.8, "555→666 conditional"),
-    ("arif_forge_execute", "ROUTES_TO", "arif_judge_deliberate", 1.0, "666→888 pipeline"),
-    ("arif_judge_deliberate", "ROUTES_TO", "arif_vault_seal", 1.0, "888→999 pipeline"),
+    ("arif_init", "ROUTES_TO", "arif_observe", 1.0, "000→111 pipeline"),
+    ("arif_observe", "ROUTES_TO", "arif_think", 1.0, "111→333 pipeline"),
+    ("arif_think", "ROUTES_TO", "arif_critique", 1.0, "333→444 pipeline"),
+    ("arif_critique", "ROUTES_TO", "arif_kernel_route", 1.0, "444→555 pipeline"),
+    ("arif_kernel_route", "ROUTES_TO", "arif_forge", 0.8, "555→666 conditional"),
+    ("arif_forge", "ROUTES_TO", "arif_judge", 1.0, "666→888 pipeline"),
+    ("arif_judge", "ROUTES_TO", "arif_seal", 1.0, "888→999 pipeline"),
 
     # Memory architecture
     ("arif_memory_recall", "DEPENDS_ON", "memory_store", 1.0, "recall reads store"),
@@ -347,10 +347,10 @@ EDGES = [
     ("l5_graph_read", "DEPENDS_ON", "l5_search_api", 1.0, "read queries search API"),
 
     # MIND feedback loop
-    ("arif_mind_reason", "DEPENDS_ON", "mind_state", 0.9, "reasoning persists state"),
+    ("arif_think", "DEPENDS_ON", "mind_state", 0.9, "reasoning persists state"),
     ("mind_state", "DEPENDS_ON", "feedback_loop", 0.9, "state feeds feedback"),
     ("feedback_loop", "DEPENDS_ON", "l5_graph_read", 0.8, "feedback queries graph"),
-    ("sequential_thinking_mcp", "DEPENDS_ON", "arif_mind_reason", 0.7, "ST feeds MIND"),
+    ("sequential_thinking_mcp", "DEPENDS_ON", "arif_think", 0.7, "ST feeds MIND"),
     ("sequential_thinking_hermes", "DEPENDS_ON", "sequential_thinking_mcp", 1.0, "skill wraps MCP"),
 
     # Wealth organ
@@ -374,12 +374,12 @@ EDGES = [
     ("geox_seismic_compute", "PRODUCES", "geox_evidence_reason", 0.8, "seismic feeds evidence"),
 
     # Cross-organ
-    ("arif_mind_reason", "DEPENDS_ON", "arif_memory_recall", 0.8, "reasoning needs memory"),
-    ("arif_forge_execute", "DEPENDS_ON", "hermes_terminal", 0.9, "forge needs shell"),
+    ("arif_think", "DEPENDS_ON", "arif_memory_recall", 0.8, "reasoning needs memory"),
+    ("arif_forge", "DEPENDS_ON", "hermes_terminal", 0.9, "forge needs shell"),
     ("hermes_delegate_task", "DEPENDS_ON", "arif_gateway_connect", 0.6, "delegation needs gateway"),
-    ("wealth_governance_verdict", "DEPENDS_ON", "arif_judge_deliberate", 0.7, "wealth verdict needs judge"),
-    ("well_validate_vitality", "DEPENDS_ON", "arif_sense_observe", 0.7, "vitality needs sense"),
-    ("geox_claim_create", "DEPENDS_ON", "arif_judge_deliberate", 0.5, "claims may need judge"),
+    ("wealth_governance_verdict", "DEPENDS_ON", "arif_judge", 0.7, "wealth verdict needs judge"),
+    ("well_validate_vitality", "DEPENDS_ON", "arif_observe", 0.7, "vitality needs sense"),
+    ("geox_claim_create", "DEPENDS_ON", "arif_judge", 0.5, "claims may need judge"),
 ]
 
 

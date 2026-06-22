@@ -170,9 +170,9 @@ class GriefGate(EnforcementEngine):
 
         # Check if the tool is grief-sensitive
         grief_sensitive_tools = [
-            "arif_heart_critique",
-            "arif_reply_compose",
-            "arif_mind_reason",
+            "arif_critique",
+            "arif_compose",
+            "arif_think",
         ]
 
         if tool_name not in grief_sensitive_tools:
@@ -367,8 +367,8 @@ class SovereignGate(EnforcementEngine):
     description = "Enforces F13 sovereign veto on irreversible actions"
 
     IRREVERSIBLE_TOOLS = [
-        "arif_vault_seal",
-        "arif_forge_execute",
+        "arif_seal",
+        "arif_forge",
     ]
 
     def check(

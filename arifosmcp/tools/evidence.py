@@ -24,7 +24,7 @@ from arifosmcp.runtime.tools import _hold
 logger = logging.getLogger(__name__)
 
 
-async def arif_evidence_fetch(
+async def arif_fetch(
 
     mode: Literal["fetch", "search", "archive", "verify", "void_audit"] = "fetch",
     url: str | None = None,
@@ -59,17 +59,17 @@ async def arif_evidence_fetch(
         return {"status": "readonly", "message": f"{mode} activated based on policy parameters."}
 
     floor_check = check_laws(
-        "arif_evidence_fetch", {"url": url or "", "query": query or ""}, actor_id
+        "arif_fetch", {"url": url or "", "query": query or ""}, actor_id
     )
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_evidence_fetch", floor_check["reason"], floor_check["violated_laws"])
+        return _hold("arif_fetch", floor_check["reason"], floor_check["violated_laws"])
 
     # ── Phase 1: Real Implementation ──
     # Delegate to runtime implementation which handles the thinking layer,
     # backend discovery, and reality-wiring.
-    from arifosmcp.runtime.tools import _arif_evidence_fetch
+    from arifosmcp.runtime.tools import _arif_fetch
 
-    return _arif_evidence_fetch(
+    return _arif_fetch(
         mode=mode,
         url=url,
         query=query,
@@ -83,4 +83,4 @@ async def arif_evidence_fetch(
     )
 
 
-__all__ = ["arif_evidence_fetch"]
+__all__ = ["arif_fetch"]

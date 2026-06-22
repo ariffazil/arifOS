@@ -5,8 +5,8 @@ HEXAGON Agent Classes (was: AgentZero Agent Classes)
 - 333-AGI (Δ MIND)  → AGIAgent      (was EngineerAgent, reclassified Δ from Ω)
 - 555-ASI (Ω HEART) → ASIAgent stub (deferred — wraps ConstitutionalMemoryStore)
 - 888-APEX (ΦΙ)     → APEXAgent     (was ValidatorAgent)
-- A-AUDIT           → AuditAgent stub (deferred — wraps arif_ops_measure)
-- A-ARCHIVE         → ArchiveAgent stub (deferred — wraps arif_vault_seal)
+- A-AUDIT           → AuditAgent stub (deferred — wraps arif_measure)
+- A-ARCHIVE         → ArchiveAgent stub (deferred — wraps arif_seal)
 """
 
 from .base import ConstitutionalAgent, TrinityRole, Verdict

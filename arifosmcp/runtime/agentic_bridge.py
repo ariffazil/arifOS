@@ -21,7 +21,7 @@ Architecture:
 
 Lineage:
   2026-06-21 — Forged to close G1-G4 gaps from 666_CRITIQUE
-  2026-06-21 — Session-bound via arif_session_init (G1 closed)
+  2026-06-21 — Session-bound via arif_init (G1 closed)
   2026-06-21 — Runtime artifact, not prose (G2 closed)
   2026-06-21 — Drift escalated via Gate 9 (G3 closed)
   2026-06-21 — ART fired on every call path (G4 closed)
@@ -236,7 +236,7 @@ def classify_and_bridge(
     where the full envelope isn't needed.
 
     Args:
-        tool_name: The MCP tool being called (e.g. "mcp__arifos__arif_sense_observe").
+        tool_name: The MCP tool being called (e.g. "mcp__arifos__arif_observe").
         actor_id: The calling actor (must be registered).
         session_id: The governing session ID.
         action_class: One of OBSERVE/ANALYZE/DRAFT/SIMULATE/MUTATE/

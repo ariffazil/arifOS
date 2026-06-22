@@ -44,7 +44,7 @@ async def arif_plan_and_simulate(
     If risk is medium/high, a simulation artifact MUST be generated.
     """
     
-    # Generate mock options (in a real system, use arif_mind_reason / LLM search)
+    # Generate mock options (in a real system, use arif_think / LLM search)
     options = []
     
     # Option A: The greedy/direct path

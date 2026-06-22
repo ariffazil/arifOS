@@ -17,7 +17,7 @@ from arifosmcp.runtime.tools import _hold, _ok, _sabar
 from arifosmcp.schemas.telemetry import TelemetryBlock
 
 
-def arif_ops_measure(
+def arif_measure(
     mode: str = "health",
     estimate: float | None = None,
     actor_id: str | None = None,
@@ -27,10 +27,10 @@ def arif_ops_measure(
     if not auth["valid"]:
         if auth.get("expired"):
             return TelemetryBlock(
-                **_sabar("arif_ops_measure", auth["reason"], session_id=session_id)
+                **_sabar("arif_measure", auth["reason"], session_id=session_id)
             )
         return TelemetryBlock(
-            **_hold("arif_ops_measure", auth["reason"], ["L11"], session_id=session_id)
+            **_hold("arif_measure", auth["reason"], ["L11"], session_id=session_id)
         )
 
     # ── Governance Counters (v2 Deepening — Task 6) ──
@@ -64,14 +64,14 @@ def arif_ops_measure(
             }
 
     floor_check = check_laws(
-        "arif_ops_measure",
+        "arif_measure",
         {"estimate": str(estimate) if estimate is not None else ""},
         actor_id,
     )
     if floor_check["verdict"] != "SEAL":
         return TelemetryBlock(
             **_hold(
-                "arif_ops_measure",
+                "arif_measure",
                 floor_check["reason"],
                 floor_check["violated_laws"],
                 session_id=session_id,
@@ -133,7 +133,7 @@ def arif_ops_measure(
         }
         return TelemetryBlock(
             **_ok(
-                "arif_ops_measure",
+                "arif_measure",
                 health_payload,
                 meta={
                     **drift_metrics,
@@ -181,7 +181,7 @@ def arif_ops_measure(
 
         return TelemetryBlock(
             **_ok(
-                "arif_ops_measure",
+                "arif_measure",
                 live_vitals,
                 meta=drift_metrics,
                 session_id=session_id,
@@ -190,7 +190,7 @@ def arif_ops_measure(
     if mode == "cost":
         return TelemetryBlock(
             **_ok(
-                "arif_ops_measure",
+                "arif_measure",
                 {"estimate": estimate or 0.0, "currency": "USD"},
                 session_id=session_id,
             )
@@ -198,7 +198,7 @@ def arif_ops_measure(
     if mode == "genius":
         return TelemetryBlock(
             **_ok(
-                "arif_ops_measure",
+                "arif_measure",
                 {"equation": "G = Q * T * T", "g_score": 0.97},
                 session_id=session_id,
             )
@@ -206,7 +206,7 @@ def arif_ops_measure(
     if mode == "psi_le":
         return TelemetryBlock(
             **_ok(
-                "arif_ops_measure",
+                "arif_measure",
                 {"psi_le": 1.02, "threshold": 1.05, "status": "nominal"},
                 session_id=session_id,
             )
@@ -214,7 +214,7 @@ def arif_ops_measure(
     if mode == "omega":
         return TelemetryBlock(
             **_ok(
-                "arif_ops_measure",
+                "arif_measure",
                 {"omega": 0.95, "target": 0.90, "status": "above_target"},
                 session_id=session_id,
             )
@@ -222,7 +222,7 @@ def arif_ops_measure(
     if mode == "landauer":
         return TelemetryBlock(
             **_ok(
-                "arif_ops_measure",
+                "arif_measure",
                 {"min_energy": 0.017, "unit": "eV", "note": "Landauer limit stub"},
                 session_id=session_id,
             )
@@ -237,7 +237,7 @@ def arif_ops_measure(
         verdict = raw_verdict if raw_verdict in _VALID_CONSTITUTIONAL_VERDICTS else "UNKNOWN"
         return TelemetryBlock(
             **_ok(
-                "arif_ops_measure",
+                "arif_measure",
                 {
                     "floors": payload.get("floors", {}),
                     "witness": payload.get("witness", {}),
@@ -288,7 +288,7 @@ def arif_ops_measure(
         }
         return TelemetryBlock(
             **_ok(
-                "arif_ops_measure",
+                "arif_measure",
                 pulse_payload,
                 meta={
                     **drift_metrics,
@@ -309,7 +309,7 @@ def arif_ops_measure(
             raw = arif_stack_health_probe(session_id=session_id, actor_id=actor_id)
             return TelemetryBlock(
                 **_ok(
-                    "arif_ops_measure",
+                    "arif_measure",
                     raw
                     if isinstance(raw, dict)
                     else (raw.__dict__ if hasattr(raw, "__dict__") else {"result": str(raw)}),
@@ -324,7 +324,7 @@ def arif_ops_measure(
         except Exception as exc:
             return TelemetryBlock(
                 **_hold(
-                    "arif_ops_measure",
+                    "arif_measure",
                     f"stack_health probe failed: {exc}",
                     ["L03"],
                     session_id=session_id,
@@ -357,7 +357,7 @@ def arif_ops_measure(
             payload = raw_result if isinstance(raw_result, dict) else {"result": str(raw_result)}
             return TelemetryBlock(
                 **_ok(
-                    "arif_ops_measure",
+                    "arif_measure",
                     payload,
                     meta={**drift_metrics, "source": "arif_session_budget", "mode": "budget"},
                     session_id=session_id,
@@ -366,7 +366,7 @@ def arif_ops_measure(
         except Exception as exc:
             return TelemetryBlock(
                 **_hold(
-                    "arif_ops_measure",
+                    "arif_measure",
                     f"budget mode failed: {exc}",
                     session_id=session_id,
                 )
@@ -442,7 +442,7 @@ def arif_ops_measure(
             }
             return TelemetryBlock(
                 **_ok(
-                    "arif_ops_measure",
+                    "arif_measure",
                     wakefulness_payload,
                     meta={**drift_metrics, "source": "human_wakefulness", "mode": "wakefulness"},
                     session_id=session_id,
@@ -451,7 +451,7 @@ def arif_ops_measure(
         except Exception as exc:
             return TelemetryBlock(
                 **_hold(
-                    "arif_ops_measure",
+                    "arif_measure",
                     f"human_wakefulness mode failed: {exc}",
                     session_id=session_id,
                 )
@@ -480,7 +480,7 @@ def arif_ops_measure(
         payload = compute_geometry_health(session_id=session_id)
         return TelemetryBlock(
             **_ok(
-                "arif_ops_measure",
+                "arif_measure",
                 payload,
                 meta={
                     **drift_metrics,
@@ -672,7 +672,7 @@ def arif_ops_measure(
         payload = surface.model_dump(mode="json")
         return TelemetryBlock(
             **_ok(
-                "arif_ops_measure",
+                "arif_measure",
                 payload,
                 meta={
                     **drift_metrics,
@@ -740,7 +740,7 @@ def arif_ops_measure(
 
             return TelemetryBlock(
                 **_ok(
-                    "arif_ops_measure",
+                    "arif_measure",
                     hostinger_payload,
                     meta={
                         **drift_metrics,
@@ -754,12 +754,12 @@ def arif_ops_measure(
         except Exception as exc:
             return TelemetryBlock(
                 **_hold(
-                    "arif_ops_measure",
+                    "arif_measure",
                     f"hostinger probe failed: {exc}",
                     session_id=session_id,
                 )
             )
 
     return TelemetryBlock(
-        **_hold("arif_ops_measure", f"Unknown mode: {mode}", session_id=session_id)
+        **_hold("arif_measure", f"Unknown mode: {mode}", session_id=session_id)
     )

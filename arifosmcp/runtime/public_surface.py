@@ -242,7 +242,7 @@ PEER_SOVEREIGNS: dict[str, dict[str, Any]] = {
         "tools": 13,
         "prompts": len(CANONICAL_PROMPTS),
         "resources": len(CANONICAL_RESOURCES),
-        "protocol_version": "2025-03-26",
+        "protocol_version": "2025-11-25",  # aligned with MCP_SPEC_VERSION_CANONICAL
     },
     "geox": {
         "role": "earth_intelligence_processor",

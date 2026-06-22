@@ -415,6 +415,21 @@ class FederationEnvelope(BaseModel):
         default=None,
         description="Completed wakefulness checkpoint for dignity/memory/vault/identity actions",
     )
+
+    # ── v3: Forge Scope — Tool Surface Narrowing ──────────────────────────
+    # When set, restricts which tools are allowed for this call.
+    # Populated by A-FORGE ToolScoper before forwarding to arifOS MCP gate.
+    # Each entry is a concrete tool name (e.g. "arif_ping").
+    # Wildcards NOT supported here — resolution happens in A-FORGE.
+    # Empty list or None = no restriction (all canonical tools allowed).
+    forge_scope: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Tool name allowlist from A-FORGE ToolScoper. "
+            "When non-empty, the MCP gate only allows tools named here. "
+            "When empty, all canonical tools are reachable."
+        ),
+    )
     # ───────────────────────────────────────────────────────────────────────
 
     # ── v2: Lineage propagation ───────────────────────────────────────────
@@ -562,6 +577,7 @@ class FederationEnvelope(BaseModel):
             "tool_scope": [s.value for s in self.tool_scope],
             "host_attestation": self.host_attestation.value,
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
+            "forge_scope": self.forge_scope,
         }
 
 

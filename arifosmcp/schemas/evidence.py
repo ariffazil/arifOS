@@ -1,4 +1,4 @@
-"""Evidence output schema — 222_FETCH (arif_evidence_fetch)
+"""Evidence output schema — 222_FETCH (arif_fetch)
 
 Chapter 6 Upgrade: CertaintyCap enforces epistemic humility.
 No component may claim more certainty than its evidence receipt.
@@ -44,7 +44,7 @@ class EvidenceResult(BaseModel):
 
 class EvidenceOutput(BaseModel):
     status: str = "OK"
-    tool: str = "arif_evidence_fetch"
+    tool: str = "arif_fetch"
     result: EvidenceResult = Field(default_factory=EvidenceResult)
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None

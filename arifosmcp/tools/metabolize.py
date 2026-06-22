@@ -707,7 +707,7 @@ def _fallback_metabolic_processing(user_prompt: str) -> dict[str, Any]:
         ],
         "model_updates": [],
         "required_next_tests": required_next_tests,
-        "next_best_tool": "arif_sense_observe",
+        "next_best_tool": "arif_observe",
         "claim_state": "HYPOTHESIS",
         "uncertainty": {
             "omega_0": 0.15,

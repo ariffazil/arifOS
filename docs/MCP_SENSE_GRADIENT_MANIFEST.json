@@ -1,0 +1,321 @@
+{
+  "manifest": "arifOS MCP Sense-Extend Gradient — Canonical Tool Surface",
+  "version": "2026.06.21",
+  "doctrine": "DITEMPA BUKAN DIBERI",
+  "description": "Three tools, one cognitive gradient. Expose by cognitive level, not implementation detail.",
+
+  "gradient": [
+    {
+      "level": 1,
+      "label": "Perception",
+      "tool": "arif_sense_observe",
+      "stage": "111_SENSE",
+      "purpose": "Quick look. One hop. No memory. No graph.",
+      "description": "Reality-wired single-shot observation. Use when you need one answer quickly.",
+      "input_schema": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["search", "ingest", "compass", "atlas", "entropy_dS", "vitals", "hybrid_discovery"],
+            "default": "search",
+            "description": "Perception mode"
+          },
+          "query": {
+            "type": "string",
+            "description": "Search query or URL to fetch"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL to fetch (alternative to query)"
+          },
+          "top_k": {
+            "type": "integer",
+            "default": 5,
+            "description": "Max results"
+          },
+          "session_id": {
+            "type": "string",
+            "description": "Governing constitutional session"
+          },
+          "actor_id": {
+            "type": "string",
+            "description": "Calling actor identity"
+          }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "result": { "type": "object" },
+          "metadata": { "type": "object" }
+        }
+      },
+      "when_to_use": [
+        "What is X?",
+        "Fetch this URL quickly.",
+        "Give me a quick system snapshot.",
+        "Search the web for this term."
+      ],
+      "when_not_to_use": [
+        "I need verified evidence with a receipt.",
+        "I need multi-hop exploration.",
+        "I need cross-organ fusion."
+      ]
+    },
+    {
+      "level": 2,
+      "label": "Evidence",
+      "tool": "arif_evidence_fetch",
+      "stage": "222_EVIDENCE",
+      "purpose": "Fetch + verify + seal. Evidence receipts. Auditable.",
+      "description": "Evidence-preserving fetch with receipt emission and hash chain sealing. Use when you need a verifiable claim.",
+      "input_schema": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["fetch", "search", "archive", "verify", "void_audit"],
+            "default": "fetch",
+            "description": "Evidence mode"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL to fetch with evidence receipt"
+          },
+          "query": {
+            "type": "string",
+            "description": "Search query for evidence backends"
+          },
+          "top_k": {
+            "type": "integer",
+            "default": 5,
+            "description": "Max results"
+          },
+          "thinking_depth": {
+            "type": "integer",
+            "default": 0,
+            "description": "Governed sequential thinking depth"
+          },
+          "confidence_threshold": {
+            "type": "number",
+            "default": 0.9,
+            "description": "Minimum confidence for evidence acceptance"
+          },
+          "session_id": {
+            "type": "string",
+            "description": "Governing constitutional session"
+          },
+          "actor_id": {
+            "type": "string",
+            "description": "Calling actor identity"
+          }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "content": { "type": "string" },
+          "receipt": { "type": "object" },
+          "hash": { "type": "string" }
+        }
+      },
+      "when_to_use": [
+        "Fetch this URL with evidence.",
+        "Give me a verifiable snapshot of this source.",
+        "I need a receipt for this claim.",
+        "Verify this evidence against the vault."
+      ],
+      "when_not_to_use": [
+        "I just need a quick look (use arif_sense_observe instead).",
+        "I need multi-hop exploration (use arif_explore instead)."
+      ]
+    },
+    {
+      "level": 3,
+      "label": "Exploration",
+      "tool": "arif_explore",
+      "stage": "111_OBSERVE (extended)",
+      "purpose": "Multi-hop, governed, evolutionary exploration. The AGI substrate.",
+      "description": "Governed multi-step exploration across 8 modes. Builds a graph, tracks novelty, detects saturation, seals traces. EurekaMode orchestrates Navigator, Prospector, and Surveyor inside an evolutionary discovery loop.",
+      "input_schema": {
+        "type": "object",
+        "required": ["goal", "mode", "telemetry"],
+        "properties": {
+          "goal": {
+            "type": "string",
+            "description": "Research goal or discovery objective"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "navigator",
+              "prospector",
+              "driller",
+              "mapper",
+              "surveyor",
+              "scout",
+              "eureka",
+              "auto"
+            ],
+            "default": "auto",
+            "description": "Exploration mode (eureka = evolutionary discovery loop)"
+          },
+          "seed": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "object",
+                "properties": {
+                  "url": { "type": "string" },
+                  "allowed_domains": { "type": "array", "items": { "type": "string" } }
+                }
+              },
+              "path": {
+                "type": "object",
+                "properties": {
+                  "path": { "type": "string" },
+                  "include_patterns": { "type": "array", "items": { "type": "string" } }
+                }
+              },
+              "api": {
+                "type": "object",
+                "properties": {
+                  "base_url": { "type": "string" },
+                  "openapi_url": { "type": "string" }
+                }
+              },
+              "entity": { "type": "string" },
+              "question": { "type": "string" }
+            }
+          },
+          "limits": {
+            "type": "object",
+            "properties": {
+              "max_depth": { "type": "integer", "minimum": 1, "maximum": 10, "default": 4 },
+              "max_steps": { "type": "integer", "minimum": 1, "maximum": 256, "default": 64 },
+              "time_budget_s": { "type": "integer", "minimum": 5, "maximum": 600, "default": 60 }
+            }
+          },
+          "telemetry": {
+            "type": "object",
+            "required": ["trace_id"],
+            "properties": {
+              "trace_id": { "type": "string" },
+              "organ_context": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          },
+          "session_id": {
+            "type": "string",
+            "description": "Governing constitutional session"
+          },
+          "actor_id": {
+            "type": "string",
+            "description": "Calling actor identity"
+          }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "required": ["status", "exploration_graph", "metrics", "verdict"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["ok", "partial", "failed"]
+          },
+          "exploration_graph": {
+            "type": "object",
+            "properties": {
+              "nodes": { "type": "array", "items": { "type": "object" } },
+              "edges": { "type": "array", "items": { "type": "object" } }
+            }
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "summary": { "type": "string" },
+                "confidence": { "type": "number" },
+                "sources": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          },
+          "gaps": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "steps": { "type": "integer" },
+              "depth": { "type": "integer" },
+              "coverage": { "type": "number" },
+              "confidence": { "type": "number" }
+            }
+          },
+          "verdict": {
+            "type": "object",
+            "properties": {
+              "saturation": {
+                "type": "string",
+                "enum": ["low", "medium", "high"]
+              },
+              "next_moves": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "mode": { "type": "string" },
+                    "goal": { "type": "string" },
+                    "reason": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "when_to_use": [
+        "Discover something new.",
+        "Explore this research domain.",
+        "Find hidden structure.",
+        "Run a governed research loop.",
+        "Fuse signals across organs (GEOX, WELL, WEALTH).",
+        "Generate novelty-ranked findings.",
+        "Enter EurekaMode — evolutionary discovery."
+      ],
+      "when_not_to_use": [
+        "I just need a quick web search (use arif_sense_observe).",
+        "I need a verified evidence receipt (use arif_evidence_fetch).",
+        "I have a single question with no follow-up."
+      ]
+    }
+  ],
+
+  "gradient_summary": {
+    "arif_sense_observe":  "Look once. (1 hop, stateless, cheap)",
+    "arif_evidence_fetch":  "Look once, but prove it. (1 hop, verified, receipted)",
+    "arif_explore":         "Look many times, think, explore, discover. (multi-hop, governed, evolutionary)"
+  },
+
+  "internal_modes_not_exposed": {
+    "explanation": "These modes live INSIDE arif_explore. Agents do not need separate tools.",
+    "navigator":  "Web traversal — dispatched by EurekaMode internally",
+    "prospector": "Filesystem traversal — dispatched by EurekaMode internally",
+    "driller":    "API discovery — pending forge",
+    "mapper":     "Knowledge graph traversal — pending forge",
+    "surveyor":   "Cross-organ telemetry fusion — dispatched by EurekaMode internally",
+    "scout":      "Subsumed by EurekaMode",
+    "eureka":     "Evolutionary discovery loop — orchestrates all sub-modes",
+    "auto":       "Kernel auto-selects mode from seed shape"
+  }
+}
