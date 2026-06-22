@@ -76,6 +76,46 @@ def _unlock(handle: Any) -> None:
         pass
 
 
+# ── FORGE 1: Verdict Monotonicity (2026-06-22) ────────────────────────
+# INVARIANT: No aggregate verdict may rank safer than its worst
+# load-bearing sub-signal. PASS (SEAL) forbidden if any evidence
+# field is BROKEN/FAIL/VOID/ROSAK/KHIANAT/BANGANG/RETAK.
+#
+# Maps signal values to numeric severity. Lower = worse.
+# Used by _collect_monotonicity_floor and Step 8 of _compute_canonical_verdict.
+_SIGNAL_SEVERITY: dict[str, int] = {
+    # ── Terminal / critical (severity 0) ──
+    "VOID": 0,
+    "FAIL": 0,
+    "BROKEN": 0,
+    "ROSAK": 0,         # nine_signal Δ: BROKEN
+    "KHIANAT": 0,       # nine_signal Ψ: BETRAYED
+    "BANGANG": 0,       # nine_signal Ω: FOOLISH
+    "RETAK": 0,         # nine_signal overall/nine_signal Δ: FAILED/CRACKED
+    # ── Held / deferred (severity 1-2) ──
+    "SABAR": 1,
+    "SABAR_HOLD": 1,
+    "HOLD": 2,
+    "SYUBHAH": 2,       # nine_signal Ψ: DOUBTFUL
+    # ── Warnings / degraded (severity 3-4) ──
+    "ERROR": 3,
+    "WARN": 3,
+    "DEGRADED": 4,
+    "BIJAK": 4,         # nine_signal Ω: SMART (degraded intelligence)
+    # ── Observe only / partial (severity 5) ──
+    "SEAL_OBSERVE_ONLY": 5,
+    "PARTIAL": 5,
+    # ── Clean / healthy (severity 6, highest) ──
+    "SEAL": 6,
+    "OK": 6,
+    "PASS": 6,
+    "KUKUH": 6,         # nine_signal Δ: SOLID
+    "AMANAH": 6,        # nine_signal Ψ: TRUSTED
+    "BIJAKSANA": 6,     # nine_signal Ω: WISE
+    "SELAMAT": 6,       # nine_signal overall: SAFE
+}
+
+
 def _any_degraded_flag(out: dict[str, Any]) -> bool:
     """C4-1 (2026-06-21): detect any critical subsystem degradation.
 
@@ -590,6 +630,95 @@ def _derive_affordance_verdict(
     return current_verdict
 
 
+def _collect_monotonicity_floor(
+    out: dict[str, Any],
+    meta: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> str:
+    """FORGE 1 (2026-06-22): Collect the worst sub-signal severity from all evidence.
+
+    Walks every load-bearing sub-signal in the response envelope — nine_signal
+    plane states, sub-gate verdicts, inner payload verdicts, degraded flags —
+    and returns the lowest-severity label found.
+
+    INVARIANT: No aggregate verdict may rank safer than its worst sub-signal.
+    If any evidence field is BROKEN/FAIL/VOID/ROSAK/KHIANAT/BANGANG/RETAK,
+    the aggregate must not be SEAL.
+
+    Returns the worst verdict label, or "SEAL" (default floor) if no bad
+    signals are found.
+    """
+    from arifosmcp.runtime.honesty_hotfix import VERDICT_RANK
+
+    worst_severity: int = 6  # SEAL = best possible
+    worst_label: str = "SEAL"
+
+    def _track(value_str: str | None, source_hint: str = "") -> None:
+        nonlocal worst_severity, worst_label
+        if not isinstance(value_str, str) or not value_str.strip():
+            return
+        v = value_str.strip().upper()
+        sev = _SIGNAL_SEVERITY.get(v)
+        if sev is not None and sev < worst_severity:
+            worst_severity = sev
+            worst_label = v
+
+    # ── 1. Nine-signal plane states ─────────────────────────────────────
+    ns = out.get("nine_signal")
+    if isinstance(ns, dict):
+        for plane in ("delta", "psi", "omega"):
+            plane_dict = ns.get(plane)
+            if isinstance(plane_dict, dict):
+                _track(plane_dict.get("state"), f"nine_signal.{plane}.state")
+        overall = ns.get("overall")
+        if isinstance(overall, dict):
+            _track(overall.get("state"), "nine_signal.overall.state")
+
+    # ── 2. Sub-gate verdicts ────────────────────────────────────────────
+    if isinstance(meta, dict):
+        for gate_name in ("post_observe_gate", "sabar_gate"):
+            gate = meta.get(gate_name)
+            if isinstance(gate, dict):
+                _track(gate.get("verdict"), f"meta.{gate_name}.verdict")
+        # Also check direct verdict in meta
+        _track(meta.get("verdict"), "meta.verdict")
+
+    # ── 3. Inner payload verdict fields ─────────────────────────────────
+    if isinstance(result_payload, dict):
+        for key, val in result_payload.items():
+            if not isinstance(key, str):
+                continue
+            # Keys ending in _verdict are canonical
+            if key.endswith("_verdict") and isinstance(val, str):
+                _track(val, f"result.{key}")
+            if key in ("status", "final_verdict", "truth_verdict") and isinstance(val, str):
+                _track(val, f"result.{key}")
+
+    # ── 4. Deep scan: any string value that is exactly a terminal signal ─
+    _TERMINAL = frozenset({"BROKEN", "FAIL", "VOID", "ROSAK", "KHIANAT", "BANGANG", "RETAK"})
+
+    def _deep_scan(obj: Any, path: str = "out") -> None:
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                pk = f"{path}.{k}" if path else str(k)
+                if isinstance(v, str) and v.strip().upper() in _TERMINAL:
+                    _track(v.strip().upper(), pk)
+                elif isinstance(v, dict):
+                    _deep_scan(v, pk)
+                elif isinstance(v, list) and len(v) <= 32:
+                    for i, item in enumerate(v):
+                        if isinstance(item, dict):
+                            _deep_scan(item, f"{pk}[{i}]")
+
+    _deep_scan(out, "out")
+    if isinstance(meta, dict):
+        _deep_scan(meta, "meta")
+    if isinstance(result_payload, dict):
+        _deep_scan(result_payload, "result")
+
+    return worst_label
+
+
 def _find_degradation_in_payload(result_payload: dict[str, Any]) -> list[str]:
     """Scan result payload for inner verdicts that indicate degradation.
 
@@ -735,6 +864,22 @@ def _compute_canonical_verdict(
                     f"nine_signal.overall.state={ns_state} contradicts SEAL — "
                     f"downgraded to DEGRADED for audit surface consistency."
                 )
+
+    # ── Step 8: Verdict monotonicity (FORGE 1, 2026-06-22) ─────────────────
+    # INVARIANT: No aggregate verdict may rank safer than its worst
+    # load-bearing sub-signal. PASS (SEAL) forbidden if any evidence
+    # field is BROKEN/FAIL/VOID/ROSAK/KHIANAT/BANGANG/RETAK.
+    #
+    # After all prior steps have computed a tentative verdict, scan every
+    # sub-signal one more time and ensure no signal is worse than the
+    # aggregate. This kills the "PASS-over-BROKEN" bug class permanently.
+    floor_verdict = _collect_monotonicity_floor(out, _meta, result_payload)
+    if _SIGNAL_SEVERITY.get(verdict, 6) > _SIGNAL_SEVERITY.get(floor_verdict, 6):
+        degradation.append(
+            f"verdict_monotonicity: {verdict} → {floor_verdict} "
+            f"(sub-signal floor dominates aggregate)"
+        )
+        verdict = floor_verdict
 
     return verdict, degradation
 
