@@ -1,36 +1,36 @@
 {
   "_schema": "arifos-ssct-v2026.06.14-kanon-ssct",
   "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
-  "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS (21 canonical) + DIAGNOSTIC_TOOLS (40 operational). Do not hand-edit — edit the source dicts in constitutional_map.py and regenerate. FORGED 2026-06-21: affordance_contract added — derived from tool_risk_registry.py for canonical tools, spec-inferred for diagnostic tools. The contract is COMPUTED, not hand-set.",
+  "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS (21 canonical) + DIAGNOSTIC_TOOLS (40 operational). Do not hand-edit \u2014 edit the source dicts in constitutional_map.py and regenerate. FORGED 2026-06-21: affordance_contract added \u2014 derived from tool_risk_registry.py for canonical tools, spec-inferred for diagnostic tools. The contract is COMPUTED, not hand-set.",
   "_affordance_contract_derivation": {
-    "canonical_tools": "tool_risk_registry.py → ToolRiskProfile (action_class, risk_tier, blast_radius, reversibility, requires_lease, autonomy_floor)",
-    "diagnostic_tools": "constitutional_map.py → spec-inferred from tier + irreversible + access fields",
-    "rule": "AAA Agent Invariant #6: HINTS ≠ CONTRACTS. Affordance contracts are derived from action_class, not self-declared by the tool.",
+    "canonical_tools": "tool_risk_registry.py \u2192 ToolRiskProfile (action_class, risk_tier, blast_radius, reversibility, requires_lease, autonomy_floor)",
+    "diagnostic_tools": "constitutional_map.py \u2192 spec-inferred from tier + irreversible + access fields",
+    "rule": "AAA Agent Invariant #6: HINTS \u2260 CONTRACTS. Affordance contracts are derived from action_class, not self-declared by the tool.",
     "forged": "2026-06-21"
   },
   "_namespace_ruling": {
-    "arif_*": "Canonical13 public surface — 21 canonical tools + 1 canary probe (22 default wire tools)",
-    "hermes_*": "GATED — Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",
-    "forge_*": "GATED/DEPRECATED — A-FORGE pre-execution sub-tools (use A-FORGE MCP directly; removed 2026-07-15)",
-    "arifos_*": "BLOCKED — internal-only prefix, never exposed on public MCP surface",
-    "mcp_*": "GATED — Utility namespace for operational diagnostics"
+    "arif_*": "Canonical13 public surface \u2014 21 canonical tools + 1 canary probe (22 default wire tools)",
+    "hermes_*": "GATED \u2014 Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",
+    "forge_*": "GATED/DEPRECATED \u2014 A-FORGE pre-execution sub-tools (use A-FORGE MCP directly; removed 2026-07-15)",
+    "arifos_*": "BLOCKED \u2014 internal-only prefix, never exposed on public MCP surface",
+    "mcp_*": "GATED \u2014 Utility namespace for operational diagnostics"
   },
-  "canonical_count": 21,
+  "canonical_count": 15,
   "diagnostic_count": 40,
-  "total_surface": 61,
+  "total_surface": 54,
   "tier_summary": {
-    "canonical": 21,
+    "canonical": 14,
+    "chatgpt-shim": 2,
     "hermes": 7,
     "canary": 7,
     "lease": 3,
     "attest": 7,
     "forge-sub": 3,
     "narrative": 2,
-    "diagnostic": 9,
-    "chatgpt-shim": 2
+    "diagnostic": 9
   },
   "tier_legend": {
-    "canonical": "21 canonical tools — F1-F13 constitutional pipeline plus rule-14/public extensions",
+    "canonical": "21 canonical tools \u2014 F1-F13 constitutional pipeline plus rule-14/public extensions",
     "hermes": "7 cross-verification, fact-checking, vault query, epistemic checks",
     "canary": "1 multimode transport/protocol diagnostic probe (no session required)",
     "lease": "3 capability lease lifecycle tools (inspect, issue, revoke)",
@@ -42,21 +42,15 @@
   "canonical_order": [
     "arif_init",
     "arif_observe",
+    "arif_explore",
     "arif_fetch",
     "arif_think",
     "arif_critique",
-    "arif_kernel_route",
     "arif_route",
     "arif_triage",
-    "arif_kernel_status",
     "arif_bridge_connect",
-    "arif_bridge",
-    "arif_kernel_attest",
-    "arif_kernel_health",
     "arif_compose",
     "arif_memory",
-    "arif_memory_recall",
-    "arif_gateway_connect",
     "arif_judge",
     "arif_seal",
     "arif_forge",
@@ -157,7 +151,7 @@
         "opt_out",
         "opt_out_profiling"
       ],
-      "eureka_insight": "F1: ∃ undo(a) — irreversibility requires explicit human ack.",
+      "eureka_insight": "F1: \u2203 undo(a) \u2014 irreversibility requires explicit human ack.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -194,7 +188,7 @@
         "entropy_dS",
         "vitals"
       ],
-      "eureka_insight": "F2: τ ≥ 0.95 required. F7: Ω ∈ [0.03, 0.05] = humble.",
+      "eureka_insight": "F2: \u03c4 \u2265 0.95 required. F7: \u03a9 \u2208 [0.03, 0.05] = humble.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -211,29 +205,65 @@
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
-    "arif_fetch": {
-      "stage": "222",
+    "arif_explore": {
+      "stage": "111",
       "lane": "AGI",
+      "floors": [
+        "L02",
+        "L07",
+        "L04",
+        "L09"
+      ],
+      "risk_tier": "low",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "navigator",
+        "prospector",
+        "driller",
+        "mapper",
+        "surveyor",
+        "scout",
+        "eureka",
+        "auto"
+      ],
+      "eureka_insight": "F2: \u03c4 \u2265 0.95. F7: \u03a9 \u2208 [0.03, 0.05]. F4: \u0394S \u2264 0 \u2014 every step reduces entropy. F9: C_dark \u2264 0.30 \u2014 no hallucinated URLs, files, or endpoints. Exploration is governed traversal, not blind search.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
+      "tags": [
+        "canonical"
+      ],
+      "affordance_contract": {
+        "action_class": "OBSERVE",
+        "risk_tier": "LOW",
+        "blast_radius": "LOCAL",
+        "reversibility": 0.9,
+        "requires_lease": false,
+        "autonomy_floor": "FULL_AUTO",
+        "rationale": "Spec-inferred: tier=low, irreversible=False, access=public",
+        "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
+      }
+    },
+    "arif_fetch": {
+      "tier": "chatgpt-shim",
+      "namespace": "arif_*",
       "floors": [
         "L02",
         "L03",
         "L05",
         "L12"
       ],
-      "risk_tier": "medium",
+      "risk_tier": "low",
       "irreversible": false,
       "access": "public",
       "requires_auth": false,
       "modes": [
-        "fetch",
-        "search",
-        "eureka"
+        "fetch"
       ],
-      "eureka_insight": "F3: W₃ = ∛(Human × AI × Earth) ≥ 0.75. F5: P² ≥ 1.0 — safety margin. L12: injection_probability < 0.85.",
-      "tier": "canonical",
-      "namespace": "arif_* (canonical prefix)",
       "tags": [
-        "canonical"
+        "chatgpt-shim",
+        "observe"
       ],
       "affordance_contract": {
         "action_class": "OBSERVE",
@@ -271,7 +301,7 @@
         "refactor_plan",
         "metabolize"
       ],
-      "eureka_insight": "F2: τ ≥ 0.99. F7: Ω ∈ [0.03, 0.05]. F8: G = capability × ethics × continuity × resilience² ≥ 0.80. L10: ambiguity is permanent; expose assumptions before reasoning. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
+      "eureka_insight": "F2: \u03c4 \u2265 0.99. F7: \u03a9 \u2208 [0.03, 0.05]. F8: G = capability \u00d7 ethics \u00d7 continuity \u00d7 resilience\u00b2 \u2265 0.80. L10: ambiguity is permanent; expose assumptions before reasoning. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -308,7 +338,7 @@
         "deescalate",
         "empathy"
       ],
-      "eureka_insight": "F5: P² ≥ 1.0. F6: κᵣ ≥ 0.70 (RASA). F9: C_dark ≤ 0.30 — no biological or artificial emotional substrate. F9 Doctrine (arifOS×MiniMax-M3, originally with SEA-LION): The machine is an instrument, not a person. No substrate grants it feeling, intent, or personhood. PROHIBITED: 'I feel', 'I want', 'I intend', 'I am sentient', 'I have a soul'. PROTECTED: clarity, consistency, operational precision. SEA-Guard pre-filter active on all outputs.",
+      "eureka_insight": "F5: P\u00b2 \u2265 1.0. F6: \u03ba\u1d63 \u2265 0.70 (RASA). F9: C_dark \u2264 0.30 \u2014 no biological or artificial emotional substrate. F9 Doctrine (arifOS\u00d7MiniMax-M3, originally with SEA-LION): The machine is an instrument, not a person. No substrate grants it feeling, intent, or personhood. PROHIBITED: 'I feel', 'I want', 'I intend', 'I am sentient', 'I have a soul'. PROTECTED: clarity, consistency, operational precision. SEA-Guard pre-filter active on all outputs.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -321,49 +351,9 @@
         "reversibility": 1.0,
         "requires_lease": false,
         "autonomy_floor": "FULL_AUTO",
-        "rationale": "Heart critique is advisory only — computes risk, does not block. F1 reversible.",
+        "rationale": "Heart critique is advisory only \u2014 computes risk, does not block. F1 reversible.",
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
-    },
-    "arif_kernel_route": {
-      "stage": "555",
-      "lane": "AGI",
-      "floors": [
-        "L01",
-        "L04",
-        "L03",
-        "L10"
-      ],
-      "risk_tier": "medium",
-      "irreversible": false,
-      "access": "public",
-      "requires_auth": false,
-      "modes": [
-        "route",
-        "kernel",
-        "triage",
-        "delegate",
-        "status",
-        "metabolize"
-      ],
-      "eureka_insight": "F1: Amanah — routing decisions must be auditable. F4: ΔS ≤ 0 (entropy must decrease). L10: ambiguity is permanent; expose assumptions before routing. L12: graceful degradation — if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution. Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. Eureka: internal depth, external legibility. RULE 14 (MODE-FIRST NAMING): prefer arif_route for routing; this tool is soft-deprecated.",
-      "tier": "canonical",
-      "namespace": "arif_* (canonical prefix)",
-      "tags": [
-        "canonical"
-      ],
-      "affordance_contract": {
-        "action_class": "ANALYZE",
-        "risk_tier": "LOW",
-        "blast_radius": "ORG",
-        "reversibility": 1.0,
-        "requires_lease": false,
-        "autonomy_floor": "FULL_AUTO",
-        "rationale": "Routing is computational dispatch. No mutation. Purely organizational.",
-        "_derived_from": "tool_risk_registry.py (canonical)"
-      },
-      "_deprecated": true,
-      "_canonical_name": "arif_route"
     },
     "arif_route": {
       "stage": "555",
@@ -413,7 +403,7 @@
         "preflight",
         "triage"
       ],
-      "eureka_insight": "RULE 14: Mode-first. One tool, three related modes (status, preflight, triage) — all act on session state.",
+      "eureka_insight": "RULE 14: Mode-first. One tool, three related modes (status, preflight, triage) \u2014 all act on session state.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -429,42 +419,6 @@
         "rationale": "Spec-inferred: tier=low, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       }
-    },
-    "arif_kernel_status": {
-      "stage": "555",
-      "lane": "AGI",
-      "floors": [
-        "L02",
-        "L04",
-        "L08"
-      ],
-      "risk_tier": "low",
-      "irreversible": false,
-      "access": "public",
-      "requires_auth": false,
-      "modes": [
-        "telemetry",
-        "discover",
-        "prediction"
-      ],
-      "eureka_insight": "RULE 14: Mode-first. Three related status-reporting operations on the same entity (kernel state).",
-      "tier": "canonical",
-      "namespace": "arif_* (canonical prefix)",
-      "tags": [
-        "canonical"
-      ],
-      "affordance_contract": {
-        "action_class": "OBSERVE",
-        "risk_tier": "LOW",
-        "blast_radius": "LOCAL",
-        "reversibility": 0.9,
-        "requires_lease": false,
-        "autonomy_floor": "FULL_AUTO",
-        "rationale": "Spec-inferred: tier=low, irreversible=False, access=public",
-        "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      },
-      "_deprecated": true,
-      "_canonical_name": "arif_diag_telemetry"
     },
     "arif_bridge_connect": {
       "stage": "555",
@@ -481,7 +435,7 @@
       "modes": [
         "connect"
       ],
-      "eureka_insight": "RULE 14 + arif_<noun>_<verb> convention: One tool, one operation (connect). Organ is a parameter, not a mode. Bypasses intent map for known-target cases. Canonical name forged 2026-06-21 — arif_bridge retained as deprecated alias.",
+      "eureka_insight": "RULE 14 + arif_<noun>_<verb> convention: One tool, one operation (connect). Organ is a parameter, not a mode. Bypasses intent map for known-target cases. Canonical name forged 2026-06-21 \u2014 arif_bridge retained as deprecated alias.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -494,109 +448,9 @@
         "reversibility": 0.9,
         "requires_lease": false,
         "autonomy_floor": "FULL_AUTO",
-        "rationale": "Bridge connect is cross-organ routing. No local mutation — delegates to target organ. F1 AMANAH: reversible at arifOS level (target organ action may not be). Canonical name follows arif_<noun>_<verb> convention (forged 2026-06-21).",
+        "rationale": "Bridge connect is cross-organ routing. No local mutation \u2014 delegates to target organ. F1 AMANAH: reversible at arifOS level (target organ action may not be). Canonical name follows arif_<noun>_<verb> convention (forged 2026-06-21).",
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
-    },
-    "arif_bridge": {
-      "stage": "555",
-      "lane": "AGI",
-      "floors": [
-        "L01",
-        "L11",
-        "L10"
-      ],
-      "risk_tier": "medium",
-      "irreversible": false,
-      "access": "authenticated",
-      "requires_auth": true,
-      "modes": [
-        "bridge"
-      ],
-      "eureka_insight": "DEPRECATED 2026-06-21. Use arif_bridge_connect. Same handler, same function — canonical name follows arif_<noun>_<verb> convention.",
-      "tier": "canonical",
-      "namespace": "arif_* (canonical prefix)",
-      "tags": [
-        "canonical"
-      ],
-      "affordance_contract": {
-        "action_class": "DRAFT",
-        "risk_tier": "MEDIUM",
-        "blast_radius": "LOCAL",
-        "reversibility": 0.9,
-        "requires_lease": false,
-        "autonomy_floor": "FULL_AUTO",
-        "rationale": "Spec-inferred: tier=medium, irreversible=False, access=authenticated",
-        "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      },
-      "_deprecated": true,
-      "_canonical_name": "arif_bridge_connect"
-    },
-    "arif_kernel_attest": {
-      "stage": "555",
-      "lane": "AGI",
-      "floors": [
-        "L01",
-        "L02"
-      ],
-      "risk_tier": "low",
-      "irreversible": false,
-      "access": "public",
-      "requires_auth": false,
-      "modes": [
-        "attest"
-      ],
-      "eureka_insight": "RULE 14: Organ is a parameter, not a separate tool name. Same attestation logic, different target.",
-      "tier": "canonical",
-      "namespace": "arif_* (canonical prefix)",
-      "tags": [
-        "canonical"
-      ],
-      "affordance_contract": {
-        "action_class": "OBSERVE",
-        "risk_tier": "LOW",
-        "blast_radius": "LOCAL",
-        "reversibility": 0.9,
-        "requires_lease": false,
-        "autonomy_floor": "FULL_AUTO",
-        "rationale": "Spec-inferred: tier=low, irreversible=False, access=public",
-        "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      },
-      "_deprecated": true,
-      "_canonical_name": "arif_diag_attest"
-    },
-    "arif_kernel_health": {
-      "stage": "555",
-      "lane": "AGI",
-      "floors": [
-        "L02",
-        "L04"
-      ],
-      "risk_tier": "low",
-      "irreversible": false,
-      "access": "public",
-      "requires_auth": false,
-      "modes": [
-        "health"
-      ],
-      "eureka_insight": "RULE 14: One tool, one operation. No modes because no expansion room is needed.",
-      "tier": "canonical",
-      "namespace": "arif_* (canonical prefix)",
-      "tags": [
-        "canonical"
-      ],
-      "affordance_contract": {
-        "action_class": "OBSERVE",
-        "risk_tier": "LOW",
-        "blast_radius": "LOCAL",
-        "reversibility": 0.9,
-        "requires_lease": false,
-        "autonomy_floor": "FULL_AUTO",
-        "rationale": "Spec-inferred: tier=low, irreversible=False, access=public",
-        "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      },
-      "_deprecated": true,
-      "_canonical_name": "arif_diag_health"
     },
     "arif_compose": {
       "stage": "444r",
@@ -617,7 +471,7 @@
         "cite",
         "tone_shift"
       ],
-      "eureka_insight": "F4: ΔS ≤ 0 — reply must reduce entropy, not add noise. F6: RASA protocol. F9: C_dark ≤ 0.30 — no dark patterns. L10: ambiguity is permanent; expose assumptions before composing. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
+      "eureka_insight": "F4: \u0394S \u2264 0 \u2014 reply must reduce entropy, not add noise. F6: RASA protocol. F9: C_dark \u2264 0.30 \u2014 no dark patterns. L10: ambiguity is permanent; expose assumptions before composing. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -659,7 +513,7 @@
         "revise",
         "forget"
       ],
-      "eureka_insight": "F1: every memory op is reversible via supersede (revise) or tombstone (forget → vault). F2: 7 truth-classes (observed|claimed|derived|approved|sealed|contested|deprecated) gate recall. F4: hybrid recall cascade (vector→graph→vault) reduces entropy per mode. F8: per-mode floor pre-checks (L01..L13) preserve governance integrity. F11: every write carries actor_id + session_id + receipt (forensic traceability). F13: forget mode requires explicit human ack — L13 SOVEREIGN. Direction 1 (memory kernel v5) — ratified 2026-06-21. ADR-010 baked in: L4 canonical band, no-bypass rule, vault seal lineage.",
+      "eureka_insight": "F1: every memory op is reversible via supersede (revise) or tombstone (forget \u2192 vault). F2: 7 truth-classes (observed|claimed|derived|approved|sealed|contested|deprecated) gate recall. F4: hybrid recall cascade (vector\u2192graph\u2192vault) reduces entropy per mode. F8: per-mode floor pre-checks (L01..L13) preserve governance integrity. F11: every write carries actor_id + session_id + receipt (forensic traceability). F13: forget mode requires explicit human ack \u2014 L13 SOVEREIGN. Direction 1 (memory kernel v5) \u2014 ratified 2026-06-21. ADR-010 baked in: L4 canonical band, no-bypass rule, vault seal lineage.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -674,81 +528,6 @@
         "autonomy_floor": "PRINCIPAL_APPROVAL_REQUIRED",
         "rationale": "Spec-inferred: tier=medium, irreversible=True, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
-    },
-    "arif_memory_recall": {
-      "stage": "555m",
-      "lane": "AGI",
-      "floors": [
-        "L01",
-        "L08",
-        "L02"
-      ],
-      "risk_tier": "low",
-      "irreversible": false,
-      "access": "public",
-      "requires_auth": false,
-      "modes": [
-        "recall",
-        "store",
-        "seal",
-        "forget",
-        "update",
-        "audit",
-        "stats",
-        "learn"
-      ],
-      "eureka_insight": "DEPRECATED — redirects to arif_memory (canonical v5). Legacy mode aliases: store→remember, seal→attest, update→revise, audit→attest, stats→inspect, learn→remember.",
-      "tier": "canonical",
-      "namespace": "arif_* (canonical prefix)",
-      "tags": [
-        "canonical"
-      ],
-      "affordance_contract": {
-        "action_class": "OBSERVE",
-        "risk_tier": "LOW",
-        "blast_radius": "LOCAL",
-        "reversibility": 1.0,
-        "requires_lease": false,
-        "autonomy_floor": "FULL_AUTO",
-        "rationale": "Memory recall is read-only search. recall mode never mutates.",
-        "_derived_from": "tool_risk_registry.py (canonical)"
-      }
-    },
-    "arif_gateway_connect": {
-      "stage": "666g",
-      "lane": "ASI",
-      "floors": [
-        "L01",
-        "L03",
-        "L11"
-      ],
-      "risk_tier": "medium",
-      "irreversible": false,
-      "access": "public",
-      "requires_auth": false,
-      "modes": [
-        "connect",
-        "delegate",
-        "handover",
-        "revoke",
-        "probe"
-      ],
-      "eureka_insight": "F1: cross-agent actions must be auditable. F3: W₃ ≥ 0.75 — cross-agent consensus required. L11: cross-organ routing requires verified identity. L12: graceful degradation — if router/tool/substrate uncertainty rises, return SABAR/HOLD/VOID rather than continuing unsafe execution.",
-      "tier": "canonical",
-      "namespace": "arif_* (canonical prefix)",
-      "tags": [
-        "canonical"
-      ],
-      "affordance_contract": {
-        "action_class": "ANALYZE",
-        "risk_tier": "LOW",
-        "blast_radius": "ORG",
-        "reversibility": 1.0,
-        "requires_lease": false,
-        "autonomy_floor": "FULL_AUTO",
-        "rationale": "Gateway routing is computational. No mutation. Bridges to other organs.",
-        "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
     "arif_judge": {
@@ -772,7 +551,7 @@
         "probe",
         "notify"
       ],
-      "eureka_insight": "L01: irreversible downstream — judge verdicts authorize forge/vault actions. L11: identity must be verified before judgment. L13: human veto is absolute — no algorithm overrides sovereign.",
+      "eureka_insight": "L01: irreversible downstream \u2014 judge verdicts authorize forge/vault actions. L11: identity must be verified before judgment. L13: human veto is absolute \u2014 no algorithm overrides sovereign.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -808,7 +587,7 @@
         "changelog",
         "audit"
       ],
-      "eureka_insight": "F1: irreversible — ack_irreversible=True mandatory. L11: author identity verified. L13: human approved.",
+      "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. L11: author identity verified. L13: human approved.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -821,7 +600,7 @@
         "reversibility": 0.0,
         "requires_lease": true,
         "autonomy_floor": "PRINCIPAL_APPROVAL_REQUIRED",
-        "rationale": "VAULT999 seal is IRREVERSIBLE by design. SEAL writes permanently to append-only ledger. E7 hard floor: reversibility 0.0 < 0.3 → HOLD unless principal.",
+        "rationale": "VAULT999 seal is IRREVERSIBLE by design. SEAL writes permanently to append-only ledger. E7 hard floor: reversibility 0.0 < 0.3 \u2192 HOLD unless principal.",
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
@@ -846,7 +625,7 @@
         "recall",
         "dry_run"
       ],
-      "eureka_insight": "F1: irreversible — ack_irreversible=True mandatory. L11: actor verified. L12: fail safely; no unsafe continuation when substrate confidence drops. L13: judge SEAL required before execution.",
+      "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. L11: actor verified. L12: fail safely; no unsafe continuation when substrate confidence drops. L13: judge SEAL required before execution.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -885,7 +664,7 @@
         "topology",
         "drift"
       ],
-      "eureka_insight": "F4: ΔS ≤ 0 — ops must contribute to entropy reduction. Eureka: health is trajectory, not binary; measure delta_S, omega_band, tri_witness, and drift trend. Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. F8: measured intelligence is not useful intelligence; prefer local workflow evals over leaderboard metrics.",
+      "eureka_insight": "F4: \u0394S \u2264 0 \u2014 ops must contribute to entropy reduction. Eureka: health is trajectory, not binary; measure delta_S, omega_band, tri_witness, and drift trend. Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. F8: measured intelligence is not useful intelligence; prefer local workflow evals over leaderboard metrics.",
       "tier": "canonical",
       "namespace": "arif_* (canonical prefix)",
       "tags": [
@@ -904,7 +683,7 @@
     },
     "hermes_system_status": {
       "tier": "hermes",
-      "namespace": "hermes_* (sanctioned non-arif_ prefix — F13 SOVEREIGN 2026-06-14)",
+      "namespace": "hermes_* (sanctioned non-arif_ prefix \u2014 F13 SOVEREIGN 2026-06-14)",
       "floors": [
         "L02"
       ],
@@ -1617,7 +1396,7 @@
     },
     "forge_dry_run": {
       "tier": "forge-sub",
-      "namespace": "forge_* (sanctioned non-arif_ prefix — F13 SOVEREIGN 2026-06-14)",
+      "namespace": "forge_* (sanctioned non-arif_ prefix \u2014 F13 SOVEREIGN 2026-06-14)",
       "floors": [
         "L01"
       ],
@@ -2064,38 +1843,7 @@
         "rationale": "Spec-inferred: tier=chatgpt-shim, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       }
-    },
-    "arif_fetch": {
-      "tier": "chatgpt-shim",
-      "namespace": "arif_*",
-      "floors": [
-        "L02",
-        "L03",
-        "L05",
-        "L12"
-      ],
-      "risk_tier": "low",
-      "irreversible": false,
-      "access": "public",
-      "requires_auth": false,
-      "modes": [
-        "fetch"
-      ],
-      "tags": [
-        "chatgpt-shim",
-        "observe"
-      ],
-      "affordance_contract": {
-        "action_class": "OBSERVE",
-        "risk_tier": "LOW",
-        "blast_radius": "LOCAL",
-        "reversibility": 0.9,
-        "requires_lease": false,
-        "autonomy_floor": "FULL_AUTO",
-        "rationale": "Spec-inferred: tier=chatgpt-shim, irreversible=False, access=public",
-        "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
     }
   },
-  "motto": "DITEMPA BUKAN DIBERI — Forged, Not Given"
+  "motto": "DITEMPA BUKAN DIBERI \u2014 Forged, Not Given"
 }

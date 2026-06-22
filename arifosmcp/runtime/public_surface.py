@@ -26,7 +26,7 @@ CANONICAL_13: tuple[str, ...] = tuple(
 CANARY_PROBES: tuple[str, ...] = ("arif_canary",)
 
 # ── Canonical13 Public Surface (= canonical kernel + canary probes) ──────────
-# This is the DEFAULT public wire surface. 21 canonical + 1 canary = 22 tools.
+# This is the DEFAULT public wire surface. 15 canonical + 1 canary = 16 tools.
 CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = tuple(
     list(dict.fromkeys([*CANONICAL_13, *CANARY_PROBES]))
 )
@@ -104,7 +104,7 @@ def normalize_public_surface_mode(mode: str | None = None) -> str:
         "chatgpt": "canonical13",
         "agnostic_public": "canonical13",
         "canonical13": "canonical13",
-        "canonical15": "canonical13",  # deprecated alias — canonical count is 13
+        "canonical15": "canonical13",  # deprecated alias — canonical count is 15
         "internal": "expanded45",
         "expanded45": "expanded45",
     }
@@ -120,7 +120,7 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     Return the public tool names for a given surface mode.
 
     canonical13 (default): CANONICAL_13 + CANARY_PROBES (22 tools).
-        This is the honest default wire surface — 21 canonical tools + 1 canary probe.
+        This is the honest default wire surface — 15 canonical tools + 1 canary probe.
     expanded45: CANONICAL_13 + DIAGNOSTIC_TOOLS (gated tools included).
         Only active when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
 
@@ -131,7 +131,7 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     if resolved == "expanded45":
         candidates = EXPANDED_45
     else:
-        # canonical13: 21 canonical tools + 1 canary probe = 22 tools on the default wire.
+        # canonical13: 15 canonical tools + 1 canary probe = 16 tools on the default wire.
         # Canary probe is a transport diagnostic (multimode arif_canary).
         candidates = CANONICAL13_PUBLIC_SURFACE
     # Filter out internal_only tools regardless of mode.

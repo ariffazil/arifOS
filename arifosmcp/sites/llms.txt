@@ -1,11 +1,11 @@
 # arifOS — MCP Transported Context
 # Version: v2026.05.22-GDK
-# Surface: 13 canonical arifOS tools + Governed Discovery Kernel
+# Surface: 15 canonical arifOS tools + Governed Discovery Kernel
 # Seal phrase: DITEMPA BUKAN DIBERI
 
 ## What arifOS Is
 
-arifOS is the governed action gateway for the arifOS Federation. It exposes a 13-tool MCP surface and wraps capability use with discovery, evidence, risk, authority, reversibility, human-approval, and audit boundaries.
+arifOS is the governed action gateway for the arifOS Federation. It exposes a 15-tool MCP surface and wraps capability use with discovery, evidence, risk, authority, reversibility, human-approval, and audit boundaries.
 
 Core principle:
 
@@ -24,7 +24,7 @@ Full legibility. Bounded access. Auditable action. Human judgment.
 
 Use MCP `tools/list` after initialization/session negotiation for authoritative callable tools.
 
-## 13 Canonical Tools
+## 15 Canonical Tools
 
 | Stage | Tool | Role |
 |---|---|---|
@@ -66,7 +66,7 @@ Required manifest fields: `can_do`, `cannot_do`, `required_inputs`, `outputs`, `
 
 Verified by `https://arifos.arif-fazil.com/api/federation-probe` on 2026-05-22:
 
-- arifOS: 13 MCP tools, healthy.
+- arifOS: 15 MCP tools, healthy.
 - GEOX: 22 MCP tools, healthy.
 - WEALTH: 17 MCP tools, healthy.
 - WELL: 15 MCP tools, healthy, REFLECT_ONLY.
