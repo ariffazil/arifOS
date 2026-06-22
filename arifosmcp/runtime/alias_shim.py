@@ -104,6 +104,13 @@ def register_new_canonical_tools(
     # ── Map from new name → (handler, legacy target name) ────────────────
     new_to_legacy: dict[str, tuple[Callable[..., Any], str]] = {
         # 1:1 renames (old name's handler is reused)
+        # DITEMPA 2026-06-22 — 2-term naming convention:
+        # Public init tool = `arif_init` ONLY. Modes (init/light/ping/discover/
+        # resume/validate/epoch_open/epoch_seal/opt_out/challenge/cleanup)
+        # are PARAMETERS, not separate tool names. Legacy callers using
+        # `arif_session_init` still work via kernel interceptor alias
+        # (kernel/interceptor.py TOOL_ALIASES) — but no longer surface
+        # in tools/list as a public tool.
         "arif_init":       (canonical_handlers.get("arif_init"),  "arif_init"),
         "arif_observe":    (canonical_handlers.get("arif_observe"), "arif_observe"),
         "arif_evidence":   (canonical_handlers.get("arif_fetch"), "arif_fetch"),

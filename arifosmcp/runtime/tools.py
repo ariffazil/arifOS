@@ -4923,6 +4923,8 @@ def _arif_session_init(
     #   OBSERVE_ONLY | LIMITED_MUTATE | FULL. Aspiration only — actual
     #   capability is OBSERVE_ONLY at birth. Lease/attest gates elevation.
     #   (F13 ratified 2026-06-13.)
+    # DITEMPA 2026-06-22 — Layered init: forward verbose to delegate
+    verbose: str | None = None,
     idempotency_key: str | None = None,
     #   Client-generated or server-issued. Prevents duplicate session birth
     #   on retry after timeout. If a birth was already issued for this key,
@@ -5002,7 +5004,7 @@ def _arif_session_init(
     #   - birth:   actor + idempotency_key required (not anonymous)
     # Both are FAIL-OPEN for session_id and PASS-OPEN for client safety gates
     # (thin payloads, no authority declarations).
-    if mode in {"ping", "discover", "birth", "init_light", "light", "full"}:
+    if mode in {"ping", "discover", "birth", "init_light", "light", "full", "audit", "init"}:
         # Pre-session: no session required. Delegate to canonical session.py.
         from arifosmcp.tools.session import arif_session_init as _delegate_init
 
@@ -5026,6 +5028,8 @@ def _arif_session_init(
                 executor_actor_id=executor_actor_id or "arifOS@af-forge",
                 sovereign_id=sovereign_id or "ARIF_FAZIL",
                 delegation_mode=delegation_mode or "internal_executor",
+                # DITEMPA 2026-06-22 — Layered init: forward verbose for audit path
+                verbose=verbose,
             )
         except Exception as e:
             return _hold(
@@ -16599,6 +16603,34 @@ async def _arif_memory_v5_router(
         tier=tier,
     )
 
+from arifosmcp.tools.arif_kernel_intercept import _arif_kernel_intercept
+
+async def _arif_kernel_intercept_tool(
+    actor: str,
+    intent: str,
+    requested_capability: str,
+    domain: str,
+    reversibility_level: str,
+    blast_radius: str,
+    epistemic_state: str = "UNKNOWN",
+    evidence: list[dict[str, Any]] | None = None,
+    authority_token: str | None = None,
+) -> str:
+    """Wrapper for the minimum constitutional kernel interceptor."""
+    result = await _arif_kernel_intercept(
+        actor=actor,
+        intent=intent,
+        requested_capability=requested_capability,
+        domain=domain,
+        reversibility_level=reversibility_level,
+        blast_radius=blast_radius,
+        epistemic_state=epistemic_state,
+        evidence=evidence,
+        authority_token=authority_token,
+    )
+    import json
+    return json.dumps(result)
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -16620,6 +16652,7 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_compose": _arif_reply_compose_tool,
     "arif_memory": _arif_memory_v5_router,
     "arif_judge": _arif_judge_deliberate_tool,
+    "arif_kernel_intercept": _arif_kernel_intercept_tool,
     "arif_seal": _arif_vault_seal_tool,
     "arif_forge": _arif_forge_execute_tool,
     "arif_measure": _arif_ops_measure,

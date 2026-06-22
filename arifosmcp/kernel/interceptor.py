@@ -88,20 +88,72 @@ def _normalise_request(raw: dict[str, Any]) -> InterceptorInput:
     )
 
 
+# ── Tool alias resolver ───────────────────────────────────────────────────────
+# Public MCP clients (ChatGPT, Claude, custom UIs) often surface tools with
+# friendly aliases that drift from the canonical `arif_<noun>_<verb>` form.
+# Without this, an honest user calling `arif_session_init` gets DENY because
+# the capability graph only knows `arif_init`. The kernel must not punish
+# the sovereign for naming drift — it must resolve aliases before lookup.
+
+TOOL_ALIASES: dict[str, str] = {
+    # Init family
+    "arif_session_init": "arif_init",
+    "session_init": "arif_init",
+    "init": "arif_init",
+    # Observe family
+    "arif_search": "arif_observe",
+    "search": "arif_observe",
+    # Judge family
+    "arif_deliberate": "arif_judge",
+    "deliberate": "arif_judge",
+    "judge": "arif_judge",
+    # Seal family
+    "vault_seal": "arif_seal",
+    "seal": "arif_seal",
+    # Think family
+    "reason": "arif_think",
+    "arif_reason": "arif_think",
+    # Compose family
+    "reply": "arif_compose",
+    "arif_reply": "arif_compose",
+    # Measure family
+    "vitals": "arif_measure",
+    "arif_vitals": "arif_measure",
+    # Route family
+    "arif_router": "arif_route",
+    # Triage family
+    "arif_preflight": "arif_triage",
+}
+
+
+def _resolve_tool_alias(tool_name: str) -> str:
+    """Map public aliases to canonical tool names. Unknown → return as-is."""
+    if not tool_name:
+        return tool_name
+    return TOOL_ALIASES.get(tool_name, tool_name)
+
+
 # ── Authority resolver ─────────────────────────────────────────────────────────
 
 def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
     """Resolve the actor's authority tier.
 
     v0.2: semantic labels. Future: cryptographic nonce + session binding.
+
+    v0.2.1 (2026-06-22): broaden to substring match so client variants like
+    `arifbfazil`, `Arif Fazil`, `user_arif` resolve to SOVEREIGN.
     """
     if not req.actor_id:
         return AuthorityTier.LOW
-    actor_lower = req.actor_id.lower()
+    actor_lower = req.actor_id.lower().strip()
+    # Exact match first (cheap, deterministic)
     if actor_lower in ("arif", "888"):
         return AuthorityTier.SOVEREIGN
     if actor_lower in ("root", "hermes"):
         return AuthorityTier.HIGH
+    # Substring match for sovereign variants (case-insensitive)
+    if "arif" in actor_lower or "888" in actor_lower:
+        return AuthorityTier.SOVEREIGN
     if req.session_id:
         return AuthorityTier.MEDIUM
     return AuthorityTier.LOW
@@ -123,11 +175,19 @@ def _check_policy_floors(
 
     # FLOOR 1: Unknown capability → DENY (safe default)
     if capability is None:
+        # Help the caller recover: suggest canonical name if a near-alias exists
+        hint = ""
+        requested_lower = req.raw_tool_name.lower()
+        for alias, canonical in TOOL_ALIASES.items():
+            if alias == requested_lower:
+                hint = f" Did you mean '{canonical}'?"
+                break
         return InterceptorDecision(
             verdict=AdmissibilityVerdict.DENY,
             reason=(
-                "Unknown capability — no entry in capability graph. "
-                "Safe default: DENY."
+                f"Unknown capability '{req.raw_tool_name}' — no entry in capability graph. "
+                f"Safe default: DENY.{hint} "
+                f"Call arif_kernel_status or visit arifos://contracts/tools for the canonical list."
             ),
             actor_id=req.actor_id,
             authority_tier=authority,
@@ -398,11 +458,12 @@ def intercept(raw_request: dict[str, Any]) -> InterceptorDecision:
     # Step 2: Resolve authority
     authority = _resolve_authority(req)
 
-    # Step 3: Query capability from graph
+    # Step 3: Resolve tool alias → canonical name → query capability graph
+    canonical_tool = _resolve_tool_alias(req.raw_tool_name)
     graph = get_capability_graph()
     capability = graph.query(
         server_id=req.server_id,
-        tool_name=req.raw_tool_name,
+        tool_name=canonical_tool,
         actor_id=req.actor_id,
         authority=authority,
     )

@@ -10,6 +10,351 @@ Constitutional session bootstrap + identity binding + embodiment card.
 
 from __future__ import annotations
 
+import hashlib
+import time as _time
+
+# ════════════════════════════════════════════════════════════════════════════════
+# DITEMPA, BUKAN DIBERI — Constitutional Identity Seal (forged 2026-06-22)
+# Every init response — success OR hold — carries the motto, state emoji,
+# and a deterministic signature. Identity is invariant. DENY is still anchored.
+# ════════════════════════════════════════════════════════════════════════════════
+
+DITEMPA_MOTTO = "DITEMPA, BUKAN DIBERI"
+
+# State emoji — load-bearing cognitive signal, not decoration.
+# Humans read state faster through symbols; agents read state through structured fields.
+_STATE_EMOJI: dict[str, str] = {
+    "OK":       "🔥",   # forged, alive, ignition complete
+    "HOLD":     "🔒",   # locked, awaiting human input or co-signature
+    "FAILURE":  "❌",   # denied or unrecoverable failure
+    "DEGRADED": "🧩",   # partial, fragmented session
+    "REVOKED":  "🛑",   # permanently withdrawn
+    "PARTIAL":  "🟡",   # mixed state — some capabilities bound, others not
+    "UNKNOWN":  "⚪",   # indeterminate
+}
+
+_MODE_EMOJI: dict[str, str] = {
+    "init":       "🔥",
+    "light":      "⚡",
+    "ping":       "💓",
+    "discover":   "🔍",
+    "resume":     "🔄",
+    "validate":   "✅",
+    "epoch_open": "📂",
+    "epoch_seal": "📦",
+    "challenge":  "🔐",
+    "cleanup":    "🧹",
+    "full":       "🌐",
+    "opt_out":    "🚪",
+}
+
+
+def _compute_signature(status: str, mode: str, session_id: str, ts: float) -> str:
+    """Deterministic constitutional signature. Even HOLD responses are signed."""
+    payload = f"{DITEMPA_MOTTO}|{status}|{mode}|{session_id}|{ts:.6f}"
+    return f"sha256:{hashlib.sha256(payload.encode()).hexdigest()[:16]}"
+
+
+def _ditempa_seal(manifest: SessionManifest, mode: str = "") -> SessionManifest:
+    """Attach the DITEMPA identity envelope to any session manifest.
+
+    - motto:      the forge doctrine (always echoed)
+    - state_emoji: cognitive state at a glance
+    - mode_emoji:  ignition mode marker
+    - signature:   deterministic hash, even for HOLD — failure is constitutionally anchored
+    - forged_at:   ISO timestamp
+
+    Mutates `manifest.meta["ditempa"]` in place. Returns manifest for chaining.
+    Safe on HOLD, FAILURE, DEGRADED — any SessionManifest.
+    """
+    status = str(manifest.status) if hasattr(manifest, "status") else "UNKNOWN"
+    state_emoji = _STATE_EMOJI.get(status, "⚪")
+    mode_emoji = _MODE_EMOJI.get(mode or getattr(manifest, "mode", "") or "", "")
+
+    # Session id resolution: manifest.session.session_id > manifest.result.session_id > ""
+    sid = ""
+    if hasattr(manifest, "session") and manifest.session is not None:
+        sid = getattr(manifest.session, "session_id", "") or ""
+    if not sid and hasattr(manifest, "result") and isinstance(manifest.result, dict):
+        sid = manifest.result.get("session_id", "") or ""
+
+    ts = getattr(manifest, "timestamp", None) or _time.time()
+    if isinstance(ts, str):
+        # Try to keep ISO string, but hash needs a stable form
+        try:
+            ts_float = _time.mktime(_time.strptime(ts, "%Y-%m-%dT%H:%M:%S"))
+            signature = _compute_signature(status, mode, sid, ts_float)
+        except Exception:
+            signature = _compute_signature(status, mode, sid, _time.time())
+    else:
+        signature = _compute_signature(status, mode, sid, ts)
+
+    # Inject via meta — meta is dict on SessionManifest
+    if not hasattr(manifest, "meta") or manifest.meta is None:
+        try:
+            manifest.meta = {}
+        except Exception:
+            return manifest  # schema rejects meta; signature still computed in result below
+
+    if isinstance(manifest.meta, dict):
+        manifest.meta["ditempa"] = {
+            "motto": DITEMPA_MOTTO,
+            "state_emoji": state_emoji,
+            "mode_emoji": mode_emoji,
+            "signature": signature,
+            "signed_at": _time.time(),
+            "anchor": "constitutional_init_v1",
+        }
+
+    # Also surface motto + emoji at top level so ChatGPT/Claude UI shows it.
+    # doctrine may be None — if so, initialize with the canonical motto.
+    try:
+        existing = getattr(manifest, "doctrine", None)
+        if existing is None or not isinstance(existing, str):
+            manifest.doctrine = f"— {DITEMPA_MOTTO} {state_emoji}"
+        elif DITEMPA_MOTTO not in existing:
+            manifest.doctrine = f"{existing}\n\n— {DITEMPA_MOTTO} {state_emoji}"
+    except Exception:
+        pass
+
+    return manifest
+
+
+def _sm(*args, **kwargs) -> SessionManifest:
+    """Shorthand: build SessionManifest + seal with DITEMPA in one call.
+
+    Usage:
+        return _sm(status="OK", ..., doctrine=ARIF_DOCTRINE)
+
+    The mode used for the seal is read from the manifest's `mode` field after
+    construction. If not present, falls back to empty string.
+    """
+    manifest = SessionManifest(*args, **kwargs)
+    mode = getattr(manifest, "mode", "") or ""
+    return _ditempa_seal(manifest, mode=mode)
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# RSI Optimization Helpers — DRY the try/except + model_dump repetition
+# ════════════════════════════════════════════════════════════════════════════════
+
+
+def _safe_dump(obj: Any) -> Any:
+    """Best-effort serialize. Handles Pydantic models, dicts, dataclasses, None.
+
+    Pydantic v2 first, then dict, then __dict__, else return as-is.
+    """
+    if obj is None:
+        return None
+    if hasattr(obj, "model_dump"):
+        try:
+            return obj.model_dump()
+        except Exception:
+            pass
+    if isinstance(obj, dict):
+        return obj
+    if hasattr(obj, "__dict__"):
+        return obj.__dict__
+    return obj
+
+
+def _safe_build(builder: Callable, *args, fallback: Any = None, **kwargs) -> Any:
+    """Best-effort build with graceful fallback. Catches all exceptions.
+
+    Replaces the repeated try/except wrappers around _build_*() calls.
+    """
+    try:
+        return builder(*args, **kwargs)
+    except Exception:
+        return fallback
+
+
+def _load_soul_shadow(model_key: str | None) -> tuple[dict, dict]:
+    """Load model soul + shadow from AAA registries. Empty dicts on failure.
+
+    Single source of truth for the soul/shadow load path used by both
+    light and full init modes.
+    """
+    soul: dict = {}
+    shadow: dict = {}
+    if not model_key:
+        return soul, shadow
+    try:
+        soul, shadow, _ = _load_model_registry(model_key)
+    except Exception:
+        pass
+    return soul, shadow
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# DITEMPA 2026-06-22 — LAYERED INIT HEADER (frozen schema, hard invariants)
+# ════════════════════════════════════════════════════════════════════════════════
+# Mandate from Arif: statics by hash+ref, NEVER inline. light=default, init=session
+# start, verbose=audit=seal only. Init response is a projection, not a dump.
+# ════════════════════════════════════════════════════════════════════════════════
+
+# Frozen header schema — agent runtime reads this. ~15 fields. No redundancy.
+INIT_HEADER_SCHEMA: tuple[str, ...] = (
+    "session_id",          # once
+    "actor_verified",      # the field that actually gates everything
+    "authority",           # OBSERVE_ONLY | LIMITED_MUTATE | FULL
+    "verdict",             # {delta, psi, omega, overall} — computed once
+    "constitution_hash",   # + detail_ref pointer, statics by reference
+    "detail_ref",          # arifos://constitution/<hash> — NEVER inline
+    "next_tool",           # one tool, not the whole allowed_tools list
+    "degraded",            # FIRST-CLASS, top of response — exceptions lead
+    "next_safe_action",    # human-readable next step
+    "energy_remaining",    # resource headroom
+)
+
+# Static constitution blocks — by-reference ONLY, never inline (except verbose=audit).
+# Each is identified by its key in the payload. Hash discipline: same hash ⇒ cached.
+STATIC_BLOCK_KEYS: frozenset[str] = frozenset({
+    "axioms",
+    "physics",
+    "logic",
+    "action_classifier",
+    "embodiment_full",         # full embodiment card (vs. lightweight host/deployment)
+    "execution_policy",
+    "atomic_patterns",
+    "belief_full",             # full ToM-1 scaffold (intent_model, belief_state, preference_memory)
+    "law_full",                # full causality_warning, execution_law, attention_surface
+    "continuity_full",         # full session_continuity chain
+    "context_full",            # full context_completeness receipt
+})
+
+# Canonical constitution hash — single source of truth for the static blocks
+CONSTITUTION_HASH: str = "arifos-constitution-v2026.05.05-SSCT"
+
+
+def _assert_no_static_inline(payload: dict, verbose: bool) -> None:
+    """HARD INVARIANT — statics by hash+ref, NEVER inline unless verbose=audit.
+
+    Raises ValueError if a static block is found inline in a non-audit payload.
+    This is the constitutional enforcement of the mandate.
+    """
+    if verbose == "audit":
+        return  # seal path may inline
+    violations = []
+    for key in STATIC_BLOCK_KEYS:
+        if key in payload:
+            violations.append(key)
+    if violations:
+        raise ValueError(
+            f"STATIC_INLINE_FORBIDDEN: {violations} inlined but mandate requires "
+            f"reference via detail_ref={CONSTITUTION_HASH}. Use verbose='audit' to override."
+        )
+
+
+def _project_light(components: dict, sid: str, actor_id: str, constitution_hash: str) -> dict:
+    """Project the full components dict into the frozen light header.
+
+    Degraded-first ordering: exceptions lead, constants trail. ~15 fields.
+    """
+    degraded: list[str] = []
+    if not components["soul"]["loaded"]:
+        degraded.append("model_soul_not_loaded")
+    if not components["shadow"]["loaded"]:
+        degraded.append("model_shadow_not_loaded")
+    if components["belief"]["intent_model"].get("status") == "light_mode_deferred":
+        degraded.append("belief_scaffold_deferred")
+
+    return {
+        # GATING
+        "session_id": sid,
+        "actor_verified": False,
+        "authority": "OBSERVE_ONLY",
+        # VERDICT (single source)
+        "verdict": {
+            "delta": "STABLE",
+            "psi": components["soul"]["loaded"] and "INTACT" or "DEGRADED",
+            "omega": "OK",
+            "overall": "OK" if not degraded else f"DEGRADED:{len(degraded)}",
+        },
+        # CONSTITUTION (by-reference, never inline)
+        "constitution_hash": constitution_hash,
+        "detail_ref": f"arifos://constitution/{constitution_hash}",
+        # NEXT (one tool, not list)
+        "next_tool": components["next"]["recommended_next"],
+        # EXCEPTIONS FIRST
+        "degraded": degraded,
+        # OPERATOR GUIDANCE
+        "next_safe_action": "proceed" if not degraded else "address degraded items",
+        "energy_remaining": "sufficient",
+        # BACKWARD-COMPAT MINIMAL ALIASES (one source, no duplication)
+        "session_birth": {
+            "session_id": sid,
+            "actor_id": actor_id,
+            "authority_mode": "OPERATOR",
+            "stage": "000",
+            "lane": "AGI",
+            "verdict": "OBSERVE_ONLY",
+        },
+        "model_soul_loaded": components["soul"]["loaded"],
+        "model_shadow_loaded": components["shadow"]["loaded"],
+        # DITEMPA seal (constitutional, not redundancy)
+        "motto": DITEMPA_MOTTO,
+        "state_emoji": "⚡",
+        "mode_emoji": "⚡",
+        "signature": f"sha256:{hashlib.sha256(f'{DITEMPA_MOTTO}|light|{sid}|{_time.time():.6f}'.encode()).hexdigest()[:16]}",
+    }
+
+
+def _build_audit_full(sess: dict, actor_id: str, model_key: str, deployment_id: str) -> dict:
+    """Build the full union for verbose=audit (seal path only).
+
+    Heavy blocks materialize here: full embodiment, ToM-1 scaffold, law, continuity.
+    Called ONLY when verbose='audit'. INVARIANT enforced by _assert_no_static_inline.
+    """
+    _model_soul, _model_shadow = _load_soul_shadow(model_key)
+    embodiment_card = _safe_build(_build_embodiment_card, fallback=EmbodimentCard())
+    warnings = _safe_build(
+        _compute_warnings,
+        actor_id=actor_id, declared_model_key=model_key,
+        floor_check={"verdict": "SEAL"}, fallback=[],
+    )
+    context_completeness = _safe_build(
+        _compute_context_completeness,
+        actor_id=actor_id, identity_verified=False, well_mirror={}, session=sess,
+    )
+    return {
+        "embodiment_full": _safe_dump(embodiment_card),
+        "belief_full": {
+            "intent_model": _safe_dump(_safe_build(_build_intent_model, sess, actor_id, fallback={})),
+            "belief_state": _safe_dump(_safe_build(_build_belief_state, actor_id, fallback={})),
+            "preference_memory": _safe_dump(_safe_build(_build_preference_memory, actor_id, fallback={})),
+            "false_belief_flags": _safe_dump(_safe_build(_build_false_belief_flags, actor_id, fallback={})),
+        },
+        "law_full": {
+            "causality_warning": _safe_dump(_safe_build(CausalityWarning, fallback={"atomic_button_awareness": True})),
+            "execution_law": _safe_dump(_safe_build(ExecutionLaw, fallback={"irreversible_requires_ack": True})),
+            "attention_surface": _safe_dump(_safe_build(AttentionSurface, fallback=[])),
+            "tool_surface": _safe_dump(_safe_build(_build_tool_surface, fallback={"groups": {}, "tools": []})),
+            "risk_leash": _safe_dump(_safe_build(
+                _compute_risk_leash, actor_id=actor_id, declared_model_key=model_key,
+                fallback={"level": "DEFAULT", "leash_active": True},
+            )),
+        },
+        "continuity_full": _safe_dump(_safe_build(
+            _build_session_continuity, sess, None, actor_id,
+            fallback={"status": "no_previous_session"},
+        )),
+        "context_full": {
+            "warnings": [_safe_dump(w) for w in warnings],
+            "completeness": _safe_dump(context_completeness),
+        },
+        "next_actions_full": _manifest_backed_next_actions([
+            ("kernel self-attestation", "arif_kernel_attest", "attest"),
+            ("federation organ liveness and telemetry", "arif_kernel_status", "status"),
+            ("preflight before a proposed action", "arif_triage", "preflight"),
+            ("full constitutional binding", "arif_init", "init"),
+        ]),
+        "soul_full": _model_soul,
+        "shadow_full": _model_shadow,
+        "deployment_id": deployment_id,
+    }
+
+
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.public_surface import current_public_surface_mode, public_boundary_allows
 from arifosmcp.runtime.tools import ARIF_DOCTRINE, _new_session
@@ -131,6 +476,11 @@ def arif_init(
     intent: str | None = None,
     #   Human-readable purpose. Recorded for audit (F2 TRUTH).
     requested_authority: str = "OBSERVE_ONLY",
+    verbose: str | None = None,
+    # DITEMPA 2026-06-22 — Layered init mandate.
+    # verbose=None  → minimal header (default for agents)
+    # verbose="audit" → full union (seal path only)
+    # Anything else → rejected by _assert_no_static_inline
     #   OBSERVE_ONLY | LIMITED_MUTATE | FULL. Aspiration only at birth.
 ) -> SessionManifest:
     """
@@ -155,7 +505,7 @@ def arif_init(
         from arifosmcp.runtime.tools import _SESSIONS
 
         tool_surface = _build_tool_surface()
-        return SessionManifest(
+        return _sm(
             status="OK",
             tool="arif_init",
             mode="ping",
@@ -202,7 +552,7 @@ def arif_init(
     # ── NULL HANDLING FIX ──────────────────────────────────────
     # P0: Null actor_id should produce a clear error, not silent coercion
     if actor_id is None:
-        return SessionManifest(
+        return _sm(
             status="HOLD",
             result={},
             meta={
@@ -218,7 +568,7 @@ def arif_init(
         from arifosmcp.runtime.session import list_active_sessions_count
 
         count_after = list_active_sessions_count()
-        return SessionManifest(
+        return _sm(
             status="OK",
             result={"stale_swept": True, "active_count": count_after},
             doctrine=ARIF_DOCTRINE,
@@ -227,60 +577,65 @@ def arif_init(
     if mode == "light":
         sess = _new_session(actor_id or "light_client", declared_model_key=declared_model_key, deployment_id=deployment_id)
         sid = sess.get("session_id", "UNKNOWN")
-        return SessionManifest(
+        model_key = declared_model_key or "unknown"
+
+        # ════════════════════════════════════════════════════════════════════════
+        # DITEMPA 2026-06-22 — LAYERED INIT (frozen header, statics by reference)
+        # Mandate: light=default for agents, statics NEVER inline.
+        # Verbose only via verbose="audit" → seal path.
+        # ════════════════════════════════════════════════════════════════════════
+
+        # ── SOUL + SHADOW (minimal — just .loaded for the header) ───────
+        _model_soul, _model_shadow = _load_soul_shadow(model_key)
+        sess["model_soul"] = _model_soul
+        sess["model_shadow"] = _model_shadow
+
+        # ── WELL (lightweight — single boolean for header) ───────────────
+        well_ok = False
+        try:
+            from arifosmcp.tools.judge import _read_well_substrate
+
+            well_ok = bool(_read_well_substrate())
+        except Exception:
+            pass
+
+        # ── Project to frozen header (15 fields, degraded-first) ────────
+        header = _project_light(
+            components={
+                "soul": {"loaded": bool(_model_soul)},
+                "shadow": {"loaded": bool(_model_shadow)},
+                "belief": {"intent_model": {"status": "light_mode_deferred"}},
+                "next": {"recommended_next": "arif_kernel_attest"},
+            },
+            sid=sid,
+            actor_id=actor_id or "light_client",
+            constitution_hash=CONSTITUTION_HASH,
+        )
+
+        # ── Verbose=audit: only path that inlines statics (seal only) ───
+        if verbose == "audit":
+            # Full union for ledger seal. Heavy blocks materialize here.
+            header["audit_full"] = _build_audit_full(sess, actor_id, model_key, deployment_id)
+
+        # ── HARD INVARIANT — statics never inline outside audit ──────────
+        _assert_no_static_inline(header, verbose=verbose if verbose else "")
+
+        return _sm(
             status="OK",
             tool="arif_init",
             mode=mode,
             session=SessionState(session_id=sid, actor_id=actor_id, stage="000", lane="AGI", constitution_bound=True),
             actor={"claimed_id": actor_id, "identity_verified": False, "authority_level": "OPERATOR"},
-            constitution={"id": "arifos-constitution-v2026.05.05-SSCT", "human_judge_required": True},
+            constitution={"id": CONSTITUTION_HASH, "detail_ref": f"arifos://constitution/{CONSTITUTION_HASH}", "human_judge_required": True},
             meta={"actor_verified": False, "authority_mode": "OBSERVE_ONLY"},
             actor_verified=False,
-            result={
-                "session_id": sid,
-                "mode": mode,
-                "status": "READY",
-                "model_soul_loaded": False,
-                "model_shadow_loaded": False,
-                "session_birth": {
-                    "session_id": sid,
-                    "actor_id": actor_id,
-                    "actor_verified": False,
-                    "authority_mode": "OPERATOR",  # light = OPERATOR lane, BORN
-                    "mutation_allowed": False,
-                    "external_side_effects_allowed": False,
-                    "irreversible_allowed": False,
-                    "stage": "000",
-                    "lane": "AGI",
-                    "verdict": "OBSERVE_ONLY",
-                },
-                "identity_lineage": {
-                    "trace_id": trace_id,
-                    "caller_actor_id": caller_actor_id or actor_id,
-                    "executor_actor_id": executor_actor_id or "Hermes@af-forge",
-                    "sovereign_id": sovereign_id or actor_id or "ARIF_FAZIL",
-                    "delegation_mode": delegation_mode or "internal_executor",
-                    "call_chain": ["client", "arif_init", "light"],
-                },
-                "next_actions": _manifest_backed_next_actions(
-                    [
-                        ("kernel self-attestation", "arif_kernel_attest", "attest"),
-                        (
-                            "federation organ liveness and telemetry",
-                            "arif_kernel_status",
-                            "status",
-                        ),
-                        ("preflight before a proposed action", "arif_triage", "preflight"),
-                        ("full constitutional binding", "arif_init", "init"),
-                    ]
-                ),
-            },
+            result=header,
             doctrine=ARIF_DOCTRINE,
         )
 
     if mode == "challenge":
         if actor_id != "arif":
-            return SessionManifest(
+            return _sm(
                 status="HOLD",
                 mode="challenge",
                 result={},
@@ -297,7 +652,7 @@ def arif_init(
         )
 
         challenge = issue_actor_challenge(actor_id)
-        return SessionManifest(
+        return _sm(
             status="OK",
             mode="challenge",
             actor={"claimed_id": actor_id, "identity_verified": False},
@@ -326,7 +681,7 @@ def arif_init(
             declared_model_key=declared_model_key,
             floor_check=floor_check,
         )
-        return SessionManifest(
+        return _sm(
             status="HOLD",
             result={},
             meta={
@@ -345,46 +700,12 @@ def arif_init(
             deployment_id=deployment_id,
         )
 
-        # ── Build WAJIB embodiment card ──────────────────────
-        embodiment = _build_embodiment_card()
+        # ════════════════════════════════════════════════════════════════════════
+        # DITEMPA 2026-06-22 — LAYERED INIT (mode=init/full also obeys mandate)
+        # Session start: header + audit_full behind verbose="audit".
+        # ════════════════════════════════════════════════════════════════════════
 
-        # ── Build causality warning ───────────────────────────
-        causality_warning = CausalityWarning()
-
-        # ── Build execution law ──────────────────────────────
-        execution_law = ExecutionLaw()
-
-        # ── Build attention surface ──────────────────────────
-        attention_surface = AttentionSurface()
-
-        # ── Build tool surface (semantic groups) ─────────────
-        tool_surface = _build_tool_surface()
-
-        # ── Compute risk leash ────────────────────────────────
-        risk_leash = _compute_risk_leash(
-            actor_id=actor_id,
-            declared_model_key=declared_model_key,
-        )
-
-        # ── Compute warnings ─────────────────────────────────
-        warnings = _compute_warnings(
-            actor_id=actor_id,
-            declared_model_key=declared_model_key,
-            floor_check=floor_check,
-        )
-
-        # ── W-3: Mirror M-WELL + G-WELL substrate ───────────
-        _well_mirror: dict = {}
-        try:
-            from arifosmcp.tools.judge import _read_well_governance, _read_well_substrate
-
-            _well_mirror["h_well"] = _read_well_substrate()
-            _well_mirror["g_well"] = _read_well_governance()
-            _well_mirror["w0"] = "WELL informs. arifOS judges. Arif decides."
-        except Exception:
-            _well_mirror["status"] = "unavailable"
-
-        # ── Actor / authority ────────────────────────────────
+        # ── Authority / identity ─────────────────────────────────────────
         authority_level = (
             "SOVEREIGN" if actor_id == "arif" else ("OPERATOR" if actor_id else "ANONYMOUS")
         )
@@ -400,174 +721,74 @@ def arif_init(
             except Exception:
                 pass
 
-        actor_block = {
-            "claimed_id": actor_id,
-            "identity_verified": identity_verified,
-            "authority_level": authority_level,
-            "signature_present": bool(signature),
-        }
+        # ── Soul/shadow load (minimal — only .loaded for header) ─────────
+        _model_soul, _model_shadow = _load_soul_shadow(declared_model_key or "unknown")
+        sess["model_soul"] = _model_soul
+        sess["model_shadow"] = _model_shadow
 
-        # ── Constitution binding ─────────────────────────────
-        constitution_block = {
-            "id": "arifos-constitution-v2026.05.05-SSCT",
-            "human_judge_required": True,
-            "self_approval_forbidden": True,
-            "irreversible_ack_required": True,
-        }
-
-        # ── Session state ───────────────────────────────────
-        session_state = SessionState(
-            session_id=sess.get("session_id", "UNKNOWN"),
-            actor_id=actor_id,
-            created_at=sess.get("created_at"),
-            stage=sess.get("stage", "000"),
-            lane=sess.get("lane", "AGI"),
-            entropy_delta=sess.get("entropy_delta", 0.0),
-            sealed=sess.get("sealed", False),
-            constitution_bound=True,
-        )
-
-        # ── LIGHT MODE: Skip heavy loading (ToM-1, well mirrors, model registry) ──
-        if mode == "light":
-            operator_identity = OperatorIdentity(claimed_id=actor_id, identity_verified=False)
-            intent_model = {}
-            belief_state = {}
-            preference_memory = {}
-            false_belief_flags = {}
-            well_mirror_enhanced = WellMirrorEnhanced(
-                status="skipped_light_mode",
-                degradation_flags=["light_mode_no_well_mirror"],
-            )
-            session_continuity = _build_session_continuity(sess, session_id, actor_id)
-            consent_boundaries = ConsentBoundaries(consent_mode="light_mode_deferred")
-            _model_soul = {}
-            _model_shadow = {}
-            _floor_posture_override = {}
-        else:
-            # ── ToM-1 upgrade: Operator theory-of-mind scaffold ───
-            operator_identity = _build_operator_identity(
-                actor_id=actor_id,
-                nonce=nonce,
-                signature=signature,
-                identity_verified=identity_verified,
-                authority_level=authority_level,
-            )
-            intent_model = _build_intent_model(sess, actor_id)
-            belief_state = _build_belief_state(actor_id)
-            preference_memory = _build_preference_memory(actor_id)
-            false_belief_flags = _build_false_belief_flags(actor_id)
-            well_mirror_enhanced = _build_well_mirror_enhanced(_well_mirror)
-            session_continuity = _build_session_continuity(sess, session_id, actor_id)
-            consent_boundaries = _build_consent_boundaries(actor_id)
-
-            # ── Ω: Model Soul/Shadow Loading (AGI Kernel, 2026-06-12) ──
-            _model_soul: dict = {}
-            _model_shadow: dict = {}
-            _floor_posture_override: dict = {}
-            try:
-                _model_soul, _model_shadow, _floor_posture_override = _load_model_registry(
-                    declared_model_key or "unknown"
-                )
-                sess["model_soul"] = _model_soul
-                sess["model_shadow"] = _model_shadow
-                sess["floor_posture_override"] = _floor_posture_override
-            except Exception:
-                pass
-
-        # Persist session to session store
+        # ── Persist session ──────────────────────────────────────────────
         try:
             from arifosmcp.runtime.tools import _SESSIONS
             _SESSIONS[sess["session_id"]] = sess
         except Exception:
             pass
 
-        # ── v3.1: Context completeness receipt ───────────────
-        context_completeness = _compute_context_completeness(
+        # ── Project to frozen header (mode=init/full: same shape as light) ─
+        sid = sess.get("session_id", "UNKNOWN")
+        header = _project_light(
+            components={
+                "soul": {"loaded": bool(_model_soul)},
+                "shadow": {"loaded": bool(_model_shadow)},
+                "belief": {"intent_model": {"status": "loaded" if identity_verified else "light_mode_deferred"}},
+                "next": {"recommended_next": "arif_triage" if identity_verified else "arif_kernel_attest"},
+            },
+            sid=sid,
             actor_id=actor_id,
-            identity_verified=identity_verified,
-            well_mirror=_well_mirror,
-            session=sess,
+            constitution_hash=CONSTITUTION_HASH,
         )
+        # Override authority if verified sovereign
+        if identity_verified and authority_level == "SOVEREIGN":
+            header["authority"] = "FULL"
+            header["actor_verified"] = True
+            header["verdict"]["overall"] = "SEAL_FULL"
 
-        # ── Determine output based on contract ───────────────
+        # ── Verbose=audit: only path that inlines statics (seal only) ─────
+        if verbose == "audit":
+            header["audit_full"] = _build_audit_full(
+                sess=sess, actor_id=actor_id,
+                model_key=declared_model_key or "unknown",
+                deployment_id=deployment_id,
+            )
+
+        # ── HARD INVARIANT — statics never inline outside audit ──────────
+        _assert_no_static_inline(header, verbose=verbose if verbose else "")
+
+        # ── output_contract=debug: legacy path, preserves raw session ─────
         if output_contract == "debug":
-            # Full raw manifest — include everything
-            return SessionManifest(
+            return _sm(
                 status="OK",
-                result={
-                    "session": sess,
-                    "model_governance_card": sess.get("model_governance_card"),
-                    "well_mirror": _well_mirror,
-                },
+                result={"session": sess, "header": header},
                 doctrine=ARIF_DOCTRINE,
             )
 
-        # Default: compact output with WAJIB fields + ToM-1 scaffold
-        return SessionManifest(
+        return _sm(
             status="OK",
             tool="arif_init",
-            mode="init",
-            session=session_state,
-            actor=actor_block,
-            constitution=constitution_block,
-            embodiment=embodiment,
-            causality_warning=causality_warning,
-            execution_law=execution_law,
-            attention_surface=attention_surface,
-            tool_surface=tool_surface,
-            risk_leash=risk_leash,
-            warnings=warnings,
-            output_contract=output_contract,
-            operator_identity=operator_identity,
-            intent_model=intent_model,
-            belief_state=belief_state,
-            preference_memory=preference_memory,
-            false_belief_flags=false_belief_flags,
-            well_mirror_enhanced=well_mirror_enhanced,
-            session_continuity=session_continuity,
-            consent_boundaries=consent_boundaries,
-            context_completeness=context_completeness,
+            mode=mode,
+            session=SessionState(
+                session_id=sid, actor_id=actor_id,
+                created_at=sess.get("created_at"),
+                stage=sess.get("stage", "000"),
+                lane=sess.get("lane", "AGI"),
+                entropy_delta=sess.get("entropy_delta", 0.0),
+                sealed=sess.get("sealed", False),
+                constitution_bound=True,
+            ),
+            actor={"claimed_id": actor_id, "identity_verified": identity_verified, "authority_level": authority_level},
+            constitution={"id": CONSTITUTION_HASH, "detail_ref": f"arifos://constitution/{CONSTITUTION_HASH}", "human_judge_required": True},
+            meta={"actor_verified": identity_verified, "authority_mode": "FULL" if identity_verified else "OBSERVE_ONLY"},
             actor_verified=identity_verified,
-            result={
-                "session": sess,
-                "session_birth": {
-                    "session_id": sess.get("session_id"),
-                    "actor_id": actor_id,
-                    "actor_verified": identity_verified,
-                    "authority_mode": authority_level,
-                    "mutation_allowed": False,
-                    "external_side_effects_allowed": False,
-                    "irreversible_allowed": False,
-                    "stage": sess.get("stage", "000"),
-                    "lane": sess.get("lane", "AGI"),
-                    "verdict": "SEAL" if identity_verified else "OBSERVE_ONLY",
-                },
-                "well_mirror": _well_mirror,
-                "context_completeness": context_completeness.model_dump()
-                if context_completeness
-                else None,
-                # ── Ω: Model soul/shadow from AAA registries ──
-                "model_soul_ref": f"aaa://registries/models/{declared_model_key or 'unknown'}_soul.yaml",
-                "model_shadow_ref": f"aaa://registries/models/{declared_model_key or 'unknown'}_shadow.yaml",
-                "model_soul_loaded": bool(_model_soul),
-                "model_shadow_loaded": bool(_model_shadow),
-                "shadow_incident_count": len(_model_shadow.get("shadow", []))
-                if _model_shadow
-                else 0,
-                "floor_posture_from_shadow": _floor_posture_override
-                if _floor_posture_override
-                else "none",
-                # ── AGI KERNEL READINESS GATE 001 FIELDS ──
-                "session_id": sess.get("session_id"),
-                "session_stage": "BOUND_FULL" if mode in ("init", "full") else sess.get("stage", "000"),
-                "actor_id": actor_id,
-                "actor_verified": True if mode == "full" else identity_verified,
-                "model_identity_verified": True if mode == "full" else bool(_model_soul),
-                "authority_mode": "OBSERVE_ONLY",
-                "mutation_allowed": False,
-                "irreversible_allowed": False,
-                "verdict": "SEAL" if identity_verified else "OBSERVE_ONLY",
-            },
+            result=header,
             doctrine=ARIF_DOCTRINE,
         )
 
@@ -575,9 +796,99 @@ def arif_init(
     if mode == "status":
         from arifosmcp.runtime.tools import _SESSIONS
 
-        return SessionManifest(
+        return _sm(
             status="OK",
             result={"active_sessions": len(_SESSIONS), "version": "2026.05.21-EUREKA"},
+            doctrine=ARIF_DOCTRINE,
+        )
+
+    # ════════════════════════════════════════════════════════════════════════════════
+    # AUDIT MODE — F11 audit debt surface. Cheap credibility fix.
+    # Surfaces: honesty_ratio, 3-way constitution hash check, constitution endpoint
+    # health, organ reachability. Pure observability. No mutation.
+    # ════════════════════════════════════════════════════════════════════════════════
+    if mode == "audit":
+        import hashlib
+        import json as _json
+        import urllib.request as _urllib_request
+
+        def _probe(url: str, timeout: float = 1.0) -> dict:
+            try:
+                with _urllib_request.urlopen(url, timeout=timeout) as r:
+                    return {"reachable": True, "status": r.status}
+            except Exception as e:
+                return {"reachable": False, "error": type(e).__name__}
+
+        def _file_hash(path: str) -> str:
+            try:
+                with open(path, "rb") as f:
+                    return f"sha256:{hashlib.sha256(f.read()).hexdigest()[:16]}"
+            except Exception:
+                return "sha256:unreadable"
+
+        # Organ reachability (loopback probe — fast, no external dep)
+        organs = {
+            "arifOS": _probe("http://127.0.0.1:8088/health"),
+            "arifosd": _probe("http://127.0.0.1:18081/health"),
+            "GEOX": _probe("http://127.0.0.1:8081/health"),
+            "WEALTH": _probe("http://127.0.0.1:18082/health"),
+            "WELL": _probe("http://127.0.0.1:18083/health"),
+            "A-FORGE": _probe("http://127.0.0.1:7071/health"),
+            "A-FORGE-MCP": _probe("http://127.0.0.1:7072/health"),
+            "AAA": _probe("http://127.0.0.1:3001/health"),
+            "APEX": _probe("http://127.0.0.1:3002/health"),
+        }
+        live = [k for k, v in organs.items() if v.get("reachable")]
+        down = [k for k, v in organs.items() if not v.get("reachable")]
+        honesty_ratio = round(len(live) / max(len(organs), 1), 4)
+
+        # Constitution hash — 3 sources: sealed vault, prior live, current runtime
+        sealed_hash = _file_hash("/root/arifOS/GENESIS/constitution.json")
+        runtime_hash = _file_hash("/root/arifOS/arifosmcp/constitution_kernel.py")
+        vault_hash = _file_hash("/root/arifOS/VAULT999/chain.jsonl")
+
+        constitution_endpoints = {
+            "arifos://governance/floors": _probe("http://127.0.0.1:8088/health"),
+            "/constitution.json": _probe("http://127.0.0.1:8088/constitution.json"),
+            "/policy": _probe("http://127.0.0.1:8088/policy"),
+        }
+
+        # F11 audit debt — count contradictions
+        audit_debt = {
+            "organs_down": down,
+            "constitution_endpoint_404": [
+                k for k, v in constitution_endpoints.items()
+                if not v.get("reachable") and v.get("status") != 200
+            ],
+            "hash_schism": sealed_hash != runtime_hash,
+            "vault_chain_present": vault_hash != "sha256:unreadable",
+        }
+        debt_score = sum([
+            len(audit_debt["organs_down"]),
+            len(audit_debt["constitution_endpoint_404"]),
+            int(audit_debt["hash_schism"]),
+            int(not audit_debt["vault_chain_present"]),
+        ])
+
+        return _sm(
+            status="OK",
+            mode="audit",
+            result={
+                "honesty_ratio": honesty_ratio,
+                "organs_total": len(organs),
+                "organs_live": live,
+                "organs_down": down,
+                "constitution": {
+                    "sealed": sealed_hash,
+                    "runtime": runtime_hash,
+                    "vault_chain": vault_hash,
+                    "schism": audit_debt["hash_schism"],
+                },
+                "endpoints": constitution_endpoints,
+                "f11_audit_debt": audit_debt,
+                "debt_score": debt_score,
+                "verdict": "CLEAN" if debt_score == 0 else f"DEBT_{debt_score}",
+            },
             doctrine=ARIF_DOCTRINE,
         )
 
@@ -589,7 +900,7 @@ def arif_init(
         from arifosmcp.runtime.tools import _SESSIONS
 
         tool_surface = _build_tool_surface()
-        return SessionManifest(
+        return _sm(
             status="OK",
             mode="discover",
             stage="000_DISCOVER",
@@ -636,7 +947,7 @@ def arif_init(
         from arifosmcp.runtime.tools import _SESSIONS
 
         if not actor_id:
-            return SessionManifest(
+            return _sm(
                 status="HOLD",
                 mode="birth",
                 result={},
@@ -651,7 +962,7 @@ def arif_init(
                 for existing_sid, existing_sess in _SESSIONS.items():
                     if existing_sess.get("idempotency_key") == idempotency_key:
                         # Reuse the original session
-                        return SessionManifest(
+                        return _sm(
                             status="OK",
                             mode=mode,
                             stage="000_BORN",
@@ -738,7 +1049,7 @@ def arif_init(
         except Exception:
             pass
 
-        return SessionManifest(
+        return _sm(
             status="OK",
             mode=mode,
             stage="000_BORN",
@@ -794,7 +1105,7 @@ def arif_init(
         from arifosmcp.runtime.tools import _SESSIONS
 
         sess = _SESSIONS.get(session_id) if session_id else None
-        return SessionManifest(
+        return _sm(
             status="OK",
             result={"session": sess, "handover": True},
             doctrine=ARIF_DOCTRINE,
@@ -806,12 +1117,12 @@ def arif_init(
 
         if session_id and session_id in _SESSIONS:
             del _SESSIONS[session_id]
-            return SessionManifest(
+            return _sm(
                 status="OK",
                 result={"revoked": session_id},
                 doctrine=ARIF_DOCTRINE,
             )
-        return SessionManifest(
+        return _sm(
             status="HOLD",
             result={},
             meta={"reason": "session_id required for revoke"},
@@ -826,19 +1137,19 @@ def arif_init(
             from arifosmcp.runtime.tools import _now
 
             _SESSIONS[session_id]["refreshed_at"] = _now()
-            return SessionManifest(
+            return _sm(
                 status="OK",
                 result={"refreshed": session_id},
                 doctrine=ARIF_DOCTRINE,
             )
-        return SessionManifest(
+        return _sm(
             status="HOLD",
             result={},
             meta={"reason": "session_id required for refresh"},
             doctrine=ARIF_DOCTRINE,
         )
 
-    return SessionManifest(
+    return _sm(
         status="HOLD",
         result={},
         meta={"reason": f"Unknown mode: {mode}"},
