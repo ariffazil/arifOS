@@ -214,6 +214,10 @@ def mode_find_orphans(args: dict) -> dict:
       - ssot_only:        in SSOT but not in generated graph (compiler bug)
       - graph_only:       in generated graph but not in SSOT (graph bug)
       - live_only:        in live MCP registry but not in SSOT (MCP drift)
+
+    Legacy aliases (arifos_*, arif_bridge_connect, etc.) are included in
+    the SSOT name set so legacy live tools are not flagged as orphans
+    when they have an alias_of mapping.
     """
     ssot = _load_ssot()
     graph = _load_graph()
@@ -223,10 +227,16 @@ def mode_find_orphans(args: dict) -> dict:
         for sec in ("canonical_tools", "diagnostic", "federated_organs", "sanctioned_non_arif"):
             for t in doc.get(sec, []):
                 names.add(t["canonical_name"])
+        # Also include legacy aliases so old runtime names are recognized
+        for la in doc.get("legacy_aliases", []):
+            names.add(la.get("alias"))
         return names
 
     ssot_names = _all_ssot_names(ssot)
     graph_names = {n["tool_name"] for n in graph["nodes"]}
+    # Also include legacy aliases from graph nodes
+    for n in graph["nodes"]:
+        graph_names.update(n.get("legacy_aliases", []))
 
     # Optional: live MCP registry — try to fetch from arifOS MCP
     live_names: set[str] = set()

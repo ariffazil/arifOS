@@ -121,6 +121,16 @@ legacy_aliases:
   - { alias: arifos_measure,            canonical: arif_measure,            deprecated_after: "2026-12-31", shim_layer: true }
   - { alias: arifos_canary,             canonical: arif_canary,             deprecated_after: "2026-12-31", shim_layer: true }
   - { alias: arifos_triage,             canonical: arif_triage,             deprecated_after: "2026-12-31", shim_layer: true }
+  # ── Live MCP drift orphans (caught by find_orphans 2026-06-22) ──
+  # These exist in the live MCP layer but not in the SSOT canonical list.
+  # They are legacy names from the constitutional_map.py era. The alias_of
+  # field below points each to the canonical tool it should resolve to.
+  # Once the runtime is redeployed with these aliases, the legacy shim
+  # can be retired.
+  - { alias: arif_bridge_connect,       canonical: arif_bridge,             deprecated_after: "2026-09-30", shim_layer: true,  alias_of: arif_bridge,         note: "legacy arif_bridge_connect — runtime exposes this old name; resolves to arif_bridge" }
+  - { alias: arif_conformance_report,   canonical: arif_kernel_status,     deprecated_after: "2026-09-30", shim_layer: true,  alias_of: arif_kernel_status, note: "legacy arif_conformance_report — runtime exposes this old name; resolves to arif_kernel_status(mode=conformance_report)" }
+  - { alias: arif_explore,              canonical: arif_observe,            deprecated_after: "2026-09-30", shim_layer: true,  alias_of: arif_observe,        note: "legacy arif_explore — runtime exposes this old name; resolves to arif_observe" }
+  - { alias: arif_memory,               canonical: arif_memory_recall,     deprecated_after: "2026-09-30", shim_layer: true,  alias_of: arif_memory_recall, note: "legacy arif_memory — runtime exposes this old name; resolves to arif_memory_recall" }
   - { alias: arifos_fetch,              canonical: arif_fetch,              deprecated_after: "2026-12-31", shim_layer: true }
   - { alias: arifos_kernel_status,      canonical: arif_kernel_status,      deprecated_after: "2026-12-31", shim_layer: true }
   - { alias: arifos_kernel_attest,      canonical: arif_kernel_attest,      deprecated_after: "2026-12-31", shim_layer: true }

@@ -570,6 +570,62 @@
       "actor_id": "arifbfazil"
     },
     {
+      "tool": "arif_bridge",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arif_bridge_connect"
+      },
+      "expected_resolved_to": "arif_bridge",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-09-30",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_kernel_status",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arif_conformance_report"
+      },
+      "expected_resolved_to": "arif_kernel_status",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-09-30",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_observe",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arif_explore"
+      },
+      "expected_resolved_to": "arif_observe",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-09-30",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_memory_recall",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arif_memory"
+      },
+      "expected_resolved_to": "arif_memory_recall",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-09-30",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
       "tool": "arif_fetch",
       "fixture_class": "legacy_alias_pass",
       "input": {

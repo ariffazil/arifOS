@@ -99,6 +99,7 @@
       "fingerprint": "sha256:e03fe04417de8495",
       "section": "canonical_tools",
       "legacy_aliases": [
+        "arif_conformance_report",
         "arifos_kernel_status"
       ]
     },
@@ -290,7 +291,8 @@
       "fingerprint": "sha256:c17505afe81ca35c",
       "section": "canonical_tools",
       "legacy_aliases": [
-        "arifos_observe"
+        "arifos_observe",
+        "arif_explore"
       ]
     },
     {
@@ -869,7 +871,8 @@
       "fingerprint": "sha256:f6a68cf238537051",
       "section": "federated_organs",
       "legacy_aliases": [
-        "arifos_memory_recall"
+        "arifos_memory_recall",
+        "arif_memory"
       ]
     },
     {
@@ -917,7 +920,8 @@
       "fingerprint": "sha256:5d040e63b65f37a9",
       "section": "federated_organs",
       "legacy_aliases": [
-        "arifos_bridge"
+        "arifos_bridge",
+        "arif_bridge_connect"
       ]
     },
     {
@@ -1465,6 +1469,10 @@
     "arifos_measure": "arif_measure",
     "arifos_canary": "arif_canary",
     "arifos_triage": "arif_triage",
+    "arif_bridge_connect": "arif_bridge",
+    "arif_conformance_report": "arif_kernel_status",
+    "arif_explore": "arif_observe",
+    "arif_memory": "arif_memory_recall",
     "arifos_fetch": "arif_fetch",
     "arifos_kernel_status": "arif_kernel_status",
     "arifos_kernel_attest": "arif_kernel_attest",
@@ -1488,6 +1496,10 @@
     "arifos_measure": "2026-12-31",
     "arifos_canary": "2026-12-31",
     "arifos_triage": "2026-12-31",
+    "arif_bridge_connect": "2026-09-30",
+    "arif_conformance_report": "2026-09-30",
+    "arif_explore": "2026-09-30",
+    "arif_memory": "2026-09-30",
     "arifos_fetch": "2026-12-31",
     "arifos_kernel_status": "2026-12-31",
     "arifos_kernel_attest": "2026-12-31",
