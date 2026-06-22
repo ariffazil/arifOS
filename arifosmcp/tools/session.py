@@ -250,14 +250,32 @@ def _project_light(components: dict, sid: str, actor_id: str, constitution_hash:
     """Project the full components dict into the frozen light header.
 
     Degraded-first ordering: exceptions lead, constants trail. ~15 fields.
+
+    RSI 2026-06-22 (FORGE): vocabulary renamed for F9/F10 compliance.
+      - model_soul → alignment_profile (mechanical, not mystical)
+      - model_shadow → adversarial_profile (mechanical, not mystical)
+      Internal loader variables (sess["model_soul"]) untouched for backwards compat.
+
+    RSI 2026-06-22 (FORGE): F11 audit spine restored.
+      Light path now populates call_hash, trace_id, called_from_kernel,
+      invocation_count. Without these the session cannot be sealed.
     """
+    import uuid as _uuid
     degraded: list[str] = []
-    if not components["soul"]["loaded"]:
-        degraded.append("model_soul_not_loaded")
-    if not components["shadow"]["loaded"]:
-        degraded.append("model_shadow_not_loaded")
+    if not components["alignment_profile"]["loaded"]:
+        degraded.append("alignment_profile_not_loaded")
+    if not components["adversarial_profile"]["loaded"]:
+        degraded.append("adversarial_profile_not_loaded")
     if components["belief"]["intent_model"].get("status") == "light_mode_deferred":
         degraded.append("belief_scaffold_deferred")
+
+    # F11 audit spine — was nulled by abd33817d refactor
+    _now_ts = _time.time()
+    _call_payload = f"arif_init|light|{sid}|{actor_id}|{_now_ts:.6f}"
+    call_hash = f"sha256:{hashlib.sha256(_call_payload.encode()).hexdigest()}"
+    trace_id = f"trc-{_uuid.uuid4().hex[:12]}"
+    called_from_kernel = True  # arif_init is always a kernel-internal call
+    invocation_count = 1  # first call in session
 
     return {
         # GATING
@@ -267,7 +285,7 @@ def _project_light(components: dict, sid: str, actor_id: str, constitution_hash:
         # VERDICT (single source)
         "verdict": {
             "delta": "STABLE",
-            "psi": components["soul"]["loaded"] and "INTACT" or "DEGRADED",
+            "psi": components["alignment_profile"]["loaded"] and "INTACT" or "DEGRADED",
             "omega": "OK",
             "overall": "OK" if not degraded else f"DEGRADED:{len(degraded)}",
         },
@@ -290,13 +308,20 @@ def _project_light(components: dict, sid: str, actor_id: str, constitution_hash:
             "lane": "AGI",
             "verdict": "OBSERVE_ONLY",
         },
-        "model_soul_loaded": components["soul"]["loaded"],
-        "model_shadow_loaded": components["shadow"]["loaded"],
+        # RSI 2026-06-22: renamed from model_soul_loaded / model_shadow_loaded
+        # (F9 ANTI-HANTU / F10 MECHANICAL-CLAIM compliance)
+        "alignment_profile_loaded": components["alignment_profile"]["loaded"],
+        "adversarial_profile_loaded": components["adversarial_profile"]["loaded"],
         # DITEMPA seal (constitutional, not redundancy)
         "motto": DITEMPA_MOTTO,
         "state_emoji": "⚡",
         "mode_emoji": "⚡",
-        "signature": f"sha256:{hashlib.sha256(f'{DITEMPA_MOTTO}|light|{sid}|{_time.time():.6f}'.encode()).hexdigest()[:16]}",
+        "signature": f"sha256:{hashlib.sha256(f'{DITEMPA_MOTTO}|light|{sid}|{_now_ts:.6f}'.encode()).hexdigest()[:16]}",
+        # F11 audit spine (RSI 2026-06-22 fix — was nulled by abd33817d refactor)
+        "call_hash": call_hash,
+        "trace_id": trace_id,
+        "called_from_kernel": called_from_kernel,
+        "invocation_count": invocation_count,
     }
 
 
@@ -602,8 +627,10 @@ def arif_init(
         # ── Project to frozen header (15 fields, degraded-first) ────────
         header = _project_light(
             components={
-                "soul": {"loaded": bool(_model_soul)},
-                "shadow": {"loaded": bool(_model_shadow)},
+                # RSI 2026-06-22: soul/shadow → alignment_profile/adversarial_profile
+                # (F9 ANTI-HANTU / F10 MECHANICAL-CLAIM compliance)
+                "alignment_profile": {"loaded": bool(_model_soul)},
+                "adversarial_profile": {"loaded": bool(_model_shadow)},
                 "belief": {"intent_model": {"status": "light_mode_deferred"}},
                 "next": {"recommended_next": "arif_kernel_attest"},
             },
@@ -737,8 +764,9 @@ def arif_init(
         sid = sess.get("session_id", "UNKNOWN")
         header = _project_light(
             components={
-                "soul": {"loaded": bool(_model_soul)},
-                "shadow": {"loaded": bool(_model_shadow)},
+                # RSI 2026-06-22: soul/shadow → alignment_profile/adversarial_profile
+                "alignment_profile": {"loaded": bool(_model_soul)},
+                "adversarial_profile": {"loaded": bool(_model_shadow)},
                 "belief": {"intent_model": {"status": "loaded" if identity_verified else "light_mode_deferred"}},
                 "next": {"recommended_next": "arif_triage" if identity_verified else "arif_kernel_attest"},
             },

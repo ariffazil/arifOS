@@ -232,6 +232,23 @@ TOOL_AFFORDANCE_CONTRACTS: dict[str, dict[str, Any]] = {
         "output_is_approval": False,
         "safe_autonomous_use": True,
     },
+    # RSI 2026-06-22 (FORGE): arif_init added — bootstrap tool, returns the
+    # frozen light header. The contract is OBSERVE-class (no mutation, no
+    # side effect), but it DOES create a session in the session store, hence
+    # requires_session=True (it creates, not requires, the session).
+    "arif_init": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,  # creates the session
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+    },
     "arif_transport_echo": {
         "action_class": "OBSERVE",
         "mutation": False,
@@ -1985,7 +2002,24 @@ def _enforce_nine_signal(
         """
         out = dict(payload)
         response_ctx = _RESPONSE_CONTEXT.get() or {}
-        resolved_session_id = out.get("session_id") or session_id or response_ctx.get("session_id")
+        # RSI 2026-06-22 (FORGE): F11 session_id schism fix.
+        # arif_init light path puts session_id inside result{} and session{},
+        # not at top level. Read fallbacks to close the schism so the
+        # top-level session_id matches result.session_id. Fail-closed: if
+        # NO writer has a non-null session_id, return None (caller decides).
+        _result_sid = None
+        if isinstance(out.get("result"), dict):
+            _result_sid = out["result"].get("session_id")
+        _session_sid = None
+        if isinstance(out.get("session"), dict):
+            _session_sid = out["session"].get("session_id")
+        resolved_session_id = (
+            out.get("session_id")
+            or _result_sid
+            or _session_sid
+            or session_id
+            or response_ctx.get("session_id")
+        )
         meta_actor_id = (
             out.get("meta", {}).get("actor_id") if isinstance(out.get("meta"), dict) else None
         )
@@ -2145,6 +2179,29 @@ def _enforce_nine_signal(
         # trace_id, called_from_kernel, invocation_count from inner response
         # through the nine_signal envelope. These survive wrapping and are
         # present in every tool response, not just _ok/_hold/_sabar output.
+        # RSI 2026-06-22 (FORGE): F11 audit spine restoration. The light
+        # init_header refactor (abd33817d) put these fields in result{} but
+        # the wrapper reads from out{} only. Add fallbacks to out['result']
+        # so F11 attribution is restored for arif_init and any other tool
+        # that nests its payload in result{}.
+        _audit_call_hash = out.get("call_hash") or (
+            out["result"].get("call_hash") if isinstance(out.get("result"), dict) else None
+        )
+        _audit_trace_id = out.get("trace_id") or (
+            out["result"].get("trace_id") if isinstance(out.get("result"), dict) else None
+        )
+        _audit_called_from_kernel = out.get("called_from_kernel")
+        if _audit_called_from_kernel is None:
+            _audit_called_from_kernel = (
+                out["result"].get("called_from_kernel")
+                if isinstance(out.get("result"), dict) else False
+            )
+        _audit_invocation_count = out.get("invocation_count")
+        if _audit_invocation_count is None:
+            _audit_invocation_count = (
+                out["result"].get("invocation_count")
+                if isinstance(out.get("result"), dict) else None
+            )
         envelope = {
             "status": status,
             "tool": tool_name,
@@ -2153,10 +2210,10 @@ def _enforce_nine_signal(
             "meta": meta_payload,
             "delta_S": float(delta_s),
             "timestamp": out.get("timestamp") or _now(),
-            "call_hash": out.get("call_hash"),
-            "trace_id": out.get("trace_id"),
-            "called_from_kernel": out.get("called_from_kernel", False),
-            "invocation_count": out.get("invocation_count"),
+            "call_hash": _audit_call_hash,
+            "trace_id": _audit_trace_id,
+            "called_from_kernel": _audit_called_from_kernel,
+            "invocation_count": _audit_invocation_count,
             "session_id": resolved_session_id,
             "actor_id": resolved_actor_id,
             # P0-3 fix 2026-06-21: hoist actor_verified to envelope top level
