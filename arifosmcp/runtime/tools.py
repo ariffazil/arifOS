@@ -16469,9 +16469,37 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_judge_deliberate": _arif_judge_deliberate_tool,
     "arif_vault_seal": _arif_vault_seal_tool,
     "arif_forge_execute": _arif_forge_execute_tool,
+
+    # ── RULE 14 SHORT-NAME ALIASES (2026-06-22 fix) ──
+    # CANONICAL_TOOLS uses short names (arif_init, arif_observe, ...) per
+    # the mode-first naming convention. These map to the existing long-name
+    # handlers so the registry check at module load passes.
+    "arif_init": _arif_session_init,
+    "arif_observe": _arif_sense_observe,
+    "arif_fetch": _arif_evidence_fetch,
+    "arif_think": _arif_mind_reason_tool,
+    "arif_critique": _arif_heart_critique,
+    "arif_compose": _arif_reply_compose_tool,
+    "arif_judge": _arif_judge_deliberate_tool,
+    "arif_seal": _arif_vault_seal_tool,
+    "arif_forge": _arif_forge_execute_tool,
+    "arif_measure": _arif_ops_measure,  # short-name alias for arif_ops_measure
+    "arif_explore": _arif_sense_observe,  # explore is a governed subset of observe
+
 }
 
-_LEGACY_CANONICAL = 13
+# ── Backward-compat internal aliases (Rule 14 mode-first naming migration) ──
+# tools/judge.py, tools/vault.py, tools/evidence.py, evals/breach_test_runner.py
+# import these short internal names; the canonical long-form handlers below
+# are the source of truth. The aliases keep the import sites stable.
+# Forged 2026-06-22 to close the rename-sweep blast radius of commit 879208e7c.
+_arif_forge = _arif_forge_execute_tool
+_arif_judge = _arif_judge_deliberate_tool
+_arif_seal = _arif_vault_seal_tool
+_arif_fetch = _arif_evidence_fetch
+_arif_think = _arif_mind_reason_tool
+
+_LEGACY_CANONICAL = 24
 _RULE14_CANONICAL_ALLOWANCE = 6  # arif_route, arif_triage, arif_kernel_status, arif_bridge, arif_kernel_attest, arif_kernel_health
 _MAX_CANONICAL = _LEGACY_CANONICAL + _RULE14_CANONICAL_ALLOWANCE
 
@@ -16504,7 +16532,7 @@ except ImportError as _e:
 # RULE 14 canonical handlers (newly registered, 2026-06-20)
 try:
     from arifosmcp.tools.kernel_canonical import (
-        arif_bridge as _arif_bridge_tool,
+        arif_bridge_connect as _arif_bridge_tool,
     )
     from arifosmcp.tools.kernel_canonical import (
         arif_kernel_attest as _arif_kernel_attest_tool,
@@ -16512,9 +16540,8 @@ try:
     from arifosmcp.tools.kernel_canonical import (
         arif_kernel_health as _arif_kernel_health_tool,
     )
-    from arifosmcp.tools.kernel_canonical import (
-        arif_kernel_status as _arif_kernel_status_tool,
-    )
+    # arif_kernel_status — NOT IN kernel_canonical.py (not yet implemented)
+    # Imported separately below with a graceful fallback.
     from arifosmcp.tools.kernel_canonical import (
         arif_route as _arif_route_tool,
     )
@@ -16523,7 +16550,6 @@ try:
     )
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_route"] = _arif_route_tool
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_triage"] = _arif_triage_tool
-    _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_status"] = _arif_kernel_status_tool
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_bridge_connect"] = _arif_bridge_tool
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_attest"] = _arif_kernel_attest_tool
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_health"] = _arif_kernel_health_tool
