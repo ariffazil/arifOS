@@ -32,6 +32,9 @@ CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = tuple(
 )
 
 BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
+    # "arifos_" is blocked from tools/list but NOT from dispatch.
+    # _LEGACY_ALIASES in tools.py routes arifos_* → arif_* at call time.
+    # Full surface unblock when execution gate + constitutional_map aligned.
     "arifos_",
     "_arifos_",
     "wealth_",

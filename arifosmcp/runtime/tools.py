@@ -2,7 +2,8 @@
 arifosmcp/runtime/tools.py — 13-Tool Canonical Surface
 ═══════════════════════════════════════════════════════
 
-Single registration authority for the canonical arif_* MCP surface.
+Single registration authority for the canonical arifos_* MCP surface.
+arif_* names remain as backward-compat aliases (2026-06-22 migration complete).
 DITEMPA BUKAN DIBERI — Forged, Not Given 🔥🌎🧠🪙
 """
 
@@ -516,8 +517,10 @@ def _get_affordance_contract(tool_name: str) -> dict[str, Any]:
     conservative UNKNOWN contract — fail-safe by default. Agents should
     treat unknown tools as if they require session + lease + ack.
     """
-    if tool_name in TOOL_AFFORDANCE_CONTRACTS:
-        contract = dict(TOOL_AFFORDANCE_CONTRACTS[tool_name])
+    # Resolve arifos_* → arif_* via legacy alias map (2026-06-22 migration)
+    lookup_name = _LEGACY_ALIASES.get(tool_name, tool_name)
+    if lookup_name in TOOL_AFFORDANCE_CONTRACTS:
+        contract = dict(TOOL_AFFORDANCE_CONTRACTS[lookup_name])
         contract["known"] = True
         return contract
     return {
@@ -1337,7 +1340,7 @@ def _verified_arifos_tools(card_or_runtime: dict[str, Any] | Any) -> set[str]:
         # Fallback to tools_live but FILTER out shell capabilities (read/write/exec)
         # only keeping tools with arif_ prefix.
         live = getattr(runtime, "tools_live", [])
-        verified = [tool for tool in live if isinstance(tool, str) and tool.startswith("arif_")]
+        verified = [tool for tool in live if isinstance(tool, str) and (tool.startswith("arif_") or tool.startswith("arifos_"))]
     return {str(tool) for tool in verified or []}
 
 
@@ -17338,6 +17341,11 @@ def register_tools(
         if handler is None:
             handler = _RUNTIME_DIAGNOSTIC_HANDLERS.get(name)
         if handler is None:
+            # arifos_* → arif_* legacy alias resolution (2026-06-22 migration)
+            canonical = _LEGACY_ALIASES.get(name)
+            if canonical:
+                handler = _CANONICAL_HANDLERS.get(canonical) or _RUNTIME_DIAGNOSTIC_HANDLERS.get(canonical)
+        if handler is None:
             continue
         try:
             manifest = TOOL_CHARTER.get(name, {})
@@ -17476,6 +17484,7 @@ def register_v2_tools(mcp: FastMCP, **kwargs: Any) -> list[str]:
 # arifos_* → arif_* canonical name mapping for backward compatibility.
 # Used by tools_hardened_dispatch.get_tool_handler to route legacy calls.
 _LEGACY_ALIASES: dict[str, str] = {
+    # ── Canonical 13: arifos_* → arif_* ─────────────────────────────────────
     "arifos_init": "arif_session_init",
     "arifos_kernel": "arif_kernel_route",
     "arifos_judge": "arif_judge_deliberate",
@@ -17488,8 +17497,25 @@ _LEGACY_ALIASES: dict[str, str] = {
     "arifos_forge": "arif_forge_execute",
     "arifos_gateway": "arif_gateway_connect",
     "arifos_evidence": "arif_evidence_fetch",
-    "arifos_health": "arif_ops_measure",  # health folded into ops
     "arifos_reply": "arif_reply_compose",
+    # ── Canary probes: arifos_* → arif_* ────────────────────────────────────
+    "arifos_ping": "arif_ping",
+    "arifos_canary": "arif_canary",
+    "arifos_conformance_report": "arif_conformance_report",
+    "arifos_schema_echo": "arif_schema_echo",
+    "arifos_version_echo": "arif_version_echo",
+    "arifos_transport_echo": "arif_transport_echo",
+    "arifos_initialize_probe": "arif_initialize_probe",
+    # ── Kernel diagnostics: arifos_* → arif_* ───────────────────────────────
+    "arifos_triage": "arif_triage",
+    "arifos_route": "arif_route",
+    "arifos_bridge": "arif_bridge_connect",
+    "arifos_health": "arif_kernel_health",   # fixed: was wrongly arif_ops_measure
+    "arifos_status": "arif_kernel_status",
+    "arifos_attest": "arif_kernel_attest",
+    # ── Shadow geometry: arifos_* → arif_* ──────────────────────────────────
+    "arifos_self_evaluate": "arif_self_evaluate",
+    "arifos_model_compare": "arif_model_compare",
 }
 
 LEGACY_TOOL_ALIASES = _LEGACY_ALIASES

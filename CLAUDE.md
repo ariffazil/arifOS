@@ -156,7 +156,7 @@ mypy arifosmcp/runtime/ --ignore-missing-imports
 
 ## 5. CONVENTIONS
 
-- **Public names are `arif_*`**, never `arifos_*`. Legacy aliases exist; don't add new ones.
+- **Public names are `arifos_*`** — canonical, organ-prefixed (matches `geox_*`, `well_*`, `wealth_*`). `arif_*` names remain as backward-compat aliases. Migration completed 2026-06-22.
 - **asyncio_mode = auto** — don't add `@pytest.mark.asyncio` unless the file already uses it.
 - **New tools** → extend handler in `arifosmcp/tools/`, update `constitutional_map.py`, regenerate `tool_registry.json`.
 - **Lease required for mutation** — all mutation-class forge modes (engineer, write, generate, commit) require a valid lease. Read-only modes exempt. Hard-block (no warn-and-proceed).

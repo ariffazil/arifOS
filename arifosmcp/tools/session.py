@@ -846,6 +846,10 @@ def arif_init(
     )
 
 
+# ── Canonical alias (migration 2026-06-22: arif_* → arifos_* naming) ─
+arif_session_init = arif_init
+
+
 # ── Helper Builders ────────────────────────────────────────────
 
 
