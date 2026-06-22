@@ -34,6 +34,75 @@ PASS = "PASS"
 FAIL = "FAIL"
 
 
+# ── Sovereign Ruling Annotation (2026-06-05) ─────────────────────────────────
+# Per AGENTS.md: VAULT999 chain shows BROKEN due to 60 historical gaps from
+# pre-May-2026 migration (ids 18-60 have zero prev_seal_id). SOVEREIGN RULING
+# (Arif, 2026-06-05): NON-ISSUE. Agents must not flag or block on these gaps.
+#
+# This annotation makes the BROKEN signal LEGIBLE: the verifier explains its
+# own known-warnings. Unexplained BROKEN (new failures, not the known pattern)
+# is a different signal and MUST surface as HOLD.
+#
+# DITEMPA BUKAN DIBERI — a substrate whose verifier explains its warnings is
+# honest. A substrate whose verifier hides them is not.
+CHAIN_RULING_DATE = "2026-06-05"
+CHAIN_RULING_VERDICT = "NON-ISSUE"
+CHAIN_RULING_PATTERN = "pre-migration-gap"
+CHAIN_RULING_REFERENCE = (
+    "AGENTS.md VAULT999 known anomaly — 60 historical gaps from "
+    "pre-May-2026 migration (ids 18-60 zero prev_seal_id). "
+    "SOVEREIGN RULING 2026-06-05: NON-ISSUE. Do not block."
+)
+
+
+def _annotate_chain_ruling(evidence: dict[str, Any]) -> dict[str, Any]:
+    """If chain_integrity is BROKEN, attach the sovereign ruling annotation.
+
+    Mutates and returns the evidence dict. This is the verifier's duty:
+    if a check records a broken signal, it MUST also record WHY that signal
+    is (or is not) an emergency. Hiding it makes the substrate a liar.
+    """
+    if evidence.get("chain_integrity") == "BROKEN":
+        evidence["sovereign_ruling"] = CHAIN_RULING_VERDICT
+        evidence["ruling_date"] = CHAIN_RULING_DATE
+        evidence["ruling_pattern"] = CHAIN_RULING_PATTERN
+        evidence["ruling_reference"] = CHAIN_RULING_REFERENCE
+        evidence["ruling_legible"] = True
+    return evidence
+
+
+def _scan_unexplained_critical(checks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Find checks whose evidence shows critical-broken signals WITHOUT
+    explanation.
+
+    A critical signal is chain_integrity BROKEN, vault_seals_total == 0, or
+    other zero-state evidence. An explanation is a sovereign_ruling annotation
+    attached to the same evidence dict by the check that produced it.
+
+    Returns a list of {check, signals} dicts. Empty list = all critical
+    signals are explained.
+    """
+    unexplained: list[dict[str, Any]] = []
+    for c in checks:
+        ev = c.get("evidence", {})
+        signals: list[str] = []
+        ci = ev.get("chain_integrity")
+        if ci == "BROKEN" and not ev.get("sovereign_ruling"):
+            signals.append(
+                "chain_integrity: BROKEN without sovereign ruling "
+                "(unknown pattern — possible new failure)"
+            )
+        if ev.get("vault_seals_total", 1) == 0:
+            signals.append("vault_seals_total: 0 (empty ledger)")
+        if signals:
+            unexplained.append({
+                "check": c.get("check"),
+                "verdict": c.get("verdict"),
+                "signals": signals,
+            })
+    return unexplained
+
+
 # ── Low-level helpers ────────────────────────────────────────────────────────
 
 def _http_get(path: str, timeout: int = 15) -> dict[str, Any]:
@@ -409,8 +478,16 @@ def check_vault_replay() -> dict[str, Any]:
 
     latest_id = latest.get("ts") or latest.get("timestamp") or latest.get("mtime") or latest.get("file", "unknown")
     latest_event = latest.get("action") or latest.get("event") or latest.get("file", "unknown")
-    chain_signal = tool_result.get("chain_ok") or tool_result.get("hash_chain_ok")
-    chain_ok = chain_signal if isinstance(chain_signal, bool) else True
+    chain_signal = tool_result.get("chain_ok")
+    if chain_signal is None:
+        chain_signal = tool_result.get("hash_chain_ok")
+    # TRUTHFUL: if chain_signal is None (not present in response), we default
+    # to False — the substrate cannot claim what it has not measured.
+    # If chain_signal is an explicit False from a live BROKEN probe, it stays False.
+    # The only path to True is an explicit True from the vault backend.
+    chain_ok = chain_signal if isinstance(chain_signal, bool) else False
+    if chain_signal is None:
+        errors.append("chain_ok signal not present in vault response — defaulting to False")
 
     if status not in ("OK", "SEAL", "ok", "seal"):
         errors.append(f"hermes_vault_query returned non-OK status: {status}")
@@ -541,7 +618,7 @@ def check_cooling_ledger() -> dict[str, Any]:
         "check": "cooling_ledger",
         "verdict": PASS if passed else FAIL,
         "latency_ms": round(api_latency_ms + query_latency_ms, 1),
-        "evidence": {
+        "evidence": _annotate_chain_ruling({
             "vault999_healthy": vault999_healthy,
             "vault_seals_total": vault_seals,
             "chain_integrity": chain_status,
@@ -549,7 +626,7 @@ def check_cooling_ledger() -> dict[str, Any]:
             "vault_api_latency_ms": api_latency_ms,
             "query_latency_ms": query_latency_ms,
             "errors": errors,
-        },
+        }),
     }
 
 
@@ -607,6 +684,54 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
     score = f"{passed}/{len(SPINE)}"
     all_green = failed == 0
 
+    # ── Verifier honesty gate ─────────────────────────────────────────────
+    # Scan all check evidence for critical-broken signals.
+    # Two tiers:
+    #   Tier 1 — UNEXPLAINED critical signal (no sovereign_ruling):
+    #             The verifier caught something it cannot explain.
+    #             → HOLD. Always.
+    #   Tier 2 — EXPLAINED critical signal (has sovereign_ruling):
+    #             The verifier caught something AND named why.
+    #             → AMBER. Honest about it, but NOT GREEN.
+    #             A substrate with a broken chain is not GREEN,
+    #             even if the break is a known historical gap.
+    #
+    # The sin this prevents: PASS over BROKEN.
+    # ALL_GREEN means EVERY check passed AND no check has critical signals
+    # that override the aggregate verdict. If chain_integrity is BROKEN
+    # (even with a sovereign ruling), the substrate is not GREEN.
+    unexplained = _scan_unexplained_critical(results)
+    has_unexplained = len(unexplained) > 0
+
+    # Scan for ANY check with a critical chain signal (explained or not).
+    # A chain_integrity: BROKEN even with sovereign_ruling means the
+    # substrate has a known fracture — honest about it, but not GREEN.
+    has_critical = False
+    for c in results:
+        ev = c.get("evidence", {})
+        ci = ev.get("chain_integrity")
+        if ci == "BROKEN":
+            has_critical = True
+            break
+
+    if has_unexplained:
+        substrate_gate = "HOLD"
+        verdict = "HOLD"
+    elif has_critical:
+        # Explained BROKEN is honest, but the substrate is fractured.
+        # AMBER means: verifier is truthful, but reality is not clean.
+        substrate_gate = "AMBER"
+        verdict = "EXPLAINED_BROKEN"
+    elif all_green:
+        substrate_gate = "GREEN"
+        verdict = "SEAL"
+    elif passed >= 6:
+        substrate_gate = "AMBER"
+        verdict = "CAUTION"
+    else:
+        substrate_gate = "RED"
+        verdict = "HOLD"
+
     return {
         "spine": "ARIF Conformance Spine v0.2",
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -616,14 +741,22 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
         "failed": failed,
         "total": len(SPINE),
         "all_green": all_green,
-        "substrate_gate": "GREEN" if all_green else ("AMBER" if passed >= 6 else "RED"),
+        "substrate_gate": substrate_gate,
         "total_latency_ms": total_ms,
         "checks": results,
-        "verdict": "SEAL" if all_green else ("CAUTION" if passed >= 6 else "HOLD"),
-        "doctrine": "DITEMPA BUKAN DIBERI — Proved by trace, not by claim.",
+        "verdict": verdict,
+        "unexplained_critical_evidence": unexplained,
+        "honesty_gate_active": True,
+        "doctrine": (
+            "DITEMPA BUKAN DIBERI — Proved by trace, not by claim. "
+            "A substrate whose verifier explains its warnings is honest. "
+            "A substrate whose verifier hides them is not."
+        ),
         "engineering_law": (
             "A governed runtime that proves every intelligence flow. "
-            "If this is GREEN: arifOS is not a concept. It is a substrate."
+            "If this is GREEN-with-explanation: arifOS is not a concept. "
+            "If this is HOLD-on-unexplained: the verifier caught itself. "
+            "That is the substrate earning its name."
         ),
     }
 

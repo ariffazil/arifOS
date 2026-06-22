@@ -396,7 +396,34 @@ def arif_ping(
     actor_id: str | None = None,
     session_id: str | None = None,
 ) -> dict:
-    """Canary probe — no session, no actor, no constitution required."""
+    """Canary probe — no session, no actor, no constitution required.
+
+    Returns a three-signal honest probe:
+      transport     — HTTP/MCP round-trip succeeded (always ok if you got here)
+      floors_loaded — the constitutional floor system is initialized in this kernel
+      floors_enforced — whether the floors can fire here (requires session+actor)
+
+    A substrate where `floors_loaded: false` is unbooted. A substrate where
+    `floors_loaded: true, floors_enforced: false` is the correct shape for a
+    canary probe — the system is ready, but cannot enforce without identity.
+    The legacy `floors_active` field is retained for backward compat.
+    """
+    # Probe whether the floor system is initialized. If floor_audit module
+    # can be imported AND returns a runtime dict, the system is loaded.
+    floors_loaded = False
+    floors_active_count = 0
+    try:
+        from arifosmcp.core.shared.floor_audit import get_ml_floor_runtime
+
+        _fr = get_ml_floor_runtime()
+        floors_loaded = bool(_fr)
+        floors_active_count = int(_fr.get("floors_active", 0)) if isinstance(_fr, dict) else 0
+    except Exception:
+        floors_loaded = False
+        floors_active_count = 0
+
+    floors_enforceable_here = bool(actor_id and session_id)
+
     return {
         "ok": True,
         "build": _DEPLOY_VERSION,
@@ -404,7 +431,21 @@ def arif_ping(
         "schema_version": "v2026.06.14.v2",
         "timestamp": datetime.now(UTC).isoformat(),
         "probe": True,
-        "floors_active": False,
+        # Legacy field — kept for backward compat with existing consumers.
+        # Now honest: false here means "not enforced at this probe", NOT
+        # "kernel is unbooted".
+        "floors_active": floors_enforceable_here,
+        # New honest three-signal split
+        "transport": "ok",
+        "floors_loaded": floors_loaded,
+        "floors_enforced": floors_enforceable_here,
+        "floors_active_count": floors_active_count,
+        "_honesty_note": (
+            "floors_loaded=true means the floor system is initialized in this "
+            "kernel. floors_enforced=false means this probe has no "
+            "actor/session, so the floors are not firing here — but they will "
+            "fire on the very next call that carries identity."
+        ),
     }
 
 
@@ -483,17 +524,17 @@ def create_arifos_mcp_server() -> FastMCP:
 
 
 def _assert_registered_surface(registered_names: list[str]) -> None:
-    """Assert the registered surface contains at minimum the 13 canonical tools.
+    """Assert the registered surface contains at minimum the 15 canonical tools.
 
-    Canonical13 enforcement: the default public wire surface is 13 kernel + 6 canary
-    probes = 19 tools. All other diagnostics (hermes, lease, attest, etc.) are gated
+    Canonical13 enforcement: the default public wire surface is 15 kernel + 1 canary
+    probe = 16 tools. All other diagnostics (hermes, lease, attest, etc.) are gated
     behind ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
     """
     from arifosmcp.runtime.public_surface import CANARY_PROBES, DIAGNOSTIC_TOOLS
 
     expected_set = set(CANONICAL_TOOLS)
     # Subtract ALL non-canonical tools (canary probes + gated diagnostics) from the
-    # registered set. What remains must be exactly the canonical 13.
+    # registered set. What remains must be exactly the canonical 15.
     registered_set = set(registered_names) - set(DIAGNOSTIC_TOOLS)
     # Also discard canary probes (belt-and-suspenders — they're in DIAGNOSTIC_TOOLS)
     for probe in CANARY_PROBES:
@@ -595,122 +636,18 @@ try:
     except Exception as _shim_err:
         logger.warning("Phase 2 alias shim failed (non-fatal, old names still work): %s", _shim_err)
 
-    # ── Canary Ping Tool (No actor, no envelope, no policy) ──────────────────
-    # NOTE: arif_ping is registered OUTSIDE the try block (pre-registration layer
-    # at line ~322) so it survives canonical registration failure.
-    # This duplicate registration is skipped since FastMCP de-dupes by name.
-    # The pre-registration version is the canonical one.
-    from arifosmcp.runtime.tools import (  # noqa: E402
-        _arif_initialize_probe,
-        _arif_schema_echo,
-        _arif_transport_echo,
-        _arif_version_echo,
-    )
-
-    @mcp.tool(
-        name="arif_schema_echo",
-        description=(
-            "CANARY: Echo back what the client sent plus server's interpretation. "
-            "Zero-floor transport diagnostic. Call with any payload and receive it back "
-            "alongside the server's view. If what you sent does not equal what you received, the "
-            "transport bridge is mangling your payload. No session, no actor, no governance."
-        ),
-        tags={"canary", "read-only", "diagnostic", "transport"},
-    )
-    def arif_schema_echo(  # noqa: F811
-        payload: dict | str | list | None = None,
-        _envelope: dict[str, Any] | None = None,
-        client_capabilities: dict[str, Any] | None = None,
-        actor_id: str | None = None,
-        session_id: str | None = None,
-    ) -> dict:
-        return _arif_schema_echo(
-            payload=payload,
-            _envelope=_envelope,
-            client_capabilities=client_capabilities,
-            actor_id=actor_id,
-            session_id=session_id,
-        )
-
-    @mcp.tool(
-        name="arif_version_echo",
-        description=(
-            "CANARY: Return MCP protocol version, supported versions, and dialect hints. "
-            "Zero-floor version probe. Use to detect version-dialect drift before attempting "
-            "a full session init. No session, no actor, no governance."
-        ),
-        tags={"canary", "read-only", "diagnostic", "transport"},
-    )
-    def arif_version_echo(  # noqa: F811
-        payload: Any = None,
-        _envelope: dict[str, Any] | None = None,
-        client_capabilities: dict[str, Any] | None = None,
-        actor_id: str | None = None,
-        session_id: str | None = None,
-    ) -> dict:
-        return _arif_version_echo(
-            payload=payload,
-            _envelope=_envelope,
-            client_capabilities=client_capabilities,
-            actor_id=actor_id,
-            session_id=session_id,
-        )
-
-    @mcp.tool(
-        name="arif_transport_echo",
-        description=(
-            "CANARY: Return every transport-level detail the server observed: headers, "
-            "protocol, source, transport hint. Zero-floor diagnostic. Use to debug why "
-            "a specific client can connect while another cannot. No session, no actor, no governance."
-        ),
-        tags={"canary", "read-only", "diagnostic", "transport"},
-    )
-    def arif_transport_echo(  # noqa: F811
-        payload: Any = None,
-        _envelope: dict[str, Any] | None = None,
-        client_capabilities: dict[str, Any] | None = None,
-        actor_id: str | None = None,
-        session_id: str | None = None,
-    ) -> dict:
-        return _arif_transport_echo(
-            payload=payload,
-            _envelope=_envelope,
-            client_capabilities=client_capabilities,
-            actor_id=actor_id,
-            session_id=session_id,
-        )
-
-    @mcp.tool(
-        name="arif_initialize_probe",
-        description=(
-            "CANARY: Test MCP initialize/initialized handshake without constitutional ceremony. "
-            "Simulates protocol version negotiation per MCP spec 2025-11-25. Returns what a "
-            "proper initialize response would look like. Use AFTER ping passes but BEFORE "
-            "arif_init. If this works but session_init does not, the problem is in "
-            "the session init schema, not transport. No session, no actor, no governance."
-        ),
-        tags={"canary", "read-only", "diagnostic", "transport", "initialize"},
-    )
-    def arif_initialize_probe(  # noqa: F811
-        payload: Any = None,
-        _envelope: dict[str, Any] | None = None,
-        client_capabilities: dict[str, Any] | None = None,
-        protocol_version: str | None = None,
-        actor_id: str | None = None,
-        session_id: str | None = None,
-    ) -> dict:
-        # Merge explicit protocol_version into payload for downstream extraction
-        if protocol_version and isinstance(payload, dict):
-            payload.setdefault("protocol_version", protocol_version)
-        elif protocol_version and not isinstance(payload, dict):
-            payload = {"protocol_version": protocol_version}
-        return _arif_initialize_probe(
-            payload=payload,
-            _envelope=_envelope,
-            client_capabilities=client_capabilities,
-            actor_id=actor_id,
-            session_id=session_id,
-        )
+    # ── RSI CONSOLIDATED PROBES (2026-06-22) ─────────────────────────────
+    # The five legacy probe tools (arif_ping, arif_schema_echo, arif_version_echo,
+    # arif_transport_echo, arif_initialize_probe) are consolidated into
+    # arif_canary (multimode). Duplicate decorator blocks previously here
+    # (lines 651-754) REMOVED per F4 CLARITY. Use:
+    #   arif_canary(mode="ping")             — was arif_ping
+    #   arif_canary(mode="schema_echo")      — was arif_schema_echo
+    #   arif_canary(mode="version_echo")     — was arif_version_echo
+    #   arif_canary(mode="transport_echo")   — was arif_transport_echo
+    #   arif_canary(mode="initialize_probe") — was arif_initialize_probe
+    #   arif_canary(mode="conformance_report") — was arif_conformance_report
+    pass  # legacy probe blocks deleted; arif_canary below is canonical
 
     # ── Canary Multimode (replaces 6 individual canaries) ────────────────────
     # One tool, six modes. ART: OBSERVE-class, zero floors, read-only.
@@ -1314,7 +1251,89 @@ except Exception as e:
 
 # ── REST Endpoints ──────────────────────────────────────────────────────────
 async def horizon_health(request: Request) -> JSONResponse:
-    return JSONResponse({"status": "healthy", "version": _DEPLOY_VERSION})
+    """GET /health — Three-signal honest health (transport/kernel/floors).
+
+    A substrate that reports one lumped `status: healthy` over a state that
+    is actually three distinct signals is committing the sin it exists to
+    prevent. This endpoint reports each signal separately and derives the
+    top-level aggregate as the WORST of the three — never the best.
+
+    Signals:
+      transport — the HTTP request reached a handler (always ok if you got here)
+      kernel    — the canonical tool registry is loaded and reachable
+      floors    — the constitutional floor runtime is initialized and active
+    """
+    now = datetime.now(UTC).isoformat()
+
+    # transport — request reached the handler. If we got here, it's ok.
+    transport = {
+        "status": "ok",
+        "responded_at": now,
+        "endpoint": "/health",
+    }
+
+    # kernel — can we import the canonical surface? If yes, how many tools?
+    kernel: dict[str, Any] = {"status": "unknown"}
+    try:
+        from arifosmcp.constitutional_map import CANONICAL_TOOLS
+
+        _tool_count = len(CANONICAL_TOOLS)
+        kernel = {
+            "status": "ok" if _tool_count > 0 else "degraded",
+            "tools_loaded": _tool_count,
+            "tools_loaded_target": max(13, _tool_count),
+        }
+    except Exception as e:
+        kernel = {
+            "status": "unknown",
+            "reason": f"canonical_map_import_failed: {type(e).__name__}",
+        }
+
+    # floors — is the constitutional floor runtime initialized?
+    floors: dict[str, Any] = {"status": "unknown"}
+    try:
+        from arifosmcp.core.shared.floor_audit import get_ml_floor_runtime
+
+        _floor_runtime = get_ml_floor_runtime()
+        _active = _floor_runtime.get("floors_active", 0)
+        floors = {
+            "status": "ok" if _active >= 13 else "degraded",
+            "floors_active": _active,
+            "floors_target": 13,
+        }
+    except Exception as e:
+        floors = {
+            "status": "unknown",
+            "reason": f"floor_audit_unavailable: {type(e).__name__}",
+        }
+
+    # Aggregate: worst-of-three. A green-on-green-on-unknown is NOT healthy.
+    _signal_statuses = [transport["status"], kernel["status"], floors["status"]]
+    if "degraded" in _signal_statuses:
+        aggregate = "degraded"
+    elif "unknown" in _signal_statuses:
+        # Honest default — unknown is not healthy. The substrate does not lie.
+        aggregate = "degraded"
+    elif all(s == "ok" for s in _signal_statuses):
+        aggregate = "healthy"
+    else:
+        aggregate = "degraded"
+
+    return JSONResponse({
+        "status": aggregate,
+        "version": _DEPLOY_VERSION,
+        "timestamp": now,
+        "signals": {
+            "transport": transport,
+            "kernel": kernel,
+            "floors": floors,
+        },
+        "_honesty_note": (
+            "Top-level status is the WORST of transport/kernel/floors. "
+            "Inspect `signals.*` for per-layer truth. "
+            "A green transport over a degraded kernel is reported as degraded."
+        ),
+    })
 
 
 async def horizon_ready(request: Request) -> JSONResponse:
@@ -1398,16 +1417,21 @@ async def mcp_health(request: Request) -> JSONResponse:
 
 
 app = mcp.http_app(transport="streamable-http", stateless_http=True, json_response=True)
-# Mirror federated tool count onto app for health endpoint (register_rest_routes receives app)
+# Single source of truth: CANONICAL_TOOLS + DIAGNOSTIC_TOOLS from constitutional_map.
+# These counts are derived live — no hardcoded numbers, no stale comments.
 from arifosmcp.constitutional_map import DIAGNOSTIC_TOOLS
 
-_actual_canonical_count = len(CANONICAL_TOOLS)  # currently 22 (21 canonical + 1 probe)
-_actual_diagnostic_count = len(DIAGNOSTIC_TOOLS)  # currently 21 (from public_surface.py)
-mcp._tool_count = _actual_canonical_count  # pyright: ignore[reportAttributeAccessIssue]
-app.state._tool_count = _actual_canonical_count  # pyright: ignore[reportAttributeAccessIssue]
-app._tool_count = _actual_canonical_count  # pyright: ignore[reportAttributeAccessIssue]
+_actual_canonical_count = len(CANONICAL_TOOLS)
+_actual_diagnostic_count = len(DIAGNOSTIC_TOOLS)
+_actual_total_count = _actual_canonical_count + _actual_diagnostic_count
+
+# Set on BOTH mcp and app.state — health endpoint reads from mcp, not app.state
+for _target in (mcp, app.state, app):
+    _target._tool_count = _actual_canonical_count  # pyright: ignore[reportAttributeAccessIssue]
+mcp._diagnostic_tool_count = _actual_diagnostic_count  # pyright: ignore[reportAttributeAccessIssue]
+mcp._total_tool_count = _actual_total_count  # pyright: ignore[reportAttributeAccessIssue]
 app.state._diagnostic_tool_count = _actual_diagnostic_count  # pyright: ignore[reportAttributeAccessIssue]
-app.state._total_tool_count = _actual_canonical_count + _actual_diagnostic_count  # pyright: ignore[reportAttributeAccessIssue]
+app.state._total_tool_count = _actual_total_count  # pyright: ignore[reportAttributeAccessIssue]
 if app:
     # ── MCP 2025-11-25 Transport Compliance Middleware ──────────────────────
     # PHOENIX-73C FIX: stateless_http=False enables proper session management.
@@ -1600,17 +1624,43 @@ if app:
             checks["floors_enforced"] = True
             checks["floors_active_target"] = 13
 
-        # 2. Tools
-        # Hardening v1.0: tools_loaded is dynamic (count of arif_* tools).
-        # Target remains 13 (constitutional minimum). Use >= for growth.
+        # 2. Tools / Prompts / Resources — single inventory SOT
+        # The substrate must know its own surface from one vantage. Counts are
+        # derived from the CANONICAL_TOOLS dict (tools) and from the live
+        # FastMCP provider (prompts/resources), not hardcoded. This is the
+        # keystone of self-enumeration: a kernel that reports its tool count
+        # cannot lie if that count matches what the runtime actually exposes.
         try:
-            from arifosmcp.constitutional_map import CANONICAL_TOOLS
+            from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS
 
             _canonical_count = len(CANONICAL_TOOLS)
+            _diagnostic_count = len(DIAGNOSTIC_TOOLS)
         except Exception:
-            _canonical_count = 13
+            _canonical_count = 0
+            _diagnostic_count = 0
         checks["tools_loaded"] = _canonical_count
-        checks["tools_loaded_target"] = 13
+        checks["tools_loaded_diagnostic"] = _diagnostic_count
+        checks["tools_loaded_total"] = _canonical_count + _diagnostic_count
+        # Constitutional minimum is 13 (per AGENTS.md / historical Canon13).
+        # Current canonical surface may exceed 13 as the kernel grows.
+        checks["tools_loaded_target"] = max(13, _canonical_count)
+
+        # Prompts and resources: derive from live FastMCP provider. If the
+        # provider introspection fails, expose None (NOT zero) so consumers
+        # know the count is unknown rather than falsely zero.
+        try:
+            _components = mcp._local_provider._components  # pyright: ignore[reportAttributeAccessIssue]
+            checks["prompts_loaded"] = sum(
+                1 for k in _components.keys() if k.startswith("prompt:")
+            )
+            checks["resources_loaded"] = sum(
+                1 for k in _components.keys() if k.startswith("resource:")
+            )
+            checks["prompts_resources_introspected"] = True
+        except Exception:
+            checks["prompts_loaded"] = None
+            checks["resources_loaded"] = None
+            checks["prompts_resources_introspected"] = False
 
         # 3. Policy hash
         try:
