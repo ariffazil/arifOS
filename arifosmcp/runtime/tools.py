@@ -100,6 +100,7 @@ _SIGNAL_SEVERITY: dict[str, int] = {
     # ── Warnings / degraded (severity 3-4) ──
     "ERROR": 3,
     "WARN": 3,
+    "DIVERGENT": 3,     # FORGE 2: surface self-consistency divergence
     "DEGRADED": 4,
     "BIJAK": 4,         # nine_signal Ω: SMART (degraded intelligence)
     # ── Observe only / partial (severity 5) ──
@@ -16603,35 +16604,25 @@ async def _arif_memory_v5_router(
 
 
 _CANONICAL_HANDLERS: dict[str, Any] = {
-    "arif_session_init": _arif_session_init,
-    "arif_sense_observe": _arif_sense_observe,
-    "arif_evidence_fetch": _arif_evidence_fetch,
-    "arif_mind_reason": _arif_mind_reason_tool,
-    "arif_kernel_route": _arif_kernel_route,
-    "arif_reply_compose": _arif_reply_compose_tool,
-    "arif_memory_recall": _arif_memory_v5_router,  # DEPRECATED alias → v5 router (preserves legacy modes)
-    "arif_memory": _arif_memory_v5_router,          # NEW canonical v5 — 7 federated modes
-    "arif_heart_critique": _arif_heart_critique,
-    "arif_gateway_connect": _arif_gateway_connect,
-    "arif_ops_measure": _arif_ops_measure,
-    "arif_judge_deliberate": _arif_judge_deliberate_tool,
-    "arif_vault_seal": _arif_vault_seal_tool,
-    "arif_forge_execute": _arif_forge_execute_tool,
-
-    # ── RULE 14 SHORT-NAME ALIASES (2026-06-22 fix) ──
-    # CANONICAL_TOOLS uses short names (arif_init, arif_observe, ...) per
-    # the mode-first naming convention. These map to the existing long-name
-    # handlers so the registry check at module load passes.
+    # ── RSI CANONICAL SURFACE (2026-06-22) ─────────────────────────────────
+    # One name per operation. Aliases removed per F4 CLARITY mandate.
+    # Previous "long-name" entries (arif_session_init, arif_sense_observe,
+    # arif_evidence_fetch, arif_mind_reason, arif_reply_compose,
+    # arif_memory_recall, arif_heart_critique, arif_gateway_connect,
+    # arif_ops_measure, arif_judge_deliberate, arif_vault_seal,
+    # arif_forge_execute, arif_kernel_route, arif_session_init) are RETIRED.
+    # Use the canonical name. See /root/forge_work/rsi-2026-06-22.md.
     "arif_init": _arif_session_init,
     "arif_observe": _arif_sense_observe,
     "arif_fetch": _arif_evidence_fetch,
     "arif_think": _arif_mind_reason_tool,
     "arif_critique": _arif_heart_critique,
     "arif_compose": _arif_reply_compose_tool,
+    "arif_memory": _arif_memory_v5_router,
     "arif_judge": _arif_judge_deliberate_tool,
     "arif_seal": _arif_vault_seal_tool,
     "arif_forge": _arif_forge_execute_tool,
-    "arif_measure": _arif_ops_measure,  # short-name alias for arif_ops_measure
+    "arif_measure": _arif_ops_measure,
     "arif_explore": _arif_sense_observe,  # explore is a governed subset of observe
 
 }
@@ -16652,13 +16643,14 @@ _RULE14_CANONICAL_ALLOWANCE = 6  # arif_route, arif_triage, arif_kernel_status, 
 _MAX_CANONICAL = _LEGACY_CANONICAL + _RULE14_CANONICAL_ALLOWANCE
 
 _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
-    "arif_ping": _runtime_ping,
+    # ── RSI CONSOLIDATED PROBES (2026-06-22) ─────────────────────────────
+    # Five legacy probes (arif_ping, arif_schema_echo, arif_version_echo,
+    # arif_transport_echo, arif_initialize_probe) were consolidated into
+    # arif_canary (multimode). Legacy names RETIRED per F4 CLARITY.
+    # Use arif_canary(mode='ping'|'schema_echo'|'version_echo'|
+    #                  'transport_echo'|'initialize_probe'|'conformance_report').
     "arif_selftest": _runtime_selftest,
     "arif_conformance_report": _runtime_conformance_report,
-    "arif_schema_echo": _runtime_schema_echo,
-    "arif_version_echo": _runtime_version_echo,
-    "arif_transport_echo": _runtime_transport_echo,
-    "arif_initialize_probe": _runtime_initialize_probe,
 }
 
 # Shadow Geometry Tools
@@ -16702,22 +16694,8 @@ try:
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_attest"] = _arif_kernel_attest_tool
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_health"] = _arif_kernel_health_tool
 
-    # ── arif_bridge (DEPRECATED alias for arif_bridge_connect) ──
-    # Registered 2026-06-21: arif_bridge retained as backward-compat alias.
-    # The canonical name follows arif_<noun>_<verb>: arif_bridge_connect.
-    # Both call the same kernel-canonical bridge implementation.
-    # The deprecated alias adds an _advisory block to the result.
-    def _arif_bridge_deprecated(**kwargs: Any) -> dict[str, Any]:
-        result = _arif_bridge_tool(**kwargs)
-        result["_advisory"] = {
-            "deprecated": True,
-            "canonical": "arif_bridge_connect",
-            "deprecation_epoch": "2026-Q3",
-            "removal_allowed": False,
-            "note": "arif_bridge (noun-only) → use arif_bridge_connect (noun_verb convention). Functionally identical.",
-        }
-        return result
-    _RUNTIME_DIAGNOSTIC_HANDLERS["arif_bridge"] = _arif_bridge_deprecated
+    # arif_bridge (DEPRECATED alias for arif_bridge_connect) — RETIRED 2026-06-22 RSI.
+    # Use arif_bridge_connect. F4 CLARITY: one name per operation.
 except ImportError as _rule14_err:
     import logging
     logging.getLogger(__name__).warning(

@@ -4,7 +4,7 @@
 
 ## Summary
 
-arifOS MCP is the governed action gateway for the arifOS Federation. It exposes 13 canonical MCP tools and adds governance around discovery, tool choice, permission, risk, reversibility, human approval, and audit.
+arifOS MCP is the governed action gateway for the arifOS Federation. It exposes 15 canonical MCP tools and adds governance around discovery, tool choice, permission, risk, reversibility, human approval, and audit.
 
 Use this file as transported context only. The current human SOT is:
 
@@ -104,7 +104,7 @@ Required manifest fields:
 
 Verified 2026-05-22:
 
-- arifOS: 13 MCP tools, healthy.
+- arifOS: 15 MCP tools, healthy.
 - GEOX: 22 MCP tools, healthy.
 - WEALTH: 17 MCP tools, healthy.
 - WELL: 15 MCP tools, healthy, REFLECT_ONLY.

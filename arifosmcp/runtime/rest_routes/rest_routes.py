@@ -1952,6 +1952,44 @@ def _count_mcp_tools(fmcp: Any) -> int:
     return 13
 
 
+def _get_diagnostic_tool_count(mcp: Any) -> int:
+    """Return the count of diagnostic tools from the live DIAGNOSTIC_TOOLS dict.
+
+    Prefers mcp._diagnostic_tool_count if set at boot; otherwise imports
+    DIAGNOSTIC_TOOLS from the constitutional map — the single source of truth.
+    No hardcoded fallback.
+    """
+    # Try the boot-time cache first
+    cached = getattr(mcp, "_diagnostic_tool_count", None)
+    if cached is not None and cached > 0:
+        return cached
+    # Fall back to the live source of truth
+    try:
+        from arifosmcp.constitutional_map import DIAGNOSTIC_TOOLS
+        return len(DIAGNOSTIC_TOOLS)
+    except Exception:
+        return 0
+
+
+def _get_surface_consistency() -> dict[str, Any]:
+    """FORGE 2 (2026-06-22): Surface self-consistency check.
+
+    Returns the live surface_consistency verdict — CONSISTENT, DIVERGENT,
+    or BROKEN. Cached for the lifetime of a single /health probe cycle.
+    """
+    try:
+        from arifosmcp.runtime.surface_consistency import verify_surface_consistency
+
+        return verify_surface_consistency()
+    except Exception as e:
+        return {
+            "canonical_hash": "ERROR",
+            "canonical_count": 0,
+            "verdict": "BROKEN",
+            "error": str(e),
+        }
+
+
 def _compute_tool_registry_hash(tool_registry: dict[str, Any]) -> str:
     """SHA-256 of canonical tool names."""
     names = sorted(tool_registry.keys())
@@ -2515,7 +2553,7 @@ def register_rest_routes(
             "tools_loaded": getattr(
                 mcp,
                 "_tool_count",
-                getattr(getattr(mcp, "state", None), "_tool_count", len(tool_registry)),
+                len(tool_registry),
             ),
             "canonical_tools_loaded": getattr(
                 mcp,
@@ -2528,11 +2566,12 @@ def register_rest_routes(
                 "_tool_count",
                 len(tool_registry),
             ),
-            "diagnostic_tools": getattr(
-                getattr(mcp, "state", None), "_diagnostic_tool_count", 37,
-            ),
-            "total_declared_tools": getattr(
-                getattr(mcp, "state", None), "_total_tool_count", 56,
+            # Derive counts from the live CANONICAL_TOOLS + DIAGNOSTIC_TOOLS dicts.
+            # No hardcoded fallbacks. No attribute roulette. Single source of truth.
+            "diagnostic_tools": _get_diagnostic_tool_count(mcp),
+            "total_declared_tools": (
+                getattr(mcp, "_tool_count", len(tool_registry))
+                + _get_diagnostic_tool_count(mcp)
             ),
             "operational_tools": max(
                 0,
@@ -2547,6 +2586,10 @@ def register_rest_routes(
             },
             "tool_manifest_url": "https://arifos.arif-fazil.com/manifest.txt",
             "tool_manifest_hash": "auto-generated",
+            # ── FORGE 2: Surface Self-Consistency (2026-06-22) ─────────────
+            # INVARIANT: H(sorted(canonical_tool_names)) must be identical
+            # from every enumeration endpoint. Divergence → AMBER + F11.
+            "surface_consistency": _get_surface_consistency(),
             "floors_active": get_floor_count(),
             "floors_enforcement": "active",
             "tool_registry_hash": _compute_tool_registry_hash(tool_registry),
