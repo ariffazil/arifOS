@@ -1,0 +1,671 @@
+{
+  "happy": [
+    {
+      "tool": "arif_init",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_kernel_status",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_kernel_attest",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_kernel_health",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_kernel_intercept",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_observe",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_fetch",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_mind_reason",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_think",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_compose",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_critique",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_judge",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_seal",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_measure",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_route",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_triage",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_memory_recall",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_bridge",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_forge",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_gateway_connect",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_canary",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "hermes_vault_query",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    }
+  ],
+  "schema_pass_constitution_fail": [
+    {
+      "tool": "arif_init",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_kernel_status",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_kernel_attest",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_kernel_health",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_kernel_intercept",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "AUTH_MISSING",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_observe",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_fetch",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "TRUTH_DEFICIT",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_mind_reason",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "AUTHORITY_INSUFFICIENT",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_think",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_compose",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_critique",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "CONSCIOUSNESS_CLAIM",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_judge",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "AUTHORITY_INSUFFICIENT",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_seal",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "IRREVERSIBLE_WITHOUT_HOLD",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_measure",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_route",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_triage",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_memory_recall",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_bridge",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "AUTHORITY_INSUFFICIENT",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_forge",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "PLAN_MISSING",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_gateway_connect",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "AUTHORITY_INSUFFICIENT",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_canary",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "hermes_vault_query",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    }
+  ],
+  "schema_pass_channel_fail": [
+    {
+      "tool": "arif_seal",
+      "fixture_class": "schema_pass_channel_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "CHANNEL_VIOLATION",
+      "actor_id": "public_actor",
+      "scenario": "non-sovereign actor on sovereign-only mutation"
+    },
+    {
+      "tool": "arif_bridge",
+      "fixture_class": "schema_pass_channel_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "CHANNEL_VIOLATION",
+      "actor_id": "public_actor",
+      "scenario": "non-sovereign actor on sovereign-only mutation"
+    },
+    {
+      "tool": "arif_forge",
+      "fixture_class": "schema_pass_channel_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "CHANNEL_VIOLATION",
+      "actor_id": "public_actor",
+      "scenario": "non-sovereign actor on sovereign-only mutation"
+    },
+    {
+      "tool": "arif_gateway_connect",
+      "fixture_class": "schema_pass_channel_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "CHANNEL_VIOLATION",
+      "actor_id": "public_actor",
+      "scenario": "non-sovereign actor on sovereign-only mutation"
+    }
+  ],
+  "schema_pass_witness_fail": [],
+  "legacy_alias_pass": [
+    {
+      "tool": "arif_init",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_init"
+      },
+      "expected_resolved_to": "arif_init",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_observe",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_observe"
+      },
+      "expected_resolved_to": "arif_observe",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_judge",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_judge"
+      },
+      "expected_resolved_to": "arif_judge",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_seal",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_seal"
+      },
+      "expected_resolved_to": "arif_seal",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_forge",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_forge"
+      },
+      "expected_resolved_to": "arif_forge",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_compose",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_compose"
+      },
+      "expected_resolved_to": "arif_compose",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_critique",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_critique"
+      },
+      "expected_resolved_to": "arif_critique",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_mind_reason",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_mind_reason"
+      },
+      "expected_resolved_to": "arif_mind_reason",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_route",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_route"
+      },
+      "expected_resolved_to": "arif_route",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_memory_recall",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_memory_recall"
+      },
+      "expected_resolved_to": "arif_memory_recall",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_bridge",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_bridge"
+      },
+      "expected_resolved_to": "arif_bridge",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_measure",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_measure"
+      },
+      "expected_resolved_to": "arif_measure",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_canary",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_canary"
+      },
+      "expected_resolved_to": "arif_canary",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_triage",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_triage"
+      },
+      "expected_resolved_to": "arif_triage",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_fetch",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_fetch"
+      },
+      "expected_resolved_to": "arif_fetch",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_kernel_status",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_kernel_status"
+      },
+      "expected_resolved_to": "arif_kernel_status",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_kernel_attest",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_kernel_attest"
+      },
+      "expected_resolved_to": "arif_kernel_attest",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_kernel_health",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_kernel_health"
+      },
+      "expected_resolved_to": "arif_kernel_health",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_kernel_intercept",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_kernel_intercept"
+      },
+      "expected_resolved_to": "arif_kernel_intercept",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_gateway_connect",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_gateway_connect"
+      },
+      "expected_resolved_to": "arif_gateway_connect",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "hermes_vault_query",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "hermes_vault_query_legacy"
+      },
+      "expected_resolved_to": "hermes_vault_query",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-09-30",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    }
+  ]
+}

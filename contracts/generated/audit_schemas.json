@@ -1,0 +1,889 @@
+{
+  "base": {
+    "type": "object",
+    "required": [
+      "event",
+      "ts",
+      "actor_id",
+      "session_id",
+      "epoch_id",
+      "plan_id",
+      "task_id"
+    ],
+    "properties": {
+      "event": {
+        "type": "string"
+      },
+      "ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "actor_id": {
+        "type": "string"
+      },
+      "session_id": {
+        "type": "string"
+      },
+      "epoch_id": {
+        "type": "string"
+      },
+      "plan_id": {
+        "type": "string"
+      },
+      "task_id": {
+        "type": "string"
+      },
+      "tool_name": {
+        "type": "string"
+      },
+      "verdict": {
+        "type": "string",
+        "enum": [
+          "SEAL",
+          "HOLD",
+          "VOID",
+          "CAUTION",
+          "SABAR",
+          "PARTIAL"
+        ]
+      },
+      "denial_code": {
+        "type": "string"
+      },
+      "receipts": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "events": {
+    "intent_created": {
+      "type": "object",
+      "required": [
+        "event",
+        "ts",
+        "actor_id",
+        "session_id",
+        "epoch_id",
+        "plan_id",
+        "task_id"
+      ],
+      "properties": {
+        "event": {
+          "const": "intent_created"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "epoch_id": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "CAUTION",
+            "SABAR",
+            "PARTIAL"
+          ]
+        },
+        "denial_code": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "plan_created": {
+      "type": "object",
+      "required": [
+        "event",
+        "ts",
+        "actor_id",
+        "session_id",
+        "epoch_id",
+        "plan_id",
+        "task_id"
+      ],
+      "properties": {
+        "event": {
+          "const": "plan_created"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "epoch_id": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "CAUTION",
+            "SABAR",
+            "PARTIAL"
+          ]
+        },
+        "denial_code": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "plan_approved": {
+      "type": "object",
+      "required": [
+        "event",
+        "ts",
+        "actor_id",
+        "session_id",
+        "epoch_id",
+        "plan_id",
+        "task_id"
+      ],
+      "properties": {
+        "event": {
+          "const": "plan_approved"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "epoch_id": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "CAUTION",
+            "SABAR",
+            "PARTIAL"
+          ]
+        },
+        "denial_code": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "verdict_issued": {
+      "type": "object",
+      "required": [
+        "event",
+        "ts",
+        "actor_id",
+        "session_id",
+        "epoch_id",
+        "plan_id",
+        "task_id"
+      ],
+      "properties": {
+        "event": {
+          "const": "verdict_issued"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "epoch_id": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "CAUTION",
+            "SABAR",
+            "PARTIAL"
+          ]
+        },
+        "denial_code": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "tool_called": {
+      "type": "object",
+      "required": [
+        "event",
+        "ts",
+        "actor_id",
+        "session_id",
+        "epoch_id",
+        "plan_id",
+        "task_id"
+      ],
+      "properties": {
+        "event": {
+          "const": "tool_called"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "epoch_id": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "CAUTION",
+            "SABAR",
+            "PARTIAL"
+          ]
+        },
+        "denial_code": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "execution_completed": {
+      "type": "object",
+      "required": [
+        "event",
+        "ts",
+        "actor_id",
+        "session_id",
+        "epoch_id",
+        "plan_id",
+        "task_id"
+      ],
+      "properties": {
+        "event": {
+          "const": "execution_completed"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "epoch_id": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "CAUTION",
+            "SABAR",
+            "PARTIAL"
+          ]
+        },
+        "denial_code": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "seal_written": {
+      "type": "object",
+      "required": [
+        "event",
+        "ts",
+        "actor_id",
+        "session_id",
+        "epoch_id",
+        "plan_id",
+        "task_id"
+      ],
+      "properties": {
+        "event": {
+          "const": "seal_written"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "epoch_id": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "CAUTION",
+            "SABAR",
+            "PARTIAL"
+          ]
+        },
+        "denial_code": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "witness_attached": {
+      "type": "object",
+      "required": [
+        "event",
+        "ts",
+        "actor_id",
+        "session_id",
+        "epoch_id",
+        "plan_id",
+        "task_id"
+      ],
+      "properties": {
+        "event": {
+          "const": "witness_attached"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "epoch_id": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "CAUTION",
+            "SABAR",
+            "PARTIAL"
+          ]
+        },
+        "denial_code": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "evidence_attached": {
+      "type": "object",
+      "required": [
+        "event",
+        "ts",
+        "actor_id",
+        "session_id",
+        "epoch_id",
+        "plan_id",
+        "task_id"
+      ],
+      "properties": {
+        "event": {
+          "const": "evidence_attached"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "epoch_id": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "CAUTION",
+            "SABAR",
+            "PARTIAL"
+          ]
+        },
+        "denial_code": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "hold_declared": {
+      "type": "object",
+      "required": [
+        "event",
+        "ts",
+        "actor_id",
+        "session_id",
+        "epoch_id",
+        "plan_id",
+        "task_id"
+      ],
+      "properties": {
+        "event": {
+          "const": "hold_declared"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "epoch_id": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "CAUTION",
+            "SABAR",
+            "PARTIAL"
+          ]
+        },
+        "denial_code": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "session_bound": {
+      "type": "object",
+      "required": [
+        "event",
+        "ts",
+        "actor_id",
+        "session_id",
+        "epoch_id",
+        "plan_id",
+        "task_id"
+      ],
+      "properties": {
+        "event": {
+          "const": "session_bound"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "epoch_id": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "CAUTION",
+            "SABAR",
+            "PARTIAL"
+          ]
+        },
+        "denial_code": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "response_emitted": {
+      "type": "object",
+      "required": [
+        "event",
+        "ts",
+        "actor_id",
+        "session_id",
+        "epoch_id",
+        "plan_id",
+        "task_id"
+      ],
+      "properties": {
+        "event": {
+          "const": "response_emitted"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "epoch_id": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "CAUTION",
+            "SABAR",
+            "PARTIAL"
+          ]
+        },
+        "denial_code": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "orphan_detected": {
+      "type": "object",
+      "required": [
+        "event",
+        "ts",
+        "actor_id",
+        "session_id",
+        "epoch_id",
+        "plan_id",
+        "task_id"
+      ],
+      "properties": {
+        "event": {
+          "const": "orphan_detected"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "epoch_id": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "CAUTION",
+            "SABAR",
+            "PARTIAL"
+          ]
+        },
+        "denial_code": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "drift_detected": {
+      "type": "object",
+      "required": [
+        "event",
+        "ts",
+        "actor_id",
+        "session_id",
+        "epoch_id",
+        "plan_id",
+        "task_id"
+      ],
+      "properties": {
+        "event": {
+          "const": "drift_detected"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "epoch_id": {
+          "type": "string"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "CAUTION",
+            "SABAR",
+            "PARTIAL"
+          ]
+        },
+        "denial_code": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

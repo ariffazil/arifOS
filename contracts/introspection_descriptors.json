@@ -1,0 +1,366 @@
+{
+  "generated_at": "2026-06-22T20:16:40.288824+00:00",
+  "tool_count": 16,
+  "tools": {
+    "arif_bridge_connect": {
+      "canonical_name": "arif_bridge_connect",
+      "axis": "boundary",
+      "stage": "555",
+      "channel": "stable",
+      "risk_tier": "medium",
+      "reversibility": "reversible",
+      "blast_radius": "medium",
+      "authority": "operator",
+      "mode_count": 1,
+      "floor_count": 3,
+      "denial_code_count": 9
+    },
+    "arif_compose": {
+      "canonical_name": "arif_compose",
+      "axis": "reflect",
+      "stage": "444r",
+      "channel": "stable",
+      "risk_tier": "low",
+      "reversibility": "reversible",
+      "blast_radius": "low",
+      "authority": "public",
+      "mode_count": 4,
+      "floor_count": 4,
+      "denial_code_count": 12
+    },
+    "arif_critique": {
+      "canonical_name": "arif_critique",
+      "axis": "critique",
+      "stage": "666",
+      "channel": "stable",
+      "risk_tier": "medium",
+      "reversibility": "reversible",
+      "blast_radius": "medium",
+      "authority": "public",
+      "mode_count": 6,
+      "floor_count": 3,
+      "denial_code_count": 10
+    },
+    "arif_explore": {
+      "canonical_name": "arif_explore",
+      "axis": "explore",
+      "stage": "111",
+      "channel": "stable",
+      "risk_tier": "low",
+      "reversibility": "reversible",
+      "blast_radius": "low",
+      "authority": "public",
+      "mode_count": 8,
+      "floor_count": 4,
+      "denial_code_count": 12
+    },
+    "arif_fetch": {
+      "canonical_name": "arif_fetch",
+      "axis": "verify",
+      "stage": "222",
+      "channel": "stable",
+      "risk_tier": "medium",
+      "reversibility": "reversible",
+      "blast_radius": "medium",
+      "authority": "public",
+      "mode_count": 3,
+      "floor_count": 4,
+      "denial_code_count": 11
+    },
+    "arif_forge": {
+      "canonical_name": "arif_forge",
+      "axis": "execute",
+      "stage": "010",
+      "channel": "beta",
+      "risk_tier": "critical",
+      "reversibility": "irreversible",
+      "blast_radius": "civilizational",
+      "authority": "sovereign",
+      "mode_count": 7,
+      "floor_count": 3,
+      "denial_code_count": 11
+    },
+    "arif_init": {
+      "canonical_name": "arif_init",
+      "axis": "identity",
+      "stage": "000",
+      "channel": "stable",
+      "risk_tier": "medium",
+      "reversibility": "reversible",
+      "blast_radius": "medium",
+      "authority": "public",
+      "mode_count": 8,
+      "floor_count": 3,
+      "denial_code_count": 9
+    },
+    "arif_judge": {
+      "canonical_name": "arif_judge",
+      "axis": "judge",
+      "stage": "888",
+      "channel": "beta",
+      "risk_tier": "critical",
+      "reversibility": "reversible",
+      "blast_radius": "civilizational",
+      "authority": "operator",
+      "mode_count": 7,
+      "floor_count": 3,
+      "denial_code_count": 11
+    },
+    "arif_kernel_intercept": {
+      "canonical_name": "arif_kernel_intercept",
+      "axis": "judge",
+      "stage": "888",
+      "channel": "beta",
+      "risk_tier": "critical",
+      "reversibility": "reversible",
+      "blast_radius": "civilizational",
+      "authority": "public",
+      "mode_count": 1,
+      "floor_count": 1,
+      "denial_code_count": 7
+    },
+    "arif_measure": {
+      "canonical_name": "arif_measure",
+      "axis": "vitality",
+      "stage": "777",
+      "channel": "stable",
+      "risk_tier": "low",
+      "reversibility": "reversible",
+      "blast_radius": "low",
+      "authority": "public",
+      "mode_count": 9,
+      "floor_count": 2,
+      "denial_code_count": 7
+    },
+    "arif_memory": {
+      "canonical_name": "arif_memory",
+      "axis": "trace",
+      "stage": "555m",
+      "channel": "stable",
+      "risk_tier": "medium",
+      "reversibility": "irreversible",
+      "blast_radius": "medium",
+      "authority": "public",
+      "mode_count": 7,
+      "floor_count": 7,
+      "denial_code_count": 17
+    },
+    "arif_observe": {
+      "canonical_name": "arif_observe",
+      "axis": "observe",
+      "stage": "111",
+      "channel": "stable",
+      "risk_tier": "low",
+      "reversibility": "reversible",
+      "blast_radius": "low",
+      "authority": "public",
+      "mode_count": 7,
+      "floor_count": 2,
+      "denial_code_count": 7
+    },
+    "arif_route": {
+      "canonical_name": "arif_route",
+      "axis": "boundary",
+      "stage": "555",
+      "channel": "stable",
+      "risk_tier": "low",
+      "reversibility": "reversible",
+      "blast_radius": "low",
+      "authority": "public",
+      "mode_count": 1,
+      "floor_count": 3,
+      "denial_code_count": 9
+    },
+    "arif_seal": {
+      "canonical_name": "arif_seal",
+      "axis": "seal",
+      "stage": "999",
+      "channel": "beta",
+      "risk_tier": "critical",
+      "reversibility": "irreversible",
+      "blast_radius": "civilizational",
+      "authority": "operator",
+      "mode_count": 5,
+      "floor_count": 3,
+      "denial_code_count": 11
+    },
+    "arif_think": {
+      "canonical_name": "arif_think",
+      "axis": "reason",
+      "stage": "333",
+      "channel": "stable",
+      "risk_tier": "medium",
+      "reversibility": "reversible",
+      "blast_radius": "medium",
+      "authority": "public",
+      "mode_count": 10,
+      "floor_count": 4,
+      "denial_code_count": 11
+    },
+    "arif_triage": {
+      "canonical_name": "arif_triage",
+      "axis": "boundary",
+      "stage": "555",
+      "channel": "stable",
+      "risk_tier": "low",
+      "reversibility": "reversible",
+      "blast_radius": "low",
+      "authority": "public",
+      "mode_count": 3,
+      "floor_count": 2,
+      "denial_code_count": 7
+    }
+  },
+  "channel_matrix": {
+    "stable": [
+      "arif_bridge_connect",
+      "arif_compose",
+      "arif_critique",
+      "arif_explore",
+      "arif_fetch",
+      "arif_init",
+      "arif_measure",
+      "arif_memory",
+      "arif_observe",
+      "arif_route",
+      "arif_think",
+      "arif_triage"
+    ],
+    "beta": [
+      "arif_forge",
+      "arif_judge",
+      "arif_kernel_intercept",
+      "arif_seal"
+    ],
+    "sandbox": []
+  },
+  "floor_coverage": {
+    "L01": [
+      "arif_bridge_connect",
+      "arif_forge",
+      "arif_init",
+      "arif_judge",
+      "arif_memory",
+      "arif_route",
+      "arif_seal"
+    ],
+    "L11": [
+      "arif_bridge_connect",
+      "arif_forge",
+      "arif_init",
+      "arif_judge",
+      "arif_memory",
+      "arif_seal"
+    ],
+    "L10": [
+      "arif_bridge_connect",
+      "arif_route",
+      "arif_think",
+      "arif_triage"
+    ],
+    "L02": [
+      "arif_compose",
+      "arif_explore",
+      "arif_fetch",
+      "arif_measure",
+      "arif_memory",
+      "arif_observe",
+      "arif_think"
+    ],
+    "L04": [
+      "arif_compose",
+      "arif_explore",
+      "arif_measure",
+      "arif_memory",
+      "arif_route",
+      "arif_triage"
+    ],
+    "L06": [
+      "arif_compose",
+      "arif_critique"
+    ],
+    "L09": [
+      "arif_compose",
+      "arif_critique",
+      "arif_explore"
+    ],
+    "L05": [
+      "arif_critique",
+      "arif_fetch"
+    ],
+    "L07": [
+      "arif_explore",
+      "arif_observe",
+      "arif_think"
+    ],
+    "L03": [
+      "arif_fetch"
+    ],
+    "L12": [
+      "arif_fetch",
+      "arif_init",
+      "arif_memory"
+    ],
+    "L13": [
+      "arif_forge",
+      "arif_judge",
+      "arif_kernel_intercept",
+      "arif_memory",
+      "arif_seal"
+    ],
+    "L08": [
+      "arif_memory",
+      "arif_think"
+    ]
+  },
+  "risk_distribution": {
+    "low": 6,
+    "medium": 6,
+    "high": 0,
+    "critical": 4
+  },
+  "axis_map": {
+    "boundary": [
+      "arif_bridge_connect",
+      "arif_route",
+      "arif_triage"
+    ],
+    "reflect": [
+      "arif_compose"
+    ],
+    "critique": [
+      "arif_critique"
+    ],
+    "explore": [
+      "arif_explore"
+    ],
+    "verify": [
+      "arif_fetch"
+    ],
+    "execute": [
+      "arif_forge"
+    ],
+    "identity": [
+      "arif_init"
+    ],
+    "judge": [
+      "arif_judge",
+      "arif_kernel_intercept"
+    ],
+    "vitality": [
+      "arif_measure"
+    ],
+    "trace": [
+      "arif_memory"
+    ],
+    "observe": [
+      "arif_observe"
+    ],
+    "seal": [
+      "arif_seal"
+    ],
+    "reason": [
+      "arif_think"
+    ]
+  }
+}
