@@ -303,11 +303,19 @@ class ExplorationKernel:
                 await self._transition(ExploreState.STEP)
                 await self._transition(ExploreState.UPDATE)
 
-                # CHECK (inline — no recursive transition)
+                # CHECK (inline — no recursive transition).
+                # Always replan from the graph — _apply_result() may have
+                # added new unresolved nodes (e.g., gap-bred seeds) that
+                # aren't in the old _step_stack. The graph is the source of
+                # truth; the stack is just a working copy.
+                await self._execute_state_plan()
                 if self._step_stack:
-                    # More work queued → replan for next iteration
-                    await self._execute_state_plan()
+                    # CRITICAL: reset state to PLAN — after _transition(UPDATE),
+                    # state is UPDATE, not PLAN. Without this the while loop exits
+                    # after exactly 1 cycle. Drift caught 2026-06-22 via live trace.
+                    self.state = ExploreState.PLAN
                 else:
+                    # Truly done — no unresolved nodes left in the graph
                     self.state = ExploreState.REFLECT
                     break
 
@@ -382,8 +390,12 @@ class ExplorationKernel:
                     if not ok:
                         raise PermissionError(f"ACT gate blocked step on {node_id}")
 
-                # Skip already-visited nodes (by content hash)
+                # Skip already-visited nodes (by content hash).
+                # Mark as resolved so plan() stops re-queueing them.
                 if node.content_hash and node.content_hash in self._visited:
+                    for i, n in enumerate(self.graph.nodes):
+                        if n.node_id == node_id and n.meta.get("unresolved"):
+                            self.graph.nodes[i].meta["unresolved"] = False
                     return
                 self._visited.add(node.content_hash)
 
@@ -1380,7 +1392,8 @@ class NavigatorMode:
             content_hash="",
             evidence="",
             meta={"unresolved": True, "url": url, "seed": True,
-                  "federated_via": "arif_fetch"},
+                  "federated_via": "arif_fetch",
+                  "target_mode": self.mode.value},
         )]
 
     async def plan(self, goal: str, graph: ExplorationGraph, limits: Limits) -> list[GraphNode]:
@@ -1613,7 +1626,9 @@ def _classify_question(question: str) -> list[ExploreMode]:
     """Auto-classify a research question into relevant exploration modes.
 
     Returns deduplicated list of modes ordered by match strength.
-    Falls back to EUREKA mode (all three sub-explorers) when no domain matches.
+    Falls back to all three sub-explorers when no domain matches.
+    Always includes Prospector as a fallback — it searches the local
+    codebase and has zero external dependencies (no URL, no organ bridge).
     """
     scores: dict[ExploreMode, int] = {}
     for pattern, mode in _DOMAIN_PATTERNS:
@@ -1623,7 +1638,13 @@ def _classify_question(question: str) -> list[ExploreMode]:
     if not scores:
         # Default: try all available modes in Eureka loop
         return [ExploreMode.PROSPECTOR, ExploreMode.NAVIGATOR, ExploreMode.SURVEYOR]
-    return sorted(scores, key=scores.get, reverse=True)
+    result = sorted(scores, key=scores.get, reverse=True)
+    # Always include Prospector as fallback — Navigator needs URL seeds
+    # which may not be available, and Surveyor needs organ bridges.
+    # Prospector searches the local filesystem — no external deps.
+    if ExploreMode.PROSPECTOR not in result:
+        result.append(ExploreMode.PROSPECTOR)
+    return result
 
 
 def _novelty_score(finding: Finding, seen_hashes: set[str]) -> float:
@@ -1837,9 +1858,20 @@ class EurekaMode:
             if seed.url:
                 sub_seed = seed
             else:
-                # No URL seed — Navigator will convert question to search URL
-                # via its step() method. Pass the question as seed context.
-                sub_seed = Seed(question=node.label)
+                # Navigator needs URL seeds — search engines block headless
+                # browsers. Return a gap; EurekaMode will breed a new seed
+                # for another mode in the next cycle.
+                logger.info(
+                    "EUREKA dispatch | navigator skipped (no URL seed) "
+                    "for: %.80s",
+                    node.label[:80],
+                )
+                return StepResult(
+                    nodes=[], edges=[], findings=[],
+                    gaps=[f"navigator needs URL seed — re-dispatch with "
+                          f"prospector or surveyor for: {node.label[:120]}"],
+                    coverage_delta=0.05, confidence=0.3, terminal=False,
+                )
         elif target_mode == ExploreMode.PROSPECTOR and seed.path:
             sub_seed = seed
 
@@ -1925,18 +1957,37 @@ class EurekaMode:
         child_nodes: list[GraphNode] = []
         for gap in gaps[:5]:
             child_id = _hash(f"gap:{gap[:120]}:cycle{self._cycle_count}")
+
+            # Mode-failure detection: if the gap indicates this mode can't
+            # handle the seed (e.g., Navigator without URL), switch to the
+            # next best mode instead of re-dispatching to the failed mode.
+            next_mode = target_mode_str
+            gap_lower = gap.lower()
+            if "navigator needs url seed" in gap_lower or \
+               "sub-navigator" in gap_lower:
+                next_mode = "prospector"
+            elif "prospector" in gap_lower and "no files" in gap_lower:
+                next_mode = "surveyor"
+
             child_nodes.append(GraphNode(
                 node_id=child_id,
                 mode=self.mode,
-                label=gap[:200],
-                content_hash="",
-                evidence="",
+                # Use the parent question as label so Prospector can search it.
+                # The gap text goes in evidence for provenance.
+                label=node.label[:200],
+                # Content hash = question + target mode. This lets the
+                # visited-check in STEP deduplicate re-bred seeds — without
+                # it, every gap breeds a new copy and the loop never converges.
+                content_hash=_hash(node.label[:200] + next_mode),
+                evidence=gap[:2000],
                 meta={
-                    "target_mode": target_mode_str,
+                    "target_mode": next_mode,
                     "unresolved": True,
                     "cycle": self._cycle_count,
                     "priority": 0.7,
                     "parent_finding": node.node_id,
+                    "original_target": target_mode_str,
+                    "gap_source": gap[:200],
                 },
             ))
             all_edges.append(GraphEdge(
