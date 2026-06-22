@@ -66,6 +66,7 @@ from .sovereign import register_sovereign_resources
 from .tree777 import register_tree777_resources
 from .trinity import register_trinity
 from .vitals import register_vitals
+from .tool_discovery import register_tool_discovery
 
 CANONICAL_RESOURCES = (
     "arifos://doctrine",
@@ -81,6 +82,7 @@ CANONICAL_RESOURCES = (
     "arifos://human/metabolized",
     "tree777://index",
     "runner://policy/v1",
+    "arif://tools/discovery",
 )
 
 SUPPLEMENTAL_RESOURCES = (
@@ -141,4 +143,5 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_sovereign_resources(mcp))
     registered.extend(register_human_context(mcp))
     registered.extend(register_reality_state(mcp))
+    registered.extend(register_tool_discovery(mcp))
     return registered

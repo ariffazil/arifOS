@@ -1580,3 +1580,6 @@ def _compute_context_completeness(
 # Canonical alias — the MCP tool "arif_session_init" routes here.
 # runtime/tools.py imports this name from session.py.
 arif_session_init = arif_init
+
+# Backward compatibility alias
+arif_session_init = arif_init

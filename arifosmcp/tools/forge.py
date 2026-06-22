@@ -447,3 +447,6 @@ def _register_forge_cooldown(
             "stage": "unavailable",
             "note": "cooldown engine not reachable",
         }
+
+# Backward compatibility alias
+arif_forge_execute = arif_forge

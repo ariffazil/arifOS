@@ -1424,6 +1424,23 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "_chatgpt_compat": True,
         "_routes_to": "arif_fetch",
     },
+    # ── Tool Discovery ──
+    "arif_resolve_tool": {
+        "name": "arif_resolve_tool",
+        "description": (
+            "Resolve a tool name or alias to the canonical arifOS tool name. "
+            "Use when you have a tool name but aren't sure if it's the canonical name. "
+            "Returns the canonical name, use_when guidance, and examples."
+        ),
+        "access": "public",
+        "tier": "discovery",
+        "namespace": "arif_*",
+        "risk_tier": "low",
+        "irreversible": False,
+        "floors": [Law.L02_TRUTH],
+        "modes": [],
+        "tags": ["discovery", "utility", "read-only"],
+    },
 }
 
 # Full surface: canonical (13) + diagnostic (32) = 45 declared tools

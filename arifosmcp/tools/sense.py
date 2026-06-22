@@ -1173,3 +1173,6 @@ def arif_observe(
         }
 
     return _hold("arif_observe", f"Unknown mode: {mode}")
+
+# Backward compatibility alias
+arif_sense_observe = arif_observe

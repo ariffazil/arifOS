@@ -1899,3 +1899,6 @@ async def arif_critique(
 
 
 __all__ = ["arif_critique", "CRITIQUE_SCHEMA"]
+
+# Backward compatibility alias
+arif_heart_critique = arif_critique

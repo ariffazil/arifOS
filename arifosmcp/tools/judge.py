@@ -1245,3 +1245,6 @@ def _apply_cooldown_awareness(result: dict, cooldown_entry_id: str | None) -> No
             "status": "unavailable",
             "note": "cooldown engine not reachable — proceeding without verification",
         }
+
+# Backward compatibility alias
+arif_judge_deliberate = arif_judge

@@ -84,3 +84,6 @@ async def arif_fetch(
 
 
 __all__ = ["arif_fetch"]
+
+# Backward compatibility alias
+arif_evidence_fetch = arif_fetch

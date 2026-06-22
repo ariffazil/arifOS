@@ -1,19 +1,19 @@
 """
-contracts/kernel_status.py — arif_kernel_status Engine (v0.1.0)
+contracts/kernel_status.py — arif_kernel_status Engine (v0.2.0)
 ═══════════════════════════════════════════════════════════════
 
-Implements 4 of the 9 declared modes (per sovereign directive):
-  - discover
-  - list_capabilities
-  - show_contract
-  - find_orphans
+Implements all 9 declared modes:
+  - discover              — contract family, counts, stages, channels, taxonomies
+  - list_capabilities     — normalized tool list with governance metadata
+  - show_contract         — full contract + derived audit/denial for one tool
+  - find_orphans          — three-way drift: YAML ↔ generated graph ↔ runtime registry
+  - show_audit_map        — audit event → tool mapping (who emits what)
+  - find_contract_drift   — field-level drift between SSOT and generated graph
+  - explain_denial        — human-readable denial code explanation
+  - show_channel_matrix   — channel policy enforcement matrix
+  - show_floor_coverage   — constitutional floor coverage analysis
 
-The other 5 modes (show_audit_map, find_contract_drift, explain_denial,
-show_channel_matrix, show_floor_coverage) are stubs that return
-"not yet implemented" — they slot into the same response envelope
-without breaking callers.
-
-Stable response envelope (so later 5 modes slot in without churn):
+Stable response envelope:
   {
     "mode": str,
     "ok": bool,
@@ -56,6 +56,8 @@ DECLARED_MODES = {
 }
 IMPLEMENTED_MODES = {
     "discover", "list_capabilities", "show_contract", "find_orphans",
+    "show_audit_map", "find_contract_drift", "explain_denial",
+    "show_channel_matrix", "show_floor_coverage",
 }
 
 
@@ -295,18 +297,387 @@ def mode_find_orphans(args: dict) -> dict:
 
 
 # ════════════════════════════════════════════════════════════════════════════════
-# Stub modes (5 of 9 — interface ready, body lands in next cycle)
+# Mode: show_audit_map
 # ════════════════════════════════════════════════════════════════════════════════
 
-STUB_MODES = ("show_audit_map", "find_contract_drift", "explain_denial",
-              "show_channel_matrix", "show_floor_coverage")
+def mode_show_audit_map(args: dict) -> dict:
+    """Return audit event → tool mapping (who emits what)."""
+    graph = _load_graph()
+    ssot = _load_ssot()
 
+    # Build event → tools mapping
+    event_to_tools: dict[str, list[str]] = {}
+    for node in graph["nodes"]:
+        for event in node.get("audit_events", []):
+            event_to_tools.setdefault(event, []).append(node["tool_name"])
 
-def _mode_stub(mode: str, args: dict) -> dict:
+    # Build tool → events mapping
+    tool_to_events: dict[str, list[str]] = {}
+    for node in graph["nodes"]:
+        tool_to_events[node["tool_name"]] = sorted(node.get("audit_events", []))
+
+    # Get SSOT audit events for comparison
+    ssot_events = {e["event"] for e in ssot.get("audit_events", [])}
+    graph_events = set(event_to_tools.keys())
+
+    items = [
+        {
+            "event": event,
+            "tools": sorted(tools),
+            "tool_count": len(tools),
+        }
+        for event, tools in sorted(event_to_tools.items())
+    ]
+
+    warnings = []
+    orphan_events = ssot_events - graph_events
+    if orphan_events:
+        warnings.append(f"SSOT defines {len(orphan_events)} events not used by any tool: {sorted(orphan_events)}")
+
     return _envelope(
-        mode, ok=False,
-        denials=[f"mode '{mode}' not yet implemented; stub returns empty envelope"],
-        warnings=["stub mode — body lands in next CCR cycle"],
+        "show_audit_map",
+        counts={
+            "total_events": len(event_to_tools),
+            "total_tools_with_events": len(tool_to_events),
+            "ssot_events": len(ssot_events),
+            "graph_events": len(graph_events),
+            "orphan_events": len(orphan_events),
+        },
+        items=items,
+        warnings=warnings,
+        audit_map=event_to_tools,
+        tool_map=tool_to_events,
+    )
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# Mode: find_contract_drift
+# ════════════════════════════════════════════════════════════════════════════════
+
+def mode_find_contract_drift(args: dict) -> dict:
+    """Field-level drift detection between SSOT and generated graph.
+
+    Compares each tool's fields in tools.yaml against the generated
+    capability_graph.json. Reports mismatches, missing fields, and
+    value differences.
+    """
+    ssot = _load_ssot()
+    graph = _load_graph()
+
+    # Build SSOT tool lookup
+    ssot_tools: dict[str, dict] = {}
+    for section in ("canonical_tools", "diagnostic", "federated_organs", "sanctioned_non_arif"):
+        for t in ssot.get(section, []):
+            ssot_tools[t["canonical_name"]] = t
+
+    # Build graph tool lookup
+    graph_tools: dict[str, dict] = {
+        n["tool_name"]: n for n in graph["nodes"]
+    }
+
+    drift_items = []
+    warnings = []
+
+    # Check tools in SSOT but not in graph
+    ssot_only = sorted(set(ssot_tools.keys()) - set(graph_tools.keys()))
+    if ssot_only:
+        warnings.append(f"{len(ssot_only)} tools in SSOT but not in graph")
+        for tool in ssot_only:
+            drift_items.append({
+                "tool": tool,
+                "drift_type": "ssot_only",
+                "detail": "Tool defined in SSOT but missing from generated graph",
+            })
+
+    # Check tools in graph but not in SSOT
+    graph_only = sorted(set(graph_tools.keys()) - set(ssot_tools.keys()))
+    if graph_only:
+        warnings.append(f"{len(graph_only)} tools in graph but not in SSOT")
+        for tool in graph_only:
+            drift_items.append({
+                "tool": tool,
+                "drift_type": "graph_only",
+                "detail": "Tool in generated graph but not defined in SSOT",
+            })
+
+    # Field-level comparison for tools in both
+    comparable_fields = [
+        "axis", "pipeline_stage", "channel", "reversibility",
+        "blast_radius", "authority_required", "irreversible",
+    ]
+
+    for tool_name in sorted(set(ssot_tools.keys()) & set(graph_tools.keys())):
+        ssot_t = ssot_tools[tool_name]
+        graph_t = graph_tools[tool_name]
+
+        for field in comparable_fields:
+            ssot_val = ssot_t.get(field)
+            graph_val = graph_t.get(field)
+            if ssot_val is not None and graph_val is not None:
+                # Normalize for comparison
+                ssot_norm = str(ssot_val).lower()
+                graph_norm = str(graph_val).lower()
+                if ssot_norm != graph_norm:
+                    drift_items.append({
+                        "tool": tool_name,
+                        "drift_type": "field_mismatch",
+                        "field": field,
+                        "ssot_value": ssot_val,
+                        "graph_value": graph_val,
+                    })
+
+        # Check modes
+        ssot_modes = set(ssot_t.get("modes", []))
+        graph_modes = set(graph_t.get("modes", []))
+        if ssot_modes and graph_modes and ssot_modes != graph_modes:
+            drift_items.append({
+                "tool": tool_name,
+                "drift_type": "modes_mismatch",
+                "ssot_modes": sorted(ssot_modes),
+                "graph_modes": sorted(graph_modes),
+            })
+
+    return _envelope(
+        "find_contract_drift",
+        counts={
+            "ssot_tools": len(ssot_tools),
+            "graph_tools": len(graph_tools),
+            "ssot_only": len(ssot_only),
+            "graph_only": len(graph_only),
+            "field_drifts": len([d for d in drift_items if d["drift_type"] == "field_mismatch"]),
+            "mode_drifts": len([d for d in drift_items if d["drift_type"] == "modes_mismatch"]),
+            "total_drifts": len(drift_items),
+        },
+        items=drift_items,
+        warnings=warnings,
+    )
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# Mode: explain_denial
+# ════════════════════════════════════════════════════════════════════════════════
+
+def mode_explain_denial(args: dict) -> dict:
+    """Return human-readable explanation of a denial code.
+
+    Args:
+        args.code: The denial code to explain (e.g., PLAN_MISSING)
+    """
+    code = args.get("code")
+    if not code:
+        return _envelope("explain_denial", ok=False,
+                         denials=["missing required arg: code"])
+
+    ssot = _load_ssot()
+    graph = _load_graph()
+
+    # Find in SSOT denial codes
+    ssot_denial = None
+    for d in ssot.get("denial_codes", []):
+        if d["code"] == code:
+            ssot_denial = d
+            break
+
+    # Find in graph denial codes
+    graph_denial = None
+    for d in graph.get("denial_codes", []):
+        if d["code"] == code:
+            graph_denial = d
+            break
+
+    if not ssot_denial and not graph_denial:
+        return _envelope(
+            "explain_denial", ok=False,
+            denials=[f"denial code '{code}' not found in SSOT or generated graph"],
+        )
+
+    # Use SSOT as primary source, graph as fallback
+    denial = ssot_denial or graph_denial
+
+    # Find tools that reference this denial code
+    referencing_tools = [
+        n["tool_name"] for n in graph["nodes"]
+        if code in n.get("denial_codes", [])
+    ]
+
+    items = [{
+        "code": code,
+        "floor": denial.get("floor", "unknown"),
+        "severity": denial.get("severity", "unknown"),
+        "retryability": denial.get("retryability", "unknown"),
+        "description": denial.get("description", ""),
+        "remediation": denial.get("remediation", ""),
+        "referencing_tools": sorted(referencing_tools),
+        "referencing_tool_count": len(referencing_tools),
+    }]
+
+    warnings = []
+    if ssot_denial and graph_denial:
+        # Check for drift between SSOT and graph
+        for field in ("floor", "severity", "retryability", "description", "remediation"):
+            if ssot_denial.get(field) != graph_denial.get(field):
+                warnings.append(f"Drift detected in {field}: SSOT={ssot_denial.get(field)}, graph={graph_denial.get(field)}")
+
+    return _envelope(
+        "explain_denial",
+        counts={"referencing_tools": len(referencing_tools)},
+        items=items,
+        warnings=warnings,
+    )
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# Mode: show_channel_matrix
+# ════════════════════════════════════════════════════════════════════════════════
+
+def mode_show_channel_matrix(args: dict) -> dict:
+    """Return channel policy enforcement matrix.
+
+    Shows which tools are in which channel, and the policy constraints
+    for each channel (plan requirements, blast radius caps, authority).
+    """
+    graph = _load_graph()
+    ssot = _load_ssot()
+
+    # Channel policies from SSOT taxonomies
+    channel_policies = {
+        "stable": {
+            "plan_required": "risk-based",
+            "max_blast_radius": "medium",
+            "floor_relaxation": "never",
+            "external_effects": "allowed",
+        },
+        "beta": {
+            "plan_required": "always",
+            "max_blast_radius": "civilizational",
+            "floor_relaxation": "never",
+            "external_effects": "allowed_with_sovereign_ack",
+        },
+        "sandbox": {
+            "plan_required": "always",
+            "max_blast_radius": "low",
+            "floor_relaxation": "never",
+            "external_effects": "blocked",
+        },
+    }
+
+    # Build channel → tools mapping
+    channel_tools: dict[str, list[dict]] = {}
+    for node in graph["nodes"]:
+        channel = node.get("channel", "unknown")
+        channel_tools.setdefault(channel, []).append({
+            "tool_name": node["tool_name"],
+            "authority_required": node.get("authority_required", "unknown"),
+            "blast_radius": node.get("blast_radius", "unknown"),
+            "irreversible": node.get("irreversible", False),
+            "requires_plan": node.get("requires_plan", False),
+        })
+
+    items = []
+    for channel in sorted(channel_tools.keys()):
+        tools = channel_tools[channel]
+        policy = channel_policies.get(channel, {})
+        items.append({
+            "channel": channel,
+            "policy": policy,
+            "tool_count": len(tools),
+            "tools": sorted(tools, key=lambda t: t["tool_name"]),
+        })
+
+    # Validation warnings
+    warnings = []
+    for node in graph["nodes"]:
+        channel = node.get("channel", "unknown")
+        if channel == "beta":
+            if node.get("authority_required") != "sovereign" and not node.get("hold_conditions"):
+                warnings.append(f"Beta tool '{node['tool_name']}' lacks sovereign authority or hold_conditions")
+        if channel == "sandbox":
+            if node.get("irreversible"):
+                warnings.append(f"Sandbox tool '{node['tool_name']}' is irreversible (violates sandbox policy)")
+
+    return _envelope(
+        "show_channel_matrix",
+        counts={
+            "total_channels": len(channel_tools),
+            "stable_tools": len(channel_tools.get("stable", [])),
+            "beta_tools": len(channel_tools.get("beta", [])),
+            "sandbox_tools": len(channel_tools.get("sandbox", [])),
+        },
+        items=items,
+        warnings=warnings,
+    )
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# Mode: show_floor_coverage
+# ════════════════════════════════════════════════════════════════════════════════
+
+def mode_show_floor_coverage(args: dict) -> dict:
+    """Return constitutional floor coverage analysis.
+
+    Shows which floors are referenced by which tools' denial codes,
+    and identifies floors with no tool coverage.
+    """
+    graph = _load_graph()
+    ssot = _load_ssot()
+
+    # Build floor → tools mapping from denial codes
+    floor_tools: dict[str, list[str]] = {}
+    floor_denial_codes: dict[str, list[str]] = {}
+
+    # Get floor mappings from SSOT denial codes
+    code_to_floor: dict[str, str] = {}
+    for d in ssot.get("denial_codes", []):
+        code_to_floor[d["code"]] = d.get("floor", "unknown")
+
+    # Also from graph denial codes
+    for d in graph.get("denial_codes", []):
+        if d["code"] not in code_to_floor:
+            code_to_floor[d["code"]] = d.get("floor", "unknown")
+
+    # Map tools to floors via their denial codes
+    for node in graph["nodes"]:
+        tool_name = node["tool_name"]
+        for code in node.get("denial_codes", []):
+            floor = code_to_floor.get(code, "unknown")
+            floor_tools.setdefault(floor, []).append(tool_name)
+            floor_denial_codes.setdefault(floor, []).append(code)
+
+    # Deduplicate
+    for floor in floor_tools:
+        floor_tools[floor] = sorted(set(floor_tools[floor]))
+        floor_denial_codes[floor] = sorted(set(floor_denial_codes[floor]))
+
+    # All constitutional floors
+    all_floors = {f"F{i}" for i in range(1, 14)}
+    covered_floors = set(floor_tools.keys()) - {"unknown"}
+    uncovered_floors = sorted(all_floors - covered_floors)
+
+    items = []
+    for floor in sorted(floor_tools.keys()):
+        items.append({
+            "floor": floor,
+            "tool_count": len(floor_tools[floor]),
+            "tools": floor_tools[floor],
+            "denial_codes": floor_denial_codes[floor],
+            "denial_code_count": len(floor_denial_codes[floor]),
+        })
+
+    warnings = []
+    if uncovered_floors:
+        warnings.append(f"{len(uncovered_floors)} floors have no tool coverage: {uncovered_floors}")
+
+    return _envelope(
+        "show_floor_coverage",
+        counts={
+            "total_floors": len(all_floors),
+            "covered_floors": len(covered_floors),
+            "uncovered_floors": len(uncovered_floors),
+            "total_tools_with_floor_refs": len(set().union(*floor_tools.values())) if floor_tools else 0,
+        },
+        items=items,
+        warnings=warnings,
+        uncovered_floors=uncovered_floors,
     )
 
 
@@ -331,6 +702,11 @@ def kernel_status(args: dict) -> dict:
         "list_capabilities": mode_list_capabilities,
         "show_contract": mode_show_contract,
         "find_orphans": mode_find_orphans,
+        "show_audit_map": mode_show_audit_map,
+        "find_contract_drift": mode_find_contract_drift,
+        "explain_denial": mode_explain_denial,
+        "show_channel_matrix": mode_show_channel_matrix,
+        "show_floor_coverage": mode_show_floor_coverage,
     }
     if mode in handlers:
         return handlers[mode](args)
