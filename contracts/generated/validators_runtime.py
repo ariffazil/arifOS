@@ -86,7 +86,7 @@ class ToolContract:
 
     def requires_verdict_token(self) -> bool:
         """Whether this tool requires a judge verdict token."""
-        return self.contract_class in ('seal', 'verdict') or self.risk_tier in ('high', 'critical')
+        return self.contract_class in ('seal', 'verdict') or self.blast_radius == BlastRadius.CIVILIZATIONAL
 
     def check_authority(self, actor_authority: Authority) -> bool:
         """Check if actor authority meets tool requirement."""

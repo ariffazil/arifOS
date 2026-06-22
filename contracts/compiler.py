@@ -554,7 +554,7 @@ def emit_contract_registry(doc: dict) -> str:
     out.append("")
     out.append("    def requires_verdict_token(self) -> bool:")
     out.append('        """Whether this tool requires a judge verdict token."""')
-    out.append("        return self.contract_class in ('seal', 'verdict') or self.risk_tier in ('high', 'critical')")
+    out.append("        return self.contract_class in ('seal', 'verdict') or self.blast_radius == BlastRadius.CIVILIZATIONAL")
     out.append("")
     out.append("    def check_authority(self, actor_authority: Authority) -> bool:")
     out.append('        """Check if actor authority meets tool requirement."""')
