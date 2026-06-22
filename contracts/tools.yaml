@@ -1,185 +1,368 @@
-# arifOS Canonical Tool Registry
+# ════════════════════════════════════════════════════════════════════════════════
+# arifOS — Canonical Tools Contract (v0.1.0)
+# ════════════════════════════════════════════════════════════════════════════════
+#
 # SOT: ariffazil/arifos — Constitutional Intelligence Kernel
-# Last verified: 2026-05-19
+# Owner: arif (F13 SOVEREIGN)
+# Last verified: 2026-06-22 (Sovereign directive: compiled constitutional runtime)
+#
+# This file is the SINGLE SOURCE OF TRUTH for all tools in the federation.
+# The compiler (contracts/compiler.py) reads this YAML and GENERATES:
+#   1. generated/capability_graph.json   — runtime capability graph
+#   2. generated/tool_validators.py      — Pydantic runtime validators
+#   3. generated/audit_schemas.json      — audit event payload schemas
+#   4. generated/conformance_fixtures.json — happy + denial path fixtures
+#
+# Tool universe: 13 canonical + 1 diagnostic + 7 federated + 1 sanctioned = 22
+#
+# Naming policy:
+#   - Canonical: arif_* (e.g., arif_init, arif_seal)
+#   - Legacy: arifos_* (alias only; see legacy_aliases)
+#   - Sanctioned: hermes_* (per F13 2026-06-14)
+#
+# Beta never relaxes F1-F13. Sandbox runs against fixtures only.
+#
+# DITEMPA BUKAN DIBERI — Forged, not given.
+# ════════════════════════════════════════════════════════════════════════════════
 
-schema_version: "2026.05.19"
-organ: arifOS
-authority: ariffazil/arifos
-mcp_transport: streamable-http
-mcp_endpoint: http://localhost:8080/mcp
-health_endpoint: http://localhost:8080/health
+# ── META-SCHEMA (frozen; changes invalidate every generated artifact) ──
+meta_schema:
+  contract_family: "arifos-tool-contract"
+  version: "0.1.0"
+  generated_at: "2026-06-23T04:15:00+08:00"
+  source_of_truth: true
+  schema_owners: [arif, forge]
+  breaking_change_policy: "Taxonomy/denial/required-field changes require new contract_family major version."
 
-floor_enforcement: active
-floors_active: 13
+# ── TAXONOMIES (frozen enums) ──────────────────────────────────────────────
+taxonomies:
+  reversibility:    [reversible, guarded, irreversible]
+  blast_radius:     [low, medium, high, civilizational]
+  authority_required: [public, operator, sovereign]
+  channel:          [stable, beta, sandbox]
+  verdicts:         [SEAL, HOLD, VOID, CAUTION, SABAR, PARTIAL]
+  witness_legs:     [human, ai, earth]
+  pipeline_stages:  [intake, intent, plan, verdict, execute, receipt, seal]
+  contract_class:   [ordinary, gateway, verdict, seal, diagnostic]
+  mutation_class:   [read, write, execute, seal]
+  retryability:     [retryable, non_retryable, human_only]
 
- tools:
-  arif_session_init:
-    stage: "000"
-    lane: AGI
-    access: public
-    owner_repo: ariffazil/arifos
-    runtime_surface: arifosmcp/tools/session.py
-    floor_risk: F11_AUTH
-    tests_present: true
-    status: sealed
-    description: Constitutional session bootstrap and identity binding
+# ── AXES (12 governance lanes, 000-999) ─────────────────────────────────────
+axes:
+  - id: "000_KERNEL"
+  - id: "000Ω_FORGE"
+  - id: "111_SENSE"
+  - id: "222_EVIDENCE"
+  - id: "333_THINK"
+  - id: "444_REPLY"
+  - id: "555_ROUTE"
+  - id: "666_HEART"
+  - id: "666_GATEWAY"
+  - id: "777_MEASURE"
+  - id: "888_JUDGE"
+  - id: "999_SEAL"
 
-  arif_sense_observe:
-    stage: "111"
-    lane: AGI
-    access: public
-    owner_repo: ariffazil/arifos
-    runtime_surface: arifosmcp/tools/sense.py
-    floor_risk: F4_CLARITY
-    tests_present: true
-    status: sealed
-    description: Reality-grounded observation and telemetry
-    # NOTE: Implementation delegates to reality_handlers.py (scope bleed — should move to A-FORGE)
+# ── DENIAL CODES (every denial: code, floor, severity, retryability, remediation) ──
+denial_codes:
+  - { code: PLAN_MISSING,          floor: F1,  severity: hard,  retryability: retryable,      description: "No approved plan for non-trivial action",                   remediation: "Submit plan via arif_think(mode=plan); obtain plan_id" }
+  - { code: AUTH_MISSING,          floor: F11, severity: hard,  retryability: retryable,      description: "Required actor authority absent",                          remediation: "Escalate to higher authority tier or request 888_HOLD" }
+  - { code: AUTHORITY_INSUFFICIENT, floor: F13, severity: hard,  retryability: non_retryable,  description: "Actor authority below required tier for capability",      remediation: "Escalate or reduce capability authority_required" }
+  - { code: PLAN_NOT_APPROVED,     floor: F1,  severity: hard,  retryability: human_only,     description: "Plan exists but not approved by sovereign",               remediation: "Request plan approval before execution" }
+  - { code: CONTRACT_DRIFT,        floor: F8,  severity: hard,  retryability: non_retryable,  description: "Runtime contract has drifted from SSOT",                    remediation: "Run arif_kernel_status(mode=find_contract_drift) and reconcile" }
+  - { code: WITNESS_DEFICIT,       floor: F2,  severity: hard,  retryability: retryable,      description: "Action requires witness but none attached",               remediation: "Attach witness with witness_type ∈ {human, ai, earth}" }
+  - { code: ONTOLOGY_VIOLATION,     floor: F8,  severity: hard,  retryability: non_retryable,  description: "Tool classification violates ontology rules",              remediation: "Fix tool classification in tools.yaml" }
+  - { code: TRUTH_DEFICIT,         floor: F2,  severity: hard,  retryability: retryable,      description: "FACT/ESTIMATE claim without evidence source",              remediation: "Attach evidence_sources or downgrade to HYPOTHESIS" }
+  - { code: IRREVERSIBLE_WITHOUT_HOLD, floor: F13, severity: hard, retryability: human_only,  description: "Irreversible mutation without 888_HOLD",                   remediation: "Request sovereign hold or downgrade to reversible" }
+  - { code: CHANNEL_VIOLATION,     floor: F8,  severity: hard,  retryability: retryable,      description: "Tool channel policy violated",                              remediation: "Move tool to allowed channel or escalate authority" }
+  - { code: BLAST_RADIUS_EXCEEDED, floor: F2,  severity: hard,  retryability: non_retryable,  description: "Action blast_radius exceeds allowed scope for actor",      remediation: "Reduce blast_radius or escalate authority" }
+  - { code: LEASE_EXPIRED,         floor: F8,  severity: soft,  retryability: retryable,      description: "Capability lease has expired",                              remediation: "Renew lease via arif_kernel_attest" }
+  - { code: EPOCH_MISMATCH,        floor: F8,  severity: hard,  retryability: retryable,      description: "Action epoch_id does not match current session epoch",      remediation: "Re-bind session via arif_init(mode=resume)" }
+  - { code: ENVELOPE_MISSING,      floor: F1,  severity: hard,  retryability: retryable,      description: "Tool call without kernel envelope (epoch_id, plan_id, task_id, actor_id)", remediation: "Wrap call in kernel envelope" }
+  - { code: VERDICT_TOKEN_MISSING, floor: F1,  severity: hard,  retryability: retryable,      description: "Mutation requires verdict_token from prior VERDICT stage", remediation: "Obtain verdict_token via arif_judge" }
+  - { code: SCHEMA_VALIDATION_FAILED, floor: F8, severity: hard, retryability: retryable,    description: "Tool input does not match contract input_schema",           remediation: "Re-shape input per input_schema" }
+  - { code: HALLUCINATION_DETECTED, floor: F9, severity: hard,  retryability: non_retryable, description: "F9 ANTI-HANTU: consciousness/soul claim detected",          remediation: "Remove consciousness/soul claim; use mechanical vocabulary" }
+  - { code: CONSCIOUSNESS_CLAIM,   floor: F9,  severity: hard,  retryability: non_retryable,  description: "F9 ANTI-HANTU: 'I am conscious' / 'I feel' claim",            remediation: "Replace with mechanical: 'I processed', 'I computed'" }
+  - { code: HUMAN_VETO_REQUIRED,   floor: F13, severity: hard,  retryability: human_only,     description: "F13 SOVEREIGN: action requires human veto",                 remediation: "Request sovereign authorization" }
+  - { code: BETA_NON_SOVEREIGN,    floor: F13, severity: hard,  retryability: retryable,      description: "Beta-channel mutation by non-SOVEREIGN actor",              remediation: "Escalate to SOVEREIGN or use stable/sandbox" }
+  - { code: SANDBOX_SIDE_EFFECT,   floor: F8,  severity: hard,  retryability: non_retryable,  description: "Sandbox-channel tool attempted live side effect",          remediation: "Use stable/beta channel for live execution" }
+  - { code: UNKNOWN_CAPABILITY,    floor: F8,  severity: soft,  retryability: non_retryable,  description: "Tool not in capability graph",                              remediation: "Register in tools.yaml and recompile" }
 
-  arif_evidence_fetch:
-    stage: "222"
-    lane: AGI
-    access: public
-    owner_repo: ariffazil/arifos
-    runtime_surface: arifosmcp/tools/evidence.py
-    floor_risk: F2_TRUTH
-    tests_present: true
-    status: sealed
-    description: Evidence-preserving web ingestion with sequential thinking
-    # NOTE: Implementation delegates to runtime/tools.py _arif_evidence_fetch (scope bleed)
+# ── AUDIT EVENTS ─────────────────────────────────────────────────────────────
+audit_events:
+  - event: intent_created
+  - event: plan_created
+  - event: plan_approved
+  - event: verdict_issued
+  - event: tool_called
+  - event: execution_completed
+  - event: seal_written
+  - event: witness_attached
+  - event: evidence_attached
+  - event: hold_declared
+  - event: session_bound
+  - event: response_emitted
+  - event: orphan_detected
+  - event: drift_detected
 
-  arif_mind_reason:
-    stage: "333"
-    lane: AGI
-    access: public
-    owner_repo: ariffazil/arifos
-    runtime_surface: arifosmcp/tools/embodied.py
-    floor_risk: F7_HUMILITY
-    tests_present: true
-    status: sealed
-    description: Symbolic reasoning kernel with SEA-LION / Ollama fallback
+# ── LEGACY ALIASES (frozen) ─────────────────────────────────────────────────
+# Sealed April manifest used `arifos*`. Federation uses `arif_*`.
+legacy_aliases:
+  - { alias: arifos_init,               canonical: arif_init,               deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_observe,            canonical: arif_observe,            deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_judge,              canonical: arif_judge,              deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_seal,               canonical: arif_seal,               deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_forge,              canonical: arif_forge,              deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_compose,            canonical: arif_compose,            deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_critique,           canonical: arif_critique,           deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_mind_reason,        canonical: arif_mind_reason,        deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_route,              canonical: arif_route,              deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_memory_recall,      canonical: arif_memory_recall,      deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_bridge,             canonical: arif_bridge,             deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_measure,            canonical: arif_measure,            deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_canary,             canonical: arif_canary,             deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_triage,             canonical: arif_triage,             deprecated_after: "2026-12-31", shim_layer: true }
+  # ── Live MCP drift orphans (caught by find_orphans 2026-06-22) ──
+  # These exist in the live MCP layer but not in the SSOT canonical list.
+  # They are legacy names from the constitutional_map.py era. The alias_of
+  # field below points each to the canonical tool it should resolve to.
+  # Once the runtime is redeployed with these aliases, the legacy shim
+  # can be retired.
+  - { alias: arif_bridge_connect,       canonical: arif_bridge,             deprecated_after: "2026-09-30", shim_layer: true,  alias_of: arif_bridge,         note: "legacy arif_bridge_connect — runtime exposes this old name; resolves to arif_bridge" }
+  - { alias: arif_conformance_report,   canonical: arif_kernel_status,     deprecated_after: "2026-09-30", shim_layer: true,  alias_of: arif_kernel_status, note: "legacy arif_conformance_report — runtime exposes this old name; resolves to arif_kernel_status(mode=conformance_report)" }
+  - { alias: arif_explore,              canonical: arif_observe,            deprecated_after: "2026-09-30", shim_layer: true,  alias_of: arif_observe,        note: "legacy arif_explore — runtime exposes this old name; resolves to arif_observe" }
+  - { alias: arif_memory,               canonical: arif_memory_recall,     deprecated_after: "2026-09-30", shim_layer: true,  alias_of: arif_memory_recall, note: "legacy arif_memory — runtime exposes this old name; resolves to arif_memory_recall" }
+  - { alias: arifos_fetch,              canonical: arif_fetch,              deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_kernel_status,      canonical: arif_kernel_status,      deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_kernel_attest,      canonical: arif_kernel_attest,      deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_kernel_health,      canonical: arif_kernel_health,      deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_kernel_intercept,   canonical: arif_kernel_intercept,   deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_gateway_connect,    canonical: arif_gateway_connect,    deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: hermes_vault_query_legacy, canonical: hermes_vault_query,      deprecated_after: "2026-09-30", shim_layer: true }
 
-  arif_heart_critique:
-    stage: "666"
-    lane: AGI
-    access: public
-    owner_repo: ariffazil/arifos
-    runtime_surface: arifosmcp/tools/embodied.py
-    floor_risk: F5_PEACE
-    tests_present: true
-    status: sealed
-    description: Ethical critique, risk assessment, empathy scan
+# ════════════════════════════════════════════════════════════════════════════════
+# TOOL UNIVERSE — 13 canonical + 1 diagnostic + 7 federated + 1 sanctioned = 22
+# ════════════════════════════════════════════════════════════════════════════════
 
-  arif_kernel_route:
-    stage: "444"
-    lane: AGI
-    access: public
-    owner_repo: ariffazil/arifos
-    runtime_surface: arifosmcp/tools/kernel.py
-    floor_risk: F3_SAFETY
-    tests_present: true
-    status: sealed
-    description: Central orchestration, intent routing, stage dispatch
+# ── 13 CANONICAL arifOS kernel tools ─────────────────────────────────────────
+canonical_tools:
+  - { canonical_name: arif_init, role: session_bootstrap, axis: "000_KERNEL", pipeline_stage: intake,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [light, full], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY, ENVELOPE_MISSING],
+      audit_events: [session_bound, response_emitted], witness_requirements: [],
+      contract_version: "1.0.0" }
 
-  arif_reply_compose:
-    stage: "444r"
-    lane: AGI
-    access: public
-    owner_repo: ariffazil/arifos
-    runtime_surface: arifosmcp/tools/reply.py
-    floor_risk: F6_JUSTICE
-    tests_present: true
-    status: sealed
-    description: LLM-aware reply composition with citation support
+  - { canonical_name: arif_kernel_status, role: introspection, axis: "000_KERNEL", pipeline_stage: intake,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [discover, list_capabilities, show_contract, show_audit_map,
+              find_orphans, find_contract_drift, explain_denial,
+              show_channel_matrix, show_floor_coverage],
+      reversibility: reversible, blast_radius: low, authority_required: public,
+      channel: stable, hold_conditions: [], denial_codes: [],
+      audit_events: [response_emitted], witness_requirements: [], bootstrap: true,
+      contract_version: "1.0.0" }
 
-  arif_memory_recall:
-    stage: "555"
-    lane: AGI
-    access: public
-    owner_repo: ariffazil/arifos
-    runtime_surface: arifosmcp/tools/memory.py
-    floor_risk: F9_ANTI_HANTU
-    tests_present: true
-    status: sealed
-    description: Multi-mode memory tool (store/recall/search/prune/context/stats/audit)
+  - { canonical_name: arif_kernel_attest, role: organ_attestation, axis: "000_KERNEL", pipeline_stage: verdict,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [all_organs, single_organ, federation],
+      reversibility: reversible, blast_radius: medium, authority_required: public,
+      channel: stable, hold_conditions: [], denial_codes: [UNKNOWN_CAPABILITY],
+      audit_events: [response_emitted], witness_requirements: [],
+      contract_version: "1.0.0" }
 
-  arif_gateway_connect:
-    stage: "666_GATEWAY"
-    lane: AGI
-    access: public
-    owner_repo: ariffazil/arifos
-    runtime_surface: arifosmcp/tools/gateway.py
-    floor_risk: F11_AUTH
-    tests_present: true
-    status: sealed
-    description: Federated cross-agent bridge and A2A mesh protocol
+  - { canonical_name: arif_kernel_health, role: health_snapshot, axis: "000_KERNEL", pipeline_stage: intake,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [snapshot, continuous], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [], audit_events: [response_emitted], witness_requirements: [],
+      contract_version: "1.0.0" }
 
-  arif_judge_deliberate:
-    stage: "888"
-    lane: APEX
-    access: restricted
-    owner_repo: ariffazil/arifos
-    runtime_surface: arifosmcp/tools/judge.py
-    floor_risk: F13_SOVEREIGN
-    tests_present: true
-    status: sealed
-    description: Final constitutional arbitration and verdict sealing
+  - { canonical_name: arif_kernel_intercept, role: minimum_kernel, axis: "000_KERNEL", pipeline_stage: verdict,
+      contract_class: verdict, mutation_class: read, requires_plan: false,
+      modes: [intercept], reversibility: reversible, blast_radius: medium,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [AUTH_MISSING, TRUTH_DEFICIT, BLAST_RADIUS_EXCEEDED,
+                     IRREVERSIBLE_WITHOUT_HOLD, ONTOLOGY_VIOLATION],
+      audit_events: [verdict_issued, witness_attached, evidence_attached],
+      witness_requirements: [], contract_version: "1.0.0" }
 
-  arif_vault_seal:
-    stage: "999"
-    lane: APEX
-    access: restricted
-    owner_repo: ariffazil/arifos
-    runtime_surface: arifosmcp/tools/vault.py
-    floor_risk: F1_AMANAH
-    tests_present: true
-    status: sealed
-    description: Immutable ledger anchoring and cryptographic seal
+  - { canonical_name: arif_observe, role: sense, axis: "111_SENSE", pipeline_stage: intake,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [search, hybrid_discovery, ingest, compass, atlas, entropy_dS, vitals, repo_map],
+      reversibility: reversible, blast_radius: low, authority_required: public,
+      channel: stable, hold_conditions: [], denial_codes: [UNKNOWN_CAPABILITY],
+      audit_events: [intent_created, response_emitted], witness_requirements: [],
+      contract_version: "1.0.0" }
 
-  arif_forge_execute:
-    stage: "010"
-    lane: AGI
-    access: public
-    owner_repo: ariffazil/arifos
-    runtime_surface: arifosmcp/tools/forge.py
-    floor_risk: F3_SAFETY
-    tests_present: true
-    status: sealed
-    description: Metabolic execution, build orchestration, artifact forging
+  - { canonical_name: arif_fetch, role: evidence_retrieval, axis: "222_EVIDENCE", pipeline_stage: intake,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [fetch, deep_research, cite], reversibility: reversible,
+      blast_radius: medium, authority_required: public, channel: stable,
+      hold_conditions: [], denial_codes: [TRUTH_DEFICIT],
+      audit_events: [evidence_attached, response_emitted],
+      witness_requirements: [human, ai], contract_version: "1.0.0" }
 
-  arif_ops_measure:
-    stage: "777"
-    lane: AGI
-    access: public
-    owner_repo: ariffazil/arifos
-    runtime_surface: arifosmcp/tools/ops.py
-    floor_risk: F8_STABILITY
-    tests_present: true
-    status: sealed
-    description: Resource thermodynamics, health telemetry, metabolic monitoring
+  - { canonical_name: arif_mind_reason, role: reasoning, axis: "333_THINK", pipeline_stage: plan,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [reason, reflect, verify, critique, plan, plan_review,
+              plan_approve, refactor_plan, metabolize],
+      reversibility: reversible, blast_radius: low, authority_required: sovereign,
+      channel: stable, hold_conditions: [actor_must_be_in_allowlist],
+      denial_codes: [AUTHORITY_INSUFFICIENT, AUTH_MISSING],
+      audit_events: [plan_created, verdict_issued, response_emitted],
+      witness_requirements: [human, ai], allowed_actors: [arifbfazil, arif],
+      contract_version: "1.0.0" }
 
-  arif_stack_health_probe:
-    stage: "777_OPS"
-    lane: AGI
-    access: public
-    owner_repo: ariffazil/arifos
-    runtime_surface: arifosmcp/tools/ops.py
-    floor_risk: F8_STABILITY
-    tests_present: true
-    status: sealed
-    description: Federation stack health and governance probe
+  - { canonical_name: arif_think, role: reasoning_public, axis: "333_THINK", pipeline_stage: plan,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [reason, reflect, verify, critique, plan, plan_review,
+              plan_approve, refactor_plan, metabolize],
+      reversibility: reversible, blast_radius: low, authority_required: public,
+      channel: stable, hold_conditions: [], denial_codes: [UNKNOWN_CAPABILITY],
+      audit_events: [plan_created, response_emitted], witness_requirements: [],
+      contract_version: "1.0.0", notes: "Public alias for arif_mind_reason with broader authority." }
 
-# Future tools (planned, not yet exposed)
-planned:
-  - name: arif_memory_promote
-    stage: "555"
-    description: Promote memory tier (cooling → canonical → sacred)
-  - name: arif_memory_demote
-    stage: "555"
-    description: Demote memory tier (sacred → canonical → void)
-  - name: arif_memory_compress
-    stage: "555"
-    description: Compress memory content while preserving semantic core
-  - name: arif_memory_link_evidence
-    stage: "555"
-    description: Link memory entry to evidence artifact receipt
+  - { canonical_name: arif_compose, role: response_composition, axis: "444_REPLY", pipeline_stage: receipt,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [compose, style, tone_shift, cite, summarize, format, nudge, repo_answer],
+      reversibility: reversible, blast_radius: low, authority_required: public,
+      channel: stable, hold_conditions: [], denial_codes: [UNKNOWN_CAPABILITY, HALLUCINATION_DETECTED],
+      audit_events: [response_emitted], witness_requirements: [],
+      contract_version: "1.0.0" }
+
+  - { canonical_name: arif_critique, role: ethical_critique, axis: "666_HEART", pipeline_stage: verdict,
+      contract_class: verdict, mutation_class: read, requires_plan: false,
+      modes: [critique, simulate, empathize, redteam, maruah, deescalate, instruction_scan],
+      reversibility: reversible, blast_radius: low, authority_required: public,
+      channel: stable, hold_conditions: [], denial_codes: [CONSCIOUSNESS_CLAIM],
+      audit_events: [verdict_issued, response_emitted], witness_requirements: [],
+      contract_version: "1.0.0" }
+
+  - { canonical_name: arif_judge, role: constitutional_judgment, axis: "888_JUDGE", pipeline_stage: verdict,
+      contract_class: verdict, mutation_class: read, requires_plan: false,
+      modes: [judge, validate, hold, rules, armor, probe, notify],
+      reversibility: reversible, blast_radius: medium, authority_required: sovereign,
+      channel: stable, hold_conditions: [actor_must_be_sovereign],
+      denial_codes: [AUTHORITY_INSUFFICIENT, HUMAN_VETO_REQUIRED],
+      audit_events: [verdict_issued, witness_attached, hold_declared, response_emitted],
+      witness_requirements: [], contract_version: "1.0.0" }
+
+  # arif_seal — SPECIAL contract_class=seal. Sealing tools have stricter rules.
+  - { canonical_name: arif_seal, role: vault_sealing, axis: "999_SEAL", pipeline_stage: seal,
+      contract_class: seal, mutation_class: seal, requires_plan: true,
+      modes: [seal, verify, ledger, changelog, audit],
+      reversibility: irreversible, blast_radius: civilizational, authority_required: sovereign,
+      channel: stable, hold_conditions: [actor_must_be_sovereign, requires_verdict_token, requires_epoch_id, requires_receipt_parent_ids],
+      denial_codes: [IRREVERSIBLE_WITHOUT_HOLD, AUTHORITY_INSUFFICIENT, HUMAN_VETO_REQUIRED, VERDICT_TOKEN_MISSING, EPOCH_MISMATCH],
+      audit_events: [verdict_issued, witness_attached, seal_written],
+      witness_requirements: [human, ai],
+      requires_verdict_token: true, requires_epoch_id: true, requires_receipt_parent_ids: true,
+      contract_version: "1.0.0",
+      notes: "SEAL class: irreversible, civilizational, sovereign-only, requires verdict_token + epoch_id + receipt_parent_ids. Append-only VAULT999 chain write." }
+
+# ── 1 DIAGNOSTIC ──────────────────────────────────────────────────────────────
+diagnostic:
+  - { canonical_name: arif_measure, role: health_telemetry, axis: "777_MEASURE", pipeline_stage: intake,
+      contract_class: diagnostic, mutation_class: read, requires_plan: false,
+      modes: [health, vitals, cost, genius, psi_le, omega, landauer, topology, drift, stack_health, budget],
+      reversibility: reversible, blast_radius: low, authority_required: public,
+      channel: stable, hold_conditions: [], denial_codes: [UNKNOWN_CAPABILITY],
+      audit_events: [response_emitted], witness_requirements: [],
+      contract_version: "1.0.0" }
+
+# ── 7 FEDERATED organ boundary tools ─────────────────────────────────────────
+federated_organs:
+  - { canonical_name: arif_route, role: intent_routing, axis: "555_ROUTE", pipeline_stage: intent,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [route, dispatch, fallback], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY], audit_events: [intent_created],
+      witness_requirements: [], contract_version: "1.0.0" }
+
+  - { canonical_name: arif_triage, role: session_triage, axis: "555_ROUTE", pipeline_stage: intake,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [status, preflight, triage], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [], audit_events: [response_emitted], witness_requirements: [],
+      contract_version: "1.0.0" }
+
+  - { canonical_name: arif_memory_recall, role: memory_recall, axis: "555_ROUTE", pipeline_stage: receipt,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [recall, inspect, attest, remember, promote, revise, forget],
+      reversibility: reversible, blast_radius: low, authority_required: public,
+      channel: stable, hold_conditions: [], denial_codes: [UNKNOWN_CAPABILITY],
+      audit_events: [response_emitted], witness_requirements: [],
+      contract_version: "1.0.0" }
+
+  - { canonical_name: arif_bridge, role: organ_bridge, axis: "000Ω_FORGE", pipeline_stage: execute,
+      contract_class: gateway, mutation_class: execute, requires_plan: true,
+      modes: [connect], reversibility: reversible, blast_radius: medium,
+      authority_required: operator, channel: stable, hold_conditions: [plan_must_be_approved],
+      denial_codes: [AUTHORITY_INSUFFICIENT, PLAN_MISSING],
+      audit_events: [tool_called, execution_completed], witness_requirements: [],
+      contract_version: "1.0.0" }
+
+  - { canonical_name: arif_forge, role: forge_execute, axis: "000Ω_FORGE", pipeline_stage: execute,
+      contract_class: gateway, mutation_class: execute, requires_plan: true,
+      modes: [engineer, query, write, generate, commit, recall, dry_run],
+      reversibility: guarded, blast_radius: medium, authority_required: operator,
+      channel: stable, hold_conditions: [plan_must_be_approved, requires_verdict_token],
+      denial_codes: [PLAN_MISSING, PLAN_NOT_APPROVED, VERDICT_TOKEN_MISSING],
+      audit_events: [plan_approved, tool_called, execution_completed, seal_written],
+      witness_requirements: [ai], contract_version: "1.0.0",
+      notes: "Mutations require plan_id + verdict_token from prior VERDICT stage." }
+
+  - { canonical_name: arif_gateway_connect, role: federated_bridge, axis: "666_GATEWAY", pipeline_stage: execute,
+      contract_class: gateway, mutation_class: execute, requires_plan: true,
+      modes: [handshake, request, stream], reversibility: reversible, blast_radius: medium,
+      authority_required: operator, channel: stable, hold_conditions: [plan_must_be_approved],
+      denial_codes: [AUTHORITY_INSUFFICIENT, PLAN_MISSING],
+      audit_events: [tool_called, execution_completed], witness_requirements: [ai],
+      contract_version: "1.0.0" }
+
+  - { canonical_name: arif_canary, role: transport_canary, axis: "000_KERNEL", pipeline_stage: intake,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [ping, schema_echo, version_echo, transport_echo,
+              initialize_probe, conformance_report],
+      reversibility: reversible, blast_radius: low, authority_required: public,
+      channel: stable, hold_conditions: [], denial_codes: [],
+      audit_events: [response_emitted], witness_requirements: [],
+      contract_version: "1.0.0" }
+
+# ── Sanctioned non-arif_ prefix (Hermes) ─────────────────────────────────────
+sanctioned_non_arif:
+  - { canonical_name: hermes_vault_query, role: vault_query, axis: "999_SEAL", pipeline_stage: receipt,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [recent, search, organ, date], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY], audit_events: [response_emitted],
+      witness_requirements: [], contract_version: "1.0.0",
+      namespace: "hermes_* (sanctioned non-arif_ prefix — F13 SOVEREIGN 2026-06-14)" }
+
+# ════════════════════════════════════════════════════════════════════════════════
+# CONFORMANCE SEEDS — used by compiler to generate tests
+# ════════════════════════════════════════════════════════════════════════════════
+conformance_seeds:
+  - { description: "Every tool must have a canonical_name",                       rule: "tools[*].canonical_name is non-empty and unique" }
+  - { description: "Every tool's axis must exist in axes",                       rule: "tools[*].axis in axes[*].id" }
+  - { description: "Every tool's pipeline_stage must exist in taxonomy",         rule: "tools[*].pipeline_stage in taxonomies.pipeline_stages" }
+  - { description: "Every tool's reversibility must be in taxonomy",             rule: "tools[*].reversibility in taxonomies.reversibility" }
+  - { description: "Every tool's blast_radius must be in taxonomy",              rule: "tools[*].blast_radius in taxonomies.blast_radius" }
+  - { description: "Every tool's authority_required must be in taxonomy",        rule: "tools[*].authority_required in taxonomies.authority_required" }
+  - { description: "Every tool's channel must be in taxonomy",                    rule: "tools[*].channel in taxonomies.channel" }
+  - { description: "Every tool's contract_class must be in taxonomy",            rule: "tools[*].contract_class in taxonomies.contract_class" }
+  - { description: "Every tool's mutation_class must be in taxonomy",            rule: "tools[*].mutation_class in taxonomies.mutation_class" }
+  - { description: "Every tool must have at least one mode",                      rule: "tools[*].modes is non-empty" }
+  - { description: "Every tool's denial_codes must exist in denial taxonomy",    rule: "tools[*].denial_codes subset of denial_codes[*].code" }
+  - { description: "Every tool's audit_events must exist in audit taxonomy",      rule: "tools[*].audit_events subset of audit_events[*].event" }
+  - { description: "Every tool's witness_requirements must be in witness_legs or empty", rule: "tools[*].witness_requirements subset of taxonomies.witness_legs or empty" }
+  - { description: "Beta-channel tools must require sovereign OR have hold_conditions",  rule: "tools[channel=beta].authority_required == sovereign or tools[channel=beta].hold_conditions non-empty" }
+  - { description: "Sandbox-channel tools must be reversible (no live side effect)",     rule: "tools[channel=sandbox].reversibility == reversible" }
+  - { description: "Irreversible tools must require sovereign authority",                rule: "tools[reversibility=irreversible].authority_required == sovereign" }
+  - { description: "Civilizational blast_radius tools must require sovereign authority",  rule: "tools[blast_radius=civilizational].authority_required == sovereign" }
+  - { description: "SEAL-class tools (contract_class=seal) must require verdict_token + epoch_id + receipt_parent_ids", rule: "tools[contract_class=seal].requires_verdict_token and tools[contract_class=seal].requires_epoch_id and tools[contract_class=seal].requires_receipt_parent_ids" }
+  - { description: "SEAL-class tools must have mutation_class=seal",                     rule: "tools[contract_class=seal].mutation_class == seal" }
+  - { description: "Gateway-class tools (cross-organ boundary) must have requires_plan=true", rule: "tools[contract_class=gateway].requires_plan == true" }
+  - { description: "Every legacy alias must resolve to a canonical_name",               rule: "legacy_aliases[*].canonical in tools[*].canonical_name" }
+  - { description: "Every denial_code must have retryability",                          rule: "denial_codes[*].retryability in taxonomies.retryability" }
