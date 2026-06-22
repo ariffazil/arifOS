@@ -440,3 +440,15 @@ __all__ = [
     "ShadowProfile",
     "RiskLeash",
 ]
+
+# ── Minimum Constitutional Kernel (F13 Forged) ───────────────────────────────
+from .reversibility import ReversibilityClass
+from .truth_state import TruthState
+from .minimum_kernel import KernelInput, KernelOutput
+
+__all__.extend([
+    "ReversibilityClass",
+    "TruthState",
+    "KernelInput",
+    "KernelOutput",
+])

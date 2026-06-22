@@ -15,11 +15,11 @@
     "arifos_*": "BLOCKED \u2014 internal-only prefix, never exposed on public MCP surface",
     "mcp_*": "GATED \u2014 Utility namespace for operational diagnostics"
   },
-  "canonical_count": 15,
+  "canonical_count": 16,
   "diagnostic_count": 40,
-  "total_surface": 54,
+  "total_surface": 55,
   "tier_summary": {
-    "canonical": 14,
+    "canonical": 15,
     "chatgpt-shim": 2,
     "hermes": 7,
     "canary": 7,
@@ -40,6 +40,7 @@
     "diagnostic": "6 health probes, drift checks, floor status, budget telemetry, instruction scanner"
   },
   "canonical_order": [
+    "arif_kernel_intercept",
     "arif_init",
     "arif_observe",
     "arif_explore",
@@ -129,6 +130,36 @@
     "L13"
   ],
   "tools": {
+    "arif_kernel_intercept": {
+      "stage": "888",
+      "lane": "ASI",
+      "floors": [
+        "L13"
+      ],
+      "risk_tier": "critical",
+      "irreversible": false,
+      "access": "public",
+      "requires_auth": false,
+      "modes": [
+        "intercept"
+      ],
+      "eureka_insight": "F13: Human veto absolute. Minimum kernel enforcement spine.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical prefix)",
+      "tags": [
+        "canonical"
+      ],
+      "affordance_contract": {
+        "action_class": "OBSERVE",
+        "risk_tier": "CRITICAL",
+        "blast_radius": "LOCAL",
+        "reversibility": 0.9,
+        "requires_lease": false,
+        "autonomy_floor": "FULL_AUTO",
+        "rationale": "Spec-inferred: tier=critical, irreversible=False, access=public",
+        "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
+      }
+    },
     "arif_init": {
       "stage": "000",
       "lane": "AGI",

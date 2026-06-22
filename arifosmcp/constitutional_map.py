@@ -470,6 +470,20 @@ def preflight(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
+    "arif_kernel_intercept": {
+        "name": "arif_kernel_intercept",
+        "description": "888_INTERCEPT: The Minimum Constitutional Kernel. Brutalist interceptor for all agent actions. Takes KernelInput, returns KernelOutput (ALLOW, DENY, ESCALATE, SIMULATE). Replaces the legacy judge for core operational enforcement. Mandatory for all mutating and external actions.",
+        "access": "public",
+        "stage": ToolStage.JUDGE,
+        "lane": TrinityLane.ASI,
+        "floors": [Law.L13_SOVEREIGN],
+        "risk_tier": "critical",
+        "irreversible": False,
+        "modes": ["intercept"],
+        "eureka_insight": "F13: Human veto absolute. Minimum kernel enforcement spine.",
+        "cognitive_axis": "judge",
+        "expose": True,
+    },
     "arif_init": {
         "name": "arif_init",
         "description": "000_INIT: Session bootstrap + identity binding. CALL FIRST on every agentic session — no audit trail, no floor enforcement, no actor binding without this. Do NOT call GEOX/WEALTH/WELL tools before calling this. Parameters: mode (init|light|resume|validate|epoch_open|epoch_seal), actor_id, session_id. Use mode='light' for fast (<1s) bootstrap with tool pointers; mode='init' for full constitutional binding (slow, ~60s).",  # noqa: E501
