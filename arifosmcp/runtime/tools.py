@@ -16645,12 +16645,18 @@ _MAX_CANONICAL = _LEGACY_CANONICAL + _RULE14_CANONICAL_ALLOWANCE
 _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
     # ── RSI CONSOLIDATED PROBES (2026-06-22) ─────────────────────────────
     # Five legacy probes (arif_ping, arif_schema_echo, arif_version_echo,
-    # arif_transport_echo, arif_initialize_probe) were consolidated into
-    # arif_canary (multimode). Legacy names RETIRED per F4 CLARITY.
-    # Use arif_canary(mode='ping'|'schema_echo'|'version_echo'|
-    #                  'transport_echo'|'initialize_probe'|'conformance_report').
-    "arif_selftest": _runtime_selftest,
+    # arif_transport_echo, arif_initialize_probe) are NOW registered here
+    # so the arif_canary multimode dispatcher (tools/canary_multimode.py)
+    # can route to them. They are NO LONGER standalone @mcp.tool-decorated
+    # tools on the public surface (those decorators removed from
+    # server.py) — call them via arif_canary(mode='<name>').
+    "arif_ping": _runtime_ping,
+    "arif_schema_echo": _runtime_schema_echo,
+    "arif_version_echo": _runtime_version_echo,
+    "arif_transport_echo": _runtime_transport_echo,
+    "arif_initialize_probe": _runtime_initialize_probe,
     "arif_conformance_report": _runtime_conformance_report,
+    "arif_selftest": _runtime_selftest,
 }
 
 # Shadow Geometry Tools

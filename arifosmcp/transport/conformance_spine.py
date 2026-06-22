@@ -238,11 +238,11 @@ def check_mcp_initialize() -> dict[str, Any]:
 
 def check_protocol_version() -> dict[str, Any]:
     """3. Protocol version must be MCP 2025-11-25 or supported."""
-    # Probe the version echo tool for canonical metadata
+    # arif_version_echo now lives inside arif_canary(mode="version_echo")
     session_id = _get_session()
     result = _mcp_post("tools/call", {
-        "name": "arif_version_echo",
-        "arguments": {},
+        "name": "arif_canary",
+        "arguments": {"mode": "version_echo"},
     }, session_id=session_id)
     tool_result = _extract_tool_result(result)
 
@@ -273,8 +273,8 @@ def check_schema_echo_stable() -> dict[str, Any]:
 
     t0 = time.monotonic()
     result = _mcp_post("tools/call", {
-        "name": "arif_schema_echo",
-        "arguments": {"payload": probe_payload},
+        "name": "arif_canary",
+        "arguments": {"mode": "schema_echo", "payload": probe_payload},
     }, session_id=session_id)
     latency_ms = round((time.monotonic() - t0) * 1000, 1)
 
@@ -682,6 +682,9 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
 
     total_ms = round((time.monotonic() - t_start) * 1000, 1)
     score = f"{passed}/{len(SPINE)}"
+    # all_green must reflect the REAL gate, not just pass/fail.
+    # A BROKEN chain with sovereign_ruling is not GREEN even if no check failed.
+    # Compute preliminary gate to determine all_green.
     all_green = failed == 0
 
     # ── Verifier honesty gate ─────────────────────────────────────────────
@@ -732,6 +735,42 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
         substrate_gate = "RED"
         verdict = "HOLD"
 
+    # Override all_green to reflect the REAL gate, not raw pass/fail.
+    # all_green == True means "no check failed AND no critical signal found"
+    # (or signals are explained and gate is GREEN). AMBER is not green.
+    # RED and HOLD are definitely not green.
+    all_green = (substrate_gate == "GREEN")
+
+    # ── ANTI-SINK (A3): Constitutional contradiction check ──
+    # "All green, no work" is a sterile system — same class as allgreen=true,
+    # chain_integrity=broken. A system that only simulates and never acts is
+    # a beautiful corpse.
+    constitutional_contradiction = False
+    sink_warning = None
+    if all_green:
+        try:
+            # Probe action count from ingress middleware sink counters
+            # (available when running inside the kernel process)
+            from arifosmcp.runtime.ingress_middleware import _ARIFOS_INGRESS_INSTANCE
+            if hasattr(_ARIFOS_INGRESS_INSTANCE, "_sink_counters"):
+                total_actions = sum(
+                    c.get("action_count", 0)
+                    for c in _ARIFOS_INGRESS_INSTANCE._sink_counters.values()
+                )
+                total_sims = sum(
+                    c.get("sim_count", 0)
+                    for c in _ARIFOS_INGRESS_INSTANCE._sink_counters.values()
+                )
+                if total_actions == 0 and total_sims > 0:
+                    constitutional_contradiction = True
+                    sink_warning = (
+                        f"ANTI-SINK A3: all gates GREEN but {total_sims} simulations "
+                        f"with zero actions across all sessions. The system is sterile — "
+                        f"a beautiful corpse. Either act or log refusal."
+                    )
+        except Exception:
+            pass  # sink counter not available outside kernel process
+
     return {
         "spine": "ARIF Conformance Spine v0.2",
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -742,6 +781,8 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
         "total": len(SPINE),
         "all_green": all_green,
         "substrate_gate": substrate_gate,
+        "constitutional_contradiction": constitutional_contradiction,
+        "sink_warning": sink_warning,
         "total_latency_ms": total_ms,
         "checks": results,
         "verdict": verdict,

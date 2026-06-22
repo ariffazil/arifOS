@@ -60,6 +60,7 @@ from .memory import register_memory
 from .resources_index import register_resources_index
 from .runner import register_runner_resources
 from .schema import register_schema
+from .reality_state import register_reality_state
 from .seal_readiness import register_seal_readiness
 from .sovereign import register_sovereign_resources
 from .tree777 import register_tree777_resources
@@ -139,4 +140,5 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_runner_resources(mcp))
     registered.extend(register_sovereign_resources(mcp))
     registered.extend(register_human_context(mcp))
+    registered.extend(register_reality_state(mcp))
     return registered

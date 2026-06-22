@@ -745,6 +745,10 @@ if IS_FASTMCP_3:
             def __init__(self, tool_param_sets: dict[str, set[str]] | None = None) -> None:
                 self._tool_param_sets: dict[str, set[str]] = tool_param_sets or {}
                 self._envelope_log: list[dict[str, Any]] = []
+                self._sink_counters: dict[str, dict] = {}
+                # Register global instance for conformance spine anti-sink A3 check
+                import arifosmcp.runtime.ingress_middleware as _im
+                _im._ARIFOS_INGRESS_INSTANCE = self
 
             def register_tool_params(self, tool_name: str, param_names: set[str]) -> None:
                 self._tool_param_sets[tool_name] = param_names
@@ -958,6 +962,125 @@ if IS_FASTMCP_3:
                                 f"wakefulness={checkpoint.wakefulness_level.value}"
                             )
 
+                    # ── CONSTITUTIONAL INTERCEPTOR v0.2 ────────────────────────────────
+                    # Every MCP call passes through the kernel's admissibility gate
+                    # before tool dispatch. This is the data-plane position.
+                    #
+                    # v0.2: Anti-sink session simulation counter (Mission 003).
+                    # Tracks ADMIT_SIMULATE vs ADMIT_MUTATE per session. Inject
+                    # _simulation_count into request args before interceptor call.
+                    try:
+                        from arifosmcp.kernel.interceptor import intercept
+                        from arifosmcp.kernel.models import AdmissibilityVerdict
+
+                        # ── Anti-sink: per-session simulation counter ──
+                        if not hasattr(self, "_sink_counters"):
+                            self._sink_counters = {}
+                        sid = envelope.session_id or "anonymous"
+                        if sid not in self._sink_counters:
+                            self._sink_counters[sid] = {
+                                "sim_count": 0, "action_count": 0, "refusals": []
+                            }
+
+                        args = dict(msg.arguments or {})
+                        args["_simulation_count"] = self._sink_counters[sid]["sim_count"]
+                        args["_action_count"] = self._sink_counters[sid]["action_count"]
+
+                        kernel_input = {
+                            "name": tool_name,
+                            "params": {
+                                "name": tool_name,
+                                "arguments": args,
+                            },
+                        }
+                        decision = intercept(kernel_input)
+
+                        if decision.verdict in (
+                            AdmissibilityVerdict.DENY,
+                            AdmissibilityVerdict.QUARANTINE,
+                            AdmissibilityVerdict.INVALID_REPORT,
+                        ):
+                            logger.warning(
+                                f"KERNEL INTERCEPTOR: {decision.verdict.value} for {tool_name}: {decision.reason}"
+                            )
+                            from mcp.types import TextContent
+                            return ToolResult(
+                                content=[
+                                    TextContent(
+                                        type="text",
+                                        text=(
+                                            f"KERNEL_{decision.verdict.value}: {decision.reason}\n\n"
+                                            f"Capability: {decision.capability_id or 'unknown'}\n"
+                                            f"Actor: {decision.actor_id or 'anonymous'}\n"
+                                            f"Authority: {decision.authority_tier.value if decision.authority_tier else 'LOW'}"
+                                        ),
+                                    )
+                                ],
+                            )
+
+                        if decision.verdict == AdmissibilityVerdict.HOLD_888:
+                            logger.warning(
+                                f"KERNEL INTERCEPTOR: 888_HOLD for {tool_name}: {decision.reason}"
+                            )
+                            from mcp.types import TextContent
+                            verdict = "HOLD"
+                            return ToolResult(
+                                content=[
+                                    TextContent(
+                                        type="text",
+                                        text=(
+                                            f"888_HOLD: {decision.reason}\n\n"
+                                            f"Capability: {decision.capability_id or 'unknown'}\n"
+                                            f"Actor: {decision.actor_id or 'anonymous'}\n"
+                                            f"Authority: {decision.authority_tier.value if decision.authority_tier else 'LOW'}\n\n"
+                                            f"This action requires SOVEREIGN (Arif/888) approval."
+                                        ),
+                                    )
+                                ],
+                            )
+
+                        # ADMIT_READ / ADMIT_SIMULATE / ADMIT_MUTATE — proceed
+                        logger.debug(
+                            f"KERNEL INTERCEPTOR: {decision.verdict.value} for {tool_name} — {decision.reason}"
+                        )
+
+                        # ── Anti-sink: update counters ──
+                        if decision.verdict == AdmissibilityVerdict.ADMIT_SIMULATE:
+                            self._sink_counters[sid]["sim_count"] += 1
+                        elif decision.verdict == AdmissibilityVerdict.ADMIT_MUTATE:
+                            self._sink_counters[sid]["action_count"] += 1
+                            # Reset sim counter on action (the sink was averted)
+                            self._sink_counters[sid]["sim_count"] = 0
+
+                        # Rewrite hint: if verdict is ADMIT_SIMULATE, inject simulation flag
+                        if decision.verdict == AdmissibilityVerdict.ADMIT_SIMULATE:
+                            if msg.arguments is None:
+                                msg.arguments = {}
+                            msg.arguments["_simulation_mode"] = True
+
+                    except ImportError:
+                        logger.debug("Kernel interceptor not available — skipping")
+                    except Exception as exc:
+                        logger.error(f"Kernel interceptor error: {exc}")
+                        # Fail-closed: on interceptor error, deny mutation-capable tools
+                        if tool_name in ("bash", "py", "python_repl", "write", "edit"):
+                            from mcp.types import TextContent
+                            logger.warning(
+                                f"KERNEL INTERCEPTOR FAIL_CLOSED: DENY for {tool_name} due to error"
+                            )
+                            return ToolResult(
+                                content=[
+                                    TextContent(
+                                        type="text",
+                                        text=(
+                                            f"KERNEL_ERROR: Interceptor unavailable — "
+                                            f"tool '{tool_name}' denied as safety precaution.\n"
+                                            f"Error: {exc}"
+                                        ),
+                                    )
+                                ],
+                            )
+
                     # Log envelope
                     self._envelope_log.append(
                         {
@@ -1095,3 +1218,7 @@ if not IS_FASTMCP_3:
 
 # Export
 __all__ = ["IngressToleranceMiddleware", "MODE_SYNONYMS", "MEGA_TOOLS"]
+
+# ── Global instance reference (set by server.py at boot) ──
+# Used by conformance spine for Anti-sink A3 contradiction check.
+_ARIFOS_INGRESS_INSTANCE: object | None = None

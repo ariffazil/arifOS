@@ -375,6 +375,7 @@ def arif_conformance_report(
         "authority_checked":   "authority checked?          classify_authority fires SOVEREIGN/HIGH/MEDIUM/LOW",
         "hold_blocks_mutation":"888_HOLD blocks mutation?   irreversible intents return 888_HOLD_REQUIRED",
         "vault_replay":        "VAULT replay verifies?      vault file readable, last entry valid JSON",
+        "cooling_ledger":      "cooling ledger attests?     VAULT999 healthy + WELL entropy sealed",
     }
     for check in report["checks"]:
         check["description"] = descriptions.get(check["check"], "")
@@ -382,141 +383,15 @@ def arif_conformance_report(
     return report
 
 
-@mcp.tool(
-    name="arif_ping",
-    description="TRANSPORT PROBE: Dead-simple canary to test client bridge connectivity. "
-    "Zero floors, zero identity, zero KG, zero VAULT writes. "
-    "If this tool returns OK but arif_init fails, the wound is in the init schema.",
-    tags={"canary", "transport-probe", "read-only"},
-)
-def arif_ping(
-    payload: Any = None,
-    _envelope: dict[str, Any] | None = None,
-    client_capabilities: dict[str, Any] | None = None,
-    actor_id: str | None = None,
-    session_id: str | None = None,
-) -> dict:
-    """Canary probe — no session, no actor, no constitution required.
-
-    Returns a three-signal honest probe:
-      transport     — HTTP/MCP round-trip succeeded (always ok if you got here)
-      floors_loaded — the constitutional floor system is initialized in this kernel
-      floors_enforced — whether the floors can fire here (requires session+actor)
-
-    A substrate where `floors_loaded: false` is unbooted. A substrate where
-    `floors_loaded: true, floors_enforced: false` is the correct shape for a
-    canary probe — the system is ready, but cannot enforce without identity.
-    The legacy `floors_active` field is retained for backward compat.
-    """
-    # Probe whether the floor system is initialized. If floor_audit module
-    # can be imported AND returns a runtime dict, the system is loaded.
-    floors_loaded = False
-    floors_active_count = 0
-    try:
-        from arifosmcp.core.shared.floor_audit import get_ml_floor_runtime
-
-        _fr = get_ml_floor_runtime()
-        floors_loaded = bool(_fr)
-        floors_active_count = int(_fr.get("floors_active", 0)) if isinstance(_fr, dict) else 0
-    except Exception:
-        floors_loaded = False
-        floors_active_count = 0
-
-    floors_enforceable_here = bool(actor_id and session_id)
-
-    return {
-        "ok": True,
-        "build": _DEPLOY_VERSION,
-        "adapter": "arifos-mcp-v2",
-        "schema_version": "v2026.06.14.v2",
-        "timestamp": datetime.now(UTC).isoformat(),
-        "probe": True,
-        # Legacy field — kept for backward compat with existing consumers.
-        # Now honest: false here means "not enforced at this probe", NOT
-        # "kernel is unbooted".
-        "floors_active": floors_enforceable_here,
-        # New honest three-signal split
-        "transport": "ok",
-        "floors_loaded": floors_loaded,
-        "floors_enforced": floors_enforceable_here,
-        "floors_active_count": floors_active_count,
-        "_honesty_note": (
-            "floors_loaded=true means the floor system is initialized in this "
-            "kernel. floors_enforced=false means this probe has no "
-            "actor/session, so the floors are not firing here — but they will "
-            "fire on the very next call that carries identity."
-        ),
-    }
-
-
-@mcp.tool(
-    name="arif_schema_echo",
-    description="TRANSPORT PROBE: Echo back what the client sent. "
-    "Use this to diagnose schema mismatch (-32602). "
-    "Returns received params shape, normalized shape, and parser verdict. "
-    "Zero floors, zero identity, zero side effects.",
-    tags={"canary", "transport-probe", "diagnostic", "read-only"},
-)
-def arif_schema_echo(
-    payload: dict | str | list | None = None,
-    _envelope: dict[str, Any] | None = None,
-    client_capabilities: dict[str, Any] | None = None,
-    actor_id: str | None = None,
-    session_id: str | None = None,
-) -> dict:
-    """Echo diagnostic — returns what client sent for shape comparison.
-
-    FIX (2026-06-21): Changed payload type from `Any` to `dict | str | list | None`.
-    `Any` generated an empty JSON Schema (no `type` field), causing FastMCP/MCP
-    clients to strip the parameter to None — the conformance spine's
-    `schema_echo_stable` check FAILed because payload arrived as NoneType.
-    Concrete union types generate a proper anyOf schema.
-    """
-    import json
-
-    params = payload if isinstance(payload, dict) else {}
-    received_keys = sorted(params.keys()) if isinstance(payload, dict) else []
-    type_map = {k: type(v).__name__ for k, v in params.items()} if isinstance(payload, dict) else {}
-    raw_dump = json.dumps(params, default=str)[:2000] if isinstance(payload, dict) else str(payload)[:2000]
-    return {
-        "ok": True,
-        "probe": "schema_echo",
-        "echo": payload,
-        "received_type": type(payload).__name__,
-        "received_repr": repr(payload)[:2000],
-        "received_keys": received_keys,
-        "key_count": len(received_keys),
-        "type_map": type_map,
-        "raw_preview": raw_dump,
-        "build": _DEPLOY_VERSION,
-        "timestamp": datetime.now(UTC).isoformat(),
-    }
-
-
-@mcp.tool(
-    name="arif_transport_echo",
-    description="TRANSPORT PROBE: Echo transport-level metadata. "
-    "Use this before arif_init to verify the MCP transport bridge is working. "
-    "Returns received protocol version, transport type, negotiated state. "
-    "Normalized arguments: payload, _envelope, client_capabilities. "
-    "Zero floors, zero identity, zero side effects.",
-    tags={"canary", "transport-probe", "diagnostic", "read-only"},
-)
-def arif_transport_echo(
-    payload: Any = None,
-    _envelope: dict[str, Any] | None = None,
-    client_capabilities: dict[str, Any] | None = None,
-    actor_id: str | None = None,
-    session_id: str | None = None,
-) -> dict:
-    """Transport echo — diagnostic for MCP session bridge (normalized canary)."""
-    from arifosmcp.runtime.tools import _arif_transport_echo
-
-    return _arif_transport_echo(
-        payload=payload,
-        _envelope=_envelope,
-        client_capabilities=client_capabilities,
-    )
+# ── RSI: Five standalone probe tools RETIRED 2026-06-22 ─────────────────
+# arif_ping, arif_schema_echo, arif_version_echo, arif_transport_echo,
+# arif_initialize_probe — formerly @mcp.tool-decorated in this file.
+# Now reachable ONLY via arif_canary(mode='<name>') in tools/canary_multimode.py.
+# The handlers (_runtime_ping, _runtime_schema_echo, _runtime_version_echo,
+# _runtime_transport_echo, _runtime_initialize_probe) remain registered in
+# runtime/tools.py:_RUNTIME_DIAGNOSTIC_HANDLERS for multimode dispatch.
+# arif_ping's three-signal probe logic (floors_loaded / floors_enforced /
+# transport) is preserved on _runtime_ping.
 
 
 def create_arifos_mcp_server() -> FastMCP:

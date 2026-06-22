@@ -42,6 +42,46 @@ async def arif_seal(
             Without it, cooldown is logged as bypassed (legacy compat path).
             Internal hardening — no new tool surface.
     """
+    # ── GÖDEL-LOCK (Mission 001): No self-certification ──
+    # The actor of an IRREVERSIBLE mutation cannot be the final certifier.
+    # Enforced at the SEAL boundary — the last gate before Vault999 write.
+    if mode == "seal" and ack_irreversible:
+        judge_session_id = session_id
+        actor_session_id = actor_id  # the session that originated the action
+        # If actor == judge, block self-certification
+        if actor_session_id and judge_session_id and actor_session_id == judge_session_id:
+            return SealOutput(
+                mode=mode,
+                verdict="HOLD",
+                payload=payload,
+                status="GODEL_LOCK",
+                chain_ok=False,
+                entry_id="",
+                created_at="",
+                note=(
+                    f"GÖDEL-LOCK: actor {actor_session_id} cannot certify its own "
+                    f"IRREVERSIBLE action. Requires separate judge session (F13 SOVEREIGN or "
+                    f"independent 888 JUDGE). This is an illegal state — the system cannot "
+                    f"self-certify."
+                ),
+            )
+        # witness required for IRREVERSIBLE
+        if not witness:
+            return SealOutput(
+                mode=mode,
+                verdict="HOLD",
+                payload=payload,
+                status="MISSING_WITNESS",
+                chain_ok=False,
+                entry_id="",
+                created_at="",
+                note=(
+                    "GÖDEL-LOCK: IRREVERSIBLE seal requires a non-null witness. "
+                    "No witness_id provided. An external witness (human, signed sensor, "
+                    "or vault anchor) must attest to this action."
+                ),
+            )
+
     # ── SABAR cooldown gate (internal hardening) ──
     cooldown_meta: dict = {}
     if mode == "seal" and payload:
