@@ -1,30 +1,24 @@
-"""Live EurekaMode GEOX LEM test — v3 with DDG Lite + Prospector _search_step."""
+"""Live EurekaMode GEOX LEM test — v4 with all state-machine fixes."""
 import asyncio, json, sys, time
 sys.path.insert(0, "/root/arifOS")
 from arifosmcp.runtime.explore import arif_explore
 
 
 async def main():
-    print("═══ EUREKA MODE — GEOX LEM (v3 fixed) ═══\n")
+    print("═══ EUREKA MODE — GEOX LEM (v4 all-fixes) ═══\n")
 
     t0 = time.monotonic()
     result = await arif_explore(
-        goal="Find real Eureka insights on building a Large Earth Model (LEM)",
+        goal="Discover architecture patterns for Large Earth Model (LEM)",
         mode="eureka",
-        seed_question=(
-            "State of the art in Earth foundation models Khoj IBM Earth AI "
-            "NASA Prithvi Stanford multimodal geoscience transformers "
-            "physics-constrained neural operators sparse Earth data "
-            "geological consistency losses open-source LEM projects scaling"
-        ),
+        seed_question="Earth foundation models, multimodal geoscience, neural operators, sparse data strategies",
         max_depth=3,
-        max_steps=6,
-        time_budget_s=120,
-        trace_id="geox-lem-eureka-003",
+        max_steps=10,
+        time_budget_s=30,
+        trace_id="geox-lem-v7",
     )
     elapsed = time.monotonic() - t0
 
-    # ── Summary ──
     graph = result.get("exploration_graph", {})
     nodes = graph.get("nodes", [])
     edges = graph.get("edges", [])
@@ -34,47 +28,50 @@ async def main():
     verdict = result.get("verdict", {})
 
     print(f"Status: {result.get('status')} | {elapsed:.1f}s")
+    print(f"Steps: {metrics.get('steps')} | Depth: {metrics.get('depth')}")
     print(f"Nodes: {len(nodes)} | Edges: {len(edges)} | Findings: {len(findings)} | Gaps: {len(gaps)}")
-    print(f"Coverage: {metrics.get('coverage',0):.2f} | Confidence: {metrics.get('confidence',0):.2f} | Steps: {metrics.get('steps')}")
+    print(f"Coverage: {metrics.get('coverage',0):.2f} | Confidence: {metrics.get('confidence',0):.2f}")
     print(f"Saturation: {verdict.get('saturation')} | NextMoves: {len(verdict.get('next_moves',[]))}")
 
-    print("\n─── NODES ───")
-    for n in nodes:
+    if findings:
+        print("\n─── FINDINGS ───")
+        for f in findings[:15]:
+            conf = f.get("confidence", 0)
+            bar = "▓" * int(conf * 10) + "░" * (10 - int(conf * 10))
+            print(f"  [{bar}] {f.get('summary','')[:200]}")
+            for s in (f.get("sources") or [])[:2]:
+                print(f"       ← {s[:120]}")
+
+    if gaps:
+        print("\n─── GAPS ───")
+        for g in gaps[:8]:
+            print(f"  - {g[:150]}")
+
+    print("\n─── GRAPH NODES ───")
+    for n in nodes[:15]:
         meta = n.get("meta", {})
+        mode = n.get("mode", "?")
+        novel = meta.get("novel_findings", "")
+        target = meta.get("target_mode", "")
+        sym = meta.get("symbol_count", "")
         label = n.get("label", "")[:100]
-        target = meta.get("target_mode", meta.get("type", ""))
-        print(f"  [{n.get('mode','?')[0:12]}] {label}")
-        if meta:
-            extras = []
-            if meta.get("novel_findings") is not None:
-                extras.append(f"novel={meta['novel_findings']}")
-            if meta.get("dry_cycles") is not None:
-                extras.append(f"dry={meta['dry_cycles']}")
-            if meta.get("cycle"):
-                extras.append(f"cycle={meta['cycle']}")
-            if meta.get("symbol_count"):
-                extras.append(f"symbols={meta['symbol_count']}")
-            if extras:
-                print(f"       {' | '.join(extras)}")
+        extras = []
+        if novel: extras.append(f"novel={novel}")
+        if sym: extras.append(f"symbols={sym}")
+        if target: extras.append(f"target={target}")
+        if meta.get("cycle"): extras.append(f"cycle={meta['cycle']}")
+        if meta.get("unresolved") is not None and not meta["unresolved"]:
+            extras.append("RESOLVED")
+        print(f"  [{mode}] {label}")
+        if extras: print(f"       {' | '.join(extras)}")
 
     print("\n─── EDGES ───")
+    rel_counts = {}
     for e in edges:
         rel = e.get("relation", "?")
-        marker = "⭐" if rel == "corroborates" else ("→" if rel == "resolves" else "·")
-        print(f"  {marker} [{rel}] conf={e.get('confidence',1):.2f}")
-
-    print("\n─── FINDINGS ───")
-    for f in findings:
-        summary = f.get("summary", "")[:200]
-        conf = f.get("confidence", 0)
-        bar = "▓" * int(conf * 10) + "░" * (10 - int(conf * 10))
-        print(f"  [{bar}] {summary}")
-        for s in (f.get("sources") or [])[:2]:
-            print(f"       ← {s[:120]}")
-
-    print("\n─── GAPS ───")
-    for g in gaps[:8]:
-        print(f"  - {g[:150]}")
+        rel_counts[rel] = rel_counts.get(rel, 0) + 1
+    for rel, count in sorted(rel_counts.items()):
+        print(f"  [{rel}] ×{count}")
 
     print(f"\n═══ COMPLETE ({elapsed:.1f}s) ═══")
     return result
