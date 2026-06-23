@@ -25,10 +25,30 @@ CANONICAL_13: tuple[str, ...] = tuple(
 # It requires no session, no actor, no governance — pure transport diagnostics.
 CANARY_PROBES: tuple[str, ...] = ("arif_canary",)
 
-# ── Canonical13 Public Surface (= canonical kernel + canary probes) ──────────
-# This is the DEFAULT public wire surface. 15 canonical + 1 canary = 16 tools.
+# ── SDK long-name aliases (2026-06-23 unification) ───────────────────────────
+# ChatGPT Apps SDK and legacy clients expect arif_<noun>_<verb> names.
+# These are first-class aliases pointing to the same handlers as the short
+# canonical names in CANONICAL_13. They do NOT create new operations.
+CANONICAL_LONG_NAME_ALIASES: tuple[str, ...] = (
+    "arif_session_init",
+    "arif_sense_observe",
+    "arif_evidence_fetch",
+    "arif_mind_reason",
+    "arif_heart_critique",
+    "arif_reply_compose",
+    "arif_memory_recall",
+    "arif_gateway_connect",
+    "arif_ops_measure",
+    "arif_judge_deliberate",
+    "arif_vault_seal",
+    "arif_forge_execute",
+)
+
+# ── Canonical13 Public Surface (= canonical kernel + SDK aliases + canary) ───
+# This is the DEFAULT public wire surface. 16 canonical short names +
+# 12 SDK long-name aliases + 1 canary probe = 29 tools.
 CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = tuple(
-    list(dict.fromkeys([*CANONICAL_13, *CANARY_PROBES]))
+    list(dict.fromkeys([*CANONICAL_13, *CANONICAL_LONG_NAME_ALIASES, *CANARY_PROBES]))
 )
 
 BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
@@ -86,7 +106,9 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
 # Canonical 13 + Diagnostic 6 = 19 registrable tools.
 # The old ghost aliases are preserved below as DOMAIN_ALIASES for documentation
 # and future implementation tracking, but they are NOT part of any public mode.
-EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_13, *CANARY_PROBES, *DIAGNOSTIC_TOOLS])))
+EXPANDED_45: tuple[str, ...] = tuple(
+    list(dict.fromkeys([*CANONICAL_13, *CANONICAL_LONG_NAME_ALIASES, *CANARY_PROBES, *DIAGNOSTIC_TOOLS]))
+)
 
 # DOMAIN_ALIASES were removed 2026-06-21 — TOOL_ALIAS_MAP was dead code
 # with 84 ghost aliases that had no FastMCP handlers. Cleared by FORGE audit.

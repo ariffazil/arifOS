@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from arifosmcp.constitutional_map import CANONICAL_TOOLS
-from arifosmcp.runtime.public_registry import build_server_json
+from arifosmcp.runtime.public_registry import EXPECTED_TOOL_COUNT, build_server_json
 from arifosmcp.runtime.public_surface import CANARY_PROBES
 
 
@@ -9,8 +8,8 @@ def test_public_registry_exposes_only_capability_tools() -> None:
     tools = build_server_json()["tools"]
     names = {tool["name"] for tool in tools}
 
-    # Default canonical13 wire surface = 21 canonical tools + 1 canary probe
-    assert len(names) == len(CANONICAL_TOOLS) + len(CANARY_PROBES)
+    # Default canonical13 wire surface = canonical + SDK aliases + canary probe
+    assert len(names) == EXPECTED_TOOL_COUNT
     # Canary probe is part of the default public surface
     assert "arif_canary" in names
     # Internal-only / legacy diagnostics must NOT leak to public surface

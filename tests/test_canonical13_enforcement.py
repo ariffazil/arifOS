@@ -17,31 +17,49 @@ from __future__ import annotations
 # CANONICAL LAW — the single source of truth for the public MCP surface
 # ════════════════════════════════════════════════════════════════════════════════
 
+
+
 EXPECTED_CANONICAL13: frozenset[str] = frozenset(
     {
-        # 13 legacy canonical tools
+        # 16 canonical kernel tools (PHOENIX-72 Phase 2 — 2-term underscore)
+        # Dot aliases (arif.session, arif.observe, ...) are registered separately
+        # and dispatch to these live handlers. See ADR-013.
+        "arif_init",
+        "arif_observe",
+        "arif_explore",
+        "arif_fetch",
+        "arif_think",
+        "arif_critique",
+        "arif_compose",
+        "arif_route",
+        "arif_triage",
+        "arif_bridge_connect",
+        "arif_memory",
+        "arif_judge",
+        "arif_seal",
+        "arif_forge",
+        "arif_measure",
+        "arif_kernel_intercept",
+    }
+)
+
+# SDK long-name aliases (2026-06-23 unification).
+# These are first-class aliases on the public wire; they point to the same
+# handlers as the short canonical names above and do NOT create new operations.
+EXPECTED_LONG_NAME_ALIASES: frozenset[str] = frozenset(
+    {
         "arif_session_init",
         "arif_sense_observe",
         "arif_evidence_fetch",
         "arif_mind_reason",
         "arif_heart_critique",
-        "arif_kernel_route",
         "arif_reply_compose",
         "arif_memory_recall",
-        "arif_memory",
         "arif_gateway_connect",
-        "arif_bridge_connect",
+        "arif_ops_measure",
         "arif_judge_deliberate",
         "arif_vault_seal",
         "arif_forge_execute",
-        "arif_ops_measure",
-        # 6 Rule-14 canonical tools
-        "arif_route",
-        "arif_triage",
-        "arif_kernel_status",
-        "arif_bridge",
-        "arif_kernel_attest",
-        "arif_kernel_health",
     }
 )
 
@@ -96,17 +114,23 @@ FORBIDDEN_PUBLIC_SUBSTRINGS: tuple[str, ...] = (
 # ════════════════════════════════════════════════════════════════════════════════
 
 
-def test_canonical13_public_surface_is_exactly_22() -> None:
-    """The public MCP surface must expose exactly 22 tools in canonical13 mode.
+def _expected_canonical13_surface() -> set[str]:
+    """Return the full expected canonical13 public surface."""
+    from arifosmcp.runtime.public_surface import CANARY_PROBES
+    return set(EXPECTED_CANONICAL13) | set(EXPECTED_LONG_NAME_ALIASES) | set(CANARY_PROBES)
 
-    canonical13 = 21 canonical tools + 1 zero-floor transport canary probe.
-    The full wire surface is 22.
+
+def test_canonical13_public_surface_is_exactly_29() -> None:
+    """The public MCP surface must expose exactly 29 tools in canonical13 mode.
+
+    canonical13 = 16 canonical short names + 12 SDK long-name aliases +
+    1 zero-floor transport canary probe. The full wire surface is 29.
     """
-    from arifosmcp.runtime.public_surface import CANARY_PROBES, public_tool_names_for_mode
+    from arifosmcp.runtime.public_surface import public_tool_names_for_mode
 
     tools = public_tool_names_for_mode("canonical13")
     actual = set(tools)
-    expected_surface = set(EXPECTED_CANONICAL13) | set(CANARY_PROBES)
+    expected_surface = _expected_canonical13_surface()
 
     assert len(actual) == len(expected_surface), (
         f"SURFACE DRIFT: canonical13 mode has {len(actual)} tools, expected {len(expected_surface)}. "
@@ -120,11 +144,11 @@ def test_canonical13_public_surface_is_exactly_22() -> None:
 
 
 def test_canonical13_no_extra_tools() -> None:
-    """No extra tools beyond the 21 canonical + 1 canary in canonical13 mode."""
-    from arifosmcp.runtime.public_surface import CANARY_PROBES, public_tool_names_for_mode
+    """No extra tools beyond canonical + SDK aliases + canary in canonical13 mode."""
+    from arifosmcp.runtime.public_surface import public_tool_names_for_mode
 
     tools = set(public_tool_names_for_mode("canonical13"))
-    expected_surface = set(EXPECTED_CANONICAL13) | set(CANARY_PROBES)
+    expected_surface = _expected_canonical13_surface()
     extra = tools - expected_surface
     assert not extra, (
         f"EXTRA TOOLS LEAKED: {sorted(extra)}. "
@@ -133,12 +157,14 @@ def test_canonical13_no_extra_tools() -> None:
 
 
 def test_canonical13_no_missing_tools() -> None:
-    """All 21 canonical tools must be present in canonical13 mode."""
+    """All canonical short names and SDK long-name aliases must be present."""
     from arifosmcp.runtime.public_surface import public_tool_names_for_mode
 
     tools = set(public_tool_names_for_mode("canonical13"))
     missing = set(EXPECTED_CANONICAL13) - tools
-    assert not missing, f"MISSING TOOLS: {sorted(missing)}. VOID."
+    assert not missing, f"MISSING CANONICAL TOOLS: {sorted(missing)}. VOID."
+    missing_aliases = set(EXPECTED_LONG_NAME_ALIASES) - tools
+    assert not missing_aliases, f"MISSING SDK ALIASES: {sorted(missing_aliases)}. VOID."
 
 
 # ════════════════════════════════════════════════════════════════════════════════
@@ -256,13 +282,14 @@ def test_diagnostic_probes_are_present_in_canonical13() -> None:
 
 
 def test_public_registry_matches_canonical13() -> None:
-    """public_registry.py CANONICAL_PUBLIC_TOOLS must match EXPECTED_CANONICAL13."""
+    """public_registry.py CANONICAL_PUBLIC_TOOLS must match canonical + SDK aliases."""
     from arifosmcp.runtime.public_registry import CANONICAL_PUBLIC_TOOLS
 
-    assert CANONICAL_PUBLIC_TOOLS == frozenset(EXPECTED_CANONICAL13), (
+    expected = frozenset(EXPECTED_CANONICAL13) | frozenset(EXPECTED_LONG_NAME_ALIASES)
+    assert CANONICAL_PUBLIC_TOOLS == expected, (
         f"Public registry mismatch: "
         f"registry={sorted(CANONICAL_PUBLIC_TOOLS)}, "
-        f"expected={sorted(EXPECTED_CANONICAL13)}. VOID."
+        f"expected={sorted(expected)}. VOID."
     )
 
 
@@ -278,11 +305,11 @@ def test_canonical_tools_match_constitutional_tools() -> None:
 
 
 def test_public_surface_drift_check_passes() -> None:
-    """verify_no_drift must report ok=True with exactly 22 tools."""
+    """verify_no_drift must report ok=True with exactly 29 tools."""
     from arifosmcp.runtime.public_surface import CANARY_PROBES
     from arifosmcp.runtime.public_registry import EXPECTED_TOOL_COUNT, verify_no_drift
 
-    expected_count = len(EXPECTED_CANONICAL13) + len(CANARY_PROBES)
+    expected_count = len(EXPECTED_CANONICAL13) + len(EXPECTED_LONG_NAME_ALIASES) + len(CANARY_PROBES)
     drift = verify_no_drift("canonical13")
     assert drift["ok"], (
         f"Drift check failed: {drift}. VOID."
@@ -293,13 +320,15 @@ def test_public_surface_drift_check_passes() -> None:
     assert drift["actual_count"] == expected_count
 
 
-def test_verify_no_drift_reports_22_tools() -> None:
-    """verify_no_drift must report ok=True with exactly 22 tools."""
-    from arifosmcp.runtime.public_registry import verify_no_drift
+def test_verify_no_drift_reports_expected_tool_count() -> None:
+    """verify_no_drift must report ok=True with the expected canonical13 tool count."""
+    from arifosmcp.runtime.public_registry import EXPECTED_TOOL_COUNT, verify_no_drift
 
     drift = verify_no_drift("canonical13")
     assert drift["ok"], f"Drift check failed: {drift}. VOID."
-    assert drift["actual_count"] == 22, f"Expected 22 tools, got {drift['actual_count']}."
+    assert drift["actual_count"] == EXPECTED_TOOL_COUNT, (
+        f"Expected {EXPECTED_TOOL_COUNT} tools, got {drift['actual_count']}."
+    )
 
 
 # ════════════════════════════════════════════════════════════════════════════════

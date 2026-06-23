@@ -16,6 +16,7 @@ from .prompts import V2_PROMPT_SPECS
 from .public_surface import (
     CANARY_PROBES,
     CANONICAL_13,
+    CANONICAL_LONG_NAME_ALIASES,
     current_public_surface_mode,
     normalize_public_surface_mode,
     public_tool_names_for_mode,
@@ -27,10 +28,10 @@ PYPROJECT_PATH = ROOT / "pyproject.toml"
 TOOL_REGISTRY_PATH = ROOT / "arifosmcp" / "tool_registry.json"
 DEFAULT_PUBLIC_BASE_URL = "https://arifosmcp.arif-fazil.com"
 
-CANONICAL_PUBLIC_TOOLS = frozenset(CANONICAL_13)
+CANONICAL_PUBLIC_TOOLS = frozenset(CANONICAL_13) | frozenset(CANONICAL_LONG_NAME_ALIASES)
 # EXPECTED_TOOL_COUNT is the default public wire surface (canonical13 mode):
-# 21 canonical kernel tools + 1 zero-floor transport canary probe = 22.
-EXPECTED_TOOL_COUNT = len(CANONICAL_13) + len(CANARY_PROBES)
+# 16 canonical short names + 12 SDK long-name aliases + 1 canary probe = 29.
+EXPECTED_TOOL_COUNT = len(CANONICAL_13) + len(CANONICAL_LONG_NAME_ALIASES) + len(CANARY_PROBES)
 
 RUNTIME_ENVELOPE_SCHEMA = {
     "type": "object",
@@ -70,19 +71,36 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Call this FIRST before any other tool in a new conversation. "
         "Modes: init (full binding, ~60s) | light (<1s bootstrap with tool pointers)."
     ),
+    "arif_session_init": (
+        "[SDK alias of arif_init] Start or resume a governed constitutional session. "
+        "Call this FIRST before any other tool in a new conversation. "
+        "Modes: init | light | resume | validate | epoch_open | epoch_seal."
+    ),
     "arif_observe": (
         "Search the web, ingest URLs, check system vitals, or map a repository. "
         "Use for gathering real-world data and grounding queries in reality. "
         "Modes: search | ingest | compass | atlas | entropy_dS | vitals | repo_map."
     ),
+    "arif_sense_observe": (
+        "[SDK alias of arif_observe] Multimodal reality observation and hybrid discovery. "
+        "Use for web search, URL ingestion, system vitals, and repository mapping."
+    ),
     "arif_fetch": (
         "Fetch and preserve external evidence with source citations. "
+        "Use when a claim needs verified backing or factual grounding."
+    ),
+    "arif_evidence_fetch": (
+        "[SDK alias of arif_fetch] Fetch and preserve external evidence with source citations. "
         "Use when a claim needs verified backing or factual grounding."
     ),
     "arif_think": (
         "Multi-step reasoning, planning, and reflection with confidence labeling. "
         "Use for complex analysis, hypothesis evaluation, plan generation, and decision preparation. "
         "Modes: reason | reflect | verify | critique | plan | plan_review | plan_approve | refactor_plan | metabolize."
+    ),
+    "arif_mind_reason": (
+        "[SDK alias of arif_think] Multi-step reasoning, planning, and reflection with confidence labeling. "
+        "Use for complex analysis, hypothesis evaluation, plan generation, and decision preparation."
     ),
     "arif_kernel_route": (
         "[DEPRECATED — use arif_route] Route intent to the correct tool or federation organ. "
@@ -94,21 +112,28 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Call this LAST, after reasoning and judgment are complete. "
         "Modes: compose | style | cite | summary | format | nudge | repo_answer."
     ),
+    "arif_reply_compose": (
+        "[SDK alias of arif_compose] Compose the final response for the user. "
+        "Call this LAST, after reasoning and judgment are complete."
+    ),
     "arif_memory": (
         "Federated memory tool — 7 canonical modes: "
         "recall | inspect | attest | remember | promote | revise | forget. "
         "Use for storing, retrieving, and governing memory across the 6-layer stack."
     ),
     "arif_memory_recall": (
-        "[DEPRECATED — use arif_memory] Search past sessions, assets, sealed events, or repositories. "
-        "Use for retrieving historical context, prior decisions, and codebase knowledge. "
-        "Modes: recall | store | get | list | context | repo_ingest | repo_search | "
-        "manage (snapshot|consolidate|forget|replay|restore — EUREKA-A KernelState OS resource manager)."
+        "[SDK alias of arif_memory] Federated memory tool — 7 canonical modes: "
+        "recall | inspect | attest | remember | promote | revise | forget. "
+        "Use for storing, retrieving, and governing memory across the 6-layer stack."
     ),
     "arif_critique": (
         "Assess ethical risks and human impact before acting. "
         "Use before irreversible, sensitive, or dignity-affecting actions. "
         "Modes: critique | simulate | empathize | redteam | maruah | deescalate | instruction_scan."
+    ),
+    "arif_heart_critique": (
+        "[SDK alias of arif_critique] Assess ethical risks and human impact before acting. "
+        "Use before irreversible, sensitive, or dignity-affecting actions."
     ),
     "arif_gateway_connect": (
         "Bridge to other federation agents (GEOX, WEALTH, WELL, A-FORGE, AAA, APEX, cn-organ). "
@@ -119,17 +144,33 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Use for operational status and metabolic monitoring. "
         "Modes: health | vitals | cost | predict | topology | drift | stack_health | budget."
     ),
+    "arif_ops_measure": (
+        "[SDK alias of arif_measure] Check system health, thermodynamic state, and resource metrics. "
+        "Use for operational status and metabolic monitoring."
+    ),
     "arif_judge": (
         "Render final constitutional verdict on a proposed action. "
         "Use when a decision is ready for arbitration and binding judgment. "
         "Modes: judge | compare | history | explain | floor_status | witness_consensus."
     ),
+    "arif_judge_deliberate": (
+        "[SDK alias of arif_judge] Render final constitutional verdict on a proposed action. "
+        "Use when a decision is ready for arbitration and binding judgment."
+    ),
     "arif_seal": (
         "Seal a verdict or outcome to the immutable audit ledger. "
         "Use for final, irreversible records that must be preserved forever."
     ),
+    "arif_vault_seal": (
+        "[SDK alias of arif_seal] Seal a verdict or outcome to the immutable audit ledger. "
+        "Use for final, irreversible records that must be preserved forever."
+    ),
     "arif_forge": (
         "Execute approved builds, deployments, or system changes. "
+        "Use ONLY after arif_judge has issued a SEAL verdict."
+    ),
+    "arif_forge_execute": (
+        "[SDK alias of arif_forge] Execute approved builds, deployments, or system changes. "
         "Use ONLY after arif_judge has issued a SEAL verdict."
     ),
     # ── Rule 14 canonical expansion (2026-06-20) ──

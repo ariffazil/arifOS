@@ -11,14 +11,14 @@ from arifosmcp.runtime.public_registry import (
     tool_names_for_profile,
     verify_no_drift,
 )
-from arifosmcp.runtime.public_surface import BLOCKED_PUBLIC_PREFIXES
+from arifosmcp.runtime.public_surface import BLOCKED_PUBLIC_PREFIXES, CANARY_PROBES
 
 
 def test_server_json_matches_canonical13_registry() -> None:
     server_json = build_server_json()
     tool_names = {tool["name"] for tool in server_json["tools"]}
 
-    assert tool_names == CANONICAL_PUBLIC_TOOLS
+    assert tool_names == CANONICAL_PUBLIC_TOOLS | set(CANARY_PROBES)
     assert server_json["capabilities"]["public_surface"] == "canonical13"
 
 
@@ -26,14 +26,14 @@ def test_mcp_manifest_matches_canonical13_registry() -> None:
     manifest_json = build_mcp_manifest()
     tool_names = {tool["name"] for tool in manifest_json["tools"]}
 
-    assert tool_names == CANONICAL_PUBLIC_TOOLS
+    assert tool_names == CANONICAL_PUBLIC_TOOLS | set(CANARY_PROBES)
 
 
 def test_public_profile_stays_canonical13() -> None:
     public_names = tool_names_for_profile("public")
 
     assert len(public_names) == EXPECTED_TOOL_COUNT
-    assert set(public_names) == CANONICAL_PUBLIC_TOOLS
+    assert set(public_names) == CANONICAL_PUBLIC_TOOLS | set(CANARY_PROBES)
     assert not [name for name in public_names if name.startswith(BLOCKED_PUBLIC_PREFIXES)]
 
 

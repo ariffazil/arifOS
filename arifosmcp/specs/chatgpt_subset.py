@@ -313,12 +313,45 @@ def list_recent_verdicts_schema() -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+def _live_surface_tool_schemas() -> list[dict[str, Any]]:
+    """
+    Derive ChatGPT-compatible tool schemas from the live arifOS public surface.
+
+    This keeps the ChatGPT Apps SDK manifest synchronized with the canonical
+    MCP wire surface (short names + SDK long-name aliases + canary probe).
+    """
+    from arifosmcp.runtime.public_registry import public_tool_specs
+
+    schemas: list[dict[str, Any]] = []
+    for spec in public_tool_specs("canonical13"):
+        input_schema = getattr(spec, "input_schema", None) or {"type": "object", "properties": {}}
+        schemas.append(
+            {
+                "name": spec.name,
+                "title": spec.name,
+                "description": spec.description,
+                "inputSchema": input_schema,
+                "annotations": {"readOnlyHint": getattr(spec, "access", "public") != "sovereign"},
+            }
+        )
+    return schemas
+
+
 def get_chatgpt_manifest() -> dict[str, Any]:
     """
     Build complete ChatGPT Apps SDK manifest.
 
     This is the contract between arifOS and OpenAI's platform.
+    The executable tool list is derived from the live public MCP surface so
+    the connector never drifts from the canonical wire names.
     """
+    live_tools = _live_surface_tool_schemas()
+    live_tool_names = [t["name"] for t in live_tools]
+    chatgpt_tools = [
+        get_constitutional_health_schema(),
+        render_vault_seal_schema(),
+        list_recent_verdicts_schema(),
+    ]
     return {
         "schema_version": "2026.04.06",
         "name": "arifOS Constitutional Health",
@@ -329,15 +362,11 @@ def get_chatgpt_manifest() -> dict[str, Any]:
         ),
         "vendor": {"name": "Muhammad Arif bin Fazil", "url": "https://arif-fazil.com"},
         "capabilities": {
-            "tools": list(CHATGPT_TOOL_NAMES),
+            "tools": list(CHATGPT_TOOL_NAMES) + live_tool_names,
             "resources": list(CHATGPT_RESOURCE_URIS),
             "prompts": list(CHATGPT_PROMPT_NAMES),
         },
-        "tools": [
-            get_constitutional_health_schema(),
-            render_vault_seal_schema(),
-            list_recent_verdicts_schema(),
-        ],
+        "tools": chatgpt_tools + live_tools,
         "resources": [
             {
                 "uri": uri,

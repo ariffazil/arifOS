@@ -47,8 +47,11 @@ def _stable_runtime_env(monkeypatch):
 
 
 def test_surface_partition():
-    assert len(CANONICAL_TOOLS) == 21
-    assert len(list_constitutional_tools()) == 21
+    # CANONICAL_TOOLS contains the 16 canonical short-name tools.
+    # SDK long-name aliases are registered as handlers but are not duplicate
+    # canonical entries (they point to the same handlers).
+    assert len(CANONICAL_TOOLS) == 16
+    assert len(list_constitutional_tools()) == 16
     assert len(list_probe_tools()) == 0
 
 
@@ -61,8 +64,13 @@ def test_tool_names():
 def test_register_tools_matches_canonical_surface():
     mcp = FastMCP("test-arifos")
     registered = register_tools(mcp)
-    # register_tools wires canonical handlers only; the public canary is registered separately
-    assert len(registered) == len(CANONICAL_TOOLS)
+    # register_tools wires canonical short names + SDK long-name aliases.
+    # The canary probe is registered separately in server.py.
+    expected_count = len(CANONICAL_TOOLS) + 12
+    assert len(registered) == expected_count, (
+        f"Expected {expected_count} tools, got {len(registered)}. "
+        f"Extra: {set(registered) - set(CANONICAL_TOOLS)}"
+    )
     assert set(CANONICAL_TOOLS).issubset(set(registered))
     assert not any(name.startswith("arifos_") for name in registered)
 

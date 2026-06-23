@@ -28,7 +28,7 @@ def test_drift_check_passes_in_normal_mode():
     assert report["verdict"] == "SEAL"
     assert report["missing"] == []
     assert report["extra"] == []
-    assert report["registered_count"] == 21
+    assert report["registered_count"] == 16  # 16 canonical kernel handlers (canary registered separately)
 
 
 def test_drift_check_counts_diagnostic_tools_in_dev_mode(monkeypatch):
@@ -37,7 +37,7 @@ def test_drift_check_counts_diagnostic_tools_in_dev_mode(monkeypatch):
 
     monkeypatch.setenv("ARIFOS_MCP_EXPOSE_DEV_TOOLS", "true")
     report = mcp_drift_check(mode="report", target_manifest="all")
-    assert report["registered_count"] == 42  # 21 canonical + 21 diagnostic
+    assert report["registered_count"] == 37  # 16 canonical + 21 diagnostic (canary registered separately)
 
 
 # ── 2. Absorbed mode dispatch ─────────────────────────────────────────────────

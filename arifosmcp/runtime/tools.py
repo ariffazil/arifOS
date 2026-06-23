@@ -16694,13 +16694,7 @@ async def _arif_kernel_intercept_tool(
 
 _CANONICAL_HANDLERS: dict[str, Any] = {
     # ── RSI CANONICAL SURFACE (2026-06-22) ─────────────────────────────────
-    # One name per operation. Aliases removed per F4 CLARITY mandate.
-    # Previous "long-name" entries (arif_session_init, arif_sense_observe,
-    # arif_evidence_fetch, arif_mind_reason, arif_reply_compose,
-    # arif_memory_recall, arif_heart_critique, arif_gateway_connect,
-    # arif_ops_measure, arif_judge_deliberate, arif_vault_seal,
-    # arif_forge_execute, arif_kernel_route, arif_session_init) are RETIRED.
-    # Use the canonical name. See /root/forge_work/rsi-2026-06-22.md.
+    # Primary short names (F4 CLARITY: one canonical name per operation).
     "arif_init": _arif_session_init,
     "arif_observe": _arif_sense_observe,
     "arif_fetch": _arif_evidence_fetch,
@@ -16715,6 +16709,21 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_measure": _arif_ops_measure,
     "arif_explore": _arif_sense_observe,  # explore is a governed subset of observe
 
+    # ── SDK long-name aliases (2026-06-23 unification) ─────────────────────
+    # ChatGPT Apps SDK and legacy clients expect arif_<noun>_<verb> names.
+    # These are first-class aliases pointing to the same handlers as the
+    # short canonical names above. They do NOT create new operations.
+    "arif_session_init": _arif_session_init,
+    "arif_sense_observe": _arif_sense_observe,
+    "arif_evidence_fetch": _arif_evidence_fetch,
+    "arif_mind_reason": _arif_mind_reason_tool,
+    "arif_heart_critique": _arif_heart_critique,
+    "arif_reply_compose": _arif_reply_compose_tool,
+    "arif_memory_recall": _arif_memory_v5_router,
+    "arif_ops_measure": _arif_ops_measure,
+    "arif_judge_deliberate": _arif_judge_deliberate_tool,
+    "arif_vault_seal": _arif_vault_seal_tool,
+    "arif_forge_execute": _arif_forge_execute_tool,
 }
 
 # ── Backward-compat internal aliases (Rule 14 mode-first naming migration) ──
@@ -16789,6 +16798,8 @@ try:
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_bridge_connect"] = _arif_bridge_tool
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_attest"] = _arif_kernel_attest_tool
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_health"] = _arif_kernel_health_tool
+    # SDK long-name alias for arif_bridge_connect (2026-06-23 unification)
+    _RUNTIME_DIAGNOSTIC_HANDLERS["arif_gateway_connect"] = _arif_bridge_tool
 
     # arif_bridge (DEPRECATED alias for arif_bridge_connect) — RETIRED 2026-06-22 RSI.
     # Use arif_bridge_connect. F4 CLARITY: one name per operation.
@@ -17703,20 +17714,23 @@ def register_v2_tools(mcp: FastMCP, **kwargs: Any) -> list[str]:
 # arifos_* → arif_* canonical name mapping for backward compatibility.
 # Used by tools_hardened_dispatch.get_tool_handler to route legacy calls.
 _LEGACY_ALIASES: dict[str, str] = {
-    # ── Canonical 13: arifos_* → arif_* ─────────────────────────────────────
-    "arifos_init": "arif_session_init",
-    "arifos_kernel": "arif_kernel_route",
-    "arifos_judge": "arif_judge_deliberate",
-    "arifos_vault": "arif_vault_seal",
-    "arifos_mind": "arif_mind_reason",
-    "arifos_heart": "arif_heart_critique",
-    "arifos_memory": "arif_memory_recall",
-    "arifos_sense": "arif_sense_observe",
-    "arifos_ops": "arif_ops_measure",
-    "arifos_forge": "arif_forge_execute",
-    "arifos_gateway": "arif_gateway_connect",
-    "arifos_evidence": "arif_evidence_fetch",
-    "arifos_reply": "arif_reply_compose",
+    # ── Canonical 13: arifos_* → short canonical arif_* ─────────────────────
+    # Long-name aliases (arif_session_init, arif_judge_deliberate, etc.) are
+    # now first-class handlers; the legacy arifos_* prefix resolves directly
+    # to the short canonical names to keep routing unambiguous.
+    "arifos_init": "arif_init",
+    "arifos_kernel": "arif_kernel_intercept",
+    "arifos_judge": "arif_judge",
+    "arifos_vault": "arif_seal",
+    "arifos_mind": "arif_think",
+    "arifos_heart": "arif_critique",
+    "arifos_memory": "arif_memory",
+    "arifos_sense": "arif_observe",
+    "arifos_ops": "arif_measure",
+    "arifos_forge": "arif_forge",
+    "arifos_gateway": "arif_bridge_connect",
+    "arifos_evidence": "arif_fetch",
+    "arifos_reply": "arif_compose",
     # ── Canary probes: arifos_* → arif_* ────────────────────────────────────
     "arifos_ping": "arif_ping",
     "arifos_canary": "arif_canary",

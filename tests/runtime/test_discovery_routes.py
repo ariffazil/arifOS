@@ -44,7 +44,8 @@ def test_openapi_exposes_arifos_mind_query_schema(client):
     data = response.json()
     assert "/tools/arifos_mind" in data["paths"]
     mind_path = data["paths"]["/tools/arifos_mind"]["post"]
-    assert mind_path["operationId"] == "call_arif_mind_reason"
+    # Legacy alias arifos_mind now resolves to the canonical short name arif_think.
+    assert mind_path["operationId"] == "call_arif_think"
 
 
 def test_llms_txt_reachable(client):

@@ -502,3 +502,21 @@ def test_attestation_requires_hash_or_receipt():
         evidence_level="L3",
     )
     assert is_attested(full) is True
+
+
+def test_substrate_tool_naming_invariants():
+    """Verify that SubstrateIndex detects tool naming violations correctly."""
+    from arifosmcp.agents.eureka.substrate import SubstrateIndex
+
+    idx = SubstrateIndex()
+    idx.build()
+    violations = idx.validate_tool_naming_invariants()
+
+    # The result should contain violations dictionary
+    assert "arifOS" in violations
+    assert "A-FORGE" in violations
+
+    # Log violations for visibility in test outputs
+    print("arifOS Naming Violations:", violations["arifOS"])
+    print("A-FORGE Naming Violations:", violations["A-FORGE"])
+

@@ -27,16 +27,15 @@ def test_chatgpt_widget_preview_route():
 
 
 def test_chatgpt_app_tools_registered():
-    """Verify ALL canonical arif_* tools are registered on the MCP server."""
+    """Verify SDK long-name aliases are registered on the MCP server."""
     tools = asyncio.run(mcp.list_tools())
     names = {tool.name for tool in tools}
-    core_canonical = {
+    sdk_aliases = {
         "arif_session_init",
         "arif_sense_observe",
         "arif_evidence_fetch",
         "arif_mind_reason",
         "arif_heart_critique",
-        "arif_kernel_route",
         "arif_gateway_connect",
         "arif_memory_recall",
         "arif_judge_deliberate",
@@ -45,4 +44,4 @@ def test_chatgpt_app_tools_registered():
         "arif_ops_measure",
         "arif_reply_compose",
     }
-    assert core_canonical.issubset(names), f"Missing: {core_canonical - names}"
+    assert sdk_aliases.issubset(names), f"Missing SDK aliases: {sdk_aliases - names}"
