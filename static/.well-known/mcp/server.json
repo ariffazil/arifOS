@@ -5,9 +5,9 @@
   "serverInfo": {
     "name": "arifos-mcp",
     "title": "arifOS Constitutional MCP Server",
-    "version": "2026.06.23-canonical-freeze"
+    "version": "2026.06.23-seven-tool-facade"
   },
-  "description": "Governed MCP server — 15 canonical tools + 1 canary probe (16 total). One name per function. Human approval gates on irreversible actions, VAULT999 immutable ledger, 888 Judge arbitration, live thermodynamic telemetry. FROZEN 2026-06-23: all SDK aliases removed from wire surface.",
+  "description": "Governed MCP server — 7 public tools. One intent = one tool. Expose cognition, hide plumbing. Human approval gates on irreversible actions, VAULT999 immutable ledger, 888 Judge arbitration, hard seal gate on execution.",
   "transport": {
     "type": "streamable-http",
     "endpoint": "https://mcp.arif-fazil.com/mcp"
@@ -31,7 +31,7 @@
     "leaseRequiredForMutation": true,
     "constitutionalFloors": ["L01_Amanah","L02_Truth","L03_Witness","L04_Clarity","L05_Peace","L06_Empathy","L07_Humility","L08_Genius","L09_AntiHantu","L10_Ontology","L11_Audit","L12_Injection","L13_Sovereign"],
     "verdictTaxonomy": ["SEAL","HOLD","VOID","SABAR","PROCEED","888_HOLD"],
-    "riskClasses": ["C0_GRAMMAR","C1_DRAFT","C2_REVIEW","C3_PUBLIC","C4_LEGAL_MONEY","C5_IRREVERSIBLE"]
+    "irreversibleGate": "arif_act requires seal_verdict_id from arif_seal"
   },
   "links": {
     "homepage": "https://arif-fazil.com",
@@ -39,157 +39,70 @@
     "constitution": "https://arif-fazil.com/000"
   },
   "tools": {
-    "count": 16,
+    "count": 7,
     "frozen": "2026-06-23",
-    "naming": "arif_noun_verb (canonical) — one name per function",
-    "canonical": [
+    "naming": "arif_noun_verb — one intent = one public tool",
+    "contract": [
       {
         "name": "arif_init",
         "stage": "000",
-        "access": "public",
-        "description": "Session bootstrap + identity binding. CALL FIRST.",
+        "description": "Start or resume a governed session. CALL THIS FIRST.",
         "actionClass": "PREPARE",
-        "riskTier": "medium",
-        "irreversible": false
+        "irreversible": false,
+        "requiresSession": false
       },
       {
         "name": "arif_observe",
         "stage": "111",
-        "access": "public",
-        "description": "Multimodal reality observation and hybrid discovery.",
+        "description": "Search the web, check system vitals, gather real-world data.",
         "actionClass": "OBSERVE",
-        "riskTier": "low",
-        "irreversible": false
-      },
-      {
-        "name": "arif_fetch",
-        "stage": "222",
-        "access": "public",
-        "description": "Verified external evidence retrieval with source-of-truth grounding.",
-        "actionClass": "OBSERVE",
-        "riskTier": "medium",
-        "irreversible": false
+        "irreversible": false,
+        "requiresSession": true
       },
       {
         "name": "arif_think",
         "stage": "333",
-        "access": "public",
-        "description": "Symbolic reasoning kernel — epistemically honest, self-critiquing.",
+        "description": "Multi-step reasoning, planning, reflection with confidence labeling.",
         "actionClass": "ANALYZE",
-        "riskTier": "medium",
-        "irreversible": false
-      },
-      {
-        "name": "arif_critique",
-        "stage": "666",
-        "access": "public",
-        "description": "Ethical critique and consequence assessment against F1-L13 floors.",
-        "actionClass": "ANALYZE",
-        "riskTier": "medium",
-        "irreversible": false
-      },
-      {
-        "name": "arif_compose",
-        "stage": "444r",
-        "access": "public",
-        "description": "Governed response composition — formats final output for Arif.",
-        "actionClass": "ANALYZE",
-        "riskTier": "low",
-        "irreversible": false
+        "irreversible": false,
+        "requiresSession": true
       },
       {
         "name": "arif_route",
-        "stage": "555",
-        "access": "public",
-        "description": "Routes an intent to the correct federation organ.",
+        "stage": "444",
+        "description": "Routes intent to the correct federation organ.",
         "actionClass": "ANALYZE",
-        "riskTier": "low",
-        "irreversible": false
-      },
-      {
-        "name": "arif_triage",
-        "stage": "555",
-        "access": "public",
-        "description": "Session status, preflight, and priority classification.",
-        "actionClass": "ANALYZE",
-        "riskTier": "low",
-        "irreversible": false
-      },
-      {
-        "name": "arif_bridge_connect",
-        "stage": "555",
-        "access": "authenticated",
-        "description": "Low-level direct organ tool call. Bypasses intent map.",
-        "actionClass": "BRIDGE",
-        "riskTier": "medium",
-        "irreversible": false
-      },
-      {
-        "name": "arif_memory",
-        "stage": "555m",
-        "access": "public",
-        "description": "Federated memory — 7 canonical modes (recall|inspect|attest|remember|promote|revise|forget).",
-        "actionClass": "ANALYZE",
-        "riskTier": "medium",
-        "irreversible": false
-      },
-      {
-        "name": "arif_measure",
-        "stage": "777",
-        "access": "public",
-        "description": "Machine resource health + governance thermodynamics.",
-        "actionClass": "OBSERVE",
-        "riskTier": "low",
-        "irreversible": false
+        "irreversible": false,
+        "requiresSession": true
       },
       {
         "name": "arif_judge",
         "stage": "888",
-        "access": "authenticated",
-        "description": "Final constitutional arbitration — renders SEAL/HOLD/VOID verdicts.",
+        "description": "Render final constitutional verdict. Returns SEAL/HOLD/VOID.",
         "actionClass": "DRAFT",
-        "riskTier": "critical",
-        "irreversible": false
+        "irreversible": false,
+        "requiresSession": true
+      },
+      {
+        "name": "arif_act",
+        "stage": "900",
+        "description": "Execute approved action. REQUIRES valid seal_verdict_id from arif_seal. No seal = 888_HOLD.",
+        "actionClass": "MUTATE",
+        "irreversible": true,
+        "requiresSession": true,
+        "requiresSeal": true
       },
       {
         "name": "arif_seal",
         "stage": "999",
-        "access": "authenticated",
-        "description": "Immutable ledger anchoring — cryptographic hash-chain seal to VAULT999.",
+        "description": "Seal verdict to immutable audit ledger. Permanent record.",
         "actionClass": "IRREVERSIBLE",
-        "riskTier": "critical",
-        "irreversible": true
-      },
-      {
-        "name": "arif_forge",
-        "stage": "010",
-        "access": "sovereign",
-        "description": "Build execution — code generation, artifact creation, system modification.",
-        "actionClass": "MUTATE",
-        "riskTier": "critical",
-        "irreversible": true
-      },
-      {
-        "name": "arif_kernel_intercept",
-        "stage": "888",
-        "access": "public",
-        "description": "Minimum Constitutional Kernel — brutalist interceptor for all agent actions.",
-        "actionClass": "DRAFT",
-        "riskTier": "critical",
-        "irreversible": false
+        "irreversible": true,
+        "requiresSession": true
       }
     ],
-    "canary": [
-      {
-        "name": "arif_canary",
-        "description": "Unified transport diagnostic probe. Six modes: ping|schema_echo|version_echo|transport_echo|initialize_probe|conformance_report",
-        "actionClass": "OBSERVE",
-        "riskTier": "low",
-        "irreversible": false
-      }
-    ],
-    "requiresHumanAck": ["arif_seal", "arif_forge"],
-    "requiresSession": ["arif_judge", "arif_seal", "arif_forge", "arif_bridge_connect", "arif_memory"]
+    "requiresHumanAck": ["arif_seal", "arif_act"],
+    "requiresSeal": ["arif_act"]
   },
   "resources": {
     "count": 5,
